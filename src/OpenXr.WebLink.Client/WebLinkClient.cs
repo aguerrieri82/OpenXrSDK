@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using OpenXr.WebLink.Entities;
+using System.Data.Common;
 using System.Text.Json;
 
 namespace OpenXr.WebLink.Client
@@ -10,10 +11,12 @@ namespace OpenXr.WebLink.Client
         private HubConnection? _connection;
         private string _endpoint;
         private bool _isStarted;
+        private IWebLinkHandler _handler;
 
-        public WebLinkClient(string endpoint) 
+        public WebLinkClient(string endpoint, IWebLinkHandler handler) 
         {
-            _endpoint = endpoint;   
+            _endpoint = endpoint;
+            _handler = handler;
         }
 
         public async Task DisconnectAsync()
@@ -47,7 +50,10 @@ namespace OpenXr.WebLink.Client
                 })
             .Build();
 
-            HubConnection x;
+            _connection.On("ObjectChanged", (TrackInfo info) =>
+            {
+                _handler.OnObjectChanged(info);
+            });
 
             _connection.Closed += async (error) =>
             {
@@ -95,5 +101,13 @@ namespace OpenXr.WebLink.Client
             return await _connection!.InvokeAsync<IList<XrAnchorDetails>>("GetAnchors", filter);
         }
 
+        public async Task TrackObjectAsync(TrackObjectType type, Guid? anchorId, bool enabled)
+        {
+            if (!await EnsureConnectedAsync())
+                return;
+            await _connection!.InvokeAsync<IList<XrAnchorDetails>>("TrackObject", type, anchorId, enabled);
+        }
+
+        
     }
 }

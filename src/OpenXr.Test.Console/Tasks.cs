@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Oculus.XrPlugin;
 using static OVRPlugin;
 using static Oculus.XrPlugin.OculusXrPlugin;
+using OpenXr.WebLink.Entities;
 
 namespace OpenXr
 {
@@ -207,8 +208,10 @@ namespace OpenXr
 
         public static async Task WebLinkTask()
         {
-            var client = new WebLink.Client.WebLinkClient("https://localhost:7135");
-            
+
+
+            var client = new WebLink.Client.WebLinkClient("https://localhost:7135", new WebLinkHandler());
+
             await client.ConnectAsync("");
 
             await client.StartSessionAsync();
@@ -218,8 +221,12 @@ namespace OpenXr
                 Components = WebLink.Entities.XrAnchorComponent.All
             });
 
-            await client.StopSessionAsync();
+            await client.TrackObjectAsync(TrackObjectType.Head, null, true);
 
+            Console.WriteLine("Press a key to exit");
+            Console.ReadKey();
+
+            await client.StopSessionAsync();
         }
     }
 }
