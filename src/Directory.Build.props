@@ -12,6 +12,7 @@
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;ARM64</Platforms>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <AspNetRoot>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.0\</AspNetRoot>
   </PropertyGroup>
 
 </Project>

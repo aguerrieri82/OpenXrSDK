@@ -40,9 +40,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "#Global", "#Global", "{BFA6
 		..\readme.md = ..\readme.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXr.WebLink.Entities", "OpenXr.WebLink.Entities\OpenXr.WebLink.Entities.csproj", "{CE86F573-5553-4276-9098-F2827FB33236}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.WebLink.Entities", "OpenXr.WebLink.Entities\OpenXr.WebLink.Entities.csproj", "{CE86F573-5553-4276-9098-F2827FB33236}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXr.WebLink.Client", "OpenXr.WebLink.Client\OpenXr.WebLink.Client.csproj", "{549C1695-99E3-4A75-A285-D8B183950C73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.WebLink.Client", "OpenXr.WebLink.Client\OpenXr.WebLink.Client.csproj", "{549C1695-99E3-4A75-A285-D8B183950C73}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
