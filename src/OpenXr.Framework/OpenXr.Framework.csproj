@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+
+
+
+    
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.OpenXR" Version="2.20.0" />
+
+    <PackageReference Include="Silk.NET.OpenXR.Extensions.KHR" Version="2.20.0" />
+
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="libopenxr_loader.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="openxr_loader.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

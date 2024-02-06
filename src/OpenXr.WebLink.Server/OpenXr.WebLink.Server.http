@@ -1,0 +1,6 @@
+@OpenXr.WebLink.Server_HostAddress = http://localhost:5038
+
+GET {{OpenXr.WebLink.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

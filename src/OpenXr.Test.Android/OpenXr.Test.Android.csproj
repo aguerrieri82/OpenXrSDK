@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
+    <SupportedOSPlatformVersion>29</SupportedOSPlatformVersion>
+    <OutputType>Exe</OutputType>
+    <ApplicationId>net.eusoft.oculus</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <EnableLLVM>True</EnableLLVM>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <EnableLLVM>True</EnableLLVM>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <EnableLLVM>True</EnableLLVM>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <EnableLLVM>True</EnableLLVM>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Libs\arm64-v8a\liblog.so" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
+    <ProjectReference Include="..\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
+    <ProjectReference Include="..\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
+  </ItemGroup>
+</Project>
