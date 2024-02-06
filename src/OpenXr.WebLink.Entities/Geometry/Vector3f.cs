@@ -17,14 +17,14 @@ namespace OpenXr.WebLink.Entities
 
         public override string ToString()
         {
-            return string.Format("({0:0.00}) ({1:0.00}) ({2:0.00})", X, Y, Z);
+            return string.Format("({0:0.000}) ({1:0.000}) ({2:0.000})", X, Y, Z);
         }
 
         public bool Similar(Vector3f other, float epslon)
         {
-            return Math.Abs(other.X - other.X) < epslon &&
-                Math.Abs(other.Y - other.Y) < epslon &&
-                Math.Abs(other.Z - other.Z) < epslon;
+            return Math.Abs(X - other.X) < epslon &&
+                Math.Abs(Y - other.Y) < epslon &&
+                Math.Abs(Z - other.Z) < epslon;
         }
 
         public override bool Equals([NotNullWhen(true)] object? obj)

@@ -286,8 +286,8 @@ namespace OpenXr.Framework
             var refSpace = new ReferenceSpaceCreateInfo()
             {
                 Type = StructureType.ReferenceSpaceCreateInfo,
-                ReferenceSpaceType = ReferenceSpaceType.View,
-                PoseInReferenceSpace = new Posef(new Quaternionf(0f, 0f, 0f, 1f), new Vector3f(0f, 0f, 0f))
+                ReferenceSpaceType = type,
+                PoseInReferenceSpace = pose
             };
 
             Space space;

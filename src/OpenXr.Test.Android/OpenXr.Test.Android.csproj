@@ -26,5 +26,6 @@
     <ProjectReference Include="..\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
     <ProjectReference Include="..\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
     <ProjectReference Include="..\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
+    <ProjectReference Include="..\OpenXr.WebLink.Entities\OpenXr.WebLink.Entities.csproj" />
   </ItemGroup>
 </Project>

@@ -7,6 +7,7 @@ using Android.Webkit;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.Vulkan;
+using OpenXr.WebLink;
 using Silk.NET.OpenXR;
 
 
@@ -36,7 +37,7 @@ namespace OpenXr.Test.Android
 
             SetContentView(Resource.Layout.activity_main);
 
-            FindViewById<Button>(Resource.Id.getRooom)!.Click += (_, _) => GetRoomAsync();
+            FindViewById<Button>(Resource.Id.getRooom)!.Click += (_, _) => _= Task.Run(GetRoomAsync);
 
             RequestScenePermissionIfNeeded();
         }
@@ -68,7 +69,7 @@ namespace OpenXr.Test.Android
         }
 
 
-        private async void GetRoomAsync()
+        private async Task GetRoomAsync()
         {
             if (_app == null)
             {
@@ -77,12 +78,14 @@ namespace OpenXr.Test.Android
                     new OculusXrPlugin(),
                     new AndroidXrPlugin(this));
 
-                _app.Initialize();
-
                 ProcessEvents();
+
+                _app.Start();
+                _app.WaitForSession(SessionState.Ready);
+                _app.BeginSession(ViewConfigurationType.PrimaryStereo);
             }
 
-            _app.Start();
+          
 
             try
             {
@@ -140,7 +143,7 @@ namespace OpenXr.Test.Android
             }
             finally
             {
-                _app.Stop();
+                //_app.Stop();
             }
         }
 
@@ -153,6 +156,21 @@ namespace OpenXr.Test.Android
                 if (_app != null)
                 {
                     _app.HandleEvents();
+
+                    try
+                    {
+                        var location = _app.LocateSpace(_app.Head, _app.Floor, 1);
+
+                        var curPose = location.Pose.Convert().To<WebLink.Entities.Posef>();
+
+                        Log.Debug("POSE", "{0}", curPose);
+
+                    }
+                    catch
+                    {
+
+                    }
+
                     handler.PostDelayed(ProcessWork, 50);
                 }
             }
