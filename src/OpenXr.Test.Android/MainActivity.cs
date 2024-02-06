@@ -1,3 +1,4 @@
+using Android.Content;
 using Android.Content.PM;
 using Android.Nfc;
 using Android.OS;
@@ -9,6 +10,7 @@ using OpenXr.Framework.Oculus;
 using OpenXr.Framework.Vulkan;
 using OpenXr.WebLink;
 using Silk.NET.OpenXR;
+using static Android.Telephony.CarrierConfigManager;
 
 
 namespace OpenXr.Test.Android
@@ -27,19 +29,24 @@ namespace OpenXr.Test.Android
         const string PERMISSION_USE_SCENE = "com.oculus.permission.USE_SCENE";
         const int REQUEST_CODE_PERMISSION_USE_SCENE = 1;
 
-
-        XrApp? _app;
         private WebView? _webView;
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
 
+            GlobalServices.App = new XrApp(
+                    new VulkanGraphicDriver(new VulkanDevice()),
+                    new OculusXrPlugin(),
+                    new AndroidXrPlugin(this));
+
             SetContentView(Resource.Layout.activity_main);
 
             FindViewById<Button>(Resource.Id.getRooom)!.Click += (_, _) => _= Task.Run(GetRoomAsync);
 
             RequestScenePermissionIfNeeded();
+
+            StartService(new Intent(this, typeof(WebServer)));
         }
 
         void ConfigureWebView()
@@ -71,25 +78,18 @@ namespace OpenXr.Test.Android
 
         private async Task GetRoomAsync()
         {
-            if (_app == null)
+            var app = GlobalServices.App!;
+
+            if (!app.IsStarted)
             {
-                _app = new XrApp(
-                    new VulkanGraphicDriver(new VulkanDevice()),
-                    new OculusXrPlugin(),
-                    new AndroidXrPlugin(this));
-
-                ProcessEvents();
-
-                _app.Start();
-                _app.WaitForSession(SessionState.Ready);
-                _app.BeginSession(ViewConfigurationType.PrimaryStereo);
+                app.Start();
+                app.WaitForSession(SessionState.Ready);
             }
-
           
 
             try
             {
-                var xrOculus = _app.Plugin<OculusXrPlugin>();
+                var xrOculus = app.Plugin<OculusXrPlugin>();
 
                 var anchors = await xrOculus.QueryAllAnchorsAsync().ConfigureAwait(true);
 
@@ -128,7 +128,7 @@ namespace OpenXr.Test.Android
 
                     if (components.Contains(SpaceComponentTypeFB.LocatableFB))
                     {
-                        var local = _app.LocateSpace(_app.Stage, space.Space, 1);
+                        var local = app.LocateSpace(app.Stage, space.Space, 1);
 
                         Console.WriteLine(local.Pose);
                     }
@@ -145,37 +145,6 @@ namespace OpenXr.Test.Android
             {
                 //_app.Stop();
             }
-        }
-
-        void ProcessEvents()
-        {
-            var handler = new Handler(Looper.MainLooper!);
-
-            void ProcessWork()
-            {
-                if (_app != null)
-                {
-                    _app.HandleEvents();
-
-                    try
-                    {
-                        var location = _app.LocateSpace(_app.Head, _app.Floor, 1);
-
-                        var curPose = location.Pose.Convert().To<WebLink.Entities.Posef>();
-
-                        Log.Debug("POSE", "{0}", curPose);
-
-                    }
-                    catch
-                    {
-
-                    }
-
-                    handler.PostDelayed(ProcessWork, 50);
-                }
-            }
-
-            handler.Post(ProcessWork);
         }
 
         static MainActivity()

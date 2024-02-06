@@ -1,8 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
 
   </PropertyGroup>
+ 
+  <ItemGroup>
+
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
@@ -15,6 +19,5 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-
 
 </Project>

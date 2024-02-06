@@ -369,6 +369,8 @@ namespace OpenXr.Framework
             _xr = null;
         }
 
+        public bool IsStarted => _isStarted;
+
         public ulong SystemId => _systemId;
 
         public Instance Instance => _instance;
