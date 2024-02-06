@@ -24,7 +24,17 @@ namespace OpenXr.Framework
 
         }
 
+        public virtual void OnSessionBegin()
+        {
+
+        }
+
         public virtual void OnSessionCreated()
+        {
+
+        }
+
+        public virtual void OnSessionEnd()
         {
 
         }

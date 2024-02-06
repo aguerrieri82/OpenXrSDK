@@ -18,21 +18,18 @@ using System.Reflection;
 namespace OpenXr.Test.Android
 {
     [IntentFilter([
-        "com.oculus.intent.category.VR", 
         "android.intent.action.MAIN", 
         "android.intent.category.LAUNCHER"])]
     [Activity(
         Label = "@string/app_name",
         Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen",
-        LaunchMode = LaunchMode.SingleTask,
-        ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.Orientation,
         ScreenOrientation = ScreenOrientation.Landscape,
+        LaunchMode = LaunchMode.SingleTask,
         MainLauncher = true)]
-    public class MainActivity : Activity, IServiceConnection
+
+    public class MainActivity : Activity
     {
         const string TAG = "MainActivity";
-        const string PERMISSION_USE_SCENE = "com.oculus.permission.USE_SCENE";
-        const int REQUEST_CODE_PERMISSION_USE_SCENE = 1;
 
         private WebView? _webView;
 
@@ -43,28 +40,18 @@ namespace OpenXr.Test.Android
             GlobalServices.App = new XrApp(
                 new VulkanGraphicDriver(new VulkanDevice()),
                 new OculusXrPlugin(),
+                new OpenVrPlugin(this),
                 new AndroidXrPlugin(this, (uint)Process.MyTid()));
 
             SetContentView(Resource.Layout.activity_main);
 
             FindViewById<Button>(Resource.Id.getRooom)!.Click += (_, _) => _= Task.Run(GetRoomAsync);
 
-            RequestScenePermissionIfNeeded();
-
-            BindService(new Intent(this, typeof(WebServer)), this, Bind.AutoCreate);
+            StartService(new Intent(this, typeof(WebServerService)));
 
             ConfigureWebView();
         }
 
-        public void OnServiceConnected(ComponentName? name, IBinder? service)
-        {
-            ((WebServer.LocalBinder)service!).Instance.StartService(new Intent(this, typeof(WebServer)));
-        }
-
-        public void OnServiceDisconnected(ComponentName? name)
-        {
-
-        }
 
         void ConfigureWebView()
         {
@@ -82,27 +69,13 @@ namespace OpenXr.Test.Android
             _webView!.LoadUrl("https://roomdesigner.eusoft.net/");
         }
 
-        private void RequestScenePermissionIfNeeded()
-        {
-            Log.Debug(TAG, "requestScenePermissionIfNeeded");
-            if (CheckSelfPermission(PERMISSION_USE_SCENE) != Permission.Granted)
-            {
-                Log.Debug(TAG, "Permission has not been granted, request " + PERMISSION_USE_SCENE);
-                RequestPermissions([PERMISSION_USE_SCENE], REQUEST_CODE_PERMISSION_USE_SCENE);
-            }
-        }
-
-
         private async Task GetRoomAsync()
         {
             var app = GlobalServices.App!;
-
-            if (!app.IsStarted)
-            {
-                app.Start();
-                app.WaitForSession(SessionState.Ready);
-                app.BeginSession(ViewConfigurationType.PrimaryStereo);
-            }
+    
+            app.Start();
+            app.WaitForSession(SessionState.Ready);
+            app.BeginSession(ViewConfigurationType.PrimaryStereo);
 
             try
             {
@@ -160,14 +133,8 @@ namespace OpenXr.Test.Android
             }
             finally
             {
-                //_app.Stop();
+                app.Stop();
             }
-        }
-
-
-        static MainActivity()
-        {
-            Java.Lang.JavaSystem.LoadLibrary("openxr_loader");
         }
     }
 }

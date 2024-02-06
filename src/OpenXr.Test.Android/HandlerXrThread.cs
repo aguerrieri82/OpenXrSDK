@@ -26,8 +26,14 @@ namespace OpenXr.Test.Android
 
             _handler.Post(() =>
             {
-                Log.Debug("HandlerXrThread", Process.MyTid().ToString());
-                source.SetResult(action());
+                try
+                {
+                    source.SetResult(action());
+                }
+                catch (Exception ex)
+                {
+                    source.SetException(ex);
+                }
             });
 
             return source.Task;
@@ -41,7 +47,10 @@ namespace OpenXr.Test.Android
             {
                 action().ContinueWith(t =>
                 {
-                    _handler.Post(() => source.SetResult(t.Result));
+                    if (t.Exception != null)
+                        source.SetException(t.Exception);
+                    else
+                        _handler.Post(() => source.SetResult(t.Result));
                 });
             });
 
