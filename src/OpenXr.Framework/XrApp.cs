@@ -34,6 +34,7 @@ namespace OpenXr.Framework
         protected SyncEvent _instanceReady;
         private SessionState _lastSessionState;
         private object _sessionLock;
+        private bool _sessionBegun;
 
         public XrApp(params IXrPlugin[] plugins)
         {
@@ -122,6 +123,12 @@ namespace OpenXr.Framework
 
             _isStarted = false;
             _lastSessionState = SessionState.Unknown;
+            _sessionBegun = false;
+
+
+            foreach (var plugin in _plugins)
+                plugin.OnSessionEnd();
+
         }
 
         public T Plugin<T>() where T : IXrPlugin
@@ -297,6 +304,9 @@ namespace OpenXr.Framework
 
         public void BeginSession(ViewConfigurationType viewType)
         {
+            if (_sessionBegun)
+                EndSession();
+
             var sessionBeginInfo = new SessionBeginInfo()
             {
                 Type = StructureType.SessionBeginInfo,
@@ -304,11 +314,25 @@ namespace OpenXr.Framework
             };
 
             CheckResult(_xr!.BeginSession(_session, &sessionBeginInfo), "BeginSession");
+
+            foreach (var plugin in _plugins)
+                plugin.OnSessionBegin();
+
+            _sessionBegun = true;
+
         }
 
         public void EndSession()
         {
+            if (!_sessionBegun)
+                return;
+
             CheckResult(_xr!.EndSession(_session), "EndSession");
+
+            foreach (var plugin in _plugins)
+                plugin.OnSessionEnd();
+
+            _sessionBegun = false;
         }
 
         protected Session CreateSession()

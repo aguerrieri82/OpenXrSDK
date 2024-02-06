@@ -13,26 +13,25 @@ namespace OpenXr.Test.Android
     [Service(Enabled = true, 
         IsolatedProcess = false,
         ForegroundServiceType = ForegroundService.TypeRemoteMessaging)]
-    public class WebServer : Service
+    public class WebServerService : Service
     {
         private WebApplication? _webApp;
-        private Task? _appTask;
         private bool _isActive;
         private Binder _localBinder;
 
         public class LocalBinder : Binder
         {
-            private WebServer _service;
+            private WebServerService _service;
 
-            public LocalBinder(WebServer service)
+            public LocalBinder(WebServerService service)
             {
                 _service = service;
             }
 
-            public WebServer Instance => _service;
+            public WebServerService Instance => _service;
         }
 
-        public WebServer()
+        public WebServerService()
         {
             _localBinder = new LocalBinder(this);
         }
@@ -68,7 +67,7 @@ namespace OpenXr.Test.Android
         {
             _isActive = true;
 
-            _appTask = _webApp!.RunAsync();
+            _ = _webApp!.RunAsync();
 
             return StartCommandResult.Sticky;
         }
@@ -76,8 +75,12 @@ namespace OpenXr.Test.Android
         public override async void OnDestroy()
         {
             await _webApp!.StopAsync();
+            
             _isActive = false;
+
             base.OnDestroy();
         }
+
+       
     }
 }

@@ -35,7 +35,6 @@ namespace OpenXr.WebLink
 
         public void StopSession()
         {
-            _app.EndSession();
             _app.Stop();
         }
 
@@ -64,11 +63,9 @@ namespace OpenXr.WebLink
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupId);
 
             _logger.LogInformation("Join {connection} '{anchorId}' {on}", Context.ConnectionId, groupId, enabled ? "on" : "off");
-
         }
 
-        public Task<List<XrAnchorDetails>> GetAnchors(XrAnchorFilter filter)
-            => _xrThread.ExecuteAsync(async () =>
+        public async Task<List<XrAnchorDetails>> GetAnchors(XrAnchorFilter filter)
         {
             var xrOculus = _app.Plugin<OculusXrPlugin>();
             var result = new List<XrAnchorDetails>();
@@ -131,9 +128,6 @@ namespace OpenXr.WebLink
             }
 
             return result;
-
-        });
-
-
+        }
     }
 }
