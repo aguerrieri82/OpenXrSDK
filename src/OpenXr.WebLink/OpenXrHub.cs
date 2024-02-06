@@ -8,19 +8,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OpenXr.WebLink
 {
     public class OpenXrHub : Hub
     {
-        protected readonly XrApp _app;
-        private readonly ILogger<OpenXrHub> _logger;
+        readonly XrApp _app;
+        readonly ILogger<OpenXrHub> _logger;
+        readonly IXrThread _xrThread;
 
-        public OpenXrHub(XrApp app, ILogger<OpenXrHub> logger)
+        public OpenXrHub(XrApp app, ILogger<OpenXrHub> logger, IXrThread xrThread)
         {
             _app = app;
             _logger = logger;
+            _xrThread = xrThread;
         }
 
         public void StartSession()
@@ -29,7 +32,6 @@ namespace OpenXr.WebLink
             _app.WaitForSession(SessionState.Ready);
             _app.BeginSession(ViewConfigurationType.PrimaryStereo);
         }
-
 
         public void StopSession()
         {
@@ -65,10 +67,12 @@ namespace OpenXr.WebLink
 
         }
 
-        public async Task<IList<XrAnchorDetails>> GetAnchors(XrAnchorFilter filter)
+        public Task<List<XrAnchorDetails>> GetAnchors(XrAnchorFilter filter)
+            => _xrThread.ExecuteAsync(async () =>
         {
             var xrOculus = _app.Plugin<OculusXrPlugin>();
             var result = new List<XrAnchorDetails>();
+
             var anchors = await xrOculus.QueryAllAnchorsAsync();
 
             foreach (var space in anchors)
@@ -102,7 +106,7 @@ namespace OpenXr.WebLink
                         {
                             _logger.LogError(ex, "LocateSpace {itemId}", item.Id);
                         }
-               
+
                     }
 
                     if ((filter.Components & XrAnchorComponent.Mesh) != 0 &&
@@ -127,7 +131,8 @@ namespace OpenXr.WebLink
             }
 
             return result;
-        }
+
+        });
 
 
     }

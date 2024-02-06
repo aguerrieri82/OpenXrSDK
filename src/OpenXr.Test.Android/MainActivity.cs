@@ -5,16 +5,22 @@ using Android.OS;
 using Android.Util;
 using Android.Views;
 using Android.Webkit;
+using Microsoft.Extensions.DependencyInjection;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.Vulkan;
+using OpenXr.WebLink;
 using Silk.NET.OpenXR;
+using System.Reflection;
 
 
 
 namespace OpenXr.Test.Android
 {
-    [IntentFilter(["com.oculus.intent.category.VR", "android.intent.action.MAIN", "android.intent.category.LAUNCHER"])]
+    [IntentFilter([
+        "com.oculus.intent.category.VR", 
+        "android.intent.action.MAIN", 
+        "android.intent.category.LAUNCHER"])]
     [Activity(
         Label = "@string/app_name",
         Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen",
@@ -22,7 +28,7 @@ namespace OpenXr.Test.Android
         ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.Orientation,
         ScreenOrientation = ScreenOrientation.Landscape,
         MainLauncher = true)]
-    public class MainActivity : Activity
+    public class MainActivity : Activity, IServiceConnection
     {
         const string TAG = "MainActivity";
         const string PERMISSION_USE_SCENE = "com.oculus.permission.USE_SCENE";
@@ -35,9 +41,9 @@ namespace OpenXr.Test.Android
             base.OnCreate(savedInstanceState);
 
             GlobalServices.App = new XrApp(
-                    new VulkanGraphicDriver(new VulkanDevice()),
-                    new OculusXrPlugin(),
-                    new AndroidXrPlugin(this));
+                new VulkanGraphicDriver(new VulkanDevice()),
+                new OculusXrPlugin(),
+                new AndroidXrPlugin(this, (uint)Process.MyTid()));
 
             SetContentView(Resource.Layout.activity_main);
 
@@ -45,9 +51,19 @@ namespace OpenXr.Test.Android
 
             RequestScenePermissionIfNeeded();
 
-            StartService(new Intent(this, typeof(WebServer)));
+            BindService(new Intent(this, typeof(WebServer)), this, Bind.AutoCreate);
 
             ConfigureWebView();
+        }
+
+        public void OnServiceConnected(ComponentName? name, IBinder? service)
+        {
+            ((WebServer.LocalBinder)service!).Instance.StartService(new Intent(this, typeof(WebServer)));
+        }
+
+        public void OnServiceDisconnected(ComponentName? name)
+        {
+
         }
 
         void ConfigureWebView()
@@ -85,8 +101,8 @@ namespace OpenXr.Test.Android
             {
                 app.Start();
                 app.WaitForSession(SessionState.Ready);
+                app.BeginSession(ViewConfigurationType.PrimaryStereo);
             }
-          
 
             try
             {
@@ -147,6 +163,7 @@ namespace OpenXr.Test.Android
                 //_app.Stop();
             }
         }
+
 
         static MainActivity()
         {

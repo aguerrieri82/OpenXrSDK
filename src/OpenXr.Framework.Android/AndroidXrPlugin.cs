@@ -1,5 +1,6 @@
 ﻿using Android.Content;
 using Android.Runtime;
+using Android.Transitions;
 using Java.Interop;
 using Silk.NET.Core;
 using Silk.NET.OpenXR;
@@ -12,6 +13,8 @@ namespace OpenXr.Framework
     {
         protected XrApp? _app;
         protected Context _context;
+        protected KhrAndroidThreadSettings? _thread;
+        protected uint _mainThreadId;
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         delegate Silk.NET.OpenXR.Result InitializeLoaderDelegate(LoaderInitInfoAndroidKHR* loader);
@@ -19,9 +22,10 @@ namespace OpenXr.Framework
         InitializeLoaderDelegate? InitializeLoader;
        
 
-        public AndroidXrPlugin(Context context)
+        public AndroidXrPlugin(Context context, uint mainThreadId)
         {
             _context = context;
+            _mainThreadId = mainThreadId;
         }
 
         protected void InitAndroid(Context context)
@@ -37,6 +41,29 @@ namespace OpenXr.Framework
 
             XrApp.CheckResult(InitializeLoader!(&android), "InitializeLoader");
 
+
+        }
+
+        void SetAndroidApplicationThread(AndroidThreadTypeKHR type, uint threadId)
+        {
+            XrApp.CheckResult(_thread!.SetAndroidApplicationThread(_app!.Session!, type, threadId), "SetAndroidApplicationThread");
+        }
+
+        public override void OnInstanceCreated()
+        {
+            _app!.Xr.TryGetInstanceExtension<KhrAndroidThreadSettings>(null, _app.Instance, out _thread);
+
+
+            base.OnInstanceCreated();
+        }
+
+        public override void OnSessionCreated()
+        {
+            SetAndroidApplicationThread(AndroidThreadTypeKHR.ApplicationMainKhr, _mainThreadId);
+            //SetAndroidApplicationThread(AndroidThreadTypeKHR.ApplicationWorkerKhr, _mainThreadId);
+            //SetAndroidApplicationThread(AndroidThreadTypeKHR.RendererWorkerKhr, _mainThreadId);
+            SetAndroidApplicationThread(AndroidThreadTypeKHR.RendererMainKhr, _mainThreadId);
+            base.OnSessionCreated();
         }
 
         public override void Initialize(XrApp app, IList<string> extensions)
@@ -44,6 +71,7 @@ namespace OpenXr.Framework
             _app = app;
 
             extensions.Add(KhrLoaderInit.ExtensionName);
+            extensions.Add(KhrAndroidThreadSettings.ExtensionName);
 
             var func = new PfnVoidFunction();
             XrApp.CheckResult(_app.Xr.GetInstanceProcAddr(new Instance(), "xrInitializeLoaderKHR", &func), "Bind xrInitializeLoaderKHR");

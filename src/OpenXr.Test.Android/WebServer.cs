@@ -2,15 +2,11 @@
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
-using Android.Util;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OpenXr.WebLink;
+
 
 namespace OpenXr.Test.Android
 {
@@ -21,44 +17,58 @@ namespace OpenXr.Test.Android
     {
         private WebApplication? _webApp;
         private Task? _appTask;
+        private bool _isActive;
+        private Binder _localBinder;
+
+        public class LocalBinder : Binder
+        {
+            private WebServer _service;
+
+            public LocalBinder(WebServer service)
+            {
+                _service = service;
+            }
+
+            public WebServer Instance => _service;
+        }
+
+        public WebServer()
+        {
+            _localBinder = new LocalBinder(this);
+        }
 
         public override IBinder? OnBind(Intent? intent)
         {
-            return null;
+            return _localBinder;
         }
 
         public override void OnCreate()
         {
-
             base.OnCreate();
-
 
             var builder = WebApplication.CreateBuilder();
 
             builder.WebHost.ConfigureKestrel(op => op.ListenAnyIP(8080));
 
-            builder.Services.AddOpenXrWebLink(GlobalServices.App!);
+            builder.Services.AddSingleton<IXrThread>(new HandlerXrThread(new Handler(Looper.MainLooper!)));
+
+            builder.Services.AddSingleton(GlobalServices.App);
+
+            builder.Services.AddOpenXrWebLink();
 
             _webApp = builder.Build();
 
             _webApp.UseOpenXrWebLink();
-            
+
+            GlobalServices.ServiceProvider = _webApp.Services;
         }
 
         [return: GeneratedEnum]
         public override StartCommandResult OnStartCommand(Intent? intent, [GeneratedEnum] StartCommandFlags flags, int startId)
         {
-            _appTask = Task.Run(async () =>
-            {
-                try
-                {
-                    await _webApp!.RunAsync();
-                }
-                catch (Exception ex)
-                {
-                    Log.Debug("WebServer", ex.ToString());
-                };
-            });
+            _isActive = true;
+
+            _appTask = _webApp!.RunAsync();
 
             return StartCommandResult.Sticky;
         }
@@ -66,6 +76,7 @@ namespace OpenXr.Test.Android
         public override async void OnDestroy()
         {
             await _webApp!.StopAsync();
+            _isActive = false;
             base.OnDestroy();
         }
     }

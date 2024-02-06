@@ -12,6 +12,6 @@
 	<uses-feature android:name="com.oculus.feature.PASSTHROUGH" />
 	<application android:allowBackup="false" android:icon="@mipmap/appicon" android:label="@string/app_name" android:supportsRtl="true">
 		<meta-data android:name="com.oculus.supportedDevices" android:value="all" />
-		<meta-data android:name="com.samsung.android.vr.application.mode__" android:value="vr_only" />
+		<meta-data android:name="com.samsung.android.vr.application.mode" android:value="vr_only" />
 	</application>
 </manifest>

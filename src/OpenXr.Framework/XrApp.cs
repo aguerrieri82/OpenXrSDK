@@ -163,11 +163,11 @@ namespace OpenXr.Framework
             }
         }
 
-        public void WaitForSession(SessionState state)
+        public void WaitForSession(params SessionState[] states)
         {
             lock (_sessionLock)
             {
-                while (_lastSessionState != state)
+                while (!states.Contains(_lastSessionState))
                     Monitor.Wait(_sessionLock);
 
             }
@@ -382,6 +382,8 @@ namespace OpenXr.Framework
         public Space Floor => _floor;
 
         public Space Stage => _stage;
+
+        public SessionState SessionState => _lastSessionState;
 
         public XR Xr => _xr!;
     }
