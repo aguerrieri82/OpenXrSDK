@@ -72,13 +72,23 @@ namespace OpenXr.WebLink
             {
                 _app.WaitForSession(SessionState.Ready);
 
+                Entities.Posef lastPose = new Entities.Posef();
+
                 try
                 {
-                    var location = _app.LocateSpace(_app.Head, _app.Stage, 1);
+                    var location = await Task.Run(() => _app.LocateSpace(_app.Head, _app.Stage, 1))
+                                   .WaitAsync(TimeSpan.FromMilliseconds(200));
+
+                    var curPose = location.Pose.Convert().To<Entities.Posef>();
+                    if (curPose.Similar(lastPose, 0.0001f))
+                        continue;
+
+                    lastPose = curPose;
+
                     var info = new TrackInfo
                     {
                         ObjectType = TrackObjectType.Head,
-                        Pose = location.Pose.Convert().To<Entities.Posef>()
+                        Pose = curPose
                     };
 
                     await _hub.Clients.Group("track/head")

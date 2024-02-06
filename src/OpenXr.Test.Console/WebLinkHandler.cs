@@ -12,7 +12,7 @@ namespace OpenXr
     {
         public void OnObjectChanged(TrackInfo info)
         {
-            Console.WriteLine(info.Pose.Position);
+            Console.WriteLine(info.Pose);
         }
     }
 }
