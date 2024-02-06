@@ -19,13 +19,18 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <EnableLLVM>True</EnableLLVM>
   </PropertyGroup>
+
   <ItemGroup>
-    <None Remove="Libs\arm64-v8a\liblog.so" />
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
     <ProjectReference Include="..\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
     <ProjectReference Include="..\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
-    <ProjectReference Include="..\OpenXr.WebLink.Entities\OpenXr.WebLink.Entities.csproj" />
+    <ProjectReference Include="..\OpenXr.WebLink\OpenXr.WebLink.csproj" />
   </ItemGroup>
 </Project>

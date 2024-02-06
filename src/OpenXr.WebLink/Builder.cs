@@ -14,7 +14,12 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static void AddOpenXrWebLink(this IServiceCollection services, IXrPlugin[]? plugins = null)
         {
-            services.AddSingleton(sp => new XrApp(plugins ?? []));
+            services.AddOpenXrWebLink(new XrApp(plugins ?? []));
+        }
+
+        public static void AddOpenXrWebLink(this IServiceCollection services, XrApp app)
+        {
+            services.AddSingleton(app);
             services.AddSignalR()
                     .AddJsonProtocol(options =>
                     {
