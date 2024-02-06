@@ -1,15 +1,17 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
+
+using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.Vulkan;
+using OpenXr.WebLink;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddOpenXrWebLink([
+builder.Services.AddSingleton<IXrThread, CurrentXrThread>();
+builder.Services.AddSingleton(new XrApp(
     new VulkanGraphicDriver(new VulkanDevice()),
-    new OculusXrPlugin()
-]);
+    new OculusXrPlugin()));
+builder.Services.AddOpenXrWebLink();
 
 var app = builder.Build();
 

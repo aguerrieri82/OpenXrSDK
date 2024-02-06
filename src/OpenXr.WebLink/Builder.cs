@@ -12,14 +12,8 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class Builder
     {
-        public static void AddOpenXrWebLink(this IServiceCollection services, IXrPlugin[]? plugins = null)
+        public static void AddOpenXrWebLink(this IServiceCollection services, bool hostService = true)
         {
-            services.AddOpenXrWebLink(new XrApp(plugins ?? []));
-        }
-
-        public static void AddOpenXrWebLink(this IServiceCollection services, XrApp app)
-        {
-            services.AddSingleton(app);
             services.AddSignalR()
                     .AddJsonProtocol(options =>
                     {
@@ -33,7 +27,10 @@ namespace Microsoft.Extensions.DependencyInjection
                         o.MaximumReceiveMessageSize = 50 * 1024 * 1024;
                     });
 
-            services.AddHostedService<OpenXrService>();
+            services.AddSingleton<OpenXrService>();
+            if (hostService)
+                services.AddHostedService(sp => sp.GetRequiredService<OpenXrService>());
+
             services.AddCors(options => options.AddPolicy("AllowAll",
                 builder =>
                 {
