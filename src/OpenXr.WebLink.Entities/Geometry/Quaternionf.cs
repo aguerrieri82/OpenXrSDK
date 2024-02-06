@@ -24,10 +24,10 @@ namespace OpenXr.WebLink.Entities
 
         public bool Similar(Quaternionf other, float epslon)
         {
-            return Math.Abs(other.X - other.X) < epslon &&
-                Math.Abs(other.Y - other.Y) < epslon &&
-                Math.Abs(other.Z - other.Z) < epslon &&
-                Math.Abs(other.W - other.W) < epslon;
+            return Math.Abs(X - other.X) < epslon &&
+                Math.Abs(Y - other.Y) < epslon &&
+                Math.Abs(Z - other.Z) < epslon &&
+                Math.Abs(W - other.W) < epslon;
         }
 
         public override bool Equals([NotNullWhen(true)] object? obj)

@@ -76,7 +76,7 @@ namespace OpenXr.WebLink
 
                 try
                 {
-                    var location = await Task.Run(() => _app.LocateSpace(_app.Head, _app.Stage, 1))
+                    var location = await Task.Run(() => _app.LocateSpace(_app.Head, _app.Floor, 1))
                                    .WaitAsync(TimeSpan.FromMilliseconds(200));
 
                     var curPose = location.Pose.Convert().To<Entities.Posef>();
@@ -93,6 +93,8 @@ namespace OpenXr.WebLink
 
                     await _hub.Clients.Group("track/head")
                         .SendAsync("ObjectChanged", info);
+
+                    await Task.Delay(1000 / 70);
 
                     //_logger.LogInformation("Send track/head {pos}", info.Pose.Position);
                 }
