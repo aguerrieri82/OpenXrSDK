@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
 
@@ -8,6 +8,13 @@
     <ProjectReference Include="..\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
     <ProjectReference Include="..\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
     <ProjectReference Include="..\OpenXr.Framework\OpenXr.Framework.csproj" />
+    <ProjectReference Include="..\OpenXr.WebLink.Entities\OpenXr.WebLink.Entities.csproj" />
   </ItemGroup>
+
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
 
 </Project>

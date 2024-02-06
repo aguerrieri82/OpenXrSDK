@@ -14,5 +14,10 @@ namespace OpenXr.Framework
             var span = new Span<UuidEXT>(layout.WallUuids, (int)layout.WallUuidCountOutput);
             return span.ToArray();
         }
+
+        public static Guid ToGuid(this UuidEXT uuid)
+        {
+            return new Guid(new Span<byte>(uuid.Data, 16));
+        }
     }
 }

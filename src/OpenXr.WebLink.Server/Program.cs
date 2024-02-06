@@ -1,11 +1,19 @@
+using OpenXr.Framework.Oculus;
+using OpenXr.Framework.Vulkan;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddOpenXrWebLink([
+    new VulkanGraphicDriver(new VulkanDevice()),
+    new OculusXrPlugin()
+]);
 
 var app = builder.Build();
 
@@ -21,5 +29,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseOpenXrWebLink();
 
 app.Run();
