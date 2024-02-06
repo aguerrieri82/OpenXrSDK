@@ -8,9 +8,8 @@ using Android.Webkit;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.Vulkan;
-using OpenXr.WebLink;
 using Silk.NET.OpenXR;
-using static Android.Telephony.CarrierConfigManager;
+
 
 
 namespace OpenXr.Test.Android
@@ -47,6 +46,8 @@ namespace OpenXr.Test.Android
             RequestScenePermissionIfNeeded();
 
             StartService(new Intent(this, typeof(WebServer)));
+
+            ConfigureWebView();
         }
 
         void ConfigureWebView()

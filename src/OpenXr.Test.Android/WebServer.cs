@@ -2,6 +2,7 @@
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
+using Android.Util;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +20,7 @@ namespace OpenXr.Test.Android
     public class WebServer : Service
     {
         private WebApplication? _webApp;
-        private Task _appTask;
+        private Task? _appTask;
 
         public override IBinder? OnBind(Intent? intent)
         {
@@ -31,6 +32,7 @@ namespace OpenXr.Test.Android
 
             base.OnCreate();
 
+
             var builder = WebApplication.CreateBuilder();
 
             builder.WebHost.ConfigureKestrel(op => op.ListenAnyIP(8080));
@@ -40,14 +42,25 @@ namespace OpenXr.Test.Android
             _webApp = builder.Build();
 
             _webApp.UseOpenXrWebLink();
+            
         }
 
         [return: GeneratedEnum]
         public override StartCommandResult OnStartCommand(Intent? intent, [GeneratedEnum] StartCommandFlags flags, int startId)
         {
-            _appTask = _webApp!.RunAsync();
+            _appTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await _webApp!.RunAsync();
+                }
+                catch (Exception ex)
+                {
+                    Log.Debug("WebServer", ex.ToString());
+                };
+            });
 
-            return base.OnStartCommand(intent, flags, startId);
+            return StartCommandResult.Sticky;
         }
 
         public override async void OnDestroy()

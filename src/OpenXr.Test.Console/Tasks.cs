@@ -210,7 +210,7 @@ namespace OpenXr
         {
 
 
-            var client = new WebLink.Client.WebLinkClient("https://localhost:7135", new WebLinkHandler());
+            var client = new WebLink.Client.WebLinkClient("http://192.168.1.221:8080", new WebLinkHandler());
 
             await client.ConnectAsync("");
 
