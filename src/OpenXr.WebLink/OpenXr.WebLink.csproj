@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
+    <ProjectReference Include="..\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
+    <ProjectReference Include="..\OpenXr.Framework\OpenXr.Framework.csproj" />
+  </ItemGroup>
+
+</Project>
