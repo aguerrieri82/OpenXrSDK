@@ -31,11 +31,17 @@ namespace OpenXr.Framework
         protected Space _floor;
         protected Space _stage;
         protected bool _isStarted;
+        protected SyncEvent _instanceReady;
+        private SessionState _lastSessionState;
+        private object _sessionLock;
 
         public XrApp(params IXrPlugin[] plugins)
         {
             _extensions = [];
             _plugins = plugins;
+            _lastSessionState = SessionState.Unknown;
+            _instanceReady = new SyncEvent();
+            _sessionLock = new object();
         }
 
         public static bool CheckResult(Result result, string method)
@@ -45,7 +51,7 @@ namespace OpenXr.Framework
             return true;
         }
 
-        public void Initialize()
+        protected void Initialize()
         {
             _xr = XR.GetApi();
 
@@ -67,6 +73,8 @@ namespace OpenXr.Framework
             CreateInstance(AppDomain.CurrentDomain.FriendlyName, "OpenXr.Framework", _extensions);
 
             GetSystemId();
+
+            _instanceReady.Signal();
         }
 
         public void Start()
@@ -74,6 +82,8 @@ namespace OpenXr.Framework
             if (_isStarted)
                 return;
 
+            if (_xr == null)
+                Initialize();
 
             foreach (var plugin in _plugins)
                 plugin.OnInstanceCreated();
@@ -111,6 +121,7 @@ namespace OpenXr.Framework
             DisposeSpace(_stage);
 
             _isStarted = false;
+            _lastSessionState = SessionState.Unknown;
         }
 
         public T Plugin<T>() where T : IXrPlugin
@@ -118,12 +129,19 @@ namespace OpenXr.Framework
             return _plugins.OfType<T>().First();
         }
 
-        public void HandleEvents()
+
+        public void HandleEvents(CancellationToken? cancellationToken = null)
         {
+            if (!_instanceReady.Wait(cancellationToken))
+                return;
+
             EventDataBuffer buffer = new EventDataBuffer();
 
             while (true)
             {
+                if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
+                    break;
+
                 buffer.Type = StructureType.EventDataBuffer;
 
                 var result = _xr!.PollEvent(_instance, &buffer);
@@ -145,6 +163,17 @@ namespace OpenXr.Framework
             }
         }
 
+        public void WaitForSession(SessionState state)
+        {
+            lock (_sessionLock)
+            {
+                while (_lastSessionState != state)
+                    Monitor.Wait(_sessionLock);
+
+            }
+         
+        }
+
         protected void OnSessionChanged(SessionState state, long time)
         {
             switch (state)
@@ -153,6 +182,15 @@ namespace OpenXr.Framework
                     //BeginSession(ViewConfigurationType.PrimaryStereo);
                     break;
             }
+
+            Debug.WriteLine("Session state: {0}", state);
+
+            lock (_sessionLock)
+            {
+                _lastSessionState = state;
+                Monitor.PulseAll(_sessionLock);
+            }
+      
         }
 
         protected IList<string> GetSupportedExtensions()
@@ -257,7 +295,7 @@ namespace OpenXr.Framework
             return space;
         }
 
-        protected void BeginSession(ViewConfigurationType viewType)
+        public void BeginSession(ViewConfigurationType viewType)
         {
             var sessionBeginInfo = new SessionBeginInfo()
             {
@@ -266,6 +304,11 @@ namespace OpenXr.Framework
             };
 
             CheckResult(_xr!.BeginSession(_session, &sessionBeginInfo), "BeginSession");
+        }
+
+        public void EndSession()
+        {
+            CheckResult(_xr!.EndSession(_session), "EndSession");
         }
 
         protected Session CreateSession()

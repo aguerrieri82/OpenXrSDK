@@ -1,0 +1,105 @@
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
+using OpenXr.Framework;
+using OpenXr.Framework.Oculus;
+using OpenXr.WebLink.Entities;
+using Silk.NET.OpenXR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OpenXr.WebLink
+{
+    public class OpenXrHub : Hub
+    {
+        protected readonly XrApp _app;
+        private readonly ILogger<OpenXrHub> _logger;
+
+        public OpenXrHub(XrApp app, ILogger<OpenXrHub> logger)
+        {
+            _app = app;
+            _logger = logger;
+        }
+
+        public void StartSession()
+        {
+            _app.Start();
+            _app.WaitForSession(SessionState.Ready);
+        }
+
+
+        public void StopSession()
+        {
+            _app.EndSession();
+            _app.Stop();
+        }
+
+        public async Task<IList<XrAnchorDetails>> GetAnchors(XrAnchorFilter filter)
+        {
+            var xrOculus = _app.Plugin<OculusXrPlugin>();
+            var result = new List<XrAnchorDetails>();
+            var anchors = await xrOculus.QueryAllAnchorsAsync();
+
+            foreach (var space in anchors)
+            {
+                var item = new XrAnchorDetails();
+                item.Id = space.Uuid.ToGuid();
+                try
+                {
+                    if ((filter.Components & XrAnchorComponent.Label) != 0 &&
+                   xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.SemanticLabelsFB))
+                    {
+                        item.Labels = xrOculus.GetSpaceSemanticLabels(space.Space);
+                    }
+
+
+                    if ((filter.Components & XrAnchorComponent.Bounds) != 0 &&
+                        xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.Bounded2DFB))
+                    {
+                        var bounds = xrOculus.GetSpaceBoundingBox2D(space.Space);
+                        item.Bounds2D = bounds.Convert().To<Entities.Rect2f>();
+                    }
+
+                    if ((filter.Components & XrAnchorComponent.Pose) != 0)
+                    {
+                        try
+                        {
+                            var local = _app.LocateSpace(_app.Stage, space.Space, 1);
+                            item.Pose = local.Pose.Convert().To<Entities.Posef>();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "LocateSpace {itemId}", item.Id);
+                        }
+               
+                    }
+
+                    if ((filter.Components & XrAnchorComponent.Mesh) != 0 &&
+                        xrOculus.GetSpaceComponentEnabled(space.Space, OculusXrPlugin.XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META))
+                    {
+                        var mesh = xrOculus.GetSpaceTriangleMesh(space.Space);
+                        item.Mesh = new Mesh
+                        {
+                            Indices = mesh.Indices,
+                            Vertices = mesh.Vertices!.Convert().To<Entities.Vector3f>()
+                        };
+
+                    }
+                }
+
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "GetAnchors {itemId}", item.Id);
+                }
+
+                result.Add(item);
+            }
+
+            return result;
+        }
+
+
+    }
+}
