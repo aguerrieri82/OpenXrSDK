@@ -10,11 +10,15 @@ using Oculus.XrPlugin;
 using static OVRPlugin;
 using static Oculus.XrPlugin.OculusXrPlugin;
 using OpenXr.WebLink.Entities;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace OpenXr
 {
     public static class Tasks
     {
+        public static IServiceProvider? Services { get; set; }
+
         public static Task OvrLibTask()
         {
 
@@ -121,15 +125,21 @@ namespace OpenXr
 
         public static async Task AnchorsTask()
         {
+            var logger = Services!.GetRequiredService<ILogger<object>>();
+
             var vulkan = new VulkanDevice();
             var xrOculus = new OpenXr.Framework.Oculus.OculusXrPlugin();
-            var app = new XrApp(new VulkanGraphicDriver(vulkan), xrOculus);
+
+            var app = new XrApp(Services!.GetRequiredService<ILogger<XrApp>>(),
+                new VulkanGraphicDriver(vulkan),
+                xrOculus);
 
             _ = Task.Run(async () =>
             {
                 while (true)
                 {
                     app.HandleEvents();
+
                     await Task.Delay(50);
                 }
             });
@@ -156,7 +166,7 @@ namespace OpenXr
                         var label = xrOculus.GetSpaceSemanticLabels(space.Space);
 
 
-                        Console.WriteLine(label[0]);
+                        logger.LogInformation(label[0]);
                     }
 
 
@@ -165,11 +175,11 @@ namespace OpenXr
                         try
                         {
                             var bounds = xrOculus.GetSpaceBoundingBox2D(space.Space);
-                            Console.WriteLine(bounds);
+                            logger.LogInformation(bounds.ToString());
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.Message);
+                            logger.LogError(ex, ex.ToString());
                         }
                     }
 
@@ -177,7 +187,7 @@ namespace OpenXr
                     {
                         var local = app.LocateSpace(app.Stage, space.Space, 1);
 
-                        Console.WriteLine(local.Pose);
+                        logger.LogInformation(local.Pose.ToString());
                     }
 
                     if (xrOculus.GetSpaceComponentEnabled(space.Space, OpenXr.Framework.Oculus.OculusXrPlugin.XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META))
@@ -185,11 +195,11 @@ namespace OpenXr
                         try
                         {
                             var mesh = xrOculus.GetSpaceTriangleMesh(space.Space);
-                            Console.WriteLine(mesh);
+                            logger.LogInformation(mesh.ToString());
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.Message);
+                            logger.LogError(ex, ex.ToString());
                         }
                     }
 

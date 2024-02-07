@@ -9,7 +9,7 @@ namespace OpenXr.Framework
 {
     public abstract class BaseXrPlugin : IXrPlugin
     {
-        public virtual void HandleEvent(EventDataBuffer buffer)
+        public virtual void HandleEvent(ref EventDataBuffer buffer)
         {
 
         }

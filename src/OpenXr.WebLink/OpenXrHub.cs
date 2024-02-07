@@ -29,8 +29,6 @@ namespace OpenXr.WebLink
         public void StartSession()
         {
             _app.Start();
-            _app.WaitForSession(SessionState.Ready);
-            _app.BeginSession(ViewConfigurationType.PrimaryStereo);
         }
 
         public void StopSession()
