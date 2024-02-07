@@ -69,13 +69,17 @@ namespace OpenXr.Test.Android
             _webView!.LoadUrl("https://roomdesigner.eusoft.net/");
         }
 
+        protected override void OnDestroy()
+        {
+            StopService(new Intent(this, typeof(WebServerService)));
+            base.OnDestroy();
+        }
+
         private async Task GetRoomAsync()
         {
             var app = GlobalServices.App!;
     
             app.Start();
-            app.WaitForSession(SessionState.Ready);
-            app.BeginSession(ViewConfigurationType.PrimaryStereo);
 
             try
             {

@@ -39,14 +39,14 @@ namespace OpenXr.Framework
                 ApplicationVM = (void*)javaVm
             };
 
-            XrApp.CheckResult(InitializeLoader!(&android), "InitializeLoader");
+            _app!.CheckResult(InitializeLoader!(&android), "InitializeLoader");
 
 
         }
 
         void SetAndroidApplicationThread(AndroidThreadTypeKHR type, uint threadId)
         {
-            XrApp.CheckResult(_thread!.SetAndroidApplicationThread(_app!.Session!, type, threadId), "SetAndroidApplicationThread");
+            _app!.CheckResult(_thread!.SetAndroidApplicationThread(_app!.Session!, type, threadId), "SetAndroidApplicationThread");
         }
 
         public override void OnInstanceCreated()
@@ -74,7 +74,7 @@ namespace OpenXr.Framework
             extensions.Add(KhrAndroidThreadSettings.ExtensionName);
 
             var func = new PfnVoidFunction();
-            XrApp.CheckResult(_app.Xr.GetInstanceProcAddr(new Instance(), "xrInitializeLoaderKHR", &func), "Bind xrInitializeLoaderKHR");
+            _app!.CheckResult(_app.Xr.GetInstanceProcAddr(new Instance(), "xrInitializeLoaderKHR", &func), "Bind xrInitializeLoaderKHR");
             InitializeLoader = Marshal.GetDelegateForFunctionPointer<InitializeLoaderDelegate>(new nint(func.Handle));
 
             InitAndroid(_context);

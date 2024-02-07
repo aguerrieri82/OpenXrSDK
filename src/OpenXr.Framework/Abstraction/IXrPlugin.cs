@@ -11,7 +11,7 @@ namespace OpenXr.Framework
     {
         void Initialize(XrApp app, IList<string> extensions);
 
-        void HandleEvent(EventDataBuffer buffer);
+        void HandleEvent(ref EventDataBuffer buffer);
 
         void OnInstanceCreated();
 

@@ -79,7 +79,7 @@ namespace OpenXr.Framework.Oculus
 
 
             var func = new PfnVoidFunction();
-            XrApp.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
+            _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
             GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));
 
         }
@@ -97,7 +97,7 @@ namespace OpenXr.Framework.Oculus
             result.Type = StructureType.SemanticLabelsFB;
             result.Next = &support;
 
-            XrApp.CheckResult(_scene!.GetSpaceSemanticLabelsFB(_app!.Session, space, ref result), "GetSpaceSemanticLabelsFB");
+            _app!.CheckResult(_scene!.GetSpaceSemanticLabelsFB(_app!.Session, space, ref result), "GetSpaceSemanticLabelsFB");
             var buffer = new byte[result.BufferCountOutput];
             fixed(byte* pBuffer = buffer)
             {
@@ -105,7 +105,7 @@ namespace OpenXr.Framework.Oculus
                 result.BufferCapacityInput = result.BufferCountOutput;    
             }
 
-            XrApp.CheckResult(_scene!.GetSpaceSemanticLabelsFB(_app!.Session, space, ref result), "GetSpaceSemanticLabelsFB");
+            _app!.CheckResult(_scene!.GetSpaceSemanticLabelsFB(_app!.Session, space, ref result), "GetSpaceSemanticLabelsFB");
 
             return Encoding.UTF8.GetString(buffer).Trim('\0').Split(',');
         }
@@ -113,14 +113,14 @@ namespace OpenXr.Framework.Oculus
         public Rect2Df GetSpaceBoundingBox2D(Space space)
         {
             var result = new Rect2Df();
-            XrApp.CheckResult(_scene!.GetSpaceBoundingBox2Dfb(_app!.Session, space, ref result), "GetSpaceBoundingBox2D");
+            _app!.CheckResult(_scene!.GetSpaceBoundingBox2Dfb(_app!.Session, space, ref result), "GetSpaceBoundingBox2D");
             return result;
         }
 
         public Rect3DfFB GetSpaceBoundingBox3D(Space space)
         {
             var result = new Rect3DfFB();
-            XrApp.CheckResult(_scene!.GetSpaceBoundingBox3Dfb(_app!.Session, space, ref result), "GetSpaceBoundingBox2D");
+            _app!.CheckResult(_scene!.GetSpaceBoundingBox3Dfb(_app!.Session, space, ref result), "GetSpaceBoundingBox2D");
             return result;
         }
 
@@ -132,7 +132,11 @@ namespace OpenXr.Framework.Oculus
                 Type = StructureType.SpaceComponentStatusFB
             };
 
-            XrApp.CheckResult(_spatial!.GetSpaceComponentStatusFB(space, componentType, ref status), "GetSpaceComponentStatus");
+            var result = _spatial!.GetSpaceComponentStatusFB(space, componentType, ref status);
+            if (result == Result.ErrorSpaceComponentNotSupportedFB)
+                return false;
+
+            _app!.CheckResult(result, "GetSpaceComponentStatus");
 
             return status.Enabled != 0;
         }
@@ -143,7 +147,7 @@ namespace OpenXr.Framework.Oculus
 
             var result = new SpaceComponentTypeFB[10];
 
-            XrApp.CheckResult(_spatial!.EnumerateSpaceSupportedComponentsFB(space, &count, result), "EnumerateSpaceSupportedComponentsFB");
+            _app!.CheckResult(_spatial!.EnumerateSpaceSupportedComponentsFB(space, &count, result), "EnumerateSpaceSupportedComponentsFB");
 
             Array.Resize(ref result, (int)count);
 
@@ -161,7 +165,7 @@ namespace OpenXr.Framework.Oculus
 
             ulong requestId = 0;
 
-            XrApp.CheckResult(_spatialQuery!.QuerySpacesFB(_app!.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref requestId), "QuerySpacesFB");
+            _app!.CheckResult(_spatialQuery!.QuerySpacesFB(_app!.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref requestId), "QuerySpacesFB");
 
             return requestId;
         }
@@ -173,7 +177,7 @@ namespace OpenXr.Framework.Oculus
                 Type = StructureType.SpaceQueryResultsFB,
             };
 
-            XrApp.CheckResult(_spatialQuery!.RetrieveSpaceQueryResultsFB(_app!.Session, reqId, ref result), "RetrieveSpaceQueryResultsFB");
+            _app!.CheckResult(_spatialQuery!.RetrieveSpaceQueryResultsFB(_app!.Session, reqId, ref result), "RetrieveSpaceQueryResultsFB");
 
             var results = new SpaceQueryResultFB[(int)result.ResultCountOutput];
 
@@ -181,7 +185,7 @@ namespace OpenXr.Framework.Oculus
             {
                 result.ResultCapacityInput = result.ResultCountOutput;
                 result.Results = ptr;
-                XrApp.CheckResult(_spatialQuery!.RetrieveSpaceQueryResultsFB(_app!.Session, reqId, ref result), "RetrieveSpaceQueryResultsFB");
+                _app!.CheckResult(_spatialQuery!.RetrieveSpaceQueryResultsFB(_app!.Session, reqId, ref result), "RetrieveSpaceQueryResultsFB");
             }
 
             Array.Resize(ref results, (int)result.ResultCountOutput);
@@ -197,7 +201,7 @@ namespace OpenXr.Framework.Oculus
             var result = new SpaceTriangleMeshMETA();
             result.Type = XR_TYPE_SPACE_TRIANGLE_MESH_META;
 
-            XrApp.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
+            _app!.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
 
             var vertexArray = new Vector3f[result.VertexCountOutput];
             var indexArray = new uint[result.IndexCountOutput];
@@ -209,7 +213,7 @@ namespace OpenXr.Framework.Oculus
                 result.Vertices = pVertex;
                 result.IndexCapacityInput = result.IndexCountOutput;
                 result.Indices = pIndex;
-                XrApp.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
+                _app!.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
 
                 return new SpaceTriangleMesh
                 {
@@ -239,11 +243,12 @@ namespace OpenXr.Framework.Oculus
             return _spaceQueries[reqId].Task;
         }
 
-        public override void HandleEvent(EventDataBuffer buffer)
+        public override void HandleEvent(ref EventDataBuffer buffer)
         {
             if (buffer.Type == StructureType.EventDataSpaceQueryResultsAvailableFB)
             {
-                EventDataSpaceQueryResultsAvailableFB data = *(EventDataSpaceQueryResultsAvailableFB*)&buffer;
+                var data = buffer.Convert().To<EventDataSpaceQueryResultsAvailableFB>();
+
                 if (_spaceQueries.TryRemove(data.RequestId, out var task))
                 {
                     try
@@ -265,7 +270,7 @@ namespace OpenXr.Framework.Oculus
             var result = new RoomLayoutFB();
             result.Type = StructureType.RoomLayoutFB;
 
-            XrApp.CheckResult(_scene!.GetSpaceRoomLayoutFB(_app!.Session, space, ref result), "GetSpaceRoomLayoutFB");
+            _app!.CheckResult(_scene!.GetSpaceRoomLayoutFB(_app!.Session, space, ref result), "GetSpaceRoomLayoutFB");
 
             var walls = new UuidEXT[result.WallUuidCountOutput];
 
@@ -273,7 +278,7 @@ namespace OpenXr.Framework.Oculus
             {
                 result.WallUuidCapacityInput = (uint)walls.Length;
                 result.WallUuids = wallPtr;
-                XrApp.CheckResult(_scene!.GetSpaceRoomLayoutFB(_app!.Session, space, ref result), "GetSpaceRoomLayoutFB");
+                _app!.CheckResult(_scene!.GetSpaceRoomLayoutFB(_app!.Session, space, ref result), "GetSpaceRoomLayoutFB");
             }
 
             return result;

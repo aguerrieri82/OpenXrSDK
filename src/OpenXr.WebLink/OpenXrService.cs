@@ -15,14 +15,13 @@ namespace OpenXr.WebLink
 {
     public class OpenXrService : IHostedService
     {
-        private readonly XrApp _app;
-        private readonly IHubContext<OpenXrHub> _hub;
-        private readonly ILogger<OpenXrService> _logger;
-        Task? _eventLoopTask;
-        Task? _trackLoopTask;
-        CancellationTokenSource? _stopSource;
-        private Entities.Posef _lastPose;
-        readonly IXrThread _xrThread;
+        protected readonly XrApp _app;
+        protected readonly IHubContext<OpenXrHub> _hub;
+        protected readonly ILogger<OpenXrService> _logger;
+        protected CancellationTokenSource? _stopSource;
+        protected Entities.Posef _lastPose;
+        protected readonly IXrThread _xrThread;
+        protected IList<Task> _serviceLoops;
 
         public OpenXrService(XrApp app, IHubContext<OpenXrHub> hub, ILogger<OpenXrService> logger, IXrThread xrThread)
         {
@@ -30,15 +29,16 @@ namespace OpenXr.WebLink
             _hub = hub;
             _logger = logger;
             _xrThread = xrThread;
+            _serviceLoops= new List<Task>();
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _stopSource = new CancellationTokenSource();
 
-            _eventLoopTask = Task.Run(XrEventLoop);
-
-            _trackLoopTask = Task.Run(TrackLoop);
+            StartServiceLoop(HandleXrEventsAsync, 50);
+            
+            StartServiceLoop(TrackAsync, 1000 / 72);
 
             return Task.CompletedTask;
         }
@@ -47,33 +47,39 @@ namespace OpenXr.WebLink
         {
             _stopSource!.Cancel();
 
-            await Task.WhenAll(_eventLoopTask!, _trackLoopTask!).WaitAsync(cancellationToken);
+            await Task.WhenAll(_serviceLoops).WaitAsync(cancellationToken);
+
+            _serviceLoops.Clear();
         }
 
-        public async Task XrEventLoop()
+        void StartServiceLoop(Func<CancellationToken, Task> action, int delayMs)
         {
-            while (!_stopSource!.IsCancellationRequested)
+            var task = Task.Run(async () =>
             {
-                _app.HandleEvents(_stopSource!.Token);
+                try
+                {
+                    while (!_stopSource!.IsCancellationRequested)
+                    {
+                        await action(_stopSource.Token);
 
-                await Task.Delay(50, _stopSource.Token);
-            }
+                        await Task.Delay(TimeSpan.FromMilliseconds(delayMs), _stopSource.Token);
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                }
+            });
+            
+            _serviceLoops.Add(task);
         }
 
-        public async Task TrackLoop()
+        public Task HandleXrEventsAsync(CancellationToken cancellationToken)
         {
-            while (!_stopSource!.IsCancellationRequested)
-            {
-                _app.WaitForSession(SessionState.Ready, SessionState.Focused);
-
-                await TrackAsync();
-
-                await Task.Delay(1000/70, _stopSource.Token);
-            }
-          
+            _app.HandleEvents(cancellationToken);
+            return Task.CompletedTask;
         }
 
-        public async Task TrackAsync()
+        public async Task TrackAsync(CancellationToken cancellationToken)
         {
             if (!(_app.SessionState == SessionState.Ready || _app.SessionState == SessionState.Focused))
                 return;
@@ -95,7 +101,7 @@ namespace OpenXr.WebLink
                 };
 
                 await _hub.Clients.Group("track/head")
-                        .SendAsync("ObjectChanged", info);
+                        .SendAsync("ObjectChanged", info, cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
