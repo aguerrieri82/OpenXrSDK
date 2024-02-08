@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Engine
 {
-    public class Cube : Geometry
+    public class Texture2D : Texture
     {
-
-        public static readonly Cube Instance = new Cube();  
     }
 }

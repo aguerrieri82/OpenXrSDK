@@ -1,12 +1,6 @@
 ﻿using OpenXr.Framework.Vulkan;
 using OpenXr.Framework;
 using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Oculus.XrPlugin;
 using static OVRPlugin;
 using static Oculus.XrPlugin.OculusXrPlugin;
 using OpenXr.WebLink.Entities;
@@ -15,6 +9,8 @@ using Microsoft.Extensions.Logging;
 using OpenXr.Framework.OpenGL;
 using OpenXr.Engine;
 using OpenXr.Engine.OpenGL;
+using Mesh = OpenXr.Engine.Mesh;
+using System.Numerics;
 
 namespace OpenXr
 {
@@ -220,38 +216,37 @@ namespace OpenXr
 
         }
 
+        public static EngineApp CreateScene()
+        {
+            var app = new EngineApp();
+
+            var scene = new Scene();
+            scene.ActiveCamera = new PerspectiveCamera();
+            scene.AddChild(new Mesh(Cube.Instance));
+
+            app.OpenScene(scene);
+
+      
+            return app;
+        }
+
         public static Task RenderTask()
         {
             var logger = Services!.GetRequiredService<ILogger<XrApp>>();
 
-            var scene = new Scene();
-            scene.AddChild(new Cube());
-
-            using var app = new XrApp(logger,
+            using var xrApp = new XrApp(logger,
                     new XrOpenGLGraphicDriver(new OpenGLDevice()),
                     new Framework.Oculus.OculusXrPlugin());
 
-            app.StartEventLoop();
+            xrApp.StartEventLoop();
 
-            app.Start(XrAppStartMode.Render);
+            xrApp.Start(XrAppStartMode.Render);
 
-            var device = app.Plugin<XrOpenGLGraphicDriver>().Device;
-
-            var render = new OpenGLRender(device.View.GLContext!, device.Gl);
-
-            void RenderScene(ref CompositionLayerProjectionView view, NativeArray<SwapchainImageBaseHeader> images)
-            {
-                //scene.MainCamera.Fov = view.Fov;
-                //scene.MainCamera;
-
-                render.Render(scene, scene.MainCamera!);
-            }
-
-            app.Layers.AddProjection(RenderScene);
+            xrApp.BindEngineApp(CreateScene());
 
             while (true)
             {
-                app.RenderFrame();
+                xrApp.RenderFrame();
 
                 if (Console.KeyAvailable)
                 {
@@ -261,7 +256,7 @@ namespace OpenXr
                 }
             }
 
-            app.Stop();
+            xrApp.Stop();
 
             return Task.CompletedTask;
         }

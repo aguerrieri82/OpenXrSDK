@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Engine
 {
-    public class Light : Object3D
+    public class AmbientLight : Light   
     {
     }
 }

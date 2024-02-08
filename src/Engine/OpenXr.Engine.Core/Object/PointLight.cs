@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Engine
 {
-    public class Behavoir
+    public class PointLight : Light
     {
     }
 }

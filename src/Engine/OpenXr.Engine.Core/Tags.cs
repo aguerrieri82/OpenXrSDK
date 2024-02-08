@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Engine
 {
-    public class Object3D
+    public static class Tags
     {
+        public const string Main = nameof(Main);    
     }
 }

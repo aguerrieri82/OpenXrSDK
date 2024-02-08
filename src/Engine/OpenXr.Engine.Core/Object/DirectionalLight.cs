@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Engine
+namespace OpenXr.Engine.Object
 {
-    public class Cube : Geometry
+    public class DirectionalLight : Light
     {
-
-        public static readonly Cube Instance = new Cube();  
     }
 }
