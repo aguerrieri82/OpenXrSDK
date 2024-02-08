@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Engine
 {
-    public interface IRenderEngine : IDisposable
+    public class Shader : EngineObject
     {
-        void Render(Scene scene, Camera camera, RectI view);
+
+        public string? VertexSource { get; set; }
+
+        public string? FragmentSource { get; set; }
     }
 }

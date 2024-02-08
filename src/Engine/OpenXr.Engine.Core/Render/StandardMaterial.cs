@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Engine
 {
-    public interface IRenderEngine : IDisposable
+    public class StandardMaterial : ShaderMaterial
     {
-        void Render(Scene scene, Camera camera, RectI view);
     }
 }

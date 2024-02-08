@@ -1,5 +1,4 @@
-﻿using OpenXr.Engine.Core.Render;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,5 +8,7 @@ namespace OpenXr.Engine
 {
     public class ShaderMaterial : Material
     {
+
+        public Shader? Shader { get; set; }
     }
 }

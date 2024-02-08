@@ -52,7 +52,7 @@ namespace OpenXr.Engine
                 return;
         }
 
-        public void RenderFrame()
+        public void RenderFrame(RectI view)
         {
             _context.Frame++;
             _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
@@ -69,7 +69,7 @@ namespace OpenXr.Engine
             if (Renderer == null)
                 return;
 
-            Renderer.Render(_activeScene, _activeScene.ActiveCamera);
+            Renderer.Render(_activeScene, _activeScene.ActiveCamera, view);
         }
 
         public Scene? ActiveScene => _activeScene;

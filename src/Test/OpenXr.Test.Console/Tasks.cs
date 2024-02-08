@@ -8,9 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenXr.Framework.OpenGL;
 using OpenXr.Engine;
-using OpenXr.Engine.OpenGL;
 using Mesh = OpenXr.Engine.Mesh;
 using System.Numerics;
+using OpenXr.Engine.Object;
 
 namespace OpenXr
 {
@@ -221,8 +221,15 @@ namespace OpenXr
             var app = new EngineApp();
 
             var scene = new Scene();
-            scene.ActiveCamera = new PerspectiveCamera();
-            scene.AddChild(new Mesh(Cube.Instance));
+            scene.ActiveCamera = new PerspectiveCamera() { Far = 5f };
+            
+            var cube = new Mesh(Cube.Instance, new StandardMaterial() { Color = new Color(1, 0, 0) });
+            cube.Transform.Scale = new Vector3(1, 1, 1);    
+            cube.Materials = [];
+
+            scene.AddChild(cube);
+            scene.AddChild(new AmbientLight(0.3f));
+            scene.AddChild(new DirectionalLight(new Vector3(1, 1, 1)));
 
             app.OpenScene(scene);
 

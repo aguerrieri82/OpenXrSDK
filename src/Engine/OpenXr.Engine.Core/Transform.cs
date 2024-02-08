@@ -25,10 +25,10 @@ namespace OpenXr.Engine
             if (_isDirty) 
                 return false;
 
-            _matrix = Matrix4x4.Identity
-                * Matrix4x4.CreateTranslation(_position)
-                * Matrix4x4.CreateFromQuaternion(_orientation)
-                * Matrix4x4.CreateScale(_scale);
+            _matrix =
+                Matrix4x4.CreateFromQuaternion(_orientation) *
+                Matrix4x4.CreateScale(_scale) *
+                Matrix4x4.CreateTranslation(_position);
 
             _isDirty = false;
             return true;
