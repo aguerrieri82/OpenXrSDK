@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace OpenXr.WebLink.Client
 {
-    public class WebLinkClient
+    public class WebLinkClient 
     {
         private HubConnection? _connection;
         private string _endpoint;

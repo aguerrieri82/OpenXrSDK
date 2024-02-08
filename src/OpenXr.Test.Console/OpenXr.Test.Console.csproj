@@ -19,6 +19,7 @@
     <ProjectReference Include="..\Oculus.Platform\Oculus.Platform.csproj" />
     <ProjectReference Include="..\Oculus.XrPlugin\Oculus.XrPlugin.csproj" />
     <ProjectReference Include="..\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
+    <ProjectReference Include="..\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
     <ProjectReference Include="..\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
     <ProjectReference Include="..\OpenXr.Framework\OpenXr.Framework.csproj" />
     <ProjectReference Include="..\OpenXr.WebLink.Client\OpenXr.WebLink.Client.csproj" />

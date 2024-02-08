@@ -21,15 +21,15 @@ namespace Microsoft.Extensions.DependencyInjection
                         options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
                         options.PayloadSerializerOptions.IncludeFields = true;
                     })
-                    .AddHubOptions<OpenXrHub>(o =>
+                    .AddHubOptions<XrWebLinkHub>(o =>
                     {
                         o.EnableDetailedErrors = true;
                         o.MaximumReceiveMessageSize = 50 * 1024 * 1024;
                     });
 
-            services.AddSingleton<OpenXrService>();
+            services.AddSingleton<XrWebLinkService>();
             if (hostService)
-                services.AddHostedService(sp => sp.GetRequiredService<OpenXrService>());
+                services.AddHostedService(sp => sp.GetRequiredService<XrWebLinkService>());
 
             services.AddCors(options => options.AddPolicy("AllowAll",
                 builder =>
@@ -43,7 +43,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static void UseOpenXrWebLink(this WebApplication app)
         {
-            app.MapHub<OpenXrHub>("hub/openxr");
+            app.MapHub<XrWebLinkHub>("hub/openxr");
 
             app.UseCors("AllowAll");
 

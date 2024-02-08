@@ -7,19 +7,21 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
 
 namespace OpenXr.Framework.Oculus
 {
-    public unsafe class OculusXrPlugin : BaseXrPlugin
+    public unsafe class OculusXrPlugin : BaseXrPlugin, IDisposable
     {
         protected XrApp? _app;
         protected FBScene? _scene;
         protected FBSpatialEntity? _spatial;
         protected FBSpatialEntityQuery? _spatialQuery;
         protected FBTriangleMesh? _mesh;
+        protected NativeStruct<SwapchainCreateInfoFoveationFB> _foveationInfo;
 
         public const SpaceComponentTypeFB XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META = (SpaceComponentTypeFB)1000269000;
 
@@ -283,5 +285,31 @@ namespace OpenXr.Framework.Oculus
 
             return result;
         }
+
+        public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
+        {
+            if (Foveation == SwapchainCreateFoveationFlagsFB.None)
+                return;
+
+            _foveationInfo.Value = new SwapchainCreateInfoFoveationFB
+            {
+                Type = StructureType.SwapchainCreateInfoFoveationFB,
+                Flags = Foveation
+            };
+
+            ref BaseInStructure curInput = ref Unsafe.As<SwapchainCreateInfo, BaseInStructure>(ref info);
+
+            while (curInput.Next != null)
+                curInput = ref Unsafe.AsRef<BaseInStructure>(curInput.Next);
+
+            curInput.Next = (BaseInStructure*)_foveationInfo.Pointer;
+        }
+
+        public void Dispose()
+        {
+            _foveationInfo.Dispose();
+        }
+
+        public SwapchainCreateFoveationFlagsFB Foveation { get; set; }  
     }
 }

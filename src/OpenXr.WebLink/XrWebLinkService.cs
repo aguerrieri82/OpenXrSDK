@@ -13,17 +13,17 @@ using System.Threading.Tasks;
 
 namespace OpenXr.WebLink
 {
-    public class OpenXrService : IHostedService
+    public class XrWebLinkService : IHostedService
     {
         protected readonly XrApp _app;
-        protected readonly IHubContext<OpenXrHub> _hub;
-        protected readonly ILogger<OpenXrService> _logger;
+        protected readonly IHubContext<XrWebLinkHub, IXrWebLinkClient> _hub;
+        protected readonly ILogger<XrWebLinkService> _logger;
         protected CancellationTokenSource? _stopSource;
         protected Entities.Posef _lastPose;
         protected readonly IXrThread _xrThread;
         protected IList<Task> _serviceLoops;
 
-        public OpenXrService(XrApp app, IHubContext<OpenXrHub> hub, ILogger<OpenXrService> logger, IXrThread xrThread)
+        public XrWebLinkService(XrApp app, IHubContext<XrWebLinkHub, IXrWebLinkClient> hub, ILogger<XrWebLinkService> logger, IXrThread xrThread)
         {
             _app = app;
             _hub = hub;
@@ -100,8 +100,7 @@ namespace OpenXr.WebLink
                     Pose = curPose
                 };
 
-                await _hub.Clients.Group("track/head")
-                        .SendAsync("ObjectChanged", info, cancellationToken: cancellationToken);
+                await _hub.Clients.Group("track/head").ObjectChanged(info);
             }
             catch (Exception ex)
             {

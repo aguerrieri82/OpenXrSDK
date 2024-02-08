@@ -38,7 +38,7 @@ namespace OpenXr.Test.Android
             base.OnCreate(savedInstanceState);
 
             GlobalServices.App = new XrApp(
-                new VulkanGraphicDriver(new VulkanDevice()),
+                new XrVulkanGraphicDriver(new VulkanDevice()),
                 new OculusXrPlugin(),
                 new OpenVrPlugin(this),
                 new AndroidXrPlugin(this, (uint)Process.MyTid()));

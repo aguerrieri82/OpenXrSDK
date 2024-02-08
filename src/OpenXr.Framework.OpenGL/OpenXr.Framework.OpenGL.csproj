@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;ARM64;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.20.0" />
+	  <PackageReference Include="Silk.NET.Windowing" Version="2.20.0" />
+	  <PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.20.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenXr.Framework\OpenXr.Framework.csproj" />
+  </ItemGroup>
+
+</Project>

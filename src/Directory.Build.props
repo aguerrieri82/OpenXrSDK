@@ -6,11 +6,11 @@
     <CoreVersion>net8.0</CoreVersion>
     <TargetFrameworks>$(CoreVersion)</TargetFrameworks>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageVersion>0.0.1</PackageVersion>
+    <PackageVersion>0.0.1</PackageVersion> 
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <Platforms>AnyCPU;ARM64</Platforms>
+    <Platforms>AnyCPU;ARM64;x64</Platforms>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <AspNetRoot>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.0\</AspNetRoot>
   </PropertyGroup>
