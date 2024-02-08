@@ -6,8 +6,14 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Engine
 {
-    public interface IRenderEngine : IDisposable
+    public struct RectI
     {
-        void Render(Scene scene, Camera camera, RectI view);
+        public int X;
+       
+        public int Y;
+        
+        public uint Width; 
+        
+        public uint Height;
     }
 }

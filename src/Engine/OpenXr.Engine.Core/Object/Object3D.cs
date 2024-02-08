@@ -16,7 +16,8 @@ namespace OpenXr.Engine
 
         public Object3D()
         {
-            _transform = new Transform();   
+            _transform = new Transform();
+            IsVisible = true;
         }
 
         public virtual bool UpdateWorldMatrix(bool updateChildren, bool updateParent)
@@ -48,6 +49,8 @@ namespace OpenXr.Engine
             get => _parent;
             internal set => _parent = value;
         }
+
+        public bool IsVisible { get; set; }
 
         public Matrix4x4 WorldMatrix => _worldMatrix;
 

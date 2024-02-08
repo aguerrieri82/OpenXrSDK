@@ -12,9 +12,10 @@ namespace OpenXr.Engine
         {
         }
 
-        public Mesh(Geometry geometry)
+        public Mesh(Geometry geometry, Material material)
         {
-            Geometry = geometry;    
+            Geometry = geometry;
+            Materials = [material];
         }
 
         public override void Update(RenderContext ctx)

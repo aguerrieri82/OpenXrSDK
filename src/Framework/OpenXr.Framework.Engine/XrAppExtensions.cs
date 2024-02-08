@@ -32,7 +32,7 @@ namespace OpenXr.Framework
                     camera.Transform.Position = view.Pose.Position.Convert().To<Vector3>();
                     camera.Transform.Orientation = view.Pose.Orientation.Convert().To<Quaternion>();
 
-                    app.RenderFrame();
+                    app.RenderFrame(view.SubImage.ImageRect.Convert().To<RectI>());
                 }
 
                 xrApp.Layers.AddProjection(RenderScene);
