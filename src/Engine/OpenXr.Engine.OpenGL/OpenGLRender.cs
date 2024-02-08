@@ -23,5 +23,9 @@ namespace OpenXr.Engine.OpenGL
         {
 
         }
+
+        public void SetImageTarget(uint image)
+        {
+        }
     }
 }

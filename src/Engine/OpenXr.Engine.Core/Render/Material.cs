@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Engine
 {
-    public class Camera : Object3D
+    public abstract class Material : EngineObject
     {
-
-        public float Fov { get; set; }
     }
 }

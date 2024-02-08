@@ -1,11 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-
+    <RootNamespace>OpenXr.Engine</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-
-  </ItemGroup>
 
 </Project>

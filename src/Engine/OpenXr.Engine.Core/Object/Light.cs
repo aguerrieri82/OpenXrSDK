@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Engine
 {
-    public class Scene : Group
+    public abstract class Light : Object3D
     {
-        public Scene()
+        public Light()
         {
+            
         }
 
-        public Camera? MainCamera { get; set; }
+
+        public float Intensity { get; set; }    
     }
 }
