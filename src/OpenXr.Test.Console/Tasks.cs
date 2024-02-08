@@ -12,6 +12,7 @@ using static Oculus.XrPlugin.OculusXrPlugin;
 using OpenXr.WebLink.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OpenXr.Framework.OpenGL;
 
 namespace OpenXr
 {
@@ -131,7 +132,8 @@ namespace OpenXr
             var xrOculus = new OpenXr.Framework.Oculus.OculusXrPlugin();
 
             var app = new XrApp(Services!.GetRequiredService<ILogger<XrApp>>(),
-                new VulkanGraphicDriver(vulkan),
+               //new XrVulkanGraphicDriver(new VulkanDevice()),
+                    new XrOpenGLGraphicDriver(new OpenGLDevice()),
                 xrOculus);
 
             _ = Task.Run(async () =>
@@ -147,7 +149,7 @@ namespace OpenXr
             while (true)
             {
 
-                app.Start();
+                app.Start(XrAppStartMode.Render);
 
                 var res = await xrOculus.QueryAllAnchorsAsync().ConfigureAwait(true);
 

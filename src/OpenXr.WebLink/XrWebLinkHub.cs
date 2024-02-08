@@ -13,13 +13,13 @@ using System.Threading.Tasks;
 
 namespace OpenXr.WebLink
 {
-    public class OpenXrHub : Hub
+    public class XrWebLinkHub : Hub<IXrWebLinkClient>
     {
         readonly XrApp _app;
-        readonly ILogger<OpenXrHub> _logger;
+        readonly ILogger<XrWebLinkHub> _logger;
         readonly IXrThread _xrThread;
 
-        public OpenXrHub(XrApp app, ILogger<OpenXrHub> logger, IXrThread xrThread)
+        public XrWebLinkHub(XrApp app, ILogger<XrWebLinkHub> logger, IXrThread xrThread)
         {
             _app = app;
             _logger = logger;

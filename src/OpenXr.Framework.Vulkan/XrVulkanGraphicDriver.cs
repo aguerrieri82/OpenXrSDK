@@ -10,16 +10,21 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Framework.Vulkan
 {
-    public unsafe class VulkanGraphicDriver : BaseXrPlugin, IXrGraphicDriver, IDisposable
+    public unsafe class XrVulkanGraphicDriver : BaseXrPlugin, IXrGraphicDriver, IDisposable
     {
-        NativeStruct<GraphicsBindingVulkanKHR> _binding;
-        IVulkanDevice _device;
-        KhrVulkanEnable? _vulkanExt;
-        XrApp? _app;
+        protected IVulkanDevice _device;
+        protected KhrVulkanEnable? _vulkanExt;
+        protected XrApp? _app;
+        protected XrDynamicType _swapChainType;
 
-        public VulkanGraphicDriver(IVulkanDevice device)
+        public XrVulkanGraphicDriver(IVulkanDevice device)
         {
             _device = device;
+            _swapChainType = new XrDynamicType
+            {
+                StructureType = StructureType.SwapchainImageVulkanKhr,
+                Type = typeof(SwapchainImageVulkanKHR)
+            };
         }
 
         public override void Initialize(XrApp app, IList<string> extensions)
@@ -33,7 +38,12 @@ namespace OpenXr.Framework.Vulkan
             _app!.Xr.TryGetInstanceExtension<KhrVulkanEnable>(null, _app.Instance, out _vulkanExt);
         }
 
-        public GraphicsBinding* CreateBinding()
+        public long SelectSwapChainFormat(IList<long> availFormats)
+        {
+            return availFormats.First();
+        }
+
+        public GraphicsBinding CreateBinding()
         {
             var vulkanReq = new GraphicsRequirementsVulkanKHR()
             {
@@ -57,7 +67,9 @@ namespace OpenXr.Framework.Vulkan
 
             _app!.CheckResult(_vulkanExt.GetVulkanGraphicsDevice(_app.Instance, _app.SystemId, new VkHandle(_device.Instance.Handle), &physicalDevice), "GetVulkanGraphicsDeviceKHR");
 
-            _binding.Value = new GraphicsBindingVulkanKHR()
+            var binding = new GraphicsBinding();
+
+            binding.VulkanKhr = new GraphicsBindingVulkanKHR()
             {
                 Type = StructureType.GraphicsBindingVulkanKhr,
                 Device = new VkHandle(_device.LogicalDevice.Handle),
@@ -67,12 +79,14 @@ namespace OpenXr.Framework.Vulkan
                 QueueIndex = 0,
             };
 
-            return (GraphicsBinding*)_binding.Pointer;
+            return binding;
         }
+
+        public XrDynamicType SwapChainImageType => _swapChainType;
 
         public void Dispose()
         {
-            _binding.Dispose();
+
             if (_device is IDisposable disposable)
                 disposable.Dispose();
         }

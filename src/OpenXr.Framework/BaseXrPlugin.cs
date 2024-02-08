@@ -9,6 +9,10 @@ namespace OpenXr.Framework
 {
     public abstract class BaseXrPlugin : IXrPlugin
     {
+        public virtual void ConfigureSwapchain(ref SwapchainCreateInfo info)
+        {
+        }
+
         public virtual void HandleEvent(ref EventDataBuffer buffer)
         {
 

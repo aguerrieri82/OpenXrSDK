@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.WebLink
+namespace OpenXr.Framework
 {
     public interface IXrThread
     {
