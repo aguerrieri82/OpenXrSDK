@@ -15,7 +15,6 @@ namespace OpenXr.Engine
             _children = [];
         }
 
-
         public override bool UpdateWorldMatrix(bool updateChildren, bool updateParent)
         {
             var isChanged = base.UpdateWorldMatrix(updateChildren, updateParent);
@@ -84,5 +83,7 @@ namespace OpenXr.Engine
         }
 
         public IReadOnlyList<Object3D> Children => _children.AsReadOnly();
+
+        public int Version { get; set; }
     }
 }

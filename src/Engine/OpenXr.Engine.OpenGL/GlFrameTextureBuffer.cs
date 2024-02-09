@@ -12,34 +12,58 @@ namespace OpenXr.Engine.OpenGL
         public GlFrameTextureBuffer(GL gl, GlTexture2D color)
             : base(gl)
         {
-            Color = color;
+            _handle = _gl.GenFramebuffer();
 
+            Color = color;
+            CreateDepth();
+            Attach();
+        }
+
+        protected void CreateDepth()
+        {
             Depth = new GlTexture2D(_gl);
             Depth.MagFilter = TextureMagFilter.Nearest;
             Depth.MinFilter = TextureMinFilter.Nearest;
             Depth.MaxLevel = 0;
-            Depth.MinFilter = 0;
+            Depth.BaseLevel = 0;
             Depth.Create(Color.Width, Color.Height, TextureFormat.Deph32Float);
         }
 
         public override void Bind()
         {
-            base.Bind();    
+            base.Bind();
 
+            
+        }
+
+        public void Attach()
+        {
             _gl.FramebufferTexture2D(
-                FramebufferTarget.Framebuffer,
+                FramebufferTarget.DrawFramebuffer,
                 FramebufferAttachment.ColorAttachment0,
                 TextureTarget.Texture2D,
                 Color, 0);
 
+            _gl.DrawBuffer(DrawBufferMode.ColorAttachment0);
+
             _gl.FramebufferTexture2D(
-                FramebufferTarget.Framebuffer,
+                FramebufferTarget.DrawFramebuffer,
                 FramebufferAttachment.DepthAttachment,
                 TextureTarget.Texture2D,
-                Depth,
-              0);
+                Depth, 0);
+
+            var status = _gl.CheckFramebufferStatus(FramebufferTarget.DrawFramebuffer);
+
+            if (status != GLEnum.FramebufferComplete)
+            {
+                //throw new Exception($"Frame buffer state invalid: {status}");
+            }
         }
 
+        public void InvalidateDepth()
+        {
+            _gl.InvalidateFramebuffer(FramebufferTarget.DrawFramebuffer, [InvalidateFramebufferAttachment.DepthAttachment]);
+        }
 
         public GlTexture2D Color;
 

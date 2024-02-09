@@ -3,22 +3,65 @@ using Silk.NET.Core.Contexts;
 using Silk.NET.OpenGL;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using static System.Formats.Asn1.AsnWriter;
 
 
 namespace OpenXr.Engine.OpenGL
 {
+    public class GlobalContent
+    {
+        public DirectionalLight? Directional;
+        
+        public AmbientLight? Ambient;
+
+        public PointLight? Point;
+
+        public long Version;
+
+        public Scene? Scene;
+         
+        public readonly Dictionary<Shader, ShaderContent> Contents = [];
+    }
+
+    public class ShaderContent
+    {
+        public GlProgram? Program;
+
+        public readonly Dictionary<Geometry, VertexContent> Contents = [];
+    }
+
+    public class VertexContent
+    {
+        public GlVertexArray<VertexData, int>? VertexArray;
+
+        public readonly List<DrawContent> Contents = [];
+    }
+
+    public class DrawContent
+    {
+        public Object3D? Object;
+
+        public ShaderMaterial? Material;
+
+        public Action? Draw;
+    }
+
     public class OpenGLRender : IRenderEngine
     {
         protected IGLContext _context;
         protected GL _gl;
         protected Dictionary<uint, GlFrameTextureBuffer> _frameBuffers;
-        protected GlFrameBuffer? _frameBuffer;
+        protected GlFrameTextureBuffer? _frameBuffer;
         protected GlVertexLayout _meshLayout;
+        protected GlobalContent _content;
 
         public static class Props
         {
@@ -53,7 +96,7 @@ namespace OpenXr.Engine.OpenGL
 
         public void Clear()
         {
-            _gl.ClearColor(1, 1, 1, 0);
+            _gl.ClearColor(0.7f, 0.7f, 0.7f, 0);
             _gl.ClearDepth(1.0f);
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
@@ -74,6 +117,58 @@ namespace OpenXr.Engine.OpenGL
             vertexBuffer.Bind();
 
             _gl.DrawArrays(PrimitiveType.Triangles, 0, mesh.Geometry!.TriangleCount);
+
+            vertexBuffer.Unbind();
+        }
+
+        [MemberNotNull(nameof(_content))]
+        protected void BuildContent(Scene scene)
+        {
+            if (_content == null)
+                _content = new GlobalContent();
+
+            _content.Ambient = scene.VisibleDescendants<AmbientLight>().FirstOrDefault();
+            _content.Point = scene.VisibleDescendants<PointLight>().FirstOrDefault();
+            _content.Scene = scene;
+            _content.Version = scene.Version;
+
+            _content.Contents.Clear();
+
+            foreach (var mesh in scene.VisibleDescendants<Mesh>())
+            {
+                if (mesh.Geometry == null || mesh.Materials.Count == 0)
+                    continue;
+
+                foreach (var material in mesh.Materials.OfType<ShaderMaterial>())
+                {
+                    if (material.Shader == null)
+                        continue;
+
+                    if (!_content.Contents.TryGetValue(material.Shader, out var shaderContent))
+                    {
+                        shaderContent = new ShaderContent();
+                        shaderContent.Program = GetProgram(material.Shader);
+                        _content.Contents[material.Shader] = shaderContent;
+                    }
+                    
+                    if (!shaderContent.Contents.TryGetValue(mesh.Geometry, out var vertexContent))
+                    {
+                        vertexContent = new VertexContent();
+                        vertexContent.VertexArray = GetResource(mesh.Geometry!, geo =>
+                                new GlVertexArray<VertexData, int>(_gl, geo.Vertices!, geo.Indices!, _meshLayout));
+
+                        shaderContent.Contents[mesh.Geometry] = vertexContent;
+                    }
+
+                    vertexContent.Contents.Add(new DrawContent
+                    {
+                        Draw = () => _gl.DrawArrays(PrimitiveType.Triangles, 0, mesh.Geometry!.TriangleCount),
+                        Material = material,
+                        Object = mesh
+                    });
+                }
+            }
+
         }
 
         public void EnableDebug()
@@ -104,63 +199,62 @@ namespace OpenXr.Engine.OpenGL
 
             _gl.Viewport(view.X, view.Y, view.Width, view.Height);
 
-            var ambient = scene.VisibleDescendants<AmbientLight>().FirstOrDefault();
-
-            var point = scene.VisibleDescendants<PointLight>().FirstOrDefault();
-
-            var meshes = scene.VisibleDescendants<Mesh>()
-                              .Where(a=> a.Materials != null);
-
-            var shaders = meshes.SelectMany(a => a.Materials!.OfType<ShaderMaterial>().Select(a => a.Shader!))
-                                .Distinct();
-
-            foreach (var shader in shaders)
+            if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
+                BuildContent(scene);
+        
+            foreach (var shader in _content.Contents.Values)
             {
-                var prog = GetProgram(shader!);
+                var prog = shader.Program!;
 
-                prog.Use();
+                prog!.Use();
 
-                if (ambient != null)
-                    prog.SetUniform("light.ambient", (Vector3)ambient.Color * ambient.Intensity);
+                if (_content.Ambient != null)
+                    prog.SetUniform("light.ambient", (Vector3)_content.Ambient.Color * _content.Ambient.Intensity);
 
-                if (point != null)
+                if (_content.Point != null)
                 {
-                    var wordPos = Vector3.Transform(point.Transform.Position, point.WorldMatrix);
+                    var wordPos = Vector3.Transform(_content.Point.Transform.Position, _content.Point.WorldMatrix);
 
-                    prog.SetUniform("light.diffuse", (Vector3)point.Color * point.Intensity);
+                    prog.SetUniform("light.diffuse", (Vector3)_content.Point.Color * _content.Point.Intensity);
                     prog.SetUniform("light.position", wordPos);
-                    prog.SetUniform("light.specular", point.Specular);
+                    prog.SetUniform("light.specular", _content.Point.Specular);
                 }
 
                 prog.SetUniform("uView", camera.Transform.Matrix);
                 prog.SetUniform("uProjection", camera.Projection);
                 prog.SetUniform("viewPos", camera.Transform.Position);
 
-                var shaderMeshes = meshes.Where(a =>
-                    a.Materials!.OfType<ShaderMaterial>().Any(b => b.Shader == shader));
-
-                foreach (var mesh in shaderMeshes)
+                foreach (var vertex in shader.Contents.Values)
                 {
-                    var materials = mesh.Materials!
-                        .OfType<ShaderMaterial>()
-                        .Where(b => b.Shader == shader);
+                    vertex.VertexArray!.Bind();
 
-                    prog.SetUniform("uModel", mesh.WorldMatrix);
-
-                    foreach (var material in materials)
+                    foreach (var draw in vertex.Contents)
                     {
-                        material.UpdateUniforms(prog);
-                        DrawMesh(mesh);
+                        draw.Material!.UpdateUniforms(prog);
+                        prog.SetUniform("uModel", draw.Object!.WorldMatrix);
+                        draw.Draw!();
                     }
+
+                    vertex.VertexArray.Unbind();
                 }
+
+                prog.Unbind();
             }
+
+
+            if (_frameBuffer != null)
+            {
+                //_frameBuffer.InvalidateDepth();
+                _frameBuffer.Unbind();
+            }
+
         }
 
-        public void SetImageTarget(uint image, uint width, uint height)
+        public void SetImageTarget(uint image)
         {
             if (!_frameBuffers.TryGetValue(image, out var frameBuffer))
             {
-                frameBuffer = new GlFrameTextureBuffer(_gl, new GlTexture2D(_gl, image, width, height));
+                frameBuffer = new GlFrameTextureBuffer(_gl, new GlTexture2D(_gl, image));
                _frameBuffers[image] = frameBuffer;
             }
 

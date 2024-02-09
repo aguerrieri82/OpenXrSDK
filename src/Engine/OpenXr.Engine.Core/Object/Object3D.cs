@@ -14,6 +14,8 @@ namespace OpenXr.Engine
         protected Group? _parent;
         protected Matrix4x4 _worldMatrix;
         protected bool _worldDirty;
+        protected Group? _scene;
+        protected bool _isVisible;
 
         public Object3D()
         {
@@ -64,10 +66,30 @@ namespace OpenXr.Engine
             {
                 _parent = value;
                 _worldDirty = true;
+                _scene = this.FindAncestor<Scene>();
+                NotifyChanged();
             }
         }
 
-        public bool IsVisible { get; set; }
+        public bool IsVisible
+        {
+            get => _isVisible;
+            set
+            {
+                if (_isVisible == value)
+                    return;
+                _isVisible = value;
+                NotifyChanged();
+
+
+            }
+        }
+
+        public virtual void NotifyChanged()
+        {
+            if (_scene != null)
+                _scene.Version++;
+        }
 
         public Matrix4x4 WorldMatrix => _worldMatrix;
 

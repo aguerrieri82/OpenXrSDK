@@ -24,7 +24,7 @@ Gpu.EnableNvAPi();
 
 var logger = host.Services.GetRequiredService<ILogger<object>>();
 
-await XrSceneApp.Run(host.Services, logger);
+await WindowSceneApp.Run(host.Services, logger);
 
 await host.StopAsync();
 

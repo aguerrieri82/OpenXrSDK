@@ -69,6 +69,8 @@ namespace OpenXr.Engine
             if (Renderer == null)
                 return;
 
+            Console.WriteLine($"Render frame {_context.Frame}");
+
             Renderer.Render(_activeScene, _activeScene.ActiveCamera, view);
         }
 

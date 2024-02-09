@@ -23,29 +23,39 @@ namespace OpenXr.Engine.OpenGL
             MaxLevel = 8;
         }
 
-        public GlTexture2D(GL gl, uint handle, uint width, uint height)
+        public GlTexture2D(GL gl, uint handle)
             : base(gl)
         {
-            Attach(handle, width, height);
+            Attach(handle);
         }
 
-        public unsafe void Attach(uint handle, uint width, uint height)
+        public unsafe void Attach(uint handle)
         {
             _handle = handle;
 
-            Bind();
+            _gl.GetTextureLevelParameter(_handle, 0, GetTextureParameter.TextureWidth, out int w);
+            _gl.GetTextureLevelParameter(_handle, 0, GetTextureParameter.TextureHeight, out int h);
+            _gl.GetTextureLevelParameter(_handle, 0, GetTextureParameter.TextureInternalFormat, out int intf);
 
-            _gl.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureWidth, out int w);
-            _gl.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureHeight, out int h);
+            _gl.GetTextureParameter(_handle, GetTextureParameter.TextureWrapS, out int ws);
+            _gl.GetTextureParameter(_handle, GetTextureParameter.TextureWrapT, out int wt);
+
+            _gl.GetTextureParameter(_handle, GetTextureParameter.TextureMinFilter, out int min);
+            _gl.GetTextureParameter(_handle, GetTextureParameter.TextureMagFilter, out int mag);
+
+            _gl.GetTextureParameter(_handle, GetTextureParameter.TextureBaseLevelSgis, out int bl);
+            _gl.GetTextureParameter(_handle, GetTextureParameter.TextureMaxLevelSgis, out int ml);
 
             _width = (uint)w;
             _height = (uint)h;
 
-            Unbind();
-
-            _width = width;
-            _handle = height;
-
+            WrapS = (TextureWrapMode)ws;
+            WrapT = (TextureWrapMode)wt;
+            MinFilter = (TextureMinFilter)min;
+            MagFilter = (TextureMagFilter)mag;
+            BaseLevel = (uint)bl;
+            MaxLevel = (uint)ml;
+            InternalFormat = (InternalFormat)intf;
         }
 
         public unsafe void Create(uint width, uint height, TextureFormat format)
@@ -102,6 +112,8 @@ namespace OpenXr.Engine.OpenGL
                 pixelType,
                 null);
 
+            InternalFormat = internalFormat;
+
             Update();
         }
 
@@ -122,7 +134,7 @@ namespace OpenXr.Engine.OpenGL
 
         public void Bind(TextureUnit textureSlot = TextureUnit.Texture0)
         {
-            _gl.ActiveTexture(textureSlot);
+            //_gl.ActiveTexture(textureSlot);
             _gl.BindTexture(TextureTarget.Texture2D, _handle);
         }
 
@@ -135,6 +147,8 @@ namespace OpenXr.Engine.OpenGL
         {
             _gl.DeleteTexture(_handle);
         }
+
+        public InternalFormat InternalFormat;
 
         public TextureWrapMode WrapS;
         
