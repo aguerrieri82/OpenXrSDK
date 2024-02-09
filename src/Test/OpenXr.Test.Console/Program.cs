@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OpenXr.Framework;
 using OpenXr.Samples;
 
 var host = Host.CreateDefaultBuilder(args)
@@ -19,6 +20,7 @@ var host = Host.CreateDefaultBuilder(args)
 
 _ = host.RunAsync();
 
+Gpu.EnableNvAPi();
 
 var logger = host.Services.GetRequiredService<ILogger<object>>();
 

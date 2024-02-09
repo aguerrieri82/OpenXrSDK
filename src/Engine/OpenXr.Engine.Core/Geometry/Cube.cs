@@ -57,6 +57,8 @@ namespace OpenXr.Engine
                 0, 1, 3,
                 1, 2, 3
             ];
+
+            TriangleCount = 36;
         }
 
         public static readonly Cube Instance = new Cube();

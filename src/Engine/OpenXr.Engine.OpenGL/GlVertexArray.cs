@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Engine.OpenGL
 {
-    public class GlVertexBuffer<TVertexType, TIndexType> : GlObject
+    public class GlVertexArray<TVertexType, TIndexType> : GlObject
         where TVertexType : unmanaged
         where TIndexType : unmanaged
     {
@@ -15,7 +15,7 @@ namespace OpenXr.Engine.OpenGL
 
 
 
-        public unsafe GlVertexBuffer(GL gl, TVertexType[] vertices, TIndexType[] index, GlVertexLayout layout)
+        public unsafe GlVertexArray(GL gl, TVertexType[] vertices, TIndexType[] index, GlVertexLayout layout)
             : this(gl, 
                   new GlBuffer<TVertexType>(gl, vertices.AsSpan(), BufferTargetARB.ArrayBuffer),
                   new GlBuffer<TIndexType>(gl, index.AsSpan(), BufferTargetARB.ElementArrayBuffer),
@@ -25,7 +25,7 @@ namespace OpenXr.Engine.OpenGL
         }
 
 
-        public GlVertexBuffer(GL gl, GlBuffer<TVertexType> vbo, GlBuffer<TIndexType> ebo, GlVertexLayout layout)
+        public GlVertexArray(GL gl, GlBuffer<TVertexType> vbo, GlBuffer<TIndexType> ebo, GlVertexLayout layout)
             : base(gl)
         {
             _gl = gl;
@@ -42,11 +42,10 @@ namespace OpenXr.Engine.OpenGL
   
         protected unsafe void Configure()
         {
-            var sizeBytes = _layout.Size * (uint)sizeof(TVertexType);
 
             foreach (var attr in _layout.Attributes!)
             {
-                _gl.VertexAttribPointer(attr.Location, (int)attr.Count, attr.Type, false, sizeBytes, (void*)(attr.Offset * sizeof(TVertexType)));
+                _gl.VertexAttribPointer(attr.Location, (int)attr.Count, attr.Type, false, _layout.Size, (void*)attr.Offset);
                 _gl.EnableVertexAttribArray(attr.Location);
             }
         }

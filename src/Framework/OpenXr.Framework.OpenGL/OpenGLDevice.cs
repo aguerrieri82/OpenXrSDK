@@ -14,11 +14,6 @@ namespace OpenXr.Framework.OpenGL
         private Thread? _mainLoopThread;
         private XrDispatcherThread _dispatcher;
 
-        [DllImport("nvapi64.dll", EntryPoint = "nvapi_QueryInterface")]
-        static extern int LoadNvApi64(int offset);
-
-        [DllImport("nvapi.dll", EntryPoint = "nvapi_QueryInterface")]
-        static extern void LoadNvApi32(int offset);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         delegate bool wglMakeCurrentDelegate(nint hdc, nint hglrc);
@@ -31,24 +26,8 @@ namespace OpenXr.Framework.OpenGL
             _dispatcher = new XrDispatcherThread();
         }
 
-        protected void EnableNvAPi()
-        {
-            try
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    if (Environment.Is64BitProcess)
-                        LoadNvApi64(0);
-                    else
-                        LoadNvApi32(0);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-        }
 
+       
         protected void OnViewLoaded()
         {
             _gl = _view.CreateOpenGL();
@@ -69,8 +48,6 @@ namespace OpenXr.Framework.OpenGL
         {
             if (_mainLoopThread != null)
                 return;
-
-            EnableNvAPi();
 
             if (_view == null)
                 CreateWindow();

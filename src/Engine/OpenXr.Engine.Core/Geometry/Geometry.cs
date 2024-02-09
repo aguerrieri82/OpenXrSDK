@@ -9,10 +9,10 @@ namespace OpenXr.Engine
 
     public abstract class Geometry : EngineObject
     {
-
-
         public int[]? Indices { get; set; }
 
-        public VertexData[]? Vertices {  get; set; }    
+        public VertexData[]? Vertices {  get; set; }
+
+        public uint TriangleCount { get; set; }
     }
 }
