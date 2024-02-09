@@ -16,16 +16,28 @@ namespace OpenXr.Samples
             var app = new EngineApp();
 
             var scene = new Scene();
-            scene.ActiveCamera = new PerspectiveCamera() { Far = 5f };
+            scene.ActiveCamera = new PerspectiveCamera() { Far = 50f };
 
-            var cube = new Mesh(Cube.Instance, new StandardMaterial() { Color = new Color(1, 0, 0) });
-            cube.Transform.Scale = new Vector3(1, 1, 1);
-            cube.AddBehavior((obj, ctx) =>
+            var material = new StandardMaterial() { Color = new Color(1, 0, 0) };
+
+            for (var y = -1f; y <= 1; y += 0.5f)
             {
-                obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3( 0, 1, 0), (float)(ctx.Time * Math.PI / 4));
-            });
+                for (var rad = 0f; rad < Math.PI * 2; rad += (float)Math.PI / 10)
+                {
+                    var x = (float)Math.Sin(rad) * 1;
+                    var z = (float)Math.Cos(rad) * 1;
 
-            scene.AddChild(cube);
+                    var cube = new Mesh(Cube.Instance, material);
+                    cube.Transform.Scale = new Vector3(0.2f, 0.2f, 0.2f);
+                    cube.Transform.Position = new Vector3(x, y, z);
+                    cube.AddBehavior((obj, ctx) =>
+                    {
+                        obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)(ctx.Time * Math.PI / 4));
+                    });
+                    scene.AddChild(cube);
+                }
+            }
+
             scene.AddChild(new AmbientLight(0.3f));
             scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
 

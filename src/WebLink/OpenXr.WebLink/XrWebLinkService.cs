@@ -86,7 +86,7 @@ namespace OpenXr.WebLink
 
             try
             {
-                var location = _app.LocateSpace(_app.Head, _app.Floor, 1);
+                var location = _app.LocateSpace(_app.Head, _app.Local, 1);
 
                 var curPose = location.Pose.Convert().To<Entities.Posef>();
                 if (curPose.Similar(_lastPose, 0.0001f))

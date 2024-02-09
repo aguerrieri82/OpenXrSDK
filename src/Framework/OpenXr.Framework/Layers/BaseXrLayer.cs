@@ -30,13 +30,13 @@ namespace OpenXr.Framework
             }
         }
 
-        public bool Render(ref View[] views, XrSwapchainInfo[] swapchains)
+        public bool Render(ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
         {
             var span = new Span<T>(_header, 1);
-            return Render(ref span[0], ref views, swapchains);
+            return Render(ref span[0], ref views, swapchains, predTime);
         }
 
-        protected abstract bool Render(ref T layer, ref View[] views, XrSwapchainInfo[] swapchains);
+        protected abstract bool Render(ref T layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime);
 
         public bool IsEnabled {  get; set; }
 

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace OpenXr.Framework
 {
 
-    public unsafe delegate void RenderViewDelegate(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image);
+    public unsafe delegate void RenderViewDelegate(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image, long predTime);
 
     public unsafe class XrProjectionLayer : BaseXrLayer<CompositionLayerProjection>
     {
@@ -37,7 +37,7 @@ namespace OpenXr.Framework
             base.Dispose();
         }
 
-        protected override bool Render(ref CompositionLayerProjection layer, ref View[] views, XrSwapchainInfo[] swapchains)
+        protected override bool Render(ref CompositionLayerProjection layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
         {
             if (layer.Views == null)
             {
@@ -68,7 +68,7 @@ namespace OpenXr.Framework
                     projView.SubImage.ImageRect.Offset.Y = 0;
                     projView.SubImage.ImageRect.Extent = swapChainInfo.Size;
 
-                    _renderView(ref projView, swapChainInfo.Images!.ItemPointer((int)index));
+                    _renderView(ref projView, swapChainInfo.Images!.ItemPointer((int)index), predTime);
                 }
                 catch (Exception ex)
                 {

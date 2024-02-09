@@ -60,8 +60,6 @@ namespace OpenXr.Framework
         public override void OnSessionCreated()
         {
             SetAndroidApplicationThread(AndroidThreadTypeKHR.ApplicationMainKhr, _mainThreadId);
-            //SetAndroidApplicationThread(AndroidThreadTypeKHR.ApplicationWorkerKhr, _mainThreadId);
-            //SetAndroidApplicationThread(AndroidThreadTypeKHR.RendererWorkerKhr, _mainThreadId);
             SetAndroidApplicationThread(AndroidThreadTypeKHR.RendererMainKhr, _mainThreadId);
             base.OnSessionCreated();
         }
