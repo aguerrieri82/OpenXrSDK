@@ -20,6 +20,10 @@ namespace OpenXr.Samples
 
             var cube = new Mesh(Cube.Instance, new StandardMaterial() { Color = new Color(1, 0, 0) });
             cube.Transform.Scale = new Vector3(1, 1, 1);
+            cube.AddBehavior((obj, ctx) =>
+            {
+                obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3( 0, 1, 0), (float)(ctx.Time * Math.PI / 4));
+            });
 
             scene.AddChild(cube);
             scene.AddChild(new AmbientLight(0.3f));

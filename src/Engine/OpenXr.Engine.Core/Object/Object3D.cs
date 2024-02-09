@@ -13,10 +13,12 @@ namespace OpenXr.Engine
         protected Transform _transform;
         protected Group? _parent;
         protected Matrix4x4 _worldMatrix;
+        protected bool _worldDirty;
 
         public Object3D()
         {
             _transform = new Transform();
+            _worldDirty = true;
             IsVisible = true;
         }
 
@@ -28,9 +30,15 @@ namespace OpenXr.Engine
             if (updateParent && _parent != null)
                 isParentChanged = _parent.UpdateWorldMatrix(false, updateParent);
             
-            if (_transform.Update() || isParentChanged)
+            if (_transform.Update() || isParentChanged || _worldDirty)
             {
-                _worldMatrix = _parent!.WorldMatrix * _transform.Matrix;
+                if (_parent != null)
+                    _worldMatrix = _parent!.WorldMatrix * _transform.Matrix;
+                else
+                    _worldMatrix = _transform.Matrix;
+
+                _worldDirty = false;
+
                 isChanged = true;
             }
 
@@ -39,7 +47,12 @@ namespace OpenXr.Engine
 
         public override void Update(RenderContext ctx)
         {
-            _transform.Update();
+            if (_transform.Update())
+            {
+                _worldDirty = true;
+                UpdateWorldMatrix(true, false);
+            }
+
 
             base.Update(ctx);
         }
@@ -47,7 +60,11 @@ namespace OpenXr.Engine
         public Group? Parent
         {
             get => _parent;
-            internal set => _parent = value;
+            internal set
+            {
+                _parent = value;
+                _worldDirty = true;
+            }
         }
 
         public bool IsVisible { get; set; }

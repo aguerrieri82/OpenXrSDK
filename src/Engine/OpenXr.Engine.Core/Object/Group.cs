@@ -68,8 +68,10 @@ namespace OpenXr.Engine
 
             if (child.Parent != null)
                 child.Parent.RemoveChild(child);
-            
+
+            child.Parent = this;
             _children.Add(child);
+
         }
 
         public void RemoveChild(Object3D child)

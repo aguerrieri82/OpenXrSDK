@@ -28,7 +28,8 @@ namespace OpenXr.Engine
         public Vector3 Pos;
         [ShaderRef(1, "vForm")]
         public Vector3 Normal;
-        [ShaderRef(1, "vUv")]
+        [ShaderRef(2, "vUv")]
         public Vector2 UV;
+
     }
 }

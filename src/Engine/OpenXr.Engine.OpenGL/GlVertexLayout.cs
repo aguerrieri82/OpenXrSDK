@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Engine.OpenGL
 {
-    //uint index, int count, VertexAttribPointerType type, uint vertexSize, int offSet
-
     public struct GlVertexAttribute
     {
         public uint Location;
@@ -27,7 +25,6 @@ namespace OpenXr.Engine.OpenGL
 
     public class GlVertexLayout
     {
-
         public static GlVertexLayout FromType<T>() where T : unmanaged
         {
             var fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
@@ -68,7 +65,7 @@ namespace OpenXr.Engine.OpenGL
                     throw new NotImplementedException();
 
                 item.Offset = curOfs;
-                curOfs += item.Count;
+                curOfs += (uint)Marshal.SizeOf(info.Type);
             }
             
             res.Size = curOfs;

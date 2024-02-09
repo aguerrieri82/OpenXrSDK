@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Text;
 
 
 namespace OpenXr.Engine.OpenGL
@@ -67,18 +69,24 @@ namespace OpenXr.Engine.OpenGL
         protected void DrawMesh(Mesh mesh)
         {
             var vertexBuffer = GetResource(mesh.Geometry!, geo =>
-                new GlVertexBuffer<VertexData, int>(_gl, geo.Vertices!, geo.Indices!, _meshLayout));
+                new GlVertexArray<VertexData, int>(_gl, geo.Vertices!, geo.Indices!, _meshLayout));
 
             vertexBuffer.Bind();
 
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, (uint)mesh.Geometry!.Indices!.Length);
+            _gl.DrawArrays(PrimitiveType.Triangles, 0, mesh.Geometry!.TriangleCount);
         }
 
         public void EnableDebug()
         {
              _gl.DebugMessageCallback((source, type, id, sev, len, msg, param) =>
             {
-                Debug.WriteLine(msg);
+                unsafe
+                {
+                    var span = new Span<byte>((void*)msg, len);
+                    var text = Encoding.UTF8.GetString(span);
+                    Debug.WriteLine($"------ OPENGL: {text}");
+                }
+     
 
             }, 0);
 

@@ -9,7 +9,7 @@ namespace OpenXr.Engine
 {
     public class Transform
     {
-        protected bool _isDirty = true;
+        protected bool _isDirty;
         protected Vector3 _scale;
         protected Vector3 _position;
         protected Quaternion _orientation;
@@ -17,12 +17,12 @@ namespace OpenXr.Engine
 
         public Transform()
         {
-            _scale = new Vector3(1, 1, 1);
+            Scale = new Vector3(1, 1, 1);
         }
 
         public bool Update()
         {
-            if (_isDirty) 
+            if (!_isDirty) 
                 return false;
 
             _matrix =
@@ -31,6 +31,7 @@ namespace OpenXr.Engine
                 Matrix4x4.CreateTranslation(_position);
 
             _isDirty = false;
+
             return true;
         }
 
