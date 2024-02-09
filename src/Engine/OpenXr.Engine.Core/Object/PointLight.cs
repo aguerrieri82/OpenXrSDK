@@ -8,5 +8,6 @@ namespace OpenXr.Engine
 {
     public class PointLight : Light
     {
+        public Color Specular { get; set; }
     }
 }

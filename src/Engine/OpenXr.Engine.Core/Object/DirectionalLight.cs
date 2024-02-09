@@ -18,5 +18,7 @@ namespace OpenXr.Engine
         {
             Transform.Orientation = Quaternion.Normalize(new Quaternion(direction.X, direction.Y, direction.Z, 0));
         }
+
+
     }
 }
