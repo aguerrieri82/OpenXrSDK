@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Framework
 {
-    public  class NativeArray<TBase> : IDisposable where TBase : struct
+    public class NativeArray<TBase> : IDisposable where TBase : unmanaged
     {
         private nint _buffer;
         private int _bufferSize;
@@ -29,7 +29,12 @@ namespace OpenXr.Framework
             _itemSize = Marshal.SizeOf(itemType);   
         }
 
-        public unsafe ref T Item<T>(int index) where T : struct
+        public unsafe TBase* ItemPointer(int index)
+        {
+            return ItemPointer<TBase>(index);   
+        }
+
+        public unsafe T* ItemPointer<T>(int index) where T : unmanaged
         {
             if (index < 0 || index >= Length)
                 throw new IndexOutOfRangeException();
@@ -37,14 +42,18 @@ namespace OpenXr.Framework
             if (sizeof(T) > _itemSize)
                 throw new InvalidOperationException();
 
-            var pItem = (T*)(_buffer + _itemSize * index);
+            return (T*)(_buffer + _itemSize * index);
+        }
+
+        public unsafe ref T Item<T>(int index) where T : unmanaged
+        {
+            var pItem = ItemPointer<T>(index);
 
             return ref pItem[0];
         }
 
         public ref TBase Item(int index)
         {
-
             return ref Item<TBase>(index);
         }
 

@@ -12,8 +12,6 @@ namespace OpenXr.Framework.OpenGL
     {
         void Initialize(ulong minVer, ulong maxVer);
 
-        IXrThread MainThread { get; }
-
         IView View { get; }
 
         GL Gl { get; }

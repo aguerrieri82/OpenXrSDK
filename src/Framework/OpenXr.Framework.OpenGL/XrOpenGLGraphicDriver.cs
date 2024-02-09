@@ -35,30 +35,6 @@ namespace OpenXr.Framework.OpenGL
             };
         }
 
-        /*
-        unsafe uint GetDepthTexture(uint colorTexture)
-        {
-       
-            _device.GL.BindTexture(GLEnum.Texture2D, colorTexture);
-            _device.GL.GetTextureLevelParameter(colorTexture, 0, GetTextureParameter.TextureWidth, out int width);
-            _device.GL.GetTextureLevelParameter(colorTexture, 0, GetTextureParameter.TextureWidth, out int height);
-
-            var depthTexture = _device.GL.GenTextures(1);
-            _device.GL.BindTexture(GLEnum.Texture2D, depthTexture);
-            _device.GL.TextureParameter(depthTexture, GLEnum.TextureMagFilter, (int)GLEnum.Nearest);
-            _device.GL.TextureParameter(depthTexture, GLEnum.TextureMinFilter, (int)GLEnum.Nearest);
-            _device.GL.TextureParameter(depthTexture, GLEnum.TextureWrapS, (int)GLEnum.ClampToEdge);
-            _device.GL.TextureParameter(depthTexture, GLEnum.TextureWrapT, (int)GLEnum.ClampToEdge);
-
-            
-            _device.GL.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.DepthComponent32, width, height, 0, PixelFormat.DepthComponent, PixelType.Float, null);
-
-
-            return depthTexture;
-        }
-        */
-
-
         public override void Initialize(XrApp app, IList<string> extensions)
         {
             _app = app;

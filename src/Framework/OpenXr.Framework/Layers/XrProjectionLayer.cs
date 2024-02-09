@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace OpenXr.Framework
 {
 
-    public delegate void RenderViewDelegate(ref CompositionLayerProjectionView view, NativeArray<SwapchainImageBaseHeader> images);
+    public unsafe delegate void RenderViewDelegate(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image);
 
     public unsafe class XrProjectionLayer : BaseXrLayer<CompositionLayerProjection>
     {
@@ -68,7 +68,11 @@ namespace OpenXr.Framework
                     projView.SubImage.ImageRect.Offset.Y = 0;
                     projView.SubImage.ImageRect.Extent = swapChainInfo.Size;
 
-                    _renderView(ref projView, swapChainInfo.Images!);
+                    _renderView(ref projView, swapChainInfo.Images!.ItemPointer((int)index));
+                }
+                catch (Exception ex)
+                {
+                    return false;
                 }
                 finally
                 {

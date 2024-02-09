@@ -8,7 +8,8 @@ namespace OpenXr.Engine
 {
     public enum TextureFormat
     { 
-        Deph32Float
+        Depth32Float,
+        Depth24Float
     }
 
     public enum WrapMode

@@ -69,8 +69,11 @@ namespace OpenXr.Engine.OpenGL
 
             switch (format)
             {
-                case TextureFormat.Deph32Float:
+                case TextureFormat.Depth32Float:
                     internalFormat = InternalFormat.DepthComponent32;
+                    break;
+                case TextureFormat.Depth24Float:
+                    internalFormat = InternalFormat.DepthComponent24;
                     break;
                 default:
                     throw new NotSupportedException();
@@ -80,7 +83,8 @@ namespace OpenXr.Engine.OpenGL
 
             switch (format)
             {
-                case TextureFormat.Deph32Float:
+                case TextureFormat.Depth32Float:
+                case TextureFormat.Depth24Float:
                     pixelFormat = PixelFormat.DepthComponent;
                     break;
                 default:
@@ -91,7 +95,8 @@ namespace OpenXr.Engine.OpenGL
 
             switch (format)
             {
-                case TextureFormat.Deph32Float:
+                case TextureFormat.Depth32Float:
+                case TextureFormat.Depth24Float:
                     pixelType = PixelType.Float;
                     break;
                 default:
