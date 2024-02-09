@@ -1,39 +1,43 @@
 ﻿#version 330 core
+in vec3 fNormal;
+in vec3 fPos;
 
-out vec4 FragColor;
+struct Material {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+};
 
-struct DirectionalLight {
-    vec3 direction;
+struct Light {
+    vec3 position;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
 };
 
+uniform Material material;
+uniform Light light;
 uniform vec3 viewPos;
-uniform vec3 objectColor;
-uniform DirectionalLight light;
+
+out vec4 FragColor;
 
 void main()
 {
-    // Normalize normal vector
-    vec3 normal = normalize(Normal);
+      vec3 ambient = light.ambient * material.ambient;
 
-    // Calculate ambient light
-    vec3 ambient = light.ambient * objectColor;
+      vec3 norm = normalize(fNormal);
+      vec3 lightDirection = normalize(light.position - fPos);
+      float diff = max(dot(norm, lightDirection), 0.0);
+      vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
-    // Calculate diffuse light
-    float diff = max(dot(normal, -light.direction), 0.0);
-    vec3 diffuse = light.diffuse * (diff * objectColor);
+      vec3 viewDirection = normalize(viewPos - fPos);
+      vec3 reflectDirection = reflect(-lightDirection, norm);
+      float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), material.shininess);
+      vec3 specular = light.specular * (spec * material.specular);
 
-    // Calculate specular light
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-light.direction, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = light.specular * (spec * objectColor);
+      //The resulting colour should be the amount of ambient colour + the amount of additional colour provided by the diffuse of the lamp + the specular amount
+      vec3 result = ambient + diffuse + specular;
 
-    // Final light intensity
-    vec3 result = ambient + diffuse + specular;
-
-    // Output final color
-    FragColor = vec4(result, 1.0);
+      FragColor = vec4(result, 1.0);
 }

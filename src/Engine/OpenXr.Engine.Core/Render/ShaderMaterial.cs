@@ -8,6 +8,11 @@ namespace OpenXr.Engine
 {
     public class ShaderMaterial : Material
     {
+        
+        public virtual void UpdateUniforms(IUniformProvider obj)
+        {
+
+        }
 
         public Shader? Shader { get; set; }
     }
