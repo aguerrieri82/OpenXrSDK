@@ -143,7 +143,5 @@ namespace OpenXr.Engine.OpenGL
         public uint Width => _width;
 
         public uint Height => _height;
-
-
     }
 }

@@ -10,9 +10,10 @@ namespace OpenXr.Engine
     {
         public Light()
         {
-            
+            Color = new Color(1f, 1f, 1f);
         }
 
+        public Color Color { get; set; }
 
         public float Intensity { get; set; }    
     }

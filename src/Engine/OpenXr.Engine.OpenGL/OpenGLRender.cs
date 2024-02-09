@@ -26,7 +26,6 @@ namespace OpenXr.Engine.OpenGL
             _context = context;
             _gl = gl;
             _frameBuffers = new Dictionary<uint, GlFrameTextureBuffer>();
-
         }
         protected unsafe TGl GetResource<T, TGl>(T obj, Func<T, TGl> factory) where T : EngineObject where TGl :GlObject
         {
@@ -46,7 +45,6 @@ namespace OpenXr.Engine.OpenGL
                 a => new GlProgram(_gl, shader.VertexSource!, shader.FragmentSource!));
         }
 
-
         public void Clear()
         {
             _gl.ClearColor(0, 0, 0, 0);
@@ -60,12 +58,12 @@ namespace OpenXr.Engine.OpenGL
             _gl.CullFace(TriangleFace.Back);
             _gl.Enable(EnableCap.CullFace);
             _gl.Enable(EnableCap.DepthTest);
-
         }
 
         public void Render(Scene scene, Camera camera, RectI view)
         {
-            _frameBuffer!.Bind();
+            if (_frameBuffer != null)
+                _frameBuffer.Bind();
             
             Clear();
             
@@ -75,7 +73,7 @@ namespace OpenXr.Engine.OpenGL
 
             var ambient = scene.VisibleDescendants<AmbientLight>().FirstOrDefault();
 
-            var directional = scene.VisibleDescendants<DirectionalLight>().FirstOrDefault();
+            var point = scene.VisibleDescendants<PointLight>().FirstOrDefault();
 
             var meshes = scene.VisibleDescendants<Mesh>()
                               .Where(a=> a.Materials != null);
@@ -89,15 +87,21 @@ namespace OpenXr.Engine.OpenGL
 
                 prog.Use();
 
+                if (ambient != null)
+                    prog.SetUniform("light.ambient", (Vector3)ambient.Color * ambient.Intensity);
+
+                if (point != null)
+                {
+                    var wordPos = Vector3.Transform(point.Transform.Position, point.WorldMatrix);
+
+                    prog.SetUniform("light.diffuse", (Vector3)point.Color * point.Intensity);
+                    prog.SetUniform("light.position", wordPos);
+                    prog.SetUniform("light.specular", point.Specular);
+                }
+
                 prog.SetUniform("uView", camera.Transform.Matrix);
                 prog.SetUniform("uProjection", camera.Projection);
                 prog.SetUniform("viewPos", camera.Transform.Position);
-
-                prog.SetUniform("material.ambient", new Vector3(1.0f, 0.5f, 0.31f));
-                prog.SetUniform("material.diffuse", new Vector3(1.0f, 0.5f, 0.31f));
-                prog.SetUniform("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
-                prog.SetUniform("material.shininess", 32.0f);
-
 
                 var shaderMeshes = meshes.Where(a =>
                     a.Materials!.OfType<ShaderMaterial>().Any(b => b.Shader == shader));
@@ -112,11 +116,8 @@ namespace OpenXr.Engine.OpenGL
 
                     foreach (var material in materials)
                     {
-                        prog.SetUniform("material.ambient", material.Color);
+                        material.UpdateUniforms(prog);
                     }
-
-
-
                 }
             }
         }

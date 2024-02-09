@@ -17,15 +17,19 @@ namespace OpenXr.Engine.OpenGL
         {
             _gl = gl;
             _bufferType = bufferType;
-
             _handle = _gl.GenBuffer();
-            Bind();
-            fixed (void* d = data)
-            {
-                _gl.BufferData<T>(bufferType, data, BufferUsageARB.StaticDraw);
-            }
+
+            Update(data);
         }
 
+        public void Update(Span<T> data)
+        {
+            Bind();
+
+            _gl.BufferData<T>(_bufferType, data, BufferUsageARB.StaticDraw);
+
+            Unbind();
+        }
 
         public void Bind()
         {
@@ -36,7 +40,6 @@ namespace OpenXr.Engine.OpenGL
         {
             _gl.BindBuffer(_bufferType, 0);
         }
-
 
         public override void Dispose()
         {

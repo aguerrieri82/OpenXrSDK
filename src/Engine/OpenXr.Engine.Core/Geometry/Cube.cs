@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace OpenXr.Engine
 {
@@ -11,70 +6,56 @@ namespace OpenXr.Engine
     {
         public Cube()
         {
-           Vertices =
-           [
-                // Front face
-                new(-0.5f, -0.5f, 0.5f),
-                new(0.5f, -0.5f, 0.5f),
-                new(0.5f, 0.5f, 0.5f),
-                new(-0.5f, 0.5f, 0.5f),
-
-                // Back face
-                new(0.5f, -0.5f, -0.5f),
-                new(-0.5f, -0.5f, -0.5f),
-                new(-0.5f, 0.5f, -0.5f),
-                new(0.5f, 0.5f, -0.5f),
-
-                // Top face
-                new(-0.5f, 0.5f, 0.5f),
-                new(0.5f, 0.5f, 0.5f),
-                new(0.5f, 0.5f, -0.5f),
-                new(-0.5f, 0.5f, -0.5f),
-
-                // Bottom face
-                new(-0.5f, -0.5f, -0.5f),
-                new(0.5f, -0.5f, -0.5f),
-                new(0.5f, -0.5f, 0.5f),
-                new(-0.5f, -0.5f, 0.5f),
-
-                // Left face
-                new(-0.5f, -0.5f, -0.5f),
-                new(-0.5f, -0.5f, 0.5f),
-                new(-0.5f, 0.5f, 0.5f),
-                new(-0.5f, 0.5f, -0.5f),
-
-                // Right face
-                new(0.5f, -0.5f, 0.5f),
-                new(0.5f, -0.5f, -0.5f),
-                new(0.5f, 0.5f, -0.5f),
-                new(0.5f, 0.5f, 0.5f)
-           ];
-
-            Triangles =
+            Vertices = VertexData.FromPosNormal(
             [
-                // Front face
-                0, 1, 2,
-                2, 3, 0,
+                 //X    Y      Z       Normals
+                -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+                 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-                // Back face
-                4, 5, 6,
-                6, 7, 4,
+                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
 
-                // Top face
-                8, 9, 10,
-                10, 11, 8,
+                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+                -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+                -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-                // Bottom face
-                12, 13, 14,
-                14, 15, 12,
+                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+                 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+                 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-                // Left face
-                16, 17, 18,
-                18, 19, 16,
+                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+                 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-                // Right face
-                20, 21, 22,
-                22, 23, 20
+                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+                 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+            ]);
+
+            Indices =
+            [
+                0, 1, 3,
+                1, 2, 3
             ];
         }
 
