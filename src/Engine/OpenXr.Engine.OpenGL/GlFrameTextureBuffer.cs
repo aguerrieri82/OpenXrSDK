@@ -13,7 +13,12 @@ namespace OpenXr.Engine.OpenGL
             : base(gl)
         {
             Color = color;
+
             Depth = new GlTexture2D(_gl);
+            Depth.MagFilter = TextureMagFilter.Nearest;
+            Depth.MinFilter = TextureMinFilter.Nearest;
+            Depth.MaxLevel = 0;
+            Depth.MinFilter = 0;
             Depth.Create(Color.Width, Color.Height, TextureFormat.Deph32Float);
         }
 

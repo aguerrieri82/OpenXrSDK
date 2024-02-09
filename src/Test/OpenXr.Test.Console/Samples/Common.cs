@@ -27,7 +27,7 @@ namespace OpenXr.Samples
 
             scene.AddChild(cube);
             scene.AddChild(new AmbientLight(0.3f));
-            scene.AddChild(new PointLight());
+            scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
 
             app.OpenScene(scene);
 

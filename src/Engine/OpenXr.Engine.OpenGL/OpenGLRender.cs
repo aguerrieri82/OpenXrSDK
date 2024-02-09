@@ -62,7 +62,7 @@ namespace OpenXr.Engine.OpenGL
         {
             _gl.FrontFace(FrontFaceDirection.CW);
             _gl.CullFace(TriangleFace.Back);
-            _gl.Enable(EnableCap.CullFace);
+            //_gl.Enable(EnableCap.CullFace);
             _gl.Enable(EnableCap.DepthTest);
         }
 
@@ -156,11 +156,11 @@ namespace OpenXr.Engine.OpenGL
             }
         }
 
-        public void SetImageTarget(uint image)
+        public void SetImageTarget(uint image, uint width, uint height)
         {
-            if (_frameBuffers.TryGetValue(image, out var frameBuffer))
+            if (!_frameBuffers.TryGetValue(image, out var frameBuffer))
             {
-                frameBuffer = new GlFrameTextureBuffer(_gl, new GlTexture2D(_gl, image));
+                frameBuffer = new GlFrameTextureBuffer(_gl, new GlTexture2D(_gl, image, width, height));
                _frameBuffers[image] = frameBuffer;
             }
 

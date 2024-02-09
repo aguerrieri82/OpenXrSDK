@@ -23,17 +23,17 @@ namespace OpenXr.Engine.OpenGL
             MaxLevel = 8;
         }
 
-        public GlTexture2D(GL gl, uint handle)
+        public GlTexture2D(GL gl, uint handle, uint width, uint height)
             : base(gl)
         {
-            Attach(handle);
+            Attach(handle, width, height);
         }
 
-        public unsafe void Attach(uint handle)
+        public unsafe void Attach(uint handle, uint width, uint height)
         {
             _handle = handle;
 
-            _gl.BindTexture(TextureTarget.Texture2D, _handle);
+            Bind();
 
             _gl.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureWidth, out int w);
             _gl.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureHeight, out int h);
@@ -41,7 +41,10 @@ namespace OpenXr.Engine.OpenGL
             _width = (uint)w;
             _height = (uint)h;
 
-            _gl.BindTexture(TextureTarget.Texture2D, 0);
+            Unbind();
+
+            _width = width;
+            _handle = height;
 
         }
 
@@ -85,8 +88,8 @@ namespace OpenXr.Engine.OpenGL
                     throw new NotSupportedException();
             }
             _handle = _gl.GenTexture();
-            
-            _gl.BindTexture(TextureTarget.Texture2D, _handle);
+
+            Bind();
 
             _gl.TexImage2D(
                 TextureTarget.Texture2D,
@@ -99,12 +102,12 @@ namespace OpenXr.Engine.OpenGL
                 pixelType,
                 null);
 
-            _gl.BindTexture(TextureTarget.Texture2D, 0);
+            Update();
         }
 
         public void Update()
         {
-            _gl.BindTexture(TextureTarget.Texture2D, _handle);
+            Bind();
 
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)WrapS);
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)WrapT);
@@ -114,13 +117,18 @@ namespace OpenXr.Engine.OpenGL
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, MaxLevel);
             _gl.GenerateMipmap(TextureTarget.Texture2D);
 
-            _gl.BindTexture(TextureTarget.Texture2D, 0);
+            Unbind();
         }
 
         public void Bind(TextureUnit textureSlot = TextureUnit.Texture0)
         {
             _gl.ActiveTexture(textureSlot);
             _gl.BindTexture(TextureTarget.Texture2D, _handle);
+        }
+
+        public void Unbind(TextureUnit textureSlot = TextureUnit.Texture0)
+        {
+            _gl.BindTexture(TextureTarget.Texture2D, 0);
         }
 
         public override void Dispose()

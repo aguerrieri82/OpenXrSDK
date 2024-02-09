@@ -10,7 +10,7 @@ namespace OpenXr.Engine
     {
         public Light()
         {
-            Color = new Color(1f, 1f, 1f);
+            Color = Color.White;
             Intensity = 1f;
         }
 

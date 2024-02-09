@@ -16,7 +16,9 @@ namespace OpenXr.Framework
         public BaseXrLayer(XrApp xrApp)
         {
             _header = (T*)Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(T)));
+            (*_header) = new T();   
             _xrApp = xrApp;
+            IsEnabled = true;
 
         }
         public virtual void Dispose()

@@ -33,6 +33,8 @@ namespace OpenXr.Engine
             return new Vector3(color.R, color.G, color.B);
         }
 
+        public static Color White => new Color(1f, 1f, 1f, 1f);
+
         public float R;
 
         public float G;

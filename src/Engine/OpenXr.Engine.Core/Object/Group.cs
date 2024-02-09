@@ -61,17 +61,17 @@ namespace OpenXr.Engine
             }
         }
 
-        public void AddChild(Object3D child)
+        public T AddChild<T>(T child) where T : Object3D
         {
             if (child.Parent == this)
-                return;
+                return child;
 
             if (child.Parent != null)
                 child.Parent.RemoveChild(child);
 
             child.Parent = this;
             _children.Add(child);
-
+            return child;
         }
 
         public void RemoveChild(Object3D child)

@@ -42,7 +42,6 @@ namespace OpenXr.Framework
         protected IXrPlugin[] _plugins;
         protected XrViewInfo? _viewInfo;
         protected XrRenderOptions? _renderOptions;
-        protected EnvironmentBlendMode _blendMode;
         protected Space _head;
         protected Space _local;
         protected Space _stage;
@@ -134,12 +133,15 @@ namespace OpenXr.Framework
                 }
 
                 _views = new View[_viewInfo.ViewCount];
+
+                for (var i = 0; i < _views.Length; i++)
+                    _views[i] = new View() { Type = StructureType.View };
             }
 
             _isStarted = true;
         }
 
-        public void RenderFrame()
+        public void RenderFrame(Space space)
         {
             var state = WaitFrame();
             
@@ -151,17 +153,28 @@ namespace OpenXr.Framework
 
             if (state.ShouldRender != 0)
             {
-                var viewsState = LocateViews(_local, state.PredictedDisplayTime);
+                var viewsState = LocateViews(space, state.PredictedDisplayTime);
 
                 var isPosValid = (viewsState.ViewStateFlags & ViewStateFlags.OrientationValidBit) != 0 &&
                                  (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;
 
                 if (isPosValid)
+                {
                     layers = _layers.Render(ref _views!, _swapchains!, out layerCount);
-
+                    for (var i = 0; i < layerCount; i++)
+                        layers[i]->Space = space;
+                }
             }
 
-            EndFrame(state.PredictedDisplayPeriod, ref layers, layerCount);
+            try
+            {
+                EndFrame(state.PredictedDisplayPeriod, ref layers, layerCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex.ToString());
+            }
+  
         }
 
 
@@ -172,7 +185,7 @@ namespace OpenXr.Framework
                 var frameEndInfo = new FrameEndInfo()
                 {
                     Type = StructureType.FrameEndInfo,
-                    EnvironmentBlendMode = _blendMode,
+                    EnvironmentBlendMode = _renderOptions!.BlendMode,
                     DisplayTime = displayTime,
                     LayerCount = count,
                     Layers = pLayers
@@ -217,12 +230,6 @@ namespace OpenXr.Framework
             DisposeSpace(_head);
             DisposeSpace(_stage);
 
-            if (_session.Handle != 0)
-            {
-                CheckResult(_xr!.DestroySession(Session), "DestroySession");
-                _session.Handle = 0;
-            }
-
             if (_swapchains != null)
             {
                 foreach (var item in _swapchains)
@@ -230,8 +237,14 @@ namespace OpenXr.Framework
                     CheckResult(_xr!.DestroySwapchain(item.Swapchain), "DestroySwapchain");
                     item.Images!.Dispose();
                 }
-               
+
                 _swapchains = null;
+            }
+
+            if (_session.Handle != 0)
+            {
+                CheckResult(_xr!.DestroySession(Session), "DestroySession");
+                _session.Handle = 0;
             }
 
             _isStarted = false;
@@ -430,7 +443,7 @@ namespace OpenXr.Framework
 
         protected virtual void SelectRenderOptionsMode(XrViewInfo viewInfo, XrRenderOptions result)
         {
-            EnvironmentBlendMode[] preferences = [EnvironmentBlendMode.AlphaBlend];
+            EnvironmentBlendMode[] preferences = [EnvironmentBlendMode.AlphaBlend, EnvironmentBlendMode.Opaque];
 
             result.BlendMode = preferences.First(a => viewInfo.BlendModes!.Contains(a));
             result.Size = viewInfo.RecommendedImageRect;
