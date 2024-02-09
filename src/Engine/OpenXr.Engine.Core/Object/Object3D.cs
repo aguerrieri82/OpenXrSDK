@@ -14,7 +14,7 @@ namespace OpenXr.Engine
         protected Group? _parent;
         protected Matrix4x4 _worldMatrix;
         protected bool _worldDirty;
-        protected Group? _scene;
+        protected Scene? _scene;
         protected bool _isVisible;
 
         public Object3D()
@@ -90,6 +90,8 @@ namespace OpenXr.Engine
             if (_scene != null)
                 _scene.Version++;
         }
+
+        public Scene? Scene => _scene;
 
         public Matrix4x4 WorldMatrix => _worldMatrix;
 

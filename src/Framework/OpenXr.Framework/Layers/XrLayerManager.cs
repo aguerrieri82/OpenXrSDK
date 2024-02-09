@@ -24,23 +24,23 @@ namespace OpenXr.Framework
             _layers.Add(new XrProjectionLayer(_xrApp, renderView));
         }
 
-        public CompositionLayerBaseHeader*[] Render(ref View[] views, XrSwapchainInfo[] swapchains, out uint count)
+        public CompositionLayerBaseHeader*[] Render(ref View[] views, XrSwapchainInfo[] swapchains, long predTime, out uint layerCount)
         {
             if (_layersPointers == null || _layersPointers.Length != _layers.Count)
                 _layersPointers = new CompositionLayerBaseHeader*[_layers.Count];
 
-            count = 0;
+            layerCount = 0;
 
             foreach (var layer in _layers)
             {
                 if (!layer.IsEnabled)
                     continue;
 
-                bool result = layer.Render(ref views, swapchains);
+                bool result = layer.Render(ref views, swapchains, predTime);
                 if (result)
                 {
-                    _layersPointers[count] = layer.Header;
-                    count++;
+                    _layersPointers[layerCount] = layer.Header;
+                    layerCount++;
                 }
             }
 

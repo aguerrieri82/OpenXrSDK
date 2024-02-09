@@ -26,7 +26,7 @@ namespace OpenXr.Engine
             }
         }
 
-        public static Group? FindAncestor<T>(this Object3D obj) where T : Group
+        public static T? FindAncestor<T>(this Object3D obj) where T : Group
         {
             return obj.Ancestors().OfType<T>().FirstOrDefault();
         }

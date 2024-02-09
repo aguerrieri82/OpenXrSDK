@@ -25,6 +25,7 @@ namespace OpenXr.Engine
             Shader = _shader;
         }
 
+
         public override void UpdateUniforms(IUniformProvider obj)
         {
             obj.SetUniform("material.ambient", Ambient);

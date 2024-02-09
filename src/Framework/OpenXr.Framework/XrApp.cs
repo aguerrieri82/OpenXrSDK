@@ -143,6 +143,9 @@ namespace OpenXr.Framework
 
         public void RenderFrame(Space space)
         {
+            if (_lastSessionState == SessionState.Stopping)
+                Restart();
+
             var state = WaitFrame();
             
             BeginFrame();
@@ -160,23 +163,14 @@ namespace OpenXr.Framework
 
                 if (isPosValid)
                 {
-                    layers = _layers.Render(ref _views!, _swapchains!, out layerCount);
+                    layers = _layers.Render(ref _views!, _swapchains!, state.PredictedDisplayTime, out layerCount);
                     for (var i = 0; i < layerCount; i++)
                         layers[i]->Space = space;
                 }
             }
 
-            try
-            {
-                EndFrame(state.PredictedDisplayPeriod, ref layers, layerCount);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex.ToString());
-            }
-  
+            EndFrame(state.PredictedDisplayPeriod, ref layers, layerCount);
         }
-
 
         protected void EndFrame(long displayTime, ref CompositionLayerBaseHeader*[]? layers, uint count)
         {
@@ -364,7 +358,8 @@ namespace OpenXr.Framework
             switch (state)
             {
                 case SessionState.Ready:
-
+                    break;
+                case SessionState.Stopping:
                     break;
             }
 
@@ -554,6 +549,15 @@ namespace OpenXr.Framework
             Space space;
             CheckResult(_xr!.CreateReferenceSpace(_session, &refSpace, &space), "CreateReferenceSpace");
             return space;
+        }
+
+        public void Restart()
+        {
+            EndSession();
+
+            WaitForSession(SessionState.Ready, SessionState.Focused, SessionState.Synchronized);
+
+            BeginSession(_viewInfo!.Type);
         }
 
         protected void BeginSession(ViewConfigurationType viewType)
@@ -798,7 +802,7 @@ namespace OpenXr.Framework
 
         public Space Head => _head;
 
-        public Space Floor => _local;
+        public Space Local => _local;
 
         public Space Stage => _stage;
 

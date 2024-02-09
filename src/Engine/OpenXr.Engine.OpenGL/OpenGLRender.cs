@@ -96,7 +96,7 @@ namespace OpenXr.Engine.OpenGL
 
         public void Clear()
         {
-            _gl.ClearColor(0.7f, 0.7f, 0.7f, 0);
+            _gl.ClearColor(0.3f, 0.3f, 1.0f, 0);
             _gl.ClearDepth(1.0f);
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
