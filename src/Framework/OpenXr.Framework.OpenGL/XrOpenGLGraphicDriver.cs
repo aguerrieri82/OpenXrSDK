@@ -43,7 +43,10 @@ namespace OpenXr.Framework.OpenGL
 
         public override void OnInstanceCreated()
         {
-            _app!.Xr.TryGetInstanceExtension<KhrOpenglEnable>(null, _app.Instance, out _openGl);
+            if (!_app!.Xr.TryGetInstanceExtension<KhrOpenglEnable>(null, _app.Instance, out _openGl))
+            {
+                throw new NotSupportedException(KhrOpenglEnable.ExtensionName + " not supported");
+            }
         }
 
         public GraphicsBinding CreateBinding()

@@ -4,7 +4,7 @@
 	
 	<PropertyGroup>
 		<NetCoreMajor></NetCoreMajor>
-		<AspNetRoot>$(NetCoreTargetingPackRoot)\Microsoft.AspNetCore.App.Ref\8.0.0\ref\net8.0\</AspNetRoot>
+		<AspNetRoot>$(NetCoreTargetingPackRoot)\..\shared\Microsoft.AspNetCore.App\8.0.0\</AspNetRoot>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -41,6 +41,8 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+
+		
 		<Reference Include="Microsoft.AspNetCore.Http">
 			<HintPath>$(AspNetRoot)Microsoft.AspNetCore.Http.dll</HintPath>
 		</Reference>
@@ -50,12 +52,7 @@
 		<Reference Include="Microsoft.AspNetCore.Http.Connections.Common">
 			<HintPath>$(AspNetRoot)Microsoft.AspNetCore.Http.Connections.Common.dll</HintPath>
 		</Reference>
-		<Reference Include="Microsoft.AspNetCore.Http.Extensions">
-			<HintPath>$(AspNetRoot)Microsoft.AspNetCore.Http.Extensions.dll</HintPath>
-		</Reference>
-		<Reference Include="Microsoft.AspNetCore.Http.Features">
-			<HintPath>$(AspNetRoot)Microsoft.AspNetCore.Http.Features.dll</HintPath>
-		</Reference>
+
 		<Reference Include="Microsoft.AspNetCore.Http.Results">
 			<HintPath>$(AspNetRoot)Microsoft.AspNetCore.Http.Results.dll</HintPath>
 		</Reference>
