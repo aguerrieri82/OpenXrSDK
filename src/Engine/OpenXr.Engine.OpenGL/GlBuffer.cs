@@ -22,6 +22,8 @@ namespace OpenXr.Engine.OpenGL
             Update(data);
         }
 
+
+
         public void Update(Span<T> data)
         {
             Bind();

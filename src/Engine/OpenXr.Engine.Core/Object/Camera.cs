@@ -11,8 +11,8 @@ namespace OpenXr.Engine
     {
         public Camera()
         {
-            Near = 0;
-            Far = 1;
+            Near = 0.01f;
+            Far = 10;
         }
 
         public float Near { get; set; }

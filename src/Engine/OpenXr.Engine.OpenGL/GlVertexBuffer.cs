@@ -13,6 +13,18 @@ namespace OpenXr.Engine.OpenGL
     {
         GlVertexLayout _layout;
 
+
+
+        public unsafe GlVertexBuffer(GL gl, TVertexType[] vertices, TIndexType[] index, GlVertexLayout layout)
+            : this(gl, 
+                  new GlBuffer<TVertexType>(gl, vertices.AsSpan(), BufferTargetARB.ArrayBuffer),
+                  new GlBuffer<TIndexType>(gl, index.AsSpan(), BufferTargetARB.ElementArrayBuffer),
+                  layout)
+        {
+
+        }
+
+
         public GlVertexBuffer(GL gl, GlBuffer<TVertexType> vbo, GlBuffer<TIndexType> ebo, GlVertexLayout layout)
             : base(gl)
         {
@@ -55,5 +67,4 @@ namespace OpenXr.Engine.OpenGL
             _gl.DeleteVertexArray(_handle);
         }
     }
-}
 }

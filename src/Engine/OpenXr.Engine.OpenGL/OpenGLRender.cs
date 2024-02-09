@@ -3,6 +3,7 @@ using Silk.NET.Core.Contexts;
 using Silk.NET.OpenGL;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 
@@ -15,6 +16,7 @@ namespace OpenXr.Engine.OpenGL
         protected GL _gl;
         protected Dictionary<uint, GlFrameTextureBuffer> _frameBuffers;
         protected GlFrameBuffer? _frameBuffer;
+        protected GlVertexLayout _meshLayout;
 
         public static class Props
         {
@@ -26,7 +28,9 @@ namespace OpenXr.Engine.OpenGL
             _context = context;
             _gl = gl;
             _frameBuffers = new Dictionary<uint, GlFrameTextureBuffer>();
+            _meshLayout = GlVertexLayout.FromType<VertexData>();
         }
+
         protected unsafe TGl GetResource<T, TGl>(T obj, Func<T, TGl> factory) where T : EngineObject where TGl :GlObject
         {
             var glObj = obj.GetProp<TGl?>(Props.GlResId);
@@ -47,7 +51,7 @@ namespace OpenXr.Engine.OpenGL
 
         public void Clear()
         {
-            _gl.ClearColor(0, 0, 0, 0);
+            _gl.ClearColor(1, 1, 1, 0);
             _gl.ClearDepth(1.0f);
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
@@ -58,6 +62,27 @@ namespace OpenXr.Engine.OpenGL
             _gl.CullFace(TriangleFace.Back);
             _gl.Enable(EnableCap.CullFace);
             _gl.Enable(EnableCap.DepthTest);
+        }
+
+        protected void DrawMesh(Mesh mesh)
+        {
+            var vertexBuffer = GetResource(mesh.Geometry!, geo =>
+                new GlVertexBuffer<VertexData, int>(_gl, geo.Vertices!, geo.Indices!, _meshLayout));
+
+            vertexBuffer.Bind();
+
+            _gl.DrawArrays(PrimitiveType.Triangles, 0, (uint)mesh.Geometry!.Indices!.Length);
+        }
+
+        public void EnableDebug()
+        {
+             _gl.DebugMessageCallback((source, type, id, sev, len, msg, param) =>
+            {
+                Debug.WriteLine(msg);
+
+            }, 0);
+
+            _gl.Enable(EnableCap.DebugOutput);
         }
 
         public void Render(Scene scene, Camera camera, RectI view)
@@ -117,6 +142,7 @@ namespace OpenXr.Engine.OpenGL
                     foreach (var material in materials)
                     {
                         material.UpdateUniforms(prog);
+                        DrawMesh(mesh);
                     }
                 }
             }

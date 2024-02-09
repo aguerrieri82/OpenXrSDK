@@ -8,7 +8,7 @@ namespace OpenXr.Engine
         {
             var result = new VertexData[data.Length / 6];
             var di = 0;
-            for (int i = 0; i < data.Length; i++)
+            for (int i = 0; i < result.Length; i++)
             {
                 ref var item = ref result[i];
 

@@ -51,7 +51,7 @@ namespace OpenXr.Framework
         protected SessionState _lastSessionState;
         protected object _sessionLock;
         protected bool _sessionBegun;
-        protected ILogger<XrApp> _logger;
+        protected ILogger _logger;
         protected XrLayerManager _layers;
         protected View[]? _views;
         protected XrSwapchainInfo[]? _swapchains;
@@ -63,7 +63,7 @@ namespace OpenXr.Framework
 
         }
 
-        public XrApp(ILogger<XrApp> logger, params IXrPlugin[] plugins)
+        public XrApp(ILogger logger, params IXrPlugin[] plugins)
         {
             _extensions = [];
             _logger = logger;

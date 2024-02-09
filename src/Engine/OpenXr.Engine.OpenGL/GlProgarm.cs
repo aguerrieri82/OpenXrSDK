@@ -18,28 +18,26 @@ namespace OpenXr.Engine.OpenGL
             );
         }
 
-        protected uint Create(params uint[] shaders)
+        protected void Create(params uint[] shaders)
         {
-            var prog = _gl.CreateProgram();
+            _handle = _gl.CreateProgram();
 
             foreach (var shader in shaders)
-                _gl.AttachShader(prog, shader);
+                _gl.AttachShader(_handle, shader);
 
-            _gl.LinkProgram(prog);
+            _gl.LinkProgram(_handle);
 
-            if (_gl.GetProgram(prog, ProgramPropertyARB.LinkStatus) == 0)
+            if (_gl.GetProgram(_handle, ProgramPropertyARB.LinkStatus) == 0)
             {
-                var log = _gl.GetProgramInfoLog(prog);
+                var log = _gl.GetProgramInfoLog(_handle);
                 throw new Exception(log);
             }
 
             foreach (var shader in shaders)
             {
-                _gl.DetachShader(prog, shader);
+                _gl.DetachShader(_handle, shader);
                 _gl.DeleteShader(shader);
             }
-
-            return prog;
         }
 
 

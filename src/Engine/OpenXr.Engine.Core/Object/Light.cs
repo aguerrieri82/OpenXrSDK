@@ -11,6 +11,7 @@ namespace OpenXr.Engine
         public Light()
         {
             Color = new Color(1f, 1f, 1f);
+            Intensity = 1f;
         }
 
         public Color Color { get; set; }

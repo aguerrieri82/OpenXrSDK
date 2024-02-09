@@ -1,33 +1,28 @@
 ﻿
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OpenXr;
+using OpenXr.Samples;
 
-using IHost host = Host.CreateDefaultBuilder(args)
-
-    .ConfigureHostConfiguration(builder =>
-    {
-
-    })
+var host = Host.CreateDefaultBuilder(args)
     .ConfigureLogging((ctx, logging) =>
     {
         logging.AddConfiguration(ctx.Configuration)
                .AddConsole();
-
     })
     .ConfigureServices((ctx, services) =>
     {
         var envName = ctx.HostingEnvironment.EnvironmentName;
 
     })
-.Build();
-
+    .Build();
 
 _ = host.RunAsync();
 
-Tasks.Services = host.Services;
 
-await Tasks.AnchorsTask();
+var logger = host.Services.GetRequiredService<ILogger<object>>();
+
+await WindowSceneApp.Run(host.Services, logger);
 
 await host.StopAsync();
 

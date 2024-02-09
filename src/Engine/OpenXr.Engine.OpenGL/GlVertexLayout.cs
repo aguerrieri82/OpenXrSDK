@@ -52,11 +52,17 @@ namespace OpenXr.Engine.OpenGL
 
                 var info = infos[i];
                 item.Name = info.Ref!.Name;
+                item.Location = (uint)i;
 
                 if (info.Type == typeof(Vector3))
                 {
                     item.Type = VertexAttribPointerType.Float;
                     item.Count = 3;
+                }
+                else if (info.Type == typeof(Vector2))
+                {
+                    item.Type = VertexAttribPointerType.Float;
+                    item.Count = 2;
                 }
                 else
                     throw new NotImplementedException();
