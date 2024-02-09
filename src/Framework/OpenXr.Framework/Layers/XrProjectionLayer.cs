@@ -20,6 +20,10 @@ namespace OpenXr.Framework
             : base(xrApp)
         {
             _renderView = renderView;
+            _header->Type = StructureType.CompositionLayerProjection;
+            _header->LayerFlags =
+                CompositionLayerFlags.CorrectChromaticAberrationBit |
+                CompositionLayerFlags.BlendTextureSourceAlphaBit;
         }
 
         public override void Dispose()
@@ -54,6 +58,8 @@ namespace OpenXr.Framework
                 {
                     _xrApp.WaitSwapchainImage(swapChainInfo.Swapchain);
 
+                    projView.Type = StructureType.CompositionLayerProjectionView;
+                    projView.Next = null;
                     projView.Fov = view.Fov;
                     projView.Pose = view.Pose;
                     projView.SubImage.Swapchain = swapChainInfo.Swapchain;

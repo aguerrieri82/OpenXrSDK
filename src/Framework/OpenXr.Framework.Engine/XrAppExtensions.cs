@@ -22,8 +22,9 @@ namespace OpenXr.Framework
                 void RenderScene(ref CompositionLayerProjectionView view, NativeArray<SwapchainImageBaseHeader> images)
                 {
                     var image = images.Item<SwapchainImageOpenGLKHR>((int)view.SubImage.ImageArrayIndex);
+                    var rect = view.SubImage.ImageRect.Convert().To<RectI>();
 
-                    renderer.SetImageTarget(image.Image);
+                    renderer.SetImageTarget(image.Image, rect.Width, rect.Height);
 
                     var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
                     
@@ -32,10 +33,12 @@ namespace OpenXr.Framework
                     camera.Transform.Position = view.Pose.Position.Convert().To<Vector3>();
                     camera.Transform.Orientation = view.Pose.Orientation.Convert().To<Quaternion>();
 
-                    app.RenderFrame(view.SubImage.ImageRect.Convert().To<RectI>());
+                    app.RenderFrame(rect);
                 }
 
                 xrApp.Layers.AddProjection(RenderScene);
+
+                return;
             }
 
             throw new NotSupportedException();

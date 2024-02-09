@@ -27,7 +27,7 @@ namespace OpenXr.Samples
 
             while (true)
             {
-                xrApp.RenderFrame();
+                xrApp.RenderFrame(xrApp.Stage);
 
                 if (Console.KeyAvailable)
                 {
