@@ -13,5 +13,24 @@ namespace OpenXr.Engine
         {
             Projection = Matrix4x4.CreatePerspectiveOffCenter(left, right, bottom, top, Near, Far);
         }
+
+
+        public void SetFov(float angleDegree, uint width, uint height)
+        {
+            SetFov(angleDegree, (float)width / height);
+        }
+
+        public void SetFov(float angleDegree, float ratio)
+        {
+            var rads = MathF.PI / 180f * angleDegree;
+
+            Projection = Matrix4x4.CreatePerspectiveFieldOfView(rads, ratio, Near, Far);
+        }
+
+        public void LookAt(Vector3 position, Vector3 target, Vector3 up)
+        {
+            Transform.SetMatrix(Matrix4x4.CreateLookAt(position, target, up));
+        }
+
     }
 }

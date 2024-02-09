@@ -31,7 +31,7 @@ namespace OpenXr.Framework.OpenGL
             _dispatcher = new XrDispatcherThread();
         }
 
-        public void EnableNvAPi()
+        protected void EnableNvAPi()
         {
             try
             {
