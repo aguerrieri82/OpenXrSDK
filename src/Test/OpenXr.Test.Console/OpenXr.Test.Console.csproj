@@ -10,13 +10,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGLES\OpenXr.Engine.OpenGLES.csproj" />
     <ProjectReference Include="..\..\Framework\OpenXr.Framework.Engine\OpenXr.Framework.Engine.csproj" />
+    <ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGLES\OpenXr.Framework.OpenGLES.csproj" />
     <ProjectReference Include="..\..\Oculus\Oculus.OVRPlugin\Oculus.OVRPlugin.csproj" />
     <ProjectReference Include="..\..\Oculus\Oculus.Platform\Oculus.Platform.csproj" />
     <ProjectReference Include="..\..\Oculus\Oculus.XrPlugin\Oculus.XrPlugin.csproj" />
-    <ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGL\OpenXr.Engine.OpenGL.csproj" />
     <ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
-    <ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
     <ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
     <ProjectReference Include="..\..\WebLink\OpenXr.WebLink.Client\OpenXr.WebLink.Client.csproj" />
   </ItemGroup>

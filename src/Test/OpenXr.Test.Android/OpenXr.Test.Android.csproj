@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\..\AspNetCoreMini.props"/>
+  <Import Project="..\..\AspNetCoreMini.props" />
 	
   <PropertyGroup>
     <TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
@@ -21,7 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Engine\OpenXr.Engine.Core\OpenXr.Engine.Core.csproj" />
+    <ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGLES\OpenXr.Engine.OpenGLES.csproj" />
     <ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
+    <ProjectReference Include="..\..\Framework\OpenXr.Framework.Engine\OpenXr.Framework.Engine.csproj" />
     <ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
     <ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
     <ProjectReference Include="..\..\WebLink\OpenXr.WebLink\OpenXr.WebLink.csproj" />

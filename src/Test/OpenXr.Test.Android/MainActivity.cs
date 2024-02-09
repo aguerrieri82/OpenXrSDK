@@ -1,17 +1,14 @@
 using Android.Content;
 using Android.Content.PM;
-using Android.Nfc;
-using Android.OS;
-using Android.Util;
-using Android.Views;
 using Android.Webkit;
-using Microsoft.Extensions.DependencyInjection;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
-using OpenXr.Framework.Vulkan;
+using OpenXr.Framework.Android;
 using OpenXr.WebLink;
 using Silk.NET.OpenXR;
-using System.Reflection;
+using Android.Runtime;
+using Java.Lang;
+using Exception = System.Exception;
 
 
 
@@ -33,21 +30,26 @@ namespace OpenXr.Test.Android
 
         private WebView? _webView;
 
-        protected override void OnCreate(Bundle? savedInstanceState)
+        protected unsafe override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
 
+
+
+            /*
             GlobalServices.App = new XrApp(
-                new XrVulkanGraphicDriver(new VulkanDevice()),
+                //new XrVulkanGraphicDriver(new VulkanDevice()),
+                new XrOpenGLESGraphicDriver(new OpenGLESDevice()),
                 new OculusXrPlugin(),
                 new OpenVrPlugin(this),
                 new AndroidXrPlugin(this, (uint)Process.MyTid()));
+            */
 
             SetContentView(Resource.Layout.activity_main);
 
-            FindViewById<Button>(Resource.Id.getRooom)!.Click += (_, _) => _= Task.Run(GetRoomAsync);
+            FindViewById<Button>(Resource.Id.getRooom)!.Click += (_, _) => _= Task.Run(StartApp);
 
-            StartService(new Intent(this, typeof(WebServerService)));
+            //StartService(new Intent(this, typeof(WebServerService)));
 
             ConfigureWebView();
         }
@@ -73,6 +75,11 @@ namespace OpenXr.Test.Android
         {
             StopService(new Intent(this, typeof(WebServerService)));
             base.OnDestroy();
+        }
+
+        private void StartApp()
+        {
+            StartActivity(new Intent(this, typeof(VrActivity)));
         }
 
         private async Task GetRoomAsync()

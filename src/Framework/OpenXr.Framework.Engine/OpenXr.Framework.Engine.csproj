@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGL\OpenXr.Engine.OpenGL.csproj" />
-    <ProjectReference Include="..\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
+    <ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGLES\OpenXr.Engine.OpenGLES.csproj" />
+    <ProjectReference Include="..\OpenXr.Framework.OpenGLES\OpenXr.Framework.OpenGLES.csproj" />
   </ItemGroup>
 
 </Project>

@@ -22,18 +22,20 @@ namespace OpenXr.Samples
 
             for (var y = -1f; y <= 1; y += 0.5f)
             {
-                for (var rad = 0f; rad < Math.PI * 2; rad += (float)Math.PI / 10)
+                for (var rad = 0f; rad < Math.PI * 2; rad += MathF.PI / 10f)
                 {
-                    var x = (float)Math.Sin(rad) * 1;
-                    var z = (float)Math.Cos(rad) * 1;
+                    var x = MathF.Sin(rad) * 1;
+                    var z = MathF.Cos(rad) * 1;
 
                     var cube = new Mesh(Cube.Instance, material);
                     cube.Transform.Scale = new Vector3(0.2f, 0.2f, 0.2f);
                     cube.Transform.Position = new Vector3(x, y, z);
+                    
                     cube.AddBehavior((obj, ctx) =>
                     {
-                        obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)(ctx.Time * Math.PI / 4));
+                        obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f);
                     });
+
                     scene.AddChild(cube);
                 }
             }

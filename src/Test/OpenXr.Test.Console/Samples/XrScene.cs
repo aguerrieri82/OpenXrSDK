@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenXr.Framework.Oculus;
+using OpenXr.Framework.OpenGLES;
 
 namespace OpenXr.Samples
 {
@@ -14,9 +15,11 @@ namespace OpenXr.Samples
     {
         public static Task Run(IServiceProvider services, ILogger logger)
         {
+            var viewManager = new ViewManager();
+            viewManager.Initialize();
 
             using var xrApp = new XrApp(logger,
-                    new XrOpenGLGraphicDriver(new OpenGLDevice()),
+                    new XrOpenGLESGraphicDriver(viewManager.View),
                     new OculusXrPlugin());
 
             xrApp.StartEventLoop();
