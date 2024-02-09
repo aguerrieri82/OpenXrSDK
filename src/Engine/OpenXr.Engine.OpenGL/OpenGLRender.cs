@@ -1,13 +1,11 @@
-﻿using OpenXr.Engine.Object;
+﻿
 using Silk.NET.Core.Contexts;
 using Silk.NET.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Silk.NET.Core.Native.WinString;
-using static System.Net.Mime.MediaTypeNames;
+using System.Numerics;
+
 
 namespace OpenXr.Engine.OpenGL
 {
@@ -15,9 +13,8 @@ namespace OpenXr.Engine.OpenGL
     {
         protected IGLContext _context;
         protected GL _gl;
-        protected uint _imageBuffer;
-        protected Dictionary<uint, uint> _dephBufferBind;
-        protected uint _frameBuffer;
+        protected Dictionary<uint, GlFrameTextureBuffer> _frameBuffers;
+        protected GlFrameBuffer? _frameBuffer;
 
         public static class Props
         {
@@ -28,230 +25,115 @@ namespace OpenXr.Engine.OpenGL
         {
             _context = context;
             _gl = gl;
-            _dephBufferBind = new Dictionary<uint, uint>();
+            _frameBuffers = new Dictionary<uint, GlFrameTextureBuffer>();
 
         }
-
-        public void Dispose()
+        protected unsafe TGl GetResource<T, TGl>(T obj, Func<T, TGl> factory) where T : EngineObject where TGl :GlObject
         {
-        }
-
-        public void Initialize()
-        {
-            _frameBuffer = _gl.CreateFramebuffer();
-        }
-
-        protected unsafe uint GetResource<T>(T obj, Func<T, uint> factory) where T : EngineObject
-        {
-            var resId = obj.GetProp<uint>(Props.GlResId);
-            if (resId == 0)
+            var glObj = obj.GetProp<TGl?>(Props.GlResId);
+            if (glObj == null)
             {
-                resId = factory(obj);
-                obj.SetProp(Props.GlResId, resId);
+                glObj = factory(obj);
+                obj.SetProp(Props.GlResId, glObj);
             }
 
-            return resId;
+            return glObj;
+        }
+
+        protected GlProgram GetProgram(Shader shader)
+        {
+            return GetResource(shader,
+                a => new GlProgram(_gl, shader.VertexSource!, shader.FragmentSource!));
         }
 
 
-        protected uint BuildProgram(string vertexShader, string fragmentShader)
+        public void Clear()
         {
-            var vs = BuildShader(ShaderType.VertexShader, vertexShader);
-            var fs = BuildShader(ShaderType.FragmentShader, fragmentShader);
-
-            return BuildProgram(vs, fs);
+            _gl.ClearColor(0, 0, 0, 0);
+            _gl.ClearDepth(1.0f);
+            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
-        protected uint BuildProgram(params uint[] shaders)
+        protected void Setup()
         {
-            var prog = _gl.CreateProgram();
-
-            foreach (var shader in shaders)
-                _gl.AttachShader(prog, shader);
-
-            _gl.LinkProgram(prog);
-
-            if (_gl.GetProgram(prog, ProgramPropertyARB.LinkStatus) == 0)
-            {
-                var log = _gl.GetProgramInfoLog(prog);
-                throw new Exception(log);
-            }
-
-            foreach (var shader in shaders)
-                _gl.DeleteShader(shader);
-
-            return prog;
-        }
-
-        protected uint BuildShader(ShaderType type, string source)
-        {
-            var result = _gl.CreateShader(type);
-            _gl.ShaderSource(result, source);
-            _gl.CompileShader(result);
-
-            
-            if (_gl.GetShader(result, ShaderParameterName.CompileStatus) == 0)
-            {
-                var log = _gl.GetShaderInfoLog(result);
-                throw new Exception(log);   
-            }
-
-            return result;
-        }
-
-        protected uint GetProgram(Shader shader)
-        {
-            return GetResource(shader, s => BuildProgram(s.VertexSource!, s.FragmentSource!));
-        }
-
-        protected unsafe uint CreateTexture(Texture2D texture)
-        {
-            InternalFormat internalFormat;
-
-            switch (texture.Format)
-            {
-                case TextureFormat.Deph32Float:
-                    internalFormat = InternalFormat.DepthComponent32;
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
-
-            PixelFormat pixelFormat;
-
-            switch (texture.Format)
-            {
-                case TextureFormat.Deph32Float:
-                    pixelFormat = PixelFormat.DepthComponent;
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
-
-            PixelType pixelType;
-
-            switch (texture.Format)
-            {
-                case TextureFormat.Deph32Float:
-                    pixelType = PixelType.Float;
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
-
-            var tex = _gl.GenTexture();
-
-            _gl.BindTexture(TextureTarget.Texture2D, tex);
-
-            _gl.TextureParameter(tex, TextureParameterName.TextureWrapS, (uint)texture.WrapS);
-            _gl.TextureParameter(tex, TextureParameterName.TextureWrapT, (uint)texture.WrapT);
-            _gl.TextureParameter(tex, TextureParameterName.TextureMagFilter, (uint)texture.MagFilter);
-            _gl.TextureParameter(tex, TextureParameterName.TextureMinFilter, (uint)texture.MinFilter);
-
-            _gl.TexImage2D(
-                TextureTarget.Texture2D,
-                0,
-                internalFormat,
-                texture.Width,
-                texture.Height,
-                0,
-                pixelFormat,
-                pixelType,
-                null);
-
-            _gl.BindTexture(TextureTarget.Texture2D, 0);
-
-            return tex;
-        }
-
-
-        protected unsafe uint GetTexture(Texture2D texture)
-        {
-            return GetResource(texture, CreateTexture);
-        }
-
-        public void Render(Scene scene, Camera camera, RectI view)
-        {
-            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBuffer);
-
-            _gl.Viewport(view.X, view.Y, view.Width, view.Height);
-
             _gl.FrontFace(FrontFaceDirection.CW);
             _gl.CullFace(TriangleFace.Back);
             _gl.Enable(EnableCap.CullFace);
             _gl.Enable(EnableCap.DepthTest);
 
-            _gl.ClearColor(0, 0, 0, 0);
-            _gl.ClearDepth(1.0f);
-            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+        }
 
+        public void Render(Scene scene, Camera camera, RectI view)
+        {
+            _frameBuffer!.Bind();
+            
+            Clear();
+            
+            Setup();
 
-            if (_imageBuffer != 0)
-            {
-                _gl.FramebufferTexture2D(
-                    FramebufferTarget.Framebuffer,
-                    FramebufferAttachment.ColorAttachment0,
-                    TextureTarget.Texture2D,
-                    _imageBuffer, 0);
-
-                uint dephImage;
-
-                if (!_dephBufferBind.TryGetValue(_imageBuffer, out dephImage))
-                {
-                    var texture = new Texture2D()
-                    {
-                        Format = TextureFormat.Deph32Float,
-                        WrapS = WrapMode.ClampToEdge,
-                        WrapT = WrapMode.ClampToEdge,
-                        MagFilter = ScaleFilter.Nearest,
-                        MinFilter = ScaleFilter.Nearest,
-                        Width = view.Width,
-                        Height = view.Height
-                    };
-
-                    dephImage = GetTexture(texture);
-
-                    _dephBufferBind[_imageBuffer] = GetTexture(texture);
-                }
-
-                _gl.FramebufferTexture2D(
-                    FramebufferTarget.Framebuffer,
-                    FramebufferAttachment.DepthAttachment,
-                    TextureTarget.Texture2D,
-                    dephImage,
-                  0);
-            }
+            _gl.Viewport(view.X, view.Y, view.Width, view.Height);
 
             var ambient = scene.VisibleDescendants<AmbientLight>().FirstOrDefault();
 
             var directional = scene.VisibleDescendants<DirectionalLight>().FirstOrDefault();
 
-            foreach (var mesh in scene.VisibleDescendants<Mesh>())
-            {
-                if (mesh.Materials == null)
-                    continue;
+            var meshes = scene.VisibleDescendants<Mesh>()
+                              .Where(a=> a.Materials != null);
 
-                foreach (var material in mesh.Materials)
+            var shaders = meshes.SelectMany(a => a.Materials!.OfType<ShaderMaterial>().Select(a => a.Shader!))
+                                .Distinct();
+
+            foreach (var shader in shaders)
+            {
+                var prog = GetProgram(shader!);
+
+                prog.Use();
+
+                prog.SetUniform("uView", camera.Transform.Matrix);
+                prog.SetUniform("uProjection", camera.Projection);
+                prog.SetUniform("viewPos", camera.Transform.Position);
+
+                prog.SetUniform("material.ambient", new Vector3(1.0f, 0.5f, 0.31f));
+                prog.SetUniform("material.diffuse", new Vector3(1.0f, 0.5f, 0.31f));
+                prog.SetUniform("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
+                prog.SetUniform("material.shininess", 32.0f);
+
+
+                var shaderMeshes = meshes.Where(a =>
+                    a.Materials!.OfType<ShaderMaterial>().Any(b => b.Shader == shader));
+
+                foreach (var mesh in shaderMeshes)
                 {
-                    if (material is ShaderMaterial shaderMat)
+                    var materials = mesh.Materials!
+                        .OfType<ShaderMaterial>()
+                        .Where(b => b.Shader == shader);
+
+                    prog.SetUniform("uModel", mesh.WorldMatrix);
+
+                    foreach (var material in materials)
                     {
-                        var prog = GetProgram(shaderMat.Shader!);
-                        
-                        _gl.UseProgram(prog);
+                        prog.SetUniform("material.ambient", material.Color);
                     }
+
+
+
                 }
             }
-
-    
-            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            _gl.UseProgram(0);
-            _gl.BindVertexArray(0); 
         }
 
         public void SetImageTarget(uint image)
         {
-            _imageBuffer = image;
+            if (_frameBuffers.TryGetValue(image, out var frameBuffer))
+            {
+                frameBuffer = new GlFrameTextureBuffer(_gl, new GlTexture2D(_gl, image));
+               _frameBuffers[image] = frameBuffer;
+            }
+
+            _frameBuffer = frameBuffer; 
         }
 
+        public void Dispose()
+        {
+        }
     }
 }

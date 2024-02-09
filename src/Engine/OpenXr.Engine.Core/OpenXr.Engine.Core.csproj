@@ -4,4 +4,14 @@
     <RootNamespace>OpenXr.Engine</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Shaders\standard_fs.glsl" />
+    <None Remove="Shaders\standard_vs.glsl" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Shaders\standard_fs.glsl" />
+    <EmbeddedResource Include="Shaders\standard_vs.glsl" />
+  </ItemGroup>
+
 </Project>

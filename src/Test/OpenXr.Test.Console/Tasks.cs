@@ -10,7 +10,6 @@ using OpenXr.Framework.OpenGL;
 using OpenXr.Engine;
 using Mesh = OpenXr.Engine.Mesh;
 using System.Numerics;
-using OpenXr.Engine.Object;
 
 namespace OpenXr
 {

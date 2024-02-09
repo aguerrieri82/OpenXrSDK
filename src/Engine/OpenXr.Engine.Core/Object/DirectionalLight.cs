@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Engine.Object
+namespace OpenXr.Engine
 {
     public class DirectionalLight : Light
     {
