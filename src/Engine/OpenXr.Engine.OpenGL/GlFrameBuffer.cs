@@ -17,14 +17,15 @@ namespace OpenXr.Engine.OpenGL
 
         public virtual void Bind()
         {
-            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _handle);
+            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _handle);
         }
 
 
         public void Unbind()
         {
-            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
         }
+
 
 
         public override void Dispose()

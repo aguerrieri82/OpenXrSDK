@@ -63,7 +63,7 @@ namespace OpenXr.Framework
                     projView.Fov = view.Fov;
                     projView.Pose = view.Pose;
                     projView.SubImage.Swapchain = swapChainInfo.Swapchain;
-                    projView.SubImage.ImageArrayIndex = index;
+                    projView.SubImage.ImageArrayIndex = 0;
                     projView.SubImage.ImageRect.Offset.X = 0;
                     projView.SubImage.ImageRect.Offset.Y = 0;
                     projView.SubImage.ImageRect.Extent = swapChainInfo.Size;

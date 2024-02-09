@@ -15,6 +15,7 @@ namespace OpenXr.Framework
             if (driver is XrOpenGLGraphicDriver glDriver)
             {
                 var renderer = new OpenGLRender(glDriver.Device.View.GLContext!, glDriver.Device.Gl);
+                renderer.EnableDebug();
                 app.Renderer = renderer;
 
                 app.Start();
@@ -24,7 +25,7 @@ namespace OpenXr.Framework
                     var image = images.Item<SwapchainImageOpenGLKHR>((int)view.SubImage.ImageArrayIndex);
                     var rect = view.SubImage.ImageRect.Convert().To<RectI>();
 
-                    renderer.SetImageTarget(image.Image, rect.Width, rect.Height);
+                    renderer.SetImageTarget(image.Image);
 
                     var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
                     

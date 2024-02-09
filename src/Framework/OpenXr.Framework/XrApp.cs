@@ -29,7 +29,7 @@ namespace OpenXr.Framework
             if (result != Result.Success)
                 throw new OpenXrException(result, context);
 
-            _logger.LogDebug("{context} OK", context);
+            //_logger.LogDebug("{context} OK", context);
             
             return true;
         }

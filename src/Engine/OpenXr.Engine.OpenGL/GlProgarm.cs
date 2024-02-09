@@ -46,6 +46,11 @@ namespace OpenXr.Engine.OpenGL
             _gl.UseProgram(_handle);
         }
 
+        public void Unbind()
+        {
+            _gl.UseProgram(0);
+        }
+
         public void SetUniform(string name, int value)
         {
             int location = _gl.GetUniformLocation(_handle, name);
