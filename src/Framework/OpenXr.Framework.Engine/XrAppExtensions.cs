@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace OpenXr.Framework
 {
-    public static class XrAppExtensions
+    public unsafe static class XrAppExtensions
     {
         public static void BindEngineApp(this XrApp xrApp, EngineApp app)
         {
@@ -20,12 +20,12 @@ namespace OpenXr.Framework
 
                 app.Start();
 
-                void RenderScene(ref CompositionLayerProjectionView view, NativeArray<SwapchainImageBaseHeader> images)
+                void RenderScene(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image)
                 {
-                    var image = images.Item<SwapchainImageOpenGLKHR>((int)view.SubImage.ImageArrayIndex);
+                    var glImage = (SwapchainImageOpenGLKHR*)image;
                     var rect = view.SubImage.ImageRect.Convert().To<RectI>();
 
-                    renderer.SetImageTarget(image.Image);
+                    renderer.SetImageTarget(glImage->Image);
 
                     var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
                     
@@ -35,6 +35,8 @@ namespace OpenXr.Framework
                     camera.Transform.Orientation = view.Pose.Orientation.Convert().To<Quaternion>();
 
                     app.RenderFrame(rect);
+
+                    glDriver.Device.View.DoEvents();
                 }
 
                 xrApp.Layers.AddProjection(RenderScene);

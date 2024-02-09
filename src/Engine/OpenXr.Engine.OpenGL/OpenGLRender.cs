@@ -181,11 +181,9 @@ namespace OpenXr.Engine.OpenGL
                     var text = Encoding.UTF8.GetString(span);
                     Debug.WriteLine($"------ OPENGL: {text}");
                 }
-     
-
             }, 0);
 
-            _gl.Enable(EnableCap.DebugOutput);
+            //_gl.Enable(EnableCap.DebugOutput);
         }
 
         public void Render(Scene scene, Camera camera, RectI view)
