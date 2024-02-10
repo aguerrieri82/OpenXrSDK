@@ -3,22 +3,22 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum LeaderboardFilterType : int
-  {
-    [Description("NONE")]
-    None,
+    public enum LeaderboardFilterType : int
+    {
+        [Description("NONE")]
+        None,
 
-    [Description("FRIENDS")]
-    Friends,
+        [Description("FRIENDS")]
+        Friends,
 
-    [Description("UNKNOWN")]
-    Unknown,
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("USER_IDS")]
-    UserIds,
+        [Description("USER_IDS")]
+        UserIds,
 
-  }
+    }
 
 }

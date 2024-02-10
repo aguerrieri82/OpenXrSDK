@@ -1,10 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace OpenXr.Engine
 {
@@ -31,7 +25,7 @@ namespace OpenXr.Engine
 
             if (updateParent && _parent != null)
                 isParentChanged = _parent.UpdateWorldMatrix(false, updateParent);
-            
+
             if (_transform.Update() || isParentChanged || _worldDirty)
             {
                 if (_parent != null)
@@ -99,6 +93,6 @@ namespace OpenXr.Engine
 
         public string? Tag { get; set; }
 
-        public string? Name { get; set; }    
+        public string? Name { get; set; }
     }
 }

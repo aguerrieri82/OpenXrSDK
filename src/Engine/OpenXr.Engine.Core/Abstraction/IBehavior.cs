@@ -1,11 +1,4 @@
-﻿using OpenXr.Engine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public interface IBehavior : IComponent, IRenderUpdate
     {

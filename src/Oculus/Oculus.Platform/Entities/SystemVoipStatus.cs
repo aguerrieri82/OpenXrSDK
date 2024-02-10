@@ -3,22 +3,22 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum SystemVoipStatus : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum SystemVoipStatus : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("UNAVAILABLE")]
-    Unavailable,
+        [Description("UNAVAILABLE")]
+        Unavailable,
 
-    [Description("SUPPRESSED")]
-    Suppressed,
+        [Description("SUPPRESSED")]
+        Suppressed,
 
-    [Description("ACTIVE")]
-    Active,
+        [Description("ACTIVE")]
+        Active,
 
-  }
+    }
 
 }

@@ -69,6 +69,6 @@ namespace OpenXr.Framework.OpenGLES
 
         public XrDynamicType SwapChainImageType => _swapChainType;
 
-        public IView View => _view; 
+        public IView View => _view;
     }
 }

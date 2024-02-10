@@ -63,7 +63,7 @@ namespace OpenXr.Test.Android
                  new AndroidXrOpenGLESGraphicDriver(OpenGLESContext.Create()),
                  new OculusXrPlugin(),
                  new AndroidXrPlugin(this, (uint)Process.MyTid()));
-            
+
             result.BindEngineApp(CreateScene());
 
             return result;

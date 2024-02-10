@@ -1,11 +1,5 @@
-﻿using OpenXr.Framework;
-using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Silk.NET.OpenXR;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Framework
 {
@@ -14,7 +8,7 @@ namespace OpenXr.Framework
 
     public unsafe class XrProjectionLayer : BaseXrLayer<CompositionLayerProjection>
     {
-        RenderViewDelegate _renderView;
+        readonly RenderViewDelegate _renderView;
 
         public XrProjectionLayer(XrApp xrApp, RenderViewDelegate renderView)
             : base(xrApp)

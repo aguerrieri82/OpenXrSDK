@@ -1,10 +1,4 @@
 ﻿using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Framework
 {
@@ -16,7 +10,7 @@ namespace OpenXr.Framework
 
         public XrLayerManager(XrApp xrApp)
         {
-            _xrApp = xrApp; 
+            _xrApp = xrApp;
         }
 
         public void AddProjection(RenderViewDelegate renderView)

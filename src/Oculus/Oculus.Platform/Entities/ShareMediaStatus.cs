@@ -3,19 +3,19 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum ShareMediaStatus : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum ShareMediaStatus : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("SHARED")]
-    Shared,
+        [Description("SHARED")]
+        Shared,
 
-    [Description("CANCELED")]
-    Canceled,
+        [Description("CANCELED")]
+        Canceled,
 
-  }
+    }
 
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace OpenXr.WebLink.Entities
 {
@@ -33,9 +28,9 @@ namespace OpenXr.WebLink.Entities
         public override bool Equals([NotNullWhen(true)] object? obj)
         {
             if (obj is Quaternionf other)
-                return other.X == X && 
-                    other.Y == Y && 
-                    other.Z == Z && 
+                return other.X == X &&
+                    other.Y == Y &&
+                    other.Z == Z &&
                     other.W == W;
             return false;
         }

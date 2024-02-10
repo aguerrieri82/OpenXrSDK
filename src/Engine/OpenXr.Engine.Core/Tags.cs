@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public static class Tags
     {
-        public const string Main = nameof(Main);    
+        public const string Main = nameof(Main);
     }
 }

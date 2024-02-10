@@ -3,22 +3,22 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum AchievementType : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum AchievementType : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("SIMPLE")]
-    Simple,
+        [Description("SIMPLE")]
+        Simple,
 
-    [Description("BITFIELD")]
-    Bitfield,
+        [Description("BITFIELD")]
+        Bitfield,
 
-    [Description("COUNT")]
-    Count,
+        [Description("COUNT")]
+        Count,
 
-  }
+    }
 
 }

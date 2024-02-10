@@ -1,22 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace OpenXr.Framework
+﻿namespace OpenXr.Framework
 {
     public struct SyncEvent : IDisposable
     {
-        SemaphoreSlim _semaphore;
+        readonly SemaphoreSlim _semaphore;
 
         public SyncEvent()
         {
             _semaphore = new SemaphoreSlim(0, 1);
         }
 
-      
+
         public void Signal()
         {
             _semaphore.Release();
@@ -56,7 +49,7 @@ namespace OpenXr.Framework
                 await _semaphore.WaitAsync(cancellationToken);
                 return true;
             }
-            catch 
+            catch
             {
                 return false;
             }

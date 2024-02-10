@@ -1,7 +1,5 @@
 
 using Oculus;
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 
@@ -686,39 +684,39 @@ public static partial class OVRPlugin
     public struct CameraDeviceIntrinsicsParameters
     {
         // Focal length in pixels along x axis.
-        float fx;
+        readonly float fx;
 
         // Focal length in pixels along y axis.
-        float fy;
+        readonly float fy;
 
         // Optical center along x axis, defined in pixels (usually close to width/2).
-        float cx;
+        readonly float cx;
 
         // Optical center along y axis, defined in pixels (usually close to height/2).
-        float cy;
+        readonly float cy;
 
         // Distortion factor : [ k1, k2, p1, p2, k3 ]. Radial (k1,k2,k3) and Tangential (p1,p2) distortion.
-        double disto0;
+        readonly double disto0;
 
-        double disto1;
-        double disto2;
-        double disto3;
-        double disto4;
+        readonly double disto1;
+        readonly double disto2;
+        readonly double disto3;
+        readonly double disto4;
 
         // Vertical field of view after stereo rectification, in degrees.
-        float v_fov;
+        readonly float v_fov;
 
         // Horizontal field of view after stereo rectification, in degrees.
-        float h_fov;
+        readonly float h_fov;
 
         // Diagonal field of view after stereo rectification, in degrees.
-        float d_fov;
+        readonly float d_fov;
 
         // Resolution width
-        int w;
+        readonly int w;
 
         // Resolution height
-        int h;
+        readonly int h;
     }
 
     private const int OverlayShapeFlagShift = 4;
@@ -1580,13 +1578,13 @@ public static partial class OVRPlugin
     [StructLayout(LayoutKind.Sequential)]
     public struct LayerSubmit
     {
-        int LayerId;
-        int TextureStage;
+        readonly int LayerId;
+        readonly int TextureStage;
 
         RectiPair ViewportRect;
 
         Posef Pose;
-        int LayerSubmitFlags;
+        readonly int LayerSubmitFlags;
     }
 
     public enum TrackingConfidence
@@ -3398,7 +3396,7 @@ public static partial class OVRPlugin
 
 
     private const string pluginName = "OVRPlugin";
-    private static System.Version _versionZero = new System.Version(0, 0, 0);
+    private static readonly System.Version _versionZero = new System.Version(0, 0, 0);
 
     // Disable all the DllImports when the platform is not supported
 #if !OVRPLUGIN_UNSUPPORTED_PLATFORM

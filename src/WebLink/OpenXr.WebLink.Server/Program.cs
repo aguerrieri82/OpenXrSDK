@@ -2,8 +2,6 @@
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.Vulkan;
-using OpenXr.WebLink;
-using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 

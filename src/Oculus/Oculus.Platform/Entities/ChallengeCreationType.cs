@@ -3,19 +3,19 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum ChallengeCreationType : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum ChallengeCreationType : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("USER_CREATED")]
-    UserCreated,
+        [Description("USER_CREATED")]
+        UserCreated,
 
-    [Description("DEVELOPER_CREATED")]
-    DeveloperCreated,
+        [Description("DEVELOPER_CREATED")]
+        DeveloperCreated,
 
-  }
+    }
 
 }

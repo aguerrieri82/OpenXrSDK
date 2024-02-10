@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace OpenXr.Engine
 {
@@ -22,7 +17,7 @@ namespace OpenXr.Engine
 
         public bool Update()
         {
-            if (!_isDirty) 
+            if (!_isDirty)
                 return false;
 
             _matrix =
@@ -39,7 +34,8 @@ namespace OpenXr.Engine
         {
             get => _scale;
 
-            set {
+            set
+            {
                 _scale = value;
                 _isDirty = true;
             }

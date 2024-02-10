@@ -1,10 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.OpenGLES;
 
@@ -29,7 +24,7 @@ namespace OpenXr.Samples
 
             while (true)
             {
-       
+
                 xrApp.RenderFrame(xrApp.Stage);
 
                 if (Console.KeyAvailable)

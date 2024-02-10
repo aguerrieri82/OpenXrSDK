@@ -1,11 +1,11 @@
 ﻿
-using static OVRPlugin;
-using static Oculus.XrPlugin.OculusXrPlugin;
 using OpenXr.Engine;
 using Silk.NET.Assimp;
+using System.Globalization;
 using System.Numerics;
 using System.Text;
-using System.Globalization;
+using static Oculus.XrPlugin.OculusXrPlugin;
+using static OVRPlugin;
 
 
 namespace OpenXr
@@ -116,7 +116,7 @@ namespace OpenXr
 
 
             var settings = new UserDefinedSettings()
-            {  
+            {
             };
 
             SetUserDefinedSettings(settings);

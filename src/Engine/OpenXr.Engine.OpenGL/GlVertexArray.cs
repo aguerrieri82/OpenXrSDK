@@ -1,14 +1,10 @@
 ﻿#if GLES
+using OpenXr.Engine.OpenGL;
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Engine.OpenGLES
 {
@@ -16,15 +12,15 @@ namespace OpenXr.Engine.OpenGLES
         where TVertexType : unmanaged
         where TIndexType : unmanaged
     {
-        GlVertexLayout _layout;
+        readonly GlVertexLayout _layout;
 
-        GlBuffer<TVertexType> _vBuf;
-        
-        GlBuffer<TIndexType>? _iBuf;
-        private DrawElementsType _drawType;
+        readonly GlBuffer<TVertexType> _vBuf;
+
+        readonly GlBuffer<TIndexType>? _iBuf;
+        private readonly DrawElementsType _drawType;
 
         public unsafe GlVertexArray(GL gl, TVertexType[] vertices, TIndexType[] index, GlVertexLayout layout)
-            : this(gl, 
+            : this(gl,
                   new GlBuffer<TVertexType>(gl, vertices.AsSpan(), BufferTargetARB.ArrayBuffer),
                   index.Length == 0 ? null : new GlBuffer<TIndexType>(gl, index.AsSpan(), BufferTargetARB.ElementArrayBuffer),
                   layout)
@@ -50,7 +46,9 @@ namespace OpenXr.Engine.OpenGLES
             else
                 throw new NotSupportedException();
 
+
             _handle = _gl.GenVertexArray();
+            GlDebug.Log($"GenVertexArray {_handle}");
 
             Bind();
 
@@ -65,18 +63,27 @@ namespace OpenXr.Engine.OpenGLES
 
         public void Draw(uint count)
         {
-   
+
             if (_iBuf != null)
+            {
                 _gl.DrawElements(PrimitiveType.Triangles, count, _drawType, 0);
+                GlDebug.Log($"DrawElements Triangles {count} {_drawType}");
+            }
+
             else
+            {
                 _gl.DrawArrays(PrimitiveType.Triangles, 0, count);
+                GlDebug.Log($"DrawArrays Triangles {count}");
+            }
 
-            var error = _gl.GetError();
-
-            Console.WriteLine(error);
+            var err = _gl.GetError();
+            if (err != GLEnum.False)
+            {
+                GlDebug.Log($"Error: {err}");
+            }
 
         }
-  
+
         protected unsafe void Configure()
         {
 
@@ -90,11 +97,13 @@ namespace OpenXr.Engine.OpenGLES
         public void Bind()
         {
             _gl.BindVertexArray(_handle);
+            GlDebug.Log($"BindVertexArray {_handle}");
         }
 
         public void Unbind()
         {
             _gl.BindVertexArray(0);
+            GlDebug.Log($"BindVertexArray NULL");
         }
 
         public override void Dispose()

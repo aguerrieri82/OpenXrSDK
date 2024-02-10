@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
-    public class AmbientLight : Light   
+    public class AmbientLight : Light
     {
         public AmbientLight()
         {
@@ -15,7 +9,7 @@ namespace OpenXr.Engine
 
         public AmbientLight(float intensity)
         {
-            Intensity = intensity;  
+            Intensity = intensity;
         }
     }
 }

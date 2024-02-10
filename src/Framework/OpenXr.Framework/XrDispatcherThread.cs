@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 
 namespace OpenXr.Framework
 {
@@ -11,12 +6,12 @@ namespace OpenXr.Framework
     {
         public Func<object?>? Action { get; set; }
 
-        public TaskCompletionSource<object?>? CompletionSource { get; set;}
+        public TaskCompletionSource<object?>? CompletionSource { get; set; }
     }
 
     public class XrDispatcherThread : IXrThread
     {
-        ConcurrentQueue<DispatcherAction> _actions = new();
+        readonly ConcurrentQueue<DispatcherAction> _actions = new();
 
         public void ProcessQueue()
         {

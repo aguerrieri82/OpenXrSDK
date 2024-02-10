@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public class Group : Object3D
     {
@@ -22,7 +16,7 @@ namespace OpenXr.Engine
             if (updateChildren && isChanged)
                 _children.ForEach(a => a.UpdateWorldMatrix(true, false));
 
-            return isChanged;   
+            return isChanged;
         }
 
 
@@ -45,7 +39,7 @@ namespace OpenXr.Engine
             return Descendants<Object3D>();
         }
 
-        public IEnumerable<T> Descendants<T>() where T : Object3D   
+        public IEnumerable<T> Descendants<T>() where T : Object3D
         {
             foreach (var child in _children)
             {
@@ -55,7 +49,7 @@ namespace OpenXr.Engine
                 if (child is Group group)
                 {
                     foreach (var desc in group.Descendants<T>())
-                        yield return desc;  
+                        yield return desc;
                 }
             }
         }

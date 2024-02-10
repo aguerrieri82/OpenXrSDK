@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public class Cube : Geometry
     {
@@ -54,7 +52,7 @@ namespace OpenXr.Engine
 
             VertexCount = 36;
 
-            Rebuild();
+            //Rebuild();
         }
 
 

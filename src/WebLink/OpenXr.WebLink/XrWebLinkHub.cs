@@ -4,12 +4,7 @@ using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.WebLink.Entities;
 using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace OpenXr.WebLink
 {
@@ -54,7 +49,7 @@ namespace OpenXr.WebLink
             if (anchorId != null)
                 groupId += "/" + anchorId;
 
-       
+
             if (enabled)
                 await Groups.AddToGroupAsync(Context.ConnectionId, groupId);
             else

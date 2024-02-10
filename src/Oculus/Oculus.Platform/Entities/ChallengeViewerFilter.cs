@@ -3,25 +3,25 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum ChallengeViewerFilter : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum ChallengeViewerFilter : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("ALL_VISIBLE")]
-    AllVisible,
+        [Description("ALL_VISIBLE")]
+        AllVisible,
 
-    [Description("PARTICIPATING")]
-    Participating,
+        [Description("PARTICIPATING")]
+        Participating,
 
-    [Description("INVITED")]
-    Invited,
+        [Description("INVITED")]
+        Invited,
 
-    [Description("PARTICIPATING_OR_INVITED")]
-    ParticipatingOrInvited,
+        [Description("PARTICIPATING_OR_INVITED")]
+        ParticipatingOrInvited,
 
-  }
+    }
 
 }

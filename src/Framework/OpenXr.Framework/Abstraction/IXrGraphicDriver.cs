@@ -1,9 +1,4 @@
 ﻿using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Framework
 {
@@ -14,6 +9,6 @@ namespace OpenXr.Framework
 
         long SelectSwapChainFormat(IList<long> availFormats);
 
-        XrDynamicType SwapChainImageType { get; }    
+        XrDynamicType SwapChainImageType { get; }
     }
 }

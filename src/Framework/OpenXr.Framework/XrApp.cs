@@ -1,14 +1,9 @@
-﻿using Silk.NET.Core.Native;
-using Silk.NET.Core;
-using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Xml.Linq;
+using Silk.NET.Core;
+using Silk.NET.Core.Native;
+using Silk.NET.OpenXR;
+using System.Runtime.InteropServices;
 
 
 namespace OpenXr.Framework
@@ -30,7 +25,7 @@ namespace OpenXr.Framework
                 throw new OpenXrException(result, context);
 
             //_logger.LogDebug("{context} OK", context);
-            
+
             return true;
         }
 
@@ -147,29 +142,34 @@ namespace OpenXr.Framework
                 Restart();
 
             var state = WaitFrame();
-            
+
             BeginFrame();
 
             CompositionLayerBaseHeader*[]? layers = null;
 
             uint layerCount = 0;
 
-            if (state.ShouldRender != 0)
+            try
             {
-                var viewsState = LocateViews(space, state.PredictedDisplayTime);
-
-                var isPosValid = (viewsState.ViewStateFlags & ViewStateFlags.OrientationValidBit) != 0 &&
-                                 (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;
-
-                if (isPosValid)
+                if (state.ShouldRender != 0)
                 {
-                    layers = _layers.Render(ref _views!, _swapchains!, state.PredictedDisplayTime, out layerCount);
-                    for (var i = 0; i < layerCount; i++)
-                        layers[i]->Space = space;
+                    var viewsState = LocateViews(space, state.PredictedDisplayTime);
+
+                    var isPosValid = (viewsState.ViewStateFlags & ViewStateFlags.OrientationValidBit) != 0 &&
+                                     (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;
+
+                    if (isPosValid)
+                    {
+                        layers = _layers.Render(ref _views!, _swapchains!, state.PredictedDisplayTime, out layerCount);
+                        for (var i = 0; i < layerCount; i++)
+                            layers[i]->Space = space;
+                    }
                 }
             }
-
-            EndFrame(state.PredictedDisplayPeriod, ref layers, layerCount);
+            finally
+            {
+                EndFrame(state.PredictedDisplayPeriod, ref layers, layerCount);
+            }
         }
 
         protected void EndFrame(long displayTime, ref CompositionLayerBaseHeader*[]? layers, uint count)
@@ -202,7 +202,7 @@ namespace OpenXr.Framework
         {
             var info = new FrameWaitInfo()
             {
-                Type = StructureType.FrameWaitInfo
+                Type = StructureType.FrameWaitInfo,
             };
 
             var result = new FrameState
@@ -449,7 +449,7 @@ namespace OpenXr.Framework
         {
             var appInfo = new ApplicationInfo()
             {
-                ApiVersion = new Version64(1, 0, 9) 
+                ApiVersion = new Version64(1, 0, 9)
             };
 
             var appNameSpan = new Span<byte>(appInfo.ApplicationName, 128);
@@ -492,7 +492,6 @@ namespace OpenXr.Framework
             return result;
         }
 
-
         protected ViewConfigurationProperties GetViewConfigurationProperties(ViewConfigurationType viewType)
         {
             var result = new ViewConfigurationProperties()
@@ -500,7 +499,7 @@ namespace OpenXr.Framework
                 Type = StructureType.ViewConfigurationProperties
             };
 
-            CheckResult(_xr!.GetViewConfigurationProperties(_instance, _systemId, viewType, ref result) , "GetViewConfigurationProperties");
+            CheckResult(_xr!.GetViewConfigurationProperties(_instance, _systemId, viewType, ref result), "GetViewConfigurationProperties");
 
             return result;
         }
@@ -535,8 +534,8 @@ namespace OpenXr.Framework
         protected Space CreateReferenceSpace(ReferenceSpaceType type)
         {
             return CreateReferenceSpace(type, new Posef(new Quaternionf(0f, 0f, 0f, 1f), new Vector3f(0f, 0f, 0f)));
-
         }
+
         protected Space CreateReferenceSpace(ReferenceSpaceType type, Posef pose)
         {
             var refSpace = new ReferenceSpaceCreateInfo()
@@ -609,7 +608,7 @@ namespace OpenXr.Framework
             CheckResult(_xr!.CreateSession(Instance, &sessionInfo, ref _session), "CreateSession");
 
             _head = CreateReferenceSpace(ReferenceSpaceType.View);
-            
+
             _local = CreateReferenceSpace(ReferenceSpaceType.Local);
 
             _stage = CreateReferenceSpace(ReferenceSpaceType.Stage);
@@ -711,7 +710,6 @@ namespace OpenXr.Framework
             return CreateSwapChain(_renderOptions.Size, _renderOptions.SampleCount, format);
         }
 
-
         protected Swapchain CreateSwapChain(Extent2Di size, uint sampleCount, long format)
         {
             var info = new SwapchainCreateInfo
@@ -719,7 +717,7 @@ namespace OpenXr.Framework
                 Type = StructureType.SwapchainCreateInfo,
                 Width = (uint)size.Width,
                 Height = (uint)size.Height,
-                Format = format,  
+                Format = format,
                 ArraySize = 1,
                 MipCount = 1,
                 FaceCount = 1,
@@ -736,15 +734,15 @@ namespace OpenXr.Framework
             return result;
         }
 
-        public SpaceLocation LocateSpace(Space space, Space baseSpace, long time = 0)
+        public XrSpaceLocation LocateSpace(Space space, Space baseSpace, long time = 0)
         {
             var result = new SpaceLocation();
             result.Type = StructureType.SpaceLocation;
             CheckResult(_xr!.LocateSpace(space, baseSpace, time, ref result), "LocateSpace");
-            return result;
+            return result.ToXrLocation();
         }
 
-        public ViewState LocateViews(Space space, long displayTime)
+        protected ViewState LocateViews(Space space, long displayTime)
         {
             var info = new ViewLocateInfo()
             {
@@ -759,14 +757,13 @@ namespace OpenXr.Framework
                 Type = StructureType.ViewState
             };
 
-            uint count = (uint)_viewInfo.ViewCount; 
+            uint count = (uint)_viewInfo.ViewCount;
 
             fixed (View* pViews = _views)
                 CheckResult(_xr!.LocateView(_session, in info, ref state, count, ref count, pViews), "LocateView");
 
             return state;
         }
-
 
         public void Dispose()
         {

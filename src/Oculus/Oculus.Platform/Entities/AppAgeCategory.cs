@@ -3,19 +3,19 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum AppAgeCategory : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum AppAgeCategory : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("CH")]
-    Ch,
+        [Description("CH")]
+        Ch,
 
-    [Description("NCH")]
-    Nch,
+        [Description("NCH")]
+        Nch,
 
-  }
+    }
 
 }

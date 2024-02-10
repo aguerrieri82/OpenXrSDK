@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace OpenXr.Engine
 {
-    public struct Color 
+    public struct Color
     {
         public Color()
         {
@@ -15,8 +10,8 @@ namespace OpenXr.Engine
 
         public Color(float r, float g, float b, float a = 1f)
         {
-            R = r; 
-            G = g; 
+            R = r;
+            G = g;
             B = b;
             A = a;
         }
@@ -38,7 +33,7 @@ namespace OpenXr.Engine
         public float R;
 
         public float G;
-        
+
         public float B;
 
         public float A;

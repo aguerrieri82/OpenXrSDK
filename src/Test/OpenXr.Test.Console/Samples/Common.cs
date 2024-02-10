@@ -1,10 +1,5 @@
 ﻿using OpenXr.Engine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Samples
 {
@@ -29,9 +24,9 @@ namespace OpenXr.Samples
                     var z = MathF.Cos(rad) * 1;
 
                     var cube = new Mesh(Cube.Instance, material);
-                    cube.Transform.Scale = new Vector3(0.1f , 0.1f, 0.1f);
+                    cube.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
                     cube.Transform.Position = new Vector3(x, y, z);
-                    
+
                     cube.AddBehavior((obj, ctx) =>
                     {
                         obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f);

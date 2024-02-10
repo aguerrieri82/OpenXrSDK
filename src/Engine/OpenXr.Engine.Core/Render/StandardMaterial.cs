@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public class StandardMaterial : ShaderMaterial
     {
-        static Shader _shader;
+        static readonly Shader _shader;
 
         static StandardMaterial()
         {

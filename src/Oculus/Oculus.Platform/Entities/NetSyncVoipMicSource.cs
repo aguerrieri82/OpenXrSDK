@@ -3,19 +3,19 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum NetSyncVoipMicSource : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum NetSyncVoipMicSource : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("NONE")]
-    None,
+        [Description("NONE")]
+        None,
 
-    [Description("INTERNAL")]
-    Internal,
+        [Description("INTERNAL")]
+        Internal,
 
-  }
+    }
 
 }

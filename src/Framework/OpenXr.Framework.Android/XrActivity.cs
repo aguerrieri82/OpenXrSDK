@@ -1,11 +1,5 @@
 ﻿using Android.Content.PM;
-using Android.OS;
 using Android.Runtime;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Framework.Android
 {
@@ -25,7 +19,7 @@ namespace OpenXr.Framework.Android
         protected abstract XrApp CreateApp();
 
 
-        protected void OnAppStarted(XrApp app)
+        protected virtual void OnAppStarted(XrApp app)
         {
 
         }

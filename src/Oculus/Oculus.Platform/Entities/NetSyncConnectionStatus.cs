@@ -3,22 +3,22 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum NetSyncConnectionStatus : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum NetSyncConnectionStatus : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("CONNECTING")]
-    Connecting,
+        [Description("CONNECTING")]
+        Connecting,
 
-    [Description("DISCONNECTED")]
-    Disconnected,
+        [Description("DISCONNECTED")]
+        Disconnected,
 
-    [Description("CONNECTED")]
-    Connected,
+        [Description("CONNECTED")]
+        Connected,
 
-  }
+    }
 
 }

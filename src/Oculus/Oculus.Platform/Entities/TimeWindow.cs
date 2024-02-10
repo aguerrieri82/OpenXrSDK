@@ -3,28 +3,28 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum TimeWindow : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum TimeWindow : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("ONE_HOUR")]
-    OneHour,
+        [Description("ONE_HOUR")]
+        OneHour,
 
-    [Description("ONE_DAY")]
-    OneDay,
+        [Description("ONE_DAY")]
+        OneDay,
 
-    [Description("ONE_WEEK")]
-    OneWeek,
+        [Description("ONE_WEEK")]
+        OneWeek,
 
-    [Description("THIRTY_DAYS")]
-    ThirtyDays,
+        [Description("THIRTY_DAYS")]
+        ThirtyDays,
 
-    [Description("NINETY_DAYS")]
-    NinetyDays,
+        [Description("NINETY_DAYS")]
+        NinetyDays,
 
-  }
+    }
 
 }

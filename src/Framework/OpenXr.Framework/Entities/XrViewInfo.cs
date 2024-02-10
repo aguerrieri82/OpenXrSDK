@@ -1,18 +1,12 @@
-﻿using Silk.NET.Core.Attributes;
-using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Silk.NET.OpenXR;
 
 namespace OpenXr.Framework
 {
     public class XrViewInfo
     {
-        public ViewConfigurationType Type { get; set; } 
+        public ViewConfigurationType Type { get; set; }
 
-        public bool FovMutable { get; set; }    
+        public bool FovMutable { get; set; }
 
         public Extent2Di RecommendedImageRect { get; set; }
 

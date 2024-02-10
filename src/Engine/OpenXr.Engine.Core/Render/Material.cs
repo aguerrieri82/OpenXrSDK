@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public abstract class Material : EngineObject
     {
@@ -26,6 +19,6 @@ namespace OpenXr.Engine
             _host?.NotifyChanged();
         }
 
-        public Color Color {  get; set; }   
+        public Color Color { get; set; }
     }
 }

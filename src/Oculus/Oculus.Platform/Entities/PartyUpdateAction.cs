@@ -3,25 +3,25 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum PartyUpdateAction : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum PartyUpdateAction : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("Join")]
-    Join,
+        [Description("Join")]
+        Join,
 
-    [Description("Leave")]
-    Leave,
+        [Description("Leave")]
+        Leave,
 
-    [Description("Invite")]
-    Invite,
+        [Description("Invite")]
+        Invite,
 
-    [Description("Uninvite")]
-    Uninvite,
+        [Description("Uninvite")]
+        Uninvite,
 
-  }
+    }
 
 }

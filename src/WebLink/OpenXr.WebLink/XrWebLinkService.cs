@@ -4,12 +4,7 @@ using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using OpenXr.WebLink.Entities;
 using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.WebLink
 {
@@ -29,7 +24,7 @@ namespace OpenXr.WebLink
             _hub = hub;
             _logger = logger;
             _xrThread = xrThread;
-            _serviceLoops= new List<Task>();
+            _serviceLoops = new List<Task>();
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -37,7 +32,7 @@ namespace OpenXr.WebLink
             _stopSource = new CancellationTokenSource();
 
             StartServiceLoop(HandleXrEventsAsync, 50);
-            
+
             StartServiceLoop(TrackAsync, 1000 / 72);
 
             return Task.CompletedTask;
@@ -69,7 +64,7 @@ namespace OpenXr.WebLink
                 {
                 }
             });
-            
+
             _serviceLoops.Add(task);
         }
 
