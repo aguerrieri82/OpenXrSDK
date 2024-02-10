@@ -4,11 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Engine.OpenGLES
 {
@@ -18,7 +13,7 @@ namespace OpenXr.Engine.OpenGLES
         protected uint _height;
 
         public GlTexture2D(GL gl)
-            : base(gl)  
+            : base(gl)
         {
             WrapS = TextureWrapMode.ClampToEdge;
             WrapT = TextureWrapMode.ClampToEdge;
@@ -163,13 +158,13 @@ namespace OpenXr.Engine.OpenGLES
         public InternalFormat InternalFormat;
 
         public TextureWrapMode WrapS;
-        
+
         public TextureWrapMode WrapT;
-        
+
         public TextureMinFilter MinFilter;
-        
+
         public TextureMagFilter MagFilter;
-        
+
         public uint BaseLevel;
 
         public uint MaxLevel;

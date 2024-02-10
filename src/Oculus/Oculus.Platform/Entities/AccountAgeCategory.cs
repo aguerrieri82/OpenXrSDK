@@ -3,22 +3,22 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum AccountAgeCategory : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum AccountAgeCategory : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("CH")]
-    Ch,
+        [Description("CH")]
+        Ch,
 
-    [Description("TN")]
-    Tn,
+        [Description("TN")]
+        Tn,
 
-    [Description("AD")]
-    Ad,
+        [Description("AD")]
+        Ad,
 
-  }
+    }
 
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace OpenXr.Framework
 {
@@ -19,7 +14,8 @@ namespace OpenXr.Framework
         public T? Value
         {
             get => _value == null ? null : *_value;
-            set {
+            set
+            {
 
                 if (value == null)
                     Dispose();

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 #pragma warning disable CS8500
 
@@ -12,8 +7,8 @@ namespace OpenXr.Framework
     public class NativeArray<TBase> : IDisposable where TBase : unmanaged
     {
         private nint _buffer;
-        private int _bufferSize;
-        private int _itemSize;
+        private readonly int _bufferSize;
+        private readonly int _itemSize;
 
         public NativeArray(int length, Type itemType)
         {
@@ -26,12 +21,12 @@ namespace OpenXr.Framework
         {
             _buffer = Marshal.AllocHGlobal(buffer.Length);
             _bufferSize = buffer.Length;
-            _itemSize = Marshal.SizeOf(itemType);   
+            _itemSize = Marshal.SizeOf(itemType);
         }
 
         public unsafe TBase* ItemPointer(int index)
         {
-            return ItemPointer<TBase>(index);   
+            return ItemPointer<TBase>(index);
         }
 
         public unsafe T* ItemPointer<T>(int index) where T : unmanaged
@@ -67,10 +62,10 @@ namespace OpenXr.Framework
 
         public void Dispose()
         {
-            if (_buffer!= 0)
+            if (_buffer != 0)
             {
                 Marshal.FreeHGlobal(_buffer);
-                _buffer = 0;    
+                _buffer = 0;
             }
         }
 

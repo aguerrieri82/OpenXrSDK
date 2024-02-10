@@ -1,5 +1,4 @@
 ﻿using Android.Opengl;
-using Android.OS;
 
 namespace OpenXr.Framework.Android
 {
@@ -33,7 +32,7 @@ namespace OpenXr.Framework.Android
                 EGL14.EglBlueSize,
                 8,
                 EGL14.EglAlphaSize,
-                8, 
+                8,
                 EGL14.EglDepthSize,
                 16,
                 /*
@@ -125,7 +124,7 @@ namespace OpenXr.Framework.Android
         }
 
         public EGLConfig? Config;
-        
+
         public EGLDisplay? Display;
 
         public EGLSurface? Surface;

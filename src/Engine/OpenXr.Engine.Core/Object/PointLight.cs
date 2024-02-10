@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public class PointLight : Light
     {
-        public PointLight() 
+        public PointLight()
         {
             Specular = Color.White;
         }

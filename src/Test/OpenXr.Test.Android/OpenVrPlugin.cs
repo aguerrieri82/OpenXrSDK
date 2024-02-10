@@ -1,16 +1,11 @@
 ﻿using Android.Content;
 using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Test.Android
 {
     public class OpenVrPlugin : BaseXrPlugin
     {
-        private MainActivity _activity;
+        private readonly MainActivity _activity;
         private GameActivity? _vrActivity;
 
         public OpenVrPlugin(MainActivity activity)
@@ -32,7 +27,7 @@ namespace OpenXr.Test.Android
                 _vrActivity.Finish();
                 _vrActivity = null;
             }
-       
+
             base.OnSessionEnd();
         }
 

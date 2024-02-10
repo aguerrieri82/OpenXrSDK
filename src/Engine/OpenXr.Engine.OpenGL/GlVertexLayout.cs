@@ -4,14 +4,9 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Engine.OpenGLES
 {
@@ -44,7 +39,7 @@ namespace OpenXr.Engine.OpenGLES
             .ToArray();
 
             var res = new GlVertexLayout();
-            
+
             res.Attributes = new GlVertexAttribute[infos.Length];
 
             uint curOfs = 0;
@@ -72,7 +67,7 @@ namespace OpenXr.Engine.OpenGLES
                 item.Offset = curOfs;
                 curOfs += (uint)Marshal.SizeOf(info.Type);
             }
-            
+
             res.Size = curOfs;
 
             return res;

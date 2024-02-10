@@ -3,19 +3,19 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum VoipMuteState : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum VoipMuteState : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("MUTED")]
-    Muted,
+        [Description("MUTED")]
+        Muted,
 
-    [Description("UNMUTED")]
-    Unmuted,
+        [Description("UNMUTED")]
+        Unmuted,
 
-  }
+    }
 
 }

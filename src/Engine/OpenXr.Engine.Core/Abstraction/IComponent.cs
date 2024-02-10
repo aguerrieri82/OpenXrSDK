@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public interface IComponent
     {
@@ -14,6 +8,6 @@ namespace OpenXr.Engine
 
         bool IsEnabled { get; set; }
 
-        IComponentHost? Host { get; }    
+        IComponentHost? Host { get; }
     }
 }

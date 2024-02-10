@@ -3,11 +3,7 @@ using Android.Content.PM;
 using Android.Webkit;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
-using OpenXr.Framework.Android;
-using OpenXr.WebLink;
 using Silk.NET.OpenXR;
-using Android.Runtime;
-using Java.Lang;
 using Exception = System.Exception;
 
 
@@ -15,7 +11,7 @@ using Exception = System.Exception;
 namespace OpenXr.Test.Android
 {
     [IntentFilter([
-        "android.intent.action.MAIN", 
+        "android.intent.action.MAIN",
         "android.intent.category.LAUNCHER"])]
     [Activity(
         Label = "@string/app_name",
@@ -45,7 +41,7 @@ namespace OpenXr.Test.Android
 
             SetContentView(Resource.Layout.activity_main);
 
-            FindViewById<Button>(Resource.Id.getRooom)!.Click += (_, _) => _= Task.Run(StartApp);
+            FindViewById<Button>(Resource.Id.getRooom)!.Click += (_, _) => _ = Task.Run(StartApp);
 
             StartService(new Intent(this, typeof(WebServerService)));
 
@@ -83,7 +79,7 @@ namespace OpenXr.Test.Android
         private async Task GetRoomAsync()
         {
             var app = GlobalServices.App!;
-    
+
             app.Start();
 
             try

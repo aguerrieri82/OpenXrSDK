@@ -3,21 +3,21 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum AbuseReportType : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum AbuseReportType : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    /// A report for something besides a user, like a world.
-    [Description("OBJECT")]
-    Object,
+        /// A report for something besides a user, like a world.
+        [Description("OBJECT")]
+        Object,
 
-    /// A report for a user's behavior or profile.
-    [Description("USER")]
-    User,
+        /// A report for a user's behavior or profile.
+        [Description("USER")]
+        User,
 
-  }
+    }
 
 }

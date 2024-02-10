@@ -1,19 +1,12 @@
 ﻿using Android.OS;
-using Android.Util;
 using OpenXr.Framework;
-using OpenXr.WebLink;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
 namespace OpenXr.Test.Android
 {
     public class HandlerXrThread : IXrThread
     {
-        Handler _handler;
+        readonly Handler _handler;
 
         public HandlerXrThread(Handler handler)
         {

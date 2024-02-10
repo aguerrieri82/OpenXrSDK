@@ -11,18 +11,18 @@ using OpenXr.Framework;
 
 namespace OpenXr.Test.Android
 {
-    [Service(Enabled = true, 
+    [Service(Enabled = true,
         IsolatedProcess = false,
         ForegroundServiceType = ForegroundService.TypeRemoteMessaging)]
     public class WebServerService : Service
     {
         private WebApplication? _webApp;
         private bool _isActive;
-        private Binder _localBinder;
+        private readonly Binder _localBinder;
 
         public class LocalBinder : Binder
         {
-            private WebServerService _service;
+            private readonly WebServerService _service;
 
             public LocalBinder(WebServerService service)
             {
@@ -76,13 +76,13 @@ namespace OpenXr.Test.Android
         public override async void OnDestroy()
         {
             await _webApp!.StopAsync();
-            
+
             _isActive = false;
 
             base.OnDestroy();
         }
 
         public bool IsActive => _isActive;
-       
+
     }
 }

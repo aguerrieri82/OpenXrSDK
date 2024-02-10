@@ -1,6 +1,5 @@
 ﻿using Android.Content;
 using Android.Runtime;
-using Android.Transitions;
 using Java.Interop;
 using Silk.NET.Core;
 using Silk.NET.OpenXR;
@@ -20,7 +19,7 @@ namespace OpenXr.Framework
         delegate Silk.NET.OpenXR.Result InitializeLoaderDelegate(LoaderInitInfoAndroidKHR* loader);
 
         InitializeLoaderDelegate? InitializeLoader;
-       
+
 
         public AndroidXrPlugin(Context context, uint mainThreadId)
         {

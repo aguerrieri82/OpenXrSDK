@@ -1,21 +1,16 @@
 ﻿#if GLES
+using OpenXr.Engine.OpenGL;
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Engine.OpenGLES
 {
     public class GlBuffer<T> : GlObject where T : unmanaged
     {
-        private BufferTargetARB _bufferType;
+        private readonly BufferTargetARB _bufferType;
         private uint _length;
 
         public unsafe GlBuffer(GL gl, Span<T> data, BufferTargetARB bufferType)
@@ -24,7 +19,9 @@ namespace OpenXr.Engine.OpenGLES
             _gl = gl;
             _bufferType = bufferType;
 
+
             _handle = _gl.GenBuffer();
+            GlDebug.Log($"GenBuffer {_handle}");
 
             Update(data);
         }
@@ -35,6 +32,8 @@ namespace OpenXr.Engine.OpenGLES
 
             _gl.BufferData<T>(_bufferType, data, BufferUsageARB.StaticDraw);
 
+            GlDebug.Log($"BufferData {_bufferType}");
+
             _length = (uint)data.Length;
 
             Unbind();
@@ -42,12 +41,16 @@ namespace OpenXr.Engine.OpenGLES
 
         public void Bind()
         {
+
             _gl.BindBuffer(_bufferType, _handle);
+            GlDebug.Log($"BindBuffer {_bufferType} {_handle}");
         }
 
         public void Unbind()
         {
+
             _gl.BindBuffer(_bufferType, 0);
+            GlDebug.Log($"BindBuffer {_bufferType} NULL");
         }
 
         public override void Dispose()

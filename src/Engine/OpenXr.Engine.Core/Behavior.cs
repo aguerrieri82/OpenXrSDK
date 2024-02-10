@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public abstract class Behavior<T> : IBehavior where T : IComponentHost
     {
@@ -28,7 +22,7 @@ namespace OpenXr.Engine
 
         void IComponent.Attach(IComponentHost host)
         {
-           _host = (T)host; 
+            _host = (T)host;
         }
 
         void IComponent.Detach()

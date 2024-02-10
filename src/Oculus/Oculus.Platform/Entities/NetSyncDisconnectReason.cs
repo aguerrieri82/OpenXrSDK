@@ -3,29 +3,29 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum NetSyncDisconnectReason : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum NetSyncDisconnectReason : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    /// when disconnect was requested
-    [Description("LOCAL_TERMINATED")]
-    LocalTerminated,
+        /// when disconnect was requested
+        [Description("LOCAL_TERMINATED")]
+        LocalTerminated,
 
-    /// server intentionally closed the connection
-    [Description("SERVER_TERMINATED")]
-    ServerTerminated,
+        /// server intentionally closed the connection
+        [Description("SERVER_TERMINATED")]
+        ServerTerminated,
 
-    /// initial connection never succeeded
-    [Description("FAILED")]
-    Failed,
+        /// initial connection never succeeded
+        [Description("FAILED")]
+        Failed,
 
-    /// network timeout
-    [Description("LOST")]
-    Lost,
+        /// network timeout
+        [Description("LOST")]
+        Lost,
 
-  }
+    }
 
 }

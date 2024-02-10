@@ -4,15 +4,9 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using System.Text;
 
 
@@ -22,7 +16,7 @@ namespace OpenXr.Engine.OpenGLES
     public class GlobalContent
     {
         public DirectionalLight? Directional;
-        
+
         public AmbientLight? Ambient;
 
         public PointLight? Point;
@@ -30,7 +24,7 @@ namespace OpenXr.Engine.OpenGLES
         public long Version;
 
         public Scene? Scene;
-         
+
         public readonly Dictionary<Shader, ShaderContent> Contents = [];
     }
 
@@ -67,7 +61,7 @@ namespace OpenXr.Engine.OpenGLES
 
         public static class Props
         {
-            public const string GlResId = nameof(GlResId);    
+            public const string GlResId = nameof(GlResId);
         }
 
         public OpenGLRender(GL gl)
@@ -77,7 +71,7 @@ namespace OpenXr.Engine.OpenGLES
             _meshLayout = GlVertexLayout.FromType<VertexData>();
         }
 
-        protected unsafe TGl GetResource<T, TGl>(T obj, Func<T, TGl> factory) where T : EngineObject where TGl :GlObject
+        protected unsafe TGl GetResource<T, TGl>(T obj, Func<T, TGl> factory) where T : EngineObject where TGl : GlObject
         {
             var glObj = obj.GetProp<TGl?>(Props.GlResId);
             if (glObj == null)
@@ -142,7 +136,7 @@ namespace OpenXr.Engine.OpenGLES
                         shaderContent.Program = GetProgram(material.Shader);
                         _content.Contents[material.Shader] = shaderContent;
                     }
-                    
+
                     if (!shaderContent.Contents.TryGetValue(mesh.Geometry, out var vertexContent))
                     {
                         vertexContent = new VertexContent();
@@ -165,15 +159,15 @@ namespace OpenXr.Engine.OpenGLES
 
         public void EnableDebug()
         {
-             _gl.DebugMessageCallback((source, type, id, sev, len, msg, param) =>
-            {
-                unsafe
-                {
-                    var span = new Span<byte>((void*)msg, len);
-                    var text = Encoding.UTF8.GetString(span);
-                    Debug.WriteLine($"------ OPENGL: {text}");
-                }
-            }, 0);
+            _gl.DebugMessageCallback((source, type, id, sev, len, msg, param) =>
+           {
+               unsafe
+               {
+                   var span = new Span<byte>((void*)msg, len);
+                   var text = Encoding.UTF8.GetString(span);
+                   Debug.WriteLine($"------ OPENGL: {text}");
+               }
+           }, 0);
 
             _gl.Enable(EnableCap.DebugOutput);
         }
@@ -182,16 +176,16 @@ namespace OpenXr.Engine.OpenGLES
         {
             if (_frameBuffer != null)
                 _frameBuffer.Bind();
-            
+
             Clear();
-            
+
             Setup();
 
             _gl.Viewport(view.X, view.Y, view.Width, view.Height);
 
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);
-        
+
             foreach (var shader in _content.Contents.Values)
             {
                 var prog = shader.Program!;
@@ -245,10 +239,10 @@ namespace OpenXr.Engine.OpenGLES
             if (!_frameBuffers.TryGetValue(image, out var frameBuffer))
             {
                 frameBuffer = new GlFrameTextureBuffer(_gl, new GlTexture2D(_gl, image));
-               _frameBuffers[image] = frameBuffer;
+                _frameBuffers[image] = frameBuffer;
             }
 
-            _frameBuffer = frameBuffer; 
+            _frameBuffer = frameBuffer;
         }
 
         public void Dispose()

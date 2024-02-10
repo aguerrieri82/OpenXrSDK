@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Engine
 {
     public class Mesh : Object3D
     {
-        ObservableCollection<Material> _materials;
+        readonly ObservableCollection<Material> _materials;
 
         public Mesh()
         {
@@ -25,8 +20,8 @@ namespace OpenXr.Engine
                 foreach (var item in e.OldItems!.Cast<Material>())
                     item.Detach();
             }
-            
-            if(e.NewItems != null)
+
+            if (e.NewItems != null)
             {
                 foreach (var item in e.NewItems.Cast<Material>())
                     item.Attach(this);
@@ -53,6 +48,6 @@ namespace OpenXr.Engine
 
         public IList<Material> Materials => _materials;
 
-        public Geometry? Geometry { get; set; }  
+        public Geometry? Geometry { get; set; }
     }
 }

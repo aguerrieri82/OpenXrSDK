@@ -1,12 +1,12 @@
-﻿using Silk.NET.Core.Native;
-using Silk.NET.Core;
+﻿using Silk.NET.Core;
+using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
-using System.Runtime.InteropServices;
-using Silk.NET.Windowing;
 using Silk.NET.Vulkan.Extensions.EXT;
-using System.Runtime.CompilerServices;
 using Silk.NET.Vulkan.Extensions.KHR;
+using Silk.NET.Windowing;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 
 namespace OpenXr.Framework.Vulkan
@@ -94,7 +94,7 @@ namespace OpenXr.Framework.Vulkan
             //CreateSurface();
             PickPhysicalDevice();
             CreateLogicalDevice();
-           // CreateSwapChain();
+            // CreateSwapChain();
         }
 
         private void MainLoop()
@@ -110,7 +110,7 @@ namespace OpenXr.Framework.Vulkan
             {
                 throw new Exception("validation layers requested, but not available!");
             }
-            
+
 
             ApplicationInfo appInfo = new()
             {
@@ -523,7 +523,7 @@ namespace OpenXr.Framework.Vulkan
             var glfwExtensions = _window!.VkSurface!.GetRequiredExtensions(out var glfwExtensionCount);
             var extensions = SilkMarshal.PtrToStringArray((nint)glfwExtensions, (int)glfwExtensionCount);
 
-            if (_enableValidationLayers) 
+            if (_enableValidationLayers)
                 result.Add(ExtDebugUtils.ExtensionName);
             else
             {
@@ -559,7 +559,7 @@ namespace OpenXr.Framework.Vulkan
             if (_vk == null)
                 return;
 
-  
+
             if (_swapChainImages != null)
             {
                 foreach (var image in _swapChainImages)
@@ -590,13 +590,13 @@ namespace OpenXr.Framework.Vulkan
             if (_window != null)
             {
                 _window.Dispose();
-                _window = null; 
+                _window = null;
             }
 
             if (_debugMessenger.Handle != 0)
             {
                 _debugUtils!.DestroyDebugUtilsMessenger(_instance, _debugMessenger, null);
-                _debugMessenger.Handle = 0; 
+                _debugMessenger.Handle = 0;
             }
 
 

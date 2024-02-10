@@ -1,15 +1,11 @@
 ﻿#if GLES
+using OpenXr.Engine.OpenGL;
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Engine.OpenGLES
 {
@@ -26,6 +22,7 @@ namespace OpenXr.Engine.OpenGLES
         protected void Create(params uint[] shaders)
         {
             _handle = _gl.CreateProgram();
+            GlDebug.Log($"CreateProgram {_handle}");
 
             foreach (var shader in shaders)
                 _gl.AttachShader(_handle, shader);
@@ -49,11 +46,13 @@ namespace OpenXr.Engine.OpenGLES
         public void Use()
         {
             _gl.UseProgram(_handle);
+            GlDebug.Log($"UseProgram {_handle}");
         }
 
         public void Unbind()
         {
             _gl.UseProgram(0);
+            GlDebug.Log($"UseProgram NULL");
         }
 
         public void SetUniform(string name, int value)
@@ -103,12 +102,12 @@ namespace OpenXr.Engine.OpenGLES
             uint handle = _gl.CreateShader(type);
             _gl.ShaderSource(handle, source);
             _gl.CompileShader(handle);
-            
+
             string infoLog = _gl.GetShaderInfoLog(handle);
 
             if (!string.IsNullOrWhiteSpace(infoLog))
                 throw new Exception($"Error compiling shader of type {type}, failed with error {infoLog}");
-            
+
             return handle;
         }
 

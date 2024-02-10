@@ -3,22 +3,22 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum ReportRequestResponse : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum ReportRequestResponse : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("HANDLED")]
-    Handled,
+        [Description("HANDLED")]
+        Handled,
 
-    [Description("UNHANDLED")]
-    Unhandled,
+        [Description("UNHANDLED")]
+        Unhandled,
 
-    [Description("UNAVAILABLE")]
-    Unavailable,
+        [Description("UNAVAILABLE")]
+        Unavailable,
 
-  }
+    }
 
 }

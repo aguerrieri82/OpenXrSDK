@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public class EngineApp
     {
@@ -12,27 +6,27 @@ namespace OpenXr.Engine
         protected RenderContext _context;
         protected float _startTime;
         protected Scene? _activeScene;
-        private bool _isStarted;
+        private readonly bool _isStarted;
 
         public EngineApp()
         {
             _scenes = new List<Scene>();
-            _context = new RenderContext(); 
+            _context = new RenderContext();
         }
 
         public void AddScene(Scene scene)
         {
-            _scenes.Add(scene); 
+            _scenes.Add(scene);
         }
 
         public void OpenScene(string name)
         {
-            OpenScene(_scenes.Single(s => s.Name == name)); 
+            OpenScene(_scenes.Single(s => s.Name == name));
         }
 
         public void OpenScene(Scene scene)
         {
-            if (!_scenes.Contains(scene))   
+            if (!_scenes.Contains(scene))
                 AddScene(scene);
             _activeScene = scene;
         }
@@ -56,7 +50,7 @@ namespace OpenXr.Engine
         {
             _context.Frame++;
             _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
-            
+
             if (_activeScene == null)
                 return;
 

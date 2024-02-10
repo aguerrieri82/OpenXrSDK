@@ -1,29 +1,9 @@
-﻿using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace OpenXr.Framework
 {
     public static class XrMath
     {
-        public static unsafe XrPose ToXrPose2(this Posef pose)
-        {
-            return *(XrPose*)&pose;
-        }
-
-        public static unsafe XrPose ToXrPose(this Posef pose)
-        {
-            return new XrPose
-            {
-                Orientation = new Quaternion(pose.Orientation.X, pose.Orientation.Y, pose.Orientation.Z, pose.Orientation.W),
-                Position = new Vector3(pose.Position.X, pose.Position.Y, pose.Position.Z)
-            };
-        }
 
         public static XrPose Inverse(this XrPose pose)
         {

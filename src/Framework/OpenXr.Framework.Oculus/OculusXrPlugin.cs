@@ -2,11 +2,7 @@
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -54,7 +50,7 @@ namespace OpenXr.Framework.Oculus
 
         GetSpaceTriangleMeshMETADelegate? GetSpaceTriangleMeshMETA;
 
-        ConcurrentDictionary<ulong, TaskCompletionSource<SpaceQueryResultFB[]>> _spaceQueries = [];
+        readonly ConcurrentDictionary<ulong, TaskCompletionSource<SpaceQueryResultFB[]>> _spaceQueries = [];
 
         public static string[] LABELS = ["CEILING", "DOOR_FRAME", "FLOOR", "INVISIBLE_WALL_FACE", "WALL_ART", "WALL_FACE", "WINDOW_FRAME", "COUCH", "TABLE", "BED", "LAMP", "PLANT", "SCREEN", "STORAGE", "GLOBAL_MESH", "OTHER"];
 
@@ -89,7 +85,7 @@ namespace OpenXr.Framework.Oculus
         public string[] GetSpaceSemanticLabels(Space space)
         {
             var labels = string.Join(',', LABELS);
-            
+
             var support = new SemanticLabelsSupportInfoFB();
             support.Type = StructureType.SemanticLabelsSupportInfoFB;
             support.Flags = SemanticLabelsSupportFlagsFB.MultipleSemanticLabelsBitFB;
@@ -101,10 +97,10 @@ namespace OpenXr.Framework.Oculus
 
             _app!.CheckResult(_scene!.GetSpaceSemanticLabelsFB(_app!.Session, space, ref result), "GetSpaceSemanticLabelsFB");
             var buffer = new byte[result.BufferCountOutput];
-            fixed(byte* pBuffer = buffer)
+            fixed (byte* pBuffer = buffer)
             {
                 result.Buffer = pBuffer;
-                result.BufferCapacityInput = result.BufferCountOutput;    
+                result.BufferCapacityInput = result.BufferCountOutput;
             }
 
             _app!.CheckResult(_scene!.GetSpaceSemanticLabelsFB(_app!.Session, space, ref result), "GetSpaceSemanticLabelsFB");
@@ -310,6 +306,6 @@ namespace OpenXr.Framework.Oculus
             _foveationInfo.Dispose();
         }
 
-        public SwapchainCreateFoveationFlagsFB Foveation { get; set; }  
+        public SwapchainCreateFoveationFlagsFB Foveation { get; set; }
     }
 }

@@ -1,10 +1,5 @@
 ﻿using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Framework
 {
@@ -16,14 +11,14 @@ namespace OpenXr.Framework
         public BaseXrLayer(XrApp xrApp)
         {
             _header = (T*)Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(T)));
-            (*_header) = new T();   
+            (*_header) = new T();
             _xrApp = xrApp;
             IsEnabled = true;
 
         }
         public virtual void Dispose()
         {
-            if (_header!= null)
+            if (_header != null)
             {
                 Marshal.FreeHGlobal(new nint(_header));
                 _header = null;
@@ -38,7 +33,7 @@ namespace OpenXr.Framework
 
         protected abstract bool Render(ref T layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime);
 
-        public bool IsEnabled {  get; set; }
+        public bool IsEnabled { get; set; }
 
         public CompositionLayerBaseHeader* Header => (CompositionLayerBaseHeader*)_header;
     }

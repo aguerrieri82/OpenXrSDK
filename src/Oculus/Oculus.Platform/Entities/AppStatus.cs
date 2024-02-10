@@ -3,31 +3,31 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum AppStatus : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum AppStatus : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("ENTITLED")]
-    Entitled,
+        [Description("ENTITLED")]
+        Entitled,
 
-    [Description("DOWNLOAD_QUEUED")]
-    DownloadQueued,
+        [Description("DOWNLOAD_QUEUED")]
+        DownloadQueued,
 
-    [Description("DOWNLOADING")]
-    Downloading,
+        [Description("DOWNLOADING")]
+        Downloading,
 
-    [Description("INSTALLING")]
-    Installing,
+        [Description("INSTALLING")]
+        Installing,
 
-    [Description("INSTALLED")]
-    Installed,
+        [Description("INSTALLED")]
+        Installed,
 
-    [Description("UNINSTALLING")]
-    Uninstalling,
+        [Description("UNINSTALLING")]
+        Uninstalling,
 
-  }
+    }
 
 }

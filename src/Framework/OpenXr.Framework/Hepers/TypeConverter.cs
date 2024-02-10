@@ -1,15 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Silk.NET.OpenXR;
+using System.Numerics;
 
-#pragma warning disable CS8500
-
-namespace OpenXr
+namespace OpenXr.Framework
 {
     public static unsafe class TypeConverter
     {
+        [Obsolete("AndroidCrash")]
+        public static unsafe XrPose _ToXrPose(this Posef pose)
+        {
+            return *(XrPose*)&pose;
+        }
+
+        public static unsafe XrPose ToXrPose(this Posef pose)
+        {
+            return new XrPose
+            {
+                Orientation = new Quaternion(pose.Orientation.X, pose.Orientation.Y, pose.Orientation.Z, pose.Orientation.W),
+                Position = new Vector3(pose.Position.X, pose.Position.Y, pose.Position.Z)
+            };
+        }
+
+        public static unsafe XrSpaceLocation ToXrLocation(this SpaceLocation value)
+        {
+            return new XrSpaceLocation
+            {
+                Pose = value.Pose.ToXrPose(),
+                Flags = value.LocationFlags
+            };
+        }
+
+
         public static Converter<TIn> Convert<TIn>(this ref TIn value) where TIn : struct
         {
             return new Converter<TIn>(ref value);
@@ -23,12 +43,12 @@ namespace OpenXr
 
     public unsafe ref struct Converter<TIn> where TIn : struct
     {
-        ref TIn _value;
+        readonly ref TIn _value;
 
-        public Converter(ref TIn value) 
+        public Converter(ref TIn value)
         {
             _value = ref value;
-        } 
+        }
 
         public TOut To<TOut>()
         {
@@ -42,7 +62,7 @@ namespace OpenXr
 
     public unsafe ref struct ArrayConverter<TIn> where TIn : struct
     {
-        TIn[] _value;
+        readonly TIn[] _value;
 
         public ArrayConverter(TIn[] value)
         {

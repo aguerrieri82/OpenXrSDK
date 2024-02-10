@@ -3,28 +3,28 @@
 namespace Oculus.Platform
 {
 
-  using Description = System.ComponentModel.DescriptionAttribute;
+    using Description = System.ComponentModel.DescriptionAttribute;
 
-  public enum ServiceProvider : int
-  {
-    [Description("UNKNOWN")]
-    Unknown,
+    public enum ServiceProvider : int
+    {
+        [Description("UNKNOWN")]
+        Unknown,
 
-    [Description("DROPBOX")]
-    Dropbox,
+        [Description("DROPBOX")]
+        Dropbox,
 
-    [Description("FACEBOOK")]
-    Facebook,
+        [Description("FACEBOOK")]
+        Facebook,
 
-    [Description("GOOGLE")]
-    Google,
+        [Description("GOOGLE")]
+        Google,
 
-    [Description("INSTAGRAM")]
-    Instagram,
+        [Description("INSTAGRAM")]
+        Instagram,
 
-    [Description("REMOTE_MEDIA")]
-    RemoteMedia,
+        [Description("REMOTE_MEDIA")]
+        RemoteMedia,
 
-  }
+    }
 
 }
