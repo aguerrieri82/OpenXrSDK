@@ -32,6 +32,8 @@ namespace OpenXr.Test.Android
 
         const int REQUEST_CODE_PERMISSION_USE_SCENE = 1;
 
+        private XrApp _xrApp;
+
         public static EngineApp CreateScene()
         {
             var app = new EngineApp();
@@ -77,21 +79,28 @@ namespace OpenXr.Test.Android
 
             RequestScenePermissionIfNeeded("com.oculus.permission.USE_SCENE");
 
-            var xrApp = new XrApp(
+            _xrApp = new XrApp(
                 new AndroidXrOpenGLESGraphicDriver(OpenGLESContext.Create()),
                 new OculusXrPlugin(),
                 new AndroidXrPlugin(this, (uint)Process.MyTid()));
 
-            xrApp.Start();
+            _xrApp.StartEventLoop();
 
-            xrApp.Plugin<OpenVrPlugin>().RegisterVrActivity(this);
+            _xrApp.Start();
 
-            xrApp.BindEngineApp(CreateScene());
+            _xrApp.BindEngineApp(CreateScene());
 
-            while (!IsDestroyed)
-                xrApp.RenderFrame(xrApp.Stage);
-          
+            var handler = new Handler(Looper.MainLooper!);
+
+            handler.PostDelayed(Start, 200);
         }
+
+        void Start()
+        {
+            while (!IsDestroyed)
+                _xrApp.RenderFrame(_xrApp.Stage);
+        }
+
 
         protected override void OnDestroy()
         {
