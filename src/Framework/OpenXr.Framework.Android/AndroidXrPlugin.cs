@@ -40,8 +40,6 @@ namespace OpenXr.Framework
             };
 
             _app!.CheckResult(InitializeLoader!(&android), "InitializeLoader");
-
-
         }
 
         void SetAndroidApplicationThread(AndroidThreadTypeKHR type, uint threadId)
@@ -52,8 +50,6 @@ namespace OpenXr.Framework
         public override void OnInstanceCreated()
         {
             _app!.Xr.TryGetInstanceExtension<KhrAndroidThreadSettings>(null, _app.Instance, out _thread);
-
-
             base.OnInstanceCreated();
         }
 

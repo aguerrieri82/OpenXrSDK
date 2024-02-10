@@ -52,7 +52,7 @@ namespace OpenXr.Test.Android
 
             builder.Services.AddSingleton<IXrThread>(new HandlerXrThread(new Handler(Looper.MainLooper!)));
 
-            builder.Services.AddSingleton(GlobalServices.App!);
+            builder.Services.AddSingleton(() => GlobalServices.App!);
 
             builder.Services.AddOpenXrWebLink();
 

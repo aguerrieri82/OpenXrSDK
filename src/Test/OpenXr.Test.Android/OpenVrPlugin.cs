@@ -11,7 +11,7 @@ namespace OpenXr.Test.Android
     public class OpenVrPlugin : BaseXrPlugin
     {
         private MainActivity _activity;
-        private VrActivity? _vrActivity;
+        private GameActivity? _vrActivity;
 
         public OpenVrPlugin(MainActivity activity)
         {
@@ -20,7 +20,7 @@ namespace OpenXr.Test.Android
 
         public override void OnSessionBegin()
         {
-            _activity.StartActivity(new Intent(_activity, typeof(VrActivity)));
+            _activity.StartActivity(new Intent(_activity, typeof(GameActivity)));
 
             base.OnSessionBegin();
         }
@@ -36,7 +36,7 @@ namespace OpenXr.Test.Android
             base.OnSessionEnd();
         }
 
-        public void RegisterVrActivity(VrActivity? vrActivity)
+        public void RegisterVrActivity(GameActivity? vrActivity)
         {
             _vrActivity = vrActivity;
         }

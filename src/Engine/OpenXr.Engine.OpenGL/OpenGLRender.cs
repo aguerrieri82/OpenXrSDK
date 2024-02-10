@@ -43,7 +43,7 @@ namespace OpenXr.Engine.OpenGLES
 
     public class VertexContent
     {
-        public GlVertexArray<VertexData, int>? VertexArray;
+        public GlVertexArray<VertexData, uint>? VertexArray;
 
         public readonly List<DrawContent> Contents = [];
     }
@@ -104,25 +104,14 @@ namespace OpenXr.Engine.OpenGLES
 
         protected void Setup()
         {
-            _gl.FrontFace(FrontFaceDirection.CW);
+            _gl.FrontFace(FrontFaceDirection.Ccw);
             _gl.CullFace(TriangleFace.Back);
-            //_gl.Enable(EnableCap.CullFace);
+            _gl.Enable(EnableCap.CullFace);
             _gl.Enable(EnableCap.DepthTest);
             _gl.DepthMask(true);
             _gl.DepthFunc(DepthFunction.Lequal);
         }
 
-        protected unsafe void DrawMesh(Mesh mesh)
-        {
-            var vertexBuffer = GetResource(mesh.Geometry!, geo =>
-                new GlVertexArray<VertexData, int>(_gl, geo.Vertices!, geo.Indices!, _meshLayout));
-
-            vertexBuffer.Bind();
-
-            _gl.DrawElements(PrimitiveType.Triangles, mesh.Geometry!.TriangleCount, DrawElementsType.UnsignedInt, null);
-
-            vertexBuffer.Unbind();
-        }
 
         [MemberNotNull(nameof(_content))]
         protected void BuildContent(Scene scene)
@@ -158,14 +147,14 @@ namespace OpenXr.Engine.OpenGLES
                     {
                         vertexContent = new VertexContent();
                         vertexContent.VertexArray = GetResource(mesh.Geometry!, geo =>
-                                new GlVertexArray<VertexData, int>(_gl, geo.Vertices!, geo.Indices!, _meshLayout));
+                                new GlVertexArray<VertexData, uint>(_gl, geo.Vertices!, geo.Indices!, _meshLayout));
 
                         shaderContent.Contents[mesh.Geometry] = vertexContent;
                     }
 
                     vertexContent.Contents.Add(new DrawContent
                     {
-                        Draw = () => _gl.DrawArrays(PrimitiveType.Triangles, 0, mesh.Geometry!.TriangleCount),
+                        Draw = () => vertexContent!.VertexArray!.Draw(mesh.Geometry.VertexCount!),
                         Material = material,
                         Object = mesh
                     });
@@ -186,7 +175,7 @@ namespace OpenXr.Engine.OpenGLES
                 }
             }, 0);
 
-            //_gl.Enable(EnableCap.DebugOutput);
+            _gl.Enable(EnableCap.DebugOutput);
         }
 
         public void Render(Scene scene, Camera camera, RectI view)

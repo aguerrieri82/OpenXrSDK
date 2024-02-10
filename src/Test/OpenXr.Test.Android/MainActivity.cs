@@ -34,8 +34,6 @@ namespace OpenXr.Test.Android
         {
             base.OnCreate(savedInstanceState);
 
-
-
             /*
             GlobalServices.App = new XrApp(
                 //new XrVulkanGraphicDriver(new VulkanDevice()),
@@ -49,7 +47,7 @@ namespace OpenXr.Test.Android
 
             FindViewById<Button>(Resource.Id.getRooom)!.Click += (_, _) => _= Task.Run(StartApp);
 
-            //StartService(new Intent(this, typeof(WebServerService)));
+            StartService(new Intent(this, typeof(WebServerService)));
 
             ConfigureWebView();
         }
@@ -79,7 +77,7 @@ namespace OpenXr.Test.Android
 
         private void StartApp()
         {
-            StartActivity(new Intent(this, typeof(VrActivity)));
+            StartActivity(new Intent(this, typeof(GameActivity)));
         }
 
         private async Task GetRoomAsync()
