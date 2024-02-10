@@ -16,11 +16,12 @@ namespace OpenXr.Samples
                     new XrOpenGLESGraphicDriver(viewManager.View),
                     new OculusXrPlugin());
 
+
+            xrApp.BindEngineApp(Common.CreateScene());
+
             xrApp.StartEventLoop();
 
             xrApp.Start(XrAppStartMode.Render);
-
-            xrApp.BindEngineApp(Common.CreateScene());
 
             while (true)
             {

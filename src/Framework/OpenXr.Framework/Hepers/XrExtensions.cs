@@ -1,7 +1,18 @@
-﻿namespace OpenXr.Framework
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OpenXr.Framework
 {
-    public static class XrAppExtensions
+    public static class XrExtensions
     {
+        public static void AddProjection(this XrLayerManager manager, RenderViewDelegate renderView)
+        {
+            manager.Layers.Add(new XrProjectionLayer(renderView));
+        }
+
         public static void StartEventLoop(this XrApp app, int poolPeriodMs = 50)
         {
             _ = Task.Run(async () =>

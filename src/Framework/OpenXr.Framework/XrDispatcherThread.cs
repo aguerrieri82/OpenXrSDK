@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace OpenXr.Framework
 {
@@ -17,14 +18,17 @@ namespace OpenXr.Framework
         {
             while (_actions.TryDequeue(out var item))
             {
+                Debug.Assert(item.CompletionSource != null);
+                Debug.Assert(item.Action != null);
+
                 try
                 {
-                    var result = item.Action!();
-                    item.CompletionSource!.SetResult(result);
+                    var result = item.Action();
+                    item.CompletionSource.SetResult(result);
                 }
                 catch (Exception ex)
                 {
-                    item.CompletionSource!.SetException(ex);
+                    item.CompletionSource.SetException(ex);
                 }
             }
         }

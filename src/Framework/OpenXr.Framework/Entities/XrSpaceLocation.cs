@@ -4,8 +4,8 @@ namespace OpenXr.Framework
 {
     public class XrSpaceLocation
     {
-        public XrPose? Pose { get; set; }
+        public XrPose? Pose;
 
-        public SpaceLocationFlags Flags { get; set; }
+        public SpaceLocationFlags Flags;
     }
 }

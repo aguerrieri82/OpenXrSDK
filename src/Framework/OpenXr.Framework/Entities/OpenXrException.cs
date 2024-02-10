@@ -10,7 +10,6 @@ namespace OpenXr.Framework
             Result = result;
         }
 
-
         public Result Result { get; }
     }
 }

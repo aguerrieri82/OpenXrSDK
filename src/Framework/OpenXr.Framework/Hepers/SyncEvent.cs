@@ -1,6 +1,6 @@
 ﻿namespace OpenXr.Framework
 {
-    public struct SyncEvent : IDisposable
+    public readonly struct SyncEvent : IDisposable
     {
         readonly SemaphoreSlim _semaphore;
 
@@ -9,18 +9,17 @@
             _semaphore = new SemaphoreSlim(0, 1);
         }
 
-
-        public void Signal()
+        public readonly void Signal()
         {
             _semaphore.Release();
         }
 
-        public bool Wait()
+        public readonly bool Wait()
         {
             return Wait(CancellationToken.None);
         }
 
-        public bool Wait(CancellationToken cancellationToken)
+        public readonly bool Wait(CancellationToken cancellationToken)
         {
             try
             {
@@ -42,7 +41,7 @@
             return WaitAsync(CancellationToken.None);
         }
 
-        public async Task<bool> WaitAsync(CancellationToken cancellationToken)
+        public async readonly Task<bool> WaitAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -60,9 +59,11 @@
         }
 
 
-        public void Dispose()
+        public readonly void Dispose()
         {
             _semaphore.Dispose();
+
+            GC.SuppressFinalize(this);
         }
 
     }

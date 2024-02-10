@@ -6,16 +6,20 @@ namespace OpenXr.Framework
     public unsafe abstract class BaseXrLayer<T> : IXrLayer where T : struct
     {
         protected T* _header;
-        protected XrApp _xrApp;
+        protected XrApp? _xrApp;
 
-        public BaseXrLayer(XrApp xrApp)
+        public BaseXrLayer()
         {
             _header = (T*)Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(T)));
             (*_header) = new T();
-            _xrApp = xrApp;
             IsEnabled = true;
-
         }
+
+        public virtual void Initialize(XrApp app, IList<string> extensions)
+        {
+            _xrApp = app;
+        }
+
         public virtual void Dispose()
         {
             if (_header != null)

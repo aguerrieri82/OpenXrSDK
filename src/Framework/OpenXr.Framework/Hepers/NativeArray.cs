@@ -1,6 +1,5 @@
 ﻿using System.Runtime.InteropServices;
 
-#pragma warning disable CS8500
 
 namespace OpenXr.Framework
 {
@@ -67,6 +66,8 @@ namespace OpenXr.Framework
                 Marshal.FreeHGlobal(_buffer);
                 _buffer = 0;
             }
+
+            GC.SuppressFinalize(this);
         }
 
         public unsafe TBase* Pointer => (TBase*)_buffer;
