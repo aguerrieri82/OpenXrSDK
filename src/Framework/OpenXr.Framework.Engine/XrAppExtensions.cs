@@ -46,8 +46,9 @@ namespace OpenXr.Framework
                     var pose = view.Pose.ToXrPose();
 
                     var matrix = (Matrix4x4.CreateFromQuaternion(pose.Orientation) *
-                                  Matrix4x4.CreateTranslation(pose.Position))
-                                 .InvertRigidBody();
+                                  Matrix4x4.CreateTranslation(pose.Position));
+
+                    matrix = matrix.InvertRigidBody();
 
                     camera.Transform.SetMatrix(matrix);
 
