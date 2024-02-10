@@ -148,7 +148,7 @@ namespace OpenXr.Engine.OpenGLES
 
                     vertexContent.Contents.Add(new DrawContent
                     {
-                        Draw = () => vertexContent!.VertexArray!.Draw(mesh.Geometry.VertexCount!),
+                        Draw = vertexContent!.VertexArray!.Draw,
                         Material = material,
                         Object = mesh
                     });

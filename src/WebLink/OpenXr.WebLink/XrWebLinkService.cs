@@ -14,7 +14,7 @@ namespace OpenXr.WebLink
         protected readonly IHubContext<XrWebLinkHub, IXrWebLinkClient> _hub;
         protected readonly ILogger<XrWebLinkService> _logger;
         protected CancellationTokenSource? _stopSource;
-        protected Entities.Posef _lastPose;
+        protected Pose _lastPose;
         protected readonly IXrThread _xrThread;
         protected IList<Task> _serviceLoops;
 
@@ -83,7 +83,12 @@ namespace OpenXr.WebLink
             {
                 var location = _app.LocateSpace(_app.Head, _app.Local, 1);
 
-                var curPose = location.Pose.Convert().To<Entities.Posef>();
+                var curPose = new Pose
+                {
+                    Orientation = location.Pose!.Orientation,
+                    Position = location.Pose!.Position,
+                };
+
                 if (curPose.Similar(_lastPose, 0.0001f))
                     return;
 

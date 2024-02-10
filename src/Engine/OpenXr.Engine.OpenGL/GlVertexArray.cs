@@ -61,19 +61,19 @@ namespace OpenXr.Engine.OpenGLES
             Unbind();
         }
 
-        public void Draw(uint count)
+        public unsafe void Draw()
         {
 
             if (_iBuf != null)
             {
-                _gl.DrawElements(PrimitiveType.Triangles, count, _drawType, 0);
-                GlDebug.Log($"DrawElements Triangles {count} {_drawType}");
+                _gl.DrawElements(PrimitiveType.Triangles, _iBuf.Length, _drawType, null);
+                GlDebug.Log($"DrawElements Triangles {_iBuf.Length} {_drawType}");
             }
 
             else
             {
-                _gl.DrawArrays(PrimitiveType.Triangles, 0, count);
-                GlDebug.Log($"DrawArrays Triangles {count}");
+                _gl.DrawArrays(PrimitiveType.Triangles, 0, _vBuf.Length);
+                GlDebug.Log($"DrawArrays Triangles {_vBuf.Length}");
             }
 
             var err = _gl.GetError();

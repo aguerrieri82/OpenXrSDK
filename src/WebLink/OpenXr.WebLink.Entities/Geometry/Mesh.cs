@@ -1,8 +1,10 @@
-﻿namespace OpenXr.WebLink.Entities
+﻿using System.Numerics;
+
+namespace OpenXr.WebLink.Entities
 {
     public class Mesh
     {
-        public Vector3f[]? Vertices { get; set; }
+        public Vector3[]? Vertices { get; set; }
 
         public uint[]? Indices { get; set; }
     }
