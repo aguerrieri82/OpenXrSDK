@@ -1,11 +1,16 @@
-﻿using Silk.NET.OpenGL;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Engine.OpenGL
+namespace OpenXr.Engine.OpenGLES
 {
     public class GlVertexArray<TVertexType, TIndexType> : GlObject
         where TVertexType : unmanaged
@@ -18,14 +23,14 @@ namespace OpenXr.Engine.OpenGL
         public unsafe GlVertexArray(GL gl, TVertexType[] vertices, TIndexType[] index, GlVertexLayout layout)
             : this(gl, 
                   new GlBuffer<TVertexType>(gl, vertices.AsSpan(), BufferTargetARB.ArrayBuffer),
-                  new GlBuffer<TIndexType>(gl, index.AsSpan(), BufferTargetARB.ElementArrayBuffer),
+                  index.Length == 0 ? null : new GlBuffer<TIndexType>(gl, index.AsSpan(), BufferTargetARB.ElementArrayBuffer),
                   layout)
         {
 
         }
 
 
-        public GlVertexArray(GL gl, GlBuffer<TVertexType> vbo, GlBuffer<TIndexType> ebo, GlVertexLayout layout)
+        public GlVertexArray(GL gl, GlBuffer<TVertexType> vbo, GlBuffer<TIndexType>? ebo, GlVertexLayout layout)
             : base(gl)
         {
             _gl = gl;
@@ -33,8 +38,10 @@ namespace OpenXr.Engine.OpenGL
             _handle = _gl.GenVertexArray();
 
             Bind();
+            
             vbo.Bind();
-            ebo.Bind();
+            ebo?.Bind();
+
             Configure();
             Unbind();
         }

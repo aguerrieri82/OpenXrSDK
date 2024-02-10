@@ -1,4 +1,9 @@
-﻿using Silk.NET.OpenGL;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +11,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Engine.OpenGL
+namespace OpenXr.Engine.OpenGLES
 {
     public class GlProgram : GlObject, IUniformProvider
     {

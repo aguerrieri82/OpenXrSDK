@@ -20,6 +20,8 @@ namespace OpenXr.Samples
 
             var material = new StandardMaterial() { Color = new Color(1, 0, 0) };
 
+
+
             for (var y = -1f; y <= 1; y += 0.5f)
             {
                 for (var rad = 0f; rad < Math.PI * 2; rad += MathF.PI / 10f)
@@ -37,7 +39,11 @@ namespace OpenXr.Samples
                     });
 
                     scene.AddChild(cube);
+
+                    break;
                 }
+
+                break;
             }
 
             scene.AddChild(new AmbientLight(0.3f));

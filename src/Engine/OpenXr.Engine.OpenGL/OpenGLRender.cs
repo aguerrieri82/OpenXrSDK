@@ -1,6 +1,9 @@
-﻿
-using Silk.NET.Core.Contexts;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
 using Silk.NET.OpenGL;
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,10 +14,10 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using static System.Formats.Asn1.AsnWriter;
 
 
-namespace OpenXr.Engine.OpenGL
+
+namespace OpenXr.Engine.OpenGLES
 {
     public class GlobalContent
     {
@@ -56,21 +59,19 @@ namespace OpenXr.Engine.OpenGL
 
     public class OpenGLRender : IRenderEngine
     {
-        protected IGLContext _context;
         protected GL _gl;
         protected Dictionary<uint, GlFrameTextureBuffer> _frameBuffers;
         protected GlFrameTextureBuffer? _frameBuffer;
         protected GlVertexLayout _meshLayout;
-        protected GlobalContent _content;
+        protected GlobalContent? _content;
 
         public static class Props
         {
             public const string GlResId = nameof(GlResId);    
         }
 
-        public OpenGLRender(IGLContext context, GL gl)
+        public OpenGLRender(GL gl)
         {
-            _context = context;
             _gl = gl;
             _frameBuffers = new Dictionary<uint, GlFrameTextureBuffer>();
             _meshLayout = GlVertexLayout.FromType<VertexData>();
@@ -98,7 +99,7 @@ namespace OpenXr.Engine.OpenGL
         {
             _gl.ClearColor(0.3f, 0.3f, 1.0f, 0);
             _gl.ClearDepth(1.0f);
-            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
         protected void Setup()
@@ -107,16 +108,18 @@ namespace OpenXr.Engine.OpenGL
             _gl.CullFace(TriangleFace.Back);
             //_gl.Enable(EnableCap.CullFace);
             _gl.Enable(EnableCap.DepthTest);
+            _gl.DepthMask(true);
+            _gl.DepthFunc(DepthFunction.Lequal);
         }
 
-        protected void DrawMesh(Mesh mesh)
+        protected unsafe void DrawMesh(Mesh mesh)
         {
             var vertexBuffer = GetResource(mesh.Geometry!, geo =>
                 new GlVertexArray<VertexData, int>(_gl, geo.Vertices!, geo.Indices!, _meshLayout));
 
             vertexBuffer.Bind();
 
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, mesh.Geometry!.TriangleCount);
+            _gl.DrawElements(PrimitiveType.Triangles, mesh.Geometry!.TriangleCount, DrawElementsType.UnsignedInt, null);
 
             vertexBuffer.Unbind();
         }

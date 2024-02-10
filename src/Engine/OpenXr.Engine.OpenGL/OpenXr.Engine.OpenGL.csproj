@@ -1,13 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+	
+	<PropertyGroup>
 
-  </PropertyGroup>
-	<ItemGroup>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
+		<AssemblyName>OpenXr.Engine.OpenGLES</AssemblyName>
+		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(OpenGL)' == ''">
+		<AssemblyName>OpenXr.Engine.OpenGL</AssemblyName>
+	</PropertyGroup>
+	
+
+	<ItemGroup Condition="'$(OpenGL)' == 'ES'">
+		<PackageReference Include="Silk.NET.OpenGLES" Version="2.20.0" />
+	</ItemGroup>
+	
+	<ItemGroup Condition="'$(OpenGL)' == ''">
 		<PackageReference Include="Silk.NET.OpenGL" Version="2.20.0" />
 	</ItemGroup>
+	
 	<ItemGroup>
-	  <ProjectReference Include="..\OpenXr.Engine.Core\OpenXr.Engine.Core.csproj" />
+		<ProjectReference Include="..\OpenXr.Engine.Core\OpenXr.Engine.Core.csproj" />
 	</ItemGroup>
 
 

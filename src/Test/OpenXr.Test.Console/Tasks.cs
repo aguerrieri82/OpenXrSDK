@@ -1,15 +1,7 @@
-﻿using OpenXr.Framework.Vulkan;
-using OpenXr.Framework;
-using Silk.NET.OpenXR;
+﻿
 using static OVRPlugin;
 using static Oculus.XrPlugin.OculusXrPlugin;
-using OpenXr.WebLink.Entities;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using OpenXr.Framework.OpenGL;
-using OpenXr.Engine;
-using Mesh = OpenXr.Engine.Mesh;
-using System.Numerics;
+
 
 namespace OpenXr
 {

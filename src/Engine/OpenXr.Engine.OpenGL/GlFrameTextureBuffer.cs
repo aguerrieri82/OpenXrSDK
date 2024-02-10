@@ -1,4 +1,9 @@
-﻿using Silk.NET.OpenGL;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -6,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Engine.OpenGL
+namespace OpenXr.Engine.OpenGLES
 {
     public class GlFrameTextureBuffer : GlFrameBuffer
     {
@@ -24,13 +29,13 @@ namespace OpenXr.Engine.OpenGL
         protected void CreateDepth()
         {
             Depth = new GlTexture2D(_gl);
-            Depth.MagFilter = Color.MagFilter;
-            Depth.MinFilter = Color.MinFilter;
+            Depth.MagFilter = TextureMagFilter.Nearest;
+            Depth.MinFilter = TextureMinFilter.Nearest;
             Depth.WrapT = Color.WrapT;
             Depth.WrapS = Color.WrapS;
             Depth.MaxLevel = Color.MaxLevel;
             Depth.BaseLevel = Color.BaseLevel;
-            Depth.Create(Color.Width, Color.Height, TextureFormat.Depth24Float);
+            Depth.Create(Color.Width, Color.Height, TextureFormat.Depth32Float);
         }
 
         public override void Bind()
@@ -43,7 +48,6 @@ namespace OpenXr.Engine.OpenGL
                 TextureTarget.Texture2D,
                 Color, 0);
 
-            _gl.DrawBuffer(DrawBufferMode.ColorAttachment0);
 
             _gl.FramebufferTexture2D(
                 FramebufferTarget.DrawFramebuffer,

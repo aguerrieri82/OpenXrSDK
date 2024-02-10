@@ -3,6 +3,7 @@ using Android.Content.PM;
 using Android.Nfc;
 using Android.Opengl;
 using Android.OS;
+using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Android.Webkit;
@@ -10,8 +11,6 @@ using OpenXr.Engine;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Oculus;
-using OpenXr.Framework.OpenGLES;
-using Silk.NET.OpenGLES;
 using System.Numerics;
 
 
@@ -33,13 +32,14 @@ namespace OpenXr.Test.Android
         const int REQUEST_CODE_PERMISSION_USE_SCENE = 1;
 
         private XrApp _xrApp;
+        private Thread? _loopThread;
 
         public static EngineApp CreateScene()
         {
             var app = new EngineApp();
 
             var scene = new Scene();
-            scene.ActiveCamera = new PerspectiveCamera() { Far = 50f };
+            scene.ActiveCamera = new PerspectiveCamera() { Far = 10f, Near = 0.1f };
 
             var material = new StandardMaterial() { Color = new Color(1, 0, 0) };
 
@@ -77,8 +77,17 @@ namespace OpenXr.Test.Android
         {
             base.OnCreate(savedInstanceState);
 
-            RequestScenePermissionIfNeeded("com.oculus.permission.USE_SCENE");
+            CheckPermissionsAndRun();
+        }
 
+        void RunApp()
+        {
+            _loopThread = new Thread(ExecuteApp);
+            _loopThread.Start();
+        }
+
+        void ExecuteApp()
+        {
             _xrApp = new XrApp(
                 new AndroidXrOpenGLESGraphicDriver(OpenGLESContext.Create()),
                 new OculusXrPlugin(),
@@ -92,30 +101,27 @@ namespace OpenXr.Test.Android
 
             var handler = new Handler(Looper.MainLooper!);
 
-            handler.PostDelayed(Start, 200);
-        }
-
-        void Start()
-        {
             while (!IsDestroyed)
                 _xrApp.RenderFrame(_xrApp.Stage);
         }
 
 
-        protected override void OnDestroy()
+        private void CheckPermissionsAndRun()
         {
-            GlobalServices.App!.Plugin<OpenVrPlugin>().RegisterVrActivity(null);
-            base.OnDestroy();
+            var perm = "com.oculus.permission.USE_SCENE";
+
+            if (CheckSelfPermission(perm) != Permission.Granted)
+                RequestPermissions([perm], REQUEST_CODE_PERMISSION_USE_SCENE);
+            else
+                RunApp();
         }
 
-        private void RequestScenePermissionIfNeeded(string perm)
+        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)
         {
-            Log.Debug(TAG, "requestScenePermissionIfNeeded");
-            if (CheckSelfPermission(perm) != Permission.Granted)
-            {
-                Log.Debug(TAG, "Permission has not been granted, request " + perm);
-                RequestPermissions([perm], REQUEST_CODE_PERMISSION_USE_SCENE);
-            }
+            if (requestCode == REQUEST_CODE_PERMISSION_USE_SCENE && grantResults[0] == Permission.Granted)
+                RunApp();
+
+            base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 }
