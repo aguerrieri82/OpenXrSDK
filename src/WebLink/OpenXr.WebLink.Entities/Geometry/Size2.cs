@@ -1,6 +1,6 @@
 ﻿namespace OpenXr.WebLink.Entities
 {
-    public struct Size2f
+    public struct Size2
     {
         public float Width;
 

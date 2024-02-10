@@ -21,7 +21,5 @@
         public uint[]? Indices { get; set; }
 
         public VertexData[]? Vertices { get; set; }
-
-        public uint VertexCount { get; set; }
     }
 }

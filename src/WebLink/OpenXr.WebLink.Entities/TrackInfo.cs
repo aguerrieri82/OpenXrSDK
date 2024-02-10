@@ -14,6 +14,6 @@
 
         public Guid? AnchorId { get; set; }
 
-        public Posef Pose { get; set; }
+        public Pose Pose { get; set; }
     }
 }

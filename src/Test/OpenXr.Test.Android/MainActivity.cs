@@ -46,6 +46,8 @@ namespace OpenXr.Test.Android
             StartService(new Intent(this, typeof(WebServerService)));
 
             ConfigureWebView();
+
+            StartApp();
         }
 
 

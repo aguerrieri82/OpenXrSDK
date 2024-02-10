@@ -7,7 +7,7 @@
             Vertices = VertexData.FromPosNormalUV(
             [
                //X    Y      Z       Normals
-               1f, 1f, -1f, -0f, 1f, -0f, 0.625f, 0.5f,
+                 1f, 1f, -1f, -0f, 1f, -0f, 0.625f, 0.5f,
                  -1f, 1f, -1f, -0f, 1f, -0f, 0.875f, 0.5f,
                  -1f, 1f, 1f, -0f, 1f, -0f, 0.875f, 0.75f,
                  1f, 1f, 1f, -0f, 1f, -0f, 0.625f, 0.75f,
@@ -35,7 +35,7 @@
 
             Indices =
             [
-                0,1,2,
+                 0,1,2,
                  0,2,3,
                  4,5,6,
                  4,6,7,
@@ -48,9 +48,6 @@
                  20,21,22,
                  20,22,23,
              ];
-
-
-            VertexCount = 36;
 
             //Rebuild();
         }

@@ -199,8 +199,6 @@ namespace OpenXr.Framework
             }
         }
 
-        [MemberNotNull(nameof(_session))]
-        [MemberNotNull(nameof(_instance))]
         [MemberNotNull(nameof(_views))]
         [MemberNotNull(nameof(_renderOptions))]
         [MemberNotNull(nameof(_xr))]

@@ -29,18 +29,18 @@ namespace OpenXr.Framework
             };
         }
 
-        public static Converter<TIn> Convert<TIn>(this ref TIn value) where TIn : struct
+        public static Converter<TIn> Convert<TIn>(this ref TIn value) where TIn : unmanaged
         {
             return new Converter<TIn>(ref value);
         }
 
-        public static ArrayConverter<TIn> Convert<TIn>(this TIn[] value) where TIn : struct
+        public static ArrayConverter<TIn> Convert<TIn>(this TIn[] value) where TIn : unmanaged
         {
             return new ArrayConverter<TIn>(value);
         }
     }
 
-    public unsafe ref struct Converter<TIn> where TIn : struct
+    public unsafe ref struct Converter<TIn> where TIn : unmanaged
     {
         readonly ref TIn _value;
 
@@ -59,7 +59,7 @@ namespace OpenXr.Framework
         }
     }
 
-    public unsafe ref struct ArrayConverter<TIn> where TIn : struct
+    public unsafe ref struct ArrayConverter<TIn> where TIn : unmanaged
     {
         readonly TIn[] _value;
 

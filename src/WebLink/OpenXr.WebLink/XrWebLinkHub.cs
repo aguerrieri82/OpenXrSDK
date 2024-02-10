@@ -4,6 +4,7 @@ using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.WebLink.Entities;
 using Silk.NET.OpenXR;
+using System.Numerics;
 using System.Text;
 
 namespace OpenXr.WebLink
@@ -82,7 +83,7 @@ namespace OpenXr.WebLink
                         xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.Bounded2DFB))
                     {
                         var bounds = xrOculus.GetSpaceBoundingBox2D(space.Space);
-                        item.Bounds2D = bounds.Convert().To<Entities.Rect2f>();
+                        item.Bounds2D = bounds.Convert().To<Entities.Rect2>();
                     }
 
                     if ((filter.Components & XrAnchorComponent.Pose) != 0)
@@ -90,7 +91,12 @@ namespace OpenXr.WebLink
                         try
                         {
                             var local = _app.LocateSpace(_app.Stage, space.Space, 1);
-                            item.Pose = local.Pose.Convert().To<Entities.Posef>();
+
+                            item.Pose = new Pose
+                            {
+                                Orientation = local.Pose!.Orientation,
+                                Position = local.Pose.Position,
+                            };
                         }
                         catch (Exception ex)
                         {
@@ -106,7 +112,7 @@ namespace OpenXr.WebLink
                         item.Mesh = new Mesh
                         {
                             Indices = mesh.Indices,
-                            Vertices = mesh.Vertices!.Convert().To<Entities.Vector3f>()
+                            Vertices = mesh.Vertices!.Convert().To<Vector3>()
                         };
 
                     }
