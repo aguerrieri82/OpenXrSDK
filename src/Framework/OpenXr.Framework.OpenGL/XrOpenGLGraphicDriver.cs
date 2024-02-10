@@ -2,6 +2,7 @@
 using Silk.NET.OpenGL;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
+using Silk.NET.Windowing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +12,10 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Framework.OpenGL
 {
-    public class XrOpenGLGraphicDriver : BaseXrPlugin, IXrGraphicDriver, IDisposable
+    public class XrOpenGLGraphicDriver : BaseXrPlugin, IXrGraphicDriver, IApiProvider
     {
         protected GraphicsBinding _binding;
-        protected IOpenGLDevice _device;
+        protected IView _view;
         protected XrApp? _app;
         protected KhrOpenglEnable? _openGl;
         protected XrDynamicType _swapChainType;
@@ -25,9 +26,9 @@ namespace OpenXr.Framework.OpenGL
            GLEnum.Rgba8,
            GLEnum.Rgba8SNorm];
 
-        public XrOpenGLGraphicDriver(IOpenGLDevice device)
+        public XrOpenGLGraphicDriver(IView view)
         {
-            _device = device;
+            _view = view;
             _swapChainType = new XrDynamicType
             {
                 StructureType = StructureType.SwapchainImageOpenglKhr,
@@ -58,9 +59,7 @@ namespace OpenXr.Framework.OpenGL
 
             _app!.CheckResult(_openGl!.GetOpenGlgraphicsRequirements(_app!.Instance, _app.SystemId, ref req), "GetOpenGlgraphicsRequirements");
 
-            _device.Initialize(req.MinApiVersionSupported, req.MaxApiVersionSupported);
-
-            return _device.View.CreateOpenGLBinding();
+            return _view.CreateOpenGLBinding();
         }
 
 
@@ -69,14 +68,14 @@ namespace OpenXr.Framework.OpenGL
             return (long)_validFormats.First(a => availFormats.Contains((long)a));
         }
 
-        public void Dispose()
+
+        public T GetApi<T>() where T : class
         {
-            _device.Dispose();
+            if (typeof(T) == typeof(GL))
+                return (T)(object)_view.CreateOpenGL();
+            throw new NotSupportedException();
         }
 
         public XrDynamicType SwapChainImageType => _swapChainType;
-
-        public IOpenGLDevice Device => _device; 
-
     }
 }

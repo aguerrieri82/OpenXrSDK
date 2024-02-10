@@ -1,9 +1,11 @@
-﻿using OpenXr.Engine;
-using OpenXr.Engine.OpenGLES;
-using OpenXr.Framework.Abstraction;
-using OpenXr.Framework.OpenGLES;
-using Silk.NET.Maths;
+﻿#if GLES
 using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
+using OpenXr.Engine;
+using OpenXr.Engine.OpenGLES;
 using Silk.NET.OpenXR;
 using System.Numerics;
 
@@ -20,7 +22,7 @@ namespace OpenXr.Framework
             {
                 var gl = apiProvider.GetApi<GL>();
 
-                var renderer = new OpenGLESRender(gl);
+                var renderer = new OpenGLRender(gl);
                 renderer.EnableDebug();
                 app.Renderer = renderer;
 

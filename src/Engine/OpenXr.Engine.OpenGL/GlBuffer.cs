@@ -1,4 +1,9 @@
-﻿using Silk.NET.OpenGL;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -6,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Engine.OpenGL
+namespace OpenXr.Engine.OpenGLES
 {
     public class GlBuffer<T> : GlObject where T : unmanaged
     {
@@ -21,8 +26,6 @@ namespace OpenXr.Engine.OpenGL
 
             Update(data);
         }
-
-
 
         public void Update(Span<T> data)
         {

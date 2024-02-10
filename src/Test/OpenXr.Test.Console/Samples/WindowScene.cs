@@ -27,7 +27,7 @@ namespace OpenXr.Samples
                 camera.SetFov(45, viewRect.Width, viewRect.Height);
                 camera.LookAt(new Vector3(0f, 3f, 3f), Vector3.Zero, new Vector3(0, 1, 0));
 
-                var render = new OpenGLESRender(view.GLContext!, view.CreateOpenGLES());
+                var render = new OpenGLRender(view.CreateOpenGLES());
                 render.EnableDebug();
 
                 app.Renderer = render;

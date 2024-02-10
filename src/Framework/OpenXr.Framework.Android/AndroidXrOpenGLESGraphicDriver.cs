@@ -1,6 +1,5 @@
 ﻿using Android.Runtime;
 using Java.Lang;
-using OpenXr.Framework.Abstraction;
 using Silk.NET.OpenGLES;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;

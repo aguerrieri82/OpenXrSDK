@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using OpenXr.Framework.OpenGL;
 using OpenXr.Framework;
 using System;
 using System.Collections.Generic;

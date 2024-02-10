@@ -1,11 +1,16 @@
-﻿using Silk.NET.OpenGL;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Engine.OpenGL
+namespace OpenXr.Engine.OpenGLES
 {
     public class GlTexture2D : GlObject
     {
@@ -33,18 +38,20 @@ namespace OpenXr.Engine.OpenGL
         {
             _handle = handle;
 
-            _gl.GetTextureLevelParameter(_handle, 0, GetTextureParameter.TextureWidth, out int w);
-            _gl.GetTextureLevelParameter(_handle, 0, GetTextureParameter.TextureHeight, out int h);
-            _gl.GetTextureLevelParameter(_handle, 0, GetTextureParameter.TextureInternalFormat, out int intf);
+            Bind();
 
-            _gl.GetTextureParameter(_handle, GetTextureParameter.TextureWrapS, out int ws);
-            _gl.GetTextureParameter(_handle, GetTextureParameter.TextureWrapT, out int wt);
+            _gl.GetTexLevelParameter(TextureTarget.Texture2D, 0, GetTextureParameter.TextureWidth, out int w);
+            _gl.GetTexLevelParameter(TextureTarget.Texture2D, 0, GetTextureParameter.TextureHeight, out int h);
+            _gl.GetTexLevelParameter(TextureTarget.Texture2D, 0, GetTextureParameter.TextureInternalFormat, out int intf);
 
-            _gl.GetTextureParameter(_handle, GetTextureParameter.TextureMinFilter, out int min);
-            _gl.GetTextureParameter(_handle, GetTextureParameter.TextureMagFilter, out int mag);
+            _gl.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureWrapS, out int ws);
+            _gl.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureWrapT, out int wt);
 
-            _gl.GetTextureParameter(_handle, GetTextureParameter.TextureBaseLevelSgis, out int bl);
-            _gl.GetTextureParameter(_handle, GetTextureParameter.TextureMaxLevelSgis, out int ml);
+            _gl.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureMinFilter, out int min);
+            _gl.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureMagFilter, out int mag);
+
+            _gl.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureBaseLevelSgis, out int bl);
+            _gl.GetTexParameter(TextureTarget.Texture2D, GetTextureParameter.TextureMaxLevelSgis, out int ml);
 
             _width = (uint)w;
             _height = (uint)h;

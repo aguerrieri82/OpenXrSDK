@@ -3,7 +3,6 @@
 <Project>
 	
 	<PropertyGroup>
-		<NetCoreMajor></NetCoreMajor>
 		<AspNetRoot>$(NetCoreTargetingPackRoot)\..\shared\Microsoft.AspNetCore.App\8.0.0\</AspNetRoot>
 	</PropertyGroup>
 

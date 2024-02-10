@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace OpenXr.Engine
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public class ShaderRef : Attribute
+    public class ShaderRefAttribute : Attribute
     {
-        public ShaderRef(uint loc, string name)
+        public ShaderRefAttribute(uint loc, string name)
         {
             Loc = loc;
             Name = name;

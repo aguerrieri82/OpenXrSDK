@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using OpenXr.Framework.OpenGL;
+
 using OpenXr.Framework;
 using Silk.NET.OpenXR;
 using System;
@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using OpenXr.Framework.OpenGLES;
 
 namespace OpenXr.Samples
 {
@@ -15,12 +16,15 @@ namespace OpenXr.Samples
     {
         public static async Task Run(IServiceProvider services, ILogger logger)
         {
-   
+            var viewManager = new ViewManager();
+            viewManager.Initialize();
+
+
             var xrOculus = new Framework.Oculus.OculusXrPlugin();
 
             var app = new XrApp(services!.GetRequiredService<ILogger<XrApp>>(),
                     //new XrVulkanGraphicDriver(new VulkanDevice()),
-                    new XrOpenGLGraphicDriver(new OpenGLDevice()),
+                    new XrOpenGLESGraphicDriver(viewManager.View),
                 xrOculus);
 
             _ = Task.Run(async () =>

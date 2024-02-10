@@ -1,24 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+	<PropertyGroup>
 
-  </PropertyGroup>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
-    <PackageReference Include="Silk.NET.Maths" Version="2.20.0" />
-    <PackageReference Include="Silk.NET.OpenXR" Version="2.20.0" />
-    <PackageReference Include="Silk.NET.OpenXR.Extensions.KHR" Version="2.20.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Silk.NET.Maths" Version="2.20.0" />
+		<PackageReference Include="Silk.NET.OpenXR" Version="2.20.0" />
+		<PackageReference Include="Silk.NET.OpenXR.Extensions.KHR" Version="2.20.0" />
+		<PackageReference Include="Silk.NET.Windowing" Version="2.20.0" />
+	</ItemGroup>
 
 
 	<ItemGroup>
-    <None Update="libopenxr_loader.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="openxr_loader.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+		<None Update="libopenxr_loader.so">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="openxr_loader.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
 </Project>

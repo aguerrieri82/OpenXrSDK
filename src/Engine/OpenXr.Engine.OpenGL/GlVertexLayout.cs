@@ -1,4 +1,9 @@
-﻿using Silk.NET.OpenGL;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +13,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Engine.OpenGL
+namespace OpenXr.Engine.OpenGLES
 {
     public struct GlVertexAttribute
     {
@@ -32,7 +37,7 @@ namespace OpenXr.Engine.OpenGL
             var infos = fields.Select(a => new
             {
                 Type = a.FieldType,
-                Ref = a.GetCustomAttribute<ShaderRef>()
+                Ref = a.GetCustomAttribute<ShaderRefAttribute>()
             })
             .Where(a => a.Ref != null)
             .OrderBy(a => a.Ref!.Loc)
