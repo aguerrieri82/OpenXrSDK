@@ -89,9 +89,9 @@ namespace OpenXr.Engine.OpenGLES
                 a => new GlProgram(_gl, shader.VertexSource!, shader.FragmentSource!));
         }
 
-        public void Clear()
+        public void Clear(Color color)
         {
-            _gl.ClearColor(0.3f, 0.3f, 1.0f, 0);
+            _gl.ClearColor(color.R, color.G, color.B, color.A);
             _gl.ClearDepth(1.0f);
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
@@ -177,7 +177,7 @@ namespace OpenXr.Engine.OpenGLES
             if (_frameBuffer != null)
                 _frameBuffer.Bind();
 
-            Clear();
+            Clear(camera.BackgroundColor);
 
             Setup();
 

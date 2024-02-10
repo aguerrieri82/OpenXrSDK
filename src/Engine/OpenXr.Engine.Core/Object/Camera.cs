@@ -10,6 +10,8 @@ namespace OpenXr.Engine
             Far = 10;
         }
 
+        public Color BackgroundColor { get; set; }
+
         public float Near { get; set; }
 
         public float Far { get; set; }

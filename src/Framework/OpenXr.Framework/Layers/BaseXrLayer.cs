@@ -7,17 +7,28 @@ namespace OpenXr.Framework
     {
         protected T* _header;
         protected XrApp? _xrApp;
+        private bool _isEnabled;
 
         public BaseXrLayer()
         {
             _header = (T*)Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(T)));
             (*_header) = new T();
-            IsEnabled = true;
+            _isEnabled = true;
+        }
+
+        public virtual void Create()
+        {
+
         }
 
         public virtual void Initialize(XrApp app, IList<string> extensions)
         {
             _xrApp = app;
+        }
+
+        protected virtual void OnEnabledChanged(bool isEnabled)
+        {
+
         }
 
         public virtual void Dispose()
@@ -37,7 +48,19 @@ namespace OpenXr.Framework
 
         protected abstract bool Render(ref T layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime);
 
-        public bool IsEnabled { get; set; }
+        public bool IsEnabled
+        {
+            get => _isEnabled;
+            set
+            {
+                if (_isEnabled == value)
+                    return;
+                _isEnabled = value;
+                OnEnabledChanged(_isEnabled);
+            }
+        }
+
+        public virtual XrLayerFlags Flags => XrLayerFlags.None;
 
         public CompositionLayerBaseHeader* Header => (CompositionLayerBaseHeader*)_header;
     }

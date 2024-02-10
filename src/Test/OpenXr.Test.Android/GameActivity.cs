@@ -25,7 +25,13 @@ namespace OpenXr.Test.Android
             var app = new EngineApp();
 
             var scene = new Scene();
-            scene.ActiveCamera = new PerspectiveCamera() { Far = 10f, Near = 0.1f };
+
+            scene.ActiveCamera = new PerspectiveCamera()
+            {
+                Far = 10f,
+                Near = 0.1f,
+                BackgroundColor = Color.Transparent
+            };
 
             var material = new StandardMaterial() { Color = new Color(1, 0, 0) };
 
@@ -63,6 +69,8 @@ namespace OpenXr.Test.Android
                  new AndroidXrOpenGLESGraphicDriver(OpenGLESContext.Create()),
                  new OculusXrPlugin(),
                  new AndroidXrPlugin(this, (uint)Process.MyTid()));
+
+            result.Layers.Add<XrPassthroughLayer>();
 
             result.BindEngineApp(CreateScene());
 

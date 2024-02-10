@@ -13,7 +13,7 @@ namespace OpenXr.Framework
             _xrApp = xrApp;
         }
 
-        public CompositionLayerBaseHeader*[] Render(ref View[] views, XrSwapchainInfo[] swapchains, long predTime, out uint layerCount)
+        public CompositionLayerBaseHeader*[] Render(ref View[] views, XrSwapchainInfo[] swapchains, Space space, long predTime, out uint layerCount)
         {
             if (_layersPointers == null || _layersPointers.Length != _layers.Count)
                 _layersPointers = new CompositionLayerBaseHeader*[_layers.Count];
@@ -29,6 +29,10 @@ namespace OpenXr.Framework
                 if (result)
                 {
                     _layersPointers[layerCount] = layer.Header;
+                    
+                    if ((layer.Flags & XrLayerFlags.EmptySpace) == 0)
+                        layer.Header->Space = space;
+
                     layerCount++;
                 }
             }

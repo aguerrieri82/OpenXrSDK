@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
+using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -52,6 +53,7 @@ namespace OpenXr.Framework
         protected View[]? _views;
         protected XrSwapchainInfo[]? _swapchains;
         protected bool _isDisposed;
+        protected SystemProperties _systemProps;
 
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
@@ -76,8 +78,7 @@ namespace OpenXr.Framework
 
             PluginInvoke(a => a.Initialize(this, _extensions));
 
-            foreach (var layer in _layers.Layers)
-                layer.Initialize(this, _extensions);
+            LayersInvoke(a => a.Initialize(this, _extensions));
             
             var supportedExtensions = GetSupportedExtensions();
 
@@ -111,6 +112,8 @@ namespace OpenXr.Framework
                 Initialize();
 
             CreateSession();
+
+            LayersInvoke(a => a.Create());
 
             PluginInvoke(p => p.OnSessionCreated());
 
@@ -167,11 +170,7 @@ namespace OpenXr.Framework
                                      (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;
 
                     if (isPosValid)
-                    {
-                        layers = _layers.Render(ref _views, _swapchains, state.PredictedDisplayTime, out layerCount);
-                        for (var i = 0; i < layerCount; i++)
-                            layers[i]->Space = space;
-                    }
+                        layers = _layers.Render(ref _views, _swapchains, space, state.PredictedDisplayTime, out layerCount);
                 }
             }
             finally
@@ -340,14 +339,19 @@ namespace OpenXr.Framework
                 space.Handle = 0;
             }
         }
-        protected void PluginInvoke(Action<IXrPlugin> action)
+        protected void LayersInvoke(Action<IXrLayer> action)
         {
-            PluginOfTypeInvoke(action);
+            ListInvoke(_layers.Layers, action);
         }
 
-        protected void PluginOfTypeInvoke<T>(Action<T> action)
+        protected void PluginInvoke(Action<IXrPlugin> action)
         {
-            foreach (var plugin in _plugins.OfType<T>())
+            ListInvoke(_plugins, action);
+        }
+
+        protected void ListInvoke<T>(IEnumerable items, Action<T> action)
+        {
+            foreach (var plugin in items.OfType<T>())
             {
                 try
                 {
@@ -356,7 +360,6 @@ namespace OpenXr.Framework
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error invoking plugin {plugin}: {ex}", plugin!.GetType().FullName, ex);
-
                 }
             }
         }
@@ -508,11 +511,26 @@ namespace OpenXr.Framework
             return _systemId;
         }
 
+        public T* GetSystemProperties<T>(T* other) where T: unmanaged
+        {
+            var result = new SystemProperties
+            {
+                Type = StructureType.SystemProperties,
+                Next = other
+            };
+
+            CheckResult(_xr!.GetSystemProperties(_instance, _systemId, &result), "GetSystemProperties");
+
+            return other;
+        }
+
 
         protected SystemProperties GetSystemProperties()
         {
-            var result = new SystemProperties();
-            result.Type = StructureType.SystemProperties;
+            var result = new SystemProperties
+            {
+                Type = StructureType.SystemProperties
+            };
 
             CheckResult(_xr!.GetSystemProperties(_instance, _systemId, &result), "GetSystemProperties");
 
@@ -621,7 +639,7 @@ namespace OpenXr.Framework
 
         protected Session CreateSession()
         {
-            GetSystemProperties();
+            _systemProps = GetSystemProperties();
 
             var graphic = _plugins.OfType<IXrGraphicDriver>().First();
 
@@ -811,7 +829,7 @@ namespace OpenXr.Framework
                 _instance.Handle = 0;
             }
 
-            PluginOfTypeInvoke<IDisposable>(p => p.Dispose());
+            ListInvoke<IDisposable>(_plugins, p => p.Dispose());
 
             _xr.Dispose();
             _xr = null;
@@ -821,6 +839,8 @@ namespace OpenXr.Framework
         public bool IsStarted => _isStarted;
 
         public ulong SystemId => _systemId;
+
+        public SystemProperties SystemProps => _systemProps; 
 
         public XrLayerManager Layers => _layers;
 
