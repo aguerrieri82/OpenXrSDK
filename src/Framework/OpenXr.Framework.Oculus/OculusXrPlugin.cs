@@ -79,7 +79,6 @@ namespace OpenXr.Framework.Oculus
             var func = new PfnVoidFunction();
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
             GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));
-
         }
 
         public string[] GetSpaceSemanticLabels(Space space)
@@ -121,7 +120,6 @@ namespace OpenXr.Framework.Oculus
             _app!.CheckResult(_scene!.GetSpaceBoundingBox3Dfb(_app!.Session, space, ref result), "GetSpaceBoundingBox2D");
             return result;
         }
-
 
         public bool GetSpaceComponentEnabled(Space space, SpaceComponentTypeFB componentType)
         {
@@ -191,7 +189,7 @@ namespace OpenXr.Framework.Oculus
             return results;
         }
 
-        public SpaceTriangleMesh GetSpaceTriangleMesh(Space space)
+        public XrTriangleMesh GetSpaceTriangleMesh(Space space)
         {
             var info = new SpaceTriangleMeshGetInfoMETA();
             info.Type = XR_TYPE_SPACE_TRIANGLE_MESH_GET_INFO_META;
@@ -213,7 +211,7 @@ namespace OpenXr.Framework.Oculus
                 result.Indices = pIndex;
                 _app!.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
 
-                return new SpaceTriangleMesh
+                return new XrTriangleMesh
                 {
                     Vertices = vertexArray,
                     Indices = indexArray
@@ -229,7 +227,6 @@ namespace OpenXr.Framework.Oculus
                 if (componets.All(a => caps.Contains(a)))
                     yield return space;
             }
-
         }
 
         public Task<SpaceQueryResultFB[]> QueryAllAnchorsAsync()
@@ -259,7 +256,6 @@ namespace OpenXr.Framework.Oculus
                         task.SetException(ex);
                     }
                 }
-
             }
         }
 

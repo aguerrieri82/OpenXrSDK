@@ -10,6 +10,5 @@ namespace OpenXr.Framework
 
         public uint SampleCount { get; set; }
 
-
     }
 }

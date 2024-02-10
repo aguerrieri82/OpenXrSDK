@@ -2,7 +2,7 @@
 
 namespace OpenXr.Framework
 {
-    public unsafe struct NativeStruct<T> : IDisposable where T : struct
+    public unsafe struct NativeStruct<T> : IDisposable where T : unmanaged
     {
         private T* _value;
 
@@ -29,7 +29,14 @@ namespace OpenXr.Framework
 
         }
 
-        public T* Pointer => _value;
+        public readonly T* Pointer => _value;
+
+        public static implicit operator T? (NativeStruct<T> value)
+        {
+            if (value.Pointer == null)
+                return null;
+            return *value.Pointer;
+        }
 
         public void Dispose()
         {
@@ -38,6 +45,8 @@ namespace OpenXr.Framework
                 Marshal.FreeHGlobal(new nint(_value));
                 _value = null;
             }
+
+            GC.SuppressFinalize(this);
         }
     }
 }

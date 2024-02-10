@@ -1,4 +1,6 @@
-﻿using Silk.NET.OpenXR;
+﻿using Microsoft.Extensions.Logging;
+using Silk.NET.OpenXR;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace OpenXr.Framework
@@ -10,8 +12,7 @@ namespace OpenXr.Framework
     {
         readonly RenderViewDelegate _renderView;
 
-        public XrProjectionLayer(XrApp xrApp, RenderViewDelegate renderView)
-            : base(xrApp)
+        public XrProjectionLayer(RenderViewDelegate renderView)
         {
             _renderView = renderView;
             _header->Type = StructureType.CompositionLayerProjection;
@@ -33,6 +34,8 @@ namespace OpenXr.Framework
 
         protected override bool Render(ref CompositionLayerProjection layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
         {
+            Debug.Assert(_xrApp != null);
+
             if (layer.Views == null)
             {
                 layer.Views = (CompositionLayerProjectionView*)Marshal.AllocHGlobal(sizeof(CompositionLayerProjectionView) * views.Length);
@@ -62,10 +65,13 @@ namespace OpenXr.Framework
                     projView.SubImage.ImageRect.Offset.Y = 0;
                     projView.SubImage.ImageRect.Extent = swapChainInfo.Size;
 
-                    _renderView(ref projView, swapChainInfo.Images!.ItemPointer((int)index), predTime);
+                    Debug.Assert(swapChainInfo.Images != null);
+
+                    _renderView(ref projView, swapChainInfo.Images.ItemPointer((int)index), predTime);
                 }
                 catch (Exception ex)
                 {
+                    _xrApp.Logger.LogError(ex, "Render failed: {ex}", ex);
                     return false;
                 }
                 finally

@@ -4,11 +4,11 @@ namespace OpenXr.Framework
 {
     public class XrSwapchainInfo
     {
-        public Swapchain Swapchain { get; set; }
+        public Swapchain Swapchain;
 
-        public Extent2Di Size { get; set; }
+        public Extent2Di Size;
 
-        public NativeArray<SwapchainImageBaseHeader>? Images { get; set; }
+        public NativeArray<SwapchainImageBaseHeader>? Images;
 
     }
 }

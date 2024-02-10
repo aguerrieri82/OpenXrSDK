@@ -61,6 +61,7 @@ namespace OpenXr.Framework
 
                 xrApp.Layers.AddProjection(RenderScene);
 
+
                 return;
             }
 

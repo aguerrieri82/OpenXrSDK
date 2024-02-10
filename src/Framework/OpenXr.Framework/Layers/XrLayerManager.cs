@@ -4,18 +4,13 @@ namespace OpenXr.Framework
 {
     public unsafe class XrLayerManager : IDisposable
     {
-        protected List<IXrLayer> _layers = new();
+        protected List<IXrLayer> _layers = [];
         protected XrApp _xrApp;
         protected CompositionLayerBaseHeader*[]? _layersPointers;
 
         public XrLayerManager(XrApp xrApp)
         {
             _xrApp = xrApp;
-        }
-
-        public void AddProjection(RenderViewDelegate renderView)
-        {
-            _layers.Add(new XrProjectionLayer(_xrApp, renderView));
         }
 
         public CompositionLayerBaseHeader*[] Render(ref View[] views, XrSwapchainInfo[] swapchains, long predTime, out uint layerCount)
@@ -41,12 +36,25 @@ namespace OpenXr.Framework
             return _layersPointers;
         }
 
+        public T Add<T>() where T : IXrLayer, new()
+        {
+            return Add(new T());
+        }
+
+        public T Add<T>(T layer) where T : IXrLayer
+        {
+            _layers.Add(layer);
+            return layer;
+        }
+
         public void Dispose()
         {
             foreach (var layer in _layers)
                 layer.Dispose();
 
             _layers.Clear();
+
+            GC.SuppressFinalize(this);
         }
 
         public IList<IXrLayer> Layers => _layers;

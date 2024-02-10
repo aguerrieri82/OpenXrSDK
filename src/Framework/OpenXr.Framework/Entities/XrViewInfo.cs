@@ -4,20 +4,20 @@ namespace OpenXr.Framework
 {
     public class XrViewInfo
     {
-        public ViewConfigurationType Type { get; set; }
+        public ViewConfigurationType Type;
 
-        public bool FovMutable { get; set; }
+        public bool FovMutable;
 
-        public Extent2Di RecommendedImageRect { get; set; }
+        public Extent2Di RecommendedImageRect;
 
-        public Extent2Di MaxImageRect { get; set; }
+        public Extent2Di MaxImageRect;
 
-        public uint RecommendedSwapchainSampleCount { get; set; }
+        public uint RecommendedSwapchainSampleCount;
 
-        public uint MaxSwapchainSampleCount { get; set; }
+        public uint MaxSwapchainSampleCount;
 
-        public int ViewCount { get; set; }
+        public int ViewCount;
 
-        public EnvironmentBlendMode[]? BlendModes { get; internal set; }
+        public EnvironmentBlendMode[]? BlendModes;
     }
 }

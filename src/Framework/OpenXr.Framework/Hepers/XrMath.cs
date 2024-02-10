@@ -4,7 +4,6 @@ namespace OpenXr.Framework
 {
     public static class XrMath
     {
-
         public static XrPose Inverse(this XrPose pose)
         {
             return new XrPose

@@ -29,7 +29,6 @@ namespace OpenXr.Framework
             };
         }
 
-
         public static Converter<TIn> Convert<TIn>(this ref TIn value) where TIn : struct
         {
             return new Converter<TIn>(ref value);

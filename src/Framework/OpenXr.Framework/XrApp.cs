@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 
@@ -72,9 +74,11 @@ namespace OpenXr.Framework
         {
             _xr = XR.GetApi();
 
-            foreach (var plugin in _plugins)
-                plugin.Initialize(this, _extensions);
+            PluginInvoke(a => a.Initialize(this, _extensions));
 
+            foreach (var layer in _layers.Layers)
+                layer.Initialize(this, _extensions);
+            
             var supportedExtensions = GetSupportedExtensions();
 
             for (int i = 0; i < _extensions.Count; i++)
@@ -112,7 +116,9 @@ namespace OpenXr.Framework
 
             WaitForSession(SessionState.Ready, SessionState.Focused);
 
-            BeginSession(_viewInfo!.Type);
+            AssertSessionCreated();
+
+            BeginSession(_viewInfo.Type);
 
             if (mode == XrAppStartMode.Render)
             {
@@ -123,7 +129,7 @@ namespace OpenXr.Framework
                     var info = new XrSwapchainInfo();
                     info.Swapchain = CreateSwapChain();
                     info.Images = EnumerateSwapchainImages(info.Swapchain);
-                    info.Size = _renderOptions!.Size;
+                    info.Size = _renderOptions.Size;
                     _swapchains[i] = info;
                 }
 
@@ -138,6 +144,8 @@ namespace OpenXr.Framework
 
         public void RenderFrame(Space space)
         {
+            AssertSessionCreated();
+
             if (_lastSessionState == SessionState.Stopping)
                 Restart();
 
@@ -160,7 +168,7 @@ namespace OpenXr.Framework
 
                     if (isPosValid)
                     {
-                        layers = _layers.Render(ref _views!, _swapchains!, state.PredictedDisplayTime, out layerCount);
+                        layers = _layers.Render(ref _views, _swapchains, state.PredictedDisplayTime, out layerCount);
                         for (var i = 0; i < layerCount; i++)
                             layers[i]->Space = space;
                     }
@@ -174,19 +182,34 @@ namespace OpenXr.Framework
 
         protected void EndFrame(long displayTime, ref CompositionLayerBaseHeader*[]? layers, uint count)
         {
+            AssertSessionCreated();
+
             fixed (CompositionLayerBaseHeader** pLayers = layers)
             {
                 var frameEndInfo = new FrameEndInfo()
                 {
                     Type = StructureType.FrameEndInfo,
-                    EnvironmentBlendMode = _renderOptions!.BlendMode,
+                    EnvironmentBlendMode = _renderOptions.BlendMode,
                     DisplayTime = displayTime,
                     LayerCount = count,
                     Layers = pLayers
                 };
 
-                CheckResult(_xr!.EndFrame(_session, in frameEndInfo), "EndFrame");
+                CheckResult(_xr.EndFrame(_session, in frameEndInfo), "EndFrame");
             }
+        }
+
+        [MemberNotNull(nameof(_session))]
+        [MemberNotNull(nameof(_instance))]
+        [MemberNotNull(nameof(_views))]
+        [MemberNotNull(nameof(_renderOptions))]
+        [MemberNotNull(nameof(_xr))]
+        [MemberNotNull(nameof(_swapchains))]
+        [MemberNotNull(nameof(_viewInfo))]
+        protected void AssertSessionCreated()
+        {
+            if (_session.Handle == 0)
+                throw new InvalidOperationException();
         }
 
         protected void BeginFrame()
@@ -229,7 +252,7 @@ namespace OpenXr.Framework
                 foreach (var item in _swapchains)
                 {
                     CheckResult(_xr!.DestroySwapchain(item.Swapchain), "DestroySwapchain");
-                    item.Images!.Dispose();
+                    item.Images?.Dispose();
                 }
 
                 _swapchains = null;
@@ -264,13 +287,15 @@ namespace OpenXr.Framework
             if (_instance.Handle == 0)
                 return false;
 
+            Debug.Assert(_xr != null);
+
             var buffer = new EventDataBuffer();
 
             while (!cancellationToken.IsCancellationRequested)
             {
                 buffer.Type = StructureType.EventDataBuffer;
 
-                var result = _xr!.PollEvent(_instance, ref buffer);
+                var result = _xr.PollEvent(_instance, ref buffer);
                 if (result != Result.Success)
                     break;
 
@@ -394,6 +419,8 @@ namespace OpenXr.Framework
             return result;
         }
 
+        [MemberNotNull(nameof(_viewInfo))]
+        [MemberNotNull(nameof(_renderOptions))]
         protected void CollectAndSelectView()
         {
             var views = new List<XrViewInfo>();
@@ -438,9 +465,11 @@ namespace OpenXr.Framework
 
         protected virtual void SelectRenderOptionsMode(XrViewInfo viewInfo, XrRenderOptions result)
         {
+            Debug.Assert(viewInfo.BlendModes != null);
+
             EnvironmentBlendMode[] preferences = [EnvironmentBlendMode.AlphaBlend, EnvironmentBlendMode.Opaque];
 
-            result.BlendMode = preferences.First(a => viewInfo.BlendModes!.Contains(a));
+            result.BlendMode = preferences.First(a => viewInfo.BlendModes.Contains(a));
             result.Size = viewInfo.RecommendedImageRect;
             result.SampleCount = viewInfo.RecommendedSwapchainSampleCount;
         }
@@ -552,11 +581,13 @@ namespace OpenXr.Framework
 
         public void Restart()
         {
+            AssertSessionCreated();
+
             EndSession();
 
             WaitForSession(SessionState.Ready, SessionState.Focused, SessionState.Synchronized);
 
-            BeginSession(_viewInfo!.Type);
+            BeginSession(_viewInfo.Type);
         }
 
         protected void BeginSession(ViewConfigurationType viewType)
@@ -744,12 +775,14 @@ namespace OpenXr.Framework
 
         protected ViewState LocateViews(Space space, long displayTime)
         {
+            Debug.Assert(_viewInfo != null);
+
             var info = new ViewLocateInfo()
             {
                 Type = StructureType.ViewLocateInfo,
                 Space = space,
                 DisplayTime = displayTime,
-                ViewConfigurationType = _viewInfo!.Type
+                ViewConfigurationType = _viewInfo.Type
             };
 
             var state = new ViewState()
@@ -805,6 +838,8 @@ namespace OpenXr.Framework
 
         public SessionState SessionState => _lastSessionState;
 
-        public XR Xr => _xr!;
+        public ILogger Logger => _logger;
+
+        public XR Xr => _xr ?? throw new InvalidOperationException("App not init");
     }
 }

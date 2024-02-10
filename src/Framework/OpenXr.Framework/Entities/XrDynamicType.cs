@@ -4,8 +4,8 @@ namespace OpenXr.Framework
 {
     public class XrDynamicType
     {
-        public StructureType StructureType { get; set; }
+        public StructureType StructureType;
 
-        public Type? Type { get; set; }
+        public Type? Type;
     }
 }
