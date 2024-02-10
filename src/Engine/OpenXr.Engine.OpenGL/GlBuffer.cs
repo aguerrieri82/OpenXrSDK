@@ -16,22 +16,26 @@ namespace OpenXr.Engine.OpenGLES
     public class GlBuffer<T> : GlObject where T : unmanaged
     {
         private BufferTargetARB _bufferType;
+        private uint _length;
 
         public unsafe GlBuffer(GL gl, Span<T> data, BufferTargetARB bufferType)
             : base(gl)
         {
             _gl = gl;
             _bufferType = bufferType;
+
             _handle = _gl.GenBuffer();
 
             Update(data);
         }
 
-        public void Update(Span<T> data)
+        public unsafe void Update(Span<T> data)
         {
             Bind();
 
             _gl.BufferData<T>(_bufferType, data, BufferUsageARB.StaticDraw);
+
+            _length = (uint)data.Length;
 
             Unbind();
         }
@@ -50,5 +54,7 @@ namespace OpenXr.Engine.OpenGLES
         {
             _gl.DeleteBuffer(_handle);
         }
+
+        public uint Length => _length;
     }
 }

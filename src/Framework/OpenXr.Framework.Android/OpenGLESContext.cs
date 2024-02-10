@@ -1,4 +1,5 @@
 ﻿using Android.Opengl;
+using Android.OS;
 
 namespace OpenXr.Framework.Android
 {
@@ -32,13 +33,15 @@ namespace OpenXr.Framework.Android
                 EGL14.EglBlueSize,
                 8,
                 EGL14.EglAlphaSize,
-                8, // need alpha for the multi-pass timewarp compositor
+                8, 
                 EGL14.EglDepthSize,
-                0,
+                16,
+                /*
                 EGL14.EglStencilSize,
                 0,
                 EGL14.EglSamples,
                 0,
+                */
                 EGL14.EglNone
             };
 
@@ -63,6 +66,10 @@ namespace OpenXr.Framework.Android
                     EGL14.EglGetConfigAttrib(display, configs[i], configAttribs[j], value, 0);
                     if (value[0] != configAttribs[j + 1])
                     {
+                        if (configAttribs[j] == EGL14.EglDepthSize)
+                        {
+                            System.Diagnostics.Debug.WriteLine(value[0]);
+                        }
                         break;
                     }
                 }

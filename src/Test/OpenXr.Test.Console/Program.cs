@@ -2,8 +2,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OpenXr;
+using OpenXr.Engine;
 using OpenXr.Framework;
 using OpenXr.Samples;
+using Silk.NET.Assimp;
+using System.Numerics;
+using System.Text;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureLogging((ctx, logging) =>
@@ -19,6 +24,13 @@ var host = Host.CreateDefaultBuilder(args)
     .Build();
 
 _ = host.RunAsync();
+
+unsafe
+{
+    Tasks.WriteMesh("d:\\cube.obj");
+}
+
+
 
 Gpu.EnableNvAPi();
 
