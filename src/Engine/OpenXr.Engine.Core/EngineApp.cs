@@ -6,6 +6,8 @@
         protected RenderContext _context;
         protected float _startTime;
         protected Scene? _activeScene;
+        private int _fpsFrameCount;
+        private DateTime _fpsLastTime;
         private readonly bool _isStarted;
 
         public EngineApp()
@@ -46,8 +48,22 @@
                 return;
         }
 
+        protected void UpdateFps()
+        {
+            _fpsFrameCount++;
+            var deltaSecs = (DateTime.Now - _fpsLastTime).TotalSeconds;
+            if (deltaSecs >= 2)
+            {
+                _context.Fps = (int)(_fpsFrameCount / deltaSecs);
+                _fpsFrameCount = 0;
+                _fpsLastTime = DateTime.Now;
+                Console.WriteLine($"Fps: {_context.Fps}");
+            }
+        }
+
         public void RenderFrame(RectI view)
         {
+
             _context.Frame++;
             _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
 
@@ -65,7 +81,10 @@
 
             //Console.WriteLine($"Render frame {_context.Frame}");
 
+  
             Renderer.Render(_activeScene, _activeScene.ActiveCamera, view);
+
+            UpdateFps();
         }
 
         public Scene? ActiveScene => _activeScene;
