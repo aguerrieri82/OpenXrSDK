@@ -10,14 +10,38 @@ namespace OpenXr.Engine.OpenGL
 {
     public class GlFrameTextureBuffer : GlFrameBuffer
     {
-        public GlFrameTextureBuffer(GL gl, GlTexture2D color)
+
+        private uint _sampleCount;
+
+        public GlFrameTextureBuffer(GL gl, GlTexture2D color, uint sampleCount = 1)
             : base(gl)
         {
             _handle = _gl.GenFramebuffer();
+            _sampleCount = sampleCount;
 
             Color = color;
+
+            if (sampleCount > 1) 
+            {
+                color.SampleCount = _sampleCount;
+
+                color.Bind();
+
+                _gl.TexStorage2DMultisample(
+                     TextureTarget.Texture2DMultisample,
+                     sampleCount,
+                     SizedInternalFormat.Rgba16f,
+                     color.Width,
+                     color.Height,
+                     true);
+
+                color.Unbind();
+
+            }
+
             CreateDepth();
-            //Attach();
+
+            
         }
 
         [MemberNotNull(nameof(Depth))]
@@ -30,7 +54,8 @@ namespace OpenXr.Engine.OpenGL
             Depth.WrapS = Color.WrapS;
             Depth.MaxLevel = Color.MaxLevel;
             Depth.BaseLevel = Color.BaseLevel;
-            Depth.Create(Color.Width, Color.Height, TextureFormat.Depth32Float);
+            Depth.SampleCount = _sampleCount;
+            Depth.Create(Color.Width, Color.Height, TextureFormat.Depth24Float);
         }
 
         public override void Bind()
@@ -40,13 +65,13 @@ namespace OpenXr.Engine.OpenGL
             _gl.FramebufferTexture2D(
                 FramebufferTarget.DrawFramebuffer,
                 FramebufferAttachment.ColorAttachment0,
-                TextureTarget.Texture2D,
+                Color.Target,
                 Color, 0);
 
             _gl.FramebufferTexture2D(
                 FramebufferTarget.DrawFramebuffer,
                 FramebufferAttachment.DepthAttachment,
-                TextureTarget.Texture2D,
+                Depth.Target,
                 Depth, 0);
 
             var status = _gl.CheckFramebufferStatus(FramebufferTarget.DrawFramebuffer);

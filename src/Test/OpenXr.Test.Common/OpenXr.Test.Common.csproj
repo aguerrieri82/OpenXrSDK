@@ -12,9 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestScreen.DDS">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="TestScreen.KTX">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

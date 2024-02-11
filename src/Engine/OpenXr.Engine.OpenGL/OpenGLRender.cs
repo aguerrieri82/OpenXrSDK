@@ -143,7 +143,9 @@ namespace OpenXr.Engine.OpenGL
                {
                    var span = new Span<byte>((void*)msg, len);
                    var text = Encoding.UTF8.GetString(span);
+                   Debug.WriteLine($"\n\n\n");
                    Debug.WriteLine($"------ OPENGL: {text}");
+                   Debug.WriteLine($"\n\n\n");
                }
            }, 0);
 
@@ -180,7 +182,7 @@ namespace OpenXr.Engine.OpenGL
 
             _gl.FrontFace(FrontFaceDirection.Ccw);
             _gl.CullFace(TriangleFace.Back);
-
+            _gl.Enable(EnableCap.Multisample);
 
             _gl.Viewport(view.X, view.Y, view.Width, view.Height);
 
@@ -241,11 +243,11 @@ namespace OpenXr.Engine.OpenGL
 
         }
 
-        public void SetImageTarget(uint image)
+        public void SetImageTarget(uint image, uint sampleCount)
         {
             if (!_frameBuffers.TryGetValue(image, out var frameBuffer))
             {
-                frameBuffer = new GlFrameTextureBuffer(_gl, new GlTexture2D(_gl, image));
+                frameBuffer = new GlFrameTextureBuffer(_gl, new GlTexture2D(_gl, image), sampleCount);
                 _frameBuffers[image] = frameBuffer;
             }
 

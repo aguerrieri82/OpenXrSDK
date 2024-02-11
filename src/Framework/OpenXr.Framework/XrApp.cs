@@ -374,10 +374,6 @@ namespace OpenXr.Framework
             return views.First(a => a.Type == ViewConfigurationType.PrimaryStereo);
         }
 
-        protected virtual Extent2Di SelectRenderSize(XrViewInfo view)
-        {
-            return view.RecommendedImageRect;
-        }
 
         protected virtual void OnSessionChanged(SessionState state, long time)
         {

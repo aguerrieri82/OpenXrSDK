@@ -21,9 +21,9 @@ namespace OpenXr.Test.Android
     public class GameActivity : XrActivity
     {
 
-        protected override XrApp CreateApp()
+        protected override SampleXrApp CreateApp()
         {
-            var result = new XrApp(
+            var result = new SampleXrApp(
                  new AndroidXrOpenGLESGraphicDriver(OpenGLESContext.Create()),
                  new OculusXrPlugin(),
                  new AndroidXrPlugin(this, (uint)Process.MyTid()));
