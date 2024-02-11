@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text;
+using static OpenXr.Engine.KtxReader;
 
 
 
@@ -56,8 +57,10 @@ namespace OpenXr.Engine.OpenGL
     public class OpenGLRender : IRenderEngine
     {
         protected GL _gl;
-        protected Dictionary<uint, GlFrameTextureBuffer> _frameBuffers;
-        protected GlFrameTextureBuffer? _frameBuffer;
+        protected Dictionary<uint, GlFrameTextureBuffer> _imagesFrameBuffers;
+        protected GlFrameTextureBuffer? _targetFrameBuffer;
+        protected GlFrameTextureBuffer? _renderFrameBuffer;
+        protected GlFrameTextureBuffer? _msaaFrameBuffer;
         protected GlVertexLayout _meshLayout;
         protected GlobalContent? _content;
 
@@ -69,7 +72,7 @@ namespace OpenXr.Engine.OpenGL
         public OpenGLRender(GL gl)
         {
             _gl = gl;
-            _frameBuffers = new Dictionary<uint, GlFrameTextureBuffer>();
+            _imagesFrameBuffers = new Dictionary<uint, GlFrameTextureBuffer>();
             _meshLayout = GlVertexLayout.FromType<VertexData>();
         }
 
@@ -175,8 +178,10 @@ namespace OpenXr.Engine.OpenGL
 
         public void Render(Scene scene, Camera camera, RectI view)
         {
-            if (_frameBuffer != null)
-                _frameBuffer.Bind();
+            var renderFb = _renderFrameBuffer ?? _targetFrameBuffer;
+
+            if (renderFb != null)
+                renderFb.BindDraw();
 
             Clear(camera.BackgroundColor);
 
@@ -235,23 +240,46 @@ namespace OpenXr.Engine.OpenGL
             }
 
 
-            if (_frameBuffer != null)
+            if (renderFb != null)
             {
-                //_frameBuffer.InvalidateDepth();
-                _frameBuffer.Unbind();
-            }
+                renderFb.Unbind();
 
+                if (_targetFrameBuffer != null && renderFb != _targetFrameBuffer)
+                    renderFb.CopyTo(_targetFrameBuffer);
+            }
         }
 
         public void SetImageTarget(uint image, uint sampleCount)
         {
-            if (!_frameBuffers.TryGetValue(image, out var frameBuffer))
+            if (!_imagesFrameBuffers.TryGetValue(image, out var frameBuffer))
             {
-                frameBuffer = new GlFrameTextureBuffer(_gl, new GlTexture2D(_gl, image), sampleCount);
-                _frameBuffers[image] = frameBuffer;
+                frameBuffer = new GlFrameTextureBuffer(_gl, new GlTexture2D(_gl, image), sampleCount == 1);
+                _imagesFrameBuffers[image] = frameBuffer;
             }
 
-            _frameBuffer = frameBuffer;
+            if (sampleCount > 1)
+            {
+                if (_msaaFrameBuffer == null)
+                {
+                    var msaaTex = _gl.GenTexture();
+
+                    _gl.BindTexture(TextureTarget.Texture2DMultisample, msaaTex);   
+                    _gl.TexStorage2DMultisample(
+                        TextureTarget.Texture2DMultisample,
+                        sampleCount,
+                        (SizedInternalFormat)frameBuffer.Color.InternalFormat,
+                        frameBuffer.Color.Width,
+                        frameBuffer.Color.Height, 
+                        true);
+
+                    _msaaFrameBuffer = new GlFrameTextureBuffer(_gl, 
+                        new GlTexture2D(_gl, msaaTex, sampleCount), true, sampleCount);
+                }
+                  
+                _renderFrameBuffer = _msaaFrameBuffer;
+            }
+
+            _targetFrameBuffer = frameBuffer;
         }
 
         public void Dispose()

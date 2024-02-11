@@ -11,6 +11,8 @@ namespace OpenXr.Engine.OpenGL
     {
         protected uint _width;
         protected uint _height;
+        protected bool _isCompressed;
+        protected InternalFormat _internalFormat;
 
         public GlTexture2D(GL gl)
             : base(gl)
@@ -23,9 +25,10 @@ namespace OpenXr.Engine.OpenGL
             MaxLevel = 8;
         }
 
-        public GlTexture2D(GL gl, uint handle)
+        public GlTexture2D(GL gl, uint handle, uint sampleCount = 1)
             : base(gl)
         {
+            SampleCount = sampleCount;
             Attach(handle);
         }
 
@@ -39,25 +42,32 @@ namespace OpenXr.Engine.OpenGL
             _gl.GetTexLevelParameter(Target, 0, GetTextureParameter.TextureHeight, out int h);
             _gl.GetTexLevelParameter(Target, 0, GetTextureParameter.TextureInternalFormat, out int intf);
 
-            _gl.GetTexParameter(Target, GetTextureParameter.TextureWrapS, out int ws);
-            _gl.GetTexParameter(Target, GetTextureParameter.TextureWrapT, out int wt);
+            if (SampleCount <= 1)
+            {
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureWrapS, out int ws);
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureWrapT, out int wt);
 
-            _gl.GetTexParameter(Target, GetTextureParameter.TextureMinFilter, out int min);
-            _gl.GetTexParameter(Target, GetTextureParameter.TextureMagFilter, out int mag);
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureMinFilter, out int min);
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureMagFilter, out int mag);
+
+                WrapS = (TextureWrapMode)ws;
+                WrapT = (TextureWrapMode)wt;
+                MinFilter = (TextureMinFilter)min;
+                MagFilter = (TextureMagFilter)mag;
+            }
 
             _gl.GetTexParameter(Target, GetTextureParameter.TextureBaseLevelSgis, out int bl);
             _gl.GetTexParameter(Target, GetTextureParameter.TextureMaxLevelSgis, out int ml);
 
             _width = (uint)w;
             _height = (uint)h;
+            _internalFormat = (InternalFormat)intf;
 
-            WrapS = (TextureWrapMode)ws;
-            WrapT = (TextureWrapMode)wt;
-            MinFilter = (TextureMinFilter)min;
-            MagFilter = (TextureMagFilter)mag;
+
             BaseLevel = (uint)bl;
             MaxLevel = (uint)ml;
-            InternalFormat = (InternalFormat)intf;
+
+            Unbind();
         }
 
         public unsafe void Create(uint width, uint height, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, void* data = null, uint dataSize = 0)
@@ -155,13 +165,10 @@ namespace OpenXr.Engine.OpenGL
                            pixelType,
                            data);
                     }
-          
                 }
-
             }
             else
             {
-
                 if (compression == TextureCompressionFormat.Etc2)
                 {
                     switch (format)
@@ -194,9 +201,11 @@ namespace OpenXr.Engine.OpenGL
 
                 MinFilter = TextureMinFilter.Linear;
                 MagFilter = TextureMagFilter.Linear;
+
+                _isCompressed = true;   
             }
 
-            InternalFormat = internalFormat;
+            _internalFormat = internalFormat;
 
             Update();
         }
@@ -213,14 +222,14 @@ namespace OpenXr.Engine.OpenGL
                 _gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
             }
 
-            if (InternalFormat!= InternalFormat.DepthComponent32 && 
-                InternalFormat != InternalFormat.DepthComponent24 &&
-                InternalFormat != InternalFormat.DepthComponent16) 
-                {
-                    _gl.TexParameter(Target, TextureParameterName.TextureBaseLevel, BaseLevel);
-                    _gl.TexParameter(Target, TextureParameterName.TextureMaxLevel, MaxLevel);
+            if (!IsDepth) 
+            {
+                _gl.TexParameter(Target, TextureParameterName.TextureBaseLevel, BaseLevel);
+                _gl.TexParameter(Target, TextureParameterName.TextureMaxLevel, MaxLevel);
+
+                if (!_isCompressed)
                     _gl.GenerateMipmap(Target);
-                } 
+            } 
 
             Unbind();
         }
@@ -242,9 +251,6 @@ namespace OpenXr.Engine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        internal TextureTarget Target => SampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D;
-
-        public InternalFormat InternalFormat;
 
         public TextureWrapMode WrapS;
 
@@ -259,6 +265,14 @@ namespace OpenXr.Engine.OpenGL
         public uint BaseLevel;
 
         public uint MaxLevel;
+
+        internal bool IsDepth => _internalFormat >= InternalFormat.DepthComponent16 && _internalFormat <= InternalFormat.DepthComponent32Sgix;
+
+        internal TextureTarget Target => SampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D;
+
+        public InternalFormat InternalFormat => _internalFormat;
+
+        public bool IsCompressed => _isCompressed;
 
         public uint Width => _width;
 

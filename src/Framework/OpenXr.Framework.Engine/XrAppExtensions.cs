@@ -14,7 +14,7 @@ namespace OpenXr.Framework
 {
     public unsafe static class XrAppExtensions
     {
-        public static void BindEngineApp(this XrApp xrApp, EngineApp app)
+        public static void BindEngineApp(this XrApp xrApp, EngineApp app, uint sampleCount = 1)
         {
             var driver = xrApp.Plugin<IXrGraphicDriver>();
 
@@ -33,7 +33,7 @@ namespace OpenXr.Framework
                     var glImage = (SwapchainImageOpenGLKHR*)image;
                     var rect = view.SubImage.ImageRect.Convert().To<RectI>();
        
-                    renderer.SetImageTarget(glImage->Image, 1);
+                    renderer.SetImageTarget(glImage->Image, sampleCount);
 
                     var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 

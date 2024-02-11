@@ -13,7 +13,7 @@ namespace OpenXr.Engine.OpenGL
 
         private uint _sampleCount;
 
-        public GlFrameTextureBuffer(GL gl, GlTexture2D color, uint sampleCount = 1)
+        public GlFrameTextureBuffer(GL gl, GlTexture2D color, bool createDepth = true, uint sampleCount = 1)
             : base(gl)
         {
             _handle = _gl.GenFramebuffer();
@@ -21,27 +21,8 @@ namespace OpenXr.Engine.OpenGL
 
             Color = color;
 
-            if (sampleCount > 1) 
-            {
-                color.SampleCount = _sampleCount;
-
-                color.Bind();
-
-                _gl.TexStorage2DMultisample(
-                     TextureTarget.Texture2DMultisample,
-                     sampleCount,
-                     SizedInternalFormat.Rgba16f,
-                     color.Width,
-                     color.Height,
-                     true);
-
-                color.Unbind();
-
-            }
-
-            CreateDepth();
-
-            
+            if (createDepth)
+                CreateDepth();
         }
 
         [MemberNotNull(nameof(Depth))]
@@ -58,7 +39,7 @@ namespace OpenXr.Engine.OpenGL
             Depth.Create(Color.Width, Color.Height, TextureFormat.Depth24Float);
         }
 
-        public override void Bind()
+        public override void BindDraw()
         {
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _handle);
 
@@ -68,11 +49,14 @@ namespace OpenXr.Engine.OpenGL
                 Color.Target,
                 Color, 0);
 
-            _gl.FramebufferTexture2D(
-                FramebufferTarget.DrawFramebuffer,
-                FramebufferAttachment.DepthAttachment,
-                Depth.Target,
-                Depth, 0);
+            if (Depth != null)
+            {
+                _gl.FramebufferTexture2D(
+                    FramebufferTarget.DrawFramebuffer,
+                    FramebufferAttachment.DepthAttachment,
+                    Depth.Target,
+                    Depth, 0);
+            }
 
             var status = _gl.CheckFramebufferStatus(FramebufferTarget.DrawFramebuffer);
 
@@ -82,6 +66,29 @@ namespace OpenXr.Engine.OpenGL
             }
         }
 
+        public void CopyTo(GlFrameTextureBuffer dest)
+        {
+            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, _handle);
+            _gl.FramebufferTexture2D(
+                FramebufferTarget.ReadFramebuffer,
+                FramebufferAttachment.ColorAttachment0,
+                Color.Target,
+                Color, 0);
+            _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
+
+  
+            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, dest.Handle);
+            _gl.FramebufferTexture2D(
+                 FramebufferTarget.DrawFramebuffer,
+                 FramebufferAttachment.ColorAttachment0,
+                 dest.Color.Target,
+                 dest.Color, 0);
+
+            _gl.DrawBuffers(1, DrawBufferMode.ColorAttachment0);
+
+            _gl.BlitFramebuffer(0, 0, (int)Color.Width, (int)Color.Height, 0, 0, (int)dest.Color.Width, (int)dest.Color.Height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
+        }
+
         public void InvalidateDepth()
         {
             _gl.InvalidateFramebuffer(FramebufferTarget.DrawFramebuffer, [InvalidateFramebufferAttachment.DepthAttachment]);
@@ -89,7 +96,7 @@ namespace OpenXr.Engine.OpenGL
 
         public GlTexture2D Color;
 
-        public GlTexture2D Depth;
+        public GlTexture2D? Depth;
 
     }
 }

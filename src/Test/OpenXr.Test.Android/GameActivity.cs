@@ -30,7 +30,7 @@ namespace OpenXr.Test.Android
 
             result.Layers.Add<XrPassthroughLayer>();
 
-            result.BindEngineApp(Common.CreateScene(new AndroidAssetManager(this)));
+            result.BindEngineApp(Common.CreateScene(new AndroidAssetManager(this)), 1);
 
             return result;
         }
