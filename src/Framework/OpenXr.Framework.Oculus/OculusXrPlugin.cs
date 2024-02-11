@@ -10,14 +10,27 @@ using System.Text;
 
 namespace OpenXr.Framework.Oculus
 {
+
+    public class OculusXrPluginOptions
+    {
+        public bool EnableMultiView { get; set; }
+
+        public SwapchainCreateFoveationFlagsFB Foveation { get; set; }
+
+        public uint SampleCount { get; set; }    
+
+        public static readonly OculusXrPluginOptions Default = new()
+        {
+            SampleCount = 1
+        };
+    }
+
+
     public unsafe class OculusXrPlugin : BaseXrPlugin, IDisposable
     {
-        protected XrApp? _app;
-        protected FBScene? _scene;
-        protected FBSpatialEntity? _spatial;
-        protected FBSpatialEntityQuery? _spatialQuery;
-        protected FBTriangleMesh? _mesh;
-        protected NativeStruct<SwapchainCreateInfoFoveationFB> _foveationInfo;
+        public static string[] LABELS = ["CEILING", "DOOR_FRAME", "FLOOR", "INVISIBLE_WALL_FACE", "WALL_ART", "WALL_FACE", "WINDOW_FRAME", "COUCH", "TABLE", "BED", "LAMP", "PLANT", "SCREEN", "STORAGE", "GLOBAL_MESH", "OTHER"];
+
+        #region EXTENSIONS
 
         public const SpaceComponentTypeFB XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META = (SpaceComponentTypeFB)1000269000;
 
@@ -50,9 +63,27 @@ namespace OpenXr.Framework.Oculus
 
         GetSpaceTriangleMeshMETADelegate? GetSpaceTriangleMeshMETA;
 
-        readonly ConcurrentDictionary<ulong, TaskCompletionSource<SpaceQueryResultFB[]>> _spaceQueries = [];
+        #endregion
 
-        public static string[] LABELS = ["CEILING", "DOOR_FRAME", "FLOOR", "INVISIBLE_WALL_FACE", "WALL_ART", "WALL_FACE", "WINDOW_FRAME", "COUCH", "TABLE", "BED", "LAMP", "PLANT", "SCREEN", "STORAGE", "GLOBAL_MESH", "OTHER"];
+        protected XrApp? _app;
+        protected FBScene? _scene;
+        protected FBSpatialEntity? _spatial;
+        protected FBSpatialEntityQuery? _spatialQuery;
+        protected FBTriangleMesh? _mesh;
+        protected NativeStruct<SwapchainCreateInfoFoveationFB> _foveationInfo;
+        protected readonly ConcurrentDictionary<ulong, TaskCompletionSource<SpaceQueryResultFB[]>> _spaceQueries = [];
+        protected readonly OculusXrPluginOptions _options;
+     
+        public OculusXrPlugin()
+            : this(OculusXrPluginOptions.Default)
+        {
+
+        }
+
+        public OculusXrPlugin(OculusXrPluginOptions options)
+        {
+            _options = options; 
+        }
 
         public override void Initialize(XrApp app, IList<string> extensions)
         {
@@ -280,13 +311,18 @@ namespace OpenXr.Framework.Oculus
 
         public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
         {
-            if (Foveation == SwapchainCreateFoveationFlagsFB.None)
+            if (_options.EnableMultiView)
+                info.ArraySize = 2;
+
+            info.SampleCount = _options.SampleCount;    
+
+            if (_options.Foveation == SwapchainCreateFoveationFlagsFB.None)
                 return;
 
             _foveationInfo.Value = new SwapchainCreateInfoFoveationFB
             {
                 Type = StructureType.SwapchainCreateInfoFoveationFB,
-                Flags = Foveation
+                Flags = _options.Foveation
             };
 
             ref BaseInStructure curInput = ref Unsafe.As<SwapchainCreateInfo, BaseInStructure>(ref info);
@@ -302,6 +338,8 @@ namespace OpenXr.Framework.Oculus
             _foveationInfo.Dispose();
         }
 
-        public SwapchainCreateFoveationFlagsFB Foveation { get; set; }
+        public OculusXrPluginOptions Options => _options;
+
+
     }
 }

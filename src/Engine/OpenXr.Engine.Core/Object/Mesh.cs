@@ -9,7 +9,7 @@ namespace OpenXr.Engine
 
         public Mesh()
         {
-            _materials = new ObservableCollection<Material>();
+            _materials = [];
             _materials.CollectionChanged += OnMaterialsChanged;
         }
 
@@ -27,7 +27,7 @@ namespace OpenXr.Engine
                     item.Attach(this);
             }
 
-            NotifyChanged();
+            NotifyChanged(ObjectChangeType.Render);
         }
 
         public Mesh(Geometry geometry, Material material)

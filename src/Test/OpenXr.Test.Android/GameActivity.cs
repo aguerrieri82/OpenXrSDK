@@ -1,6 +1,7 @@
 using Android.Content.PM;
 using Android.OS;
 using OpenXr.Engine;
+using OpenXr.Engine.OpenGL.Oculus;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Oculus;
@@ -28,14 +29,23 @@ namespace OpenXr.Test.Android
 
         protected override SampleXrApp CreateApp()
         {
+            var options = new OculusXrPluginOptions
+            {
+                EnableMultiView = false,
+                SampleCount = 4
+            };
+
             var result = new SampleXrApp(
                  new AndroidXrOpenGLESGraphicDriver(OpenGLESContext.Create()),
-                 new OculusXrPlugin(),
+                 new OculusXrPlugin(options),
                  new AndroidXrPlugin(this, (uint)Process.MyTid()));
 
             result.Layers.Add<XrPassthroughLayer>();
 
-            result.BindEngineApp(Common.CreateScene(new AndroidAssetManager(this)), 2);
+            result.BindEngineApp(
+                Common.CreateScene(new AndroidAssetManager(this)), 
+                options.SampleCount, 
+                options.EnableMultiView);
 
             return result;
         }

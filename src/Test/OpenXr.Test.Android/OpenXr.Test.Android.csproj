@@ -18,6 +18,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Engine\OpenXr.Engine.Core\OpenXr.Engine.Core.csproj" />
+		<ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGL.Oculus\OpenXr.Engine.OpenGL.Oculus.csproj" />
 		<ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGL\OpenXr.Engine.OpenGL.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Engine\OpenXr.Framework.Engine.csproj" />

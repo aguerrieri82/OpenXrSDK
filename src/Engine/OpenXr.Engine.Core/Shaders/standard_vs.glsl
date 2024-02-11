@@ -1,14 +1,30 @@
-﻿#version 300 es
+﻿
+#if MULTI_VIEW
 
-precision highp float;
+#define NUM_VIEWS 2
+#define VIEW_ID gl_ViewID_OVR
+#extension GL_OVR_multiview2 : require;
+
+layout(num_views=NUM_VIEWS) in;
+
+uniform SceneMatrices
+{
+    uniform mat4 ViewMatrix[NUM_VIEWS];
+    uniform mat4 ProjectionMatrix[NUM_VIEWS];
+}
+
+#else
+
+uniform mat4 uView;
+uniform mat4 uProjection;
+
+#endif
 
 layout (location = 0) in vec3 vPos;
 layout (location = 1) in vec3 vNormal;
 layout (location = 2) in vec2 vUv;
 
 uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProjection;
 
 out vec3 fNormal;
 out vec3 fPos;

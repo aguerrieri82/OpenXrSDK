@@ -5,7 +5,6 @@ using Silk.NET.OpenGL;
 #endif
 
 
-
 namespace OpenXr.Engine.OpenGL
 {
     public class GlFrameBuffer : GlObject

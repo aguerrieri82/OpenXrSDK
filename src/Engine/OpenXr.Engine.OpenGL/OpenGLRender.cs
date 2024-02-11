@@ -8,8 +8,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text;
-using static OpenXr.Engine.KtxReader;
-
 
 
 namespace OpenXr.Engine.OpenGL
@@ -52,17 +50,13 @@ namespace OpenXr.Engine.OpenGL
         public Action? Draw;
     }
 
-
-
-    public class OpenGLRender : IRenderEngine
+    public class OpenGLRender : IRenderEngine, IGlProgramFactory
     {
         protected GL _gl;
-        protected Dictionary<uint, GlFrameTextureBuffer> _imagesFrameBuffers;
-        protected GlFrameTextureBuffer? _targetFrameBuffer;
-        protected GlFrameTextureBuffer? _renderFrameBuffer;
-        protected GlFrameTextureBuffer? _msaaFrameBuffer;
         protected GlVertexLayout _meshLayout;
         protected GlobalContent? _content;
+        protected IGlRenderTarget? _target;
+        protected GlRenderOptions _options;
 
         public static class Props
         {
@@ -70,15 +64,27 @@ namespace OpenXr.Engine.OpenGL
         }
 
         public OpenGLRender(GL gl)
+            : this(gl, GlRenderOptions.Default)
         {
-            _gl = gl;
-            _imagesFrameBuffers = new Dictionary<uint, GlFrameTextureBuffer>();
-            _meshLayout = GlVertexLayout.FromType<VertexData>();
         }
 
-        protected GlProgram GetProgram(Shader shader)
+        public OpenGLRender(GL gl, GlRenderOptions options)
         {
-            return shader.GetResource(a => new GlProgram(_gl, shader.VertexSource!, shader.FragmentSource!));
+            _gl = gl;
+            _meshLayout = GlVertexLayout.FromType<VertexData>();
+            _options = options;
+            _target = new GlDefaultRenderTarget();
+        }
+
+        GlProgram IGlProgramFactory.CreateProgram(GL gl, string vSource, string fSource, GlRenderOptions options)
+        {
+            return new GlProgram(_gl, vSource, fSource, _options);
+        }
+
+        protected GlProgram GetProgram(Shader shader, IGlProgramFactory programFactory)
+        {
+            return shader.GetResource(a => 
+                    programFactory.CreateProgram(_gl, shader.VertexSource!, shader.FragmentSource!, _options));
         }
 
         public void Clear(Color color)
@@ -90,7 +96,7 @@ namespace OpenXr.Engine.OpenGL
 
 
         [MemberNotNull(nameof(_content))]
-        protected void BuildContent(Scene scene)
+        protected void BuildContent(Scene scene, IGlProgramFactory programFactory)
         {
             if (_content == null)
                 _content = new GlobalContent();
@@ -115,7 +121,7 @@ namespace OpenXr.Engine.OpenGL
                     if (!_content.Contents.TryGetValue(material.Shader, out var shaderContent))
                     {
                         shaderContent = new ShaderContent();
-                        shaderContent.Program = GetProgram(material.Shader);
+                        shaderContent.Program = GetProgram(material.Shader, programFactory);
                         _content.Contents[material.Shader] = shaderContent;
                     }
 
@@ -175,26 +181,29 @@ namespace OpenXr.Engine.OpenGL
                 _gl.ColorMask(false, false, false, false);
             else
                 _gl.ColorMask(true, true, true, true);
-       
         }
 
         public void Render(Scene scene, Camera camera, RectI view)
         {
-            var renderFb = _renderFrameBuffer ?? _targetFrameBuffer;
+            if (_target != null)
+                Render(scene, camera, view, _target);
+        }
 
-            if (renderFb != null)
-                renderFb.BindDraw();
+        public void Render(Scene scene, Camera camera, RectI view, IGlRenderTarget target)
+        {
+            target.Begin();
 
             Clear(camera.BackgroundColor);
 
             _gl.FrontFace(FrontFaceDirection.Ccw);
             _gl.CullFace(TriangleFace.Back);
-            _gl.Enable(EnableCap.Multisample);
 
             _gl.Viewport(view.X, view.Y, view.Width, view.Height);
 
+            var targetProgramFactory = target as IGlProgramFactory;
+
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
-                BuildContent(scene);
+                BuildContent(scene, targetProgramFactory ?? this);
 
             foreach (var shader in _content.Contents)
             {
@@ -205,21 +214,13 @@ namespace OpenXr.Engine.OpenGL
                 if (shader.Key.IsLit)
                 {
                     if (_content.Ambient != null)
-                        prog.SetUniform("light.ambient", (Vector3)_content.Ambient.Color * _content.Ambient.Intensity);
+                        prog.SetAmbient(_content.Ambient);
 
                     if (_content.Point != null)
-                    {
-                        var wordPos = Vector3.Transform(_content.Point.Transform.Position, _content.Point.WorldMatrix);
-
-                        prog.SetUniform("light.diffuse", (Vector3)_content.Point.Color * _content.Point.Intensity);
-                        prog.SetUniform("light.position", wordPos);
-                        prog.SetUniform("light.specular", (Vector3)_content.Point.Specular);
-                    }
+                        prog.AddPointLight(_content.Point!);
                 }
 
-                prog.SetUniform("uView", camera.Transform.Matrix);
-                prog.SetUniform("uProjection", camera.Projection);
-                prog.SetUniform("viewPos", camera.Transform.Position, true);
+                prog.SetCamera(camera);
 
                 foreach (var vertex in shader.Value.Contents.Values)
                 {
@@ -241,51 +242,18 @@ namespace OpenXr.Engine.OpenGL
                 prog.Unbind();
             }
 
-
-            if (renderFb != null)
-            {
-                renderFb.Unbind();
-
-                if (_targetFrameBuffer != null && renderFb != _targetFrameBuffer)
-                    renderFb.CopyTo(_targetFrameBuffer);
-            }
+            target.End();
         }
 
-        public void SetImageTarget(uint image, uint sampleCount)
+        public void SetRenderTarget(IGlRenderTarget target)
         {
-            if (!_imagesFrameBuffers.TryGetValue(image, out var frameBuffer))
-            {
-                frameBuffer = new GlFrameTextureBuffer(_gl, new GlTexture2D(_gl, image), sampleCount == 1);
-                _imagesFrameBuffers[image] = frameBuffer;
-            }
-
-            if (sampleCount > 1)
-            {
-                if (_msaaFrameBuffer == null)
-                {
-                    var msaaTex = _gl.GenTexture();
-
-                    _gl.BindTexture(TextureTarget.Texture2DMultisample, msaaTex);   
-                    _gl.TexStorage2DMultisample(
-                        TextureTarget.Texture2DMultisample,
-                        sampleCount,
-                        (SizedInternalFormat)frameBuffer.Color.InternalFormat,
-                        frameBuffer.Color.Width,
-                        frameBuffer.Color.Height, 
-                        true);
-
-                    _msaaFrameBuffer = new GlFrameTextureBuffer(_gl, 
-                        new GlTexture2D(_gl, msaaTex, sampleCount), true, sampleCount);
-                }
-                  
-                _renderFrameBuffer = _msaaFrameBuffer;
-            }
-
-            _targetFrameBuffer = frameBuffer;
+            _target = target;
         }
 
         public void Dispose()
         {
         }
+
+    
     }
 }

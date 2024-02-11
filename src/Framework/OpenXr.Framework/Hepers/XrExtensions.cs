@@ -13,6 +13,11 @@ namespace OpenXr.Framework
             manager.Layers.Add(new XrProjectionLayer(renderView));
         }
 
+        public static void AddProjection(this XrLayerManager manager, RenderMultiViewDelegate renderMultiView)
+        {
+            manager.Layers.Add(new XrProjectionLayer(renderMultiView));
+        }
+
         public static void StartEventLoop(this XrApp app, int poolPeriodMs = 50)
         {
             _ = Task.Run(async () =>
