@@ -32,8 +32,8 @@ namespace OpenXr.Framework
                 {
                     var glImage = (SwapchainImageOpenGLKHR*)image;
                     var rect = view.SubImage.ImageRect.Convert().To<RectI>();
-
-                    renderer.SetImageTarget(glImage->Image);
+       
+                    renderer.SetImageTarget(glImage->Image, 1);
 
                     var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 

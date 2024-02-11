@@ -13,13 +13,14 @@ namespace OpenXr.Samples
 
             var scene = new Scene();
             scene.ActiveCamera = new PerspectiveCamera() { Far = 50f };
-            scene.ActiveCamera.BackgroundColor = Color.White;
+            //scene.ActiveCamera.BackgroundColor = Color.White;
 
             var red = new StandardMaterial() { Color = new Color(1, 0, 0) };
 
-            //var text = new TextureMaterial(Texture2D.FromKtxImage(assets.OpenAsset("TestScreen.KTX")));
+            var text = new TextureMaterial(Texture2D.FromKtxImage(assets.OpenAsset("TestScreen.KTX")));
+            text.DoubleSided = false;
 
-            var text = new TextureMaterial(Texture2D.FromImage(assets.OpenAsset("TestScreen.png")));
+
 
             for (var y = -1f; y <= 1; y += 0.5f)
             {
@@ -41,18 +42,20 @@ namespace OpenXr.Samples
                 }
 
              
-            }   
+            }
 
-            var display = new Mesh(Quad.Instance, text);
+       
+            var display = new Mesh(Quad.Instance, red);
             display.Transform.Scale = new Vector3(2, 2, 2);
             display.Materials[0].DoubleSided = true;
            
-            //scene.AddChild(display);
-
+            scene.AddChild(display);
+        
             display.AddBehavior((obj, ctx) =>
             {
                 obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f);
             });
+       
 
             scene.AddChild(new AmbientLight(0.3f));
             scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
