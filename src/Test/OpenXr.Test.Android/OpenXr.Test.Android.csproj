@@ -1,40 +1,34 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 
-  <PropertyGroup>
-    <TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
-    <SupportedOSPlatformVersion>29</SupportedOSPlatformVersion>
-    <OutputType>Exe</OutputType>
-    <ApplicationId>net.eusoft.oculus</ApplicationId>
-    <ApplicationVersion>1</ApplicationVersion>
-    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
+		<SupportedOSPlatformVersion>29</SupportedOSPlatformVersion>
+		<OutputType>Exe</OutputType>
+		<ApplicationId>net.eusoft.oculus</ApplicationId>
+		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<RunAOTCompilation>True</RunAOTCompilation>
+		<PublishTrimmed>True</PublishTrimmed>
+		<EnableLLVM>False</EnableLLVM>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Engine\OpenXr.Engine.Core\OpenXr.Engine.Core.csproj" />
+		<ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGL\OpenXr.Engine.OpenGL.csproj" />
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Engine\OpenXr.Framework.Engine.csproj" />
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGLES\OpenXr.Framework.OpenGLES.csproj" />
+		<ProjectReference Include="..\..\Test\OpenXr.Test.Common\OpenXr.Test.Common.csproj" />
+		<ProjectReference Include="..\..\WebLink\OpenXr.WebLink\OpenXr.WebLink.csproj" />
+	</ItemGroup>
 
 
-  <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <RunAOTCompilation>True</RunAOTCompilation>
-    <PublishTrimmed>True</PublishTrimmed>
-	<EnableLLVM>False</EnableLLVM>
-  </PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\Engine\OpenXr.Engine.Core\OpenXr.Engine.Core.csproj" />
-    <ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGL\OpenXr.Engine.OpenGL.csproj" />
-    <ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
-    <ProjectReference Include="..\..\Framework\OpenXr.Framework.Engine\OpenXr.Framework.Engine.csproj" />
-    <ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
-    <ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGLES\OpenXr.Framework.OpenGLES.csproj" />
-    <ProjectReference Include="..\..\WebLink\OpenXr.WebLink\OpenXr.WebLink.csproj" />
-  </ItemGroup>
-	
-   <Import Project="..\..\AspNetCoreMini.props" />
+	<Import Project="..\..\AspNetCoreMini.props" />
 
 </Project>

@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 
 
 
-namespace OpenXr.Engine.OpenGLES
+namespace OpenXr.Engine.OpenGL
 {
     public class GlFrameBuffer : GlObject
     {
@@ -31,7 +31,9 @@ namespace OpenXr.Engine.OpenGLES
 
         public override void Dispose()
         {
-            throw new NotImplementedException();
+            _gl.DeleteFramebuffer(_handle);
+            _handle = 0;
+            GC.SuppressFinalize(this);
         }
     }
 }

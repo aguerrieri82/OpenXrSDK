@@ -1,16 +1,20 @@
 ﻿#if GLES
 using OpenXr.Engine.OpenGL;
 using Silk.NET.OpenGLES;
+using SkiaSharp;
+
 #else
 using Silk.NET.OpenGL;
 #endif
 
 using System.Numerics;
 
-namespace OpenXr.Engine.OpenGLES
+namespace OpenXr.Engine.OpenGL
 {
     public class GlProgram : GlObject, IUniformProvider
     {
+        readonly Dictionary<string, int> _locations = [];
+
         public GlProgram(GL gl, string vSource, string fSource) : base(gl)
         {
             Create(
@@ -55,46 +59,57 @@ namespace OpenXr.Engine.OpenGLES
             GlDebug.Log($"UseProgram NULL");
         }
 
+        protected int Locate(string name, bool optional = false)
+        {
+            if (!_locations.TryGetValue(name, out var result))
+            {
+                result = _gl.GetUniformLocation(_handle, name);
+                if (result == -1 && !optional)
+                    throw new Exception($"{name} uniform not found on shader.");
+                _locations[name] = result;  
+            }
+            return result;
+        }
+
         public void SetUniform(string name, int value)
         {
-            int location = _gl.GetUniformLocation(_handle, name);
-            if (location == -1)
-                throw new Exception($"{name} uniform not found on shader.");
-
-            _gl.Uniform1(location, value);
+            _gl.Uniform1(Locate(name), value);
         }
 
         public unsafe void SetUniform(string name, Matrix4x4 value)
         {
-            int location = _gl.GetUniformLocation(_handle, name);
-            if (location == -1)
-                throw new Exception($"{name} uniform not found on shader.");
-
-            _gl.UniformMatrix4(location, 1, false, (float*)&value);
+            _gl.UniformMatrix4(Locate(name), 1, false, (float*)&value);
         }
 
         public void SetUniform(string name, float value)
         {
-            int location = _gl.GetUniformLocation(_handle, name);
-            if (location == -1)
-                throw new Exception($"{name} uniform not found on shader.");
-
-            _gl.Uniform1(location, value);
+            _gl.Uniform1(Locate(name), value);
         }
 
-        public void SetUniform(string name, Vector3 value)
+        public void SetUniform(string name, Vector3 value, bool optional = false)
         {
-            int location = _gl.GetUniformLocation(_handle, name);
-            if (location == -1)
-            {
-                throw new Exception($"{name} uniform not found on shader.");
-            }
-            _gl.Uniform3(location, value.X, value.Y, value.Z);
+            _gl.Uniform3(Locate(name, optional), value.X, value.Y, value.Z);
+        }
+
+        public void SetUniform(string name, Color value)
+        {
+            _gl.Uniform4(Locate(name), value.R, value.G, value.B, value.A);
+        }
+
+        public unsafe void SetUniform(string name, Texture2D value, int slot = 0)
+        {
+            var texture = value.GetResource(a => value.CreateGlTexture(_gl));
+
+            texture.Bind();
+            _gl.ActiveTexture(TextureUnit.Texture0 + slot);
+            SetUniform(name, slot);
         }
 
         public override void Dispose()
         {
             _gl.DeleteProgram(_handle);
+            _handle = 0;
+            GC.SuppressFinalize(this);
         }
 
         private uint LoadShader(ShaderType type, string source)
@@ -117,5 +132,7 @@ namespace OpenXr.Engine.OpenGLES
 
             return LoadShader(type, src);
         }
+
+   
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using OpenXr.Engine;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.OpenGLES;
@@ -17,7 +18,7 @@ namespace OpenXr.Samples
                     new OculusXrPlugin());
 
 
-            xrApp.BindEngineApp(Common.CreateScene());
+            xrApp.BindEngineApp(Common.CreateScene(LocalAssetManager.Instance));
 
             xrApp.StartEventLoop();
 

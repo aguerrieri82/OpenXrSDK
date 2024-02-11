@@ -117,6 +117,12 @@ namespace OpenXr.Framework.Oculus
             return true;
         }
 
+
+        public void AddMesh(FBTriangleMesh mesh)
+        {
+
+        }
+
         public override XrLayerFlags Flags => XrLayerFlags.EmptySpace;
     }
 }

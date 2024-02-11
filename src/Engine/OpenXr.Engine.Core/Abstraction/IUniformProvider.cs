@@ -10,6 +10,10 @@ namespace OpenXr.Engine
 
         void SetUniform(string name, float value);
 
-        void SetUniform(string name, Vector3 value);
+        void SetUniform(string name, Vector3 value, bool optional = false);
+
+        void SetUniform(string name, Color value);
+
+        void SetUniform(string name, Texture2D value, int slot = 0);
     }
 }

@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Text;
 using static Oculus.XrPlugin.OculusXrPlugin;
 using static OVRPlugin;
+using File = System.IO.File;
 
 
 namespace OpenXr
@@ -93,6 +94,13 @@ namespace OpenXr
             var scene = assimp.ImportFile(fileName, (uint)PostProcessSteps.Triangulate);
 
             ProcessNode(scene->MRootNode, scene);
+        }
+
+        public unsafe static void LoadTexture()
+        {
+            var reader = new KtxReader();
+            var stream = File.OpenRead(@"D:\Development\Personal\Git\OpenXrSDK\src\Test\OpenXr.Test.Common\TestScreen.KTX");
+            reader.Read(stream);
         }
 
         public static Task OvrLibTask()

@@ -20,5 +20,13 @@
         }
 
         public Color Color { get; set; }
+
+        public bool WriteDepth { get; set; }
+
+        public bool UseDepth { get; set; }
+
+        public bool WriteColor { get; set; }
+
+        public bool DoubleSided { get; set; }
     }
 }

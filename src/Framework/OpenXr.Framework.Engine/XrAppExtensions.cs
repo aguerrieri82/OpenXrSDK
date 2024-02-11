@@ -5,7 +5,7 @@ using Silk.NET.OpenGL;
 #endif
 
 using OpenXr.Engine;
-using OpenXr.Engine.OpenGLES;
+using OpenXr.Engine.OpenGL;
 using Silk.NET.OpenXR;
 using System.Numerics;
 

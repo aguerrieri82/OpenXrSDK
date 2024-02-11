@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using OpenXr.Engine;
-using OpenXr.Engine.OpenGLES;
+using OpenXr.Engine.OpenGL;
 using Silk.NET.OpenGLES;
 using Silk.NET.Windowing;
 using System.Numerics;
@@ -11,7 +11,7 @@ namespace OpenXr.Samples
     {
         public static Task Run(IServiceProvider services, ILogger logger)
         {
-            var app = Common.CreateScene();
+            var app = Common.CreateScene(LocalAssetManager.Instance);
 
             var view = Window.Create(WindowOptions.Default);
             view.ShouldSwapAutomatically = true;

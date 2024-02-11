@@ -47,11 +47,11 @@ namespace OpenXr.Engine
             return result;
         }
 
-        [ShaderRefAttribute(0, "vPos")]
+        [ShaderRef(0, "vPos")]
         public Vector3 Pos;
-        [ShaderRefAttribute(1, "vForm")]
+        [ShaderRef(1, "vForm")]
         public Vector3 Normal;
-        [ShaderRefAttribute(2, "vUv")]
+        [ShaderRef(2, "vUv")]
         public Vector2 UV;
 
     }

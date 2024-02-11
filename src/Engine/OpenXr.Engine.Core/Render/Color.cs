@@ -23,9 +23,14 @@ namespace OpenXr.Engine
             B = value;
         }
 
-        public static implicit operator Vector3(Color color)
+        public static explicit operator Vector3(Color color)
         {
             return new Vector3(color.R, color.G, color.B);
+        }
+
+        public static implicit operator Vector4(Color color)
+        {
+            return new Vector4(color.R, color.G, color.B, color.A);
         }
 
         public static Color White => new Color(1f, 1f, 1f, 1f);
