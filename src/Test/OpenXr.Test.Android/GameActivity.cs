@@ -4,7 +4,7 @@ using OpenXr.Engine;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Oculus;
-using System.Numerics;
+using OpenXr.Samples;
 
 
 namespace OpenXr.Test.Android
@@ -20,48 +20,6 @@ namespace OpenXr.Test.Android
     [MetaData("com.samsung.android.vr.application.mode", Value = "vr_only")]
     public class GameActivity : XrActivity
     {
-        public static EngineApp CreateScene()
-        {
-            var app = new EngineApp();
-
-            var scene = new Scene();
-
-            scene.ActiveCamera = new PerspectiveCamera()
-            {
-                Far = 10f,
-                Near = 0.1f,
-                BackgroundColor = Color.Transparent
-            };
-
-            var material = new StandardMaterial() { Color = new Color(1, 0, 0) };
-
-            for (var y = -1f; y <= 1; y += 0.5f)
-            {
-                for (var rad = 0f; rad < Math.PI * 2; rad += MathF.PI / 10f)
-                {
-                    var x = MathF.Sin(rad) * 1;
-                    var z = MathF.Cos(rad) * 1;
-
-                    var cube = new Mesh(Cube.Instance, material);
-                    cube.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
-                    cube.Transform.Position = new Vector3(x, y, z);
-
-                    cube.AddBehavior((obj, ctx) =>
-                    {
-                        obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f);
-                    });
-
-                    scene.AddChild(cube);
-                }
-            }
-
-            scene.AddChild(new AmbientLight(0.3f));
-            scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
-
-            app.OpenScene(scene);
-
-            return app;
-        }
 
         protected override XrApp CreateApp()
         {
@@ -72,7 +30,7 @@ namespace OpenXr.Test.Android
 
             result.Layers.Add<XrPassthroughLayer>();
 
-            result.BindEngineApp(CreateScene());
+            result.BindEngineApp(Common.CreateScene(new AndroidAssetManager(this)));
 
             return result;
         }

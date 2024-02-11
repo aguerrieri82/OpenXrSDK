@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace OpenXr.Engine.OpenGLES
+namespace OpenXr.Engine.OpenGL
 {
     public class GlFrameTextureBuffer : GlFrameBuffer
     {
@@ -21,7 +21,7 @@ namespace OpenXr.Engine.OpenGLES
         }
 
         [MemberNotNull(nameof(Depth))]
-        protected void CreateDepth()
+        protected unsafe void CreateDepth()
         {
             Depth = new GlTexture2D(_gl);
             Depth.MagFilter = TextureMagFilter.Nearest;
@@ -42,7 +42,6 @@ namespace OpenXr.Engine.OpenGLES
                 FramebufferAttachment.ColorAttachment0,
                 TextureTarget.Texture2D,
                 Color, 0);
-
 
             _gl.FramebufferTexture2D(
                 FramebufferTarget.DrawFramebuffer,

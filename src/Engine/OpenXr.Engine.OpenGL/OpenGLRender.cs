@@ -11,7 +11,7 @@ using System.Text;
 
 
 
-namespace OpenXr.Engine.OpenGLES
+namespace OpenXr.Engine.OpenGL
 {
     public class GlobalContent
     {
@@ -51,6 +51,8 @@ namespace OpenXr.Engine.OpenGLES
         public Action? Draw;
     }
 
+
+
     public class OpenGLRender : IRenderEngine
     {
         protected GL _gl;
@@ -71,22 +73,9 @@ namespace OpenXr.Engine.OpenGLES
             _meshLayout = GlVertexLayout.FromType<VertexData>();
         }
 
-        protected unsafe TGl GetResource<T, TGl>(T obj, Func<T, TGl> factory) where T : EngineObject where TGl : GlObject
-        {
-            var glObj = obj.GetProp<TGl?>(Props.GlResId);
-            if (glObj == null)
-            {
-                glObj = factory(obj);
-                obj.SetProp(Props.GlResId, glObj);
-            }
-
-            return glObj;
-        }
-
         protected GlProgram GetProgram(Shader shader)
         {
-            return GetResource(shader,
-                a => new GlProgram(_gl, shader.VertexSource!, shader.FragmentSource!));
+            return shader.GetResource(a => new GlProgram(_gl, shader.VertexSource!, shader.FragmentSource!));
         }
 
         public void Clear(Color color)
@@ -94,16 +83,6 @@ namespace OpenXr.Engine.OpenGLES
             _gl.ClearColor(color.R, color.G, color.B, color.A);
             _gl.ClearDepth(1.0f);
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        }
-
-        protected void Setup()
-        {
-            _gl.FrontFace(FrontFaceDirection.Ccw);
-            _gl.CullFace(TriangleFace.Back);
-            _gl.Enable(EnableCap.CullFace);
-            _gl.Enable(EnableCap.DepthTest);
-            _gl.DepthMask(true);
-            _gl.DepthFunc(DepthFunction.Lequal);
         }
 
 
@@ -140,7 +119,7 @@ namespace OpenXr.Engine.OpenGLES
                     if (!shaderContent.Contents.TryGetValue(mesh.Geometry, out var vertexContent))
                     {
                         vertexContent = new VertexContent();
-                        vertexContent.VertexArray = GetResource(mesh.Geometry!, geo =>
+                        vertexContent.VertexArray = mesh.Geometry!.GetResource(geo =>
                                 new GlVertexArray<VertexData, uint>(_gl, geo.Vertices!, geo.Indices!, _meshLayout));
 
                         shaderContent.Contents[mesh.Geometry] = vertexContent;
@@ -154,7 +133,6 @@ namespace OpenXr.Engine.OpenGLES
                     });
                 }
             }
-
         }
 
         public void EnableDebug()
@@ -172,6 +150,27 @@ namespace OpenXr.Engine.OpenGLES
             _gl.Enable(EnableCap.DebugOutput);
         }
 
+        public void EnableFeature(EnableCap cap, bool value)
+        {
+            if (value)
+                _gl.Enable(cap);
+            else
+                _gl.Disable(cap);   
+        }
+
+        protected void ConfigureCaps(ShaderMaterial material)
+        {
+            _gl.DepthMask(material.WriteDepth);
+            EnableFeature(EnableCap.DepthTest, material.UseDepth);
+            EnableFeature(EnableCap.CullFace, !material.DoubleSided);
+     
+            if (!material.WriteColor)
+                _gl.ColorMask(false, false, false, false);
+            else
+                _gl.ColorMask(true, true, true, true);
+       
+        }
+
         public void Render(Scene scene, Camera camera, RectI view)
         {
             if (_frameBuffer != null)
@@ -179,42 +178,50 @@ namespace OpenXr.Engine.OpenGLES
 
             Clear(camera.BackgroundColor);
 
-            Setup();
+            _gl.FrontFace(FrontFaceDirection.Ccw);
+            _gl.CullFace(TriangleFace.Back);
+
 
             _gl.Viewport(view.X, view.Y, view.Width, view.Height);
 
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);
 
-            foreach (var shader in _content.Contents.Values)
+            foreach (var shader in _content.Contents)
             {
-                var prog = shader.Program!;
+                var prog = shader.Value!.Program;
 
                 prog!.Use();
 
-                if (_content.Ambient != null)
-                    prog.SetUniform("light.ambient", (Vector3)_content.Ambient.Color * _content.Ambient.Intensity);
-
-                if (_content.Point != null)
+                if (shader.Key.IsLit)
                 {
-                    var wordPos = Vector3.Transform(_content.Point.Transform.Position, _content.Point.WorldMatrix);
+                    if (_content.Ambient != null)
+                        prog.SetUniform("light.ambient", (Vector3)_content.Ambient.Color * _content.Ambient.Intensity);
 
-                    prog.SetUniform("light.diffuse", (Vector3)_content.Point.Color * _content.Point.Intensity);
-                    prog.SetUniform("light.position", wordPos);
-                    prog.SetUniform("light.specular", _content.Point.Specular);
+                    if (_content.Point != null)
+                    {
+                        var wordPos = Vector3.Transform(_content.Point.Transform.Position, _content.Point.WorldMatrix);
+
+                        prog.SetUniform("light.diffuse", (Vector3)_content.Point.Color * _content.Point.Intensity);
+                        prog.SetUniform("light.position", wordPos);
+                        prog.SetUniform("light.specular", (Vector3)_content.Point.Specular);
+                    }
                 }
 
                 prog.SetUniform("uView", camera.Transform.Matrix);
                 prog.SetUniform("uProjection", camera.Projection);
-                prog.SetUniform("viewPos", camera.Transform.Position);
+                prog.SetUniform("viewPos", camera.Transform.Position, true);
 
-                foreach (var vertex in shader.Contents.Values)
+                foreach (var vertex in shader.Value.Contents.Values)
                 {
                     vertex.VertexArray!.Bind();
 
                     foreach (var draw in vertex.Contents)
                     {
+                        ConfigureCaps(draw.Material!);
+
                         draw.Material!.UpdateUniforms(prog);
+
                         prog.SetUniform("uModel", draw.Object!.WorldMatrix);
                         draw.Draw!();
                     }

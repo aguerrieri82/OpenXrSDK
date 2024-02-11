@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\Oculus\Oculus.XrPlugin\Oculus.XrPlugin.csproj" />
     <ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
     <ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
+    <ProjectReference Include="..\..\Test\OpenXr.Test.Common\OpenXr.Test.Common.csproj" />
     <ProjectReference Include="..\..\WebLink\OpenXr.WebLink.Client\OpenXr.WebLink.Client.csproj" />
   </ItemGroup>
 

@@ -5,13 +5,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Shaders\color_fs.glsl" />
     <None Remove="Shaders\standard_fs.glsl" />
     <None Remove="Shaders\standard_vs.glsl" />
+    <None Remove="Shaders\texture_fs.glsl" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Shaders\texture_fs.glsl" />
+    <EmbeddedResource Include="Shaders\color_fs.glsl" />
     <EmbeddedResource Include="Shaders\standard_fs.glsl" />
     <EmbeddedResource Include="Shaders\standard_vs.glsl" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="3.0.0-preview.1.8" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.0.0-preview.1.8" />
   </ItemGroup>
 
 </Project>

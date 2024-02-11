@@ -4,6 +4,7 @@ precision highp float;
 
 in vec3 fNormal;
 in vec3 fPos;
+in vec2 fUv;
 
 struct Material {
     vec3 ambient;

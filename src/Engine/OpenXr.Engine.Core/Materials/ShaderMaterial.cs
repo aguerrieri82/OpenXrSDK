@@ -6,9 +6,13 @@
 
         public ShaderMaterial()
         {
+            WriteDepth = true;  
+            UseDepth = true;
+            WriteColor = true;
         }
 
         public ShaderMaterial(Shader shader)
+            : this()
         {
             _shader = shader;
         }
@@ -29,5 +33,7 @@
                 NotifyChanged();
             }
         }
+
+
     }
 }

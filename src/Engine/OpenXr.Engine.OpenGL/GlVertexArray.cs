@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 #endif
 
 
-namespace OpenXr.Engine.OpenGLES
+namespace OpenXr.Engine.OpenGL
 {
     public class GlVertexArray<TVertexType, TIndexType> : GlObject
         where TVertexType : unmanaged
@@ -27,7 +27,6 @@ namespace OpenXr.Engine.OpenGLES
         {
 
         }
-
 
         public GlVertexArray(GL gl, GlBuffer<TVertexType> vBuf, GlBuffer<TIndexType>? iBuf, GlVertexLayout layout)
             : base(gl)
@@ -86,7 +85,6 @@ namespace OpenXr.Engine.OpenGLES
 
         protected unsafe void Configure()
         {
-
             foreach (var attr in _layout.Attributes!)
             {
                 _gl.VertexAttribPointer(attr.Location, (int)attr.Count, attr.Type, false, _layout.Size, (void*)attr.Offset);
@@ -109,6 +107,8 @@ namespace OpenXr.Engine.OpenGLES
         public override void Dispose()
         {
             _gl.DeleteVertexArray(_handle);
+            _handle = 0;
+            GC.SuppressFinalize(this);
         }
     }
 }

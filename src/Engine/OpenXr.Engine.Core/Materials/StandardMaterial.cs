@@ -1,29 +1,33 @@
-﻿namespace OpenXr.Engine
+﻿using System.Numerics;
+
+namespace OpenXr.Engine
 {
     public class StandardMaterial : ShaderMaterial
     {
-        static readonly Shader _shader;
+        static readonly Shader SHADER;
 
         static StandardMaterial()
         {
-            _shader = new Shader();
-            _shader.FragmentSource = Embedded.GetString("standard_fs.glsl");
-            _shader.VertexSource = Embedded.GetString("standard_vs.glsl");
+            SHADER = new Shader
+            {
+                FragmentSource = Embedded.GetString("standard_fs.glsl"),
+                VertexSource = Embedded.GetString("standard_vs.glsl"),
+                IsLit = true
+            };
         }
 
         public StandardMaterial()
         {
             Specular.Rgb(0.5f);
             Shininess = 32f;
-            Shader = _shader;
+            Shader = SHADER;
         }
-
 
         public override void UpdateUniforms(IUniformProvider obj)
         {
-            obj.SetUniform("material.ambient", Ambient);
-            obj.SetUniform("material.diffuse", Color);
-            obj.SetUniform("material.specular", Specular);
+            obj.SetUniform("material.ambient", (Vector3)Ambient);
+            obj.SetUniform("material.diffuse", (Vector3)Color);
+            obj.SetUniform("material.specular", (Vector3)Specular);
             obj.SetUniform("material.shininess", 32.0f);
 
             base.UpdateUniforms(obj);

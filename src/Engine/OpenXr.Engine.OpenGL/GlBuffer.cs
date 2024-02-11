@@ -1,12 +1,11 @@
 ﻿#if GLES
-using OpenXr.Engine.OpenGL;
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
 
 
-namespace OpenXr.Engine.OpenGLES
+namespace OpenXr.Engine.OpenGL
 {
     public class GlBuffer<T> : GlObject where T : unmanaged
     {
@@ -56,6 +55,8 @@ namespace OpenXr.Engine.OpenGLES
         public override void Dispose()
         {
             _gl.DeleteBuffer(_handle);
+            _handle = 0;
+            GC.SuppressFinalize(this);
         }
 
         public uint Length => _length;

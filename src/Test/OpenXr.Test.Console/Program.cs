@@ -21,12 +21,12 @@ var host = Host.CreateDefaultBuilder(args)
 
 _ = host.RunAsync();
 
+
 unsafe
 {
-    Tasks.WriteMesh("d:\\cube.obj");
+    Tasks.LoadTexture();
+    //Tasks.WriteMesh("d:\\cube.obj");
 }
-
-
 
 Gpu.EnableNvAPi();
 

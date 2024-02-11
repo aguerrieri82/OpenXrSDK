@@ -5,7 +5,7 @@ using Silk.NET.OpenGL;
 #endif
 
 
-namespace OpenXr.Engine.OpenGLES
+namespace OpenXr.Engine.OpenGL
 {
     public class GlTexture2D : GlObject
     {
@@ -60,64 +60,110 @@ namespace OpenXr.Engine.OpenGLES
             InternalFormat = (InternalFormat)intf;
         }
 
-        public unsafe void Create(uint width, uint height, TextureFormat format)
+        public unsafe void Create(uint width, uint height, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, void* data = null, uint dataSize = 0)
         {
             Dispose();
 
+            _handle = _gl.GenTexture();
             _width = width;
             _height = height;
 
-            InternalFormat internalFormat;
-
-            switch (format)
-            {
-                case TextureFormat.Depth32Float:
-                    internalFormat = InternalFormat.DepthComponent32;
-                    break;
-                case TextureFormat.Depth24Float:
-                    internalFormat = InternalFormat.DepthComponent24;
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
-
-            PixelFormat pixelFormat;
-
-            switch (format)
-            {
-                case TextureFormat.Depth32Float:
-                case TextureFormat.Depth24Float:
-                    pixelFormat = PixelFormat.DepthComponent;
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
-
-            PixelType pixelType;
-
-            switch (format)
-            {
-                case TextureFormat.Depth32Float:
-                case TextureFormat.Depth24Float:
-                    pixelType = PixelType.Float;
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
-            _handle = _gl.GenTexture();
-
             Bind();
 
-            _gl.TexImage2D(
-                TextureTarget.Texture2D,
-                0,
-                internalFormat,
-                width,
-                height,
-                0,
-                pixelFormat,
-                pixelType,
-                null);
+            InternalFormat internalFormat;
+            PixelFormat pixelFormat;
+            PixelType pixelType;
+
+            if (compression == TextureCompressionFormat.Uncompressed)
+            {
+                switch (format)
+                {
+                    case TextureFormat.Depth32Float:
+                        internalFormat = InternalFormat.DepthComponent32;
+                        break;
+                    case TextureFormat.Depth24Float:
+                        internalFormat = InternalFormat.DepthComponent24;
+                        break;
+                    case TextureFormat.Rgba32:
+                    case TextureFormat.Bgra32:
+                        internalFormat = InternalFormat.Rgb8;
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                switch (format)
+                {
+                    case TextureFormat.Depth32Float:
+                    case TextureFormat.Depth24Float:
+                        pixelFormat = PixelFormat.DepthComponent;
+                        break;
+                    case TextureFormat.Rgba32:
+                        pixelFormat = PixelFormat.Rgba;
+                        break;
+                    case TextureFormat.Bgra32:
+                        pixelFormat = PixelFormat.Bgra;
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                switch (format)
+                {
+                    case TextureFormat.Depth32Float:
+                    case TextureFormat.Depth24Float:
+                        pixelType = PixelType.Float;
+                        break;
+                    case TextureFormat.Rgba32:
+                    case TextureFormat.Bgra32:
+                        pixelType = PixelType.UnsignedByte;
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                _gl.TexImage2D(
+                     TextureTarget.Texture2D,
+                     0,
+                     internalFormat,
+                     width,
+                     height,
+                     0,
+                     pixelFormat,
+                     pixelType,
+                     data);
+            }
+            else
+            {
+                if (compression == TextureCompressionFormat.Etc2)
+                {
+                    switch (format)
+                    {
+                        case TextureFormat.Rgb24:
+                            internalFormat = InternalFormat.CompressedRgb8Etc2;
+                            break;
+                        case TextureFormat.SRgb24:
+                            internalFormat = InternalFormat.CompressedSrgb8Etc2;
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    }
+                }
+                else
+                    throw new NotSupportedException();
+
+                _gl.PixelStore(PixelStoreParameter.PackAlignment, 1);
+
+                _gl.CompressedTexImage2D(
+                     TextureTarget.Texture2D,
+                     0,
+                     internalFormat,
+                     width,
+                     height,
+                     0,
+                     dataSize,
+                     data);
+            }
 
             InternalFormat = internalFormat;
 
@@ -134,7 +180,7 @@ namespace OpenXr.Engine.OpenGLES
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)MagFilter);
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, BaseLevel);
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, MaxLevel);
-            _gl.GenerateMipmap(TextureTarget.Texture2D);
+            //_gl.GenerateMipmap(TextureTarget.Texture2D);
 
             Unbind();
         }
@@ -153,6 +199,8 @@ namespace OpenXr.Engine.OpenGLES
         public override void Dispose()
         {
             _gl.DeleteTexture(_handle);
+            _handle = 0;
+            GC.SuppressFinalize(this);
         }
 
         public InternalFormat InternalFormat;
