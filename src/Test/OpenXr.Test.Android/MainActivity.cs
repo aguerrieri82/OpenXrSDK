@@ -6,19 +6,15 @@ using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using Exception = System.Exception;
 
-
-
 namespace OpenXr.Test.Android
 {
-    [IntentFilter([
-        "android.intent.action.MAIN",
-        "android.intent.category.LAUNCHER"])]
+ 
     [Activity(
         Label = "@string/app_name",
         Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen",
         ScreenOrientation = ScreenOrientation.Landscape,
         LaunchMode = LaunchMode.SingleTask,
-        MainLauncher = true)]
+        MainLauncher = false)]
 
     public class MainActivity : Activity
     {
@@ -75,7 +71,7 @@ namespace OpenXr.Test.Android
 
         private void StartApp()
         {
-            StartActivity(new Intent(this, typeof(GameActivity)));
+            StartActivityForResult(new Intent(this, typeof(GameActivity)), 100);
         }
 
         private async Task GetRoomAsync()

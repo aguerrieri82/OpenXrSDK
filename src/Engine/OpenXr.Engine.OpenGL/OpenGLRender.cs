@@ -144,6 +144,8 @@ namespace OpenXr.Engine.OpenGL
            {
                unsafe
                {
+                   if (sev == GLEnum.DebugSeverityNotification)
+                       return;
                    var span = new Span<byte>((void*)msg, len);
                    var text = Encoding.UTF8.GetString(span);
                    Debug.WriteLine($"\n\n\n");

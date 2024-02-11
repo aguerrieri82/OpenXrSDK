@@ -18,14 +18,20 @@ namespace OpenXr.Samples
 
             var viewRect = new RectI();
 
-            view.Load += () =>
+            var camera = (app.ActiveScene?.ActiveCamera as PerspectiveCamera)!;
+
+            void UpdateSize()
             {
                 viewRect.Width = (uint)view.Size.X;
                 viewRect.Height = (uint)view.Size.Y;
-
-                var camera = (app.ActiveScene?.ActiveCamera as PerspectiveCamera)!;
                 camera.SetFov(45, viewRect.Width, viewRect.Height);
-                camera.LookAt(new Vector3(0f, 2f, 2f), Vector3.Zero, new Vector3(0, 1, 0));
+            }
+
+            view.Load += () =>
+            {
+                UpdateSize();
+
+                camera!.LookAt(new Vector3(0f, 2f, 2f), Vector3.Zero, new Vector3(0, 1, 0));
 
                 var render = new OpenGLRender(view.CreateOpenGLES());
                 render.EnableDebug();
@@ -33,6 +39,11 @@ namespace OpenXr.Samples
                 app.Renderer = render;
 
                 app.Start();
+            };
+
+            view.Resize += x =>
+            {
+                UpdateSize();
             };
 
             view.Render += t =>
@@ -43,6 +54,11 @@ namespace OpenXr.Samples
             view.Run();
 
             return Task.CompletedTask;
+        }
+
+        private static void View_Resize(Silk.NET.Maths.Vector2D<int> obj)
+        {
+            throw new NotImplementedException();
         }
     }
 }
