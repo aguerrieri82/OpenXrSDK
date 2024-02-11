@@ -20,8 +20,6 @@ namespace OpenXr.Samples
             var text = new TextureMaterial(Texture2D.FromKtxImage(assets.OpenAsset("TestScreen.KTX")));
             text.DoubleSided = false;
 
-
-
             for (var y = -1f; y <= 1; y += 0.5f)
             {
                 for (var rad = 0f; rad < Math.PI * 2; rad += MathF.PI / 10f)
@@ -29,7 +27,7 @@ namespace OpenXr.Samples
                     var x = MathF.Sin(rad) * 1;
                     var z = MathF.Cos(rad) * 1;
 
-                    var cube = new Mesh(Cube.Instance, text);
+                    var cube = new Mesh(Cube.Instance, red);
                     cube.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
                     cube.Transform.Position = new Vector3(x, y, z);
 
@@ -40,11 +38,8 @@ namespace OpenXr.Samples
 
                     scene.AddChild(cube);
                 }
-
-             
             }
 
-       
             var display = new Mesh(Quad.Instance, red);
             display.Transform.Scale = new Vector3(2, 2, 2);
             display.Materials[0].DoubleSided = true;
@@ -55,7 +50,6 @@ namespace OpenXr.Samples
             {
                 obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f);
             });
-       
 
             scene.AddChild(new AmbientLight(0.3f));
             scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);

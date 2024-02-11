@@ -16,7 +16,7 @@ namespace OpenXr.Engine.OpenGL
 
         }
 
-        public virtual void Bind()
+        public virtual void BindDraw()
         {
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _handle);
         }

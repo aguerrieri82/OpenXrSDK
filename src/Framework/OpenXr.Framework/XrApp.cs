@@ -766,7 +766,6 @@ namespace OpenXr.Framework
                 FaceCount = 1,
                 SampleCount = sampleCount,
                 UsageFlags = SwapchainUsageFlags.ColorAttachmentBit | SwapchainUsageFlags.SampledBit
-
             };
 
             PluginInvoke(p => p.ConfigureSwapchain(ref info));

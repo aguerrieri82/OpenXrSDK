@@ -22,12 +22,12 @@ namespace OpenXr.Test
         {
             base.SelectRenderOptionsMode(viewInfo, result);
 
-            result.SampleCount = 2;
+            var scaleFactor = 1f;
 
             result.Size = new Extent2Di
             {
-                Height = result.Size.Height / 2,
-                Width = result.Size.Width / 2,
+                Height = (int)(result.Size.Height * scaleFactor),
+                Width = (int)(result.Size.Width * scaleFactor),
             };
 
         }
