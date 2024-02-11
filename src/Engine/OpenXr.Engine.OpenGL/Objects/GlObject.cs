@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-
 namespace OpenXr.Engine.OpenGL
 { 
     public abstract class GlObject : IDisposable
@@ -17,9 +16,7 @@ namespace OpenXr.Engine.OpenGL
             _gl = gl;
         }
 
-
         public abstract void Dispose();
-
 
         public uint Handle => _handle;
 

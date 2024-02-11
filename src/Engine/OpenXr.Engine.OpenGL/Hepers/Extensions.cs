@@ -4,12 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using static OpenXr.Engine.OpenGL.OpenGLRender;
 
 namespace OpenXr.Engine.OpenGL

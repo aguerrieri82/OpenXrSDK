@@ -2,37 +2,41 @@
 {
     public class EngineApp
     {
-        protected IList<Scene> _scenes;
+        protected readonly HashSet<Scene> _scenes = [];
         protected RenderContext _context;
         protected float _startTime;
         protected Scene? _activeScene;
-        private int _fpsFrameCount;
-        private DateTime _fpsLastTime;
-        private readonly bool _isStarted;
+        protected int _fpsFrameCount;
+        protected DateTime _fpsLastTime;
+        protected bool _isStarted;
+        protected readonly HashSet<IObjectChangeListener> _changeListeners = [];
+
 
         public EngineApp()
         {
-            _scenes = new List<Scene>();
             _context = new RenderContext();
+            _changeListeners.Add(ShaderMeshLayerBuilder.Instance);
+            Current = this;
         }
 
         public void AddScene(Scene scene)
         {
             _scenes.Add(scene);
-        }
-
-        public void OpenScene(string name)
-        {
-            OpenScene(_scenes.Single(s => s.Name == name));
+            scene.Attach(this);
         }
 
         public void OpenScene(Scene scene)
         {
+            if (_activeScene == scene)
+                return;
+
             if (!_scenes.Contains(scene))
                 AddScene(scene);
-            _activeScene = scene;
-        }
 
+            _activeScene = scene;
+
+            Scene.Current = scene;
+        }
 
         public void Start()
         {
@@ -63,7 +67,6 @@
 
         public void RenderFrame(RectI view)
         {
-
             _context.Frame++;
             _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
 
@@ -80,15 +83,20 @@
                 return;
 
             //Console.WriteLine($"Render frame {_context.Frame}");
-
   
             Renderer.Render(_activeScene, _activeScene.ActiveCamera, view);
 
             UpdateFps();
         }
 
+        public ICollection<IObjectChangeListener> ChangeListeners => _changeListeners;
+
+        public IReadOnlyCollection<Scene> Scenes => _scenes;
+
         public Scene? ActiveScene => _activeScene;
 
         public IRenderEngine? Renderer { get; set; }
+
+        public static EngineApp? Current { get; private set; }
     }
 }

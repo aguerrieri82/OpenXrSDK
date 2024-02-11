@@ -1,8 +1,4 @@
-﻿#version 300 es
-
-precision highp float;
-
-in vec2 fUv;
+﻿in vec2 fUv;
 
 uniform sampler2D uTexture0;
 uniform vec3 viewPos;

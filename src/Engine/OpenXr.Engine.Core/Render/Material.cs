@@ -4,6 +4,7 @@
     {
         protected Object3D? _host;
 
+        //TODO same material multiple objects, wrong
         public void Attach(Object3D host)
         {
             _host = host;
@@ -16,7 +17,7 @@
 
         public virtual void NotifyChanged()
         {
-            _host?.NotifyChanged();
+            _host?.NotifyChanged(ObjectChangeType.Render);
         }
 
         public Color Color { get; set; }

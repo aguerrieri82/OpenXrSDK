@@ -4,7 +4,7 @@
     {
         protected Dictionary<string, object?>? _props;
         protected List<IComponent>? _components;
-
+        protected ObjectId _id;
 
         public virtual void Update(RenderContext ctx)
         {
@@ -69,5 +69,12 @@
             return null;
         }
 
+        internal void EnsureId()
+        {
+            if (_id == 0)
+                _id = ObjectId.New();
+        }
+
+        public ObjectId Id => _id;
     }
 }

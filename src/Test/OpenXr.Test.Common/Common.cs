@@ -12,7 +12,9 @@ namespace OpenXr.Samples
             var app = new EngineApp();
 
             var scene = new Scene();
+
             scene.ActiveCamera = new PerspectiveCamera() { Far = 50f };
+
             //scene.ActiveCamera.BackgroundColor = Color.White;
 
             var red = new StandardMaterial() { Color = new Color(1, 0, 0) };
@@ -53,6 +55,9 @@ namespace OpenXr.Samples
 
             scene.AddChild(new AmbientLight(0.3f));
             scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
+
+            var xxx = scene.TypeLayerContent<Light>().ToArray();
+
 
             app.OpenScene(scene);
 

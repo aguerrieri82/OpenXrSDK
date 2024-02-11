@@ -1,29 +1,30 @@
 ﻿#if GLES
-using OpenXr.Engine.OpenGL;
 using Silk.NET.OpenGLES;
-using SkiaSharp;
-
 #else
 using Silk.NET.OpenGL;
 #endif
 
 using System.Numerics;
+using System.Text;
 
 namespace OpenXr.Engine.OpenGL
 {
     public class GlProgram : GlObject, IUniformProvider
     {
         readonly Dictionary<string, int> _locations = [];
+        readonly GlRenderOptions _options;
 
-        public GlProgram(GL gl, string vSource, string fSource) : base(gl)
+        public GlProgram(GL gl, string vSource, string fSource, GlRenderOptions options) : base(gl)
         {
+            _options= options;  
+
             Create(
                 LoadShader(ShaderType.VertexShader, vSource),
                 LoadShader(ShaderType.FragmentShader, fSource)
             );
         }
 
-        protected void Create(params uint[] shaders)
+        protected virtual void Create(params uint[] shaders)
         {
             _handle = _gl.CreateProgram();
             GlDebug.Log($"CreateProgram {_handle}");
@@ -46,6 +47,28 @@ namespace OpenXr.Engine.OpenGL
             }
         }
 
+        public virtual void SetAmbient(AmbientLight light)
+        {
+            SetUniform("light.ambient", (Vector3)light.Color * light.Intensity);
+        }
+
+        public virtual void AddPointLight(PointLight point)
+        {
+            var wordPos = Vector3.Transform(point.Transform.Position, point.WorldMatrix);
+
+            SetUniform("light.diffuse", (Vector3)point.Color * point.Intensity);
+            SetUniform("light.position", wordPos);
+            SetUniform("light.specular", (Vector3)point.Specular);
+        }
+
+        public virtual void SetCamera(Camera camera)
+        {
+            SetUniform("uView", camera.Transform.Matrix);
+
+            SetUniform("uProjection", camera.Projection);
+
+            SetUniform("viewPos", camera.Transform.Position, true);
+        }
 
         public void Use()
         {
@@ -112,10 +135,35 @@ namespace OpenXr.Engine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        private uint LoadShader(ShaderType type, string source)
+        protected string PatchShader(string source)
+        {
+            var builder = new StringBuilder();
+
+            builder.Append("#version ")
+                .Append(_options.ShaderVersion!)
+                .Append("\n");
+
+            var precision = _options.FloatPrecision switch
+            {
+                ShaderPrecision.Medium => "highp",
+                ShaderPrecision.High => "mediump",
+                ShaderPrecision.Low => "lowp",
+                _ => throw new NotSupportedException()
+            };
+
+            builder.Append("precision ").Append(precision).Append(" float;\n");
+
+            builder.Append("\n\n").Append(source);
+
+            return builder.ToString();
+        }
+
+        uint LoadShader(ShaderType type, string source)
         {
             uint handle = _gl.CreateShader(type);
-            _gl.ShaderSource(handle, source);
+
+            _gl.ShaderSource(handle, PatchShader(source));
+
             _gl.CompileShader(handle);
 
             string infoLog = _gl.GetShaderInfoLog(handle);
@@ -125,14 +173,6 @@ namespace OpenXr.Engine.OpenGL
 
             return handle;
         }
-
-        private uint LoadShaderFromPath(ShaderType type, string path)
-        {
-            var src = File.ReadAllText(path);
-
-            return LoadShader(type, src);
-        }
-
    
     }
 }

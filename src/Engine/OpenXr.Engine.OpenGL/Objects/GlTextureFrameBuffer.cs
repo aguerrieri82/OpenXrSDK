@@ -8,12 +8,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace OpenXr.Engine.OpenGL
 {
-    public class GlFrameTextureBuffer : GlFrameBuffer
+    public class GlTextureFrameBuffer : GlFrameBuffer
     {
 
-        private uint _sampleCount;
+        protected uint _sampleCount;
 
-        public GlFrameTextureBuffer(GL gl, GlTexture2D color, bool createDepth = true, uint sampleCount = 1)
+        public GlTextureFrameBuffer(GL gl, GlTexture2D color, bool createDepth = true, uint sampleCount = 1)
             : base(gl)
         {
             _handle = _gl.GenFramebuffer();
@@ -66,7 +66,7 @@ namespace OpenXr.Engine.OpenGL
             }
         }
 
-        public void CopyTo(GlFrameTextureBuffer dest)
+        public void CopyTo(GlTextureFrameBuffer dest)
         {
             _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, _handle);
             _gl.FramebufferTexture2D(

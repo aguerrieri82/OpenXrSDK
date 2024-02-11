@@ -2,11 +2,10 @@
 {
     public class Group : Object3D
     {
-        protected List<Object3D> _children;
+        protected List<Object3D> _children = [];
 
         public Group()
         {
-            _children = [];
         }
 
         public override bool UpdateWorldMatrix(bool updateChildren, bool updateParent)
@@ -18,7 +17,6 @@
 
             return isChanged;
         }
-
 
         public override void Update(RenderContext ctx)
         {
@@ -34,36 +32,19 @@
 
         }
 
-        public IEnumerable<Object3D> Descendants()
-        {
-            return Descendants<Object3D>();
-        }
-
-        public IEnumerable<T> Descendants<T>() where T : Object3D
-        {
-            foreach (var child in _children)
-            {
-                if (child is T validChild)
-                    yield return validChild;
-
-                if (child is Group group)
-                {
-                    foreach (var desc in group.Descendants<T>())
-                        yield return desc;
-                }
-            }
-        }
-
         public T AddChild<T>(T child) where T : Object3D
         {
             if (child.Parent == this)
                 return child;
 
-            if (child.Parent != null)
-                child.Parent.RemoveChild(child);
+            child.Parent?.RemoveChild(child);
 
-            child.Parent = this;
+            child.EnsureId();
+
+            child.SetParent(this);
+
             _children.Add(child);
+
             return child;
         }
 
@@ -73,7 +54,8 @@
                 return;
 
             _children.Remove(child);
-            child.Parent = null;
+
+            child.SetParent(null);
         }
 
         public IReadOnlyList<Object3D> Children => _children.AsReadOnly();

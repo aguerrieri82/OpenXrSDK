@@ -1,8 +1,9 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 
 namespace OpenXr.Engine
 {
-    public abstract class Object3D : EngineObject
+    public abstract class Object3D : EngineObject, ILayerObject
     {
         protected Transform _transform;
         protected Group? _parent;
@@ -49,21 +50,32 @@ namespace OpenXr.Engine
                 UpdateWorldMatrix(true, false);
             }
 
-
             base.Update(ctx);
         }
 
-        public Group? Parent
+        internal void SetParent(Group? value)
         {
-            get => _parent;
-            internal set
-            {
-                _parent = value;
-                _worldDirty = true;
-                _scene = this.FindAncestor<Scene>();
-                NotifyChanged();
-            }
+
+            var changeType = ObjectChangeType.Parent;
+            
+            _parent = value;
+            _worldDirty = true;
+            
+            if (_scene == null && value != null)
+                changeType |= ObjectChangeType.SceneAdd;
+
+            _scene = value == null ? null : this.FindAncestor<Scene>();
+
+            NotifyChanged(changeType);
         }
+
+        public virtual void NotifyChanged(ObjectChange change)
+        {
+            if (_scene != null)
+                _scene.NotifyChanged(this, change);
+        }
+
+        public Group? Parent => _parent;
 
         public bool IsVisible
         {
@@ -73,16 +85,8 @@ namespace OpenXr.Engine
                 if (_isVisible == value)
                     return;
                 _isVisible = value;
-                NotifyChanged();
-
-
+                NotifyChanged(ObjectChangeType.Visibility);
             }
-        }
-
-        public virtual void NotifyChanged()
-        {
-            if (_scene != null)
-                _scene.Version++;
         }
 
         public Scene? Scene => _scene;
