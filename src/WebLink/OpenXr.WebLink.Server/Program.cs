@@ -4,7 +4,7 @@ using OpenXr.Framework.Oculus;
 using OpenXr.Framework.Vulkan;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Logging.AddProvider()
 
 
 

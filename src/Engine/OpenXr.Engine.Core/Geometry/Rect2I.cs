@@ -1,6 +1,6 @@
 ﻿namespace OpenXr.Engine
 {
-    public struct RectI
+    public struct Rect2I
     {
         public int X;
 

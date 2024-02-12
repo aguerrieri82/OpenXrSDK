@@ -10,14 +10,14 @@ namespace OpenXr.WebLink
     public class XrWebLinkService : IHostedService
     {
         protected readonly XrApp _app;
-        protected readonly IHubContext<XrWebLinkHub, IXrWebLinkClient> _hub;
+        protected readonly IHubContext<XrWebLinkHub> _hub;
         protected readonly ILogger<XrWebLinkService> _logger;
         protected CancellationTokenSource? _stopSource;
         protected Pose _lastPose;
         protected readonly IXrThread _xrThread;
         protected IList<Task> _serviceLoops;
 
-        public XrWebLinkService(XrApp app, IHubContext<XrWebLinkHub, IXrWebLinkClient> hub, ILogger<XrWebLinkService> logger, IXrThread xrThread)
+        public XrWebLinkService(XrApp app, IHubContext<XrWebLinkHub> hub, ILogger<XrWebLinkService> logger, IXrThread xrThread)
         {
             _app = app;
             _hub = hub;
@@ -30,7 +30,7 @@ namespace OpenXr.WebLink
         {
             _stopSource = new CancellationTokenSource();
 
-            StartServiceLoop(HandleXrEventsAsync, 50);
+            //StartServiceLoop(HandleXrEventsAsync, 50);
 
             StartServiceLoop(TrackAsync, 1000 / 72);
 
@@ -99,7 +99,7 @@ namespace OpenXr.WebLink
                     Pose = curPose
                 };
 
-                await _hub.Clients.Group("track/head").ObjectChanged(info);
+                await _hub.Clients.Group("track/head").SendAsync("ObjectChanged", info);
             }
             catch (Exception ex)
             {

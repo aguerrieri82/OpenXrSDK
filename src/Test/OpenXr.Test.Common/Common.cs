@@ -42,7 +42,7 @@ namespace OpenXr.Samples
                 }
             }
 
-            var display = new Mesh(Quad.Instance, red);
+            var display = new Mesh(Quad.Instance, text);
             display.Transform.Scale = new Vector3(2, 2, 2);
             display.Materials[0].DoubleSided = true;
 

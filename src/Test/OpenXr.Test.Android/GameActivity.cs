@@ -1,8 +1,10 @@
+using Android.Content;
 using Android.Content.PM;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Oculus;
 using OpenXr.Samples;
+using OpenXr.WebLink.Android;
 
 
 namespace OpenXr.Test.Android
@@ -23,6 +25,7 @@ namespace OpenXr.Test.Android
     public class GameActivity : XrActivity
     {
 
+
         protected override SampleXrApp CreateApp()
         {
             var options = new OculusXrPluginOptions
@@ -31,7 +34,9 @@ namespace OpenXr.Test.Android
                 SampleCount = 4
             };
 
-            var result = new SampleXrApp(
+            var logger = new AndroidLogger("XrApp");
+
+            var result = new SampleXrApp(logger,
                  new AndroidXrOpenGLESGraphicDriver(),
                  new OculusXrPlugin(options),
                  new AndroidXrPlugin(this));
@@ -42,6 +47,8 @@ namespace OpenXr.Test.Android
                 Common.CreateScene(new AndroidAssetManager(this)),
                 options.SampleCount,
                 options.EnableMultiView);
+
+            StartService(new Intent(this, typeof(WebServerService)));
 
             return result;
         }

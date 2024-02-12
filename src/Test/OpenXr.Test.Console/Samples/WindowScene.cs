@@ -16,7 +16,7 @@ namespace OpenXr.Samples
             var view = Window.Create(WindowOptions.Default);
             view.ShouldSwapAutomatically = true;
 
-            var viewRect = new RectI();
+            var viewRect = new Rect2I();
 
             var camera = (app.ActiveScene?.ActiveCamera as PerspectiveCamera)!;
 

@@ -1,10 +1,6 @@
 using Android.Content;
 using Android.Content.PM;
 using Android.Webkit;
-using OpenXr.Framework;
-using OpenXr.Framework.Oculus;
-using Silk.NET.OpenXR;
-using Exception = System.Exception;
 
 namespace OpenXr.Test.Android
 {
@@ -26,24 +22,11 @@ namespace OpenXr.Test.Android
         {
             base.OnCreate(savedInstanceState);
 
-            /*
-            GlobalServices.App = new XrApp(
-                //new XrVulkanGraphicDriver(new VulkanDevice()),
-                new XrOpenGLESGraphicDriver(new OpenGLESDevice()),
-                new OculusXrPlugin(),
-                new OpenVrPlugin(this),
-                new AndroidXrPlugin(this, (uint)Process.MyTid()));
-            */
-
             SetContentView(Resource.Layout.activity_main);
 
             FindViewById<Button>(Resource.Id.getRooom)!.Click += (_, _) => _ = Task.Run(StartApp);
 
-            StartService(new Intent(this, typeof(WebServerService)));
-
             ConfigureWebView();
-
-            StartApp();
         }
 
 
@@ -63,81 +46,10 @@ namespace OpenXr.Test.Android
             _webView!.LoadUrl("https://roomdesigner.eusoft.net/");
         }
 
-        protected override void OnDestroy()
-        {
-            StopService(new Intent(this, typeof(WebServerService)));
-            base.OnDestroy();
-        }
 
         private void StartApp()
         {
             StartActivityForResult(new Intent(this, typeof(GameActivity)), 100);
-        }
-
-        private async Task GetRoomAsync()
-        {
-            var app = GlobalServices.App!;
-
-            app.Start();
-
-            try
-            {
-                var xrOculus = app.Plugin<OculusXrPlugin>();
-
-                var anchors = await xrOculus.QueryAllAnchorsAsync().ConfigureAwait(true);
-
-                foreach (var space in anchors)
-                {
-                    var components = xrOculus.GetSpaceSupportedComponents(space.Space);
-
-                    if (components.Contains(SpaceComponentTypeFB.SemanticLabelsFB))
-                    {
-                        var label = xrOculus.GetSpaceSemanticLabels(space.Space);
-
-                        Console.WriteLine(label[0]);
-                    }
-
-                    if (components.Contains(SpaceComponentTypeFB.RoomLayoutFB))
-                    {
-                        var roomLayout = xrOculus.GetSpaceRoomLayout(space.Space);
-
-                        var walls = roomLayout.GetWalls();
-
-                        Console.WriteLine(roomLayout);
-                    }
-
-                    if (components.Contains(SpaceComponentTypeFB.Bounded2DFB))
-                    {
-                        try
-                        {
-                            var bounds = xrOculus.GetSpaceBoundingBox2D(space.Space);
-                            Console.WriteLine(bounds);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
-                        }
-                    }
-
-                    if (components.Contains(SpaceComponentTypeFB.LocatableFB))
-                    {
-                        var local = app.LocateSpace(app.Stage, space.Space, 1);
-
-                        Console.WriteLine(local.Pose);
-                    }
-
-                    if (components.Contains(OculusXrPlugin.XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META))
-                    {
-                        var mesh = xrOculus.GetSpaceTriangleMesh(space.Space);
-                        Console.WriteLine(mesh);
-                    }
-                }
-
-            }
-            finally
-            {
-                app.Stop();
-            }
         }
     }
 }
