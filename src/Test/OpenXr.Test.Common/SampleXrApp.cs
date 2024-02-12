@@ -13,9 +13,9 @@ namespace OpenXr.Test
 
         }
 
-        protected override void SelectRenderOptionsMode(XrViewInfo viewInfo, XrRenderOptions result)
+        protected override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
-            base.SelectRenderOptionsMode(viewInfo, result);
+            base.SelectRenderOptions(viewInfo, result);
 
             var scaleFactor = 1.4f;
 

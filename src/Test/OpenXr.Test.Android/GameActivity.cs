@@ -31,7 +31,8 @@ namespace OpenXr.Test.Android
             var options = new OculusXrPluginOptions
             {
                 EnableMultiView = true,
-                SampleCount = 4
+                SampleCount = 2,
+                ResolutionScale = 0.8f
             };
 
             var logger = new AndroidLogger("XrApp");

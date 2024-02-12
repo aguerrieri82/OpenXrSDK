@@ -29,7 +29,7 @@ namespace OpenXr.Samples
                     var x = MathF.Sin(rad) * 1;
                     var z = MathF.Cos(rad) * 1;
 
-                    var cube = new Mesh(Cube.Instance, text );
+                    var cube = new Mesh(Cube.Instance, red );
                     cube.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
                     cube.Transform.Position = new Vector3(x, y, z);
 
@@ -46,7 +46,7 @@ namespace OpenXr.Samples
             display.Transform.Scale = new Vector3(2, 2, 2);
             display.Materials[0].DoubleSided = true;
 
-            scene.AddChild(display);
+            //scene.AddChild(display);
 
             display.AddBehavior((obj, ctx) =>
             {

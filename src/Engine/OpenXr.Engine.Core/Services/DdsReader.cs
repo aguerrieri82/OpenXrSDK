@@ -61,7 +61,7 @@ namespace OpenXr.Engine
             var format = TextureFormat.Rgb24;
 
   
-            return ReadMips(stream, (uint)file.header.dwWidth, (uint)file.header.dwHeight, (uint)file.header.dwMipMapCount, comp, format);
+            return ReadMips(memStream, (uint)file.header.dwWidth, (uint)file.header.dwHeight, (uint)file.header.dwMipMapCount, comp, format);
         }
 
         public static readonly DdsReader Instance = new();

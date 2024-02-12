@@ -37,5 +37,10 @@ namespace OpenXr.Framework
         {
 
         }
+
+        public virtual void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
+        {
+
+        }
     }
 }

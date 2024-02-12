@@ -100,7 +100,7 @@ namespace OpenXr.Engine
                     throw new NotSupportedException();
             }
 
-            return ReadMips(stream, header.Width, header.Height, header.MIPMapCount, comp, format);
+            return ReadMips(memStream, header.Width, header.Height, header.MIPMapCount, comp, format);
         }
 
         public static readonly PvrReader Instance = new();

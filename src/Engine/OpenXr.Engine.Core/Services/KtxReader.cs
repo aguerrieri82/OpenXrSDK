@@ -75,7 +75,7 @@ namespace OpenXr.Engine
                     throw new NotSupportedException();
             }
 
-            return ReadMips(stream, header.pixelWidth, header.pixelHeight, header.numberOfMipmapLevels, comp, format);
+            return ReadMips(memStream, header.pixelWidth, header.pixelHeight, header.numberOfMipmapLevels, comp, format);
         }
 
         public static readonly KtxReader Instance = new();

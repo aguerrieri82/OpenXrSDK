@@ -70,7 +70,7 @@ namespace OpenXr.Framework.Oculus
 
         protected void PausePt()
         {
-            _xrApp!.CheckResult(_passthrough!.PassthroughPauseFB(_ptInstance), "PassthroughStartFB");
+            _xrApp!.CheckResult(_passthrough!.PassthroughPauseFB(_ptInstance), "PassthroughPauseFB");
             _isStarted = false;
         }
 
