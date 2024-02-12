@@ -14,15 +14,15 @@ namespace OpenXr.Framework
 
         public Matrix4x4 View { get; set; }
 
-        public static XrCameraTransform FromView(CompositionLayerProjectionView view, float nearPlane, float farPlane)
+        public static XrCameraTransform FromView(CompositionLayerProjectionView view, float nearPlane, float farPlane, bool reverseUpDown = false)
         {
             var result = new XrCameraTransform();
 
             result.Projection = XrMath.CreateProjectionFov(
                    MathF.Tan(view.Fov.AngleLeft),
                    MathF.Tan(view.Fov.AngleRight),
-                   MathF.Tan(view.Fov.AngleUp),
-                   MathF.Tan(view.Fov.AngleDown),
+                   MathF.Tan(reverseUpDown ? view.Fov.AngleDown : view.Fov.AngleUp),
+                   MathF.Tan(reverseUpDown ? view.Fov.AngleUp : view.Fov.AngleDown),
                    nearPlane,
                    farPlane);
 

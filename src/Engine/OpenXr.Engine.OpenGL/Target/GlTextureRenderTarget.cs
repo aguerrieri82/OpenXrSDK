@@ -20,11 +20,13 @@ namespace OpenXr.Engine.OpenGL
         protected readonly GlFrameBuffer _frameBuffer;
         protected readonly GL _gl;
         protected readonly uint _texId;
+        protected readonly uint _sampleCount;
 
         protected GlTextureRenderTarget(GL gl, uint texId, uint sampleCount = 1)
         {
             _gl = gl;
             _texId = texId;
+            _sampleCount = sampleCount;
             _frameBuffer = CreateFrameBuffer(texId, sampleCount);
         }
 
@@ -38,7 +40,11 @@ namespace OpenXr.Engine.OpenGL
 
         public void Begin()
         {
-            _gl.Disable(EnableCap.Multisample);
+            if (_sampleCount == 1)
+                _gl.Disable(EnableCap.Multisample);
+            else
+                _gl.Enable(EnableCap.Multisample);
+
             _frameBuffer.BindDraw();
         }
 

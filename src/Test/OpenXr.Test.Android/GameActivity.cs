@@ -11,7 +11,6 @@ using OpenXr.Samples;
 namespace OpenXr.Test.Android
 {
 
-
     [IntentFilter([
         "com.oculus.intent.category.VR",
         "android.intent.action.MAIN",

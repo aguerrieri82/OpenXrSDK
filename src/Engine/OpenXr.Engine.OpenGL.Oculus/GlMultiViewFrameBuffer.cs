@@ -57,6 +57,8 @@ namespace OpenXr.Engine.OpenGL.Oculus
             : base(gl)
         {
 
+            _handle = _gl.GenFramebuffer();
+
             _sampleCount = sampleCount;
             _colorTexId = colorTexId;
             //_target = sampleCount > 1 ? TextureTarget.Texture2DMultisampleArray : TextureTarget.Texture2DArray;
