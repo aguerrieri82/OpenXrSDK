@@ -16,26 +16,26 @@ namespace OpenXr.WebLink.Android
     [Service(Enabled = true,
         IsolatedProcess = false,
         ForegroundServiceType = ForegroundService.TypeRemoteMessaging)]
-    public class WebServerService : Service
+    public class WebLinkService : Service
     {
         private WebApplication? _webApp;
         private bool _isActive;
         private readonly Binder _localBinder;
-        const string TAG = nameof(WebServerService);
+        const string TAG = nameof(WebLinkService);
 
         public class LocalBinder : Binder
         {
-            private readonly WebServerService _service;
+            private readonly WebLinkService _service;
 
-            public LocalBinder(WebServerService service)
+            public LocalBinder(WebLinkService service)
             {
                 _service = service;
             }
 
-            public WebServerService Instance => _service;
+            public WebLinkService Instance => _service;
         }
 
-        public WebServerService()
+        public WebLinkService()
         {
             _localBinder = new LocalBinder(this);
         }

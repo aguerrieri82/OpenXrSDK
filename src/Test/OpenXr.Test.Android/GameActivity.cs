@@ -48,7 +48,7 @@ namespace OpenXr.Test.Android
                 options.SampleCount,
                 options.EnableMultiView);
 
-            StartService(new Intent(this, typeof(WebServerService)));
+            StartService(new Intent(this, typeof(WebLinkService)));
 
             return result;
         }

@@ -3,6 +3,6 @@
 
     public interface ITextureReader
     {
-        TextureData Read(Stream stream);
+        IList<TextureData> Read(Stream stream);
     }
 }

@@ -19,7 +19,7 @@ namespace OpenXr.Samples
 
             var red = new StandardMaterial() { Color = new Color(1, 0, 0) };
 
-            var text = new TextureMaterial(Texture2D.FromKtxImage(assets.OpenAsset("TestScreen.KTX")));
+            var text = new TextureMaterial(Texture2D.FromPvrImage(assets.OpenAsset("TestScreen.pvr")));
             text.DoubleSided = false;
 
             for (var y = -1f; y <= 1; y += 0.5f)
@@ -29,7 +29,7 @@ namespace OpenXr.Samples
                     var x = MathF.Sin(rad) * 1;
                     var z = MathF.Cos(rad) * 1;
 
-                    var cube = new Mesh(Cube.Instance, red);
+                    var cube = new Mesh(Cube.Instance, text );
                     cube.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
                     cube.Transform.Position = new Vector3(x, y, z);
 
