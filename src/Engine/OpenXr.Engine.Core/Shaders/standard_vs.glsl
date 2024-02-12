@@ -1,25 +1,4 @@
 ﻿
-#if MULTI_VIEW
-
-#define NUM_VIEWS 2
-#define VIEW_ID gl_ViewID_OVR
-#extension GL_OVR_multiview2 : require;
-
-layout(num_views=NUM_VIEWS) in;
-
-uniform SceneMatrices
-{
-    uniform mat4 ViewMatrix[NUM_VIEWS];
-    uniform mat4 ProjectionMatrix[NUM_VIEWS];
-}
-
-#else
-
-uniform mat4 uView;
-uniform mat4 uProjection;
-
-#endif
-
 layout (location = 0) in vec3 vPos;
 layout (location = 1) in vec3 vNormal;
 layout (location = 2) in vec2 vUv;
@@ -30,13 +9,44 @@ out vec3 fNormal;
 out vec3 fPos;
 out vec2 fUv;
 
+#if defined(MULTI_VIEW)
+
+#define NUM_VIEWS 2
+#define VIEW_ID gl_ViewID_OVR
+
+layout(num_views=NUM_VIEWS) in;
+
+uniform SceneMatrices
+{
+    uniform mat4 view[NUM_VIEWS];
+    uniform mat4 projection[NUM_VIEWS];
+} uMatrices;
+
+void computePos() 
+{
+   gl_Position = uMatrices.projection[VIEW_ID] * uMatrices.view[VIEW_ID] * uModel * vec4(vPos, 1.0);
+}
+
+
+#else
+
+uniform mat4 uView;
+uniform mat4 uProjection;
+
+void computePos() 
+{
+   gl_Position = uProjection * uView * uModel * vec4(vPos, 1.0);
+}
+
+#endif
+
+
 void main()
 {
-    //Multiplying our uniform with the vertex position, the multiplication order here does matter.
-    gl_Position = uProjection * uView * uModel * vec4(vPos, 1.0);
-    //We want to know the fragment's position in World space, so we multiply ONLY by uModel and not uView or uProjection
+    computePos();
+
     fPos = vec3(uModel * vec4(vPos, 1.0));
-    //The Normal needs to be in World space too, but needs to account for Scaling of the object
+
     fNormal = mat3(transpose(inverse(uModel))) * vNormal;
     fUv = vUv;
 }

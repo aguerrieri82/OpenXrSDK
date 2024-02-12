@@ -12,16 +12,20 @@ namespace OpenXr.Engine.OpenGL
         private readonly BufferTargetARB _bufferType;
         private uint _length;
 
-        public unsafe GlBuffer(GL gl, Span<T> data, BufferTargetARB bufferType)
-            : base(gl)
+        public unsafe GlBuffer(GL gl, BufferTargetARB bufferType)
+             : base(gl)
         {
             _gl = gl;
             _bufferType = bufferType;
 
-
             _handle = _gl.GenBuffer();
-            GlDebug.Log($"GenBuffer {_handle}");
 
+            GlDebug.Log($"GenBuffer {_handle}");
+        }
+
+        public unsafe GlBuffer(GL gl, Span<T> data, BufferTargetARB bufferType)
+            : this(gl, bufferType)
+        {
             Update(data);
         }
 

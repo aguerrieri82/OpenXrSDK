@@ -13,6 +13,7 @@ namespace OpenXr.Engine.OpenGL
     {
         readonly Dictionary<string, int> _locations = [];
         readonly GlRenderOptions _options;
+        IList<string>? _extensions;
 
         public GlProgram(GL gl, string vSource, string fSource, GlRenderOptions options) : base(gl)
         {
@@ -82,17 +83,24 @@ namespace OpenXr.Engine.OpenGL
             GlDebug.Log($"UseProgram NULL");
         }
 
-        protected int Locate(string name, bool optional = false)
+        protected int Locate(string name, bool optional = false, bool isBlock = false)
         {
             if (!_locations.TryGetValue(name, out var result))
             {
-                result = _gl.GetUniformLocation(_handle, name);
+                if (isBlock)
+                    result = (int)_gl.GetUniformBlockIndex(_handle, name);
+                else
+                    result = _gl.GetUniformLocation(_handle, name);
+
                 if (result == -1 && !optional)
                     throw new Exception($"{name} uniform not found on shader.");
+
                 _locations[name] = result;  
             }
             return result;
         }
+
+      
 
         public void SetUniform(string name, int value)
         {
@@ -119,6 +127,11 @@ namespace OpenXr.Engine.OpenGL
             _gl.Uniform4(Locate(name), value.R, value.G, value.B, value.A);
         }
 
+        public void SetUniformBuffer<T>(string name, GlBuffer<T> buffer) where T : unmanaged
+        {
+            _gl.BindBufferBase(BufferTargetARB.UniformBuffer, (uint)Locate(name, false, true), buffer.Handle);
+        }
+
         public unsafe void SetUniform(string name, Texture2D value, int slot = 0)
         {
             var texture = value.GetResource(a => value.CreateGlTexture(_gl));
@@ -135,13 +148,22 @@ namespace OpenXr.Engine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        protected string PatchShader(string source)
+        protected string PatchShader(string source, ShaderType shaderType)
         {
             var builder = new StringBuilder();
 
             builder.Append("#version ")
-                .Append(_options.ShaderVersion!)
-                .Append("\n");
+               .Append(_options.ShaderVersion!)
+               .Append("\n");
+
+            if (shaderType == ShaderType.VertexShader)
+            {
+                if (_options.ShaderExtensions != null)
+                {
+                    foreach (var ext in _options.ShaderExtensions)
+                        builder.Append($"#extension {ext} : require\n");
+                }
+            }
 
             var precision = _options.FloatPrecision switch
             {
@@ -153,16 +175,25 @@ namespace OpenXr.Engine.OpenGL
 
             builder.Append("precision ").Append(precision).Append(" float;\n");
 
+            PatchShader(source, shaderType, builder);
+
             builder.Append("\n\n").Append(source);
 
             return builder.ToString();
+        }
+
+        protected virtual void PatchShader(string source, ShaderType shaderType, StringBuilder builder)
+        {
+           
         }
 
         uint LoadShader(ShaderType type, string source)
         {
             uint handle = _gl.CreateShader(type);
 
-            _gl.ShaderSource(handle, PatchShader(source));
+            source = PatchShader(source, type);
+
+            _gl.ShaderSource(handle, source);
 
             _gl.CompileShader(handle);
 

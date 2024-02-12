@@ -31,7 +31,7 @@ namespace OpenXr.Test.Android
         {
             var options = new OculusXrPluginOptions
             {
-                EnableMultiView = false,
+                EnableMultiView = true,
                 SampleCount = 4
             };
 
