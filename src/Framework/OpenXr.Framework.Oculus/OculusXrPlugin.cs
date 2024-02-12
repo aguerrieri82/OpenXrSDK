@@ -19,16 +19,21 @@ namespace OpenXr.Framework.Oculus
 
         public uint SampleCount { get; set; }
 
+        public float ResolutionScale { get; set; }
+
         public static readonly OculusXrPluginOptions Default = new()
         {
-            SampleCount = 1
+            SampleCount = 2,
+            ResolutionScale = 1.0f,
+            EnableMultiView = true,
+            Foveation = SwapchainCreateFoveationFlagsFB.ScaledBinBitFB
         };
     }
 
 
     public unsafe class OculusXrPlugin : BaseXrPlugin, IDisposable
     {
-        public static string[] LABELS = ["CEILING", "DOOR_FRAME", "FLOOR", "INVISIBLE_WALL_FACE", "WALL_ART", "WALL_FACE", "WINDOW_FRAME", "COUCH", "TABLE", "BED", "LAMP", "PLANT", "SCREEN", "STORAGE", "GLOBAL_MESH", "OTHER"];
+        public static readonly string[] LABELS = ["CEILING", "DOOR_FRAME", "FLOOR", "INVISIBLE_WALL_FACE", "WALL_ART", "WALL_FACE", "WINDOW_FRAME", "COUCH", "TABLE", "BED", "LAMP", "PLANT", "SCREEN", "STORAGE", "GLOBAL_MESH", "OTHER"];
 
         #region EXTENSIONS
 
@@ -77,7 +82,6 @@ namespace OpenXr.Framework.Oculus
         public OculusXrPlugin()
             : this(OculusXrPluginOptions.Default)
         {
-
         }
 
         public OculusXrPlugin(OculusXrPluginOptions options)
@@ -116,14 +120,18 @@ namespace OpenXr.Framework.Oculus
         {
             var labels = string.Join(',', LABELS);
 
-            var support = new SemanticLabelsSupportInfoFB();
-            support.Type = StructureType.SemanticLabelsSupportInfoFB;
-            support.Flags = SemanticLabelsSupportFlagsFB.MultipleSemanticLabelsBitFB;
-            support.RecognizedLabels = (byte*)SilkMarshal.StringToPtr(labels);
+            var support = new SemanticLabelsSupportInfoFB
+            {
+                Type = StructureType.SemanticLabelsSupportInfoFB,
+                Flags = SemanticLabelsSupportFlagsFB.MultipleSemanticLabelsBitFB,
+                RecognizedLabels = (byte*)SilkMarshal.StringToPtr(labels)
+            };
 
-            var result = new SemanticLabelsFB();
-            result.Type = StructureType.SemanticLabelsFB;
-            result.Next = &support;
+            var result = new SemanticLabelsFB
+            {
+                Type = StructureType.SemanticLabelsFB,
+                Next = &support
+            };
 
             _app!.CheckResult(_scene!.GetSpaceSemanticLabelsFB(_app!.Session, space, ref result), "GetSpaceSemanticLabelsFB");
             var buffer = new byte[result.BufferCountOutput];
@@ -222,11 +230,15 @@ namespace OpenXr.Framework.Oculus
 
         public XrTriangleMesh GetSpaceTriangleMesh(Space space)
         {
-            var info = new SpaceTriangleMeshGetInfoMETA();
-            info.Type = XR_TYPE_SPACE_TRIANGLE_MESH_GET_INFO_META;
+            var info = new SpaceTriangleMeshGetInfoMETA
+            {
+                Type = XR_TYPE_SPACE_TRIANGLE_MESH_GET_INFO_META
+            };
 
-            var result = new SpaceTriangleMeshMETA();
-            result.Type = XR_TYPE_SPACE_TRIANGLE_MESH_META;
+            var result = new SpaceTriangleMeshMETA
+            {
+                Type = XR_TYPE_SPACE_TRIANGLE_MESH_META
+            };
 
             _app!.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
 
@@ -292,8 +304,10 @@ namespace OpenXr.Framework.Oculus
 
         public RoomLayoutFB GetSpaceRoomLayout(Space space)
         {
-            var result = new RoomLayoutFB();
-            result.Type = StructureType.RoomLayoutFB;
+            var result = new RoomLayoutFB
+            {
+                Type = StructureType.RoomLayoutFB
+            };
 
             _app!.CheckResult(_scene!.GetSpaceRoomLayoutFB(_app!.Session, space, ref result), "GetSpaceRoomLayoutFB");
 
@@ -307,6 +321,15 @@ namespace OpenXr.Framework.Oculus
             }
 
             return result;
+        }
+
+        public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
+        {
+            result.Size = new Extent2Di
+            {
+                Height = (int)(result.Size.Height * _options.ResolutionScale),
+                Width = (int)(result.Size.Width * _options.ResolutionScale),
+            };
         }
 
         public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
@@ -336,6 +359,7 @@ namespace OpenXr.Framework.Oculus
         public void Dispose()
         {
             _foveationInfo.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public OculusXrPluginOptions Options => _options;

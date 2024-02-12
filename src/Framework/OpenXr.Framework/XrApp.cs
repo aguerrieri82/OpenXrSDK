@@ -151,7 +151,7 @@ namespace OpenXr.Framework
             AssertSessionCreated();
 
             if (_lastSessionState == SessionState.Stopping)
-                Restart();
+                RestartSession();
 
             var state = WaitFrame();
 
@@ -375,7 +375,6 @@ namespace OpenXr.Framework
             return views.First(a => a.Type == ViewConfigurationType.PrimaryStereo);
         }
 
-
         protected virtual void OnSessionChanged(SessionState state, long time)
         {
             switch (state)
@@ -458,10 +457,10 @@ namespace OpenXr.Framework
 
             _renderOptions = new XrRenderOptions();
 
-            SelectRenderOptionsMode(_viewInfo, _renderOptions);
+            SelectRenderOptions(_viewInfo, _renderOptions);
         }
 
-        protected virtual void SelectRenderOptionsMode(XrViewInfo viewInfo, XrRenderOptions result)
+        protected virtual void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
             Debug.Assert(viewInfo.BlendModes != null);
 
@@ -470,6 +469,8 @@ namespace OpenXr.Framework
             result.BlendMode = preferences.First(a => viewInfo.BlendModes.Contains(a));
             result.Size = viewInfo.RecommendedImageRect;
             result.SampleCount = viewInfo.RecommendedSwapchainSampleCount;
+
+            PluginInvoke(a => a.SelectRenderOptions(viewInfo, result));
         }
 
         protected Instance CreateInstance(string appName, string engineName, IList<string> extensions)
@@ -520,7 +521,6 @@ namespace OpenXr.Framework
 
             return other;
         }
-
 
         protected SystemProperties GetSystemProperties()
         {
@@ -592,7 +592,7 @@ namespace OpenXr.Framework
             return space;
         }
 
-        public void Restart()
+        public void RestartSession()
         {
             AssertSessionCreated();
 
@@ -830,6 +830,8 @@ namespace OpenXr.Framework
             _xr.Dispose();
             _xr = null;
             _isDisposed = true;
+
+            GC.SuppressFinalize(this);
         }
 
         public bool IsStarted => _isStarted;
@@ -854,7 +856,7 @@ namespace OpenXr.Framework
 
         public ILogger Logger => _logger;
 
-        public XR Xr => _xr ?? throw new InvalidOperationException("App not init");
+        public XR Xr => _xr ?? throw new InvalidOperationException("App not initialized");
 
         public static XrApp? Current { get; internal set; }
     }
