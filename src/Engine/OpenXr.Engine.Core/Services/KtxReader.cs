@@ -4,9 +4,8 @@ using System.Text;
 namespace OpenXr.Engine
 {
 
-    public class KtxReader : ITextureReader
+    public class KtxReader : BaseTextureReader
     {
-
         unsafe struct KtxHeader
         {
             public fixed byte identifier[12];
@@ -41,7 +40,11 @@ namespace OpenXr.Engine
             CompressedSrgb8Alpha8Etc2EacOes = 37497,
         }
 
-        public unsafe IList<TextureData> Read(Stream stream)
+        KtxReader()
+        {
+        }
+
+        public override unsafe IList<TextureData> Read(Stream stream)
         {
             using var memStream = stream.ToMemory();
             var header = memStream.ReadStruct<KtxHeader>();
@@ -50,7 +53,6 @@ namespace OpenXr.Engine
                 throw new NotSupportedException();
 
             if (header.bytesOfKeyValueData > 0 ||
-                header.numberOfMipmapLevels != 1 ||
                 header.numberOfArrayElements != 0 ||
                 header.pixelDepth != 0 ||
                 header.numberOfFaces != 1)
@@ -60,30 +62,22 @@ namespace OpenXr.Engine
 
             var imageSize = memStream.ReadStruct<uint>();
 
-            var result = new TextureData();
-            result.Width = header.pixelWidth;
-            result.Height = header.pixelHeight;
+            TextureCompressionFormat comp;
+            TextureFormat format;
 
             switch (header.glInternalFormat)
             {
                 case GlInternalFormat.CompressedRgb8Etc2:
-                    result.Compression = TextureCompressionFormat.Etc2;
-                    result.Format = TextureFormat.Rgb24;
+                    comp = TextureCompressionFormat.Etc2;
+                    format = TextureFormat.Rgb24;
                     break;
                 default:
                     throw new NotSupportedException();
             }
 
-
-            result.Data = new byte[memStream.Length - memStream.Position];
-
-            Debug.Assert(imageSize == result.Data.Length);
-
-            memStream.Read(result.Data);
-
-            return [result];
+            return ReadMips(stream, header.pixelWidth, header.pixelHeight, header.numberOfMipmapLevels, comp, format);
         }
 
-        public static readonly KtxReader Instance = new KtxReader();
+        public static readonly KtxReader Instance = new();
     }
 }
