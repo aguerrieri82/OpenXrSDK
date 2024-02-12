@@ -1,4 +1,5 @@
 ﻿using Android.Content;
+using Android.OS;
 using Android.Runtime;
 using Java.Interop;
 using Silk.NET.Core;
@@ -20,6 +21,11 @@ namespace OpenXr.Framework
 
         InitializeLoaderDelegate? InitializeLoader;
 
+        public AndroidXrPlugin(Context context)
+            : this(context, (uint)Process.MyTid())
+        {
+
+        }
 
         public AndroidXrPlugin(Context context, uint mainThreadId)
         {

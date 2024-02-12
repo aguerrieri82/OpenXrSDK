@@ -29,7 +29,7 @@ namespace OpenXr.Framework
                 if (result)
                 {
                     _layersPointers[layerCount] = layer.Header;
-                    
+
                     if ((layer.Flags & XrLayerFlags.EmptySpace) == 0)
                         layer.Header->Space = space;
 

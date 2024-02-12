@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine.OpenGL
+﻿namespace OpenXr.Engine.OpenGL
 {
     public enum ShaderPrecision
     {
@@ -15,7 +9,7 @@ namespace OpenXr.Engine.OpenGL
 
     public class GlRenderOptions
     {
-        public string? ShaderVersion { get; set; }   
+        public string? ShaderVersion { get; set; }
 
         public ShaderPrecision FloatPrecision { get; set; }
 

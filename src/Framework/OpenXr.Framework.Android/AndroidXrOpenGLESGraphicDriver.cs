@@ -19,6 +19,12 @@ namespace OpenXr.Framework.Android
                  GLEnum.Rgba8SNorm];
 
 
+        public AndroidXrOpenGLESGraphicDriver()
+            : this(OpenGLESContext.Create())
+        {
+
+        }
+
         public AndroidXrOpenGLESGraphicDriver(OpenGLESContext context)
         {
             _context = context;

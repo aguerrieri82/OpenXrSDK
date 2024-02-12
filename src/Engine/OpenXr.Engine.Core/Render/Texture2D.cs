@@ -1,7 +1,5 @@
 ﻿
 using SkiaSharp;
-using System.IO;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace OpenXr.Engine
 {
@@ -36,7 +34,7 @@ namespace OpenXr.Engine
 
     public class Texture2D : Texture
     {
-        static Dictionary<SKColorType, TextureFormat> FORMAT_MAP = new() {
+        static readonly Dictionary<SKColorType, TextureFormat> FORMAT_MAP = new() {
             { SKColorType.Bgra8888, TextureFormat.Bgra32 },
             { SKColorType.Rgba8888, TextureFormat.Rgba32 }
         };

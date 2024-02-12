@@ -21,6 +21,6 @@ namespace OpenXr.Framework
 
         CompositionLayerBaseHeader* Header { get; }
 
-        XrLayerFlags Flags { get; } 
+        XrLayerFlags Flags { get; }
     }
 }

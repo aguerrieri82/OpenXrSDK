@@ -8,7 +8,7 @@ using Exception = System.Exception;
 
 namespace OpenXr.Test.Android
 {
- 
+
     [Activity(
         Label = "@string/app_name",
         Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen",

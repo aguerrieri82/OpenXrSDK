@@ -8,6 +8,7 @@
 		<ApplicationId>net.eusoft.oculus</ApplicationId>
 		<ApplicationVersion>1</ApplicationVersion>
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -17,13 +18,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Engine\OpenXr.Engine.Core\OpenXr.Engine.Core.csproj" />
-		<ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGL.Oculus\OpenXr.Engine.OpenGL.Oculus.csproj" />
-		<ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGL\OpenXr.Engine.OpenGL.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Engine\OpenXr.Framework.Engine.csproj" />
-		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
-		<ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGLES\OpenXr.Framework.OpenGLES.csproj" />
 		<ProjectReference Include="..\..\Test\OpenXr.Test.Common\OpenXr.Test.Common.csproj" />
 		<ProjectReference Include="..\..\WebLink\OpenXr.WebLink\OpenXr.WebLink.csproj" />
 	</ItemGroup>

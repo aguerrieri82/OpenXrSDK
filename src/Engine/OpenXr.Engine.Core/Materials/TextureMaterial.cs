@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public class TextureMaterial : ShaderMaterial
     {
@@ -22,7 +16,7 @@ namespace OpenXr.Engine
 
 
         public TextureMaterial()
-            : base()    
+            : base()
         {
             _shader = SHADER;
         }

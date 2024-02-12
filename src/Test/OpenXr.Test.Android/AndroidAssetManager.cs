@@ -1,16 +1,11 @@
 ﻿using Android.Content;
 using OpenXr.Engine.Abstraction;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Test.Android
 {
     public class AndroidAssetManager : IAssetManager
     {
-        Context _context;
+        readonly Context _context;
 
         public AndroidAssetManager(Context context)
         {

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public class LayerManager : IObjectChangeListener
     {
@@ -12,7 +6,7 @@ namespace OpenXr.Engine
         readonly HashSet<string> _layersContent = [];
         readonly List<ILayer> _layers = [];
 
-        public LayerManager(Scene scene) 
+        public LayerManager(Scene scene)
         {
             _scene = scene;
         }
@@ -32,7 +26,7 @@ namespace OpenXr.Engine
 
         public IEnumerable<T> OfType<T>() where T : ILayer
         {
-            return _layers.OfType<T>(); 
+            return _layers.OfType<T>();
         }
 
         public void Remove(ILayer layer)
@@ -53,7 +47,7 @@ namespace OpenXr.Engine
 
         protected static string Hash(ILayer layer, ILayerObject obj)
         {
-            return $"{layer.Id}|{obj.Id}";  
+            return $"{layer.Id}|{obj.Id}";
         }
 
         internal protected void NotifyObjectAdded(ILayer layer, ILayerObject obj)

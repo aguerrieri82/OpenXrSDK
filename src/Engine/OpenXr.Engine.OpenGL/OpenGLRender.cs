@@ -6,7 +6,6 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using System.Text;
 
 
@@ -83,7 +82,7 @@ namespace OpenXr.Engine.OpenGL
 
         protected GlProgram GetProgram(Shader shader, IGlProgramFactory programFactory)
         {
-            return shader.GetResource(a => 
+            return shader.GetResource(a =>
                     programFactory.CreateProgram(_gl, shader.VertexSource!, shader.FragmentSource!, _options));
         }
 
@@ -168,7 +167,7 @@ namespace OpenXr.Engine.OpenGL
             if (value)
                 _gl.Enable(cap);
             else
-                _gl.Disable(cap);   
+                _gl.Disable(cap);
         }
 
         protected void ConfigureCaps(ShaderMaterial material)
@@ -176,7 +175,7 @@ namespace OpenXr.Engine.OpenGL
             _gl.DepthMask(material.WriteDepth);
             EnableFeature(EnableCap.DepthTest, material.UseDepth);
             EnableFeature(EnableCap.CullFace, !material.DoubleSided);
-     
+
             if (!material.WriteColor)
                 _gl.ColorMask(false, false, false, false);
             else
@@ -254,6 +253,6 @@ namespace OpenXr.Engine.OpenGL
         {
         }
 
-    
+
     }
 }

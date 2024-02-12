@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     [Flags]
     public enum ObjectChangeType
@@ -36,7 +30,7 @@ namespace OpenXr.Engine
 
         public static implicit operator ObjectChange(ObjectChangeType type)
         {
-            return new ObjectChange(type);  
+            return new ObjectChange(type);
         }
     }
 }

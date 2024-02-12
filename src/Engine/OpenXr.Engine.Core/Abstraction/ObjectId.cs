@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace OpenXr.Engine
 {
@@ -34,7 +29,7 @@ namespace OpenXr.Engine
             return false;
         }
 
-        public static implicit operator int (ObjectId obj)
+        public static implicit operator int(ObjectId obj)
         {
             return obj.Value;
         }

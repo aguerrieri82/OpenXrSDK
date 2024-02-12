@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using OpenXr.WebLink.Entities;
 using Silk.NET.OpenXR;
-using System.Text;
 
 namespace OpenXr.WebLink
 {

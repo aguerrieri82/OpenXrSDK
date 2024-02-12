@@ -45,9 +45,9 @@ namespace OpenXr.Samples
             var display = new Mesh(Quad.Instance, red);
             display.Transform.Scale = new Vector3(2, 2, 2);
             display.Materials[0].DoubleSided = true;
-           
+
             scene.AddChild(display);
-        
+
             display.AddBehavior((obj, ctx) =>
             {
                 obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f);

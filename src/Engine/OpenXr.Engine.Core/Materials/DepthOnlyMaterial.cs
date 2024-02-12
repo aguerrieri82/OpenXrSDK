@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public class DepthOnlyMaterial : ShaderMaterial
     {
@@ -22,7 +16,7 @@ namespace OpenXr.Engine
 
 
         public DepthOnlyMaterial()
-            : base()    
+            : base()
         {
             _shader = SHADER;
             WriteColor = false;
@@ -33,6 +27,6 @@ namespace OpenXr.Engine
             obj.SetUniform("color", Color.Transparent);
         }
 
-        public static readonly DepthOnlyMaterial Instance = new DepthOnlyMaterial();    
+        public static readonly DepthOnlyMaterial Instance = new DepthOnlyMaterial();
     }
 }

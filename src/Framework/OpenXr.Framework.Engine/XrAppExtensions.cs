@@ -71,7 +71,10 @@ namespace OpenXr.Framework
                 if (viewIndex == 0)
                     app.RenderFrame(rect);
                 else
+                {
+                    camera.UpdateWorldMatrix(false, false);
                     app.Renderer.Render(app.ActiveScene, camera, rect);
+                }
             }
 
             void RenderMultiView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader* image, long predTime)
