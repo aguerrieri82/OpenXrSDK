@@ -2,7 +2,7 @@
 using OpenXr.Framework;
 
 
-namespace OpenXr.Test.Android
+namespace OpenXr.WebLink.Android
 {
     public class HandlerXrThread : IXrThread
     {

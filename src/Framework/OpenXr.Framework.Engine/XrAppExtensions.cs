@@ -55,7 +55,7 @@ namespace OpenXr.Framework
             {
                 var glImage = (SwapchainImageOpenGLKHR*)image;
 
-                var rect = view.SubImage.ImageRect.Convert().To<RectI>();
+                var rect = view.SubImage.ImageRect.Convert().To<Rect2I>();
 
                 var renderTarget = targetFactory(gl, glImage->Image);
 
@@ -81,7 +81,7 @@ namespace OpenXr.Framework
             {
                 var glImage = (SwapchainImageOpenGLKHR*)image;
 
-                var rect = views[0].SubImage.ImageRect.Convert().To<RectI>();
+                var rect = views[0].SubImage.ImageRect.Convert().To<Rect2I>();
 
                 var renderTarget = targetFactory(gl, glImage->Image);
 

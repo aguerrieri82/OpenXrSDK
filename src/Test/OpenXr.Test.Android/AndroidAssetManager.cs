@@ -14,8 +14,6 @@ namespace OpenXr.Test.Android
 
         public Stream OpenAsset(string name)
         {
-            var test = _context.Assets.List("");
-
             return _context.Assets!.Open(name);
         }
     }

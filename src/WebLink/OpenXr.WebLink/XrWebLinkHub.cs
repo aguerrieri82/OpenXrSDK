@@ -9,7 +9,7 @@ using System.Text;
 
 namespace OpenXr.WebLink
 {
-    public class XrWebLinkHub : Hub<IXrWebLinkClient>
+    public class XrWebLinkHub : Hub
     {
         readonly XrApp _app;
         readonly ILogger<XrWebLinkHub> _logger;

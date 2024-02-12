@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
 using Silk.NET.OpenXR;
 
@@ -6,8 +7,8 @@ namespace OpenXr.Test
 {
     public class SampleXrApp : XrApp
     {
-        public SampleXrApp(params IXrPlugin[] plugins)
-           : base(NullLogger<XrApp>.Instance, plugins)
+        public SampleXrApp(ILogger logger, params IXrPlugin[] plugins)
+           : base(logger, plugins)
         {
 
         }

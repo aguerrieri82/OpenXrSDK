@@ -70,6 +70,7 @@ namespace OpenXr.Framework
             _instanceReady = new SyncEvent();
             _sessionLock = new object();
             _layers = new XrLayerManager(this);
+            Current = this;
         }
 
         protected void Initialize()
@@ -854,5 +855,7 @@ namespace OpenXr.Framework
         public ILogger Logger => _logger;
 
         public XR Xr => _xr ?? throw new InvalidOperationException("App not init");
+
+        public static XrApp? Current { get; internal set; }
     }
 }

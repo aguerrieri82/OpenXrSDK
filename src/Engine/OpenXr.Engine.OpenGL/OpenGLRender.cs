@@ -182,13 +182,13 @@ namespace OpenXr.Engine.OpenGL
                 _gl.ColorMask(true, true, true, true);
         }
 
-        public void Render(Scene scene, Camera camera, RectI view)
+        public void Render(Scene scene, Camera camera, Rect2I view)
         {
             if (_target != null)
                 Render(scene, camera, view, _target);
         }
 
-        public void Render(Scene scene, Camera camera, RectI view, IGlRenderTarget target)
+        public void Render(Scene scene, Camera camera, Rect2I view, IGlRenderTarget target)
         {
             target.Begin();
 

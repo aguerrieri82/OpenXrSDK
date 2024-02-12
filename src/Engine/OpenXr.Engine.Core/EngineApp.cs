@@ -65,7 +65,7 @@
             }
         }
 
-        public void RenderFrame(RectI view)
+        public void RenderFrame(Rect2I view)
         {
             _context.Frame++;
             _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
