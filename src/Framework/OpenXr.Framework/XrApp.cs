@@ -79,7 +79,7 @@ namespace OpenXr.Framework
             PluginInvoke(a => a.Initialize(this, _extensions));
 
             LayersInvoke(a => a.Initialize(this, _extensions));
-            
+
             var supportedExtensions = GetSupportedExtensions();
 
             for (int i = 0; i < _extensions.Count; i++)
@@ -507,7 +507,7 @@ namespace OpenXr.Framework
             return _systemId;
         }
 
-        public T* GetSystemProperties<T>(T* other) where T: unmanaged
+        public T* GetSystemProperties<T>(T* other) where T : unmanaged
         {
             var result = new SystemProperties
             {
@@ -835,7 +835,7 @@ namespace OpenXr.Framework
 
         public ulong SystemId => _systemId;
 
-        public SystemProperties SystemProps => _systemProps; 
+        public SystemProperties SystemProps => _systemProps;
 
         public XrLayerManager Layers => _layers;
 

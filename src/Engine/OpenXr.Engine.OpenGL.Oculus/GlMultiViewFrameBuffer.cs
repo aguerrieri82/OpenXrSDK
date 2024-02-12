@@ -5,12 +5,7 @@ using Silk.NET.OpenGL;
 #endif
 
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Engine.OpenGL.Oculus
 {
@@ -72,7 +67,7 @@ namespace OpenXr.Engine.OpenGL.Oculus
 
         protected void UpdateTextureInfo()
         {
-            _gl.BindTexture(_target, _colorTexId); 
+            _gl.BindTexture(_target, _colorTexId);
             _gl.GetTexLevelParameter(_target, 0, GetTextureParameter.TextureWidth, out int w);
             _gl.GetTexLevelParameter(_target, 0, GetTextureParameter.TextureHeight, out int h);
             _width = (uint)w;
@@ -146,7 +141,7 @@ namespace OpenXr.Engine.OpenGL.Oculus
                     FramebufferTarget.DrawFramebuffer,
                     FramebufferAttachment.ColorAttachment0,
                     _colorTexId,
-                    0, 
+                    0,
                     _sampleCount,
                     0, 2);
 

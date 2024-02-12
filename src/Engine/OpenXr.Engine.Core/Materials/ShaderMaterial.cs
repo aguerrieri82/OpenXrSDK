@@ -6,7 +6,7 @@
 
         public ShaderMaterial()
         {
-            WriteDepth = true;  
+            WriteDepth = true;
             UseDepth = true;
             WriteColor = true;
         }

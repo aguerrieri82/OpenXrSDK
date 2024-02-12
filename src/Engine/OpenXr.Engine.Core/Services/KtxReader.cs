@@ -1,17 +1,12 @@
-﻿using OpenXr.Engine.Abstraction;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Engine
 {
 
     public class KtxReader : ITextureReader
     {
- 
+
         unsafe struct KtxHeader
         {
             public fixed byte identifier[12];
@@ -59,8 +54,8 @@ namespace OpenXr.Engine
             if (!magic.Contains("KTX 11"))
                 throw new NotSupportedException();
 
-            if (header.bytesOfKeyValueData > 0 || 
-                header.numberOfMipmapLevels != 1 || 
+            if (header.bytesOfKeyValueData > 0 ||
+                header.numberOfMipmapLevels != 1 ||
                 header.numberOfArrayElements != 0 ||
                 header.pixelDepth != 0 ||
                 header.numberOfFaces != 1)
@@ -90,7 +85,7 @@ namespace OpenXr.Engine
             result.Data = new byte[memStream.Length - memStream.Position];
 
             Debug.Assert(imageSize == result.Data.Length);
-            
+
             memStream.Read(result.Data);
 
             return result;

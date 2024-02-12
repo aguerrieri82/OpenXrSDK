@@ -1,5 +1,4 @@
 ﻿#if GLES
-using OpenXr.Engine.OpenGL;
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;

@@ -17,7 +17,7 @@ namespace OpenXr.Framework.Oculus
 
         public SwapchainCreateFoveationFlagsFB Foveation { get; set; }
 
-        public uint SampleCount { get; set; }    
+        public uint SampleCount { get; set; }
 
         public static readonly OculusXrPluginOptions Default = new()
         {
@@ -73,7 +73,7 @@ namespace OpenXr.Framework.Oculus
         protected NativeStruct<SwapchainCreateInfoFoveationFB> _foveationInfo;
         protected readonly ConcurrentDictionary<ulong, TaskCompletionSource<SpaceQueryResultFB[]>> _spaceQueries = [];
         protected readonly OculusXrPluginOptions _options;
-     
+
         public OculusXrPlugin()
             : this(OculusXrPluginOptions.Default)
         {
@@ -82,7 +82,7 @@ namespace OpenXr.Framework.Oculus
 
         public OculusXrPlugin(OculusXrPluginOptions options)
         {
-            _options = options; 
+            _options = options;
         }
 
         public override void Initialize(XrApp app, IList<string> extensions)
@@ -314,7 +314,7 @@ namespace OpenXr.Framework.Oculus
             if (_options.EnableMultiView)
                 info.ArraySize = 2;
 
-            info.SampleCount = _options.SampleCount;    
+            info.SampleCount = _options.SampleCount;
 
             if (_options.Foveation == SwapchainCreateFoveationFlagsFB.None)
                 return;

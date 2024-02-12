@@ -46,7 +46,7 @@
             return layer;
         }
 
-        public static IEnumerable<T> TypeLayerContent<T>(this Scene scene) where T: Object3D
+        public static IEnumerable<T> TypeLayerContent<T>(this Scene scene) where T : Object3D
         {
             var layer = scene.Layers.OfType<TypeLayer<T>>().FirstOrDefault();
             if (layer == null)

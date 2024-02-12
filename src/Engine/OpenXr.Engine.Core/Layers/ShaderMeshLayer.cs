@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
 
     public class ShaderMeshLayer : BaseAutoLayer<Mesh>
@@ -19,7 +12,7 @@ namespace OpenXr.Engine
 
         protected override bool BelongsToLayer(Mesh obj)
         {
-            return obj.IsVisible && 
+            return obj.IsVisible &&
                 obj.Materials.
                     OfType<ShaderMaterial>().
                     Any(a => a.Shader == _shader);
@@ -30,7 +23,7 @@ namespace OpenXr.Engine
 
     public class ShaderMeshLayerBuilder : IObjectChangeListener
     {
-        Dictionary<Shader, ShaderMeshLayer> _layers = [];
+        readonly Dictionary<Shader, ShaderMeshLayer> _layers = [];
 
         private ShaderMeshLayerBuilder()
         {

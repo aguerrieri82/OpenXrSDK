@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace OpenXr.Engine
 {
@@ -57,10 +56,10 @@ namespace OpenXr.Engine
         {
 
             var changeType = ObjectChangeType.Parent;
-            
+
             _parent = value;
             _worldDirty = true;
-            
+
             if (_scene == null && value != null)
                 changeType |= ObjectChangeType.SceneAdd;
 

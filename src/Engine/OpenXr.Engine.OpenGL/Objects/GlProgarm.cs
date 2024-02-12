@@ -13,11 +13,11 @@ namespace OpenXr.Engine.OpenGL
     {
         readonly Dictionary<string, int> _locations = [];
         readonly GlRenderOptions _options;
-        IList<string>? _extensions;
+        readonly IList<string>? _extensions;
 
         public GlProgram(GL gl, string vSource, string fSource, GlRenderOptions options) : base(gl)
         {
-            _options= options;  
+            _options = options;
 
             Create(
                 LoadShader(ShaderType.VertexShader, vSource),
@@ -95,12 +95,12 @@ namespace OpenXr.Engine.OpenGL
                 if (result == -1 && !optional)
                     throw new Exception($"{name} uniform not found on shader.");
 
-                _locations[name] = result;  
+                _locations[name] = result;
             }
             return result;
         }
 
-      
+
 
         public void SetUniform(string name, int value)
         {
@@ -184,7 +184,7 @@ namespace OpenXr.Engine.OpenGL
 
         protected virtual void PatchShader(string source, ShaderType shaderType, StringBuilder builder)
         {
-           
+
         }
 
         uint LoadShader(ShaderType type, string source)
@@ -204,6 +204,6 @@ namespace OpenXr.Engine.OpenGL
 
             return handle;
         }
-   
+
     }
 }

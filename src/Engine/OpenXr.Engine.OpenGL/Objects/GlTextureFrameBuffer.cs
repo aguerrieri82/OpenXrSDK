@@ -76,7 +76,7 @@ namespace OpenXr.Engine.OpenGL
                 Color, 0);
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
 
-  
+
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, dest.Handle);
             _gl.FramebufferTexture2D(
                  FramebufferTarget.DrawFramebuffer,

@@ -4,13 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Numerics;
 
 
@@ -66,7 +59,7 @@ namespace OpenXr.Engine.OpenGL.Oculus
             if (!options.ShaderExtensions.Contains("GL_OVR_multiview2"))
                 options.ShaderExtensions.Add("GL_OVR_multiview2");
 
-            return new GlMultiViewProgram(gl, () => _matrices, vSource, fSource, options);    
+            return new GlMultiViewProgram(gl, () => _matrices, vSource, fSource, options);
         }
     }
 }

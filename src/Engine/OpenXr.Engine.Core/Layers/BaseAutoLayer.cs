@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 namespace OpenXr.Engine
 {
@@ -21,7 +16,7 @@ namespace OpenXr.Engine
         public void Attach(LayerManager manager)
         {
             _manager = manager;
-  
+
         }
 
         public virtual void Detach()
@@ -51,7 +46,7 @@ namespace OpenXr.Engine
             if (Contains(obj))
                 return;
             _content.Add(obj);
-            _manager?.NotifyObjectAdded(this, obj); 
+            _manager?.NotifyObjectAdded(this, obj);
         }
 
         protected void Remove(T obj)

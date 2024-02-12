@@ -23,7 +23,7 @@ namespace OpenXr.Engine.OpenGL
             return glObj;
         }
 
-        public static unsafe GlTexture2D CreateGlTexture(this Texture2D value, GL gl) 
+        public static unsafe GlTexture2D CreateGlTexture(this Texture2D value, GL gl)
         {
             var texture = new GlTexture2D(gl)
             {

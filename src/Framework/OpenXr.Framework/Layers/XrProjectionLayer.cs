@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Silk.NET.OpenXR;
-using Silk.NET.Windowing;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 

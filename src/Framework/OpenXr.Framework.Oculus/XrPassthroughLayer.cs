@@ -1,10 +1,5 @@
 ﻿using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Framework.Oculus
 {

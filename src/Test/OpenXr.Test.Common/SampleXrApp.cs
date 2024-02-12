@@ -1,12 +1,6 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
 using Silk.NET.OpenXR;
-using Silk.NET.OpenXR.Extensions.KHR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Test
 {
@@ -22,7 +16,7 @@ namespace OpenXr.Test
         {
             base.SelectRenderOptionsMode(viewInfo, result);
 
-            var scaleFactor = 1f;
+            var scaleFactor = 1.4f;
 
             result.Size = new Extent2Di
             {

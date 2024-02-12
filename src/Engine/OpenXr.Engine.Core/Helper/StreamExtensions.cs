@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public static class StreamExtensions
     {
@@ -13,7 +7,7 @@ namespace OpenXr.Engine
             var buffer = stackalloc T[1];
 
             var span = new Span<byte>((byte*)buffer, sizeof(T));
-            
+
             stream.Read(span);
 
             return *buffer;

@@ -31,7 +31,7 @@ namespace OpenXr.Framework
 
         public readonly T* Pointer => _value;
 
-        public static implicit operator T? (NativeStruct<T> value)
+        public static implicit operator T?(NativeStruct<T> value)
         {
             if (value.Pointer == null)
                 return null;

@@ -1,11 +1,4 @@
-﻿using OpenXr.Engine.Abstraction;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
 
     public class DdsReader : ITextureReader
@@ -56,10 +49,10 @@ namespace OpenXr.Engine
             using var memStream = stream.ToMemory();
 
             var file = memStream.ReadStruct<DDS_FILE>();
-            
+
             if (file.magic != 0x20534444)
                 throw new Exception();
-            
+
             if (file.header.dwSize != sizeof(DDSHeader))
                 throw new Exception();
 

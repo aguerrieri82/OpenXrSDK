@@ -1,7 +1,4 @@
 using Android.Content.PM;
-using Android.OS;
-using OpenXr.Engine;
-using OpenXr.Engine.OpenGL.Oculus;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Oculus;
@@ -35,15 +32,15 @@ namespace OpenXr.Test.Android
             };
 
             var result = new SampleXrApp(
-                 new AndroidXrOpenGLESGraphicDriver(OpenGLESContext.Create()),
+                 new AndroidXrOpenGLESGraphicDriver(),
                  new OculusXrPlugin(options),
-                 new AndroidXrPlugin(this, (uint)Process.MyTid()));
+                 new AndroidXrPlugin(this));
 
             result.Layers.Add<XrPassthroughLayer>();
 
             result.BindEngineApp(
-                Common.CreateScene(new AndroidAssetManager(this)), 
-                options.SampleCount, 
+                Common.CreateScene(new AndroidAssetManager(this)),
+                options.SampleCount,
                 options.EnableMultiView);
 
             return result;

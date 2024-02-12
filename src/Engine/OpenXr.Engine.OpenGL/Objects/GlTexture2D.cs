@@ -131,7 +131,7 @@ namespace OpenXr.Engine.OpenGL
                     default:
                         throw new NotSupportedException();
                 }
-    
+
                 if (SampleCount > 1)
                 {
                     _gl.TexStorage2DMultisample(
@@ -144,12 +144,12 @@ namespace OpenXr.Engine.OpenGL
                 }
                 else
                 {
-                    if (pixelFormat== PixelFormat.DepthComponent)
+                    if (pixelFormat == PixelFormat.DepthComponent)
                     {
-                        _gl.TexStorage2D(Target, 
-                            1, 
-                            (SizedInternalFormat)internalFormat, 
-                            width, 
+                        _gl.TexStorage2D(Target,
+                            1,
+                            (SizedInternalFormat)internalFormat,
+                            width,
                             height);
                     }
                     else
@@ -179,7 +179,7 @@ namespace OpenXr.Engine.OpenGL
                         case TextureFormat.SRgb24:
                             internalFormat = InternalFormat.CompressedSrgb8Etc2;
                             break;
-                  
+
                         default:
                             throw new NotSupportedException();
                     }
@@ -202,7 +202,7 @@ namespace OpenXr.Engine.OpenGL
                 MinFilter = TextureMinFilter.Linear;
                 MagFilter = TextureMagFilter.Linear;
 
-                _isCompressed = true;   
+                _isCompressed = true;
             }
 
             _internalFormat = internalFormat;
@@ -222,14 +222,14 @@ namespace OpenXr.Engine.OpenGL
                 _gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
             }
 
-            if (!IsDepth) 
+            if (!IsDepth)
             {
                 _gl.TexParameter(Target, TextureParameterName.TextureBaseLevel, BaseLevel);
                 _gl.TexParameter(Target, TextureParameterName.TextureMaxLevel, MaxLevel);
 
                 if (!_isCompressed)
                     _gl.GenerateMipmap(Target);
-            } 
+            }
 
             Unbind();
         }
