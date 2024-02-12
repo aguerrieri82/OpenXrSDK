@@ -1,7 +1,8 @@
-﻿namespace OpenXr.Engine
-{
+﻿using System.Reflection.PortableExecutable;
 
-    public class DdsReader : ITextureReader
+namespace OpenXr.Engine
+{
+    public class DdsReader : BaseTextureReader
     {
         struct DDS_FILE
         {
@@ -39,41 +40,30 @@
             public int dwReserved2;
         }
 
-        public static uint FixEtc2Size(uint value)
+        DdsReader()
         {
-            return (uint)((value + 3) & ~3);
         }
 
-        public unsafe IList<TextureData> Read(Stream stream)
+        public override unsafe IList<TextureData> Read(Stream stream)
         {
             using var memStream = stream.ToMemory();
 
             var file = memStream.ReadStruct<DDS_FILE>();
 
             if (file.magic != 0x20534444)
-                throw new Exception();
+                throw new InvalidOperationException();
 
             if (file.header.dwSize != sizeof(DDSHeader))
-                throw new Exception();
+                throw new InvalidOperationException();
 
-            var result = new TextureData();
-            result.Width = (uint)file.header.dwWidth;
-            result.Height = (uint)file.header.dwHeight;
-            result.Compression = (TextureCompressionFormat)file.header.ddspf.dwFourCC;
+   
+            var comp = (TextureCompressionFormat)file.header.ddspf.dwFourCC;
+            var format = TextureFormat.Rgb24;
 
-            if (result.Compression == TextureCompressionFormat.Etc2)
-            {
-                result.Format = TextureFormat.Rgb24;
-                result.Width = FixEtc2Size(result.Width);
-                result.Height = FixEtc2Size(result.Height);
-            }
-
-            result.Data = new byte[memStream.Length - memStream.Position];
-            memStream.Read(result.Data);
-
-            return [result];
+  
+            return ReadMips(stream, (uint)file.header.dwWidth, (uint)file.header.dwHeight, (uint)file.header.dwMipMapCount, comp, format);
         }
 
-        public static readonly DdsReader Instance = new DdsReader();
+        public static readonly DdsReader Instance = new();
     }
 }

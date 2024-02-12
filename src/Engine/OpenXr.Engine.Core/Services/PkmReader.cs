@@ -2,7 +2,6 @@
 
 namespace OpenXr.Engine
 {
-
     public class PkmReader : ITextureReader
     {
         unsafe struct Etc2Header
@@ -42,6 +41,6 @@ namespace OpenXr.Engine
             return [result];
         }
 
-        public static readonly PkmReader Instance = new PkmReader();
+        public static readonly PkmReader Instance = new();
     }
 }

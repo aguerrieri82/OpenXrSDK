@@ -191,7 +191,7 @@ namespace OpenXr.Engine.OpenGL
                 else
                     throw new NotSupportedException();
 
-                _gl.PixelStore(PixelStoreParameter.PackAlignment, 1);
+                //_gl.PixelStore(PixelStoreParameter.PackAlignment, 1);
 
                 Debug.Assert(data != null);
 

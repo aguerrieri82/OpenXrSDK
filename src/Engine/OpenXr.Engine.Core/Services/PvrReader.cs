@@ -5,7 +5,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace OpenXr.Engine
 {
 
-    public class PvrReader : ITextureReader
+    public class PvrReader : BaseTextureReader
     {
         const uint Version = 0x03525650;
 
@@ -24,7 +24,6 @@ namespace OpenXr.Engine
 
         unsafe struct PvrHeader
         {
-
             public uint Version;
             public uint Flags;
             public PixelFormat PixelFormat;
@@ -52,7 +51,11 @@ namespace OpenXr.Engine
             return (uint)((value + 3) & ~3);
         }
 
-        public unsafe IList<TextureData> Read(Stream stream)
+        PvrReader()
+        {
+        }
+
+        public override unsafe IList<TextureData> Read(Stream stream)
         {
             using var memStream = stream.ToMemory();
 
@@ -68,7 +71,6 @@ namespace OpenXr.Engine
                     memStream.Position += (header.MetaDataSize - sizeof(PvrMeta));
             }
 
-
             var test = (ulong)header.PixelFormat >> 32;
 
             if (header.NumSurfaces != 1 ||
@@ -78,62 +80,29 @@ namespace OpenXr.Engine
                 throw new NotSupportedException();
             }
 
-
-
-            uint bitPerPixel = 0;
             TextureCompressionFormat comp;
             TextureFormat format;
-
-            uint Align(uint value, uint align)
-            {
-                return (uint)Math.Ceiling(value / (float)align) * align;
-            }
-
 
             switch (header.PixelFormat)
             {
                 case PixelFormat.ETC2_RGB:
                     comp = TextureCompressionFormat.Etc2;
-                    format = TextureFormat.Rgb24;
-                    bitPerPixel = 4;
+                    if (header.ColourSpace == ColourSpace.sRGB)
+                        format = TextureFormat.SRgb24;
+                    else
+                        format = TextureFormat.Rgb24;
                     break;
                 case PixelFormat.ETC2_RGBA:
                     comp = TextureCompressionFormat.Etc2;
                     format = TextureFormat.Rgba32;
-                    bitPerPixel = 8;
                     break;
                 default:
                     throw new NotSupportedException();
             }
 
-
-            var results = new List<TextureData>(); 
-
-            for (var i = 0; i < header.MIPMapCount; i++)
-            {
-                var item = new TextureData
-                {
-                    Width = Math.Max(1, header.Width >> i),
-                    Height = Math.Max(1, header.Height >> i),
-                    MipLevel = (uint)i,
-                    Format = format,
-                    Compression = comp, 
-                };
-
-                var size = (uint)(Math.Ceiling(item.Width / 4f) * Math.Ceiling(item.Height / 4f) * 8);
-
-                item.Data = new byte[size];
-
-                var totRead = memStream.Read(item.Data);
-                if (totRead != item.Data.Length)
-                    break;
-
-                results.Add(item);
-            }
-
-            return results;
+            return ReadMips(stream, header.Width, header.Height, header.MIPMapCount, comp, format);
         }
 
-        public static readonly PvrReader Instance = new PvrReader();
+        public static readonly PvrReader Instance = new();
     }
 }
