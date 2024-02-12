@@ -40,6 +40,8 @@ namespace OpenXr.Engine.OpenGL.Oculus
         {
             var matrices = GetMatrices();
 
+            //var viewId = Locate("VIEW_ID", true);
+
             var buffer = new Span<SceneMatrices>(ref matrices);
 
             _sceneMatrices.Update(buffer);

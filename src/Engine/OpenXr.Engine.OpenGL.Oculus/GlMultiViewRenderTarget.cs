@@ -28,7 +28,7 @@ namespace OpenXr.Engine.OpenGL.Oculus
 
     public class GlMultiViewRenderTarget : GlTextureRenderTarget, IGlProgramFactory, IMultiViewTarget
     {
-        SceneMatrices _matrices;
+        static SceneMatrices _matrices;
 
         protected GlMultiViewRenderTarget(GL gl, uint textId, uint sampleCount)
             : base(gl, textId, sampleCount)

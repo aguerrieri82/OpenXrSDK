@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace OpenXr.Framework
 {
 
-    public unsafe delegate void RenderViewDelegate(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image, long predTime);
+    public unsafe delegate void RenderViewDelegate(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image, int viewIndex, long predTime);
 
     public unsafe delegate void RenderMultiViewDelegate(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader* image, long predTime);
 
@@ -88,7 +88,7 @@ namespace OpenXr.Framework
                     projView.Fov = view.Fov;
                     projView.Pose = view.Pose;
                     projView.SubImage.Swapchain = swapChainInfo.Swapchain;
-                    projView.SubImage.ImageArrayIndex = 0;
+                    projView.SubImage.ImageArrayIndex = (uint)i;
                     projView.SubImage.ImageRect.Offset.X = 0;
                     projView.SubImage.ImageRect.Offset.Y = 0;
                     projView.SubImage.ImageRect.Extent = swapChainInfo.Size;
@@ -138,7 +138,7 @@ namespace OpenXr.Framework
 
                     Debug.Assert(swapChainInfo.Images != null);
 
-                    _renderView!(ref projView, swapChainInfo.Images.ItemPointer((int)index), predTime);
+                    _renderView!(ref projView, swapChainInfo.Images.ItemPointer((int)index), i, predTime);
                 }
                 catch (Exception ex)
                 {

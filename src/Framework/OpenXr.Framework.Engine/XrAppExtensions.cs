@@ -51,7 +51,7 @@ namespace OpenXr.Framework
 
             app.Start();
 
-            void RenderView(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image, long predTime)
+            void RenderView(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image, int viewIndex, long predTime)
             {
                 var glImage = (SwapchainImageOpenGLKHR*)image;
 
@@ -68,7 +68,10 @@ namespace OpenXr.Framework
                 camera.Projection = transform.Projection;
                 camera.Transform.SetMatrix(transform.View);
 
-                app.RenderFrame(rect);
+                if (viewIndex == 0)
+                    app.RenderFrame(rect);
+                else
+                    app.Renderer.Render(app.ActiveScene, camera, rect);
             }
 
             void RenderMultiView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader* image, long predTime)
