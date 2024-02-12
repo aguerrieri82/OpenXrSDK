@@ -7,6 +7,8 @@
 
         public uint Height { get; set; }
 
+        public uint MipLevel { get; set; }
+
         public TextureFormat Format { get; set; }
 
         public TextureCompressionFormat Compression { get; set; }

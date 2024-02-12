@@ -18,6 +18,9 @@
     <None Update="TestScreen.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TestScreen.pvr">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Texture.pkm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

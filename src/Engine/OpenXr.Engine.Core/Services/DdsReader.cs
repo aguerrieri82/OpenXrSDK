@@ -44,7 +44,7 @@
             return (uint)((value + 3) & ~3);
         }
 
-        public unsafe TextureData Read(Stream stream)
+        public unsafe IList<TextureData> Read(Stream stream)
         {
             using var memStream = stream.ToMemory();
 
@@ -71,7 +71,7 @@
             result.Data = new byte[memStream.Length - memStream.Position];
             memStream.Read(result.Data);
 
-            return result;
+            return [result];
         }
 
         public static readonly DdsReader Instance = new DdsReader();

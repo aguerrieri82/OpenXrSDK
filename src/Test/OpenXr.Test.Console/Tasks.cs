@@ -98,8 +98,8 @@ namespace OpenXr
 
         public unsafe static void LoadTexture()
         {
-            var reader = new KtxReader();
-            var stream = File.OpenRead(@"D:\Development\Personal\Git\OpenXrSDK\src\Test\OpenXr.Test.Common\TestScreen.KTX");
+            var reader = new PvrReader();
+            using var stream = File.OpenRead(@"d:\TestScreen.pvr");
             reader.Read(stream);
         }
 

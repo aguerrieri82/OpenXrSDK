@@ -63,6 +63,12 @@ namespace OpenXr.Engine
             return FromData(data);
         }
 
+        public static Texture2D FromPvrImage(Stream stream)
+        {
+            var data = PvrReader.Instance.Read(stream);
+            return FromData(data);
+        }
+
         public static Texture2D FromImage(Stream stream)
         {
             var image = SKBitmap.Decode(stream);
@@ -88,18 +94,18 @@ namespace OpenXr.Engine
             image.Dispose();
             stream.Dispose();
 
-            return FromData(data);
+            return FromData([data]);
         }
 
-        public static Texture2D FromData(TextureData data)
+        public static Texture2D FromData(IList<TextureData> data)
         {
             return new Texture2D
             {
-                Data = data.Data,
-                Width = data.Width,
-                Height = data.Height,
-                Format = data.Format,
-                Compression = data.Compression,
+                Data = data,
+                Width = data[0].Width,
+                Height = data[0].Height,
+                Format = data[0].Format,
+                Compression = data[0].Compression,
                 MagFilter = ScaleFilter.Linear,
                 MinFilter = ScaleFilter.LinearMipmapLinear,
                 WrapS = WrapMode.ClampToEdge,
@@ -107,7 +113,7 @@ namespace OpenXr.Engine
             };
         }
 
-        public byte[]? Data { get; set; }
+        public IList<TextureData>? Data { get; set; }
 
         public uint Width { get; set; }
 

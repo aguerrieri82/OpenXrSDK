@@ -35,8 +35,7 @@ namespace OpenXr.Engine.OpenGL
 
             if (value.Data != null)
             {
-                fixed (byte* pByte = value.Data)
-                    texture.Create(value.Width, value.Height, value.Format, value.Compression, pByte, (uint)value.Data.Length);
+                texture.Create(value.Width, value.Height, value.Format, value.Compression, value.Data);
 
                 value.Data = null;
             }

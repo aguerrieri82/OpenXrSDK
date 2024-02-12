@@ -41,12 +41,7 @@ namespace OpenXr.Engine
             CompressedSrgb8Alpha8Etc2EacOes = 37497,
         }
 
-        public uint FixEtc2Size(uint value)
-        {
-            return (uint)((value + 3) & ~3);
-        }
-
-        public unsafe TextureData Read(Stream stream)
+        public unsafe IList<TextureData> Read(Stream stream)
         {
             using var memStream = stream.ToMemory();
             var header = memStream.ReadStruct<KtxHeader>();
@@ -74,8 +69,6 @@ namespace OpenXr.Engine
                 case GlInternalFormat.CompressedRgb8Etc2:
                     result.Compression = TextureCompressionFormat.Etc2;
                     result.Format = TextureFormat.Rgb24;
-                    result.Width = result.Width;
-                    result.Height = result.Height;
                     break;
                 default:
                     throw new NotSupportedException();
@@ -88,7 +81,7 @@ namespace OpenXr.Engine
 
             memStream.Read(result.Data);
 
-            return result;
+            return [result];
         }
 
         public static readonly KtxReader Instance = new KtxReader();

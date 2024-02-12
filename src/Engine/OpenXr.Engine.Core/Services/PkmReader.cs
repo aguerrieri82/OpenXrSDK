@@ -20,7 +20,7 @@ namespace OpenXr.Engine
             return (ushort)(value >> 8 | ((value << 8) & 0xFF00));
         }
 
-        public unsafe TextureData Read(Stream stream)
+        public unsafe IList<TextureData> Read(Stream stream)
         {
             using var memStream = stream.ToMemory();
 
@@ -39,7 +39,7 @@ namespace OpenXr.Engine
 
             memStream.Read(result.Data);
 
-            return result;
+            return [result];
         }
 
         public static readonly PkmReader Instance = new PkmReader();

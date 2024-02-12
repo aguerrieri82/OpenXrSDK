@@ -1,5 +1,6 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+using System.Diagnostics;
 #else
 using Silk.NET.OpenGL;
 #endif
@@ -70,7 +71,7 @@ namespace OpenXr.Engine.OpenGL
             Unbind();
         }
 
-        public unsafe void Create(uint width, uint height, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, void* data = null, uint dataSize = 0)
+        public unsafe void Create(uint width, uint height, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null)
         {
             Dispose();
 
@@ -83,6 +84,7 @@ namespace OpenXr.Engine.OpenGL
             InternalFormat internalFormat;
             PixelFormat pixelFormat;
             PixelType pixelType;
+
 
             if (compression == TextureCompressionFormat.Uncompressed)
             {
@@ -154,6 +156,8 @@ namespace OpenXr.Engine.OpenGL
                     }
                     else
                     {
+                        //TODO fix null
+                        
                         _gl.TexImage2D(
                            Target,
                            0,
@@ -163,7 +167,7 @@ namespace OpenXr.Engine.OpenGL
                            0,
                            pixelFormat,
                            pixelType,
-                           data);
+                           null);
                     }
                 }
             }
@@ -189,17 +193,26 @@ namespace OpenXr.Engine.OpenGL
 
                 _gl.PixelStore(PixelStoreParameter.PackAlignment, 1);
 
-                _gl.CompressedTexImage2D(
-                     Target,
-                     0,
-                     internalFormat,
-                     width,
-                     height,
-                     0,
-                     dataSize,
-                     data);
+                Debug.Assert(data != null);
 
-                MinFilter = TextureMinFilter.Linear;
+                foreach (var level in data)
+                {
+                    fixed (byte* pData = level.Data)
+                    {
+                        _gl.CompressedTexImage2D(
+                            Target,
+                            (int)level.MipLevel,
+                            internalFormat,
+                            level.Width,
+                            level.Height,
+                            0,
+                            (uint)level.Data!.Length,
+                            pData);
+                    }
+                }
+
+                MaxLevel = data[data.Count - 1].MipLevel;
+                MinFilter = MaxLevel == 0 ? TextureMinFilter.Linear : TextureMinFilter.LinearMipmapLinear;
                 MagFilter = TextureMagFilter.Linear;
 
                 _isCompressed = true;

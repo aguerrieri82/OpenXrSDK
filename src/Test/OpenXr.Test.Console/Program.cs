@@ -22,19 +22,14 @@ var host = Host.CreateDefaultBuilder(args)
 _ = host.RunAsync();
 
 
-unsafe
-{
-    Tasks.LoadTexture();
-    //Tasks.WriteMesh("d:\\cube.obj");
-}
-
 Gpu.EnableNvAPi();
 
 var logger = host.Services.GetRequiredService<ILogger<object>>();
 
-await WebLinkApp.Run(host.Services, logger);
+Tasks.LoadTexture(); ;
 
-//await WindowSceneApp.Run(host.Services, logger);
+//await WebLinkApp.Run(host.Services, logger);
+await WindowSceneApp.Run(host.Services, logger);
 //await XrSceneApp.Run(host.Services, logger);
 
 
