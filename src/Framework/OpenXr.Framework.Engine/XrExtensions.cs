@@ -12,9 +12,25 @@ using Silk.NET.OpenXR;
 
 namespace OpenXr.Framework
 {
-    public unsafe static class XrAppExtensions
+    public unsafe static class XrExtensions
     {
         public delegate IGlRenderTarget GlRenderTargetFactory(GL gl, uint texId);
+
+        public static GetQuadDelegate BindToQuad(this Mesh mesh)
+        {
+            return () =>
+            {
+                var result = new XrQuad
+                {
+                    IsVisible = mesh.IsVisible && mesh.Parent != null,
+                    Size = new System.Numerics.Vector2(mesh.Transform.Scale.X, mesh.Transform.Scale.Y),
+                    Orientation = mesh.Transform.Orientation,
+                    Position = mesh.Transform.Position
+                };
+
+                return result;
+            };
+        }
 
         public static void BindEngineApp(this XrApp xrApp, EngineApp app, uint sampleCount = 1, bool multiView = false)
         {

@@ -40,8 +40,15 @@ namespace OpenXr.Engine.OpenGL
                 value.Data = null;
             }
             else
-                texture.Create(value.Width, value.Height, value.Format, value.Compression);
-
+            {
+                if (value.Type == TextureType.Depth)
+                {
+                    texture.Attach(OpenGLRender.Current!.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment), TextureTarget.Texture2DArray);
+                }
+                else
+                    texture.Create(value.Width, value.Height, value.Format, value.Compression);
+            }
+               
 
             return texture;
         }

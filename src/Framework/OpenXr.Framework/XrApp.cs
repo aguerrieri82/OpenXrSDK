@@ -7,6 +7,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Monitor = System.Threading.Monitor;
 
 
 namespace OpenXr.Framework
@@ -37,19 +38,19 @@ namespace OpenXr.Framework
         protected XR? _xr;
         protected List<string> _extensions;
         protected Session _session;
-        protected IXrPlugin[] _plugins;
+        protected readonly IXrPlugin[] _plugins;
         protected XrViewInfo? _viewInfo;
-        protected XrRenderOptions? _renderOptions;
+        protected readonly XrRenderOptions _renderOptions;
         protected Space _head;
         protected Space _local;
         protected Space _stage;
         protected bool _isStarted;
-        protected SyncEvent _instanceReady;
+        protected readonly SyncEvent _instanceReady;
         protected SessionState _lastSessionState;
-        protected object _sessionLock;
+        protected readonly object _sessionLock;
         protected bool _sessionBegun;
-        protected ILogger _logger;
-        protected XrLayerManager _layers;
+        protected readonly ILogger _logger;
+        protected readonly XrLayerManager _layers;
         protected View[]? _views;
         protected XrSwapchainInfo[]? _swapchains;
         protected bool _isDisposed;
@@ -70,6 +71,8 @@ namespace OpenXr.Framework
             _instanceReady = new SyncEvent();
             _sessionLock = new object();
             _layers = new XrLayerManager(this);
+            _renderOptions = new XrRenderOptions();
+
             Current = this;
         }
 
@@ -97,8 +100,6 @@ namespace OpenXr.Framework
 
             GetSystemId();
 
-            CollectAndSelectView();
-
             PluginInvoke(p => p.OnInstanceCreated());
 
             _instanceReady.Signal();
@@ -113,6 +114,10 @@ namespace OpenXr.Framework
                 Initialize();
 
             CreateSession();
+
+            CollectAndSelectView();
+
+            SelectRenderOptions(_viewInfo, _renderOptions);
 
             LayersInvoke(a => a.Create());
 
@@ -130,20 +135,30 @@ namespace OpenXr.Framework
 
                 for (var i = 0; i < _swapchains.Length; i++)
                 {
-                    var info = new XrSwapchainInfo();
-                    info.Swapchain = CreateSwapChain();
-                    info.Images = EnumerateSwapchainImages(info.Swapchain);
-                    info.Size = _renderOptions.Size;
-                    _swapchains[i] = info;
+                    var swapchain = CreateSwapChain();
+                    _swapchains[i] = new XrSwapchainInfo
+                    {
+                        Swapchain = swapchain,
+                        Images = EnumerateSwapchainImages(swapchain),
+                        Size = _renderOptions.Size
+                    };
                 }
 
-                _views = new View[_viewInfo.ViewCount];
-
-                for (var i = 0; i < _views.Length; i++)
-                    _views[i] = new View() { Type = StructureType.View };
+                _views = CreateStructArray<View>(_viewInfo.ViewCount, StructureType.View);
             }
 
             _isStarted = true;
+        }
+
+        protected static T[] CreateStructArray<T>(int count, StructureType type) where T : unmanaged
+        {
+            var result = new T[count];
+            fixed (T* pResult = result)
+            {
+                while (count-- > 0)
+                    ((BaseInStructure*)&pResult[count])->Type = type;
+            }
+            return result;
         }
 
         public void RenderFrame(Space space)
@@ -399,9 +414,7 @@ namespace OpenXr.Framework
             uint propCount = 0;
             CheckResult(_xr!.EnumerateInstanceExtensionProperties((byte*)null, 0, &propCount, null), "EnumerateInstanceExtensionProperties");
 
-            var props = new ExtensionProperties[propCount];
-            for (int i = 0; i < props.Length; i++)
-                props[i].Type = StructureType.ExtensionProperties;
+            var props = CreateStructArray<ExtensionProperties>((int)propCount, StructureType.ExtensionProperties);
 
             fixed (ExtensionProperties* pProps = props)
                 CheckResult(_xr.EnumerateInstanceExtensionProperties((byte*)null, propCount, ref propCount, pProps), "EnumerateInstanceExtensionProperties");
@@ -417,10 +430,11 @@ namespace OpenXr.Framework
         }
 
         [MemberNotNull(nameof(_viewInfo))]
-        [MemberNotNull(nameof(_renderOptions))]
         protected void CollectAndSelectView()
         {
             var views = new List<XrViewInfo>();
+
+            var swapchainFormats = EnumerateSwapchainFormats();
 
             foreach (var type in EnumerateViewConfiguration())
             {
@@ -448,16 +462,13 @@ namespace OpenXr.Framework
                     },
                     MaxSwapchainSampleCount = view.MaxSwapchainSampleCount,
                     RecommendedSwapchainSampleCount = view.RecommendedSwapchainSampleCount,
-                    ViewCount = viewsConfig.Length
+                    ViewCount = viewsConfig.Length,
+                    SwapChainFormats = swapchainFormats,
                 });
 
             }
 
             _viewInfo = SelectView(views);
-
-            _renderOptions = new XrRenderOptions();
-
-            SelectRenderOptions(_viewInfo, _renderOptions);
         }
 
         protected virtual void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
@@ -563,6 +574,7 @@ namespace OpenXr.Framework
         protected ViewConfigurationView[] EnumerateViewConfigurationView(ViewConfigurationType viewType)
         {
             uint viewCount = 0;
+
             Span<ViewConfigurationView> result = stackalloc ViewConfigurationView[32];
 
             for (int i = 0; i < result.Length; i++)
@@ -747,15 +759,13 @@ namespace OpenXr.Framework
             if (_renderOptions == null)
                 throw new ArgumentNullException("renderOptions");
 
-            var formats = EnumerateSwapchainFormats();
-
-            var format = Plugin<IXrGraphicDriver>().SelectSwapChainFormat(formats);
-
-            return CreateSwapChain(_renderOptions.Size, _renderOptions.SampleCount, format);
+            return CreateSwapChain(_renderOptions.Size, _renderOptions.SampleCount, _renderOptions.SwapChainFormat);
         }
 
         protected Swapchain CreateSwapChain(Extent2Di size, uint sampleCount, long format)
         {
+
+
             var info = new SwapchainCreateInfo
             {
                 Type = StructureType.SwapchainCreateInfo,
@@ -837,6 +847,8 @@ namespace OpenXr.Framework
         public bool IsStarted => _isStarted;
 
         public ulong SystemId => _systemId;
+
+        public XrRenderOptions RenderOptions => _renderOptions;
 
         public SystemProperties SystemProps => _systemProps;
 

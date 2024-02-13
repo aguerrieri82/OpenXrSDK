@@ -123,6 +123,11 @@ namespace OpenXr.Framework.Android
 
         }
 
+        public void MakeCurrent()
+        {
+            EGL14.EglMakeCurrent(Display, Surface, Surface, Context);
+        }
+
         public EGLConfig? Config;
 
         public EGLDisplay? Display;

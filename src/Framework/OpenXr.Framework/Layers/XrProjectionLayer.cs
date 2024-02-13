@@ -11,7 +11,7 @@ namespace OpenXr.Framework
     public unsafe delegate void RenderMultiViewDelegate(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader* image, long predTime);
 
 
-    public unsafe class XrProjectionLayer : BaseXrLayer<CompositionLayerProjection>
+    public unsafe class XrProjectionLayer : XrBaseLayer<CompositionLayerProjection>
     {
         readonly RenderViewDelegate? _renderView;
         readonly RenderMultiViewDelegate? _renderMultiView;
@@ -47,7 +47,7 @@ namespace OpenXr.Framework
             base.Dispose();
         }
 
-        protected override bool Render(ref CompositionLayerProjection layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
+        protected override bool Update(ref CompositionLayerProjection layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
         {
             Debug.Assert(_xrApp != null);
 

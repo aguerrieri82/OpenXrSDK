@@ -41,7 +41,6 @@ namespace OpenXr.Framework.Android
             extensions.Add(KhrOpenglEsEnable.ExtensionName);
         }
 
-
         public override void OnInstanceCreated()
         {
             if (!_app!.Xr.TryGetInstanceExtension<KhrOpenglEsEnable>(null, _app.Instance, out _openGlEs))
@@ -49,6 +48,15 @@ namespace OpenXr.Framework.Android
                 throw new NotSupportedException(KhrOpenglEsEnable.ExtensionName + " not supported");
             }
         }
+        public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
+        {
+            System.Diagnostics.Debug.Assert(viewInfo.SwapChainFormats != null);
+
+            var cast = viewInfo.SwapChainFormats!.Select(a=> ((GLEnum)(int)a).ToString()).ToArray();
+
+            result.SwapChainFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
+        }
+
 
         public GraphicsBinding CreateBinding()
         {
@@ -67,11 +75,6 @@ namespace OpenXr.Framework.Android
             return result;
         }
 
-        public long SelectSwapChainFormat(IList<long> availFormats)
-        {
-            return (long)_validFormats.First(a => availFormats.Contains((long)a));
-        }
-
         public T GetApi<T>() where T : class
         {
             if (typeof(T) == typeof(GL))
@@ -80,6 +83,8 @@ namespace OpenXr.Framework.Android
         }
 
         public XrDynamicType SwapChainImageType => _swapChainType;
+
+        public OpenGLESContext Context => _context;
 
     }
 }

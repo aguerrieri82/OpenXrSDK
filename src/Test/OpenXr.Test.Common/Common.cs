@@ -15,14 +15,13 @@ namespace OpenXr.Samples
 
             scene.ActiveCamera = new PerspectiveCamera() { Far = 50f };
 
-            //scene.ActiveCamera.BackgroundColor = Color.White;
-
             var red = new StandardMaterial() { Color = new Color(1, 0, 0) };
 
             var text = new TextureMaterial(Texture2D.FromPvrImage(assets.OpenAsset("TestScreen.pvr")));
             text.DoubleSided = false;
 
-            for (var y = -1f; y <= 1; y += 0.5f)
+
+            for (var y = 0f; y <= 2f; y += 0.5f)
             {
                 for (var rad = 0f; rad < Math.PI * 2; rad += MathF.PI / 10f)
                 {
@@ -31,7 +30,7 @@ namespace OpenXr.Samples
 
                     var cube = new Mesh(Cube.Instance, red );
                     cube.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
-                    cube.Transform.Position = new Vector3(x, y, z);
+                    cube.Transform.Position = new Vector3(x, y + 0.1f, z);
 
                     cube.AddBehavior((obj, ctx) =>
                     {
@@ -42,22 +41,17 @@ namespace OpenXr.Samples
                 }
             }
 
-            var display = new Mesh(Quad.Instance, text);
-            display.Transform.Scale = new Vector3(2, 2, 2);
-            display.Materials[0].DoubleSided = true;
+            var display = new Mesh(Quad.Instance);
+            display.Transform.Scale = new Vector3(1.924f, 1.08f, 0.01f);
+            display.Transform.Position = new Vector3(0, 1.2f,- 1.5f);
+            //display.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
+            display.Name = "display";
 
-            //scene.AddChild(display);
+            scene.AddChild(display);
 
-            display.AddBehavior((obj, ctx) =>
-            {
-                obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f);
-            });
 
             scene.AddChild(new AmbientLight(0.3f));
             scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
-
-            var xxx = scene.TypeLayerContent<Light>().ToArray();
-
 
             app.OpenScene(scene);
 

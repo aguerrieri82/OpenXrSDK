@@ -2,6 +2,7 @@
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
 using Silk.NET.Windowing;
+using System.Diagnostics;
 
 namespace OpenXr.Framework.OpenGLES
 {
@@ -55,9 +56,11 @@ namespace OpenXr.Framework.OpenGLES
             return _view.CreateOpenGLESBinding();
         }
 
-        public long SelectSwapChainFormat(IList<long> availFormats)
+        public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
-            return (long)_validFormats.First(a => availFormats.Contains((long)a));
+            Debug.Assert(viewInfo.SwapChainFormats != null);
+
+            result.SwapChainFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
         }
 
         public T GetApi<T>() where T : class

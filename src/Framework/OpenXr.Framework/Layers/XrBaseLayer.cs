@@ -3,13 +3,13 @@ using System.Runtime.InteropServices;
 
 namespace OpenXr.Framework
 {
-    public unsafe abstract class BaseXrLayer<T> : IXrLayer where T : struct
+    public unsafe abstract class XrBaseLayer<T> : IXrLayer where T : unmanaged
     {
         protected T* _header;
         protected XrApp? _xrApp;
         private bool _isEnabled;
 
-        public BaseXrLayer()
+        public XrBaseLayer()
         {
             _header = (T*)Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(T)));
             (*_header) = new T();
@@ -40,13 +40,13 @@ namespace OpenXr.Framework
             }
         }
 
-        public bool Render(ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
+        public bool Update(ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
         {
             var span = new Span<T>(_header, 1);
-            return Render(ref span[0], ref views, swapchains, predTime);
+            return Update(ref span[0], ref views, swapchains, predTime);
         }
 
-        protected abstract bool Render(ref T layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime);
+        protected abstract bool Update(ref T layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime);
 
         public bool IsEnabled
         {

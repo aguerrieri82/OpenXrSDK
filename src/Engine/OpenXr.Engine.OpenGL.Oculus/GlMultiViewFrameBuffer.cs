@@ -179,5 +179,14 @@ namespace OpenXr.Engine.OpenGL.Oculus
                 throw new Exception($"Frame buffer state invalid: {status}");
             }
         }
+
+        public override uint QueryTexture(FramebufferAttachment attachment)
+        {
+            if (attachment == FramebufferAttachment.ColorAttachment0)
+                return _colorTexId;
+            if (attachment == FramebufferAttachment.DepthAttachment)
+                return _depthTexId;
+            throw new NotSupportedException();
+        }
     }
 }

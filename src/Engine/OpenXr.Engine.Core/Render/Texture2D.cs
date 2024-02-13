@@ -31,6 +31,12 @@ namespace OpenXr.Engine
         LinearMipmapLinear = 9987,
     }
 
+    public enum TextureType
+    {
+        Normal,
+        Depth
+    }
+
 
     public class Texture2D : Texture
     {
@@ -114,6 +120,8 @@ namespace OpenXr.Engine
         }
 
         public IList<TextureData>? Data { get; set; }
+
+        public TextureType Type { get; set; }
 
         public uint Width { get; set; }
 

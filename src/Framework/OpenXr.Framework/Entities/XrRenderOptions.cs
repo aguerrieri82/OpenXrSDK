@@ -10,5 +10,7 @@ namespace OpenXr.Framework
 
         public uint SampleCount { get; set; }
 
+        public long SwapChainFormat { get; set; }
+
     }
 }

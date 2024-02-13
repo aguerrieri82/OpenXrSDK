@@ -15,7 +15,7 @@ namespace OpenXr.Framework
 
         void Create();
 
-        bool Render(ref View[] views, XrSwapchainInfo[] swapchains, long predTime);
+        bool Update(ref View[] views, XrSwapchainInfo[] swapchains, long predTime);
 
         bool IsEnabled { get; set; }
 

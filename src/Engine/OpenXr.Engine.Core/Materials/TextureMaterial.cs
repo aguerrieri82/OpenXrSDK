@@ -1,4 +1,6 @@
-﻿namespace OpenXr.Engine
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace OpenXr.Engine
 {
     public class TextureMaterial : ShaderMaterial
     {
@@ -20,6 +22,7 @@
         {
             _shader = SHADER;
         }
+
 
         public TextureMaterial(Texture2D texture)
             : this()
