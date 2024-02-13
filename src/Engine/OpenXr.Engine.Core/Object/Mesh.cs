@@ -30,11 +30,13 @@ namespace OpenXr.Engine
             NotifyChanged(ObjectChangeType.Render);
         }
 
-        public Mesh(Geometry geometry, Material material)
+        public Mesh(Geometry geometry, Material? material = null)
             : this()
         {
             Geometry = geometry;
-            Materials.Add(material);
+
+            if (material != null)
+                Materials.Add(material);
         }
 
         public override void Update(RenderContext ctx)

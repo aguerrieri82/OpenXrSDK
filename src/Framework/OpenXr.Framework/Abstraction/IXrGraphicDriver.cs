@@ -7,8 +7,6 @@ namespace OpenXr.Framework
     {
         GraphicsBinding CreateBinding();
 
-        long SelectSwapChainFormat(IList<long> availFormats);
-
         XrDynamicType SwapChainImageType { get; }
     }
 }

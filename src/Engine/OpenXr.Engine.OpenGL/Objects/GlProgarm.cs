@@ -100,8 +100,6 @@ namespace OpenXr.Engine.OpenGL
             return result;
         }
 
-
-
         public void SetUniform(string name, int value)
         {
             _gl.Uniform1(Locate(name), value);

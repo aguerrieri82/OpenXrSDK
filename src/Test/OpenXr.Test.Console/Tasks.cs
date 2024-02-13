@@ -98,7 +98,7 @@ namespace OpenXr
 
         public unsafe static void LoadTexture()
         {
-            var reader = new PvrReader();
+            var reader = PvrReader.Instance; ;
             using var stream = File.OpenRead(@"d:\TestScreen.pvr");
             reader.Read(stream);
         }

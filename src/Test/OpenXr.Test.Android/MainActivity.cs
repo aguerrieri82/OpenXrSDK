@@ -1,6 +1,8 @@
 using Android.Content;
 using Android.Content.PM;
+using Android.Views;
 using Android.Webkit;
+using Javax.Microedition.Khronos.Egl;
 
 namespace OpenXr.Test.Android
 {
@@ -21,6 +23,10 @@ namespace OpenXr.Test.Android
         protected unsafe override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+
+
+
+            Surface x;
 
             SetContentView(Resource.Layout.activity_main);
 

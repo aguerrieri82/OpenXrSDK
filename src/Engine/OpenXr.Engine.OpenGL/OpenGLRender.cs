@@ -72,7 +72,8 @@ namespace OpenXr.Engine.OpenGL
             _gl = gl;
             _meshLayout = GlVertexLayout.FromType<VertexData>();
             _options = options;
-            _target = new GlDefaultRenderTarget();
+            _target = new GlDefaultRenderTarget(gl);
+            Current = this;
         }
 
         GlProgram IGlProgramFactory.CreateProgram(GL gl, string vSource, string fSource, GlRenderOptions options)
@@ -253,6 +254,12 @@ namespace OpenXr.Engine.OpenGL
         {
         }
 
+
+        public GL GL => _gl;
+
+        public IGlRenderTarget? RenderTarget => _target;
+
+        public static OpenGLRender? Current { get; internal set; }
 
     }
 }

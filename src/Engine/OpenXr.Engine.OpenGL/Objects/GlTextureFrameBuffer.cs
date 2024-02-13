@@ -94,6 +94,17 @@ namespace OpenXr.Engine.OpenGL
             _gl.InvalidateFramebuffer(FramebufferTarget.DrawFramebuffer, [InvalidateFramebufferAttachment.DepthAttachment]);
         }
 
+        public override uint QueryTexture(FramebufferAttachment attachment)
+        {
+            if (attachment == FramebufferAttachment.ColorAttachment0)
+                return Color.Handle;
+            if (attachment == FramebufferAttachment.DepthAttachment)
+                return Depth?.Handle ?? 0;
+
+            throw new NotSupportedException();
+        }
+
+
         public GlTexture2D Color;
 
         public GlTexture2D? Depth;

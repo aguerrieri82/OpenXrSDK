@@ -18,6 +18,8 @@ namespace OpenXr.Framework
 
         public int ViewCount;
 
+        public long[]? SwapChainFormats;
+
         public EnvironmentBlendMode[]? BlendModes;
     }
 }

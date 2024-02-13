@@ -12,7 +12,9 @@ namespace OpenXr.Engine
 
         public Transform()
         {
-            Scale = new Vector3(1, 1, 1);
+            _scale = new Vector3(1, 1, 1);
+            _orientation = Quaternion.Identity;
+            _isDirty = true;    
         }
 
         public bool Update()

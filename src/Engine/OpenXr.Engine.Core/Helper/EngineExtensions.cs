@@ -58,6 +58,13 @@
 
         #region GROUP
 
+
+        public static T? FindByName<T>(this Group group, string name)    where T : Object3D
+        {
+            return group.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
+        }
+
+
         public static IEnumerable<T> VisibleDescendants<T>(this Group target) where T : Object3D
         {
             return target.Descendants<T>().Where(a => a.IsVisible);

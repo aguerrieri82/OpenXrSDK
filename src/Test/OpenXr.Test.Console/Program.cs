@@ -26,7 +26,6 @@ Gpu.EnableNvAPi();
 
 var logger = host.Services.GetRequiredService<ILogger<object>>();
 
-Tasks.LoadTexture(); ;
 
 //await WebLinkApp.Run(host.Services, logger);
 await WindowSceneApp.Run(host.Services, logger);

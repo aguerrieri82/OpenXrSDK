@@ -7,7 +7,7 @@ using Silk.NET.OpenGL;
 
 namespace OpenXr.Engine.OpenGL
 {
-    public class GlFrameBuffer : GlObject
+    public abstract class GlFrameBuffer : GlObject
     {
         public GlFrameBuffer(GL gl)
             : base(gl)
@@ -26,7 +26,7 @@ namespace OpenXr.Engine.OpenGL
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
         }
 
-
+        public abstract uint QueryTexture(FramebufferAttachment attachment);
 
         public override void Dispose()
         {

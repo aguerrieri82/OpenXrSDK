@@ -66,5 +66,10 @@ namespace OpenXr.Engine.OpenGL
 
             GC.SuppressFinalize(this);
         }
+
+        public uint QueryTexture(FramebufferAttachment attachment)
+        {
+            return _frameBuffer.QueryTexture(attachment);
+        }
     }
 }

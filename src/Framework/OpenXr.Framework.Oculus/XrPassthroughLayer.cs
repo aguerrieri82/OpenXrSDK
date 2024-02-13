@@ -3,7 +3,7 @@ using Silk.NET.OpenXR.Extensions.FB;
 
 namespace OpenXr.Framework.Oculus
 {
-    public class XrPassthroughLayer : BaseXrLayer<CompositionLayerPassthroughFB>
+    public class XrPassthroughLayer : XrBaseLayer<CompositionLayerPassthroughFB>
     {
         private FBPassthrough? _passthrough;
         private PassthroughFB _ptInstance;
@@ -105,7 +105,7 @@ namespace OpenXr.Framework.Oculus
                 PausePt();
         }
 
-        protected override bool Render(ref CompositionLayerPassthroughFB layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
+        protected override bool Update(ref CompositionLayerPassthroughFB layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
         {
             layer.LayerHandle = _ptLayer;
             layer.Flags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
