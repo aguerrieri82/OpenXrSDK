@@ -18,6 +18,7 @@ namespace OpenXr.Framework.Oculus
         public override void Initialize(XrApp app, IList<string> extensions)
         {
             extensions.Add(FBPassthrough.ExtensionName);
+            extensions.Add(FBPassthroughKeyboardHands.ExtensionName);
             base.Initialize(app, extensions);
         }
 
@@ -85,7 +86,7 @@ namespace OpenXr.Framework.Oculus
 
             CreatePt(PassthroughFlagsFB.IsRunningATCreationBitFB);
 
-            CreatePtLayer(PassthroughLayerPurposeFB.ReconstructionFB, PassthroughFlagsFB.IsRunningATCreationBitFB);
+            CreatePtLayer(PassthroughLayerPurposeFB.TrackedKeyboardHandsFB, PassthroughFlagsFB.IsRunningATCreationBitFB);
 
             _header->Type = StructureType.CompositionLayerPassthroughFB;
 
