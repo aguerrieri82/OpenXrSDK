@@ -6,7 +6,10 @@ using Silk.NET.OpenXR;
 using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
+using Action = Silk.NET.OpenXR.Action;
 using Monitor = System.Threading.Monitor;
 
 
@@ -55,6 +58,7 @@ namespace OpenXr.Framework
         protected XrSwapchainInfo[]? _swapchains;
         protected bool _isDisposed;
         protected SystemProperties _systemProps;
+        private ActionSet _actionSet;
 
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
@@ -75,6 +79,8 @@ namespace OpenXr.Framework
 
             Current = this;
         }
+
+        #region START/STOP
 
         protected void Initialize()
         {
@@ -150,105 +156,6 @@ namespace OpenXr.Framework
             _isStarted = true;
         }
 
-        protected static T[] CreateStructArray<T>(int count, StructureType type) where T : unmanaged
-        {
-            var result = new T[count];
-            fixed (T* pResult = result)
-            {
-                while (count-- > 0)
-                    ((BaseInStructure*)&pResult[count])->Type = type;
-            }
-            return result;
-        }
-
-        public void RenderFrame(Space space)
-        {
-            AssertSessionCreated();
-
-            if (_lastSessionState == SessionState.Stopping)
-                RestartSession();
-
-            var state = WaitFrame();
-
-            BeginFrame();
-
-            CompositionLayerBaseHeader*[]? layers = null;
-
-            uint layerCount = 0;
-
-            try
-            {
-                if (state.ShouldRender != 0)
-                {
-                    var viewsState = LocateViews(space, state.PredictedDisplayTime);
-
-                    var isPosValid = (viewsState.ViewStateFlags & ViewStateFlags.OrientationValidBit) != 0 &&
-                                     (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;
-
-                    if (isPosValid)
-                        layers = _layers.Render(ref _views, _swapchains, space, state.PredictedDisplayTime, out layerCount);
-                }
-            }
-            finally
-            {
-                EndFrame(state.PredictedDisplayPeriod, ref layers, layerCount);
-            }
-        }
-
-        protected void EndFrame(long displayTime, ref CompositionLayerBaseHeader*[]? layers, uint count)
-        {
-            AssertSessionCreated();
-
-            fixed (CompositionLayerBaseHeader** pLayers = layers)
-            {
-                var frameEndInfo = new FrameEndInfo()
-                {
-                    Type = StructureType.FrameEndInfo,
-                    EnvironmentBlendMode = _renderOptions.BlendMode,
-                    DisplayTime = displayTime,
-                    LayerCount = count,
-                    Layers = pLayers
-                };
-
-                CheckResult(_xr.EndFrame(_session, in frameEndInfo), "EndFrame");
-            }
-        }
-
-        [MemberNotNull(nameof(_views))]
-        [MemberNotNull(nameof(_renderOptions))]
-        [MemberNotNull(nameof(_xr))]
-        [MemberNotNull(nameof(_swapchains))]
-        [MemberNotNull(nameof(_viewInfo))]
-        protected void AssertSessionCreated()
-        {
-            if (_session.Handle == 0)
-                throw new InvalidOperationException();
-        }
-
-        protected void BeginFrame()
-        {
-            var info = new FrameBeginInfo()
-            {
-                Type = StructureType.FrameBeginInfo
-            };
-            CheckResult(_xr!.BeginFrame(_session, in info), "BeginFrame");
-        }
-
-        protected FrameState WaitFrame()
-        {
-            var info = new FrameWaitInfo()
-            {
-                Type = StructureType.FrameWaitInfo,
-            };
-
-            var result = new FrameState
-            {
-                Type = StructureType.FrameState
-            };
-            CheckResult(_xr!.WaitFrame(_session, in info, ref result), "WaitFrame");
-            return result;
-        }
-
         public virtual void Stop()
         {
             if (!_isStarted)
@@ -287,127 +194,9 @@ namespace OpenXr.Framework
 
         }
 
-        public bool HandleEvents()
-        {
-            return HandleEvents(CancellationToken.None);
-        }
+        #endregion
 
-        public bool HandleEvents(CancellationToken cancellationToken)
-        {
-            if (!_instanceReady.Wait(cancellationToken))
-                return true;
-
-            if (_instance.Handle == 0)
-                return false;
-
-            Debug.Assert(_xr != null);
-
-            var buffer = new EventDataBuffer();
-
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                buffer.Type = StructureType.EventDataBuffer;
-
-                var result = _xr.PollEvent(_instance, ref buffer);
-                if (result != Result.Success)
-                    break;
-
-                _logger.LogDebug("New event {ev}", buffer.Type);
-
-                try
-                {
-                    switch (buffer.Type)
-                    {
-                        case StructureType.EventDataSessionStateChanged:
-                            var sessionChanged = buffer.Convert().To<EventDataSessionStateChanged>();
-                            _session = sessionChanged.Session;
-                            OnSessionChanged(sessionChanged.State, sessionChanged.Time);
-
-                            break;
-                    }
-
-                    PluginInvoke(p => p.HandleEvent(ref buffer));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError("Handling event {type}: {ex}", buffer.Type, ex);
-                }
-
-            }
-
-            return true;
-        }
-
-        protected void WaitForSession(params SessionState[] states)
-        {
-            lock (_sessionLock)
-            {
-                while (!states.Contains(_lastSessionState))
-                    Monitor.Wait(_sessionLock);
-            }
-        }
-
-        protected void DisposeSpace(Space space)
-        {
-            if (space.Handle != 0)
-            {
-                CheckResult(_xr!.DestroySpace(space), "DestroySpace");
-                space.Handle = 0;
-            }
-        }
-        protected void LayersInvoke(Action<IXrLayer> action)
-        {
-            ListInvoke(_layers.Layers, action);
-        }
-
-        protected void PluginInvoke(Action<IXrPlugin> action)
-        {
-            ListInvoke(_plugins, action);
-        }
-
-        protected void ListInvoke<T>(IEnumerable items, Action<T> action)
-        {
-            foreach (var plugin in items.OfType<T>())
-            {
-                try
-                {
-                    action(plugin);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error invoking plugin {plugin}: {ex}", plugin!.GetType().FullName, ex);
-                }
-            }
-        }
-
-        public T Plugin<T>() where T : IXrPlugin
-        {
-            return _plugins.OfType<T>().First();
-        }
-
-        protected virtual XrViewInfo SelectView(IList<XrViewInfo> views)
-        {
-            return views.First(a => a.Type == ViewConfigurationType.PrimaryStereo);
-        }
-
-        protected virtual void OnSessionChanged(SessionState state, long time)
-        {
-            switch (state)
-            {
-                case SessionState.Ready:
-                    break;
-                case SessionState.Stopping:
-                    break;
-            }
-
-            _logger.LogInformation("Session state: {state}", state);
-
-            lock (_sessionLock)
-            {
-                _lastSessionState = state;
-                Monitor.PulseAll(_sessionLock);
-            }
-        }
+        #region INSTANCE & SYSTEM
 
         protected IList<string> GetSupportedExtensions()
         {
@@ -429,60 +218,6 @@ namespace OpenXr.Framework
             return result;
         }
 
-        [MemberNotNull(nameof(_viewInfo))]
-        protected void CollectAndSelectView()
-        {
-            var views = new List<XrViewInfo>();
-
-            var swapchainFormats = EnumerateSwapchainFormats();
-
-            foreach (var type in EnumerateViewConfiguration())
-            {
-                var props = GetViewConfigurationProperties(type);
-
-                var blendModes = EnumerateBlendModes(type);
-
-                var viewsConfig = EnumerateViewConfigurationView(type);
-                var view = viewsConfig.First();
-
-                views.Add(new XrViewInfo
-                {
-                    Type = type,
-                    FovMutable = props.FovMutable != 0,
-                    BlendModes = blendModes,
-                    MaxImageRect = new Extent2Di
-                    {
-                        Width = (int)view.MaxImageRectWidth,
-                        Height = (int)view.MaxImageRectHeight
-                    },
-                    RecommendedImageRect = new Extent2Di
-                    {
-                        Width = (int)view.RecommendedImageRectWidth,
-                        Height = (int)view.RecommendedImageRectHeight
-                    },
-                    MaxSwapchainSampleCount = view.MaxSwapchainSampleCount,
-                    RecommendedSwapchainSampleCount = view.RecommendedSwapchainSampleCount,
-                    ViewCount = viewsConfig.Length,
-                    SwapChainFormats = swapchainFormats,
-                });
-
-            }
-
-            _viewInfo = SelectView(views);
-        }
-
-        protected virtual void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
-        {
-            Debug.Assert(viewInfo.BlendModes != null);
-
-            EnvironmentBlendMode[] preferences = [EnvironmentBlendMode.AlphaBlend, EnvironmentBlendMode.Opaque];
-
-            result.BlendMode = preferences.First(a => viewInfo.BlendModes.Contains(a));
-            result.Size = viewInfo.RecommendedImageRect;
-            result.SampleCount = viewInfo.RecommendedSwapchainSampleCount;
-
-            PluginInvoke(a => a.SelectRenderOptions(viewInfo, result));
-        }
 
         protected Instance CreateInstance(string appName, string engineName, IList<string> extensions)
         {
@@ -545,6 +280,65 @@ namespace OpenXr.Framework
             return result;
         }
 
+        #endregion
+
+        #region SPACE AND VIEW
+
+        [MemberNotNull(nameof(_viewInfo))]
+        protected void CollectAndSelectView()
+        {
+            var views = new List<XrViewInfo>();
+
+            var swapchainFormats = EnumerateSwapchainFormats();
+
+            foreach (var type in EnumerateViewConfiguration())
+            {
+                var props = GetViewConfigurationProperties(type);
+
+                var blendModes = EnumerateBlendModes(type);
+
+                var viewsConfig = EnumerateViewConfigurationView(type);
+                var view = viewsConfig.First();
+
+                views.Add(new XrViewInfo
+                {
+                    Type = type,
+                    FovMutable = props.FovMutable != 0,
+                    BlendModes = blendModes,
+                    MaxImageRect = new Extent2Di
+                    {
+                        Width = (int)view.MaxImageRectWidth,
+                        Height = (int)view.MaxImageRectHeight
+                    },
+                    RecommendedImageRect = new Extent2Di
+                    {
+                        Width = (int)view.RecommendedImageRectWidth,
+                        Height = (int)view.RecommendedImageRectHeight
+                    },
+                    MaxSwapchainSampleCount = view.MaxSwapchainSampleCount,
+                    RecommendedSwapchainSampleCount = view.RecommendedSwapchainSampleCount,
+                    ViewCount = viewsConfig.Length,
+                    SwapChainFormats = swapchainFormats,
+                });
+
+            }
+
+            _viewInfo = SelectView(views);
+        }
+
+        protected EnvironmentBlendMode[] EnumerateBlendModes(ViewConfigurationType type)
+        {
+            uint count = 0;
+            CheckResult(_xr!.EnumerateEnvironmentBlendModes(Instance, _systemId, type, ref count, null), "EnumerateEnvironmentBlendModes");
+
+            var result = new EnvironmentBlendMode[count];
+
+            fixed (EnvironmentBlendMode* pResult = result)
+                CheckResult(_xr!.EnumerateEnvironmentBlendModes(Instance, _systemId, type, count, ref count, pResult), "EnumerateEnvironmentBlendModes");
+
+            return result;
+        }
+
         protected ViewConfigurationProperties GetViewConfigurationProperties(ViewConfigurationType viewType)
         {
             var result = new ViewConfigurationProperties()
@@ -602,6 +396,65 @@ namespace OpenXr.Framework
             Space space;
             CheckResult(_xr!.CreateReferenceSpace(_session, &refSpace, &space), "CreateReferenceSpace");
             return space;
+        }
+
+
+        protected ViewState LocateViews(Space space, long displayTime)
+        {
+            Debug.Assert(_viewInfo != null);
+
+            var info = new ViewLocateInfo()
+            {
+                Type = StructureType.ViewLocateInfo,
+                Space = space,
+                DisplayTime = displayTime,
+                ViewConfigurationType = _viewInfo.Type
+            };
+
+            var state = new ViewState()
+            {
+                Type = StructureType.ViewState
+            };
+
+            uint count = (uint)_viewInfo.ViewCount;
+
+            fixed (View* pViews = _views)
+                CheckResult(_xr!.LocateView(_session, in info, ref state, count, ref count, pViews), "LocateView");
+
+            return state;
+        }
+
+        protected void DisposeSpace(Space space)
+        {
+            if (space.Handle != 0)
+            {
+                CheckResult(_xr!.DestroySpace(space), "DestroySpace");
+                space.Handle = 0;
+            }
+        }
+
+        #endregion
+
+        #region SESSION
+
+        protected void WaitForSession(params SessionState[] states)
+        {
+            lock (_sessionLock)
+            {
+                while (!states.Contains(_lastSessionState))
+                    Monitor.Wait(_sessionLock);
+            }
+        }
+
+        [MemberNotNull(nameof(_views))]
+        [MemberNotNull(nameof(_renderOptions))]
+        [MemberNotNull(nameof(_xr))]
+        [MemberNotNull(nameof(_swapchains))]
+        [MemberNotNull(nameof(_viewInfo))]
+        protected void AssertSessionCreated()
+        {
+            if (_session.Handle == 0)
+                throw new InvalidOperationException();
         }
 
         public void RestartSession()
@@ -671,19 +524,28 @@ namespace OpenXr.Framework
 
             return _session;
         }
-
-        protected EnvironmentBlendMode[] EnumerateBlendModes(ViewConfigurationType type)
+        protected virtual void OnSessionChanged(SessionState state, long time)
         {
-            uint count = 0;
-            CheckResult(_xr!.EnumerateEnvironmentBlendModes(Instance, _systemId, type, ref count, null), "EnumerateEnvironmentBlendModes");
+            switch (state)
+            {
+                case SessionState.Ready:
+                    break;
+                case SessionState.Stopping:
+                    break;
+            }
 
-            var result = new EnvironmentBlendMode[count];
+            _logger.LogInformation("Session state: {state}", state);
 
-            fixed (EnvironmentBlendMode* pResult = result)
-                CheckResult(_xr!.EnumerateEnvironmentBlendModes(Instance, _systemId, type, count, ref count, pResult), "EnumerateEnvironmentBlendModes");
-
-            return result;
+            lock (_sessionLock)
+            {
+                _lastSessionState = state;
+                Monitor.PulseAll(_sessionLock);
+            }
         }
+
+        #endregion
+
+        #region SWAPCHAIN
 
         protected long[] EnumerateSwapchainFormats()
         {
@@ -764,8 +626,6 @@ namespace OpenXr.Framework
 
         protected Swapchain CreateSwapChain(Extent2Di size, uint sampleCount, long format)
         {
-
-
             var info = new SwapchainCreateInfo
             {
                 Type = StructureType.SwapchainCreateInfo,
@@ -795,30 +655,331 @@ namespace OpenXr.Framework
             return result.ToXrLocation();
         }
 
-        protected ViewState LocateViews(Space space, long displayTime)
+        #endregion
+
+        #region FRAMES
+
+        public void RenderFrame(Space space)
         {
-            Debug.Assert(_viewInfo != null);
+            AssertSessionCreated();
 
-            var info = new ViewLocateInfo()
+            if (_lastSessionState == SessionState.Stopping)
+                RestartSession();
+
+            var state = WaitFrame();
+
+            BeginFrame();
+
+            CompositionLayerBaseHeader*[]? layers = null;
+
+            uint layerCount = 0;
+
+            try
             {
-                Type = StructureType.ViewLocateInfo,
-                Space = space,
-                DisplayTime = displayTime,
-                ViewConfigurationType = _viewInfo.Type
-            };
+                if (state.ShouldRender != 0)
+                {
+                    var viewsState = LocateViews(space, state.PredictedDisplayTime);
 
-            var state = new ViewState()
+                    var isPosValid = (viewsState.ViewStateFlags & ViewStateFlags.OrientationValidBit) != 0 &&
+                                     (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;
+
+                    if (isPosValid)
+                        layers = _layers.Render(ref _views, _swapchains, space, state.PredictedDisplayTime, out layerCount);
+                }
+            }
+            finally
             {
-                Type = StructureType.ViewState
-            };
-
-            uint count = (uint)_viewInfo.ViewCount;
-
-            fixed (View* pViews = _views)
-                CheckResult(_xr!.LocateView(_session, in info, ref state, count, ref count, pViews), "LocateView");
-
-            return state;
+                EndFrame(state.PredictedDisplayPeriod, ref layers, layerCount);
+            }
         }
+
+        protected void BeginFrame()
+        {
+            var info = new FrameBeginInfo()
+            {
+                Type = StructureType.FrameBeginInfo
+            };
+            CheckResult(_xr!.BeginFrame(_session, in info), "BeginFrame");
+        }
+
+        protected FrameState WaitFrame()
+        {
+            var info = new FrameWaitInfo()
+            {
+                Type = StructureType.FrameWaitInfo,
+            };
+
+            var result = new FrameState
+            {
+                Type = StructureType.FrameState
+            };
+            CheckResult(_xr!.WaitFrame(_session, in info, ref result), "WaitFrame");
+            return result;
+        }
+
+
+        protected void EndFrame(long displayTime, ref CompositionLayerBaseHeader*[]? layers, uint count)
+        {
+            AssertSessionCreated();
+
+            fixed (CompositionLayerBaseHeader** pLayers = layers)
+            {
+                var frameEndInfo = new FrameEndInfo()
+                {
+                    Type = StructureType.FrameEndInfo,
+                    EnvironmentBlendMode = _renderOptions.BlendMode,
+                    DisplayTime = displayTime,
+                    LayerCount = count,
+                    Layers = pLayers
+                };
+
+                CheckResult(_xr.EndFrame(_session, in frameEndInfo), "EndFrame");
+            }
+        }
+
+        #endregion
+
+        #region ACTIONS
+
+        protected ActionSet CreateActionSet(string name, string localizedName)
+        {
+            var info = new ActionSetCreateInfo()
+            {
+                Type = StructureType.ActionSetCreateInfo,
+                Priority = 0
+            };
+
+            var nameSpan = new Span<byte>(info.LocalizedActionSetName, 128);
+            var localizedNameSpan = new Span<byte>(info.ActionSetName, 128);
+
+            SilkMarshal.StringIntoSpan(name, nameSpan);
+            SilkMarshal.StringIntoSpan(localizedName, localizedNameSpan);
+
+            CheckResult(_xr!.CreateActionSet(_instance, in info, ref _actionSet), "CreateActionSet");
+
+            return _actionSet;
+        }
+
+        protected Action CreateAction(string name, string localizedName, ActionType type, params ulong[] paths)
+        {
+
+            fixed (ulong* pPaths = paths)
+            {
+                var info = new ActionCreateInfo
+                {
+                    Type = StructureType.ActionCreateInfo,
+                    ActionType = type,
+                    CountSubactionPaths = (uint)paths.Length,
+                    SubactionPaths = pPaths
+                };
+
+                var nameSpan = new Span<byte>(info.LocalizedActionName, 128);
+                var localizedNameSpan = new Span<byte>(info.ActionName, 128);
+
+                SilkMarshal.StringIntoSpan(name, nameSpan);
+                SilkMarshal.StringIntoSpan(localizedName, localizedNameSpan);
+
+                var result = new Action();
+                CheckResult(_xr!.CreateAction(_actionSet, in info, ref result), "CreateAction");
+                return result;
+            }
+        }
+
+        protected ulong StringToPath(string path)
+        {
+            ulong result = 0;
+
+            CheckResult(_xr!.StringToPath(_instance, path, ref result), "StringToPath");
+
+            return result;
+        }
+
+        protected void SuggestInteractionProfileBindings(string ipPath, ActionSuggestedBinding[] bindings)
+        {
+            fixed (ActionSuggestedBinding* pBindings = bindings)
+            {
+                var info = new InteractionProfileSuggestedBinding
+                {
+                    Type = StructureType.InteractionProfileSuggestedBinding,
+                    InteractionProfile = StringToPath(ipPath),
+                    CountSuggestedBindings = (uint)bindings.Length, 
+                    SuggestedBindings =pBindings
+                };
+
+                CheckResult(_xr!.SuggestInteractionProfileBinding(_instance, info), "SuggestInteractionProfileBinding");
+            }
+        }
+
+        protected void AttachSessionToActionSet()
+        {
+            fixed (ActionSet* pSet = &_actionSet)
+            {
+                var info = new SessionActionSetsAttachInfo()
+                {
+                    Type = StructureType.SessionActionSetsAttachInfo,
+                    ActionSets = pSet,
+                    CountActionSets = 1
+                };
+
+                CheckResult(_xr!.AttachSessionActionSets(_session, in info), "AttachSessionActionSets");
+            }
+        }
+
+        protected void SyncActions()
+        {
+            var activeActionSet = new ActiveActionSet
+            {
+                ActionSet = _actionSet,
+                SubactionPath = 0
+            };
+
+            var info = new ActionsSyncInfo
+            {
+                Type = StructureType.ActionsSyncInfo,
+                CountActiveActionSets = 1,
+                ActiveActionSets = &activeActionSet
+            };
+
+            CheckResult(_xr!.SyncAction(_session, in info), "SyncAction");
+        }
+
+        protected Space CreateActionSpace(Action action, ulong subPath)
+        {
+            var info = new ActionSpaceCreateInfo()
+            {
+                Type = StructureType.ActionSpaceCreateInfo,
+                Action = action,
+                SubactionPath = subPath,
+            };
+            info.PoseInActionSpace.Orientation.W = 1;
+            var result = new Space();
+            CheckResult(_xr!.CreateActionSpace(_session, in info, ref result), "CreateActionSpace");
+            return result;
+        }
+
+        #endregion
+
+        #region EVENTS
+
+        public bool HandleEvents()
+        {
+            return HandleEvents(CancellationToken.None);
+        }
+
+        public bool HandleEvents(CancellationToken cancellationToken)
+        {
+            if (!_instanceReady.Wait(cancellationToken))
+                return true;
+
+            if (_instance.Handle == 0)
+                return false;
+
+            Debug.Assert(_xr != null);
+
+            var buffer = new EventDataBuffer();
+
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                buffer.Type = StructureType.EventDataBuffer;
+
+                var result = _xr.PollEvent(_instance, ref buffer);
+                if (result != Result.Success)
+                    break;
+
+                _logger.LogDebug("New event {ev}", buffer.Type);
+
+                try
+                {
+                    switch (buffer.Type)
+                    {
+                        case StructureType.EventDataSessionStateChanged:
+                            var sessionChanged = buffer.Convert().To<EventDataSessionStateChanged>();
+                            _session = sessionChanged.Session;
+                            OnSessionChanged(sessionChanged.State, sessionChanged.Time);
+
+                            break;
+                    }
+
+                    PluginInvoke(p => p.HandleEvent(ref buffer));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Handling event {type}: {ex}", buffer.Type, ex);
+                }
+
+            }
+
+            return true;
+        }
+
+        #endregion
+
+        #region UTILS
+
+        protected static T[] CreateStructArray<T>(int count, StructureType type) where T : unmanaged
+        {
+            var result = new T[count];
+            fixed (T* pResult = result)
+            {
+                while (count-- > 0)
+                    ((BaseInStructure*)&pResult[count])->Type = type;
+            }
+            return result;
+        }
+
+        protected void LayersInvoke(Action<IXrLayer> action)
+        {
+            ListInvoke(_layers.Layers, action);
+        }
+
+        protected void PluginInvoke(Action<IXrPlugin> action)
+        {
+            ListInvoke(_plugins, action);
+        }
+
+        protected void ListInvoke<T>(IEnumerable items, Action<T> action)
+        {
+            foreach (var plugin in items.OfType<T>())
+            {
+                try
+                {
+                    action(plugin);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error invoking plugin {plugin}: {ex}", plugin!.GetType().FullName, ex);
+                }
+            }
+        }
+
+        public T Plugin<T>() where T : IXrPlugin
+        {
+            return _plugins.OfType<T>().First();
+        }
+
+        #endregion
+
+        #region CUSTOMIZATION
+
+        protected virtual XrViewInfo SelectView(IList<XrViewInfo> views)
+        {
+            return views.First(a => a.Type == ViewConfigurationType.PrimaryStereo);
+        }
+
+        protected virtual void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
+        {
+            Debug.Assert(viewInfo.BlendModes != null);
+
+            EnvironmentBlendMode[] preferences = [EnvironmentBlendMode.AlphaBlend, EnvironmentBlendMode.Opaque];
+
+            result.BlendMode = preferences.First(a => viewInfo.BlendModes.Contains(a));
+            result.Size = viewInfo.RecommendedImageRect;
+            result.SampleCount = viewInfo.RecommendedSwapchainSampleCount;
+
+            PluginInvoke(a => a.SelectRenderOptions(viewInfo, result));
+        }
+
+        #endregion
 
         public void Dispose()
         {
