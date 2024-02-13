@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Action = Silk.NET.OpenXR.Action;
 
 
 namespace OpenXr.Framework.Oculus
@@ -76,6 +77,7 @@ namespace OpenXr.Framework.Oculus
         protected FBSpatialEntityQuery? _spatialQuery;
         protected FBTriangleMesh? _mesh;
         protected NativeStruct<SwapchainCreateInfoFoveationFB> _foveationInfo;
+        protected FBHapticPcm? _haptic;
         protected readonly ConcurrentDictionary<ulong, TaskCompletionSource<SpaceQueryResultFB[]>> _spaceQueries = [];
         protected readonly OculusXrPluginOptions _options;
 
@@ -100,6 +102,7 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBSpatialEntityContainer.ExtensionName);
             extensions.Add(FBSpatialEntityStorage.ExtensionName);
             extensions.Add(FBSpatialEntityQuery.ExtensionName);
+            extensions.Add(FBHapticPcm.ExtensionName);
             extensions.Add("XR_META_spatial_entity_mesh");
         }
 
@@ -109,7 +112,7 @@ namespace OpenXr.Framework.Oculus
             _app.Xr.TryGetInstanceExtension<FBSpatialEntity>(null, _app.Instance, out _spatial);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityQuery>(null, _app.Instance, out _spatialQuery);
             _app.Xr.TryGetInstanceExtension<FBTriangleMesh>(null, _app.Instance, out _mesh);
-
+            _app.Xr.TryGetInstanceExtension<FBHapticPcm>(null, _app.Instance, out _haptic);
 
             var func = new PfnVoidFunction();
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
@@ -354,6 +357,48 @@ namespace OpenXr.Framework.Oculus
                 curInput = ref Unsafe.AsRef<BaseInStructure>(curInput.Next);
 
             curInput.Next = (BaseInStructure*)_foveationInfo.Pointer;
+        }
+
+        public float GetSampleRate(Action action, ulong subActionPath= 0)
+        {
+            var info = new HapticActionInfo(StructureType.HapticActionInfo)
+            {
+                Action = action,
+                SubactionPath = subActionPath
+            };
+
+            var res = new DevicePcmSampleRateGetInfoFB(StructureType.DevicePcmSampleRateGetInfoFB);
+
+            _app!.CheckResult(_haptic!.GetDeviceSampleRateFB(_app!.Session, in info, ref res), "GetDeviceSampleRateFB");
+
+            return res.SampleRate;
+
+        }
+
+        public uint ApplyVibrationPcmFeedback(Action action, Span<float> buffer, float sampleRate, bool append, ulong subActionPath = 0)
+        {
+            var info = new HapticActionInfo(StructureType.HapticActionInfo)
+            {
+                Action = action,
+                SubactionPath = subActionPath
+            };
+
+            uint result = 0;
+
+            fixed (float* pBuffer = buffer)
+            {
+                var vibration = new HapticPcmVibrationFB(StructureType.HapticPcmVibrationFB)
+                {
+                    SamplesConsumed = &result,
+                    SampleRate = sampleRate,
+                    Append = (uint)(append ? 1 : 0),
+                    BufferSize = (uint)buffer.Length,
+                    Buffer = pBuffer
+                };
+
+                _app!.CheckResult(_app.Xr.ApplyHapticFeedback(_app.Session!, in info, (HapticBaseHeader*)&vibration), "ApplyHapticFeedback");
+            }
+            return result;
         }
 
         public void Dispose()

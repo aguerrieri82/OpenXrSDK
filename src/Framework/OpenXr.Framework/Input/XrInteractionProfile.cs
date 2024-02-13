@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,73 +9,80 @@ namespace OpenXr.Framework.Input
 {
     public class XrInteractionProfileHand<THand>
     {
+        [XrPath("/input/squeeze")]
+        public XrInput<bool>? SqueezeClick;
+
         [XrPath("/input/squeeze/value")]
-        public XrInput Squeeze;
+        public XrInput<float>? Squeeze;
+
+        [XrPath("/input/trigger")]
+        public XrInput<bool>? TriggerClick;
 
         [XrPath("/input/trigger/value")]
-        public XrInput TriggerValue;
+        public XrInput<float>? TriggerValue;
 
         [XrPath("/input/trigger/touch")]
-        public XrInput TriggerTouch;
+        public XrInput<bool>? TriggerTouch;
+
+        [XrPath("/input/thumbstick")]
+        public XrInput<Vector2>? Thumbstick;
 
         [XrPath("/input/thumbstick/y")]
-        public XrInput ThumbstickY;
+        public XrInput<float>? ThumbstickY;
 
         [XrPath("/input/thumbstick/x")]
-        public XrInput ThumbstickX;
+        public XrInput<float>? ThumbstickX;
 
         [XrPath("/input/thumbstick/click")]
-        public XrInput ThumbstickClick;
+        public XrInput<bool>? ThumbstickClick;
 
         [XrPath("/input/thumbstick/touch")]
-        public XrInput ThumbstickTouch;
+        public XrInput<bool>? ThumbstickTouch;
 
         [XrPath("/input/thumbrest/touch")]
-        public XrInput ThumbrestTouch;
-
+        public XrInput<bool>? ThumbrestTouch;
 
         [XrPath("/input/grip/pose")]
-        public XrInput GripPose;
-
+        public XrInput<XrPose>? GripPose;
 
         [XrPath("/input/aim/pose")]
-        public XrInput GripAim;
+        public XrInput<XrPose>? GripAim;
 
-        public THand Buttons;
+        public THand? Button;
 
     }
 
     public class XrInteractionProfileHandLeft
     {
         [XrPath("/input/x/click")]
-        public XrInput XClick;
+        public XrInput<bool>? XClick;
 
         [XrPath("/input/x/touch")]
-        public XrInput XTouch;
+        public XrInput<bool>? XTouch;
 
         [XrPath("/input/y/click")]
-        public XrInput YClick;
+        public XrInput<bool>? YClick;
 
         [XrPath("/input/y/touch")]
-        public XrInput YTouch;
+        public XrInput<bool>? YTouch;
 
         [XrPath("/input/menu/click")]
-        public XrInput MenuClick;
+        public XrInput<bool>? MenuClick;
     }
 
     public class XrInteractionProfileHandRight
     {
         [XrPath("/input/a/click")]
-        public XrInput AClick;
+        public XrInput<bool>? AClick;
 
         [XrPath("/input/a/touch")]
-        public XrInput ATouch;
+        public XrInput<bool>? ATouch;
 
         [XrPath("/input/b/click")]
-        public XrInput BClick;
+        public XrInput<bool>? BClick;
 
         [XrPath("/input/b/touch")]
-        public XrInput BTouch;
+        public XrInput<bool>? BTouch;
     }
 
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using OpenXr.Framework.Input;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
@@ -7,8 +8,11 @@ using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq.Expressions;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Xml.Linq;
 using Action = Silk.NET.OpenXR.Action;
 using Monitor = System.Threading.Monitor;
 
@@ -58,7 +62,9 @@ namespace OpenXr.Framework
         protected XrSwapchainInfo[]? _swapchains;
         protected bool _isDisposed;
         protected SystemProperties _systemProps;
-        private ActionSet _actionSet;
+        protected ActionSet _actionSet;
+        protected Dictionary<string, IXrInput> _inputs = [];
+        protected IList<string> _interactionProfiles = [];
 
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
@@ -108,6 +114,8 @@ namespace OpenXr.Framework
 
             PluginInvoke(p => p.OnInstanceCreated());
 
+            CreateActionSet("default", "default");
+
             _instanceReady.Signal();
         }
 
@@ -132,6 +140,8 @@ namespace OpenXr.Framework
             WaitForSession(SessionState.Ready, SessionState.Focused);
 
             AssertSessionCreated();
+
+            CreateActions();
 
             BeginSession(_viewInfo.Type);
 
@@ -424,6 +434,14 @@ namespace OpenXr.Framework
             return state;
         }
 
+        public XrSpaceLocation LocateSpace(Space space, Space baseSpace, long time = 0)
+        {
+            var result = new SpaceLocation();
+            result.Type = StructureType.SpaceLocation;
+            CheckResult(_xr!.LocateSpace(space, baseSpace, time, ref result), "LocateSpace");
+            return result.ToXrLocation();
+        }
+
         protected void DisposeSpace(Space space)
         {
             if (space.Handle != 0)
@@ -647,13 +665,7 @@ namespace OpenXr.Framework
             return result;
         }
 
-        public XrSpaceLocation LocateSpace(Space space, Space baseSpace, long time = 0)
-        {
-            var result = new SpaceLocation();
-            result.Type = StructureType.SpaceLocation;
-            CheckResult(_xr!.LocateSpace(space, baseSpace, time, ref result), "LocateSpace");
-            return result.ToXrLocation();
-        }
+
 
         #endregion
 
@@ -667,6 +679,10 @@ namespace OpenXr.Framework
                 RestartSession();
 
             var state = WaitFrame();
+
+            SyncActions();
+            foreach (var input in _inputs.Values)
+                input.Update(space, state.PredictedDisplayTime);
 
             BeginFrame();
 
@@ -691,6 +707,11 @@ namespace OpenXr.Framework
             {
                 EndFrame(state.PredictedDisplayPeriod, ref layers, layerCount);
             }
+        }
+
+        protected void UpdateActions()
+        {
+
         }
 
         protected void BeginFrame()
@@ -741,6 +762,62 @@ namespace OpenXr.Framework
 
         #region ACTIONS
 
+        public T WithInteractionProfile<T>(Action<XrInputBuilder<T>> build) where T: new()
+        {
+            var builder = new XrInputBuilder<T>(this);
+
+            build(builder);
+            
+            foreach (var item in builder.Actions)
+                AddInput(item);
+            
+            _interactionProfiles.Add(builder.Profile);
+
+            return builder.Result;
+        }
+
+
+        public XrInput<T> AddInput<T>(string path, string name)
+        {
+            var input = XrInput<T>.Create(this, path, name);
+
+            if (_isStarted)
+                input.Initialize();
+
+            _inputs[name] = input;
+
+            return input;
+        }
+
+        protected void AddInput(IXrInput input)
+        {
+            if (_isStarted)
+                input.Initialize();
+
+            _inputs[input.Name] = input;
+
+        }
+
+        protected void CreateActions()
+        {
+            AttachSessionToActionSet();
+
+            var suggBindings = _inputs.Values.Select(a => a.Initialize()).ToArray();
+
+            foreach (var profile in _interactionProfiles)
+            {
+                try
+                {
+                    SuggestInteractionProfileBindings(StringToPath(profile), suggBindings);
+                }
+                catch (OpenXrException ex)
+                {
+                    _logger.LogWarning($"Interaction profile not supported ({ex.Result}): {profile}");
+                }
+            }
+
+        }
+
         protected ActionSet CreateActionSet(string name, string localizedName)
         {
             var info = new ActionSetCreateInfo()
@@ -760,7 +837,7 @@ namespace OpenXr.Framework
             return _actionSet;
         }
 
-        protected Action CreateAction(string name, string localizedName, ActionType type, params ulong[] paths)
+        protected internal Action CreateAction(string name, string localizedName, ActionType type, params ulong[] paths)
         {
 
             fixed (ulong* pPaths = paths)
@@ -785,7 +862,7 @@ namespace OpenXr.Framework
             }
         }
 
-        protected ulong StringToPath(string path)
+        protected internal ulong StringToPath(string path)
         {
             ulong result = 0;
 
@@ -794,16 +871,17 @@ namespace OpenXr.Framework
             return result;
         }
 
-        protected void SuggestInteractionProfileBindings(string ipPath, ActionSuggestedBinding[] bindings)
+        protected internal void SuggestInteractionProfileBindings(ulong ipPath, ActionSuggestedBinding[] bindings)
         {
+
             fixed (ActionSuggestedBinding* pBindings = bindings)
             {
                 var info = new InteractionProfileSuggestedBinding
                 {
                     Type = StructureType.InteractionProfileSuggestedBinding,
-                    InteractionProfile = StringToPath(ipPath),
+                    InteractionProfile = ipPath,
                     CountSuggestedBindings = (uint)bindings.Length, 
-                    SuggestedBindings =pBindings
+                    SuggestedBindings = pBindings
                 };
 
                 CheckResult(_xr!.SuggestInteractionProfileBinding(_instance, info), "SuggestInteractionProfileBinding");
@@ -827,6 +905,9 @@ namespace OpenXr.Framework
 
         protected void SyncActions()
         {
+            if (_actionSet.Handle ==0)
+                return;
+
             var activeActionSet = new ActiveActionSet
             {
                 ActionSet = _actionSet,
@@ -843,7 +924,7 @@ namespace OpenXr.Framework
             CheckResult(_xr!.SyncAction(_session, in info), "SyncAction");
         }
 
-        protected Space CreateActionSpace(Action action, ulong subPath)
+        protected internal Space CreateActionSpace(Action action, ulong subPath)
         {
             var info = new ActionSpaceCreateInfo()
             {
@@ -856,6 +937,101 @@ namespace OpenXr.Framework
             CheckResult(_xr!.CreateActionSpace(_session, in info, ref result), "CreateActionSpace");
             return result;
         }
+
+   
+        protected internal ActionStateFloat GetActionStateFloat(Action action, ulong subActionPath = 0)
+        {
+            var info = new ActionStateGetInfo
+            {
+                Type = StructureType.ActionStateGetInfo,
+                Action = action,
+                SubactionPath = subActionPath,
+            };
+
+            var state = new ActionStateFloat(StructureType.ActionStateFloat);
+
+            CheckResult(_xr!.GetActionStateFloat(_session, in info, ref state), "GetActionStateFloat");
+
+            return state;
+        }
+
+        protected internal ActionStateVector2f GetActionStateVector2(Action action, ulong subActionPath = 0)
+        {
+            var info = new ActionStateGetInfo
+            {
+                Type = StructureType.ActionStateGetInfo,
+                Action = action,
+                SubactionPath = subActionPath,
+            };
+
+            var state = new ActionStateVector2f(StructureType.ActionStateVector2f);
+
+            CheckResult(_xr!.GetActionStateVector2(_session, in info, ref state), "GetActionStateVector2");
+
+            return state;
+        }
+
+        protected internal ActionStateBoolean GetActionStateBoolean(Action action, ulong subActionPath = 0)
+        {
+            var info = new ActionStateGetInfo
+            {
+                Type = StructureType.ActionStateGetInfo,
+                Action = action,
+                SubactionPath = subActionPath,
+            };
+
+            var state = new ActionStateBoolean(StructureType.ActionStateBoolean);
+
+            CheckResult(_xr!.GetActionStateBoolean(_session, in info, ref state), "ActionStateBoolean");
+
+            return state;
+        }
+
+        protected internal bool GetActionPoseIsActive(Action action, ulong subActionPath = 0)
+        {
+            var info = new ActionStateGetInfo
+            {
+                Type = StructureType.ActionStateGetInfo,
+                Action = action,
+                SubactionPath = subActionPath,
+            };
+
+
+            var state = new ActionStatePose(StructureType.ActionStatePose);
+
+            CheckResult(_xr!.GetActionStatePose(_session, in info, ref state), "ActionStatePose");
+
+            return state.IsActive != 0;
+        }
+
+        protected internal void ApplyVibrationFeedback(Action action, float frequencyHz, TimeSpan duration, ulong subActionPath = 0)
+        {
+            var info = new HapticActionInfo(StructureType.HapticActionInfo)
+            {
+                Action = action,
+                SubactionPath = subActionPath
+            };
+
+            var vibration = new HapticVibration(StructureType.HapticVibration)
+            {
+                Duration = (long)duration.TotalNanoseconds,
+                Frequency = frequencyHz
+            };
+
+            CheckResult(_xr!.ApplyHapticFeedback(_session, in info, (HapticBaseHeader*)&vibration), "ApplyHapticFeedback");
+        }
+
+        protected internal void StopHapticFeedback(Action action, ulong subActionPath = 0)
+        {
+            var info = new HapticActionInfo(StructureType.HapticActionInfo)
+            {
+                Action = action,
+                SubactionPath = subActionPath
+            };
+
+            CheckResult(_xr!.StopHapticFeedback(_session, in info), "StopHapticFeedback");
+        }
+
 
         #endregion
 

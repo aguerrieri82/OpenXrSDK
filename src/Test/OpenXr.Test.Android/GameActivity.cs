@@ -8,6 +8,7 @@ using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Oculus;
 using OpenXr.Samples;
+using static Android.Renderscripts.ScriptGroup;
 
 
 
@@ -32,6 +33,7 @@ namespace OpenXr.Test.Android
         private EngineApp? _game;
         private WebView? _webView;
         private XrWebViewLayer? _webViewLayer;
+        private XrMetaQuestTouchPro _inputs;
 
         protected override void OnAppStarted(XrApp app)
         {
@@ -65,6 +67,11 @@ namespace OpenXr.Test.Android
 
             _webViewLayer = result.Layers.AddWebView(this,
                 _game.ActiveScene!.FindByName<Mesh>("display")!.BindToQuad());
+
+             _inputs = result.WithInteractionProfile<XrMetaQuestTouchPro>(bld => bld
+                .AddAction(a => a.Right.GripPose)
+                .AddAction(a => a.Right.GripAim)
+                .AddAction(a => a.Right.TriggerClick));
 
             result.BindEngineApp(
                 _game,

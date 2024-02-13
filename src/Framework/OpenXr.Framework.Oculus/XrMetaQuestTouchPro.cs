@@ -11,37 +11,37 @@ namespace OpenXr.Framework.Oculus
     public class XrMetaQuestTouchProHand<THand> : XrInteractionProfileHand<THand>
     {
         [XrPath("/input/thumbrest/force")]
-        public XrInput ThumbrestForce;
+        public XrInput<float>? ThumbrestForce;
 
         [XrPath("/input/stylus_fb/force")]
-        public XrInput StylusForce;
+        public XrInput<float>? StylusForce;
 
         [XrPath("/input/trigger/curl_fb")]
-        public XrInput TriggerCurl;
+        public XrInput<float>? TriggerCurl;
 
         [XrPath("/input/trigger/slide")]
-        public XrInput TriggerSlide;
+        public XrInput<float>? TriggerSlide;
 
         [XrPath("/input/trigger/proximity_fb")]
-        public XrInput TriggerProximity;
+        public XrInput<bool>? TriggerProximity;
 
         [XrPath("/input/thumb_fb/proximity_fb")]
-        public XrInput ThumbProximity;
+        public XrInput<bool>? ThumbProximity;
 
         [XrPath("/output/trigger_haptic_fb")]
-        public XrInput TriggerHaptic;
+        public XrHaptic? TriggerHaptic;
 
         [XrPath("/output/thumb_haptic_fb")]
-        public XrInput ThumbHaptic;
+        public XrHaptic? ThumbHaptic;
     }
 
     [XrPath("/interaction_profiles/facebook/touch_controller_pro")]
     public class XrMetaQuestTouchPro 
     {
         [XrPath("/user/hand/left")]
-        public XrMetaQuestTouchProHand<XrInteractionProfileHandLeft> Left;
+        public XrMetaQuestTouchProHand<XrInteractionProfileHandLeft>? Left;
 
         [XrPath("/user/hand/right")]
-        public XrMetaQuestTouchProHand<XrInteractionProfileHandRight> Right;
+        public XrMetaQuestTouchProHand<XrInteractionProfileHandRight>? Right;
     }
 }
