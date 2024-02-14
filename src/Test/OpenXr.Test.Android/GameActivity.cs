@@ -6,6 +6,7 @@ using Android.Webkit;
 using OpenXr.Engine;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
+using OpenXr.Framework.Engine;
 using OpenXr.Framework.Oculus;
 using OpenXr.Samples;
 using static Android.Renderscripts.ScriptGroup;
@@ -69,9 +70,12 @@ namespace OpenXr.Test.Android
                 _game.ActiveScene!.FindByName<Mesh>("display")!.BindToQuad());
 
              _inputs = result.WithInteractionProfile<XrMetaQuestTouchPro>(bld => bld
-                .AddAction(a => a.Right.GripPose)
-                .AddAction(a => a.Right.GripAim)
-                .AddAction(a => a.Right.TriggerClick));
+                .AddAction(a => a.Right!.TriggerClick)
+                .AddAction(a => a.Right!.GripPose)
+                .AddAction(a => a.Right!.AimPose)
+               );
+
+            _game.ActiveScene!.AddComponent(new ControllerCollider(_inputs.Right!.AimPose!));
 
             result.BindEngineApp(
                 _game,

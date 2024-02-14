@@ -1,4 +1,6 @@
-﻿namespace OpenXr.Engine
+﻿using System.Numerics;
+
+namespace OpenXr.Engine
 {
     public static class EngineExtensions
     {
@@ -10,6 +12,7 @@
             obj.AddComponent(result);
             return result;
         }
+
 
         #endregion
 
@@ -52,6 +55,22 @@
             if (layer == null)
                 return [];
             return layer.Content.Cast<T>();
+        }
+
+
+        public static IEnumerable<Collision> RayCollisions<T>(this Scene scene, Ray3 ray) 
+        {
+            foreach (var obj in scene.VisibleDescendants<Object3D>())
+            {
+                foreach (var collider in obj.Components<ICollider>())
+                {
+                    if (!collider.IsEnabled)
+                        continue;
+                    var collision = collider.CollideWith(ray);
+                    if (collision != null)
+                        yield return collision;
+                }
+            }
         }
 
         #endregion
@@ -109,5 +128,11 @@
         }
 
         #endregion
+
+        
+        public static void SetZ(this Transform transform, float value)
+        {
+            transform.Position = new Vector3(transform.Position.X, transform.Position.Y, value);
+        }
     }
 }

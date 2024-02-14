@@ -11,6 +11,22 @@ namespace OpenXr.Engine.OpenGL
 {
     public static class Extensions
     {
+        public static TextureTarget GetTexture2DTarget(this GL gL, uint texId)
+        {
+            TextureTarget[] targets = [TextureTarget.Texture2D, TextureTarget.Texture2DArray, TextureTarget.Texture2DMultisample, TextureTarget.Texture2DMultisampleArray];
+
+            foreach (var target in targets)
+            {
+                gL.BindTexture(target, texId);
+                gL.GetTexLevelParameter(target, 0, GetTextureParameter.TextureWidth, out int w);
+                gL.BindTexture(target, 0);
+                if (w != 0)
+                    return target;
+            }
+
+            throw new NotSupportedException();
+        }
+
         public static unsafe TGl GetResource<T, TGl>(this T obj, Func<T, TGl> factory) where T : EngineObject where TGl : GlObject
         {
             var glObj = obj.GetProp<TGl?>(Props.GlResId);
@@ -43,7 +59,7 @@ namespace OpenXr.Engine.OpenGL
             {
                 if (value.Type == TextureType.Depth)
                 {
-                    texture.Attach(OpenGLRender.Current!.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment), TextureTarget.Texture2DArray);
+                    texture.Attach(OpenGLRender.Current!.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment));
                 }
                 else
                     texture.Create(value.Width, value.Height, value.Format, value.Compression);

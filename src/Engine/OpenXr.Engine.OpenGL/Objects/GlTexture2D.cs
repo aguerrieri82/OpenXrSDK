@@ -1,10 +1,10 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using System.Diagnostics;
 #else
 using Silk.NET.OpenGL;
 #endif
 
+using System.Diagnostics;
 
 namespace OpenXr.Engine.OpenGL
 {
@@ -24,40 +24,36 @@ namespace OpenXr.Engine.OpenGL
             MagFilter = TextureMagFilter.Linear;
             BaseLevel = 0;
             MaxLevel = 8;
+            Target = TextureTarget.Texture2D;
         }
 
         public GlTexture2D(GL gl, uint handle, uint sampleCount = 1)
             : base(gl)
         {
             SampleCount = sampleCount;
-            Target = SampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D;
             Attach(handle);
         }
 
-        public void Attach(uint handle)
-        {
-            Attach(handle, Target);
-        }
 
-        public unsafe void Attach(uint handle, TextureTarget target)
+        public unsafe void Attach(uint handle)
         {
             _handle = handle;
 
-            Target = target;
+            Target = _gl.GetTexture2DTarget(handle);
 
             Bind();
      
-            _gl.GetTexLevelParameter(target, 0, GetTextureParameter.TextureWidth, out int w);
-            _gl.GetTexLevelParameter(target, 0, GetTextureParameter.TextureHeight, out int h);
-            _gl.GetTexLevelParameter(target, 0, GetTextureParameter.TextureInternalFormat, out int intf);
+            _gl.GetTexLevelParameter(Target, 0, GetTextureParameter.TextureWidth, out int w);
+            _gl.GetTexLevelParameter(Target, 0, GetTextureParameter.TextureHeight, out int h);
+            _gl.GetTexLevelParameter(Target, 0, GetTextureParameter.TextureInternalFormat, out int intf);
 
             if (SampleCount <= 1)
             {
-                _gl.GetTexParameter(target, GetTextureParameter.TextureWrapS, out int ws);
-                _gl.GetTexParameter(target, GetTextureParameter.TextureWrapT, out int wt);
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureWrapS, out int ws);
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureWrapT, out int wt);
 
-                _gl.GetTexParameter(target, GetTextureParameter.TextureMinFilter, out int min);
-                _gl.GetTexParameter(target, GetTextureParameter.TextureMagFilter, out int mag);
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureMinFilter, out int min);
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureMagFilter, out int mag);
 
                 WrapS = (TextureWrapMode)ws;
                 WrapT = (TextureWrapMode)wt;
@@ -65,8 +61,8 @@ namespace OpenXr.Engine.OpenGL
                 MagFilter = (TextureMagFilter)mag;
             }
 
-            _gl.GetTexParameter(target, GetTextureParameter.TextureBaseLevelSgis, out int bl);
-            _gl.GetTexParameter(target, GetTextureParameter.TextureMaxLevelSgis, out int ml);
+            _gl.GetTexParameter(Target, GetTextureParameter.TextureBaseLevelSgis, out int bl);
+            _gl.GetTexParameter(Target, GetTextureParameter.TextureMaxLevelSgis, out int ml);
 
             _width = (uint)w;
             _height = (uint)h;
@@ -87,15 +83,11 @@ namespace OpenXr.Engine.OpenGL
             _width = width;
             _height = height;
 
-            Target = SampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D;
-
             Bind();
 
             InternalFormat internalFormat;
             PixelFormat pixelFormat;
             PixelType pixelType;
-
-
 
             if (compression == TextureCompressionFormat.Uncompressed)
             {

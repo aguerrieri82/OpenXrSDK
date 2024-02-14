@@ -27,10 +27,7 @@ namespace OpenXr.Engine.OpenGL
 
         protected virtual GlFrameBuffer CreateFrameBuffer(uint texId, uint sampleCount)
         {
-            if (sampleCount > 1)
-                throw new NotSupportedException();
-
-            return new GlTextureFrameBuffer(_gl, new GlTexture2D(_gl, texId));
+            return new GlTextureFrameBuffer(_gl, new GlTexture2D(_gl, texId), true, sampleCount);
         }
 
         public void Begin()
@@ -48,11 +45,11 @@ namespace OpenXr.Engine.OpenGL
             _frameBuffer.Unbind();
         }
 
-        public static GlTextureRenderTarget Attach(GL gl, uint texId)
+        public static GlTextureRenderTarget Attach(GL gl, uint texId, uint sampleCount)
         {
             if (!_targets.TryGetValue(texId, out var target))
             {
-                target = new GlTextureRenderTarget(gl, texId);
+                target = new GlTextureRenderTarget(gl, texId, sampleCount);
                 _targets[texId] = target;
             }
 

@@ -5,6 +5,7 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 
 namespace OpenXr.Engine.OpenGL
 {
@@ -36,7 +37,8 @@ namespace OpenXr.Engine.OpenGL
             Depth.MaxLevel = Color.MaxLevel;
             Depth.BaseLevel = Color.BaseLevel;
             Depth.SampleCount = _sampleCount;
-            Depth.Create(Color.Width, Color.Height, TextureFormat.Depth24Float);
+            Depth.Target = _gl.GetTexture2DTarget(Color.Handle);
+            Depth.Create(Color.Width, Color.Height, TextureFormat.Depth32Float); //TODO chek if is supported
         }
 
         public override void BindDraw()

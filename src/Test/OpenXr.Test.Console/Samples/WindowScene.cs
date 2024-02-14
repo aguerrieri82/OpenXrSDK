@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using OpenXr.Engine;
 using OpenXr.Engine.OpenGL;
+using Silk.NET.OpenGL;
 using Silk.NET.OpenGLES;
 using Silk.NET.Windowing;
 using System.Numerics;
@@ -33,7 +34,13 @@ namespace OpenXr.Samples
 
                 camera!.LookAt(new Vector3(0f, 2f, 2f), Vector3.Zero, new Vector3(0, 1, 0));
 
-                var render = new OpenGLRender(view.CreateOpenGLES());
+#if GLES
+                var gl = view.CreateOpenGLES();
+#else
+                var gl = view.CreateOpenGL();
+#endif
+
+                var render = new OpenGLRender(gl);
                 render.EnableDebug();
 
                 app.Renderer = render;
