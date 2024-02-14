@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Framework.Engine
+namespace Xr.Engine.OpenXr
 {
     public interface IRayTarget : IComponent
     {

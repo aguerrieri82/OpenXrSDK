@@ -50,7 +50,6 @@ namespace OpenXr.Framework.Input
             _value = default;
         }
         
-
         public virtual ActionSuggestedBinding Initialize()
         {
             var result = new ActionSuggestedBinding();

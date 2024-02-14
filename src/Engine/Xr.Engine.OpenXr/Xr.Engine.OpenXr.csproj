@@ -7,9 +7,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGL.Oculus\OpenXr.Engine.OpenGL.Oculus.csproj" />
-		<ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGL\OpenXr.Engine.OpenGL.csproj" />
-		<ProjectReference Include="..\OpenXr.Framework\OpenXr.Framework.csproj" />
+		<ProjectReference Include="..\Xr.Engine.OpenGL.Oculus\Xr.Engine.OpenGL.Oculus.csproj" />
+		<ProjectReference Include="..\Xr.Engine.OpenGL\Xr.Engine.OpenGL.csproj" />
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework\OpenXr.Framework.csproj" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">

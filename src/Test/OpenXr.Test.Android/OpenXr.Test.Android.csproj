@@ -20,7 +20,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
-		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Engine\OpenXr.Framework.Engine.csproj" />
+		<ProjectReference Include="..\..\Engine\Xr.Engine.OpenXr\Xr.Engine.OpenXr.csproj" />
 		<ProjectReference Include="..\..\Test\OpenXr.Test.Common\OpenXr.Test.Common.csproj" />
 		<ProjectReference Include="..\..\WebLink\OpenXr.WebLink.Android\OpenXr.WebLink.Android.csproj" />
 	</ItemGroup>

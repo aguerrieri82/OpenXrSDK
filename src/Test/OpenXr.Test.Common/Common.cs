@@ -44,8 +44,8 @@ namespace OpenXr.Samples
 
             var display = new Mesh(Quad.Instance);
             display.Transform.Scale = new Vector3(1.924f, 1.08f, 0.01f);
-            display.Transform.Position = new Vector3(0, 1.2f,- 1.5f);
-            //display.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
+            display.Transform.Position = new Vector3(2f, 1.2f, -1.5f);
+            display.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), - MathF.PI / 2);
             display.Name = "display";
             display.AddComponent(new MeshCollider());
 

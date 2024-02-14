@@ -12,8 +12,8 @@
 
   <ItemGroup>
 	  
-	<ProjectReference Include="..\..\Engine\OpenXr.Engine.OpenGL\OpenXr.Engine.OpenGL.csproj" />
-    <ProjectReference Include="..\..\Framework\OpenXr.Framework.Engine\OpenXr.Framework.Engine.csproj" />
+	<ProjectReference Include="..\..\Engine\Xr.Engine.OpenGL\Xr.Engine.OpenGL.csproj" />
+    <ProjectReference Include="..\..\Engine\Xr.Engine.OpenXr\Xr.Engine.OpenXr.csproj" />
     <ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGLES\OpenXr.Framework.OpenGLES.csproj" />
 	<ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
     <ProjectReference Include="..\..\Oculus\Oculus.OVRPlugin\Oculus.OVRPlugin.csproj" />
