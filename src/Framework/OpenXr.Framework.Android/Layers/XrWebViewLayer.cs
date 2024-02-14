@@ -104,9 +104,14 @@ namespace OpenXr.Framework.Android
 
                 MotionEventActions actions;
 
-                if (_lastPointerDown != _surfaceInput.IsPointerDown)
+                if (_surfaceInput.BackButton.IsChanged && _surfaceInput.BackButton.IsDown)
                 {
-                    if (_surfaceInput.IsPointerDown)
+                    _ = _mainThread.ExecuteAsync(webView.GoBack);
+                }
+
+                if (_surfaceInput.MainButton.IsChanged)
+                {
+                    if (_surfaceInput.MainButton.IsDown)
                     {
                         _lastDownTime = now;
                         actions = MotionEventActions.Down;
@@ -114,23 +119,18 @@ namespace OpenXr.Framework.Android
                     else
                         actions = MotionEventActions.Up;
 
-                    _lastPointerDown = _surfaceInput.IsPointerDown;
+                    _lastPointerDown = _surfaceInput.MainButton.IsDown;
                 }
                 else
                     actions = MotionEventActions.Move;
 
                 var pos = _surfaceInput.Pointer * new Vector2(webView.Width, webView.Height);
 
-           
-                _ = _mainThread.ExecuteAsync(() =>
-                {
-                    var ev = MotionEvent.Obtain(_lastDownTime, now, actions, pos.X, webView.Height - pos.Y, MetaKeyStates.None);
-                    webView.DispatchTouchEvent(ev);
-                });
+                var ev = MotionEvent.Obtain(_lastDownTime, now, actions, pos.X, webView.Height - pos.Y, MetaKeyStates.None);
 
+                webView.DispatchTouchEvent(ev);
             }
         }
-
 
         protected Context _context;
         protected WebView? _webView;
@@ -163,7 +163,7 @@ namespace OpenXr.Framework.Android
             if (_surface == null)
                 return;
 
-            _surfaceLock.Wait();
+            //_surfaceLock.Wait();
 
             var newCanvas = _surface.LockHardwareCanvas();
             try
@@ -186,7 +186,7 @@ namespace OpenXr.Framework.Android
                 if (newCanvas != null)
                     _surface.UnlockCanvasAndPost(newCanvas);
 
-                _surfaceLock.Release();
+                // _surfaceLock.Release();
             }
         }
 
@@ -206,7 +206,6 @@ namespace OpenXr.Framework.Android
             _webView = new WebView2(this);
             _webView.SetWebViewClient(new WebClient(this));
             _webView.SetWebChromeClient(new ChromeClient());
-            //_webView.SetLayerType(LayerType.Software, null);
 
             _webView.Settings.JavaScriptEnabled = true;
             _webView.Settings.AllowContentAccess = true;
@@ -217,8 +216,9 @@ namespace OpenXr.Framework.Android
             _webView.Settings.MediaPlaybackRequiresUserGesture = false;
             _webView.Settings.SetSupportMultipleWindows(false);
             _webView.Settings.SetNeedInitialFocus(false);
-            _webView.Settings.OffscreenPreRaster = true;
-            _webView.Settings.SetSupportZoom(true);
+            _webView.Settings.UserAgentString = "Mozilla/5.0 (Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.0.0 Safari/537.36"; 
+            //_webView.Settings.OffscreenPreRaster = true;
+            //_webView.Settings.SetSupportZoom(true);
 
 
             if (_context is Activity activity)

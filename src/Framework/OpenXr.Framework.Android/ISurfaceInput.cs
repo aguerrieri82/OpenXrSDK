@@ -7,6 +7,13 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Framework.Android
 {
+    public struct InputButton
+    {
+        public bool IsDown;
+
+        public bool IsChanged;
+    }
+
     public interface ISurfaceInput
     {
 
@@ -14,6 +21,9 @@ namespace OpenXr.Framework.Android
 
         public Vector2 Pointer { get; }
 
-        public bool IsPointerDown { get; } 
+        public InputButton MainButton { get; }
+
+        [Obsolete("Test")]
+        public InputButton BackButton { get; } 
     }
 }

@@ -1,6 +1,5 @@
 ﻿using OpenXr.Engine;
 using OpenXr.Framework.Android;
-using OpenXr.Framework.Engine;
 using OpenXr.Framework.Input;
 using System;
 using System.Collections.Generic;
@@ -8,25 +7,37 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Xr.Engine.OpenXr;
 
 namespace OpenXr.Test.Android
 {
     internal class DisplayController : Behavior<Object3D>, IRayTarget, ISurfaceInput
     {
-        XrInput<bool> _button;
+        XrInput<bool> _mainButton;
+        XrInput<bool> _backButton;
+        InputButton _mainInBtn;
+        InputButton _backInBtn;
+
         double _pointerTime;
         Vector2 _pointer;
         bool _pointerValid;
 
-        public DisplayController(XrInput<bool> button)
+        public DisplayController(XrInput<bool> mainButton, XrInput<bool> backButton)
         {
-            _button = button;
+            _mainButton = mainButton;
+            _backButton = backButton;   
         }
 
         protected override void Update(RenderContext ctx)
         {
             if (_pointerTime < ctx.Time)
                 _pointerValid = false;
+
+            _mainInBtn.IsDown = _mainButton.Value;
+            _mainInBtn.IsChanged = _mainButton.IsChanged;
+
+            _backInBtn.IsDown = _backButton.Value;
+            _backInBtn.IsChanged = _backButton.IsChanged;
 
             base.Update(ctx);
         }
@@ -42,7 +53,8 @@ namespace OpenXr.Test.Android
 
         public Vector2 Pointer => _pointer;
 
-        public bool IsPointerDown => _button.Value;
+        public InputButton MainButton => _mainInBtn;
 
+        public InputButton BackButton => _backInBtn;
     }
 }

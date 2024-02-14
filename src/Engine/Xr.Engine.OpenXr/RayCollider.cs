@@ -1,5 +1,6 @@
 ﻿using OpenXr.Engine;
 using OpenXr.Engine.Objects;
+using OpenXr.Framework;
 using OpenXr.Framework.Input;
 using System;
 using System.Collections.Generic;
@@ -8,14 +9,14 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Framework.Engine
+namespace Xr.Engine.OpenXr
 {
-    public class ControllerCollider : Behavior<Scene>
+    public class RayCollider : Behavior<Scene>
     {
         XrInput<XrPose> _input;
         RayView _rayView;
 
-        public ControllerCollider(XrInput<XrPose> input)
+        public RayCollider(XrInput<XrPose> input)
         {
             _input = input;
             _rayView = new RayView();

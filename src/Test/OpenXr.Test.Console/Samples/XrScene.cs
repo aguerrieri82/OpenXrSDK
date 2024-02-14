@@ -40,7 +40,7 @@ namespace OpenXr.Samples
 
             _game = Common.CreateScene(LocalAssetManager.Instance);
 
-            _game.ActiveScene!.AddComponent(new ControllerCollider(_inputs.Right!.AimPose!));
+            _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
 
             xrApp.BindEngineApp(_game, options.SampleCount, options.EnableMultiView);
 

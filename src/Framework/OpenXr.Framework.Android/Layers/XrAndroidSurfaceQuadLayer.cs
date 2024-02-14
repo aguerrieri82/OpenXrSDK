@@ -39,7 +39,7 @@ namespace OpenXr.Framework.Android
 
         public override void OnBeginFrame()
         {
-            _surfaceLock.Wait();   
+            _surfaceLock.Wait();
         }
 
         public override void OnEndFrame()

@@ -8,9 +8,10 @@ using OpenXr.Engine;
 using OpenXr.Engine.OpenGL;
 using OpenXr.Engine.OpenGL.Oculus;
 using Silk.NET.OpenXR;
+using OpenXr.Framework;
 
 
-namespace OpenXr.Framework
+namespace Xr.Engine.OpenXr
 {
     public unsafe static class XrExtensions
     {

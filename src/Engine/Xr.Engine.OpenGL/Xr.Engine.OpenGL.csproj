@@ -24,7 +24,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-		<ProjectReference Include="..\OpenXr.Engine.Core\OpenXr.Engine.Core.csproj" />
+		<ProjectReference Include="..\Xr.Engine.Core\Xr.Engine.Core.csproj" />
 	</ItemGroup>
 
 
