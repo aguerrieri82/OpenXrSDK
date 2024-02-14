@@ -24,7 +24,10 @@
         void IRenderUpdate.Update(RenderContext ctx)
         {
             if (!_isStarted)
+            {
                 Start(ctx);
+                _isStarted = true;
+            }
             else
                 Update(ctx);
         }

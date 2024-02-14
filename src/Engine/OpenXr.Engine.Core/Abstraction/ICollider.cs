@@ -11,6 +11,8 @@ namespace OpenXr.Engine
     {
         public Vector3 Point;
 
+        public Vector3 LocalPoint;
+
         public Vector2? UV;
 
         public float Distance;

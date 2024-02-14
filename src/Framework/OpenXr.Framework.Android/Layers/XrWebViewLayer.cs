@@ -82,14 +82,63 @@ namespace OpenXr.Framework.Android
             }
         }
 
+        protected class InputController
+        {
+            protected ISurfaceInput _surfaceInput;
+            protected bool _lastPointerDown;
+            protected long _lastDownTime;
+            protected IXrThread _mainThread;
+
+            public InputController(ISurfaceInput surfaceInput, IXrThread mainThread )
+            {
+                _surfaceInput = surfaceInput;
+                _mainThread= mainThread;    
+            }
+
+            public void Update(WebView webView)
+            {
+                if (!_surfaceInput.IsPointerValid)
+                    return;
+
+                var now = SystemClock.UptimeMillis();
+
+                MotionEventActions actions;
+
+                if (_lastPointerDown != _surfaceInput.IsPointerDown)
+                {
+                    if (_surfaceInput.IsPointerDown)
+                    {
+                        _lastDownTime = now;
+                        actions = MotionEventActions.Down;
+                    }
+                    else
+                        actions = MotionEventActions.Up;
+
+                    _lastPointerDown = _surfaceInput.IsPointerDown;
+                }
+                else
+                    actions = MotionEventActions.Move;
+
+                var pos = _surfaceInput.Pointer * new Vector2(webView.Width, webView.Height);
+
+           
+                _ = _mainThread.ExecuteAsync(() =>
+                {
+                    var ev = MotionEvent.Obtain(_lastDownTime, now, actions, pos.X, webView.Height - pos.Y, MetaKeyStates.None);
+                    webView.DispatchTouchEvent(ev);
+                });
+
+            }
+        }
+
 
         protected Context _context;
         protected WebView? _webView;
-        protected HandlerXrThread _handler;
+        protected HandlerXrThread _mainThread;
         protected Vector2 _lastLayerSize;
+        protected InputController _input;
 
-
-        public XrWebViewLayer(Context context, GetQuadDelegate getQuad)
+        public XrWebViewLayer(Context context, GetQuadDelegate getQuad, ISurfaceInput surfaceInput)
             : base(getQuad)
         {
             var quad = getQuad();
@@ -97,11 +146,11 @@ namespace OpenXr.Framework.Android
             _size.Width = (int)(quad.Size.X * 1000);
             _size.Height = (int)(quad.Size.Y * 1000);
 
+            _mainThread = new HandlerXrThread(new Handler(Looper.MainLooper!));
             _context = context;
+            _input = new InputController(surfaceInput, _mainThread);
 
-            _handler = new HandlerXrThread(new Handler(Looper.MainLooper!));
-
-            _ = _handler.ExecuteAsync(CreateWebView);
+            _ = _mainThread.ExecuteAsync(CreateWebView);
         }
 
         protected void ScheduleDraw(Action<Canvas> action)
@@ -114,6 +163,8 @@ namespace OpenXr.Framework.Android
             if (_surface == null)
                 return;
 
+            _surfaceLock.Wait();
+
             var newCanvas = _surface.LockHardwareCanvas();
             try
             {
@@ -121,6 +172,9 @@ namespace OpenXr.Framework.Android
                 {
                     var scaleX = _size.Width / (float)_webView!.Width;
                     var scaleY = _size.Height / (float)_webView!.Height;
+
+                    newCanvas.DrawColor(global::Android.Graphics.Color.Transparent, PorterDuff.Mode.Clear!);
+                    newCanvas.Translate(-_webView.ScrollX, -_webView.ScrollY);
 
                     newCanvas.Scale(scaleX, scaleY);
 
@@ -131,6 +185,8 @@ namespace OpenXr.Framework.Android
             {
                 if (newCanvas != null)
                     _surface.UnlockCanvasAndPost(newCanvas);
+
+                _surfaceLock.Release();
             }
         }
 
@@ -138,6 +194,10 @@ namespace OpenXr.Framework.Android
         {
             var result = base.Update(ref layer, ref views, swapchains, predTime);
             layer.Size.Height *= -1;
+
+            if (_webView != null)
+                _input.Update(_webView);
+            
             return result;
         }
 

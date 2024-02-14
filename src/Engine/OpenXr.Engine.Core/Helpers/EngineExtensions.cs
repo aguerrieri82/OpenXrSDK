@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using SkiaSharp;
+using System.Numerics;
 
 namespace OpenXr.Engine
 {
@@ -58,7 +59,7 @@ namespace OpenXr.Engine
         }
 
 
-        public static IEnumerable<Collision> RayCollisions<T>(this Scene scene, Ray3 ray) 
+        public static IEnumerable<Collision> RayCollisions(this Scene scene, Ray3 ray) 
         {
             foreach (var obj in scene.VisibleDescendants<Object3D>())
             {
@@ -129,7 +130,92 @@ namespace OpenXr.Engine
 
         #endregion
 
-        
+
+        #region GEOMETRY
+
+        public static IEnumerable<Triangle3> Triangles(this Geometry geo)
+        {
+            if (geo.Indices != null && geo.Indices.Length > 0)
+            {
+                int i = 0;
+                while (i < geo.Indices.Length)
+                {
+                    var triangle = new Triangle3
+                    {
+                        V0 = geo.Vertices![geo.Indices[i++]].Pos,
+                        V1 = geo.Vertices![geo.Indices[i++]].Pos,
+                        V2 = geo.Vertices![geo.Indices[i++]].Pos,
+                    };
+                    yield return triangle;
+                }
+            }
+            else
+                throw new NotImplementedException();
+        }
+
+        public static Triangle3 Transform(this Triangle3 triangle, Matrix4x4 matrix)
+        {
+            return new Triangle3
+            {
+                V0 = Vector3.Transform(triangle.V0, matrix),
+                V1 = Vector3.Transform(triangle.V1, matrix),
+                V2 = Vector3.Transform(triangle.V2, matrix),
+            };
+        }
+
+        public static Ray3 Transform(this Ray3 ray, Matrix4x4 matrix)
+        {
+            var v0 = Vector3.Transform(ray.Origin, matrix);
+            var v1 = Vector3.Transform(ray.Origin + ray.Direction, matrix);
+
+            return new Ray3
+            {
+                Origin = v0,
+                Direction = Vector3.Normalize(v1 - v0)
+            };
+        }
+
+        public static Vector3? RayIntersect(this Triangle3 triangle, Ray3 ray, out float distance)
+        {
+            distance = float.PositiveInfinity;
+
+            Vector3 edge1 = triangle.V1 - triangle.V0;
+            Vector3 edge2 = triangle.V2 - triangle.V0;
+            Vector3 pvec = Vector3.Cross(ray.Direction, edge2);
+            float det = Vector3.Dot(edge1, pvec);
+
+            if (Math.Abs(det) < 1e-6f)
+                return null;
+
+            float invDet = 1.0f / det;
+            Vector3 tvec = ray.Origin - triangle.V0;
+            float u = Vector3.Dot(tvec, pvec) * invDet;
+
+            if (u < 0 || u > 1)
+                return null;
+
+            Vector3 qvec = Vector3.Cross(tvec, edge1);
+            float v = Vector3.Dot(ray.Direction, qvec) * invDet;
+
+            if (v < 0 || u + v > 1)
+                return null;
+
+            float t = Vector3.Dot(edge2, qvec) * invDet;
+
+            if (t > 0) // Ray intersection
+            {
+                // Compute the intersection point
+                Vector3 intersectionPoint = ray.Origin + t * ray.Direction;
+                distance = t;
+                return intersectionPoint;
+            }
+            else // Line intersection but not ray intersection.
+                return null;
+        }
+
+
+        #endregion
+
         public static void SetZ(this Transform transform, float value)
         {
             transform.Position = new Vector3(transform.Position.X, transform.Position.Y, value);

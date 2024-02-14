@@ -9,6 +9,7 @@ namespace OpenXr.Engine
         protected Vector3 _position;
         protected Quaternion _orientation;
         protected Matrix4x4 _matrix;
+        private Vector3 _pivot;
 
         public Transform()
         {
@@ -23,8 +24,8 @@ namespace OpenXr.Engine
                 return false;
 
             _matrix =
-                Matrix4x4.CreateFromQuaternion(_orientation) *
                 Matrix4x4.CreateScale(_scale) *
+                Matrix4x4.CreateFromQuaternion(_orientation) *
                 Matrix4x4.CreateTranslation(_position);
 
             _isDirty = false;
@@ -49,7 +50,7 @@ namespace OpenXr.Engine
 
             set
             {
-                _orientation = value;
+                _orientation = Quaternion.Normalize(value);
                 _isDirty = true;
             }
         }
@@ -61,6 +62,17 @@ namespace OpenXr.Engine
             set
             {
                 _position = value;
+                _isDirty = true;
+            }
+        }
+
+        public Vector3 Pivot
+        {
+            get => _pivot;
+
+            set
+            {
+                _pivot = value;
                 _isDirty = true;
             }
         }

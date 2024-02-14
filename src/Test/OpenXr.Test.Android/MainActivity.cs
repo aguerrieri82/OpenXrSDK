@@ -24,10 +24,6 @@ namespace OpenXr.Test.Android
         {
             base.OnCreate(savedInstanceState);
 
-
-
-            Surface x;
-
             SetContentView(Resource.Layout.activity_main);
 
             FindViewById<Button>(Resource.Id.getRooom)!.Click += (_, _) => _ = Task.Run(StartApp);

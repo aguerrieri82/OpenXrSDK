@@ -4,6 +4,7 @@ using OpenXr.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,6 +33,29 @@ namespace OpenXr.Framework.Engine
                 _rayView.Transform.Position = _input.Value.Position;
                 _rayView.Transform.Orientation = _input.Value.Orientation;
                 _rayView.UpdateWorldMatrix(false, false);
+
+                var ray = new Ray3
+                {
+                    Origin = _rayView.WorldPosition,
+                    Direction = -_rayView.Forward,
+                };
+
+                var result = _host!.RayCollisions(ray).FirstOrDefault();
+                if (result != null)
+                {
+                    _rayView.Materials[0].Color = new Color(0, 1, 0);
+                    _rayView.Length = result.Distance;
+
+                    var rayTarget = result.Object!.Components<IRayTarget>().FirstOrDefault();
+                    if (rayTarget != null)
+                        rayTarget.NotifyCollision(ctx, result);
+                }
+                else
+                {
+                    _rayView.Length = 3;
+                    _rayView.Materials[0].Color = new Color(1, 1, 1);
+                }
+
             }
 
             base.Update(ctx);

@@ -48,6 +48,16 @@ namespace OpenXr.Framework
 
         protected abstract bool Update(ref T layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime);
 
+        public virtual void OnBeginFrame()
+        {
+
+        }
+
+        public virtual void OnEndFrame()
+        {
+
+        }
+
         public bool IsEnabled
         {
             get => _isEnabled;
