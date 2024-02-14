@@ -17,6 +17,7 @@ namespace OpenXr.Framework.Android
         protected Surface? _surface;
         protected KhrAndroidSurfaceSwapchain? _androidSurface;
         protected Extent2Di _size;
+        protected SemaphoreSlim _surfaceLock = new(1, 1);
 
         protected XrAndroidSurfaceQuadLayer(GetQuadDelegate getQuad)
             : base(getQuad)
@@ -34,6 +35,16 @@ namespace OpenXr.Framework.Android
             extensions.Add(KhrAndroidSurfaceSwapchain.ExtensionName);
             extensions.Add("XR_FB_android_surface_swapchain_create");
             base.Initialize(app, extensions);
+        }
+
+        public override void OnBeginFrame()
+        {
+            _surfaceLock.Wait();   
+        }
+
+        public override void OnEndFrame()
+        {
+            _surfaceLock.Release();
         }
 
         public unsafe override void Create()

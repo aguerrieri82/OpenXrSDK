@@ -32,15 +32,16 @@ namespace OpenXr.Engine
             {
                 if (_parent != null)
                 {
-                    Matrix4x4.Invert(_worldMatrix, out _worldMatrixInverse);
                     _worldMatrix = _parent!.WorldMatrix * _transform.Matrix;
                 }
                 else
                 {
-                    _worldMatrixInverse = Matrix4x4.Identity;
                     _worldMatrix = _transform.Matrix;
+
                 }
-          
+                
+                Matrix4x4.Invert(_worldMatrix, out _worldMatrixInverse);
+
                 _worldDirty = false;
 
                 isChanged = true;
@@ -98,7 +99,10 @@ namespace OpenXr.Engine
 
         public Vector3 Forward
         {
-            get => Vector3.Normalize(Vector3.Transform(new Vector3(0f, 0f, 1f), _worldMatrix));
+            get => Vector3.Normalize(
+                        Vector3.Transform(new Vector3(0f, 0f, 1f), _worldMatrix) -
+                        Vector3.Transform(new Vector3(0f, 0f, 0f), _worldMatrix)
+                    );
             set
             {
                 var lookAt = Matrix4x4.CreateLookAt(
@@ -122,6 +126,8 @@ namespace OpenXr.Engine
         }
 
         public Scene? Scene => _scene;
+
+        public Matrix4x4 WorldMatrixInverse => _worldMatrixInverse;
 
         public Matrix4x4 WorldMatrix => _worldMatrix;
 

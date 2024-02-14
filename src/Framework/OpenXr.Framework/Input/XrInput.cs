@@ -55,7 +55,7 @@ namespace OpenXr.Framework.Input
         {
             var result = new ActionSuggestedBinding();
             result.Binding = _app.StringToPath(_path);
-            result.Action = _app.CreateAction(_name, _name, _actionType, result.Binding);
+            result.Action = _app.CreateAction(_name, _name, _actionType);
             _action = result.Action;
             return result;  
         }
@@ -120,6 +120,9 @@ namespace OpenXr.Framework.Input
 
         public override void Update(Space refSpace, long predictTime)
         {
+            if (_action.Handle == 0)
+                return;
+
             var state = _app.GetActionStateBoolean(_action, _subPath);
             _isActive = state.IsActive != 0;
             _isChanged = state.ChangedSinceLastSync != 0;
@@ -163,7 +166,12 @@ namespace OpenXr.Framework.Input
 
         public override void Update(Space refSpace, long predictTime)
         {
+            if (_action.Handle == 0)
+                return;
+
             _isActive = _app.GetActionPoseIsActive(_action, _subPath);
+            _isChanged = true;
+            _lastChangeTime = DateTime.Now;
             var spaceInfo = _app.LocateSpace(_space, refSpace, predictTime);
             _value = spaceInfo.Pose!;
         }

@@ -109,5 +109,13 @@ namespace OpenXr.Engine.OpenGL
             _handle = 0;
             GC.SuppressFinalize(this);
         }
+
+        internal void Update(Span<TVertexType> vertices, Span<TIndexType> indices)
+        {
+            _vBuf.Update(vertices);
+            //TODO better index check
+            if (_iBuf != null)
+                _iBuf.Update(indices);
+        }
     }
 }

@@ -38,6 +38,8 @@ namespace OpenXr.Engine.OpenGL
         public GlVertexArray<VertexData, uint>? VertexArray;
 
         public readonly List<DrawContent> Contents = [];
+
+        public long Version;
     }
 
     public class DrawContent
@@ -128,6 +130,7 @@ namespace OpenXr.Engine.OpenGL
                     if (!shaderContent.Contents.TryGetValue(mesh.Geometry, out var vertexContent))
                     {
                         vertexContent = new VertexContent();
+                        vertexContent.Version = mesh.Geometry.Version;
                         vertexContent.VertexArray = mesh.Geometry!.GetResource(geo =>
                                 new GlVertexArray<VertexData, uint>(_gl, geo.Vertices!, geo.Indices!, _meshLayout));
 
@@ -222,11 +225,17 @@ namespace OpenXr.Engine.OpenGL
 
                 prog.SetCamera(camera);
 
-                foreach (var vertex in shader.Value.Contents.Values)
+                foreach (var vertex in shader.Value.Contents)
                 {
-                    vertex.VertexArray!.Bind();
+                    if (vertex.Key.Version != vertex.Value.Version)
+                    {
+                        vertex.Value.VertexArray!.Update(vertex.Key.Vertices, vertex.Key.Indices);
+                        vertex.Value.Version = vertex.Key.Version;
+                    }
 
-                    foreach (var draw in vertex.Contents)
+                    vertex.Value.VertexArray!.Bind();
+
+                    foreach (var draw in vertex.Value.Contents)
                     {
                         ConfigureCaps(draw.Material!);
 
@@ -236,7 +245,7 @@ namespace OpenXr.Engine.OpenGL
                         draw.Draw!();
                     }
 
-                    vertex.VertexArray.Unbind();
+                    vertex.Value.VertexArray.Unbind();
                 }
 
                 prog.Unbind();

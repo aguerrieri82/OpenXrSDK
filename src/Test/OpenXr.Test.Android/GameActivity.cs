@@ -39,10 +39,7 @@ namespace OpenXr.Test.Android
         protected override void OnAppStarted(XrApp app)
         {
             _webView = _webViewLayer!.WebView;
-            _webView.LoadUrl("https://www.repubblica.it");
-            //_webView!.LoadUrl("https://www.youtube.com/watch?v=wtdnatmVdIg");
-            //_webView!.LoadUrl("https://www.eusoft.net/torrent/Movies/American.Assassin.2017.1080p.BluRay.x264.mp4");
-
+            _webView!.LoadUrl("https://www.oggibo.it");
             base.OnAppStarted(app);
         }
 
@@ -64,16 +61,21 @@ namespace OpenXr.Test.Android
                  new OculusXrPlugin(options),
                  new AndroidXrPlugin(this));
 
-            result.Layers.Add<XrPassthroughLayer>();
 
-            _webViewLayer = result.Layers.AddWebView(this,
-                _game.ActiveScene!.FindByName<Mesh>("display")!.BindToQuad());
 
              _inputs = result.WithInteractionProfile<XrMetaQuestTouchPro>(bld => bld
                 .AddAction(a => a.Right!.TriggerClick)
                 .AddAction(a => a.Right!.GripPose)
                 .AddAction(a => a.Right!.AimPose)
                );
+
+            result.Layers.Add<XrPassthroughLayer>();
+
+            var display = _game.ActiveScene!.FindByName<Mesh>("display")!;
+            var controller = new DisplayController(_inputs.Right!.TriggerClick!);
+            display.AddComponent(controller);
+
+            _webViewLayer = result.Layers.AddWebView(this, display.BindToQuad(), controller);
 
             _game.ActiveScene!.AddComponent(new ControllerCollider(_inputs.Right!.AimPose!));
 

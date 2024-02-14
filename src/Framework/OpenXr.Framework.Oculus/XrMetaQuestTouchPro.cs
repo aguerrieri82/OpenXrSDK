@@ -35,7 +35,8 @@ namespace OpenXr.Framework.Oculus
         public XrHaptic? ThumbHaptic;
     }
 
-    [XrPath("/interaction_profiles/facebook/touch_controller_pro")]
+    //[XrPath("/interaction_profiles/facebook/touch_controller_pro")]
+    [XrPath("/interaction_profiles/oculus/touch_controller")]
     public class XrMetaQuestTouchPro 
     {
         [XrPath("/user/hand/left")]

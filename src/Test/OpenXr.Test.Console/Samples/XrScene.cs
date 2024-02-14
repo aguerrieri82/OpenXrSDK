@@ -2,16 +2,19 @@
 using Microsoft.Extensions.Options;
 using OpenXr.Engine;
 using OpenXr.Framework;
+using OpenXr.Framework.Engine;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.OpenGL;
 using OpenXr.Framework.OpenGLES;
 using OpenXr.Test;
+using System.Xml.Linq;
 
 namespace OpenXr.Samples
 {
     public static class XrSceneApp
     {
         private static XrMetaQuestTouchPro? _inputs;
+        private static EngineApp _game;
 
         public static Task Run(IServiceProvider services, ILogger logger)
         {
@@ -30,14 +33,16 @@ namespace OpenXr.Samples
                     new OculusXrPlugin(options));
 
             _inputs = xrApp.WithInteractionProfile<XrMetaQuestTouchPro>(bld => bld
+               .AddAction(a => a.Right!.Button!.AClick)
                .AddAction(a => a.Right!.GripPose)
                .AddAction(a => a.Right!.AimPose)
-               .AddAction(a => a.Right!.Button!.AClick)
-               .AddAction(a => a.Right!.TriggerClick));
+            .AddAction(a => a.Right!.TriggerClick));
 
+            _game = Common.CreateScene(LocalAssetManager.Instance);
 
+            _game.ActiveScene!.AddComponent(new ControllerCollider(_inputs.Right!.AimPose!));
 
-            xrApp.BindEngineApp(Common.CreateScene(LocalAssetManager.Instance), options.SampleCount, options.EnableMultiView);
+            xrApp.BindEngineApp(_game, options.SampleCount, options.EnableMultiView);
 
             xrApp.StartEventLoop();
 

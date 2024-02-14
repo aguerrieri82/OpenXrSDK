@@ -12,9 +12,9 @@ namespace OpenXr.Framework
             return layers.Add(new XrAndroidSurfaceQuadLayer(size, getQuad));
         }
 
-        public static XrWebViewLayer AddWebView(this XrLayerManager layers, Context context, GetQuadDelegate getQuad)
+        public static XrWebViewLayer AddWebView(this XrLayerManager layers, Context context, GetQuadDelegate getQuad, ISurfaceInput surfaceInput)
         {
-            return layers.Add(new XrWebViewLayer(context, getQuad));
+            return layers.Add(new XrWebViewLayer(context, getQuad, surfaceInput));
         }
     }
 }

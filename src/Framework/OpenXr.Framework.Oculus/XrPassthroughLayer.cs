@@ -86,7 +86,7 @@ namespace OpenXr.Framework.Oculus
 
             CreatePt(PassthroughFlagsFB.IsRunningATCreationBitFB);
 
-            CreatePtLayer(PassthroughLayerPurposeFB.TrackedKeyboardHandsFB, PassthroughFlagsFB.IsRunningATCreationBitFB);
+            CreatePtLayer(PassthroughLayerPurposeFB.ReconstructionFB, PassthroughFlagsFB.IsRunningATCreationBitFB);
 
             _header->Type = StructureType.CompositionLayerPassthroughFB;
 

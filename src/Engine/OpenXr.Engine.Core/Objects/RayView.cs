@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -17,15 +18,21 @@ namespace OpenXr.Engine.Objects
         {
             Geometry = new Cube();
             Materials.Add(new ColorMaterial(Color.White));
-            Length = 5;
+            //Materials.Add(new StandardMaterial() { Color = Color.White });
+            Length = 4f;
             Size = 0.005f;
+
+            var matrix = Matrix4x4.CreateScale(0.5f, 0.5f, 0.5f) *
+                         Matrix4x4.CreateTranslation(0, 0, -0.5f);
+
+            Geometry!.ApplyTransform(matrix);
         }
 
         public override void Update(RenderContext ctx)
         {
             if (_isDirty)
             {
-                _transform.Scale = new Vector3(_size, _size, _length);
+                Transform.Scale = new Vector3(_size, _size, _length);
                 _isDirty = false;
             }
 

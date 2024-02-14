@@ -1,8 +1,22 @@
-﻿namespace OpenXr.Engine
+﻿using System.Numerics;
+
+namespace OpenXr.Engine
 {
 
     public abstract class Geometry : EngineObject
     {
+        private int _version;
+
+        public void ApplyTransform(Matrix4x4 matrix)
+        {
+            if (Vertices == null)
+                return;
+
+            for (int i = 0; i < Vertices.Length; i++)
+                Vertices[i].Pos = Vector3.Transform(Vertices[i].Pos, matrix);
+
+            _version++;
+        }
 
         public void Rebuild()
         {
@@ -15,8 +29,12 @@
 
             Vertices = vertices;
             Indices = [];
+            _version++;
         }
 
+
+
+        public long Version => _version;
 
         public uint[]? Indices { get; set; }
 

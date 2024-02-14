@@ -110,6 +110,8 @@ namespace OpenXr.Framework
 
             CreateInstance(AppDomain.CurrentDomain.FriendlyName, "OpenXr.Framework", _extensions);
 
+            var props = GetInstanceProperties();
+
             GetSystemId();
 
             PluginInvoke(p => p.OnInstanceCreated(), true);
@@ -228,12 +230,21 @@ namespace OpenXr.Framework
             return result;
         }
 
+        protected InstanceProperties GetInstanceProperties()
+        {
+            var props = new InstanceProperties(StructureType.InstanceProperties);
+
+            CheckResult(_xr!.GetInstanceProperties(_instance, ref props), "GetInstanceProperties");
+
+            return props;
+
+        }
 
         protected Instance CreateInstance(string appName, string engineName, IList<string> extensions)
         {
             var appInfo = new ApplicationInfo()
             {
-                ApiVersion = new Version64(1, 0, 9)
+                ApiVersion = new Version64(1, 0, 30)
             };
 
             var appNameSpan = new Span<byte>(appInfo.ApplicationName, 128);
@@ -671,6 +682,23 @@ namespace OpenXr.Framework
 
         #region FRAMES
 
+        protected void TrySyncActions(Space space, long predictedDisplayTime)
+        {
+            if (_actionSet.Handle == 0 || _lastSessionState != SessionState.Focused)
+                return;
+
+            try
+            {
+                SyncActions();
+
+                ListInvoke<IXrInput>(_inputs.Values, a => a.Update(space, predictedDisplayTime));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Actions Sync failed: {ex}", ex.Message);
+            }
+        }
+
         public void RenderFrame(Space space)
         {
             AssertSessionCreated();
@@ -680,14 +708,11 @@ namespace OpenXr.Framework
 
             var state = WaitFrame();
 
-            if (_actionSet.Handle != 0)
-            {
-                SyncActions();
-
-                ListInvoke<IXrInput>(_inputs.Values, a => a.Update(space, state.PredictedDisplayTime));
-            }
+            TrySyncActions(space, state.PredictedDisplayPeriod);
 
             BeginFrame();
+
+            ListInvoke<IXrLayer>(_layers.Layers, a => a.OnBeginFrame());
 
             CompositionLayerBaseHeader*[]? layers = null;
 
@@ -708,6 +733,8 @@ namespace OpenXr.Framework
             }
             finally
             {
+                ListInvoke<IXrLayer>(_layers.Layers, a => a.OnEndFrame());
+
                 EndFrame(state.PredictedDisplayPeriod, ref layers, layerCount);
             }
         }
@@ -803,30 +830,41 @@ namespace OpenXr.Framework
 
         protected void CreateActions()
         {
-            return;
-            var suggBindings = _inputs.Values.Select(a => a.Initialize()).ToArray();
 
-            foreach (var profile in _interactionProfiles)
+            var suggBindings = new List<ActionSuggestedBinding>();
+
+            foreach (var input in _inputs.Values)
             {
                 try
                 {
-                    SuggestInteractionProfileBindings(StringToPath(profile), suggBindings);
+                    var res = input.Initialize();
+                    suggBindings.Add(res);
                 }
-                catch (OpenXrException ex)
+                catch (Exception ex)
                 {
-                    _logger.LogWarning($"Interaction profile not supported ({ex.Result}): {profile}");
+                    _logger.LogError("Failed to create input '{input}': {ex}", input.Name, ex);
                 }
             }
 
+            if (suggBindings.Count > 0)
+            {
+                foreach (var profile in _interactionProfiles)
+                {
+                    try
+                    {
+                        SuggestInteractionProfileBindings(StringToPath(profile), suggBindings.ToArray());
+                    }
+                    catch (OpenXrException ex)
+                    {
+                        _logger.LogWarning($"Interaction profile not supported ({ex.Result}): {profile}");
+                    }
+                }
+            }
             AttachSessionToActionSet();
-
-
         }
 
         protected ActionSet CreateActionSet(string name, string localizedName)
         {
-            return new ActionSet();
-
             var info = new ActionSetCreateInfo()
             {
                 Type = StructureType.ActionSetCreateInfo,
@@ -857,7 +895,7 @@ namespace OpenXr.Framework
             var nameSpan = new Span<byte>(info.ActionName, 64);
             var localizedNameSpan = new Span<byte>(info.LocalizedActionName, 128);
 
-            SilkMarshal.StringIntoSpan(name, nameSpan);
+            SilkMarshal.StringIntoSpan(name.ToLower(), nameSpan);
             SilkMarshal.StringIntoSpan(localizedName, localizedNameSpan);
             var result = new Action();
 
