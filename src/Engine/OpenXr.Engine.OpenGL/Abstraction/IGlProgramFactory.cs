@@ -1,4 +1,8 @@
-﻿using Silk.NET.OpenGLES;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
 
 namespace OpenXr.Engine.OpenGL
 {

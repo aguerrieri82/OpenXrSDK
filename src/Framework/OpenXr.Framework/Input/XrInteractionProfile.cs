@@ -46,7 +46,7 @@ namespace OpenXr.Framework.Input
         public XrInput<XrPose>? GripPose;
 
         [XrPath("/input/aim/pose")]
-        public XrInput<XrPose>? GripAim;
+        public XrInput<XrPose>? AimPose;
 
         public THand? Button;
 

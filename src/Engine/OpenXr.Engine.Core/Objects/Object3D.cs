@@ -10,12 +10,14 @@ namespace OpenXr.Engine
         protected bool _worldDirty;
         protected Scene? _scene;
         protected bool _isVisible;
+        private Matrix4x4 _worldMatrixInverse;
 
         public Object3D()
         {
             _transform = new Transform();
             _worldDirty = true;
             IsVisible = true;
+            UpdateWorldMatrix(false, false);
         }
 
         public virtual bool UpdateWorldMatrix(bool updateChildren, bool updateParent)
@@ -29,10 +31,16 @@ namespace OpenXr.Engine
             if (_transform.Update() || isParentChanged || _worldDirty)
             {
                 if (_parent != null)
+                {
+                    Matrix4x4.Invert(_worldMatrix, out _worldMatrixInverse);
                     _worldMatrix = _parent!.WorldMatrix * _transform.Matrix;
+                }
                 else
+                {
+                    _worldMatrixInverse = Matrix4x4.Identity;
                     _worldMatrix = _transform.Matrix;
-
+                }
+          
                 _worldDirty = false;
 
                 isChanged = true;
@@ -85,6 +93,31 @@ namespace OpenXr.Engine
                     return;
                 _isVisible = value;
                 NotifyChanged(ObjectChangeType.Visibility);
+            }
+        }
+
+        public Vector3 Forward
+        {
+            get => Vector3.Normalize(Vector3.Transform(new Vector3(0f, 0f, 1f), _worldMatrix));
+            set
+            {
+                var lookAt = Matrix4x4.CreateLookAt(
+                        _transform.Position,
+                        _transform.Position + Vector3.Transform(value, _worldMatrixInverse),
+                        new Vector3(0f, 0.5f, 0.05f));
+
+                Transform.Orientation = Quaternion.CreateFromRotationMatrix(lookAt);    
+            }
+        }
+
+        public Vector3 Up => Vector3.Normalize(Vector3.Transform(new Vector3(0f, 1f, 0f), _worldMatrix));
+
+        public Vector3 WorldPosition
+        {
+            get => Vector3.Transform(new Vector3(0f, 0f, 0f), _worldMatrix);
+            set
+            {
+                _transform.Position = Vector3.Transform(value, _worldMatrixInverse);
             }
         }
 

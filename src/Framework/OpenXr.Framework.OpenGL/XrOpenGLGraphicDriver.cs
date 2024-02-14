@@ -53,13 +53,14 @@ namespace OpenXr.Framework.OpenGL
 
             _app!.CheckResult(_openGl!.GetOpenGlgraphicsRequirements(_app!.Instance, _app.SystemId, ref req), "GetOpenGlgraphicsRequirements");
 
-            return _view.CreateOpenGLBinding();
+            var binding = _view.CreateOpenGLBinding();
+            return binding;
         }
 
         public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
             Debug.Assert(viewInfo.SwapChainFormats != null);
-          
+
             result.SwapChainFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
         }
 

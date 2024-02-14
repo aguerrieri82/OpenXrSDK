@@ -112,7 +112,7 @@ namespace OpenXr.Framework
 
             GetSystemId();
 
-            PluginInvoke(p => p.OnInstanceCreated());
+            PluginInvoke(p => p.OnInstanceCreated(), true);
 
             CreateActionSet("default", "default");
 
@@ -680,9 +680,12 @@ namespace OpenXr.Framework
 
             var state = WaitFrame();
 
-            SyncActions();
-            foreach (var input in _inputs.Values)
-                input.Update(space, state.PredictedDisplayTime);
+            if (_actionSet.Handle != 0)
+            {
+                SyncActions();
+
+                ListInvoke<IXrInput>(_inputs.Values, a => a.Update(space, state.PredictedDisplayTime));
+            }
 
             BeginFrame();
 
@@ -800,8 +803,7 @@ namespace OpenXr.Framework
 
         protected void CreateActions()
         {
-            AttachSessionToActionSet();
-
+            return;
             var suggBindings = _inputs.Values.Select(a => a.Initialize()).ToArray();
 
             foreach (var profile in _interactionProfiles)
@@ -816,18 +818,23 @@ namespace OpenXr.Framework
                 }
             }
 
+            AttachSessionToActionSet();
+
+
         }
 
         protected ActionSet CreateActionSet(string name, string localizedName)
         {
+            return new ActionSet();
+
             var info = new ActionSetCreateInfo()
             {
                 Type = StructureType.ActionSetCreateInfo,
                 Priority = 0
             };
 
-            var nameSpan = new Span<byte>(info.LocalizedActionSetName, 128);
-            var localizedNameSpan = new Span<byte>(info.ActionSetName, 128);
+            var nameSpan = new Span<byte>(info.ActionSetName, 64);
+            var localizedNameSpan = new Span<byte>(info.LocalizedActionSetName, 128);
 
             SilkMarshal.StringIntoSpan(name, nameSpan);
             SilkMarshal.StringIntoSpan(localizedName, localizedNameSpan);
@@ -840,26 +847,32 @@ namespace OpenXr.Framework
         protected internal Action CreateAction(string name, string localizedName, ActionType type, params ulong[] paths)
         {
 
-            fixed (ulong* pPaths = paths)
+            var info = new ActionCreateInfo
             {
-                var info = new ActionCreateInfo
+                Type = StructureType.ActionCreateInfo,
+                ActionType = type,
+                CountSubactionPaths = (uint)paths.Length,
+            };
+
+            var nameSpan = new Span<byte>(info.ActionName, 64);
+            var localizedNameSpan = new Span<byte>(info.LocalizedActionName, 128);
+
+            SilkMarshal.StringIntoSpan(name, nameSpan);
+            SilkMarshal.StringIntoSpan(localizedName, localizedNameSpan);
+            var result = new Action();
+
+            if (paths.Length > 0)
+            {
+                fixed (ulong* pPaths = paths)
                 {
-                    Type = StructureType.ActionCreateInfo,
-                    ActionType = type,
-                    CountSubactionPaths = (uint)paths.Length,
-                    SubactionPaths = pPaths
-                };
-
-                var nameSpan = new Span<byte>(info.LocalizedActionName, 128);
-                var localizedNameSpan = new Span<byte>(info.ActionName, 128);
-
-                SilkMarshal.StringIntoSpan(name, nameSpan);
-                SilkMarshal.StringIntoSpan(localizedName, localizedNameSpan);
-
-                var result = new Action();
-                CheckResult(_xr!.CreateAction(_actionSet, in info, ref result), "CreateAction");
-                return result;
+                    info.SubactionPaths = pPaths;
+                    CheckResult(_xr!.CreateAction(_actionSet, in info, ref result), "CreateAction");
+                }
             }
+            else
+                CheckResult(_xr!.CreateAction(_actionSet, in info, ref result), "CreateAction");
+
+            return result;
         }
 
         protected internal ulong StringToPath(string path)
@@ -1108,13 +1121,15 @@ namespace OpenXr.Framework
             ListInvoke(_layers.Layers, action);
         }
 
-        protected void PluginInvoke(Action<IXrPlugin> action)
+        protected void PluginInvoke(Action<IXrPlugin> action, bool mustSucceed = false)
         {
-            ListInvoke(_plugins, action);
+            ListInvoke(_plugins, action, mustSucceed);
         }
 
-        protected void ListInvoke<T>(IEnumerable items, Action<T> action)
+        protected void ListInvoke<T>(IEnumerable items, Action<T> action, bool mustSucceed = false)
         {
+            Exception? lastEx = null;
+
             foreach (var plugin in items.OfType<T>())
             {
                 try
@@ -1124,8 +1139,11 @@ namespace OpenXr.Framework
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error invoking plugin {plugin}: {ex}", plugin!.GetType().FullName, ex);
+                    lastEx = ex;    
                 }
             }
+            if (lastEx != null && mustSucceed)
+                throw lastEx;
         }
 
         public T Plugin<T>() where T : IXrPlugin

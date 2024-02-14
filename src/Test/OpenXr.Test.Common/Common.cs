@@ -1,5 +1,6 @@
 ﻿using OpenXr.Engine;
 using OpenXr.Engine.Abstraction;
+using OpenXr.Engine.Objects;
 using System.Numerics;
 
 namespace OpenXr.Samples
@@ -46,9 +47,11 @@ namespace OpenXr.Samples
             display.Transform.Position = new Vector3(0, 1.2f,- 1.5f);
             //display.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
             display.Name = "display";
+            display.AddComponent(new PlaneCollider());
 
             scene.AddChild(display);
 
+            scene.AddChild(new RayView());
 
             scene.AddChild(new AmbientLight(0.3f));
             scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);

@@ -41,9 +41,16 @@ namespace OpenXr.Framework
             else
             {
                 if (sampleCount == 1)
-                    factory = GlTextureRenderTarget.Attach;
+                    factory = (gl, texId) => GlTextureRenderTarget.Attach(gl, texId, sampleCount);
                 else
-                    factory = (gl, texId) => GlMultiSampleRenderTarget.Attach(gl, texId, sampleCount);
+                    factory = (gl, texId) =>
+                    {
+                        var target = gl.GetTexture2DTarget(texId);
+                        if (target == TextureTarget.Texture2DMultisample)
+                            return GlTextureRenderTarget.Attach(gl, texId, sampleCount);
+                        else
+                            return GlMultiSampleRenderTarget.Attach(gl, texId, sampleCount);
+                    };
             }
 
             xrApp.BindEngineApp(app, factory, multiView);

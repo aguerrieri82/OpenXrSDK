@@ -1,11 +1,18 @@
 {
   "profiles": {
-    "OvrSdk.Test": {
+    "Console": {
       "commandName": "Project",
       "environmentVariables": {
         "XR_LOADER_DEBUG": "warn"
       },
       "nativeDebugging": false
+    },
+    "ConsoleNative": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "XR_LOADER_DEBUG": "warn"
+      },
+      "nativeDebugging": true
     }
   }
 }

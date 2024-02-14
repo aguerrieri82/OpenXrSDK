@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using OpenXr.Engine;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
+using OpenXr.Framework.OpenGL;
 using OpenXr.Framework.OpenGLES;
 using OpenXr.Test;
 
@@ -14,22 +15,29 @@ namespace OpenXr.Samples
 
         public static Task Run(IServiceProvider services, ILogger logger)
         {
+            var options = new OculusXrPluginOptions
+            {
+                EnableMultiView = false,
+                SampleCount = 4,
+                ResolutionScale = 1f
+            };
+
             var viewManager = new ViewManager();
             viewManager.Initialize();
 
             using var xrApp = new XrApp(logger,
-                    new XrOpenGLESGraphicDriver(viewManager.View),
-                    new OculusXrPlugin());
+                    new XrOpenGLGraphicDriver(viewManager.View),
+                    new OculusXrPlugin(options));
 
             _inputs = xrApp.WithInteractionProfile<XrMetaQuestTouchPro>(bld => bld
                .AddAction(a => a.Right!.GripPose)
-               .AddAction(a => a.Right!.GripAim)
+               .AddAction(a => a.Right!.AimPose)
                .AddAction(a => a.Right!.Button!.AClick)
                .AddAction(a => a.Right!.TriggerClick));
 
 
 
-            xrApp.BindEngineApp(Common.CreateScene(LocalAssetManager.Instance));
+            xrApp.BindEngineApp(Common.CreateScene(LocalAssetManager.Instance), options.SampleCount, options.EnableMultiView);
 
             xrApp.StartEventLoop();
 

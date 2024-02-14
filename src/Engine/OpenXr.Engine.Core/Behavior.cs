@@ -4,6 +4,7 @@
     {
         protected float _startTime;
         protected T? _host;
+        private bool _isStarted;
 
         public Behavior()
         {
@@ -15,9 +16,17 @@
 
         }
 
-        public virtual void Update(RenderContext ctx)
+        protected virtual void Update(RenderContext ctx)
         {
 
+        }
+
+        void IRenderUpdate.Update(RenderContext ctx)
+        {
+            if (!_isStarted)
+                Start(ctx);
+            else
+                Update(ctx);
         }
 
         void IComponent.Attach(IComponentHost host)
@@ -35,7 +44,6 @@
         IComponentHost? IComponent.Host => _host;
     }
 
-
     public class LambdaBehavior<T> : Behavior<T> where T : IComponentHost
     {
         readonly Action<T, RenderContext> _update;
@@ -45,7 +53,7 @@
             _update = update;
         }
 
-        public override void Update(RenderContext ctx)
+        protected override void Update(RenderContext ctx)
         {
             _update(_host!, ctx);
         }
