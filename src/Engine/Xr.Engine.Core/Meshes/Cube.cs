@@ -49,7 +49,7 @@
                  20,22,23,
              ];
 
-            //Rebuild();
+            this.UpdateBounds();
         }
 
 

@@ -4,7 +4,6 @@ namespace OpenXr.Engine
 {
     public class Geometry3D : EngineObject
     {
-        private int _version;
 
         public void ApplyTransform(Matrix4x4 matrix)
         {
@@ -14,7 +13,7 @@ namespace OpenXr.Engine
             for (int i = 0; i < Vertices.Length; i++)
                 Vertices[i].Pos = Vertices[i].Pos.Transform(matrix);
 
-            _version++;
+            Version++;
         }
 
         public void Rebuild()
@@ -29,10 +28,13 @@ namespace OpenXr.Engine
 
             Vertices = vertices;
             Indices = [];
-            _version++;
+            Version++;
         }
 
-        public long Version => _version;
+
+        public Bounds3 Bounds { get; set; }
+
+        public long Version { get; set; }
 
         public uint[]? Indices { get; set; }
 

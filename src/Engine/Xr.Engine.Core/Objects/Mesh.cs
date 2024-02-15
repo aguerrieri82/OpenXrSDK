@@ -6,6 +6,7 @@ namespace OpenXr.Engine
     public class Mesh : Object3D
     {
         readonly ObservableCollection<Material> _materials;
+        private Geometry3D? _geometry;
 
         public Mesh()
         {
@@ -30,6 +31,12 @@ namespace OpenXr.Engine
             NotifyChanged(ObjectChangeType.Render);
         }
 
+        protected override void UpdateWorldBounds()
+        {
+            if (Geometry != null)
+                _worldBounds = Geometry.Bounds.Transform(_worldMatrix);
+        }
+
         public Mesh(Geometry3D geometry, Material? material = null)
             : this()
         {
@@ -50,6 +57,16 @@ namespace OpenXr.Engine
 
         public IList<Material> Materials => _materials;
 
-        public Geometry3D? Geometry { get; set; }
+        public Geometry3D? Geometry
+        {
+            get => _geometry;
+            set
+            {
+                if (_geometry == value)
+                    return;
+                _geometry = value;
+                NotifyChanged(ObjectChangeType.Geometry);
+            }
+        }
     }
 }

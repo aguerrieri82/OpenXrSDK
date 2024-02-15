@@ -20,9 +20,9 @@ namespace OpenXr.Engine
             _isDirty = true;
         }
 
-        public bool Update()
+        public bool Update(bool force = false)
         {
-            if (!_isDirty)
+            if (!_isDirty && !force)
                 return false;
 
             _matrix =

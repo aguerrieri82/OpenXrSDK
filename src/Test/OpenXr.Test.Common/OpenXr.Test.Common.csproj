@@ -7,8 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Engine\Xr.Engine.Core\Xr.Engine.Core.csproj" />
-    <ProjectReference Include="..\..\Framework\OpenXr.Framework\OpenXr.Framework.csproj" />
+    <ProjectReference Include="..\..\Engine\Xr.Engine.OpenXr\Xr.Engine.OpenXr.csproj" />
   </ItemGroup>
 
   <ItemGroup>

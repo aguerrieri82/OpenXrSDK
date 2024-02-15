@@ -17,9 +17,9 @@
             [
                 0, 1, 3,
                 1, 2, 3
-             ];
+            ];
 
-            //Rebuild();
+            this.UpdateBounds();
         }
 
 

@@ -12,7 +12,7 @@
         {
             var isChanged = base.UpdateWorldMatrix(updateChildren, updateParent);
 
-            if (updateChildren && isChanged)
+            if (updateChildren || isChanged)
                 _children.ForEach(a => a.UpdateWorldMatrix(true, false));
 
             return isChanged;

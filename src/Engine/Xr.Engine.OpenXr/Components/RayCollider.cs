@@ -1,5 +1,4 @@
 ﻿using OpenXr.Engine;
-using OpenXr.Engine.Objects;
 using OpenXr.Framework;
 
 namespace Xr.Engine.OpenXr

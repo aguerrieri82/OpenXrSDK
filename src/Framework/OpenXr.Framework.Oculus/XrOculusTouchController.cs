@@ -28,8 +28,12 @@
         public XrHaptic? ThumbHaptic;
     }
 
-    //[XrPath("/interaction_profiles/facebook/touch_controller_pro")]
+
+    [XrPath("/interaction_profiles/meta/touch_controller_plus")]
     [XrPath("/interaction_profiles/oculus/touch_controller")]
+    [XrPath("/interaction_profiles/oculus/touch_controller_pro")]
+    [XrPath("/interaction_profiles/facebook/touch_controller_pro")]
+    [XrPath("/interaction_profiles/khr/simple_controller")]
     public class XrOculusTouchController
     {
         [XrPath("/user/hand/left")]

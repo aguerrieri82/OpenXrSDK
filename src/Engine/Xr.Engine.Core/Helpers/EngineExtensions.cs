@@ -14,6 +14,13 @@ namespace OpenXr.Engine
             return result;
         }
 
+        public static T AddComponent<T>(this EngineObject obj) where T : IComponent, new()
+        {
+            var result = new T();
+            obj.AddComponent(new T());
+            return result;
+        }
+
 
         #endregion
 
@@ -130,6 +137,66 @@ namespace OpenXr.Engine
 
         #region GEOMETRY
 
+        public static Quaternion RotationTowards(this Vector3 from,  Vector3 to)
+        {
+            Quaternion result;
+
+            var axis = Vector3.Cross(from, to);
+            result.X = axis.X;
+            result.Y = axis.Y;
+            result.Z = axis.Z;
+            result.W = MathF.Sqrt((from.LengthSquared() * to.LengthSquared())) + Vector3.Dot(from, to);
+            return Quaternion.Normalize(result);
+        }
+
+        public static void UpdateBounds(this Geometry3D geo)
+        {
+            geo.Bounds = geo.ComputeBounds(Matrix4x4.Identity);
+        }
+
+        public static Bounds3 ComputeBounds(this Geometry3D geo, Matrix4x4 transform)
+        {
+            if (geo.Vertices != null)
+                return ComputeBounds(geo.Vertices!.Select(a => a.Pos), transform);
+
+            return new Bounds3();
+        }
+
+        public static Bounds3 ComputeBounds(this IEnumerable<Vector3> points, Matrix4x4 matrix)
+        {
+            var result = new Bounds3();
+
+            result.Min = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+            result.Max = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+
+            foreach (var point in points)
+            {
+                var tPoint = point.Transform(matrix); 
+
+                result.Min.X = MathF.Min(result.Min.X, tPoint.X);
+                result.Min.Y = MathF.Min(result.Min.Y, tPoint.Y);
+                result.Min.Z = MathF.Min(result.Min.Z, tPoint.Z);
+
+                result.Max.X = MathF.Max(result.Max.X, tPoint.X);
+                result.Max.Y = MathF.Max(result.Max.Y, tPoint.Y);
+                result.Max.Z = MathF.Max(result.Max.Z, tPoint.Z);
+            }
+
+            return result;
+        }
+
+        public static Bounds3 Transform(this Bounds3 bounds, Matrix4x4 matrix)
+        {
+            return bounds.Points.ComputeBounds(matrix);
+        }
+
+        public static bool ContainsPoint(this Bounds3 bounds, Vector3 point)
+        {
+            return point.X >= bounds.Min.X && point.X <= bounds.Max.X &&
+                   point.Y >= bounds.Min.Y && point.Y <= bounds.Max.Y &&
+                   point.Z >= bounds.Min.Z && point.Z <= bounds.Max.Z;
+        }
+
         public static Vector3 Normal(this Triangle3 triangle)
         {
             var edge1 = triangle.V1 - triangle.V0;
@@ -184,6 +251,7 @@ namespace OpenXr.Engine
                     geo.Vertices![i2].Normal = normal;
                 }
             }
+            geo.Version++;
         }
 
         public static void SmoothNormals(this Geometry3D geo)
@@ -214,6 +282,7 @@ namespace OpenXr.Engine
                         geo.Vertices[index].Normal = sum;
                 }
             }
+            geo.Version++;
         }
 
         public static IEnumerable<Triangle3> Triangles(this Geometry3D geo)
@@ -292,12 +361,12 @@ namespace OpenXr.Engine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 ToLocalDirection(this Vector3 vector, Matrix4x4 matrix)
+        public static Vector3 ToDirection(this Vector3 vector, Matrix4x4 matrix)
         {
-            return (vector - Vector3.Zero).Transform(matrix).Normalize();
+            return (vector.Transform(matrix) - Vector3.Zero.Transform(matrix)).Normalize();
         }
 
-        public static Vector3? RayIntersect(this ref Triangle3 triangle, ref Ray3 ray, out float distance, float epsilon = 1e-6f)
+        public static Vector3? RayIntersect(this Triangle3 triangle, Ray3 ray, out float distance, float epsilon = 1e-6f)
         {
             distance = float.PositiveInfinity;
 

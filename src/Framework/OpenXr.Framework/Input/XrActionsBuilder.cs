@@ -1,13 +1,17 @@
-﻿using System.Linq.Expressions;
+﻿using System.IO;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace OpenXr.Framework
 {
-    public class XrInputBuilder<TProfile> where TProfile : new()
+    public class XrActionsBuilder<TProfile> where TProfile : new()
     {
-        readonly List<IXrInput> _actions = [];
+        readonly List<IXrInput> _inputs = [];
         readonly TProfile _result;
         readonly XrApp _app;
+        readonly IList<XrHaptic> _haptics = [];
+        readonly IList<string> _profiles = [];
 
         protected class PropOrField
         {
@@ -27,17 +31,19 @@ namespace OpenXr.Framework
         }
 
 
-        public XrInputBuilder(XrApp app)
+        public XrActionsBuilder(XrApp app)
         {
-            var profile = typeof(TProfile).GetCustomAttribute<XrPathAttribute>()?.Value;
-            if (profile == null)
+            foreach (var path in typeof(TProfile).GetCustomAttributes<XrPathAttribute>())
+                _profiles.Add(path.Value);
+
+            if (_profiles.Count == 0)
                 throw new NotSupportedException($"XrPathAttribute missing on type '{typeof(TProfile)}'");
-            Profile = profile;
+
             _result = new TProfile();
             _app = app;
         }
 
-        public XrInputBuilder<TProfile> AddAction<T>(Expression<Func<TProfile, XrInput<T>?>> selector)
+        public XrActionsBuilder<TProfile> AddAction(Expression<Func<TProfile, IXrAction?>> selector)
         {
             ProcessExpression(selector, out var path, out var name);
             return this;
@@ -63,6 +69,8 @@ namespace OpenXr.Framework
                     {
                         if (member.IsInput)
                             member.Value = CreateInput(member.Type!, curPath, curName);
+                        else if (member.IsHaptic)
+                            member.Value = CreateHaptic(member.Type!, curPath, curName);
                         else
                             member.Value = Activator.CreateInstance(member.Type!)!;
 
@@ -101,7 +109,20 @@ namespace OpenXr.Framework
             else
                 result = (IXrInput)Activator.CreateInstance(type, _app, path, name)!;
 
-            _actions.Add(result);
+            _inputs.Add(result);
+
+            return result;
+        }
+
+
+        protected XrHaptic CreateHaptic(Type type, string path, string name)
+        {
+            if (type.IsAbstract)
+                throw new NotSupportedException();
+      
+            var result = (XrHaptic)Activator.CreateInstance(type, _app, path, name)!;
+
+            _haptics.Add(result);
 
             return result;
         }
@@ -138,7 +159,7 @@ namespace OpenXr.Framework
             AddAll(a => a!);
         }
 
-        public XrInputBuilder<TProfile> AddAll(Expression<Func<TProfile, object?>> selector)
+        public XrActionsBuilder<TProfile> AddAll(Expression<Func<TProfile, object?>> selector)
         {
             var rootObj = ProcessExpression(selector, out var rootPath, out var rootName);
 
@@ -156,6 +177,11 @@ namespace OpenXr.Framework
                     }
                     else if (member.IsHaptic)
                     {
+                        if (member.Value == null)
+                        {
+                            var value = CreateHaptic(member.Type!, curPath + member.Path, curName + member.Name);
+                            member.SetValue!(value);
+                        }
                     }
                     else
                     {
@@ -183,8 +209,10 @@ namespace OpenXr.Framework
 
         public TProfile Result => _result;
 
-        public string Profile { get; }
+        public IList<string> Profiles => _profiles;
 
-        public IList<IXrInput> Actions => _actions;
+        public IList<IXrInput> Inputs => _inputs;
+
+        public IList<XrHaptic> Haptics => _haptics;
     }
 }

@@ -4,22 +4,6 @@ using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework
 {
-    public interface IXrInput
-    {
-        void Update(Space refSpace, long predictTime);
-
-        ActionSuggestedBinding Initialize();
-
-        public DateTime LastChangeTime { get; }
-
-        public bool IsActive { get; }
-
-        public bool IsChanged { get; }
-
-        public string Name { get; }
-
-        public object Value { get; }
-    }
 
 
     public abstract class XrInput<TValue> : IXrInput
@@ -82,6 +66,8 @@ namespace OpenXr.Framework
         public TValue Value => _value;
 
         public string Name => _name;
+
+        public Action Action => _action;
 
         object IXrInput.Value => _value!;
     }

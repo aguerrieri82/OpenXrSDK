@@ -11,6 +11,7 @@ namespace OpenXr.Engine
         public Scene()
         {
             _layers = new LayerManager(this);
+            _scene = this;
 
             this.AddLayer<TypeLayer<Light>>();
             this.AddLayer<TypeLayer<Camera>>();

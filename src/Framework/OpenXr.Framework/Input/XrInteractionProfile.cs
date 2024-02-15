@@ -8,7 +8,7 @@ namespace OpenXr.Framework
         public XrInput<bool>? SqueezeClick;
 
         [XrPath("/input/squeeze/value")]
-        public XrInput<float>? Squeeze;
+        public XrInput<float>? SqueezeValue;
 
         [XrPath("/input/trigger")]
         public XrInput<bool>? TriggerClick;
@@ -42,6 +42,9 @@ namespace OpenXr.Framework
 
         [XrPath("/input/aim/pose")]
         public XrInput<XrPose>? AimPose;
+
+        [XrPath("/output/haptic")]
+        public XrHaptic? Haptic;
 
         public THand? Button;
 
