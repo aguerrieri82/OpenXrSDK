@@ -1,8 +1,8 @@
 ﻿using System.Numerics;
 
-namespace OpenXr.WebLink.Entities
+namespace OpenXr.Framework
 {
-    public class Mesh
+    public class XrMesh
     {
         public Vector3[]? Vertices { get; set; }
 

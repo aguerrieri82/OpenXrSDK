@@ -1,4 +1,4 @@
-﻿namespace OpenXr.WebLink.Entities
+﻿namespace OpenXr.Framework
 {
     public enum XrAnchorComponent
     {

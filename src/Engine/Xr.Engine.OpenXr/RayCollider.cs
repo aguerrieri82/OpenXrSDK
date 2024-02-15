@@ -47,15 +47,13 @@ namespace Xr.Engine.OpenXr
                     _rayView.Length = result.Distance;
 
                     var rayTarget = result.Object!.Components<IRayTarget>().FirstOrDefault();
-                    if (rayTarget != null)
-                        rayTarget.NotifyCollision(ctx, result);
+                    rayTarget?.NotifyCollision(ctx, result);
                 }
                 else
                 {
                     _rayView.Length = 3;
                     _rayView.Materials[0].Color = new Color(1, 1, 1);
                 }
-
             }
 
             base.Update(ctx);

@@ -60,7 +60,6 @@ namespace OpenXr.Framework.Android
                 _xrApp.RenderFrame(_xrApp.Stage);
 
             _xrApp.Dispose();
-
         }
 
         private void CheckPermissionsAndRun()

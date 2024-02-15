@@ -59,74 +59,9 @@ namespace OpenXr.WebLink
             _logger.LogInformation("Join {connection} '{anchorId}' {on}", Context.ConnectionId, groupId, enabled ? "on" : "off");
         }
 
-        public async Task<List<XrAnchorDetails>> GetAnchors(XrAnchorFilter filter)
+        public Task<List<XrAnchor>> GetAnchors(XrAnchorFilter filter)
         {
-            var xrOculus = _app.Plugin<OculusXrPlugin>();
-            var result = new List<XrAnchorDetails>();
-
-            var anchors = await xrOculus.QueryAllAnchorsAsync();
-
-            foreach (var space in anchors)
-            {
-                var item = new XrAnchorDetails();
-                item.Id = space.Uuid.ToGuid();
-                try
-                {
-                    if ((filter.Components & XrAnchorComponent.Label) != 0 &&
-                   xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.SemanticLabelsFB))
-                    {
-                        item.Labels = xrOculus.GetSpaceSemanticLabels(space.Space);
-                    }
-
-
-                    if ((filter.Components & XrAnchorComponent.Bounds) != 0 &&
-                        xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.Bounded2DFB))
-                    {
-                        var bounds = xrOculus.GetSpaceBoundingBox2D(space.Space);
-                        item.Bounds2D = bounds.Convert().To<Entities.Rect2>();
-                    }
-
-                    if ((filter.Components & XrAnchorComponent.Pose) != 0)
-                    {
-                        try
-                        {
-                            var local = _app.LocateSpace(_app.Stage, space.Space, 1);
-
-                            item.Pose = new Pose
-                            {
-                                Orientation = local.Pose!.Orientation,
-                                Position = local.Pose.Position,
-                            };
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "LocateSpace {itemId}", item.Id);
-                        }
-
-                    }
-
-                    if ((filter.Components & XrAnchorComponent.Mesh) != 0 &&
-                        xrOculus.GetSpaceComponentEnabled(space.Space, OculusXrPlugin.XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META))
-                    {
-                        var mesh = xrOculus.GetSpaceTriangleMesh(space.Space);
-                        item.Mesh = new Mesh
-                        {
-                            Indices = mesh.Indices,
-                            Vertices = mesh.Vertices!.Convert().To<Vector3>()
-                        };
-
-                    }
-                }
-
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "GetAnchors {itemId}", item.Id);
-                }
-
-                result.Add(item);
-            }
-
-            return result;
+            return _app.Plugin<OculusXrPlugin>().GetAnchorsAsync(filter);
         }
     }
 }

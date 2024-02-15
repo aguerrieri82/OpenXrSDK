@@ -1,6 +1,4 @@
-﻿using System;
-using static OpenXr.Engine.KtxReader;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿#pragma warning disable CS0649
 
 namespace OpenXr.Engine
 {

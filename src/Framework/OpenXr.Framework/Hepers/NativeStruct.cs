@@ -16,7 +16,6 @@ namespace OpenXr.Framework
             get => _value == null ? null : *_value;
             set
             {
-
                 if (value == null)
                     Dispose();
                 else

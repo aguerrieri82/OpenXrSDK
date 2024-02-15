@@ -30,12 +30,14 @@ namespace OpenXr.Test.Android
         private EngineApp? _game;
         private WebView? _webView;
         private XrWebViewLayer? _webViewLayer;
-        private XrMetaQuestTouchPro? _inputs;
+        private XrOculusTouchController? _inputs;
 
         protected override void OnAppStarted(XrApp app)
         {
             _webView = _webViewLayer!.WebView;
             _webView!.LoadUrl("https://www.youtube.com");
+
+
             base.OnAppStarted(app);
         }
 
@@ -58,7 +60,7 @@ namespace OpenXr.Test.Android
                  new OculusXrPlugin(options),
                  new AndroidXrPlugin(this));
 
-             _inputs = result.WithInteractionProfile<XrMetaQuestTouchPro>(bld => bld
+             _inputs = result.WithInteractionProfile<XrOculusTouchController>(bld => bld
                 .AddAction(a => a.Right!.TriggerClick)
                 .AddAction(a => a.Right!.SqueezeClick)
                 .AddAction(a => a.Right!.GripPose)
@@ -73,6 +75,8 @@ namespace OpenXr.Test.Android
             _webViewLayer = result.Layers.AddWebView(this, display.BindToQuad(), controller);
 
             _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
+
+            _game.ActiveScene.AddChild(new OculusScene());
 
             result.BindEngineApp(
                 _game,

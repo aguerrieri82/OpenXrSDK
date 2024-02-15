@@ -3,9 +3,12 @@ using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using Action = Silk.NET.OpenXR.Action;
 
 
@@ -71,7 +74,6 @@ namespace OpenXr.Framework.Oculus
 
         #endregion
 
-        protected XrApp? _app;
         protected FBScene? _scene;
         protected FBSpatialEntity? _spatial;
         protected FBSpatialEntityQuery? _spatialQuery;
@@ -286,7 +288,17 @@ namespace OpenXr.Framework.Oculus
 
         public override void HandleEvent(ref EventDataBuffer buffer)
         {
-            if (buffer.Type == StructureType.EventDataSpaceQueryResultsAvailableFB)
+            var test = buffer.Type.ToString();
+            Debug.WriteLine(test);
+
+            if (buffer.Type == StructureType.EventDataSpaceQueryCompleteFB)
+            {
+                var data = buffer.Convert().To<EventDataSpaceQueryCompleteFB>();
+                if (_spaceQueries.TryRemove(data.RequestId, out var task))
+                    task.ScheduleCancel(TimeSpan.FromSeconds(5));
+            }
+
+            else if (buffer.Type == StructureType.EventDataSpaceQueryResultsAvailableFB)
             {
                 var data = buffer.Convert().To<EventDataSpaceQueryResultsAvailableFB>();
 
@@ -372,7 +384,6 @@ namespace OpenXr.Framework.Oculus
             _app!.CheckResult(_haptic!.GetDeviceSampleRateFB(_app!.Session, in info, ref res), "GetDeviceSampleRateFB");
 
             return res.SampleRate;
-
         }
 
         public uint ApplyVibrationPcmFeedback(Action action, Span<float> buffer, float sampleRate, bool append, ulong subActionPath = 0)

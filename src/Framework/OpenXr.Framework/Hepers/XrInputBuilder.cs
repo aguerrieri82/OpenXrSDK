@@ -16,7 +16,7 @@ namespace OpenXr.Framework
         readonly TProfile _result;
         readonly XrApp _app;
 
-        public class PropOrField
+        protected class PropOrField
         {
             public string? Path;
 
@@ -44,13 +44,10 @@ namespace OpenXr.Framework
             _app = app;
         }
 
-
-
         public XrInputBuilder<TProfile> AddAction<T>(Expression<Func<TProfile, XrInput<T>?>> selector) 
         {
             ProcessExpression(selector, out var path, out var name);
             return this;
-
         }
 
         protected object ProcessExpression<T>(Expression<Func<TProfile, T>> selector, out string path, out string name)
@@ -69,22 +66,16 @@ namespace OpenXr.Framework
                     curName += member.Name;
                     curPath += member.Path;
 
-                    if (member.IsInput)
+                    if (member.Value == null)
                     {
-                        if (member.Value == null)
-                        {
+                        if (member.IsInput)
                             member.Value = CreateInput(member.Type!, curPath, curName);
-                            member.SetValue!(member.Value);
-                        }
-                    }
-                    else
-                    {
-                        if (member.Value == null)
-                        {
+                        else
                             member.Value = Activator.CreateInstance(member.Type!)!;
-                            member.SetValue!(member.Value);
-                        }
+
+                        member.SetValue!(member.Value);
                     }
+
                     return member.Value;
                 }
 
@@ -151,7 +142,6 @@ namespace OpenXr.Framework
 
         public void AddAll()
         {
-
             AddAll(a => a!);
         }
 

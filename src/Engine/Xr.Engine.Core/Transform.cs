@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices.JavaScript;
 
 namespace OpenXr.Engine
 {
@@ -9,10 +10,12 @@ namespace OpenXr.Engine
         protected Vector3 _position;
         protected Quaternion _orientation;
         protected Matrix4x4 _matrix;
-        private Vector3 _pivot;
+        protected Vector3 _pivot;
+        protected Object3D _host;
 
-        public Transform()
+        public Transform(Object3D host)
         {
+            _host = host;   
             _scale = new Vector3(1, 1, 1);
             _orientation = Quaternion.Identity;
             _isDirty = true;    
@@ -24,6 +27,7 @@ namespace OpenXr.Engine
                 return false;
 
             _matrix =
+                Matrix4x4.CreateTranslation(-_pivot) *
                 Matrix4x4.CreateScale(_scale) *
                 Matrix4x4.CreateFromQuaternion(_orientation) *
                 Matrix4x4.CreateTranslation(_position);
@@ -33,6 +37,11 @@ namespace OpenXr.Engine
             return true;
         }
 
+        protected void NotifyChanged()
+        {
+            _isDirty = true;
+        }
+
         public Vector3 Scale
         {
             get => _scale;
@@ -40,7 +49,7 @@ namespace OpenXr.Engine
             set
             {
                 _scale = value;
-                _isDirty = true;
+                NotifyChanged();
             }
         }
 
@@ -51,7 +60,7 @@ namespace OpenXr.Engine
             set
             {
                 _orientation = Quaternion.Normalize(value);
-                _isDirty = true;
+                NotifyChanged();
             }
         }
 
@@ -62,7 +71,7 @@ namespace OpenXr.Engine
             set
             {
                 _position = value;
-                _isDirty = true;
+                NotifyChanged();
             }
         }
 
@@ -73,7 +82,7 @@ namespace OpenXr.Engine
             set
             {
                 _pivot = value;
-                _isDirty = true;
+                NotifyChanged();
             }
         }
 

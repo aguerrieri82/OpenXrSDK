@@ -1,4 +1,6 @@
-﻿namespace OpenXr.WebLink.Entities
+﻿using OpenXr.Framework;
+
+namespace OpenXr.WebLink.Entities
 {
     public enum TrackObjectType
     {
@@ -14,6 +16,6 @@
 
         public Guid? AnchorId { get; set; }
 
-        public Pose Pose { get; set; }
+        public XrPose? Pose { get; set; }
     }
 }

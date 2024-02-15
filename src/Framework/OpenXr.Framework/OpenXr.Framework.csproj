@@ -12,6 +12,10 @@
 		<PackageReference Include="Silk.NET.Windowing" Version="2.20.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\OpenXr.Entities\OpenXr.Entities.csproj" />
+	</ItemGroup>
+
 
 	<ItemGroup>
 		<None Update="libopenxr_loader.so">

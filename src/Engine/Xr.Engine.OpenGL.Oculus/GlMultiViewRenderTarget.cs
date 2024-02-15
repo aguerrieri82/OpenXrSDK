@@ -33,7 +33,7 @@ namespace OpenXr.Engine.OpenGL.Oculus
             return new GlMultiViewFrameBuffer(_gl, texId, sampleCount);
         }
 
-        public static GlMultiViewRenderTarget Attach(GL gl, uint texId, uint sampleCount)
+        public static new GlMultiViewRenderTarget Attach(GL gl, uint texId, uint sampleCount)
         {
             if (!_targets.TryGetValue(texId, out var target))
             {

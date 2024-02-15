@@ -9,7 +9,6 @@ namespace OpenXr.Framework.Vulkan
     {
         protected IVulkanDevice _device;
         protected KhrVulkanEnable? _vulkanExt;
-        protected XrApp? _app;
         protected XrDynamicType _swapChainType;
 
         public XrVulkanGraphicDriver(IVulkanDevice device)

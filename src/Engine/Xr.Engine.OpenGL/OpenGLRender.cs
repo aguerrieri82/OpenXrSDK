@@ -30,7 +30,7 @@ namespace OpenXr.Engine.OpenGL
     {
         public GlProgram? Program;
 
-        public readonly Dictionary<Geometry, VertexContent> Contents = [];
+        public readonly Dictionary<Geometry3D, VertexContent> Contents = [];
     }
 
     public class VertexContent

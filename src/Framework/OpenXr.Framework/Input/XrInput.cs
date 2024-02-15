@@ -46,7 +46,7 @@ namespace OpenXr.Framework
             _actionType = actionType;
             _path = path;
             _name = name;
-            _value = default;
+            _value = default!;
         }
         
         public virtual ActionSuggestedBinding Initialize()

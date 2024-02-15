@@ -4,4 +4,12 @@
 
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Framework\OpenXr.Entities\OpenXr.Entities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Geometry\" />
+  </ItemGroup>
+
 </Project>

@@ -39,7 +39,6 @@ namespace OpenXr.Engine.OpenGL.Oculus
 
         static FramebufferTextureMultisampleMultiviewOVRDelegate? FramebufferTextureMultisampleMultiviewOVR;
 
-        static bool _isInit = false;
 
         protected readonly uint _sampleCount;
         protected readonly uint _colorTexId;
@@ -117,8 +116,6 @@ namespace OpenXr.Engine.OpenGL.Oculus
 
             gl.Context.TryGetProcAddress("glFramebufferTextureMultisampleMultiviewOVR", out addr);
             FramebufferTextureMultisampleMultiviewOVR = Marshal.GetDelegateForFunctionPointer<FramebufferTextureMultisampleMultiviewOVRDelegate>(addr);
-
-            _isInit = true;
         }
 
         public override void Dispose()

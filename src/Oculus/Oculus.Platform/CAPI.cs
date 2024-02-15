@@ -1,3 +1,8 @@
+#pragma warning disable CS8618
+#pragma warning disable CS8625
+#pragma warning disable CS8604
+#pragma warning disable CS8603
+
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -357,7 +362,7 @@ namespace Oculus.Platform
             if (count > 0)
             {
                 int i = 0;
-                foreach (var item in values)
+                foreach (var item in values!)
                 {
                     valuesNative[i * 2 + 0] = StringToNative(item.Key);
                     valuesNative[i * 2 + 1] = StringToNative(item.Value);
