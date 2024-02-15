@@ -9,11 +9,11 @@ namespace OpenXr.Engine.OpenGL
 {
     public class GlDefaultRenderTarget : IGlRenderTarget
     {
-        GL _gl;
-        
+        readonly GL _gl;
+
         public GlDefaultRenderTarget(GL gl)
         {
-            _gl = gl;   
+            _gl = gl;
         }
 
         public void Begin()

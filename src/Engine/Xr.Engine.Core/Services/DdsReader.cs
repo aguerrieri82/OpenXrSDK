@@ -56,11 +56,11 @@ namespace OpenXr.Engine
             if (file.header.dwSize != sizeof(DDSHeader))
                 throw new InvalidOperationException();
 
-   
+
             var comp = (TextureCompressionFormat)file.header.ddspf.dwFourCC;
             var format = TextureFormat.Rgb24;
 
-  
+
             return ReadMips(memStream, (uint)file.header.dwWidth, (uint)file.header.dwHeight, (uint)file.header.dwMipMapCount, comp, format);
         }
 

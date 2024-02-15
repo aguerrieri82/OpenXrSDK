@@ -1,5 +1,4 @@
-﻿using SkiaSharp;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace OpenXr.Engine
@@ -60,7 +59,7 @@ namespace OpenXr.Engine
         }
 
 
-        public static IEnumerable<Collision> RayCollisions(this Scene scene, Ray3 ray) 
+        public static IEnumerable<Collision> RayCollisions(this Scene scene, Ray3 ray)
         {
             foreach (var obj in scene.VisibleDescendants<Object3D>())
             {
@@ -79,7 +78,7 @@ namespace OpenXr.Engine
 
         #region GROUP
 
-        public static T? FindByName<T>(this Group group, string name)    where T : Object3D
+        public static T? FindByName<T>(this Group group, string name) where T : Object3D
         {
             return group.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
         }
@@ -234,7 +233,26 @@ namespace OpenXr.Engine
                 }
             }
             else
-                throw new NotImplementedException();
+            {
+                int i = 0;
+                while (i < geo.Vertices!.Length)
+                {
+                    var i0 = i++;
+                    var i1 = i++;
+                    var i2 = i++;
+
+                    var triangle = new Triangle3
+                    {
+                        V0 = geo.Vertices![i0].Pos,
+                        V1 = geo.Vertices![i1].Pos,
+                        V2 = geo.Vertices![i2].Pos,
+                    };
+
+                    yield return triangle;
+                    
+                }
+            }
+                
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

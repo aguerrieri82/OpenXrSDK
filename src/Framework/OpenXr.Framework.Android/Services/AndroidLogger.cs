@@ -1,18 +1,12 @@
-﻿using Android.Util;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using LogA = Android.Util.Log;
 
 namespace OpenXr.Framework.Android
 {
     public class AndroidLoggerFactory : ILoggerProvider
     {
-        ConcurrentDictionary<string, ILogger> _loggers = [];
+        readonly ConcurrentDictionary<string, ILogger> _loggers = [];
 
         public ILogger CreateLogger(string categoryName)
         {

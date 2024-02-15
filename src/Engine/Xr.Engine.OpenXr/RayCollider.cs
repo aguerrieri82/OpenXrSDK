@@ -1,19 +1,13 @@
 ﻿using OpenXr.Engine;
 using OpenXr.Engine.Objects;
 using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xr.Engine.OpenXr
 {
     public class RayCollider : Behavior<Scene>
     {
-        XrInput<XrPose> _input;
-        RayView _rayView;
+        readonly XrInput<XrPose> _input;
+        readonly RayView _rayView;
 
         public RayCollider(XrInput<XrPose> input)
         {

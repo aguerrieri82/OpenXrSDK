@@ -1,19 +1,14 @@
 ﻿using OpenXr.Engine;
 using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using Xr.Engine.OpenXr;
 
 namespace OpenXr.Test.Android
 {
     public class SurfaceController : Behavior<Object3D>, IRayTarget, ISurfaceInput
     {
-        XrInput<bool> _mainButton;
-        XrInput<bool> _backButton;
+        readonly XrInput<bool> _mainButton;
+        readonly XrInput<bool> _backButton;
         InputButton _mainInBtn;
         InputButton _backInBtn;
 
@@ -24,7 +19,7 @@ namespace OpenXr.Test.Android
         public SurfaceController(XrInput<bool> mainButton, XrInput<bool> backButton)
         {
             _mainButton = mainButton;
-            _backButton = backButton;   
+            _backButton = backButton;
         }
 
         protected override void Update(RenderContext ctx)

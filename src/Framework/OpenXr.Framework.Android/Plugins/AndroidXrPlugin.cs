@@ -23,7 +23,7 @@ namespace OpenXr.Framework
         public AndroidXrPlugin(Context context)
             : this(context, (uint)Process.MyTid())
         {
-           
+
         }
 
         public AndroidXrPlugin(Context context, uint mainThreadId)

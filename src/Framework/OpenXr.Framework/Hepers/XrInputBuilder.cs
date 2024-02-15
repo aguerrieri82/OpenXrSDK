@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace OpenXr.Framework
 {
@@ -44,7 +37,7 @@ namespace OpenXr.Framework
             _app = app;
         }
 
-        public XrInputBuilder<TProfile> AddAction<T>(Expression<Func<TProfile, XrInput<T>?>> selector) 
+        public XrInputBuilder<TProfile> AddAction<T>(Expression<Func<TProfile, XrInput<T>?>> selector)
         {
             ProcessExpression(selector, out var path, out var name);
             return this;
@@ -55,7 +48,7 @@ namespace OpenXr.Framework
             path = "";
             name = "";
 
-            object Visit( ref string curPath, ref string curName, Expression exp)
+            object Visit(ref string curPath, ref string curName, Expression exp)
             {
                 if (exp is MemberExpression me)
                 {
@@ -81,7 +74,7 @@ namespace OpenXr.Framework
 
                 if (exp is UnaryExpression ue && ue.NodeType == ExpressionType.Convert)
                     return Visit(ref curPath, ref curName, ue.Operand);
-                
+
                 if (exp is ParameterExpression)
                     return _result!;
 
@@ -131,9 +124,9 @@ namespace OpenXr.Framework
                 result.Type = pi.PropertyType;
                 result.SetValue = value => pi.SetValue(obj, value);
             }
-            
+
             result.Path = member.GetCustomAttribute<XrPathAttribute>()?.Value ?? "";
-            
+
             result.IsInput = typeof(IXrInput).IsAssignableFrom(result.Type);
             result.IsHaptic = typeof(XrHaptic).IsAssignableFrom(result.Type);
 

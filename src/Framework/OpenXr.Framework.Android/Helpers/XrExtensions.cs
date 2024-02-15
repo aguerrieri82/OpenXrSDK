@@ -1,5 +1,4 @@
 ﻿using Android.Content;
-using Android.Webkit;
 using OpenXr.Framework.Android;
 using Silk.NET.OpenXR;
 

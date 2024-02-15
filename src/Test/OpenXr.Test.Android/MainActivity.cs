@@ -1,8 +1,6 @@
 using Android.Content;
 using Android.Content.PM;
-using Android.Views;
 using Android.Webkit;
-using Javax.Microedition.Khronos.Egl;
 
 namespace OpenXr.Test.Android
 {

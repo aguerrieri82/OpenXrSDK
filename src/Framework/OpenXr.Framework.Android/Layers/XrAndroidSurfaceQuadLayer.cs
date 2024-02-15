@@ -1,14 +1,7 @@
-﻿using Android.Graphics;
-using Android.Runtime;
+﻿using Android.Runtime;
 using Android.Views;
-using Silk.NET.OpenGLES;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Framework.Android
 {
@@ -25,9 +18,9 @@ namespace OpenXr.Framework.Android
         }
 
         public XrAndroidSurfaceQuadLayer(Extent2Di size, GetQuadDelegate getQuad)
-            : base(getQuad) 
+            : base(getQuad)
         {
-            _size = size;   
+            _size = size;
         }
 
         public override void Initialize(XrApp app, IList<string> extensions)
@@ -53,7 +46,7 @@ namespace OpenXr.Framework.Android
 
             var info = new SwapchainCreateInfo()
             {
-                Type = StructureType.SwapchainCreateInfo, 
+                Type = StructureType.SwapchainCreateInfo,
                 Width = (uint)_size.Width,
                 Height = (uint)_size.Height,
             };
@@ -62,17 +55,17 @@ namespace OpenXr.Framework.Android
             {
                 Type = StructureType.AndroidSurfaceSwapchainCreateInfoFB,
             };
-            
+
             //info.Next = &fbInfo;
 
             nint surfaceHandle = 0;
 
             _xrApp.CheckResult(
                 _androidSurface.CreateSwapchainAndroidSurface(
-                    _xrApp.Session, 
-                    in info, 
+                    _xrApp.Session,
+                    in info,
                     ref _swapchain,
-                    ref surfaceHandle), 
+                    ref surfaceHandle),
                 "CreateSwapchainAndroidSurface");
 
             _surface = Surface.GetObject<Surface>(surfaceHandle, JniHandleOwnership.TransferGlobalRef)!;

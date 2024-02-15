@@ -42,7 +42,7 @@ namespace OpenXr.Engine.OpenGL
             Target = _gl.GetTexture2DTarget(handle);
 
             Bind();
-     
+
             _gl.GetTexLevelParameter(Target, 0, GetTextureParameter.TextureWidth, out int w);
             _gl.GetTexLevelParameter(Target, 0, GetTextureParameter.TextureHeight, out int h);
             _gl.GetTexLevelParameter(Target, 0, GetTextureParameter.TextureInternalFormat, out int intf);
@@ -160,7 +160,7 @@ namespace OpenXr.Engine.OpenGL
                     else
                     {
                         //TODO fix null
-                        
+
                         _gl.TexImage2D(
                            Target,
                            0,

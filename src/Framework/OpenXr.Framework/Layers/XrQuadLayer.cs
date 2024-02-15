@@ -1,10 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Silk.NET.OpenXR;
 
 namespace OpenXr.Framework
 {

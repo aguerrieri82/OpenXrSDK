@@ -2,12 +2,7 @@
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xr.Engine.OpenXr
 {
@@ -32,13 +27,19 @@ namespace Xr.Engine.OpenXr
 
             if (_meshSpace.Handle != 0)
             {
-                var oculus = _app!.Plugin<OculusXrPlugin>();
-                if (oculus.GetSpaceComponentEnabled(_meshSpace, SpaceComponentTypeFB.RoomLayoutFB))
+                try
                 {
                     var mesh = (Mesh)_children[0];
-                    var location = _app.LocateSpace(_meshSpace, _app.Stage, 1);
+
+                    var location = _app!.LocateSpace(_meshSpace, _app.Stage, 1);
+
                     mesh.Transform.Position = location.Pose!.Position;
                     mesh.Transform.Orientation = location.Pose.Orientation;
+
+                }
+                catch
+                {
+
                 }
             }
 
@@ -60,7 +61,12 @@ namespace Xr.Engine.OpenXr
                 if (meshAnchor.Space.Handle != 0)
                 {
                     var sceneMesh = oculus.GetSpaceTriangleMesh(meshAnchor.Space);
-                    //var location = _app.LocateSpace(meshAnchor.Space, _app.Stage, 1);
+
+                    var isLocatable = oculus.EnumerateSpaceSupportedComponentsFB(meshAnchor.Space).Contains(SpaceComponentTypeFB.LocatableFB);
+                    if (isLocatable)
+                    {
+                        await oculus.SetSpaceComponentStatusAsync(meshAnchor.Space, SpaceComponentTypeFB.LocatableFB, true);
+                    }
 
                     var mesh = new Mesh();
                     mesh.Geometry = new Geometry3D
@@ -73,10 +79,8 @@ namespace Xr.Engine.OpenXr
                     };
                     mesh.Geometry.Rebuild();
                     mesh.Geometry.ComputeNormals();
-
-                    mesh.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), -MathF.PI / 2);
-
                     mesh.Materials.Add(new StandardMaterial() { Color = Color.White });
+                    mesh.AddComponent(new MeshCollider());
 
                     AddChild(mesh);
 

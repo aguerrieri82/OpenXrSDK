@@ -1,12 +1,6 @@
 ﻿using Android.Content.PM;
-using Android.Opengl;
 using Android.OS;
 using Android.Runtime;
-using Android.Util;
-using Android.Views;
-using Android.Webkit;
-using static Android.Renderscripts.Sampler;
-using Debug = System.Diagnostics.Debug;
 
 namespace OpenXr.Framework.Android
 {
@@ -15,7 +9,7 @@ namespace OpenXr.Framework.Android
     {
         private Thread? _loopThread;
         private XrApp? _xrApp;
-        private Handler _handler;
+        private readonly Handler _handler;
 
         public XrActivity()
         {
@@ -39,18 +33,18 @@ namespace OpenXr.Framework.Android
         }
 
         void RunAppThread()
-        { 
+        {
             _loopThread = new Thread(RunApp);
             _loopThread.Start();
         }
 
         void RunApp()
-        { 
+        {
             _xrApp = CreateApp();
 
             var driver = _xrApp.Plugin<AndroidXrOpenGLESGraphicDriver>();
 
-            _xrApp.StartEventLoop(()=> IsDestroyed);
+            _xrApp.StartEventLoop(() => IsDestroyed);
 
             _xrApp.Start();
 

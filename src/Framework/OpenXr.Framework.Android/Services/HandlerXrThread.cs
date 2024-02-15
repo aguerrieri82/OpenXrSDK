@@ -1,5 +1,4 @@
 ﻿using Android.OS;
-using OpenXr.Framework;
 
 
 namespace OpenXr.Framework.Android
