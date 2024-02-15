@@ -1,16 +1,12 @@
 using Android.Content;
 using Android.Content.PM;
-using Android.OS;
-using Android.Views;
 using Android.Webkit;
 using OpenXr.Engine;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
-using OpenXr.Framework.Engine;
 using OpenXr.Framework.Oculus;
 using OpenXr.Samples;
-using static Android.Renderscripts.ScriptGroup;
-
+using Xr.Engine.OpenXr;
 
 
 namespace OpenXr.Test.Android
@@ -49,7 +45,8 @@ namespace OpenXr.Test.Android
             {
                 EnableMultiView = true,
                 SampleCount = 2,
-                ResolutionScale = 0.8f
+                ResolutionScale = 0.8f,
+                Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
             };
 
             _game = Common.CreateScene(new AndroidAssetManager(this)); 
@@ -69,9 +66,8 @@ namespace OpenXr.Test.Android
                );
 
             result.Layers.Add<XrPassthroughLayer>();
-
             var display = _game.ActiveScene!.FindByName<Mesh>("display")!;
-            var controller = new DisplayController(_inputs.Right!.TriggerClick!, _inputs.Right!.SqueezeClick!);
+            var controller = new SurfaceController(_inputs.Right!.TriggerClick!, _inputs.Right!.SqueezeClick!);
             display.AddComponent(controller);
 
             _webViewLayer = result.Layers.AddWebView(this, display.BindToQuad(), controller);

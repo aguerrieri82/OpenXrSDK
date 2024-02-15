@@ -1,6 +1,5 @@
 ﻿using OpenXr.Engine;
-using OpenXr.Framework.Android;
-using OpenXr.Framework.Input;
+using OpenXr.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +10,7 @@ using Xr.Engine.OpenXr;
 
 namespace OpenXr.Test.Android
 {
-    internal class DisplayController : Behavior<Object3D>, IRayTarget, ISurfaceInput
+    public class SurfaceController : Behavior<Object3D>, IRayTarget, ISurfaceInput
     {
         XrInput<bool> _mainButton;
         XrInput<bool> _backButton;
@@ -22,7 +21,7 @@ namespace OpenXr.Test.Android
         Vector2 _pointer;
         bool _pointerValid;
 
-        public DisplayController(XrInput<bool> mainButton, XrInput<bool> backButton)
+        public SurfaceController(XrInput<bool> mainButton, XrInput<bool> backButton)
         {
             _mainButton = mainButton;
             _backButton = backButton;   

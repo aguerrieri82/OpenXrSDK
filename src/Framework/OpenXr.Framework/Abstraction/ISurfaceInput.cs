@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Framework.Android
+namespace OpenXr.Framework
 {
     public struct InputButton
     {
