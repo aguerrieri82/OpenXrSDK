@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Framework.Input
+namespace OpenXr.Framework
 {
     public class XrInteractionProfileHand<THand>
     {

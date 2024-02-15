@@ -50,7 +50,7 @@ namespace OpenXr.Framework.Android
 
             var driver = _xrApp.Plugin<AndroidXrOpenGLESGraphicDriver>();
 
-            _xrApp.StartEventLoop();
+            _xrApp.StartEventLoop(()=> IsDestroyed);
 
             _xrApp.Start();
 
@@ -58,6 +58,8 @@ namespace OpenXr.Framework.Android
 
             while (!IsDestroyed)
                 _xrApp.RenderFrame(_xrApp.Stage);
+
+            _xrApp.Dispose();
 
         }
 

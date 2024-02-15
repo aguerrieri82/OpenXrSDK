@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Framework.Input
+namespace OpenXr.Framework
 {
     public class XrPathAttribute : Attribute
     {

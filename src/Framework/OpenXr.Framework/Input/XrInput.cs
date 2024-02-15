@@ -5,10 +5,9 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Silk.NET.OpenXR;
-using static System.Collections.Specialized.BitVector32;
 using Action = Silk.NET.OpenXR.Action;
 
-namespace OpenXr.Framework.Input
+namespace OpenXr.Framework
 {
     public interface IXrInput
     {

@@ -1,10 +1,16 @@
-﻿using Microsoft.Extensions.Logging;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
+using Microsoft.Extensions.Logging;
 using OpenXr.Engine;
 using OpenXr.Engine.OpenGL;
-using Silk.NET.OpenGL;
-using Silk.NET.OpenGLES;
 using Silk.NET.Windowing;
 using System.Numerics;
+
+
 
 namespace OpenXr.Samples
 {
