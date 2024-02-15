@@ -1,7 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public class ColorMaterial : ShaderMaterial
     {

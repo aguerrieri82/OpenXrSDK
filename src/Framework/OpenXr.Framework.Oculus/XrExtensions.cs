@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace OpenXr.Framework
 {
-    public static  class XrExtensions
+    public static class XrExtensions
     {
         public unsafe static UuidEXT[] GetWalls(this RoomLayoutFB layout)
         {

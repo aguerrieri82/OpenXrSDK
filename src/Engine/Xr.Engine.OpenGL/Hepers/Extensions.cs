@@ -64,7 +64,7 @@ namespace OpenXr.Engine.OpenGL
                 else
                     texture.Create(value.Width, value.Height, value.Format, value.Compression);
             }
-               
+
 
             return texture;
         }

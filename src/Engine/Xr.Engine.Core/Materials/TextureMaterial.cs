@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public class TextureMaterial : ShaderMaterial
     {

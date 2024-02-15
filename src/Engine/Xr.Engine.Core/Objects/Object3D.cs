@@ -101,7 +101,7 @@ namespace OpenXr.Engine
                         _transform.Position + Vector3.Transform(value, _worldMatrixInverse),
                         new Vector3(0f, 0.5f, 0.05f));
 
-                Transform.Orientation = Quaternion.CreateFromRotationMatrix(lookAt);    
+                Transform.Orientation = Quaternion.CreateFromRotationMatrix(lookAt);
             }
         }
 

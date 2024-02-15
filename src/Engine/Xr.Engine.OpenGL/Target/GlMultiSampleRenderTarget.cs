@@ -73,7 +73,7 @@ namespace OpenXr.Engine.OpenGL
 
         public uint QueryTexture(FramebufferAttachment attachment)
         {
-            return _renderFrameBuffer.QueryTexture(attachment); 
+            return _renderFrameBuffer.QueryTexture(attachment);
         }
     }
 }

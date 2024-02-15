@@ -49,7 +49,7 @@ namespace OpenXr.Engine
 
         [ShaderRef(0, "vPos")]
         public Vector3 Pos;
-        
+
         [ShaderRef(1, "vForm")]
         public Vector3 Normal;
 

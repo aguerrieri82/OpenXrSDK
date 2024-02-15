@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Framework.Oculus
+﻿namespace OpenXr.Framework.Oculus
 {
 
     public class XrOculusTouchControllerHand<THand> : XrInteractionProfileHand<THand>
@@ -36,7 +30,7 @@ namespace OpenXr.Framework.Oculus
 
     //[XrPath("/interaction_profiles/facebook/touch_controller_pro")]
     [XrPath("/interaction_profiles/oculus/touch_controller")]
-    public class XrOculusTouchController 
+    public class XrOculusTouchController
     {
         [XrPath("/user/hand/left")]
         public XrOculusTouchControllerHand<XrInteractionProfileHandLeft>? Left;

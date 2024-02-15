@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OpenXr.Engine;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;

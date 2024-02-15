@@ -51,7 +51,7 @@ namespace OpenXr.Test.Android
                 Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
             };
 
-            _game = Common.CreateScene(new AndroidAssetManager(this)); 
+            _game = Common.CreateScene(new AndroidAssetManager(this));
 
             var logger = new AndroidLogger("XrApp");
 
@@ -60,12 +60,12 @@ namespace OpenXr.Test.Android
                  new OculusXrPlugin(options),
                  new AndroidXrPlugin(this));
 
-             _inputs = result.WithInteractionProfile<XrOculusTouchController>(bld => bld
-                .AddAction(a => a.Right!.TriggerClick)
-                .AddAction(a => a.Right!.SqueezeClick)
-                .AddAction(a => a.Right!.GripPose)
-                .AddAction(a => a.Right!.AimPose)
-               );
+            _inputs = result.WithInteractionProfile<XrOculusTouchController>(bld => bld
+               .AddAction(a => a.Right!.TriggerClick)
+               .AddAction(a => a.Right!.SqueezeClick)
+               .AddAction(a => a.Right!.GripPose)
+               .AddAction(a => a.Right!.AimPose)
+              );
 
             result.Layers.Add<XrPassthroughLayer>();
             var display = _game.ActiveScene!.FindByName<Mesh>("display")!;

@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using System.Runtime.InteropServices.JavaScript;
 
 namespace OpenXr.Engine
 {
@@ -15,10 +14,10 @@ namespace OpenXr.Engine
 
         public Transform(Object3D host)
         {
-            _host = host;   
+            _host = host;
             _scale = new Vector3(1, 1, 1);
             _orientation = Quaternion.Identity;
-            _isDirty = true;    
+            _isDirty = true;
         }
 
         public bool Update()

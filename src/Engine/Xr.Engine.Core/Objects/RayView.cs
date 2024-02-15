@@ -1,10 +1,4 @@
-﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace OpenXr.Engine.Objects
 {
@@ -14,7 +8,7 @@ namespace OpenXr.Engine.Objects
         protected bool _isDirty = true;
         protected float _size;
 
-        public RayView() 
+        public RayView()
         {
             Geometry = new Cube();
             Materials.Add(new ColorMaterial(Color.White));
@@ -47,9 +41,9 @@ namespace OpenXr.Engine.Objects
                 _length = value;
                 _isDirty = true;
             }
-        } 
+        }
 
-       public float Size
+        public float Size
         {
             get => _size;
             set

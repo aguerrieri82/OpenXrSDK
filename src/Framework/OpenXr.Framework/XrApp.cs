@@ -6,12 +6,7 @@ using Silk.NET.OpenXR;
 using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq.Expressions;
-using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Xml.Linq;
 using Action = Silk.NET.OpenXR.Action;
 using Monitor = System.Threading.Monitor;
 
@@ -791,15 +786,15 @@ namespace OpenXr.Framework
 
         #region ACTIONS
 
-        public T WithInteractionProfile<T>(Action<XrInputBuilder<T>> build) where T: new()
+        public T WithInteractionProfile<T>(Action<XrInputBuilder<T>> build) where T : new()
         {
             var builder = new XrInputBuilder<T>(this);
 
             build(builder);
-            
+
             foreach (var item in builder.Actions)
                 AddInput(item);
-            
+
             _interactionProfiles.Add(builder.Profile);
 
             return builder.Result;
@@ -930,7 +925,7 @@ namespace OpenXr.Framework
                 {
                     Type = StructureType.InteractionProfileSuggestedBinding,
                     InteractionProfile = ipPath,
-                    CountSuggestedBindings = (uint)bindings.Length, 
+                    CountSuggestedBindings = (uint)bindings.Length,
                     SuggestedBindings = pBindings
                 };
 
@@ -955,7 +950,7 @@ namespace OpenXr.Framework
 
         protected void SyncActions()
         {
-            if (_actionSet.Handle ==0)
+            if (_actionSet.Handle == 0)
                 return;
 
             var activeActionSet = new ActiveActionSet
@@ -988,7 +983,7 @@ namespace OpenXr.Framework
             return result;
         }
 
-   
+
         protected internal ActionStateFloat GetActionStateFloat(Action action, ulong subActionPath = 0)
         {
             var info = new ActionStateGetInfo
@@ -1176,7 +1171,7 @@ namespace OpenXr.Framework
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error invoking plugin {plugin}: {ex}", plugin!.GetType().FullName, ex);
-                    lastEx = ex;    
+                    lastEx = ex;
                 }
             }
             if (lastEx != null && mustSucceed)

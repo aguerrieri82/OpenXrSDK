@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Framework
+﻿namespace OpenXr.Framework
 {
     public class XrPathAttribute : Attribute
     {
-        public XrPathAttribute(string value) 
+        public XrPathAttribute(string value)
         {
             Value = value;
         }

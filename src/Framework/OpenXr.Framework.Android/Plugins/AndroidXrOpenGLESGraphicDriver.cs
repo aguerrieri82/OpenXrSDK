@@ -51,7 +51,7 @@ namespace OpenXr.Framework.Android
         {
             System.Diagnostics.Debug.Assert(viewInfo.SwapChainFormats != null);
 
-            var cast = viewInfo.SwapChainFormats!.Select(a=> ((GLEnum)(int)a).ToString()).ToArray();
+            var cast = viewInfo.SwapChainFormats!.Select(a => ((GLEnum)(int)a).ToString()).ToArray();
 
             result.SwapChainFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
         }

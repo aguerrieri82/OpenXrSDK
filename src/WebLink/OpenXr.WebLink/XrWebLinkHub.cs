@@ -3,9 +3,6 @@ using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.WebLink.Entities;
-using Silk.NET.OpenXR;
-using System.Numerics;
-using System.Text;
 
 namespace OpenXr.WebLink
 {

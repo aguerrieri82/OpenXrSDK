@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Silk.NET.OpenXR;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using Silk.NET.OpenXR;
 using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework
@@ -48,30 +43,30 @@ namespace OpenXr.Framework
             _name = name;
             _value = default!;
         }
-        
+
         public virtual ActionSuggestedBinding Initialize()
         {
             var result = new ActionSuggestedBinding();
             result.Binding = _app.StringToPath(_path);
             result.Action = _app.CreateAction(_name, _name, _actionType);
             _action = result.Action;
-            return result;  
+            return result;
         }
 
         public static XrInput<TValue> Create(XrApp app, string path, string name)
         {
             if (typeof(TValue) == typeof(float))
                 return (new XrFloatInput(app, path, name) as XrInput<TValue>)!;
-            
+
             if (typeof(TValue) == typeof(bool))
                 return (new XrBoolInput(app, path, name) as XrInput<TValue>)!;
-            
+
             if (typeof(TValue) == typeof(Vector2))
                 return (new XrVector2Input(app, path, name) as XrInput<TValue>)!;
-            
+
             if (typeof(TValue) == typeof(XrPose))
                 return (new XrPoseInput(app, path, name) as XrInput<TValue>)!;
-            
+
             throw new NotSupportedException();
 
         }

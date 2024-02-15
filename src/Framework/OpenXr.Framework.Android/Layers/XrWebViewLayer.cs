@@ -1,20 +1,10 @@
 ﻿using Android.Content;
-using Android.Content.PM;
-using Android.Content.Res;
 using Android.Graphics;
 using Android.OS;
-using Android.Runtime;
-using Android.Util;
 using Android.Views;
 using Android.Webkit;
 using Silk.NET.OpenXR;
-using Silk.NET.SDL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Framework.Android
 {
@@ -22,27 +12,27 @@ namespace OpenXr.Framework.Android
     {
         class WebView2 : WebView
         {
-            XrWebViewLayer _layer;
+            readonly XrWebViewLayer _layer;
 
             public WebView2(XrWebViewLayer layer)
                 : base(layer._context)
             {
-                _layer = layer; 
+                _layer = layer;
             }
-           
+
             public override void Draw(Canvas canvas)
             {
                 _layer.ScheduleDraw(base.Draw);
-            }  
+            }
         }
 
         class WebClient : WebViewClient
         {
-            XrWebViewLayer _layer;
+            readonly XrWebViewLayer _layer;
 
             public WebClient(XrWebViewLayer layer)
             {
-                _layer =layer;  
+                _layer = layer;
             }
 
             public override bool ShouldOverrideUrlLoading(WebView? view, string? url)
@@ -89,10 +79,10 @@ namespace OpenXr.Framework.Android
             protected long _lastDownTime;
             protected IXrThread _mainThread;
 
-            public InputController(ISurfaceInput surfaceInput, IXrThread mainThread )
+            public InputController(ISurfaceInput surfaceInput, IXrThread mainThread)
             {
                 _surfaceInput = surfaceInput;
-                _mainThread= mainThread;    
+                _mainThread = mainThread;
             }
 
             public void Update(WebView webView)
@@ -197,7 +187,7 @@ namespace OpenXr.Framework.Android
 
             if (_webView != null)
                 _input.Update(_webView);
-            
+
             return result;
         }
 
@@ -216,7 +206,7 @@ namespace OpenXr.Framework.Android
             _webView.Settings.MediaPlaybackRequiresUserGesture = false;
             _webView.Settings.SetSupportMultipleWindows(false);
             _webView.Settings.SetNeedInitialFocus(false);
-            _webView.Settings.UserAgentString = "Mozilla/5.0 (Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.0.0 Safari/537.36"; 
+            _webView.Settings.UserAgentString = "Mozilla/5.0 (Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.0.0 Safari/537.36";
             //_webView.Settings.OffscreenPreRaster = true;
             //_webView.Settings.SetSupportZoom(true);
 

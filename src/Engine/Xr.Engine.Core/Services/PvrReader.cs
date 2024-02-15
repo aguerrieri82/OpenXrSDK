@@ -7,13 +7,14 @@ namespace OpenXr.Engine
     {
         const uint Version = 0x03525650;
 
-        enum PixelFormat : ulong {
+        enum PixelFormat : ulong
+        {
             ETC2_RGB = 22,
             ETC2_RGBA = 23,
             ETC2_RGB_A1 = 24,
         }
 
-        public enum ColourSpace :uint
+        public enum ColourSpace : uint
         {
             LinearRGB = 0,
             sRGB = 1,

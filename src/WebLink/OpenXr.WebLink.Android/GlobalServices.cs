@@ -1,6 +1,4 @@
-﻿using OpenXr.Framework;
-
-namespace OpenXr.WebLink.Android
+﻿namespace OpenXr.WebLink.Android
 {
     internal class GlobalServices
     {

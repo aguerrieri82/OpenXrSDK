@@ -1,19 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Text;
-using System.Threading.Tasks;
-using static OpenXr.Engine.PvrReader;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public abstract class BaseTextureReader : ITextureReader
     {
         protected struct AlignSize
         {
             public uint AlignX;
-            
+
             public uint AlignY;
 
             public uint BitPerPixel;
@@ -25,7 +17,7 @@ namespace OpenXr.Engine
         {
             if (comp == TextureCompressionFormat.Etc2)
             {
-                var result = new   AlignSize();
+                var result = new AlignSize();
                 result.AlignX = 4;
                 result.AlignY = 4;
 

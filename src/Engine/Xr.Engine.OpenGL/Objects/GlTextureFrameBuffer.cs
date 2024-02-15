@@ -5,7 +5,6 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 
 namespace OpenXr.Engine.OpenGL
 {
