@@ -9,6 +9,8 @@ namespace OpenXr.Test.Android
     {
         readonly XrInput<bool> _mainButton;
         readonly XrInput<bool> _backButton;
+        readonly XrHaptic _clickHaptic;
+
         InputButton _mainInBtn;
         InputButton _backInBtn;
 
@@ -16,10 +18,11 @@ namespace OpenXr.Test.Android
         Vector2 _pointer;
         bool _pointerValid;
 
-        public SurfaceController(XrInput<bool> mainButton, XrInput<bool> backButton)
+        public SurfaceController(XrInput<bool> mainButton, XrInput<bool> backButton, XrHaptic clickHaptic)
         {
             _mainButton = mainButton;
             _backButton = backButton;
+            _clickHaptic = clickHaptic;
         }
 
         protected override void Update(RenderContext ctx)
@@ -32,6 +35,9 @@ namespace OpenXr.Test.Android
 
             _backInBtn.IsDown = _backButton.Value;
             _backInBtn.IsChanged = _backButton.IsChanged;
+
+            if (_pointerValid && _mainInBtn.IsDown && _mainInBtn.IsChanged)
+                _clickHaptic.VibrateStart(100, 1, TimeSpan.FromMilliseconds(100));
 
             base.Update(ctx);
         }

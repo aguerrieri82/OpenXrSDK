@@ -58,6 +58,7 @@ namespace OpenXr.Framework
         protected SystemProperties _systemProps;
         protected ActionSet _actionSet;
         protected Dictionary<string, IXrInput> _inputs = [];
+        protected Dictionary<string, XrHaptic> _haptics = [];
         protected IList<string> _interactionProfiles = [];
 
         public XrApp(params IXrPlugin[] plugins)
@@ -786,16 +787,20 @@ namespace OpenXr.Framework
 
         #region ACTIONS
 
-        public T WithInteractionProfile<T>(Action<XrInputBuilder<T>> build) where T : new()
+        public T WithInteractionProfile<T>(Action<XrActionsBuilder<T>> build) where T : new()
         {
-            var builder = new XrInputBuilder<T>(this);
+            var builder = new XrActionsBuilder<T>(this);
 
             build(builder);
 
-            foreach (var item in builder.Actions)
+            foreach (var item in builder.Inputs)
                 AddInput(item);
 
-            _interactionProfiles.Add(builder.Profile);
+            foreach (var item in builder.Haptics)
+                AddHaptic(item);
+
+            foreach (var item in builder.Profiles)
+                _interactionProfiles.Add(item);
 
             return builder.Result;
         }
@@ -805,10 +810,7 @@ namespace OpenXr.Framework
         {
             var input = XrInput<T>.Create(this, path, name);
 
-            if (_isStarted)
-                input.Initialize();
-
-            _inputs[name] = input;
+            AddInput(input);
 
             return input;
         }
@@ -819,15 +821,22 @@ namespace OpenXr.Framework
                 input.Initialize();
 
             _inputs[input.Name] = input;
-
         }
+
+        protected void AddHaptic(XrHaptic haptic)
+        {
+            if (_isStarted)
+                haptic.Initialize();
+
+            _haptics[haptic.Name] = haptic;
+        }
+
 
         protected void CreateActions()
         {
-
             var suggBindings = new List<ActionSuggestedBinding>();
 
-            foreach (var input in _inputs.Values)
+            foreach (var input in _inputs.Values.Cast<IXrAction>().Union(_haptics.Values))
             {
                 try
                 {
@@ -839,6 +848,7 @@ namespace OpenXr.Framework
                     _logger.LogError("Failed to create input '{input}': {ex}", input.Name, ex);
                 }
             }
+
 
             if (suggBindings.Count > 0)
             {
@@ -1049,7 +1059,7 @@ namespace OpenXr.Framework
             return state.IsActive != 0;
         }
 
-        protected internal void ApplyVibrationFeedback(Action action, float frequencyHz, TimeSpan duration, ulong subActionPath = 0)
+        protected internal void ApplyVibrationFeedback(Action action, float frequencyHz, float amplitude, TimeSpan duration, ulong subActionPath = 0)
         {
             var info = new HapticActionInfo(StructureType.HapticActionInfo)
             {
@@ -1060,6 +1070,7 @@ namespace OpenXr.Framework
             var vibration = new HapticVibration(StructureType.HapticVibration)
             {
                 Duration = (long)duration.TotalNanoseconds,
+                Amplitude = amplitude,
                 Frequency = frequencyHz
             };
 
@@ -1227,6 +1238,8 @@ namespace OpenXr.Framework
             _xr.Dispose();
             _xr = null;
             _isDisposed = true;
+
+            Current = null;
 
             GC.SuppressFinalize(this);
         }

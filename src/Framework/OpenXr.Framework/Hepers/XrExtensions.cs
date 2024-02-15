@@ -1,4 +1,6 @@
-﻿namespace OpenXr.Framework
+﻿using System.Diagnostics;
+
+namespace OpenXr.Framework
 {
     public static class XrExtensions
     {
@@ -24,6 +26,7 @@
 
                     await Task.Delay(poolPeriodMs);
                 }
+                Debug.WriteLine("---Event Loop exit---");
             });
 
         }

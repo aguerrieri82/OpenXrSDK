@@ -4,7 +4,7 @@ namespace OpenXr.Engine
 {
     public class MeshCollider : Behavior<Mesh>, ICollider
     {
-        long _version;
+        long _version = -1;
         Triangle3[]? _triangles;
 
         void Update()
@@ -24,7 +24,7 @@ namespace OpenXr.Engine
 
             for (var i = 0; i < span.Length; i++)
             {
-                var point = span[i].RayIntersect(ref tRay, out var _);
+                var point = span[i].RayIntersect(tRay, out var _);
                 if (point != null)
                 {
                     var worldPoint = point.Value.Transform(_host.WorldMatrix);
@@ -42,5 +42,6 @@ namespace OpenXr.Engine
             return null;
 
         }
+
     }
 }

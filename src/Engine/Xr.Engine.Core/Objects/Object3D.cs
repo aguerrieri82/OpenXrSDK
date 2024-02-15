@@ -10,7 +10,8 @@ namespace OpenXr.Engine
         protected bool _worldDirty;
         protected Scene? _scene;
         protected bool _isVisible;
-        private Matrix4x4 _worldMatrixInverse;
+        protected Matrix4x4 _worldMatrixInverse;
+        protected Bounds3 _worldBounds;
 
         public Object3D()
         {
@@ -28,7 +29,7 @@ namespace OpenXr.Engine
             if (updateParent && _parent != null)
                 isParentChanged = _parent.UpdateWorldMatrix(false, updateParent);
 
-            if (_transform.Update() || isParentChanged || _worldDirty)
+            if (isParentChanged || _worldDirty)
             {
                 if (_parent != null)
                     _worldMatrix = _parent!.WorldMatrix * _transform.Matrix;
@@ -36,6 +37,8 @@ namespace OpenXr.Engine
                     _worldMatrix = _transform.Matrix;
 
                 Matrix4x4.Invert(_worldMatrix, out _worldMatrixInverse);
+
+                UpdateWorldBounds();
 
                 _worldDirty = false;
 
@@ -54,6 +57,11 @@ namespace OpenXr.Engine
             }
 
             base.Update(ctx);
+        }
+
+        protected virtual void UpdateWorldBounds()
+        {
+
         }
 
         internal void SetParent(Group? value)
@@ -92,29 +100,25 @@ namespace OpenXr.Engine
 
         public Vector3 Forward
         {
-            get => new Vector3(0f, 0f, 1f).ToLocalDirection(_worldMatrix);
+            get => new Vector3(0f, 0f, 1f).ToDirection(_worldMatrix);
             set
             {
-                //TODO to verify
-                var lookAt = Matrix4x4.CreateLookAt(
-                        _transform.Position,
-                        _transform.Position + Vector3.Transform(value, _worldMatrixInverse),
-                        new Vector3(0f, 0.5f, 0.05f));
-
-                Transform.Orientation = Quaternion.CreateFromRotationMatrix(lookAt);
+                Transform.Orientation = Forward.RotationTowards(value);
             }
         }
 
         public Vector3 Up
         {
-            get => new Vector3(0f, 1f, 0f).ToLocalDirection(_worldMatrix);
+            get => new Vector3(0f, 1f, 0f).ToDirection(_worldMatrix);
         }
 
         public Vector3 WorldPosition
         {
             get => Vector3.Zero.Transform(_worldMatrix);
-            set => _transform.Position = value.Transform(_worldMatrixInverse);
+            set => _transform.Position = _parent != null ? value.Transform(_parent.WorldMatrixInverse) : value;
         }
+
+        public Bounds3 WorldBounds => _worldBounds;
 
         public Scene? Scene => _scene;
 

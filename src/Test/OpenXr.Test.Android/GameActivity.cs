@@ -63,20 +63,35 @@ namespace OpenXr.Test.Android
             _inputs = result.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.TriggerClick)
                .AddAction(a => a.Right!.SqueezeClick)
+               .AddAction(a => a.Right!.TriggerValue)
+               .AddAction(a => a.Right!.SqueezeValue)
                .AddAction(a => a.Right!.GripPose)
                .AddAction(a => a.Right!.AimPose)
+               .AddAction(a => a.Right!.Haptic)
               );
 
             result.Layers.Add<XrPassthroughLayer>();
+            
             var display = _game.ActiveScene!.FindByName<Mesh>("display")!;
-            var controller = new SurfaceController(_inputs.Right!.TriggerClick!, _inputs.Right!.SqueezeClick!);
+            
+            var controller = new SurfaceController(
+                _inputs.Right!.TriggerClick!, 
+                _inputs.Right!.SqueezeClick!, 
+                _inputs.Right!.Haptic!);
+
             display.AddComponent(controller);
+            display.AddComponent<DisplayPosition>();
 
             _webViewLayer = result.Layers.AddWebView(this, display.BindToQuad(), controller);
 
             _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
+            _game.ActiveScene!.AddComponent(new ObjectGrabber(
+                _inputs.Right!.GripPose!,
+                _inputs.Right!.Haptic!,
+                _inputs.Right!.SqueezeValue!, 
+                _inputs.Right!.TriggerValue!));
 
-            _game.ActiveScene.AddChild(new OculusScene());
+            //_game.ActiveScene.AddChild(new OculusScene());
 
             result.BindEngineApp(
                 _game,

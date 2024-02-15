@@ -1,6 +1,7 @@
-﻿using System.Numerics;
+﻿using OpenXr.Engine;
+using System.Numerics;
 
-namespace OpenXr.Engine.Objects
+namespace Xr.Engine.OpenXr
 {
     public class RayView : Mesh
     {

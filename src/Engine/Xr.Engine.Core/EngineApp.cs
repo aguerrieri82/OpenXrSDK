@@ -14,6 +14,7 @@
 
         public EngineApp()
         {
+     
             _context = new RenderContext();
             _changeListeners.Add(ShaderMeshLayerBuilder.Instance);
             Current = this;

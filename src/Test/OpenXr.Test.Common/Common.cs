@@ -1,6 +1,7 @@
 ﻿using OpenXr.Engine;
 using OpenXr.Engine.Abstraction;
 using System.Numerics;
+using Xr.Engine.OpenXr;
 
 namespace OpenXr.Samples
 {
@@ -37,16 +38,19 @@ namespace OpenXr.Samples
                         obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f);
                     });
 
+                    cube.AddComponent<BoundsGrabbable>();
+
                     scene.AddChild(cube);
                 }
             }
 
             var display = new Mesh(Quad.Instance);
+            //display.Materials.Add(new ColorMaterial(new Color(0, 1, 0)) { DoubleSided = true });
             display.Transform.Scale = new Vector3(1.924f, 1.08f, 0.01f);
-            display.Transform.Position = new Vector3(2f, 1.2f, -1.5f);
-            display.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), -MathF.PI / 2);
+            //display.Transform.Position = new Vector3(2f, 1.2f, -1.5f);
+            display.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI / 2);
             display.Name = "display";
-            display.AddComponent(new MeshCollider());
+            display.AddComponent<MeshCollider>();
 
             scene.AddChild(display);
 

@@ -8,7 +8,8 @@
         Parent = 2,
         Transform = 4,
         Render = 8,
-        SceneAdd = Parent | 0x10
+        SceneAdd = Parent | 0x10,
+        Geometry = 0x20
     }
 
     public readonly struct ObjectChange

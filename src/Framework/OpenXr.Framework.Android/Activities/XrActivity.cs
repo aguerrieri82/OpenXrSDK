@@ -9,6 +9,7 @@ namespace OpenXr.Framework.Android
     {
         private Thread? _loopThread;
         private XrApp? _xrApp;
+        private bool _isExited;
         private readonly Handler _handler;
 
         public XrActivity()
@@ -32,6 +33,17 @@ namespace OpenXr.Framework.Android
 
         }
 
+        protected override void OnDestroy()
+        {
+            _xrApp?.Dispose();
+
+            _loopThread?.Join();
+
+            Process.KillProcess(Process.MyPid());
+
+            base.OnDestroy();
+        }
+
         void RunAppThread()
         {
             _loopThread = new Thread(RunApp);
@@ -44,16 +56,18 @@ namespace OpenXr.Framework.Android
 
             var driver = _xrApp.Plugin<AndroidXrOpenGLESGraphicDriver>();
 
-            _xrApp.StartEventLoop(() => IsDestroyed);
+            _xrApp.StartEventLoop(() => _isExited);
 
             _xrApp.Start();
 
             _handler.Post(() => OnAppStarted(_xrApp));
 
-            while (!IsDestroyed)
+            while (_xrApp.IsStarted)
                 _xrApp.RenderFrame(_xrApp.Stage);
 
-            _xrApp.Dispose();
+            _isExited = true;
+            System.Diagnostics.Debug.WriteLine("---Run App exit---");
+
         }
 
         private void CheckPermissionsAndRun()
