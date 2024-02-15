@@ -4,16 +4,13 @@ using OpenXr.Engine;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.OpenGL;
-using OpenXr.Framework.OpenGLES;
-using OpenXr.Test;
-using System.Xml.Linq;
 using Xr.Engine.OpenXr;
 
 namespace OpenXr.Samples
 {
     public static class XrSceneApp
     {
-        private static XrMetaQuestTouchPro? _inputs;
+        private static XrOculusTouchController? _inputs;
         private static EngineApp? _game;
 
         public static Task Run(IServiceProvider services, ILogger logger)
@@ -27,8 +24,6 @@ namespace OpenXr.Samples
                 ResolutionScale = 1f
             };
 
-
-
             var viewManager = new ViewManager();
             viewManager.Initialize();
 
@@ -36,7 +31,7 @@ namespace OpenXr.Samples
                     new XrOpenGLGraphicDriver(viewManager.View),
                     new OculusXrPlugin(options));
 
-            _inputs = xrApp.WithInteractionProfile<XrMetaQuestTouchPro>(bld => bld
+            _inputs = xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.Button!.AClick)
                .AddAction(a => a.Right!.GripPose)
                .AddAction(a => a.Right!.AimPose)

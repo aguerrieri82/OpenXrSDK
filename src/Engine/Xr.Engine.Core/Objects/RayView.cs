@@ -18,7 +18,6 @@ namespace OpenXr.Engine.Objects
         {
             Geometry = new Cube();
             Materials.Add(new ColorMaterial(Color.White));
-            //Materials.Add(new StandardMaterial() { Color = Color.White });
             Length = 4f;
             Size = 0.005f;
 
@@ -32,7 +31,7 @@ namespace OpenXr.Engine.Objects
         {
             if (_isDirty)
             {
-                Transform.Scale = new Vector3(_size, _size, _length);
+                Transform.SetScale(_size, _size, _length);
                 _isDirty = false;
             }
 

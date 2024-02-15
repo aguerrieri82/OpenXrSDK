@@ -10,7 +10,6 @@ namespace OpenXr.Framework.OpenGLES
     {
         protected GraphicsBinding _binding;
         protected IView _view;
-        protected XrApp? _app;
         protected KhrOpenglEsEnable? _openGlEs;
         protected XrDynamicType _swapChainType;
 

@@ -1,5 +1,6 @@
 ﻿using SkiaSharp;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace OpenXr.Engine
 {
@@ -78,12 +79,10 @@ namespace OpenXr.Engine
 
         #region GROUP
 
-
         public static T? FindByName<T>(this Group group, string name)    where T : Object3D
         {
             return group.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
         }
-
 
         public static IEnumerable<T> VisibleDescendants<T>(this Group target) where T : Object3D
         {
@@ -130,10 +129,95 @@ namespace OpenXr.Engine
 
         #endregion
 
-
         #region GEOMETRY
 
-        public static IEnumerable<Triangle3> Triangles(this Geometry geo)
+        public static Vector3 Normal(this Triangle3 triangle)
+        {
+            var edge1 = triangle.V1 - triangle.V0;
+            var edge2 = triangle.V2 - triangle.V0;
+            var normal = Vector3.Cross(edge1, edge2);
+            return Vector3.Normalize(normal);
+        }
+
+        public static void ComputeNormals(this Geometry3D geo)
+        {
+            if (geo.Indices != null && geo.Indices.Length > 0)
+            {
+                int i = 0;
+                while (i < geo.Indices.Length)
+                {
+                    var i0 = geo.Indices[i++];
+                    var i1 = geo.Indices[i++];
+                    var i2 = geo.Indices[i++];
+
+                    var triangle = new Triangle3
+                    {
+                        V0 = geo.Vertices![i0].Pos,
+                        V1 = geo.Vertices![i1].Pos,
+                        V2 = geo.Vertices![i2].Pos,
+                    };
+
+                    var normal = triangle.Normal();
+                    geo.Vertices![i0].Normal = normal;
+                    geo.Vertices![i1].Normal = normal;
+                    geo.Vertices![i2].Normal = normal;
+                }
+            }
+            else
+            {
+                int i = 0;
+                while (i < geo.Vertices!.Length)
+                {
+                    var i0 = i++;
+                    var i1 = i++;
+                    var i2 = i++;
+
+                    var triangle = new Triangle3
+                    {
+                        V0 = geo.Vertices![i0].Pos,
+                        V1 = geo.Vertices![i1].Pos,
+                        V2 = geo.Vertices![i2].Pos,
+                    };
+
+                    var normal = triangle.Normal();
+                    geo.Vertices![i0].Normal = normal;
+                    geo.Vertices![i1].Normal = normal;
+                    geo.Vertices![i2].Normal = normal;
+                }
+            }
+        }
+
+        public static void SmoothNormals(this Geometry3D geo)
+        {
+            Dictionary<Vector3, List<int>> groups = [];
+
+            for (var i = 0; i < geo.Vertices!.Length; i++)
+            {
+                var v = geo.Vertices[i].Pos;
+                if (!groups.TryGetValue(v, out var list))
+                {
+                    list = [i];
+                    groups[v] = list;
+                }
+                else
+                    list.Add(i);
+            }
+            foreach (var group in groups.Values)
+            {
+                if (group.Count > 1)
+                {
+                    var sum = Vector3.Zero;
+                    foreach (var index in group)
+                        sum += geo.Vertices[index].Normal;
+
+                    sum /= group.Count;
+                    foreach (var index in group)
+                        geo.Vertices[index].Normal = sum;
+                }
+            }
+        }
+
+        public static IEnumerable<Triangle3> Triangles(this Geometry3D geo)
         {
             if (geo.Indices != null && geo.Indices.Length > 0)
             {
@@ -153,16 +237,18 @@ namespace OpenXr.Engine
                 throw new NotImplementedException();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Triangle3 Transform(this Triangle3 triangle, Matrix4x4 matrix)
         {
             return new Triangle3
             {
-                V0 = Vector3.Transform(triangle.V0, matrix),
-                V1 = Vector3.Transform(triangle.V1, matrix),
-                V2 = Vector3.Transform(triangle.V2, matrix),
+                V0 = triangle.V0.Transform(matrix),
+                V1 = triangle.V1.Transform(matrix),
+                V2 = triangle.V2.Transform(matrix),
             };
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Ray3 Transform(this Ray3 ray, Matrix4x4 matrix)
         {
             var v0 = Vector3.Transform(ray.Origin, matrix);
@@ -175,50 +261,96 @@ namespace OpenXr.Engine
             };
         }
 
-        public static Vector3? RayIntersect(this Triangle3 triangle, Ray3 ray, out float distance)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 Transform(this Vector3 vector, Matrix4x4 matrix)
+        {
+            return Vector3.Transform(vector, matrix);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 Normalize(this Vector3 vector)
+        {
+            return Vector3.Normalize(vector);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 ToLocalDirection(this Vector3 vector, Matrix4x4 matrix)
+        {
+            return (vector - Vector3.Zero).Transform(matrix).Normalize();
+        }
+
+        public static Vector3? RayIntersect(this ref Triangle3 triangle, ref Ray3 ray, out float distance, float epsilon = 1e-6f)
         {
             distance = float.PositiveInfinity;
 
-            Vector3 edge1 = triangle.V1 - triangle.V0;
-            Vector3 edge2 = triangle.V2 - triangle.V0;
-            Vector3 pvec = Vector3.Cross(ray.Direction, edge2);
-            float det = Vector3.Dot(edge1, pvec);
+            var edge1 = triangle.V1 - triangle.V0;
+            var edge2 = triangle.V2 - triangle.V0;
+            var pVec = Vector3.Cross(ray.Direction, edge2);
+            var det = Vector3.Dot(edge1, pVec);
 
-            if (Math.Abs(det) < 1e-6f)
+            if (Math.Abs(det) < epsilon)
                 return null;
 
-            float invDet = 1.0f / det;
-            Vector3 tvec = ray.Origin - triangle.V0;
-            float u = Vector3.Dot(tvec, pvec) * invDet;
+            var invDet = 1.0f / det;
+            var tVec = ray.Origin - triangle.V0;
+            var u = Vector3.Dot(tVec, pVec) * invDet;
 
             if (u < 0 || u > 1)
                 return null;
 
-            Vector3 qvec = Vector3.Cross(tvec, edge1);
-            float v = Vector3.Dot(ray.Direction, qvec) * invDet;
+            var qVec = Vector3.Cross(tVec, edge1);
+            var v = Vector3.Dot(ray.Direction, qVec) * invDet;
 
             if (v < 0 || u + v > 1)
                 return null;
 
-            float t = Vector3.Dot(edge2, qvec) * invDet;
+            var t = Vector3.Dot(edge2, qVec) * invDet;
 
-            if (t > 0) // Ray intersection
+            if (t > 0)
             {
-                // Compute the intersection point
-                Vector3 intersectionPoint = ray.Origin + t * ray.Direction;
+                var intersectionPoint = ray.Origin + t * ray.Direction;
                 distance = t;
                 return intersectionPoint;
             }
-            else // Line intersection but not ray intersection.
+            else
                 return null;
         }
 
-
         #endregion
 
-        public static void SetZ(this Transform transform, float value)
+        #region TRANSFORM
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetPosition(this Transform transform, float x, float y, float z)
+        {
+            transform.Position = new Vector3(x, y, z);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetScale(this Transform transform, float x, float y, float z)
+        {
+            transform.Scale = new Vector3(x, y, z);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetPositionZ(this Transform transform, float value)
         {
             transform.Position = new Vector3(transform.Position.X, transform.Position.Y, value);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetPositionX(this Transform transform, float value)
+        {
+            transform.Position = new Vector3(value, transform.Position.Y, transform.Position.Z);
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetPositionY(this Transform transform, float value)
+        {
+            transform.Position = new Vector3(transform.Position.X, value, transform.Position.Z);
+        }
+
+        #endregion
     }
 }

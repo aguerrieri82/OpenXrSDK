@@ -30,7 +30,7 @@ namespace OpenXr.Engine
             NotifyChanged(ObjectChangeType.Render);
         }
 
-        public Mesh(Geometry geometry, Material? material = null)
+        public Mesh(Geometry3D geometry, Material? material = null)
             : this()
         {
             Geometry = geometry;
@@ -50,6 +50,6 @@ namespace OpenXr.Engine
 
         public IList<Material> Materials => _materials;
 
-        public Geometry? Geometry { get; set; }
+        public Geometry3D? Geometry { get; set; }
     }
 }

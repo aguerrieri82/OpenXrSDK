@@ -1,6 +1,6 @@
 ﻿namespace OpenXr.Engine
 {
-    public class Quad : Geometry
+    public class Quad : Geometry3D
     {
         public Quad()
         {

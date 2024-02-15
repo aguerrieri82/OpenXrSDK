@@ -16,7 +16,4 @@ var app = builder.Build();
 
 app.UseOpenXrWebLink();
 
-var test = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.StartsWith("Microsoft.AspNetCore"));
-
-
 app.Run();

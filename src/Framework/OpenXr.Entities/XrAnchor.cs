@@ -1,6 +1,6 @@
-﻿namespace OpenXr.WebLink.Entities
+﻿namespace OpenXr.Framework
 {
-    public class XrAnchorDetails
+    public class XrAnchor
     {
         public Guid Id { get; set; }
 
@@ -8,8 +8,8 @@
 
         public Rect2? Bounds2D { get; set; }
 
-        public Pose? Pose { get; set; }
+        public XrPose? Pose { get; set; }
 
-        public Mesh? Mesh { get; set; }
+        public XrMesh? Mesh { get; set; }
     }
 }

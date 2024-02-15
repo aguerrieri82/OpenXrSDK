@@ -1,3 +1,6 @@
+#pragma warning disable CS8618
+#pragma warning disable CS8603
+#pragma warning disable CS8765
 
 using Oculus;
 using System.Runtime.InteropServices;

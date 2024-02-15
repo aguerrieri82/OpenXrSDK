@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿#pragma warning disable CS0649
+
 using System.Text;
 
 namespace OpenXr.Engine

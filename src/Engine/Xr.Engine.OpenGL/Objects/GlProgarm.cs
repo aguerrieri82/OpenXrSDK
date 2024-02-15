@@ -13,7 +13,6 @@ namespace OpenXr.Engine.OpenGL
     {
         readonly Dictionary<string, int> _locations = [];
         readonly GlRenderOptions _options;
-        readonly IList<string>? _extensions;
 
         public GlProgram(GL gl, string vSource, string fSource, GlRenderOptions options) : base(gl)
         {

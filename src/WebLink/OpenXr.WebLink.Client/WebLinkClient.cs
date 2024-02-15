@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
+using OpenXr.Framework;
 using OpenXr.WebLink.Entities;
 using System.Text.Json;
 
@@ -93,18 +94,18 @@ namespace OpenXr.WebLink.Client
             await _connection!.InvokeAsync("StopSession");
         }
 
-        public async Task<IList<XrAnchorDetails>?> GetAnchorsAsync(XrAnchorFilter filter)
+        public async Task<IList<XrAnchor>?> GetAnchorsAsync(XrAnchorFilter filter)
         {
             if (!await EnsureConnectedAsync())
                 return null;
-            return await _connection!.InvokeAsync<IList<XrAnchorDetails>>("GetAnchors", filter);
+            return await _connection!.InvokeAsync<IList<XrAnchor>>("GetAnchors", filter);
         }
 
         public async Task TrackObjectAsync(TrackObjectType type, Guid? anchorId, bool enabled)
         {
             if (!await EnsureConnectedAsync())
                 return;
-            await _connection!.InvokeAsync<IList<XrAnchorDetails>>("TrackObject", type, anchorId, enabled);
+            await _connection!.InvokeAsync("TrackObject", type, anchorId, enabled);
         }
 
 

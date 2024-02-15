@@ -11,7 +11,6 @@ namespace OpenXr.Framework
 {
     public unsafe class AndroidXrPlugin : BaseXrPlugin
     {
-        protected XrApp? _app;
         protected Context _context;
         protected KhrAndroidThreadSettings? _thread;
         protected uint _mainThreadId;

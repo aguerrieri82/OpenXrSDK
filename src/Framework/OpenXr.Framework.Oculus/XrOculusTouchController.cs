@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace OpenXr.Framework.Oculus
 {
 
-    public class XrMetaQuestTouchProHand<THand> : XrInteractionProfileHand<THand>
+    public class XrOculusTouchControllerHand<THand> : XrInteractionProfileHand<THand>
     {
         [XrPath("/input/thumbrest/force")]
         public XrInput<float>? ThumbrestForce;
@@ -36,12 +36,12 @@ namespace OpenXr.Framework.Oculus
 
     //[XrPath("/interaction_profiles/facebook/touch_controller_pro")]
     [XrPath("/interaction_profiles/oculus/touch_controller")]
-    public class XrMetaQuestTouchPro 
+    public class XrOculusTouchController 
     {
         [XrPath("/user/hand/left")]
-        public XrMetaQuestTouchProHand<XrInteractionProfileHandLeft>? Left;
+        public XrOculusTouchControllerHand<XrInteractionProfileHandLeft>? Left;
 
         [XrPath("/user/hand/right")]
-        public XrMetaQuestTouchProHand<XrInteractionProfileHandRight>? Right;
+        public XrOculusTouchControllerHand<XrInteractionProfileHandRight>? Right;
     }
 }

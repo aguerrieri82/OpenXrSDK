@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace OpenXr.WebLink.Entities
+namespace OpenXr.Framework
 {
     public struct Rect2
     {

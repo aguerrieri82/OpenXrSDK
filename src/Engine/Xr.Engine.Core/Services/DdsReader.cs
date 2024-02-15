@@ -1,4 +1,4 @@
-﻿using System.Reflection.PortableExecutable;
+﻿#pragma warning disable CS0649
 
 namespace OpenXr.Engine
 {

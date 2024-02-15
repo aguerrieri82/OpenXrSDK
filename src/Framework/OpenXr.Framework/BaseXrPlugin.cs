@@ -4,6 +4,13 @@ namespace OpenXr.Framework
 {
     public abstract class BaseXrPlugin : IXrPlugin
     {
+        protected XrApp? _app;
+
+        public BaseXrPlugin()
+        {
+
+        }
+
         public virtual void ConfigureSwapchain(ref SwapchainCreateInfo info)
         {
         }
@@ -42,5 +49,7 @@ namespace OpenXr.Framework
         {
 
         }
+
+        public XrApp App => _app ?? throw new ArgumentNullException();
     }
 }

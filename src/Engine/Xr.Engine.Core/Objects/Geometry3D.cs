@@ -2,8 +2,7 @@
 
 namespace OpenXr.Engine
 {
-
-    public abstract class Geometry : EngineObject
+    public class Geometry3D : EngineObject
     {
         private int _version;
 
@@ -13,7 +12,7 @@ namespace OpenXr.Engine
                 return;
 
             for (int i = 0; i < Vertices.Length; i++)
-                Vertices[i].Pos = Vector3.Transform(Vertices[i].Pos, matrix);
+                Vertices[i].Pos = Vertices[i].Pos.Transform(matrix);
 
             _version++;
         }
@@ -22,6 +21,7 @@ namespace OpenXr.Engine
         {
             if (Indices == null)
                 return;
+
             var vertices = new VertexData[Indices!.Length];
 
             for (var i = 0; i < Indices!.Length; i++)
@@ -31,8 +31,6 @@ namespace OpenXr.Engine
             Indices = [];
             _version++;
         }
-
-
 
         public long Version => _version;
 

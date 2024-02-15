@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
-using OpenXr.Framework.OpenGLES;
+using OpenXr.Framework.OpenGL;
 using Silk.NET.OpenXR;
 
 namespace OpenXr.Samples
@@ -17,8 +17,7 @@ namespace OpenXr.Samples
             var xrOculus = new Framework.Oculus.OculusXrPlugin();
 
             var app = new XrApp(services!.GetRequiredService<ILogger<XrApp>>(),
-                    //new XrVulkanGraphicDriver(new VulkanDevice()),
-                    new XrOpenGLESGraphicDriver(viewManager.View),
+                      new XrOpenGLGraphicDriver(viewManager.View),
                 xrOculus);
 
             _ = Task.Run(async () =>
@@ -51,11 +50,8 @@ namespace OpenXr.Samples
                     if (xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.SemanticLabelsFB))
                     {
                         var label = xrOculus.GetSpaceSemanticLabels(space.Space);
-
-
                         logger.LogInformation(label[0]);
                     }
-
 
                     if (xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.Bounded2DFB))
                     {
@@ -74,7 +70,7 @@ namespace OpenXr.Samples
                     {
                         var local = app.LocateSpace(app.Stage, space.Space, 1);
 
-                        logger.LogInformation(local.Pose.ToString());
+                        logger.LogInformation(local.Pose!.ToString());
                     }
 
                     if (xrOculus.GetSpaceComponentEnabled(space.Space, OpenXr.Framework.Oculus.OculusXrPlugin.XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META))

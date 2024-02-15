@@ -1,6 +1,6 @@
 ﻿namespace OpenXr.Engine
 {
-    public class Cube : Geometry
+    public class Cube : Geometry3D
     {
         public Cube()
         {

@@ -10,7 +10,6 @@ namespace OpenXr.Framework.Android
         protected OpenGLESContext _context;
         protected XrDynamicType _swapChainType;
         protected KhrOpenglEsEnable? _openGlEs;
-        protected XrApp? _app;
 
         protected GLEnum[] _validFormats = [
                  GLEnum.Rgb10A2,
