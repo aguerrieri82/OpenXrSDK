@@ -55,7 +55,6 @@ namespace OpenXr.Framework
                         {
                             //_logger.LogError(ex, "LocateSpace {itemId}", item.Id);
                         }
-
                     }
 
                     if ((filter.Components & XrAnchorComponent.Mesh) != 0 &&
@@ -67,7 +66,6 @@ namespace OpenXr.Framework
                             Indices = mesh.Indices,
                             Vertices = mesh.Vertices!.Convert().To<Vector3>()
                         };
-
                     }
                 }
 

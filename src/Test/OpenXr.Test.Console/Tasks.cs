@@ -4,6 +4,7 @@ using Silk.NET.Assimp;
 using System.Globalization;
 using System.Numerics;
 using System.Text;
+using Xr.Engine.Glft;
 using static Oculus.XrPlugin.OculusXrPlugin;
 using static OVRPlugin;
 using File = System.IO.File;
@@ -94,6 +95,12 @@ namespace OpenXr
             var scene = assimp.ImportFile(fileName, (uint)PostProcessSteps.Triangulate);
 
             ProcessNode(scene->MRootNode, scene);
+        }
+
+
+        public static void LoadModel(string path)
+        {
+            GlftLoader.Instance.Load( path);
         }
 
         public unsafe static void LoadTexture()

@@ -9,6 +9,11 @@ namespace OpenXr.Engine
             return File.OpenRead(name);
         }
 
+        public string FullPath(string name)
+        {
+            return Path.GetFullPath(name);  
+        }
+
         public static readonly LocalAssetManager Instance = new LocalAssetManager();
     }
 }
