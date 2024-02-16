@@ -8,10 +8,13 @@ enum PontDataType {
 	Color = 0x8
 };
 
+
+
 struct PointData {
 	float Position[3];
 	float Normal[3];
 	float UV[2];
+    float Color[4];
 };
 
 struct MeshData {

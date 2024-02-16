@@ -17,6 +17,7 @@
 		<EnableLLVM>False</EnableLLVM>
 	</PropertyGroup>
 
+
 	<ItemGroup>
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
 		<ProjectReference Include="..\..\Engine\Xr.Engine.OpenXr\Xr.Engine.OpenXr.csproj" />

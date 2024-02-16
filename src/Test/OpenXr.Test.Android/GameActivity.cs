@@ -47,7 +47,7 @@ namespace OpenXr.Test.Android
             {
                 EnableMultiView = true,
                 SampleCount = 2,
-                ResolutionScale = 0.8f,
+                ResolutionScale = 1.2f,
                 Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
             };
 
