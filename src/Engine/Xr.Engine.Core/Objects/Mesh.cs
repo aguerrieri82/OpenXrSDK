@@ -34,7 +34,8 @@ namespace OpenXr.Engine
         protected override void UpdateWorldBounds()
         {
             if (Geometry != null)
-                _worldBounds = Geometry.Bounds.Transform(_worldMatrix);
+                _worldBounds = Geometry.Bounds.Transform(WorldMatrix);
+            _worldBoundsDirty = false;
         }
 
         public Mesh(Geometry3D geometry, Material? material = null)
@@ -65,6 +66,7 @@ namespace OpenXr.Engine
                 if (_geometry == value)
                     return;
                 _geometry = value;
+                _worldBoundsDirty = true;
                 NotifyChanged(ObjectChangeType.Geometry);
             }
         }

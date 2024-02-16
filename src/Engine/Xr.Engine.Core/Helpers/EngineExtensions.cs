@@ -167,10 +167,7 @@ namespace OpenXr.Engine
             return Quaternion.Normalize(result);
         }
 
-        public static void UpdateBounds(this Geometry3D geo)
-        {
-            geo.Bounds = geo.ComputeBounds(Matrix4x4.Identity);
-        }
+
 
         public static Bounds3 ComputeBounds(this Geometry3D geo, Matrix4x4 transform)
         {
@@ -435,6 +432,12 @@ namespace OpenXr.Engine
         public static void SetScale(this Transform transform, float x, float y, float z)
         {
             transform.Scale = new Vector3(x, y, z);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetScale(this Transform transform, float value)
+        {
+            transform.Scale = new Vector3(value, value, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

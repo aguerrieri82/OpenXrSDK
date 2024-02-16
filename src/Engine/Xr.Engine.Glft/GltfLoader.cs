@@ -222,6 +222,8 @@ namespace Xr.Engine.Gltf
 
                                 result.Geometry = geo;
 
+                                //COLOR
+                                //TANGENT
                                 foreach (var attr in draco.Value.Attributes)
                                 {
                                     switch (attr.Key)
@@ -235,12 +237,14 @@ namespace Xr.Engine.Gltf
                                             geo.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
                                             break;
                                         case "COLOR":
-                                            break;
-                                        case "TANGENT":
+                                            log.AppendLine("Color data not supported");
                                             break;
                                         case "TEXCOORD_0":
                                             var uValues = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
                                             geo.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
+                                            break;
+                                        default:
+                                            log.AppendLine($"{attr.Key} data not supported");
                                             break;
                                     }
 
@@ -270,13 +274,12 @@ namespace Xr.Engine.Gltf
                                         var nValues = ConvertBuffer<Vector3>(buffer, view);
                                         geo.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
                                         break;
-                                    case "COLOR":
-                                        break;
-                                    case "TANGENT":
-                                        break;
                                     case "TEXCOORD_0":
                                         var uValues = ConvertBuffer<Vector2>(buffer, view);
                                         geo.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
+                                        break;
+                                    default:
+                                        log.AppendLine($"{attr.Key} data not supported");
                                         break;
                                 }
 
@@ -297,8 +300,6 @@ namespace Xr.Engine.Gltf
 
                             result.Geometry = geo;
                         }
-
-                        result.Geometry.UpdateBounds();
 
                         if (primitive.Material != null)
                         {
@@ -360,8 +361,6 @@ namespace Xr.Engine.Gltf
             var root = new Group();
 
             ProcessNode(model.Nodes[0], root);
-
-            root.UpdateWorldMatrix(true, false);
 
             return root;
         }

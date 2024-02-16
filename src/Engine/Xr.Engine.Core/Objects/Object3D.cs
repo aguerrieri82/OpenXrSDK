@@ -6,18 +6,28 @@ namespace OpenXr.Engine
     {
         protected Transform _transform;
         protected Group? _parent;
-        protected Matrix4x4 _worldMatrix;
         protected bool _worldDirty;
+        protected Bounds3 _worldBounds;
+        protected bool _worldBoundsDirty;
         protected Scene? _scene;
         protected bool _isVisible;
-        protected Matrix4x4 _worldMatrixInverse;
-        protected Bounds3 _worldBounds;
+
+        private Matrix4x4 _worldMatrixInverse;
+        private Matrix4x4 _worldMatrix;
+        private bool _worldInverseDirty;
 
         public Object3D()
         {
             _transform = new Transform(this);
             _worldDirty = true;
+            _worldBoundsDirty = true;
+            _worldInverseDirty = true;
             IsVisible = true;
+        }
+
+        protected internal virtual void InvalidateWorld()
+        {
+            _worldDirty = true;
         }
 
         public virtual bool UpdateWorldMatrix(bool updateChildren, bool updateParent)
@@ -28,16 +38,14 @@ namespace OpenXr.Engine
             if (updateParent && _parent != null)
                 isParentChanged = _parent.UpdateWorldMatrix(false, updateParent);
 
-            if (isParentChanged || _worldDirty)
+            if (_transform.Update() || isParentChanged || _worldDirty)
             {
-                if (_parent != null)
+                if (_parent != null && !_parent.WorldMatrix.IsIdentity)
                     _worldMatrix = _parent!.WorldMatrix * _transform.Matrix;
                 else
                     _worldMatrix = _transform.Matrix;
 
-                Matrix4x4.Invert(_worldMatrix, out _worldMatrixInverse);
-
-                UpdateWorldBounds();
+                _worldInverseDirty = true;  
 
                 _worldDirty = false;
 
@@ -47,43 +55,46 @@ namespace OpenXr.Engine
             return isChanged;
         }
 
-        public override void Update(RenderContext ctx)
+        protected void UpdateWorldInverse()
         {
-            if (_transform.Update())
-            {
-                _worldDirty = true;
-                UpdateWorldMatrix(true, false);
-            }
-
-            base.Update(ctx);
+            Matrix4x4.Invert(_worldMatrix, out _worldMatrixInverse);
+            _worldInverseDirty = false;
         }
 
         protected virtual void UpdateWorldBounds()
         {
-
+            _worldBoundsDirty = false;
         }
 
         internal void SetParent(Group? value)
         {
-            var changeType = ObjectChangeType.Parent;
+            var changeType = ObjectChangeType.Parent | ObjectChangeType.Transform;
+
+            var curWorldMatrix = WorldMatrix;
 
             _parent = value;
-            _worldDirty = true;
 
             if (_scene == null && value != null)
                 changeType |= ObjectChangeType.SceneAdd;
 
-            _scene = value == null ? null : this.FindAncestor<Scene>();
+            _scene = _parent == null ? null : this.FindAncestor<Scene>();
+
+            //WorldMatrix = curWorldMatrix;
 
             NotifyChanged(changeType);
         }
 
         public virtual void NotifyChanged(ObjectChange change)
         {
+            if (change.IsAny(ObjectChangeType.Transform))
+                InvalidateWorld();
+
             _scene?.NotifyChanged(this, change);
         }
 
         public Group? Parent => _parent;
+
+        public Scene? Scene => _scene;
 
         public bool IsVisible
         {
@@ -99,7 +110,7 @@ namespace OpenXr.Engine
 
         public Vector3 Forward
         {
-            get => new Vector3(0f, 0f, 1f).ToDirection(_worldMatrix);
+            get => new Vector3(0f, 0f, 1f).ToDirection(WorldMatrix);
             set
             {
                 Transform.Orientation = Forward.RotationTowards(value);
@@ -108,22 +119,53 @@ namespace OpenXr.Engine
 
         public Vector3 Up
         {
-            get => new Vector3(0f, 1f, 0f).ToDirection(_worldMatrix);
+            get => new Vector3(0f, 1f, 0f).ToDirection(WorldMatrix);
         }
 
         public Vector3 WorldPosition
         {
-            get => Vector3.Zero.Transform(_worldMatrix);
-            set => _transform.Position = _parent != null ? value.Transform(_parent.WorldMatrixInverse) : value;
+            get => Vector3.Zero.Transform(WorldMatrix);
+            set => 
+                _transform.Position = _parent != null ? 
+                    value.Transform(_parent.WorldMatrixInverse) : value;
         }
 
-        public Bounds3 WorldBounds => _worldBounds;
+        public Bounds3 WorldBounds
+        {
+            get
+            {
+                if (_worldBoundsDirty)
+                    UpdateWorldBounds();
+                return _worldBounds;
+            }
+        }
 
-        public Scene? Scene => _scene;
+        public Matrix4x4 WorldMatrixInverse
+        {
+            get
+            {
+                if (UpdateWorldMatrix(false, false) || _worldInverseDirty)
+                    UpdateWorldInverse();
+                return _worldMatrixInverse;
+            }
+        }
 
-        public Matrix4x4 WorldMatrixInverse => _worldMatrixInverse;
-
-        public Matrix4x4 WorldMatrix => _worldMatrix;
+        public Matrix4x4 WorldMatrix
+        {
+            get 
+            {
+                if (_transform.Update() || _worldDirty)
+                    UpdateWorldMatrix(false, false);
+                return _worldMatrix;
+            }
+            set
+            {
+                if (_parent == null || _parent.WorldMatrix.IsIdentity)
+                    _transform.SetMatrix(value);
+                else
+                    _transform.SetMatrix(value * _parent.WorldMatrixInverse);
+            }
+        }
 
         public Transform Transform => _transform;
 

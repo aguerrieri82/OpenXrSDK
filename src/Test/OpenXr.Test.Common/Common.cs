@@ -22,6 +22,8 @@ namespace OpenXr.Samples
             var text = new TextureMaterial(Texture2D.FromPvrImage(assets.OpenAsset("TestScreen.pvr")));
             text.DoubleSided = false;
 
+            var cubes = new Group();
+            cubes.Transform.SetScale(0.5f);
 
             for (var y = 0f; y <= 2f; y += 0.5f)
             {
@@ -41,9 +43,11 @@ namespace OpenXr.Samples
 
                     cube.AddComponent<BoundsGrabbable>();
 
-                    scene.AddChild(cube);
+                    cubes.AddChild(cube);
                 }
             }
+
+            scene.AddChild(cubes);
 
             var display = new Mesh(Quad.Instance);
             //display.Materials.Add(new ColorMaterial(new Color(0, 1, 0)) { DoubleSided = true });

@@ -25,7 +25,6 @@ namespace Xr.Engine.OpenXr
             {
                 _rayView.Transform.Position = _input.Value.Position;
                 _rayView.Transform.Orientation = _input.Value.Orientation;
-                _rayView.UpdateWorldMatrix(false, false);
 
                 var ray = new Ray3
                 {
