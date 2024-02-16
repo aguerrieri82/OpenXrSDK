@@ -8,7 +8,7 @@ using System.Text;
 
 namespace OpenXr.Engine.OpenGL.Oculus
 {
-    public class GlMultiViewProgram : GlProgram
+    public class GlMultiViewProgram : GlSimpleProgram
     {
         readonly Func<SceneMatrices> GetMatrices;
 

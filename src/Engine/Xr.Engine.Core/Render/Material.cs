@@ -29,5 +29,7 @@
         public bool WriteColor { get; set; }
 
         public bool DoubleSided { get; set; }
+
+        public string? Name { get; set; }    
     }
 }

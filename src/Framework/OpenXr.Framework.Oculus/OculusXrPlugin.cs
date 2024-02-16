@@ -272,7 +272,7 @@ namespace OpenXr.Framework.Oculus
                 Type = StructureType.SpaceContainerFB
             };
 
-            _app!.CheckResult(_container.GetSpaceContainerFB(_app!.Session, space, ref result), "GetSpaceContainerFB");
+            _app!.CheckResult(_container!.GetSpaceContainerFB(_app!.Session, space, ref result), "GetSpaceContainerFB");
 
             var uuids = stackalloc UuidEXT[(int)result.UuidCountOutput];
 

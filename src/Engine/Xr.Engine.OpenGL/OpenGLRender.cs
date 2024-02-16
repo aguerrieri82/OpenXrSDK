@@ -28,7 +28,7 @@ namespace OpenXr.Engine.OpenGL
 
     public class ShaderContent
     {
-        public GlProgram? Program;
+        public GlSimpleProgram? Program;
 
         public readonly Dictionary<Geometry3D, VertexContent> Contents = [];
     }
@@ -78,12 +78,12 @@ namespace OpenXr.Engine.OpenGL
             Current = this;
         }
 
-        GlProgram IGlProgramFactory.CreateProgram(GL gl, string vSource, string fSource, GlRenderOptions options)
+        GlSimpleProgram IGlProgramFactory.CreateProgram(GL gl, string vSource, string fSource, GlRenderOptions options)
         {
-            return new GlProgram(_gl, vSource, fSource, _options);
+            return new GlSimpleProgram(_gl, vSource, fSource, _options);
         }
 
-        protected GlProgram GetProgram(Shader shader, IGlProgramFactory programFactory)
+        protected GlSimpleProgram GetProgram(Shader shader, IGlProgramFactory programFactory)
         {
             return shader.GetResource(a =>
                     programFactory.CreateProgram(_gl, shader.VertexSource!, shader.FragmentSource!, _options));

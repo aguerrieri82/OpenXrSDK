@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Engine\Xr.Engine.Glft\Xr.Engine.Glft.csproj" />
     <ProjectReference Include="..\..\Engine\Xr.Engine.OpenXr\Xr.Engine.OpenXr.csproj" />
   </ItemGroup>
 

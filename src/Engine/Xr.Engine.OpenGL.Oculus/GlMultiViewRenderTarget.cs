@@ -52,7 +52,7 @@ namespace OpenXr.Engine.OpenGL.Oculus
             _matrices.View2 = eyes[1].View;
         }
 
-        public GlProgram CreateProgram(GL gl, string vSource, string fSource, GlRenderOptions options)
+        public GlSimpleProgram CreateProgram(GL gl, string vSource, string fSource, GlRenderOptions options)
         {
             options.ShaderExtensions ??= [];
 

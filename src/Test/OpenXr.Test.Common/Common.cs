@@ -1,6 +1,7 @@
 ﻿using OpenXr.Engine;
 using OpenXr.Engine.Abstraction;
 using System.Numerics;
+using Xr.Engine.Glft;
 using Xr.Engine.OpenXr;
 
 namespace OpenXr.Samples
@@ -56,6 +57,9 @@ namespace OpenXr.Samples
 
             scene.AddChild(new AmbientLight(0.3f));
             scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
+
+            scene.AddChild((Mesh)GlftLoader.Instance.Load(assets.FullPath("769508.glb")));
+
 
             app.OpenScene(scene);
 
