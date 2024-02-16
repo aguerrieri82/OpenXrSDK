@@ -33,6 +33,8 @@ namespace OpenXr.Engine
 
             _isDirty = false;
 
+            _host?.NotifyChanged(ObjectChangeType.Transform);
+
             return true;
         }
 
@@ -77,7 +79,6 @@ namespace OpenXr.Engine
         public Vector3 Pivot
         {
             get => _pivot;
-
             set
             {
                 _pivot = value;
@@ -88,9 +89,20 @@ namespace OpenXr.Engine
         public void SetMatrix(Matrix4x4 matrix)
         {
             _matrix = matrix;
+            
             Matrix4x4.Decompose(matrix, out _scale, out _orientation, out _position);
+
+            _host?.NotifyChanged(ObjectChangeType.Transform);
         }
 
-        public ref Matrix4x4 Matrix => ref _matrix;
+        public ref Matrix4x4 Matrix
+        {
+            get
+            {
+                if (_isDirty)
+                    Update();
+                return ref _matrix;
+            }
+        }
     }
 }

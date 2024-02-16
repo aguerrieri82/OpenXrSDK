@@ -4,6 +4,13 @@ namespace OpenXr.Engine
 {
     public class Geometry3D : EngineObject
     {
+        protected bool _boundsDirty;
+        protected Bounds3 _bounds;
+
+        public Geometry3D()
+        {
+            _boundsDirty = true;
+        }
 
         public void ApplyTransform(Matrix4x4 matrix)
         {
@@ -31,8 +38,21 @@ namespace OpenXr.Engine
             Version++;
         }
 
+        public void UpdateBounds()
+        {
+            _bounds = this.ComputeBounds(Matrix4x4.Identity);
+            _boundsDirty = false;
+        }
 
-        public Bounds3 Bounds { get; set; }
+        public Bounds3 Bounds
+        {
+            get
+            {
+                if (_boundsDirty)
+                    UpdateBounds();
+                return _bounds;
+            }
+        }
 
         public long Version { get; set; }
 

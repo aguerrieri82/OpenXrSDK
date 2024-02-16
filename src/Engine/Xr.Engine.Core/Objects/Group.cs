@@ -8,6 +8,13 @@
         {
         }
 
+        protected internal override void InvalidateWorld()
+        {
+            foreach (var child in _children)    
+                child.InvalidateWorld();
+            base.InvalidateWorld();
+        }
+
         public override bool UpdateWorldMatrix(bool updateChildren, bool updateParent)
         {
             var isChanged = base.UpdateWorldMatrix(updateChildren, updateParent);

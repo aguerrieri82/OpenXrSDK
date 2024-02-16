@@ -75,7 +75,6 @@
                 return;
 
             _activeScene.Update(_context);
-            _activeScene.UpdateWorldMatrix(true, false);
 
             if (_activeScene.ActiveCamera == null)
                 return;
