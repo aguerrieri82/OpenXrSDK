@@ -4,16 +4,22 @@ namespace OpenXr.Engine
 {
     public class LocalAssetManager : IAssetManager
     {
+        readonly string _basePath;
+
+        public LocalAssetManager(string basePath)
+        {
+            _basePath = basePath;
+        }
+
         public Stream OpenAsset(string name)
         {
-            return File.OpenRead(name);
+            return File.OpenRead(FullPath(name));
         }
 
         public string FullPath(string name)
         {
-            return Path.GetFullPath(name);  
+            return Path.GetFullPath(Path.Combine(_basePath, name));  
         }
 
-        public static readonly LocalAssetManager Instance = new LocalAssetManager();
     }
 }

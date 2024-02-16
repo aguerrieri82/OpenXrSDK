@@ -137,6 +137,24 @@ namespace OpenXr.Engine
 
         #region GEOMETRY
 
+        public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, T value);
+
+        public static void SetVertexData<T>(this Geometry3D geo, VertexAssignDelegate<T> selector, T[] array)
+        {
+            if (geo.Vertices == null)
+                geo.Vertices = new VertexData[array.Length];
+            
+            if (geo.Vertices.Length < array.Length)
+            {
+                var newArray = geo.Vertices;
+                Array.Resize(ref newArray, array.Length);
+                geo.Vertices = newArray;
+            }
+      
+            for (var i = 0; i < array.Length; i++)
+                selector(ref geo.Vertices![i], array[i]);
+        }
+
         public static Quaternion RotationTowards(this Vector3 from,  Vector3 to)
         {
             Quaternion result;

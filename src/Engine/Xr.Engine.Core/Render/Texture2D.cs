@@ -21,7 +21,8 @@ namespace OpenXr.Engine
 
     public enum WrapMode
     {
-        ClampToEdge = 33071
+        ClampToEdge = 33071,
+        Repeat = 10497
     }
 
     public enum ScaleFilter
@@ -138,5 +139,7 @@ namespace OpenXr.Engine
         public TextureFormat Format { get; set; }
 
         public TextureCompressionFormat Compression { get; set; }
+
+
     }
 }

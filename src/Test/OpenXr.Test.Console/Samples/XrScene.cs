@@ -36,7 +36,7 @@ namespace OpenXr.Samples
                .AddAction(a => a.Right!.AimPose)
             .AddAction(a => a.Right!.TriggerClick));
 
-            _game = Common.CreateScene(LocalAssetManager.Instance);
+            _game = Common.CreateScene(new LocalAssetManager("Assets"));
 
             _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
 

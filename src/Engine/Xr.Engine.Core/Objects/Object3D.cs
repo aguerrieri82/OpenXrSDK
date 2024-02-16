@@ -18,7 +18,6 @@ namespace OpenXr.Engine
             _transform = new Transform(this);
             _worldDirty = true;
             IsVisible = true;
-            UpdateWorldMatrix(false, false);
         }
 
         public virtual bool UpdateWorldMatrix(bool updateChildren, bool updateParent)

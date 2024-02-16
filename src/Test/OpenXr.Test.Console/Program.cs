@@ -26,7 +26,7 @@ Gpu.EnableNvAPi();
 
 var logger = host.Services.GetRequiredService<ILogger<object>>();
 
-//Tasks.LoadModel("Assets/769508.glb");
+Tasks.LoadModel("Assets/DamagedHelmet.gltf");
 
 //await WebLinkApp.Run(host.Services, logger);
 await WindowSceneApp.Run(host.Services, logger);

@@ -23,11 +23,15 @@ namespace OpenXr.Engine
 
     public class PbrMetallicRoughness
     {
-        public Vector4 BaseColorFactor { get; set; }
+        public Color BaseColorFactor { get; set; }
 
         public float MetallicFactor { get; set; }
 
         public float RoughnessFactor { get; set; }
+
+        public Texture2D? BaseColorTexture { get; set; }
+
+        public Texture2D? MetallicRoughnessTexture { get; set; }  
     }
 
     public class PbrMaterial : Material
@@ -48,7 +52,7 @@ namespace OpenXr.Engine
                 Name = "Default Material",
                 MetallicRoughness = new PbrMetallicRoughness
                 {
-                    BaseColorFactor = new Vector4(1, 1, 1, 1),
+                    BaseColorFactor = new Color(1, 1, 1, 1),
                     MetallicFactor = 1,
                     RoughnessFactor = 1
                 }

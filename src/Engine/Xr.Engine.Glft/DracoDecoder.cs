@@ -8,75 +8,73 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Xr.Engine.Glft
+namespace Xr.Engine.Gltf
 {
     public static partial class DracoDecoder
     {
-        enum PontDataType
+        public enum AttributeType : byte
         {
             None = 0,
-            Position = 0x1,
-            Normal = 0x2,
-            UV = 0x4,
-            Color = 0x8
+            Position = 1,
+            Normal = 2,
+            UV = 3,
+            Color = 4,
+            Other = 5
         };
 
-        public unsafe struct VertexData
+        [StructLayout(LayoutKind.Sequential)]   
+        public struct MeshData
         {
-            public Vector3 Position;
-            public Vector3 Normal;
-            public Vector2 UV;
-            public Color Color;
-        }
-
-        unsafe struct MeshDataNative
-        {
-            public uint* Indices;
-            public ulong IndicesSize;
-            public VertexData* Vertices;
-            public ulong VerticesSize;
-            public PontDataType Types;
+            public uint IndicesSize;
+            public uint VerticesSize;
+            public uint AttributeCount;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+            public AttributeType[] Attributes;
             public IntPtr Mesh;
         }
 
-        public struct MeshData
+        [DllImport("draco-native")]
+        private static unsafe extern int DecodeBuffer(byte* buffer, ulong bufferSize, ref MeshData data);
+
+        [DllImport("draco-native")]
+        private static unsafe extern void ReadAttribute(IntPtr mesh, int index, void* buffer, int itemSize, int itemCount);
+
+        [DllImport("draco-native")]
+        private static unsafe extern void ReadIndices(IntPtr mesh, uint* buffer, int itemCount);
+
+        [DllImport("draco-native")]
+        public static unsafe extern void DisposeMesh(IntPtr mesh);
+
+
+        public unsafe static uint[] ReadIndices(MeshData data)
         {
-            public uint[] Indices;
-
-            public VertexData[] Vertices;
-
+            var buffer = new uint[data.IndicesSize];
+            fixed (uint* pBuf = buffer)
+                ReadIndices((IntPtr)data.Mesh, pBuf, (int)data.IndicesSize);
+            return buffer;
         }
 
-        [LibraryImport("draco-native")]
-        private static unsafe partial int DecodeBuffer(byte* buffer, ulong bufferSize, MeshDataNative* data);
-
-        [LibraryImport("draco-native")]
-        private static unsafe partial void ReadMesh(MeshDataNative* data);
+        public unsafe static T[] ReadAttribute<T>(MeshData data, int index) where T: unmanaged
+        {
+            var buffer = new T[data.VerticesSize];
+            fixed (T* pBuf = buffer)
+                ReadAttribute((IntPtr)data.Mesh, index, pBuf, sizeof(T), (int)data.VerticesSize);
+            return buffer;
+        }
 
         public unsafe static MeshData DecodeBuffer(byte[] buffer)
         {
-            var data = new MeshDataNative();
+            return DecodeBuffer(buffer, 0, buffer.Length);
+        }
+
+        public unsafe static MeshData DecodeBuffer(byte[] buffer, int offset, int size)
+        {
+            var data = new MeshData();
             fixed (byte* pBuf = buffer)
             {
-                DecodeBuffer(pBuf, (ulong)buffer.Length, &data);
-
-                var vertices = new VertexData[data.VerticesSize];
-                var indices = new uint[data.IndicesSize];
-                fixed (VertexData* pVer = vertices)
-                fixed (uint* pIdx = indices)
-                {
-                    data.Indices = pIdx;
-                    data.Vertices = pVer;
-                    ReadMesh(&data);
-
-                    return new MeshData
-                    {
-                        Indices = indices,
-                        Vertices = vertices,
-                    };
-                }
+                DecodeBuffer(pBuf + offset, (ulong)size, ref data);
+                return data;
             }
-
         }
     }
 }
