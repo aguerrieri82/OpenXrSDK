@@ -17,7 +17,7 @@ namespace OpenXr.Engine
             _host = host;
             _scale = new Vector3(1, 1, 1);
             _orientation = Quaternion.Identity;
-            _isDirty = true;
+            _matrix = Matrix4x4.Identity;
         }
 
         public bool Update(bool force = false)

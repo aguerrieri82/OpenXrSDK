@@ -4,7 +4,7 @@ using Silk.NET.Assimp;
 using System.Globalization;
 using System.Numerics;
 using System.Text;
-using Xr.Engine.Glft;
+using Xr.Engine.Gltf;
 using static Oculus.XrPlugin.OculusXrPlugin;
 using static OVRPlugin;
 using File = System.IO.File;
@@ -100,7 +100,7 @@ namespace OpenXr
 
         public static void LoadModel(string path)
         {
-            GlftLoader.Instance.Load( path);
+            GltfLoader.Instance.Load(path, new LocalAssetManager("Assets"));
         }
 
         public unsafe static void LoadTexture()

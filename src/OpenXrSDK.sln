@@ -63,7 +63,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.OpenGL.Oculus", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.WebLink.Android", "WebLink\OpenXr.WebLink.Android\OpenXr.WebLink.Android.csproj", "{11ED90E9-85B8-4545-94E9-2919ACD51F12}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.Glft", "Engine\Xr.Engine.Glft\Xr.Engine.Glft.csproj", "{BAD5CEB8-E157-46F9-B620-1749858CBDD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.Gltf", "Engine\Xr.Engine.Glft\Xr.Engine.Gltf.csproj", "{BAD5CEB8-E157-46F9-B620-1749858CBDD0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.Entities", "Framework\OpenXr.Entities\OpenXr.Entities.csproj", "{22346221-F1D6-4093-BE74-E1B7232B3D20}"
 EndProject
@@ -649,8 +649,8 @@ Global
 		{22346221-F1D6-4093-BE74-E1B7232B3D20}.Release|x64.Build.0 = Release|x64
 		{22346221-F1D6-4093-BE74-E1B7232B3D20}.Release|x86.ActiveCfg = Release|Any CPU
 		{22346221-F1D6-4093-BE74-E1B7232B3D20}.Release|x86.Build.0 = Release|Any CPU
-		{7637AB55-A272-4390-8222-8397150FE18F}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{7637AB55-A272-4390-8222-8397150FE18F}.Debug|Any CPU.Build.0 = Debug|x64
+		{7637AB55-A272-4390-8222-8397150FE18F}.Debug|Any CPU.ActiveCfg = Release|x64
+		{7637AB55-A272-4390-8222-8397150FE18F}.Debug|Any CPU.Build.0 = Release|x64
 		{7637AB55-A272-4390-8222-8397150FE18F}.Debug|ARM64.ActiveCfg = Debug|x64
 		{7637AB55-A272-4390-8222-8397150FE18F}.Debug|ARM64.Build.0 = Debug|x64
 		{7637AB55-A272-4390-8222-8397150FE18F}.Debug|x64.ActiveCfg = Debug|x64
