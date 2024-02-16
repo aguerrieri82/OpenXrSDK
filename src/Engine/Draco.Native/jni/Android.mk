@@ -21,8 +21,6 @@ LOCAL_MODULE := draco-native
 
 DRACO_SDK :=  $(LOCAL_PATH)/../../../packages/draco.CPP.1.3.3.1/build/native
 
-LOCAL_CFLAGS += -Werror
-
 LOCAL_C_INCLUDES := $(DRACO_SDK)/include
 
 LOCAL_SRC_FILES	:= 	$(LOCAL_PATH)/../DracoMeshDecoder.cpp
