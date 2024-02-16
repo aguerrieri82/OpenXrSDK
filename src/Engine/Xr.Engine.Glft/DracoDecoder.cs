@@ -26,6 +26,7 @@ namespace Xr.Engine.Glft
             public Vector3 Position;
             public Vector3 Normal;
             public Vector2 UV;
+            public Color Color;
         }
 
         unsafe struct MeshDataNative

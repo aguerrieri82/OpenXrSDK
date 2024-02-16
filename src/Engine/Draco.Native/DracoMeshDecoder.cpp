@@ -2,6 +2,11 @@
 
 using namespace draco;
 
+template<class T> inline T operator| (T a, T b) { return (T)((int)a | (int)b); }
+
+template<class T> inline T& operator|= (T& a, T b) { return (T&)((int&)a |= (int)b); }
+
+
 void ReadMesh(MeshData* meshData) {
 
 	auto mesh = meshData->Mesh;
@@ -33,21 +38,27 @@ void ReadMesh(MeshData* meshData) {
 		auto type = attr->attribute_type();
 		if (type == GeometryAttribute::Type::POSITION) {
 
-			meshData->Types != PontDataType::Position;
+			meshData->Types |= PontDataType::Position;
 			for (int j = 0; j < mesh->num_points(); j++)
 				attr->GetMappedValue(PointIndex(j), &meshData->Vertices[j].Position);
 		}
 		if (type == GeometryAttribute::Type::NORMAL) {
 
-			meshData->Types != PontDataType::Normal;
+			meshData->Types |= PontDataType::Normal;
 			for (int j = 0; j < mesh->num_points(); j++)
 				attr->GetMappedValue(PointIndex(j), &meshData->Vertices[j].Normal);
 		}
 		if (type == GeometryAttribute::Type::TEX_COORD) {
-			meshData->Types != PontDataType::UV;
+			meshData->Types |= PontDataType::UV;
 			for (int j = 0; j < mesh->num_points(); j++)
 				attr->GetMappedValue(PointIndex(j), &meshData->Vertices[j].UV);
 		}
+
+        if (type == GeometryAttribute::Type::COLOR) {
+            meshData->Types |= PontDataType::Color;
+            for (int j = 0; j < mesh->num_points(); j++)
+                attr->GetMappedValue(PointIndex(j), &meshData->Vertices[j].Color);
+        }
 	}
 
 	delete meshData->Mesh;

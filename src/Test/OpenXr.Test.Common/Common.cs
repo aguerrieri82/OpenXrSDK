@@ -60,9 +60,7 @@ namespace OpenXr.Samples
 
             scene.AddChild((Mesh)GlftLoader.Instance.Load(assets.FullPath("769508.glb")));
 
-
             app.OpenScene(scene);
-
 
             return app;
         }
