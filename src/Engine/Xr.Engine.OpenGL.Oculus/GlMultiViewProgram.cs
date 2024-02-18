@@ -15,8 +15,8 @@ namespace OpenXr.Engine.OpenGL.Oculus
 
         private readonly GlBuffer<SceneMatrices> _sceneMatrices;
 
-        public GlMultiViewProgram(GL gl, Func<SceneMatrices> getMatrices, string vSource, string fSource, GlRenderOptions options)
-            : base(gl, vSource, fSource, options)
+        public GlMultiViewProgram(GL gl, Func<SceneMatrices> getMatrices, string vSource, string fSource, Func<string, string> includeResolver, GlRenderOptions options)
+            : base(gl, vSource, fSource, includeResolver, options)
         {
             GetMatrices = getMatrices;
             _sceneMatrices = new GlBuffer<SceneMatrices>(_gl, BufferTargetARB.UniformBuffer);

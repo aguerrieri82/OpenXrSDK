@@ -8,6 +8,6 @@ namespace OpenXr.Engine.OpenGL
 {
     public interface IGlProgramFactory
     {
-        GlSimpleProgram CreateProgram(GL gl, string vSource, string fSource, GlRenderOptions options);
+        GlSimpleProgram CreateProgram(GL gl, string vSource, string fSource, Func<string, string> includeResolver, GlRenderOptions options);
     }
 }

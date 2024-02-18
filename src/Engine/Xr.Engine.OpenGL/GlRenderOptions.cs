@@ -33,7 +33,7 @@
         public static readonly GlRenderOptions Default = new GlRenderOptions
         {
            
-            FloatPrecision = ShaderPrecision.Medium,
+            FloatPrecision = ShaderPrecision.High,
             ShaderVersion = "300 es"
         };
 

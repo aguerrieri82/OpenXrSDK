@@ -76,6 +76,11 @@ namespace OpenXr.Engine.OpenGL
             return result;
         }
 
+        public void SetLineSize(float size)
+        {
+            _gl.LineWidth(size);    
+        }
+
         public void SetUniform(string name, int value)
         {
             _gl.Uniform1(LocateUniform(name), value);
@@ -187,5 +192,6 @@ namespace OpenXr.Engine.OpenGL
             GC.SuppressFinalize(this);
         }
 
+ 
     }
 }

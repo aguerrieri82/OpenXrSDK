@@ -25,10 +25,10 @@ namespace OpenXr.Engine
             if (!_isDirty && !force)
                 return false;
 
-            _matrix = Matrix4x4.CreateTranslation(-_pivot* _scale) *
+            _matrix = Matrix4x4.CreateTranslation(_pivot* _scale) *
                 Matrix4x4.CreateScale(_scale) *
                 Matrix4x4.CreateFromQuaternion(_orientation) *
-                Matrix4x4.CreateTranslation(_position + _pivot * _scale);
+                Matrix4x4.CreateTranslation(_position + -_pivot * _scale);
 
 
             _isDirty = false;

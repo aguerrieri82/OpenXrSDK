@@ -52,14 +52,14 @@ namespace OpenXr.Engine.OpenGL.Oculus
             _matrices.View2 = eyes[1].View;
         }
 
-        public GlSimpleProgram CreateProgram(GL gl, string vSource, string fSource, GlRenderOptions options)
+        public GlSimpleProgram CreateProgram(GL gl, string vSource, string fSource, Func<string, string> includeResolver, GlRenderOptions options)
         {
             options.ShaderExtensions ??= [];
 
             if (!options.ShaderExtensions.Contains("GL_OVR_multiview2"))
                 options.ShaderExtensions.Add("GL_OVR_multiview2");
 
-            return new GlMultiViewProgram(gl, () => _matrices, vSource, fSource, options);
+            return new GlMultiViewProgram(gl, () => _matrices, vSource, fSource, includeResolver, options);
         }
     }
 }
