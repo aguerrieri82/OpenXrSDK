@@ -2,7 +2,7 @@
 
 namespace OpenXr.Engine
 {
-    public class Transform
+    public class Transform3
     {
         protected bool _isDirty;
         protected Vector3 _scale;
@@ -12,7 +12,7 @@ namespace OpenXr.Engine
         protected Vector3 _pivot;
         protected Object3D _host;
 
-        public Transform(Object3D host)
+        public Transform3(Object3D host)
         {
             _host = host;
             _scale = new Vector3(1, 1, 1);
@@ -25,11 +25,11 @@ namespace OpenXr.Engine
             if (!_isDirty && !force)
                 return false;
 
-            _matrix =
-                Matrix4x4.CreateTranslation(-_pivot) *
+            _matrix = Matrix4x4.CreateTranslation(-_pivot* _scale) *
                 Matrix4x4.CreateScale(_scale) *
                 Matrix4x4.CreateFromQuaternion(_orientation) *
-                Matrix4x4.CreateTranslation(_position);
+                Matrix4x4.CreateTranslation(_position + _pivot * _scale);
+
 
             _isDirty = false;
 

@@ -34,8 +34,12 @@ namespace OpenXr.Test.Android
 
         protected override void OnAppStarted(XrApp app)
         {
-            _webView = _webViewLayer!.WebView;
-            _webView!.LoadUrl("https://www.youtube.com");
+            if (_webViewLayer != null)
+            {
+                _webView = _webViewLayer.WebView!;
+                _webView.LoadUrl("https://www.youtube.com");
+            }
+
 
 
             base.OnAppStarted(app);
@@ -82,7 +86,7 @@ namespace OpenXr.Test.Android
             display.AddComponent(controller);
             display.AddComponent<DisplayPosition>();
 
-            _webViewLayer = result.Layers.AddWebView(this, display.BindToQuad(), controller);
+            //_webViewLayer = result.Layers.AddWebView(this, display.BindToQuad(), controller);
 
             _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
             _game.ActiveScene!.AddComponent(new ObjectGrabber(
@@ -91,7 +95,7 @@ namespace OpenXr.Test.Android
                 _inputs.Right!.SqueezeValue!, 
                 _inputs.Right!.TriggerValue!));
 
-            //_game.ActiveScene.AddChild(new OculusScene());
+            //_game.ActiveScene.AddChild(new OculusSceneModel());
 
             result.BindEngineApp(
                 _game,

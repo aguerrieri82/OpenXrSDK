@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CS0649
 
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace OpenXr.Engine
@@ -7,6 +8,7 @@ namespace OpenXr.Engine
 
     public class KtxReader : BaseTextureReader
     {
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         unsafe struct KtxHeader
         {
             public fixed byte identifier[12];

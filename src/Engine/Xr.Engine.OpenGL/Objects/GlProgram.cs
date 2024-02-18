@@ -1,6 +1,5 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using System.Collections;
 
 #else
 using Silk.NET.OpenGL;
@@ -9,6 +8,8 @@ using Silk.NET.OpenGL;
 using System.Numerics;
 using System.Reflection;
 using System.Text;
+using System.Collections;
+
 
 namespace OpenXr.Engine.OpenGL
 {
@@ -128,11 +129,20 @@ namespace OpenXr.Engine.OpenGL
 
         public void SetUniformStruct(string name, object obj)
         {
-
             foreach (var field in obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
             {
                 var fullName = $"{name}.{field.Name}";
                 SetUniformObject(fullName, field.GetValue(obj)!);
+            }
+        }
+
+        public void SetUniformStructArray(string name, ICollection collection)
+        {
+            var i = 0;
+            foreach (var item in collection)
+            {
+                SetUniformStruct($"{name}[{i}]", item);
+                i++;
             }
         }
 
@@ -153,8 +163,20 @@ namespace OpenXr.Engine.OpenGL
             else
             {
                 var type = obj.GetType();
+                
                 if (type.IsValueType && !type.IsEnum && !type.IsPrimitive)
                     SetUniformStruct(name, obj);
+
+                else if (obj is ICollection coll)
+                {
+                    var gen = type.GetInterfaces()
+                            .First(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(ICollection<>));
+                    var elType = gen.GetGenericArguments()[0];
+                    if (elType.IsValueType && !elType.IsEnum && !elType.IsPrimitive)
+                        SetUniformStructArray(name, coll);
+                }
+                else
+                    throw new NotSupportedException();
             }
         }
 

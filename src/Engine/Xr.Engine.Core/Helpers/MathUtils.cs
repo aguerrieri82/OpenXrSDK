@@ -22,5 +22,16 @@ namespace OpenXr.Engine
             fixed (float* data = values)
                 return *(Matrix4x4*)data;   
         }
+
+        public static Quaternion QuatDiff(Quaternion to , Quaternion from)
+        {
+            return to * Quaternion.Inverse(from);
+        }
+
+        public static Quaternion QuatAdd(Quaternion start, Quaternion diff)
+        {
+            return diff * start;
+        }
+
     }
 }

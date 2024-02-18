@@ -14,22 +14,30 @@
         public abstract IList<TextureData> Read(Stream stream);
 
         protected static AlignSize GetFormatAlign(TextureCompressionFormat comp, TextureFormat format)
-        {
+        { 
+            var result = new AlignSize();
+
             if (comp == TextureCompressionFormat.Etc2)
             {
-                var result = new AlignSize();
+
                 result.AlignX = 4;
                 result.AlignY = 4;
 
                 if (format == TextureFormat.Rgba32)
                     result.BitPerPixel = 8;
                 else
-                    result.BitPerPixel = 4;
-
-                return result;
+                    result.BitPerPixel = 4; ;
             }
+            else if (comp == TextureCompressionFormat.Etc1)
+            {
+                result.AlignX = 4;
+                result.AlignY = 4;
+                result.BitPerPixel = 4;
+            }
+            else
+                throw new NotSupportedException();
 
-            throw new NotSupportedException();
+            return result;
         }
 
         protected static IList<TextureData> ReadMips(Stream stream, uint width, uint height, uint mipCount, TextureCompressionFormat comp, TextureFormat format)
@@ -59,10 +67,12 @@
                 item.Data = new byte[size];
 
                 var totRead = stream.Read(item.Data);
+          
+                results.Add(item);
+
                 if (totRead != item.Data.Length)
                     break;
 
-                results.Add(item);
             }
 
             return results;

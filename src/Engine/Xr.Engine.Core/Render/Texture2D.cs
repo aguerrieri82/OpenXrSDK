@@ -1,5 +1,4 @@
-﻿
-using SkiaSharp;
+﻿using SkiaSharp;
 
 namespace OpenXr.Engine
 {
@@ -10,13 +9,15 @@ namespace OpenXr.Engine
         Rgba32,
         Bgra32,
         Rgb24,
-        SRgb24
+        SRgb24,
+        Gray8
     }
 
     public enum TextureCompressionFormat
     {
         Uncompressed = 0,
-        Etc2 = 0x32435445
+        Etc2 = 0x32435445,
+        Etc1 = 0x31435445
     }
 
     public enum WrapMode
@@ -72,7 +73,7 @@ namespace OpenXr.Engine
 
         public static Texture2D FromPvrImage(Stream stream)
         {
-            var data = PvrReader.Instance.Read(stream);
+            var data = PvrDecoder.Instance.Read(stream);
             return FromData(data);
         }
 
@@ -114,7 +115,7 @@ namespace OpenXr.Engine
                 Format = data[0].Format,
                 Compression = data[0].Compression,
                 MagFilter = ScaleFilter.Linear,
-                MinFilter = ScaleFilter.LinearMipmapLinear,
+                MinFilter = data.Count > 1 ? ScaleFilter.LinearMipmapLinear : ScaleFilter.Linear,
                 WrapS = WrapMode.ClampToEdge,
                 WrapT = WrapMode.ClampToEdge,
             };
@@ -140,6 +141,6 @@ namespace OpenXr.Engine
 
         public TextureCompressionFormat Compression { get; set; }
 
-
+        public Transform2? Transform { get; set; }   
     }
 }

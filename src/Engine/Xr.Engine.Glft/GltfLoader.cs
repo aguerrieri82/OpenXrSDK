@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using OpenXr.Engine;
 using OpenXr.Engine.Abstraction;
+using SkiaSharp;
 using System.Diagnostics;
 using System.Numerics;
 using System.Text;
@@ -82,16 +83,20 @@ namespace Xr.Engine.Gltf
                 else
                     throw new NotSupportedException();
 
-                var image = SkiaSharp.SKBitmap.Decode(data);
-
-                Debug.Assert(image.ColorType == SkiaSharp.SKColorType.Bgra8888);
+                var image = SKBitmap.Decode(data);
 
                 return new TextureData
                 {
                     Width = (uint)image.Width,
                     Height = (uint)image.Height,
                     Data = image.GetPixelSpan().ToArray(),
-                    Format = TextureFormat.Bgra32
+                    Format = image.ColorType switch
+                    {
+                        SKColorType.Bgra8888 => TextureFormat.Bgra32,
+                        SKColorType.Rgba8888 => TextureFormat.Rgba32,
+                        SKColorType.Gray8 => TextureFormat.Gray8,
+                        _ => throw new NotSupportedException()
+                    }
                 };
             }
 

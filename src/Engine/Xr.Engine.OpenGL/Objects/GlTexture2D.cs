@@ -161,16 +161,38 @@ namespace OpenXr.Engine.OpenGL
                     {
                         //TODO fix null
 
-                        _gl.TexImage2D(
-                           Target,
-                           0,
-                           internalFormat,
-                           width,
-                           height,
-                           0,
-                           pixelFormat,
-                           pixelType,
-                           null);
+                        if (data != null && data.Count > 0)
+                        {
+                            foreach (var level in data)
+                            {
+                                fixed (byte* pData = level.Data)
+                                {
+                                    _gl.TexImage2D(
+                                        Target,
+                                        (int)level.MipLevel,
+                                        internalFormat,
+                                        level.Width,
+                                        level.Height,
+                                        0,
+                                        pixelFormat,
+                                        pixelType,
+                                        pData);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _gl.TexImage2D(
+                                Target,
+                                0,
+                                internalFormat,
+                                width,
+                                height,
+                                0,
+                                pixelFormat,
+                                pixelType,
+                                null);
+                        }
                     }
                 }
             }
@@ -186,15 +208,22 @@ namespace OpenXr.Engine.OpenGL
                         case TextureFormat.SRgb24:
                             internalFormat = InternalFormat.CompressedSrgb8Etc2;
                             break;
+                        case TextureFormat.Rgba32:
+                            internalFormat = InternalFormat.CompressedRgba8Etc2Eac;
+                            break;
 
                         default:
                             throw new NotSupportedException();
                     }
                 }
+                else if (compression == TextureCompressionFormat.Etc1)
+                {
+                    internalFormat = InternalFormat.Etc1Rgb8Oes;
+                }
                 else
                     throw new NotSupportedException();
 
-                //_gl.PixelStore(PixelStoreParameter.PackAlignment, 1);
+                _gl.PixelStore(PixelStoreParameter.PackAlignment, 1);
 
                 Debug.Assert(data != null);
 
@@ -214,14 +243,16 @@ namespace OpenXr.Engine.OpenGL
                     }
                 }
 
-                MaxLevel = data[data.Count - 1].MipLevel;
-                MinFilter = MaxLevel == 0 ? TextureMinFilter.Linear : TextureMinFilter.LinearMipmapLinear;
-                MagFilter = TextureMagFilter.Linear;
 
                 _isCompressed = true;
             }
 
             _internalFormat = internalFormat;
+
+            MaxLevel = data != null ? data[data.Count - 1].MipLevel : 1;
+            MinFilter = MaxLevel <= 1 ? TextureMinFilter.Linear : TextureMinFilter.LinearMipmapLinear;
+            MagFilter = TextureMagFilter.Linear;
+
 
             Update();
         }

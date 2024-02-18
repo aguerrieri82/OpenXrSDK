@@ -164,6 +164,7 @@ namespace OpenXr.Engine
             result.Y = axis.Y;
             result.Z = axis.Z;
             result.W = MathF.Sqrt((from.LengthSquared() * to.LengthSquared())) + Vector3.Dot(from, to);
+
             return Quaternion.Normalize(result);
         }
 
@@ -423,38 +424,38 @@ namespace OpenXr.Engine
         #region TRANSFORM
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetPosition(this Transform transform, float x, float y, float z)
+        public static void SetPosition(this Transform3 transform, float x, float y, float z)
         {
             transform.Position = new Vector3(x, y, z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetScale(this Transform transform, float x, float y, float z)
+        public static void SetScale(this Transform3 transform, float x, float y, float z)
         {
             transform.Scale = new Vector3(x, y, z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetScale(this Transform transform, float value)
+        public static void SetScale(this Transform3 transform, float value)
         {
             transform.Scale = new Vector3(value, value, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetPositionZ(this Transform transform, float value)
+        public static void SetPositionZ(this Transform3 transform, float value)
         {
             transform.Position = new Vector3(transform.Position.X, transform.Position.Y, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetPositionX(this Transform transform, float value)
+        public static void SetPositionX(this Transform3 transform, float value)
         {
             transform.Position = new Vector3(value, transform.Position.Y, transform.Position.Z);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetPositionY(this Transform transform, float value)
+        public static void SetPositionY(this Transform3 transform, float value)
         {
             transform.Position = new Vector3(transform.Position.X, value, transform.Position.Z);
         }

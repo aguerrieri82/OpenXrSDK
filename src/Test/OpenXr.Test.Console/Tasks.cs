@@ -4,6 +4,7 @@ using Silk.NET.Assimp;
 using System.Globalization;
 using System.Numerics;
 using System.Text;
+using Xr.Engine.Compression;
 using Xr.Engine.Gltf;
 using static Oculus.XrPlugin.OculusXrPlugin;
 using static OVRPlugin;
@@ -103,9 +104,15 @@ namespace OpenXr
             GltfLoader.Instance.Load(path, new LocalAssetManager("Assets"));
         }
 
+        public static void CompressTexture(string path)
+        {
+            var data = EtcCompressor.Encode(path, 16);
+            PvrDecoder.Instance.Write(File.OpenWrite("d:\\test.pvr"), data);
+        }
+
         public unsafe static void LoadTexture()
         {
-            var reader = PvrReader.Instance; ;
+            var reader = PvrDecoder.Instance; ;
             using var stream = File.OpenRead(@"d:\TestScreen.pvr");
             reader.Read(stream);
         }
