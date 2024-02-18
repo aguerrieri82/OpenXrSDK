@@ -54,8 +54,6 @@ namespace OpenXr.Engine
             }
         }
 
-        public long Version { get; set; }
-
         public uint[]? Indices { get; set; }
 
         public VertexData[]? Vertices { get; set; }

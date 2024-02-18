@@ -1,39 +1,31 @@
 ﻿namespace OpenXr.Engine
 {
-    public class ColorMaterial : ShaderMaterial
+    public class LineMaterial : ShaderMaterial
     {
         static readonly Shader SHADER;
 
-        static ColorMaterial()
+        static LineMaterial()
         {
             SHADER = new Shader
             {
-                FragmentSource = Embedded.GetString("color_fs.glsl"),
-                VertexSource = Embedded.GetString("standard_vs.glsl"),
+                FragmentSource = Embedded.GetString("line_fs.glsl"),
+                VertexSource = Embedded.GetString("line_vs.glsl"),
                 IncludeResolver = str => Embedded.GetString(str),
                 IsLit = false
             };
         }
 
 
-        public ColorMaterial()
+        public LineMaterial()
             : base()
         {
             _shader = SHADER;
         }
 
 
-        public ColorMaterial(Color color)
-            : this()
-        {
-            Color = color;
-        }
-
-
         public override void UpdateUniforms(IUniformProvider obj)
         {
-            obj.SetUniform("uColor", Color);
+            obj.SetLineSize(1);
         }
-
     }
 }

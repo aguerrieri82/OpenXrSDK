@@ -7,19 +7,20 @@ using Silk.NET.OpenGL;
 
 using System.Numerics;
 using System.Text;
+using System.Text.RegularExpressions;
 using Xr.Engine.OpenGL;
 
 
 namespace OpenXr.Engine.OpenGL
 {
-    public class GlSimpleProgram : GlProgram
+    public partial class GlSimpleProgram : GlProgram
     {
 
-        public GlSimpleProgram(GL gl, string vSource, string fSource, GlRenderOptions options) 
+        public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string> includeResolver, GlRenderOptions options) 
             : base(gl, options)
         {
-            Vertex = new GlShader(gl, ShaderType.VertexShader, PatchShader(vSource, ShaderType.VertexShader));
-            Fragment = new GlShader(gl, ShaderType.FragmentShader, PatchShader(fSource, ShaderType.FragmentShader));
+            Vertex = new GlShader(gl, ShaderType.VertexShader, PatchShader(vSource, includeResolver, ShaderType.VertexShader));
+            Fragment = new GlShader(gl, ShaderType.FragmentShader, PatchShader(fSource, includeResolver, ShaderType.FragmentShader));
             Create(Vertex.Handle, Fragment.Handle);
         }
 
@@ -46,7 +47,7 @@ namespace OpenXr.Engine.OpenGL
             SetUniform("viewPos", camera.Transform.Position, true);
         }
 
-        protected string PatchShader(string source, ShaderType shaderType)
+        protected string PatchShader(string source, Func<string, string> includeResolver, ShaderType shaderType)
         {
             var builder = new StringBuilder();
 
@@ -75,6 +76,21 @@ namespace OpenXr.Engine.OpenGL
 
             PatchShader(source, shaderType, builder);
 
+            var incRe = IncludeRegex();
+
+            while (true)
+            {
+                var match = incRe.Match(source);
+                if (!match.Success)
+                    break;
+
+                source = string.Concat(
+                    source.AsSpan(0, match.Index), 
+                    includeResolver(match.Groups[1].Value), 
+                    source.AsSpan(match.Index + match.Length)
+                    );
+            }
+
             builder.Append("\n\n").Append(source);
 
             return builder.ToString();
@@ -90,5 +106,7 @@ namespace OpenXr.Engine.OpenGL
 
         public GlShader Fragment { get; set; }
 
+        [GeneratedRegex("#include \"([^\"]+)\";")]
+        private static partial Regex IncludeRegex();
     }
 }

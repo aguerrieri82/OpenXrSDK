@@ -12,6 +12,7 @@ namespace OpenXr.Engine
             {
                 FragmentSource = Embedded.GetString("standard_fs.glsl"),
                 VertexSource = Embedded.GetString("standard_vs.glsl"),
+                IncludeResolver = str => Embedded.GetString(str),
                 IsLit = true
             };
         }

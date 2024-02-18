@@ -10,6 +10,7 @@
             {
                 FragmentSource = Embedded.GetString("color_fs.glsl"),
                 VertexSource = Embedded.GetString("standard_vs.glsl"),
+                IncludeResolver = str => Embedded.GetString(str),
                 IsLit = false
             };
         }

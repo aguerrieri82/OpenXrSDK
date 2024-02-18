@@ -3,7 +3,7 @@ using System.Collections.Specialized;
 
 namespace OpenXr.Engine
 {
-    public class Mesh : Object3D
+    public class Mesh : Object3D, IVertexSource<VertexData, uint>
     {
         readonly ObservableCollection<Material> _materials;
         private Geometry3D? _geometry;
@@ -70,5 +70,17 @@ namespace OpenXr.Engine
                 NotifyChanged(ObjectChangeType.Geometry);
             }
         }
+
+        #region IVertexSource
+
+        DrawPrimitive IVertexSource.Primitive => DrawPrimitive.Triangle;
+
+        uint[] IVertexSource<VertexData, uint>.Indices => _geometry?.Indices ?? [];
+
+        VertexData[] IVertexSource<VertexData, uint>.Vertices => _geometry?.Vertices ?? [];
+
+        IList<Material> IVertexSource.Materials => _materials;
+
+        #endregion
     }
 }

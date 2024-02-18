@@ -6,12 +6,18 @@
 
   <ItemGroup>
     <None Remove="Shaders\color_fs.glsl" />
+    <None Remove="Shaders\line_fs.glsl" />
+    <None Remove="Shaders\line_vs.glsl" />
     <None Remove="Shaders\standard_fs.glsl" />
     <None Remove="Shaders\standard_vs.glsl" />
     <None Remove="Shaders\texture_fs.glsl" />
+    <None Remove="Shaders\_position.glsl" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Shaders\line_fs.glsl" />
+    <EmbeddedResource Include="Shaders\line_vs.glsl" />
+    <EmbeddedResource Include="Shaders\_position.glsl" />
     <EmbeddedResource Include="Shaders\texture_fs.glsl" />
     <EmbeddedResource Include="Shaders\color_fs.glsl" />
     <EmbeddedResource Include="Shaders\standard_fs.glsl" />

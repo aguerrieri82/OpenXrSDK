@@ -7,21 +7,20 @@ using Silk.NET.OpenGL;
 
 namespace OpenXr.Engine.OpenGL
 {
-    public class GlVertexArray<TVertexType, TIndexType> : GlObject
+    public class GlVertexArray<TVertexType, TIndexType> : GlObject, IGlVertexArray
         where TVertexType : unmanaged
         where TIndexType : unmanaged
     {
-        readonly GlVertexLayout _layout;
+        protected readonly GlVertexLayout _layout;
+        protected readonly GlBuffer<TVertexType> _vBuf;
+        protected readonly GlBuffer<TIndexType>? _iBuf;
+        protected readonly DrawElementsType _drawType;
 
-        readonly GlBuffer<TVertexType> _vBuf;
 
-        readonly GlBuffer<TIndexType>? _iBuf;
-        private readonly DrawElementsType _drawType;
-
-        public unsafe GlVertexArray(GL gl, TVertexType[] vertices, TIndexType[] index, GlVertexLayout layout)
+        public unsafe GlVertexArray(GL gl, TVertexType[] vertices, TIndexType[]? index, GlVertexLayout layout)
             : this(gl,
                   new GlBuffer<TVertexType>(gl, vertices.AsSpan(), BufferTargetARB.ArrayBuffer),
-                  index.Length == 0 ? null : new GlBuffer<TIndexType>(gl, index.AsSpan(), BufferTargetARB.ElementArrayBuffer),
+                  index == null || index.Length == 0 ? null : new GlBuffer<TIndexType>(gl, index.AsSpan(), BufferTargetARB.ElementArrayBuffer),
                   layout)
         {
 
@@ -59,18 +58,18 @@ namespace OpenXr.Engine.OpenGL
             Unbind();
         }
 
-        public unsafe void Draw()
+        public unsafe void Draw(PrimitiveType primitive = PrimitiveType.Triangles)
         {
 
             if (_iBuf != null)
             {
-                _gl.DrawElements(PrimitiveType.Triangles, _iBuf.Length, _drawType, null);
+                _gl.DrawElements(primitive, _iBuf.Length, _drawType, null);
                 GlDebug.Log($"DrawElements Triangles {_iBuf.Length} {_drawType}");
             }
 
             else
             {
-                _gl.DrawArrays(PrimitiveType.Triangles, 0, _vBuf.Length);
+                _gl.DrawArrays(primitive, 0, _vBuf.Length);
                 GlDebug.Log($"DrawArrays Triangles {_vBuf.Length}");
             }
 
@@ -79,7 +78,6 @@ namespace OpenXr.Engine.OpenGL
             {
                 GlDebug.Log($"Error: {err}");
             }
-
         }
 
         protected unsafe void Configure()
@@ -110,12 +108,20 @@ namespace OpenXr.Engine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        internal void Update(Span<TVertexType> vertices, Span<TIndexType> indices)
+        internal void Update(TVertexType[] vertices, TIndexType[]? indices = null)
         {
             _vBuf.Update(vertices);
-            //TODO better index check
-            if (_iBuf != null)
-                _iBuf.Update(indices);
+            _iBuf?.Update(indices);
         }
+
+        void IGlVertexArray.Update(object vertexSpan, object? indexSpan)
+        {
+            Update((TVertexType[])vertexSpan, (TIndexType[]?)indexSpan);
+        }
+
+        Type IGlVertexArray.VertexType => typeof(TVertexType);
+
+        Type IGlVertexArray.IndexType => typeof(TIndexType);
+
     }
 }

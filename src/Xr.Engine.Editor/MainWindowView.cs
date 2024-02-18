@@ -36,7 +36,26 @@ namespace Xr.Engine.Editor
 
         public void LoadScene()
         {
-            var app = Common.CreateScene(new LocalAssetManager("Assets"));
+            //var app = Common.CreateScene(new LocalAssetManager("Assets"));
+
+            var app = new EngineApp();
+
+            var scene = new Scene();
+
+            scene.ActiveCamera = new PerspectiveCamera() { Far = 50f };
+
+            var cube = new Mesh(Cube.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
+            cube.Transform.Pivot = new Vector3(0, -1, 0);
+            cube.Transform.SetScale(0.1f);
+            scene.AddChild(cube);
+
+            scene.AddChild(new AmbientLight(0.3f));
+            scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
+
+
+            app.OpenScene(scene);
+
+            app.ActiveScene!.AddChild(new PlaneGrid(6f, 12f, 2f));
 
             var camera = (app.ActiveScene?.ActiveCamera as PerspectiveCamera)!;
             camera.BackgroundColor = Color.White;   
@@ -55,7 +74,7 @@ namespace Xr.Engine.Editor
                 UpdateSize();
             };
 
-            camera!.LookAt(new Vector3(0f, 2f, 2f), Vector3.Zero, new Vector3(0, 1, 0));
+            camera!.LookAt(new Vector3(2f, 2f, 2f), Vector3.Zero, new Vector3(0, 1, 0));
 
             var render = new OpenGLRender(_renderHost.Gl!);
 

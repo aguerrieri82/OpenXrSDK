@@ -75,6 +75,8 @@
                 _id = ObjectId.New();
         }
 
+        public long Version { get; set; }
+
         public ObjectId Id => _id;
     }
 }

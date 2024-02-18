@@ -7,6 +7,7 @@ using Silk.NET.OpenGL;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using Xr.Engine.OpenGL;
 
 
 namespace OpenXr.Engine.OpenGL
@@ -23,19 +24,20 @@ namespace OpenXr.Engine.OpenGL
 
         public Scene? Scene;
 
-        public readonly Dictionary<Shader, ShaderContent> Contents = [];
+        public readonly Dictionary<Shader, ShaderContent> ShaderContents = [];
     }
 
     public class ShaderContent
     {
         public GlSimpleProgram? Program;
 
-        public readonly Dictionary<Geometry3D, VertexContent> Contents = [];
+        public readonly Dictionary<Object3D, VertexContent> Contents = [];
+
     }
 
     public class VertexContent
     {
-        public GlVertexArray<VertexData, uint>? VertexArray;
+        public GlVertexSourceHandle? VertexHandler;
 
         public readonly List<DrawContent> Contents = [];
 
@@ -54,7 +56,6 @@ namespace OpenXr.Engine.OpenGL
     public class OpenGLRender : IRenderEngine, IGlProgramFactory
     {
         protected GL _gl;
-        protected GlVertexLayout _meshLayout;
         protected GlobalContent? _content;
         protected IGlRenderTarget? _target;
         protected GlRenderOptions _options;
@@ -72,21 +73,20 @@ namespace OpenXr.Engine.OpenGL
         public OpenGLRender(GL gl, GlRenderOptions options)
         {
             _gl = gl;
-            _meshLayout = GlVertexLayout.FromType<VertexData>();
             _options = options;
             _target = new GlDefaultRenderTarget(gl);
             Current = this;
         }
 
-        GlSimpleProgram IGlProgramFactory.CreateProgram(GL gl, string vSource, string fSource, GlRenderOptions options)
+        GlSimpleProgram IGlProgramFactory.CreateProgram(GL gl, string vSource, string fSource, Func<string, string> includeResolver, GlRenderOptions options)
         {
-            return new GlSimpleProgram(_gl, vSource, fSource, _options);
+            return new GlSimpleProgram(_gl, vSource, fSource, includeResolver, _options);
         }
 
         protected GlSimpleProgram GetProgram(Shader shader, IGlProgramFactory programFactory)
         {
             return shader.GetResource(a =>
-                    programFactory.CreateProgram(_gl, shader.VertexSource!, shader.FragmentSource!, _options));
+                    programFactory.CreateProgram(_gl, shader.VertexSource!, shader.FragmentSource!, shader.IncludeResolver!, _options));
         }
 
         public void Clear(Color color)
@@ -108,40 +108,41 @@ namespace OpenXr.Engine.OpenGL
             _content.Scene = scene;
             _content.Version = scene.Version;
 
-            _content.Contents.Clear();
+            _content.ShaderContents.Clear();
 
-            foreach (var mesh in scene.VisibleDescendants<Mesh>())
+            foreach (var obj3D in scene.VisibleDescendants<Object3D>())
             {
-                if (mesh.Geometry == null || mesh.Materials.Count == 0)
+                if (obj3D is not IVertexSource vrtSrc)
                     continue;
 
-                foreach (var material in mesh.Materials.OfType<ShaderMaterial>())
+                foreach (var material in vrtSrc.Materials.OfType<ShaderMaterial>())
                 {
                     if (material.Shader == null)
                         continue;
 
-                    if (!_content.Contents.TryGetValue(material.Shader, out var shaderContent))
+                    if (!_content.ShaderContents.TryGetValue(material.Shader, out var shaderContent))
                     {
                         shaderContent = new ShaderContent();
                         shaderContent.Program = GetProgram(material.Shader, programFactory);
-                        _content.Contents[material.Shader] = shaderContent;
+                        _content.ShaderContents[material.Shader] = shaderContent;
                     }
 
-                    if (!shaderContent.Contents.TryGetValue(mesh.Geometry, out var vertexContent))
+                    if (!shaderContent.Contents.TryGetValue(obj3D, out var vertexContent))
                     {
-                        vertexContent = new VertexContent();
-                        vertexContent.Version = mesh.Geometry.Version;
-                        vertexContent.VertexArray = mesh.Geometry!.GetResource(geo =>
-                                new GlVertexArray<VertexData, uint>(_gl, geo.Vertices!, geo.Indices!, _meshLayout));
+                        vertexContent = new VertexContent
+                        {
+                            Version = obj3D.Version,
+                            VertexHandler = obj3D.GetResource(a => GlVertexSourceHandle.Create(_gl, vrtSrc))
+                        };
 
-                        shaderContent.Contents[mesh.Geometry] = vertexContent;
+                        shaderContent.Contents[obj3D] = vertexContent;
                     }
 
                     vertexContent.Contents.Add(new DrawContent
                     {
-                        Draw = vertexContent!.VertexArray!.Draw,
+                        Draw = () => vertexContent!.VertexHandler!.Draw(),
                         Material = material,
-                        Object = mesh
+                        Object = obj3D
                     });
                 }
             }
@@ -208,7 +209,7 @@ namespace OpenXr.Engine.OpenGL
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene, targetProgramFactory ?? this);
 
-            foreach (var shader in _content.Contents)
+            foreach (var shader in _content.ShaderContents)
             {
                 var prog = shader.Value!.Program;
 
@@ -229,11 +230,11 @@ namespace OpenXr.Engine.OpenGL
                 {
                     if (vertex.Key.Version != vertex.Value.Version)
                     {
-                        vertex.Value.VertexArray!.Update(vertex.Key.Vertices, vertex.Key.Indices);
+                        vertex.Value.VertexHandler!.Update();
                         vertex.Value.Version = vertex.Key.Version;
                     }
 
-                    vertex.Value.VertexArray!.Bind();
+                    vertex.Value.VertexHandler!.Bind();
 
                     foreach (var draw in vertex.Value.Contents)
                     {
@@ -245,7 +246,7 @@ namespace OpenXr.Engine.OpenGL
                         draw.Draw!();
                     }
 
-                    vertex.Value.VertexArray.Unbind();
+                    vertex.Value.VertexHandler.Unbind();
                 }
 
                 prog.Unbind();
