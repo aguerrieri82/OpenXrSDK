@@ -39,7 +39,7 @@
 
         }
 
-        public T AddChild<T>(T child) where T : Object3D
+        public T AddChild<T>(T child, bool preserveTransform = false) where T : Object3D
         {
             if (child.Parent == this)
                 return child;
@@ -48,21 +48,21 @@
 
             child.EnsureId();
 
-            child.SetParent(this);
+            child.SetParent(this, preserveTransform);
 
             _children.Add(child);
 
             return child;
         }
 
-        public void RemoveChild(Object3D child)
+        public void RemoveChild(Object3D child, bool preserveTransform = false)
         {
             if (child.Parent != this)
                 return;
 
             _children.Remove(child);
 
-            child.SetParent(null);
+            child.SetParent(null, preserveTransform);
         }
 
         public IReadOnlyList<Object3D> Children => _children.AsReadOnly();

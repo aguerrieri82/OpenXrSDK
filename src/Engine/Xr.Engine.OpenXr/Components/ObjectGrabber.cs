@@ -2,6 +2,7 @@
 using OpenXr.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -15,18 +16,37 @@ namespace Xr.Engine.OpenXr
         private XrInput<float>[] _handlers;
         private Object3D? _grabObject;
         private IGrabbable? _grabbable;
-        private Vector3 _grabPositionLocal;
         private XrHaptic _vibrate;
+        private Mesh _grabView;
+
+        private Vector3 _startPosition;
+        private Vector3 _startInputPos;
+        private Quaternion _startInputOrientation;
+        private Quaternion _startOrientation;
 
         public ObjectGrabber(XrInput<XrPose> input, XrHaptic vibrate,  params XrInput<float>[] handlers)
         {
             _input = input;
             _handlers = handlers;
-            _vibrate = vibrate; 
+            _vibrate = vibrate;
+            _grabView = new Mesh(Cube.Instance, new StandardMaterial { Color = new Color(0, 1, 1, 1) });
+            _grabView.Transform.SetScale(0.005f);
+        }
+
+        public override void Start(RenderContext ctx)
+        {
+            _host!.AddChild(_grabView);
+
         }
 
         protected override void Update(RenderContext ctx)
         {
+            if (_input.Value == null)
+                return;
+
+            _grabView.Transform.Position = _input.Value.Position;
+            _grabView.Transform.Orientation = _input.Value.Orientation;
+
             var isGrabbing = _handlers.All(a => a.Value > 0.8);
 
             if (!isGrabbing && _grabObject != null)
@@ -61,7 +81,10 @@ namespace Xr.Engine.OpenXr
                     {
                         _vibrate.VibrateStop();
                         _grabbable.Grab();
-                        _grabPositionLocal = _input.Value.Position.Transform(_grabObject!.WorldMatrixInverse);
+                        _startInputPos = _input.Value.Position;
+                        _startInputOrientation = _input.Value.Orientation;
+                        _startOrientation = _grabObject!.Transform.Orientation;
+                        _startPosition = _grabObject.Transform.Position;
                     }
                     else
                     {
@@ -72,11 +95,18 @@ namespace Xr.Engine.OpenXr
                 else
                     _vibrate.VibrateStop();
             }
+          
 
             if (isGrabbing && _grabObject != null)
             {
-                _grabObject.Transform.Position = _input.Value.Position;
-                _grabObject.Transform.Orientation = _input.Value.Orientation;
+                var matrix = Matrix4x4.CreateScale(0.5f) *
+                            Matrix4x4.CreateTranslation(1f, 0, 0);
+
+                var vector = new Vector3(1, 1, 1);
+
+
+
+
             }
 
             base.Update(ctx);

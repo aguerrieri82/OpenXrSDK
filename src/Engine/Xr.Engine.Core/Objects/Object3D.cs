@@ -1,10 +1,11 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 
 namespace OpenXr.Engine
 {
     public abstract class Object3D : EngineObject, ILayerObject
     {
-        protected Transform _transform;
+        protected Transform3 _transform;
         protected Group? _parent;
         protected bool _worldDirty;
         protected Bounds3 _worldBounds;
@@ -18,7 +19,7 @@ namespace OpenXr.Engine
 
         public Object3D()
         {
-            _transform = new Transform(this);
+            _transform = new Transform3(this);
             _worldDirty = true;
             _worldBoundsDirty = true;
             _worldInverseDirty = true;
@@ -66,7 +67,7 @@ namespace OpenXr.Engine
             _worldBoundsDirty = false;
         }
 
-        internal void SetParent(Group? value)
+        internal void SetParent(Group? value, bool preserveTransform)
         {
             var changeType = ObjectChangeType.Parent | ObjectChangeType.Transform;
 
@@ -79,7 +80,8 @@ namespace OpenXr.Engine
 
             _scene = _parent == null ? null : this.FindAncestor<Scene>();
 
-            //WorldMatrix = curWorldMatrix;
+            if (preserveTransform)
+                WorldMatrix = curWorldMatrix;
 
             NotifyChanged(changeType);
         }
@@ -124,10 +126,13 @@ namespace OpenXr.Engine
 
         public Vector3 WorldPosition
         {
-            get => Vector3.Zero.Transform(WorldMatrix);
-            set => 
-                _transform.Position = _parent != null ? 
+            get => _parent != null ?
+                    _transform.Position.Transform(_parent.WorldMatrix) : _transform.Position;
+            set {
+                _transform.Position = _parent != null ?
                     value.Transform(_parent.WorldMatrixInverse) : value;
+            }
+ 
         }
 
         public Bounds3 WorldBounds
@@ -163,11 +168,11 @@ namespace OpenXr.Engine
                 if (_parent == null || _parent.WorldMatrix.IsIdentity)
                     _transform.SetMatrix(value);
                 else
-                    _transform.SetMatrix(value * _parent.WorldMatrixInverse);
+                    _transform.SetMatrix(_parent.WorldMatrixInverse * value);
             }
         }
 
-        public Transform Transform => _transform;
+        public Transform3 Transform => _transform;
 
         public string? Tag { get; set; }
 

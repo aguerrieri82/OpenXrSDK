@@ -19,7 +19,7 @@ namespace OpenXr.Engine.OpenGL
             : base(gl, options)
         {
             Vertex = new GlShader(gl, ShaderType.VertexShader, PatchShader(vSource, ShaderType.VertexShader));
-            Fragment = new GlShader(gl, ShaderType.FragmentShader, PatchShader(fSource, ShaderType.VertexShader));
+            Fragment = new GlShader(gl, ShaderType.FragmentShader, PatchShader(fSource, ShaderType.FragmentShader));
             Create(Vertex.Handle, Fragment.Handle);
         }
 
@@ -65,8 +65,8 @@ namespace OpenXr.Engine.OpenGL
 
             var precision = _options.FloatPrecision switch
             {
-                ShaderPrecision.Medium => "highp",
-                ShaderPrecision.High => "mediump",
+                ShaderPrecision.Medium => "mediump",
+                ShaderPrecision.High => "highp",
                 ShaderPrecision.Low => "lowp",
                 _ => throw new NotSupportedException()
             };

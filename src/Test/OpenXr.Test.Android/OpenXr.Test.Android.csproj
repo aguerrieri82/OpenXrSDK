@@ -25,6 +25,7 @@
 		<ProjectReference Include="..\..\WebLink\OpenXr.WebLink.Android\OpenXr.WebLink.Android.csproj" />
 	</ItemGroup>
 
+
 	<Import Project="..\..\AspNetCoreMini.props" />
 
 </Project>

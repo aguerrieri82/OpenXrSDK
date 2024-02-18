@@ -1,15 +1,19 @@
 ﻿#pragma warning disable CS0649
 
+using System.Runtime.InteropServices;
+
 namespace OpenXr.Engine
 {
     public class DdsReader : BaseTextureReader
     {
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         struct DDS_FILE
         {
             public int magic;
             public DDSHeader header;
         }
 
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         struct DDS_PIXELFORMAT
         {
             public int dwSize;
@@ -22,6 +26,7 @@ namespace OpenXr.Engine
             public int dwABitMask;
         };
 
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         unsafe struct DDSHeader
         {
             public int dwSize;

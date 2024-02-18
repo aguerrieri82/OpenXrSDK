@@ -8,15 +8,18 @@ namespace Xr.Engine.OpenXr
         readonly XrInput<XrPose> _input;
         readonly RayView _rayView;
 
+
         public RayCollider(XrInput<XrPose> input)
         {
             _input = input;
             _rayView = new RayView();
+
         }
 
         public override void Start(RenderContext ctx)
         {
             _host!.AddChild(_rayView);
+
         }
 
         protected override void Update(RenderContext ctx)

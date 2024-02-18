@@ -1,11 +1,14 @@
 ﻿#pragma warning disable CS0649
 
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace OpenXr.Engine
 {
     public class PkmReader : ITextureReader
     {
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         unsafe struct Etc2Header
         {
             public fixed byte magic[6];

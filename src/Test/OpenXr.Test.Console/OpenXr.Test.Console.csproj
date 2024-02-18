@@ -17,6 +17,8 @@
 
   <ItemGroup>
 	  
+	<ProjectReference Include="..\..\Engine\Xr.Engine.Compression\Xr.Engine.Compression.csproj" />
+	  
 	<ProjectReference Include="..\..\Engine\Xr.Engine.Glft\Xr.Engine.Gltf.csproj" />
 	  
 	<ProjectReference Include="..\..\Engine\Xr.Engine.OpenGL\Xr.Engine.OpenGL.csproj" />
@@ -58,6 +60,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Assets\Default_normal.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\dxtc.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Assets\TestScreen.KTX">

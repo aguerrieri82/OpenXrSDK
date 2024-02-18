@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace Xr.Engine.OpenXr
 {
-    public class OculusScene : Group
+    public class OculusSceneModel : Group
     {
         protected bool _isSceneLoaded;
         protected Space _meshSpace;
