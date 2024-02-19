@@ -20,6 +20,11 @@ namespace OpenXr.Samples
             cube.Transform.SetScale(0.1f);
             //cube.Transform.SetPositionX(0.5f);
             cube.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), MathF.PI /4f);
+            cube.Name = "cube";
+
+            var quod = new Mesh(Quad.Instance, new DepthViewMaterial());
+            quod.Name = "quad";
+            scene.AddChild(quod);
 
             var contanier = new Group();
             contanier.Transform.Position = new Vector3(1f, 0, 0);

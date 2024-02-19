@@ -29,12 +29,12 @@
         public IList<string>? ShaderExtensions { get; set; }
 
 
-
         public static readonly GlRenderOptions Default = new GlRenderOptions
         {
 
             FloatPrecision = ShaderPrecision.High,
-            ShaderVersion = "300 es"
+            ShaderVersion = "300 es",
+            ShaderExtensions = new List<string>([])
         };
 
     }

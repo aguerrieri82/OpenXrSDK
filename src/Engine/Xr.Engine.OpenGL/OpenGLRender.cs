@@ -32,7 +32,6 @@ namespace OpenXr.Engine.OpenGL
         public GlSimpleProgram? Program;
 
         public readonly Dictionary<Object3D, VertexContent> Contents = [];
-
     }
 
     public class VertexContent
@@ -195,6 +194,8 @@ namespace OpenXr.Engine.OpenGL
 
         public void Render(Scene scene, Camera camera, Rect2I view, IGlRenderTarget target)
         {
+            _view = view;
+
             target.Begin();
 
             Clear(camera.BackgroundColor);
@@ -209,7 +210,7 @@ namespace OpenXr.Engine.OpenGL
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene, targetProgramFactory ?? this);
 
-            foreach (var shader in _content.ShaderContents)
+            foreach (var shader in _content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
                 var prog = shader.Value!.Program;
 
@@ -265,7 +266,39 @@ namespace OpenXr.Engine.OpenGL
         }
 
 
+        Dictionary<uint, Texture2D> _depthCache = [];
+        private Rect2I _view;
+
+        public Texture2D? GetDepth()
+        {
+            var depthId = _target?.QueryTexture(FramebufferAttachment.DepthAttachment);
+
+            if (depthId == null || depthId == 0)
+                return null;
+
+
+            if (!_depthCache.TryGetValue(depthId.Value, out var texture))
+            {
+                var glTexture = new GlTexture2D(_gl, depthId.Value);
+
+                texture = new Texture2D
+                {
+                    Width = glTexture.Width,
+                    Height = glTexture.Height,
+                    Format = TextureFormat.Depth24Float,
+                    SampleCount = glTexture.SampleCount
+                };
+                texture.SetProp(Props.GlResId, glTexture);
+                _depthCache[depthId.Value] = texture;
+            }
+
+            return texture;
+
+        }
+
         public GL GL => _gl;
+
+        public Rect2I View => _view;
 
         public IGlRenderTarget? RenderTarget => _target;
 

@@ -9,7 +9,7 @@ namespace OpenXr.Engine
         protected Vector3 _position;
         protected Quaternion _orientation;
         protected Matrix4x4 _matrix;
-        protected Vector3 _pivot;
+        protected Vector3 _localPivot;
         protected Object3D _host;
         private Vector3 _rotation;
 
@@ -27,7 +27,7 @@ namespace OpenXr.Engine
                 return false;
 
             _matrix =
-                Matrix4x4.CreateTranslation(-_pivot) *
+                Matrix4x4.CreateTranslation(-_localPivot) *
                 Matrix4x4.CreateScale(_scale) *
                 Matrix4x4.CreateFromQuaternion(_orientation) *
                 Matrix4x4.CreateTranslation(_position);
@@ -40,14 +40,14 @@ namespace OpenXr.Engine
             return true;
         }
 
-        public void SetPivot(Vector3 value, bool keepPosition)
+        public void SetLocalPivot(Vector3 value, bool keepPosition)
         {
             if (keepPosition)
             {
-                _position += (value - _pivot).Transform(
+                _position += (value - _localPivot).Transform(
                     Matrix4x4.CreateScale(_scale) * Matrix4x4.CreateFromQuaternion(_orientation));
             } 
-            Pivot = value;
+            LocalPivot = value;
         }
 
         protected void NotifyChanged()
@@ -89,12 +89,12 @@ namespace OpenXr.Engine
             }
         }
 
-        public Vector3 Pivot
+        public Vector3 LocalPivot
         {
-            get => _pivot;
+            get => _localPivot;
             set
             {
-                _pivot = value;
+                _localPivot = value;
                 NotifyChanged();
             }
         }

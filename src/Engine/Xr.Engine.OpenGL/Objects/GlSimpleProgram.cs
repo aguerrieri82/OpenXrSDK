@@ -41,9 +41,7 @@ namespace OpenXr.Engine.OpenGL
         public virtual void SetCamera(Camera camera)
         {
             SetUniform("uView", camera.Transform.Matrix);
-
             SetUniform("uProjection", camera.Projection);
-
             SetUniform("viewPos", camera.Transform.Position, true);
         }
 
@@ -98,9 +96,7 @@ namespace OpenXr.Engine.OpenGL
 
         protected virtual void PatchShader(string source, ShaderType shaderType, StringBuilder builder)
         {
-
         }
-
 
         public GlShader Vertex { get; set; }
 

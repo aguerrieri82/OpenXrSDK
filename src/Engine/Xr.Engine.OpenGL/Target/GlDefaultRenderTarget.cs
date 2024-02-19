@@ -31,7 +31,7 @@ namespace OpenXr.Engine.OpenGL
 
         public uint QueryTexture(FramebufferAttachment attachment)
         {
-            throw new NotSupportedException();
+            return 0;
         }
     }
 }

@@ -1,20 +1,48 @@
-﻿namespace OpenXr.Engine
+﻿using SkiaSharp;
+
+namespace OpenXr.Engine
 {
+    public class EngineAppStats
+    {
+        protected int _fpsFrameCount;
+        protected DateTime _fpsLastTime;
+
+        public void BeginFrame()
+        {
+
+        }
+
+        public void EndFrame()
+        {
+            _fpsFrameCount++;
+
+            var deltaSecs = (DateTime.Now - _fpsLastTime).TotalSeconds;
+
+            if (deltaSecs >= 2)
+            {
+                Fps = (int)(_fpsFrameCount / deltaSecs);
+                _fpsFrameCount = 0;
+                _fpsLastTime = DateTime.Now;
+            }
+        }
+
+        public int Fps { get; protected set; }
+    }
+
     public class EngineApp
     {
         protected readonly HashSet<Scene> _scenes = [];
         protected RenderContext _context;
         protected float _startTime;
         protected Scene? _activeScene;
-        protected int _fpsFrameCount;
-        protected DateTime _fpsLastTime;
+        protected EngineAppStats _stats;
         protected bool _isStarted;
         protected readonly HashSet<IObjectChangeListener> _changeListeners = [];
 
 
         public EngineApp()
         {
-
+            _stats= new EngineAppStats();   
             _context = new RenderContext();
             _changeListeners.Add(ShaderMeshLayerBuilder.Instance);
             Current = this;
@@ -53,19 +81,6 @@
                 return;
         }
 
-        protected void UpdateFps()
-        {
-            _fpsFrameCount++;
-            var deltaSecs = (DateTime.Now - _fpsLastTime).TotalSeconds;
-            if (deltaSecs >= 2)
-            {
-                _context.Fps = (int)(_fpsFrameCount / deltaSecs);
-                _fpsFrameCount = 0;
-                _fpsLastTime = DateTime.Now;
-                Console.WriteLine($"Fps: {_context.Fps}");
-            }
-        }
-
         public void RenderFrame(Rect2I view)
         {
             _context.Frame++;
@@ -83,15 +98,19 @@
                 return;
 
             //Console.WriteLine($"Render frame {_context.Frame}");
+            _stats.BeginFrame();
 
             Renderer.Render(_activeScene, _activeScene.ActiveCamera, view);
 
-            UpdateFps();
+            _stats.EndFrame();
+
         }
 
         public ICollection<IObjectChangeListener> ChangeListeners => _changeListeners;
 
         public IReadOnlyCollection<Scene> Scenes => _scenes;
+
+        public EngineAppStats Stats => _stats;
 
         public Scene? ActiveScene => _activeScene;
 

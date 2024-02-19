@@ -45,8 +45,6 @@ namespace OpenXr.Engine
             }
         }
 
-
-
         public Camera? ActiveCamera
         {
             get => _activeCamera;

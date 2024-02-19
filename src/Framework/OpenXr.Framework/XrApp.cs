@@ -171,7 +171,6 @@ namespace OpenXr.Framework
                 _isStarted = false;
                 throw;
             }
-
         }
 
         public virtual void Stop()

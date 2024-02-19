@@ -8,6 +8,7 @@ using Silk.NET.OpenGL;
 using System.Numerics;
 using System.Reflection;
 using System.Collections;
+using System;
 
 
 namespace OpenXr.Engine.OpenGL
@@ -131,6 +132,11 @@ namespace OpenXr.Engine.OpenGL
             _gl.Uniform1(LocateUniform(name), span);
         }
 
+        public void SetUniform(string name, Vector2I value)
+        {
+            _gl.Uniform2(LocateUniform(name), value.X, value.Y);
+        }
+
         public void SetUniformStruct(string name, object obj)
         {
             foreach (var field in obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
@@ -148,6 +154,10 @@ namespace OpenXr.Engine.OpenGL
                 SetUniformStruct($"{name}[{i}]", item);
                 i++;
             }
+        }
+
+        public void EnableFeature(string name, bool enabled)
+        {
         }
 
         public unsafe void SetUniformObject(string name, object obj)
@@ -191,6 +201,6 @@ namespace OpenXr.Engine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-
+    
     }
 }

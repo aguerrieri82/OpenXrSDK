@@ -1,6 +1,7 @@
 ﻿using OpenXr.Engine;
 using OpenXr.Samples;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using Xr.Engine.OpenXr;
 
 
@@ -8,27 +9,33 @@ namespace Xr.Engine.Editor
 {
     public class MainView : BaseView
     {
-        private Mesh _cube;
+
         private EngineApp _app;
 
         public MainView()
         {
-            LoadScene();
             SceneView = new SceneView();
             PropertiesEditor = new PropertiesEditor();
 
-            SceneView.Scene = _app.ActiveScene;
-            PropertiesEditor.ActiveObject = _cube;
+            LoadScene();
         }
 
-        [MemberNotNull(nameof(_cube))]
+
         [MemberNotNull(nameof(_app))]
         public void LoadScene()
         {
             _app = SampleScenes.CreateSimpleScene(new LocalAssetManager("Assets"));
-            _cube = _app.ActiveScene!.Descendants<Mesh>().First();
-            _cube.AddComponent<BoundsGrabbable>();  
+
+            var cube = _app.ActiveScene!.FindByName<Mesh>("cube")!;
+            cube.AddComponent<BoundsGrabbable>();
+            PropertiesEditor.ActiveObject = cube;
+
+            var quad = _app.ActiveScene!.FindByName<Mesh>("quad")!;
+            quad.AddComponent(new FollowCamera { Offset = new Vector3(0, 0, -2) });
+
             _app.Start();
+
+            SceneView.Scene = _app.ActiveScene;
         }
 
         public SceneView SceneView { get; }
