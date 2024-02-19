@@ -8,6 +8,7 @@ namespace OpenXr.Engine
         protected readonly LayerManager _layers;
         protected EngineApp? _app;
 
+
         public Scene()
         {
             _layers = new LayerManager(this);
@@ -65,6 +66,9 @@ namespace OpenXr.Engine
 
         public LayerManager Layers => _layers;
 
+        public EngineApp? App => _app;
+
         public static Scene? Current { get; internal set; }
+
     }
 }
