@@ -1,7 +1,5 @@
 ﻿using Android.Content;
-using Java.Nio.FileNio;
 using OpenXr.Engine.Abstraction;
-using static Java.Util.Jar.Attributes;
 
 namespace OpenXr.Test.Android
 {
@@ -17,7 +15,7 @@ namespace OpenXr.Test.Android
         public string FullPath(string name)
         {
 
-            string mainDir = System.IO.Path.Combine( _context.FilesDir!.Path, name);
+            string mainDir = System.IO.Path.Combine(_context.FilesDir!.Path, name);
             if (File.Exists(mainDir))
                 return mainDir;
             using var srcStream = _context.Assets!.Open(name);

@@ -18,7 +18,7 @@ namespace OpenXr.Engine
 
         public string FullPath(string name)
         {
-            return Path.GetFullPath(Path.Combine(_basePath, name));  
+            return Path.GetFullPath(Path.Combine(_basePath, name));
         }
 
     }

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace OpenXr.Engine
 {
@@ -46,7 +45,7 @@ namespace OpenXr.Engine
                 else
                     _worldMatrix = _transform.Matrix;
 
-                _worldInverseDirty = true;  
+                _worldInverseDirty = true;
 
                 _worldDirty = false;
 
@@ -128,11 +127,12 @@ namespace OpenXr.Engine
         {
             get => _parent != null ?
                     _transform.Position.Transform(_parent.WorldMatrix) : _transform.Position;
-            set {
+            set
+            {
                 _transform.Position = _parent != null ?
                     value.Transform(_parent.WorldMatrixInverse) : value;
             }
- 
+
         }
 
         public Bounds3 WorldBounds
@@ -157,7 +157,7 @@ namespace OpenXr.Engine
 
         public Matrix4x4 WorldMatrix
         {
-            get 
+            get
             {
                 if (_transform.Update() || _worldDirty)
                     UpdateWorldMatrix(false, false);

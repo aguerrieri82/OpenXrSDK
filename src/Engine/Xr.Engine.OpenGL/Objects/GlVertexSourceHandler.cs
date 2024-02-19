@@ -6,13 +6,6 @@ using Silk.NET.OpenGL;
 
 using OpenXr.Engine;
 using OpenXr.Engine.OpenGL;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 
 namespace Xr.Engine.OpenGL
@@ -22,7 +15,7 @@ namespace Xr.Engine.OpenGL
         protected static Dictionary<Type, GlVertexLayout> _layouts = [];
 
         protected GlVertexSourceHandle(GL gl)
-            : base(gl)  
+            : base(gl)
         {
 
         }
@@ -49,9 +42,9 @@ namespace Xr.Engine.OpenGL
     public class GlVertexSourceHandler<TVert, TInd> : GlVertexSourceHandle where TVert : unmanaged where TInd : unmanaged
     {
 
-        GlVertexArray<TVert, TInd> _vertices;
-        PrimitiveType _primitive;
-        IVertexSource<TVert, TInd> _source;
+        readonly GlVertexArray<TVert, TInd> _vertices;
+        readonly PrimitiveType _primitive;
+        readonly IVertexSource<TVert, TInd> _source;
 
         public GlVertexSourceHandler(GL gl, IVertexSource<TVert, TInd> source)
             : base(gl)
@@ -97,7 +90,7 @@ namespace Xr.Engine.OpenGL
         public override void Dispose()
         {
             _vertices.Dispose();
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
     }
 }

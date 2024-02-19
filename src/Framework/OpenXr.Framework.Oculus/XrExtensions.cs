@@ -17,7 +17,6 @@ namespace OpenXr.Framework
             return new Guid(new Span<byte>(uuid.Data, 16));
         }
 
-
         public static async Task<List<XrAnchor>> GetAnchorsAsync(this OculusXrPlugin xrOculus, XrAnchorFilter filter)
         {
             var result = new List<XrAnchor>();

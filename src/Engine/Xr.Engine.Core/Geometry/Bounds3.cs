@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace OpenXr.Engine
 {
@@ -15,7 +10,8 @@ namespace OpenXr.Engine
 
         public IEnumerable<Vector3> Points
         {
-            get {
+            get
+            {
                 yield return new Vector3(Min.X, Min.Y, Min.Z);
                 yield return new Vector3(Min.X, Max.Y, Min.Z);
                 yield return new Vector3(Max.X, Max.Y, Min.Z);

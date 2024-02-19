@@ -1,7 +1,5 @@
 ﻿using OpenXr.Engine;
 using OpenXr.Engine.Abstraction;
-using Silk.NET.Maths;
-using System.IO;
 using System.Numerics;
 using Xr.Engine.Compression;
 using Xr.Engine.Gltf;
@@ -9,7 +7,7 @@ using Xr.Engine.OpenXr;
 
 namespace OpenXr.Samples
 {
-    public static class Scenes
+    public static class SampleScenes
     {
         public static EngineApp CreateSimpleScene(IAssetManager assets)
         {
@@ -75,7 +73,7 @@ namespace OpenXr.Samples
 
                     cube.AddBehavior((obj, ctx) =>
                     {
-                       obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 1), (float)ctx.Time * MathF.PI / 4f);
+                        obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 1), (float)ctx.Time * MathF.PI / 4f);
                     });
 
                     cube.AddComponent<BoundsGrabbable>();

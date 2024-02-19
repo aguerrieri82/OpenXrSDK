@@ -9,7 +9,6 @@ using OpenXr.Engine;
 using OpenXr.Engine.OpenGL;
 using Silk.NET.Windowing;
 using System.Numerics;
-using Xr.Engine.Gltf;
 
 
 
@@ -19,7 +18,7 @@ namespace OpenXr.Samples
     {
         public static Task Run(IServiceProvider services, ILogger logger)
         {
-            var app = Scenes.CreateDefaultScene(new LocalAssetManager("Assets"));
+            var app = SampleScenes.CreateDefaultScene(new LocalAssetManager("Assets"));
 
             var view = Window.Create(WindowOptions.Default);
             view.ShouldSwapAutomatically = true;

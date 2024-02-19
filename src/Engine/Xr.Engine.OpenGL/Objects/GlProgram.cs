@@ -7,7 +7,6 @@ using Silk.NET.OpenGL;
 
 using System.Numerics;
 using System.Reflection;
-using System.Text;
 using System.Collections;
 
 
@@ -78,7 +77,7 @@ namespace OpenXr.Engine.OpenGL
 
         public void SetLineSize(float size)
         {
-            _gl.LineWidth(size);    
+            _gl.LineWidth(size);
         }
 
         public void SetUniform(string name, int value)
@@ -122,7 +121,7 @@ namespace OpenXr.Engine.OpenGL
 
         public void SetUniform(string name, float[] obj)
         {
-            var span = obj.AsSpan();  
+            var span = obj.AsSpan();
             _gl.Uniform1(LocateUniform(name), span);
         }
 
@@ -151,7 +150,7 @@ namespace OpenXr.Engine.OpenGL
             }
         }
 
-        public unsafe void SetUniformObject(string name, object obj) 
+        public unsafe void SetUniformObject(string name, object obj)
         {
             if (obj is Vector3 vec3)
                 SetUniform(name, vec3);
@@ -168,7 +167,7 @@ namespace OpenXr.Engine.OpenGL
             else
             {
                 var type = obj.GetType();
-                
+
                 if (type.IsValueType && !type.IsEnum && !type.IsPrimitive)
                     SetUniformStruct(name, obj);
 
@@ -192,6 +191,6 @@ namespace OpenXr.Engine.OpenGL
             GC.SuppressFinalize(this);
         }
 
- 
+
     }
 }

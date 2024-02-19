@@ -1,12 +1,4 @@
-﻿using OpenXr.Engine;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace Xr.Engine.Gltf
 {
@@ -22,7 +14,7 @@ namespace Xr.Engine.Gltf
             Other = 5
         };
 
-        [StructLayout(LayoutKind.Sequential)]   
+        [StructLayout(LayoutKind.Sequential)]
         public struct MeshData
         {
             public uint IndicesSize;
@@ -54,7 +46,7 @@ namespace Xr.Engine.Gltf
             return buffer;
         }
 
-        public unsafe static T[] ReadAttribute<T>(MeshData data, int index) where T: unmanaged
+        public unsafe static T[] ReadAttribute<T>(MeshData data, int index) where T : unmanaged
         {
             var buffer = new T[data.VerticesSize];
             fixed (T* pBuf = buffer)

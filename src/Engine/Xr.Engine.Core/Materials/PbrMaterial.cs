@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace OpenXr.Engine
 {
@@ -31,7 +26,7 @@ namespace OpenXr.Engine
 
         public Texture2D? BaseColorTexture { get; set; }
 
-        public Texture2D? MetallicRoughnessTexture { get; set; }  
+        public Texture2D? MetallicRoughnessTexture { get; set; }
     }
 
     public class PbrMaterial : Material
@@ -69,7 +64,7 @@ namespace OpenXr.Engine
 
         public Vector3 EmissiveFactor { get; set; }
 
-        public float AlphaCutoff {  get; set; } 
+        public float AlphaCutoff { get; set; }
 
         public AlphaMode AlphaMode { get; set; }
 
@@ -92,7 +87,7 @@ namespace OpenXr.Engine
 
         public bool HasAnisotropy { get; set; }
 
-        public PbrMaterialType Type { get; set; }   
+        public PbrMaterialType Type { get; set; }
 
 
     }

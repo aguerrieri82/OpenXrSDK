@@ -90,7 +90,7 @@ namespace OpenXr.Engine
         public void SetMatrix(Matrix4x4 matrix)
         {
             _matrix = matrix;
-            
+
             Matrix4x4.Decompose(matrix, out _scale, out _orientation, out _position);
 
             _host?.NotifyChanged(ObjectChangeType.Transform);

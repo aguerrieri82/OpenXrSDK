@@ -1,9 +1,4 @@
 ﻿using OpenXr.Engine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xr.Engine.Editor
 {
@@ -17,7 +12,7 @@ namespace Xr.Engine.Editor
             get => _activeObject;
             set
             {
-                if (_activeObject == value) 
+                if (_activeObject == value)
                     return;
                 _activeObject = value;
                 OnPropertyChanged(nameof(ActiveObject));
@@ -27,7 +22,7 @@ namespace Xr.Engine.Editor
 
         protected void UpdateProperties()
         {
-            var result = new List<PropertyView>();  
+            var result = new List<PropertyView>();
 
             if (ActiveObject is Object3D obj3d)
             {

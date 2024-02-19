@@ -24,7 +24,7 @@ namespace OpenXr.Engine
             Float = 12
         }
 
-        [StructLayout(LayoutKind.Sequential,Pack =1)]   
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         unsafe struct PvrHeader
         {
             public uint Version;

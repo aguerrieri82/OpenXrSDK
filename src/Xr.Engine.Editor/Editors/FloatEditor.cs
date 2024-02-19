@@ -1,12 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Xr.Engine.Editor
+﻿namespace Xr.Engine.Editor
 {
     public class FloatEditor : BaseEditor<float>
     {
@@ -22,9 +14,9 @@ namespace Xr.Engine.Editor
         protected override void OnValueChanged(float newValue)
         {
             if (newValue > _max)
-                Max = newValue; 
-            
-            if (newValue < _min)    
+                Max = newValue;
+
+            if (newValue < _min)
                 Min = newValue;
 
             base.OnValueChanged(newValue);

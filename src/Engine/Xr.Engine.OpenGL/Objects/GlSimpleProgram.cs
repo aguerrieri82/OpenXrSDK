@@ -16,7 +16,7 @@ namespace OpenXr.Engine.OpenGL
     public partial class GlSimpleProgram : GlProgram
     {
 
-        public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string> includeResolver, GlRenderOptions options) 
+        public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string> includeResolver, GlRenderOptions options)
             : base(gl, options)
         {
             Vertex = new GlShader(gl, ShaderType.VertexShader, PatchShader(vSource, includeResolver, ShaderType.VertexShader));
@@ -85,8 +85,8 @@ namespace OpenXr.Engine.OpenGL
                     break;
 
                 source = string.Concat(
-                    source.AsSpan(0, match.Index), 
-                    includeResolver(match.Groups[1].Value), 
+                    source.AsSpan(0, match.Index),
+                    includeResolver(match.Groups[1].Value),
                     source.AsSpan(match.Index + match.Length)
                     );
             }

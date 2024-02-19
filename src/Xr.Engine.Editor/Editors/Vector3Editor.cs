@@ -1,10 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace Xr.Engine.Editor
 {
@@ -33,7 +27,7 @@ namespace Xr.Engine.Editor
                 var curValue = _getter();
                 Value = new Vector3(v, curValue.Y, curValue.Z);
             };
-            
+
             Y.ValueChanged += (s, v) =>
             {
                 if (_suspendUpdate > 0)
@@ -41,7 +35,7 @@ namespace Xr.Engine.Editor
                 var curValue = _getter();
                 Value = new Vector3(curValue.X, v, curValue.Z);
             };
-            
+
             Z.ValueChanged += (s, v) =>
             {
                 if (_suspendUpdate > 0)
@@ -69,7 +63,7 @@ namespace Xr.Engine.Editor
         }
 
         public FloatEditor X { get; }
-        
+
         public FloatEditor Y { get; }
 
         public FloatEditor Z { get; }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 
 namespace Xr.Engine.Editor
 {
@@ -27,7 +22,7 @@ namespace Xr.Engine.Editor
 
         protected virtual void OnValueChanged(TValue newValue)
         {
-            ValueChanged?.Invoke(this, newValue);   
+            ValueChanged?.Invoke(this, newValue);
         }
 
         public TValue Value
@@ -36,8 +31,8 @@ namespace Xr.Engine.Editor
             set => SetValue(ValueProperty, value);
         }
 
-        object IPropertyEditor.Value 
-        {  
+        object IPropertyEditor.Value
+        {
             get => Value;
             set => Value = (TValue)value;
         }

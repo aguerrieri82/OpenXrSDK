@@ -14,7 +14,7 @@
         public abstract IList<TextureData> Read(Stream stream);
 
         protected static AlignSize GetFormatAlign(TextureCompressionFormat comp, TextureFormat format)
-        { 
+        {
             var result = new AlignSize();
 
             if (comp == TextureCompressionFormat.Etc2)
@@ -67,7 +67,7 @@
                 item.Data = new byte[size];
 
                 var totRead = stream.Read(item.Data);
-          
+
                 results.Add(item);
 
                 if (totRead != item.Data.Length)

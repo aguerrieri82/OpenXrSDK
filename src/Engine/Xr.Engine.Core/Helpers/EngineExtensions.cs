@@ -143,19 +143,19 @@ namespace OpenXr.Engine
         {
             if (geo.Vertices == null)
                 geo.Vertices = new VertexData[array.Length];
-            
+
             if (geo.Vertices.Length < array.Length)
             {
                 var newArray = geo.Vertices;
                 Array.Resize(ref newArray, array.Length);
                 geo.Vertices = newArray;
             }
-      
+
             for (var i = 0; i < array.Length; i++)
                 selector(ref geo.Vertices![i], array[i]);
         }
 
-        public static Quaternion RotationTowards(this Vector3 from,  Vector3 to)
+        public static Quaternion RotationTowards(this Vector3 from, Vector3 to)
         {
             Quaternion result;
 
@@ -187,7 +187,7 @@ namespace OpenXr.Engine
 
             foreach (var point in points)
             {
-                var tPoint = point.Transform(matrix); 
+                var tPoint = point.Transform(matrix);
 
                 result.Min.X = MathF.Min(result.Min.X, tPoint.X);
                 result.Min.Y = MathF.Min(result.Min.Y, tPoint.Y);
@@ -334,10 +334,10 @@ namespace OpenXr.Engine
                     };
 
                     yield return triangle;
-                    
+
                 }
             }
-                
+
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

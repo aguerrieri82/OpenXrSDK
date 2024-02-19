@@ -1,17 +1,11 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 #else
-    using Silk.NET.OpenGL;
+using Silk.NET.OpenGL;
 #endif
 
 using OpenXr.Engine;
 using OpenXr.Engine.OpenGL;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
 
@@ -21,13 +15,13 @@ namespace Xr.Engine.OpenGL
 
     public class GlPbrProgram : GlProgram
     {
-        PbrMaterial _mat;
+        readonly PbrMaterial _mat;
 
         public GlPbrProgram(GL gl, PbrMaterial material, GlRenderOptions renderOptions)
             : base(gl, renderOptions)
         {
             _mat = material;
-         
+
         }
 
 
