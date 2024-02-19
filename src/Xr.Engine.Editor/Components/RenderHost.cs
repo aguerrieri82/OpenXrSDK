@@ -1,7 +1,6 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 #else
-
 using Silk.NET.OpenGL;
 #endif
 
@@ -14,7 +13,6 @@ using OpenXr.Framework;
 
 namespace Xr.Engine.Editor
 {
-
     public class RenderHost : HwndHost, INativeContext
     {
         private HwndSource? _hwndSource;
@@ -23,13 +21,13 @@ namespace Xr.Engine.Editor
         private nint _glCtx;
         private nint _hdc;
 
+        #region NATIVE
+
         [DllImport("Opengl32.dll")]
         static extern IntPtr wglCreateContext(IntPtr hdc);
 
-
         [DllImport("Opengl32.dll")]
         static extern IntPtr wglDeleteContext(IntPtr hglrc);
-
 
         [DllImport("Opengl32.dll", SetLastError = true)]
         static extern IntPtr wglChoosePixelFormatARB(IntPtr hdc);
@@ -148,6 +146,8 @@ namespace Xr.Engine.Editor
 
         const uint WS_CHILD = 0x40000000;
 
+        #endregion
+
         public RenderHost()
         {
             _hLib = LoadLibraryW("opengl32.dll");
@@ -196,7 +196,6 @@ namespace Xr.Engine.Editor
             return handle;
         }
 
-
         public void SwapBuffers()
         {
             _ = SwapBuffers(_hdc);
@@ -216,7 +215,6 @@ namespace Xr.Engine.Editor
                 _hwndSource.Dispose();
                 _hwndSource = null;
             }
-
         }
 
         public nint GetProcAddress(string proc, int? slot = null)

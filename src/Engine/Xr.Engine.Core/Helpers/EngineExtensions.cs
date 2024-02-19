@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OpenXr.Engine
 {
@@ -167,8 +168,6 @@ namespace OpenXr.Engine
 
             return Quaternion.Normalize(result);
         }
-
-
 
         public static Bounds3 ComputeBounds(this Geometry3D geo, Matrix4x4 transform)
         {
@@ -417,6 +416,34 @@ namespace OpenXr.Engine
             }
             else
                 return null;
+        }
+
+        public static Vector3 ToEuler(this Quaternion q)
+        {
+            Vector3 res;
+            q = Quaternion.Normalize(q);
+            res.X = MathF.Atan2(2.0f * (q.Y * q.Z + q.W * q.X), q.W * q.W - q.X * q.X - q.Y * q.Y + q.Z * q.Z);
+            res.Y = MathF.Asin(-2.0f * (q.X * q.Z - q.W * q.Y));
+            res.Z = MathF.Atan2(2.0f * (q.X * q.Y + q.W * q.Z), q.W * q.W + q.X * q.X - q.Y * q.Y - q.Z * q.Z);
+            return res;
+            /*
+            Vector3 result;
+
+            float q2sqr = quat.Z * quat.Z;
+            float t0 = -2.0f * (q2sqr + quat.W * quat.W) + 1.0f;
+            float t1 = +2.0f * (quat.Y * quat.Z + quat.Z * quat.W);
+            float t2 = -2.0f * (quat.Y * quat.W - quat.Z * quat.Z);
+            float t3 = +2.0f * (quat.Z * quat.W + quat.Z * quat.Y);
+            float t4 = -2.0f * (quat.Y * quat.Y + q2sqr) + 1.0f;
+            t2 = t2 > 1.0f ? 1.0f : t2;
+            t2 = t2 < -1.0f ? -1.0f : t2;
+
+            result.Y = MathF.Asin(t2);
+            result.X = MathF.Atan2(t3, t4);
+            result.Z = MathF.Atan2(t1, t0);
+
+            return result;
+            */
         }
 
         #endregion

@@ -46,9 +46,17 @@ namespace Xr.Engine.Editor
                .AddAction(a => a.Right!.Button!.AClick)
                .AddAction(a => a.Right!.GripPose)
                .AddAction(a => a.Right!.AimPose)
+               .AddAction(a => a.Right!.Haptic!)
+               .AddAction(a => a.Right!.TriggerValue!)
+               .AddAction(a => a.Right!.SqueezeValue!)
                .AddAction(a => a.Right!.TriggerClick));
 
             _scene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
+            _scene.AddComponent(new ObjectGrabber(
+                _inputs.Right!.GripPose!,
+                _inputs.Right!.Haptic!,
+                _inputs.Right!.SqueezeValue!,
+                _inputs.Right!.TriggerValue!));
 
             _xrApp.Layers.Add<XrPassthroughLayer>();
 

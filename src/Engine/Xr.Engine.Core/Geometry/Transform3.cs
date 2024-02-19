@@ -11,6 +11,7 @@ namespace OpenXr.Engine
         protected Matrix4x4 _matrix;
         protected Vector3 _pivot;
         protected Object3D _host;
+        private Vector3 _rotation;
 
         public Transform3(Object3D host)
         {
@@ -39,6 +40,16 @@ namespace OpenXr.Engine
             return true;
         }
 
+        public void SetPivot(Vector3 value, bool keepPosition)
+        {
+            if (keepPosition)
+            {
+                _position += (value - _pivot).Transform(
+                    Matrix4x4.CreateScale(_scale) * Matrix4x4.CreateFromQuaternion(_orientation));
+            } 
+            Pivot = value;
+        }
+
         protected void NotifyChanged()
         {
             _isDirty = true;
@@ -62,6 +73,7 @@ namespace OpenXr.Engine
             set
             {
                 _orientation = Quaternion.Normalize(value);
+                _rotation = _orientation.ToEuler();
                 NotifyChanged();
             }
         }
@@ -87,11 +99,24 @@ namespace OpenXr.Engine
             }
         }
 
+        public Vector3 Rotation
+        {
+            get => _rotation;
+            set
+            {
+                _rotation = value;
+                _orientation =  Quaternion.CreateFromYawPitchRoll(value.Y, value.X, value.Z);
+                NotifyChanged();
+            }
+        }
+
         public void SetMatrix(Matrix4x4 matrix)
         {
             _matrix = matrix;
 
             Matrix4x4.Decompose(matrix, out _scale, out _orientation, out _position);
+
+            _rotation = _orientation.ToEuler();
 
             _host?.NotifyChanged(ObjectChangeType.Transform);
         }

@@ -19,6 +19,7 @@ namespace OpenXr.Samples
             cube.Transform.Pivot = new Vector3(0, -1, 0);
             cube.Transform.SetScale(0.1f);
             cube.Transform.SetPositionX(0.5f);
+            cube.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), MathF.PI /4f);
 
             scene.AddChild(cube);
 

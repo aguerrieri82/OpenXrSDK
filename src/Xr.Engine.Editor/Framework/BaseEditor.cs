@@ -25,6 +25,11 @@ namespace Xr.Engine.Editor
             ValueChanged?.Invoke(this, newValue);
         }
 
+        public virtual void NotifyValueChanged()
+        {
+           InvalidateProperty(ValueProperty);
+        }
+
         public TValue Value
         {
             get => (TValue)GetValue(ValueProperty);

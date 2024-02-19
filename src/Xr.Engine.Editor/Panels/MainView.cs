@@ -1,6 +1,7 @@
 ﻿using OpenXr.Engine;
 using OpenXr.Samples;
 using System.Diagnostics.CodeAnalysis;
+using Xr.Engine.OpenXr;
 
 
 namespace Xr.Engine.Editor
@@ -24,8 +25,9 @@ namespace Xr.Engine.Editor
         [MemberNotNull(nameof(_app))]
         public void LoadScene()
         {
-            _app = SampleScenes.CreateDefaultScene(new LocalAssetManager("Assets"));
+            _app = SampleScenes.CreateSimpleScene(new LocalAssetManager("Assets"));
             _cube = _app.ActiveScene!.Descendants<Mesh>().First();
+            _cube.AddComponent<BoundsGrabbable>();  
             _app.Start();
         }
 

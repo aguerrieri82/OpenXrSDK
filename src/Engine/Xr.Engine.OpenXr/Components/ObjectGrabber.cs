@@ -12,11 +12,9 @@ namespace Xr.Engine.OpenXr
         private IGrabbable? _grabbable;
         private readonly XrHaptic _vibrate;
         private readonly Mesh _grabView;
-
-        private Vector3 _startPosition;
-        private Vector3 _startInputPos;
         private Quaternion _startInputOrientation;
         private Quaternion _startOrientation;
+        private Vector3 _startPivot;
 
         public ObjectGrabber(XrInput<XrPose> input, XrHaptic vibrate, params XrInput<float>[] handlers)
         {
@@ -75,13 +73,15 @@ namespace Xr.Engine.OpenXr
                     {
                         _vibrate.VibrateStop();
                         _grabbable.Grab();
-                        _startInputPos = _input.Value.Position;
+                        _startPivot = _grabObject!.Transform.Pivot;
                         _startInputOrientation = _input.Value.Orientation;
                         _startOrientation = _grabObject!.Transform.Orientation;
-                        _startPosition = _grabObject.Transform.Position;
+
+                        _grabObject?.Transform.SetPivot(_input.Value.Position.Transform(_grabObject!.WorldMatrixInverse), true);
                     }
                     else
                     {
+                        _grabObject?.Transform.SetPivot(_startPivot, true);
                         _grabbable = null;
                         _grabObject = null;
                     }
@@ -93,14 +93,8 @@ namespace Xr.Engine.OpenXr
 
             if (isGrabbing && _grabObject != null)
             {
-                var matrix = Matrix4x4.CreateScale(0.5f) *
-                            Matrix4x4.CreateTranslation(1f, 0, 0);
-
-                var vector = new Vector3(1, 1, 1);
-
-
-
-
+                _grabObject!.Transform.Position = _input.Value.Position;
+                _grabObject!.Transform.Orientation = MathUtils.QuatAdd(_startOrientation, MathUtils.QuatDiff(_input.Value.Orientation, _startInputOrientation));
             }
 
             base.Update(ctx);
