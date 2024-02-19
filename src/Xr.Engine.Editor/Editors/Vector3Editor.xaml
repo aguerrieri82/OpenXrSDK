@@ -3,13 +3,19 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <DataTemplate DataType="{x:Type local:Vector3Editor}">
-        <StackPanel Orientation="Vertical">
-            <Label>X</Label>
-            <ContentControl Content="{Binding X}"/>
-            <Label>Y</Label>
-            <ContentControl Content="{Binding Y}"/>
-            <Label>Z</Label>
-            <ContentControl Content="{Binding Z}"/>
+        <StackPanel Margin="10,0,0,0" Orientation="Vertical">
+            <DockPanel>
+                <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">X</Label>
+                <ContentControl VerticalAlignment="Center" Content="{Binding X}"/>
+            </DockPanel>
+            <DockPanel>
+                <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">Y</Label>
+                <ContentControl VerticalAlignment="Center" Content="{Binding Y}"/>
+            </DockPanel>
+            <DockPanel>
+                <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">Z</Label>
+                <ContentControl VerticalAlignment="Center"  Content="{Binding Z}"/>
+            </DockPanel>
         </StackPanel>
     </DataTemplate>
    

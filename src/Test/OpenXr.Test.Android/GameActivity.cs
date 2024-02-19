@@ -55,7 +55,7 @@ namespace OpenXr.Test.Android
                 Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
             };
 
-            _game = Common.CreateScene(new AndroidAssetManager(this));
+            _game = Scenes.CreateDefaultScene(new AndroidAssetManager(this));
 
             var logger = new AndroidLogger("XrApp");
 

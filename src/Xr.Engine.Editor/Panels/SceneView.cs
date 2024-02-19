@@ -1,11 +1,11 @@
-﻿using OpenXr.Engine;
+﻿using Microsoft.Extensions.Logging.Abstractions;
+using OpenXr.Engine;
 using OpenXr.Engine.OpenGL;
-using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OpenXr.Framework;
+using OpenXr.Framework.Oculus;
+using System.Diagnostics.CodeAnalysis;
+using System.Windows;
+using Xr.Engine.OpenXr;
 
 namespace Xr.Engine.Editor
 {
@@ -16,15 +16,65 @@ namespace Xr.Engine.Editor
         protected Thread? _renderThread;
         protected bool _isStarted;
         protected Rect2I _view = new();
-        private OpenGLRender _render;
         protected readonly RenderHost _renderHost;
+        protected XrApp? _xrApp;
+        protected XrOculusTouchController? _inputs;
+        private bool _isXrActive;
 
         public SceneView()
         {
             _renderHost = new RenderHost();
             _renderHost.SizeChanged += OnSizeChanged;
             _renderHost.Loaded += OnLoaded;
+        }
 
+        [MemberNotNull(nameof(_xrApp))]
+        protected void CreateXrApp()
+        {
+            var options = new OculusXrPluginOptions
+            {
+                EnableMultiView = false,
+                SampleCount = 4,
+                ResolutionScale = 1f
+            };
+
+            _xrApp = new XrApp(NullLogger.Instance,
+                    new XrGraphicDriver(_renderHost),
+                    new OculusXrPlugin(options));
+
+            _inputs = _xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
+               .AddAction(a => a.Right!.Button!.AClick)
+               .AddAction(a => a.Right!.GripPose)
+               .AddAction(a => a.Right!.AimPose)
+               .AddAction(a => a.Right!.TriggerClick));
+
+            _scene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
+
+            _xrApp.BindEngineApp(_scene!.App!, options.SampleCount, options.EnableMultiView);
+
+            _xrApp.StartEventLoop(() => !_isStarted);
+        }
+
+        public void StartXr()
+        {
+            if (_xrApp == null)
+                CreateXrApp();
+            try
+            {
+                _xrApp!.Start();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);   
+                IsXrActive = false;
+            }
+
+            OnPropertyChanged(nameof(IsXrActive));
+        }
+
+        public void StopXr()
+        {
+            _xrApp?.Stop();
         }
 
         private void OnLoaded(object sender, System.Windows.RoutedEventArgs e)
@@ -39,10 +89,12 @@ namespace Xr.Engine.Editor
 
         protected void RenderLoop()
         {
-            _render = new OpenGLRender(_renderHost.Gl!);
+            var render = new OpenGLRender(_renderHost.Gl!);
 
             if (_scene?.App != null)
-                _scene.App.Renderer = _render;
+                _scene.App.Renderer = render;
+
+            var windowTarget = new GlDefaultRenderTarget(_renderHost.Gl!);
 
             while (_isStarted)
             {
@@ -53,7 +105,21 @@ namespace Xr.Engine.Editor
                     _renderHost!.TakeContext();
                     try
                     {
-                        _scene?.App?.RenderFrame(_view);
+                        if (_isXrActive && (_xrApp == null || !_xrApp.IsStarted))
+                            StartXr();
+
+                        if (!_isXrActive && _xrApp != null && _xrApp.IsStarted)
+                            StopXr();
+
+                        if (_xrApp != null && _xrApp.IsStarted)
+                        {
+                            _xrApp.RenderFrame(_xrApp.Stage);
+                            render.SetRenderTarget(windowTarget);
+                            render.Render(_scene!, _camera!, _view);
+                        }
+                        else
+                            _scene.App!.RenderFrame(_view);
+
                         _renderHost.SwapBuffers();
                     }
                     finally
@@ -124,6 +190,20 @@ namespace Xr.Engine.Editor
                 OnPropertyChanged(nameof(Camera));
             }
         }
+
+        public bool IsXrActive
+        {
+            get => _isXrActive;
+            set
+            {
+                if (value == _isXrActive)
+                    return;
+
+                _isXrActive = value;
+                OnPropertyChanged(nameof(IsXrActive));
+            }
+        }
+
 
         public RenderHost RenderHost => _renderHost;
 

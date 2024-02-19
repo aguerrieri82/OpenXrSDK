@@ -19,6 +19,16 @@ namespace Xr.Engine.Editor
             _min = -2f;
         }
 
+        protected override void OnValueChanged(float newValue)
+        {
+            if (newValue > _max)
+                Max = newValue; 
+            
+            if (newValue < _min)    
+                Min = newValue;
+
+            base.OnValueChanged(newValue);
+        }
 
         public float Min
         {

@@ -4,18 +4,16 @@
 		<OutputType>WinExe</OutputType>
 		<TargetFrameworks>$(CoreVersion)-windows</TargetFrameworks>
 		<UseWPF>true</UseWPF>
-
+		<XamlDebuggingInformation>TRue</XamlDebuggingInformation>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="WPF-Icons" Version="2.0.0" />
+	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Engine\Xr.Engine.OpenGL\Xr.Engine.OpenGL.csproj" />
 	  <ProjectReference Include="..\Test\OpenXr.Test.Common\OpenXr.Test.Common.csproj" />
-		
-	</ItemGroup>
-	<ItemGroup>
-
-		<PackageReference Include="Silk.NET.Windowing" Version="2.20.0" />
-		<PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.20.0" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Update="Assets\769508.glb">
