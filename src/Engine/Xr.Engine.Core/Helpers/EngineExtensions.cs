@@ -27,6 +27,13 @@ namespace OpenXr.Engine
 
         #region OBJECT3D
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 ToLocal(this Object3D obj, Vector3 vector) 
+        {
+           return vector.Transform(obj.WorldMatrixInverse);
+        }
+        
+
         public static IEnumerable<Group> Ancestors(this Object3D obj)
         {
             var curItem = obj.Parent;

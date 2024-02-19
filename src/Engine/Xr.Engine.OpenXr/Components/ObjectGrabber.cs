@@ -73,11 +73,12 @@ namespace Xr.Engine.OpenXr
                     {
                         _vibrate.VibrateStop();
                         _grabbable.Grab();
+
                         _startPivot = _grabObject!.Transform.Pivot;
                         _startInputOrientation = _input.Value.Orientation;
                         _startOrientation = _grabObject!.Transform.Orientation;
 
-                        _grabObject?.Transform.SetPivot(_input.Value.Position.Transform(_grabObject!.WorldMatrixInverse), true);
+                        _grabObject?.Transform.SetPivot(_grabObject!.ToLocal(_input.Value.Position), true);
                     }
                     else
                     {
@@ -93,7 +94,7 @@ namespace Xr.Engine.OpenXr
 
             if (isGrabbing && _grabObject != null)
             {
-                _grabObject!.Transform.Position = _input.Value.Position;
+                _grabObject!.WorldPosition = _input.Value.Position;
                 _grabObject!.Transform.Orientation = MathUtils.QuatAdd(_startOrientation, MathUtils.QuatDiff(_input.Value.Orientation, _startInputOrientation));
             }
 

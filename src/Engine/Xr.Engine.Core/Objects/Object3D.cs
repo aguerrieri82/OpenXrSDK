@@ -41,7 +41,7 @@ namespace OpenXr.Engine
             if (_transform.Update() || isParentChanged || _worldDirty)
             {
                 if (_parent != null && !_parent.WorldMatrix.IsIdentity)
-                    _worldMatrix = _parent!.WorldMatrix * _transform.Matrix;
+                    _worldMatrix = _transform.Matrix * _parent!.WorldMatrix;
                 else
                     _worldMatrix = _transform.Matrix;
 

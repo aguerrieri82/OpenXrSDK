@@ -16,12 +16,18 @@ namespace OpenXr.Samples
             var scene = new Scene();
 
             var cube = new Mesh(Cube.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
-            cube.Transform.Pivot = new Vector3(0, -1, 0);
+            //cube.Transform.Pivot = new Vector3(0, -1, 0);
             cube.Transform.SetScale(0.1f);
-            cube.Transform.SetPositionX(0.5f);
+            //cube.Transform.SetPositionX(0.5f);
             cube.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), MathF.PI /4f);
 
-            scene.AddChild(cube);
+            var contanier = new Group();
+            contanier.Transform.Position = new Vector3(1f, 0, 0);
+            contanier.Transform.SetScale(2);
+            contanier.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI / 4f);
+            contanier.AddChild(cube, false);
+
+            scene.AddChild(contanier);
 
             scene.AddChild(new AmbientLight(0.3f));
             scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
