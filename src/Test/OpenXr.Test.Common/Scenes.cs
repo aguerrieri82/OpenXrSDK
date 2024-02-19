@@ -9,10 +9,38 @@ using Xr.Engine.OpenXr;
 
 namespace OpenXr.Samples
 {
-    public static class Common
+    public static class Scenes
     {
+        public static EngineApp CreateSimpleScene(IAssetManager assets)
+        {
+            var app = new EngineApp();
 
-        public static EngineApp CreateScene(IAssetManager assets)
+            var scene = new Scene();
+
+            var cube = new Mesh(Cube.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
+            cube.Transform.Pivot = new Vector3(0, -1, 0);
+            cube.Transform.SetScale(0.1f);
+            cube.Transform.SetPositionX(0.5f);
+
+            scene.AddChild(cube);
+
+            scene.AddChild(new AmbientLight(0.3f));
+            scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
+
+            scene.AddChild(new PlaneGrid(6f, 12f, 2f));
+
+            var camera = new PerspectiveCamera() { Far = 50f };
+            camera.BackgroundColor = Color.White;
+            camera!.LookAt(new Vector3(2f, 2f, 2f), Vector3.Zero, new Vector3(0, 1, 0));
+
+            scene.ActiveCamera = camera;
+
+            app.OpenScene(scene);
+
+            return app;
+        }
+
+        public static EngineApp CreateDefaultScene(IAssetManager assets)
         {
             var app = new EngineApp();
 

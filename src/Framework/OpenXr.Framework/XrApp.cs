@@ -121,6 +121,7 @@ namespace OpenXr.Framework
             if (_isStarted)
                 return;
 
+
             if (_xr == null)
                 Initialize();
 
@@ -134,33 +135,43 @@ namespace OpenXr.Framework
 
             PluginInvoke(p => p.OnSessionCreated());
 
-            WaitForSession(SessionState.Ready, SessionState.Focused);
+            _isStarted = true;
 
-            AssertSessionCreated();
-
-            CreateActions();
-
-            BeginSession(_viewInfo.Type);
-
-            if (mode == XrAppStartMode.Render)
+            try
             {
-                _swapchains = new XrSwapchainInfo[_viewInfo.ViewCount];
+                WaitForSession(SessionState.Ready, SessionState.Focused);
 
-                for (var i = 0; i < _swapchains.Length; i++)
+                AssertSessionCreated();
+
+                CreateActions();
+
+                BeginSession(_viewInfo.Type);
+
+                if (mode == XrAppStartMode.Render)
                 {
-                    var swapchain = CreateSwapChain();
-                    _swapchains[i] = new XrSwapchainInfo
+                    _swapchains = new XrSwapchainInfo[_viewInfo.ViewCount];
+
+                    for (var i = 0; i < _swapchains.Length; i++)
                     {
-                        Swapchain = swapchain,
-                        Images = EnumerateSwapchainImages(swapchain),
-                        Size = _renderOptions.Size
-                    };
+                        var swapchain = CreateSwapChain();
+                        _swapchains[i] = new XrSwapchainInfo
+                        {
+                            Swapchain = swapchain,
+                            Images = EnumerateSwapchainImages(swapchain),
+                            Size = _renderOptions.Size
+                        };
+                    }
+
+                    _views = CreateStructArray<View>(_viewInfo.ViewCount, StructureType.View);
                 }
 
-                _views = CreateStructArray<View>(_viewInfo.ViewCount, StructureType.View);
+            }
+            catch
+            {
+                _isStarted = false;
+                throw;
             }
 
-            _isStarted = true;
         }
 
         public virtual void Stop()
@@ -198,6 +209,9 @@ namespace OpenXr.Framework
             PluginInvoke(p => p.OnSessionEnd());
 
             _logger.LogInformation("Stopped");
+
+            lock (_sessionLock)
+                Monitor.PulseAll(_sessionLock);
 
         }
 
@@ -461,13 +475,18 @@ namespace OpenXr.Framework
 
         #region SESSION
 
-        protected void WaitForSession(params SessionState[] states)
+        protected bool WaitForSession(params SessionState[] states)
         {
             lock (_sessionLock)
             {
                 while (!states.Contains(_lastSessionState))
+                {
+                    if (!_isStarted)
+                        return false;
                     Monitor.Wait(_sessionLock);
+                }
             }
+            return true;
         }
 
         [MemberNotNull(nameof(_views))]
@@ -487,9 +506,8 @@ namespace OpenXr.Framework
 
             EndSession();
 
-            WaitForSession(SessionState.Ready, SessionState.Focused, SessionState.Synchronized);
-
-            BeginSession(_viewInfo.Type);
+            if (WaitForSession(SessionState.Ready, SessionState.Focused, SessionState.Synchronized))
+                BeginSession(_viewInfo.Type);
         }
 
         protected void BeginSession(ViewConfigurationType viewType)
@@ -699,7 +717,11 @@ namespace OpenXr.Framework
             AssertSessionCreated();
 
             if (_lastSessionState == SessionState.Stopping)
+            {
                 RestartSession();
+                if (!_isStarted)
+                    return;
+            }
 
             var state = WaitFrame();
 

@@ -260,5 +260,9 @@ namespace Xr.Engine.Editor
         }
 
         public GL? Gl => _gl;
+
+        public IntPtr Hdc => _hdc;
+
+        public IntPtr GlCtx => _glCtx;
     }
 }

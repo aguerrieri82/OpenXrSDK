@@ -4,7 +4,7 @@
 
     <DataTemplate DataType="{x:Type local:FloatEditor}">
         <DockPanel>
-            <TextBlock Text="{Binding Value, StringFormat='0.00'}" DockPanel.Dock="Left"/>
+            <TextBox TextAlignment="Center" Width="50px" Text="{Binding Value, StringFormat='0.00'}" DockPanel.Dock="Left"/>
             <Slider Minimum="{Binding Min}" Maximum="{Binding Max}" Value="{Binding Value, Mode=TwoWay}"/>
         </DockPanel>
     </DataTemplate>

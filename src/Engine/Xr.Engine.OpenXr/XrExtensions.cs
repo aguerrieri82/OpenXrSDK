@@ -59,19 +59,24 @@ namespace Xr.Engine.OpenXr
 
         public static void BindEngineApp(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory, bool multiView)
         {
-            var driver = xrApp.Plugin<IXrGraphicDriver>();
+            OpenGLRender renderer;
 
-            if (driver is not IApiProvider apiProvider)
-                throw new NotSupportedException();
+            if (app.Renderer == null)
+            {
+                var driver = xrApp.Plugin<IXrGraphicDriver>();
 
-            var gl = apiProvider.GetApi<GL>();
+                if (driver is not IApiProvider apiProvider)
+                    throw new NotSupportedException();
 
-            if (gl == null)
-                throw new NotSupportedException();
+                var gl = apiProvider.GetApi<GL>() ?? 
+                    throw new NotSupportedException();
 
-            var renderer = new OpenGLRender(gl);
-            renderer.EnableDebug();
-            app.Renderer = renderer;
+                renderer = new OpenGLRender(gl);
+                renderer.EnableDebug();
+                app.Renderer = renderer;
+            }
+            else
+                renderer = (OpenGLRender)app.Renderer;
 
             app.Start();
 
@@ -81,7 +86,7 @@ namespace Xr.Engine.OpenXr
 
                 var rect = view.SubImage.ImageRect.Convert().To<Rect2I>();
 
-                var renderTarget = targetFactory(gl, glImage->Image);
+                var renderTarget = targetFactory(renderer.GL, glImage->Image);
 
                 renderer.SetRenderTarget(renderTarget);
 
@@ -105,7 +110,7 @@ namespace Xr.Engine.OpenXr
 
                 var rect = views[0].SubImage.ImageRect.Convert().To<Rect2I>();
 
-                var renderTarget = targetFactory(gl, glImage->Image);
+                var renderTarget = targetFactory(renderer.GL, glImage->Image);
 
                 if (renderTarget is not IMultiViewTarget multiTarget)
                     throw new NotSupportedException("Render target don't support multi-view");
