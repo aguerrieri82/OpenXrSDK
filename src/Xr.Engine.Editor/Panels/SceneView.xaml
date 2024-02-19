@@ -4,13 +4,16 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <DataTemplate DataType="{x:Type local:SceneView}">
+        
         <DockPanel>
             <ToolBar DockPanel.Dock="Top">
                 <ToggleButton IsChecked="{Binding IsXrActive, Mode=TwoWay}" ToolTip="View in AR">
                     <i:Icon Size="24" Color="#666" Kind="icon_visibility"/>
                 </ToggleButton>
+                <Label Content="{Binding Stats.Fps}"/>
             </ToolBar>
-            <ContentPresenter Content="{Binding RenderHost}"/>
+
+            <ContentPresenter  Content="{Binding RenderHost}"/>
         </DockPanel>
 
     </DataTemplate>

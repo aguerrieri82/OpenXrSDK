@@ -74,15 +74,15 @@ namespace Xr.Engine.OpenXr
                         _vibrate.VibrateStop();
                         _grabbable.Grab();
 
-                        _startPivot = _grabObject!.Transform.Pivot;
+                        _startPivot = _grabObject!.Transform.LocalPivot;
                         _startInputOrientation = _input.Value.Orientation;
                         _startOrientation = _grabObject!.Transform.Orientation;
 
-                        _grabObject?.Transform.SetPivot(_grabObject!.ToLocal(_input.Value.Position), true);
+                        _grabObject?.Transform.SetLocalPivot(_grabObject!.ToLocal(_input.Value.Position), true);
                     }
                     else
                     {
-                        _grabObject?.Transform.SetPivot(_startPivot, true);
+                        _grabObject?.Transform.SetLocalPivot(_startPivot, true);
                         _grabbable = null;
                         _grabObject = null;
                     }

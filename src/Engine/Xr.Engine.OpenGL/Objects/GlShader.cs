@@ -14,6 +14,7 @@ namespace Xr.Engine.OpenGL
         public GlShader(GL gl)
             : base(gl)
         {
+            Source = "";
         }
 
         public GlShader(GL gl, ShaderType type, string source)
@@ -26,14 +27,22 @@ namespace Xr.Engine.OpenGL
         {
             _handle = _gl.CreateShader(type);
 
-            _gl.ShaderSource(_handle, source);
+            Source = source;
+            Type = type;
+
+            Update();
+        }
+
+        public void Update()
+        {
+            _gl.ShaderSource(_handle, Source);
 
             _gl.CompileShader(_handle);
 
             string infoLog = _gl.GetShaderInfoLog(_handle);
 
             if (!string.IsNullOrWhiteSpace(infoLog))
-                throw new Exception($"Error compiling shader of type {type}, failed with error {infoLog}");
+                throw new Exception($"Error compiling shader of type {Type}, failed with error {infoLog}");
 
         }
 
@@ -42,5 +51,9 @@ namespace Xr.Engine.OpenGL
             _gl.DeleteShader(_handle);
             _handle = 0;
         }
+
+        public ShaderType Type { get; set; }
+
+        public string Source { get; set; }
     }
 }

@@ -29,14 +29,14 @@ namespace Xr.Engine.Editor
             {
                 void SetPivot(Vector3 value)
                 {
-                    obj3d.Transform.SetPivot(value, true);
+                    obj3d.Transform.SetLocalPivot(value, true);
                     _properties?.First(a => a.Label == "Position")?.Editor?.NotifyValueChanged();
                 }
 
                 result.Add(new PropertyView
                 {
                     Label = "Pivot",
-                    Editor = new Vector3Editor(() => obj3d.Transform.Pivot, SetPivot, -2f, 2f)
+                    Editor = new Vector3Editor(() => obj3d.Transform.LocalPivot, SetPivot, -2f, 2f)
                 });
                 result.Add(new PropertyView
                 {

@@ -99,7 +99,12 @@ namespace Xr.Engine.Editor
 
         protected void RenderLoop()
         {
-            var render = new OpenGLRender(_renderHost.Gl!);
+            var renderOptions = new GlRenderOptions
+            {
+                FloatPrecision = ShaderPrecision.High,
+                ShaderVersion = "460"
+            };
+            var render = new OpenGLRender(_renderHost.Gl!, renderOptions);
 
             if (_scene?.App != null)
                 _scene.App.Renderer = render;
@@ -116,10 +121,16 @@ namespace Xr.Engine.Editor
                     try
                     {
                         if (_isXrActive && (_xrApp == null || !_xrApp.IsStarted))
+                        {
+                            _renderHost.EnableVSync(false);
                             StartXr();
+                        }
 
                         if (!_isXrActive && _xrApp != null && _xrApp.IsStarted)
+                        {
+                            _renderHost.EnableVSync(true);
                             StopXr();
+                        }
 
                         if (_xrApp != null && _xrApp.IsStarted)
                         {
@@ -131,6 +142,8 @@ namespace Xr.Engine.Editor
                             _scene.App!.RenderFrame(_view);
 
                         _renderHost.SwapBuffers();
+
+                        OnPropertyChanged(nameof(Stats));   
                     }
                     finally
                     {
@@ -208,12 +221,12 @@ namespace Xr.Engine.Editor
             {
                 if (value == _isXrActive)
                     return;
-
                 _isXrActive = value;
                 OnPropertyChanged(nameof(IsXrActive));
             }
         }
 
+        public EngineAppStats? Stats => _scene?.App?.Stats;
 
         public RenderHost RenderHost => _renderHost;
 

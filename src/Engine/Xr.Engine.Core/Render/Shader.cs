@@ -9,5 +9,7 @@
         public Func<string, string>? IncludeResolver { get; set; }
 
         public bool IsLit { get; set; }
+
+        public int Priority { get; set; }
     }
 }

@@ -23,6 +23,10 @@ namespace Xr.Engine.Editor
 
         #region NATIVE
 
+        delegate bool wglSwapIntervalEXTPtr(int interval);
+
+        static wglSwapIntervalEXTPtr? wglSwapIntervalEXT;
+
         [DllImport("Opengl32.dll")]
         static extern IntPtr wglCreateContext(IntPtr hdc);
 
@@ -194,6 +198,17 @@ namespace Xr.Engine.Editor
             _gl = GL.GetApi(this);
 
             return handle;
+        }
+
+        public void EnableVSync(bool enable)
+        {
+            if (wglSwapIntervalEXT == null)
+            {
+                var addr = GetProcAddress("wglSwapIntervalEXT");
+                wglSwapIntervalEXT = Marshal.GetDelegateForFunctionPointer<wglSwapIntervalEXTPtr>(addr);
+            }
+
+            wglSwapIntervalEXT(enable ? 1 : 0);
         }
 
         public void SwapBuffers()
