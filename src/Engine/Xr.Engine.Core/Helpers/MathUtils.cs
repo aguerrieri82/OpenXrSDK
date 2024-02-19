@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using System.Reflection;
 
 namespace OpenXr.Engine
 {
@@ -20,10 +19,10 @@ namespace OpenXr.Engine
             if (values.Length != 16)
                 throw new ArgumentException();
             fixed (float* data = values)
-                return *(Matrix4x4*)data;   
+                return *(Matrix4x4*)data;
         }
 
-        public static Quaternion QuatDiff(Quaternion to , Quaternion from)
+        public static Quaternion QuatDiff(Quaternion to, Quaternion from)
         {
             return to * Quaternion.Inverse(from);
         }

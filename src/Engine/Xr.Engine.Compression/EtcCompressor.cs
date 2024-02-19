@@ -1,12 +1,6 @@
 ﻿using OpenXr.Engine;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
-using System;
-using System.Drawing;
-using System.Numerics;
-using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 
 namespace Xr.Engine.Compression
@@ -33,7 +27,7 @@ namespace Xr.Engine.Compression
             Dds = 1
         };
 
-        [StructLayout(LayoutKind.Sequential)]   
+        [StructLayout(LayoutKind.Sequential)]
         struct EncodeOptions
         {
             public bool MipMap;
@@ -117,15 +111,15 @@ namespace Xr.Engine.Compression
                             Width = pWidth,
                             Height = pHeight,
                             AlphaType = curImage.AlphaType,
-                            ColorSpace = curImage.ColorSpace,   
-                            ColorType = curImage.ColorType  
+                            ColorSpace = curImage.ColorSpace,
+                            ColorType = curImage.ColorType
                         });
 
                         fixed (byte* pSrc = curImage.GetPixelSpan())
                         fixed (byte* pDst = newImage.GetPixelSpan())
                             PackImage(
                                 (uint)curImage.Width,
-                                (uint)curImage.Height, 
+                                (uint)curImage.Height,
                                 pSrc,
                                 (uint)newImage.Width,
                                 (uint)newImage.Height,
@@ -135,7 +129,7 @@ namespace Xr.Engine.Compression
                         curImage.Dispose();
                         curImage = newImage;
                     }
-                } 
+                }
                 else
                     curImage = image;
 
@@ -155,7 +149,7 @@ namespace Xr.Engine.Compression
 
                     var outData = Encode((uint)curImage.Width, (uint)curImage.Height, (byte*)pData, ref options, out var outSize);
                     var outDataSpan = new Span<byte>(outData + 52, (int)outSize - 52);
- 
+
                     texData.Data = outDataSpan.ToArray();
                 }
 

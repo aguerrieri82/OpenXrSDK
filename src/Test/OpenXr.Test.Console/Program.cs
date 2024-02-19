@@ -29,7 +29,7 @@ var matrix1 = Matrix4x4.CreateScale(0.5f) *
 
 var matrix2 = Matrix4x4.CreateTranslation(1f, 0, 0) *
               Matrix4x4.CreateScale(0.5f);
-            
+
 
 var vector = new Vector3(1, 1, 1);
 

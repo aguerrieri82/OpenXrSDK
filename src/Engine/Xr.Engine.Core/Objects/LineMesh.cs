@@ -1,6 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace OpenXr.Engine
 {
@@ -8,7 +6,7 @@ namespace OpenXr.Engine
     {
         [ShaderRef(0, "vPos")]
         public Vector3 Pos;
-        
+
         [ShaderRef(1, "vColor")]
         public Vector3 Color;
 
@@ -16,7 +14,7 @@ namespace OpenXr.Engine
         public float Size;
     }
 
-    public class LineMesh : Object3D, IVertexSource<LineData, uint> 
+    public class LineMesh : Object3D, IVertexSource<LineData, uint>
     {
 
         public LineMesh()
@@ -25,7 +23,7 @@ namespace OpenXr.Engine
             Vertices = [];
         }
 
-        public LineData[] Vertices { get; set; }  
+        public LineData[] Vertices { get; set; }
 
         public LineMaterial Material { get; }
 

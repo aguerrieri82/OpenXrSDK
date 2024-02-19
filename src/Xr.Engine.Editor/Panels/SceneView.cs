@@ -50,6 +50,8 @@ namespace Xr.Engine.Editor
 
             _scene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
 
+            _xrApp.Layers.Add<XrPassthroughLayer>();
+
             _xrApp.BindEngineApp(_scene!.App!, options.SampleCount, options.EnableMultiView);
 
             _xrApp.StartEventLoop(() => !_isStarted);
@@ -65,7 +67,7 @@ namespace Xr.Engine.Editor
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);   
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 IsXrActive = false;
             }
 
@@ -167,11 +169,11 @@ namespace Xr.Engine.Editor
             get => _scene;
             set
             {
-                if (_scene== value)
+                if (_scene == value)
                     return;
 
                 _scene = value;
-                
+
                 Camera = _scene?.ActiveCamera;
 
                 OnPropertyChanged(nameof(Scene));
@@ -184,8 +186,8 @@ namespace Xr.Engine.Editor
             get => _camera;
             set
             {
-                if (_camera == value) 
-                    return;   
+                if (_camera == value)
+                    return;
                 _camera = value;
                 OnPropertyChanged(nameof(Camera));
             }
@@ -207,6 +209,6 @@ namespace Xr.Engine.Editor
 
         public RenderHost RenderHost => _renderHost;
 
-        public IEnumerable<Camera> CameraList => _scene?.Descendants<Camera>() ?? [];    
+        public IEnumerable<Camera> CameraList => _scene?.Descendants<Camera>() ?? [];
     }
 }

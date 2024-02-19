@@ -1,12 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Xr.Engine.Editor
+﻿namespace Xr.Engine.Editor
 {
     public class PropertyView : BaseView
     {
@@ -16,8 +8,8 @@ namespace Xr.Engine.Editor
 
         }
 
-        public string? Label { get; set; }   
+        public string? Label { get; set; }
 
-        public IPropertyEditor? Editor { get; set; } 
+        public IPropertyEditor? Editor { get; set; }
     }
 }

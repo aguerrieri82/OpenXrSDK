@@ -1,15 +1,10 @@
 ﻿using OpenXr.Engine;
 using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Test.Android
 {
-    public class DisplayPosition : Behavior<Mesh>  
+    public class DisplayPosition : Behavior<Mesh>
     {
         bool _isSet;
 
@@ -17,7 +12,7 @@ namespace OpenXr.Test.Android
         {
             if (_isSet)
                 return;
-            
+
             var camera = _host!.Scene!.ActiveCamera!;
 
             var matrix = XrMath.InvertRigidBody(camera.Transform.Matrix);

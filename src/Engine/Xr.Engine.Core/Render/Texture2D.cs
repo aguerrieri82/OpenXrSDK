@@ -141,6 +141,6 @@ namespace OpenXr.Engine
 
         public TextureCompressionFormat Compression { get; set; }
 
-        public Transform2? Transform { get; set; }   
+        public Transform2? Transform { get; set; }
     }
 }

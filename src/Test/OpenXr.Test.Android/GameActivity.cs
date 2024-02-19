@@ -29,7 +29,7 @@ namespace OpenXr.Test.Android
     {
         private EngineApp? _game;
         private WebView? _webView;
-        private XrWebViewLayer? _webViewLayer;
+        private readonly XrWebViewLayer? _webViewLayer;
         private XrOculusTouchController? _inputs;
 
         protected override void OnAppStarted(XrApp app)
@@ -55,7 +55,7 @@ namespace OpenXr.Test.Android
                 Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
             };
 
-            _game = Scenes.CreateDefaultScene(new AndroidAssetManager(this));
+            _game = SampleScenes.CreateDefaultScene(new AndroidAssetManager(this));
 
             var logger = new AndroidLogger("XrApp");
 
@@ -75,12 +75,12 @@ namespace OpenXr.Test.Android
               );
 
             result.Layers.Add<XrPassthroughLayer>();
-            
+
             var display = _game.ActiveScene!.FindByName<Mesh>("display")!;
-            
+
             var controller = new SurfaceController(
-                _inputs.Right!.TriggerClick!, 
-                _inputs.Right!.SqueezeClick!, 
+                _inputs.Right!.TriggerClick!,
+                _inputs.Right!.SqueezeClick!,
                 _inputs.Right!.Haptic!);
 
             display.AddComponent(controller);
@@ -92,7 +92,7 @@ namespace OpenXr.Test.Android
             _game.ActiveScene!.AddComponent(new ObjectGrabber(
                 _inputs.Right!.GripPose!,
                 _inputs.Right!.Haptic!,
-                _inputs.Right!.SqueezeValue!, 
+                _inputs.Right!.SqueezeValue!,
                 _inputs.Right!.TriggerValue!));
 
             //_game.ActiveScene.AddChild(new OculusSceneModel());

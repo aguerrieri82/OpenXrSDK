@@ -1,30 +1,24 @@
 ﻿using OpenXr.Engine;
 using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xr.Engine.OpenXr
 {
     public class ObjectGrabber : Behavior<Scene>
     {
-        private XrInput<XrPose> _input;
-        private XrInput<float>[] _handlers;
+        private readonly XrInput<XrPose> _input;
+        private readonly XrInput<float>[] _handlers;
         private Object3D? _grabObject;
         private IGrabbable? _grabbable;
-        private XrHaptic _vibrate;
-        private Mesh _grabView;
+        private readonly XrHaptic _vibrate;
+        private readonly Mesh _grabView;
 
         private Vector3 _startPosition;
         private Vector3 _startInputPos;
         private Quaternion _startInputOrientation;
         private Quaternion _startOrientation;
 
-        public ObjectGrabber(XrInput<XrPose> input, XrHaptic vibrate,  params XrInput<float>[] handlers)
+        public ObjectGrabber(XrInput<XrPose> input, XrHaptic vibrate, params XrInput<float>[] handlers)
         {
             _input = input;
             _handlers = handlers;
@@ -95,7 +89,7 @@ namespace Xr.Engine.OpenXr
                 else
                     _vibrate.VibrateStop();
             }
-          
+
 
             if (isGrabbing && _grabObject != null)
             {

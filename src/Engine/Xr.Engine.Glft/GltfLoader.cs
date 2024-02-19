@@ -30,7 +30,7 @@ namespace Xr.Engine.Gltf
             var model = glTFLoader.Interface.LoadModel(filePath);
             var buffer = glTFLoader.Interface.LoadBinaryBuffer(model, 0, filePath);
             var log = new StringBuilder();
-            
+
             Dictionary<int, byte[]> buffers = [];
 
             byte[] LoadBuffer(int index)
@@ -38,24 +38,24 @@ namespace Xr.Engine.Gltf
                 if (!buffers.TryGetValue(index, out var buffer))
                 {
                     buffer = glTFLoader.Interface.LoadBinaryBuffer(model, index, filePath);
-                    buffers[index] = buffer;    
+                    buffers[index] = buffer;
                 }
                 return buffer;
             }
 
-            void CheckExtensions(Dictionary<string, object> ? ext)
+            void CheckExtensions(Dictionary<string, object>? ext)
             {
                 if (ext == null)
                     return;
-                foreach (var key in ext.Keys) 
-                { 
+                foreach (var key in ext.Keys)
+                {
                     if (!supportedExt.Contains(key))
                         log.AppendLine($"Extensions '{key}' not supported");
 
                 }
             }
 
-            T ? TryLoadExtension<T>(Dictionary<string, object>? ext) where T: struct
+            T? TryLoadExtension<T>(Dictionary<string, object>? ext) where T : struct
             {
                 if (ext != null && ext.TryGetValue(typeof(T).Name, out var extension))
                     return ((JObject)extension).ToObject<T>();
@@ -259,7 +259,7 @@ namespace Xr.Engine.Gltf
                             {
                                 DracoDecoder.DisposeMesh((IntPtr)mesh.Mesh);
                             }
-                           
+
                         }
                         else
                         {
@@ -289,7 +289,7 @@ namespace Xr.Engine.Gltf
                                 }
 
                             }
-                            
+
                             if (primitive.Indices != null)
                             {
                                 var view = model.BufferViews[primitive.Indices.Value];
@@ -297,7 +297,7 @@ namespace Xr.Engine.Gltf
 
                                 if (buffer.Length / 16 <= ushort.MaxValue)
                                     geo.Indices = ConvertBuffer<ushort>(buffer, view)
-                                        .Select(a=> (uint)a)
+                                        .Select(a => (uint)a)
                                         .ToArray();
                                 else
                                     geo.Indices = ConvertBuffer<uint>(buffer, view);
@@ -315,7 +315,7 @@ namespace Xr.Engine.Gltf
                     else
                         throw new NotSupportedException();
                 }
-                
+
                 return result;
             }
 

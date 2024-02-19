@@ -36,9 +36,10 @@ namespace OpenXr.Samples
                .AddAction(a => a.Right!.AimPose)
             .AddAction(a => a.Right!.TriggerClick));
 
-            _game = Scenes.CreateDefaultScene(new LocalAssetManager("Assets"));
+            _game = SampleScenes.CreateDefaultScene(new LocalAssetManager("Assets"));
 
             _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
+
 
             xrApp.BindEngineApp(_game, options.SampleCount, options.EnableMultiView);
 

@@ -4,6 +4,6 @@
     {
         Stream OpenAsset(string name);
 
-        string FullPath(string name);   
+        string FullPath(string name);
     }
 }

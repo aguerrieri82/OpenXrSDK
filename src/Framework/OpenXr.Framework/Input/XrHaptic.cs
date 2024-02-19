@@ -1,5 +1,4 @@
 ﻿using Silk.NET.OpenXR;
-using System.Xml.Linq;
 using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework

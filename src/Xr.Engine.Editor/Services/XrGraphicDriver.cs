@@ -7,12 +7,7 @@ using Silk.NET.OpenGL;
 using OpenXr.Framework;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xr.Engine.Editor
 {

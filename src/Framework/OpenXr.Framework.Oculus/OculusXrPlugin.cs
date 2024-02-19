@@ -2,13 +2,11 @@
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
-using System.Linq;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Xml.Schema;
 using Action = Silk.NET.OpenXR.Action;
 
 
@@ -84,7 +82,7 @@ namespace OpenXr.Framework.Oculus
         protected readonly ConcurrentDictionary<ulong, TaskCompletionSource<SpaceQueryResultFB[]>> _spaceQueries = [];
         protected readonly ConcurrentDictionary<ulong, TaskCompletionSource<Result>> _spaceCompStatus = [];
 
-        
+
         protected readonly OculusXrPluginOptions _options;
 
         public OculusXrPlugin()
@@ -100,7 +98,7 @@ namespace OpenXr.Framework.Oculus
         public override void Initialize(XrApp app, IList<string> extensions)
         {
             _app = app;
-    
+
             extensions.Add(FBScene.ExtensionName);
             extensions.Add(FBSceneCapture.ExtensionName);
             extensions.Add(FBTriangleMesh.ExtensionName);
@@ -193,7 +191,7 @@ namespace OpenXr.Framework.Oculus
             {
                 Type = StructureType.SpaceComponentStatusSetInfoFB,
                 ComponentType = componentType,
-                Enabled = (uint)( enabled ? 1 : 0),
+                Enabled = (uint)(enabled ? 1 : 0),
             };
 
             ulong requestId = 0;
@@ -248,7 +246,7 @@ namespace OpenXr.Framework.Oculus
             {
                 Type = StructureType.SpaceQueryResultsFB,
             };
-        
+
             _app!.CheckResult(_spatialQuery!.RetrieveSpaceQueryResultsFB(_app!.Session, reqId, ref result), "RetrieveSpaceQueryResultsFB");
 
             var results = new SpaceQueryResultFB[(int)result.ResultCountOutput];

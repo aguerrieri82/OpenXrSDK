@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace OpenXr.Engine
 {
     public enum DrawPrimitive
     {
@@ -21,7 +15,7 @@ namespace OpenXr.Engine
     }
 
     public interface IVertexSource<TVertices, TIndices> : IVertexSource
-        where TVertices : unmanaged 
+        where TVertices : unmanaged
         where TIndices : unmanaged
     {
         TIndices[] Indices { get; }

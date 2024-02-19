@@ -10,7 +10,7 @@
 
         protected internal override void InvalidateWorld()
         {
-            foreach (var child in _children)    
+            foreach (var child in _children)
                 child.InvalidateWorld();
             base.InvalidateWorld();
         }

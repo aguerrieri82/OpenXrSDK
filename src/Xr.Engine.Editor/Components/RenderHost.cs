@@ -6,17 +6,9 @@ using Silk.NET.OpenGL;
 #endif
 
 using Silk.NET.Core.Contexts;
-
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Interop;
-using System.Windows.Media;
 using OpenXr.Framework;
 
 
@@ -27,7 +19,7 @@ namespace Xr.Engine.Editor
     {
         private HwndSource? _hwndSource;
         private GL? _gl;
-        private nint _hLib;
+        private readonly nint _hLib;
         private nint _glCtx;
         private nint _hdc;
 
@@ -43,7 +35,7 @@ namespace Xr.Engine.Editor
         static extern IntPtr wglChoosePixelFormatARB(IntPtr hdc);
 
         [DllImport("Opengl32.dll", SetLastError = true)]
-        static extern IntPtr wglGetProcAddress([MarshalAs(UnmanagedType.LPStr)]string unnamedParam1);
+        static extern IntPtr wglGetProcAddress([MarshalAs(UnmanagedType.LPStr)] string unnamedParam1);
 
         [DllImport("Opengl32.dll", SetLastError = true)]
         static extern bool wglMakeCurrent(IntPtr hdc, IntPtr hglrc);
@@ -68,7 +60,7 @@ namespace Xr.Engine.Editor
 
 
         [DllImport("kernel32.dll")]
-        static extern IntPtr GetProcAddress(IntPtr hModule, [MarshalAs(UnmanagedType.LPStr)]string procName);
+        static extern IntPtr GetProcAddress(IntPtr hModule, [MarshalAs(UnmanagedType.LPStr)] string procName);
 
         [DllImport("kernel32.dll")]
         static extern IntPtr LoadLibraryW([MarshalAs(UnmanagedType.LPWStr)] string lpLibFileName);
@@ -198,7 +190,7 @@ namespace Xr.Engine.Editor
                 throw new Win32Exception();
 
             TakeContext();
- 
+
             _gl = GL.GetApi(this);
 
             return handle;
@@ -235,7 +227,7 @@ namespace Xr.Engine.Editor
             {
                 addr = wglGetProcAddress(proc);
                 if (addr == 0)
-                    throw new NotSupportedException(proc); 
+                    throw new NotSupportedException(proc);
             }
 
             return addr;

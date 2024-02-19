@@ -13,7 +13,7 @@ namespace OpenXr.Engine.OpenGL
     {
         public static TextureTarget GetTexture2DTarget(this GL gL, uint texId)
         {
-            TextureTarget[] targets = [TextureTarget.Texture2D, TextureTarget.Texture2DArray, TextureTarget.Texture2DMultisample, TextureTarget.Texture2DMultisampleArray];
+            TextureTarget[] targets = [TextureTarget.Texture2DMultisample, TextureTarget.Texture2D, TextureTarget.Texture2DMultisampleArray, TextureTarget.Texture2DArray];
 
             foreach (var target in targets)
             {

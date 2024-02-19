@@ -12,7 +12,6 @@ namespace OpenXr.Framework.Oculus
 
         public XrPassthroughLayer()
         {
-
         }
 
         public override void Initialize(XrApp app, IList<string> extensions)

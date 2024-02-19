@@ -6,18 +6,13 @@ using Silk.NET.OpenGL;
 #endif
 
 using OpenXr.Engine.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xr.Engine.OpenGL
 {
     public class GlShader : GlObject
     {
         public GlShader(GL gl)
-            : base(gl)  
+            : base(gl)
         {
         }
 

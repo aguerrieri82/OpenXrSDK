@@ -1,7 +1,5 @@
-﻿using System.IO;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Reflection;
-using System.Xml.Linq;
 
 namespace OpenXr.Framework
 {
@@ -119,7 +117,7 @@ namespace OpenXr.Framework
         {
             if (type.IsAbstract)
                 throw new NotSupportedException();
-      
+
             var result = (XrHaptic)Activator.CreateInstance(type, _app, path, name)!;
 
             _haptics.Add(result);

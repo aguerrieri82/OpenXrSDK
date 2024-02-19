@@ -68,7 +68,7 @@ namespace Xr.Engine.OpenXr
                 if (driver is not IApiProvider apiProvider)
                     throw new NotSupportedException();
 
-                var gl = apiProvider.GetApi<GL>() ?? 
+                var gl = apiProvider.GetApi<GL>() ??
                     throw new NotSupportedException();
 
                 renderer = new OpenGLRender(gl);
@@ -101,7 +101,7 @@ namespace Xr.Engine.OpenXr
                     app.RenderFrame(rect);
                 else
                     app.Renderer.Render(app.ActiveScene, camera, rect);
-    
+
             }
 
             void RenderMultiView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader* image, long predTime)
