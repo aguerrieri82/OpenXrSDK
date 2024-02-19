@@ -3,14 +3,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <DataTemplate DataType="{x:Type local:PropertiesEditor}">
-
         <ScrollViewer Padding="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
             <ItemsControl ItemsSource="{Binding Properties}">
-
             </ItemsControl>
         </ScrollViewer>
-
-        
     </DataTemplate>
    
 </ResourceDictionary>

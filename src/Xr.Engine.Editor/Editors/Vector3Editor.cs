@@ -18,6 +18,7 @@ namespace Xr.Engine.Editor
 
             _setter = setter;
 
+         
             Value = getter();
 
             X.ValueChanged += (s, v) =>
@@ -45,6 +46,11 @@ namespace Xr.Engine.Editor
             };
         }
 
+        public override void NotifyValueChanged()
+        {
+            Value = _getter();
+        }
+
         protected override void OnValueChanged(Vector3 newValue)
         {
             _setter(newValue);
@@ -59,7 +65,6 @@ namespace Xr.Engine.Editor
             {
                 _suspendUpdate--;
             }
-
         }
 
         public FloatEditor X { get; }

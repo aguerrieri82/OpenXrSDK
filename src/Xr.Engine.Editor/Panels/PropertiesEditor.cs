@@ -1,4 +1,5 @@
 ﻿using OpenXr.Engine;
+using System.Numerics;
 
 namespace Xr.Engine.Editor
 {
@@ -26,10 +27,16 @@ namespace Xr.Engine.Editor
 
             if (ActiveObject is Object3D obj3d)
             {
+                void SetPivot(Vector3 value)
+                {
+                    obj3d.Transform.SetPivot(value, true);
+                    _properties?.First(a => a.Label == "Position")?.Editor?.NotifyValueChanged();
+                }
+
                 result.Add(new PropertyView
                 {
                     Label = "Pivot",
-                    Editor = new Vector3Editor(() => obj3d.Transform.Pivot, value => obj3d.Transform.Pivot = value, -2f, 2f)
+                    Editor = new Vector3Editor(() => obj3d.Transform.Pivot, SetPivot, -2f, 2f)
                 });
                 result.Add(new PropertyView
                 {
@@ -40,6 +47,11 @@ namespace Xr.Engine.Editor
                 {
                     Label = "Position",
                     Editor = new Vector3Editor(() => obj3d.Transform.Position, value => obj3d.Transform.Position = value, -3, 3f)
+                });
+                result.Add(new PropertyView
+                {
+                    Label = "Rotation",
+                    Editor = new Vector3Editor(() => obj3d.Transform.Rotation, value => obj3d.Transform.Rotation = value, -MathF.PI , MathF.PI )
                 });
             }
 
