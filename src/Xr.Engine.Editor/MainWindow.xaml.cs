@@ -25,7 +25,7 @@ namespace Xr.Engine.Editor
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            DataContext = new MainWindowView(renderHost);
+            DataContext = new MainView();
         }
     }
 }

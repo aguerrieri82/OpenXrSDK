@@ -34,13 +34,18 @@ namespace Xr.Engine.Editor
         [DllImport("Opengl32.dll")]
         static extern IntPtr wglCreateContext(IntPtr hdc);
 
+
         [DllImport("Opengl32.dll")]
+        static extern IntPtr wglDeleteContext(IntPtr hglrc);
+
+
+        [DllImport("Opengl32.dll", SetLastError = true)]
         static extern IntPtr wglChoosePixelFormatARB(IntPtr hdc);
 
-        [DllImport("Opengl32.dll")]
+        [DllImport("Opengl32.dll", SetLastError = true)]
         static extern IntPtr wglGetProcAddress([MarshalAs(UnmanagedType.LPStr)]string unnamedParam1);
 
-        [DllImport("Opengl32.dll")]
+        [DllImport("Opengl32.dll", SetLastError = true)]
         static extern bool wglMakeCurrent(IntPtr hdc, IntPtr hglrc);
 
         [DllImport("gdi32.dll", SetLastError = true)]
@@ -149,7 +154,12 @@ namespace Xr.Engine.Editor
         const sbyte PFD_OVERLAY_PLANE = 1;
         const sbyte PFD_UNDERLAY_PLANE = -1;
 
+        const uint WS_CHILD = 0x40000000;
 
+        public RenderHost()
+        {
+            _hLib = LoadLibraryW("opengl32.dll");
+        }
 
         protected unsafe override HandleRef BuildWindowCore(HandleRef hwndParent)
         {
@@ -158,31 +168,37 @@ namespace Xr.Engine.Editor
             if (DesignerProperties.GetIsInDesignMode(this))
                 return new HandleRef(null, 0);
 
-            _hwndSource = new HwndSource(0, 0x40000000, 0, 0, 0, "", hwndParent.Handle);
+            _hwndSource = new HwndSource(0, (int)WS_CHILD, 0, 0, 0, "RenderView", hwndParent.Handle);
 
             var handle = _hwndSource.CreateHandleRef();
 
-            _hLib = LoadLibraryW("opengl32.dll");
-
-            PIXELFORMATDESCRIPTOR pfd = new PIXELFORMATDESCRIPTOR();
-            pfd.nSize = (ushort)Marshal.SizeOf<PIXELFORMATDESCRIPTOR>();
-            pfd.nVersion = 1;
-            pfd.iPixelType = PFD_TYPE_RGBA;
-            pfd.dwFlags = PFD_SUPPORT_OPENGL | PFD_SUPPORT_COMPOSITION | PFD_DIRECT3D_ACCELERATED | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER;
-            pfd.iLayerType = PFD_MAIN_PLANE;
-            pfd.cColorBits = 24;
-            pfd.cDepthBits = 32;
+            var pfd = new PIXELFORMATDESCRIPTOR
+            {
+                nSize = (ushort)Marshal.SizeOf<PIXELFORMATDESCRIPTOR>(),
+                nVersion = 1,
+                iPixelType = PFD_TYPE_RGBA,
+                dwFlags = PFD_SUPPORT_OPENGL | PFD_SUPPORT_COMPOSITION | PFD_DIRECT3D_ACCELERATED | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
+                iLayerType = PFD_MAIN_PLANE,
+                cColorBits = 24,
+                cDepthBits = 32
+            };
 
             _hdc = GetDC(handle.Handle);
 
             var pfIndex = ChoosePixelFormat(_hdc, pfd);
-            SetPixelFormat(_hdc, pfIndex, pfd);
+            if (pfIndex <= 0)
+                throw new Win32Exception();
+
+            if (!SetPixelFormat(_hdc, pfIndex, pfd))
+                throw new Win32Exception();
+
             _glCtx = wglCreateContext(_hdc);
 
-            wglMakeCurrent(_hdc, _glCtx);
+            if (_glCtx == IntPtr.Zero)
+                throw new Win32Exception();
 
-            //ReleaseDC(_hwndSource.Handle, _hdc);
-
+            TakeContext();
+ 
             _gl = GL.GetApi(this);
 
             return handle;
@@ -191,12 +207,24 @@ namespace Xr.Engine.Editor
 
         public void SwapBuffers()
         {
-            SwapBuffers(_hdc);
+            _ = SwapBuffers(_hdc);
         }
 
         protected override void DestroyWindowCore(HandleRef hwnd)
         {
-            _hwndSource?.Dispose();
+            if (_glCtx != 0)
+            {
+                wglDeleteContext(_glCtx);
+                _glCtx = 0;
+            }
+
+            if (_hwndSource != null)
+            {
+                _ = ReleaseDC(_hwndSource.Handle, _hdc);
+                _hwndSource.Dispose();
+                _hwndSource = null;
+            }
+
         }
 
         public nint GetProcAddress(string proc, int? slot = null)
@@ -215,12 +243,14 @@ namespace Xr.Engine.Editor
 
         public void ReleaseContext()
         {
-            wglMakeCurrent(_hdc, IntPtr.Zero);
+            if (!wglMakeCurrent(_hdc, IntPtr.Zero))
+                throw new Win32Exception();
         }
 
         public void TakeContext()
         {
-            wglMakeCurrent(_hdc, _glCtx);
+            if (!wglMakeCurrent(_hdc, _glCtx))
+                throw new Win32Exception();
         }
 
         public bool TryGetProcAddress(string proc, out nint addr, int? slot = null)

@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:Xr.Engine.Editor"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate DataType="{x:Type local:FloatEditor}">
+        <DockPanel>
+            <TextBlock Text="{Binding Value, StringFormat='0.00'}" DockPanel.Dock="Left"/>
+            <Slider Minimum="{Binding Min}" Maximum="{Binding Max}" Value="{Binding Value, Mode=TwoWay}"/>
+        </DockPanel>
+    </DataTemplate>
+   
+</ResourceDictionary>
