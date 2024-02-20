@@ -4,13 +4,13 @@ namespace OpenXr.Engine
 {
     public struct LineData
     {
-        [ShaderRef(0, "vPos")]
+        [ShaderRef(0, "a_position", VertexComponent.Position)]
         public Vector3 Pos;
 
-        [ShaderRef(1, "vColor")]
+        [ShaderRef(1, "a_color_0", VertexComponent.Color3)]
         public Vector3 Color;
 
-        [ShaderRef(2, "vSize")]
+        [ShaderRef(2, "a_size", VertexComponent.Generic)]
         public float Size;
     }
 

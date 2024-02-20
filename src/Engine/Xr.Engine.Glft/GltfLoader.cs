@@ -18,6 +18,20 @@ namespace Xr.Engine.Gltf
             public Dictionary<string, int> Attributes;
         }
 
+        struct KHR_materials_pbrSpecularGlossiness
+        {
+            public float[] diffuseFactor;
+
+            public float[] specularFactor;
+
+            public float glossinessFactor;
+
+            public glTFLoader.Schema.TextureInfo? diffuseTexture;
+
+            public glTFLoader.Schema.TextureInfo? specularGlossinessTexture;
+
+        }
+
         GltfLoader()
         {
 
@@ -25,7 +39,7 @@ namespace Xr.Engine.Gltf
 
         public EngineObject Load(string filePath, IAssetManager assetManager)
         {
-            string[] supportedExt = { "KHR_draco_mesh_compression" };
+            string[] supportedExt = { "KHR_draco_mesh_compression", "KHR_materials_pbrSpecularGlossiness" };
 
             var model = glTFLoader.Interface.LoadModel(filePath);
             var buffer = glTFLoader.Interface.LoadBinaryBuffer(model, 0, filePath);
@@ -119,27 +133,28 @@ namespace Xr.Engine.Gltf
                 return result;
             }
 
-            Texture2D DecodeTexture3(glTFLoader.Schema.MaterialOcclusionTextureInfo info)
+            Texture2D DecodeTextureOcclusion(glTFLoader.Schema.MaterialOcclusionTextureInfo info)
             {
                 var image = LoadImage(model.Images[info.Index]);
 
                 CheckExtensions(info.Extensions);
-                //info.Strength;
 
                 return CreateTexture(image, model.Textures[info.TexCoord]);
             }
 
-            Texture2D DecodeTexture1(glTFLoader.Schema.MaterialNormalTextureInfo info)
+            Texture2D DecodeTextureNormal(glTFLoader.Schema.MaterialNormalTextureInfo info)
             {
                 var image = LoadImage(model.Images[info.Index]);
+
                 CheckExtensions(info.Extensions);
-                //info.Scale
+
                 return CreateTexture(image, model.Textures[info.TexCoord]);
             }
 
-            Texture2D DecodeTexture2(glTFLoader.Schema.TextureInfo info)
+            Texture2D DecodeTextureBase(glTFLoader.Schema.TextureInfo info)
             {
                 var image = LoadImage(model.Images[info.Index]);
+
                 CheckExtensions(info.Extensions);
 
                 return CreateTexture(image, model.Textures[info.TexCoord]);
@@ -165,27 +180,61 @@ namespace Xr.Engine.Gltf
                     };
 
                     if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
-                        result.MetallicRoughness.BaseColorTexture = DecodeTexture2(gltMat.PbrMetallicRoughness.BaseColorTexture);
+                    {
+                        result.MetallicRoughness.BaseColorTexture = DecodeTextureBase(gltMat.PbrMetallicRoughness.BaseColorTexture);
+                        result.MetallicRoughness.BaseColorUVSet = model.Textures[gltMat.PbrMetallicRoughness.BaseColorTexture.TexCoord].Source ?? 0;
+                    }
 
                     if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
-                        result.MetallicRoughness.MetallicRoughnessTexture = DecodeTexture2(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture);
+                    {
+                        result.MetallicRoughness.MetallicRoughnessTexture = DecodeTextureBase(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture);
+                        result.MetallicRoughness.MetallicRoughnessUVSet = model.Textures[gltMat.PbrMetallicRoughness.MetallicRoughnessTexture.TexCoord].Source ?? 0;
+                    }
+
+                    result.Type = PbrMaterialType.Metallic;
                 }
 
                 if (gltMat.EmissiveTexture != null)
-                    result.EmissiveTexture = DecodeTexture2(gltMat.EmissiveTexture);
+                    result.EmissiveTexture = DecodeTextureBase(gltMat.EmissiveTexture);
 
                 if (gltMat.NormalTexture != null)
-                    result.NormalTexture = DecodeTexture1(gltMat.NormalTexture);
+                {
+                    result.NormalTexture = DecodeTextureNormal(gltMat.NormalTexture);
+                    result.NormalScale = gltMat.NormalTexture.Scale;
+                    result.NormalUVSet = model.Textures[gltMat.NormalTexture.TexCoord].Source ?? 0;
+                }
 
                 if (gltMat.OcclusionTexture != null)
-                    result.OcclusionTexture = DecodeTexture3(gltMat.OcclusionTexture);
-
-                if (gltMat.Extensions != null)
                 {
-                    foreach (var ext in gltMat.Extensions)
-                    {
+                    result.OcclusionTexture = DecodeTextureOcclusion(gltMat.OcclusionTexture);
+                    result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
+                    result.OcclusionUVSet = model.Textures[gltMat.OcclusionTexture.TexCoord].Source ?? 0;
+                }
+       
 
+                var specGlos = TryLoadExtension<KHR_materials_pbrSpecularGlossiness>(gltMat.Extensions);
+                if (specGlos != null)
+                {
+                    result.SpecularGlossiness = new PbrSpecularGlossiness
+                    {
+                        DiffuseFactor = MathUtils.ToColor(specGlos.Value.diffuseFactor),
+                        SpecularFactor = MathUtils.ToColor(specGlos.Value.specularFactor),
+                        GlossinessFactor = specGlos.Value.glossinessFactor
+                    };
+                    
+                    if (specGlos.Value.diffuseTexture != null)
+                    {
+                        result.SpecularGlossiness.DiffuseTexture = DecodeTextureBase(specGlos.Value.diffuseTexture);
+                        result.SpecularGlossiness.DiffuseUVSet = model.Textures[specGlos.Value.diffuseTexture.TexCoord].Source ?? 0;
                     }
+     
+                    if (specGlos.Value.specularGlossinessTexture != null)
+                    {
+                        result.SpecularGlossiness.SpecularGlossinessTexture = DecodeTextureBase(specGlos.Value.specularGlossinessTexture);
+                        result.SpecularGlossiness.SpecularGlossinessUVSet = model.Textures[specGlos.Value.specularGlossinessTexture.TexCoord].Source ?? 0;
+                    }
+
+                    result.Type = PbrMaterialType.Specular;
                 }
 
                 return result;

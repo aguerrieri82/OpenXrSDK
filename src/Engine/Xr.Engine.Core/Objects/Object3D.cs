@@ -111,7 +111,7 @@ namespace OpenXr.Engine
 
         public Vector3 Forward
         {
-            get => new Vector3(0f, 0f, 1f).ToDirection(WorldMatrix);
+            get => new Vector3(0f, 0f, -1f).ToDirection(WorldMatrix);
             set
             {
                 Transform.Orientation = Forward.RotationTowards(value);

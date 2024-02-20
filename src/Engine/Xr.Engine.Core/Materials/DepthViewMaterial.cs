@@ -8,9 +8,9 @@
         {
             SHADER = new Shader
             {
-                FragmentSource = Embedded.GetString("depth_fs.glsl"),
-                VertexSource = Embedded.GetString("standard_vs.glsl"),
-                IncludeResolver = str => Embedded.GetString(str),
+                FragmentSourceName = "depth.frag",
+                VertexSourceName = "standard.vert",
+                Resolver = str => Embedded.GetString(str),
                 IsLit = false,
                 Priority = 1
             };
@@ -21,7 +21,7 @@
             : base()
         {
             _shader = SHADER;
-            DoubleSided = true;
+   
         }
 
         public override void UpdateUniforms(IUniformProvider obj)

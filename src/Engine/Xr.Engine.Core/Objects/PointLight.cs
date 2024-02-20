@@ -7,6 +7,8 @@
             Specular = Color.White;
         }
 
+        public float Range { get; set; }
+
         public Color Specular { get; set; }
     }
 }

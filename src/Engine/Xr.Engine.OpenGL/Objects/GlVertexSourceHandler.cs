@@ -28,6 +28,8 @@ namespace Xr.Engine.OpenGL
 
         public abstract void Draw();
 
+        public abstract GlVertexLayout Layout { get; }
+
         public static GlVertexSourceHandle Create(GL gl, IVertexSource obj)
         {
             var srcInterface = obj.GetType().GetInterfaces()
@@ -92,5 +94,7 @@ namespace Xr.Engine.OpenGL
             _vertices.Dispose();
             GC.SuppressFinalize(this);
         }
+
+        public override GlVertexLayout Layout => _vertices.Layout;
     }
 }

@@ -5,25 +5,51 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Shaders\color_fs.glsl" />
-    <None Remove="Shaders\depth_fs.glsl" />
-    <None Remove="Shaders\line_fs.glsl" />
-    <None Remove="Shaders\line_vs.glsl" />
-    <None Remove="Shaders\standard_fs.glsl" />
-    <None Remove="Shaders\standard_vs.glsl" />
-    <None Remove="Shaders\texture_fs.glsl" />
-    <None Remove="Shaders\_position.glsl" />
+    <None Remove="Shaders\color.frag" />
+    <None Remove="Shaders\depth.frag" />
+    <None Remove="Shaders\line.frag" />
+    <None Remove="Shaders\line.vert" />
+    <None Remove="Shaders\Pbr\animation.glsl" />
+    <None Remove="Shaders\Pbr\brdf.glsl" />
+    <None Remove="Shaders\Pbr\cubemap.frag" />
+    <None Remove="Shaders\Pbr\cubemap.vert" />
+    <None Remove="Shaders\Pbr\functions.glsl" />
+    <None Remove="Shaders\Pbr\ibl.glsl" />
+    <None Remove="Shaders\Pbr\iridescence.glsl" />
+    <None Remove="Shaders\Pbr\material_info.glsl" />
+    <None Remove="Shaders\Pbr\pbr.frag" />
+    <None Remove="Shaders\Pbr\primitive.vert" />
+    <None Remove="Shaders\Pbr\punctual.glsl" />
+    <None Remove="Shaders\Pbr\textures.glsl" />
+    <None Remove="Shaders\Pbr\tonemapping.glsl" />
+    <None Remove="Shaders\position.glsl" />
+    <None Remove="Shaders\standard.frag" />
+    <None Remove="Shaders\standard.vert" />
+    <None Remove="Shaders\texture.frag" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Shaders\line_fs.glsl" />
-    <EmbeddedResource Include="Shaders\line_vs.glsl" />
-    <EmbeddedResource Include="Shaders\depth_fs.glsl" />
-    <EmbeddedResource Include="Shaders\_position.glsl" />
-    <EmbeddedResource Include="Shaders\texture_fs.glsl" />
-    <EmbeddedResource Include="Shaders\color_fs.glsl" />
-    <EmbeddedResource Include="Shaders\standard_fs.glsl" />
-    <EmbeddedResource Include="Shaders\standard_vs.glsl" />
+    <EmbeddedResource Include="Shaders\line.frag" />
+    <EmbeddedResource Include="Shaders\line.vert" />
+    <EmbeddedResource Include="Shaders\depth.frag" />
+    <EmbeddedResource Include="Shaders\Pbr\animation.glsl" />
+    <EmbeddedResource Include="Shaders\Pbr\brdf.glsl" />
+    <EmbeddedResource Include="Shaders\Pbr\cubemap.frag" />
+    <EmbeddedResource Include="Shaders\Pbr\cubemap.vert" />
+    <EmbeddedResource Include="Shaders\Pbr\functions.glsl" />
+    <EmbeddedResource Include="Shaders\Pbr\ibl.glsl" />
+    <EmbeddedResource Include="Shaders\Pbr\iridescence.glsl" />
+    <EmbeddedResource Include="Shaders\Pbr\material_info.glsl" />
+    <EmbeddedResource Include="Shaders\Pbr\pbr.frag" />
+    <EmbeddedResource Include="Shaders\Pbr\primitive.vert" />
+    <EmbeddedResource Include="Shaders\Pbr\punctual.glsl" />
+    <EmbeddedResource Include="Shaders\Pbr\textures.glsl" />
+    <EmbeddedResource Include="Shaders\Pbr\tonemapping.glsl" />
+    <EmbeddedResource Include="Shaders\position.glsl" />
+    <EmbeddedResource Include="Shaders\texture.frag" />
+    <EmbeddedResource Include="Shaders\color.frag" />
+    <EmbeddedResource Include="Shaders\standard.frag" />
+    <EmbeddedResource Include="Shaders\standard.vert" />
   </ItemGroup>
 
   <ItemGroup>

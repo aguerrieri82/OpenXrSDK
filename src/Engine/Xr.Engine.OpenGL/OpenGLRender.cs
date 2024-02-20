@@ -14,11 +14,14 @@ namespace OpenXr.Engine.OpenGL
 {
     public class GlobalContent
     {
-        public DirectionalLight? Directional;
 
         public AmbientLight? Ambient;
 
-        public PointLight? Point;
+        public PointLight[]? Points;
+
+        public SpotLight[]? Spots;
+
+        public DirectionalLight[]? Directionals;
 
         public long Version;
 
@@ -29,7 +32,7 @@ namespace OpenXr.Engine.OpenGL
 
     public class ShaderContent
     {
-        public GlSimpleProgram? Program;
+        public GlProgram? Program;
 
         public readonly Dictionary<Object3D, VertexContent> Contents = [];
     }
@@ -52,7 +55,7 @@ namespace OpenXr.Engine.OpenGL
         public Action? Draw;
     }
 
-    public class OpenGLRender : IRenderEngine, IGlProgramFactory
+    public class OpenGLRender : IRenderEngine
     {
         protected GL _gl;
         protected GlobalContent? _content;
@@ -74,18 +77,15 @@ namespace OpenXr.Engine.OpenGL
             _gl = gl;
             _options = options;
             _target = new GlDefaultRenderTarget(gl);
+            _options.ProgramFactory ??= new GlDefaultProgramFactory();
+
             Current = this;
         }
 
-        GlSimpleProgram IGlProgramFactory.CreateProgram(GL gl, string vSource, string fSource, Func<string, string> includeResolver, GlRenderOptions options)
+        protected GlProgram GetProgram(ShaderMaterial material)
         {
-            return new GlSimpleProgram(_gl, vSource, fSource, includeResolver, _options);
-        }
-
-        protected GlSimpleProgram GetProgram(Shader shader, IGlProgramFactory programFactory)
-        {
-            return shader.GetResource(a =>
-                    programFactory.CreateProgram(_gl, shader.VertexSource!, shader.FragmentSource!, shader.IncludeResolver!, _options));
+            return material.Shader!.GetResource(a =>
+                    _options.ProgramFactory!.CreateProgram(_gl, material, _options));
         }
 
         public void Clear(Color color)
@@ -97,13 +97,15 @@ namespace OpenXr.Engine.OpenGL
 
 
         [MemberNotNull(nameof(_content))]
-        protected void BuildContent(Scene scene, IGlProgramFactory programFactory)
+        protected void BuildContent(Scene scene)
         {
             if (_content == null)
                 _content = new GlobalContent();
 
-            _content.Ambient = scene.VisibleDescendants<AmbientLight>().FirstOrDefault();
-            _content.Point = scene.VisibleDescendants<PointLight>().FirstOrDefault();
+            _content.Ambient = scene.VisibleDescendants<AmbientLight>().SingleOrDefault();
+            _content.Points = scene.VisibleDescendants<PointLight>().ToArray();
+            _content.Spots = scene.VisibleDescendants<SpotLight>().ToArray();
+            _content.Directionals = scene.VisibleDescendants<DirectionalLight>().ToArray();
             _content.Scene = scene;
             _content.Version = scene.Version;
 
@@ -122,7 +124,7 @@ namespace OpenXr.Engine.OpenGL
                     if (!_content.ShaderContents.TryGetValue(material.Shader, out var shaderContent))
                     {
                         shaderContent = new ShaderContent();
-                        shaderContent.Program = GetProgram(material.Shader, programFactory);
+                        shaderContent.Program = GetProgram(material);
                         _content.ShaderContents[material.Shader] = shaderContent;
                     }
 
@@ -205,27 +207,36 @@ namespace OpenXr.Engine.OpenGL
 
             _gl.Viewport(view.X, view.Y, view.Width, view.Height);
 
-            var targetProgramFactory = target as IGlProgramFactory;
+            var targetOverride = target as IGlProgramOverride;
 
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
-                BuildContent(scene, targetProgramFactory ?? this);
+                BuildContent(scene);
 
             foreach (var shader in _content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
                 var prog = shader.Value!.Program;
 
-                prog!.Use();
+                prog!.BeginEdit();
+
+                targetOverride?.BeginEdit(prog);
 
                 if (shader.Key.IsLit)
                 {
                     if (_content.Ambient != null)
                         prog.SetAmbient(_content.Ambient);
 
-                    if (_content.Point != null)
-                        prog.AddPointLight(_content.Point!);
-                }
+                    if (_content.Points != null)
+                        foreach (var light in _content.Points)
+                            prog.AddLight(light);
+                    
+                    if (_content.Spots != null)
+                        foreach (var light in _content.Spots)
+                            prog.AddLight(light);
 
-                prog.SetCamera(camera);
+                    if (_content.Directionals != null)
+                        foreach (var light in _content.Directionals)
+                            prog.AddLight(light);
+                }
 
                 foreach (var vertex in shader.Value.Contents)
                 {
@@ -237,13 +248,27 @@ namespace OpenXr.Engine.OpenGL
 
                     vertex.Value.VertexHandler!.Bind();
 
+                    prog.SetLayout(vertex.Value.VertexHandler.Layout);
+
                     foreach (var draw in vertex.Value.Contents)
                     {
                         ConfigureCaps(draw.Material!);
 
+                        draw.Material!.ExtractFeatures(prog);
+
+                        prog.Commit();
+
+                        prog.Use();
+
+                        if (targetOverride == null || !targetOverride.SetCamera(prog, camera))
+                            prog.SetCamera(camera);
+
+                        prog.ConfigureLights();
+
                         draw.Material!.UpdateUniforms(prog);
 
-                        prog.SetUniform("uModel", draw.Object!.WorldMatrix);
+                        prog.SetModel(draw.Object!.WorldMatrix);
+
                         draw.Draw!();
                     }
 
@@ -280,6 +305,9 @@ namespace OpenXr.Engine.OpenGL
             if (!_depthCache.TryGetValue(depthId.Value, out var texture))
             {
                 var glTexture = new GlTexture2D(_gl, depthId.Value);
+                glTexture.Bind();
+                _gl.TexParameter(glTexture.Target, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                glTexture.Unbind();
 
                 texture = new Texture2D
                 {

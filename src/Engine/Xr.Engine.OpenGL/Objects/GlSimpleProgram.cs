@@ -3,9 +3,12 @@ using Silk.NET.OpenGLES;
 
 #else
 using Silk.NET.OpenGL;
+using System.Diagnostics.CodeAnalysis;
+
 #endif
 
 using System.Numerics;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Xr.Engine.OpenGL;
@@ -15,94 +18,78 @@ namespace OpenXr.Engine.OpenGL
 {
     public partial class GlSimpleProgram : GlProgram
     {
+        readonly string _vSource;
+        readonly string _fSource;
+        protected PointLight? _point;
+        protected AmbientLight? _ambient;
 
-        public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string> includeResolver, GlRenderOptions options)
-            : base(gl, options)
+        public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string> resolver, GlRenderOptions options)
+            : base(gl, resolver, options)
         {
-            Vertex = new GlShader(gl, ShaderType.VertexShader, PatchShader(vSource, includeResolver, ShaderType.VertexShader));
-            Fragment = new GlShader(gl, ShaderType.FragmentShader, PatchShader(fSource, includeResolver, ShaderType.FragmentShader));
-            Create(Vertex.Handle, Fragment.Handle);
+            _fSource = fSource;
+            _vSource = vSource;
+            _programId = Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(vSource + fSource)));
         }
 
-        public virtual void SetAmbient(AmbientLight light)
+        [MemberNotNull(nameof(Vertex))]
+        [MemberNotNull(nameof(Fragment))]
+        protected override void Build()
         {
-            SetUniform("light.ambient", (Vector3)light.Color * light.Intensity);
+            Vertex = new GlShader(_gl, ShaderType.VertexShader, PatchShader(_vSource, ShaderType.VertexShader));
+            Fragment = new GlShader(_gl, ShaderType.FragmentShader, PatchShader(_fSource, ShaderType.FragmentShader));
+            Create(Vertex, Fragment);
         }
 
-        public virtual void AddPointLight(PointLight point)
+        public override void BeginEdit()
         {
-            var wordPos = Vector3.Transform(point.Transform.Position, point.WorldMatrix);
-
-            SetUniform("light.diffuse", (Vector3)point.Color * point.Intensity);
-            SetUniform("light.position", wordPos);
-            SetUniform("light.specular", (Vector3)point.Specular);
+            _ambient = null;
+            _point = null;  
+            base.BeginEdit();
         }
 
-        public virtual void SetCamera(Camera camera)
+        public override void SetAmbient(AmbientLight light)
+        {
+            _ambient = light;
+        }
+
+        public override void AddLight(PointLight point)
+        {
+            _point = point;
+        }
+
+        public override void ConfigureLights()
+        {
+            if (_point != null)
+            {
+                SetUniform("light.diffuse", (Vector3)_point.Color * _point.Intensity);
+                SetUniform("light.position", _point.WorldPosition);
+                SetUniform("light.specular", (Vector3)_point.Specular);
+            }
+            if (_ambient != null)
+            {
+                SetUniform("light.ambient", (Vector3)_ambient.Color * _ambient.Intensity);
+            }
+        }
+
+        public override void AddLight(DirectionalLight directional)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void AddLight(SpotLight spot)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void SetCamera(Camera camera)
         {
             SetUniform("uView", camera.Transform.Matrix);
             SetUniform("uProjection", camera.Projection);
-            SetUniform("viewPos", camera.Transform.Position, true);
+            SetUniform("uViewPos", camera.Transform.Position, true);
         }
 
-        protected string PatchShader(string source, Func<string, string> includeResolver, ShaderType shaderType)
-        {
-            var builder = new StringBuilder();
+        public GlShader? Vertex { get; set; }
 
-            builder.Append("#version ")
-               .Append(_options.ShaderVersion!)
-               .Append("\n");
-
-            if (shaderType == ShaderType.VertexShader)
-            {
-                if (_options.ShaderExtensions != null)
-                {
-                    foreach (var ext in _options.ShaderExtensions)
-                        builder.Append($"#extension {ext} : require\n");
-                }
-            }
-
-            var precision = _options.FloatPrecision switch
-            {
-                ShaderPrecision.Medium => "mediump",
-                ShaderPrecision.High => "highp",
-                ShaderPrecision.Low => "lowp",
-                _ => throw new NotSupportedException()
-            };
-
-            builder.Append("precision ").Append(precision).Append(" float;\n");
-
-            PatchShader(source, shaderType, builder);
-
-            var incRe = IncludeRegex();
-
-            while (true)
-            {
-                var match = incRe.Match(source);
-                if (!match.Success)
-                    break;
-
-                source = string.Concat(
-                    source.AsSpan(0, match.Index),
-                    includeResolver(match.Groups[1].Value),
-                    source.AsSpan(match.Index + match.Length)
-                    );
-            }
-
-            builder.Append("\n\n").Append(source);
-
-            return builder.ToString();
-        }
-
-        protected virtual void PatchShader(string source, ShaderType shaderType, StringBuilder builder)
-        {
-        }
-
-        public GlShader Vertex { get; set; }
-
-        public GlShader Fragment { get; set; }
-
-        [GeneratedRegex("#include \"([^\"]+)\";")]
-        private static partial Regex IncludeRegex();
+        public GlShader? Fragment { get; set; }
     }
 }

@@ -22,8 +22,12 @@ namespace OpenXr.Samples
             cube.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), MathF.PI /4f);
             cube.Name = "cube";
 
+            //var quod = new Mesh(Quad.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
+
             var quod = new Mesh(Quad.Instance, new DepthViewMaterial());
+            quod.Transform.SetScale(0.5f);
             quod.Name = "quad";
+            quod.IsVisible = false;
             scene.AddChild(quod);
 
             var contanier = new Group();
@@ -38,6 +42,9 @@ namespace OpenXr.Samples
             scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
+
+
+            scene.AddChild((Object3D)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets));
 
             var camera = new PerspectiveCamera() { Far = 50f };
             camera.BackgroundColor = Color.White;

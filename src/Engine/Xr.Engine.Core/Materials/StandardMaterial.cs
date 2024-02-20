@@ -10,9 +10,9 @@ namespace OpenXr.Engine
         {
             SHADER = new Shader
             {
-                FragmentSource = Embedded.GetString("standard_fs.glsl"),
-                VertexSource = Embedded.GetString("standard_vs.glsl"),
-                IncludeResolver = str => Embedded.GetString(str),
+                FragmentSourceName = "standard.frag",
+                VertexSourceName = "standard.vert",
+                Resolver = str => Embedded.GetString(str),
                 IsLit = true
             };
         }
