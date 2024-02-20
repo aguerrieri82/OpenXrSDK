@@ -19,13 +19,16 @@ namespace OpenXr.Engine.OpenGL.Oculus
 
     }
 
-    public class GlMultiViewRenderTarget : GlTextureRenderTarget, IGlProgramFactory, IMultiViewTarget
+    public class GlMultiViewRenderTarget : GlTextureRenderTarget, IMultiViewTarget, IGlProgramOverride
     {
         static SceneMatrices _matrices;
+        private readonly GlBuffer<SceneMatrices> _sceneMatrices;
+
 
         protected GlMultiViewRenderTarget(GL gl, uint textId, uint sampleCount)
             : base(gl, textId, sampleCount)
         {
+            _sceneMatrices = new GlBuffer<SceneMatrices>(_gl, BufferTargetARB.UniformBuffer);
         }
 
         protected override GlFrameBuffer CreateFrameBuffer(uint texId, uint sampleCount)
@@ -52,14 +55,22 @@ namespace OpenXr.Engine.OpenGL.Oculus
             _matrices.View2 = eyes[1].View;
         }
 
-        public GlSimpleProgram CreateProgram(GL gl, string vSource, string fSource, Func<string, string> includeResolver, GlRenderOptions options)
+
+        public void BeginEdit(GlProgram program)
         {
-            options.ShaderExtensions ??= [];
+            program.AddExtension("GL_OVR_multiview2");
+            program.AddFeature("MULTI_VIEW");
+        }
 
-            if (!options.ShaderExtensions.Contains("GL_OVR_multiview2"))
-                options.ShaderExtensions.Add("GL_OVR_multiview2");
+        public bool SetCamera(GlProgram program, Camera camera)
+        {
+            var buffer = new Span<SceneMatrices>(ref _matrices);
 
-            return new GlMultiViewProgram(gl, () => _matrices, vSource, fSource, includeResolver, options);
+            _sceneMatrices.Update(buffer);
+
+            program.SetUniformBuffer("SceneMatrices", _sceneMatrices);
+
+            return true;
         }
     }
 }

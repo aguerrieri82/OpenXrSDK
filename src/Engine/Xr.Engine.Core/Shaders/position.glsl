@@ -14,7 +14,7 @@ uniform SceneMatrices
 
 void computePos() 
 {
-   gl_Position = uMatrices.projection[VIEW_ID] * (uMatrices.view[VIEW_ID] * uModel * vec4(vPos, 1.0));
+   gl_Position = uMatrices.projection[VIEW_ID] * (uMatrices.view[VIEW_ID] * uModel * vec4(a_position, 1.0));
 }
 
 
@@ -25,7 +25,7 @@ uniform mat4 uProjection;
 
 void computePos() 
 {
-   gl_Position = uProjection * uView * uModel * vec4(vPos, 1.0);
+   gl_Position = uProjection * uView * uModel * vec4(a_position, 1.0);
 }
 
 #endif

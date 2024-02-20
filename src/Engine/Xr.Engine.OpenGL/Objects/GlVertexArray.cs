@@ -108,6 +108,8 @@ namespace OpenXr.Engine.OpenGL
             GC.SuppressFinalize(this);
         }
 
+        public GlVertexLayout Layout => _layout;
+
         internal void Update(TVertexType[] vertices, TIndexType[]? indices = null)
         {
             _vBuf.Update(vertices);

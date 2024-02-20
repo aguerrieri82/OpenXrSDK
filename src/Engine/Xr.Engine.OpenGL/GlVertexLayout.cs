@@ -2,6 +2,8 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using System.ComponentModel;
+
 #endif
 
 using System.Numerics;
@@ -21,6 +23,8 @@ namespace OpenXr.Engine.OpenGL
         public uint Offset;
 
         public string? Name;
+
+        public VertexComponent Component;
     }
 
     public class GlVertexLayout
@@ -35,7 +39,7 @@ namespace OpenXr.Engine.OpenGL
                 Ref = a.GetCustomAttribute<ShaderRefAttribute>()
             })
             .Where(a => a.Ref != null)
-            .OrderBy(a => a.Ref!.Loc)
+            .OrderBy(a => a.Ref!.Location)
             .ToArray();
 
             var res = new GlVertexLayout();
@@ -49,7 +53,8 @@ namespace OpenXr.Engine.OpenGL
 
                 var info = infos[i];
                 item.Name = info.Ref!.Name;
-                item.Location = (uint)i;
+                item.Location = info.Ref.Location;
+                item.Component = info.Ref.Component;
 
                 if (info.Type == typeof(Vector3))
                 {

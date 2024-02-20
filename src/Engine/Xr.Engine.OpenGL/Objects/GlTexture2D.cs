@@ -99,6 +99,7 @@ namespace OpenXr.Engine.OpenGL
 
             if (compression == TextureCompressionFormat.Uncompressed)
             {
+           
                 switch (format)
                 {
                     case TextureFormat.Depth32Float:
@@ -111,6 +112,9 @@ namespace OpenXr.Engine.OpenGL
                     case TextureFormat.Bgra32:
                         internalFormat = InternalFormat.Rgb8;
                         break;
+                    case TextureFormat.Gray8:
+                        internalFormat = InternalFormat.R8;
+                        break;
                     default:
                         throw new NotSupportedException();
                 }
@@ -122,10 +126,14 @@ namespace OpenXr.Engine.OpenGL
                         pixelFormat = PixelFormat.DepthComponent;
                         break;
                     case TextureFormat.Rgba32:
+
                         pixelFormat = PixelFormat.Rgba;
                         break;
                     case TextureFormat.Bgra32:
                         pixelFormat = PixelFormat.Bgra;
+                        break;
+                    case TextureFormat.Gray8:
+                        pixelFormat = PixelFormat.Red;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -139,6 +147,7 @@ namespace OpenXr.Engine.OpenGL
                         break;
                     case TextureFormat.Rgba32:
                     case TextureFormat.Bgra32:
+                    case TextureFormat.Gray8:
                         pixelType = PixelType.UnsignedByte;
                         break;
                     default:

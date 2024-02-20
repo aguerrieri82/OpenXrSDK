@@ -32,7 +32,7 @@ namespace Xr.Engine.OpenXr
                 var ray = new Ray3
                 {
                     Origin = _rayView.WorldPosition,
-                    Direction = -_rayView.Forward,
+                    Direction = _rayView.Forward,
                 };
 
                 var result = _host!.RayCollisions(ray).FirstOrDefault();

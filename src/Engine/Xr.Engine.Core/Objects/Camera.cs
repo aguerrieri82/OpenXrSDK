@@ -8,6 +8,7 @@ namespace OpenXr.Engine
         {
             Near = 0.01f;
             Far = 10;
+            Exposure = 1;
         }
 
         public Color BackgroundColor { get; set; }
@@ -15,6 +16,8 @@ namespace OpenXr.Engine
         public float Near { get; set; }
 
         public float Far { get; set; }
+
+        public float Exposure { get; set; }  
 
         public Matrix4x4 Projection { get; set; }
     }

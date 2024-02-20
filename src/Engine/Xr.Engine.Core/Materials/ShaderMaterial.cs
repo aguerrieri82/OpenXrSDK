@@ -17,6 +17,11 @@
             _shader = shader;
         }
 
+        public virtual void ExtractFeatures(IFeatureList features)
+        {
+
+        }
+
         public virtual void UpdateUniforms(IUniformProvider obj)
         {
 

@@ -16,7 +16,8 @@ namespace OpenXr.Engine
 
         public static string GetString(Assembly ctx, string resName)
         {
-            var fullName = ctx.GetManifestResourceNames().Single(a => a.Contains(resName));
+            resName = resName.Replace('/', '.');
+            var fullName = ctx.GetManifestResourceNames().Single(a => a.Contains(resName, StringComparison.CurrentCultureIgnoreCase));
 
             using var stream = ctx.GetManifestResourceStream(fullName);
             using var reader = new StreamReader(stream!);

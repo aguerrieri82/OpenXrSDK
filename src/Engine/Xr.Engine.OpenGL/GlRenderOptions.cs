@@ -26,15 +26,13 @@
 
         public ShaderPrecision FloatPrecision { get; set; }
 
-        public IList<string>? ShaderExtensions { get; set; }
+        public IGlProgramFactory? ProgramFactory { get; set; }
 
 
         public static readonly GlRenderOptions Default = new GlRenderOptions
         {
-
             FloatPrecision = ShaderPrecision.High,
-            ShaderVersion = "300 es",
-            ShaderExtensions = new List<string>([])
+            ShaderVersion = "300 es"
         };
 
     }

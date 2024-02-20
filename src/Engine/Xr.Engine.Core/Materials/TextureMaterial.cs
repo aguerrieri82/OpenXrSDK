@@ -8,9 +8,9 @@
         {
             SHADER = new Shader
             {
-                FragmentSource = Embedded.GetString("texture_fs.glsl"),
-                VertexSource = Embedded.GetString("standard_vs.glsl"),
-                IncludeResolver = str => Embedded.GetString(str),
+                FragmentSourceName = "texture.frag",
+                VertexSourceName = "standard.vert",
+                Resolver = str => Embedded.GetString(str),
                 IsLit = false
             };
         }

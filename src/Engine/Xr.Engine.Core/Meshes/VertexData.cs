@@ -47,13 +47,13 @@ namespace OpenXr.Engine
             return result;
         }
 
-        [ShaderRef(0, "vPos")]
+        [ShaderRef(0, "a_position", VertexComponent.Position)]
         public Vector3 Pos;
 
-        [ShaderRef(1, "vForm")]
+        [ShaderRef(1, "a_normal", VertexComponent.Normal)]
         public Vector3 Normal;
 
-        [ShaderRef(2, "vUv")]
+        [ShaderRef(3, "a_texcoord_0", VertexComponent.UV0)]
         public Vector2 UV;
 
     }

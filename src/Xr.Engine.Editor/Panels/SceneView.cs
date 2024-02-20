@@ -34,7 +34,7 @@ namespace Xr.Engine.Editor
             var options = new OculusXrPluginOptions
             {
                 EnableMultiView = false,
-                SampleCount = 4,
+                SampleCount = 1,
                 ResolutionScale = 1f
             };
 
