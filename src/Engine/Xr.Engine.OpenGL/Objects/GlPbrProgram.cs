@@ -24,8 +24,8 @@ namespace Xr.Engine.OpenGL
 
         protected override void Build()
         {
-            var vertSrc = PatchShader(_resolver("pbr/primitive.vert"), ShaderType.VertexShader);
-            var fragSrc = PatchShader(_resolver("pbr/pbr.frag"), ShaderType.FragmentShader);
+            var vertSrc = ShaderPreprocessor.ParseShader(PatchShader(_resolver("pbr/primitive.vert"), ShaderType.VertexShader));
+            var fragSrc = ShaderPreprocessor.ParseShader(PatchShader(_resolver("pbr/pbr.frag"), ShaderType.FragmentShader));
             var vert = new GlShader(_gl, ShaderType.VertexShader, vertSrc);
             var frag = new GlShader(_gl, ShaderType.FragmentShader, fragSrc);
             Create(vert, frag); 
@@ -44,7 +44,7 @@ namespace Xr.Engine.OpenGL
                 color = (Vector3)point.Color,
                 position = point.WorldPosition,
                 intensity = point.Intensity,
-                range =point.Range,
+                range = point.Range,
             });
         }
 
@@ -127,10 +127,10 @@ namespace Xr.Engine.OpenGL
 
         public override void SetCamera(Camera camera)
         {
-            SetUniform("u_Exposure", camera.Exposure, true);
+            SetUniform("u_Exposure", camera.Exposure);
             SetUniform("u_Camera", camera.Transform.Position);
-            SetUniform("u_ViewProjectionMatrix", camera.Projection * camera.Transform.Matrix);
-            SetUniform("u_NormalMatrix", Matrix4x4.Identity, true);
+            SetUniform("u_ViewProjectionMatrix", camera.Transform.Matrix * camera.Projection);
+            SetUniform("u_NormalMatrix", Matrix4x4.Identity);
         }
 
         public override void BeginEdit()

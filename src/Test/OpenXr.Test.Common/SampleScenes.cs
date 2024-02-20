@@ -39,16 +39,18 @@ namespace OpenXr.Samples
             scene.AddChild(contanier);
 
             scene.AddChild(new AmbientLight(0.3f));
-            scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
+            scene.AddChild(new PointLight() { Range = 10, Intensity = 1 }).Transform.Position = new Vector3(0, 10, 10);
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
-
-            scene.AddChild((Object3D)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets));
+            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets);
+            var mesh = room.Descendants<Mesh>().First();
+            //mesh.Materials[0] = new StandardMaterial() { Color = new Color(1f, 1, 1, 1) };
+            scene.AddChild(mesh);
 
             var camera = new PerspectiveCamera() { Far = 50f };
             camera.BackgroundColor = Color.White;
-            camera!.LookAt(new Vector3(2f, 2f, 2f), Vector3.Zero, new Vector3(0, 1, 0));
+            camera!.LookAt(new Vector3(3f, 3f, 3f), Vector3.Zero, new Vector3(0, 1, 0));
 
             scene.ActiveCamera = camera;
 
@@ -75,8 +77,8 @@ namespace OpenXr.Samples
             text.DoubleSided = true;
 
             var cubes = new Group();
-            cubes.Transform.SetScale(0.5f);
-            cubes.Transform.SetPositionX(0.5f);
+            //cubes.Transform.SetScale(0.5f);
+            //cubes.Transform.SetPositionX(0.5f);
 
             for (var y = 0f; y <= 2f; y += 0.5f)
             {
@@ -106,13 +108,16 @@ namespace OpenXr.Samples
 
             var display = new Mesh(Quad.Instance);
             display.Materials.Add(text);
-            display.Transform.Scale = new Vector3(1.924f, 1.08f, 0.01f);
+            display.Transform.Scale = new Vector3(1.924f * 0.5f,  0.01f, 1.08f * 0.5f);
             display.Transform.Position = new Vector3(0f, 0.5f, 0f);
             display.AddBehavior((obj, ctx) =>
             {
-                obj.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f);
+                obj.Transform.Orientation = 
+                Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f)*
+                Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
+
             });
-            //display.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI / 2);
+            display.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
             display.Name = "display";
             display.AddComponent<MeshCollider>();
 
@@ -121,7 +126,11 @@ namespace OpenXr.Samples
             scene.AddChild(new AmbientLight(0.3f));
             scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
 
-            scene.AddChild((Object3D)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets));
+
+            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets);
+            var mesh = room.Descendants<Mesh>().First();
+            //mesh.Materials[0] = new StandardMaterial() { Color = new Color(1f, 1, 1, 1) };
+            scene.AddChild(mesh);
 
             app.OpenScene(scene);
 

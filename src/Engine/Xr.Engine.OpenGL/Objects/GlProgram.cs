@@ -149,10 +149,9 @@ namespace OpenXr.Engine.OpenGL
                     result = _gl.GetUniformLocation(_handle, name);
                 if (result == -1 && !optional)
                 {
-                    Debug.WriteLine("");
+                    Debug.WriteLine($"--- WARN --- {name} NOT FOUND");
                     //throw new Exception($"{name} uniform not found on shader.");
                 }
-
 
                 _locations[name] = result;
             }

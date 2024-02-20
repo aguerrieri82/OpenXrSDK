@@ -170,7 +170,7 @@ namespace OpenXr.Engine
                 if (SpecularGlossiness?.SpecularGlossinessTexture != null)
                 {
                     obj.SetUniform("u_SpecularGlossinessUVSet", SpecularGlossiness.SpecularGlossinessUVSet);
-                    obj.SetUniform("u_SpecularGlossinessSampler", SpecularGlossiness.SpecularGlossinessTexture, 4);
+                    obj.SetUniform("u_SpecularGlossinessSampler", SpecularGlossiness.SpecularGlossinessTexture, 5);
                 }
 
                 obj.SetUniform("u_DiffuseFactor", SpecularGlossiness?.DiffuseFactor ?? Color.White);
@@ -241,12 +241,12 @@ namespace OpenXr.Engine
 
             if (AlphaMode == AlphaMode.Mask)
             {
-                features.AddFeature("ALPHAMODE 1");
+                features.AddFeature("ALPHAMODE ALPHAMODE_MASK");
             }
             else if (AlphaMode == AlphaMode.Opaque)
-                features.AddFeature("ALPHAMODE 0");
+                features.AddFeature("ALPHAMODE ALPHAMODE_OPAQUE");
             else
-                features.AddFeature("ALPHAMODE 2");
+                features.AddFeature("ALPHAMODE ALPHAMODE_BLEND");
         }
 
         public PbrSpecularGlossiness? SpecularGlossiness { get; set; }

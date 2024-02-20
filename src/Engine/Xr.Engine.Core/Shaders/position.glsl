@@ -1,5 +1,5 @@
 ﻿
-#if defined(MULTI_VIEW)
+#ifdef MULTI_VIEW
 
 #define NUM_VIEWS 2
 #define VIEW_ID gl_ViewID_OVR
