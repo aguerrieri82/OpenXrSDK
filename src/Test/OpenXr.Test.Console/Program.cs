@@ -9,6 +9,9 @@ using OpenXr.Samples;
 using System.Diagnostics;
 using System.Numerics;
 
+ShaderPreprocessor.ParseShader(File.ReadAllText("d:\\shader.txt"));
+
+
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureLogging((ctx, logging) =>
     {
@@ -35,6 +38,8 @@ var vector = new Vector3(1, 1, 1);
 
 Debug.WriteLine(vector.Transform(matrix1));
 Debug.WriteLine(vector.Transform(matrix2));
+
+
 
 
 

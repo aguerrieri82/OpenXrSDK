@@ -1,24 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+	<PropertyGroup>
 
-  </PropertyGroup>
-	
+	</PropertyGroup>
+
 	<ItemGroup>
 		<None Include="..\Draco.Native\bin\x64\Release\draco-native.dll">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\Draco.Native\bin\x64\Release\draco-native.pdb">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Include="..\Draco.Native\libs\arm64-v8a\libdraco-native.so">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory> 
 		</None>
 	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="glTF2Loader" Version="1.1.4-alpha" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="glTF2Loader" Version="1.1.4-alpha" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Xr.Engine.Core\Xr.Engine.Core.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Xr.Engine.Core\Xr.Engine.Core.csproj" />
+	</ItemGroup>
 
 </Project>

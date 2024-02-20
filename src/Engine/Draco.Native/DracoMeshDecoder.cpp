@@ -49,11 +49,12 @@ void ReadIndices(draco::Mesh* mesh, uint32_t* buffer, int itemCount)
 	}
 }
 
-void ReadAttribute(draco::Mesh* mesh, uint32_t index, char* buffer, int itemSize, int itemCount)
+void ReadAttribute(draco::Mesh* mesh, uint32_t attrId, char* buffer, int itemSize, int itemCount)
 {
 	if (itemCount < mesh->num_points())
 		return;
 
+	auto index = mesh->GetAttributeIdByUniqueId(attrId);
 	auto attr = mesh->attribute(index);
 	for (int j = 0; j < mesh->num_points(); j++)
 		attr->GetMappedValue(PointIndex(j), buffer + (j * itemSize));
