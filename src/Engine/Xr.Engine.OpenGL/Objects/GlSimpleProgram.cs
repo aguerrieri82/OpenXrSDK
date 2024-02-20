@@ -73,12 +73,12 @@ namespace OpenXr.Engine.OpenGL
 
         public override void AddLight(DirectionalLight directional)
         {
-            throw new NotSupportedException();
+
         }
 
         public override void AddLight(SpotLight spot)
         {
-            throw new NotSupportedException();
+
         }
 
         public override void SetCamera(Camera camera)

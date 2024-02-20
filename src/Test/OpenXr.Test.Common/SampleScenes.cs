@@ -38,13 +38,19 @@ namespace OpenXr.Samples
 
             scene.AddChild(contanier);
 
-            scene.AddChild(new AmbientLight(0.3f));
-            scene.AddChild(new PointLight() { Range = 10, Intensity = 1 }).Transform.Position = new Vector3(0, 10, 10);
+            scene.AddChild(new AmbientLight(0.1f));
+            var pt = scene.AddChild(new PointLight() { Range = 100, Intensity = 2f });
+            pt.Transform.Position = new Vector3(10, 10, 0);
+
+            var dl = scene.AddChild(new DirectionalLight() { Intensity = 2f });
+            dl.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 1), MathF.PI / 4);
+            dl.Name = "light";
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
-            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets);
+            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("DamagedHelmet.gltf"), assets);
             var mesh = room.Descendants<Mesh>().First();
+            mesh.Name = "mesh";
             //mesh.Materials[0] = new StandardMaterial() { Color = new Color(1f, 1, 1, 1) };
             scene.AddChild(mesh);
 

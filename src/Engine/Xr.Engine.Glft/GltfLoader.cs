@@ -99,6 +99,9 @@ namespace Xr.Engine.Gltf
 
                 var image = SKBitmap.Decode(data);
 
+                using var stream = File.OpenWrite("d:\\" + img.Name + ".png");
+                image.Encode(SKEncodedImageFormat.Png, 100).SaveTo(stream);
+
                 return new TextureData
                 {
                     Width = (uint)image.Width,
@@ -114,10 +117,10 @@ namespace Xr.Engine.Gltf
                 };
             }
 
-            Texture2D CreateTexture(TextureData data, glTFLoader.Schema.Texture texture)
+            Texture2D CreateTexture(TextureData data, glTFLoader.Schema.Texture texture, string? name)
             {
                 var result = Texture2D.FromData([data]);
-                result.Name = texture.Name;
+                result.Name = texture.Name ?? name;
                 if (texture.Sampler != null)
                 {
                     var sampler = model.Samplers[texture.Sampler.Value];
@@ -135,29 +138,41 @@ namespace Xr.Engine.Gltf
 
             Texture2D DecodeTextureOcclusion(glTFLoader.Schema.MaterialOcclusionTextureInfo info)
             {
-                var image = LoadImage(model.Images[info.Index]);
+                var textInfo = model.Textures[info.Index];
+
+                var imageInfo = model.Images[textInfo.Source!.Value];
+
+                var image = LoadImage(imageInfo);
 
                 CheckExtensions(info.Extensions);
 
-                return CreateTexture(image, model.Textures[info.TexCoord]);
+                return CreateTexture(image, textInfo, imageInfo.Name);
             }
 
             Texture2D DecodeTextureNormal(glTFLoader.Schema.MaterialNormalTextureInfo info)
             {
-                var image = LoadImage(model.Images[info.Index]);
+                var textInfo = model.Textures[info.Index];
+
+                var imageInfo = model.Images[textInfo.Source!.Value];
+
+                var image = LoadImage(imageInfo);
 
                 CheckExtensions(info.Extensions);
 
-                return CreateTexture(image, model.Textures[info.TexCoord]);
+                return CreateTexture(image, textInfo, imageInfo.Name);
             }
 
             Texture2D DecodeTextureBase(glTFLoader.Schema.TextureInfo info)
             {
-                var image = LoadImage(model.Images[info.Index]);
+                var textInfo = model.Textures[info.Index];
+
+                var imageInfo = model.Images[textInfo.Source!.Value];
+
+                var image = LoadImage(imageInfo);
 
                 CheckExtensions(info.Extensions);
 
-                return CreateTexture(image, model.Textures[info.TexCoord]);
+                return CreateTexture(image, textInfo, imageInfo.Name);
             }
 
             Material DecodeMaterial(glTFLoader.Schema.Material gltMat)
@@ -182,13 +197,13 @@ namespace Xr.Engine.Gltf
                     if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
                     {
                         result.MetallicRoughness.BaseColorTexture = DecodeTextureBase(gltMat.PbrMetallicRoughness.BaseColorTexture);
-                        result.MetallicRoughness.BaseColorUVSet = model.Textures[gltMat.PbrMetallicRoughness.BaseColorTexture.TexCoord].Source ?? 0;
+                        result.MetallicRoughness.BaseColorUVSet = gltMat.PbrMetallicRoughness.BaseColorTexture.TexCoord;
                     }
 
                     if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
                     {
                         result.MetallicRoughness.MetallicRoughnessTexture = DecodeTextureBase(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture);
-                        result.MetallicRoughness.MetallicRoughnessUVSet = model.Textures[gltMat.PbrMetallicRoughness.MetallicRoughnessTexture.TexCoord].Source ?? 0;
+                        result.MetallicRoughness.MetallicRoughnessUVSet = gltMat.PbrMetallicRoughness.MetallicRoughnessTexture.TexCoord;
                     }
 
                     result.Type = PbrMaterialType.Metallic;
@@ -201,14 +216,14 @@ namespace Xr.Engine.Gltf
                 {
                     result.NormalTexture = DecodeTextureNormal(gltMat.NormalTexture);
                     result.NormalScale = gltMat.NormalTexture.Scale;
-                    result.NormalUVSet = model.Textures[gltMat.NormalTexture.TexCoord].Source ?? 0;
+                    result.NormalUVSet = gltMat.NormalTexture.TexCoord;
                 }
 
                 if (gltMat.OcclusionTexture != null)
                 {
                     result.OcclusionTexture = DecodeTextureOcclusion(gltMat.OcclusionTexture);
                     result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
-                    result.OcclusionUVSet = model.Textures[gltMat.OcclusionTexture.TexCoord].Source ?? 0;
+                    result.OcclusionUVSet = gltMat.OcclusionTexture.TexCoord;
                 }
        
 
@@ -225,18 +240,22 @@ namespace Xr.Engine.Gltf
                     if (specGlos.Value.diffuseTexture != null)
                     {
                         result.SpecularGlossiness.DiffuseTexture = DecodeTextureBase(specGlos.Value.diffuseTexture);
-                        result.SpecularGlossiness.DiffuseUVSet = model.Textures[specGlos.Value.diffuseTexture.TexCoord].Source ?? 0;
+                        result.SpecularGlossiness.DiffuseUVSet = specGlos.Value.diffuseTexture.TexCoord;
                     }
      
                     if (specGlos.Value.specularGlossinessTexture != null)
                     {
                         result.SpecularGlossiness.SpecularGlossinessTexture = DecodeTextureBase(specGlos.Value.specularGlossinessTexture);
-                        result.SpecularGlossiness.SpecularGlossinessUVSet = model.Textures[specGlos.Value.specularGlossinessTexture.TexCoord].Source ?? 0;
+                        result.SpecularGlossiness.SpecularGlossinessUVSet = specGlos.Value.specularGlossinessTexture.TexCoord;
                     }
 
                     result.Type = PbrMaterialType.Specular;
                 }
 
+                //result.NormalTexture = null;
+                //result.OcclusionTexture = null;
+                //result.MetallicRoughness!.MetallicRoughnessTexture = null;
+                //result.MetallicRoughness!.BaseColorTexture = null;
                 return result;
             }
 
@@ -289,9 +308,6 @@ namespace Xr.Engine.Gltf
                                         case "NORMAL":
                                             var nValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
                                             geo.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
-                                            break;
-                                        case "COLOR":
-                                            log.AppendLine("Color data not supported");
                                             break;
                                         case "TEXCOORD_0":
                                             var uValues = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);

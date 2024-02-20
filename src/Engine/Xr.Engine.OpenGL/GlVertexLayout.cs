@@ -61,6 +61,11 @@ namespace OpenXr.Engine.OpenGL
                     item.Type = VertexAttribPointerType.Float;
                     item.Count = 3;
                 }
+                else if (info.Type == typeof(Vector4))
+                {
+                    item.Type = VertexAttribPointerType.Float;
+                    item.Count = 4;
+                }
                 else if (info.Type == typeof(Vector2))
                 {
                     item.Type = VertexAttribPointerType.Float;

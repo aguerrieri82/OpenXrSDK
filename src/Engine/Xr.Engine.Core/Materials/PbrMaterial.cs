@@ -117,6 +117,7 @@ namespace OpenXr.Engine
 
         public override void UpdateUniforms(IUniformProvider obj)
         {
+
             if (NormalTexture != null)
             {
                 obj.SetUniform("u_NormalScale", NormalScale);
@@ -188,7 +189,7 @@ namespace OpenXr.Engine
 
         public override void ExtractFeatures(IFeatureList features)
         {
-            features.AddFeature("DEBUG DEBUG_NONE");
+
 
             if (NormalTexture != null)
             {

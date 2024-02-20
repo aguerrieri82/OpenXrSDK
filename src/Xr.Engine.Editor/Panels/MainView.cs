@@ -26,14 +26,14 @@ namespace Xr.Engine.Editor
         {
             _app = SampleScenes.CreateSimpleScene(new LocalAssetManager("Assets"));
 
-            var cube = _app.ActiveScene!.FindByName<Mesh>("cube");
+            var cube = _app.ActiveScene!.FindByName<Object3D>("mesh");
             if (cube != null)
             {
-                cube.AddComponent<BoundsGrabbable>();
+               // cube.AddComponent<BoundsGrabbable>();
                 PropertiesEditor.ActiveObject = cube;
             }
 
-            var quad = _app.ActiveScene!.FindByName<Mesh>("quad");
+            var quad = _app.ActiveScene!.FindByName<Object3D>("quad");
             if (quad != null)
                 quad.AddComponent(new FollowCamera { Offset = new Vector3(0, 0, -2) });
 

@@ -195,10 +195,12 @@ namespace OpenXr.Engine.OpenGL
 
         public unsafe void SetUniform(string name, Texture2D value, int slot = 0, bool optional = false)
         {
+            _gl.ActiveTexture(TextureUnit.Texture0 + slot);
+
             var texture = value.GetResource(a => value.CreateGlTexture(_gl));
 
             texture.Bind();
-            _gl.ActiveTexture(TextureUnit.Texture0 + slot);
+
             SetUniform(name, slot, optional);
         }
 
@@ -336,9 +338,6 @@ namespace OpenXr.Engine.OpenGL
 
             return builder.ToString();
         }
-
-
-
 
         protected virtual void PatchShader(ShaderType shaderType, StringBuilder builder)
         {

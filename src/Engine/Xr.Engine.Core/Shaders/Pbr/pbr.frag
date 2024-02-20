@@ -177,7 +177,7 @@ void main()
     f_clearcoat = vec3(0.0);
 
 #ifdef USE_PUNCTUAL
-    for (int i = 0; i < u_LightsCount; ++i)
+    for (int i = 0; i < LIGHT_COUNT; ++i)
     {
         Light light = u_Lights[i];
 
