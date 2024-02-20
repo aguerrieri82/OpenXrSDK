@@ -13,19 +13,60 @@ namespace Xr.Engine.OpenGL
 {
     public class GlPbrProgram : GlProgram
     {
-        readonly List<PbrLightUniform> _lights = [];
+        public enum DebugFlags
+        {
+            DEBUG_NORMAL_SHADING,
+            DEBUG_NORMAL_TEXTURE,
+            DEBUG_NORMAL_GEOMETRY,
+            DEBUG_TANGENT,
+            DEBUG_BITANGENT,
+            DEBUG_ALPHA,
+            DEBUG_UV_0,
+            DEBUG_UV_1,
+            DEBUG_OCCLUSION,
+            DEBUG_EMISSIVE,
+            DEBUG_METALLIC_ROUGHNESS,
+            DEBUG_BASE_COLOR,
+            DEBUG_ROUGHNESS,
+            DEBUG_METALLIC,
+            DEBUG_CLEARCOAT,
+            DEBUG_CLEARCOAT_FACTOR,
+            DEBUG_CLEARCOAT_ROUGHNESS,
+            DEBUG_CLEARCOAT_NORMAL,
+            DEBUG_SHEEN,
+            DEBUG_SHEEN_COLOR,
+            DEBUG_SHEEN_ROUGHNESS,
+            DEBUG_SPECULAR,
+            DEBUG_SPECULAR_FACTOR,
+            DEBUG_SPECULAR_COLOR,
+            DEBUG_TRANSMISSION_VOLUME,
+            DEBUG_TRANSMISSION_FACTOR,
+            DEBUG_VOLUME_THICKNESS,
+            DEBUG_IRIDESCENCE,
+            DEBUG_IRIDESCENCE_FACTOR,
+            DEBUG_IRIDESCENCE_THICKNESS,
+            DEBUG_ANISOTROPIC_STRENGTH,
+            DEBUG_ANISOTROPIC_DIRECTION,
+            DEBUG_NONE
+        }
 
+
+        readonly List<PbrLightUniform> _lights = [];
+        private Matrix4x4 _model;
 
         public GlPbrProgram(GL gl, Func<string, string> includeResolver, GlRenderOptions renderOptions)
             : base(gl, includeResolver, renderOptions)
         {
             _programId = "pbr+primitive";
+            Debug = DebugFlags.DEBUG_NONE;
         }
 
         protected override void Build()
         {
-            var vertSrc = ShaderPreprocessor.ParseShader(PatchShader(_resolver("pbr/primitive.vert"), ShaderType.VertexShader));
-            var fragSrc = ShaderPreprocessor.ParseShader(PatchShader(_resolver("pbr/pbr.frag"), ShaderType.FragmentShader));
+            //var vertSrc = ShaderPreprocessor.ParseShader(PatchShader(_resolver("pbr/primitive.vert"), ShaderType.VertexShader));
+            //var fragSrc = ShaderPreprocessor.ParseShader(PatchShader(_resolver("pbr/pbr.frag"), ShaderType.FragmentShader));
+            var vertSrc = (PatchShader(_resolver("pbr/primitive.vert"), ShaderType.VertexShader));
+            var fragSrc = (PatchShader(_resolver("pbr/pbr.frag"), ShaderType.FragmentShader));
             var vert = new GlShader(_gl, ShaderType.VertexShader, vertSrc);
             var frag = new GlShader(_gl, ShaderType.FragmentShader, fragSrc);
             Create(vert, frag); 
@@ -33,6 +74,7 @@ namespace Xr.Engine.OpenGL
 
         public override void SetModel(Matrix4x4 model)
         {
+            _model = model;
             SetUniform("u_ModelMatrix", model);
         }
 
@@ -43,7 +85,9 @@ namespace Xr.Engine.OpenGL
                 type = PbrLightUniform.Point,
                 color = (Vector3)point.Color,
                 position = point.WorldPosition,
-                intensity = point.Intensity,
+                intensity = point.Intensity * 10,
+                innerConeCos = 0,
+                outerConeCos = MathF.Cos(MathF.PI / 4f),
                 range = point.Range,
             });
         }
@@ -55,7 +99,7 @@ namespace Xr.Engine.OpenGL
                 type = PbrLightUniform.Directional,
                 color = (Vector3)directional.Color,
                 position = directional.WorldPosition,
-                direction = directional.Forward,
+                direction =  directional.Forward,
                 intensity = directional.Intensity,
                 innerConeCos = 0,
                 outerConeCos = MathF.Cos(MathF.PI / 4f),
@@ -84,7 +128,7 @@ namespace Xr.Engine.OpenGL
             if (_lights.Count > 0)
             {
                 SetUniformStructArray("u_Lights", _lights);
-                SetUniform("u_LightsCount", _lights.Count);
+                //SetUniform("u_LightsCount", _lights.Count);
             }
         }
 
@@ -96,7 +140,19 @@ namespace Xr.Engine.OpenGL
             if (_lights.Count > MaxLights)
                 MaxLights = (uint)_lights.Count + 16;
 
-            _features.Add($"MAX_LIGHT_COUNT {MaxLights}");
+            _features.Add($"LIGHT_COUNT {_lights.Count}");
+
+            //TODO check this
+             _features.Add("LINEAR_OUTPUT");
+
+            foreach (var flag in Enum.GetValues<DebugFlags>())
+                _features.Add($"{flag} {(int)flag}");
+
+            _features.Add("ALPHAMODE_OPAQUE 0");
+            _features.Add("ALPHAMODE_MASK 1");
+            _features.Add("ALPHAMODE_BLEND 2");
+
+            _features.Add($"DEBUG {Debug}");
 
             base.Commit();
         }
@@ -139,6 +195,8 @@ namespace Xr.Engine.OpenGL
             base.BeginEdit();
         }
 
-        public static uint MaxLights { get; set; } = 5;
+        public DebugFlags Debug { get; set; }
+
+        public static uint MaxLights { get; set; } = 10;
     }
 }

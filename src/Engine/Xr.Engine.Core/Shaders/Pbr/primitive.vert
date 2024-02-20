@@ -15,7 +15,7 @@ layout (location = 1) in vec3 a_normal;
 
 #ifdef HAS_NORMAL_VEC3
 #ifdef HAS_TANGENT_VEC4
-layout (location = 2) in vec4 a_tangent;
+layout (location = 5) in vec4 a_tangent;
 out mat3 v_TBN;
 #else
 out vec3 v_Normal;
@@ -23,23 +23,23 @@ out vec3 v_Normal;
 #endif
 
 #ifdef HAS_TEXCOORD_0_VEC2
-layout (location = 3) in vec2 a_texcoord_0;
+layout (location = 2) in vec2 a_texcoord_0;
 #endif
 
 #ifdef HAS_TEXCOORD_1_VEC2
-layout (location = 4) in vec2 a_texcoord_1;
+layout (location = 3) in vec2 a_texcoord_1;
 #endif
 
 out vec2 v_texcoord_0;
 out vec2 v_texcoord_1;
 
 #ifdef HAS_COLOR_0_VEC3
-layout (location = 5) in vec3 a_color_0;
+layout (location = 4) in vec3 a_color_0;
 out vec3 v_Color;
 #endif
 
 #ifdef HAS_COLOR_0_VEC4
-layout (location = 5) in vec4 a_color_0;
+layout (location = 4) in vec4 a_color_0;
 out vec4 v_Color;
 #endif
 

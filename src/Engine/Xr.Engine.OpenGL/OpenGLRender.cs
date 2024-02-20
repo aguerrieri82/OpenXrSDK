@@ -6,6 +6,7 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Text;
 using Xr.Engine.OpenGL;
 
@@ -266,6 +267,8 @@ namespace OpenXr.Engine.OpenGL
                         prog.ConfigureLights();
 
                         draw.Material!.UpdateUniforms(prog);
+
+                        var det = draw.Object!.WorldMatrix.GetDeterminant();
 
                         prog.SetModel(draw.Object!.WorldMatrix);
 

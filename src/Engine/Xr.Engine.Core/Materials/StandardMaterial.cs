@@ -20,6 +20,7 @@ namespace OpenXr.Engine
         public StandardMaterial()
         {
             Specular.Rgb(0.5f);
+            Ambient = Color.White;
             Shininess = 32f;
             Shader = SHADER;
         }
@@ -29,7 +30,7 @@ namespace OpenXr.Engine
             obj.SetUniform("material.ambient", (Vector3)Ambient);
             obj.SetUniform("material.diffuse", (Vector3)Color);
             obj.SetUniform("material.specular", (Vector3)Specular);
-            obj.SetUniform("material.shininess", 32.0f);
+            obj.SetUniform("material.shininess", Shininess);
 
             base.UpdateUniforms(obj);
         }

@@ -53,8 +53,12 @@ namespace OpenXr.Engine
         [ShaderRef(1, "a_normal", VertexComponent.Normal)]
         public Vector3 Normal;
 
-        [ShaderRef(3, "a_texcoord_0", VertexComponent.UV0)]
+        [ShaderRef(2, "a_texcoord_0", VertexComponent.UV0)]
         public Vector2 UV;
+
+        [ShaderRef(3, "a_tangent", VertexComponent.Tangent)]
+        public Vector4 Tangent;
+
 
     }
 }
