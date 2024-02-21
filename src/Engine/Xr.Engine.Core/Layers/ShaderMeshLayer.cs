@@ -1,7 +1,7 @@
 ﻿namespace OpenXr.Engine
 {
 
-    public class ShaderMeshLayer : BaseAutoLayer<Mesh>
+    public class ShaderMeshLayer : BaseAutoLayer<TriangleMesh>
     {
         readonly Shader _shader;
 
@@ -10,7 +10,7 @@
             _shader = shader;
         }
 
-        protected override bool BelongsToLayer(Mesh obj)
+        protected override bool BelongsToLayer(TriangleMesh obj)
         {
             return obj.IsVisible &&
                 obj.Materials.
@@ -31,7 +31,7 @@
 
         public void NotifyChanged(Object3D obj, ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.Render) && obj is Mesh mesh)
+            if (change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.Render) && obj is TriangleMesh mesh)
             {
                 foreach (var material in mesh.Materials.OfType<ShaderMaterial>())
                 {

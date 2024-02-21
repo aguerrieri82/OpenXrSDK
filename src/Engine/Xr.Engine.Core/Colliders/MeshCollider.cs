@@ -2,7 +2,7 @@
 
 namespace OpenXr.Engine
 {
-    public class MeshCollider : Behavior<Mesh>, ICollider
+    public class MeshCollider : Behavior<TriangleMesh>, ICollider
     {
         long _version = -1;
         Triangle3[]? _triangles;

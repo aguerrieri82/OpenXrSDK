@@ -24,29 +24,24 @@
    
         }
 
-        public override void UpdateUniforms(IUniformProvider obj)
-        {
-            var renderer = _host?.Scene?.App?.Renderer;
-
-            var depth = renderer?.GetDepth();
+        public override void UpdateShader(UpdateShaderContext ctx, IUniformProvider up, IFeatureList fl)
+        { 
+            var depth = ctx.RenderEngine?.GetDepth();
             if (depth != null)
             {
                 if (depth.SampleCount <= 1)
-                    obj.SetUniform("uTexture0", depth, 0);
+                    up.SetUniform("uTexture0", depth, 0);
                 else
-                    obj.SetUniform("uTexture0MS", depth, 0);
+                    up.SetUniform("uTexture0MS", depth, 0);
 
-                obj.SetUniform("uSamples", depth.SampleCount);
-
+                up.SetUniform("uSamples", depth.SampleCount);
             }
 
-            var camera = _host?.Scene?.ActiveCamera;
-            if (camera != null)
+            if (ctx.Camera != null)
             {
-                obj.SetUniform("uNearPlane", camera.Near);
-                obj.SetUniform("uFarPlane", camera.Far);
+                up.SetUniform("uNearPlane", ctx.Camera.Near);
+                up.SetUniform("uFarPlane", ctx.Camera.Far);
             }
-
         }
     }
 }

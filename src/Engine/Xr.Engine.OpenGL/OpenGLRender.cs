@@ -16,13 +16,7 @@ namespace OpenXr.Engine.OpenGL
     public class GlobalContent
     {
 
-        public AmbientLight? Ambient;
-
-        public PointLight[]? Points;
-
-        public SpotLight[]? Spots;
-
-        public DirectionalLight[]? Directionals;
+        public Light[]? Lights;
 
         public long Version;
 
@@ -103,10 +97,7 @@ namespace OpenXr.Engine.OpenGL
             if (_content == null)
                 _content = new GlobalContent();
 
-            _content.Ambient = scene.VisibleDescendants<AmbientLight>().SingleOrDefault();
-            _content.Points = scene.VisibleDescendants<PointLight>().ToArray();
-            _content.Spots = scene.VisibleDescendants<SpotLight>().ToArray();
-            _content.Directionals = scene.VisibleDescendants<DirectionalLight>().ToArray();
+            _content.Lights = scene.VisibleDescendants<Light>().ToArray();
             _content.Scene = scene;
             _content.Version = scene.Version;
 
@@ -208,36 +199,25 @@ namespace OpenXr.Engine.OpenGL
 
             _gl.Viewport(view.X, view.Y, view.Width, view.Height);
 
+            _gl.LineWidth(1);
+
             var targetOverride = target as IGlProgramOverride;
 
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);
 
+            var updateCtx = new UpdateShaderContext()
+            {
+                Camera = camera,
+                Lights = _content.Lights,
+                RenderEngine = this,
+            };
+
             foreach (var shader in _content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
                 var prog = shader.Value!.Program;
 
-                prog!.BeginEdit();
-
                 targetOverride?.BeginEdit(prog);
-
-                if (shader.Key.IsLit)
-                {
-                    if (_content.Ambient != null)
-                        prog.SetAmbient(_content.Ambient);
-
-                    if (_content.Points != null)
-                        foreach (var light in _content.Points)
-                            prog.AddLight(light);
-                    
-                    if (_content.Spots != null)
-                        foreach (var light in _content.Spots)
-                            prog.AddLight(light);
-
-                    if (_content.Directionals != null)
-                        foreach (var light in _content.Directionals)
-                            prog.AddLight(light);
-                }
 
                 foreach (var vertex in shader.Value.Contents)
                 {
@@ -249,28 +229,36 @@ namespace OpenXr.Engine.OpenGL
 
                     vertex.Value.VertexHandler!.Bind();
 
-                    prog.SetLayout(vertex.Value.VertexHandler.Layout);
+                    updateCtx.ActiveComponents = VertexComponent.None;
+
+                    foreach (var attr in vertex.Value.VertexHandler!.Layout!.Attributes!)
+                        updateCtx.ActiveComponents |= attr.Component;
 
                     foreach (var draw in vertex.Value.Contents)
                     {
                         ConfigureCaps(draw.Material!);
 
-                        draw.Material!.ExtractFeatures(prog);
+                        updateCtx.Model = draw.Object;
+
+                        var update = draw.Material!.UpdateShader(updateCtx);
+
+                        prog.BeginEdit();
+
+                        if (update.Features != null)
+                        {
+                            foreach (var feature in update.Features)
+                                prog.AddFeature(feature);
+                        }
 
                         prog.Commit();
 
                         prog.Use();
 
-                        if (targetOverride == null || !targetOverride.SetCamera(prog, camera))
-                            prog.SetCamera(camera);
-
-                        prog.ConfigureLights();
-
-                        draw.Material!.UpdateUniforms(prog);
-
-                        var det = draw.Object!.WorldMatrix.GetDeterminant();
-
-                        prog.SetModel(draw.Object!.WorldMatrix);
+                        if (update.Actions != null)
+                        {
+                            foreach (var updateUniform in update.Actions)
+                                updateUniform(prog);
+                        }
 
                         draw.Draw!();
                     }

@@ -11,7 +11,7 @@ namespace Xr.Engine.OpenXr
         private Object3D? _grabObject;
         private IGrabbable? _grabbable;
         private readonly XrHaptic _vibrate;
-        private readonly Mesh _grabView;
+        private readonly TriangleMesh _grabView;
         private Quaternion _startInputOrientation;
         private Quaternion _startOrientation;
         private Vector3 _startPivot;
@@ -21,7 +21,7 @@ namespace Xr.Engine.OpenXr
             _input = input;
             _handlers = handlers;
             _vibrate = vibrate;
-            _grabView = new Mesh(Cube.Instance, new StandardMaterial { Color = new Color(0, 1, 1, 1) });
+            _grabView = new TriangleMesh(Cube.Instance, new StandardMaterial { Color = new Color(0, 1, 1, 1) });
             _grabView.Transform.SetScale(0.005f);
         }
 

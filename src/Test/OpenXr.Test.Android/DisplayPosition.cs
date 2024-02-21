@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace OpenXr.Test.Android
 {
-    public class DisplayPosition : Behavior<Mesh>
+    public class DisplayPosition : Behavior<TriangleMesh>
     {
         bool _isSet;
 

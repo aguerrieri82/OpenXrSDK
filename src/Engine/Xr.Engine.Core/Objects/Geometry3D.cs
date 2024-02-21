@@ -54,6 +54,8 @@ namespace OpenXr.Engine
             }
         }
 
+        public VertexComponent ActiveComponents { get; set; }
+
         public uint[]? Indices { get; set; }
 
         public VertexData[]? Vertices { get; set; }

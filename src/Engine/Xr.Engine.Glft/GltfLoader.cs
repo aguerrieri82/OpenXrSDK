@@ -76,7 +76,7 @@ namespace Xr.Engine.Gltf
                 return null;
             }
 
-            TextureData LoadImage(glTFLoader.Schema.Image img)
+            TextureData LoadImage(glTFLoader.Schema.Image img, bool useSrgb = false)
             {
                 CheckExtensions(img.Extensions);
 
@@ -97,19 +97,21 @@ namespace Xr.Engine.Gltf
                 else
                     throw new NotSupportedException();
 
-                var image = SKBitmap.Decode(data);
+                using var image = SKBitmap.Decode(data);
+                using var newImg = new SKBitmap(image.Width, image.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+                image.CopyTo(newImg);   
 
-                using var stream = File.OpenWrite("d:\\" + img.Name + ".png");
-                image.Encode(SKEncodedImageFormat.Png, 100).SaveTo(stream);
+                //using var stream = File.OpenWrite("d:\\" + img.Name + ".png");
+                //image.Encode(SKEncodedImageFormat.Png, 100).SaveTo(stream);
 
                 return new TextureData
                 {
                     Width = (uint)image.Width,
                     Height = (uint)image.Height,
-                    Data = image.GetPixelSpan().ToArray(),
-                    Format = image.ColorType switch
+                    Data = newImg.GetPixelSpan().ToArray(),
+                    Format = newImg.ColorType switch
                     {
-                        SKColorType.Bgra8888 => TextureFormat.Bgra32,
+                        SKColorType.Bgra8888 => useSrgb ? TextureFormat.SBgra32 : TextureFormat.Bgra32,
                         SKColorType.Rgba8888 => TextureFormat.Rgba32,
                         SKColorType.Gray8 => TextureFormat.Gray8,
                         _ => throw new NotSupportedException()
@@ -162,13 +164,13 @@ namespace Xr.Engine.Gltf
                 return CreateTexture(image, textInfo, imageInfo.Name);
             }
 
-            Texture2D DecodeTextureBase(glTFLoader.Schema.TextureInfo info)
+            Texture2D DecodeTextureBase(glTFLoader.Schema.TextureInfo info, bool useSRgb = false)
             {
                 var textInfo = model.Textures[info.Index];
 
                 var imageInfo = model.Images[textInfo.Source!.Value];
 
-                var image = LoadImage(imageInfo);
+                var image = LoadImage(imageInfo, useSRgb);
 
                 CheckExtensions(info.Extensions);
 
@@ -196,7 +198,7 @@ namespace Xr.Engine.Gltf
 
                     if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
                     {
-                        result.MetallicRoughness.BaseColorTexture = DecodeTextureBase(gltMat.PbrMetallicRoughness.BaseColorTexture);
+                        result.MetallicRoughness.BaseColorTexture = DecodeTextureBase(gltMat.PbrMetallicRoughness.BaseColorTexture, true);
                         result.MetallicRoughness.BaseColorUVSet = gltMat.PbrMetallicRoughness.BaseColorTexture.TexCoord;
                     }
 
@@ -266,11 +268,11 @@ namespace Xr.Engine.Gltf
             }
 
 
-            Mesh ProcessMesh(glTFLoader.Schema.Mesh gltMesh)
+            TriangleMesh ProcessMesh(glTFLoader.Schema.Mesh gltMesh)
             {
                 CheckExtensions(gltMesh.Extensions);
 
-                var result = new Mesh();
+                var result = new TriangleMesh();
 
                 foreach (var primitive in gltMesh.Primitives)
                 {
@@ -295,8 +297,6 @@ namespace Xr.Engine.Gltf
 
                                 result.Geometry = geo;
 
-                                //COLOR
-                                //TANGENT
                                 foreach (var attr in draco.Value.Attributes)
                                 {
                                     switch (attr.Key)
@@ -304,14 +304,22 @@ namespace Xr.Engine.Gltf
                                         case "POSITION":
                                             var vValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
                                             geo.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
+                                            geo.ActiveComponents |= VertexComponent.Position;
                                             break;
                                         case "NORMAL":
                                             var nValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
                                             geo.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
+                                            geo.ActiveComponents |= VertexComponent.Normal;
+                                            break;
+                                        case "TANGENT":
+                                            var tValues = DracoDecoder.ReadAttribute<Vector4>(mesh, attr.Value);
+                                            geo.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
+                                            geo.ActiveComponents |= VertexComponent.Tangent;
                                             break;
                                         case "TEXCOORD_0":
                                             var uValues = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
                                             geo.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
+                                            geo.ActiveComponents |= VertexComponent.UV0;
                                             break;
                                         default:
                                             log.AppendLine($"{attr.Key} data not supported");
@@ -339,14 +347,22 @@ namespace Xr.Engine.Gltf
                                     case "POSITION":
                                         var vValues = ConvertBuffer<Vector3>(buffer, view);
                                         geo.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
+                                        geo.ActiveComponents |= VertexComponent.Position;
                                         break;
                                     case "NORMAL":
                                         var nValues = ConvertBuffer<Vector3>(buffer, view);
                                         geo.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
+                                        geo.ActiveComponents |= VertexComponent.Normal;
+                                        break;
+                                    case "TANGENT":
+                                        var tValues = ConvertBuffer<Vector4>(buffer, view);
+                                        geo.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
+                                        geo.ActiveComponents |= VertexComponent.Tangent;
                                         break;
                                     case "TEXCOORD_0":
                                         var uValues = ConvertBuffer<Vector2>(buffer, view);
                                         geo.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
+                                        geo.ActiveComponents |= VertexComponent.UV0;
                                         break;
                                     default:
                                         log.AppendLine($"{attr.Key} data not supported");

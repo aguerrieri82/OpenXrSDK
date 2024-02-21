@@ -8,12 +8,16 @@
         {
             Material = new LineMaterial();
             Vertices = [];
+            ActiveComponents = VertexComponent.Position | VertexComponent.Color3;
         }
 
         public LineData[] Vertices { get; set; }
 
         public LineMaterial Material { get; }
 
+        public VertexComponent ActiveComponents { get; set; }   
+
+   
         #region IVertexSource
 
         DrawPrimitive IVertexSource.Primitive => DrawPrimitive.Line;

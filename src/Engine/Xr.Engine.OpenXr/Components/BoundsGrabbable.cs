@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace Xr.Engine.OpenXr
 {
-    public class BoundsGrabbable : Behavior<Mesh>, IGrabbable
+    public class BoundsGrabbable : Behavior<TriangleMesh>, IGrabbable
     {
         public bool CanGrab(Vector3 position)
         {

@@ -12,6 +12,8 @@
 
         IList<Material> Materials { get; }
 
+        VertexComponent ActiveComponents { get; }
+
     }
 
     public interface IVertexSource<TVertices, TIndices> : IVertexSource

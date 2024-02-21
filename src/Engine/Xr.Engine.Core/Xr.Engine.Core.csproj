@@ -1,60 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <RootNamespace>OpenXr.Engine</RootNamespace>
-  </PropertyGroup>
+	<PropertyGroup>
+		<RootNamespace>OpenXr.Engine</RootNamespace>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Shaders\color.frag" />
-    <None Remove="Shaders\depth.frag" />
-    <None Remove="Shaders\line.frag" />
-    <None Remove="Shaders\line.vert" />
-    <None Remove="Shaders\Pbr\animation.glsl" />
-    <None Remove="Shaders\Pbr\brdf.glsl" />
-    <None Remove="Shaders\Pbr\cubemap.frag" />
-    <None Remove="Shaders\Pbr\cubemap.vert" />
-    <None Remove="Shaders\Pbr\functions.glsl" />
-    <None Remove="Shaders\Pbr\ibl.glsl" />
-    <None Remove="Shaders\Pbr\iridescence.glsl" />
-    <None Remove="Shaders\Pbr\material_info.glsl" />
-    <None Remove="Shaders\Pbr\pbr.frag" />
-    <None Remove="Shaders\Pbr\primitive.vert" />
-    <None Remove="Shaders\Pbr\punctual.glsl" />
-    <None Remove="Shaders\Pbr\textures.glsl" />
-    <None Remove="Shaders\Pbr\tonemapping.glsl" />
-    <None Remove="Shaders\position.glsl" />
-    <None Remove="Shaders\standard.frag" />
-    <None Remove="Shaders\standard.vert" />
-    <None Remove="Shaders\texture.frag" />
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="Shaders/**/*.*" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Shaders\line.frag" />
-    <EmbeddedResource Include="Shaders\line.vert" />
-    <EmbeddedResource Include="Shaders\depth.frag" />
-    <EmbeddedResource Include="Shaders\Pbr\animation.glsl" />
-    <EmbeddedResource Include="Shaders\Pbr\brdf.glsl" />
-    <EmbeddedResource Include="Shaders\Pbr\cubemap.frag" />
-    <EmbeddedResource Include="Shaders\Pbr\cubemap.vert" />
-    <EmbeddedResource Include="Shaders\Pbr\functions.glsl" />
-    <EmbeddedResource Include="Shaders\Pbr\ibl.glsl" />
-    <EmbeddedResource Include="Shaders\Pbr\iridescence.glsl" />
-    <EmbeddedResource Include="Shaders\Pbr\material_info.glsl" />
-    <EmbeddedResource Include="Shaders\Pbr\pbr.frag" />
-    <EmbeddedResource Include="Shaders\Pbr\primitive.vert" />
-    <EmbeddedResource Include="Shaders\Pbr\punctual.glsl" />
-    <EmbeddedResource Include="Shaders\Pbr\textures.glsl" />
-    <EmbeddedResource Include="Shaders\Pbr\tonemapping.glsl" />
-    <EmbeddedResource Include="Shaders\position.glsl" />
-    <EmbeddedResource Include="Shaders\texture.frag" />
-    <EmbeddedResource Include="Shaders\color.frag" />
-    <EmbeddedResource Include="Shaders\standard.frag" />
-    <EmbeddedResource Include="Shaders\standard.vert" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
-    <PackageReference Include="SkiaSharp" Version="3.0.0-preview.1.8" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
+		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.1.8" />
+	</ItemGroup>
 
 </Project>
