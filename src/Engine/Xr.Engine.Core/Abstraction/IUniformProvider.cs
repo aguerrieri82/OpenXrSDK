@@ -19,6 +19,10 @@ namespace OpenXr.Engine
 
         void SetUniform(string name, Texture2D value, int slot = 0, bool optional = false);
 
+        void SetUniform(string name, float[] value, bool optional = false);
+
+        void SetUniform(string name, int[] value, bool optional = false);
+
         void SetLineSize(float size);
 
     }

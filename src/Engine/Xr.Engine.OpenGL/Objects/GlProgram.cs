@@ -36,20 +36,6 @@ namespace OpenXr.Engine.OpenGL
             _resolver = includeResolver;
         }
 
-        public abstract void SetCamera(Camera camera);
-
-        public abstract void SetAmbient(AmbientLight ambient);
-
-        public abstract void AddLight(PointLight ambient);
-
-        public abstract void AddLight(DirectionalLight directional);
-
-        public abstract void AddLight(SpotLight spot);
-
-        public virtual void ConfigureLights()
-        {
-        }
-
         public virtual void BeginEdit()
         {
             _features.Clear();
@@ -79,14 +65,6 @@ namespace OpenXr.Engine.OpenGL
 
                 _currentHash = hash;
             }
-
-            var res = GetUniformNames().ToArray();
-
-        }
-
-        public virtual void SetModel(Matrix4x4 model)
-        {
-            SetUniform("uModel", model);
         }
 
         protected virtual void Create(params uint[] shaders)
@@ -221,59 +199,6 @@ namespace OpenXr.Engine.OpenGL
             _gl.Uniform2(LocateUniform(name, optional), value.X, value.Y);
         }
 
-        public void SetUniformStruct(string name, object obj, bool optional = false)
-        {
-            foreach (var field in obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
-            {
-                var fullName = $"{name}.{field.Name}";
-                SetUniformObject(fullName, field.GetValue(obj)!, optional);
-            }
-        }
-
-        public void SetUniformStructArray(string name, ICollection collection, bool optional = false)
-        {
-            var i = 0;
-            foreach (var item in collection)
-            {
-                SetUniformStruct($"{name}[{i}]", item, optional);
-                i++;
-            }
-        }
-
-        public unsafe void SetUniformObject(string name, object obj, bool optional = false)
-        {
-            if (obj is Vector3 vec3)
-                SetUniform(name, vec3, optional);
-            else if (obj is Matrix4x4 mat4)
-                SetUniform(name, mat4, optional);
-            else if (obj is float flt)
-                SetUniform(name, flt, optional);
-            else if (obj is int vInt)
-                SetUniform(name, vInt, optional);
-            else if(obj is float[] fArray)
-                SetUniform(name, fArray, optional);
-            else if(obj is int[] iArray)
-                SetUniform(name, iArray, optional);
-            else
-            {
-                var type = obj.GetType();
-
-                if (type.IsValueType && !type.IsEnum && !type.IsPrimitive)
-                    SetUniformStruct(name, obj, optional);
-
-                else if (obj is ICollection coll)
-                {
-                    var gen = type.GetInterfaces()
-                            .First(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(ICollection<>));
-                    var elType = gen.GetGenericArguments()[0];
-                    if (elType.IsValueType && !elType.IsEnum && !elType.IsPrimitive)
-                        SetUniformStructArray(name, coll, optional);
-                }
-                else
-                    throw new NotSupportedException();
-            }
-        }
-
         public void AddFeature(string name)
         {
             _features.Add(name);
@@ -283,11 +208,6 @@ namespace OpenXr.Engine.OpenGL
         {
             _extensions.Add(name);
         }
-        public virtual void SetLayout(GlVertexLayout layout)
-        {
-
-        }
-
 
         protected string PatchShader(string source, ShaderType shaderType)
         {

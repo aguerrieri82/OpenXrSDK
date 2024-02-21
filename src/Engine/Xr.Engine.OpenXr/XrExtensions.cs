@@ -17,7 +17,7 @@ namespace Xr.Engine.OpenXr
     {
         public delegate IGlRenderTarget GlRenderTargetFactory(GL gl, uint texId);
 
-        public static GetQuadDelegate BindToQuad(this Mesh mesh)
+        public static GetQuadDelegate BindToQuad(this TriangleMesh mesh)
         {
             return () =>
             {

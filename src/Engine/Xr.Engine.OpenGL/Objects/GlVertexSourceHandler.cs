@@ -12,7 +12,7 @@ namespace Xr.Engine.OpenGL
 {
     public abstract class GlVertexSourceHandle : GlObject
     {
-        protected static Dictionary<Type, GlVertexLayout> _layouts = [];
+        protected static Dictionary<string, GlVertexLayout> _layouts = [];
 
         protected GlVertexSourceHandle(GL gl)
             : base(gl)
@@ -52,10 +52,12 @@ namespace Xr.Engine.OpenGL
             : base(gl)
         {
 
-            if (!_layouts.TryGetValue(typeof(TVert), out var layout))
+            var lKey = string.Concat(typeof(TVert).FullName, source.ActiveComponents);
+
+            if (!_layouts.TryGetValue(lKey, out var layout))
             {
-                layout = GlVertexLayout.FromType<TVert>();
-                _layouts[typeof(TVert)] = layout;
+                layout = GlVertexLayout.FromType<TVert>(source.ActiveComponents);
+                _layouts[lKey] = layout;
             }
 
             _source = source;

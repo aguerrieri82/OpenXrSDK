@@ -9,6 +9,5 @@ namespace OpenXr.Engine
         public Vector3 V1;
 
         public Vector3 V2;
-
     }
 }

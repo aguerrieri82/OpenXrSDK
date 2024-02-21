@@ -48,6 +48,8 @@
                  20,21,22,
                  20,22,23,
              ];
+            ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0;
+
         }
 
 

@@ -29,7 +29,7 @@ namespace OpenXr.Engine.OpenGL
 
     public class GlVertexLayout
     {
-        public static GlVertexLayout FromType<T>() where T : unmanaged
+        public static GlVertexLayout FromType<T>(VertexComponent activeComponents) where T : unmanaged
         {
             var fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
 
@@ -38,7 +38,7 @@ namespace OpenXr.Engine.OpenGL
                 Type = a.FieldType,
                 Ref = a.GetCustomAttribute<ShaderRefAttribute>()
             })
-            .Where(a => a.Ref != null)
+            .Where(a => a.Ref != null && (a.Ref.Component & activeComponents) == a.Ref.Component)
             .OrderBy(a => a.Ref!.Location)
             .ToArray();
 
@@ -49,9 +49,10 @@ namespace OpenXr.Engine.OpenGL
             uint curOfs = 0;
             for (var i = 0; i < infos.Length; i++)
             {
+                var info = infos[i];
+
                 ref var item = ref res.Attributes[i];
 
-                var info = infos[i];
                 item.Name = info.Ref!.Name;
                 item.Location = info.Ref.Location;
                 item.Component = info.Ref.Component;
@@ -83,7 +84,7 @@ namespace OpenXr.Engine.OpenGL
                 curOfs += (uint)Marshal.SizeOf(info.Type);
             }
 
-            res.Size = curOfs;
+            res.Size = (uint)Marshal.SizeOf<T>();
 
             return res;
         }

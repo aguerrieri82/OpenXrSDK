@@ -76,7 +76,7 @@ namespace OpenXr.Test.Android
 
             result.Layers.Add<XrPassthroughLayer>();
 
-            var display = _game.ActiveScene!.FindByName<Mesh>("display")!;
+            var display = _game.ActiveScene!.FindByName<TriangleMesh>("display")!;
 
             var controller = new SurfaceController(
                 _inputs.Right!.TriggerClick!,

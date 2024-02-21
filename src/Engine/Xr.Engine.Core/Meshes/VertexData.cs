@@ -58,7 +58,5 @@ namespace OpenXr.Engine
 
         [ShaderRef(3, "a_tangent", VertexComponent.Tangent)]
         public Vector4 Tangent;
-
-
     }
 }

@@ -49,7 +49,7 @@ namespace Xr.Engine.OpenXr
                 if (isLocatable)
                     await oculus.SetSpaceComponentStatusAsync(meshAnchor.Space, SpaceComponentTypeFB.LocatableFB, true);
 
-                var mesh = new Mesh
+                var mesh = new TriangleMesh
                 {
                     Geometry = new Geometry3D
                     {

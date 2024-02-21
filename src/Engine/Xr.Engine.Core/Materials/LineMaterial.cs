@@ -21,11 +21,5 @@
         {
             _shader = SHADER;
         }
-
-
-        public override void UpdateUniforms(IUniformProvider obj)
-        {
-            obj.SetLineSize(1);
-        }
     }
 }

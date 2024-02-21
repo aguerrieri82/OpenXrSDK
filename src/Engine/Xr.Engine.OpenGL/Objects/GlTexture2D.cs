@@ -108,6 +108,9 @@ namespace OpenXr.Engine.OpenGL
                     case TextureFormat.Depth24Float:
                         internalFormat = InternalFormat.DepthComponent24;
                         break;
+                    case TextureFormat.SBgra32:
+                        internalFormat = InternalFormat.Srgb8;
+                        break;
                     case TextureFormat.Rgba32:
                     case TextureFormat.Bgra32:
                         internalFormat = InternalFormat.Rgb8;
@@ -129,6 +132,7 @@ namespace OpenXr.Engine.OpenGL
 
                         pixelFormat = PixelFormat.Rgba;
                         break;
+                    case TextureFormat.SBgra32:
                     case TextureFormat.Bgra32:
                         pixelFormat = PixelFormat.Bgra;
                         break;
@@ -148,6 +152,8 @@ namespace OpenXr.Engine.OpenGL
                     case TextureFormat.Rgba32:
                     case TextureFormat.Bgra32:
                     case TextureFormat.Gray8:
+                    case TextureFormat.SRgb24:
+                    case TextureFormat.SBgra32:
                         pixelType = PixelType.UnsignedByte;
                         break;
                     default:
@@ -176,14 +182,14 @@ namespace OpenXr.Engine.OpenGL
                     }
                     else
                     {
-                        //TODO fix null
-
+          
                         if (data != null && data.Count > 0)
                         {
                             foreach (var level in data)
                             {
                                 fixed (byte* pData = level.Data)
                                 {
+
                                     _gl.TexImage2D(
                                         Target,
                                         (int)level.MipLevel,

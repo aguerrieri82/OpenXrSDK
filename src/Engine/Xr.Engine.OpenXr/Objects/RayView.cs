@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace Xr.Engine.OpenXr
 {
-    public class RayView : Mesh
+    public class RayView : TriangleMesh
     {
         protected float _length;
         protected bool _isDirty = true;

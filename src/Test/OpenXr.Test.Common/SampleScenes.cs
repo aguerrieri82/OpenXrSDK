@@ -15,7 +15,7 @@ namespace OpenXr.Samples
 
             var scene = new Scene();
 
-            var cube = new Mesh(Cube.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
+            var cube = new TriangleMesh(Cube.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
             //cube.Transform.Pivot = new Vector3(0, -1, 0);
             cube.Transform.SetScale(0.1f);
             //cube.Transform.SetPositionX(0.5f);
@@ -24,7 +24,7 @@ namespace OpenXr.Samples
 
             //var quod = new Mesh(Quad.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
 
-            var quod = new Mesh(Quad.Instance, new DepthViewMaterial());
+            var quod = new TriangleMesh(Quad.Instance, new DepthViewMaterial());
             quod.Transform.SetScale(0.5f);
             quod.Name = "quad";
             quod.IsVisible = false;
@@ -39,17 +39,21 @@ namespace OpenXr.Samples
             scene.AddChild(contanier);
 
             scene.AddChild(new AmbientLight(0.1f));
-            var pt = scene.AddChild(new PointLight() { Range = 100, Intensity = 2f });
-            pt.Transform.Position = new Vector3(10, 10, 0);
 
-            var dl = scene.AddChild(new DirectionalLight() { Intensity = 2f });
-            dl.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 1), MathF.PI / 4);
+            var pt = scene.AddChild(new PointLight() { Range = 30, Intensity = 1f });
+            pt.Transform.Position = new Vector3(0, 3, 0);
+            //pt.Name = "light";
+            pt.IsVisible = false;
+
+            var dl = scene.AddChild(new DirectionalLight() { Intensity = 1f });
+            dl.Transform.Rotation = new Vector3(-0.16f, 0.18f, 0.35f);
             dl.Name = "light";
+            dl.IsVisible = true;
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
-            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("DamagedHelmet.gltf"), assets);
-            var mesh = room.Descendants<Mesh>().First();
+            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets);
+            var mesh = room.Descendants<TriangleMesh>().First();
             mesh.Name = "mesh";
             //mesh.Materials[0] = new StandardMaterial() { Color = new Color(1f, 1, 1, 1) };
             scene.AddChild(mesh);
@@ -93,7 +97,7 @@ namespace OpenXr.Samples
                     var x = MathF.Sin(rad) * 1;
                     var z = MathF.Cos(rad) * 1;
 
-                    var cube = new Mesh(Cube.Instance, red);
+                    var cube = new TriangleMesh(Cube.Instance, red);
                     cube.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
                     cube.Transform.Position = new Vector3(x, y + 0.1f, z);
                     //cube.Transform.Pivot = new Vector3(-1, -1, -1);
@@ -112,7 +116,7 @@ namespace OpenXr.Samples
 
             scene.AddChild(cubes);
 
-            var display = new Mesh(Quad.Instance);
+            var display = new TriangleMesh(Quad.Instance);
             display.Materials.Add(text);
             display.Transform.Scale = new Vector3(1.924f * 0.5f,  0.01f, 1.08f * 0.5f);
             display.Transform.Position = new Vector3(0f, 0.5f, 0f);
@@ -134,7 +138,7 @@ namespace OpenXr.Samples
 
 
             var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets);
-            var mesh = room.Descendants<Mesh>().First();
+            var mesh = room.Descendants<TriangleMesh>().First();
             //mesh.Materials[0] = new StandardMaterial() { Color = new Color(1f, 1, 1, 1) };
             scene.AddChild(mesh);
 

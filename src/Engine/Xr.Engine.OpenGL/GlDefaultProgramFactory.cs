@@ -13,13 +13,9 @@ namespace Xr.Engine.OpenGL
     {
         public virtual GlProgram CreateProgram(GL gl, ShaderMaterial material, GlRenderOptions options)
         {
-            if (material is PbrMaterial)
-                return new GlPbrProgram(gl, material.Shader!.Resolver!, options);
-
             var shader = material.Shader!;
             var resolver = shader.Resolver!;
             return new GlSimpleProgram(gl, resolver(shader.VertexSourceName!), resolver(shader.FragmentSourceName!), resolver, options);
-
         }
     }
 }

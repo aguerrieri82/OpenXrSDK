@@ -1,7 +1,8 @@
 ﻿namespace OpenXr.Engine
 {
-    public class ShaderMaterial : Material
+    public class ShaderMaterial : Material, IShaderHandler
     {
+   
         protected Shader? _shader;
 
         public ShaderMaterial()
@@ -17,15 +18,7 @@
             _shader = shader;
         }
 
-        public virtual void ExtractFeatures(IFeatureList features)
-        {
 
-        }
-
-        public virtual void UpdateUniforms(IUniformProvider obj)
-        {
-
-        }
 
         public Shader? Shader
         {
@@ -39,6 +32,9 @@
             }
         }
 
+        public virtual void UpdateShader(UpdateShaderContext ctx, IUniformProvider up, IFeatureList fl)
+        {
 
+        }
     }
 }

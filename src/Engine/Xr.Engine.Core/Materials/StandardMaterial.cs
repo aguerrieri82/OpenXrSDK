@@ -2,7 +2,7 @@
 
 namespace OpenXr.Engine
 {
-    public class StandardMaterial : ShaderMaterial
+    public class StandardMaterial : ShaderMaterial, IShaderHandler
     {
         static readonly Shader SHADER;
 
@@ -25,15 +25,20 @@ namespace OpenXr.Engine
             Shader = SHADER;
         }
 
-        public override void UpdateUniforms(IUniformProvider obj)
+        public override void UpdateShader(UpdateShaderContext ctx, IUniformProvider up, IFeatureList fl)
         {
-            obj.SetUniform("material.ambient", (Vector3)Ambient);
-            obj.SetUniform("material.diffuse", (Vector3)Color);
-            obj.SetUniform("material.specular", (Vector3)Specular);
-            obj.SetUniform("material.shininess", Shininess);
+            if (DiffuseTexture != null)
+                fl.AddFeature("TEXTURE");
 
-            base.UpdateUniforms(obj);
+            up.SetUniform("material.ambient", (Vector3)Ambient);
+            up.SetUniform("material.diffuse", (Vector3)Color);
+            up.SetUniform("material.specular", (Vector3)Specular);
+            up.SetUniform("material.shininess", Shininess);
+
+            ctx.UpdateStandardVS(up, fl);
         }
+
+        public Texture2D? DiffuseTexture { get; set; } 
 
         public Color Ambient { get; set; }
 

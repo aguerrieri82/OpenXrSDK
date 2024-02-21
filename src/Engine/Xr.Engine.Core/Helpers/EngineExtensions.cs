@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System.Collections;
+using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -135,6 +137,13 @@ namespace OpenXr.Engine
         #endregion
 
         #region MISC
+
+        public static ShaderUpdate UpdateShader(this IShaderHandler handler, UpdateShaderContext ctx)
+        {
+            var builder = new ShaderUpdateBuilder();
+            handler.UpdateShader(ctx, builder, builder);
+            return builder.Result;
+        }
 
         public static void Update<T>(this IEnumerable<T> target, RenderContext ctx) where T : IRenderUpdate
         {
@@ -273,6 +282,7 @@ namespace OpenXr.Engine
                     geo.Vertices![i2].Normal = normal;
                 }
             }
+            geo.ActiveComponents |= VertexComponent.Normal;
             geo.Version++;
         }
 
@@ -493,6 +503,65 @@ namespace OpenXr.Engine
         {
             transform.Position = new Vector3(transform.Position.X, value, transform.Position.Z);
         }
+
+        #endregion
+
+        #region UNIFORMS
+
+
+        public static void SetUniformStruct(this IUniformProvider up, string name, object obj, bool optional = false)
+        {
+            foreach (var field in obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
+            {
+                var fullName = $"{name}.{field.Name}";
+                up.SetUniformObject(fullName, field.GetValue(obj)!, optional);
+            }
+        }
+
+        public static void SetUniformStructArray(this IUniformProvider up, string name, ICollection collection, bool optional = false)
+        {
+            var i = 0;
+            foreach (var item in collection)
+            {
+                up.SetUniformStruct($"{name}[{i}]", item, optional);
+                i++;
+            }
+        }
+
+        public static unsafe void SetUniformObject(this IUniformProvider up, string name, object obj, bool optional = false)
+        {
+            if (obj is Vector3 vec3)
+                up.SetUniform(name, vec3, optional);
+            else if (obj is Matrix4x4 mat4)
+                up.SetUniform(name, mat4, optional);
+            else if (obj is float flt)
+                up.SetUniform(name, flt, optional);
+            else if (obj is int vInt)
+                up.SetUniform(name, vInt, optional);
+            else if (obj is float[] fArray)
+                up.SetUniform(name, fArray, optional);
+            else if (obj is int[] iArray)
+                up.SetUniform(name, iArray, optional);
+            else
+            {
+                var type = obj.GetType();
+
+                if (type.IsValueType && !type.IsEnum && !type.IsPrimitive)
+                    up.SetUniformStruct(name, obj, optional);
+
+                else if (obj is ICollection coll)
+                {
+                    var gen = type.GetInterfaces()
+                            .First(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(ICollection<>));
+                    var elType = gen.GetGenericArguments()[0];
+                    if (elType.IsValueType && !elType.IsEnum && !elType.IsPrimitive)
+                        up.SetUniformStructArray(name, coll, optional);
+                }
+                else
+                    throw new NotSupportedException();
+            }
+        }
+
 
         #endregion
     }
