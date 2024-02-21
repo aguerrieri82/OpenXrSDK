@@ -1,0 +1,3 @@
+[submodule "third-party/etcpak"]
+	path = third-party/etcpak
+	url = https://github.com/aguerrieri82/etcpak
