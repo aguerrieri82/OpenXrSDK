@@ -24,6 +24,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+		<ProjectReference Include="..\Xr.Engine.Compression\Xr.Engine.Compression.csproj" />
 		<ProjectReference Include="..\Xr.Engine.Core\Xr.Engine.Core.csproj" />
 	</ItemGroup>
 

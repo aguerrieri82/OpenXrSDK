@@ -28,8 +28,9 @@
 
         public IGlProgramFactory? ProgramFactory { get; set; }
 
+        public bool RequireTextureCompression { get; set; }
 
-        public static readonly GlRenderOptions Default = new GlRenderOptions
+        public static GlRenderOptions Default() => new()
         {
             FloatPrecision = ShaderPrecision.High,
             ShaderVersion = "300 es"

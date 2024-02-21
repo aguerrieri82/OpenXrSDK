@@ -33,6 +33,11 @@ namespace OpenXr.Engine
             return new Vector4(color.R, color.G, color.B, color.A);
         }
 
+        public override string ToString()
+        {
+            return $"<{R},{G},{B},{A}>";
+        }
+
         public static Color White => new Color(1f, 1f, 1f, 1f);
 
         public static Color Transparent => new Color(0f, 0f, 0f, 0f);

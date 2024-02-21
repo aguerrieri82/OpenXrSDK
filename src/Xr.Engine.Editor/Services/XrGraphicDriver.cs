@@ -19,10 +19,8 @@ namespace Xr.Engine.Editor
         protected RenderHost _renderHost;
 
         protected GLEnum[] _validFormats = [
-           GLEnum.Rgb10A2,
-           GLEnum.Rgba16f,
-           GLEnum.Rgba8,
-           GLEnum.Rgba8SNorm];
+           GLEnum.Srgb8Alpha8,
+           GLEnum.Rgba8];
 
         public XrGraphicDriver(RenderHost host)
         {
@@ -73,6 +71,9 @@ namespace Xr.Engine.Editor
         public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
             Debug.Assert(viewInfo.SwapChainFormats != null);
+
+            var glFormat = viewInfo.SwapChainFormats.Select(a => (GLEnum)(int)a).ToArray();
+
 
             result.SwapChainFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
         }

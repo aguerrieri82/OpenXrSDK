@@ -236,6 +236,73 @@ namespace OpenXr.Engine
             return Vector3.Normalize(normal);
         }
 
+        public static void ComputeTangents(this Geometry3D geo)
+        {
+
+            var tan1 = new Vector3[geo.Indices!.Length];
+            var tan2 = new Vector3[geo.Indices!.Length];
+
+            int i = 0;
+            while (i < geo.Indices!.Length)
+            {
+                var i1 = geo.Indices[i++];
+                var i2 = geo.Indices[i++];
+                var i3 = geo.Indices[i++];
+
+                var v1 = geo.Vertices![i1].Pos;
+                var v2 = geo.Vertices![i2].Pos;
+                var v3 = geo.Vertices![i3].Pos;
+
+                var w1 = geo.Vertices![i1].UV;
+                var w2 = geo.Vertices![i2].UV;
+                var w3 = geo.Vertices![i3].UV;
+
+
+                float x1 = v2.X - v1.X;
+                float x2 = v3.X - v1.X;
+                float y1 = v2.Y - v1.Y;
+                float y2 = v3.Y - v1.Y;
+                float z1 = v2.Z - v1.Z;
+                float z2 = v3.Z - v1.Z;
+
+                float s1 = w2.X - w1.X;
+                float s2 = w3.X - w1.X;
+                float t1 = w2.Y - w1.Y;
+                float t2 = w3.Y - w1.Y;
+
+                float r = 1.0F / (s1 * t2 - s2 * t1);
+                var sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
+                var tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
+
+                tan1[i1] += sdir;
+                tan1[i2] += sdir;
+                tan1[i3] += sdir;
+
+                tan2[i1] += tdir;
+                tan2[i2] += tdir;
+                tan2[i3] += tdir;
+            }
+            
+
+            for (int a = 0; a < geo.Indices!.Length; a++)
+            {
+                ref var vert = ref geo.Vertices![geo.Indices[a]];
+
+                var n = vert.Normal;
+                var t = tan1[a];
+
+                var txyz = Vector3.Normalize(t - n * Vector3.Dot(n, t)); ;
+
+                vert.Tangent.X = txyz.X;
+                vert.Tangent.Y = txyz.Y;
+                vert.Tangent.Z = txyz.Z;
+                vert.Tangent.W = (Vector3.Dot(Vector3.Cross(n, t), tan2[a]) < 0.0F) ? -1.0F : 1.0F;
+            }
+
+            geo.ActiveComponents |= VertexComponent.Tangent;
+        }
+    
+
         public static void ComputeNormals(this Geometry3D geo)
         {
             if (geo.Indices != null && geo.Indices.Length > 0)

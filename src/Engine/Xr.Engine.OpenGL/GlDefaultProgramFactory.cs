@@ -1,6 +1,11 @@
-﻿using OpenXr.Engine;
-using OpenXr.Engine.OpenGL;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
 using Silk.NET.OpenGL;
+#endif
+
+using OpenXr.Engine;
+using OpenXr.Engine.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Linq;

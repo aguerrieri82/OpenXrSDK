@@ -30,8 +30,12 @@ namespace OpenXr.Engine.OpenGL
         [MemberNotNull(nameof(Fragment))]
         protected override void Build()
         {
-            Vertex = new GlShader(_gl, ShaderType.VertexShader, PatchShader(_vSource, ShaderType.VertexShader));
-            Fragment = new GlShader(_gl, ShaderType.FragmentShader, PatchShader(_fSource, ShaderType.FragmentShader));
+            var vSource = PatchShader(_vSource, ShaderType.VertexShader);
+            var fSource = PatchShader(_fSource, ShaderType.VertexShader);
+
+            Vertex = new GlShader(_gl, ShaderType.VertexShader, vSource);
+            Fragment = new GlShader(_gl, ShaderType.FragmentShader, fSource);
+
             Create(Vertex, Fragment);
         }
 

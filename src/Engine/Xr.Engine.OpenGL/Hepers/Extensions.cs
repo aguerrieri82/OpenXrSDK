@@ -1,5 +1,7 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+using Xr.Engine.Compression;
+
 #else
 using Silk.NET.OpenGL;
 #endif
@@ -39,7 +41,7 @@ namespace OpenXr.Engine.OpenGL
             return glObj;
         }
 
-        public static unsafe GlTexture2D CreateGlTexture(this Texture2D value, GL gl)
+        public static unsafe GlTexture2D CreateGlTexture(this Texture2D value, GL gl, bool requireCompression)
         {
             var texture = new GlTexture2D(gl)
             {
@@ -51,20 +53,30 @@ namespace OpenXr.Engine.OpenGL
 
             if (value.Data != null)
             {
-                texture.Create(value.Width, value.Height, value.Format, value.Compression, value.Data);
+                var data = value.Data;
+                var comp = value.Compression;
+
+                if (requireCompression)
+                {
+                    for (var i= 0; i < data.Count; i++)
+                    {
+                        var compData = EtcCompressor.Encode(data[i]);
+                        data[i] = compData[0];
+                    }
+                    comp = TextureCompressionFormat.Etc2;
+                }
+
+                texture.Create(value.Width, value.Height, value.Format, comp, data);
 
                 value.Data = null;
             }
             else
             {
                 if (value.Type == TextureType.Depth)
-                {
                     texture.Attach(OpenGLRender.Current!.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment));
-                }
                 else
                     texture.Create(value.Width, value.Height, value.Format, value.Compression);
             }
-
 
             return texture;
         }

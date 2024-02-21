@@ -6,11 +6,15 @@ namespace OpenXr.Engine
     {
         Depth32Float,
         Depth24Float,
+
+        Rgb24,
         Rgba32,
         Bgra32,
-        SBgra32,
-        Rgb24,
+
         SRgb24,
+        SBgra32,
+        SRgba32,
+
         Gray8
     }
 

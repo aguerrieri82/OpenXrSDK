@@ -45,22 +45,37 @@ namespace OpenXr.Samples
             //pt.Name = "light";
             pt.IsVisible = false;
 
-            var dl = scene.AddChild(new DirectionalLight() { Intensity = 1f });
+            var dl = scene.AddChild(new DirectionalLight() { Intensity = 0.5f });
             dl.Transform.Rotation = new Vector3(-0.16f, 0.18f, 0.35f);
             dl.Name = "light";
             dl.IsVisible = true;
 
+            var dl2 = scene.AddChild(new DirectionalLight() { Intensity = 0.5f });
+            dl.Transform.Rotation = new Vector3(-0.16f, 0.18f, 0.35f);
+            dl.Name = "light2";
+            dl.IsVisible = true;
+
+
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
-            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets);
-            var mesh = room.Descendants<TriangleMesh>().First();
-            mesh.Name = "mesh";
-            //mesh.Materials[0] = new StandardMaterial() { Color = new Color(1f, 1, 1, 1) };
-            scene.AddChild(mesh);
+            //("sponza/Sponza.gltf";
 
-            var camera = new PerspectiveCamera() { Far = 50f };
+            assets.FullPath("Sponza/Sponza.bin");
+
+            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets);
+            //var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets);
+            room.Name = "mesh";
+            //room.Transform.SetScale(0.01f);
+            //var mesh = room.Descendants<TriangleMesh>().First();
+            //mesh.Name = "mesh";
+            //mesh.Materials[0] = new StandardMaterial() { Color = new Color(1f, 1, 1, 1) };
+            var mainGrp = (Group)room.Children[0];
+            //mainGrp.Children.Skip(10).ForeachSafe(a => a.IsVisible = false);
+            scene.AddChild(room);
+
+            var camera = new PerspectiveCamera() { Far = 50f, Near = 0.01f };
             camera.BackgroundColor = Color.White;
-            camera!.LookAt(new Vector3(3f, 3f, 3f), Vector3.Zero, new Vector3(0, 1, 0));
+            camera!.LookAt(new Vector3(10f, 10f, 10f), Vector3.Zero, new Vector3(0, 1, 0));
 
             scene.ActiveCamera = camera;
 

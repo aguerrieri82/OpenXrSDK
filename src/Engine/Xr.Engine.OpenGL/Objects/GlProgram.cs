@@ -1,6 +1,5 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-
 #else
 using Silk.NET.OpenGL;
 #endif
@@ -108,6 +107,10 @@ namespace OpenXr.Engine.OpenGL
 
             _gl.GetProgram(_handle, ProgramPropertyARB.ActiveUniforms, out int count);
 
+#if GLES
+            return [];
+#else
+
             while (i < count)
             {
                 var buf = new string('\0', 256);
@@ -115,6 +118,7 @@ namespace OpenXr.Engine.OpenGL
                 yield return buf;
                 i++;
             }
+#endif
         }
 
         protected int LocateUniform(string name, bool optional = false, bool isBlock = false)
@@ -175,7 +179,7 @@ namespace OpenXr.Engine.OpenGL
         {
             _gl.ActiveTexture(TextureUnit.Texture0 + slot);
 
-            var texture = value.GetResource(a => value.CreateGlTexture(_gl));
+            var texture = value.GetResource(a => value.CreateGlTexture(_gl, _options.RequireTextureCompression));
 
             texture.Bind();
 

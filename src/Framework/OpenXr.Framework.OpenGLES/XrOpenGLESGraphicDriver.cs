@@ -14,10 +14,8 @@ namespace OpenXr.Framework.OpenGLES
         protected XrDynamicType _swapChainType;
 
         protected GLEnum[] _validFormats = [
-           GLEnum.Rgb10A2,
-           GLEnum.Rgba16f,
-           GLEnum.Rgba8,
-           GLEnum.Rgba8SNorm];
+           GLEnum.Srgb8Alpha8,
+           GLEnum.Rgba8];
 
         public XrOpenGLESGraphicDriver(IView view)
         {

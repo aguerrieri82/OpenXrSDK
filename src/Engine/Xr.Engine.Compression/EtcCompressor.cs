@@ -1,5 +1,4 @@
 ﻿using OpenXr.Engine;
-using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
 using System.Runtime.InteropServices;
 
@@ -56,14 +55,33 @@ namespace Xr.Engine.Compression
         static unsafe extern void Free(byte* data);
         public static IList<TextureData> Encode(string fileName, int mipsLevels)
         {
-            return Encode(File.ReadAllBytes(fileName), mipsLevels);
+            using var file = File.OpenRead(fileName);   
+            using var image = SKBitmap.Decode(file);
+
+            return Encode(image, mipsLevels);
         }
 
-        public unsafe static IList<TextureData> Encode(byte[] imageData, int mipsLevels)
+        public unsafe static IList<TextureData> Encode(TextureData data)
+        {
+            var skType = data.Format switch
+            {
+                TextureFormat.Rgba32 => SKColorType.Rgba8888,
+                TextureFormat.SRgba32 => SKColorType.Srgba8888,
+                TextureFormat.Bgra32 => SKColorType.Bgra8888,
+                _ => throw new NotSupportedException()
+            };
+
+            var image = new SKBitmap((int)data.Width, (int)data.Height, skType, SKAlphaType.Opaque);
+            fixed (byte* pDst = image.GetPixelSpan())
+            fixed (byte* pSrc = data.Data)
+                PackImage(data.Width, data.Height, pSrc, data.Width, data.Height, pDst, 4);
+
+            return Encode(image, 0);
+        }
+
+        public unsafe static IList<TextureData> Encode(SKBitmap image, int mipsLevels)
         {
             var result = new List<TextureData>();
-
-            using var image = SKBitmap.Decode(imageData);
 
             int level = 0;
 
@@ -92,13 +110,6 @@ namespace Xr.Engine.Compression
 
                 if (texData.Width != image.Width || texData.Height != image.Height)
                 {
-                    var scaleOptions = new ResizeOptions()
-                    {
-                        Size = new SixLabors.ImageSharp.Size((int)texData.Width, (int)texData.Height),
-                        Mode = ResizeMode.Pad,
-                        Sampler = KnownResamplers.Box
-                    };
-
                     var pWidth = (int)Math.Ceiling(texData.Width / 4f) * 4;
                     var pHeight = (int)Math.Ceiling(texData.Height / 4f) * 4;
 

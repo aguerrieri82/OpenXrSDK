@@ -40,8 +40,6 @@ namespace OpenXr.Test.Android
                 _webView.LoadUrl("https://www.youtube.com");
             }
 
-
-
             base.OnAppStarted(app);
         }
 
@@ -49,13 +47,13 @@ namespace OpenXr.Test.Android
         {
             var options = new OculusXrPluginOptions
             {
-                EnableMultiView = true,
-                SampleCount = 2,
-                ResolutionScale = 1.2f,
+                EnableMultiView = false,
+                SampleCount = 1,
+                ResolutionScale = 1f,
                 Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
             };
 
-            _game = SampleScenes.CreateDefaultScene(new AndroidAssetManager(this));
+            _game = SampleScenes.CreateSimpleScene(new AndroidAssetManager(this));
 
             var logger = new AndroidLogger("XrApp");
 
@@ -83,10 +81,13 @@ namespace OpenXr.Test.Android
                 _inputs.Right!.SqueezeClick!,
                 _inputs.Right!.Haptic!);
 
-            display.AddComponent(controller);
-            display.AddComponent<DisplayPosition>();
+            if (display != null)
+            {
+                display.AddComponent(controller);
+                display.AddComponent<DisplayPosition>();
 
-            //_webViewLayer = result.Layers.AddWebView(this, display.BindToQuad(), controller);
+                //_webViewLayer = result.Layers.AddWebView(this, display.BindToQuad(), controller);
+            }
 
             _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
             _game.ActiveScene!.AddComponent(new ObjectGrabber(
@@ -97,10 +98,12 @@ namespace OpenXr.Test.Android
 
             //_game.ActiveScene.AddChild(new OculusSceneModel());
 
-            result.BindEngineApp(
+            var renderer = result.BindEngineApp(
                 _game,
                 options.SampleCount,
                 options.EnableMultiView);
+
+            renderer.Options.RequireTextureCompression = true;
 
             // StartService(new Intent(this, typeof(WebLinkService)));
 
