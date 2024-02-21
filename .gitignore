@@ -377,3 +377,5 @@ Makefile
 /build/
 /dist/
 /src/RoomDesigner.Unity/OVRAssetBundles
+/src/Test/OpenXr.Test.Android/Assets/Sponza
+/src/Test/OpenXr.Test.Common/Assets/Sponza
