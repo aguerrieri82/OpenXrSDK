@@ -1,5 +1,4 @@
-﻿using SixLabors.ImageSharp;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace OpenXr.Engine
 {

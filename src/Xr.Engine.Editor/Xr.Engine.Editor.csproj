@@ -6,7 +6,11 @@
 		<UseWPF>true</UseWPF>
 		<XamlDebuggingInformation>TRue</XamlDebuggingInformation>
 	</PropertyGroup>
-
+	
+	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
+		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
+	</PropertyGroup>
+	
 	<ItemGroup>
 	  <PackageReference Include="WPF-Icons" Version="2.0.0" />
 	</ItemGroup>

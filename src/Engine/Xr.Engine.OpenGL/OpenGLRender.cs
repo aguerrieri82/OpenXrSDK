@@ -63,7 +63,7 @@ namespace OpenXr.Engine.OpenGL
         }
 
         public OpenGLRender(GL gl)
-            : this(gl, GlRenderOptions.Default)
+            : this(gl, GlRenderOptions.Default())
         {
         }
 
@@ -157,7 +157,7 @@ namespace OpenXr.Engine.OpenGL
                }
            }, 0);
 
-            _gl.Enable(EnableCap.DebugOutput);
+            //_gl.Enable(EnableCap.DebugOutput);
         }
 
         public void EnableFeature(EnableCap cap, bool value)
@@ -215,23 +215,25 @@ namespace OpenXr.Engine.OpenGL
 
             foreach (var shader in _content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
-                var prog = shader.Value!.Program;
+                var prog = shader.Value!.Program!;
 
                 targetOverride?.BeginEdit(prog);
 
                 foreach (var vertex in shader.Value.Contents)
                 {
+                    var vHandler = vertex.Value.VertexHandler!;
+
                     if (vertex.Key.Version != vertex.Value.Version)
                     {
-                        vertex.Value.VertexHandler!.Update();
+                        vHandler.Update();
                         vertex.Value.Version = vertex.Key.Version;
                     }
 
-                    vertex.Value.VertexHandler!.Bind();
+                    vHandler.Bind();
 
                     updateCtx.ActiveComponents = VertexComponent.None;
 
-                    foreach (var attr in vertex.Value.VertexHandler!.Layout!.Attributes!)
+                    foreach (var attr in vHandler.Layout!.Attributes!)
                         updateCtx.ActiveComponents |= attr.Component;
 
                     foreach (var draw in vertex.Value.Contents)
@@ -263,7 +265,7 @@ namespace OpenXr.Engine.OpenGL
                         draw.Draw!();
                     }
 
-                    vertex.Value.VertexHandler.Unbind();
+                    vHandler.Unbind();
                 }
 
                 prog.Unbind();
@@ -320,6 +322,8 @@ namespace OpenXr.Engine.OpenGL
         public Rect2I View => _view;
 
         public IGlRenderTarget? RenderTarget => _target;
+
+        public GlRenderOptions Options => _options;
 
         public static OpenGLRender? Current { get; internal set; }
 

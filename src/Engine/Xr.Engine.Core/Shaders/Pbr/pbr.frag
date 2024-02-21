@@ -267,12 +267,22 @@ void main()
     float ao = 1.0;
     // Apply optional PBR terms for additional (optional) shading
 #ifdef HAS_OCCLUSION_MAP
-    ao = texture(u_OcclusionSampler,  getOcclusionUV()).r;
-    diffuse = f_diffuse + mix(f_diffuse_ibl, f_diffuse_ibl * ao, u_OcclusionStrength);
-    // apply ambient occlusion to all lighting that is not punctual
-    specular = f_specular + mix(f_specular_ibl, f_specular_ibl * ao, u_OcclusionStrength);
-    sheen = f_sheen + mix(f_sheen_ibl, f_sheen_ibl * ao, u_OcclusionStrength);
-    clearcoat = f_clearcoat + mix(f_clearcoat_ibl, f_clearcoat_ibl * ao, u_OcclusionStrength);
+    ao = texture(u_OcclusionSampler, getOcclusionUV()).r;
+    #ifdef USE_IBL
+
+        diffuse = f_diffuse + mix(f_diffuse_ibl, f_diffuse_ibl * ao, u_OcclusionStrength);
+        // apply ambient occlusion to all lighting that is not punctual
+        specular = f_specular + mix(f_specular_ibl, f_specular_ibl * ao, u_OcclusionStrength);
+        sheen = f_sheen + mix(f_sheen_ibl, f_sheen_ibl * ao, u_OcclusionStrength);
+        clearcoat = f_clearcoat + mix(f_clearcoat_ibl, f_clearcoat_ibl * ao, u_OcclusionStrength);
+    #else
+        diffuse = f_diffuse * clamp(ao + (1.0 - u_OcclusionStrength), 0.0, 1.0);
+        specular = f_specular * clamp(ao + (1.0 - u_OcclusionStrength), 0.0, 1.0);
+        //specular = f_specular + mix(f_specular_ibl, f_specular_ibl * ao, u_OcclusionStrength);
+        //sheen = f_sheen + mix(f_sheen_ibl, f_sheen_ibl * ao, u_OcclusionStrength);
+        //clearcoat = f_clearcoat + mix(f_clearcoat_ibl, f_clearcoat_ibl * ao, u_OcclusionStrength);
+    #endif
+
 #else
     diffuse = f_diffuse_ibl + f_diffuse;
     specular = f_specular_ibl + f_specular;
@@ -305,7 +315,7 @@ void main()
     // Late discard to avoid samplig artifacts. See https://github.com/KhronosGroup/glTF-Sample-Viewer/issues/267
     if (baseColor.a < u_AlphaCutoff)
     {
-        discard;
+       // discard;
     }
     baseColor.a = 1.0;
 #endif

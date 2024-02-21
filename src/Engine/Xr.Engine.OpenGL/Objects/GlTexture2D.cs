@@ -109,11 +109,12 @@ namespace OpenXr.Engine.OpenGL
                         internalFormat = InternalFormat.DepthComponent24;
                         break;
                     case TextureFormat.SBgra32:
-                        internalFormat = InternalFormat.Srgb8;
+                    case TextureFormat.SRgba32:
+                        internalFormat = InternalFormat.Srgb8Alpha8;
                         break;
                     case TextureFormat.Rgba32:
                     case TextureFormat.Bgra32:
-                        internalFormat = InternalFormat.Rgb8;
+                        internalFormat = InternalFormat.Rgba8;
                         break;
                     case TextureFormat.Gray8:
                         internalFormat = InternalFormat.R8;
@@ -128,8 +129,8 @@ namespace OpenXr.Engine.OpenGL
                     case TextureFormat.Depth24Float:
                         pixelFormat = PixelFormat.DepthComponent;
                         break;
+                    case TextureFormat.SRgba32:
                     case TextureFormat.Rgba32:
-
                         pixelFormat = PixelFormat.Rgba;
                         break;
                     case TextureFormat.SBgra32:
@@ -154,6 +155,7 @@ namespace OpenXr.Engine.OpenGL
                     case TextureFormat.Gray8:
                     case TextureFormat.SRgb24:
                     case TextureFormat.SBgra32:
+                    case TextureFormat.SRgba32:
                         pixelType = PixelType.UnsignedByte;
                         break;
                     default:
@@ -231,6 +233,11 @@ namespace OpenXr.Engine.OpenGL
                         case TextureFormat.SRgb24:
                             internalFormat = InternalFormat.CompressedSrgb8Etc2;
                             break;
+                        case TextureFormat.SRgba32:
+                            //TODO change
+                            //internalFormat = InternalFormat.CompressedSrgb8Alpha8Etc2Eac;
+                            internalFormat = InternalFormat.CompressedRgba8Etc2Eac;
+                            break;
                         case TextureFormat.Rgba32:
                             internalFormat = InternalFormat.CompressedRgba8Etc2Eac;
                             break;
@@ -266,15 +273,33 @@ namespace OpenXr.Engine.OpenGL
                     }
                 }
 
-
                 _isCompressed = true;
             }
 
             _internalFormat = internalFormat;
 
-            MaxLevel = data != null ? data[data.Count - 1].MipLevel : 1;
-            MinFilter = MaxLevel <= 1 ? TextureMinFilter.Linear : TextureMinFilter.LinearMipmapLinear;
-            MagFilter = TextureMagFilter.Linear;
+            if (data != null)
+            {
+                if (data.Count == 1)
+                {
+                    if (MinFilter == TextureMinFilter.LinearMipmapLinear)
+                    {
+                        if (!_isCompressed)
+                        {
+                            _gl.GenerateMipmap(Target);
+                            _gl.GetTexParameter(Target, GetTextureParameter.TextureMaxLevelSgis, out int ml);
+                            MaxLevel = (uint)ml;
+                        }
+                        else
+                            MinFilter = TextureMinFilter.Linear;
+                    }
+                }
+                else
+                {
+                    MaxLevel = data[data.Count - 1].MipLevel;
+                    MinFilter = TextureMinFilter.LinearMipmapLinear;
+                }
+            }
 
             Update();
         }
@@ -297,9 +322,6 @@ namespace OpenXr.Engine.OpenGL
             {
                 _gl.TexParameter(Target, TextureParameterName.TextureBaseLevel, BaseLevel);
                 _gl.TexParameter(Target, TextureParameterName.TextureMaxLevel, MaxLevel);
-
-                if (!_isCompressed)
-                    _gl.GenerateMipmap(Target);
             }
 
             Unbind();

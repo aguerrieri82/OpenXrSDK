@@ -119,6 +119,14 @@ namespace OpenXr.Engine
         DEBUG_NONE
     }
 
+    public enum PbrToneMap
+    {
+        TONEMAP_NONE,
+        TONEMAP_ACES_NARKOWICZ,
+        TONEMAP_ACES_HILL,
+        TONEMAP_ACES_HILL_EXPOSURE_BOOST
+    }
+
     public class PbrMaterial : ShaderMaterial
     {
         static readonly Shader SHADER;
@@ -127,8 +135,8 @@ namespace OpenXr.Engine
         {
             SHADER = new Shader
             {
-                FragmentSourceName = "pbr.frag",
-                VertexSourceName = "primitive.vert",
+                FragmentSourceName = "pbr/pbr.frag",
+                VertexSourceName = "pbr/primitive.vert",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = true
             };
@@ -139,6 +147,7 @@ namespace OpenXr.Engine
         {
             Shader = SHADER;
             Debug = PbrDebugFlags.DEBUG_NONE;
+            //ToneMap = PbrToneMap.TONEMAP_ACES_NARKOWICZ;
         }
 
         public static PbrMaterial CreateDefault()
@@ -279,12 +288,19 @@ namespace OpenXr.Engine
                     }
                     else if (light is DirectionalLight directional)
                     {
+                        var dir = directional.Forward;
+
+                        if (lights.Count == 0)
+                            dir = new Vector3(-0.5f, 0.7f, 0.5f).Normalize();
+                        else if (lights.Count == 1)
+                            dir = new Vector3(0.5f, -0.7f, -0.5f).Normalize();
+
                         lights.Add(new PbrLightUniform
                         {
                             type = PbrLightUniform.Directional,
                             color = (Vector3)directional.Color,
                             position = directional.WorldPosition,
-                            direction = directional.Forward,
+                            direction = dir,
                             intensity = directional.Intensity,
                             innerConeCos = 1,
                             outerConeCos = MathF.Cos(MathF.PI / 4f),
@@ -309,6 +325,8 @@ namespace OpenXr.Engine
                 }
 
                 up.SetUniformStructArray("u_Lights", lights);
+
+                lightCount = lights.Count;
             }
 
             if (lightCount > 0)
@@ -316,7 +334,13 @@ namespace OpenXr.Engine
 
             fl.AddFeature($"LIGHT_COUNT {lightCount}");
 
-            //fl.AddFeature("LINEAR_OUTPUT");
+            if (LinearOutput)
+                fl.AddFeature("LINEAR_OUTPUT");
+            else
+            {
+                if (ToneMap != PbrToneMap.TONEMAP_NONE)
+                    fl.AddFeature(ToneMap.ToString());
+            }
 
             fl.AddFeature("ALPHAMODE_OPAQUE 0");
             fl.AddFeature("ALPHAMODE_MASK 1");
@@ -392,6 +416,10 @@ namespace OpenXr.Engine
 
         public bool HasAnisotropy { get; set; }
         */
+
+        public bool LinearOutput { get; set; }
+
+        public PbrToneMap ToneMap { get; set; }
 
         public PbrMaterialType Type { get; set; }
 

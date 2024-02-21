@@ -12,11 +12,8 @@ namespace OpenXr.Framework.Android
         protected KhrOpenglEsEnable? _openGlEs;
 
         protected GLEnum[] _validFormats = [
-                 GLEnum.Rgb10A2,
-                 GLEnum.Rgba16f,
-                 GLEnum.Rgba8,
-                 GLEnum.Rgba8SNorm];
-
+           GLEnum.Srgb8Alpha8,
+           GLEnum.Rgba8];
 
         public AndroidXrOpenGLESGraphicDriver()
             : this(OpenGLESContext.Create())
@@ -55,7 +52,6 @@ namespace OpenXr.Framework.Android
 
             result.SwapChainFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
         }
-
 
         public GraphicsBinding CreateBinding()
         {

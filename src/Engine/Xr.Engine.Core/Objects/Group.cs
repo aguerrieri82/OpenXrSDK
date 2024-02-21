@@ -29,6 +29,7 @@
         {
             base.Update(ctx);
 
+  
             UpdateSelf(ctx);
 
             _children.Update(ctx);
@@ -36,6 +37,7 @@
 
         protected virtual void UpdateSelf(RenderContext ctx)
         {
+            _transform.Update();
 
         }
 

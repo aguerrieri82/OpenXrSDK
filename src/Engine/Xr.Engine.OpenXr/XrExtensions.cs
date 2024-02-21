@@ -33,7 +33,7 @@ namespace Xr.Engine.OpenXr
             };
         }
 
-        public static void BindEngineApp(this XrApp xrApp, EngineApp app, uint sampleCount = 1, bool multiView = false)
+        public static OpenGLRender BindEngineApp(this XrApp xrApp, EngineApp app, uint sampleCount = 1, bool multiView = false)
         {
             GlRenderTargetFactory factory;
 
@@ -54,10 +54,10 @@ namespace Xr.Engine.OpenXr
                     };
             }
 
-            xrApp.BindEngineApp(app, factory, multiView);
+            return xrApp.BindEngineApp(app, factory, multiView);
         }
 
-        public static void BindEngineApp(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory, bool multiView)
+        public static OpenGLRender BindEngineApp(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory, bool multiView)
         {
             OpenGLRender renderer;
 
@@ -136,8 +136,7 @@ namespace Xr.Engine.OpenXr
             else
                 xrApp.Layers.AddProjection(RenderView);
 
-            return;
-
+            return renderer;
         }
     }
 }
