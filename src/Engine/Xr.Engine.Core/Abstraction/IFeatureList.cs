@@ -6,5 +6,6 @@ namespace OpenXr.Engine
     {
         void AddFeature(string name);
 
+        void AddExtension(string name);
     }
 }

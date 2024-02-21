@@ -23,10 +23,10 @@
             WriteColor = false;
         }
 
-        public override void UpdateShader(UpdateShaderContext ctx, IUniformProvider up, IFeatureList fl)
+        public override void UpdateShader(ShaderUpdateBuilder bld)
         {
-            up.SetUniform("color", Color.Transparent);
-            ctx.UpdateStandardVS(up, fl);
+            bld.SetUniform("uColor", ctx => Color.Transparent);
+            bld.UpdateStandardVS();
         }
 
         public static readonly DepthOnlyMaterial Instance = new DepthOnlyMaterial();

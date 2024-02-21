@@ -72,12 +72,6 @@ namespace OpenXr.Engine.OpenGL
                 _gl.DrawArrays(primitive, 0, _vBuf.Length);
                 GlDebug.Log($"DrawArrays Triangles {_vBuf.Length}");
             }
-
-            var err = _gl.GetError();
-            if (err != GLEnum.False)
-            {
-                GlDebug.Log($"Error: {err}");
-            }
         }
 
         protected unsafe void Configure()

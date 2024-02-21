@@ -131,6 +131,7 @@ namespace OpenXr.Engine
     {
         static readonly Shader SHADER;
 
+
         static PbrMaterial()
         {
             SHADER = new Shader
@@ -147,6 +148,7 @@ namespace OpenXr.Engine
         {
             Shader = SHADER;
             Debug = PbrDebugFlags.DEBUG_NONE;
+            LinearOutput = false;
             //ToneMap = PbrToneMap.TONEMAP_ACES_NARKOWICZ;
         }
 
@@ -162,116 +164,133 @@ namespace OpenXr.Engine
             };
         }
 
-        public override void UpdateShader(UpdateShaderContext ctx, IUniformProvider up, IFeatureList fl)
+        public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             if (NormalTexture != null)
             {
-                fl.AddFeature("HAS_NORMAL_MAP 1");
+                bld.AddFeature("HAS_NORMAL_MAP 1");
 
-                up.SetUniform("u_NormalScale", NormalScale);
-                up.SetUniform("u_NormalUVSet", NormalUVSet);
-                up.SetUniform("u_NormalSampler", NormalTexture, 1);
+                bld.SetUniform("u_NormalScale", (ctx) => NormalScale);
+                bld.SetUniform("u_NormalUVSet", (ctx) => NormalUVSet);
+                bld.SetUniform("u_NormalSampler", (ctx) => NormalTexture, 1);
             }
 
             if (OcclusionTexture != null)
             {
-                fl.AddFeature("HAS_OCCLUSION_MAP 1");
-                up.SetUniform("u_OcclusionStrength", OcclusionStrength);
-                up.SetUniform("u_OcclusionUVSet", OcclusionUVSet);
-                up.SetUniform("u_OcclusionSampler", OcclusionTexture, 2);
+                bld.AddFeature("HAS_OCCLUSION_MAP 1");
+                bld.SetUniform("u_OcclusionStrength", (ctx) => OcclusionStrength);
+                bld.SetUniform("u_OcclusionUVSet", (ctx) => OcclusionUVSet);
+                bld.SetUniform("u_OcclusionSampler", (ctx) => OcclusionTexture, 2);
             }
 
-            up.SetUniform("u_EmissiveFactor", EmissiveFactor);
+            bld.SetUniform("u_EmissiveFactor", (ctx) => EmissiveFactor);
 
             if (EmissiveTexture != null)
             {
-                fl.AddFeature("HAS_EMISSIVE_MAP 1");
-                up.SetUniform("u_EmissiveSampler", EmissiveTexture, 3);
+                bld.AddFeature("HAS_EMISSIVE_MAP 1");
+                bld.SetUniform("u_EmissiveSampler", (ctx) => EmissiveTexture, 3);
             }
 
             if (MetallicRoughness != null || Type == PbrMaterialType.Metallic)
             {
-                fl.AddFeature("MATERIAL_METALLICROUGHNESS 1");
+                bld.AddFeature("MATERIAL_METALLICROUGHNESS 1");
 
-                up.SetUniform("u_MetallicFactor", MetallicRoughness?.MetallicFactor ?? 1);
-                up.SetUniform("u_RoughnessFactor", MetallicRoughness?.RoughnessFactor ?? 1);
-                up.SetUniform("u_BaseColorFactor", MetallicRoughness?.BaseColorFactor ?? Color.White);
+                bld.SetUniform("u_MetallicFactor", (ctx) => MetallicRoughness?.MetallicFactor ?? 1);
+                bld.SetUniform("u_RoughnessFactor", (ctx) => MetallicRoughness?.RoughnessFactor ?? 1);
+                bld.SetUniform("u_BaseColorFactor", (ctx) => MetallicRoughness?.BaseColorFactor ?? Color.White);
 
 
                 if (MetallicRoughness?.BaseColorTexture != null)
                 {
-                    fl.AddFeature("HAS_BASE_COLOR_MAP 1");
+                    bld.AddFeature("HAS_BASE_COLOR_MAP 1");
 
-                    up.SetUniform("u_BaseColorUVSet", MetallicRoughness.BaseColorUVSet);
-                    up.SetUniform("u_BaseColorSampler", MetallicRoughness.BaseColorTexture, 4);
+                    bld.SetUniform("u_BaseColorUVSet", (ctx) => MetallicRoughness.BaseColorUVSet);
+                    bld.SetUniform("u_BaseColorSampler", (ctx) => MetallicRoughness.BaseColorTexture, 4);
                 }
 
                 if (MetallicRoughness?.MetallicRoughnessTexture != null)
                 {
-                    fl.AddFeature("HAS_METALLIC_ROUGHNESS_MAP 1");
+                    bld.AddFeature("HAS_METALLIC_ROUGHNESS_MAP 1");
 
-                    up.SetUniform("u_MetallicRoughnessUVSet", MetallicRoughness.MetallicRoughnessUVSet);
-                    up.SetUniform("u_MetallicRoughnessSampler", MetallicRoughness.MetallicRoughnessTexture, 5);
+                    bld.SetUniform("u_MetallicRoughnessUVSet", (ctx) => MetallicRoughness.MetallicRoughnessUVSet);
+                    bld.SetUniform("u_MetallicRoughnessSampler", (ctx) => MetallicRoughness.MetallicRoughnessTexture, 5);
                 }
             }
 
             else if (SpecularGlossiness != null || Type == PbrMaterialType.Specular)
             {
-                fl.AddFeature("MATERIAL_SPECULARGLOSSINESS 1");
+                bld.AddFeature("MATERIAL_SPECULARGLOSSINESS 1");
 
                 if (SpecularGlossiness?.DiffuseTexture != null)
                 {
-                    fl.AddFeature("HAS_DIFFUSE_MAP 1");
+                    bld.AddFeature("HAS_DIFFUSE_MAP 1");
 
-                    up.SetUniform("u_DiffuseUVSet", SpecularGlossiness.DiffuseUVSet);
-                    up.SetUniform("u_DiffuseSampler", SpecularGlossiness.DiffuseTexture, 4);
+                    bld.SetUniform("u_DiffuseUVSet", (ctx) => SpecularGlossiness.DiffuseUVSet);
+                    bld.SetUniform("u_DiffuseSampler", (ctx) => SpecularGlossiness.DiffuseTexture, 4);
                 }
 
                 if (SpecularGlossiness?.SpecularGlossinessTexture != null)
                 {
-                    fl.AddFeature("HAS_SPECULAR_GLOSSINESS_MAP 1");
+                    bld.AddFeature("HAS_SPECULAR_GLOSSINESS_MAP 1");
 
-                    up.SetUniform("u_SpecularGlossinessUVSet", SpecularGlossiness.SpecularGlossinessUVSet);
-                    up.SetUniform("u_SpecularGlossinessSampler", SpecularGlossiness.SpecularGlossinessTexture, 5);
+                    bld.SetUniform("u_SpecularGlossinessUVSet", (ctx) => SpecularGlossiness.SpecularGlossinessUVSet);
+                    bld.SetUniform("u_SpecularGlossinessSampler", (ctx) => SpecularGlossiness.SpecularGlossinessTexture, 5);
                 }
 
-                up.SetUniform("u_DiffuseFactor", SpecularGlossiness?.DiffuseFactor ?? Color.White);
-                up.SetUniform("u_SpecularFactor", SpecularGlossiness?.SpecularFactor ?? Color.White);
-                up.SetUniform("u_GlossinessFactor", SpecularGlossiness?.GlossinessFactor ?? 1);
+                bld.SetUniform("u_DiffuseFactor", (ctx) => SpecularGlossiness?.DiffuseFactor ?? Color.White);
+                bld.SetUniform("u_SpecularFactor", (ctx) => SpecularGlossiness?.SpecularFactor ?? Color.White);
+                bld.SetUniform("u_GlossinessFactor", (ctx) => SpecularGlossiness?.GlossinessFactor ?? 1);
             }
             else
-                fl.AddFeature("MATERIAL_UNLIT 1");
+                bld.AddFeature("MATERIAL_UNLIT 1");
 
-            if (AlphaMode== AlphaMode.Mask)
+            if (AlphaMode == AlphaMode.Mask)
             {
-                fl.AddFeature("ALPHAMODE ALPHAMODE_MASK");
-                up.SetUniform("u_AlphaCutoff", AlphaCutoff);
+                bld.AddFeature("ALPHAMODE ALPHAMODE_MASK");
+                bld.SetUniform("u_AlphaCutoff", (ctx) => AlphaCutoff);
             }
             else if (AlphaMode == AlphaMode.Opaque)
-                fl.AddFeature("ALPHAMODE ALPHAMODE_OPAQUE");
+                bld.AddFeature("ALPHAMODE ALPHAMODE_OPAQUE");
             else
-                fl.AddFeature("ALPHAMODE ALPHAMODE_BLEND");
+                bld.AddFeature("ALPHAMODE ALPHAMODE_BLEND");
 
 
-            if (ctx.Model != null)
+
+            if (LinearOutput)
+                bld.AddFeature("LINEAR_OUTPUT");
+            else
             {
-                up.SetUniform("u_ModelMatrix", ctx.Model.WorldMatrix);
-                up.SetUniform("u_NormalMatrix", Matrix4x4.Transpose(ctx.Model.WorldMatrixInverse));
+                if (ToneMap != PbrToneMap.TONEMAP_NONE)
+                    bld.AddFeature(ToneMap.ToString());
             }
 
-            if (ctx.Camera != null)
+            bld.AddFeature("ALPHAMODE_OPAQUE 0");
+            bld.AddFeature("ALPHAMODE_MASK 1");
+            bld.AddFeature("ALPHAMODE_BLEND 2");
+
+            foreach (var value in Enum.GetValues<PbrDebugFlags>())
+                bld.AddFeature($"{value} {(int)value}");
+
+            bld.AddFeature($"DEBUG {Debug}");
+
+            if (bld.Context.Model != null)
             {
-                up.SetUniform("u_Exposure", ctx.Camera.Exposure);
-                up.SetUniform("u_Camera", ctx.Camera.Transform.Position);
-                up.SetUniform("u_ViewProjectionMatrix", ctx.Camera.Transform.Matrix * ctx.Camera.Projection);
+                bld.SetUniform("u_ModelMatrix", (ctx) => ctx.Model!.WorldMatrix);
+                bld.SetUniform("u_NormalMatrix", (ctx) => Matrix4x4.Transpose(ctx.Model!.WorldMatrixInverse));
             }
 
-            int lightCount = 0;
-            if (ctx.Lights != null)
+            if (bld.Context.Camera != null)
+            {
+                bld.SetUniform("u_Exposure", (ctx) => ctx.Camera!.Exposure);
+                bld.SetUniform("u_Camera", (ctx) => ctx.Camera!.Transform.Position);
+                bld.SetUniform("u_ViewProjectionMatrix", (ctx) => ctx.Camera!.Transform.Matrix * ctx.Camera.Projection);
+            }
+
+            if (bld.Context.Lights != null)
             {
                 var lights = new List<PbrLightUniform>();
 
-                foreach (var light in ctx.Lights)
+                foreach (var light in bld.Context.Lights)
                 {
                     if (light is PointLight point)
                     {
@@ -324,53 +343,36 @@ namespace OpenXr.Engine
                     }
                 }
 
-                up.SetUniformStructArray("u_Lights", lights);
+                bld.SetUniformConstStructArray("u_Lights", lights);
 
-                lightCount = lights.Count;
+                bld.AddFeature("USE_PUNCTUAL 1");
+
+                bld.AddFeature($"LIGHT_COUNT {lights.Count}");
             }
-
-            if (lightCount > 0)
-                fl.AddFeature("USE_PUNCTUAL 1");
-
-            fl.AddFeature($"LIGHT_COUNT {lightCount}");
-
-            if (LinearOutput)
-                fl.AddFeature("LINEAR_OUTPUT");
             else
-            {
-                if (ToneMap != PbrToneMap.TONEMAP_NONE)
-                    fl.AddFeature(ToneMap.ToString());
-            }
+                bld.AddFeature($"LIGHT_COUNT 0");
 
-            fl.AddFeature("ALPHAMODE_OPAQUE 0");
-            fl.AddFeature("ALPHAMODE_MASK 1");
-            fl.AddFeature("ALPHAMODE_BLEND 2");
 
-            foreach (var value in Enum.GetValues<PbrDebugFlags>())
-                fl.AddFeature($"{value} {(int)value}");
+            if ((bld.Context.ActiveComponents & VertexComponent.Normal) != 0)
+                bld.AddFeature("HAS_NORMAL_VEC3");
 
-            fl.AddFeature($"DEBUG {Debug}");
+            if ((bld.Context.ActiveComponents & VertexComponent.Position) != 0)
+                bld.AddFeature("HAS_POSITION_VEC3");
 
-            if ((ctx.ActiveComponents & VertexComponent.Normal) != 0)
-                fl.AddFeature("HAS_NORMAL_VEC3");
+            if ((bld.Context.ActiveComponents & VertexComponent.Tangent) != 0)
+                bld.AddFeature("HAS_TANGENT_VEC4");
 
-            if ((ctx.ActiveComponents & VertexComponent.Position) != 0)
-                fl.AddFeature("HAS_POSITION_VEC3");
+            if ((bld.Context.ActiveComponents & VertexComponent.UV0) != 0)
+                bld.AddFeature("HAS_TEXCOORD_0_VEC2");
 
-            if ((ctx.ActiveComponents & VertexComponent.Tangent) != 0)
-                fl.AddFeature("HAS_TANGENT_VEC4");
+            if ((bld.Context.ActiveComponents & VertexComponent.UV1) != 0)
+                bld.AddFeature("HAS_TEXCOORD_1_VEC2");
 
-            if ((ctx.ActiveComponents & VertexComponent.UV0) != 0)
-                fl.AddFeature("HAS_TEXCOORD_0_VEC2");
+            if ((bld.Context.ActiveComponents & VertexComponent.Color3) != 0)
+                bld.AddFeature("HAS_COLOR_0_VEC3");
 
-            if ((ctx.ActiveComponents & VertexComponent.UV1) != 0)
-                fl.AddFeature("HAS_TEXCOORD_1_VEC2");
-
-            if ((ctx.ActiveComponents & VertexComponent.Color3) != 0)
-                fl.AddFeature("HAS_COLOR_0_VEC3");
-
-            if ((ctx.ActiveComponents & VertexComponent.Color4) != 0)
-                fl.AddFeature("HAS_COLOR_0_VEC4");
+            if ((bld.Context.ActiveComponents & VertexComponent.Color4) != 0)
+                bld.AddFeature("HAS_COLOR_0_VEC4");
         }
 
         public PbrSpecularGlossiness? SpecularGlossiness { get; set; }

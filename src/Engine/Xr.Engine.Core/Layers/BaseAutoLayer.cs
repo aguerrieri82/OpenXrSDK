@@ -24,9 +24,14 @@ namespace OpenXr.Engine
             _manager = null;
         }
 
+        protected virtual bool AffectChange(ObjectChange change)
+        {
+            return true;
+        }
+
         public virtual void NotifyChanged(Object3D obj, ObjectChange change)
         {
-            if (obj is T tObj)
+            if (obj is T tObj && AffectChange(change))
             {
                 if (BelongsToLayer(tObj))
                     Add(tObj);

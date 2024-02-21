@@ -27,27 +27,10 @@ var host = Host.CreateDefaultBuilder(args)
 
 _ = host.RunAsync();
 
-var matrix1 = Matrix4x4.CreateScale(0.5f) *
-            Matrix4x4.CreateTranslation(1f, 0, 0);
-
-var matrix2 = Matrix4x4.CreateTranslation(1f, 0, 0) *
-              Matrix4x4.CreateScale(0.5f);
-
-
-var vector = new Vector3(1, 1, 1);
-
-Debug.WriteLine(vector.Transform(matrix1));
-Debug.WriteLine(vector.Transform(matrix2));
-
-
-
-
-
 Gpu.EnableNvAPi();
 
 var logger = host.Services.GetRequiredService<ILogger<object>>();
 
-Tasks.WriteMesh("d:\\test.obj");
 
 //await WebLinkApp.Run(host.Services, logger);
 await WindowSceneApp.Run(host.Services, logger);

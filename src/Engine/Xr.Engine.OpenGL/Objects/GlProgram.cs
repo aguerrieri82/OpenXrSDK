@@ -20,8 +20,8 @@ namespace OpenXr.Engine.OpenGL
     {
         protected readonly Dictionary<string, int> _locations = [];
         protected readonly GlRenderOptions _options;
-        protected readonly HashSet<string> _features = [];
-        protected readonly HashSet<string> _extensions = [];
+        protected readonly List<string> _features = [];
+        protected readonly List<string> _extensions = [];
         protected readonly Func<string, string> _resolver;
         protected string _programId = "";
 
@@ -46,23 +46,12 @@ namespace OpenXr.Engine.OpenGL
 
         }
 
-        public virtual void Commit()
+        public virtual void Commit(string hash)
         {
-            var hash = _features.Count == 0 ?
-                        _programId :
-                        string.Concat(_programId, ":", Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(string.Join(',', _features)))));
-
-            if (hash != _currentHash)
+            if (!_programsCache.ContainsKey(hash))
             {
-                if (!_programsCache.TryGetValue(hash, out var progId))
-                {
-                    Build();
-                    _programsCache[hash] = _handle;  
-                }
-                else
-                    _handle = progId;   
-
-                _currentHash = hash;
+                Build();
+                _programsCache[hash] = _handle;
             }
         }
 
@@ -89,9 +78,12 @@ namespace OpenXr.Engine.OpenGL
             }
         }
 
-        public void Use()
+        public void Use(string featureHash)
         {
+            _handle = _programsCache[featureHash];
+
             _gl.UseProgram(_handle);
+
             GlDebug.Log($"UseProgram {_handle}");
         }
 
@@ -123,7 +115,9 @@ namespace OpenXr.Engine.OpenGL
 
         protected int LocateUniform(string name, bool optional = false, bool isBlock = false)
         {
-            if (!_locations.TryGetValue(name, out var result))
+            var key = $"{_handle}{name}";
+
+            if (!_locations.TryGetValue(key, out var result))
             {
                 if (isBlock)
                     result = (int)_gl.GetUniformBlockIndex(_handle, name);
@@ -135,7 +129,7 @@ namespace OpenXr.Engine.OpenGL
                     //throw new Exception($"{name} uniform not found on shader.");
                 }
 
-                _locations[name] = result;
+                _locations[key] = result;
             }
             return result;
         }
@@ -170,9 +164,9 @@ namespace OpenXr.Engine.OpenGL
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
-        public void SetUniformBuffer<T>(string name, GlBuffer<T> buffer, bool optional = false) where T : unmanaged
+        public void SetUniform(string name, IBuffer buffer, bool optional = false) 
         {
-            _gl.BindBufferBase(BufferTargetARB.UniformBuffer, (uint)LocateUniform(name, false, true), buffer.Handle);
+            _gl.BindBufferBase(BufferTargetARB.UniformBuffer, (uint)LocateUniform(name, optional, true), ((GlObject)buffer).Handle);
         }
 
         public unsafe void SetUniform(string name, Texture2D value, int slot = 0, bool optional = false)

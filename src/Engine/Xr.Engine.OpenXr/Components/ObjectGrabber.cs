@@ -50,11 +50,12 @@ namespace Xr.Engine.OpenXr
 
             if (_grabObject == null)
             {
-                foreach (var item in _host!.Scene!.VisibleDescendants<Object3D>())
+
+                foreach (var item in _host!.Scene!.ObjectsWithComponent<IGrabbable>())
                 {
                     foreach (var grabbable in item.Components<IGrabbable>())
                     {
-                        if (grabbable.CanGrab(_input.Value.Position))
+                        if (grabbable.IsEnabled && grabbable.CanGrab(_input.Value.Position))
                         {
                             _grabbable = grabbable;
                             _grabObject = item;

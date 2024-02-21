@@ -9,12 +9,15 @@
 		<ApplicationVersion>1</ApplicationVersion>
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
+	    <DebugSymbols>True</DebugSymbols>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<RunAOTCompilation>True</RunAOTCompilation>
 		<PublishTrimmed>True</PublishTrimmed>
 		<EnableLLVM>False</EnableLLVM>
+		<DebugSymbols>False</DebugSymbols>
+		<AndroidLinkTool>r8</AndroidLinkTool>
 	</PropertyGroup>
 
 
