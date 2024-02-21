@@ -2,6 +2,12 @@
 in vec3 fPos;
 in vec2 fUv;
 
+#ifdef TEXTURE
+
+uniform sampler2D uTexture0;
+
+#endif
+
 struct Material {
     vec3 ambient;
     vec3 diffuse;
@@ -30,6 +36,10 @@ void main()
       vec3 lightDirection = normalize(light.position - fPos);
       float diff = max(dot(norm, lightDirection), 0.0);
       vec3 diffuse = light.diffuse * (diff * material.diffuse);
+
+      #ifdef TEXTURE
+       diffuse *= texture(uTexture0, fUv).rgb;
+      #endif
 
       vec3 viewDirection = normalize(uViewPos - fPos);
       vec3 reflectDirection = reflect(-lightDirection, norm);

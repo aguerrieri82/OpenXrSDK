@@ -2,6 +2,7 @@
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using static System.Formats.Asn1.AsnWriter;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OpenXr.Engine
@@ -67,6 +68,19 @@ namespace OpenXr.Engine
             return layer;
         }
 
+        public static IEnumerable<Object3D> ObjectsWithComponent<TComp>(this Scene scene) where TComp : IComponent
+        {
+            var layer = scene.Layers.OfType<ComponentLayer<TComp>>().FirstOrDefault();
+            if (layer == null)
+            {
+                layer = new ComponentLayer<TComp>();
+                scene.Layers.Add(layer);
+            }
+
+            return layer.Content.Cast<Object3D>();
+        }
+    
+
         public static IEnumerable<T> TypeLayerContent<T>(this Scene scene) where T : Object3D
         {
             var layer = scene.Layers.OfType<TypeLayer<T>>().FirstOrDefault();
@@ -78,7 +92,8 @@ namespace OpenXr.Engine
 
         public static IEnumerable<Collision> RayCollisions(this Scene scene, Ray3 ray)
         {
-            foreach (var obj in scene.VisibleDescendants<Object3D>())
+
+            foreach (var obj in scene.ObjectsWithComponent<ICollider>())
             {
                 foreach (var collider in obj.Components<ICollider>())
                 {
@@ -138,12 +153,6 @@ namespace OpenXr.Engine
 
         #region MISC
 
-        public static ShaderUpdate UpdateShader(this IShaderHandler handler, UpdateShaderContext ctx)
-        {
-            var builder = new ShaderUpdateBuilder();
-            handler.UpdateShader(ctx, builder, builder);
-            return builder.Result;
-        }
 
         public static void Update<T>(this IEnumerable<T> target, RenderContext ctx) where T : IRenderUpdate
         {
@@ -575,7 +584,7 @@ namespace OpenXr.Engine
 
         #region UNIFORMS
 
-
+        /*
         public static void SetUniformStruct(this IUniformProvider up, string name, object obj, bool optional = false)
         {
             foreach (var field in obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
@@ -629,7 +638,7 @@ namespace OpenXr.Engine
             }
         }
 
-
+        */
         #endregion
     }
 }

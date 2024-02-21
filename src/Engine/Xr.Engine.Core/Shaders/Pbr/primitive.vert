@@ -44,6 +44,33 @@ out vec4 v_Color;
 #endif
 
 
+
+#ifdef MULTI_VIEW
+
+    #define NUM_VIEWS 2
+    #define VIEW_ID gl_ViewID_OVR
+
+    layout(num_views=NUM_VIEWS) in;
+
+    uniform SceneMatrices
+    {
+        uniform mat4 view[NUM_VIEWS];
+        uniform mat4 projection[NUM_VIEWS];
+    } uMatrices;
+
+    mat4 getViewProj() 
+    {
+       return uMatrices.projection[VIEW_ID] * uMatrices.view[VIEW_ID];
+    }
+
+#else
+    mat4 getViewProj() 
+    {
+       return u_ViewProjectionMatrix;
+    }
+#endif
+
+
 vec4 getPosition()
 {
     vec4 pos = vec4(a_position, 1.0);
@@ -146,5 +173,5 @@ void main()
 #endif
 #endif
 
-    gl_Position = u_ViewProjectionMatrix * pos;
+    gl_Position = getViewProj() * pos;
 }

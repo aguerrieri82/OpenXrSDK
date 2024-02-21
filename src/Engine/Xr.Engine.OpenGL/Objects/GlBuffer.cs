@@ -7,7 +7,7 @@ using Silk.NET.OpenGL;
 
 namespace OpenXr.Engine.OpenGL
 {
-    public class GlBuffer<T> : GlObject where T : unmanaged
+    public class GlBuffer<T> : GlObject, IBuffer where T : unmanaged
     {
         private readonly BufferTargetARB _bufferType;
         private uint _length;

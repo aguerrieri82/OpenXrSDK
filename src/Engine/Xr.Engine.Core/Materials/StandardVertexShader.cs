@@ -9,30 +9,30 @@ namespace OpenXr.Engine
 {
     public static class StandardVertexShader
     {
-        public static void UpdateStandardVS(this UpdateShaderContext ctx, IUniformProvider up, IFeatureList fl)
+        public static void UpdateStandardVS(this ShaderUpdateBuilder bld)
         {
-            if (ctx.Camera != null)
+            if (bld.Context.Camera != null)
             {
-                up.SetUniform("uView", ctx.Camera.Transform.Matrix);
-                up.SetUniform("uProjection", ctx.Camera.Projection);
-                up.SetUniform("uViewPos", ctx.Camera.Transform.Position, true);
+                bld.SetUniform("uView", (ctx) => ctx.Camera!.Transform.Matrix);
+                bld.SetUniform("uProjection", (ctx) => ctx.Camera!.Projection);
+                bld.SetUniform("uViewPos", (ctx) => ctx.Camera!.Transform.Position, true);
             }
 
-            foreach (var light in ctx.Lights!)
+            foreach (var light in bld.Context.Lights!)
             {
                 if (light is AmbientLight ambient)
-                    up.SetUniform("light.ambient", (Vector3)ambient.Color * ambient.Intensity);
+                    bld.SetUniform("light.ambient", (ctx) => (Vector3)ambient.Color * ambient.Intensity);
 
                 else if (light is PointLight point)
                 {
-                    up.SetUniform("light.diffuse", (Vector3)point.Color * point.Intensity);
-                    up.SetUniform("light.position", point.WorldPosition);
-                    up.SetUniform("light.specular", (Vector3)point.Specular);
+                    bld.SetUniform("light.diffuse", (ctx) => (Vector3)point.Color * point.Intensity);
+                    bld.SetUniform("light.position", (ctx) => point.WorldPosition);
+                    bld.SetUniform("light.specular", (ctx) => (Vector3)point.Specular);
                 }
             }
 
-            if (ctx.Model != null)
-                up.SetUniform("uModel", ctx.Model.WorldMatrix);
+            if (bld.Context.Model != null)
+                bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
         }
     }
 }

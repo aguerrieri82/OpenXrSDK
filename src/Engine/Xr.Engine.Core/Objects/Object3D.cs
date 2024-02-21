@@ -85,7 +85,7 @@ namespace OpenXr.Engine
             NotifyChanged(changeType);
         }
 
-        public virtual void NotifyChanged(ObjectChange change)
+        public override void NotifyChanged(ObjectChange change)
         {
             if (change.IsAny(ObjectChangeType.Transform))
                 InvalidateWorld();

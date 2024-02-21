@@ -1,6 +1,6 @@
 ﻿namespace OpenXr.Engine
 {
-    public class TextureMaterial : ShaderMaterial, IShaderHandler
+    public class TextureMaterial : ShaderMaterial
     {
         static readonly Shader SHADER;
 
@@ -29,11 +29,11 @@
             Texture = texture;
         }
 
-        public override void UpdateShader(UpdateShaderContext ctx, IUniformProvider up, IFeatureList fl)
+        public override void UpdateShader(ShaderUpdateBuilder bld)
         {
-            up.SetUniform("uTexture0", Texture!, 0);
+            bld.SetUniform("uTexture0", (ctx) => Texture!, 0);
 
-            ctx.UpdateStandardVS(up, fl);
+            bld.UpdateStandardVS();
         }
 
         public Texture2D? Texture { get; set; }

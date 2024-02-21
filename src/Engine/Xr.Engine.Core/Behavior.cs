@@ -23,6 +23,9 @@
 
         void IRenderUpdate.Update(RenderContext ctx)
         {
+            if (!IsEnabled)
+                return;
+
             if (!_isStarted)
             {
                 Start(ctx);

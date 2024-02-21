@@ -22,6 +22,8 @@ namespace OpenXr.Engine
 
         void SetUniform(string name, int[] value, bool optional = false);
 
+        void SetUniform(string name, IBuffer value, bool optional = false);
+
         void SetLineSize(float size);
 
     }

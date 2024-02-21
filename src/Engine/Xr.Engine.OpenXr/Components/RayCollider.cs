@@ -13,7 +13,6 @@ namespace Xr.Engine.OpenXr
         {
             _input = input;
             _rayView = new RayView();
-
         }
 
         public override void Start(RenderContext ctx)

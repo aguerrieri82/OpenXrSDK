@@ -21,16 +21,16 @@
             _shader = SHADER;
         }
 
-        public override void UpdateShader(UpdateShaderContext ctx, IUniformProvider up, IFeatureList fl)
+        public override void UpdateShader(ShaderUpdateBuilder bld)
         {
-            if (ctx.Camera != null)
+            if (bld.Context.Camera != null)
             {
-                up.SetUniform("uView", ctx.Camera.Transform.Matrix);
-                up.SetUniform("uProjection", ctx.Camera.Projection);
+                bld.SetUniform("uView", (ctx) => ctx.Camera!.Transform.Matrix);
+                bld.SetUniform("uProjection", (ctx) => ctx.Camera!.Projection);
             }
-            
-            if (ctx.Model != null)
-                up.SetUniform("uModel", ctx.Model.WorldMatrix);
+
+            if (bld.Context.Model != null)
+                bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
         }
     }
 }

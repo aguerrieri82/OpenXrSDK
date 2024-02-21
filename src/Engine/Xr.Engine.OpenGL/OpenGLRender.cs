@@ -48,6 +48,8 @@ namespace OpenXr.Engine.OpenGL
         public ShaderMaterial? Material;
 
         public Action? Draw;
+
+        public ShaderUpdate? LastUpdate { get; set; }
     }
 
     public class OpenGLRender : IRenderEngine
@@ -56,7 +58,7 @@ namespace OpenXr.Engine.OpenGL
         protected GlobalContent? _content;
         protected IGlRenderTarget? _target;
         protected GlRenderOptions _options;
-
+        private UpdateShaderContext _updateCtx;
         public static class Props
         {
             public const string GlResId = nameof(GlResId);
@@ -73,7 +75,8 @@ namespace OpenXr.Engine.OpenGL
             _options = options;
             _target = new GlDefaultRenderTarget(gl);
             _options.ProgramFactory ??= new GlDefaultProgramFactory();
-
+            _updateCtx = new UpdateShaderContext();
+            _updateCtx.RenderEngine = this;
             Current = this;
         }
 
@@ -145,6 +148,9 @@ namespace OpenXr.Engine.OpenGL
         {
             _gl.DebugMessageCallback((source, type, id, sev, len, msg, param) =>
            {
+               if (SuspendErrors > 0)
+                   return;
+
                unsafe
                {
                    if (sev == GLEnum.DebugSeverityNotification)
@@ -157,7 +163,7 @@ namespace OpenXr.Engine.OpenGL
                }
            }, 0);
 
-            //_gl.Enable(EnableCap.DebugOutput);
+            _gl.Enable(EnableCap.DebugOutput);
         }
 
         public void EnableFeature(EnableCap cap, bool value)
@@ -201,23 +207,18 @@ namespace OpenXr.Engine.OpenGL
 
             _gl.LineWidth(1);
 
-            var targetOverride = target as IGlProgramOverride;
+            var targetHandler = target as IShaderHandler;
 
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);
 
-            var updateCtx = new UpdateShaderContext()
-            {
-                Camera = camera,
-                Lights = _content.Lights,
-                RenderEngine = this,
-            };
+            _updateCtx.Camera = camera;
+            _updateCtx.Lights = _content.Lights;
+            _updateCtx.LightsVersion = _content.Version;
 
             foreach (var shader in _content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
                 var prog = shader.Value!.Program!;
-
-                targetOverride?.BeginEdit(prog);
 
                 foreach (var vertex in shader.Value.Contents)
                 {
@@ -231,35 +232,58 @@ namespace OpenXr.Engine.OpenGL
 
                     vHandler.Bind();
 
-                    updateCtx.ActiveComponents = VertexComponent.None;
+                    _updateCtx.ActiveComponents = VertexComponent.None;
 
                     foreach (var attr in vHandler.Layout!.Attributes!)
-                        updateCtx.ActiveComponents |= attr.Component;
+                        _updateCtx.ActiveComponents |= attr.Component;
 
                     foreach (var draw in vertex.Value.Contents)
                     {
                         ConfigureCaps(draw.Material!);
 
-                        updateCtx.Model = draw.Object;
+                        _updateCtx.Model = draw.Object;
 
-                        var update = draw.Material!.UpdateShader(updateCtx);
+                        var update = draw.LastUpdate;
 
-                        prog.BeginEdit();
-
-                        if (update.Features != null)
+                        if (update == null || draw.Material!.NeedUpdateShader(_updateCtx, update))
                         {
-                            foreach (var feature in update.Features)
-                                prog.AddFeature(feature);
+                            var updateBuilder = new ShaderUpdateBuilder(_updateCtx);
+
+                            draw.Material!.UpdateShader(updateBuilder);
+
+                            targetHandler?.UpdateShader(updateBuilder);
+
+                            updateBuilder.ComputeHash(draw.Material!.GetType().FullName!);
+
+                            update = updateBuilder.Result;
+                            update.LightsVersion = _updateCtx.LightsVersion;
+                            update.MaterialVersion = draw.Material.Version;
+
+                            draw.LastUpdate = update;
+
+                            prog.BeginEdit();
+
+                            if (update.Features != null)
+                            {
+                                foreach (var feature in update.Features)
+                                    prog.AddFeature(feature);
+                            }
+
+                            if (update.Extensions != null)
+                            {
+                                foreach (var ext in update.Extensions)
+                                    prog.AddExtension(ext);
+                            }
+
+                            prog.Commit(update.FeaturesHash!);
                         }
 
-                        prog.Commit();
-
-                        prog.Use();
+                        prog.Use(update.FeaturesHash!);
 
                         if (update.Actions != null)
                         {
                             foreach (var updateUniform in update.Actions)
-                                updateUniform(prog);
+                                updateUniform(_updateCtx, prog);
                         }
 
                         draw.Draw!();
@@ -286,6 +310,7 @@ namespace OpenXr.Engine.OpenGL
 
         Dictionary<uint, Texture2D> _depthCache = [];
         private Rect2I _view;
+
 
         public Texture2D? GetDepth()
         {
@@ -327,5 +352,6 @@ namespace OpenXr.Engine.OpenGL
 
         public static OpenGLRender? Current { get; internal set; }
 
+        public static int SuspendErrors { get; set; }
     }
 }

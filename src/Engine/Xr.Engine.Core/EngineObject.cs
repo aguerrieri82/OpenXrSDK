@@ -35,6 +35,8 @@
                 _components = [];
 
             _components.Add(component);
+
+            NotifyChanged(ObjectChangeType.Components);
         }
 
         public void RemoveComponent(IComponent component)
@@ -45,8 +47,15 @@
             component.Detach();
 
             _components!.Remove(component);
+
+            NotifyChanged(ObjectChangeType.Components);
+
         }
 
+        public virtual void NotifyChanged(ObjectChange change)
+        {
+
+        }
 
         public void SetProp(string name, object? value)
         {

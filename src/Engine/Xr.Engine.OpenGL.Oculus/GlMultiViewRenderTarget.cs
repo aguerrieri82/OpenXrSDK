@@ -19,7 +19,7 @@ namespace OpenXr.Engine.OpenGL.Oculus
 
     }
 
-    public class GlMultiViewRenderTarget : GlTextureRenderTarget, IMultiViewTarget, IGlProgramOverride
+    public class GlMultiViewRenderTarget : GlTextureRenderTarget, IMultiViewTarget, IShaderHandler
     {
         static SceneMatrices _matrices;
         private readonly GlBuffer<SceneMatrices> _sceneMatrices;
@@ -55,22 +55,20 @@ namespace OpenXr.Engine.OpenGL.Oculus
             _matrices.View2 = eyes[1].View;
         }
 
-
-        public void BeginEdit(GlProgram program)
+        public void UpdateShader(ShaderUpdateBuilder bld)
         {
-            program.AddExtension("GL_OVR_multiview2");
-            program.AddFeature("MULTI_VIEW");
-        }
+            bld.AddExtension("GL_OVR_multiview2");
 
-        public bool SetCamera(GlProgram program, Camera camera)
-        {
-            var buffer = new Span<SceneMatrices>(ref _matrices);
+            bld.AddFeature("MULTI_VIEW");
 
-            _sceneMatrices.Update(buffer);
+            bld.SetUniform("SceneMatrices", ctx =>
+            {
+                var buffer = new Span<SceneMatrices>(ref _matrices);
 
-            program.SetUniformBuffer("SceneMatrices", _sceneMatrices);
+                _sceneMatrices.Update(buffer);
 
-            return true;
+                return (IBuffer)_sceneMatrices;
+            });
         }
     }
 }

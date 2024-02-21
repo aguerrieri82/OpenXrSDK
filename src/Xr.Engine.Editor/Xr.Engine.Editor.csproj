@@ -4,7 +4,7 @@
 		<OutputType>WinExe</OutputType>
 		<TargetFrameworks>$(CoreVersion)-windows</TargetFrameworks>
 		<UseWPF>true</UseWPF>
-		<XamlDebuggingInformation>TRue</XamlDebuggingInformation>
+		<XamlDebuggingInformation>True</XamlDebuggingInformation>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">

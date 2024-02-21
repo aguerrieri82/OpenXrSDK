@@ -18,7 +18,7 @@ namespace OpenXr.Samples
     {
         public static Task Run(IServiceProvider services, ILogger logger)
         {
-            var app = SampleScenes.CreateDefaultScene(new LocalAssetManager("Assets"));
+            var app = SampleScenes.CreateSimpleScene(new LocalAssetManager("Assets"));
 
             var view = Window.Create(WindowOptions.Default);
             view.ShouldSwapAutomatically = true;

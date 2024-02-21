@@ -1,12 +1,11 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using Xr.Engine.Compression;
 
 #else
 using Silk.NET.OpenGL;
 #endif
 
-
+using Xr.Engine.Compression;
 using static OpenXr.Engine.OpenGL.OpenGLRender;
 
 namespace OpenXr.Engine.OpenGL
@@ -17,13 +16,22 @@ namespace OpenXr.Engine.OpenGL
         {
             TextureTarget[] targets = [TextureTarget.Texture2DMultisample, TextureTarget.Texture2D, TextureTarget.Texture2DMultisampleArray, TextureTarget.Texture2DArray];
 
-            foreach (var target in targets)
+            OpenGLRender.SuspendErrors++;
+
+            try
             {
-                gL.BindTexture(target, texId);
-                gL.GetTexLevelParameter(target, 0, GetTextureParameter.TextureWidth, out int w);
-                gL.BindTexture(target, 0);
-                if (w != 0)
-                    return target;
+                foreach (var target in targets)
+                {
+                    gL.BindTexture(target, texId);
+                    gL.GetTexLevelParameter(target, 0, GetTextureParameter.TextureWidth, out int w);
+                    gL.BindTexture(target, 0);
+                    if (w != 0)
+                        return target;
+                }
+            }
+            finally
+            {
+                OpenGLRender.SuspendErrors--;
             }
 
             throw new NotSupportedException();

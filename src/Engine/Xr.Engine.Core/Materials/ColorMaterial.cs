@@ -29,10 +29,10 @@
             Color = color;
         }
 
-        public override void UpdateShader(UpdateShaderContext ctx, IUniformProvider up, IFeatureList fl)
+        public override void UpdateShader(ShaderUpdateBuilder bld)
         {
-            up.SetUniform("uColor", Color);
-            ctx.UpdateStandardVS(up, fl);
+            bld.SetUniform("uColor", ctx => Color);
+            bld.UpdateStandardVS();
         }
 
     }

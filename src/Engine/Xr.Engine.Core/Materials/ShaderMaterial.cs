@@ -4,6 +4,7 @@
     {
    
         protected Shader? _shader;
+        protected long _lastLightVersion = -1;
 
         public ShaderMaterial()
         {
@@ -18,8 +19,6 @@
             _shader = shader;
         }
 
-
-
         public Shader? Shader
         {
             get => _shader;
@@ -32,7 +31,13 @@
             }
         }
 
-        public virtual void UpdateShader(UpdateShaderContext ctx, IUniformProvider up, IFeatureList fl)
+        public virtual bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)
+        {
+            return lastUpdate.MaterialVersion != Version ||
+                   (_shader!.IsLit && lastUpdate.LightsVersion != ctx.LightsVersion);
+        }
+
+        public virtual void UpdateShader(ShaderUpdateBuilder bld)
         {
 
         }
