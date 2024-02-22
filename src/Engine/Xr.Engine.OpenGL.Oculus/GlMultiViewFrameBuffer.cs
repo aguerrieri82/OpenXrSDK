@@ -81,7 +81,7 @@ namespace OpenXr.Engine.OpenGL.Oculus
             _gl.TexStorage3D(
                    _target,
                    _sampleCount,
-                   (SizedInternalFormat)OpenGLRender.Current!.Options.DepthBufferFormat,
+                   (SizedInternalFormat)SizedInternalFormat.DepthComponent24, //TODO pick from options
                    _width,
                    _height,
                    2);

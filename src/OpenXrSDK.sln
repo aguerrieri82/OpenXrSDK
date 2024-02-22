@@ -71,7 +71,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Draco.Native", "Engine\Drac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.Compression", "Engine\Xr.Engine.Compression\Xr.Engine.Compression.csproj", "{41C5F645-689F-49D5-8A77-1C7F1DF963EE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.Editor", "Xr.Engine.Editor\Xr.Engine.Editor.csproj", "{5E998D96-93A5-453B-B8EE-D6EBD2967E18}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.Editor", "Engine\Xr.Engine.Editor\Xr.Engine.Editor.csproj", "{5E998D96-93A5-453B-B8EE-D6EBD2967E18}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EtcPack", "..\third-party\etcpak\EtcPack.vcxproj", "{151A0D98-7E72-4D78-8C7E-C2BBDBA4D75D}"
 EndProject

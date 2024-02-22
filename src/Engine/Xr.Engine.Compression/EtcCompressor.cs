@@ -130,7 +130,7 @@ namespace Xr.Engine.Compression
 
             using var image = CreateImage(data, skType);
 
-            using var bgrImage = ChangeColorSpace(image, SKColorType.Bgra8888); //TODO investigate, on android rgb is treated as bgr 
+            using var bgrImage =  ChangeColorSpace(image, SKColorType.Bgra8888); //TODO investigate, on android rgb is treated as bgr 
 
             return Encode(bgrImage, mipsLevels, useSrgb);
         }

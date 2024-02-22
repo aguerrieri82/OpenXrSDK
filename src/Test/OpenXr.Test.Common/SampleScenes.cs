@@ -59,18 +59,24 @@ namespace OpenXr.Samples
 
             assets.FullPath("Sponza/Sponza.bin");
 
-            //var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets);
-            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets);
+            var glOptions = new GltfLoaderOptions
+            {
+                ConvertColorTextureSRgb = true,
+            };
+
+            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets, glOptions);
+            //var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
             room.Name = "mesh";
-            room.Transform.SetScale(0.01f);
+            //room.Transform.SetScale(0.01f);
             scene.AddChild(room);
           
+            /*
             foreach (var child in room.Descendants<TriangleMesh>())
                 child.Materials[0] = new StandardMaterial() {  
                     Color = new Color(1f, 1f, 1f, 1),
                     DiffuseTexture = ((PbrMaterial)child.Materials[0]).MetallicRoughness.BaseColorTexture
                 };
-          
+            */
 
             var camera = new PerspectiveCamera() { Far = 50f, Near = 0.01f };
             camera.BackgroundColor = Color.White;
