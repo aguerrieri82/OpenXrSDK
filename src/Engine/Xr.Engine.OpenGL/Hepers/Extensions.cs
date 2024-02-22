@@ -66,15 +66,21 @@ namespace OpenXr.Engine.OpenGL
 
                 if (requireCompression)
                 {
-                    for (var i= 0; i < data.Count; i++)
+                    if (data.Count == 1)
+                        data = EtcCompressor.Encode(data[0],16);
+                    else
                     {
-                        var compData = EtcCompressor.Encode(data[i]);
-                        data[i] = compData[0];
+                        for (var i = 0; i < data.Count; i++)
+                        {
+                            var compData = EtcCompressor.Encode(data[i], 0);
+                            data[i] = compData[0];
+                        }
                     }
+
                     comp = TextureCompressionFormat.Etc2;
                 }
 
-                texture.Create(value.Width, value.Height, value.Format, comp, data);
+                texture.Create(value.Width, value.Height, data[0].Format, comp, data);
 
                 value.Data = null;
             }

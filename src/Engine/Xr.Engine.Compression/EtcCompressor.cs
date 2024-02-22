@@ -6,6 +6,8 @@ namespace Xr.Engine.Compression
 {
     public static class EtcCompressor
     {
+        #region NATIVE
+
         enum Type
         {
             Etc1,
@@ -51,35 +53,89 @@ namespace Xr.Engine.Compression
         byte* data,
         ref EncodeOptions options,
         out uint outSize);
+
+
         [DllImport("etcpack")]
         static unsafe extern void Free(byte* data);
+
+        #endregion
+
+        static uint GetPixelSize(SKColorType type)
+        {
+            switch (type)
+            {
+                case SKColorType.Gray8:
+                    return 1;
+                case SKColorType.Srgba8888:
+                case SKColorType.Rgba8888:
+                case SKColorType.Bgra8888:
+                    return 4;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        static unsafe SKBitmap CreateImage(TextureData data, SKColorType type)
+        {
+            var info = new SKImageInfo((int)data.Width, (int)data.Height, type);
+
+            var image = new SKBitmap(info);
+            fixed (byte* pDst = image.GetPixelSpan())
+            fixed (byte* pSrc = data.Data)
+                PackImage(data.Width, data.Height, pSrc, data.Width, data.Height, pDst, GetPixelSize(type));
+
+            return image;
+        }
+
+        static SKBitmap ChangeColorSpace(SKBitmap src, SKColorType dest)
+        {
+            if (src.ColorType == dest)
+                return src;
+
+            var newInfo = new SKImageInfo(src.Width, src.Height, dest);
+
+            var newBitmap = new SKBitmap(newInfo);
+
+            using var canvas = new SKCanvas(newBitmap);
+
+            canvas.Clear(SKColors.Transparent);
+
+            canvas.DrawBitmap(src, 0, 0);
+
+            src.Dispose();
+
+            return newBitmap;
+        }
+
         public static IList<TextureData> Encode(string fileName, int mipsLevels)
         {
-            using var file = File.OpenRead(fileName);   
+            using var file = File.OpenRead(fileName);
             using var image = SKBitmap.Decode(file);
-
             return Encode(image, mipsLevels);
         }
 
-        public unsafe static IList<TextureData> Encode(TextureData data)
+        public unsafe static IList<TextureData> Encode(TextureData data, int mipsLevels)
         {
             var skType = data.Format switch
             {
                 TextureFormat.Rgba32 => SKColorType.Rgba8888,
-                TextureFormat.SRgba32 => SKColorType.Srgba8888,
+                TextureFormat.SRgba32 => SKColorType.Rgba8888,
                 TextureFormat.Bgra32 => SKColorType.Bgra8888,
+                TextureFormat.SBgra32 => SKColorType.Bgra8888,
+                TextureFormat.Gray8 => SKColorType.Gray8,
                 _ => throw new NotSupportedException()
             };
 
-            var image = new SKBitmap((int)data.Width, (int)data.Height, skType, SKAlphaType.Opaque);
-            fixed (byte* pDst = image.GetPixelSpan())
-            fixed (byte* pSrc = data.Data)
-                PackImage(data.Width, data.Height, pSrc, data.Width, data.Height, pDst, 4);
+            bool useSrgb = data.Format == TextureFormat.SRgba32 || data.Format == TextureFormat.SBgra32;
 
-            return Encode(image, 0);
+            using var image = CreateImage(data, skType);
+
+            using var bgrImage = ChangeColorSpace(image, SKColorType.Bgra8888); //TODO investigate, on android rgb is treated as bgr 
+
+            return Encode(bgrImage, mipsLevels, useSrgb);
         }
 
-        public unsafe static IList<TextureData> Encode(SKBitmap image, int mipsLevels)
+        public unsafe static IList<TextureData> Encode(SKBitmap image, int mipsLevels, bool useSrgb = false)
         {
             var result = new List<TextureData>();
 
@@ -93,7 +149,7 @@ namespace Xr.Engine.Compression
                     MipLevel = (uint)level,
                     Width = (uint)Math.Max(1, image.Width >> level),
                     Height = (uint)Math.Max(1, image.Height >> level),
-                    Format = TextureFormat.Rgba32
+                    Format = useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32
                 };
 
                 result.Add(texData);
@@ -113,7 +169,9 @@ namespace Xr.Engine.Compression
                     var pWidth = (int)Math.Ceiling(texData.Width / 4f) * 4;
                     var pHeight = (int)Math.Ceiling(texData.Height / 4f) * 4;
 
-                    curImage = image.Resize(new SKSizeI((int)texData.Width, (int)texData.Height), SKSamplingOptions.Default);
+                    var so = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
+
+                    curImage = image.Resize(new SKSizeI((int)texData.Width, (int)texData.Height), so);
 
                     if (pWidth != texData.Width || pHeight != texData.Height)
                     {
@@ -144,13 +202,12 @@ namespace Xr.Engine.Compression
                 else
                     curImage = image;
 
-
                 fixed (byte* pData = curImage.GetPixelSpan())
                 {
                     var options = new EncodeOptions()
                     {
-                        Bgr = false,
-                        Linearize = true,
+                        Bgr = image.ColorType == SKColorType.Bgra8888,
+                        Linearize = false,
                         UseHeuristics = true,
                         MipMap = false,
                         Format = Format.Pvr,
@@ -166,12 +223,11 @@ namespace Xr.Engine.Compression
 
                 if (curImage != image)
                     curImage.Dispose();
-
             }
 
             result.ForEach(EncodeLevel);
 
-            //Parallel.ForEach(result, EncodeLevel);
+            //Parallel.ForEach(result, EncodeLevel); //TODO fix parallel (crash on android)
 
             return result;
         }

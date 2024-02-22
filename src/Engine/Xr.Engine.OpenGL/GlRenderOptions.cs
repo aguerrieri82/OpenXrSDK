@@ -22,6 +22,13 @@
 
     public class GlRenderOptions
     {
+        public GlRenderOptions()
+        {
+            FloatPrecision = ShaderPrecision.High;
+            ShaderVersion = "300 es";
+            DepthBufferFormat = TextureFormat.Depth24Float;
+        }
+
         public string? ShaderVersion { get; set; }
 
         public ShaderPrecision FloatPrecision { get; set; }
@@ -30,11 +37,9 @@
 
         public bool RequireTextureCompression { get; set; }
 
-        public static GlRenderOptions Default() => new()
-        {
-            FloatPrecision = ShaderPrecision.High,
-            ShaderVersion = "300 es"
-        };
+        public TextureFormat DepthBufferFormat { get; set; }
+
+        public static GlRenderOptions Default() => new();
 
     }
 }

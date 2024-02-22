@@ -2,6 +2,9 @@
 in vec3 fPos;
 in vec2 fUv;
 
+const float GAMMA = 2.2;
+const float INV_GAMMA = 1.0 / GAMMA;
+
 #ifdef TEXTURE
 
 uniform sampler2D uTexture0;
@@ -28,6 +31,17 @@ uniform vec3 uViewPos;
 
 out vec4 FragColor;
 
+vec3 linearTosRGB(vec3 color)
+{
+    return pow(color, vec3(INV_GAMMA));
+}
+
+vec3 sRGBToLinear(vec3 srgbIn)
+{
+    return vec3(pow(srgbIn.xyz, vec3(GAMMA)));
+}
+
+
 void main()
 {
       vec3 ambient = light.ambient * material.ambient;
@@ -38,7 +52,7 @@ void main()
       vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
       #ifdef TEXTURE
-       diffuse *= texture(uTexture0, fUv).rgb;
+       diffuse =  diffuse * texture(uTexture0, fUv).rgb;
       #endif
 
       vec3 viewDirection = normalize(uViewPos - fPos);

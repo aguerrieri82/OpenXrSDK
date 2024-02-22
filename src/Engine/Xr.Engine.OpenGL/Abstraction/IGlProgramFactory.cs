@@ -8,6 +8,6 @@ namespace OpenXr.Engine.OpenGL
 {
     public interface IGlProgramFactory
     {
-        GlProgram CreateProgram(GL gl, ShaderMaterial material, GlRenderOptions options);
+        GlProgram CreateProgram(GL gl, ShaderMaterial material);
     }
 }

@@ -39,7 +39,6 @@ namespace OpenXr.Engine.OpenGL.Oculus
 
         static FramebufferTextureMultisampleMultiviewOVRDelegate? FramebufferTextureMultisampleMultiviewOVR;
 
-
         protected readonly uint _sampleCount;
         protected readonly uint _colorTexId;
         protected readonly TextureTarget _target;
@@ -55,7 +54,6 @@ namespace OpenXr.Engine.OpenGL.Oculus
 
             _sampleCount = sampleCount;
             _colorTexId = colorTexId;
-            //_target = sampleCount > 1 ? TextureTarget.Texture2DMultisampleArray : TextureTarget.Texture2DArray;
             _target = TextureTarget.Texture2DArray;
 
             UpdateTextureInfo();
@@ -80,29 +78,13 @@ namespace OpenXr.Engine.OpenGL.Oculus
 
             _gl.BindTexture(_target, _depthTexId);
 
-            /*
-            if (_sampleCount > 1)
-            {
-                _gl.TexStorage3DMultisample(
-                    _target,
-                    _sampleCount,
-                    SizedInternalFormat.DepthComponent24,
-                    _width,
-                    _height,
-                    2,
-                    true);
-            }
-            else
-            */
-            {
-                _gl.TexStorage3D(
-                    _target,
-                    _sampleCount,
-                    SizedInternalFormat.DepthComponent24,
-                    _width,
-                    _height,
-                    2);
-            }
+            _gl.TexStorage3D(
+                   _target,
+                   _sampleCount,
+                   (SizedInternalFormat)OpenGLRender.Current!.Options.DepthBufferFormat,
+                   _width,
+                   _height,
+                   2);
 
             _gl.BindTexture(_target, 0);
         }

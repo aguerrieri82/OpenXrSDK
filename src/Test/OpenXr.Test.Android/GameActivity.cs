@@ -47,7 +47,7 @@ namespace OpenXr.Test.Android
         {
             var options = new OculusXrPluginOptions
             {
-                EnableMultiView = true,
+                EnableMultiView = false,
                 SampleCount = 1,
                 ResolutionScale = 1f,
                 Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB

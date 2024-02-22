@@ -37,7 +37,7 @@ namespace OpenXr.Engine.OpenGL
             Depth.BaseLevel = Color.BaseLevel;
             Depth.SampleCount = _sampleCount;
             Depth.Target = _gl.GetTexture2DTarget(Color.Handle);
-            Depth.Create(Color.Width, Color.Height, TextureFormat.Depth32Float); //TODO chek if is supported
+            Depth.Create(Color.Width, Color.Height, OpenGLRender.Current!.Options.DepthBufferFormat); 
         }
 
         public override void BindDraw()

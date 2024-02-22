@@ -230,20 +230,19 @@ namespace OpenXr.Engine.OpenGL
                         case TextureFormat.Rgb24:
                             internalFormat = InternalFormat.CompressedRgb8Etc2;
                             break;
+                        case TextureFormat.Rgba32:
+                            internalFormat = InternalFormat.CompressedRgba8Etc2Eac;
+                            break;
                         case TextureFormat.SRgb24:
                             internalFormat = InternalFormat.CompressedSrgb8Etc2;
                             break;
                         case TextureFormat.SRgba32:
-                            //TODO change
-                            //internalFormat = InternalFormat.CompressedSrgb8Alpha8Etc2Eac;
-                            internalFormat = InternalFormat.CompressedRgba8Etc2Eac;
+                            internalFormat = InternalFormat.CompressedSrgb8Alpha8Etc2Eac;
                             break;
-                        case TextureFormat.Rgba32:
-                            internalFormat = InternalFormat.CompressedRgba8Etc2Eac;
-                            break;
+       
 
                         default:
-                            throw new NotSupportedException();
+                            throw new NotSupportedException(format.ToString());
                     }
                 }
                 else if (compression == TextureCompressionFormat.Etc1)

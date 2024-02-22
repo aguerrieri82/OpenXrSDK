@@ -9,6 +9,13 @@ using System.Text;
 
 namespace Xr.Engine.Gltf
 {
+    public class GltfLoaderOptions
+    {
+        public bool ConvertColorTextureSRgb { get; set; }
+
+        public static readonly GltfLoaderOptions Default = new();
+    }
+
     public class GltfLoader
     {
         struct KHR_draco_mesh_compression
@@ -38,6 +45,11 @@ namespace Xr.Engine.Gltf
         }
 
         public EngineObject Load(string filePath, IAssetManager assetManager)
+        {
+            return Load(filePath, assetManager, GltfLoaderOptions.Default);
+        }
+
+        public EngineObject Load(string filePath, IAssetManager assetManager, GltfLoaderOptions options)
         {
             string[] supportedExt = { "KHR_draco_mesh_compression", "KHR_materials_pbrSpecularGlossiness" };
 
@@ -105,15 +117,13 @@ namespace Xr.Engine.Gltf
                     throw new NotSupportedException();
 
                 using var image = SKBitmap.Decode(data);
-                using var newImage = new SKBitmap();
-                image.CopyTo(newImage, SKColorType.Rgba8888);
 
                 result = new TextureData
                 {
-                    Width = (uint)newImage.Width,
-                    Height = (uint)newImage.Height,
-                    Data = newImage.GetPixelSpan().ToArray(),
-                    Format = newImage.ColorType switch
+                    Width = (uint)image.Width,
+                    Height = (uint)image.Height,
+                    Data = image.GetPixelSpan().ToArray(),
+                    Format = image.ColorType switch
                     {
                         SKColorType.Srgba8888 => TextureFormat.SRgba32,
                         SKColorType.Bgra8888 => useSrgb ? TextureFormat.SBgra32 : TextureFormat.Bgra32,
@@ -225,7 +235,7 @@ namespace Xr.Engine.Gltf
 
                     if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
                     {
-                        result.MetallicRoughness.BaseColorTexture = DecodeTextureBase(gltMat.PbrMetallicRoughness.BaseColorTexture, true);
+                        result.MetallicRoughness.BaseColorTexture = DecodeTextureBase(gltMat.PbrMetallicRoughness.BaseColorTexture, options.ConvertColorTextureSRgb);
                         result.MetallicRoughness.BaseColorUVSet = gltMat.PbrMetallicRoughness.BaseColorTexture.TexCoord;
                     }
 

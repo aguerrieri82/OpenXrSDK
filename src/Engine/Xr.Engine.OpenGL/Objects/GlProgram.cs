@@ -19,7 +19,6 @@ namespace OpenXr.Engine.OpenGL
     public abstract partial class GlProgram : GlObject, IUniformProvider, IFeatureList
     {
         protected readonly Dictionary<string, int> _locations = [];
-        protected readonly GlRenderOptions _options;
         protected readonly List<string> _features = [];
         protected readonly List<string> _extensions = [];
         protected readonly Func<string, string> _resolver;
@@ -29,9 +28,8 @@ namespace OpenXr.Engine.OpenGL
 
         readonly protected static Dictionary<string, uint> _programsCache = [];
 
-        public GlProgram(GL gl, Func<string, string> includeResolver, GlRenderOptions options) : base(gl)
+        public GlProgram(GL gl, Func<string, string> includeResolver) : base(gl)
         {
-            _options = options;
             _resolver = includeResolver;
         }
 
@@ -173,7 +171,7 @@ namespace OpenXr.Engine.OpenGL
         {
             _gl.ActiveTexture(TextureUnit.Texture0 + slot);
 
-            var texture = value.GetResource(a => value.CreateGlTexture(_gl, _options.RequireTextureCompression));
+            var texture = value.GetResource(a => value.CreateGlTexture(_gl, OpenGLRender.Current!.Options.RequireTextureCompression));
 
             texture.Bind();
 
@@ -212,13 +210,13 @@ namespace OpenXr.Engine.OpenGL
             var builder = new StringBuilder();
 
             builder.Append("#version ")
-               .Append(_options.ShaderVersion!)
+               .Append(OpenGLRender.Current!.Options.ShaderVersion!)
                .Append('\n');
 
             foreach (var ext in _extensions)
                 builder.Append($"#extension {ext} : require\n");
 
-            var precision = _options.FloatPrecision switch
+            var precision = OpenGLRender.Current!.Options.FloatPrecision switch
             {
                 ShaderPrecision.Medium => "mediump",
                 ShaderPrecision.High => "highp",
