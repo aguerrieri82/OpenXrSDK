@@ -9,16 +9,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="etc.pdb">
+	  <None Include="..\..\..\third-party\etcpak\bin\x64\Release\etcpack.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="etcpack.dll">
+	  <None Include="..\..\..\third-party\etcpak\bin\x64\Release\etcpack.pdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="etcpack.pdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="libetcpack.so">
+	  <None Include="..\..\..\third-party\etcpak\libs\arm64-v8a\libetcpack.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

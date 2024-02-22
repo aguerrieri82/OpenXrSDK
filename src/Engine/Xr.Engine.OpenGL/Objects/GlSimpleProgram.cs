@@ -18,8 +18,8 @@ namespace OpenXr.Engine.OpenGL
         readonly string _fSource;
 
 
-        public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string> resolver, GlRenderOptions options)
-            : base(gl, resolver, options)
+        public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string> resolver)
+            : base(gl, resolver)
         {
             _fSource = fSource;
             _vSource = vSource;

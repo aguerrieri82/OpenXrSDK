@@ -87,13 +87,7 @@ namespace OpenXr.Engine
             var image = SKBitmap.Decode(stream);
 
             if (!FORMAT_MAP.TryGetValue(image.ColorType, out var format))
-            {
-                var newBitmap = new SKBitmap(image.Width, image.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
-                image!.CopyTo(newBitmap, SKColorType.Rgba8888);
-                image.Dispose();
-                image = newBitmap;
-                format = TextureFormat.Rgba32;
-            }
+                throw new NotSupportedException();
 
             var data = new TextureData
             {

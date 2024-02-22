@@ -83,7 +83,7 @@ namespace OpenXr.Engine.OpenGL
         protected GlProgram GetProgram(ShaderMaterial material)
         {
             return material.Shader!.GetResource(a =>
-                    _options.ProgramFactory!.CreateProgram(_gl, material, _options));
+                    _options.ProgramFactory!.CreateProgram(_gl, material));
         }
 
         public void Clear(Color color)
@@ -331,7 +331,7 @@ namespace OpenXr.Engine.OpenGL
                 {
                     Width = glTexture.Width,
                     Height = glTexture.Height,
-                    Format = TextureFormat.Depth24Float,
+                    Format = TextureFormat.Depth24Float, //TODO is not true
                     SampleCount = glTexture.SampleCount
                 };
                 texture.SetProp(Props.GlResId, glTexture);

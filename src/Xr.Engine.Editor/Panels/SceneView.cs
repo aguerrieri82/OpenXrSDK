@@ -34,7 +34,7 @@ namespace Xr.Engine.Editor
             var options = new OculusXrPluginOptions
             {
                 EnableMultiView = false,
-                SampleCount = 4,
+                SampleCount = 1,
                 ResolutionScale = 1f
             };
 
@@ -102,7 +102,8 @@ namespace Xr.Engine.Editor
             var renderOptions = new GlRenderOptions
             {
                 FloatPrecision = ShaderPrecision.High,
-                ShaderVersion = "300 es"
+                ShaderVersion = "300 es",
+                RequireTextureCompression = true,   
             };
             var render = new OpenGLRender(_renderHost.Gl!, renderOptions);
 

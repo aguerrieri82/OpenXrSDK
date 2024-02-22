@@ -37,9 +37,9 @@ namespace OpenXr.Samples
 
             scene.AddChild(contanier);
 
-            scene.AddChild(new AmbientLight(0.1f));
+            //scene.AddChild(new AmbientLight(0.1f));
 
-            var pt = scene.AddChild(new PointLight() { Range = 30, Intensity = 1f });
+            var pt = scene.AddChild(new PointLight() { Range = 30, Intensity = 0.8f });
             pt.Transform.Position = new Vector3(0, 10, 0);
             //pt.Name = "light";
             pt.IsVisible = true;
@@ -64,12 +64,13 @@ namespace OpenXr.Samples
             room.Name = "mesh";
             room.Transform.SetScale(0.01f);
             scene.AddChild(room);
-
+          
             foreach (var child in room.Descendants<TriangleMesh>())
                 child.Materials[0] = new StandardMaterial() {  
-                    Color = Color.White,
+                    Color = new Color(1f, 1f, 1f, 1),
                     DiffuseTexture = ((PbrMaterial)child.Materials[0]).MetallicRoughness.BaseColorTexture
                 };
+          
 
             var camera = new PerspectiveCamera() { Far = 50f, Near = 0.01f };
             camera.BackgroundColor = Color.White;
