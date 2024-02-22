@@ -1,3 +1,6 @@
 [submodule "third-party/etcpak"]
 	path = third-party/etcpak
 	url = https://github.com/aguerrieri82/etcpak
+[submodule "third-party/zlib"]
+	path = third-party/zlib
+	url = https://github.com/madler/zlib
