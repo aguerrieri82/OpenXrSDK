@@ -1,7 +1,6 @@
 ﻿
 using Newtonsoft.Json.Linq;
 using OpenXr.Engine;
-using OpenXr.Engine.Abstraction;
 using SkiaSharp;
 using System.Diagnostics;
 using System.Numerics;
@@ -44,16 +43,16 @@ namespace Xr.Engine.Gltf
 
         }
 
-        public EngineObject Load(string filePath, IAssetManager assetManager)
+        public Object3D Load(string filePath, IAssetManager assetManager)
         {
             return Load(filePath, assetManager, GltfLoaderOptions.Default);
         }
 
-        public EngineObject Load(string filePath, IAssetManager assetManager, GltfLoaderOptions options)
+        public Object3D Load(string filePath, IAssetManager assetManager, GltfLoaderOptions options)
         {
             string[] supportedExt = { "KHR_draco_mesh_compression", "KHR_materials_pbrSpecularGlossiness" };
 
-            var model = glTFLoader.Interface.LoadModel(filePath);
+            var model = glTFLoader.Interface.LoadModel(assetManager.FullPath(filePath));
             var buffer = glTFLoader.Interface.LoadBinaryBuffer(model, 0, filePath);
             var mats = new Dictionary<glTFLoader.Schema.Material, PbrMaterial>();
             var images = new Dictionary<glTFLoader.Schema.Image, TextureData>();
@@ -307,11 +306,25 @@ namespace Xr.Engine.Gltf
 
             unsafe T[] ConvertBuffer<T>(byte[] buffer, glTFLoader.Schema.BufferView view, glTFLoader.Schema.Accessor acc) where T : unmanaged
             {
-                Debug.Assert(view.ByteStride == null || view.ByteStride == sizeof(T));
                 Debug.Assert(acc.Sparse == null);
 
                 fixed (byte* pBuffer = buffer)
-                    return new Span<T>((T*)(pBuffer + view.ByteOffset + acc.ByteOffset), acc.Count).ToArray();
+                {
+                    if (view.ByteStride == null || view.ByteStride == sizeof(T))
+                        return new Span<T>((T*)(pBuffer + view.ByteOffset + acc.ByteOffset), acc.Count).ToArray();
+                    else
+                    {
+                        byte* curBuffer = pBuffer + view.ByteOffset + acc.ByteOffset;
+                        var array = new T[acc.Count];
+                        for (var i = 0; i < acc.Count; i++)
+                        {
+                            array[i] = *(T*)curBuffer;
+                            curBuffer += view.ByteStride.Value;
+                        }
+                        return array;
+                    }
+                }
+                   
             }
 
 
@@ -466,15 +479,8 @@ namespace Xr.Engine.Gltf
                         if (primitive.Material != null)
                         {
                             var glftMat = model.Materials[primitive.Material.Value];
+                            //curMesh.Materials.Add(new StandardMaterial() { Color = Color.White });
                             curMesh.Materials.Add(DecodeMaterial(glftMat));
-
-                            //TODO delete
-                            if ((curMesh.Materials[0] as PbrMaterial).MetallicRoughness.BaseColorTexture?.Name == "11474523244911310074.jpg")
-                            {
-                                curMesh.Name = "Red " + group.Children.Count;
-      
-                            }
-                             
                         }
                     }
                     else
@@ -529,22 +535,53 @@ namespace Xr.Engine.Gltf
                         ProcessNode(model.Nodes[childNode], (Group)obj);
                 }
                 else
-                    throw new NotSupportedException();
+                    obj = new Object3D();
 
                 obj.Name = node.Name;
 
-                obj.Transform.SetMatrix(MathUtils.CreateMatrix(node.Matrix));
+   
+                if (node.Rotation != null)
+                    obj.Transform.Orientation = new Quaternion(node.Rotation[0], node.Rotation[1], node.Rotation[2], node.Rotation[3]);
+                if (node.Scale != null)
+                    obj.Transform.Scale = MathUtils.ToVector3(node.Scale);
+                if (node.Translation != null)
+                    obj.Transform.Position = MathUtils.ToVector3(node.Translation);
+
+                obj.Transform.Update();
+              
+                //obj.Transform.SetMatrix(MathUtils.CreateMatrix(node.Matrix));
 
                 group.AddChild(obj);
 
                 return obj;
             }
 
+            Group ProcessScene(glTFLoader.Schema.Scene glScene)
+            {
+                var scene = new Group();
+
+                foreach (var node in glScene.Nodes)
+                    ProcessNode(model.Nodes[node], scene);
+
+                return scene;
+            }
+
             var root = new Group();
 
-            ProcessNode(model.Nodes[0], root);
+            foreach (var scene in model.Scenes)
+                root.AddChild(ProcessScene(scene));
 
-            return root;
+            Object3D curRoot = root;
+
+            while (true)
+            {
+                if (curRoot is Group grp && grp.Children.Count == 1 && grp.WorldMatrix.IsIdentity)
+                    curRoot = grp.Children[0];
+                else
+                    break;
+            }
+
+            return curRoot;
         }
 
         public static readonly GltfLoader Instance = new();

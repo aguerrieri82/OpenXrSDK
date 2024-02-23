@@ -1,4 +1,5 @@
 ﻿using OpenXr.Engine;
+using Silk.NET.OpenXR;
 using System.Numerics;
 
 namespace Xr.Engine.Editor
@@ -7,6 +8,11 @@ namespace Xr.Engine.Editor
     {
         private EngineObject? _activeObject;
         private IList<PropertyView>? _properties;
+
+        public PropertiesEditor()
+        {
+            Instance = this;
+        }
 
         public EngineObject? ActiveObject
         {
@@ -46,7 +52,7 @@ namespace Xr.Engine.Editor
                 result.Add(new PropertyView
                 {
                     Label = "Position",
-                    Editor = new Vector3Editor(() => obj3d.Transform.Position, value => obj3d.Transform.Position = value, -3, 3f)
+                    Editor = new Vector3Editor(() => obj3d.Transform.Position, value => obj3d.Transform.Position = value, -0.1f, 0.1f)
                 });
                 result.Add(new PropertyView
                 {
@@ -67,5 +73,7 @@ namespace Xr.Engine.Editor
                 OnPropertyChanged(nameof(Properties));
             }
         }
+
+        public static PropertiesEditor? Instance { get; internal set; }
     }
 }

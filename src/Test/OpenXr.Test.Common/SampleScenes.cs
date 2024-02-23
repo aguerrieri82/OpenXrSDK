@@ -1,6 +1,5 @@
 ﻿
 using OpenXr.Engine;
-using OpenXr.Engine.Abstraction;
 using System.Numerics;
 using Xr.Engine.Compression;
 using Xr.Engine.Gltf;
@@ -63,10 +62,10 @@ namespace OpenXr.Samples
                 ConvertColorTextureSRgb = true,
             };
 
-            //var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets, glOptions);
-            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
+            var room = GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets, glOptions);
+            //var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
             room.Name = "mesh";
-            room.Transform.SetScale(0.01f);
+            //room.Transform.SetScale(0.01f);
             scene.AddChild(room);
            /*
             foreach (var child in room.Descendants<TriangleMesh>())
@@ -76,7 +75,7 @@ namespace OpenXr.Samples
                 };
             */
             var camera = new PerspectiveCamera() { Far = 50f, Near = 0.01f };
-            camera.BackgroundColor = Color.White;
+            camera.BackgroundColor = Color.Transparent;
             //camera!.LookAt(new Vector3(0, 1.7f, 0), new Vector3(1, 1.7f, 0), new Vector3(0, 1, 0));
             camera!.LookAt(new Vector3(1, 1.7f, 1), new Vector3(0,0,0), new Vector3(0, 1, 0));
             scene.ActiveCamera = camera;

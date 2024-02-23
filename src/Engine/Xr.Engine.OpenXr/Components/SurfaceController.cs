@@ -18,11 +18,13 @@ namespace OpenXr.Test.Android
         Vector2 _pointer;
         bool _pointerValid;
 
+       
         public SurfaceController(XrInput<bool> mainButton, XrInput<bool> backButton, XrHaptic clickHaptic)
         {
             _mainButton = mainButton;
             _backButton = backButton;
             _clickHaptic = clickHaptic;
+         
         }
 
         protected override void Update(RenderContext ctx)

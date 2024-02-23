@@ -136,6 +136,8 @@ namespace Xr.Engine.OpenXr
             else
                 xrApp.Layers.AddProjection(RenderView);
 
+            app.ActiveScene!.AddChild(new XrGroup(xrApp));
+
             return renderer;
         }
     }

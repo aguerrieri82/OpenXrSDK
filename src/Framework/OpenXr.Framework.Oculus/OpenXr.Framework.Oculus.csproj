@@ -14,6 +14,18 @@
 		<PackageReference Include="Silk.NET.OpenXR.Extensions.OCULUS" Version="2.20.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="Models\ImageToStl.com_metaquesttouchplus_right.glb">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Models\MetaQuestTouchPlus_Left.glb">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Models\MetaQuestTouchPlus_Right.glb">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 
 
 </Project>

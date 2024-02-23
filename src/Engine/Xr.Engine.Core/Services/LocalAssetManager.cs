@@ -1,5 +1,4 @@
-﻿using OpenXr.Engine.Abstraction;
-
+﻿
 namespace OpenXr.Engine
 {
     public class LocalAssetManager : IAssetManager

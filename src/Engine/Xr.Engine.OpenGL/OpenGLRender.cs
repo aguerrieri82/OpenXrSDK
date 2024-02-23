@@ -113,6 +113,8 @@ namespace OpenXr.Engine.OpenGL
 
             _content.ShaderContents.Clear();
 
+            var drawId = 0;
+
             foreach (var obj3D in scene.VisibleDescendants<Object3D>())
             {
                 if (obj3D is not IVertexSource vrtSrc)
@@ -144,6 +146,7 @@ namespace OpenXr.Engine.OpenGL
                     vertexContent.Contents.Add(new DrawContent
                     {
                         Draw = () => vertexContent!.VertexHandler!.Draw(),
+                        DrawId = drawId++,
                         Material = material,
                         Object = obj3D
                     });
@@ -313,33 +316,14 @@ namespace OpenXr.Engine.OpenGL
                 {
                     var vHandler = vertex.Value.VertexHandler!;
 
-                    var mesh = vertex.Key as TriangleMesh;
-
-                    if (mesh != null)
+                    if (vertex.Key is TriangleMesh mesh)
                     {
-                        if (!mesh.WorldBounds.AreVisibileIn(camera))
+                        //vertex.Value.Contents[0].DrawId
+                        if (!camera.CanSee(mesh.WorldBounds))
                         {
                             skipCount++;
                             //continue;
                         }
-
-                        /*
-                        if (!(mesh.Name != null && (mesh.Name.StartsWith("Red 66") || mesh.Name == "test")))
-                            continue;
-
-                        if (mesh.Name != "test")
-                        {
-                            var test = mesh.Scene?.FindByName<TriangleMesh>("test");
-                            if (test != null)
-                            {
-                                test.Transform.Position = mesh.WorldBounds.Center;
-                                test.Transform.Scale = mesh.WorldBounds.Size * 0.5f;
-                                test.Transform.Orientation = Quaternion.Identity;
-                            }
-  
-       
-                        }
-                        */
                     }
 
                     if (vertex.Key.Version != vertex.Value.Version)

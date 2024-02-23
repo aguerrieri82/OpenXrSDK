@@ -69,6 +69,12 @@ namespace Xr.Engine.Editor
             _xrApp.BindEngineApp(_scene!.App!, options.SampleCount, options.EnableMultiView);
 
             _xrApp.StartEventLoop(() => !_isStarted);
+
+            Dispatcher.Invoke(() =>
+            {
+                PropertiesEditor.Instance!.ActiveObject = _scene!.FindByName<Object3D>("Right Controller");
+            });
+
         }
 
         public void StartXr()

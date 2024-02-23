@@ -9,7 +9,7 @@ namespace Xr.Engine.OpenXr
         {
             var localPos = position.Transform(_host!.WorldMatrixInverse);
 
-            return _host.Geometry!.Bounds.ContainsPoint(localPos);
+            return _host.Geometry!.Bounds.Contains(localPos);
         }
 
         public void Grab()

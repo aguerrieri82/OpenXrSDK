@@ -13,7 +13,6 @@ using Monitor = System.Threading.Monitor;
 
 namespace OpenXr.Framework
 {
-
     public enum XrAppStartMode
     {
         Render,
@@ -1290,6 +1289,8 @@ namespace OpenXr.Framework
         public SessionState SessionState => _lastSessionState;
 
         public ILogger Logger => _logger;
+
+        public IReadOnlyDictionary<string, IXrInput> Inputs => _inputs;
 
         public XR Xr => _xr ?? throw new InvalidOperationException("App not initialized");
 

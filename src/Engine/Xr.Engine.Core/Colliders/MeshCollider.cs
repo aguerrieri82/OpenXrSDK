@@ -24,7 +24,7 @@ namespace OpenXr.Engine
 
             for (var i = 0; i < span.Length; i++)
             {
-                var point = span[i].RayIntersect(tRay, out var _);
+                var point = tRay.Intersects(span[i], out var _);
                 if (point != null)
                 {
                     var worldPoint = point.Value.Transform(_host.WorldMatrix);
