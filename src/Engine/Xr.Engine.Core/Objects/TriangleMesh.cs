@@ -31,7 +31,7 @@ namespace OpenXr.Engine
             NotifyChanged(ObjectChangeType.Render);
         }
 
-        protected override void UpdateWorldBounds()
+        public override void UpdateWorldBounds()
         {
             if (Geometry != null)
                 _worldBounds = Geometry.Bounds.Transform(WorldMatrix);

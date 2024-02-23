@@ -4,6 +4,8 @@ namespace OpenXr.Engine
 {
     public class PerspectiveCamera : Camera
     {
+        protected Matrix4x4 _viewInverse;
+
         public void SetFovCenter(float left, float right, float top, float bottom)
         {
             Projection = Matrix4x4.CreatePerspectiveOffCenter(left, right, bottom, top, Near, Far);
@@ -24,7 +26,8 @@ namespace OpenXr.Engine
 
         public void LookAt(Vector3 position, Vector3 target, Vector3 up)
         {
-            Transform.SetMatrix(Matrix4x4.CreateLookAt(position, target, up));
+            View = Matrix4x4.CreateLookAt(position, target, up);
+            Transform.Matrix = ViewInverse;
         }
 
     }

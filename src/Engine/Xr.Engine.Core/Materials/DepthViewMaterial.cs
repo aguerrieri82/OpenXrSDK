@@ -44,7 +44,7 @@
                 bld.SetUniform("uFarPlane", ctx => ctx.Camera!.Far);
             }
 
-            bld.UpdateStandardVS();
+            StandardVertexShaderHandler.Instance.UpdateShader(bld);
         }
 
     }

@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Xr.Engine.Editor.Tools
+namespace Xr.Engine.Editor
 {
-    public class CameraMove : BaseMouseTool
+    public interface IEditorTool
     {
-
-
+        void Attach(SceneView view);
     }
 }

@@ -61,9 +61,17 @@ namespace OpenXr.Engine
             _worldInverseDirty = false;
         }
 
-        protected virtual void UpdateWorldBounds()
+        //TODO protected
+        public virtual void UpdateWorldBounds()
         {
             _worldBoundsDirty = false;
+        }
+
+        public override void Update(RenderContext ctx)
+        {
+            if (_scene == null && _parent != null)
+                _scene = this.FindAncestor<Scene>();
+            base.Update(ctx);
         }
 
         internal void SetParent(Group? value, bool preserveTransform)

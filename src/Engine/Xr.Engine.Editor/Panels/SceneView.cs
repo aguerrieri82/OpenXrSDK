@@ -5,6 +5,8 @@ using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using System.Windows.Media;
+using Xr.Engine.Editor.Tools;
 using Xr.Engine.OpenXr;
 
 namespace Xr.Engine.Editor
@@ -19,13 +21,15 @@ namespace Xr.Engine.Editor
         protected readonly RenderHost _renderHost;
         protected XrApp? _xrApp;
         protected XrOculusTouchController? _inputs;
-        private bool _isXrActive;
+        protected bool _isXrActive;
+        protected List<IEditorTool> _tools = [];
 
         public SceneView()
         {
             _renderHost = new RenderHost();
             _renderHost.SizeChanged += OnSizeChanged;
             _renderHost.Loaded += OnLoaded;
+            AddTool(new PickTool());
         }
 
         [MemberNotNull(nameof(_xrApp))]
@@ -103,7 +107,7 @@ namespace Xr.Engine.Editor
             {
                 FloatPrecision = ShaderPrecision.High,
                 ShaderVersion = "300 es",
-                RequireTextureCompression = true,   
+                RequireTextureCompression = false,   
             };
             var render = new OpenGLRender(_renderHost.Gl!, renderOptions);
 
@@ -112,52 +116,46 @@ namespace Xr.Engine.Editor
 
             var windowTarget = new GlDefaultRenderTarget(_renderHost.Gl!);
 
+            _renderHost!.TakeContext();
+
             while (_isStarted)
             {
                 if (_scene?.App == null)
                     Thread.Sleep(50);
                 else
                 {
-                    _renderHost!.TakeContext();
-                    try
+                    if (_isXrActive && (_xrApp == null || !_xrApp.IsStarted))
                     {
-                        if (_isXrActive && (_xrApp == null || !_xrApp.IsStarted))
-                        {
-                            _renderHost.EnableVSync(false);
-                            StartXr();
-                        }
-
-                        if (!_isXrActive && _xrApp != null && _xrApp.IsStarted)
-                        {
-                            _renderHost.EnableVSync(true);
-                            StopXr();
-                        }
-
-                        if (_xrApp != null && _xrApp.IsStarted)
-                        {
-                            _xrApp.RenderFrame(_xrApp.Stage);
-                            render.SetRenderTarget(windowTarget);
-                            render.Render(_scene!, _camera!, _view);
-                        }
-                        else
-                            _scene.App!.RenderFrame(_view);
-
-                        _renderHost.SwapBuffers();
-
-                        OnPropertyChanged(nameof(Stats));   
+                        _renderHost.EnableVSync(false);
+                        StartXr();
                     }
-                    finally
+
+                    if (!_isXrActive && _xrApp != null && _xrApp.IsStarted)
                     {
-                        _renderHost.ReleaseContext();
+                        _renderHost.EnableVSync(true);
+                        StopXr();
                     }
+
+                    if (_xrApp != null && _xrApp.IsStarted)
+                    {
+                        _xrApp.RenderFrame(_xrApp.Stage);
+                        render.SetRenderTarget(windowTarget);
+                        render.Render(_scene!, _camera!, _view);
+                    }
+                    else
+                        _scene.App!.RenderFrame(_view);
+
+                    _renderHost.SwapBuffers();
+
+                    OnPropertyChanged(nameof(Stats));
                 }
             }
         }
 
         protected void UpdateSize()
         {
-            _view.Width = (uint)(_renderHost!.RenderSize.Width * 1.25f);
-            _view.Height = (uint)(_renderHost.RenderSize.Height * 1.25f);
+            _view.Width = (uint)(_renderHost!.PixelSize.Width);
+            _view.Height = (uint)(_renderHost.PixelSize.Height);
 
             if (_camera is PerspectiveCamera persp)
                 persp.SetFov(45, _view.Width, _view.Height);
@@ -226,6 +224,17 @@ namespace Xr.Engine.Editor
                 OnPropertyChanged(nameof(IsXrActive));
             }
         }
+
+        public T AddTool<T>(T tool) where T : IEditorTool
+        {
+            _tools.Add(tool);
+
+            tool.Attach(this);
+
+            return tool;
+        }
+
+        public IReadOnlyList<IEditorTool> Tools => _tools;
 
         public EngineAppStats? Stats => _scene?.App?.Stats;
 

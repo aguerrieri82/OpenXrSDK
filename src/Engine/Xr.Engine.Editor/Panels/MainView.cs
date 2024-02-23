@@ -34,7 +34,7 @@ namespace Xr.Engine.Editor
             }
 
             var quad = _app.ActiveScene!.FindByName<Object3D>("quad");
-            if (quad != null && false)
+            if (quad != null)
                 quad.AddComponent(new FollowCamera { Offset = new Vector3(0, 0, -2) });
 
             _app.Start();

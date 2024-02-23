@@ -127,6 +127,7 @@ namespace OpenXr.Engine
 
         public static IEnumerable<T> Descendants<T>(this Group target) where T : Object3D
         {
+
             foreach (var child in target.Children)
             {
                 if (child is T validChild)
@@ -164,6 +165,7 @@ namespace OpenXr.Engine
         #region GEOMETRY
 
         public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, T value);
+
 
         public static void SetVertexData<T>(this Geometry3D geo, VertexAssignDelegate<T> selector, T[] array)
         {
@@ -310,7 +312,82 @@ namespace OpenXr.Engine
 
             geo.ActiveComponents |= VertexComponent.Tangent;
         }
-    
+
+        public static bool Intersects(this Bounds3 value, Bounds3 other)
+        {
+            if (value.Max.X < other.Min.X || value.Min.X > other.Max.X)
+                return false;
+            if (value.Max.Y < other.Min.Y || value.Min.Y > other.Max.Y)
+                return false;
+            if (value.Max.Z < other.Min.Z || value.Min.Z > other.Max.Z)
+                return false;
+
+            return true;
+        }
+
+        public static bool Inside(this Bounds3 value, Bounds3 other)
+        {
+            if (value.Min.X < other.Min.X || value.Max.X > other.Max.X)
+                return false;
+            if (value.Min.Y < other.Min.Y || value.Max.Y > other.Max.Y)
+                return false;
+            if (value.Min.Z < other.Min.Z || value.Max.Z > other.Max.Z)
+                return false;
+
+            return true;
+        }
+
+
+        public static IEnumerable<Vector2> Project2(this IEnumerable<Vector3> points, Camera camera)
+        {
+            var viewProj = camera.View * camera.Projection;
+
+            foreach (var vertex in points)
+            {
+                var vec4 = new Vector4(vertex.X, vertex.Y, vertex.Z, 1);
+                var vTrans = Vector4.Transform(vec4, viewProj);
+                yield return new Vector2(vTrans.X / vTrans.W, vec4.Y / vTrans.W);
+            }
+        }
+
+        public static IEnumerable<Vector3> Project3(this IEnumerable<Vector3> points, Camera camera)
+        {
+            var viewProj = camera.View * camera.Projection;
+
+            foreach (var vertex in points)
+            {
+                var vec4 = new Vector4(vertex.X, vertex.Y, vertex.Z, 1);
+                var vTrans = Vector4.Transform(vec4, viewProj);
+                vTrans /= vTrans.W;
+      
+
+                yield return new Vector3(vTrans.X, vTrans.Y, vTrans.Z);
+            }
+        }
+
+        public static bool AreVisibileIn(this Bounds3 value, Camera camera)
+        {
+            var boundsPoints = value.Points.Project3(camera).ToArray();
+
+            var projBounds = boundsPoints.ComputeBounds(Matrix4x4.Identity);
+
+            var cameraBounds = new Bounds3()
+            {
+                Max = new Vector3(1.1f, 1.1f, 1.1f),
+                Min = new Vector3(-1.1f, -1.1f, -1.1f)
+            };
+
+            var result = boundsPoints.Any(a=> cameraBounds.ContainsPoint(a)) || projBounds.Intersects(cameraBounds) || cameraBounds.Inside(projBounds);
+            if (!result)
+            {
+                if (value.Size.X > 15 || value.Size.Y > 15 || value.Size.Z > 15)
+                    return false;
+                return false;
+            }
+
+            return true;
+        }
+
 
         public static void ComputeNormals(this Geometry3D geo)
         {

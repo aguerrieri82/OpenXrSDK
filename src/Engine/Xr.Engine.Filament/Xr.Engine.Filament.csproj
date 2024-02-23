@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+
+  </PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\Filament.Native\bin\x64\$(Configuration)\filament-native.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\Filament.Native\bin\x64\$(Configuration)\filament-native.pdb">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	
+	<ItemGroup>
+    <ProjectReference Include="..\Filament.Native\Filament.Native.vcxproj" />
+    <ProjectReference Include="..\Xr.Engine.Core\Xr.Engine.Core.csproj" />
+  </ItemGroup>
+
+</Project>

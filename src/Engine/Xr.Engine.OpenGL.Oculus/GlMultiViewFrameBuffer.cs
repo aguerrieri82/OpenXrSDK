@@ -59,7 +59,6 @@ namespace OpenXr.Engine.OpenGL.Oculus
             UpdateTextureInfo();
             CreateDepth();
             BindFunctions(gl);
-
         }
 
         protected void UpdateTextureInfo()
@@ -78,10 +77,18 @@ namespace OpenXr.Engine.OpenGL.Oculus
 
             _gl.BindTexture(_target, _depthTexId);
 
+            var texFormat = OpenGLRender.Current!.Options.DepthBufferFormat switch
+            {
+                TextureFormat.Depth24Float => SizedInternalFormat.DepthComponent24,
+                TextureFormat.Depth32Float => SizedInternalFormat.DepthComponent32,
+                TextureFormat.Depth24Stencil8 => SizedInternalFormat.Depth24Stencil8Oes,
+                _ => throw new NotSupportedException()
+            };
+
             _gl.TexStorage3D(
                    _target,
                    _sampleCount,
-                   (SizedInternalFormat)SizedInternalFormat.DepthComponent24, //TODO pick from options
+                   texFormat,
                    _width,
                    _height,
                    2);
@@ -104,6 +111,7 @@ namespace OpenXr.Engine.OpenGL.Oculus
         {
             _gl.DeleteTexture(_depthTexId);
             _depthTexId = 0;
+           
             base.Dispose();
         }
 
@@ -167,5 +175,6 @@ namespace OpenXr.Engine.OpenGL.Oculus
                 return _depthTexId;
             throw new NotSupportedException();
         }
+
     }
 }

@@ -50,6 +50,7 @@ namespace OpenXr.Engine.OpenGL
         public Action? Draw;
 
         public ShaderUpdate? LastUpdate { get; set; }
+        public int DrawId { get; set; }
     }
 
     public class OpenGLRender : IRenderEngine
@@ -58,7 +59,10 @@ namespace OpenXr.Engine.OpenGL
         protected GlobalContent? _content;
         protected IGlRenderTarget? _target;
         protected GlRenderOptions _options;
-        private UpdateShaderContext _updateCtx;
+        protected UpdateShaderContext _updateCtx;
+        protected GlSimpleProgram? _writeStencil;
+        protected ShaderUpdate? _writeStencilUpdate;
+
         public static class Props
         {
             public const string GlResId = nameof(GlResId);
@@ -71,13 +75,15 @@ namespace OpenXr.Engine.OpenGL
 
         public OpenGLRender(GL gl, GlRenderOptions options)
         {
+            Current = this;
+
             _gl = gl;
             _options = options;
             _target = new GlDefaultRenderTarget(gl);
             _options.ProgramFactory ??= new GlDefaultProgramFactory();
             _updateCtx = new UpdateShaderContext();
             _updateCtx.RenderEngine = this;
-            Current = this;
+
         }
 
         protected GlProgram GetProgram(ShaderMaterial material)
@@ -90,7 +96,8 @@ namespace OpenXr.Engine.OpenGL
         {
             _gl.ClearColor(color.R, color.G, color.B, color.A);
             _gl.ClearDepth(1.0f);
-            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            _gl.ClearStencil(0);
+            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
 
@@ -163,7 +170,7 @@ namespace OpenXr.Engine.OpenGL
                }
            }, 0);
 
-            _gl.Enable(EnableCap.DebugOutput);
+           // _gl.Enable(EnableCap.DebugOutput);
         }
 
         public void EnableFeature(EnableCap cap, bool value)
@@ -184,12 +191,43 @@ namespace OpenXr.Engine.OpenGL
                 _gl.ColorMask(false, false, false, false);
             else
                 _gl.ColorMask(true, true, true, true);
+
         }
 
         public void Render(Scene scene, Camera camera, Rect2I view)
         {
             if (_target != null)
                 Render(scene, camera, view, _target);
+        }
+
+        protected ShaderUpdate UpdateProgram(GlProgram prog, string progId, params IShaderHandler?[] handlers)
+        {
+            var updateBuilder = new ShaderUpdateBuilder(_updateCtx);
+
+            foreach (var handler in handlers)
+                handler?.UpdateShader(updateBuilder);
+
+            updateBuilder.ComputeHash(progId);
+
+            var update = updateBuilder.Result;
+
+            prog.BeginEdit();
+
+            if (update.Features != null)
+            {
+                foreach (var feature in update.Features)
+                    prog.AddFeature(feature);
+            }
+
+            if (update.Extensions != null)
+            {
+                foreach (var ext in update.Extensions)
+                    prog.AddExtension(ext);
+            }
+
+            prog.Commit(update.FeaturesHash!);
+
+            return update;
         }
 
         public void Render(Scene scene, Camera camera, Rect2I view, IGlRenderTarget target)
@@ -216,6 +254,57 @@ namespace OpenXr.Engine.OpenGL
             _updateCtx.Lights = _content.Lights;
             _updateCtx.LightsVersion = _content.Version;
 
+            /*
+                       int drawId = 1;
+
+                       _gl.Enable(EnableCap.StencilTest);
+
+                       _gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
+
+                       if (_writeStencil == null)
+                       {
+                           _writeStencil = new GlSimpleProgram(_gl,
+                               Embedded.GetString<Shader>("standard.vert"),
+                               Embedded.GetString<Shader>("empty.frag"),
+                               Embedded.GetString<Shader>);
+
+                           _writeStencilUpdate = UpdateProgram(_writeStencil, "write-stencil", targetHandler, StandardVertexShaderHandler.Instance);
+                       }
+
+                       _writeStencil.Use(_writeStencilUpdate!.FeaturesHash!);
+
+                       foreach (var updateUniform in _writeStencilUpdate.Actions!)
+                           updateUniform(_updateCtx, _writeStencil);
+
+                       foreach (var shader in _content.ShaderContents)
+                       {
+                           foreach (var vertex in shader.Value.Contents)
+                           {
+                               var vHandler = vertex.Value.VertexHandler!;
+
+                               vHandler.Bind();
+
+                               foreach (var draw in vertex.Value.Contents)
+                               {
+                                   ConfigureCaps(draw.Material!);
+
+                                   _writeStencil.SetUniform("uModel", draw.Object!.WorldMatrix);
+
+                                   _gl.StencilFunc(StencilFunction.Always, drawId, 0xFF);
+                                   draw.DrawId = drawId;
+                                   draw.Draw!();
+                                   drawId++;
+                               }
+                           }
+                       }
+
+                       _gl.Clear(ClearBufferMask.DepthBufferBit);
+
+                       _gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
+            */
+
+            int skipCount = 0;
+
             foreach (var shader in _content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
                 var prog = shader.Value!.Program!;
@@ -223,6 +312,35 @@ namespace OpenXr.Engine.OpenGL
                 foreach (var vertex in shader.Value.Contents)
                 {
                     var vHandler = vertex.Value.VertexHandler!;
+
+                    var mesh = vertex.Key as TriangleMesh;
+
+                    if (mesh != null)
+                    {
+                        if (!mesh.WorldBounds.AreVisibileIn(camera))
+                        {
+                            skipCount++;
+                            //continue;
+                        }
+
+                        /*
+                        if (!(mesh.Name != null && (mesh.Name.StartsWith("Red 66") || mesh.Name == "test")))
+                            continue;
+
+                        if (mesh.Name != "test")
+                        {
+                            var test = mesh.Scene?.FindByName<TriangleMesh>("test");
+                            if (test != null)
+                            {
+                                test.Transform.Position = mesh.WorldBounds.Center;
+                                test.Transform.Scale = mesh.WorldBounds.Size * 0.5f;
+                                test.Transform.Orientation = Quaternion.Identity;
+                            }
+  
+       
+                        }
+                        */
+                    }
 
                     if (vertex.Key.Version != vertex.Value.Version)
                     {
@@ -247,35 +365,15 @@ namespace OpenXr.Engine.OpenGL
 
                         if (update == null || draw.Material!.NeedUpdateShader(_updateCtx, update))
                         {
-                            var updateBuilder = new ShaderUpdateBuilder(_updateCtx);
+                            update = UpdateProgram(prog,
+                                draw.Material!.GetType().FullName!,
+                                draw.Material,
+                                targetHandler);
 
-                            draw.Material!.UpdateShader(updateBuilder);
-
-                            targetHandler?.UpdateShader(updateBuilder);
-
-                            updateBuilder.ComputeHash(draw.Material!.GetType().FullName!);
-
-                            update = updateBuilder.Result;
                             update.LightsVersion = _updateCtx.LightsVersion;
-                            update.MaterialVersion = draw.Material.Version;
+                            update.MaterialVersion = draw.Material!.Version;
 
                             draw.LastUpdate = update;
-
-                            prog.BeginEdit();
-
-                            if (update.Features != null)
-                            {
-                                foreach (var feature in update.Features)
-                                    prog.AddFeature(feature);
-                            }
-
-                            if (update.Extensions != null)
-                            {
-                                foreach (var ext in update.Extensions)
-                                    prog.AddExtension(ext);
-                            }
-
-                            prog.Commit(update.FeaturesHash!);
                         }
 
                         prog.Use(update.FeaturesHash!);
@@ -285,6 +383,8 @@ namespace OpenXr.Engine.OpenGL
                             foreach (var updateUniform in update.Actions)
                                 updateUniform(_updateCtx, prog);
                         }
+
+                        // _gl.StencilFunc(StencilFunction.Equal, draw.DrawId, 0xFF);
 
                         draw.Draw!();
                     }
@@ -296,6 +396,7 @@ namespace OpenXr.Engine.OpenGL
             }
 
             target.End();
+
         }
 
         public void SetRenderTarget(IGlRenderTarget target)

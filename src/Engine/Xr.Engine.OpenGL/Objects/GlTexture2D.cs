@@ -108,6 +108,9 @@ namespace OpenXr.Engine.OpenGL
                     case TextureFormat.Depth24Float:
                         internalFormat = InternalFormat.DepthComponent24;
                         break;
+                    case TextureFormat.Depth24Stencil8:
+                        internalFormat = InternalFormat.Depth24Stencil8Oes;
+                        break;
                     case TextureFormat.SBgra32:
                     case TextureFormat.SRgba32:
                         internalFormat = InternalFormat.Srgb8Alpha8;
@@ -129,6 +132,9 @@ namespace OpenXr.Engine.OpenGL
                     case TextureFormat.Depth24Float:
                         pixelFormat = PixelFormat.DepthComponent;
                         break;
+                    case TextureFormat.Depth24Stencil8:
+                        pixelFormat = PixelFormat.DepthStencil;
+                        break;
                     case TextureFormat.SRgba32:
                     case TextureFormat.Rgba32:
                         pixelFormat = PixelFormat.Rgba;
@@ -143,12 +149,15 @@ namespace OpenXr.Engine.OpenGL
                     default:
                         throw new NotSupportedException();
                 }
-
+              
                 switch (format)
                 {
                     case TextureFormat.Depth32Float:
                     case TextureFormat.Depth24Float:
                         pixelType = PixelType.Float;
+                        break;
+                    case TextureFormat.Depth24Stencil8:
+                        pixelType = PixelType.UnsignedInt248Oes;
                         break;
                     case TextureFormat.Rgba32:
                     case TextureFormat.Bgra32:

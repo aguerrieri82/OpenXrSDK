@@ -182,7 +182,7 @@ namespace Xr.Engine.Gltf
 
                 CheckExtensions(info.Extensions);
 
-                return CreateTexture(image, textInfo, imageInfo.Name);
+                return CreateTexture(image, textInfo, imageInfo.Name ?? imageInfo.Uri);
             }
 
             Texture2D DecodeTextureNormal(glTFLoader.Schema.MaterialNormalTextureInfo info)
@@ -195,7 +195,7 @@ namespace Xr.Engine.Gltf
 
                 CheckExtensions(info.Extensions);
 
-                return CreateTexture(image, textInfo, imageInfo.Name);
+                return CreateTexture(image, textInfo, imageInfo.Name ?? imageInfo.Uri);
             }
 
             Texture2D DecodeTextureBase(glTFLoader.Schema.TextureInfo info, bool useSRgb = false)
@@ -208,7 +208,7 @@ namespace Xr.Engine.Gltf
 
                 CheckExtensions(info.Extensions);
 
-                return CreateTexture(image, textInfo, imageInfo.Name);
+                return CreateTexture(image, textInfo, imageInfo.Name ?? imageInfo.Uri);
             }
 
             PbrMaterial DecodeMaterial(glTFLoader.Schema.Material gltMat)
@@ -421,7 +421,7 @@ namespace Xr.Engine.Gltf
                                     case "TANGENT":
                                         var tValues = ConvertBuffer<Vector4>(buffer, view, acc);
                                         geo.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
-                                        geo.ActiveComponents |= VertexComponent.Tangent;
+                                        geo.ActiveComponents |= VertexComponent.Tangent; 
                                         Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC4);
                                         Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
                                         break;
@@ -467,7 +467,14 @@ namespace Xr.Engine.Gltf
                         {
                             var glftMat = model.Materials[primitive.Material.Value];
                             curMesh.Materials.Add(DecodeMaterial(glftMat));
-                            //curMesh.Materials.Add(new StandardMaterial() { Color = Color.White });
+
+                            //TODO delete
+                            if ((curMesh.Materials[0] as PbrMaterial).MetallicRoughness.BaseColorTexture?.Name == "11474523244911310074.jpg")
+                            {
+                                curMesh.Name = "Red " + group.Children.Count;
+      
+                            }
+                             
                         }
                     }
                     else

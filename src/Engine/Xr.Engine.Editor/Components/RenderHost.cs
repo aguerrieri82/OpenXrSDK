@@ -9,11 +9,16 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using OpenXr.Framework;
+using System.Diagnostics;
+using System.Windows;
+using System.Runtime.Intrinsics.Arm;
+using System.Windows.Media;
+
 
 
 namespace Xr.Engine.Editor
 {
-    public class RenderHost : HwndHost, INativeContext
+    public class RenderHost : HwndHost, INativeContext, IPointerEventSource
     {
         private HwndSource? _hwndSource;
         private GL? _gl;
@@ -148,6 +153,20 @@ namespace Xr.Engine.Editor
         const sbyte PFD_OVERLAY_PLANE = 1;
         const sbyte PFD_UNDERLAY_PLANE = -1;
 
+        const ushort WM_MOUSEMOVE = 0x0200;
+        
+        const ushort WM_MBUTTONDOWN = 0x0207;
+        const ushort WM_LBUTTONDOWN = 0x0201;
+        const ushort WM_RBUTTONDOWN = 0x0204;
+
+        const ushort WM_MBUTTONUP = 0x0208;
+        const ushort WM_LBUTTONUP = 0x0202;
+        const ushort WM_RBUTTONUP = 0x0205;
+
+        const ushort MK_LBUTTON = 0x0001;
+        const ushort MK_MBUTTON = 0x0010;
+        const ushort MK_RBUTTON = 0x0002;
+
         const uint WS_CHILD = 0x40000000;
 
         #endregion
@@ -157,14 +176,74 @@ namespace Xr.Engine.Editor
             _hLib = LoadLibraryW("opengl32.dll");
         }
 
+        public IntPtr OnMessage(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            PointerEvent ev = new PointerEvent();
+
+            switch (msg)
+            {
+                case WM_MOUSEMOVE:
+                    
+                    ev.X = ((uint)lParam) & 0x0000FFFF;
+                    ev.Y = ((uint)lParam) >> 16;
+                    
+                    if (((uint)wParam & MK_LBUTTON) == MK_LBUTTON)
+                        ev.Buttons |= MouseButton.Left;
+                    
+                    if (((uint)wParam & MK_RBUTTON) == MK_RBUTTON)
+                        ev.Buttons |= MouseButton.Right;
+                    
+                    if (((uint)wParam & MK_MBUTTON) == MK_MBUTTON)
+                        ev.Buttons |= MouseButton.Right;
+
+                    PointerMove?.Invoke(ev);
+                    break;
+                case WM_MBUTTONDOWN:
+                case WM_LBUTTONDOWN:
+                case WM_RBUTTONDOWN:
+                    ev.X = ((uint)lParam) & 0x0000FFFF;
+                    ev.Y = ((uint)lParam) >> 16;
+
+                    if (msg == WM_MBUTTONDOWN)
+                        ev.Buttons = MouseButton.Middle;
+                    else if (msg == WM_LBUTTONDOWN)
+                        ev.Buttons = MouseButton.Left;
+                    else if (msg == WM_RBUTTONDOWN)
+                        ev.Buttons = MouseButton.Right;
+
+                    PointerDown?.Invoke(ev);
+                    
+                    break;
+                case WM_MBUTTONUP:
+                case WM_LBUTTONUP:
+                case WM_RBUTTONUP:
+                    ev.X = ((uint)lParam) & 0x0000FFFF;
+                    ev.Y = ((uint)lParam) >> 16;
+
+                    if (msg == WM_MBUTTONUP)
+                        ev.Buttons = MouseButton.Middle;
+                    else if (msg == WM_LBUTTONUP)
+                        ev.Buttons = MouseButton.Left;
+                    else if (msg == WM_RBUTTONUP)
+                        ev.Buttons = MouseButton.Right;
+
+                    PointerUp?.Invoke(ev);
+                    break;
+            }
+
+            return IntPtr.Zero;
+        }
+
         protected unsafe override HandleRef BuildWindowCore(HandleRef hwndParent)
         {
             Gpu.EnableNvAPi();
 
             if (DesignerProperties.GetIsInDesignMode(this))
                 return new HandleRef(null, 0);
-
+   
+             
             _hwndSource = new HwndSource(0, (int)WS_CHILD, 0, 0, 0, "RenderView", hwndParent.Handle);
+            _hwndSource.AddHook(OnMessage);
 
             var handle = _hwndSource.CreateHandleRef();
 
@@ -176,7 +255,9 @@ namespace Xr.Engine.Editor
                 dwFlags = PFD_SUPPORT_OPENGL | PFD_SUPPORT_COMPOSITION | PFD_DIRECT3D_ACCELERATED | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER,
                 iLayerType = PFD_MAIN_PLANE,
                 cColorBits = 24,
-                cDepthBits = 32
+                cAlphaBits = 8,
+                cDepthBits = 24,
+                cStencilBits = 8
             };
 
             _hdc = GetDC(handle.Handle);
@@ -209,6 +290,8 @@ namespace Xr.Engine.Editor
             }
 
             wglSwapIntervalEXT(enable ? 1 : 0);
+
+
         }
 
         public void SwapBuffers()
@@ -263,6 +346,26 @@ namespace Xr.Engine.Editor
             addr = wglGetProcAddress(proc);
             return addr != 0;
         }
+
+        public Size PixelSize
+        {
+            get
+            {
+                var dpi = VisualTreeHelper.GetDpi(this);
+                return new Size
+                {
+                    Height = ActualHeight * dpi.DpiScaleY,
+                    Width = ActualWidth * dpi.DpiScaleX
+                };
+            }
+        }
+
+        public event PointerEventDelegate? PointerDown;
+        
+        public event PointerEventDelegate? PointerUp;
+        
+        public event PointerEventDelegate? PointerMove;
+
 
         public GL? Gl => _gl;
 

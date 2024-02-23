@@ -26,7 +26,7 @@
         {
             FloatPrecision = ShaderPrecision.High;
             ShaderVersion = "300 es";
-            DepthBufferFormat = TextureFormat.Depth24Float;
+            DepthBufferFormat = TextureFormat.Depth24Stencil8;
         }
 
         public string? ShaderVersion { get; set; }

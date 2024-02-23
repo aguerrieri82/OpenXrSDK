@@ -22,6 +22,9 @@
 
             foreach (var obj in layer.Content)
                 NotifyObjectAdded(layer, obj);
+
+            foreach (var obj in _scene!.Descendants<Object3D>())
+                layer.NotifyChanged(obj, ObjectChangeType.SceneAdd);
         }
 
         public IEnumerable<T> OfType<T>() where T : ILayer

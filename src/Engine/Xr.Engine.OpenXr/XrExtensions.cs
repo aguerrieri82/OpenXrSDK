@@ -95,7 +95,7 @@ namespace Xr.Engine.OpenXr
                 var transform = XrCameraTransform.FromView(view, camera.Near, camera.Far);
 
                 camera.Projection = transform.Projection;
-                camera.Transform.SetMatrix(transform.View);
+                camera.View = transform.View;
 
                 if (viewIndex == 0)
                     app.RenderFrame(rect);
