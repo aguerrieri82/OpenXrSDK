@@ -32,18 +32,38 @@ namespace Xr.Engine.Editor
             _sceneView.RenderHost.PointerDown += OnMouseDown;
             _sceneView.RenderHost.PointerUp += OnMouseUp;
             _sceneView.RenderHost.PointerMove += OnMouseMove;
+            _sceneView.RenderHost.WheelMove += OnWheelMove; ;
         }
 
-        protected Ray3 ToRay(PointerEvent ev)
+        protected virtual void OnWheelMove(PointerEvent ev)
+        {
+
+        }
+
+        protected Vector3 ToView(PointerEvent ev, float z = -1f)
         {
             var width = (float)_sceneView!.RenderHost.PixelSize.Width;
             var height = (float)_sceneView!.RenderHost.PixelSize.Height;
 
-            var normPoint = new Vector3(
+            return  new Vector3(
                 2.0f * ev.X / (float)width - 1.0f,
                 1.0f - 2.0f * ev.Y / (float)height,
-                -1f
+                z
             );
+        }
+
+        protected Vector3 ToWorld(PointerEvent ev, float z = -1f)
+        {
+            var normPoint = ToView(ev, z);
+            var dirEye = Vector4.Transform(new Vector4(normPoint, 1.0f), _sceneView!.Camera!.ProjectionInverse);
+            dirEye /= dirEye.W;
+            var pos4 = Vector4.Transform(dirEye, _sceneView!.Camera.WorldMatrix);
+            return new Vector3(pos4.X, pos4.Y, pos4.Z);
+        }
+
+        protected Ray3 ToRay(PointerEvent ev)
+        {
+            var normPoint = ToView(ev);
 
             var dirEye = Vector4.Transform(new Vector4(normPoint, 1.0f), _sceneView!.Camera!.ProjectionInverse);
             dirEye.W = 0;
@@ -56,8 +76,6 @@ namespace Xr.Engine.Editor
                 Direction = new Vector3(dirWorld.X, dirWorld.Y, dirWorld.Z).Normalize()
             };
         }
-
-
 
         protected virtual void OnMouseDown(PointerEvent ev)
         {

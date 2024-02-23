@@ -16,15 +16,21 @@ namespace Xr.Engine.Editor
 
         public readonly bool IsLeftDown => (Buttons & MouseButton.Left) == MouseButton.Left;
 
-        public readonly bool IsMiddleDown => (Buttons & MouseButton.Left) == MouseButton.Left;
+        public readonly bool IsMiddleDown => (Buttons & MouseButton.Middle) == MouseButton.Middle;
 
-        public readonly bool IsRightDown => (Buttons & MouseButton.Left) == MouseButton.Left;
+        public readonly bool IsRightDown => (Buttons & MouseButton.Right) == MouseButton.Right;
+
+        public int WheelDelta { get; internal set; }
     }
 
     public delegate void PointerEventDelegate(PointerEvent ev);
 
     public interface IPointerEventSource
     {
+        void CapturePointer();
+
+        void ReleasePointer();
+
         event PointerEventDelegate PointerDown;
 
         event PointerEventDelegate PointerUp;

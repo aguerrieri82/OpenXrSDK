@@ -5,9 +5,9 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenXr.Engine.Geometry
+namespace OpenXr.Engine
 {
-    internal class Spherical
+    public struct Spherical
     {
         public float R;
 
@@ -15,13 +15,20 @@ namespace OpenXr.Engine.Geometry
 
         public float Azm;
 
+        public void Normalize()
+        {
+            Azm = Azm % (MathF.PI * 2);
+            Pol = Pol % MathF.PI;   
+        }
+
         public static Spherical FromCartesian(Vector3 vector)
         {
-            var res = new Spherical();
-
-            res.R = vector.Length();
-            res.Pol = MathF.Atan2(vector.Y, vector.X);
-            res.Azm = MathF.Acos(vector.Z / res.R);
+            var res = new Spherical
+            {
+                R = vector.Length(),
+                Pol = MathF.Atan2(vector.Z, vector.X)
+            };
+            res.Azm = MathF.Acos(vector.Y / res.R);
 
             return res;
         }
@@ -30,8 +37,8 @@ namespace OpenXr.Engine.Geometry
         {
             return new Vector3(
                 R * MathF.Sin(Azm) * MathF.Cos(Pol),
-                R * MathF.Sin(Azm) * MathF.Sin(Pol),
-                R * MathF.Cos(Azm)
+                R * MathF.Cos(Azm),
+                R * MathF.Sin(Azm) * MathF.Sin(Pol)
             );
         }
     }
