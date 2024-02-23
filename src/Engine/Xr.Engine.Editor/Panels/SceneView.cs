@@ -29,7 +29,9 @@ namespace Xr.Engine.Editor
             _renderHost = new RenderHost();
             _renderHost.SizeChanged += OnSizeChanged;
             _renderHost.Loaded += OnLoaded;
+
             AddTool(new PickTool());
+            AddTool(new OrbitTool());
         }
 
         [MemberNotNull(nameof(_xrApp))]

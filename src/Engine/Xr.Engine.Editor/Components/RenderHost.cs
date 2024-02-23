@@ -61,6 +61,12 @@ namespace Xr.Engine.Editor
         [DllImport("User32.dll")]
         static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
 
+        [DllImport("User32.dll")]
+        static extern IntPtr SetCapture(IntPtr hWnd);
+
+        [DllImport("User32.dll")]
+        static extern bool ReleaseCapture();
+
 
         [DllImport("User32.dll")]
         static extern IntPtr GetDC(IntPtr hWnd);
@@ -162,10 +168,13 @@ namespace Xr.Engine.Editor
         const ushort WM_MBUTTONUP = 0x0208;
         const ushort WM_LBUTTONUP = 0x0202;
         const ushort WM_RBUTTONUP = 0x0205;
+        const ushort WM_MOUSEWHEEL = 0x020A;
 
         const ushort MK_LBUTTON = 0x0001;
         const ushort MK_MBUTTON = 0x0010;
         const ushort MK_RBUTTON = 0x0002;
+
+        
 
         const uint WS_CHILD = 0x40000000;
 
@@ -176,6 +185,16 @@ namespace Xr.Engine.Editor
             _hLib = LoadLibraryW("opengl32.dll");
         }
 
+        public void CapturePointer()
+        {
+            RenderHost.SetCapture(_hwndSource!.Handle);
+        }
+
+        public void ReleasePointer()
+        {
+            RenderHost.ReleaseCapture();
+        }
+
         public IntPtr OnMessage(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             PointerEvent ev = new PointerEvent();
@@ -183,10 +202,10 @@ namespace Xr.Engine.Editor
             switch (msg)
             {
                 case WM_MOUSEMOVE:
-                    
-                    ev.X = ((uint)lParam) & 0x0000FFFF;
-                    ev.Y = ((uint)lParam) >> 16;
-                    
+
+                    ev.X = (short)(((int)lParam) & 0x0000FFFF);
+                    ev.Y = ((int)lParam) >> 16;
+
                     if (((uint)wParam & MK_LBUTTON) == MK_LBUTTON)
                         ev.Buttons |= MouseButton.Left;
                     
@@ -201,8 +220,8 @@ namespace Xr.Engine.Editor
                 case WM_MBUTTONDOWN:
                 case WM_LBUTTONDOWN:
                 case WM_RBUTTONDOWN:
-                    ev.X = ((uint)lParam) & 0x0000FFFF;
-                    ev.Y = ((uint)lParam) >> 16;
+                    ev.X = (short)(((int)lParam) & 0x0000FFFF);
+                    ev.Y = ((int)lParam) >> 16;
 
                     if (msg == WM_MBUTTONDOWN)
                         ev.Buttons = MouseButton.Middle;
@@ -214,11 +233,19 @@ namespace Xr.Engine.Editor
                     PointerDown?.Invoke(ev);
                     
                     break;
+                case WM_MOUSEWHEEL:
+                    ev.X = (short)(((int)lParam) & 0x0000FFFF);
+                    ev.Y = ((int)lParam) >> 16;
+                    ev.WheelDelta = (int)wParam >> 16;
+
+                    WheelMove?.Invoke(ev);
+
+                    break;
                 case WM_MBUTTONUP:
                 case WM_LBUTTONUP:
                 case WM_RBUTTONUP:
-                    ev.X = ((uint)lParam) & 0x0000FFFF;
-                    ev.Y = ((uint)lParam) >> 16;
+                    ev.X = (short)(((int)lParam) & 0x0000FFFF);
+                    ev.Y = ((int)lParam) >> 16;
 
                     if (msg == WM_MBUTTONUP)
                         ev.Buttons = MouseButton.Middle;
@@ -365,6 +392,8 @@ namespace Xr.Engine.Editor
         public event PointerEventDelegate? PointerUp;
         
         public event PointerEventDelegate? PointerMove;
+
+        public event PointerEventDelegate? WheelMove;
 
 
         public GL? Gl => _gl;

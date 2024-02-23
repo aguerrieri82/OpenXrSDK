@@ -26,8 +26,7 @@ namespace OpenXr.Samples
             var quod = new TriangleMesh(Quad.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
             quod.Transform.SetScale(0.5f);
             quod.Name = "quad";
-            quod.IsVisible = true;
-            scene.AddChild(quod);
+            //scene.AddChild(quod);
 
             var contanier = new Group();
             contanier.Transform.Position = new Vector3(1f, 0, 0);
@@ -68,7 +67,7 @@ namespace OpenXr.Samples
             var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
             room.Name = "mesh";
             room.Transform.SetScale(0.01f);
-            //scene.AddChild(room);
+            scene.AddChild(room);
            /*
             foreach (var child in room.Descendants<TriangleMesh>())
                 child.Materials[0] = new StandardMaterial() {  
