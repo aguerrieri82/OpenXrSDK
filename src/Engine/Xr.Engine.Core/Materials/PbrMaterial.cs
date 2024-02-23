@@ -283,7 +283,7 @@ namespace OpenXr.Engine
             {
                 bld.SetUniform("u_Exposure", (ctx) => ctx.Camera!.Exposure);
                 bld.SetUniform("u_Camera", (ctx) => ctx.Camera!.Transform.Position);
-                bld.SetUniform("u_ViewProjectionMatrix", (ctx) => ctx.Camera!.Transform.Matrix * ctx.Camera.Projection);
+                bld.SetUniform("u_ViewProjectionMatrix", (ctx) => ctx.Camera!.View * ctx.Camera.Projection);
             }
 
             if (bld.Context.Lights != null)

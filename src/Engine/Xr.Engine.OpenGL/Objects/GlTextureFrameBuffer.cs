@@ -10,8 +10,8 @@ namespace OpenXr.Engine.OpenGL
 {
     public class GlTextureFrameBuffer : GlFrameBuffer
     {
-
         protected uint _sampleCount;
+
 
         public GlTextureFrameBuffer(GL gl, GlTexture2D color, bool createDepth = true, uint sampleCount = 1)
             : base(gl)
@@ -25,18 +25,21 @@ namespace OpenXr.Engine.OpenGL
                 CreateDepth();
         }
 
+
         [MemberNotNull(nameof(Depth))]
         protected unsafe void CreateDepth()
         {
-            Depth = new GlTexture2D(_gl);
-            Depth.MagFilter = TextureMagFilter.Nearest;
-            Depth.MinFilter = TextureMinFilter.Nearest;
-            Depth.WrapT = Color.WrapT;
-            Depth.WrapS = Color.WrapS;
-            Depth.MaxLevel = Color.MaxLevel;
-            Depth.BaseLevel = Color.BaseLevel;
-            Depth.SampleCount = _sampleCount;
-            Depth.Target = _gl.GetTexture2DTarget(Color.Handle);
+            Depth = new GlTexture2D(_gl)
+            {
+                MagFilter = TextureMagFilter.Nearest,
+                MinFilter = TextureMinFilter.Nearest,
+                WrapT = Color.WrapT,
+                WrapS = Color.WrapS,
+                MaxLevel = Color.MaxLevel,
+                BaseLevel = Color.BaseLevel,
+                SampleCount = _sampleCount,
+                Target = _gl.GetTexture2DTarget(Color.Handle)
+            };
             Depth.Create(Color.Width, Color.Height, OpenGLRender.Current!.Options.DepthBufferFormat); 
         }
 
@@ -65,6 +68,18 @@ namespace OpenXr.Engine.OpenGL
             {
                 throw new Exception($"Frame buffer state invalid: {status}");
             }
+        }
+
+        public override void Dispose()
+        {
+
+            if (Depth != null)
+            {
+                Depth.Dispose();
+                Depth = null;
+            }
+
+            base.Dispose();
         }
 
         public void CopyTo(GlTextureFrameBuffer dest)

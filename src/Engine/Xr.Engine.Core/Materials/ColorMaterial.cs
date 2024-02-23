@@ -32,7 +32,8 @@
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             bld.SetUniform("uColor", ctx => Color);
-            bld.UpdateStandardVS();
+            StandardVertexShaderHandler.Instance.UpdateShader(bld); 
+
         }
 
     }

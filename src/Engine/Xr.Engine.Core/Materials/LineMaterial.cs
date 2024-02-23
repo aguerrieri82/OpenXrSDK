@@ -25,7 +25,7 @@
         {
             if (bld.Context.Camera != null)
             {
-                bld.SetUniform("uView", (ctx) => ctx.Camera!.Transform.Matrix);
+                bld.SetUniform("uView", (ctx) => ctx.Camera!.View);
                 bld.SetUniform("uProjection", (ctx) => ctx.Camera!.Projection);
             }
 

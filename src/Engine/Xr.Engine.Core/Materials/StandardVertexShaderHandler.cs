@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace OpenXr.Engine
 {
-    public static class StandardVertexShader
+    public class StandardVertexShaderHandler : IShaderHandler
     {
-        public static void UpdateStandardVS(this ShaderUpdateBuilder bld)
+        public void UpdateShader(ShaderUpdateBuilder bld)
         {
             if (bld.Context.Camera != null)
             {
-                bld.SetUniform("uView", (ctx) => ctx.Camera!.Transform.Matrix);
+                bld.SetUniform("uView", (ctx) => ctx.Camera!.View);
                 bld.SetUniform("uProjection", (ctx) => ctx.Camera!.Projection);
                 bld.SetUniform("uViewPos", (ctx) => ctx.Camera!.Transform.Position, true);
             }
@@ -34,5 +34,7 @@ namespace OpenXr.Engine
             if (bld.Context.Model != null)
                 bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
         }
+
+        public static readonly StandardVertexShaderHandler Instance = new StandardVertexShaderHandler();
     }
 }

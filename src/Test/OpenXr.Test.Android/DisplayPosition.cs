@@ -15,10 +15,9 @@ namespace OpenXr.Test.Android
 
             var camera = _host!.Scene!.ActiveCamera!;
 
-            var matrix = XrMath.InvertRigidBody(camera.Transform.Matrix);
+            _host.Transform.Position = new Vector3(0, 0, -2).Transform(camera.Transform.Matrix);
+            _host.Transform.Orientation = camera.Transform.Orientation;
 
-            _host.Transform.Position = new Vector3(0, 0, -2).Transform(matrix);
-            _host.Transform.Orientation = Quaternion.Inverse(camera.Transform.Orientation) * -1;
             _isSet = true;
 
             base.Update(ctx);

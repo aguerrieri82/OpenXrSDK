@@ -26,7 +26,7 @@
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             bld.SetUniform("uColor", ctx => Color.Transparent);
-            bld.UpdateStandardVS();
+            StandardVertexShaderHandler.Instance.UpdateShader(bld);
         }
 
         public static readonly DepthOnlyMaterial Instance = new DepthOnlyMaterial();

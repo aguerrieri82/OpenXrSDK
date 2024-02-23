@@ -34,9 +34,12 @@ namespace OpenXr.Engine
 
         public void NotifyChanged(Object3D object3D, ObjectChange change)
         {
-            Version++;
+            if (change.Type != ObjectChangeType.Transform)
+            {
+                Version++;
 
-            ((IObjectChangeListener)_layers).NotifyChanged(object3D, change);
+                ((IObjectChangeListener)_layers).NotifyChanged(object3D, change);
+            }
 
             if (_app != null)
             {

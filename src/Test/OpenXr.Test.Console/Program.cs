@@ -10,6 +10,7 @@ using SkiaSharp;
 using System.Diagnostics;
 using System.Numerics;
 using Xr.Engine.Compression;
+using Xr.Engine.Filament;
 
 
 
@@ -33,17 +34,7 @@ Gpu.EnableNvAPi();
 
 var logger = host.Services.GetRequiredService<ILogger<object>>();
 
-unsafe
-{
-
-    var data = EtcCompressor.Encode("d:\\11474523244911310074.jpg", 0);
-
-    using var stream = File.OpenWrite("d:\\test.pvr");
-
-    PvrDecoder.Instance.Write(stream, data);
-
-}
-
+var test = new FilamentRender();
 
 
 

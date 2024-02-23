@@ -33,7 +33,7 @@
         {
             bld.SetUniform("uTexture0", (ctx) => Texture!, 0);
 
-            bld.UpdateStandardVS();
+            StandardVertexShaderHandler.Instance.UpdateShader(bld);
         }
 
         public Texture2D? Texture { get; set; }

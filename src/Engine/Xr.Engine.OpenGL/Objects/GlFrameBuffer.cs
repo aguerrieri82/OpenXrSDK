@@ -30,6 +30,7 @@ namespace OpenXr.Engine.OpenGL
 
         public override void Dispose()
         {
+
             _gl.DeleteFramebuffer(_handle);
             _handle = 0;
             GC.SuppressFinalize(this);

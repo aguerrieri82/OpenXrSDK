@@ -40,7 +40,7 @@ namespace OpenXr.Engine
             bld.SetUniform("material.specular", (ctx) => (Vector3)Specular);
             bld.SetUniform("material.shininess", (ctx) => Shininess);
 
-            bld.UpdateStandardVS();
+            StandardVertexShaderHandler.Instance.UpdateShader(bld);
         }
 
         public Texture2D? DiffuseTexture { get; set; } 

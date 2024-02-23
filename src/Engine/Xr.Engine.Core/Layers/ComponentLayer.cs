@@ -5,7 +5,7 @@
 
         protected override bool AffectChange(ObjectChange change)
         {
-            return change.IsAny(ObjectChangeType.Components, ObjectChangeType.Visibility);
+            return change.IsAny(ObjectChangeType.Components, ObjectChangeType.Visibility, ObjectChangeType.SceneAdd);
         }
 
         protected override bool BelongsToLayer(Object3D obj)

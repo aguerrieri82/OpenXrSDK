@@ -379,3 +379,4 @@ Makefile
 /src/RoomDesigner.Unity/OVRAssetBundles
 /src/Test/OpenXr.Test.Android/Assets/Sponza
 /src/Test/OpenXr.Test.Common/Assets/Sponza
+/third-party/filament-windows

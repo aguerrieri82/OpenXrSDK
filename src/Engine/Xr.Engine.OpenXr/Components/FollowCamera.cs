@@ -16,11 +16,9 @@ namespace Xr.Engine.OpenXr
         {
             var camera = _host!.Scene!.ActiveCamera!;
 
-            var matrix = XrMath.InvertRigidBody(camera.Transform.Matrix);
-
-            _host.Transform.Position = Offset.Transform(matrix);
-            _host.Transform.Orientation = Quaternion.Inverse(camera.Transform.Orientation) * 
-                                          Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
+            _host.Transform.Position = Offset.Transform(camera.WorldMatrix);
+            _host.Transform.Orientation = camera.Transform.Orientation *
+                                          Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2); //TODO wrong, because the quas is in xz
 
             base.Update(ctx);
         }

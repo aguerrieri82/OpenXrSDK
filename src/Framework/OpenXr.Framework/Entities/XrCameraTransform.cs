@@ -5,9 +5,9 @@ namespace OpenXr.Framework
 {
     public class XrCameraTransform
     {
-        public Matrix4x4 Projection { get; set; }
+        public Matrix4x4 Projection;
 
-        public Matrix4x4 View { get; set; }
+        public Matrix4x4 View;
 
         public static XrCameraTransform FromView(CompositionLayerProjectionView view, float nearPlane, float farPlane, bool reverseUpDown = false)
         {
@@ -26,7 +26,7 @@ namespace OpenXr.Framework
             var matrix = (Matrix4x4.CreateFromQuaternion(pose.Orientation) *
                           Matrix4x4.CreateTranslation(pose.Position));
 
-            result.View = matrix.InvertRigidBody();
+            Matrix4x4.Invert(matrix, out result.View);
 
             return result;
         }

@@ -19,21 +19,21 @@ namespace OpenXr.Samples
             var cube = new TriangleMesh(Cube.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
             cube.Transform.SetScale(0.1f);
             cube.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), MathF.PI /4f);
-            cube.Name = "cube";
+            cube.Name = "test";
+            cube.AddComponent<MeshCollider>();
+            scene.AddChild(cube);
 
-            //var quod = new Mesh(Quad.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
-
-            var quod = new TriangleMesh(Quad.Instance, new DepthViewMaterial());
+            var quod = new TriangleMesh(Quad.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
             quod.Transform.SetScale(0.5f);
             quod.Name = "quad";
-            quod.IsVisible = false;
+            quod.IsVisible = true;
             scene.AddChild(quod);
 
             var contanier = new Group();
             contanier.Transform.Position = new Vector3(1f, 0, 0);
             contanier.Transform.SetScale(2);
             contanier.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI / 4f);
-            contanier.AddChild(cube, false);
+
 
             scene.AddChild(contanier);
 
@@ -64,24 +64,22 @@ namespace OpenXr.Samples
                 ConvertColorTextureSRgb = true,
             };
 
-            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets, glOptions);
-            //var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
+            //var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets, glOptions);
+            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
             room.Name = "mesh";
-            //room.Transform.SetScale(0.01f);
-            scene.AddChild(room);
-          
-            /*
+            room.Transform.SetScale(0.01f);
+            //scene.AddChild(room);
+           /*
             foreach (var child in room.Descendants<TriangleMesh>())
                 child.Materials[0] = new StandardMaterial() {  
                     Color = new Color(1f, 1f, 1f, 1),
                     DiffuseTexture = ((PbrMaterial)child.Materials[0]).MetallicRoughness.BaseColorTexture
                 };
             */
-
             var camera = new PerspectiveCamera() { Far = 50f, Near = 0.01f };
             camera.BackgroundColor = Color.White;
-            camera!.LookAt(new Vector3(10f, 10f, 10f), Vector3.Zero, new Vector3(0, 1, 0));
-
+            //camera!.LookAt(new Vector3(0, 1.7f, 0), new Vector3(1, 1.7f, 0), new Vector3(0, 1, 0));
+            camera!.LookAt(new Vector3(1, 1.7f, 1), new Vector3(0,0,0), new Vector3(0, 1, 0));
             scene.ActiveCamera = camera;
 
             app.OpenScene(scene);

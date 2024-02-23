@@ -21,6 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\Draco.Native\Draco.Native.vcxproj" />
 		<ProjectReference Include="..\Xr.Engine.Core\Xr.Engine.Core.csproj" />
 	</ItemGroup>
 

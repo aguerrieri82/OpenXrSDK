@@ -16,8 +16,9 @@
 		<RunAOTCompilation>True</RunAOTCompilation>
 		<PublishTrimmed>True</PublishTrimmed>
 		<EnableLLVM>False</EnableLLVM>
-		<DebugSymbols>False</DebugSymbols>
+		<DebugSymbols>True</DebugSymbols>
 		<AndroidLinkTool>r8</AndroidLinkTool>
+		<AndroidEnableProfiledAot>True</AndroidEnableProfiledAot>
 	</PropertyGroup>
 
 

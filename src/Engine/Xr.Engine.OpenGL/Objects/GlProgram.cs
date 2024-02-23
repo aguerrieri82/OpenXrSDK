@@ -18,7 +18,8 @@ namespace OpenXr.Engine.OpenGL
 {
     public abstract partial class GlProgram : GlObject, IUniformProvider, IFeatureList
     {
-        protected readonly Dictionary<string, int> _locations = [];
+        protected Dictionary<string, int>? _curLocations;
+        protected readonly Dictionary<uint, Dictionary<string, int>> _handleLocations = [];
         protected readonly List<string> _features = [];
         protected readonly List<string> _extensions = [];
         protected readonly Func<string, string> _resolver;
@@ -37,6 +38,7 @@ namespace OpenXr.Engine.OpenGL
         {
             _features.Clear();
             _extensions.Clear();
+            _curLocations?.Clear();
         }
 
         protected virtual void Build()
@@ -50,6 +52,8 @@ namespace OpenXr.Engine.OpenGL
             {
                 Build();
                 _programsCache[hash] = _handle;
+                _curLocations = [];
+                _handleLocations[_handle] = _curLocations;
             }
         }
 
@@ -79,6 +83,7 @@ namespace OpenXr.Engine.OpenGL
         public void Use(string featureHash)
         {
             _handle = _programsCache[featureHash];
+            _curLocations = _handleLocations[_handle];
 
             _gl.UseProgram(_handle);
 
@@ -113,9 +118,8 @@ namespace OpenXr.Engine.OpenGL
 
         protected int LocateUniform(string name, bool optional = false, bool isBlock = false)
         {
-            var key = $"{_handle}{name}";
-
-            if (!_locations.TryGetValue(key, out var result))
+    
+            if (!_curLocations!.TryGetValue(name, out var result))
             {
                 if (isBlock)
                     result = (int)_gl.GetUniformBlockIndex(_handle, name);
@@ -123,11 +127,11 @@ namespace OpenXr.Engine.OpenGL
                     result = _gl.GetUniformLocation(_handle, name);
                 if (result == -1 && !optional)
                 {
-                    Debug.WriteLine($"--- WARN --- {name} NOT FOUND");
+                    //Debug.WriteLine($"--- WARN --- {name} NOT FOUND");
                     //throw new Exception($"{name} uniform not found on shader.");
                 }
 
-                _locations[key] = result;
+                _curLocations[name] = result;
             }
             return result;
         }

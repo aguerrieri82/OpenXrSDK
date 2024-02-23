@@ -28,6 +28,7 @@ namespace OpenXr.Framework
             };
         }
 
+        /*
         public unsafe static Matrix4x4 InvertRigidBody(this Matrix4x4 src)
         {
             var result = stackalloc float[16];
@@ -52,6 +53,7 @@ namespace OpenXr.Framework
 
             return *(Matrix4x4*)result;
         }
+        */
 
         public unsafe static Matrix4x4 CreateProjectionFov(float tanAngleLeft,
                                                      float tanAngleRight,

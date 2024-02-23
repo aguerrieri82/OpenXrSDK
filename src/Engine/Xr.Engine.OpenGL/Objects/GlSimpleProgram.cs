@@ -33,6 +33,9 @@ namespace OpenXr.Engine.OpenGL
             var vSource = PatchShader(_vSource, ShaderType.VertexShader);
             var fSource = PatchShader(_fSource, ShaderType.VertexShader);
 
+            vSource = ShaderPreprocessor.ParseShader(vSource);  
+
+
             Vertex = new GlShader(_gl, ShaderType.VertexShader, vSource);
             Fragment = new GlShader(_gl, ShaderType.FragmentShader, fSource);
 
