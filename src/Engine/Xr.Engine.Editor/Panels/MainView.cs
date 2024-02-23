@@ -15,7 +15,13 @@ namespace Xr.Engine.Editor
         public MainView()
         {
             SceneView = new SceneView();
+
             PropertiesEditor = new PropertiesEditor();
+
+            Platform.Current = new Platform
+            {
+                AssetManager = new LocalAssetManager(".")
+            };
 
             LoadScene();
         }

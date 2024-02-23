@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -89,7 +91,6 @@ namespace OpenXr.Engine
             return layer.Content.Cast<T>();
         }
 
-
         public static IEnumerable<Collision> RayCollisions(this Scene scene, Ray3 ray)
         {
 
@@ -152,242 +153,9 @@ namespace OpenXr.Engine
 
         #endregion
 
-        #region MISC
-
-
-        public static void Update<T>(this IEnumerable<T> target, RenderContext ctx) where T : IRenderUpdate
-        {
-            target.ForeachSafe(a => a.Update(ctx));
-        }
-
-        #endregion
-
         #region GEOMETRY
 
         public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, T value);
-
-
-        public static void SetVertexData<T>(this Geometry3D geo, VertexAssignDelegate<T> selector, T[] array)
-        {
-            if (geo.Vertices == null)
-                geo.Vertices = new VertexData[array.Length];
-
-            if (geo.Vertices.Length < array.Length)
-            {
-                var newArray = geo.Vertices;
-                Array.Resize(ref newArray, array.Length);
-                geo.Vertices = newArray;
-            }
-
-            for (var i = 0; i < array.Length; i++)
-                selector(ref geo.Vertices![i], array[i]);
-        }
-
-        public static Quaternion RotationTowards(this Vector3 from, Vector3 to)
-        {
-            Quaternion result;
-
-            var axis = Vector3.Cross(from, to);
-            result.X = axis.X;
-            result.Y = axis.Y;
-            result.Z = axis.Z;
-            result.W = MathF.Sqrt((from.LengthSquared() * to.LengthSquared())) + Vector3.Dot(from, to);
-
-            return Quaternion.Normalize(result);
-        }
-
-        public static Bounds3 ComputeBounds(this Geometry3D geo, Matrix4x4 transform)
-        {
-            if (geo.Vertices != null)
-                return ComputeBounds(geo.Vertices!.Select(a => a.Pos), transform);
-
-            return new Bounds3();
-        }
-
-        public static Bounds3 ComputeBounds(this IEnumerable<Vector3> points, Matrix4x4 matrix)
-        {
-            var result = new Bounds3();
-
-            result.Min = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
-            result.Max = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-
-            foreach (var point in points)
-            {
-                var tPoint = point.Transform(matrix);
-
-                result.Min.X = MathF.Min(result.Min.X, tPoint.X);
-                result.Min.Y = MathF.Min(result.Min.Y, tPoint.Y);
-                result.Min.Z = MathF.Min(result.Min.Z, tPoint.Z);
-
-                result.Max.X = MathF.Max(result.Max.X, tPoint.X);
-                result.Max.Y = MathF.Max(result.Max.Y, tPoint.Y);
-                result.Max.Z = MathF.Max(result.Max.Z, tPoint.Z);
-            }
-
-            return result;
-        }
-
-        public static Bounds3 Transform(this Bounds3 bounds, Matrix4x4 matrix)
-        {
-            return bounds.Points.ComputeBounds(matrix);
-        }
-
-        public static bool ContainsPoint(this Bounds3 bounds, Vector3 point)
-        {
-            return point.X >= bounds.Min.X && point.X <= bounds.Max.X &&
-                   point.Y >= bounds.Min.Y && point.Y <= bounds.Max.Y &&
-                   point.Z >= bounds.Min.Z && point.Z <= bounds.Max.Z;
-        }
-
-        public static Vector3 Normal(this Triangle3 triangle)
-        {
-            var edge1 = triangle.V1 - triangle.V0;
-            var edge2 = triangle.V2 - triangle.V0;
-            var normal = Vector3.Cross(edge1, edge2);
-            return Vector3.Normalize(normal);
-        }
-
-        public static void ComputeTangents(this Geometry3D geo)
-        {
-
-            var tan1 = new Vector3[geo.Indices!.Length];
-            var tan2 = new Vector3[geo.Indices!.Length];
-
-            int i = 0;
-            while (i < geo.Indices!.Length)
-            {
-                var i1 = geo.Indices[i++];
-                var i2 = geo.Indices[i++];
-                var i3 = geo.Indices[i++];
-
-                var v1 = geo.Vertices![i1].Pos;
-                var v2 = geo.Vertices![i2].Pos;
-                var v3 = geo.Vertices![i3].Pos;
-
-                var w1 = geo.Vertices![i1].UV;
-                var w2 = geo.Vertices![i2].UV;
-                var w3 = geo.Vertices![i3].UV;
-
-
-                float x1 = v2.X - v1.X;
-                float x2 = v3.X - v1.X;
-                float y1 = v2.Y - v1.Y;
-                float y2 = v3.Y - v1.Y;
-                float z1 = v2.Z - v1.Z;
-                float z2 = v3.Z - v1.Z;
-
-                float s1 = w2.X - w1.X;
-                float s2 = w3.X - w1.X;
-                float t1 = w2.Y - w1.Y;
-                float t2 = w3.Y - w1.Y;
-
-                float r = 1.0F / (s1 * t2 - s2 * t1);
-                var sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
-                var tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
-
-                tan1[i1] += sdir;
-                tan1[i2] += sdir;
-                tan1[i3] += sdir;
-
-                tan2[i1] += tdir;
-                tan2[i2] += tdir;
-                tan2[i3] += tdir;
-            }
-            
-
-            for (int a = 0; a < geo.Indices!.Length; a++)
-            {
-                ref var vert = ref geo.Vertices![geo.Indices[a]];
-
-                var n = vert.Normal;
-                var t = tan1[a];
-
-                var txyz = Vector3.Normalize(t - n * Vector3.Dot(n, t)); ;
-
-                vert.Tangent.X = txyz.X;
-                vert.Tangent.Y = txyz.Y;
-                vert.Tangent.Z = txyz.Z;
-                vert.Tangent.W = (Vector3.Dot(Vector3.Cross(n, t), tan2[a]) < 0.0F) ? -1.0F : 1.0F;
-            }
-
-            geo.ActiveComponents |= VertexComponent.Tangent;
-        }
-
-        public static bool Intersects(this Bounds3 value, Bounds3 other)
-        {
-            if (value.Max.X < other.Min.X || value.Min.X > other.Max.X)
-                return false;
-            if (value.Max.Y < other.Min.Y || value.Min.Y > other.Max.Y)
-                return false;
-            if (value.Max.Z < other.Min.Z || value.Min.Z > other.Max.Z)
-                return false;
-
-            return true;
-        }
-
-        public static bool Inside(this Bounds3 value, Bounds3 other)
-        {
-            if (value.Min.X < other.Min.X || value.Max.X > other.Max.X)
-                return false;
-            if (value.Min.Y < other.Min.Y || value.Max.Y > other.Max.Y)
-                return false;
-            if (value.Min.Z < other.Min.Z || value.Max.Z > other.Max.Z)
-                return false;
-
-            return true;
-        }
-
-
-        public static IEnumerable<Vector2> Project2(this IEnumerable<Vector3> points, Camera camera)
-        {
-            var viewProj = camera.View * camera.Projection;
-
-            foreach (var vertex in points)
-            {
-                var vec4 = new Vector4(vertex.X, vertex.Y, vertex.Z, 1);
-                var vTrans = Vector4.Transform(vec4, viewProj);
-                yield return new Vector2(vTrans.X / vTrans.W, vec4.Y / vTrans.W);
-            }
-        }
-
-        public static IEnumerable<Vector3> Project3(this IEnumerable<Vector3> points, Camera camera)
-        {
-            var viewProj = camera.View * camera.Projection;
-
-            foreach (var vertex in points)
-            {
-                var vec4 = new Vector4(vertex.X, vertex.Y, vertex.Z, 1);
-                var vTrans = Vector4.Transform(vec4, viewProj);
-                vTrans /= vTrans.W;
-      
-
-                yield return new Vector3(vTrans.X, vTrans.Y, vTrans.Z);
-            }
-        }
-
-        public static bool AreVisibileIn(this Bounds3 value, Camera camera)
-        {
-            var boundsPoints = value.Points.Project3(camera).ToArray();
-
-            var projBounds = boundsPoints.ComputeBounds(Matrix4x4.Identity);
-
-            var cameraBounds = new Bounds3()
-            {
-                Max = new Vector3(1.1f, 1.1f, 1.1f),
-                Min = new Vector3(-1.1f, -1.1f, -1.1f)
-            };
-
-            var result = boundsPoints.Any(a=> cameraBounds.ContainsPoint(a)) || projBounds.Intersects(cameraBounds) || cameraBounds.Inside(projBounds);
-            if (!result)
-            {
-                if (value.Size.X > 15 || value.Size.Y > 15 || value.Size.Z > 15)
-                    return false;
-                return false;
-            }
-
-            return true;
-        }
-
 
         public static void ComputeNormals(this Geometry3D geo)
         {
@@ -506,8 +274,271 @@ namespace OpenXr.Engine
 
                 }
             }
+        }
+
+        public static void ComputeTangents(this Geometry3D geo)
+        {
+
+            var tan1 = new Vector3[geo.Indices!.Length];
+            var tan2 = new Vector3[geo.Indices!.Length];
+
+            int i = 0;
+            while (i < geo.Indices!.Length)
+            {
+                var i1 = geo.Indices[i++];
+                var i2 = geo.Indices[i++];
+                var i3 = geo.Indices[i++];
+
+                var v1 = geo.Vertices![i1].Pos;
+                var v2 = geo.Vertices![i2].Pos;
+                var v3 = geo.Vertices![i3].Pos;
+
+                var w1 = geo.Vertices![i1].UV;
+                var w2 = geo.Vertices![i2].UV;
+                var w3 = geo.Vertices![i3].UV;
+
+
+                float x1 = v2.X - v1.X;
+                float x2 = v3.X - v1.X;
+                float y1 = v2.Y - v1.Y;
+                float y2 = v3.Y - v1.Y;
+                float z1 = v2.Z - v1.Z;
+                float z2 = v3.Z - v1.Z;
+
+                float s1 = w2.X - w1.X;
+                float s2 = w3.X - w1.X;
+                float t1 = w2.Y - w1.Y;
+                float t2 = w3.Y - w1.Y;
+
+                float r = 1.0F / (s1 * t2 - s2 * t1);
+                var sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
+                var tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
+
+                tan1[i1] += sdir;
+                tan1[i2] += sdir;
+                tan1[i3] += sdir;
+
+                tan2[i1] += tdir;
+                tan2[i2] += tdir;
+                tan2[i3] += tdir;
+            }
+
+
+            for (int a = 0; a < geo.Indices!.Length; a++)
+            {
+                ref var vert = ref geo.Vertices![geo.Indices[a]];
+
+                var n = vert.Normal;
+                var t = tan1[a];
+
+                var txyz = Vector3.Normalize(t - n * Vector3.Dot(n, t)); ;
+
+                vert.Tangent.X = txyz.X;
+                vert.Tangent.Y = txyz.Y;
+                vert.Tangent.Z = txyz.Z;
+                vert.Tangent.W = (Vector3.Dot(Vector3.Cross(n, t), tan2[a]) < 0.0F) ? -1.0F : 1.0F;
+            }
+
+            geo.ActiveComponents |= VertexComponent.Tangent;
+        }
+
+        public static void SetVertexData<T>(this Geometry3D geo, VertexAssignDelegate<T> selector, T[] array)
+        {
+            if (geo.Vertices == null)
+                geo.Vertices = new VertexData[array.Length];
+
+            if (geo.Vertices.Length < array.Length)
+            {
+                var newArray = geo.Vertices;
+                Array.Resize(ref newArray, array.Length);
+                geo.Vertices = newArray;
+            }
+
+            for (var i = 0; i < array.Length; i++)
+                selector(ref geo.Vertices![i], array[i]);
+        }
+
+        public static Bounds3 ComputeBounds(this Geometry3D geo, Matrix4x4 transform)
+        {
+            if (geo.Vertices != null)
+                return ComputeBounds(geo.Vertices!.Select(a => a.Pos), transform);
+
+            return new Bounds3();
+        }
+
+        #endregion
+
+        #region BOUNDS
+
+
+        public static Bounds3 ComputeBounds(this IEnumerable<Vector3> points, Matrix4x4 matrix)
+        {
+            var result = new Bounds3();
+
+            result.Min = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+            result.Max = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+
+            foreach (var point in points)
+            {
+                var tPoint = point.Transform(matrix);
+
+                result.Min.X = MathF.Min(result.Min.X, tPoint.X);
+                result.Min.Y = MathF.Min(result.Min.Y, tPoint.Y);
+                result.Min.Z = MathF.Min(result.Min.Z, tPoint.Z);
+
+                result.Max.X = MathF.Max(result.Max.X, tPoint.X);
+                result.Max.Y = MathF.Max(result.Max.Y, tPoint.Y);
+                result.Max.Z = MathF.Max(result.Max.Z, tPoint.Z);
+            }
+
+            return result;
+        }
+
+        public static Bounds3 Transform(this Bounds3 bounds, Matrix4x4 matrix)
+        {
+            return bounds.Points.ComputeBounds(matrix);
+        }
+
+        public static bool Contains(this Bounds3 bounds, Vector3 point)
+        {
+            return point.X >= bounds.Min.X && point.X <= bounds.Max.X &&
+                   point.Y >= bounds.Min.Y && point.Y <= bounds.Max.Y &&
+                   point.Z >= bounds.Min.Z && point.Z <= bounds.Max.Z;
+        }
+
+        public static bool Inside(this Bounds3 bounds, Bounds3 other)
+        {
+            if (bounds.Min.X < other.Min.X || bounds.Max.X > other.Max.X)
+                return false;
+            if (bounds.Min.Y < other.Min.Y || bounds.Max.Y > other.Max.Y)
+                return false;
+            if (bounds.Min.Z < other.Min.Z || bounds.Max.Z > other.Max.Z)
+                return false;
+
+            return true;
+        }
+
+        public static bool Intersects(this Bounds3 bounds, Bounds3 other)
+        {
+            if (bounds.Max.X < other.Min.X || bounds.Min.X > other.Max.X)
+                return false;
+            if (bounds.Max.Y < other.Min.Y || bounds.Min.Y > other.Max.Y)
+                return false;
+            if (bounds.Max.Z < other.Min.Z || bounds.Min.Z > other.Max.Z)
+                return false;
+
+            return true;
+        }
+
+        public static bool Intersects(this Bounds3 bounds, Line3 line)
+        {
+            Vector3 dir = (line.To - line.From).Normalize(); // direction of the line
+            Vector3 tMin = (bounds.Min - line.From) / dir; // minimum t to hit the box
+            Vector3 tMax = (bounds.Max - line.From) / dir; // maximum t to hit the box
+
+            // Ensure tMin <= tMax
+            Vector3 t1 = Vector3.Min(tMin, tMax);
+            Vector3 t2 = Vector3.Max(tMin, tMax);
+
+            float tNear = MathF.Max(MathF.Max(t1.X, t1.Y), t1.Z);
+            float tFar = MathF.Min(MathF.Min(t2.X, t2.Y), t2.Z);
+
+            // Return whether intersection exists
+            return tNear <= tFar && tFar >= 0;
+        }
+
+        #endregion
+
+        #region CAMERA
+
+        public static IEnumerable<Vector3> Project(this Camera camera, IEnumerable<Vector3> points)
+        {
+            var viewProj = camera.View * camera.Projection;
+
+            foreach (var vertex in points)
+            {
+                var vec4 = new Vector4(vertex.X, vertex.Y, vertex.Z, 1);
+                var vTrans = Vector4.Transform(vec4, viewProj);
+
+                vTrans /= vTrans.W;
+
+                yield return new Vector3(vTrans.X, -vTrans.Y, vTrans.Z);
+
+            }
+        }
+
+        public static Vector3 ViewToWorld(this Camera camere, Vector3 viewPoint)
+        {
+            var dirEye = Vector4.Transform(new Vector4(viewPoint, 1.0f), camere.ProjectionInverse);
+            dirEye /= dirEye.W;
+            var pos4 = Vector4.Transform(dirEye, camere.WorldMatrix);
+            return new Vector3(pos4.X, pos4.Y, pos4.Z);
+        }
+
+        public static IEnumerable<Line3> FrustumLines(this Camera camera)
+        {
+            var minZ = 0;
+            var maxZ = 1;
+            yield return new Line3
+            {
+                From = camera.ViewToWorld(new Vector3(-1, -1, minZ)),
+                To = camera.ViewToWorld(new Vector3(-1, -1, maxZ)),
+            };
+            yield return new Line3
+            {
+                From = camera.ViewToWorld(new Vector3(-1, 1, minZ)),
+                To = camera.ViewToWorld(new Vector3(-1, 1, maxZ)),
+            };
+            yield return new Line3
+            {
+                From = camera.ViewToWorld(new Vector3(1, 1, minZ)),
+                To = camera.ViewToWorld(new Vector3(1, 1, maxZ)),
+            };
+            yield return new Line3
+            {
+                From = camera.ViewToWorld(new Vector3(1, -1, minZ)),
+                To = camera.ViewToWorld(new Vector3(1, -1, maxZ)),
+            };
 
         }
+
+        public static bool CanSee(this Camera camera, Bounds3 bounds)
+        {
+            var boundsPoints = camera.Project(bounds.Points).ToArray();
+
+            var projBounds = boundsPoints.ComputeBounds(Matrix4x4.Identity);
+
+            var cameraBounds = new Bounds3()
+            {
+                Max = new Vector3(1.1f, 1.1f, 1.1f),
+                Min = new Vector3(-1.1f, -1.1f, -1.1f)
+            };
+
+
+            if (projBounds.Intersects(cameraBounds))
+                return true;
+
+            foreach (var line in camera.FrustumLines())
+            {
+                if (bounds.Intersects(line)) 
+                    return true;
+            }
+
+            return false;
+        }
+
+        #endregion
+
+        #region TRIANGLE
+
+        public static Vector3 Normal(this Triangle3 triangle)
+        {
+            var edge1 = triangle.V1 - triangle.V0;
+            var edge2 = triangle.V2 - triangle.V0;
+            var normal = Vector3.Cross(edge1, edge2);
+            return Vector3.Normalize(normal);
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Triangle3 Transform(this Triangle3 triangle, Matrix4x4 matrix)
@@ -520,18 +551,9 @@ namespace OpenXr.Engine
             };
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Ray3 Transform(this Ray3 ray, Matrix4x4 matrix)
-        {
-            var v0 = Vector3.Transform(ray.Origin, matrix);
-            var v1 = Vector3.Transform(ray.Origin + ray.Direction, matrix);
+        #endregion
 
-            return new Ray3
-            {
-                Origin = v0,
-                Direction = Vector3.Normalize(v1 - v0)
-            };
-        }
+        #region VECTOR3
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Transform(this Vector3 vector, Matrix4x4 matrix)
@@ -551,7 +573,24 @@ namespace OpenXr.Engine
             return (vector.Transform(matrix) - Vector3.Zero.Transform(matrix)).Normalize();
         }
 
-        public static Vector3? RayIntersect(this Triangle3 triangle, Ray3 ray, out float distance, float epsilon = 1e-6f)
+        public static Quaternion RotationTowards(this Vector3 from, Vector3 to)
+        {
+            Quaternion result;
+
+            var axis = Vector3.Cross(from, to);
+            result.X = axis.X;
+            result.Y = axis.Y;
+            result.Z = axis.Z;
+            result.W = MathF.Sqrt((from.LengthSquared() * to.LengthSquared())) + Vector3.Dot(from, to);
+
+            return Quaternion.Normalize(result);
+        }
+
+        #endregion
+
+        #region RAY 
+
+        public static Vector3? Intersects(this Ray3 ray, Triangle3 triangle, out float distance, float epsilon = 1e-6f)
         {
             distance = float.PositiveInfinity;
 
@@ -588,6 +627,23 @@ namespace OpenXr.Engine
                 return null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Ray3 Transform(this Ray3 ray, Matrix4x4 matrix)
+        {
+            var v0 = Vector3.Transform(ray.Origin, matrix);
+            var v1 = Vector3.Transform(ray.Origin + ray.Direction, matrix);
+
+            return new Ray3
+            {
+                Origin = v0,
+                Direction = Vector3.Normalize(v1 - v0)
+            };
+        }
+
+        #endregion
+
+        #region QUATERNION
+
         public static Vector3 ToEuler(this Quaternion q)
         {
             Vector3 res;
@@ -596,25 +652,9 @@ namespace OpenXr.Engine
             res.Y = MathF.Asin(-2.0f * (q.X * q.Z - q.W * q.Y));
             res.Z = MathF.Atan2(2.0f * (q.X * q.Y + q.W * q.Z), q.W * q.W + q.X * q.X - q.Y * q.Y - q.Z * q.Z);
             return res;
-            /*
-            Vector3 result;
-
-            float q2sqr = quat.Z * quat.Z;
-            float t0 = -2.0f * (q2sqr + quat.W * quat.W) + 1.0f;
-            float t1 = +2.0f * (quat.Y * quat.Z + quat.Z * quat.W);
-            float t2 = -2.0f * (quat.Y * quat.W - quat.Z * quat.Z);
-            float t3 = +2.0f * (quat.Z * quat.W + quat.Z * quat.Y);
-            float t4 = -2.0f * (quat.Y * quat.Y + q2sqr) + 1.0f;
-            t2 = t2 > 1.0f ? 1.0f : t2;
-            t2 = t2 < -1.0f ? -1.0f : t2;
-
-            result.Y = MathF.Asin(t2);
-            result.X = MathF.Atan2(t3, t4);
-            result.Z = MathF.Atan2(t1, t0);
-
-            return result;
-            */
+            
         }
+
 
         #endregion
 
@@ -716,6 +756,15 @@ namespace OpenXr.Engine
         }
 
         */
+        #endregion
+
+        #region MISC
+
+        public static void Update<T>(this IEnumerable<T> target, RenderContext ctx) where T : IRenderUpdate
+        {
+            target.ForeachSafe(a => a.Update(ctx));
+        }
+
         #endregion
     }
 }

@@ -11,12 +11,13 @@ namespace Xr.Engine.Editor
 {
     public class PickTool : BaseMouseTool
     {
-        private Object3D? _currentPick;
-        private Color? _oldColor;
+        protected Object3D? _currentPick;
+        protected Color? _oldColor;
 
         protected override void OnMouseMove(PointerEvent ev)
         {
             var ray = ToRay(ev);
+
 
             var collision = _sceneView!.Scene!.RayCollisions(ray).FirstOrDefault();
 
@@ -35,7 +36,6 @@ namespace Xr.Engine.Editor
 
             if (_currentPick != null)
                 OnEnter(_currentPick);
-
         }
 
         protected virtual bool CanPick(Object3D obj)

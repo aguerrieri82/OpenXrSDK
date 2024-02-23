@@ -1,0 +1,74 @@
+﻿using OpenXr.Engine;
+using OpenXr.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using System.Text;
+
+using System.Threading.Tasks;
+using Xr.Engine.Gltf;
+
+namespace Xr.Engine.OpenXr
+{
+    public class XrGroup : Group
+    {
+        XrApp _xrApp;
+
+        public XrGroup(XrApp app) 
+        {
+            _xrApp = app;
+
+            AddController("/user/hand/right/input/aim/pose", "Right Hand", "Models/MetaQuestTouchPlus_Right.glb");
+           
+            AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/MetaQuestTouchPlus_Left.glb");
+
+        }
+
+        protected Group? AddController(string path, string name, string modelFileName)
+        {
+            var input = _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path);
+            if (input == null)
+                return null;
+
+            var group = new Group();
+            group.Name = name;
+            group.AddBehavior((_, ctx) =>
+            {
+                input = _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path)!;
+
+                if (input.IsChanged && input.IsActive)
+                {
+                    var pose = (XrPose)input.Value;
+                    group.Transform.Position = pose.Position;
+                    group.Transform.Orientation = pose.Orientation;
+                    group.UpdateWorldMatrix(true, false);
+                }
+            });
+
+            var assets = Platform.Current!.AssetManager!;
+
+            var fullPath = assets.FullPath(modelFileName);
+
+            if (File.Exists(fullPath))
+            {
+                var model = (Group)GltfLoader.Instance.Load(fullPath, assets);
+                model.Transform.SetMatrix(Matrix4x4.Identity);
+                model.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
+                model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
+                model.Transform.SetScale(1.1f);
+                model.Name = "Right Controller";
+                //var laser = model.FindByName<Object3D>("laser_begin");
+                //model.Transform.Position = laser.Transform.Position;
+                //model.Transform.Orientation = laser.Transform.Orientation;
+
+
+
+                group.AddChild(model);
+            }
+
+            AddChild(group);
+            return group;
+        }
+    }
+}

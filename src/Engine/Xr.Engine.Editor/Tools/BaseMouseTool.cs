@@ -20,9 +20,7 @@ namespace Xr.Engine.Editor
         Right = 0x4
     }
 
-
-
-    public class BaseMouseTool : IEditorTool
+    public abstract class BaseMouseTool : IEditorTool
     {
         protected SceneView? _sceneView;
 
@@ -35,10 +33,6 @@ namespace Xr.Engine.Editor
             _sceneView.RenderHost.WheelMove += OnWheelMove; ;
         }
 
-        protected virtual void OnWheelMove(PointerEvent ev)
-        {
-
-        }
 
         protected Vector3 ToView(PointerEvent ev, float z = -1f)
         {
@@ -55,10 +49,7 @@ namespace Xr.Engine.Editor
         protected Vector3 ToWorld(PointerEvent ev, float z = -1f)
         {
             var normPoint = ToView(ev, z);
-            var dirEye = Vector4.Transform(new Vector4(normPoint, 1.0f), _sceneView!.Camera!.ProjectionInverse);
-            dirEye /= dirEye.W;
-            var pos4 = Vector4.Transform(dirEye, _sceneView!.Camera.WorldMatrix);
-            return new Vector3(pos4.X, pos4.Y, pos4.Z);
+            return _sceneView!.Camera!.ViewToWorld(normPoint);  
         }
 
         protected Ray3 ToRay(PointerEvent ev)
@@ -77,6 +68,10 @@ namespace Xr.Engine.Editor
             };
         }
 
+        protected virtual void OnWheelMove(PointerEvent ev)
+        {
+
+        }
         protected virtual void OnMouseDown(PointerEvent ev)
         {
 

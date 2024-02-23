@@ -148,7 +148,7 @@ namespace OpenXr.Engine
         {
             Shader = SHADER;
             Debug = PbrDebugFlags.DEBUG_NONE;
-            LinearOutput = false;
+            LinearOutput = true;
             //ToneMap = PbrToneMap.TONEMAP_ACES_NARKOWICZ;
         }
 

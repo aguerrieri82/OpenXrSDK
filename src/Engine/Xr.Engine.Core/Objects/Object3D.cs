@@ -2,7 +2,7 @@
 
 namespace OpenXr.Engine
 {
-    public abstract class Object3D : EngineObject, ILayerObject
+    public class Object3D : EngineObject, ILayerObject
     {
         protected Transform3 _transform;
         protected Group? _parent;
@@ -46,8 +46,11 @@ namespace OpenXr.Engine
                     _worldMatrix = _transform.Matrix;
 
                 _worldInverseDirty = true;
+                _worldBoundsDirty = true;
 
                 _worldDirty = false;
+;
+
 
                 isChanged = true;
             }

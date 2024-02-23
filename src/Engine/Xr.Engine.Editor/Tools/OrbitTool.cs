@@ -41,14 +41,13 @@ namespace Xr.Engine.Editor.Tools
 
             var relPos = (camera.WorldPosition - Target);
 
-
             _startMouse = ev;
 
             if (ev.IsLeftDown)
             {
                 _action = OrbitAction.Rotate;
-                _sceneView.RenderHost!.CapturePointer();
                 _startPos = Spherical.FromCartesian(relPos);
+                _sceneView.RenderHost!.CapturePointer();
             }
             else if (ev.IsRightDown)
             {
@@ -102,10 +101,7 @@ namespace Xr.Engine.Editor.Tools
 
                 Target = _startTarget + deltaW;
                 camera.View = Matrix4x4.CreateLookAt(_startWorld.Translation + deltaW, Target, new Vector3(0, 1, 0));
-
-
             }
-
         }
 
         protected override void OnMouseUp(PointerEvent ev)
@@ -114,7 +110,6 @@ namespace Xr.Engine.Editor.Tools
             _action = OrbitAction.None;
             base.OnMouseUp(ev);
         }
-
 
         public float RotationSpeed { get; set; }
 

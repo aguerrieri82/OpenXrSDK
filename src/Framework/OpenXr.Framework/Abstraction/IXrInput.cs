@@ -13,5 +13,7 @@ namespace OpenXr.Framework
         public bool IsChanged { get; }
 
         public object Value { get; }
+
+        public string Path { get; }
     }
 }

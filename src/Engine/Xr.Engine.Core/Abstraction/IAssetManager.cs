@@ -1,4 +1,4 @@
-﻿namespace OpenXr.Engine.Abstraction
+﻿namespace OpenXr.Engine
 {
     public interface IAssetManager
     {

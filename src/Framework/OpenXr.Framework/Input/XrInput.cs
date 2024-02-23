@@ -30,9 +30,11 @@ namespace OpenXr.Framework
 
         public virtual ActionSuggestedBinding Initialize()
         {
-            var result = new ActionSuggestedBinding();
-            result.Binding = _app.StringToPath(_path);
-            result.Action = _app.CreateAction(_name, _name, _actionType);
+            var result = new ActionSuggestedBinding
+            {
+                Binding = _app.StringToPath(_path),
+                Action = _app.CreateAction(_name, _name, _actionType)
+            };
             _action = result.Action;
             return result;
         }
@@ -68,6 +70,8 @@ namespace OpenXr.Framework
         public string Name => _name;
 
         public Action Action => _action;
+
+        public string Path => _path;
 
         object IXrInput.Value => _value!;
     }
