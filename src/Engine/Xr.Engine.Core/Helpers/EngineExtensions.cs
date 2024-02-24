@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Diagnostics;
-using System.Numerics;
-using System.Reflection;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using static System.Formats.Asn1.AsnWriter;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public static class EngineExtensions
     {
@@ -33,11 +27,11 @@ namespace OpenXr.Engine
         #region OBJECT3D
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 ToLocal(this Object3D obj, Vector3 vector) 
+        public static Vector3 ToLocal(this Object3D obj, Vector3 vector)
         {
-           return vector.Transform(obj.WorldMatrixInverse);
+            return vector.Transform(obj.WorldMatrixInverse);
         }
-        
+
 
         public static IEnumerable<Group> Ancestors(this Object3D obj)
         {
@@ -81,7 +75,7 @@ namespace OpenXr.Engine
 
             return layer.Content.Cast<Object3D>();
         }
-    
+
 
         public static IEnumerable<T> TypeLayerContent<T>(this Scene scene) where T : Object3D
         {
@@ -520,7 +514,7 @@ namespace OpenXr.Engine
 
             foreach (var line in camera.FrustumLines())
             {
-                if (bounds.Intersects(line)) 
+                if (bounds.Intersects(line))
                     return true;
             }
 
@@ -652,7 +646,7 @@ namespace OpenXr.Engine
             res.Y = MathF.Asin(-2.0f * (q.X * q.Z - q.W * q.Y));
             res.Z = MathF.Atan2(2.0f * (q.X * q.Y + q.W * q.Z), q.W * q.W + q.X * q.X - q.Y * q.Y - q.Z * q.Z);
             return res;
-            
+
         }
 
 

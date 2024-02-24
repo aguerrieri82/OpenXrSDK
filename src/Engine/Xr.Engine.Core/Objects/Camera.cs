@@ -1,7 +1,6 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public abstract class Camera : Object3D
     {
@@ -21,7 +20,7 @@ namespace OpenXr.Engine
 
         public float Far { get; set; }
 
-        public float Exposure { get; set; }  
+        public float Exposure { get; set; }
 
 
 

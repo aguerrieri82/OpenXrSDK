@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public struct Ray3
     {

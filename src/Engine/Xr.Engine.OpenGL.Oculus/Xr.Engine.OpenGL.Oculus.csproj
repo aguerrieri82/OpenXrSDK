@@ -5,12 +5,11 @@
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
-		<AssemblyName>OpenXr.Engine.OpenGLES.Oculus</AssemblyName>
-		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
+		<AssemblyName>Xr.Engine.OpenGLES.Oculus</AssemblyName>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(OpenGL)' == ''">
-		<AssemblyName>OpenXr.Engine.OpenGL.Oculus</AssemblyName>
+		<AssemblyName>Xr.Engine.OpenGL.Oculus</AssemblyName>
 	</PropertyGroup>
 
 

@@ -1,6 +1,6 @@
 ﻿using SkiaSharp;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public enum TextureFormat
     {

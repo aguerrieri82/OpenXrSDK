@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public struct Spherical
     {
@@ -18,7 +13,7 @@ namespace OpenXr.Engine
         public void Normalize()
         {
             Azm = Azm % (MathF.PI * 2);
-            Pol = Pol % MathF.PI;   
+            Pol = Pol % MathF.PI;
         }
 
         public static Spherical FromCartesian(Vector3 vector)

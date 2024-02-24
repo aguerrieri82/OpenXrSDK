@@ -21,4 +21,10 @@
 		<OpenGL></OpenGL>
 	</PropertyGroup>
 
+
+	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
+		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
+	</PropertyGroup>
+
+
 </Project>

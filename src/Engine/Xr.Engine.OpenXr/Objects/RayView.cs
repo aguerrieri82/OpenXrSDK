@@ -1,5 +1,4 @@
-﻿using OpenXr.Engine;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace Xr.Engine.OpenXr
 {

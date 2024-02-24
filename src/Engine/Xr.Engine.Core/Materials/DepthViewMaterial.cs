@@ -1,4 +1,4 @@
-﻿namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
     public class DepthViewMaterial : ShaderMaterial
     {
@@ -21,7 +21,7 @@
             : base()
         {
             _shader = SHADER;
-   
+
         }
 
         public override void UpdateShader(ShaderUpdateBuilder bld)

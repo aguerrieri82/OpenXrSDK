@@ -6,11 +6,10 @@ using Silk.NET.OpenGL;
 
 using System.Security.Cryptography;
 using System.Text;
-using Xr.Engine.OpenGL;
 using System.Diagnostics.CodeAnalysis;
 
 
-namespace OpenXr.Engine.OpenGL
+namespace Xr.Engine.OpenGL
 {
     public partial class GlSimpleProgram : GlProgram
     {
@@ -33,7 +32,7 @@ namespace OpenXr.Engine.OpenGL
             var vSource = PatchShader(_vSource, ShaderType.VertexShader);
             var fSource = PatchShader(_fSource, ShaderType.VertexShader);
 
-            vSource = ShaderPreprocessor.ParseShader(vSource);  
+            vSource = ShaderPreprocessor.ParseShader(vSource);
 
 
             Vertex = new GlShader(_gl, ShaderType.VertexShader, vSource);

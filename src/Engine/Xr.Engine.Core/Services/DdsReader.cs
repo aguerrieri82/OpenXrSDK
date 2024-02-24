@@ -2,7 +2,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public class DdsReader : BaseTextureReader
     {

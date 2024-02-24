@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public abstract class BaseAutoLayer<T> : ILayer where T : ILayerObject
     {

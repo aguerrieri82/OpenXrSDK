@@ -9,10 +9,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="Shaders\empty.frag" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.1.8" />
 	</ItemGroup>
 

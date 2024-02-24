@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace OpenXr.Engine.OpenGL
+namespace Xr.Engine.OpenGL
 {
     public class GlTextureFrameBuffer : GlFrameBuffer
     {
@@ -40,7 +40,7 @@ namespace OpenXr.Engine.OpenGL
                 SampleCount = _sampleCount,
                 Target = _gl.GetTexture2DTarget(Color.Handle)
             };
-            Depth.Create(Color.Width, Color.Height, OpenGLRender.Current!.Options.DepthBufferFormat); 
+            Depth.Create(Color.Width, Color.Height, OpenGLRender.Current!.Options.DepthBufferFormat);
         }
 
         public override void BindDraw()

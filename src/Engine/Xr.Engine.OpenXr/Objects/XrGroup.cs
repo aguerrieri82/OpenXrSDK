@@ -1,26 +1,19 @@
-﻿using OpenXr.Engine;
-using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using OpenXr.Framework;
 using System.Numerics;
-using System.Text;
-
-using System.Threading.Tasks;
 using Xr.Engine.Gltf;
 
 namespace Xr.Engine.OpenXr
 {
     public class XrGroup : Group
     {
-        XrApp _xrApp;
+        readonly XrApp _xrApp;
 
-        public XrGroup(XrApp app) 
+        public XrGroup(XrApp app)
         {
             _xrApp = app;
 
             AddController("/user/hand/right/input/aim/pose", "Right Hand", "Models/MetaQuestTouchPlus_Right.glb");
-           
+
             AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/MetaQuestTouchPlus_Left.glb");
 
         }

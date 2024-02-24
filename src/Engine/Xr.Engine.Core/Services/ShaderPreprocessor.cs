@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public static class ShaderPreprocessor
     {
@@ -42,9 +38,9 @@ namespace OpenXr.Engine
             {
                 if (curText.Length > 0)
                     result.Add(new Token
-                    { 
-                        Type = TokenType.Text, 
-                        Text = curText.ToString() 
+                    {
+                        Type = TokenType.Text,
+                        Text = curText.ToString()
                     });
 
                 curText.Length = 0;
@@ -60,7 +56,7 @@ namespace OpenXr.Engine
                         if (c == '#')
                         {
                             AppendIfNotEmpty();
-                             state = 1;
+                            state = 1;
                         }
                         else if (c == '/')
                         {
@@ -115,7 +111,7 @@ namespace OpenXr.Engine
                                     state = 0;
                                     break;
                             }
-                            result.Add(token);        
+                            result.Add(token);
                         }
                         else
                             curText.Append(c);
@@ -197,7 +193,7 @@ namespace OpenXr.Engine
                 }
                 i++;
             }
-            
+
             AppendIfNotEmpty();
 
             return result.ToArray();
@@ -208,7 +204,7 @@ namespace OpenXr.Engine
             var result = new StringBuilder();
             var tokens = Tokenize(data);
 
-            Dictionary<string, string> defs =[];
+            Dictionary<string, string> defs = [];
             Stack<bool> outWrite = [];
 
             int i = 0;
@@ -220,7 +216,7 @@ namespace OpenXr.Engine
             bool EvaluateExpression(string text)
             {
                 var parts = text.Split("&&");
-                foreach (var part in parts.Select(a=> a.Trim()))
+                foreach (var part in parts.Select(a => a.Trim()))
                 {
                     if (part.StartsWith("defined("))
                     {

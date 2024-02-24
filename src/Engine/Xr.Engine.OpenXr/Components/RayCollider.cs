@@ -1,5 +1,4 @@
-﻿using OpenXr.Engine;
-using OpenXr.Framework;
+﻿using OpenXr.Framework;
 
 namespace Xr.Engine.OpenXr
 {

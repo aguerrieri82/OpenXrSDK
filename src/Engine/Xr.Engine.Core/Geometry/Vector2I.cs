@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
     public struct Vector2I
     {
@@ -14,12 +8,12 @@ namespace OpenXr.Engine
 
         public Vector2I(int x, int y)
         {
-            X = x; 
+            X = x;
             Y = y;
         }
 
         public int X;
 
-        public int Y;   
+        public int Y;
     }
 }

@@ -5,7 +5,7 @@ using Silk.NET.OpenGL;
 #endif
 
 
-namespace OpenXr.Engine.OpenGL
+namespace Xr.Engine.OpenGL
 {
     public class GlVertexArray<TVertexType, TIndexType> : GlObject, IGlVertexArray
         where TVertexType : unmanaged

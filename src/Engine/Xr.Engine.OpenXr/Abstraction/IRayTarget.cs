@@ -1,6 +1,4 @@
-﻿using OpenXr.Engine;
-
-namespace Xr.Engine.OpenXr
+﻿namespace Xr.Engine.OpenXr
 {
     public interface IRayTarget : IComponent
     {

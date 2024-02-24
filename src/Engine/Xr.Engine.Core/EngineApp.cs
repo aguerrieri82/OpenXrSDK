@@ -1,6 +1,4 @@
-﻿using SkiaSharp;
-
-namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
     public class EngineAppStats
     {
@@ -42,7 +40,7 @@ namespace OpenXr.Engine
 
         public EngineApp()
         {
-            _stats= new EngineAppStats();   
+            _stats = new EngineAppStats();
             _context = new RenderContext();
             _changeListeners.Add(ShaderMeshLayerBuilder.Instance);
             Current = this;

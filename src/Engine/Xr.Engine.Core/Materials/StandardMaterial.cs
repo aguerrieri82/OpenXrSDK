@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public class StandardMaterial : ShaderMaterial
     {
@@ -43,7 +43,7 @@ namespace OpenXr.Engine
             StandardVertexShaderHandler.Instance.UpdateShader(bld);
         }
 
-        public Texture2D? DiffuseTexture { get; set; } 
+        public Texture2D? DiffuseTexture { get; set; }
 
         public Color Ambient { get; set; }
 

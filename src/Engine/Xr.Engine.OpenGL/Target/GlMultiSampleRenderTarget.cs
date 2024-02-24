@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 
 
 
-namespace OpenXr.Engine.OpenGL
+namespace Xr.Engine.OpenGL
 {
     public class GlMultiSampleRenderTarget : IGlRenderTarget
     {

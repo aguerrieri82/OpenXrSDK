@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public static class MathUtils
     {
@@ -78,7 +78,7 @@ namespace OpenXr.Engine
             quaternion.W = (m01 - m10) * num2;
             return quaternion;
         }
-    
+
 
         public static Quaternion QuatDiff(Quaternion to, Quaternion from)
         {

@@ -5,16 +5,11 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Numerics;
-using System.Reflection;
-using System.Collections;
-using System;
 using System.Text.RegularExpressions;
 using System.Text;
-using System.Security.Cryptography;
-using System.Diagnostics;
 
 
-namespace OpenXr.Engine.OpenGL
+namespace Xr.Engine.OpenGL
 {
     public abstract partial class GlProgram : GlObject, IUniformProvider, IFeatureList
     {
@@ -118,7 +113,7 @@ namespace OpenXr.Engine.OpenGL
 
         protected int LocateUniform(string name, bool optional = false, bool isBlock = false)
         {
-    
+
             if (!_curLocations!.TryGetValue(name, out var result))
             {
                 if (isBlock)
@@ -166,7 +161,7 @@ namespace OpenXr.Engine.OpenGL
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
-        public void SetUniform(string name, IBuffer buffer, bool optional = false) 
+        public void SetUniform(string name, IBuffer buffer, bool optional = false)
         {
             _gl.BindBufferBase(BufferTargetARB.UniformBuffer, (uint)LocateUniform(name, optional, true), ((GlObject)buffer).Handle);
         }
@@ -231,7 +226,7 @@ namespace OpenXr.Engine.OpenGL
             builder.Append("precision ").Append(precision).Append(" float;\n");
 
             foreach (var feature in _features)
-                builder.Append("#define ").Append(feature).Append('\n');    
+                builder.Append("#define ").Append(feature).Append('\n');
 
             PatchShader(shaderType, builder);
 
@@ -243,8 +238,8 @@ namespace OpenXr.Engine.OpenGL
                 if (!match.Success)
                     break;
 
-                var incName = match.Groups.Count == 3 && match.Groups[2].Length > 0 ? 
-                    match.Groups[2].Value : 
+                var incName = match.Groups.Count == 3 && match.Groups[2].Length > 0 ?
+                    match.Groups[2].Value :
                     match.Groups[1].Value;
 
                 source = string.Concat(

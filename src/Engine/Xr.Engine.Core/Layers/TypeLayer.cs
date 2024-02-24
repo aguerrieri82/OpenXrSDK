@@ -1,4 +1,4 @@
-﻿namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
     public class TypeLayer<T> : BaseAutoLayer<T> where T : Object3D
     {
