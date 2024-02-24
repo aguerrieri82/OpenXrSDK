@@ -10,16 +10,27 @@ namespace Xr.Editor
             Resources = res;
         }
 
+        protected override void OnExit(ExitEventArgs e)
+        {
+            _ = Context.Require<PanelManager>().CloseAllAsync();
+
+            base.OnExit(e);
+        }
+
         [STAThread]
         public static void Main()
         {
+            Context.Implement<PanelManager>();
+            Context.Implement<IMainDispatcher>(new MainDispatcher());
+
             var app = new App();
 
+            var window = new Window
+            {
+                Title = "Xr Editor",
+                Content = new MainView(new RenderHost())
+            };
 
-            var window = new Window();
-            window.Title = "Xr Editor";
-
-            window.Content = new MainView(new RenderHost());
 
             app.Run(window);
         }

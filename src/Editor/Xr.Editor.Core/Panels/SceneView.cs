@@ -17,6 +17,13 @@ namespace Xr.Editor
         public Dictionary<string, object>? Tools;
     }
 
+    public enum SceneXrState
+    {
+        None,
+        StartRequested,
+        StopRequested
+    }
+
     public class SceneView : BasePanel, IStateManager<SceneViewState>
     {
         protected Camera? _camera;
@@ -29,6 +36,7 @@ namespace Xr.Editor
         protected XrOculusTouchController? _inputs;
         protected bool _isXrActive;
         protected List<IEditorTool> _tools = [];
+        protected SceneXrState _xrState;
 
         public SceneView(IRenderSurface renderSurface)
         {
@@ -51,8 +59,8 @@ namespace Xr.Editor
             };
 
             _xrApp = new XrApp(NullLogger.Instance,
-                    new XrGraphicDriver(_renderSurface),
-                    new OculusXrPlugin(options));
+                     new XrGraphicDriver(_renderSurface),
+                     new OculusXrPlugin(options));
 
             _inputs = _xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.Button!.AClick)
@@ -76,12 +84,10 @@ namespace Xr.Editor
 
             _xrApp.StartEventLoop(() => !_isStarted);
 
-            /*
-            Dispatcher.Invoke(() =>
+            _ = _main.ExecuteAsync(() =>
             {
                 PropertiesEditor.Instance!.ActiveObject = _scene!.FindByName<Object3D>("Right Controller");
             });
-            */
         }
 
         protected void OnSizeChanged(object? sender, EventArgs e)
@@ -99,13 +105,20 @@ namespace Xr.Editor
         {
             if (_xrApp == null)
                 CreateXrApp();
+
             try
             {
                 _xrApp!.Start();
+                _xrState = SceneXrState.StartRequested;
+                _ui.NotifyMessage("XR Session started", MessageType.Info);
+
             }
             catch (Exception ex)
             {
                 IsXrActive = false;
+                _ui.NotifyMessage(ex.Message, MessageType.Error);
+                _xrApp.Dispose();
+                _xrApp = null;
             }
 
             OnPropertyChanged(nameof(IsXrActive));
@@ -113,7 +126,20 @@ namespace Xr.Editor
 
         public void StopXr()
         {
-            _xrApp?.Stop();
+            try
+            {
+                _xrApp?.Stop();
+                _xrState = SceneXrState.StopRequested;
+                _ui.NotifyMessage("XR Session stopped", MessageType.Info);
+            }
+            catch (Exception ex)
+            {
+                _xrApp?.Dispose();
+                _xrApp = null;
+                _ui.NotifyMessage(ex.Message, MessageType.Error);
+
+            }
+
         }
 
 
@@ -141,16 +167,17 @@ namespace Xr.Editor
                     Thread.Sleep(50);
                 else
                 {
-                    if (_isXrActive && (_xrApp == null || !_xrApp.IsStarted))
+                    if (_isXrActive && _xrState != SceneXrState.StartRequested)
                     {
-                        _renderSurface.EnableVSync(false);
                         StartXr();
+                        _renderSurface.EnableVSync(false); 
                     }
 
-                    if (!_isXrActive && _xrApp != null && _xrApp.IsStarted)
+                    if (!_isXrActive && _xrApp != null && _xrState != SceneXrState.StopRequested)
                     {
-                        _renderSurface.EnableVSync(true);
                         StopXr();
+                        _renderSurface.EnableVSync(true);
+             
                     }
 
                     if (_xrApp != null && _xrApp.IsStarted)
@@ -201,6 +228,15 @@ namespace Xr.Editor
             _renderThread = null;
         }
 
+        public override Task CloseAsync()
+        {
+            StopXr();
+            
+            Stop();
+
+            return base.CloseAsync();
+        }
+
         public Scene? Scene
         {
             get => _scene;
@@ -237,7 +273,12 @@ namespace Xr.Editor
             {
                 if (value == _isXrActive)
                     return;
+
                 _isXrActive = value;
+                
+                if (!_isXrActive && _xrApp != null)
+                    _xrApp.RequestStop();
+
                 OnPropertyChanged(nameof(IsXrActive));
             }
         }
