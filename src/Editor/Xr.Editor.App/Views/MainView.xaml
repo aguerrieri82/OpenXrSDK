@@ -1,12 +1,45 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:local="clr-namespace:Xr.Editor;assembly=Xr.Editor.Core"
+                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <DataTemplate DataType="{x:Type local:MainView}">
-        <DockPanel>
-            <ContentPresenter  Width="250px" DockPanel.Dock="Right" Content="{Binding PropertiesEditor}"/>
-            <ContentPresenter Content="{Binding SceneView}"/>
-        </DockPanel>
+        <Grid>
+       
+            <DockPanel>
+                <ContentPresenter  Width="250px" DockPanel.Dock="Right" Content="{Binding PropertiesEditor}"/>
+                <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Messages}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,0" x:Name="MessageView" Padding="16, 8, 16, 8" Background="{Binding Color}">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="MouseDown" SourceObject="{Binding ElementName=MessageView}">
+                                        <i:InvokeCommandAction Command="{Binding CloseCommand}"/>
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                                <Border.Triggers>
+                                    <EventTrigger RoutedEvent="Border.Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                         Storyboard.TargetName="MessageView" 
+                                         Storyboard.TargetProperty="Opacity"
+                                         From="0.0" To="1.0" Duration="0:0:0.3" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Border.Triggers>
+                                <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center">
+
+                                    <TextBlock Foreground="White" TextAlignment="Center" Text="{Binding Text}"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <ContentPresenter Content="{Binding SceneView}"/>
+            </DockPanel>
+        </Grid>
     </DataTemplate>
 
 </ResourceDictionary>

@@ -14,6 +14,7 @@ namespace Xr.Engine.OpenXr
         private Quaternion _startInputOrientation;
         private Quaternion _startOrientation;
         private Vector3 _startPivot;
+        private bool _isVibrating;
 
         public ObjectGrabber(XrInput<XrPose> input, XrHaptic vibrate, params XrInput<float>[] handlers)
         {
@@ -59,6 +60,7 @@ namespace Xr.Engine.OpenXr
                             _grabbable = grabbable;
                             _grabObject = item;
                             _vibrate.VibrateStart(100, 1, TimeSpan.FromMilliseconds(500));
+                            _isVibrating = true;
                             break;
                         }
 
@@ -72,6 +74,7 @@ namespace Xr.Engine.OpenXr
                     if (isGrabbing)
                     {
                         _vibrate.VibrateStop();
+
                         _grabbable.Grab();
 
                         _startPivot = _grabObject!.Transform.LocalPivot;
@@ -88,7 +91,14 @@ namespace Xr.Engine.OpenXr
                     }
                 }
                 else
-                    _vibrate.VibrateStop();
+                {
+                    if (_isVibrating)
+                    {
+                        _vibrate.VibrateStop();
+                        _isVibrating = false;
+                    }
+                }
+
             }
 
 
