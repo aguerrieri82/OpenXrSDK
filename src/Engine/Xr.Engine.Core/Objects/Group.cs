@@ -1,4 +1,4 @@
-﻿namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
     public class Group : Object3D
     {
@@ -29,7 +29,7 @@
         {
             base.Update(ctx);
 
-  
+
             UpdateSelf(ctx);
 
             _children.Update(ctx);

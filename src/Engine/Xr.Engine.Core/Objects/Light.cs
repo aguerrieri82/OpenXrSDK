@@ -1,4 +1,4 @@
-﻿namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
     public abstract class Light : Object3D
     {

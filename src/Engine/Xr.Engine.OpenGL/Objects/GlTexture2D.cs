@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics;
 
-namespace OpenXr.Engine.OpenGL
+namespace Xr.Engine.OpenGL
 {
     public class GlTexture2D : GlObject
     {
@@ -99,7 +99,7 @@ namespace OpenXr.Engine.OpenGL
 
             if (compression == TextureCompressionFormat.Uncompressed)
             {
-           
+
                 switch (format)
                 {
                     case TextureFormat.Depth32Float:
@@ -149,7 +149,7 @@ namespace OpenXr.Engine.OpenGL
                     default:
                         throw new NotSupportedException();
                 }
-              
+
                 switch (format)
                 {
                     case TextureFormat.Depth32Float:
@@ -193,7 +193,7 @@ namespace OpenXr.Engine.OpenGL
                     }
                     else
                     {
-          
+
                         if (data != null && data.Count > 0)
                         {
                             foreach (var level in data)
@@ -248,7 +248,7 @@ namespace OpenXr.Engine.OpenGL
                         case TextureFormat.SRgba32:
                             internalFormat = InternalFormat.CompressedSrgb8Alpha8Etc2Eac;
                             break;
-       
+
 
                         default:
                             throw new NotSupportedException(format.ToString());

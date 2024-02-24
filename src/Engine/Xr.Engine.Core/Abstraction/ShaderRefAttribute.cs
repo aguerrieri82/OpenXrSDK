@@ -1,4 +1,4 @@
-﻿namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
     [Flags]
     public enum VertexComponent
@@ -21,7 +21,7 @@
         {
             Location = loc;
             Name = name;
-            Component= component;   
+            Component = component;
         }
 
         public uint Location { get; }

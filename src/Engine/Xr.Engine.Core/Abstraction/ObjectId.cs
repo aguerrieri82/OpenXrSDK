@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public struct ObjectId : IEquatable<ObjectId>
     {

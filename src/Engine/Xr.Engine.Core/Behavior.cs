@@ -1,6 +1,6 @@
-﻿namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
-    public abstract class Behavior<T> : IBehavior where T : IComponentHost
+    public abstract class Behavior<T> : IBehavior, IComponent<T> where T : IComponentHost
     {
         protected float _startTime;
         protected T? _host;
@@ -35,9 +35,9 @@
                 Update(ctx);
         }
 
-        void IComponent.Attach(IComponentHost host)
+        void IComponent<T>.Attach(T host)
         {
-            _host = (T)host;
+            _host = host;
         }
 
         void IComponent.Detach()
@@ -47,7 +47,7 @@
 
         public bool IsEnabled { get; set; }
 
-        IComponentHost? IComponent.Host => _host;
+        T? IComponent<T>.Host => _host;
     }
 
     public class LambdaBehavior<T> : Behavior<T> where T : IComponentHost

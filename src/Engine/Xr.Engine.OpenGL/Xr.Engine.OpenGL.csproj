@@ -6,12 +6,11 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
-		<AssemblyName>OpenXr.Engine.OpenGLES</AssemblyName>
-		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
+		<AssemblyName>Xr.Engine.OpenGLES</AssemblyName>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(OpenGL)' == ''">
-		<AssemblyName>OpenXr.Engine.OpenGL</AssemblyName>
+		<AssemblyName>Xr.Engine.OpenGL</AssemblyName>
 	</PropertyGroup>
 	
 

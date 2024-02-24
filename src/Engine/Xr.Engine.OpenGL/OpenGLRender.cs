@@ -6,12 +6,10 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using System.Text;
-using Xr.Engine.OpenGL;
 
 
-namespace OpenXr.Engine.OpenGL
+namespace Xr.Engine.OpenGL
 {
     public class GlobalContent
     {
@@ -173,7 +171,7 @@ namespace OpenXr.Engine.OpenGL
                }
            }, 0);
 
-           // _gl.Enable(EnableCap.DebugOutput);
+            // _gl.Enable(EnableCap.DebugOutput);
         }
 
         public void EnableFeature(EnableCap cap, bool value)
@@ -393,7 +391,7 @@ namespace OpenXr.Engine.OpenGL
         }
 
 
-        Dictionary<uint, Texture2D> _depthCache = [];
+        readonly Dictionary<uint, Texture2D> _depthCache = [];
         private Rect2I _view;
 
 

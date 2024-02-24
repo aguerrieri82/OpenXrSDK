@@ -1,4 +1,4 @@
-﻿namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
     public class ColorMaterial : ShaderMaterial
     {
@@ -32,7 +32,7 @@
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             bld.SetUniform("uColor", ctx => Color);
-            StandardVertexShaderHandler.Instance.UpdateShader(bld); 
+            StandardVertexShaderHandler.Instance.UpdateShader(bld);
 
         }
 

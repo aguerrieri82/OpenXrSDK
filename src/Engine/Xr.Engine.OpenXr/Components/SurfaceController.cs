@@ -1,9 +1,9 @@
-﻿using OpenXr.Engine;
-using OpenXr.Framework;
+﻿using OpenXr.Framework;
 using System.Numerics;
+using Xr.Engine;
 using Xr.Engine.OpenXr;
 
-namespace OpenXr.Test.Android
+namespace Xr.Test.Android
 {
     public class SurfaceController : Behavior<Object3D>, IRayTarget, ISurfaceInput
     {
@@ -18,13 +18,13 @@ namespace OpenXr.Test.Android
         Vector2 _pointer;
         bool _pointerValid;
 
-       
+
         public SurfaceController(XrInput<bool> mainButton, XrInput<bool> backButton, XrHaptic clickHaptic)
         {
             _mainButton = mainButton;
             _backButton = backButton;
             _clickHaptic = clickHaptic;
-         
+
         }
 
         protected override void Update(RenderContext ctx)

@@ -6,9 +6,9 @@ using Silk.NET.OpenGL;
 #endif
 
 using Xr.Engine.Compression;
-using static OpenXr.Engine.OpenGL.OpenGLRender;
+using static Xr.Engine.OpenGL.OpenGLRender;
 
-namespace OpenXr.Engine.OpenGL
+namespace Xr.Engine.OpenGL
 {
     public static class Extensions
     {
@@ -67,7 +67,7 @@ namespace OpenXr.Engine.OpenGL
                 if (requireCompression)
                 {
                     if (data.Count == 1)
-                        data = EtcCompressor.Encode(data[0],16);
+                        data = EtcCompressor.Encode(data[0], 16);
                     else
                     {
                         for (var i = 0; i < data.Count; i++)

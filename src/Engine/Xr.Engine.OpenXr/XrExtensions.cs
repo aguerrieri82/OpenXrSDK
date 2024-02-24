@@ -4,11 +4,10 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using OpenXr.Engine;
-using OpenXr.Engine.OpenGL;
-using OpenXr.Engine.OpenGL.Oculus;
 using Silk.NET.OpenXR;
 using OpenXr.Framework;
+using Xr.Engine.OpenGL;
+using Xr.Engine.OpenGL.Oculus;
 
 
 namespace Xr.Engine.OpenXr

@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public class Object3D : EngineObject, ILayerObject
     {
@@ -49,7 +49,7 @@ namespace OpenXr.Engine
                 _worldBoundsDirty = true;
 
                 _worldDirty = false;
-;
+                ;
 
 
                 isChanged = true;

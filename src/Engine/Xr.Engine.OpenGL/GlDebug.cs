@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace OpenXr.Engine.OpenGL
+namespace Xr.Engine.OpenGL
 {
     public static class GlDebug
     {

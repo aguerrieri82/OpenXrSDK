@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public static class Embedded
     {

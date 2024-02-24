@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public class TriangleMesh : Object3D, IVertexSource<VertexData, uint>
     {

@@ -1,5 +1,5 @@
 ﻿
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public class LocalAssetManager : IAssetManager
     {

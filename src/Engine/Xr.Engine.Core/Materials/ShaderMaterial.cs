@@ -1,8 +1,8 @@
-﻿namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
     public class ShaderMaterial : Material, IShaderHandler
     {
-   
+
         protected Shader? _shader;
         protected long _lastLightVersion = -1;
 

@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public interface IUniformProvider
     {

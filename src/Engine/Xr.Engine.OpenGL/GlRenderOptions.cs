@@ -1,4 +1,4 @@
-﻿namespace OpenXr.Engine.OpenGL
+﻿namespace Xr.Engine.OpenGL
 {
     public enum ShaderPrecision
     {

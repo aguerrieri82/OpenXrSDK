@@ -1,10 +1,10 @@
 ﻿
 using Newtonsoft.Json.Linq;
-using OpenXr.Engine;
 using SkiaSharp;
 using System.Diagnostics;
 using System.Numerics;
 using System.Text;
+using Xr.Engine;
 
 namespace Xr.Engine.Gltf
 {
@@ -58,7 +58,7 @@ namespace Xr.Engine.Gltf
             var images = new Dictionary<glTFLoader.Schema.Image, TextureData>();
             var log = new StringBuilder();
 
-            var basePath = Path.GetDirectoryName(filePath); 
+            var basePath = Path.GetDirectoryName(filePath);
 
             Dictionary<int, byte[]> buffers = [];
 
@@ -263,7 +263,7 @@ namespace Xr.Engine.Gltf
                     result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
                     result.OcclusionUVSet = gltMat.OcclusionTexture.TexCoord;
                 }
-       
+
 
                 var specGlos = TryLoadExtension<KHR_materials_pbrSpecularGlossiness>(gltMat.Extensions);
                 if (specGlos != null)
@@ -274,13 +274,13 @@ namespace Xr.Engine.Gltf
                         SpecularFactor = MathUtils.ToColor(specGlos.Value.specularFactor),
                         GlossinessFactor = specGlos.Value.glossinessFactor
                     };
-                    
+
                     if (specGlos.Value.diffuseTexture != null)
                     {
                         result.SpecularGlossiness.DiffuseTexture = DecodeTextureBase(specGlos.Value.diffuseTexture);
                         result.SpecularGlossiness.DiffuseUVSet = specGlos.Value.diffuseTexture.TexCoord;
                     }
-     
+
                     if (specGlos.Value.specularGlossinessTexture != null)
                     {
                         result.SpecularGlossiness.SpecularGlossinessTexture = DecodeTextureBase(specGlos.Value.specularGlossinessTexture);
@@ -324,7 +324,7 @@ namespace Xr.Engine.Gltf
                         return array;
                     }
                 }
-                   
+
             }
 
 
@@ -409,11 +409,11 @@ namespace Xr.Engine.Gltf
                             foreach (var attr in primitive.Attributes)
                             {
                                 var acc = model.Accessors[attr.Value];
-                                
+
                                 var view = model.BufferViews[acc.BufferView!.Value];
 
                                 var buffer = LoadBuffer(view.Buffer);
-                                
+
                                 switch (attr.Key)
                                 {
                                     case "POSITION":
@@ -434,7 +434,7 @@ namespace Xr.Engine.Gltf
                                     case "TANGENT":
                                         var tValues = ConvertBuffer<Vector4>(buffer, view, acc);
                                         geo.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
-                                        geo.ActiveComponents |= VertexComponent.Tangent; 
+                                        geo.ActiveComponents |= VertexComponent.Tangent;
                                         Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC4);
                                         Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
                                         break;
@@ -473,7 +473,7 @@ namespace Xr.Engine.Gltf
                             }
 
                             curMesh.Geometry = geo;
-                   
+
                         }
 
                         if (primitive.Material != null)
@@ -492,11 +492,11 @@ namespace Xr.Engine.Gltf
                     {
                         //curMesh.Geometry.ComputeTangents();
                     }
-         
+
 
                     if (group == null)
                         return curMesh;
-                    
+
                     group.AddChild(curMesh);
                 }
 
@@ -539,7 +539,7 @@ namespace Xr.Engine.Gltf
 
                 obj.Name = node.Name;
 
-   
+
                 if (node.Rotation != null)
                     obj.Transform.Orientation = new Quaternion(node.Rotation[0], node.Rotation[1], node.Rotation[2], node.Rotation[3]);
                 if (node.Scale != null)
@@ -548,7 +548,7 @@ namespace Xr.Engine.Gltf
                     obj.Transform.Position = MathUtils.ToVector3(node.Translation);
 
                 obj.Transform.Update();
-              
+
                 //obj.Transform.SetMatrix(MathUtils.CreateMatrix(node.Matrix));
 
                 group.AddChild(obj);

@@ -1,4 +1,4 @@
-﻿namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
     public class ComponentLayer<TComp> : BaseAutoLayer<Object3D> where TComp : IComponent
     {

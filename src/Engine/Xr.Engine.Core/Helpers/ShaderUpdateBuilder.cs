@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections;
 using System.Numerics;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using static OpenXr.Engine.ShaderUpdateBuilder;
-using static System.Net.Mime.MediaTypeNames;
 
-namespace OpenXr.Engine
+
+namespace Xr.Engine
 {
     public delegate void UpdateUniformAction(UpdateShaderContext ctx, IUniformProvider up);
 
@@ -48,7 +42,7 @@ namespace OpenXr.Engine
 
     public struct ShaderUpdateBuilder : IFeatureList
     {
-        private ShaderUpdate _result;
+        private readonly ShaderUpdate _result;
 
         public delegate TValue UpdateAction<TValue>(UpdateShaderContext ctx);
 

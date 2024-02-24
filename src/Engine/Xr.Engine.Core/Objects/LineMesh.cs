@@ -1,4 +1,4 @@
-﻿namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
 
     public class LineMesh : Object3D, IVertexSource<LineData, uint>
@@ -15,9 +15,9 @@
 
         public LineMaterial Material { get; }
 
-        public VertexComponent ActiveComponents { get; set; }   
+        public VertexComponent ActiveComponents { get; set; }
 
-   
+
         #region IVertexSource
 
         DrawPrimitive IVertexSource.Primitive => DrawPrimitive.Line;

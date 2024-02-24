@@ -1,7 +1,6 @@
-﻿using SkiaSharp;
-using System.Numerics;
+﻿using System.Numerics;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public enum AlphaMode
     {

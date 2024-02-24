@@ -1,4 +1,4 @@
-﻿namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
     public interface IComponent
     {
@@ -10,4 +10,16 @@
 
         IComponentHost? Host { get; }
     }
+
+    public interface IComponent<THost> : IComponent where THost : IComponentHost
+    {
+        void Attach(THost host);
+
+        new THost? Host { get; }
+
+        void IComponent.Attach(IComponentHost host) => Attach((THost)host);
+
+        IComponentHost? IComponent.Host => Host;
+    }
+
 }

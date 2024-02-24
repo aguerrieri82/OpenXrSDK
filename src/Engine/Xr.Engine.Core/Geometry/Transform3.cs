@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace OpenXr.Engine
+namespace Xr.Engine
 {
     public class Transform3
     {
@@ -46,7 +46,7 @@ namespace OpenXr.Engine
             {
                 _position += (value - _localPivot).Transform(
                     Matrix4x4.CreateScale(_scale) * Matrix4x4.CreateFromQuaternion(_orientation));
-            } 
+            }
             LocalPivot = value;
         }
 
@@ -105,7 +105,7 @@ namespace OpenXr.Engine
             set
             {
                 _rotation = value;
-                _orientation =  Quaternion.CreateFromYawPitchRoll(value.Y, value.X, value.Z);
+                _orientation = Quaternion.CreateFromYawPitchRoll(value.Y, value.X, value.Z);
                 NotifyChanged();
             }
         }

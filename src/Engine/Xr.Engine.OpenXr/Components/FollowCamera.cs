@@ -1,12 +1,4 @@
-﻿using OpenXr.Engine;
-using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.InteropServices.JavaScript;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace Xr.Engine.OpenXr
 {
@@ -23,6 +15,6 @@ namespace Xr.Engine.OpenXr
             base.Update(ctx);
         }
 
-        public Vector3 Offset {  get; set; }    
+        public Vector3 Offset { get; set; }
     }
 }

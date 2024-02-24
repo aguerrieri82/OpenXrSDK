@@ -1,11 +1,11 @@
-﻿namespace OpenXr.Engine
+﻿namespace Xr.Engine
 {
     public class Quad : Geometry3D
     {
         public Quad()
         {
             Vertices = VertexData.FromPosNormalUV(
-            [   
+            [
                 -1f, 0f, 1f, -0f, 1f, -0f, 0f, 0f,
                 1f, 0f, 1f, -0f, 1f, -0f, 1f, 0f,
                 1f, 0f, -1f, -0f, 1f, -0f, 1f, 1f,

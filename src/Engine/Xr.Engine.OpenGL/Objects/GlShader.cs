@@ -5,7 +5,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using OpenXr.Engine.OpenGL;
 
 namespace Xr.Engine.OpenGL
 {

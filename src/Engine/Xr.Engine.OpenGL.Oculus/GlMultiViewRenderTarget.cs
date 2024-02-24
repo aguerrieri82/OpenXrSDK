@@ -7,7 +7,7 @@ using Silk.NET.OpenGL;
 using System.Numerics;
 using OpenXr.Framework;
 
-namespace OpenXr.Engine.OpenGL.Oculus
+namespace Xr.Engine.OpenGL.Oculus
 {
 
     public struct SceneMatrices

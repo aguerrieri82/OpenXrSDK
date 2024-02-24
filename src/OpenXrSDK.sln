@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34407.89
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.Test.Console", "Test\OpenXr.Test.Console\OpenXr.Test.Console.csproj", "{939C0A24-3AFB-4549-BAE2-E3D38A596EF9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Test.Console", "Test\Xr.Test.Console\Xr.Test.Console.csproj", "{939C0A24-3AFB-4549-BAE2-E3D38A596EF9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oculus.Platform", "Oculus\Oculus.Platform\Oculus.Platform.csproj", "{7303940D-F639-4B5D-BE7D-43DD416D5695}"
 EndProject
@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oculus.OVRPlugin", "Oculus\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oculus.XrPlugin", "Oculus\Oculus.XrPlugin\Oculus.XrPlugin.csproj", "{E6BB6479-B3FD-4667-AF0E-58874042071F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.Test.Android", "Test\OpenXr.Test.Android\OpenXr.Test.Android.csproj", "{D0411AF2-3BE4-474C-B945-4343AAAA32BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Test.Android", "Test\Xr.Test.Android\Xr.Test.Android.csproj", "{D0411AF2-3BE4-474C-B945-4343AAAA32BD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.Framework", "Framework\OpenXr.Framework\OpenXr.Framework.csproj", "{6EC989A0-9C3B-4995-811C-67AAA0D62518}"
 EndProject
@@ -21,11 +21,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.Framework.Vulkan", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.Framework.Oculus", "Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj", "{9D5B205E-A740-41EC-8437-055A2907074B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.WebLink", "WebLink\OpenXr.WebLink\OpenXr.WebLink.csproj", "{7B764B8B-9EE1-4C5D-B3CB-7EEF2A40B740}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.WebLink", "WebLink\Xr.WebLink\Xr.WebLink.csproj", "{7B764B8B-9EE1-4C5D-B3CB-7EEF2A40B740}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Oculus", "Oculus", "{761EFB52-D26A-43E7-ACD5-0CB0162FBCAA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.WebLink.Server", "WebLink\OpenXr.WebLink.Server\OpenXr.WebLink.Server.csproj", "{4261866C-1791-4F23-A546-E144276B0F97}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.WebLink.Server", "WebLink\Xr.WebLink.Server\Xr.WebLink.Server.csproj", "{4261866C-1791-4F23-A546-E144276B0F97}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{2F66AE62-56FE-4071-B60E-25D056DA9E91}"
 EndProject
@@ -41,9 +41,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "#Global", "#Global", "{BFA6
 		..\readme.md = ..\readme.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.WebLink.Entities", "WebLink\OpenXr.WebLink.Entities\OpenXr.WebLink.Entities.csproj", "{CE86F573-5553-4276-9098-F2827FB33236}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.WebLink.Entities", "WebLink\Xr.WebLink.Entities\Xr.WebLink.Entities.csproj", "{CE86F573-5553-4276-9098-F2827FB33236}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.WebLink.Client", "WebLink\OpenXr.WebLink.Client\OpenXr.WebLink.Client.csproj", "{549C1695-99E3-4A75-A285-D8B183950C73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.WebLink.Client", "WebLink\Xr.WebLink.Client\Xr.WebLink.Client.csproj", "{549C1695-99E3-4A75-A285-D8B183950C73}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.Framework.OpenGL", "Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj", "{696D2042-75EE-4A7E-A58C-D829A9924BC4}"
 EndProject
@@ -57,11 +57,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.OpenGL", "Engine\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.OpenXr", "Engine\Xr.Engine.OpenXr\Xr.Engine.OpenXr.csproj", "{12F7BF00-A0EE-41D2-B9C4-A4EAB7C690A1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.Test.Common", "Test\OpenXr.Test.Common\OpenXr.Test.Common.csproj", "{A18071A3-28AF-4394-8A85-29082C6F5CD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Test.Common", "Test\Xr.Test.Common\Xr.Test.Common.csproj", "{A18071A3-28AF-4394-8A85-29082C6F5CD0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.OpenGL.Oculus", "Engine\Xr.Engine.OpenGL.Oculus\Xr.Engine.OpenGL.Oculus.csproj", "{F2B8E77C-E9ED-4C10-9B4C-F3C9E6293D1D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenXr.WebLink.Android", "WebLink\OpenXr.WebLink.Android\OpenXr.WebLink.Android.csproj", "{11ED90E9-85B8-4545-94E9-2919ACD51F12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.WebLink.Android", "WebLink\Xr.WebLink.Android\Xr.WebLink.Android.csproj", "{11ED90E9-85B8-4545-94E9-2919ACD51F12}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.Gltf", "Engine\Xr.Engine.Glft\Xr.Engine.Gltf.csproj", "{BAD5CEB8-E157-46F9-B620-1749858CBDD0}"
 EndProject
@@ -71,7 +71,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Draco.Native", "Engine\Drac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.Compression", "Engine\Xr.Engine.Compression\Xr.Engine.Compression.csproj", "{41C5F645-689F-49D5-8A77-1C7F1DF963EE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.Editor", "Engine\Xr.Engine.Editor\Xr.Engine.Editor.csproj", "{5E998D96-93A5-453B-B8EE-D6EBD2967E18}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Editor.App", "Editor\Xr.Editor.App\Xr.Editor.App.csproj", "{5E998D96-93A5-453B-B8EE-D6EBD2967E18}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EtcPack", "..\third-party\etcpak\EtcPack.vcxproj", "{151A0D98-7E72-4D78-8C7E-C2BBDBA4D75D}"
 EndProject
@@ -79,7 +79,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "#Third", "#Third", "{A0A6CD
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Filament.Native", "Engine\Filament.Native\Filament.Native.vcxproj", "{4FF56F83-7124-4975-B086-2F9C4FCC59E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xr.Engine.Filament", "Engine\Xr.Engine.Filament\Xr.Engine.Filament.csproj", "{F50A869E-655E-412E-979F-B802FD3AA240}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.Filament", "Engine\Xr.Engine.Filament\Xr.Engine.Filament.csproj", "{F50A869E-655E-412E-979F-B802FD3AA240}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Editor", "Editor", "{7630AAE4-5AEB-4543-B918-39CB1DDC2DE0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xr.Editor.Core", "Editor\Xr.Editor.Core\Xr.Editor.Core.csproj", "{93546599-6988-412F-B4DC-0329E5101FFB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1041,6 +1045,38 @@ Global
 		{F50A869E-655E-412E-979F-B802FD3AA240}.ReleaseGL|x64.Build.0 = ReleaseGL|x64
 		{F50A869E-655E-412E-979F-B802FD3AA240}.ReleaseGL|x86.ActiveCfg = ReleaseGL|Any CPU
 		{F50A869E-655E-412E-979F-B802FD3AA240}.ReleaseGL|x86.Build.0 = ReleaseGL|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Debug|ARM64.Build.0 = Debug|ARM64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Debug|x64.ActiveCfg = Debug|x64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Debug|x64.Build.0 = Debug|x64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Debug|x86.Build.0 = Debug|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.DebugGL|Any CPU.ActiveCfg = DebugGL|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.DebugGL|Any CPU.Build.0 = DebugGL|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.DebugGL|ARM64.ActiveCfg = DebugGL|ARM64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.DebugGL|ARM64.Build.0 = DebugGL|ARM64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.DebugGL|x64.ActiveCfg = DebugGL|x64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.DebugGL|x64.Build.0 = DebugGL|x64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.DebugGL|x86.ActiveCfg = DebugGL|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.DebugGL|x86.Build.0 = DebugGL|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Release|ARM64.ActiveCfg = Release|ARM64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Release|ARM64.Build.0 = Release|ARM64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Release|x64.ActiveCfg = Release|x64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Release|x64.Build.0 = Release|x64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Release|x86.ActiveCfg = Release|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.Release|x86.Build.0 = Release|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.ReleaseGL|Any CPU.ActiveCfg = ReleaseGL|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.ReleaseGL|Any CPU.Build.0 = ReleaseGL|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.ReleaseGL|ARM64.ActiveCfg = ReleaseGL|ARM64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.ReleaseGL|ARM64.Build.0 = ReleaseGL|ARM64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.ReleaseGL|x64.ActiveCfg = ReleaseGL|x64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.ReleaseGL|x64.Build.0 = ReleaseGL|x64
+		{93546599-6988-412F-B4DC-0329E5101FFB}.ReleaseGL|x86.ActiveCfg = ReleaseGL|Any CPU
+		{93546599-6988-412F-B4DC-0329E5101FFB}.ReleaseGL|x86.Build.0 = ReleaseGL|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1071,10 +1107,11 @@ Global
 		{22346221-F1D6-4093-BE74-E1B7232B3D20} = {58ED8D02-C682-40C2-A855-A45FD64429F6}
 		{7637AB55-A272-4390-8222-8397150FE18F} = {2070C619-467B-44AB-922D-D9A1FEF633D7}
 		{41C5F645-689F-49D5-8A77-1C7F1DF963EE} = {2070C619-467B-44AB-922D-D9A1FEF633D7}
-		{5E998D96-93A5-453B-B8EE-D6EBD2967E18} = {2070C619-467B-44AB-922D-D9A1FEF633D7}
+		{5E998D96-93A5-453B-B8EE-D6EBD2967E18} = {7630AAE4-5AEB-4543-B918-39CB1DDC2DE0}
 		{151A0D98-7E72-4D78-8C7E-C2BBDBA4D75D} = {A0A6CD7F-C9B6-4BB4-9756-AF601CAD6732}
 		{4FF56F83-7124-4975-B086-2F9C4FCC59E4} = {2070C619-467B-44AB-922D-D9A1FEF633D7}
 		{F50A869E-655E-412E-979F-B802FD3AA240} = {2070C619-467B-44AB-922D-D9A1FEF633D7}
+		{93546599-6988-412F-B4DC-0329E5101FFB} = {7630AAE4-5AEB-4543-B918-39CB1DDC2DE0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9C8DD7BC-85A1-44DB-81ED-5DA8F4312EEA}

@@ -7,7 +7,7 @@ using Silk.NET.OpenGL;
 
 using System.Runtime.InteropServices;
 
-namespace OpenXr.Engine.OpenGL.Oculus
+namespace Xr.Engine.OpenGL.Oculus
 {
     public class GlMultiViewFrameBuffer : GlFrameBuffer
     {
@@ -111,7 +111,7 @@ namespace OpenXr.Engine.OpenGL.Oculus
         {
             _gl.DeleteTexture(_depthTexId);
             _depthTexId = 0;
-           
+
             base.Dispose();
         }
 
