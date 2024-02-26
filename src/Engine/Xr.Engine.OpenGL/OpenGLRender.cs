@@ -57,9 +57,13 @@ namespace Xr.Engine.OpenGL
         protected GlobalContent? _content;
         protected IGlRenderTarget? _target;
         protected GlRenderOptions _options;
+        protected GlDefaultRenderTarget _defaultTarget;
         protected UpdateShaderContext _updateCtx;
         protected GlSimpleProgram? _writeStencil;
         protected ShaderUpdate? _writeStencilUpdate;
+        protected Dictionary<uint, Texture2D> _depthCache = [];
+        protected Rect2I _view;
+
 
         public static class Props
         {
@@ -77,7 +81,8 @@ namespace Xr.Engine.OpenGL
 
             _gl = gl;
             _options = options;
-            _target = new GlDefaultRenderTarget(gl);
+            _defaultTarget  = new GlDefaultRenderTarget(gl);
+            _target = _defaultTarget;
             _options.ProgramFactory ??= new GlDefaultProgramFactory();
             _updateCtx = new UpdateShaderContext();
             _updateCtx.RenderEngine = this;
@@ -386,14 +391,10 @@ namespace Xr.Engine.OpenGL
             _target = target;
         }
 
-        public void Dispose()
+        public void SetDefaultRenderTarget()
         {
+            _target = _defaultTarget;
         }
-
-
-        readonly Dictionary<uint, Texture2D> _depthCache = [];
-        private Rect2I _view;
-
 
         public Texture2D? GetDepth()
         {
@@ -423,6 +424,9 @@ namespace Xr.Engine.OpenGL
 
             return texture;
 
+        }
+        public void Dispose()
+        {
         }
 
         public GL GL => _gl;

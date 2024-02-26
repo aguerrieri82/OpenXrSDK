@@ -16,15 +16,15 @@ namespace Xr.Editor
 
         protected KhrOpenglEnable? _openGl;
         protected XrDynamicType _swapChainType;
-        protected IRenderSurface _renderSurface;
+        protected IGlRenderSurface _renderSurface;
 
         protected GLEnum[] _validFormats = [
            GLEnum.Srgb8Alpha8,
            GLEnum.Rgba8];
 
-        public XrGraphicDriver(IRenderSurface host)
+        public XrGraphicDriver(IRenderSurface surface)
         {
-            _renderSurface = host;
+            _renderSurface = (IGlRenderSurface)surface;
             _swapChainType = new XrDynamicType
             {
                 StructureType = StructureType.SwapchainImageOpenglKhr,

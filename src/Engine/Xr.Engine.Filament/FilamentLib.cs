@@ -75,6 +75,39 @@ namespace Xr.Engine.Filament
             BentNormals
         }
 
+        public enum FlAntiAliasing : byte
+        {
+            NONE, 
+            FXAA    
+        };
+
+        public enum FlBlendMode : byte
+        {
+            OPAQUE,
+            TRANSLUCENT
+        }
+
+        public enum FlShadowType : byte
+        {
+            PCF,     
+            VSM,       
+            DPCF,    
+            PCSS  
+        }
+
+        public enum FlQualityLevel : byte
+        {
+            LOW,
+            MEDIUM,
+            HIGH,
+            ULTRA
+        }
+
+        public struct RenderQuality
+        {
+            public FlQualityLevel HdrColorBuffer;
+        }
+
         public struct InitializeOptions
         {
             public FlBackend Driver;
@@ -82,11 +115,25 @@ namespace Xr.Engine.Filament
             public IntPtr Context;
         }
 
-
         public struct ViewOptions
         {
-
+            public FlBlendMode blendMode;
+            public FlAntiAliasing antiAliasing;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool frustumCullingEnabled;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool postProcessingEnabled;
+            public RenderQuality renderQuality;
+            public uint sampleCount;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool screenSpaceRefractionEnabled;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool shadowingEnabled;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool stencilBufferEnabled;
+            public FlShadowType shadowType;
         }
+
 
         public struct RenderTargetOptions
         {
@@ -96,7 +143,7 @@ namespace Xr.Engine.Filament
             public uint SampleCount;
         }
 
-        public struct RenderInfo
+        public struct RenderTarget
         {
             public uint ViewId;
             public int RenderTargetId;
@@ -127,7 +174,9 @@ namespace Xr.Engine.Filament
             public Color Color;
             public Vector3 Direction;
             public Vector3 Position;
+            [MarshalAs(UnmanagedType.U1)]
             public bool CastShadows;
+            [MarshalAs(UnmanagedType.U1)]
             public bool CastLight;
             public SunLight Sun;
         }
@@ -136,9 +185,13 @@ namespace Xr.Engine.Filament
         {
             public uint GeometryId;
             public uint MaterialId;
+            [MarshalAs(UnmanagedType.U1)]
             public bool Culling;
+            [MarshalAs(UnmanagedType.U1)]
             public bool CastShadows;
+            [MarshalAs(UnmanagedType.U1)]
             public bool ReceiveShadows;
+            [MarshalAs(UnmanagedType.U1)]
             public bool Fog;
         }
 
@@ -191,12 +244,19 @@ namespace Xr.Engine.Filament
             public TextureInfo MetallicRoughnessMap;
             public TextureInfo BaseColorMap;
             public Color Color;
+            [MarshalAs(UnmanagedType.U1)]
             public bool ClearCoat;
+            [MarshalAs(UnmanagedType.U1)]
             public bool Anisotropy;
+            [MarshalAs(UnmanagedType.U1)]
             public bool MultiBounceAO;
+            [MarshalAs(UnmanagedType.U1)]
             public bool SpecularAntiAliasing; //true;
+            [MarshalAs(UnmanagedType.U1)]
             public bool ClearCoatIorChange;
+            [MarshalAs(UnmanagedType.U1)]
             public bool DoubleSided;
+            [MarshalAs(UnmanagedType.U1)]
             public bool ScreenSpaceReflection; //True
             public FlBlendingMode Blending;
             public FlSpecularAO SpecularAO;
@@ -213,7 +273,7 @@ namespace Xr.Engine.Filament
         public static extern int AddRenderTarget(IntPtr app, ref RenderTargetOptions options);
 
         [DllImport("filament-native")]
-        public static extern void Render(IntPtr app, RenderInfo* options, uint count);
+        public static extern void Render(IntPtr app, RenderTarget* targets, uint count);
 
         [DllImport("filament-native")]
         public static extern void AddLight(IntPtr app, uint id, ref LightInfo info);

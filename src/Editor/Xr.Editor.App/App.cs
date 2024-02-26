@@ -28,7 +28,7 @@ namespace Xr.Editor
             var window = new Window
             {
                 Title = "Xr Editor",
-                Content = new MainView(new RenderHost())
+                Content = new MainView(new GlRenderHost())
             };
 
 

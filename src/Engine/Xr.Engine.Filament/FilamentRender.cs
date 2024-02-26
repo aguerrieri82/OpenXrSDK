@@ -38,13 +38,25 @@ namespace Xr.Engine.Filament
                 WindowHandle = options.HWnd,
                 Context = options.GlCtx
             };
-            var viewInfo = new ViewOptions
-            {
 
+            var viewOpt = new ViewOptions
+            {
+                renderQuality= new RenderQuality
+                {
+                    HdrColorBuffer= FlQualityLevel.HIGH
+                },
+                antiAliasing = FlAntiAliasing.NONE,
+                postProcessingEnabled = false,
+                shadowingEnabled = false,
+                blendMode = FlBlendMode.OPAQUE,
+                sampleCount = 1,
+                stencilBufferEnabled = false,
+                frustumCullingEnabled = false,
+                screenSpaceRefractionEnabled = false,
             };
 
             _app = Initialize(ref initInfo);
-            _viewId = AddView(_app, ref viewInfo);
+            _viewId = AddView(_app, ref viewOpt);
             _activeRenderTarget = -1;
         }
 
@@ -56,6 +68,11 @@ namespace Xr.Engine.Filament
         public Texture2D? GetDepth()
         {
             throw new NotImplementedException();
+        }
+
+        public void SetDefaultRenderTarget()
+        {
+            _activeRenderTarget = -1;
         }
 
         public void SetRenderTarget(uint width, uint height, IntPtr imageId)
@@ -310,7 +327,7 @@ namespace Xr.Engine.Filament
                 BuildContent(scene);
 
             
-            var render = stackalloc RenderInfo[1];
+            var render = stackalloc RenderTarget[1];
 
             render[0].Camera = new CameraInfo
             {
