@@ -14,7 +14,8 @@ namespace Xr.Editor.Components
         {
             var render = new FilamentRender(new FilamentOptions
             {
-                HWnd = HWnd
+                HWnd = HWnd,
+                MaterialCachePath = "d:\\Materials"
             });
 
             return render;

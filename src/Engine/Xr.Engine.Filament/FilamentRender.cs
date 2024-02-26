@@ -10,6 +10,7 @@ namespace Xr.Engine.Filament
     {
         public IntPtr GlCtx;
         public IntPtr HWnd;
+        public string? MaterialCachePath;
     }
 
     public class FilamentRender : IRenderEngine
@@ -32,11 +33,17 @@ namespace Xr.Engine.Filament
 
         public FilamentRender(FilamentOptions options)
         {
+            if (!string.IsNullOrWhiteSpace(options.MaterialCachePath))
+                Directory.CreateDirectory(options.MaterialCachePath);
+     
+
+
             var initInfo = new InitializeOptions()
             {
                 Driver = FlBackend.OpenGL,
                 WindowHandle = options.HWnd,
-                Context = options.GlCtx
+                Context = options.GlCtx,
+                MaterialCachePath = options.MaterialCachePath ?? string.Empty
             };
 
             var viewOpt = new ViewOptions
@@ -184,6 +191,7 @@ namespace Xr.Engine.Filament
                         {
                             Type = FlLightType.Directional,
                             Direction = dir.Forward,
+                            Intensity = dir.Intensity,  
                             Color = dir.Color,  
                             CastShadows= true,
                         };
@@ -257,8 +265,6 @@ namespace Xr.Engine.Filament
                                     Attributes = pAttr
                                 };
 
-               
-
                                 fixed (uint* pIndex = geo.Indices)
                                 fixed (VertexData* pVert = geo.Vertices)
                                 {
@@ -284,6 +290,7 @@ namespace Xr.Engine.Filament
                             var matInfo = new MaterialInfo
                             {
                                 NormalMap = ToTextureInfo(mat.NormalTexture),
+                                Color = mat.MetallicRoughness?.BaseColorFactor ?? Color.White,
                                 BaseColorMap = ToTextureInfo(mat.MetallicRoughness?.BaseColorTexture),
                                 MetallicRoughnessMap = ToTextureInfo(mat.MetallicRoughness?.MetallicRoughnessTexture),
                                 AoMap = ToTextureInfo(mat.OcclusionTexture),
@@ -342,7 +349,7 @@ namespace Xr.Engine.Filament
             render[0].Viewport = view;
 
             foreach (var mesh in _content!.Objects!.Where(a=> a.Key is TriangleMesh))
-                SetObjTransform(_app, mesh.Value, ((Object3D)mesh.Key).Transform.Matrix);
+                SetObjTransform(_app, mesh.Value, ((Object3D)mesh.Key).WorldMatrix);
 
             FilamentLib.Render(_app, render, 1);
 

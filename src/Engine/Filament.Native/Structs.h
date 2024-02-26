@@ -61,6 +61,7 @@ struct InitializeOptions {
 	Backend driver;
 	void* windowHandle;
 	void* context;
+	const char materialCachePath[256];
 };
 
 
@@ -82,7 +83,9 @@ struct FilamentApp {
 	std::vector<::RenderTarget*> renderTargets;
 	std::map<OBJID, Entity> entities;
 	std::map<OBJID, Geometry> geometries;
-	std::map<OBJID, MaterialInstance*> materials;
+	std::map<OBJID, MaterialInstance*> materialsInst;
+	std::map<std::string, Material*> materials;
+	std::string materialCachePath;
 };
 
 struct LightInfo {

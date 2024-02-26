@@ -113,6 +113,8 @@ namespace Xr.Engine.Filament
             public FlBackend Driver;
             public IntPtr WindowHandle;
             public IntPtr Context;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+            public string MaterialCachePath;
         }
 
         public struct ViewOptions

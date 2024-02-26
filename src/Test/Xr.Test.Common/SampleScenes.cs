@@ -15,12 +15,20 @@ namespace OpenXr.Samples
 
             var scene = new Scene();
 
-            var cube = new TriangleMesh(Cube.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
+            //var cube = new TriangleMesh(Cube.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
+            var cube = new TriangleMesh(Cube.Instance, new PbrMaterial() 
+            { 
+                MetallicRoughness = new PbrMetallicRoughness
+                {
+                    BaseColorFactor = new Color(1f, 0, 0, 1)
+                }
+            });
+
             cube.Transform.SetScale(0.1f);
             cube.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), MathF.PI / 4f);
             cube.Name = "test";
             cube.AddComponent<MeshCollider>();
-            scene.AddChild(cube);
+            //scene.AddChild(cube);
 
             var quod = new TriangleMesh(Quad.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
             quod.Transform.SetScale(0.5f);
@@ -42,15 +50,15 @@ namespace OpenXr.Samples
             //pt.Name = "light";
             pt.IsVisible = true;
 
-            var dl = scene.AddChild(new DirectionalLight() { Intensity = 0.5f });
+            var dl = scene.AddChild(new DirectionalLight() { Intensity = 1.5f });
             dl.Transform.Rotation = new Vector3(-0.16f, 0.18f, 0.35f);
             dl.Name = "light";
             dl.IsVisible = true;
 
-            var dl2 = scene.AddChild(new DirectionalLight() { Intensity = 0.5f });
-            dl.Transform.Rotation = new Vector3(-0.16f, 0.18f, 0.35f);
-            dl.Name = "light2";
-            dl.IsVisible = true;
+            var dl2 = scene.AddChild(new DirectionalLight() { Intensity = 1.5f });
+            dl2.Transform.Rotation = new Vector3(0.16f, 0.18f, 0.35f);
+            dl2.Name = "light2";
+            dl2.IsVisible = true;
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
@@ -61,10 +69,10 @@ namespace OpenXr.Samples
                 ConvertColorTextureSRgb = true,
             };
 
-            var room = GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets, glOptions);
-            //var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
+            //var room = GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets, glOptions);
+            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
             room.Name = "mesh";
-            //room.Transform.SetScale(0.01f);
+            room.Transform.SetScale(0.01f);
             /*
             foreach (var child in room.Children.OfType<TriangleMesh>())
                 child.AddComponent<BoundsGrabbable>();
