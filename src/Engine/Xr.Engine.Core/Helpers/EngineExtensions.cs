@@ -32,7 +32,6 @@ namespace Xr.Engine
             return vector.Transform(obj.WorldMatrixInverse);
         }
 
-
         public static IEnumerable<Group> Ancestors(this Object3D obj)
         {
             var curItem = obj.Parent;
@@ -76,7 +75,6 @@ namespace Xr.Engine
             return layer.Content.Cast<Object3D>();
         }
 
-
         public static IEnumerable<T> TypeLayerContent<T>(this Scene scene) where T : Object3D
         {
             var layer = scene.Layers.OfType<TypeLayer<T>>().FirstOrDefault();
@@ -105,6 +103,11 @@ namespace Xr.Engine
 
         #region GROUP
 
+        public static T AddChild<T>(this Group group) where T : Object3D, new()
+        {
+            return group.AddChild(new T());
+        }
+
         public static T? FindByName<T>(this Group group, string name) where T : Object3D
         {
             return group.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
@@ -122,7 +125,6 @@ namespace Xr.Engine
 
         public static IEnumerable<T> Descendants<T>(this Group target) where T : Object3D
         {
-
             foreach (var child in target.Children)
             {
                 if (child is T validChild)
@@ -364,7 +366,6 @@ namespace Xr.Engine
 
         #region BOUNDS
 
-
         public static Bounds3 ComputeBounds(this IEnumerable<Vector3> points, Matrix4x4 matrix)
         {
             var result = new Bounds3();
@@ -445,11 +446,11 @@ namespace Xr.Engine
 
         #region CAMERA
 
-        public static IEnumerable<Vector3> Project(this Camera camera, IEnumerable<Vector3> points)
+        public static IEnumerable<Vector3> Project(this Camera camera, IEnumerable<Vector3> worldPoints)
         {
             var viewProj = camera.View * camera.Projection;
 
-            foreach (var vertex in points)
+            foreach (var vertex in worldPoints)
             {
                 var vec4 = new Vector4(vertex.X, vertex.Y, vertex.Z, 1);
                 var vTrans = Vector4.Transform(vec4, viewProj);
@@ -457,11 +458,10 @@ namespace Xr.Engine
                 vTrans /= vTrans.W;
 
                 yield return new Vector3(vTrans.X, -vTrans.Y, vTrans.Z);
-
             }
         }
 
-        public static Vector3 ViewToWorld(this Camera camere, Vector3 viewPoint)
+        public static Vector3 Unproject(this Camera camere, Vector3 viewPoint)
         {
             var dirEye = Vector4.Transform(new Vector4(viewPoint, 1.0f), camere.ProjectionInverse);
             dirEye /= dirEye.W;
@@ -475,23 +475,23 @@ namespace Xr.Engine
             var maxZ = 1;
             yield return new Line3
             {
-                From = camera.ViewToWorld(new Vector3(-1, -1, minZ)),
-                To = camera.ViewToWorld(new Vector3(-1, -1, maxZ)),
+                From = camera.Unproject(new Vector3(-1, -1, minZ)),
+                To = camera.Unproject(new Vector3(-1, -1, maxZ)),
             };
             yield return new Line3
             {
-                From = camera.ViewToWorld(new Vector3(-1, 1, minZ)),
-                To = camera.ViewToWorld(new Vector3(-1, 1, maxZ)),
+                From = camera.Unproject(new Vector3(-1, 1, minZ)),
+                To = camera.Unproject(new Vector3(-1, 1, maxZ)),
             };
             yield return new Line3
             {
-                From = camera.ViewToWorld(new Vector3(1, 1, minZ)),
-                To = camera.ViewToWorld(new Vector3(1, 1, maxZ)),
+                From = camera.Unproject(new Vector3(1, 1, minZ)),
+                To = camera.Unproject(new Vector3(1, 1, maxZ)),
             };
             yield return new Line3
             {
-                From = camera.ViewToWorld(new Vector3(1, -1, minZ)),
-                To = camera.ViewToWorld(new Vector3(1, -1, maxZ)),
+                From = camera.Unproject(new Vector3(1, -1, minZ)),
+                To = camera.Unproject(new Vector3(1, -1, maxZ)),
             };
 
         }
@@ -525,6 +525,7 @@ namespace Xr.Engine
 
         #region TRIANGLE
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Normal(this Triangle3 triangle)
         {
             var edge1 = triangle.V1 - triangle.V0;
@@ -646,7 +647,6 @@ namespace Xr.Engine
             res.Y = MathF.Asin(-2.0f * (q.X * q.Z - q.W * q.Y));
             res.Z = MathF.Atan2(2.0f * (q.X * q.Y + q.W * q.Z), q.W * q.W + q.X * q.X - q.Y * q.Y - q.Z * q.Z);
             return res;
-
         }
 
 
@@ -683,7 +683,6 @@ namespace Xr.Engine
         {
             transform.Position = new Vector3(value, transform.Position.Y, transform.Position.Z);
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetPositionY(this Transform3 transform, float value)

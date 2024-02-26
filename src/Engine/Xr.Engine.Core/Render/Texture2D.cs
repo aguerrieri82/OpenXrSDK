@@ -1,4 +1,5 @@
 ﻿using SkiaSharp;
+using System.IO;
 
 namespace Xr.Engine
 {
@@ -50,7 +51,9 @@ namespace Xr.Engine
     {
         static readonly Dictionary<SKColorType, TextureFormat> FORMAT_MAP = new() {
             { SKColorType.Bgra8888, TextureFormat.Bgra32 },
-            { SKColorType.Rgba8888, TextureFormat.Rgba32 }
+            { SKColorType.Rgba8888, TextureFormat.Rgba32 },
+            { SKColorType.Srgba8888, TextureFormat.SRgba32 },
+            { SKColorType.Gray8, TextureFormat.Gray8 },
         };
 
         public static Texture2D FromImage(string fileName)
@@ -83,10 +86,9 @@ namespace Xr.Engine
             return FromData(data);
         }
 
-        public static Texture2D FromImage(Stream stream)
+    
+        public static Texture2D FromImage(SKBitmap image)
         {
-            var image = SKBitmap.Decode(stream);
-
             if (!FORMAT_MAP.TryGetValue(image.ColorType, out var format))
                 throw new NotSupportedException();
 
@@ -100,9 +102,20 @@ namespace Xr.Engine
             };
 
             image.Dispose();
-            stream.Dispose();
 
             return FromData([data]);
+        }
+
+        public static Texture2D FromImage(byte[] data)
+        {
+            return FromImage(SKBitmap.Decode(data));
+        }
+
+        public static Texture2D FromImage(Stream stream)
+        {
+            var result = FromImage(SKBitmap.Decode(stream));
+            stream.Dispose();
+            return result;  
         }
 
         public static Texture2D FromData(IList<TextureData> data)

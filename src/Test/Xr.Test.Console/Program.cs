@@ -28,9 +28,6 @@ Gpu.EnableNvAPi();
 
 var logger = host.Services.GetRequiredService<ILogger<object>>();
 
-var test = new FilamentRender();
-
-
 
 //await WebLinkApp.Run(host.Services, logger);
 await WindowSceneApp.Run(host.Services, logger);

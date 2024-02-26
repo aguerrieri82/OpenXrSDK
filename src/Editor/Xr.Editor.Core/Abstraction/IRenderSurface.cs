@@ -30,6 +30,8 @@ namespace Xr.Editor
 
         IntPtr GlCtx { get; }
 
+        IntPtr HWnd { get; }
+
         GL? Gl { get; }
     }
 }

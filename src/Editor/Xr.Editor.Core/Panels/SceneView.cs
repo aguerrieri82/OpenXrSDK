@@ -3,6 +3,7 @@ using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using System.Diagnostics.CodeAnalysis;
 using Xr.Engine;
+using Xr.Engine.Filament;
 using Xr.Engine.OpenGL;
 using Xr.Engine.OpenXr;
 
@@ -86,7 +87,7 @@ namespace Xr.Editor
 
             _ = _main.ExecuteAsync(() =>
             {
-                PropertiesEditor.Instance!.ActiveObject = _scene!.FindByName<Object3D>("Right Controller");
+               // PropertiesEditor.Instance!.ActiveObject = _scene!.FindByName<Object3D>("Right Controller");
             });
         }
 
@@ -152,14 +153,22 @@ namespace Xr.Editor
                 RequireTextureCompression = false,
             };
 
-            var render = new OpenGLRender(_renderSurface.Gl!, renderOptions);
+            var render = new FilamentRender(new FilamentOptions
+            {
+                //GlCtx  = _renderSurface.GlCtx,
+                HWnd  =_renderSurface.HWnd
+            });
+
+            //_renderSurface.ReleaseContext();
+
+            //var render = new OpenGLRender(_renderSurface.Gl!, renderOptions);
 
             if (_scene?.App != null)
                 _scene.App.Renderer = render;
 
             var windowTarget = new GlDefaultRenderTarget(_renderSurface.Gl!);
 
-            _renderSurface!.TakeContext();
+            //_renderSurface!.TakeContext();
 
             while (_isStarted)
             {
@@ -170,26 +179,26 @@ namespace Xr.Editor
                     if (_isXrActive && _xrState != SceneXrState.StartRequested)
                     {
                         StartXr();
-                        _renderSurface.EnableVSync(false); 
+                        //_renderSurface.EnableVSync(false); 
                     }
 
                     if (!_isXrActive && _xrApp != null && _xrState != SceneXrState.StopRequested)
                     {
                         StopXr();
-                        _renderSurface.EnableVSync(true);
+                        //_renderSurface.EnableVSync(true);
              
                     }
 
                     if (_xrApp != null && _xrApp.IsStarted)
                     {
                         _xrApp.RenderFrame(_xrApp.Stage);
-                        render.SetRenderTarget(windowTarget);
+                        //render.SetRenderTarget(windowTarget);
                         render.Render(_scene!, _camera!, _view);
                     }
                     else
                         _scene.App!.RenderFrame(_view);
 
-                    _renderSurface.SwapBuffers();
+                    //_renderSurface.SwapBuffers();
 
                     OnPropertyChanged(nameof(Stats));
                 }
@@ -212,7 +221,7 @@ namespace Xr.Editor
 
             _isStarted = true;
 
-            _renderSurface!.ReleaseContext();
+            //_renderSurface!.ReleaseContext();
 
             _renderThread = new Thread(RenderLoop);
 

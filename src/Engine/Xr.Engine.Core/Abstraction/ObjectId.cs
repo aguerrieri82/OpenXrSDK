@@ -4,7 +4,7 @@ namespace Xr.Engine
 {
     public struct ObjectId : IEquatable<ObjectId>
     {
-        static int _lastId = 1;
+        static uint _lastId = 1;
 
 
         public static ObjectId New()
@@ -14,7 +14,7 @@ namespace Xr.Engine
 
         public override readonly int GetHashCode()
         {
-            return Value;
+            return (int)Value;
         }
 
         public readonly bool Equals(ObjectId other)
@@ -29,7 +29,7 @@ namespace Xr.Engine
             return false;
         }
 
-        public static implicit operator int(ObjectId obj)
+        public static implicit operator uint(ObjectId obj)
         {
             return obj.Value;
         }
@@ -50,6 +50,6 @@ namespace Xr.Engine
             return left.Value != right.Value;
         }
 
-        public int Value;
+        public uint Value;
     }
 }

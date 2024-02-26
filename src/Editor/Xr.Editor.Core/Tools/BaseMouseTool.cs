@@ -47,7 +47,7 @@ namespace Xr.Editor
         protected Vector3 ToWorld(PointerEvent ev, float z = -1f)
         {
             var normPoint = ToView(ev, z);
-            return _sceneView!.Camera!.ViewToWorld(normPoint);
+            return _sceneView!.Camera!.Unproject(normPoint);
         }
 
         protected Ray3 ToRay(PointerEvent ev)

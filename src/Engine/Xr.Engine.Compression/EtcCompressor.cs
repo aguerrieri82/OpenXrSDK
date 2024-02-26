@@ -85,27 +85,6 @@ namespace Xr.Engine.Compression
 
             return image;
         }
-
-        static SKBitmap ChangeColorSpace(SKBitmap src, SKColorType dest)
-        {
-            if (src.ColorType == dest)
-                return src;
-
-            var newInfo = new SKImageInfo(src.Width, src.Height, dest);
-
-            var newBitmap = new SKBitmap(newInfo);
-
-            using var canvas = new SKCanvas(newBitmap);
-
-            canvas.Clear(SKColors.Transparent);
-
-            canvas.DrawBitmap(src, 0, 0);
-
-            src.Dispose();
-
-            return newBitmap;
-        }
-
         public static IList<TextureData> Encode(string fileName, int mipsLevels)
         {
             using var file = File.OpenRead(fileName);
@@ -129,7 +108,7 @@ namespace Xr.Engine.Compression
 
             using var image = CreateImage(data, skType);
 
-            using var bgrImage = ChangeColorSpace(image, SKColorType.Bgra8888); //TODO investigate, on android rgb is treated as bgr 
+            using var bgrImage = ImageUtils.ChangeColorSpace(image, SKColorType.Bgra8888); //TODO investigate, on android rgb is treated as bgr 
 
             return Encode(bgrImage, mipsLevels, useSrgb);
         }

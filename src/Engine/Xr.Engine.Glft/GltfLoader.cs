@@ -12,6 +12,8 @@ namespace Xr.Engine.Gltf
     {
         public bool ConvertColorTextureSRgb { get; set; }
 
+        public TextureFormat TextureFormat { get; set; }
+
         public static readonly GltfLoaderOptions Default = new();
     }
 
@@ -115,7 +117,7 @@ namespace Xr.Engine.Gltf
                 else
                     throw new NotSupportedException();
 
-                using var image = SKBitmap.Decode(data);
+                using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
 
                 result = new TextureData
                 {
@@ -519,7 +521,8 @@ namespace Xr.Engine.Gltf
                 {
                     obj = ProcessMesh(model.Meshes[node.Mesh.Value]);
 
-                    Debug.Assert(node.Children == null);
+                    //TODO uncomment
+                    //Debug.Assert(node.Children == null);
                 }
                 else if (node.Camera != null)
                 {

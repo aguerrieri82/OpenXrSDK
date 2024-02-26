@@ -1,6 +1,5 @@
 #pragma once
 
-
 #ifdef _WINDOWS
 
 	#define EXPORT __declspec(dllexport)
@@ -28,12 +27,18 @@
 	#pragma comment(lib, FL_LIB("utils.lib"))
 	#pragma comment(lib, FL_LIB("filaflat.lib"))
 	#pragma comment(lib, FL_LIB("ibl.lib"))
-	#pragma comment(lib, FL_LIB("ibl-lite.lib"))
+	//#pragma comment(lib, FL_LIB("ibl-lite.lib"))
 	#pragma comment(lib, FL_LIB("bluegl.lib"))
 	#pragma comment(lib, FL_LIB("bluevk.lib"))
+	#pragma comment(lib, FL_LIB("geometry.lib"))
 	#pragma comment(lib, FL_LIB("smol-v.lib"))
-	#pragma comment(lib, FL_LIB("image.lib"))
+	//#pragma comment(lib, FL_LIB("image.lib"))
 	#pragma comment(lib, FL_LIB("filabridge.lib"))
+	//#pragma comment(lib, FL_LIB("mikktspace.lib"))
+	#pragma comment(lib, FL_LIB("shaders.lib"))
+
+	//#pragma comment(lib, FL_LIB("filameshio.lib"))
+
 
 	#pragma comment(lib, "opengl32.lib")
 
@@ -47,3 +52,6 @@
 
 using namespace filament;
 using namespace filament::backend;
+using namespace filament::math;
+using namespace filamat;
+using namespace utils;

@@ -25,6 +25,7 @@ namespace Xr.Editor
                     return;
                 _value = value;
                 OnPropertyChanged(nameof(Value));
+                OnValueChanged(Value);
             }
         }
 
