@@ -50,13 +50,13 @@ namespace OpenXr.Samples
             //pt.Name = "light";
             pt.IsVisible = true;
 
-            var dl = scene.AddChild(new DirectionalLight() { Intensity = 1.5f });
+            var dl = scene.AddChild(new DirectionalLight() { Intensity = 0.5f });
             dl.Transform.Rotation = new Vector3(-0.16f, 0.18f, 0.35f);
             dl.Name = "light";
             dl.IsVisible = true;
 
-            var dl2 = scene.AddChild(new DirectionalLight() { Intensity = 1.5f });
-            dl2.Transform.Rotation = new Vector3(0.16f, 0.18f, 0.35f);
+            var dl2 = scene.AddChild(new DirectionalLight() { Intensity = 0.5f });
+            dl2.Transform.Rotation = new Vector3(0.16f, 0.18f, -0.35f);
             dl2.Name = "light2";
             dl2.IsVisible = true;
 

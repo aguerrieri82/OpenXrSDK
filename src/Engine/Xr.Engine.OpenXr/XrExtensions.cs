@@ -8,6 +8,7 @@ using Silk.NET.OpenXR;
 using OpenXr.Framework;
 using Xr.Engine.OpenGL;
 using Xr.Engine.OpenGL.Oculus;
+using Xr.Engine.Filament;
 
 
 namespace Xr.Engine.OpenXr
@@ -32,7 +33,55 @@ namespace Xr.Engine.OpenXr
             };
         }
 
-        public static OpenGLRender BindEngineApp(this XrApp xrApp, EngineApp app, uint sampleCount = 1, bool multiView = false)
+        public static IRenderEngine BindEngineApp(this XrApp xrApp, EngineApp app, uint sampleCount = 1, bool multiView = false)
+        {
+            if (app.Renderer is OpenGLRender)
+                return xrApp.BindEngineAppGL(app, sampleCount, multiView);  
+
+            if (app.Renderer is FilamentRender)
+                return xrApp.BindEngineAppFl(app, sampleCount);
+
+            throw new NotSupportedException();
+        }
+
+
+        public static FilamentRender BindEngineAppFl(this XrApp xrApp, EngineApp app, uint sampleCount = 1)
+        {
+            var renderer = (FilamentRender)app.Renderer!;
+
+            void RenderView(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image, int viewIndex, long predTime)
+            {
+                var glImage = (SwapchainImageOpenGLKHR*)image;
+
+                var rect = view.SubImage.ImageRect.Convert().To<Rect2I>();
+
+                renderer.SetRenderTarget(
+                    rect.Width,
+                    rect.Height,
+                    (nint)glImage->Image);
+
+                var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
+
+                var transform = XrCameraTransform.FromView(view, camera.Near, camera.Far);
+
+                camera.Projection = transform.Projection;
+                camera.View = transform.View;
+
+                if (viewIndex == 0)
+                    app.RenderFrame(rect);
+                else
+                    renderer.Render(app.ActiveScene, camera, rect);
+            }
+
+            xrApp.Layers.AddProjection(RenderView);
+
+            app.ActiveScene!.AddChild(new XrGroup(xrApp));
+
+            return renderer;
+        }
+
+
+        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, uint sampleCount = 1, bool multiView = false)
         {
             GlRenderTargetFactory factory;
 
@@ -53,10 +102,10 @@ namespace Xr.Engine.OpenXr
                     };
             }
 
-            return xrApp.BindEngineApp(app, factory, multiView);
+            return xrApp.BindEngineAppGL(app, factory, multiView);
         }
 
-        public static OpenGLRender BindEngineApp(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory, bool multiView)
+        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory, bool multiView)
         {
             OpenGLRender renderer;
 

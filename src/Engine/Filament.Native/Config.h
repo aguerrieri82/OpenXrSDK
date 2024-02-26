@@ -32,12 +32,8 @@
 	#pragma comment(lib, FL_LIB("bluevk.lib"))
 	#pragma comment(lib, FL_LIB("geometry.lib"))
 	#pragma comment(lib, FL_LIB("smol-v.lib"))
-	//#pragma comment(lib, FL_LIB("image.lib"))
 	#pragma comment(lib, FL_LIB("filabridge.lib"))
-	//#pragma comment(lib, FL_LIB("mikktspace.lib"))
 	#pragma comment(lib, FL_LIB("shaders.lib"))
-
-	//#pragma comment(lib, FL_LIB("filameshio.lib"))
 
 
 	#pragma comment(lib, "opengl32.lib")

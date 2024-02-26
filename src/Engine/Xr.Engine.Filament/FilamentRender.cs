@@ -8,8 +8,9 @@ namespace Xr.Engine.Filament
 {
     public class FilamentOptions
     {
-        public IntPtr GlCtx;
-        public IntPtr HWnd;
+        public IntPtr Context;
+        public IntPtr WindowHandle;
+        public FlBackend Driver;
         public string? MaterialCachePath;
     }
 
@@ -29,42 +30,45 @@ namespace Xr.Engine.Filament
         protected int _activeRenderTarget;
         protected Content? _content;
 
-
-
         public FilamentRender(FilamentOptions options)
         {
             if (!string.IsNullOrWhiteSpace(options.MaterialCachePath))
                 Directory.CreateDirectory(options.MaterialCachePath);
-     
-
 
             var initInfo = new InitializeOptions()
             {
-                Driver = FlBackend.OpenGL,
-                WindowHandle = options.HWnd,
-                Context = options.GlCtx,
+                Driver = options.Driver,
+                WindowHandle = options.WindowHandle,
+                Context = options.Context,
                 MaterialCachePath = options.MaterialCachePath ?? string.Empty
             };
 
             var viewOpt = new ViewOptions
             {
-                renderQuality= new RenderQuality
+                RenderQuality= new RenderQuality
                 {
                     HdrColorBuffer= FlQualityLevel.HIGH
                 },
-                antiAliasing = FlAntiAliasing.NONE,
-                postProcessingEnabled = false,
-                shadowingEnabled = false,
-                blendMode = FlBlendMode.OPAQUE,
-                sampleCount = 1,
-                stencilBufferEnabled = false,
-                frustumCullingEnabled = false,
-                screenSpaceRefractionEnabled = false,
+                AntiAliasing = FlAntiAliasing.NONE,
+                PostProcessingEnabled = true,
+                ShadowingEnabled = false,
+                ShadowType = FlShadowType.PCSS,
+                BlendMode = FlBlendMode.OPAQUE,
+                SampleCount = 1,
+                StencilBufferEnabled = true,
+                FrustumCullingEnabled = false,
+                ScreenSpaceRefractionEnabled = false,
             };
 
             _app = Initialize(ref initInfo);
             _viewId = AddView(_app, ref viewOpt);
             _activeRenderTarget = -1;
+        }
+
+        public GraphicContextInfo GetContext()
+        {
+            GetGraphicContext(_app, out var info);
+            return info;
         }
 
         public void Dispose()
@@ -84,7 +88,7 @@ namespace Xr.Engine.Filament
 
         public void SetRenderTarget(uint width, uint height, IntPtr imageId)
         {
-            if (_renderTargets.TryGetValue(imageId, out var rtIndex))
+            if (!_renderTargets.TryGetValue(imageId, out var rtIndex))
             {
                 var options = new RenderTargetOptions()
                 {
@@ -99,6 +103,11 @@ namespace Xr.Engine.Filament
             }
 
             _activeRenderTarget = rtIndex;
+        }
+
+        public void ReleaseContext(bool release)
+        {
+            FilamentLib.ReleaseContext(_app, release);
         }
 
         protected uint GetOrCreate<T>(T obj, Action<uint> factory) where T : EngineObject
