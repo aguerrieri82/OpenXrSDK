@@ -5,6 +5,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Engine\Xr.Engine.Filament\Xr.Engine.Filament.csproj" />
 		<ProjectReference Include="..\..\Engine\Xr.Engine.OpenGL\Xr.Engine.OpenGL.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
 		<ProjectReference Include="..\..\Test\Xr.Test.Common\Xr.Test.Common.csproj" />

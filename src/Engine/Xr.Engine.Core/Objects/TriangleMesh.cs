@@ -25,7 +25,11 @@ namespace Xr.Engine
             if (e.NewItems != null)
             {
                 foreach (var item in e.NewItems.Cast<Material>())
+                {
+                    item.EnsureId();
                     item.Attach(this);
+                }
+             
             }
 
             NotifyChanged(ObjectChangeType.Render);
@@ -67,6 +71,7 @@ namespace Xr.Engine
                     return;
                 _geometry = value;
                 _worldBoundsDirty = true;
+                _geometry?.EnsureId();
                 NotifyChanged(ObjectChangeType.Geometry);
             }
         }

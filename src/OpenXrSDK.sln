@@ -83,7 +83,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Engine.Filament", "Engin
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Editor", "Editor", "{7630AAE4-5AEB-4543-B918-39CB1DDC2DE0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xr.Editor.Core", "Editor\Xr.Editor.Core\Xr.Editor.Core.csproj", "{93546599-6988-412F-B4DC-0329E5101FFB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xr.Editor.Core", "Editor\Xr.Editor.Core\Xr.Editor.Core.csproj", "{93546599-6988-412F-B4DC-0329E5101FFB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

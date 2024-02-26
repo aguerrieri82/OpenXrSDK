@@ -273,7 +273,7 @@ namespace Xr.Editor
             _hwndSource.AddHook(OnMessage);
 
             var handle = _hwndSource.CreateHandleRef();
-
+            /*
             var pfd = new PIXELFORMATDESCRIPTOR
             {
                 nSize = (ushort)Marshal.SizeOf<PIXELFORMATDESCRIPTOR>(),
@@ -304,7 +304,7 @@ namespace Xr.Editor
             TakeContext();
 
             _gl = GL.GetApi(this);
-
+            */
             return handle;
         }
 
@@ -404,5 +404,7 @@ namespace Xr.Editor
         public IntPtr Hdc => _hdc;
 
         public IntPtr GlCtx => _glCtx;
+
+        public IntPtr HWnd => _hwndSource!.Handle;
     }
 }

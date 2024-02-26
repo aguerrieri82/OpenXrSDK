@@ -52,7 +52,6 @@ namespace OpenXr.Samples
             dl.Name = "light2";
             dl.IsVisible = true;
 
-
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
             assets.FullPath("Sponza/Sponza.bin");
@@ -66,6 +65,13 @@ namespace OpenXr.Samples
             //var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
             room.Name = "mesh";
             //room.Transform.SetScale(0.01f);
+            /*
+            foreach (var child in room.Children.OfType<TriangleMesh>())
+                child.AddComponent<BoundsGrabbable>();
+
+            room.Transform.SetScale(4f);
+            room.Transform.Position = new Vector3(1, 1, -1);
+            */
             scene.AddChild(room);
             /*
              foreach (var child in room.Descendants<TriangleMesh>())

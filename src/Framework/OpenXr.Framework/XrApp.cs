@@ -574,7 +574,6 @@ namespace OpenXr.Framework
 
         protected void BeginSession(ViewConfigurationType viewType)
         {
-   
             var sessionBeginInfo = new SessionBeginInfo()
             {
                 Type = StructureType.SessionBeginInfo,
