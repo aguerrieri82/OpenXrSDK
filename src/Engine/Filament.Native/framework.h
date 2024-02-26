@@ -31,11 +31,10 @@
 
 #include <filamat/MaterialBuilder.h>
 
-
-
 #include <geometry/SurfaceOrientation.h>
 
 #include <utils/EntityManager.h>
+
 
 
 #include <backend/DriverEnums.h>

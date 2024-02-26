@@ -24,4 +24,10 @@ extern "C" {
 	EXPORT void APIENTRY SetObjParent(FilamentApp* app, OBJID id, OBJID parentId);
 
 	EXPORT void APIENTRY AddMaterial(FilamentApp* app, OBJID id, ::MaterialInfo & info);
+
+	EXPORT bool APIENTRY GetGraphicContext(FilamentApp* app, GraphicContextInfo& info);
+
+	EXPORT void APIENTRY ReleaseContext(FilamentApp* app, bool release);
+
+
 }

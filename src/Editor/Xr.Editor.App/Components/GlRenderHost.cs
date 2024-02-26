@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using Xr.Engine;
 using Xr.Engine.OpenGL;
+using glTFLoader.Schema;
 
 
 
@@ -17,17 +18,22 @@ namespace Xr.Editor
 {
     public class GlRenderHost : RenderHost, INativeContext, IGlRenderSurface
     {
-        private HwndSource? _hwndSource;
-        private GL? _gl;
-        private readonly nint _hLib;
-        private nint _glCtx;
-        private nint _hdc;
+        protected HwndSource? _hwndSource;
+        protected GL? _gl;
+        protected readonly nint _hLib;
+        private readonly bool _createContext;
+        protected nint _glCtx;
+        protected nint _hdc;
 
         #region NATIVE
 
-        delegate bool wglSwapIntervalEXTPtr(int interval);
+        protected delegate bool wglSwapIntervalEXTPtr(int interval);
 
-        static wglSwapIntervalEXTPtr? wglSwapIntervalEXT;
+        protected unsafe delegate nint wglCreateContextAttribsARBPtr(nint hDC, nint hshareContext, int* attribList);
+
+        protected static wglSwapIntervalEXTPtr? wglSwapIntervalEXT;
+
+        protected static wglCreateContextAttribsARBPtr? wglCreateContextAttribsARB;
 
         [DllImport("Opengl32.dll")]
         static extern IntPtr wglCreateContext(IntPtr hdc);
@@ -153,12 +159,13 @@ namespace Xr.Editor
 
         #endregion
 
-        public GlRenderHost()
+        public GlRenderHost(bool createContext = true)
         {
             _hLib = LoadLibraryW("opengl32.dll");
+            _createContext = createContext;
         }
 
-        protected override HandleRef BuildWindowCore(HandleRef hwndParent)
+        protected virtual void CreateContext(HandleRef hwndParent)
         {
             var handle = base.BuildWindowCore(hwndParent);
             var pfd = new PIXELFORMATDESCRIPTOR
@@ -187,8 +194,15 @@ namespace Xr.Editor
 
             if (_glCtx == IntPtr.Zero)
                 throw new Win32Exception();
+        }
 
-            TakeContext();
+        protected override HandleRef BuildWindowCore(HandleRef hwndParent)
+        {
+            var handle = base.BuildWindowCore(hwndParent);
+
+            if (_createContext)
+                CreateContext(hwndParent);
+
 
             _gl = GL.GetApi(this);
 
@@ -204,6 +218,8 @@ namespace Xr.Editor
                 RequireTextureCompression = false
             });
 
+            TakeContext();
+
             return render;
         }
 
@@ -217,8 +233,6 @@ namespace Xr.Editor
             }
 
             wglSwapIntervalEXT(enable ? 1 : 0);
-
-
         }
 
         public override void SwapBuffers()
@@ -238,7 +252,6 @@ namespace Xr.Editor
                 _ = ReleaseDC(_hwndSource.Handle, _hdc); 
 
             base.DestroyWindowCore(hwnd);
-
         }
 
         public nint GetProcAddress(string proc, int? slot = null)
@@ -273,13 +286,10 @@ namespace Xr.Editor
             return addr != 0;
         }
 
-
-
         public GL? Gl => _gl;
 
         public IntPtr Hdc => _hdc;
 
         public IntPtr GlCtx => _glCtx;
-
     }
 }

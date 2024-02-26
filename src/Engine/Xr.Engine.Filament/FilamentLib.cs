@@ -7,7 +7,7 @@ using static Xr.Engine.Filament.FilamentLib;
 
 namespace Xr.Engine.Filament
 {
-    internal unsafe static class FilamentLib
+    public unsafe static class FilamentLib
     {
         public enum FlLightType : byte
         {
@@ -119,21 +119,24 @@ namespace Xr.Engine.Filament
 
         public struct ViewOptions
         {
-            public FlBlendMode blendMode;
-            public FlAntiAliasing antiAliasing;
+            public FlBlendMode BlendMode;
+            public FlAntiAliasing AntiAliasing;
             [MarshalAs(UnmanagedType.U1)]
-            public bool frustumCullingEnabled;
+            public bool FrustumCullingEnabled;
             [MarshalAs(UnmanagedType.U1)]
-            public bool postProcessingEnabled;
-            public RenderQuality renderQuality;
-            public uint sampleCount;
+            public bool PostProcessingEnabled;
+            public RenderQuality RenderQuality;
+            public uint SampleCount;
             [MarshalAs(UnmanagedType.U1)]
-            public bool screenSpaceRefractionEnabled;
+            public bool ScreenSpaceRefractionEnabled;
             [MarshalAs(UnmanagedType.U1)]
-            public bool shadowingEnabled;
+            public bool ShadowingEnabled;
             [MarshalAs(UnmanagedType.U1)]
-            public bool stencilBufferEnabled;
-            public FlShadowType shadowType;
+            public bool StencilBufferEnabled;
+            public FlShadowType ShadowType;
+            public float ShadowFar;
+            public float ShadowNear;
+
         }
 
 
@@ -265,6 +268,13 @@ namespace Xr.Engine.Filament
         };
 
 
+        public struct GraphicContextInfo
+        {
+            public IntPtr GlCTx;
+            public IntPtr HDc;
+        }
+
+
         [DllImport("filament-native")]
         public static extern IntPtr Initialize(ref InitializeOptions options);
 
@@ -300,5 +310,12 @@ namespace Xr.Engine.Filament
 
         [DllImport("filament-native")]
         public static extern void AddMaterial(IntPtr app, uint id, ref MaterialInfo material);
+
+        [DllImport("filament-native")]
+        public static extern bool GetGraphicContext(IntPtr app, out GraphicContextInfo info);
+
+        [DllImport("filament-native")]
+        public static extern void ReleaseContext(IntPtr app, bool release);
+
     }
 }

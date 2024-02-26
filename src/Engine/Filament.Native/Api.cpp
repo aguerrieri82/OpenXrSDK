@@ -1,5 +1,17 @@
 #include "pch.h"
 
+bool isReleaseContext = false;
+
+class PlatformWGL2 : public PlatformWGL {
+protected:
+	void commit(SwapChain* swapChain) noexcept override {
+		PlatformWGL::commit(swapChain);
+		if (isReleaseContext)
+			wglMakeCurrent(mWhdc, NULL);
+	}
+};
+
+
 
 mat4 MatFromArray(Matrix4x4 array) {
 	return mat4(array[0], array[1], array[2], array[3],
@@ -15,8 +27,10 @@ FilamentApp* Initialize(InitializeOptions& options) {
 
 	app->materialCachePath = options.materialCachePath;
 
+
 	app->engine = Engine::Builder()
 		.backend((Backend)options.driver)
+		.platform(new PlatformWGL2())
 		.sharedContext(options.context)
 		.build();
 
@@ -30,6 +44,7 @@ FilamentApp* Initialize(InitializeOptions& options) {
 
 	return app;
 }
+
 
 VIEWID AddView(FilamentApp* app, ViewOptions& options)
 {
@@ -46,7 +61,7 @@ VIEWID AddView(FilamentApp* app, ViewOptions& options)
 	view->setShadowingEnabled(options.shadowingEnabled);
 	view->setShadowType(options.shadowType);
 	view->setStencilBufferEnabled(options.stencilBufferEnabled);
-	;
+
 
 	view->setScene(app->scene);
 	app->views.push_back(view);
@@ -82,8 +97,20 @@ RTID AddRenderTarget(FilamentApp* app, RenderTargetOptions& options)
 	return app->renderTargets.size() - 1;
 }
 
+
+void ReleaseContext(FilamentApp* app, bool release) 
+{
+	isReleaseContext = release;
+	app->renderer->beginFrame(app->swapChain);
+	app->renderer->endFrame();
+	app->engine->flushAndWait();
+}
+
 void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count)
 {
+	isReleaseContext = false;
+
+	int iPrev = _CrtSetReportMode(_CRT_ASSERT, 0);
 
 	Renderer::ClearOptions opt;
 	opt.clear = true;
@@ -92,7 +119,6 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count)
 	app->renderer->setClearOptions(opt);
 
 	app->renderer->beginFrame(app->swapChain);
-
 
 	auto lcount = app->scene->getLightCount();
 
@@ -530,6 +556,20 @@ void AddMaterial(FilamentApp* app, OBJID id, ::MaterialInfo& info)
 
 	app->materialsInst[id] = instance;
 
+}
+
+bool GetGraphicContext(FilamentApp* app, GraphicContextInfo& info)
+{
+	auto backend = app->engine->getBackend();
+	if (backend == Backend::OPENGL) {
+#ifdef _WINDOWS
+		auto plat = dynamic_cast<PlatformWGL*>(app->engine->getPlatform());
+		info.glCtx = plat->mContext;
+		info.hdc = plat->mWhdc;
+		return true;
+#endif
+	}
+	return false;
 }
 
 void SetObjTransform(FilamentApp* app, OBJID id, Matrix4x4 matrix)

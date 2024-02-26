@@ -95,6 +95,11 @@ namespace Xr.Engine.OpenGL
                     _options.ProgramFactory!.CreateProgram(_gl, material));
         }
 
+        public void ReleaseContext(bool release)
+        {
+
+        }
+
         public void Clear(Color color)
         {
             _gl.ClearColor(color.R, color.G, color.B, color.A);

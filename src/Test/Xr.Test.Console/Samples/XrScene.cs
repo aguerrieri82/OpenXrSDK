@@ -41,7 +41,7 @@ namespace OpenXr.Samples
             _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
 
 
-            xrApp.BindEngineApp(_game, options.SampleCount, options.EnableMultiView);
+            xrApp.BindEngineAppGL(_game, options.SampleCount, options.EnableMultiView);
 
             xrApp.StartEventLoop(() => !isStarted);
 

@@ -74,10 +74,8 @@ namespace Xr.Editor
 
             var glFormat = viewInfo.SwapChainFormats.Select(a => (GLEnum)(int)a).ToArray();
 
-
             result.SwapChainFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
         }
-
 
         public T GetApi<T>() where T : class
         {

@@ -103,7 +103,7 @@ namespace Xr.Test.Android
 
             //_game.ActiveScene.AddChild(new OculusSceneModel());
 
-            var renderer = result.BindEngineApp(
+            var renderer = result.BindEngineAppGL(
                 _game,
                 options.SampleCount,
                 options.EnableMultiView);

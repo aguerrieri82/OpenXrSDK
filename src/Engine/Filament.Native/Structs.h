@@ -80,7 +80,7 @@ struct FilamentApp {
 	SwapChain* swapChain;
 	Camera* camera;
 	std::vector<View*> views;
-	std::vector<::RenderTarget*> renderTargets;
+	std::vector<filament::RenderTarget*> renderTargets;
 	std::map<OBJID, Entity> entities;
 	std::map<OBJID, Geometry> geometries;
 	std::map<OBJID, MaterialInstance*> materialsInst;
@@ -108,7 +108,6 @@ struct LightInfo {
 struct ViewOptions {
 	BlendMode blendMode;
 	AntiAliasing antiAliasing;
-
 	bool frustumCullingEnabled;
 	bool postProcessingEnabled;
 	RenderQuality renderQuality;
@@ -203,5 +202,9 @@ struct MaterialInfo {
 	bool screenSpaceReflection; //True
 	BlendingMode blending;
 	MaterialBuilder::SpecularAmbientOcclusion specularAO;
+};
 
+struct GraphicContextInfo {
+	void* glCtx;
+	void* hdc;
 };

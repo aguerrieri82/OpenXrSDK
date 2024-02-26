@@ -38,6 +38,7 @@ namespace Xr.Editor
         protected bool _isXrActive;
         protected List<IEditorTool> _tools = [];
         protected SceneXrState _xrState;
+        private IRenderEngine _render;
 
         public SceneView(IRenderSurface renderSurface)
         {
@@ -84,11 +85,6 @@ namespace Xr.Editor
             _xrApp.BindEngineApp(_scene!.App!, options.SampleCount, options.EnableMultiView);
 
             _xrApp.StartEventLoop(() => !_isStarted);
-
-            _ = _main.ExecuteAsync(() =>
-            {
-               // PropertiesEditor.Instance!.ActiveObject = _scene!.FindByName<Object3D>("Right Controller");
-            });
         }
 
         protected void OnSizeChanged(object? sender, EventArgs e)
@@ -104,6 +100,9 @@ namespace Xr.Editor
 
         public void StartXr()
         {
+            _render.ReleaseContext(true);
+            _renderSurface.TakeContext();
+
             if (_xrApp == null)
                 CreateXrApp();
 
@@ -120,6 +119,11 @@ namespace Xr.Editor
                 _ui.NotifyMessage(ex.Message, MessageType.Error);
                 _xrApp.Dispose();
                 _xrApp = null;
+            }
+            finally
+            {
+                _renderSurface.ReleaseContext();
+                _render.ReleaseContext(false);
             }
 
             OnPropertyChanged(nameof(IsXrActive));
@@ -144,12 +148,11 @@ namespace Xr.Editor
 
         protected void RenderLoop()
         {
-            var render = _renderSurface.CreateRenderEngine();
+            _render = _renderSurface.CreateRenderEngine();
 
             if (_scene?.App != null)
-                _scene.App.Renderer = render;
+                _scene.App.Renderer = _render;
 
-            _renderSurface!.TakeContext();
 
             while (_isStarted)
             {
@@ -170,11 +173,13 @@ namespace Xr.Editor
              
                     }
 
+                    _renderSurface.ReleaseContext();
+
                     if (_xrApp != null && _xrApp.IsStarted)
                     {
                         _xrApp.RenderFrame(_xrApp.Stage);
-                        render.SetDefaultRenderTarget();
-                        render.Render(_scene!, _camera!, _view);
+                        _render.SetDefaultRenderTarget();
+                        _render.Render(_scene!, _camera!, _view);
                     }
                     else
                         _scene.App!.RenderFrame(_view);
@@ -202,7 +207,7 @@ namespace Xr.Editor
 
             _isStarted = true;
 
-            _renderSurface!.ReleaseContext();
+            //_renderSurface!.ReleaseContext();
 
             _renderThread = new Thread(RenderLoop);
 
