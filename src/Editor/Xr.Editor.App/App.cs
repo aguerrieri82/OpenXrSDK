@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using Xr.Editor.Components;
 
 namespace Xr.Editor
 {
@@ -28,7 +29,7 @@ namespace Xr.Editor
             var window = new Window
             {
                 Title = "Xr Editor",
-                Content = new MainView(new GlRenderHost())
+                Content = new MainView(new FlRenderHost())
             };
 
 
