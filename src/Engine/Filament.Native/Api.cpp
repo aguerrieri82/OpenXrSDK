@@ -31,7 +31,21 @@ FilamentApp* Initialize(InitializeOptions& options) {
 
 VIEWID AddView(FilamentApp* app, ViewOptions& options)
 {
+   
     auto view = app->engine->createView();
+    view->setBlendMode(options.blendMode);
+    view->setAntiAliasing(options.antiAliasing);
+    view->setFrustumCullingEnabled(options.frustumCullingEnabled);
+    view->setPostProcessingEnabled(options.postProcessingEnabled);
+    view->setRenderQuality(options.renderQuality);
+    view->setSampleCount(options.sampleCount);
+    view->setScreenSpaceRefractionEnabled(options.screenSpaceRefractionEnabled);
+    view->setScreenSpaceRefractionEnabled(options.screenSpaceRefractionEnabled);
+    view->setShadowingEnabled(options.shadowingEnabled);
+    view->setShadowType(options.shadowType);
+    view->setStencilBufferEnabled(options.stencilBufferEnabled);
+;
+
     view->setScene(app->scene);
     app->views.push_back(view);
     return app->views.size() - 1;
@@ -57,8 +71,8 @@ RTID AddRenderTarget(FilamentApp* app, RenderTargetOptions& options)
         .build(*app->engine);
 
     auto rt = filament::RenderTarget::Builder()
-        .texture(RenderTarget::AttachmentPoint::COLOR, color)
-        .texture(RenderTarget::AttachmentPoint::DEPTH, depth)
+        .texture(filament::RenderTarget::AttachmentPoint::COLOR, color)
+        .texture(filament::RenderTarget::AttachmentPoint::DEPTH, depth)
         .build(*app->engine);
 
     app->renderTargets.push_back(rt);
@@ -66,7 +80,7 @@ RTID AddRenderTarget(FilamentApp* app, RenderTargetOptions& options)
     return app->renderTargets.size() - 1;
 }
 
-void Render(FilamentApp* app, RenderInfo info[], uint32_t count)
+void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count)
 {
  
     Renderer::ClearOptions opt;
@@ -79,19 +93,18 @@ void Render(FilamentApp* app, RenderInfo info[], uint32_t count)
 
 
     for (auto i = 0; i < count; i++) {
-        auto op = info[i];
-        auto view = app->views[op.viewId];
 
-        app->camera->setCustomProjection(MatFromArray(op.camera.projection), op.camera.near, op.camera.far);
-        app->camera->setModelMatrix(MatFromArray(op.camera.transform));
+        auto target = targets[i];
+        auto view = app->views[target.viewId];
 
-        view->setViewport(filament::Viewport(op.viewport.x, op.viewport.y, op.viewport.width, op.viewport.height));
-        view->setFrustumCullingEnabled(false);
+        app->camera->setCustomProjection(MatFromArray(target.camera.projection), target.camera.near, target.camera.far);
+        app->camera->setModelMatrix(MatFromArray(target.camera.transform));
 
+        view->setViewport(filament::Viewport(target.viewport.x, target.viewport.y, target.viewport.width, target.viewport.height));
         view->setCamera(app->camera);
     
-        if (op.renderTargetId != -1) 
-            view->setRenderTarget(app->renderTargets[op.renderTargetId]);
+        if (target.renderTargetId != -1) 
+            view->setRenderTarget(app->renderTargets[target.renderTargetId]);
         else
             view->setRenderTarget(nullptr);
        
@@ -455,10 +468,11 @@ void AddMaterial(FilamentApp* app, OBJID id, ::MaterialInfo &info)
 
 void SetObjTransform(FilamentApp* app, OBJID id, Matrix4x4 matrix)
 {
+    auto mat = MatFromArray(matrix);
     auto& tcm = app->engine->getTransformManager();
     auto obj = app->entities[id];
     auto instance = tcm.getInstance(obj);
-    tcm.setTransform(instance, MatFromArray(matrix));
+    tcm.setTransform(instance, mat);
 }
 
 

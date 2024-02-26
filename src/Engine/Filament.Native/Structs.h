@@ -1,5 +1,6 @@
 #pragma once
 
+
 typedef float Matrix4x4[16];
 
 typedef int32_t RTID;
@@ -78,7 +79,7 @@ struct FilamentApp {
 	SwapChain* swapChain;
 	Camera* camera;
 	std::vector<View*> views;
-	std::vector<RenderTarget*> renderTargets;
+	std::vector<::RenderTarget*> renderTargets;
 	std::map<OBJID, Entity> entities;
 	std::map<OBJID, Geometry> geometries;
 	std::map<OBJID, MaterialInstance*> materials;
@@ -100,8 +101,19 @@ struct LightInfo {
 	} sun;
 };
 
-struct ViewOptions {
 
+struct ViewOptions {
+	BlendMode blendMode;
+	AntiAliasing antiAliasing;
+
+	bool frustumCullingEnabled;
+	bool postProcessingEnabled;
+	RenderQuality renderQuality;
+	uint32_t sampleCount;
+	bool screenSpaceRefractionEnabled;
+	bool shadowingEnabled;
+	bool stencilBufferEnabled;
+	ShadowType shadowType;
 };
 
 struct RenderTargetOptions {
@@ -118,7 +130,7 @@ struct CameraInfo {
 	float near;
 };
 
-struct RenderInfo {
+struct RenderTarget {
 	VIEWID viewId;
 	RTID renderTargetId;
 	CameraInfo camera;

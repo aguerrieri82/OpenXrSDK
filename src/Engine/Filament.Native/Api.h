@@ -9,7 +9,7 @@ extern "C" {
 
 	EXPORT RTID APIENTRY AddRenderTarget(FilamentApp* app, RenderTargetOptions& options);
 
-	EXPORT void APIENTRY Render(FilamentApp* app, RenderInfo options[], uint32_t count);
+	EXPORT void APIENTRY Render(FilamentApp* app, ::RenderTarget options[], uint32_t count);
 
 	EXPORT void APIENTRY AddLight(FilamentApp* app, OBJID id, LightInfo& info);
 

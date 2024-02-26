@@ -1,10 +1,5 @@
-﻿#if GLES
-using Silk.NET.OpenGLES;
-#else
-using Silk.NET.OpenGL;
-#endif
-
-using System.Numerics;
+﻿using System.Numerics;
+using Xr.Engine;
 
 
 
@@ -16,6 +11,8 @@ namespace Xr.Editor
 
         event EventHandler Ready;
 
+        IRenderEngine CreateRenderEngine();
+
         void ReleaseContext();
 
         void TakeContext();
@@ -26,12 +23,7 @@ namespace Xr.Editor
 
         Vector2 Size { get; }
 
-        IntPtr Hdc { get; }
-
-        IntPtr GlCtx { get; }
-
         IntPtr HWnd { get; }
 
-        GL? Gl { get; }
     }
 }
