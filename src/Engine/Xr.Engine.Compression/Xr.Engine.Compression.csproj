@@ -5,6 +5,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\third-party\etcpak\EtcPack.vcxproj" />
 		<ProjectReference Include="..\Xr.Engine.Core\Xr.Engine.Core.csproj" />
 	</ItemGroup>
 

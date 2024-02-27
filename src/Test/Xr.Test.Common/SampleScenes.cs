@@ -72,7 +72,7 @@ namespace OpenXr.Samples
             //var room = GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets, glOptions);
             var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
             room.Name = "mesh";
-            room.Transform.SetScale(0.01f);
+            //room.Transform.SetScale(0.01f);
             /*
             foreach (var child in room.Children.OfType<TriangleMesh>())
                 child.AddComponent<BoundsGrabbable>();

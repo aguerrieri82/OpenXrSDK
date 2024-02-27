@@ -5,10 +5,10 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\Filament.Native\bin\x64\$(Configuration)\filament-native.dll">
+		<None Include="..\Filament.Native\bin\x64\Release\filament-native.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Include="..\Filament.Native\bin\x64\$(Configuration)\filament-native.pdb">
+		<None Include="..\Filament.Native\bin\x64\Release\filament-native.pdb">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

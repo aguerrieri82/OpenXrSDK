@@ -96,7 +96,7 @@ namespace Xr.Engine.Filament
                     HdrColorBuffer = FlQualityLevel.HIGH
                 },
                 AntiAliasing = FlAntiAliasing.NONE,
-                PostProcessingEnabled = false,
+                PostProcessingEnabled = true,
                 ShadowingEnabled = false,
                 ShadowType = FlShadowType.PCSS,
                 BlendMode = FlBlendMode.OPAQUE,
@@ -149,7 +149,8 @@ namespace Xr.Engine.Filament
         public void ReleaseContext(bool release)
         {
             FilamentLib.ReleaseContext(_app, release);
-        }
+            Thread.Sleep(100);
+        } 
 
         protected uint GetOrCreate<T>(T obj, Action<uint> factory) where T : EngineObject
         {
