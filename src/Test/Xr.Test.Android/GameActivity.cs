@@ -6,6 +6,8 @@ using OpenXr.Framework.Android;
 using OpenXr.Framework.Oculus;
 using OpenXr.Samples;
 using Xr.Engine;
+using Xr.Engine.Filament;
+using Xr.Engine.OpenGL;
 using Xr.Engine.OpenXr;
 
 
@@ -47,8 +49,8 @@ namespace Xr.Test.Android
         {
             var options = new OculusXrPluginOptions
             {
-                EnableMultiView = true,
-                SampleCount = 2,
+                EnableMultiView = false,
+                SampleCount = 1,
                 ResolutionScale = 1f,
                 Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
             };
@@ -103,12 +105,22 @@ namespace Xr.Test.Android
 
             //_game.ActiveScene.AddChild(new OculusSceneModel());
 
-            var renderer = result.BindEngineAppGL(
+            var driver = result.Plugin<AndroidXrOpenGLESGraphicDriver>();
+
+            _game.Renderer = new FilamentRender(new FilamentOptions
+            {
+                Context = (IntPtr)driver.Context.Context!.NativeHandle,
+                Driver = FilamentLib.FlBackend.OpenGL,
+                MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath
+            });
+
+            var renderer = result.BindEngineApp(
                 _game,
                 options.SampleCount,
                 options.EnableMultiView);
 
-            renderer.Options.RequireTextureCompression = true;
+            if (renderer is OpenGLRender glRenderer)
+                glRenderer.Options.RequireTextureCompression = true;
 
             // StartService(new Intent(this, typeof(WebLinkService)));
 

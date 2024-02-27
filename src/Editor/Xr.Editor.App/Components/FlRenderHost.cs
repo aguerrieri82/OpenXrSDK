@@ -19,7 +19,6 @@ namespace Xr.Editor.Components
         public FlRenderHost()
             : base(false)
         {
-
         }
 
         public unsafe override IRenderEngine CreateRenderEngine()
@@ -39,11 +38,6 @@ namespace Xr.Editor.Components
 
             return render;
         }
-
-        public override void EnableVSync(bool enable)
-        {
-        }
-
 
         protected override void CreateContext(HandleRef hwndParent)
         {

@@ -73,21 +73,6 @@ struct Geometry {
 
 };
 
-struct FilamentApp {
-	Engine* engine;
-	Scene* scene;
-	Renderer* renderer;
-	SwapChain* swapChain;
-	Camera* camera;
-	std::vector<View*> views;
-	std::vector<filament::RenderTarget*> renderTargets;
-	std::map<OBJID, Entity> entities;
-	std::map<OBJID, Geometry> geometries;
-	std::map<OBJID, MaterialInstance*> materialsInst;
-	std::map<std::string, Material*> materials;
-	std::string materialCachePath;
-};
-
 struct LightInfo {
 	LightManager::Type type;
 	float intensity;
@@ -116,6 +101,8 @@ struct ViewOptions {
 	bool shadowingEnabled;
 	bool stencilBufferEnabled;
 	ShadowType shadowType;
+	Rect viewport;
+	RTID renderTargetId;
 };
 
 struct RenderTargetOptions {
@@ -136,6 +123,12 @@ struct RenderTarget {
 	VIEWID viewId;
 	RTID renderTargetId;
 	CameraInfo camera;
+	Rect viewport;
+};
+
+struct RenderView
+{
+	View* view;
 	Rect viewport;
 };
 
@@ -207,4 +200,20 @@ struct MaterialInfo {
 struct GraphicContextInfo {
 	void* glCtx;
 	void* hdc;
+};
+
+
+struct FilamentApp {
+	Engine* engine;
+	Scene* scene;
+	Renderer* renderer;
+	SwapChain* swapChain;
+	Camera* camera;
+	std::vector<RenderView> views;
+	std::vector<filament::RenderTarget*> renderTargets;
+	std::map<OBJID, Entity> entities;
+	std::map<OBJID, Geometry> geometries;
+	std::map<OBJID, MaterialInstance*> materialsInst;
+	std::map<std::string, Material*> materials;
+	std::string materialCachePath;
 };

@@ -23,11 +23,25 @@ namespace Xr.Engine.Filament
             public Dictionary<EngineObject, uint>? Objects;
         }
 
-        protected Rect2I _view;
+        protected class RenderTargetBind
+        {
+            public uint ViewId;
+
+            public int RenderTargetId;
+        }
+
+        protected class ViewSizeBind
+        {
+            public uint ViewId;
+
+            public Rect2I Viewport;
+        }
+
+        protected Rect2I _viewport;
         protected IntPtr _app;
-        protected uint _viewId;
-        protected Dictionary<IntPtr, int> _renderTargets = [];
-        protected int _activeRenderTarget;
+        protected Dictionary<IntPtr, RenderTargetBind> _renderTargets = [];
+        protected List<ViewSizeBind> _views = [];
+        protected RenderTargetBind? _activeRenderTarget;
         protected Content? _content;
 
         public FilamentRender(FilamentOptions options)
@@ -43,26 +57,13 @@ namespace Xr.Engine.Filament
                 MaterialCachePath = options.MaterialCachePath ?? string.Empty
             };
 
-            var viewOpt = new ViewOptions
-            {
-                RenderQuality= new RenderQuality
-                {
-                    HdrColorBuffer= FlQualityLevel.HIGH
-                },
-                AntiAliasing = FlAntiAliasing.NONE,
-                PostProcessingEnabled = true,
-                ShadowingEnabled = false,
-                ShadowType = FlShadowType.PCSS,
-                BlendMode = FlBlendMode.OPAQUE,
-                SampleCount = 1,
-                StencilBufferEnabled = true,
-                FrustumCullingEnabled = false,
-                ScreenSpaceRefractionEnabled = false,
-            };
-
             _app = Initialize(ref initInfo);
-            _viewId = AddView(_app, ref viewOpt);
-            _activeRenderTarget = -1;
+
+            var mainViewId = CreateView(0, 0, -1);
+
+            _renderTargets[0] = new RenderTargetBind { ViewId = mainViewId, RenderTargetId = -1 };
+
+            SetDefaultRenderTarget();
         }
 
         public GraphicContextInfo GetContext()
@@ -83,12 +84,36 @@ namespace Xr.Engine.Filament
 
         public void SetDefaultRenderTarget()
         {
-            _activeRenderTarget = -1;
+            _activeRenderTarget = _renderTargets[0];
+        }
+
+        protected uint CreateView(uint width, uint height, int renderTargetId)
+        {
+            var viewOpt = new ViewOptions
+            {
+                RenderQuality = new RenderQuality
+                {
+                    HdrColorBuffer = FlQualityLevel.HIGH
+                },
+                AntiAliasing = FlAntiAliasing.NONE,
+                PostProcessingEnabled = false,
+                ShadowingEnabled = false,
+                ShadowType = FlShadowType.PCSS,
+                BlendMode = FlBlendMode.OPAQUE,
+                SampleCount = 1,
+                StencilBufferEnabled = false,
+                FrustumCullingEnabled = false,
+                ScreenSpaceRefractionEnabled = false,
+                Viewport = new Rect2I() {  Width = width, Height = height },    
+                RenderTargetId = renderTargetId
+            };
+            
+            return AddView(_app, ref viewOpt);
         }
 
         public void SetRenderTarget(uint width, uint height, IntPtr imageId)
         {
-            if (!_renderTargets.TryGetValue(imageId, out var rtIndex))
+            if (!_renderTargets.TryGetValue(imageId, out var rtBind))
             {
                 var options = new RenderTargetOptions()
                 {
@@ -98,11 +123,27 @@ namespace Xr.Engine.Filament
                     TextureId = imageId
                 };
 
-                rtIndex = AddRenderTarget(_app, ref options);
-                _renderTargets[imageId] = rtIndex;
+                rtBind = new RenderTargetBind
+                {
+                    RenderTargetId = AddRenderTarget(_app, ref options)
+                };
+
+                var viewBind = _views.FirstOrDefault(a=> a.Viewport.Width == width && a.Viewport.Height == height);
+
+                if (viewBind == null)
+                {
+                    viewBind = new ViewSizeBind
+                    {
+                        ViewId = CreateView(width, height, rtBind.RenderTargetId),
+                        Viewport = new Rect2I() { Width = width, Height = height }
+                    };
+                    _views.Add(viewBind);
+                }
+                rtBind.ViewId = viewBind.ViewId;
+                _renderTargets[imageId] = rtBind;
             }
 
-            _activeRenderTarget = rtIndex;
+            _activeRenderTarget = rtBind;
         }
 
         public void ReleaseContext(bool release)
@@ -339,9 +380,9 @@ namespace Xr.Engine.Filament
 
         public unsafe void Render(Scene scene, Camera camera, Rect2I view)
         {
+
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);
-
             
             var render = stackalloc RenderTarget[1];
 
@@ -353,8 +394,8 @@ namespace Xr.Engine.Filament
                 Transform = camera.WorldMatrix
             };
 
-            render[0].RenderTargetId = _activeRenderTarget;
-            render[0].ViewId = _viewId;
+            render[0].RenderTargetId = _activeRenderTarget.RenderTargetId;
+            render[0].ViewId = _activeRenderTarget.ViewId;
             render[0].Viewport = view;
 
             foreach (var mesh in _content!.Objects!.Where(a=> a.Key is TriangleMesh))
@@ -362,11 +403,11 @@ namespace Xr.Engine.Filament
 
             FilamentLib.Render(_app, render, 1);
 
-            _view = view;
+            _viewport = view;
 
         }
 
 
-        public Rect2I View => _view;
+        public Rect2I View => _viewport;
     }
 }
