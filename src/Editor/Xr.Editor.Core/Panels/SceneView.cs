@@ -38,7 +38,7 @@ namespace Xr.Editor
         protected bool _isXrActive;
         protected List<IEditorTool> _tools = [];
         protected SceneXrState _xrState;
-        private IRenderEngine _render;
+        protected IRenderEngine? _render;
 
         public SceneView(IRenderSurface renderSurface)
         {
@@ -102,6 +102,7 @@ namespace Xr.Editor
         {
             _render.ReleaseContext(true);
             _renderSurface.TakeContext();
+            _renderSurface.EnableVSync(false);
 
             if (_xrApp == null)
                 CreateXrApp();
@@ -131,6 +132,10 @@ namespace Xr.Editor
 
         public void StopXr()
         {
+            _render.ReleaseContext(true);
+            _renderSurface.TakeContext();
+            _renderSurface.EnableVSync(true);
+
             try
             {
                 _xrApp?.Stop();
@@ -144,6 +149,11 @@ namespace Xr.Editor
                 _ui.NotifyMessage(ex.Message, MessageType.Error);
 
             }
+            finally
+            {
+                _renderSurface.ReleaseContext();
+                _render.ReleaseContext(false);
+            }
         }
 
         protected void RenderLoop()
@@ -152,7 +162,6 @@ namespace Xr.Editor
 
             if (_scene?.App != null)
                 _scene.App.Renderer = _render;
-
 
             while (_isStarted)
             {
@@ -163,17 +172,12 @@ namespace Xr.Editor
                     if (_isXrActive && _xrState != SceneXrState.StartRequested)
                     {
                         StartXr();
-                        _renderSurface.EnableVSync(false); 
                     }
 
                     if (!_isXrActive && _xrApp != null && _xrState != SceneXrState.StopRequested)
                     {
                         StopXr();
-                        _renderSurface.EnableVSync(true);
-             
                     }
-
-                    _renderSurface.ReleaseContext();
 
                     if (_xrApp != null && _xrApp.IsStarted)
                     {
@@ -207,7 +211,7 @@ namespace Xr.Editor
 
             _isStarted = true;
 
-            //_renderSurface!.ReleaseContext();
+            _renderSurface!.ReleaseContext();
 
             _renderThread = new Thread(RenderLoop);
 

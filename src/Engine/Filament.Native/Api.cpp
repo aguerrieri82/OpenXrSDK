@@ -1,16 +1,21 @@
 #include "pch.h"
 
-bool isReleaseContext = false;
+#ifdef _WINDOWS
 
 class PlatformWGL2 : public PlatformWGL {
 protected:
 	void commit(SwapChain* swapChain) noexcept override {
-		PlatformWGL::commit(swapChain);
+		if (!skipSwap)
+			PlatformWGL::commit(swapChain);
 		if (isReleaseContext)
 			wglMakeCurrent(mWhdc, NULL);
 	}
+public:
+	bool isReleaseContext = false;
+	bool skipSwap = false;
 };
 
+#endif
 
 
 mat4 MatFromArray(Matrix4x4 array) {
@@ -27,12 +32,23 @@ FilamentApp* Initialize(InitializeOptions& options) {
 
 	app->materialCachePath = options.materialCachePath;
 
+	Engine::Config cfg;
+
 
 	app->engine = Engine::Builder()
 		.backend((Backend)options.driver)
+#ifdef _WINDOWS
 		.platform(new PlatformWGL2())
+#endif
+#ifdef __ANDROID__
+		//.platform(new PlatformEGLAndroid())
+#endif
 		.sharedContext(options.context)
 		.build();
+
+	
+	slog.i << "Platform: " << typeid(app->engine->getPlatform()).name() << utils::io::endl;
+
 
 	app->scene = app->engine->createScene();
 	app->renderer = app->engine->createRenderer();
@@ -42,13 +58,14 @@ FilamentApp* Initialize(InitializeOptions& options) {
 	else
 		app->swapChain = app->engine->createSwapChain(800, 600);
 
+	MaterialBuilder::init();
+
 	return app;
 }
 
 
 VIEWID AddView(FilamentApp* app, ViewOptions& options)
 {
-
 	auto view = app->engine->createView();
 	view->setBlendMode(options.blendMode);
 	view->setAntiAliasing(options.antiAliasing);
@@ -62,9 +79,18 @@ VIEWID AddView(FilamentApp* app, ViewOptions& options)
 	view->setShadowType(options.shadowType);
 	view->setStencilBufferEnabled(options.stencilBufferEnabled);
 
+	if (options.viewport.width != 0 && options.viewport.height != 0)
+		view->setViewport(filament::Viewport(options.viewport.x, options.viewport.y, options.viewport.width, options.viewport.height));
 
 	view->setScene(app->scene);
-	app->views.push_back(view);
+	view->setCamera(app->camera);
+
+	if (options.renderTargetId != -1)
+		view->setRenderTarget(app->renderTargets[options.renderTargetId]);
+
+
+	app->views.push_back({ view, options.viewport });
+
 	return app->views.size() - 1;
 }
 
@@ -100,17 +126,21 @@ RTID AddRenderTarget(FilamentApp* app, RenderTargetOptions& options)
 
 void ReleaseContext(FilamentApp* app, bool release) 
 {
-	isReleaseContext = release;
-	app->renderer->beginFrame(app->swapChain);
-	app->renderer->endFrame();
-	app->engine->flushAndWait();
+#ifdef _WINDOWS
+
+	auto plat = dynamic_cast<PlatformWGL2*>(app->engine->getPlatform());
+
+	if (plat != nullptr) {
+		plat->isReleaseContext = release;
+		app->renderer->beginFrame(app->swapChain);
+		app->renderer->endFrame();
+		app->engine->flushAndWait();
+	}
+#endif
 }
 
 void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count)
 {
-	isReleaseContext = false;
-
-	int iPrev = _CrtSetReportMode(_CRT_ASSERT, 0);
 
 	Renderer::ClearOptions opt;
 	opt.clear = true;
@@ -122,26 +152,40 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count)
 
 	auto lcount = app->scene->getLightCount();
 
+	bool hasMainView = false;
+
 	for (auto i = 0; i < count; i++) {
 
 		auto target = targets[i];
-		auto view = app->views[target.viewId];
+		auto &viewInfo = app->views[target.viewId];
 
-		view->setDynamicLightingOptions(0.1, 40);
+		//view->setDynamicLightingOptions(0.1, 40);
 
 		app->camera->setCustomProjection(MatFromArray(target.camera.projection), target.camera.near, target.camera.far);
 		app->camera->setModelMatrix(MatFromArray(target.camera.transform));
 
-		view->setViewport(filament::Viewport(target.viewport.x, target.viewport.y, target.viewport.width, target.viewport.height));
-		view->setCamera(app->camera);
+		if (memcmp(&target.viewport, &viewInfo.viewport, sizeof(Rect)) != 0) 
+		{
+			viewInfo.view->setViewport(filament::Viewport(target.viewport.x, target.viewport.y, target.viewport.width, target.viewport.height));
+			viewInfo.viewport = target.viewport;
+		}
 
-		if (target.renderTargetId != -1)
-			view->setRenderTarget(app->renderTargets[target.renderTargetId]);
+		if (target.renderTargetId == -1) {
+			hasMainView = true;
+			viewInfo.view->setRenderTarget(nullptr);
+		}
 		else
-			view->setRenderTarget(nullptr);
+			viewInfo.view->setRenderTarget(app->renderTargets[target.renderTargetId]);
 
-		app->renderer->render(view);
+		app->renderer->render(viewInfo.view);
 	}
+
+#if _WINDOWS
+	auto plat = dynamic_cast<PlatformWGL2*>(app->engine->getPlatform());
+	if (plat != nullptr)
+		plat->skipSwap = !hasMainView;
+#endif
+
 	app->renderer->endFrame();
 	app->engine->flushAndWait();
 }
@@ -354,16 +398,17 @@ void replaceAll(std::string& shader, const std::string& from, const std::string&
 Package BuildMaterial(FilamentApp* app, ::MaterialInfo& info) {
 	bool hasUV = false;
 
-	MaterialBuilder::init();
 	MaterialBuilder builder;
 	builder
 		.name("DefaultMaterial")
-		.targetApi(MaterialBuilder::TargetApi::ALL)
 		.multiBounceAmbientOcclusion(info.multiBounceAO)
 		.specularAmbientOcclusion(info.specularAO)
 		.shading(Shading::LIT)
 		.specularAntiAliasing(info.specularAntiAliasing)
 		.doubleSided(info.doubleSided)
+#ifdef __ANDROID__
+		.platform(MaterialBuilderBase::Platform::MOBILE)
+#endif
 		.clearCoatIorChange(info.clearCoatIorChange)
 		.reflectionMode(info.screenSpaceReflection ? ReflectionMode::SCREEN_SPACE : ReflectionMode::DEFAULT)
 		.transparencyMode(info.doubleSided ? TransparencyMode::TWO_PASSES_TWO_SIDES : TransparencyMode::DEFAULT)
@@ -371,6 +416,7 @@ Package BuildMaterial(FilamentApp* app, ::MaterialInfo& info) {
 		.blending(info.blending);
 
 	builder.parameter("baseColor", MaterialBuilder::UniformType::FLOAT4);
+
 
 	std::string shader = R"SHADER(
         void material(inout MaterialInputs material) {
@@ -477,7 +523,7 @@ void AddMaterial(FilamentApp* app, OBJID id, ::MaterialInfo& info)
 
 	Material* flMat;
 
-	if (!app->materials.contains(hash)) {
+	if (app->materials.find(hash) == app->materials.end()) {
 
 		Package package;
 		bool mustBuild = true;
@@ -486,9 +532,7 @@ void AddMaterial(FilamentApp* app, OBJID id, ::MaterialInfo& info)
 
 			std::string fileName = app->materialCachePath + "/" + hash + ".mat";
 
-			struct stat buffer;
-
-			if (stat(fileName.c_str(), &buffer) == 0) {
+			if (std::filesystem::exists(fileName)) {
 
 				FILE* fd;
 				

@@ -134,8 +134,10 @@ namespace Xr.Engine.Filament
             [MarshalAs(UnmanagedType.U1)]
             public bool StencilBufferEnabled;
             public FlShadowType ShadowType;
-            public float ShadowFar;
-            public float ShadowNear;
+
+            public Rect2I Viewport;
+
+            public int RenderTargetId;
 
         }
 

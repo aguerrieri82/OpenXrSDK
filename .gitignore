@@ -381,3 +381,4 @@ Makefile
 /src/Test/OpenXr.Test.Common/Assets/Sponza
 /third-party/filament-windows
 /src/Test/Xr.Test.Common/Assets/Game
+/third-party/filament-android

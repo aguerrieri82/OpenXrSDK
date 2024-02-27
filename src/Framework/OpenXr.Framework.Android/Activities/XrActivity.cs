@@ -54,8 +54,6 @@ namespace OpenXr.Framework.Android
         {
             _xrApp = CreateApp();
 
-            var driver = _xrApp.Plugin<AndroidXrOpenGLESGraphicDriver>();
-
             _xrApp.StartEventLoop(() => _isExited);
 
             _xrApp.Start();

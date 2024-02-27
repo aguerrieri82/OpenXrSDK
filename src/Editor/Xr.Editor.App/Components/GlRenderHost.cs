@@ -232,7 +232,7 @@ namespace Xr.Editor
                 wglSwapIntervalEXT = Marshal.GetDelegateForFunctionPointer<wglSwapIntervalEXTPtr>(addr);
             }
 
-            wglSwapIntervalEXT(enable ? 1 : 0);
+            var res = wglSwapIntervalEXT(enable ? 1 : 0);
         }
 
         public override void SwapBuffers()
@@ -270,6 +270,9 @@ namespace Xr.Editor
 
         public override void ReleaseContext()
         {
+            if (_hdc == 0)
+                return;
+
             if (!wglMakeCurrent(_hdc, IntPtr.Zero))
                 throw new Win32Exception();
         }

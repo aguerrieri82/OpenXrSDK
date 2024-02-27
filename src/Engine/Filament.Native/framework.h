@@ -1,15 +1,35 @@
 #pragma once
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+
 #ifdef _WINDOWS
 
 #define WIN32_LEAN_AND_MEAN             
 
 #include <windows.h>
+#include <gl/gl.h>
+#include <backend/platforms/PlatformWGL.h>
+
+#else
+
+int fopen_s(FILE** _Stream, char const* _FileName, char const* _Mode) {
+	
+	*_Stream = fopen(_FileName, _Mode);
+	return *_Stream != nullptr ? 0 : 1;
+}
 
 #endif
 
+#ifdef __ANDROID__
+#include <backend/platforms/PlatformEGLAndroid.h>
+#include <backend/platforms/PlatformEGLHeadless.h>
+#endif
+
+
+#include <filesystem>
 #include <map>
-#include <gl/gl.h>
 
 #include <filament/Engine.h>
 #include <filament/Texture.h>
@@ -34,10 +54,8 @@
 #include <geometry/SurfaceOrientation.h>
 
 #include <utils/EntityManager.h>
-
-
+#include <utils/Log.h>
 
 #include <backend/DriverEnums.h>
 #include <backend/Platform.h>
-#include <backend/platforms/PlatformWGL.h>
 #include <backend/platforms/OpenGLPlatform.h>
