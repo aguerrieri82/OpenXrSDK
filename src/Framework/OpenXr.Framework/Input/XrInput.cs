@@ -33,7 +33,7 @@ namespace OpenXr.Framework
             var result = new ActionSuggestedBinding
             {
                 Binding = _app.StringToPath(_path),
-                Action = _app.CreateAction(_name, _name, _actionType)
+                Action = _action.Handle == 0 ? _app.CreateAction(_name, _name, _actionType) : _action
             };
             _action = result.Action;
             return result;

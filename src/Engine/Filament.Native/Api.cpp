@@ -7,11 +7,9 @@ protected:
 	void commit(SwapChain* swapChain) noexcept override {
 		if (!skipSwap)
 			PlatformWGL::commit(swapChain);
-		if (isReleaseContext)
-			wglMakeCurrent(mWhdc, NULL);
+
 	}
 public:
-	bool isReleaseContext = false;
 	bool skipSwap = false;
 };
 
@@ -41,14 +39,10 @@ FilamentApp* Initialize(InitializeOptions& options) {
 		.platform(new PlatformWGL2())
 #endif
 #ifdef __ANDROID__
-		//.platform(new PlatformEGLAndroid())
+		.platform(new PlatformEGLAndroid())
 #endif
 		.sharedContext(options.context)
 		.build();
-
-	
-	slog.i << "Platform: " << typeid(app->engine->getPlatform()).name() << utils::io::endl;
-
 
 	app->scene = app->engine->createScene();
 	app->renderer = app->engine->createRenderer();
@@ -131,10 +125,11 @@ void ReleaseContext(FilamentApp* app, bool release)
 	auto plat = dynamic_cast<PlatformWGL2*>(app->engine->getPlatform());
 
 	if (plat != nullptr) {
-		plat->isReleaseContext = release;
+		plat->releaseContext = release;
 		app->renderer->beginFrame(app->swapChain);
 		app->renderer->endFrame();
-		app->engine->flushAndWait();
+		app->engine->flush();
+		
 	}
 #endif
 }
@@ -608,8 +603,9 @@ bool GetGraphicContext(FilamentApp* app, GraphicContextInfo& info)
 	if (backend == Backend::OPENGL) {
 #ifdef _WINDOWS
 		auto plat = dynamic_cast<PlatformWGL*>(app->engine->getPlatform());
-		info.glCtx = plat->mContext;
-		info.hdc = plat->mWhdc;
+		auto ctx = plat->getContext();
+		info.glCtx = ctx.glContext;
+		info.hdc = ctx.hDC;
 		return true;
 #endif
 	}

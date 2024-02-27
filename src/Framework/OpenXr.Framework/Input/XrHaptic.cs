@@ -20,10 +20,11 @@ namespace OpenXr.Framework
 
         public virtual ActionSuggestedBinding Initialize()
         {
-            var result = new ActionSuggestedBinding();
-            result.Binding = _app.StringToPath(_path);
-
-            result.Action = _app.CreateAction(_name, _name, ActionType.VibrationOutput);
+            var result = new ActionSuggestedBinding
+            {
+                Binding = _app.StringToPath(_path),
+                Action = _action.Handle == 0 ? _app.CreateAction(_name, _name, ActionType.VibrationOutput) : _action
+            };
             _action = result.Action;
             return result;
         }
