@@ -205,7 +205,7 @@ namespace Xr.Engine.OpenGL
 
         }
 
-        public void Render(Scene scene, Camera camera, Rect2I view)
+        public void Render(Scene scene, Camera camera, Rect2I view, bool flush)
         {
             if (_target != null)
                 Render(scene, camera, view, _target);

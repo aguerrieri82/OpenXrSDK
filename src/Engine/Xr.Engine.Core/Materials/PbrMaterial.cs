@@ -306,19 +306,12 @@ namespace Xr.Engine
                     }
                     else if (light is DirectionalLight directional)
                     {
-                        var dir = directional.Forward;
-
-                        if (lights.Count == 0)
-                            dir = new Vector3(-0.5f, 0.7f, 0.5f).Normalize();
-                        else if (lights.Count == 1)
-                            dir = new Vector3(0.5f, -0.7f, -0.5f).Normalize();
 
                         lights.Add(new PbrLightUniform
                         {
                             type = PbrLightUniform.Directional,
                             color = (Vector3)directional.Color,
-                            position = directional.WorldPosition,
-                            direction = dir,
+                            direction = directional.Direction,
                             intensity = directional.Intensity,
                             innerConeCos = 1,
                             outerConeCos = MathF.Cos(MathF.PI / 4f),
@@ -333,7 +326,6 @@ namespace Xr.Engine
                             type = PbrLightUniform.Spot,
                             color = (Vector3)spot.Color,
                             position = spot.WorldPosition,
-                            direction = spot.Forward,
                             intensity = spot.Intensity,
                             range = spot.Range,
                             innerConeCos = MathF.Cos(spot.InnerConeAngle),

@@ -250,6 +250,7 @@ namespace Xr.Engine.Filament
             public TextureInfo AoMap;
             public TextureInfo MetallicRoughnessMap;
             public TextureInfo BaseColorMap;
+            public TextureInfo EmissiveMap;
             public Color Color;
             [MarshalAs(UnmanagedType.U1)]
             public bool ClearCoat;
@@ -267,6 +268,12 @@ namespace Xr.Engine.Filament
             public bool ScreenSpaceReflection; //True
             public FlBlendingMode Blending;
             public FlSpecularAO SpecularAO;
+            public float NormalScale;
+            public float AoStrength;
+            public float RoughnessFactor;
+            public float MetallicFactor;
+            public float EmissiveStrength;
+            public Vector3 EmissiveFactor;
         };
 
 
@@ -287,7 +294,7 @@ namespace Xr.Engine.Filament
         public static extern int AddRenderTarget(IntPtr app, ref RenderTargetOptions options);
 
         [DllImport("filament-native")]
-        public static extern void Render(IntPtr app, RenderTarget* targets, uint count);
+        public static extern void Render(IntPtr app, RenderTarget* targets, uint count, bool wait);
 
         [DllImport("filament-native")]
         public static extern void AddLight(IntPtr app, uint id, ref LightInfo info);

@@ -49,7 +49,7 @@ namespace Xr.Test.Android
         {
             var options = new OculusXrPluginOptions
             {
-                EnableMultiView = false,
+                EnableMultiView = true,
                 SampleCount = 1,
                 ResolutionScale = 1f,
                 Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
@@ -107,12 +107,15 @@ namespace Xr.Test.Android
 
             var driver = result.Plugin<AndroidXrOpenGLESGraphicDriver>();
 
+            /*
             _game.Renderer = new FilamentRender(new FilamentOptions
             {
                 Context = (IntPtr)driver.Context.Context!.NativeHandle,
                 Driver = FilamentLib.FlBackend.OpenGL,
                 MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath
             });
+            */
+
 
             var renderer = result.BindEngineApp(
                 _game,

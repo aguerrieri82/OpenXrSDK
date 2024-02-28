@@ -2,7 +2,7 @@
 {
     public interface IRenderEngine : IDisposable
     {
-        void Render(Scene scene, Camera camera, Rect2I view);
+        void Render(Scene scene, Camera camera, Rect2I view, bool flush);
 
         void SetDefaultRenderTarget();
 

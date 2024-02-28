@@ -11,7 +11,9 @@ namespace Xr.Engine
 
         public DirectionalLight(Vector3 direction)
         {
-            Transform.Orientation = Quaternion.Normalize(new Quaternion(direction.X, direction.Y, direction.Z, 0));
+            Direction = direction;
         }
+
+        public Vector3 Direction { get; set; }
     }
 }

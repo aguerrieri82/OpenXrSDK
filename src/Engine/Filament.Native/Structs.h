@@ -31,7 +31,13 @@ enum class VertexAttributeType {
 	UV1
 };
 
-struct Color {
+struct Color3 {
+	float r;
+	float g;
+	float b;
+};
+
+struct Color4 {
 	float r;
 	float g;
 	float b;
@@ -77,7 +83,7 @@ struct LightInfo {
 	LightManager::Type type;
 	float intensity;
 	float falloffRadius;
-	::Color color;
+	Color4 color;
 	Vector3 direction;
 	Vector3 position;
 	bool castShadows;
@@ -185,7 +191,8 @@ struct MaterialInfo {
 	TextureInfo aoMap;
 	TextureInfo metallicRoughnessMap;
 	TextureInfo baseColorMap;
-	::Color color;
+	TextureInfo emissiveMap;
+	Color4 baseColorFactor;
 	bool clearCoat;
 	bool anisotropy;
 	bool multiBounceAO;
@@ -195,6 +202,12 @@ struct MaterialInfo {
 	bool screenSpaceReflection; //True
 	BlendingMode blending;
 	MaterialBuilder::SpecularAmbientOcclusion specularAO;
+	float normalScale;
+	float aoStrength;
+	float roughnessFactor;
+	float metallicFactor;
+	float emissiveStrength;
+	Color3 emissiveFactor;
 };
 
 struct GraphicContextInfo {
