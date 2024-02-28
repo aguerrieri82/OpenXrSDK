@@ -45,24 +45,28 @@ namespace OpenXr.Samples
 
             //scene.AddChild(new AmbientLight(0.1f));
 
+            var dl = scene.AddChild(new SunLight() { Intensity = 1.5f });
+            dl.Direction = new Vector3(-0.1f, -0.9f, -0.15f).Normalize();
+            dl.Name = "light";
+            dl.IsVisible = true;
+            /*
             var pt = scene.AddChild(new PointLight() { Range = 30, Intensity = 0.8f });
             pt.Transform.Position = new Vector3(0, 10, 0);
             //pt.Name = "light";
-            pt.IsVisible = true;
+            pt.IsVisible = false;
 
-            var dl = scene.AddChild(new DirectionalLight() { Intensity = 0.5f });
-            dl.Transform.Rotation = new Vector3(-0.16f, 0.18f, 0.35f);
-            dl.Name = "light";
-            dl.IsVisible = true;
+ 
 
-            var dl2 = scene.AddChild(new DirectionalLight() { Intensity = 0.5f });
+            var dl2 = scene.AddChild(new DirectionalLight() { Intensity = 1.5f });
             dl2.Transform.Rotation = new Vector3(0.16f, 0.18f, -0.35f);
             dl2.Name = "light2";
-            dl2.IsVisible = true;
+            dl2.IsVisible = false;
+            */
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
             assets.FullPath("Sponza/Sponza.bin");
+            assets.FullPath("Game/ABeautifulGame.bin");
 
             var glOptions = new GltfLoaderOptions
             {
@@ -70,16 +74,17 @@ namespace OpenXr.Samples
             };
 
             //var room = GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets, glOptions);
-            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
+            //var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
+            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Game/ABeautifulGame.gltf"), assets, glOptions);
             room.Name = "mesh";
             //room.Transform.SetScale(0.01f);
-            /*
+
             foreach (var child in room.Children.OfType<TriangleMesh>())
                 child.AddComponent<BoundsGrabbable>();
 
-            room.Transform.SetScale(4f);
-            room.Transform.Position = new Vector3(1, 1, -1);
-            */
+            room.Transform.SetScale(1f);
+            room.Transform.Position = new Vector3(0, 1, 0);
+        
             scene.AddChild(room);
             /*
              foreach (var child in room.Descendants<TriangleMesh>())

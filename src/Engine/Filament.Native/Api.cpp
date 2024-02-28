@@ -24,7 +24,21 @@ mat4 MatFromArray(Matrix4x4 array) {
 }
 
 
+#ifdef _WINDOWS
+void LogOut(void* caller, char const* msg) {
+	OutputDebugStringA(msg);
+}
+#endif
+
 FilamentApp* Initialize(InitializeOptions& options) {
+
+#ifdef _WINDOWS
+	//slog.i.setConsumer(LogOut, nullptr);
+	//slog.d.setConsumer(LogOut, nullptr);
+	//slog.w.setConsumer(LogOut, nullptr);
+	slog.e.setConsumer(LogOut, nullptr);
+	//slog.v.setConsumer(LogOut, nullptr);
+#endif
 
 	auto app = new FilamentApp();
 
@@ -48,9 +62,10 @@ FilamentApp* Initialize(InitializeOptions& options) {
 	app->renderer = app->engine->createRenderer();
 	app->camera = app->engine->createCamera(EntityManager::get().create());
 	if (options.windowHandle != nullptr)
-		app->swapChain = app->engine->createSwapChain(options.windowHandle);
+		app->swapChain = app->engine->createSwapChain(options.windowHandle, SwapChain::CONFIG_HAS_STENCIL_BUFFER | SwapChain::CONFIG_SRGB_COLORSPACE);
 	else
 		app->swapChain = app->engine->createSwapChain(800, 600);
+
 
 	MaterialBuilder::init();
 
@@ -67,7 +82,6 @@ VIEWID AddView(FilamentApp* app, ViewOptions& options)
 	view->setPostProcessingEnabled(options.postProcessingEnabled);
 	view->setRenderQuality(options.renderQuality);
 	view->setSampleCount(options.sampleCount);
-	view->setScreenSpaceRefractionEnabled(options.screenSpaceRefractionEnabled);
 	view->setScreenSpaceRefractionEnabled(options.screenSpaceRefractionEnabled);
 	view->setShadowingEnabled(options.shadowingEnabled);
 	view->setShadowType(options.shadowType);
@@ -90,7 +104,7 @@ VIEWID AddView(FilamentApp* app, ViewOptions& options)
 
 RTID AddRenderTarget(FilamentApp* app, RenderTargetOptions& options)
 {
-	auto color = Texture::Builder()
+	auto baseColorFactor = Texture::Builder()
 		.width(options.width)
 		.height(options.height)
 		.levels(1)
@@ -108,7 +122,7 @@ RTID AddRenderTarget(FilamentApp* app, RenderTargetOptions& options)
 		.build(*app->engine);
 
 	auto rt = filament::RenderTarget::Builder()
-		.texture(filament::RenderTarget::AttachmentPoint::COLOR, color)
+		.texture(filament::RenderTarget::AttachmentPoint::COLOR, baseColorFactor)
 		.texture(filament::RenderTarget::AttachmentPoint::DEPTH, depth)
 		.build(*app->engine);
 
@@ -134,7 +148,9 @@ void ReleaseContext(FilamentApp* app, bool release)
 #endif
 }
 
-void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count)
+bool isFrameBegin = false;
+
+void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count, bool wait)
 {
 
 	Renderer::ClearOptions opt;
@@ -143,7 +159,8 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count)
 
 	app->renderer->setClearOptions(opt);
 
-	app->renderer->beginFrame(app->swapChain);
+	//app->renderer->beginFrame(app->swapChain);
+
 
 	auto lcount = app->scene->getLightCount();
 
@@ -172,7 +189,9 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count)
 		else
 			viewInfo.view->setRenderTarget(app->renderTargets[target.renderTargetId]);
 
-		app->renderer->render(viewInfo.view);
+		//app->renderer->render(viewInfo.view);
+
+		app->renderer->renderStandaloneView(viewInfo.view);
 	}
 
 #if _WINDOWS
@@ -181,8 +200,9 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count)
 		plat->skipSwap = !hasMainView;
 #endif
 
-	app->renderer->endFrame();
-	app->engine->flushAndWait();
+	//app->renderer->endFrame();
+	if (wait)
+		app->engine->flushAndWait();
 }
 
 void AddLight(FilamentApp* app, OBJID id, LightInfo& info)
@@ -196,9 +216,9 @@ void AddLight(FilamentApp* app, OBJID id, LightInfo& info)
 		.sunHaloFalloff(info.sun.haloFalloff)
 		.sunHaloSize(info.sun.haloSize)
 		.castShadows(info.castShadows)
-		.position({ info.position.x, info.position.y, info.position.z })
-		.falloff(info.falloffRadius)
-		.castLight(info.castLight)
+		//.position({ info.position.x, info.position.y, info.position.z })
+		//.falloff(info.falloffRadius)
+		//.castLight(info.castLight)
 		.build(*app->engine, light);
 
 	app->scene->addEntity(light);
@@ -277,13 +297,12 @@ void AddGeometry(FilamentApp* app, OBJID id, GeometryInfo& info)
 			vbBuilder.attribute(va, 0, at, attr.offset, info.layout.sizeByte);
 	};
 
-	hasOrientation = false;
-
-
 	vbBuilder.bufferCount(hasOrientation ? 2 : 1);
 
-	if (hasOrientation)
+	if (hasOrientation) {
 		vbBuilder.attribute(filament::VertexAttribute::TANGENTS, 1, VertexBuffer::AttributeType::FLOAT4);
+		vbBuilder.normalized(filament::VertexAttribute::TANGENTS);
+	}
 
 	auto vb = vbBuilder.build(*app->engine);
 
@@ -328,6 +347,8 @@ void AddGeometry(FilamentApp* app, OBJID id, GeometryInfo& info)
 void AddGroup(FilamentApp* app, OBJID id) {
 
 	auto group = EntityManager::get().create();
+	auto& tcm = app->engine->getTransformManager();
+	tcm.create(group);
 	app->scene->addEntity(group);
 	app->entities[id] = group;
 }
@@ -348,6 +369,8 @@ void AddMesh(FilamentApp* app, OBJID id, MeshInfo& info)
 		.geometry(0, PrimitiveType::TRIANGLES, geo.vb, geo.ib)
 		.build(*app->engine, mesh);
 
+	auto& tcm = app->engine->getTransformManager();
+	tcm.create(mesh);
 	app->scene->addEntity(mesh);
 	app->entities[id] = mesh;
 }
@@ -389,6 +412,35 @@ void replaceAll(std::string& shader, const std::string& from, const std::string&
 	}
 }
 
+Package BuildMaterialDebug(FilamentApp* app, ::MaterialInfo& info) {
+	MaterialBuilder builder;
+	builder
+		.name("Normal")
+		.flipUV(false)
+		.shading(Shading::UNLIT);
+
+	std::string shader = R"SHADER(
+
+        void material(inout MaterialInputs material) {
+
+            vec2 uv0 = getUV0();
+
+            material.baseColor.rgb = texture(materialParams_normalMap, uv0).xyz * 2.0 - 1.0;
+
+			prepareMaterial(material);
+		}
+
+        )SHADER";
+
+	builder.require(filament::VertexAttribute::UV0);
+
+	builder.parameter("normalMap", MaterialBuilder::SamplerType::SAMPLER_2D);
+
+	builder.material(shader.c_str());
+
+	return builder.build(app->engine->getJobSystem());
+}
+
 
 Package BuildMaterial(FilamentApp* app, ::MaterialInfo& info) {
 	bool hasUV = false;
@@ -396,6 +448,7 @@ Package BuildMaterial(FilamentApp* app, ::MaterialInfo& info) {
 	MaterialBuilder builder;
 	builder
 		.name("DefaultMaterial")
+		.flipUV(false)
 		.multiBounceAmbientOcclusion(info.multiBounceAO)
 		.specularAmbientOcclusion(info.specularAO)
 		.shading(Shading::LIT)
@@ -418,18 +471,19 @@ Package BuildMaterial(FilamentApp* app, ::MaterialInfo& info) {
     )SHADER";
 
 	shader += R"SHADER(
-            vec2 uv0 = ${uv};
-			uv0.y = 1.0 - uv0.y;
+			vec2 uv0 = ${uv};
 			material.baseColor = materialParams.baseColor;
         )SHADER";
 
 	if (info.normalMap.data.data != nullptr) {
 		shader += R"SHADER(
-            material.normal = texture(materialParams_normalMap, uv0).xyz * 2.0 - 1.0;
-            material.normal.y *= -1.0;
+            material.normal = texture(materialParams_normalMap, uv0).xyz;
+            material.normal.xy *= materialParams.normalScale;
         )SHADER";
 
 		builder.parameter("normalMap", MaterialBuilder::SamplerType::SAMPLER_2D);
+		builder.parameter("normalScale", MaterialBuilder::UniformType::FLOAT);
+		builder.require(filament::VertexAttribute::TANGENTS);
 		hasUV = true;
 	}
 
@@ -446,26 +500,40 @@ Package BuildMaterial(FilamentApp* app, ::MaterialInfo& info) {
 		hasUV = true;
 	}
 
+	if (info.blending == BlendingMode::TRANSPARENT) {
+		shader += R"SHADER(
+            material.baseColor.rgb *= material.baseColor.a;
+        )SHADER";
+	}
+
+	builder.parameter("roughnessFactor", MaterialBuilder::UniformType::FLOAT);
+	builder.parameter("metallicFactor", MaterialBuilder::UniformType::FLOAT);
+	builder.parameter("emissiveFactor", MaterialBuilder::UniformType::FLOAT3);
+	builder.parameter("emissiveStrength", MaterialBuilder::UniformType::FLOAT);
+
+	shader += R"SHADER(
+                material.roughness = materialParams.roughnessFactor;
+                material.metallic = materialParams.metallicFactor;
+            )SHADER";
+
+
 	if (info.metallicRoughnessMap.data.data != nullptr) {
 		shader += R"SHADER(
-            material.metallic = texture(materialParams_metallicRoughnessMap, uv0).r;
-            material.roughness = texture(materialParams_metallicRoughnessMap, uv0).g;
+            material.metallic *= texture(materialParams_metallicRoughnessMap, uv0).b;
+            material.roughness *= texture(materialParams_metallicRoughnessMap, uv0).g;
         )SHADER";
 		builder.parameter("metallicRoughnessMap", MaterialBuilder::SamplerType::SAMPLER_2D);
 		hasUV = true;
 	}
-	else {
-		shader += R"SHADER(
-            material.metallic = 0.0;
-            material.roughness = 0.4;
-        )SHADER";
-	}
 
 	if (info.aoMap.data.data != nullptr) {
+
 		shader += R"SHADER(
-            material.ambientOcclusion = texture(materialParams_aoMap, uv0).r;
+            float occlusion = texture(materialParams_aoMap, uv0).r;
+            material.ambientOcclusion = 1.0 + materialParams.aoStrength * (occlusion - 1.0);
         )SHADER";
 		builder.parameter("aoMap", MaterialBuilder::SamplerType::SAMPLER_2D);
+		builder.parameter("aoStrength", MaterialBuilder::UniformType::FLOAT);
 		hasUV = true;
 	}
 	else {
@@ -474,20 +542,12 @@ Package BuildMaterial(FilamentApp* app, ::MaterialInfo& info) {
         )SHADER";
 	}
 
-	if (info.clearCoat) {
-		shader += R"SHADER(
-            material.clearCoat = 1.0;
-        )SHADER";
-	}
-	if (info.anisotropy) {
-		shader += R"SHADER(
-            material.anisotropy = 0.7;
-        )SHADER";
-	}
+
 	shader += "}\n";
 
 	if (hasUV) {
 		builder.require(filament::VertexAttribute::UV0);
+
 		replaceAll(shader, "${uv}", "getUV0()");
 	}
 	else
@@ -502,7 +562,7 @@ Package BuildMaterial(FilamentApp* app, ::MaterialInfo& info) {
 
 void AddMaterial(FilamentApp* app, OBJID id, ::MaterialInfo& info)
 {
-	std::string hash("pbr");
+	std::string hash("pbr_v1");
 
 	if (info.normalMap.data.data != nullptr)
 		hash += "_nm";
@@ -547,7 +607,12 @@ void AddMaterial(FilamentApp* app, OBJID id, ::MaterialInfo& info)
 			}
 		}
 		if (mustBuild) {
+
 			package = BuildMaterial(app, info);
+			
+			if (!package.isValid())
+				throw "Material Build Error";
+
 			if (app->materialCachePath.length() > 0) {
 
 				std::string fileName = app->materialCachePath + "/" + hash + ".mat";
@@ -577,21 +642,27 @@ void AddMaterial(FilamentApp* app, OBJID id, ::MaterialInfo& info)
 	TextureSampler sampler(TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR,
 		TextureSampler::MagFilter::LINEAR, TextureSampler::WrapMode::REPEAT);
 
-	//sampler.setAnisotropy(8.0f);
 
-	instance->setParameter("baseColor", RgbaType::LINEAR, { info.color.r, info.color.g, info.color.b,  info.color.a });
+	instance->setParameter("baseColor", RgbaType::LINEAR, float4(info.baseColorFactor.r, info.baseColorFactor.g, info.baseColorFactor.b,  info.baseColorFactor.a ));
+	instance->setParameter("metallicFactor", info.metallicFactor);
+	instance->setParameter("roughnessFactor", info.roughnessFactor);
+	instance->setParameter("emissiveStrength", info.emissiveStrength);
+	instance->setParameter("emissiveFactor", float3(info.emissiveFactor.r, info.emissiveFactor.g, info.emissiveFactor.b));
 
-	if (info.normalMap.data.data != nullptr)
+	if (info.normalMap.data.data != nullptr) {
 		instance->setParameter("normalMap", CreateTexture(app, info.normalMap), sampler);
-
+		instance->setParameter("normalScale", info.normalScale);
+	}
 	if (info.baseColorMap.data.data != nullptr)
 		instance->setParameter("baseColorMap", CreateTexture(app, info.baseColorMap), sampler);
 
 	if (info.metallicRoughnessMap.data.data != nullptr)
 		instance->setParameter("metallicRoughnessMap", CreateTexture(app, info.metallicRoughnessMap), sampler);
 
-	if (info.aoMap.data.data != nullptr)
+	if (info.aoMap.data.data != nullptr) {
+		instance->setParameter("aoStrength", info.aoStrength);
 		instance->setParameter("aoMap", CreateTexture(app, info.aoMap), sampler);
+	}
 
 	app->materialsInst[id] = instance;
 

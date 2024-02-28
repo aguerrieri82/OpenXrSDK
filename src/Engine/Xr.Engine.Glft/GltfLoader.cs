@@ -141,6 +141,8 @@ namespace Xr.Engine.Gltf
 
             Texture2D CreateTexture(TextureData data, glTFLoader.Schema.Texture texture, string? name)
             {
+                CheckExtensions(texture.Extensions);
+
                 var result = Texture2D.FromData([data]);
                 result.Name = texture.Name ?? name;
 
@@ -266,7 +268,6 @@ namespace Xr.Engine.Gltf
                     result.OcclusionUVSet = gltMat.OcclusionTexture.TexCoord;
                 }
 
-
                 var specGlos = TryLoadExtension<KHR_materials_pbrSpecularGlossiness>(gltMat.Extensions);
                 if (specGlos != null)
                 {
@@ -291,15 +292,6 @@ namespace Xr.Engine.Gltf
 
                     result.Type = PbrMaterialType.Specular;
                 }
-
-                //result.MetallicRoughness.BaseColorFactor = new Color(8, 8, 8, 1);
-                //result.OcclusionStrength = 1.5f;
-                //result.NormalTexture = null;
-                //result.OcclusionTexture = null;
-                //result.MetallicRoughness!.MetallicRoughnessTexture = null;
-                //result.MetallicRoughness.MetallicFactor = 0;
-                //result.MetallicRoughness.RoughnessFactor = 0f;
-                //result.MetallicRoughness!.BaseColorTexture = null;
 
                 mats[gltMat] = result;
 

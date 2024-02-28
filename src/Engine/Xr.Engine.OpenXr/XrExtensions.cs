@@ -35,7 +35,7 @@ namespace Xr.Engine.OpenXr
 
         public static IRenderEngine BindEngineApp(this XrApp xrApp, EngineApp app, uint sampleCount = 1, bool multiView = false)
         {
-            if (app.Renderer is OpenGLRender)
+            if (app.Renderer is OpenGLRender || app.Renderer == null)
                 return xrApp.BindEngineAppGL(app, sampleCount, multiView);  
 
             if (app.Renderer is FilamentRender)
@@ -70,7 +70,7 @@ namespace Xr.Engine.OpenXr
                 if (viewIndex == 0)
                     app.RenderFrame(rect);
                 else
-                    renderer.Render(app.ActiveScene, camera, rect);
+                    renderer.Render(app.ActiveScene, camera, rect, true);
             }
 
             xrApp.Layers.AddProjection(RenderView);
@@ -148,7 +148,7 @@ namespace Xr.Engine.OpenXr
                 if (viewIndex == 0)
                     app.RenderFrame(rect);
                 else
-                    app.Renderer.Render(app.ActiveScene, camera, rect);
+                    app.Renderer.Render(app.ActiveScene, camera, rect, true);
 
             }
 

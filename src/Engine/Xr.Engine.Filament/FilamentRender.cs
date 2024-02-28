@@ -1,5 +1,6 @@
 ﻿
 using SkiaSharp;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using static Xr.Engine.Filament.FilamentLib;
@@ -96,9 +97,9 @@ namespace Xr.Engine.Filament
                     HdrColorBuffer = FlQualityLevel.HIGH
                 },
                 AntiAliasing = FlAntiAliasing.NONE,
-                PostProcessingEnabled = true,
+                PostProcessingEnabled = false,
                 ShadowingEnabled = false,
-                ShadowType = FlShadowType.PCSS,
+                ShadowType = FlShadowType.PCF,
                 BlendMode = FlBlendMode.OPAQUE,
                 SampleCount = 1,
                 StencilBufferEnabled = false,
@@ -234,14 +235,35 @@ namespace Xr.Engine.Filament
             {
                 if (!obj.IsVisible)
                     continue;
-                if (obj is DirectionalLight dir)
+                if (obj is SunLight sun)
+                {
+                    GetOrCreate(sun, id =>
+                    {
+                        var info = new LightInfo
+                        {
+                            Type = FlLightType.Sun,
+                            Direction = sun.Direction,
+                            Intensity = sun.Intensity,
+                            Color = sun.Color,
+                            Sun = new FilamentLib.SunLight
+                            {
+                                HaloSize = sun.HaloSize,
+                                AngularRadius = sun.SunRadius,
+                                HaloFalloff = sun.HaloFallOff,
+                            },
+                            CastShadows = true,
+                        };
+                        AddLight(_app, id, ref info);
+                    });
+                }
+                else if (obj is DirectionalLight dir)
                 {
                     GetOrCreate(dir, id =>
                     {
                         var info = new LightInfo
                         {
                             Type = FlLightType.Directional,
-                            Direction = dir.Forward,
+                            Direction =  dir.Direction,
                             Intensity = dir.Intensity,  
                             Color = dir.Color,  
                             CastShadows= true,
@@ -345,6 +367,20 @@ namespace Xr.Engine.Filament
                                 BaseColorMap = ToTextureInfo(mat.MetallicRoughness?.BaseColorTexture),
                                 MetallicRoughnessMap = ToTextureInfo(mat.MetallicRoughness?.MetallicRoughnessTexture),
                                 AoMap = ToTextureInfo(mat.OcclusionTexture),
+                                MetallicFactor = mat.MetallicRoughness?.MetallicFactor ?? 1,
+                                RoughnessFactor = mat.MetallicRoughness?.RoughnessFactor ?? 1,
+                                NormalScale = mat.NormalScale,
+                                AoStrength = mat.OcclusionStrength,
+                                Blending =  mat.AlphaMode switch 
+                                { 
+                                    AlphaMode.Opaque => FlBlendingMode.OPAQUE,
+                                    AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
+                                    AlphaMode.Mask => FlBlendingMode.MASKED,
+                                    _ => throw new NotSupportedException()
+                                },
+                                EmissiveFactor = mat.EmissiveFactor,
+                                EmissiveMap = ToTextureInfo(mat.EmissiveTexture),
+                                EmissiveStrength = 1,
                                 MultiBounceAO = true,
                                 SpecularAntiAliasing = true,
                                 ScreenSpaceReflection = true,
@@ -379,7 +415,7 @@ namespace Xr.Engine.Filament
             }
         }
 
-        public unsafe void Render(Scene scene, Camera camera, Rect2I view)
+        public unsafe void Render(Scene scene, Camera camera, Rect2I viewport, bool flush)
         {
 
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
@@ -397,14 +433,14 @@ namespace Xr.Engine.Filament
 
             render[0].RenderTargetId = _activeRenderTarget.RenderTargetId;
             render[0].ViewId = _activeRenderTarget.ViewId;
-            render[0].Viewport = view;
+            render[0].Viewport = viewport;
 
             foreach (var mesh in _content!.Objects!.Where(a=> a.Key is TriangleMesh))
                 SetObjTransform(_app, mesh.Value, ((Object3D)mesh.Key).WorldMatrix);
 
-            FilamentLib.Render(_app, render, 1);
+            FilamentLib.Render(_app, render, 1, flush);
 
-            _viewport = view;
+            _viewport = viewport;
 
         }
 
