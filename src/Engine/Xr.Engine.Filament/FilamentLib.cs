@@ -127,6 +127,8 @@ namespace Xr.Engine.Filament
             public string MaterialCachePath;
             [MarshalAs(UnmanagedType.U1)]
             public bool EnableStereo;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool OneViewPerTarget;
         }
         
         public struct ViewOptions
@@ -173,7 +175,7 @@ namespace Xr.Engine.Filament
 
         public struct CameraEyesInfo
         {
-            public Vector3 RelPosition;
+            public Matrix4x4 RelTransform;
             public Matrix4x4 Projection;
         }
 

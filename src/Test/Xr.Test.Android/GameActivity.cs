@@ -6,7 +6,7 @@ using OpenXr.Framework.Android;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.Vulkan;
 using OpenXr.Samples;
-using Org.Xmlpull.V1.Sax2;
+using Silk.NET.OpenGLES;
 using Xr.Engine;
 using Xr.Engine.Filament;
 using Xr.Engine.OpenGL;
@@ -32,7 +32,7 @@ namespace Xr.Test.Android
     public class GameActivity : XrActivity
     {
         private EngineApp? _game;
-        private VulkanDevice _device;
+        private VulkanDevice _vkDevice;
         private WebView? _webView;
         private readonly XrWebViewLayer? _webViewLayer;
         private XrOculusTouchController? _inputs;
@@ -50,6 +50,9 @@ namespace Xr.Test.Android
 
         protected unsafe override SampleXrApp CreateApp()
         {
+            var renderMode = XrRenderMode.MultiView;
+            var useFilament = false;
+
 
             Platform.Current = new Platform
             {
@@ -58,52 +61,77 @@ namespace Xr.Test.Android
 
             _game = SampleScenes.CreateSimpleScene(Platform.Current.AssetManager);
 
-            _device = new VulkanDevice();
-            _device.Initialize(
-                ["VK_KHR_surface", "VK_KHR_android_surface", "VK_KHR_external_memory_capabilities", "VK_KHR_get_physical_device_properties2"], 
-                ["VK_KHR_swapchain", "VK_KHR_external_memory", "VK_KHR_get_memory_requirements2"]
-            );
+            IXrGraphicDriver driver;
 
-            var ctx = new FilamentLib.VulkanSharedContext
+            if (useFilament)
             {
-                GraphicsQueueFamilyIndex = _device.QueueFamilyIndex,
-                GraphicsQueueIndex = _device.QueueIndex,
-                Instance = _device.Instance.Handle,
-                LogicalDevice = _device.LogicalDevice.Handle,
-                PhysicalDevice = _device.PhysicalDevice.Handle
-            };
+                var filamentOptions = new FilamentOptions
+                {
+                    Driver = FilamentLib.FlBackend.OpenGL,
+                    MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath,
+                    EnableStereo = renderMode != XrRenderMode.SingleEye
+                };
 
-            _game.Renderer = new FilamentRender(new FilamentOptions
+                if (filamentOptions.Driver == FilamentLib.FlBackend.Vulkan)
+                {
+                    _vkDevice = new VulkanDevice();
+                    _vkDevice.Initialize(
+                        ["VK_KHR_surface", "VK_KHR_android_surface", "VK_KHR_external_memory_capabilities", "VK_KHR_get_physical_device_properties2"],
+                        ["VK_KHR_swapchain", "VK_KHR_external_memory", "VK_KHR_get_memory_requirements2"]
+                    );
+
+                    var ctx = new FilamentLib.VulkanSharedContext
+                    {
+                        GraphicsQueueFamilyIndex = _vkDevice.QueueFamilyIndex,
+                        GraphicsQueueIndex = _vkDevice.QueueIndex,
+                        Instance = _vkDevice.Instance.Handle,
+                        LogicalDevice = _vkDevice.LogicalDevice.Handle,
+                        PhysicalDevice = _vkDevice.PhysicalDevice.Handle
+                    };
+
+                    filamentOptions.Context = new(&ctx);
+
+                    _game.Renderer = new FilamentRender(filamentOptions);
+
+                    driver = new XrVulkanGraphicDriver(_vkDevice);
+
+                }
+                else
+                {
+                    var glDriver = new AndroidXrOpenGLESGraphicDriver();
+
+                    filamentOptions.Context = (IntPtr)glDriver.Context.Context!.NativeHandle;
+
+                    _game.Renderer = new FilamentRender(filamentOptions);
+
+                    driver = glDriver;
+                }
+            }
+            else
             {
-                Context = new(&ctx),
-                Driver = FilamentLib.FlBackend.Vulkan,
-                MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath,
-                EnableStereo = true
-            });
+                var glDriver = new AndroidXrOpenGLESGraphicDriver();
 
+                _game.Renderer = new OpenGLRender(glDriver.GetApi<GL>(), new GlRenderOptions
+                {
+                    RequireTextureCompression = true,
+                });
 
-            _game.Renderer = new FilamentRender(new FilamentOptions
-            {
-                Context = (IntPtr)driver.Context.Context!.NativeHandle,
-                Driver = FilamentLib.FlBackend.OpenGL,
-                MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath,
-                EnableStereo = true
-            });
-         
+                driver = glDriver;
+
+            }
 
 
             var logger = new AndroidLogger("XrApp");
 
-            var result = new SampleXrApp(logger,
-                 new AndroidXrOpenGLESGraphicDriver(),
-                 //new XrVulkanGraphicDriver(_device),
+            var xrApp = new SampleXrApp(logger,
+                 driver,
                  new OculusXrPlugin(),
                  new AndroidXrPlugin(this));
 
-            result.RenderOptions.SampleCount = 1;
-            result.RenderOptions.RenderMode = XrRenderMode.Stereo;
+            xrApp.RenderOptions.SampleCount = 1;
+            xrApp.RenderOptions.RenderMode = renderMode;
 
-            _inputs = result.WithInteractionProfile<XrOculusTouchController>(bld => bld
+            _inputs = xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.TriggerClick)
                .AddAction(a => a.Right!.SqueezeClick)
                .AddAction(a => a.Right!.TriggerValue)
@@ -113,7 +141,7 @@ namespace Xr.Test.Android
                .AddAction(a => a.Right!.Haptic)
               );
 
-            result.Layers.Add<XrPassthroughLayer>();
+            xrApp.Layers.Add<XrPassthroughLayer>();
 
             var display = _game.ActiveScene!.FindByName<TriangleMesh>("display")!;
 
@@ -140,14 +168,11 @@ namespace Xr.Test.Android
             //_game.ActiveScene.AddChild(new OculusSceneModel());
 
 
-            var renderer = result.BindEngineApp(_game);
-
-            if (renderer is OpenGLRender glRenderer)
-                glRenderer.Options.RequireTextureCompression = true;
+            var renderer = xrApp.BindEngineApp(_game);
 
             // StartService(new Intent(this, typeof(WebLinkService)));
 
-            return result;
+            return xrApp;
         }
     }
 }

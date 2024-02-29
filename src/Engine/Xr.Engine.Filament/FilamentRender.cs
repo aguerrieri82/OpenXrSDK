@@ -14,6 +14,7 @@ namespace Xr.Engine.Filament
         public FlBackend Driver;
         public string? MaterialCachePath;
         public bool EnableStereo;
+        public bool OneViewPerTarget;
     }
 
     public class FilamentRender : IRenderEngine
@@ -32,20 +33,23 @@ namespace Xr.Engine.Filament
             public int RenderTargetId;
         }
 
-        protected class ViewSizeBind
+        protected class ViewSizeRtBind
         {
             public uint ViewId;
 
             public Rect2I Viewport;
+
+            public int RenderTargetId;
         }
 
         protected Rect2I _viewport;
         protected IntPtr _app;
         protected Dictionary<IntPtr, RenderTargetBind> _renderTargets = [];
-        protected List<ViewSizeBind> _views = [];
+        protected List<ViewSizeRtBind> _views = [];
         protected RenderTargetBind? _activeRenderTarget;
         protected Content? _content;
         protected FlBackend _driver;
+        protected bool _oneViewPerTarget;
 
         public FilamentRender(FilamentOptions options)
         {
@@ -58,19 +62,21 @@ namespace Xr.Engine.Filament
                 WindowHandle = options.WindowHandle,
                 Context = options.Context,
                 MaterialCachePath = options.MaterialCachePath ?? string.Empty,
-                EnableStereo = options.EnableStereo,    
+                EnableStereo = options.EnableStereo,
+                OneViewPerTarget = options.OneViewPerTarget
             };
 
+            _oneViewPerTarget = options.OneViewPerTarget;
 
             _driver = options.Driver;
 
             _app = Initialize(ref initInfo);
 
-            var mainViewId = CreateView(0, 0, -1);
+            //var mainViewId = CreateView(0, 0, -1);
 
-            _renderTargets[0] = new RenderTargetBind { ViewId = mainViewId, RenderTargetId = -1 };
+            //_renderTargets[0] = new RenderTargetBind { ViewId = mainViewId, RenderTargetId = -1 };
 
-            SetDefaultRenderTarget();
+            //SetDefaultRenderTarget();
         }
 
         public GraphicContextInfo GetContext()
@@ -100,7 +106,7 @@ namespace Xr.Engine.Filament
             {
                 RenderQuality = new RenderQuality
                 {
-                    HdrColorBuffer = FlQualityLevel.HIGH
+                    HdrColorBuffer = FlQualityLevel.MEDIUM
                 },
                 AntiAliasing = FlAntiAliasing.NONE,
                 PostProcessingEnabled = false,
@@ -136,14 +142,17 @@ namespace Xr.Engine.Filament
                     RenderTargetId = AddRenderTarget(_app, ref options)
                 };
 
-                var viewBind = _views.FirstOrDefault(a=> a.Viewport.Width == width && a.Viewport.Height == height);
+                var viewBind = _oneViewPerTarget ?
+                    _views.FirstOrDefault(a => a.RenderTargetId == rtBind.RenderTargetId) :
+                    _views.FirstOrDefault(a => a.Viewport.Width == width && a.Viewport.Height == height);
 
                 if (viewBind == null)
                 {
-                    viewBind = new ViewSizeBind
+                    viewBind = new ViewSizeRtBind
                     {
                         ViewId = CreateView(width, height, rtBind.RenderTargetId),
-                        Viewport = new Rect2I() { Width = width, Height = height }
+                        Viewport = new Rect2I() { Width = width, Height = height },
+                        RenderTargetId = rtBind.RenderTargetId,
                     };
                     _views.Add(viewBind);
                 }
@@ -445,13 +454,13 @@ namespace Xr.Engine.Filament
 
                 render[0].Camera.Eye1 = new CameraEyesInfo
                 {
-                    RelPosition = persp.Eyes[0].Position,
+                    RelTransform = persp.Eyes[0].Transform,
                     Projection = persp.Eyes[0].Projection
                 };
 
                 render[0].Camera.Eye2 = new CameraEyesInfo
                 {
-                    RelPosition = persp.Eyes[1].Position,
+                    RelTransform = persp.Eyes[1].Transform,
                     Projection = persp.Eyes[1].Projection
                 };
             }
