@@ -50,13 +50,6 @@ namespace Xr.Test.Android
 
         protected unsafe override SampleXrApp CreateApp()
         {
-            var options = new OculusXrPluginOptions
-            {
-                EnableMultiView = true,
-                SampleCount = 1,
-                ResolutionScale = 1f,
-                Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
-            };
 
             Platform.Current = new Platform
             {
@@ -84,26 +77,31 @@ namespace Xr.Test.Android
             {
                 Context = new(&ctx),
                 Driver = FilamentLib.FlBackend.Vulkan,
-                MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath
+                MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath,
+                EnableStereo = true
             });
 
-            /*
+
             _game.Renderer = new FilamentRender(new FilamentOptions
             {
                 Context = (IntPtr)driver.Context.Context!.NativeHandle,
                 Driver = FilamentLib.FlBackend.OpenGL,
-                MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath
+                MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath,
+                EnableStereo = true
             });
-            */
+         
 
 
             var logger = new AndroidLogger("XrApp");
 
             var result = new SampleXrApp(logger,
-                 // new AndroidXrOpenGLESGraphicDriver(),
-                 new XrVulkanGraphicDriver(_device),
-                 new OculusXrPlugin(options),
+                 new AndroidXrOpenGLESGraphicDriver(),
+                 //new XrVulkanGraphicDriver(_device),
+                 new OculusXrPlugin(),
                  new AndroidXrPlugin(this));
+
+            result.RenderOptions.SampleCount = 1;
+            result.RenderOptions.RenderMode = XrRenderMode.Stereo;
 
             _inputs = result.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.TriggerClick)
@@ -142,10 +140,7 @@ namespace Xr.Test.Android
             //_game.ActiveScene.AddChild(new OculusSceneModel());
 
 
-            var renderer = result.BindEngineApp(
-                _game,
-                options.SampleCount,
-                options.EnableMultiView);
+            var renderer = result.BindEngineApp(_game);
 
             if (renderer is OpenGLRender glRenderer)
                 glRenderer.Options.RequireTextureCompression = true;

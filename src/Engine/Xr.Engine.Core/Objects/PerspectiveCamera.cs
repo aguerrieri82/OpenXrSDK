@@ -2,6 +2,13 @@
 
 namespace Xr.Engine
 {
+    public struct CameraEye
+    {
+        public Vector3 Position;
+
+        public Matrix4x4 Projection;
+    }
+
     public class PerspectiveCamera : Camera
     {
         protected Matrix4x4 _viewInverse;
@@ -10,7 +17,6 @@ namespace Xr.Engine
         {
             Projection = Matrix4x4.CreatePerspectiveOffCenter(left, right, bottom, top, Near, Far);
         }
-
 
         public void SetFov(float angleDegree, uint width, uint height)
         {
@@ -30,5 +36,7 @@ namespace Xr.Engine
             Transform.Matrix = ViewInverse;
         }
 
+
+        public CameraEye[]? Eyes { get; set; }
     }
 }

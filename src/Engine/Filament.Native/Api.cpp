@@ -43,9 +43,20 @@ FilamentApp* Initialize(InitializeOptions& options) {
 
 	Engine::Config cfg;
 
+	if (options.enableStereo) {
+		cfg.stereoscopicEyeCount = 2;
+		if (options.driver == Backend::OPENGL)
+			cfg.stereoscopicType = StereoscopicType::MULTIVIEW;
+		else
+			cfg.stereoscopicType = StereoscopicType::INSTANCED;
+
+		app->isStereo = true;
+	}
+		
 	auto builder = Engine::Builder()
 		.backend((Backend)options.driver)
-		.sharedContext(options.context);
+		.sharedContext(options.context)
+		.config(&cfg);
 
 	if (options.driver == Backend::OPENGL) {
 
@@ -87,6 +98,13 @@ VIEWID AddView(FilamentApp* app, ViewOptions& options)
 	view->setShadowingEnabled(options.shadowingEnabled);
 	view->setShadowType(options.shadowType);
 	view->setStencilBufferEnabled(options.stencilBufferEnabled);
+
+	if (app->isStereo) {
+		View::StereoscopicOptions stereoOpt;
+		stereoOpt.enabled = true;
+		view->setStereoscopicOptions(stereoOpt);
+	}
+
 
 	if (options.viewport.width != 0 && options.viewport.height != 0)
 		view->setViewport(filament::Viewport(options.viewport.x, options.viewport.y, options.viewport.width, options.viewport.height));
@@ -166,7 +184,7 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count, bool wai
 
 	app->renderer->setClearOptions(opt);
 
-	//app->renderer->beginFrame(app->swapChain);
+	app->renderer->beginFrame(app->swapChain);
 
 	bool hasMainView = false;
 
@@ -177,6 +195,24 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count, bool wai
 
 		app->camera->setCustomProjection(MatFromArray(target.camera.projection), target.camera.near, target.camera.far);
 		app->camera->setModelMatrix(MatFromArray(target.camera.transform));
+
+		if (target.camera.isStereo) {
+
+			auto e1 = target.camera.eyes[0].relPosition;
+			auto e2 = target.camera.eyes[1].relPosition;
+
+			auto e1v = vec3<float>(e1.x, e1.y, e1.z);
+			auto e2v = vec3<float>(e2.x, e2.y, e2.z);
+
+			app->camera->setEyeModelMatrix(0, mat4::translation(e1v));
+			app->camera->setEyeModelMatrix(1, mat4::translation(e2v));
+
+			mat4 projs[2];
+			projs[0] = MatFromArray(target.camera.eyes[0].projection);
+			projs[1] = MatFromArray(target.camera.eyes[1].projection);
+			app->camera->setCustomEyeProjection(projs, 2, projs[0], target.camera.near, target.camera.far);
+		}
+
 
 		if (memcmp(&target.viewport, &viewInfo.viewport, sizeof(Rect)) != 0) 
 		{
@@ -191,9 +227,9 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count, bool wai
 		else
 			viewInfo.view->setRenderTarget(app->renderTargets[target.renderTargetId]);
 
-		//app->renderer->render(viewInfo.view);
+		app->renderer->render(viewInfo.view);
 
-		app->renderer->renderStandaloneView(viewInfo.view);
+		//app->renderer->renderStandaloneView(viewInfo.view);
 	}
 
 #if _WINDOWS
@@ -202,7 +238,7 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count, bool wai
 		plat->skipSwap = !hasMainView;
 #endif
 
-	//app->renderer->endFrame();
+	app->renderer->endFrame();
 	if (wait)
 		app->engine->flushAndWait();
 }

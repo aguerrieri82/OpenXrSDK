@@ -16,32 +16,27 @@ namespace OpenXr.Samples
         {
             bool isStarted = true;
 
-            var options = new OculusXrPluginOptions
-            {
-                EnableMultiView = false,
-                SampleCount = 4,
-                ResolutionScale = 1f
-            };
-
             var viewManager = new ViewManager();
             viewManager.Initialize();
 
             using var xrApp = new XrApp(logger,
                     new XrOpenGLGraphicDriver(viewManager.View),
-                    new OculusXrPlugin(options));
+                    new OculusXrPlugin());
+
+            xrApp.RenderOptions.SampleCount = 1;
+
 
             _inputs = xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.Button!.AClick)
                .AddAction(a => a.Right!.GripPose)
                .AddAction(a => a.Right!.AimPose)
-            .AddAction(a => a.Right!.TriggerClick));
+               .AddAction(a => a.Right!.TriggerClick));
 
             _game = SampleScenes.CreateDefaultScene(new LocalAssetManager("Assets"));
 
             _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
 
-
-            xrApp.BindEngineAppGL(_game, options.SampleCount, options.EnableMultiView);
+            xrApp.BindEngineAppGL(_game);
 
             xrApp.StartEventLoop(() => !isStarted);
 

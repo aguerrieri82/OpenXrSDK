@@ -9,6 +9,9 @@ using OpenXr.Framework;
 using Xr.Engine.OpenGL;
 using Xr.Engine.OpenGL.Oculus;
 using Xr.Engine.Filament;
+using Silk.NET.Windowing;
+using static Xr.Engine.Filament.FilamentLib;
+using System.Numerics;
 
 
 namespace Xr.Engine.OpenXr
@@ -33,68 +36,120 @@ namespace Xr.Engine.OpenXr
             };
         }
 
-        public static IRenderEngine BindEngineApp(this XrApp xrApp, EngineApp app, uint sampleCount = 1, bool multiView = false)
+        public static IRenderEngine BindEngineApp(this XrApp xrApp, EngineApp app)
         {
             if (app.Renderer is OpenGLRender || app.Renderer == null)
-                return xrApp.BindEngineAppGL(app, sampleCount, multiView);  
+                return xrApp.BindEngineAppGL(app);  
 
             if (app.Renderer is FilamentRender)
-                return xrApp.BindEngineAppFl(app, sampleCount);
+                return xrApp.BindEngineAppFl(app);
 
             throw new NotSupportedException();
         }
 
 
-        public static FilamentRender BindEngineAppFl(this XrApp xrApp, EngineApp app, uint sampleCount = 1)
+        public static FilamentRender BindEngineAppFl(this XrApp xrApp, EngineApp app)
         {
             var renderer = (FilamentRender)app.Renderer!;
 
-            void RenderView(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image, int viewIndex, long predTime)
+            void RenderView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader*[] images, XrRenderMode mode, long predTime)
             {
                 nint imagePtr;
+                FlTextureInternalFormat format;
 
-                FilamentLib.FlTextureInternalFormat format;
-
-                if (renderer.Driver == FilamentLib.FlBackend.OpenGL)
+                void GetImage(int imgIndex)
                 {
-                    imagePtr = (nint)((SwapchainImageOpenGLKHR*)image)->Image;
-                    format = ((GLEnum)(int)xrApp.RenderOptions.SwapChainFormat) switch
+                    if (renderer.Driver == FlBackend.OpenGL)
                     {
-                        GLEnum.Srgb8Alpha8 => FilamentLib.FlTextureInternalFormat.SRGB8_A8,
-                        GLEnum.Rgba8 => FilamentLib.FlTextureInternalFormat.RGBA8,
-                        _ => throw new NotSupportedException()
-                    };
-                }
-                else
-                {
-                    imagePtr = (nint)((SwapchainImageVulkanKHR*)image)->Image;
-                    format = ((Silk.NET.Vulkan.Format)(int)xrApp.RenderOptions.SwapChainFormat) switch
+                        imagePtr = (nint)((SwapchainImageOpenGLKHR*)images[imgIndex])->Image;
+                        format = ((GLEnum)(int)xrApp.RenderOptions.SwapChainFormat) switch
+                        {
+                            GLEnum.Srgb8Alpha8 => FlTextureInternalFormat.SRGB8_A8,
+                            GLEnum.Rgba8 => FlTextureInternalFormat.RGBA8,
+                            _ => throw new NotSupportedException()
+                        };
+                    }
+                    else
                     {
-                        Silk.NET.Vulkan.Format.R8G8B8A8Srgb => FilamentLib.FlTextureInternalFormat.SRGB8_A8,
-                        Silk.NET.Vulkan.Format.R8G8B8A8SNorm => FilamentLib.FlTextureInternalFormat.RGBA8,
-                        _ => throw new NotSupportedException()
-                    };
+                        imagePtr = (nint)((SwapchainImageVulkanKHR*)images[imgIndex])->Image;
+                        format = ((Silk.NET.Vulkan.Format)(int)xrApp.RenderOptions.SwapChainFormat) switch
+                        {
+                            Silk.NET.Vulkan.Format.R8G8B8A8Srgb => FlTextureInternalFormat.SRGB8_A8,
+                            Silk.NET.Vulkan.Format.R8G8B8A8SNorm => FlTextureInternalFormat.RGBA8,
+                            _ => throw new NotSupportedException()
+                        };
+                    }
                 }
-
-                var rect = view.SubImage.ImageRect.Convert().To<Rect2I>();
-
-                renderer.SetRenderTarget(
-                    rect.Width,
-                    rect.Height,
-                    imagePtr, 
-                    format);
 
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 
-                var transform = XrCameraTransform.FromView(view, camera.Near, camera.Far);
 
-                camera.Projection = transform.Projection;
-                camera.View = transform.View;
+                if (mode == XrRenderMode.SingleEye)
+                {
+                    for (var i = 0; i < images.Length; i++)
+                    {
+                        GetImage(i);
 
-                if (viewIndex == 0)
+                        var rect = views[i].SubImage.ImageRect.Convert().To<Rect2I>();
+
+                        renderer.SetRenderTarget(
+                            rect.Width,
+                            rect.Height,
+                            imagePtr,
+                            format);
+
+                        var transform = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
+
+                        camera.Projection = transform.Projection;
+                        camera.View = transform.View;
+
+                        if (i == 0)
+                            app.RenderFrame(rect);
+                        else
+                            renderer.Render(app.ActiveScene, camera, rect, true);
+                    }
+                }
+                else 
+                {
+                    GetImage(0);
+
+                    var rect = views[0].SubImage.ImageRect.Convert().To<Rect2I>();
+
+                    if (mode == XrRenderMode.Stereo)
+                        rect.Width *= 2;
+
+                    renderer.SetRenderTarget(
+                        rect.Width,
+                        rect.Height,
+                        imagePtr,
+                        format);
+
+                    camera.Eyes ??= new CameraEye[2];
+
+                    for (var i = 0; i < views.Length; i++)
+                    {
+                        var transform = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
+                        if (i == 0)
+                        {
+                            camera.View = transform.View;
+                            camera.Projection = transform.Projection;
+                            camera.Eyes[0].Position = Vector3.Zero;
+    
+                        }
+                        else
+                        {
+                            Matrix4x4.Invert(transform.View, out var inverse);
+                            camera.Eyes[i].Position = camera.WorldMatrix.Translation - inverse.Translation;
+                        }
+
+                        camera.Eyes[i].Projection = transform.Projection;
+                    }
+
+
+
                     app.RenderFrame(rect);
-                else
-                    renderer.Render(app.ActiveScene, camera, rect, true);
+                }
+
             }
 
             xrApp.Layers.AddProjection(RenderView);
@@ -105,31 +160,31 @@ namespace Xr.Engine.OpenXr
         }
 
 
-        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, uint sampleCount = 1, bool multiView = false)
+        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app)
         {
             GlRenderTargetFactory factory;
 
-            if (multiView)
-                factory = (gl, texId) => GlMultiViewRenderTarget.Attach(gl, texId, sampleCount);
+            if (xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
+                factory = (gl, texId) => GlMultiViewRenderTarget.Attach(gl, texId, xrApp.RenderOptions.SampleCount);
             else
             {
-                if (sampleCount == 1)
-                    factory = (gl, texId) => GlTextureRenderTarget.Attach(gl, texId, sampleCount);
+                if (xrApp.RenderOptions.SampleCount == 1)
+                    factory = (gl, texId) => GlTextureRenderTarget.Attach(gl, texId, xrApp.RenderOptions.SampleCount);
                 else
                     factory = (gl, texId) =>
                     {
                         var target = gl.GetTexture2DTarget(texId);
                         if (target == TextureTarget.Texture2DMultisample)
-                            return GlTextureRenderTarget.Attach(gl, texId, sampleCount);
+                            return GlTextureRenderTarget.Attach(gl, texId, xrApp.RenderOptions.SampleCount);
                         else
-                            return GlMultiSampleRenderTarget.Attach(gl, texId, sampleCount);
+                            return GlMultiSampleRenderTarget.Attach(gl, texId, xrApp.RenderOptions.SampleCount);
                     };
             }
 
-            return xrApp.BindEngineAppGL(app, factory, multiView);
+            return xrApp.BindEngineAppGL(app, factory);
         }
 
-        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory, bool multiView)
+        public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory)
         {
             OpenGLRender renderer;
 
@@ -152,61 +207,62 @@ namespace Xr.Engine.OpenXr
 
             app.Start();
 
-            void RenderView(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image, int viewIndex, long predTime)
+            void RenderView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader*[] images, XrRenderMode mode, long predTime)
             {
-                var glImage = (SwapchainImageOpenGLKHR*)image;
-
-                var rect = view.SubImage.ImageRect.Convert().To<Rect2I>();
-
-                var renderTarget = targetFactory(renderer.GL, glImage->Image);
-
-                renderer.SetRenderTarget(renderTarget);
-
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 
-                var transform = XrCameraTransform.FromView(view, camera.Near, camera.Far);
+                if (mode == XrRenderMode.SingleEye)
+                {
+                    for (var i = 0; i < images.Length; i++)
+                    {
+                        var rect = views[i].SubImage.ImageRect.Convert().To<Rect2I>();
 
-                camera.Projection = transform.Projection;
-                camera.View = transform.View;
+                        var glImage = (SwapchainImageOpenGLKHR*)images[i];
 
-                if (viewIndex == 0)
+                        var renderTarget = targetFactory(renderer.GL, glImage->Image);
+
+                        renderer.SetRenderTarget(renderTarget);
+
+                        var transform = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
+
+                        camera.Projection = transform.Projection;
+                        camera.View = transform.View;
+
+                        if (i == 0)
+                            app.RenderFrame(rect);
+                        else
+                            app.Renderer.Render(app.ActiveScene, camera, rect, true);
+
+                    }
+                }
+                else if (mode == XrRenderMode.MultiView)
+                {
+                    var rect = views[0].SubImage.ImageRect.Convert().To<Rect2I>();
+
+                    var glImage = (SwapchainImageOpenGLKHR*)images[0];
+
+                    var renderTarget = targetFactory(renderer.GL, glImage->Image);
+
+                    if (renderTarget is not IMultiViewTarget multiTarget)
+                        throw new NotSupportedException("Render target don't support multi-view");
+
+                    var transforms = new XrCameraTransform[views.Length];
+
+                    for (var i = 0; i < transforms.Length; i++)
+                        transforms[i] = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
+
+                    multiTarget.SetCameraTransforms(transforms);
+
+                    renderer.SetRenderTarget(renderTarget);
+
+                    camera.Projection = transforms[0].Projection;
+                    camera.View = transforms[0].View;
+
                     app.RenderFrame(rect);
-                else
-                    app.Renderer.Render(app.ActiveScene, camera, rect, true);
-
+                }
             }
 
-            void RenderMultiView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader* image, long predTime)
-            {
-                var glImage = (SwapchainImageOpenGLKHR*)image;
-
-                var rect = views[0].SubImage.ImageRect.Convert().To<Rect2I>();
-
-                var renderTarget = targetFactory(renderer.GL, glImage->Image);
-
-                if (renderTarget is not IMultiViewTarget multiTarget)
-                    throw new NotSupportedException("Render target don't support multi-view");
-
-                renderer.SetRenderTarget(renderTarget);
-
-                var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
-
-                var transforms = new XrCameraTransform[views.Length];
-                for (var i = 0; i < transforms.Length; i++)
-                    transforms[i] = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
-
-                camera.Projection = transforms[0].Projection;
-                camera.Transform.SetMatrix(transforms[0].View);
-
-                multiTarget.SetCameraTransforms(transforms);
-
-                app.RenderFrame(rect);
-            }
-
-            if (multiView)
-                xrApp.Layers.AddProjection(RenderMultiView);
-            else
-                xrApp.Layers.AddProjection(RenderView);
+            xrApp.Layers.AddProjection(RenderView);
 
             app.ActiveScene!.AddChild(new XrGroup(xrApp));
 

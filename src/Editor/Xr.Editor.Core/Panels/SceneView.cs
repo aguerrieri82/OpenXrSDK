@@ -55,16 +55,11 @@ namespace Xr.Editor
         [MemberNotNull(nameof(_xrApp))]
         protected void CreateXrApp()
         {
-            var options = new OculusXrPluginOptions
-            {
-                EnableMultiView = false,
-                SampleCount = 1,
-                ResolutionScale = 1f
-            };
-
             _xrApp = new XrApp(NullLogger.Instance,
                      _xrGraphicProvider.CreateXrDriver(),
-                     new OculusXrPlugin(options));
+                     new OculusXrPlugin());
+
+            _xrApp.RenderOptions.RenderMode = XrRenderMode.Stereo;
 
             _inputs = _xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.Button!.AClick)
@@ -84,7 +79,7 @@ namespace Xr.Editor
 
             _xrApp.Layers.Add<XrPassthroughLayer>();
 
-            _xrApp.BindEngineApp(_scene!.App!, options.SampleCount, options.EnableMultiView);
+            _xrApp.BindEngineApp(_scene!.App!);
 
             _xrApp.StartEventLoop(() => !_isStarted);
         }
@@ -194,10 +189,8 @@ namespace Xr.Editor
                         //_render.SetDefaultRenderTarget();
                         //_render.Render(_scene!, _camera!, _view, false);
                     }
-                    /*
                     else
                         _scene.App!.RenderFrame(_view);
-                    */
 
                     _renderSurface.SwapBuffers();
 

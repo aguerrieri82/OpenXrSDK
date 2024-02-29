@@ -13,6 +13,7 @@ namespace Xr.Engine.Filament
         public IntPtr WindowHandle;
         public FlBackend Driver;
         public string? MaterialCachePath;
+        public bool EnableStereo;
     }
 
     public class FilamentRender : IRenderEngine
@@ -56,7 +57,8 @@ namespace Xr.Engine.Filament
                 Driver = options.Driver,
                 WindowHandle = options.WindowHandle,
                 Context = options.Context,
-                MaterialCachePath = options.MaterialCachePath ?? string.Empty
+                MaterialCachePath = options.MaterialCachePath ?? string.Empty,
+                EnableStereo = options.EnableStereo,    
             };
 
 
@@ -420,13 +422,14 @@ namespace Xr.Engine.Filament
             }
         }
 
+
         public unsafe void Render(Scene scene, Camera camera, Rect2I viewport, bool flush)
         {
-
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);
             
             var render = stackalloc RenderTarget[1];
+            var persp = (PerspectiveCamera)camera;  
 
             render[0].Camera = new CameraInfo
             {
@@ -435,6 +438,28 @@ namespace Xr.Engine.Filament
                 Projection = camera.Projection,
                 Transform = camera.WorldMatrix
             };
+
+            if (persp.Eyes != null)
+            {
+                render[0].Camera.IsStereo = true;
+
+                render[0].Camera.Eye1 = new CameraEyesInfo
+                {
+                    RelPosition = persp.Eyes[0].Position,
+                    Projection = persp.Eyes[0].Projection
+                };
+
+                render[0].Camera.Eye2 = new CameraEyesInfo
+                {
+                    RelPosition = persp.Eyes[1].Position,
+                    Projection = persp.Eyes[1].Projection
+                };
+            }
+            else
+            {
+                render[0].Camera.Eye1.Projection = camera.Projection;
+                render[0].Camera.Eye2.Projection = camera.Projection;
+            }
 
             render[0].RenderTargetId = _activeRenderTarget!.RenderTargetId;
             render[0].ViewId = _activeRenderTarget.ViewId;
