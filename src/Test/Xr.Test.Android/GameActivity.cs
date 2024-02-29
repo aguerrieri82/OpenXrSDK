@@ -50,8 +50,8 @@ namespace Xr.Test.Android
 
         protected unsafe override SampleXrApp CreateApp()
         {
-            var renderMode = XrRenderMode.MultiView;
-            var useFilament = false;
+            var renderMode = XrRenderMode.SingleEye;
+            var useFilament = true;
 
 
             Platform.Current = new Platform
@@ -67,9 +67,10 @@ namespace Xr.Test.Android
             {
                 var filamentOptions = new FilamentOptions
                 {
-                    Driver = FilamentLib.FlBackend.OpenGL,
+                    Driver = FilamentLib.FlBackend.Vulkan,
                     MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath,
-                    EnableStereo = renderMode != XrRenderMode.SingleEye
+                    EnableStereo = renderMode != XrRenderMode.SingleEye,
+                    OneViewPerTarget = true
                 };
 
                 if (filamentOptions.Driver == FilamentLib.FlBackend.Vulkan)
@@ -130,6 +131,7 @@ namespace Xr.Test.Android
 
             xrApp.RenderOptions.SampleCount = 1;
             xrApp.RenderOptions.RenderMode = renderMode;
+            xrApp.RenderOptions.ResolutionScale = 0.4f;
 
             _inputs = xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.TriggerClick)

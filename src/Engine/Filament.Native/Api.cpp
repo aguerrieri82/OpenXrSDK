@@ -55,6 +55,7 @@ FilamentApp* Initialize(const InitializeOptions& options) {
 	auto builder = Engine::Builder()
 		.backend((Backend)options.driver)
 		.sharedContext(options.context)
+		.featureLevel(FeatureLevel::FEATURE_LEVEL_3)
 		.config(&cfg);
 
 	if (options.driver == Backend::OPENGL) {
@@ -177,7 +178,6 @@ bool isFrameBegin = false;
 
 void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bool wait)
 {
-
 	Renderer::ClearOptions opt;
 	opt.clear = true;
 	opt.clearColor = { 0, 1, 1, 1 };
@@ -233,7 +233,7 @@ void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bo
 		plat->skipSwap = !hasMainView;
 #endif
 
-	app->renderer->endFrame();
+	app->renderer->endFrame(hasMainView);
 	if (wait)
 		app->engine->flushAndWait();
 }
