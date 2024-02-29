@@ -25,7 +25,7 @@ extern "C" {
 
 	EXPORT void APIENTRY AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcept(false);
 
-	EXPORT bool APIENTRY GetGraphicContext(FilamentApp* app, const GraphicContextInfo& info);
+	EXPORT bool APIENTRY GetGraphicContext(FilamentApp* app, GraphicContextInfo& info);
 
 	EXPORT void APIENTRY ReleaseContext(FilamentApp* app, bool release);
 

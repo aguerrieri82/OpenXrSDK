@@ -72,11 +72,15 @@ namespace Xr.Engine.Filament
 
             _app = Initialize(ref initInfo);
 
-            //var mainViewId = CreateView(0, 0, -1);
+            if (options.WindowHandle != IntPtr.Zero)
+            {
+                var mainViewId = CreateView(0, 0, -1);
 
-            //_renderTargets[0] = new RenderTargetBind { ViewId = mainViewId, RenderTargetId = -1 };
+                _renderTargets[0] = new RenderTargetBind { ViewId = mainViewId, RenderTargetId = -1 };
 
-            //SetDefaultRenderTarget();
+                SetDefaultRenderTarget();
+            }
+
         }
 
         public GraphicContextInfo GetContext()

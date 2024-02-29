@@ -59,7 +59,7 @@ namespace Xr.Editor
                      _xrGraphicProvider.CreateXrDriver(),
                      new OculusXrPlugin());
 
-            _xrApp.RenderOptions.RenderMode = XrRenderMode.Stereo;
+            _xrApp.RenderOptions.RenderMode = XrRenderMode.SingleEye;
 
             _inputs = _xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.Button!.AClick)
