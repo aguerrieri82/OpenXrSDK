@@ -2,6 +2,7 @@
 
 namespace Xr.Engine
 {
+
     public abstract class Camera : Object3D
     {
         private Matrix4x4 _projInverse;
@@ -21,8 +22,6 @@ namespace Xr.Engine
         public float Far { get; set; }
 
         public float Exposure { get; set; }
-
-
 
         public Matrix4x4 View
         {

@@ -2,15 +2,33 @@
 
 namespace OpenXr.Framework
 {
+    public enum XrRenderMode
+    {
+        SingleEye,
+        MultiView,
+        Stereo
+    }
+
     public class XrRenderOptions
     {
-        public Extent2Di Size { get; set; }
+        public XrRenderOptions()
+        {
+            ResolutionScale = 1;
+            SampleCount = 1;
+            RenderMode = XrRenderMode.SingleEye;
+        }
 
-        public EnvironmentBlendMode BlendMode { get; set; }
+        public Extent2Di Size;
 
-        public uint SampleCount { get; set; }
+        public float ResolutionScale;
 
-        public long SwapChainFormat { get; set; }
+        public EnvironmentBlendMode BlendMode;
+
+        public uint SampleCount;
+
+        public long SwapChainFormat;
+
+        public XrRenderMode RenderMode;
 
     }
 }

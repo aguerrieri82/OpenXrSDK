@@ -15,19 +15,11 @@ namespace OpenXr.Framework.Oculus
 
     public class OculusXrPluginOptions
     {
-        public bool EnableMultiView { get; set; }
-
         public SwapchainCreateFoveationFlagsFB Foveation { get; set; }
-
-        public uint SampleCount { get; set; }
-
-        public float ResolutionScale { get; set; }
 
         public static readonly OculusXrPluginOptions Default = new()
         {
-            SampleCount = 2,
-            ResolutionScale = 1.0f,
-            EnableMultiView = true,
+
             Foveation = SwapchainCreateFoveationFlagsFB.ScaledBinBitFB
         };
     }
@@ -112,7 +104,6 @@ namespace OpenXr.Framework.Oculus
 
         public override void OnInstanceCreated()
         {
-
             _app!.Xr.TryGetInstanceExtension<FBScene>(null, _app.Instance, out _scene);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntity>(null, _app.Instance, out _spatial);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityQuery>(null, _app.Instance, out _spatialQuery);
@@ -401,21 +392,8 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
-        public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
-        {
-            result.Size = new Extent2Di
-            {
-                Height = (int)(result.Size.Height * _options.ResolutionScale),
-                Width = (int)(result.Size.Width * _options.ResolutionScale),
-            };
-        }
-
         public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
         {
-            if (_options.EnableMultiView)
-                info.ArraySize = 2;
-
-            info.SampleCount = _options.SampleCount;
 
             if (_options.Foveation == SwapchainCreateFoveationFlagsFB.None)
                 return;

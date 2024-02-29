@@ -188,7 +188,9 @@ namespace OpenXr.Framework
 
                 if (mode == XrAppStartMode.Render)
                 {
-                    _swapchains = new XrSwapchainInfo[_viewInfo.ViewCount];
+                    int swpCount = _renderOptions.RenderMode == XrRenderMode.SingleEye ? _viewInfo.ViewCount : 1;
+
+                    _swapchains = new XrSwapchainInfo[swpCount];
 
                     for (var i = 0; i < _swapchains.Length; i++)
                     {
@@ -197,7 +199,7 @@ namespace OpenXr.Framework
                         {
                             Swapchain = swapchain,
                             Images = EnumerateSwapchainImages(swapchain),
-                            Size = _renderOptions.Size
+                            ViewSize = _renderOptions.Size
                         };
                     }
 
@@ -722,10 +724,17 @@ namespace OpenXr.Framework
             if (_renderOptions == null)
                 throw new ArgumentNullException("renderOptions");
 
-            return CreateSwapChain(_renderOptions.Size, _renderOptions.SampleCount, _renderOptions.SwapChainFormat);
+            var size = _renderOptions.Size;
+
+            if (_renderOptions.RenderMode == XrRenderMode.Stereo)
+                size.Width *= 2;
+
+            var arraySize = (uint)(_renderOptions.RenderMode == XrRenderMode.MultiView ? 2 : 1);
+
+            return CreateSwapChain(size, _renderOptions.SampleCount, _renderOptions.SwapChainFormat, arraySize);
         }
 
-        protected Swapchain CreateSwapChain(Extent2Di size, uint sampleCount, long format)
+        protected Swapchain CreateSwapChain(Extent2Di size, uint sampleCount, long format, uint arraySize)
         {
             var info = new SwapchainCreateInfo
             {
@@ -733,7 +742,7 @@ namespace OpenXr.Framework
                 Width = (uint)size.Width,
                 Height = (uint)size.Height,
                 Format = format,
-                ArraySize = 1,
+                ArraySize = arraySize,
                 MipCount = 1,
                 FaceCount = 1,
                 SampleCount = sampleCount,
@@ -1318,6 +1327,12 @@ namespace OpenXr.Framework
             result.BlendMode = preferences.First(a => viewInfo.BlendModes.Contains(a));
             result.Size = viewInfo.RecommendedImageRect;
             result.SampleCount = viewInfo.RecommendedSwapchainSampleCount;
+
+            result.Size = new Extent2Di
+            {
+                Height = (int)(result.Size.Height * _renderOptions.ResolutionScale),
+                Width = (int)(result.Size.Width * _renderOptions.ResolutionScale),
+            };
 
             PluginInvoke(a => a.SelectRenderOptions(viewInfo, result));
         }

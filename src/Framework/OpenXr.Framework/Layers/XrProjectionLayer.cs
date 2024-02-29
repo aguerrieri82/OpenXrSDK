@@ -6,16 +6,14 @@ using System.Runtime.InteropServices;
 namespace OpenXr.Framework
 {
 
-    public unsafe delegate void RenderViewDelegate(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image, int viewIndex, long predTime);
+    public unsafe delegate void RenderViewDelegate(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader*[] images, XrRenderMode mode, long predTime);
 
-    public unsafe delegate void RenderMultiViewDelegate(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader* image, long predTime);
 
 
     public unsafe class XrProjectionLayer : XrBaseLayer<CompositionLayerProjection>
     {
         readonly RenderViewDelegate? _renderView;
-        readonly RenderMultiViewDelegate? _renderMultiView;
-
+ 
         XrProjectionLayer()
         {
             _header->Type = StructureType.CompositionLayerProjection;
@@ -30,11 +28,6 @@ namespace OpenXr.Framework
             _renderView = renderView;
         }
 
-        public XrProjectionLayer(RenderMultiViewDelegate renderMultiView)
-            : this()
-        {
-            _renderMultiView = renderMultiView;
-        }
 
         public override void Dispose()
         {
@@ -55,101 +48,82 @@ namespace OpenXr.Framework
             {
                 layer.Views = (CompositionLayerProjectionView*)Marshal.AllocHGlobal(sizeof(CompositionLayerProjectionView) * views.Length);
                 layer.ViewCount = (uint)views.Length;
+
+                for (var i = 0; i < views.Length; i++)
+                {
+                    ref CompositionLayerProjectionView projView = ref layer.Views[i];
+
+                    int swIndex = 0;
+
+                    if (_xrApp.RenderOptions.RenderMode == XrRenderMode.SingleEye)
+                        swIndex = i;
+
+                    var swapchain = swapchains[swIndex];
+                    int swOfs = 0;
+
+                    if (_xrApp.RenderOptions.RenderMode == XrRenderMode.Stereo)
+                        swOfs = i * swapchain.ViewSize.Width;
+
+                    projView.Type = StructureType.CompositionLayerProjectionView;
+                    projView.Next = null;
+                    projView.SubImage.Swapchain = swapchain.Swapchain;
+                    projView.SubImage.ImageRect.Offset.X = swOfs;
+                    projView.SubImage.ImageRect.Offset.Y = 0;
+                    projView.SubImage.ImageRect.Extent.Height = swapchain.ViewSize.Height;
+                    projView.SubImage.ImageRect.Extent.Width = swapchain.ViewSize.Width;
+
+                    if (_xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
+                        projView.SubImage.ImageArrayIndex = (uint)i;
+                    else
+                        projView.SubImage.ImageArrayIndex = 0;
+                }
             }
+
+            var c1 = layer.Views[1];
+
 
             var projViews = new Span<CompositionLayerProjectionView>(layer.Views, (int)layer.ViewCount);
 
             if (_renderView != null)
-                return RenderSingleView(ref projViews, ref views, swapchains, predTime);
-
-            if (_renderMultiView != null)
-                return RenderMultiView(ref projViews, ref views, swapchains, predTime);
+                return Render(ref projViews, ref views, swapchains, predTime);
 
             return false;
         }
 
-        protected bool RenderMultiView(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
+        protected bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
         {
-            ref var swapChainInfo = ref swapchains[0];
+            var images = new SwapchainImageBaseHeader*[swapchains.Length];
 
-            var index = _xrApp!.AcquireSwapchainImage(swapChainInfo.Swapchain);
+            for (var i = 0; i < images.Length; i++)
+            {
+                var swc = swapchains[i];
+                var index = _xrApp!.AcquireSwapchainImage(swapchains[i].Swapchain);
+                images[i] = swc.Images!.ItemPointer((int)index);
+                _xrApp.WaitSwapchainImage(swapchains[i].Swapchain);
+            }
 
-            _xrApp.WaitSwapchainImage(swapChainInfo.Swapchain);
+            for (var i = 0; i < views.Length; i++)
+            {
+                ref CompositionLayerProjectionView projView = ref projViews[i];
+                projView.Fov = views[i].Fov;
+                projView.Pose = views[i].Pose;
+            }
+
             try
             {
-                for (var i = 0; i < views.Length; i++)
-                {
-                    ref var view = ref views[i];
-                    ref CompositionLayerProjectionView projView = ref projViews[i];
-
-                    projView.Type = StructureType.CompositionLayerProjectionView;
-                    projView.Next = null;
-                    projView.Fov = view.Fov;
-                    projView.Pose = view.Pose;
-                    projView.SubImage.Swapchain = swapChainInfo.Swapchain;
-                    projView.SubImage.ImageArrayIndex = (uint)i;
-                    projView.SubImage.ImageRect.Offset.X = 0;
-                    projView.SubImage.ImageRect.Offset.Y = 0;
-                    projView.SubImage.ImageRect.Extent = swapChainInfo.Size;
-
-                    Debug.Assert(swapChainInfo.Images != null);
-                }
-
-                _renderMultiView!(ref projViews, swapChainInfo.Images!.ItemPointer((int)index), predTime);
-
+                _renderView!(ref projViews, images, _xrApp!.RenderOptions.RenderMode, predTime);
             }
             catch (Exception ex)
             {
-                _xrApp.Logger.LogError(ex, "Render failed: {ex}", ex);
+                _xrApp!.Logger.LogError(ex, "Render failed: {ex}", ex);
                 return false;
             }
             finally
             {
-                _xrApp.ReleaseSwapchainImage(swapChainInfo.Swapchain);
+                foreach (var sw in swapchains)
+                    _xrApp!.ReleaseSwapchainImage(sw.Swapchain);
             }
-
-            return true;
-        }
-
-        protected bool RenderSingleView(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
-        {
-
-            for (var i = 0; i < views.Length; i++)
-            {
-                ref var swapChainInfo = ref swapchains[i];
-                ref var view = ref views[i];
-                ref CompositionLayerProjectionView projView = ref projViews[i];
-
-                var index = _xrApp!.AcquireSwapchainImage(swapChainInfo.Swapchain);
-                try
-                {
-                    _xrApp.WaitSwapchainImage(swapChainInfo.Swapchain);
-
-                    projView.Type = StructureType.CompositionLayerProjectionView;
-                    projView.Next = null;
-                    projView.Fov = view.Fov;
-                    projView.Pose = view.Pose;
-                    projView.SubImage.Swapchain = swapChainInfo.Swapchain;
-                    projView.SubImage.ImageArrayIndex = 0;
-                    projView.SubImage.ImageRect.Offset.X = 0;
-                    projView.SubImage.ImageRect.Offset.Y = 0;
-                    projView.SubImage.ImageRect.Extent = swapChainInfo.Size;
-
-                    Debug.Assert(swapChainInfo.Images != null);
-
-                    _renderView!(ref projView, swapChainInfo.Images.ItemPointer((int)index), i, predTime);
-                }
-                catch (Exception ex)
-                {
-                    _xrApp.Logger.LogError(ex, "Render failed: {ex}", ex);
-                    return false;
-                }
-                finally
-                {
-                    _xrApp.ReleaseSwapchainImage(swapChainInfo.Swapchain);
-                }
-            }
-
+            
             return true;
         }
 

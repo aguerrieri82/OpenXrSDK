@@ -68,6 +68,7 @@ struct InitializeOptions {
 	void* windowHandle;
 	void* context;
 	const char materialCachePath[256];
+	bool enableStereo;
 };
 
 
@@ -119,11 +120,18 @@ struct RenderTargetOptions {
 	filament::Texture::InternalFormat format;
 };
 
+struct CameraEyeInfo {
+	Vector3 relPosition;
+	Matrix4x4 projection;
+};
+
 struct CameraInfo {
 	Matrix4x4 transform;
 	Matrix4x4 projection;
 	float far;
 	float near;
+	bool isStereo;
+	CameraEyeInfo eyes[2];
 };
 
 struct RenderTarget {
@@ -242,4 +250,5 @@ struct FilamentApp {
 	std::map<OBJID, MaterialInstance*> materialsInst;
 	std::map<std::string, Material*> materials;
 	std::string materialCachePath;
+	bool isStereo;
 };

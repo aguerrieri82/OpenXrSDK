@@ -125,8 +125,10 @@ namespace Xr.Engine.Filament
             public IntPtr Context;
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
             public string MaterialCachePath;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool EnableStereo;
         }
-
+        
         public struct ViewOptions
         {
             public FlBlendMode BlendMode;
@@ -169,12 +171,22 @@ namespace Xr.Engine.Filament
             public Rect2I Viewport;
         }
 
+        public struct CameraEyesInfo
+        {
+            public Vector3 RelPosition;
+            public Matrix4x4 Projection;
+        }
+
         public struct CameraInfo
         {
             public Matrix4x4 Transform;
             public Matrix4x4 Projection;
             public float Far;
             public float Near;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool IsStereo;
+            public CameraEyesInfo Eye1;
+            public CameraEyesInfo Eye2;
         }
 
         public struct SunLight
