@@ -44,6 +44,7 @@ namespace Xr.Engine.Filament
         protected List<ViewSizeBind> _views = [];
         protected RenderTargetBind? _activeRenderTarget;
         protected Content? _content;
+        protected FlBackend _driver;
 
         public FilamentRender(FilamentOptions options)
         {
@@ -57,6 +58,9 @@ namespace Xr.Engine.Filament
                 Context = options.Context,
                 MaterialCachePath = options.MaterialCachePath ?? string.Empty
             };
+
+
+            _driver = options.Driver;
 
             _app = Initialize(ref initInfo);
 
@@ -112,7 +116,7 @@ namespace Xr.Engine.Filament
             return AddView(_app, ref viewOpt);
         }
 
-        public void SetRenderTarget(uint width, uint height, IntPtr imageId)
+        public void SetRenderTarget(uint width, uint height, IntPtr imageId, FilamentLib.FlTextureInternalFormat format)
         {
             if (!_renderTargets.TryGetValue(imageId, out var rtBind))
             {
@@ -121,7 +125,8 @@ namespace Xr.Engine.Filament
                     Width = width,
                     Height = height,
                     SampleCount = 1,
-                    TextureId = imageId
+                    TextureId = imageId,
+                    Format = format
                 };
 
                 rtBind = new RenderTargetBind
@@ -431,7 +436,7 @@ namespace Xr.Engine.Filament
                 Transform = camera.WorldMatrix
             };
 
-            render[0].RenderTargetId = _activeRenderTarget.RenderTargetId;
+            render[0].RenderTargetId = _activeRenderTarget!.RenderTargetId;
             render[0].ViewId = _activeRenderTarget.ViewId;
             render[0].Viewport = viewport;
 
@@ -444,6 +449,7 @@ namespace Xr.Engine.Filament
 
         }
 
+        public FlBackend Driver => _driver;
 
         public Rect2I View => _viewport;
     }

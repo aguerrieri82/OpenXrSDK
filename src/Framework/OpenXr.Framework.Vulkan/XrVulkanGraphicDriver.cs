@@ -1,7 +1,9 @@
 ﻿using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
+using Silk.NET.Vulkan;
 using Silk.NET.OpenXR.Extensions.KHR;
 using System.Text;
+using StructureType = Silk.NET.OpenXR.StructureType;
 
 namespace OpenXr.Framework.Vulkan
 {
@@ -10,6 +12,11 @@ namespace OpenXr.Framework.Vulkan
         protected IVulkanDevice _device;
         protected KhrVulkanEnable? _vulkanExt;
         protected XrDynamicType _swapChainType;
+
+        protected Format[] _validFormats = [
+            Format.R8G8B8A8Srgb,
+            Format.R8G8B8A8SNorm];
+
 
         public XrVulkanGraphicDriver(IVulkanDevice device)
         {
@@ -32,9 +39,9 @@ namespace OpenXr.Framework.Vulkan
             _app!.Xr.TryGetInstanceExtension<KhrVulkanEnable>(null, _app.Instance, out _vulkanExt);
         }
 
-        public long SelectSwapChainFormat(IList<long> availFormats)
+        public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
-            return availFormats.First();
+            result.SwapChainFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((long)a));
         }
 
         public GraphicsBinding CreateBinding()
@@ -43,6 +50,7 @@ namespace OpenXr.Framework.Vulkan
             {
                 Type = StructureType.GraphicsRequirementsVulkanKhr
             };
+
             _app!.CheckResult(_vulkanExt!.GetVulkanGraphicsRequirements(_app!.Instance, _app.SystemId, &vulkanReq), "GetVulkanGraphicsRequirementsKHR");
 
             var buffer = new byte[2048];
@@ -69,8 +77,8 @@ namespace OpenXr.Framework.Vulkan
                 Device = new VkHandle(_device.LogicalDevice.Handle),
                 Instance = new VkHandle(_device.Instance.Handle),
                 PhysicalDevice = physicalDevice,
-                QueueFamilyIndex = 0,
-                QueueIndex = 0,
+                QueueFamilyIndex = _device.QueueFamilyIndex,
+                QueueIndex = _device.QueueIndex,
             };
 
             return binding;

@@ -59,3 +59,5 @@ int fopen_s(FILE** _Stream, char const* _FileName, char const* _Mode) {
 #include <backend/DriverEnums.h>
 #include <backend/Platform.h>
 #include <backend/platforms/OpenGLPlatform.h>
+
+#include <backend/platforms/VulkanPlatform.h>

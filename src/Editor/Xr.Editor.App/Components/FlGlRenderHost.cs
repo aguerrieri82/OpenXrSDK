@@ -11,12 +11,10 @@ using Xr.Engine.Filament;
 
 namespace Xr.Editor.Components
 {
-    public class FlRenderHost : GlRenderHost
+    public class FlGlRenderHost : GlRenderHost
     {
-        const int WGL_CONTEXT_MAJOR_VERSION_ARB = 0x2091;
-        const int WGL_CONTEXT_MINOR_VERSION_ARB = 0x2092;
 
-        public FlRenderHost()
+        public FlGlRenderHost()
             : base(false)
         {
         }
@@ -33,8 +31,8 @@ namespace Xr.Editor.Components
 
             var ctx = render.GetContext();
 
-            _hdc = ctx.HDc;
-            _glCtx = ctx.GlCTx;
+            _hdc = ctx.WinGl.HDc;
+            _glCtx = ctx.WinGl.GlCTx;
 
             return render;
         }

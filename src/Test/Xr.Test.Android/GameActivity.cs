@@ -4,7 +4,9 @@ using Android.Webkit;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Oculus;
+using OpenXr.Framework.Vulkan;
 using OpenXr.Samples;
+using Org.Xmlpull.V1.Sax2;
 using Xr.Engine;
 using Xr.Engine.Filament;
 using Xr.Engine.OpenGL;
@@ -30,6 +32,7 @@ namespace Xr.Test.Android
     public class GameActivity : XrActivity
     {
         private EngineApp? _game;
+        private VulkanDevice _device;
         private WebView? _webView;
         private readonly XrWebViewLayer? _webViewLayer;
         private XrOculusTouchController? _inputs;
@@ -45,7 +48,7 @@ namespace Xr.Test.Android
             base.OnAppStarted(app);
         }
 
-        protected override SampleXrApp CreateApp()
+        protected unsafe override SampleXrApp CreateApp()
         {
             var options = new OculusXrPluginOptions
             {
@@ -62,10 +65,43 @@ namespace Xr.Test.Android
 
             _game = SampleScenes.CreateSimpleScene(Platform.Current.AssetManager);
 
+            _device = new VulkanDevice();
+            _device.Initialize(
+                ["VK_KHR_surface", "VK_KHR_android_surface", "VK_KHR_external_memory_capabilities", "VK_KHR_get_physical_device_properties2"], 
+                ["VK_KHR_swapchain", "VK_KHR_external_memory", "VK_KHR_get_memory_requirements2"]
+            );
+
+            var ctx = new FilamentLib.VulkanSharedContext
+            {
+                GraphicsQueueFamilyIndex = _device.QueueFamilyIndex,
+                GraphicsQueueIndex = _device.QueueIndex,
+                Instance = _device.Instance.Handle,
+                LogicalDevice = _device.LogicalDevice.Handle,
+                PhysicalDevice = _device.PhysicalDevice.Handle
+            };
+
+            _game.Renderer = new FilamentRender(new FilamentOptions
+            {
+                Context = new(&ctx),
+                Driver = FilamentLib.FlBackend.Vulkan,
+                MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath
+            });
+
+            /*
+            _game.Renderer = new FilamentRender(new FilamentOptions
+            {
+                Context = (IntPtr)driver.Context.Context!.NativeHandle,
+                Driver = FilamentLib.FlBackend.OpenGL,
+                MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath
+            });
+            */
+
+
             var logger = new AndroidLogger("XrApp");
 
             var result = new SampleXrApp(logger,
-                 new AndroidXrOpenGLESGraphicDriver(),
+                 // new AndroidXrOpenGLESGraphicDriver(),
+                 new XrVulkanGraphicDriver(_device),
                  new OculusXrPlugin(options),
                  new AndroidXrPlugin(this));
 
@@ -104,17 +140,6 @@ namespace Xr.Test.Android
                 _inputs.Right!.TriggerValue!));
 
             //_game.ActiveScene.AddChild(new OculusSceneModel());
-
-            var driver = result.Plugin<AndroidXrOpenGLESGraphicDriver>();
-
-            /*
-            _game.Renderer = new FilamentRender(new FilamentOptions
-            {
-                Context = (IntPtr)driver.Context.Context!.NativeHandle,
-                Driver = FilamentLib.FlBackend.OpenGL,
-                MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath
-            });
-            */
 
 
             var renderer = result.BindEngineApp(

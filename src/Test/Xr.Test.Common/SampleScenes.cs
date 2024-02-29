@@ -28,7 +28,7 @@ namespace OpenXr.Samples
             cube.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), MathF.PI / 4f);
             cube.Name = "test";
             cube.AddComponent<MeshCollider>();
-            //scene.AddChild(cube);
+            scene.AddChild(cube);
 
             var quod = new TriangleMesh(Quad.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
             quod.Transform.SetScale(0.5f);

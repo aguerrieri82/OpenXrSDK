@@ -116,6 +116,7 @@ struct RenderTargetOptions {
 	uint32_t width;
 	uint32_t height;
 	uint32_t sampleCount;
+	filament::Texture::InternalFormat format;
 };
 
 struct CameraInfo {
@@ -211,8 +212,20 @@ struct MaterialInfo {
 };
 
 struct GraphicContextInfo {
-	void* glCtx;
-	void* hdc;
+	struct 
+	{
+		void* glCtx;
+		void* hdc;
+	} winGL;
+
+	struct  
+	{
+		VkInstance instance;
+		VkDevice device;
+		VkPhysicalDevice physicalDevice;
+		uint32_t queueFamily;
+		uint32_t queue;
+	} vulkan;
 };
 
 
@@ -220,7 +233,7 @@ struct FilamentApp {
 	Engine* engine;
 	Scene* scene;
 	Renderer* renderer;
-	SwapChain* swapChain;
+	filament::SwapChain* swapChain;
 	Camera* camera;
 	std::vector<RenderView> views;
 	std::vector<filament::RenderTarget*> renderTargets;

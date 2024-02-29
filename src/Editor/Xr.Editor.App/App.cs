@@ -29,7 +29,7 @@ namespace Xr.Editor
             var window = new Window
             {
                 Title = "Xr Editor",
-                Content = new MainView(new FlRenderHost())
+                Content = new MainView(new FlVulkanRenderHost())
             };
 
 

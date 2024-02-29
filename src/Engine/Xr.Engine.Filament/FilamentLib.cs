@@ -108,6 +108,16 @@ namespace Xr.Engine.Filament
             public FlQualityLevel HdrColorBuffer;
         }
 
+
+        public struct VulkanSharedContext
+        {
+            public nint Instance;
+            public nint PhysicalDevice;  
+            public nint LogicalDevice;
+            public uint GraphicsQueueFamilyIndex;
+            public uint GraphicsQueueIndex;
+        };
+
         public struct InitializeOptions
         {
             public FlBackend Driver;
@@ -148,6 +158,7 @@ namespace Xr.Engine.Filament
             public uint Width;
             public uint Height;
             public uint SampleCount;
+            public FlTextureInternalFormat Format;
         }
 
         public struct RenderTarget
@@ -279,8 +290,24 @@ namespace Xr.Engine.Filament
 
         public struct GraphicContextInfo
         {
-            public IntPtr GlCTx;
-            public IntPtr HDc;
+            public struct WinGlContext
+            {
+                public IntPtr GlCTx;
+                public IntPtr HDc;
+            }
+
+            public struct VulkanContext
+            {
+                public IntPtr Instance;
+                public IntPtr LogicalDevice;
+                public IntPtr PhysicalDevice;
+                public uint QueueFamilyIndex;
+                public uint QueueIndex;
+            }
+
+            public WinGlContext WinGl;
+
+            public VulkanContext Vulkan;
         }
 
 

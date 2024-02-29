@@ -39,9 +39,11 @@ namespace Xr.Editor
         protected List<IEditorTool> _tools = [];
         protected SceneXrState _xrState;
         protected IRenderEngine? _render;
+        protected IXrGraphicProvider _xrGraphicProvider;
 
         public SceneView(IRenderSurface renderSurface)
         {
+            _xrGraphicProvider = (IXrGraphicProvider)renderSurface;
             _renderSurface = renderSurface;
             _renderSurface.SizeChanged += OnSizeChanged;
             _renderSurface.Ready += OnSurfaceReady;
@@ -61,7 +63,7 @@ namespace Xr.Editor
             };
 
             _xrApp = new XrApp(NullLogger.Instance,
-                     new XrGraphicDriver(_renderSurface),
+                     _xrGraphicProvider.CreateXrDriver(),
                      new OculusXrPlugin(options));
 
             _inputs = _xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
@@ -100,7 +102,7 @@ namespace Xr.Editor
 
         public void StartXr()
         {
-            _render.ReleaseContext(true);
+            _render!.ReleaseContext(true);
             _renderSurface.TakeContext();
             _renderSurface.EnableVSync(false);
 
@@ -132,7 +134,7 @@ namespace Xr.Editor
 
         public void StopXr()
         {
-            _render.ReleaseContext(true);
+            _render!.ReleaseContext(true);
             _renderSurface.TakeContext();
             _renderSurface.EnableVSync(true);
 
@@ -181,12 +183,21 @@ namespace Xr.Editor
 
                     if (_xrApp != null && _xrApp.IsStarted)
                     {
-                        _xrApp.RenderFrame(_xrApp.Stage);
-                        _render.SetDefaultRenderTarget();
-                        _render.Render(_scene!, _camera!, _view);
+                        try
+                        {
+                            _xrApp.RenderFrame(_xrApp.Stage);
+                        }
+                        catch
+                        {
+
+                        }
+                        //_render.SetDefaultRenderTarget();
+                        //_render.Render(_scene!, _camera!, _view, false);
                     }
+                    /*
                     else
                         _scene.App!.RenderFrame(_view);
+                    */
 
                     _renderSurface.SwapBuffers();
 
@@ -214,6 +225,7 @@ namespace Xr.Editor
             _renderSurface!.ReleaseContext();
 
             _renderThread = new Thread(RenderLoop);
+            _renderThread.Name = "Render Thread";
 
             _renderThread.Start();
         }

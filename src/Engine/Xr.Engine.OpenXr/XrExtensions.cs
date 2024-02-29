@@ -51,14 +51,38 @@ namespace Xr.Engine.OpenXr
 
             void RenderView(ref CompositionLayerProjectionView view, SwapchainImageBaseHeader* image, int viewIndex, long predTime)
             {
-                var glImage = (SwapchainImageOpenGLKHR*)image;
+                nint imagePtr;
+
+                FilamentLib.FlTextureInternalFormat format;
+
+                if (renderer.Driver == FilamentLib.FlBackend.OpenGL)
+                {
+                    imagePtr = (nint)((SwapchainImageOpenGLKHR*)image)->Image;
+                    format = ((GLEnum)(int)xrApp.RenderOptions.SwapChainFormat) switch
+                    {
+                        GLEnum.Srgb8Alpha8 => FilamentLib.FlTextureInternalFormat.SRGB8_A8,
+                        GLEnum.Rgba8 => FilamentLib.FlTextureInternalFormat.RGBA8,
+                        _ => throw new NotSupportedException()
+                    };
+                }
+                else
+                {
+                    imagePtr = (nint)((SwapchainImageVulkanKHR*)image)->Image;
+                    format = ((Silk.NET.Vulkan.Format)(int)xrApp.RenderOptions.SwapChainFormat) switch
+                    {
+                        Silk.NET.Vulkan.Format.R8G8B8A8Srgb => FilamentLib.FlTextureInternalFormat.SRGB8_A8,
+                        Silk.NET.Vulkan.Format.R8G8B8A8SNorm => FilamentLib.FlTextureInternalFormat.RGBA8,
+                        _ => throw new NotSupportedException()
+                    };
+                }
 
                 var rect = view.SubImage.ImageRect.Convert().To<Rect2I>();
 
                 renderer.SetRenderTarget(
                     rect.Width,
                     rect.Height,
-                    (nint)glImage->Image);
+                    imagePtr, 
+                    format);
 
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 

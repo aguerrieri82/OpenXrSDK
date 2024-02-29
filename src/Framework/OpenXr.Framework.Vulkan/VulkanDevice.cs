@@ -611,5 +611,8 @@ namespace OpenXr.Framework.Vulkan
 
         public Instance Instance => _instance;
 
+        public uint QueueFamilyIndex => 0;
+
+        public uint QueueIndex => 0;
     }
 }

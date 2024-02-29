@@ -12,5 +12,9 @@ namespace OpenXr.Framework.Vulkan
         Device LogicalDevice { get; }
 
         Instance Instance { get; }
+
+        uint QueueFamilyIndex { get; }
+
+        uint QueueIndex { get; }
     }
 }

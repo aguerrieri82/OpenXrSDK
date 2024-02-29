@@ -827,7 +827,6 @@ namespace OpenXr.Framework
             finally
             {
                 ListInvoke<IXrLayer>(_layers.Layers, a => a.OnEndFrame());
-
                 EndFrame(state.PredictedDisplayPeriod, ref layers, layerCount);
             }
 
@@ -867,6 +866,7 @@ namespace OpenXr.Framework
         protected void EndFrame(long displayTime, ref CompositionLayerBaseHeader*[]? layers, uint count)
         {
             AssertSessionCreated();
+
 
             fixed (CompositionLayerBaseHeader** pLayers = layers)
             {

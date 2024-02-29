@@ -51,6 +51,11 @@ LOCAL_MODULE := libshaders
 LOCAL_SRC_FILES := $(FILAMENT_LIBS)/libshaders.a
 include $(PREBUILT_STATIC_LIBRARY)
 
+LOCAL_MODULE := libvkshaders
+LOCAL_SRC_FILES := $(FILAMENT_LIBS)/libvkshaders.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+
 #------------
 
 #NDK_LIBS_OUT 
@@ -64,7 +69,7 @@ LOCAL_C_INCLUDES := $(FILAMENT_SDK)/include
 
 LOCAL_SRC_FILES	:= 	$(LOCAL_PATH)/../Api.cpp
 					
-LOCAL_STATIC_LIBRARIES := libfilament libutils libfilamat libfilabridge libbackend libfilaflat libibl libbluevk libgeometry libsmol-v libshaders 
+LOCAL_STATIC_LIBRARIES := libfilament libutils libfilamat libfilabridge libbackend libfilaflat libibl libbluevk libgeometry libsmol-v libshaders libvkshaders
 
 LOCAL_LDLIBS := -llog -lEGL -lGLESv3 
 
