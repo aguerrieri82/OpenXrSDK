@@ -9,23 +9,30 @@ namespace OpenXr.Framework.OpenGL
     public class XrOpenGLGraphicDriver : BaseXrPlugin, IXrGraphicDriver, IApiProvider
     {
         protected GraphicsBinding _binding;
-        protected IView _view;
         protected KhrOpenglEnable? _openGl;
+        protected IOpenGLDevice _device;
         protected XrDynamicType _swapChainType;
 
         protected GLEnum[] _validFormats = [
            GLEnum.Srgb8Alpha8,
            GLEnum.Rgba8];
 
+
         public XrOpenGLGraphicDriver(IView view)
+            : this(new ViewOpenGLDevice(view))
         {
-            _view = view;
+        }
+
+        public XrOpenGLGraphicDriver(IOpenGLDevice device)
+        {
+            _device = device;
             _swapChainType = new XrDynamicType
             {
                 StructureType = StructureType.SwapchainImageOpenglKhr,
                 Type = typeof(SwapchainImageOpenGLKHR)
             };
         }
+
 
         public override void Initialize(XrApp app, IList<string> extensions)
         {
@@ -50,7 +57,16 @@ namespace OpenXr.Framework.OpenGL
 
             _app!.CheckResult(_openGl!.GetOpenGlgraphicsRequirements(_app!.Instance, _app.SystemId, ref req), "GetOpenGlgraphicsRequirements");
 
-            var binding = _view.CreateOpenGLBinding();
+            var binding = new GraphicsBinding
+            {
+                OpenGLWin32Khr = new GraphicsBindingOpenGLWin32KHR
+                {
+                    Type = StructureType.GraphicsBindingOpenglWin32Khr,
+                    HDC = _device.HDc,
+                    HGlrc = _device.GlCtx
+                }
+            };
+
             return binding;
         }
 
@@ -65,7 +81,7 @@ namespace OpenXr.Framework.OpenGL
         public T GetApi<T>() where T : class
         {
             if (typeof(T) == typeof(GL))
-                return (T)(object)_view.CreateOpenGL();
+                return (T)(object)_device.Gl;
             throw new NotSupportedException();
         }
 

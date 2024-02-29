@@ -16,6 +16,7 @@ public:
 #endif
 
 
+
 mat4 MatFromArray(Matrix4x4 array) {
 	return mat4(array[0], array[1], array[2], array[3],
 		array[4], array[5], array[6], array[7],
@@ -33,11 +34,7 @@ void LogOut(void* caller, char const* msg) {
 FilamentApp* Initialize(InitializeOptions& options) {
 
 #ifdef _WINDOWS
-	//slog.i.setConsumer(LogOut, nullptr);
-	//slog.d.setConsumer(LogOut, nullptr);
-	//slog.w.setConsumer(LogOut, nullptr);
 	slog.e.setConsumer(LogOut, nullptr);
-	//slog.v.setConsumer(LogOut, nullptr);
 #endif
 
 	auto app = new FilamentApp();
@@ -46,26 +43,30 @@ FilamentApp* Initialize(InitializeOptions& options) {
 
 	Engine::Config cfg;
 
-
-	app->engine = Engine::Builder()
+	auto builder = Engine::Builder()
 		.backend((Backend)options.driver)
-#ifdef _WINDOWS
-		.platform(new PlatformWGL2())
-#endif
-#ifdef __ANDROID__
-		.platform(new PlatformEGLAndroid())
-#endif
-		.sharedContext(options.context)
-		.build();
+		.sharedContext(options.context);
+
+	if (options.driver == Backend::OPENGL) {
+
+	#ifdef _WINDOWS
+			builder.platform(new PlatformWGL2());
+	#endif
+	#ifdef __ANDROID__
+			builder.platform(new PlatformEGLAndroid());
+	#endif
+	}
+	
+	app->engine = builder.build();
 
 	app->scene = app->engine->createScene();
 	app->renderer = app->engine->createRenderer();
 	app->camera = app->engine->createCamera(EntityManager::get().create());
+
 	if (options.windowHandle != nullptr)
-		app->swapChain = app->engine->createSwapChain(options.windowHandle, SwapChain::CONFIG_HAS_STENCIL_BUFFER | SwapChain::CONFIG_SRGB_COLORSPACE);
+		app->swapChain = app->engine->createSwapChain(options.windowHandle, filament::SwapChain::CONFIG_HAS_STENCIL_BUFFER | filament::SwapChain::CONFIG_SRGB_COLORSPACE);
 	else
 		app->swapChain = app->engine->createSwapChain(800, 600);
-
 
 	MaterialBuilder::init();
 
@@ -104,14 +105,18 @@ VIEWID AddView(FilamentApp* app, ViewOptions& options)
 
 RTID AddRenderTarget(FilamentApp* app, RenderTargetOptions& options)
 {
+	VkImage x;
+
 	auto baseColorFactor = Texture::Builder()
 		.width(options.width)
 		.height(options.height)
 		.levels(1)
 		.usage(filament::Texture::Usage::COLOR_ATTACHMENT | filament::Texture::Usage::SAMPLEABLE)
-		.format(filament::Texture::InternalFormat::RGBA8)
+		.format(options.format)
 		.import(options.textureId)
 		.build(*app->engine);
+
+	app->engine->flushAndWait();
 
 	auto depth = Texture::Builder()
 		.width(options.width)
@@ -127,6 +132,8 @@ RTID AddRenderTarget(FilamentApp* app, RenderTargetOptions& options)
 		.build(*app->engine);
 
 	app->renderTargets.push_back(rt);
+
+	app->engine->flushAndWait();
 
 	return app->renderTargets.size() - 1;
 }
@@ -161,17 +168,12 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count, bool wai
 
 	//app->renderer->beginFrame(app->swapChain);
 
-
-	auto lcount = app->scene->getLightCount();
-
 	bool hasMainView = false;
 
 	for (auto i = 0; i < count; i++) {
 
 		auto target = targets[i];
 		auto &viewInfo = app->views[target.viewId];
-
-		//view->setDynamicLightingOptions(0.1, 40);
 
 		app->camera->setCustomProjection(MatFromArray(target.camera.projection), target.camera.near, target.camera.far);
 		app->camera->setModelMatrix(MatFromArray(target.camera.transform));
@@ -301,7 +303,7 @@ void AddGeometry(FilamentApp* app, OBJID id, GeometryInfo& info)
 
 	if (hasOrientation) {
 		vbBuilder.attribute(filament::VertexAttribute::TANGENTS, 1, VertexBuffer::AttributeType::FLOAT4);
-		vbBuilder.normalized(filament::VertexAttribute::TANGENTS);
+		//vbBuilder.normalized(filament::VertexAttribute::TANGENTS);
 	}
 
 	auto vb = vbBuilder.build(*app->engine);
@@ -674,11 +676,22 @@ bool GetGraphicContext(FilamentApp* app, GraphicContextInfo& info)
 	if (backend == Backend::OPENGL) {
 #ifdef _WINDOWS
 		auto plat = dynamic_cast<PlatformWGL*>(app->engine->getPlatform());
-		auto ctx = plat->getContext();
-		info.glCtx = ctx.glContext;
-		info.hdc = ctx.hDC;
-		return true;
+		if (plat != nullptr) {
+			auto ctx = plat->getContext();
+			info.winGL.glCtx = ctx.glContext;
+			info.winGL.hdc = ctx.hDC;
+			return true;
+		}
 #endif
+	}
+	else if (backend == Backend::VULKAN) {
+		auto plat = reinterpret_cast<VulkanPlatform*>(app->engine->getPlatform());
+		info.vulkan.instance = plat->getInstance();
+		info.vulkan.device = plat->getDevice();
+		info.vulkan.physicalDevice = plat->getPhysicalDevice();
+		info.vulkan.queueFamily = plat->getGraphicsQueueFamilyIndex();
+		info.vulkan.queue = plat->getGraphicsQueueIndex();
+		return true;
 	}
 	return false;
 }

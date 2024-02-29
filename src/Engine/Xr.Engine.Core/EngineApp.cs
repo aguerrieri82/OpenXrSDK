@@ -98,7 +98,7 @@
             //Console.WriteLine($"Render frame {_context.Frame}");
             _stats.BeginFrame();
 
-            Renderer.Render(_activeScene, _activeScene.ActiveCamera, view, false);
+            Renderer.Render(_activeScene, _activeScene.ActiveCamera, view, true);
 
             _stats.EndFrame();
 

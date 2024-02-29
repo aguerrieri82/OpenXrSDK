@@ -1,22 +1,18 @@
-﻿#if GLES
-using Silk.NET.OpenGLES;
-#else
-using Silk.NET.OpenGL;
-#endif
-
+﻿using Silk.NET.OpenGL;
 using Silk.NET.Core.Contexts;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using Xr.Engine;
 using Xr.Engine.OpenGL;
-using glTFLoader.Schema;
+using OpenXr.Framework.OpenGL;
+using OpenXr.Framework;
 
 
 
 namespace Xr.Editor
 {
-    public class GlRenderHost : RenderHost, INativeContext, IGlRenderSurface
+    public class GlRenderHost : RenderHost, INativeContext, IOpenGLDevice, IXrGraphicProvider
     {
         protected HwndSource? _hwndSource;
         protected GL? _gl;
@@ -289,10 +285,15 @@ namespace Xr.Editor
             return addr != 0;
         }
 
+        public IXrGraphicDriver CreateXrDriver()
+        {
+            return new XrOpenGLGraphicDriver(this);
+        }
+
         public GL? Gl => _gl;
 
-        public IntPtr Hdc => _hdc;
+        public nint HDc => _hdc;
 
-        public IntPtr GlCtx => _glCtx;
+        public nint GlCtx => _glCtx;
     }
 }
