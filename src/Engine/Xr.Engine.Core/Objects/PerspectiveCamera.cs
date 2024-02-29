@@ -4,7 +4,7 @@ namespace Xr.Engine
 {
     public struct CameraEye
     {
-        public Vector3 Position;
+        public Matrix4x4 Transform;
 
         public Matrix4x4 Projection;
     }

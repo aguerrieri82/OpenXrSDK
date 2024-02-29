@@ -15,9 +15,7 @@ public:
 
 #endif
 
-
-
-mat4 MatFromArray(Matrix4x4 array) {
+static inline mat4 MatFromArray(const Matrix4x4 array) {
 	return mat4(array[0], array[1], array[2], array[3],
 		array[4], array[5], array[6], array[7],
 		array[8], array[9], array[10], array[11],
@@ -26,12 +24,12 @@ mat4 MatFromArray(Matrix4x4 array) {
 
 
 #ifdef _WINDOWS
-void LogOut(void* caller, char const* msg) {
+static void LogOut(void* caller, char const* msg) {
 	OutputDebugStringA(msg);
 }
 #endif
 
-FilamentApp* Initialize(InitializeOptions& options) {
+FilamentApp* Initialize(const InitializeOptions& options) {
 
 #ifdef _WINDOWS
 	slog.e.setConsumer(LogOut, nullptr);
@@ -40,7 +38,8 @@ FilamentApp* Initialize(InitializeOptions& options) {
 	auto app = new FilamentApp();
 
 	app->materialCachePath = options.materialCachePath;
-
+	app->oneViewPerTarget = options.oneViewPerTarget;
+	
 	Engine::Config cfg;
 
 	if (options.enableStereo) {
@@ -77,7 +76,7 @@ FilamentApp* Initialize(InitializeOptions& options) {
 	if (options.windowHandle != nullptr)
 		app->swapChain = app->engine->createSwapChain(options.windowHandle, filament::SwapChain::CONFIG_HAS_STENCIL_BUFFER | filament::SwapChain::CONFIG_SRGB_COLORSPACE);
 	else
-		app->swapChain = app->engine->createSwapChain(800, 600);
+		app->swapChain = app->engine->createSwapChain(8, 8);
 
 	MaterialBuilder::init();
 
@@ -85,15 +84,20 @@ FilamentApp* Initialize(InitializeOptions& options) {
 }
 
 
-VIEWID AddView(FilamentApp* app, ViewOptions& options)
+VIEWID AddView(FilamentApp* app, const ViewOptions& options)
 {
 	auto view = app->engine->createView();
+
+	MultiSampleAntiAliasingOptions msaa;
+	msaa.enabled = options.sampleCount > 1;
+	msaa.sampleCount = options.sampleCount;
+
 	view->setBlendMode(options.blendMode);
 	view->setAntiAliasing(options.antiAliasing);
 	view->setFrustumCullingEnabled(options.frustumCullingEnabled);
 	view->setPostProcessingEnabled(options.postProcessingEnabled);
 	view->setRenderQuality(options.renderQuality);
-	view->setSampleCount(options.sampleCount);
+	view->setMultiSampleAntiAliasingOptions(msaa);
 	view->setScreenSpaceRefractionEnabled(options.screenSpaceRefractionEnabled);
 	view->setShadowingEnabled(options.shadowingEnabled);
 	view->setShadowType(options.shadowType);
@@ -105,7 +109,6 @@ VIEWID AddView(FilamentApp* app, ViewOptions& options)
 		view->setStereoscopicOptions(stereoOpt);
 	}
 
-
 	if (options.viewport.width != 0 && options.viewport.height != 0)
 		view->setViewport(filament::Viewport(options.viewport.x, options.viewport.y, options.viewport.width, options.viewport.height));
 
@@ -115,16 +118,13 @@ VIEWID AddView(FilamentApp* app, ViewOptions& options)
 	if (options.renderTargetId != -1)
 		view->setRenderTarget(app->renderTargets[options.renderTargetId]);
 
-
 	app->views.push_back({ view, options.viewport });
 
-	return app->views.size() - 1;
+	return (VIEWID)(app->views.size() - 1);
 }
 
-RTID AddRenderTarget(FilamentApp* app, RenderTargetOptions& options)
+RTID AddRenderTarget(FilamentApp* app, const RenderTargetOptions& options)
 {
-	VkImage x;
-
 	auto baseColorFactor = Texture::Builder()
 		.width(options.width)
 		.height(options.height)
@@ -153,11 +153,11 @@ RTID AddRenderTarget(FilamentApp* app, RenderTargetOptions& options)
 
 	app->engine->flushAndWait();
 
-	return app->renderTargets.size() - 1;
+	return (VIEWID)(app->renderTargets.size() - 1);
 }
 
 
-void ReleaseContext(FilamentApp* app, bool release) 
+void ReleaseContext(FilamentApp* app, bool release)
 {
 #ifdef _WINDOWS
 
@@ -175,7 +175,7 @@ void ReleaseContext(FilamentApp* app, bool release)
 
 bool isFrameBegin = false;
 
-void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count, bool wait)
+void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bool wait)
 {
 
 	Renderer::ClearOptions opt;
@@ -188,7 +188,7 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count, bool wai
 
 	bool hasMainView = false;
 
-	for (auto i = 0; i < count; i++) {
+	for (uint32_t i = 0; i < count; i++) {
 
 		auto target = targets[i];
 		auto &viewInfo = app->views[target.viewId];
@@ -198,14 +198,8 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count, bool wai
 
 		if (target.camera.isStereo) {
 
-			auto e1 = target.camera.eyes[0].relPosition;
-			auto e2 = target.camera.eyes[1].relPosition;
-
-			auto e1v = vec3<float>(e1.x, e1.y, e1.z);
-			auto e2v = vec3<float>(e2.x, e2.y, e2.z);
-
-			app->camera->setEyeModelMatrix(0, mat4::translation(e1v));
-			app->camera->setEyeModelMatrix(1, mat4::translation(e2v));
+			app->camera->setEyeModelMatrix(0, MatFromArray(target.camera.eyes[0].relTransform));
+			app->camera->setEyeModelMatrix(1, MatFromArray(target.camera.eyes[1].relTransform));
 
 			mat4 projs[2];
 			projs[0] = MatFromArray(target.camera.eyes[0].projection);
@@ -220,16 +214,17 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count, bool wai
 			viewInfo.viewport = target.viewport;
 		}
 
-		if (target.renderTargetId == -1) {
-			hasMainView = true;
-			viewInfo.view->setRenderTarget(nullptr);
+		if (!app->oneViewPerTarget)
+		{
+			if (target.renderTargetId == -1) {
+				hasMainView = true;
+				viewInfo.view->setRenderTarget(nullptr);
+			}
+			else
+				viewInfo.view->setRenderTarget(app->renderTargets[target.renderTargetId]);
 		}
-		else
-			viewInfo.view->setRenderTarget(app->renderTargets[target.renderTargetId]);
 
 		app->renderer->render(viewInfo.view);
-
-		//app->renderer->renderStandaloneView(viewInfo.view);
 	}
 
 #if _WINDOWS
@@ -243,7 +238,7 @@ void Render(FilamentApp* app, ::RenderTarget targets[], uint32_t count, bool wai
 		app->engine->flushAndWait();
 }
 
-void AddLight(FilamentApp* app, OBJID id, LightInfo& info)
+void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 {
 	auto light = EntityManager::get().create();
 	LightManager::Builder(info.type)
@@ -263,7 +258,7 @@ void AddLight(FilamentApp* app, OBJID id, LightInfo& info)
 	app->entities[id] = light;
 }
 
-void AddGeometry(FilamentApp* app, OBJID id, GeometryInfo& info)
+void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 {
 	auto ib = IndexBuffer::Builder()
 		.indexCount(info.indicesCount)
@@ -289,7 +284,7 @@ void AddGeometry(FilamentApp* app, OBJID id, GeometryInfo& info)
 
 	Geometry result;
 
-	for (auto i = 0; i < info.layout.attributeCount; i++) {
+	for (uint32_t i = 0; i < info.layout.attributeCount; i++) {
 		auto& attr = info.layout.attributes[i];
 
 		filament::VertexAttribute va;
@@ -386,12 +381,12 @@ void AddGroup(FilamentApp* app, OBJID id) {
 
 	auto group = EntityManager::get().create();
 	auto& tcm = app->engine->getTransformManager();
-	tcm.create(group);
+	//tcm.create(group);
 	app->scene->addEntity(group);
 	app->entities[id] = group;
 }
 
-void AddMesh(FilamentApp* app, OBJID id, MeshInfo& info)
+void AddMesh(FilamentApp* app, OBJID id, const MeshInfo& info)
 {
 	auto mesh = EntityManager::get().create();
 
@@ -408,7 +403,7 @@ void AddMesh(FilamentApp* app, OBJID id, MeshInfo& info)
 		.build(*app->engine, mesh);
 
 	auto& tcm = app->engine->getTransformManager();
-	tcm.create(mesh);
+	//tcm.create(mesh);
 	app->scene->addEntity(mesh);
 	app->entities[id] = mesh;
 }
@@ -416,14 +411,14 @@ void AddMesh(FilamentApp* app, OBJID id, MeshInfo& info)
 void SetObjParent(FilamentApp* app, OBJID id, OBJID parentId)
 {
 	auto& tcm = app->engine->getTransformManager();
-	auto parentObj = app->entities[parentId];
-	auto obj = app->entities[id];
+	auto& parentObj = app->entities[parentId];
+	auto& obj = app->entities[id];
 	auto parentInstance = tcm.getInstance(parentObj);
 	auto objInstance = tcm.getInstance(obj);
 	tcm.setParent(objInstance, parentInstance);
 }
 
-Texture* CreateTexture(FilamentApp* app, TextureInfo& info) {
+static Texture* CreateTexture(FilamentApp* app, const TextureInfo& info) {
 
 	auto texture = Texture::Builder()
 		.width(info.width)
@@ -442,7 +437,7 @@ Texture* CreateTexture(FilamentApp* app, TextureInfo& info) {
 	return texture;
 }
 
-void replaceAll(std::string& shader, const std::string& from, const std::string& to) {
+static void replaceAll(std::string& shader, const std::string& from, const std::string& to) {
 
 	size_t pos = shader.find(from);
 	for (; pos != std::string::npos; pos = shader.find(from, pos)) {
@@ -450,7 +445,7 @@ void replaceAll(std::string& shader, const std::string& from, const std::string&
 	}
 }
 
-Package BuildMaterialDebug(FilamentApp* app, ::MaterialInfo& info) {
+static Package BuildMaterialDebug(FilamentApp* app, const ::MaterialInfo& info) {
 	MaterialBuilder builder;
 	builder
 		.name("Normal")
@@ -480,7 +475,7 @@ Package BuildMaterialDebug(FilamentApp* app, ::MaterialInfo& info) {
 }
 
 
-Package BuildMaterial(FilamentApp* app, ::MaterialInfo& info) {
+static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 	bool hasUV = false;
 
 	MaterialBuilder builder;
@@ -598,9 +593,11 @@ Package BuildMaterial(FilamentApp* app, ::MaterialInfo& info) {
 }
 
 
-void AddMaterial(FilamentApp* app, OBJID id, ::MaterialInfo& info)
+void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcept(false)
 {
-	std::string hash("pbr_v1");
+	std::string hash("pbr_v1_p");
+
+	hash += std::to_string((int)app->engine->getBackend());
 
 	if (info.normalMap.data.data != nullptr)
 		hash += "_nm";
@@ -613,6 +610,9 @@ void AddMaterial(FilamentApp* app, OBJID id, ::MaterialInfo& info)
 
 	if (info.aoMap.data.data != nullptr)
 		hash += "_aom";
+
+	if (app->isStereo)
+		hash += "_st";
 
 	Material* flMat;
 
@@ -630,7 +630,7 @@ void AddMaterial(FilamentApp* app, OBJID id, ::MaterialInfo& info)
 				FILE* fd;
 				
 				if (fopen_s(&fd, fileName.c_str(), "rb") != 0)
-					throw "";
+					throw "Backed material open failed";
 
 				fseek(fd, 0L, SEEK_END);
 				auto sz = ftell(fd);
@@ -732,13 +732,12 @@ bool GetGraphicContext(FilamentApp* app, GraphicContextInfo& info)
 	return false;
 }
 
-void SetObjTransform(FilamentApp* app, OBJID id, Matrix4x4 matrix)
+void SetObjTransform(FilamentApp* app, OBJID id, const Matrix4x4 matrix)
 {
-	auto mat = MatFromArray(matrix);
 	auto& tcm = app->engine->getTransformManager();
-	auto obj = app->entities[id];
+	auto& obj = app->entities[id];
 	auto instance = tcm.getInstance(obj);
-	tcm.setTransform(instance, mat);
+	tcm.setTransform(instance, MatFromArray(matrix));
 }
 
 

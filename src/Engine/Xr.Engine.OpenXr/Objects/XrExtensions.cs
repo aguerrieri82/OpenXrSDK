@@ -52,6 +52,10 @@ namespace Xr.Engine.OpenXr
         {
             var renderer = (FilamentRender)app.Renderer!;
 
+            var headViews = new View[2];
+            for (var i = 0; i < 2; i++)
+                headViews[i].Type = StructureType.View;
+
             void RenderView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader*[] images, XrRenderMode mode, long predTime)
             {
                 nint imagePtr;
@@ -83,7 +87,6 @@ namespace Xr.Engine.OpenXr
 
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 
-
                 if (mode == XrRenderMode.SingleEye)
                 {
                     for (var i = 0; i < images.Length; i++)
@@ -101,10 +104,10 @@ namespace Xr.Engine.OpenXr
                         var transform = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
 
                         camera.Projection = transform.Projection;
-                        camera.View = transform.View;
+                        camera.WorldMatrix = transform.Transform;
 
                         if (i == 0)
-                            app.RenderFrame(rect);
+                            app.RenderFrame(rect, false);
                         else
                             renderer.Render(app.ActiveScene, camera, rect, true);
                     }
@@ -126,30 +129,24 @@ namespace Xr.Engine.OpenXr
 
                     camera.Eyes ??= new CameraEye[2];
 
+                    //TODO improve head-rel views VS space-rel views xrApp.Stage is HARDCODED
+                    var headLoc = xrApp.LocateSpace(xrApp.Head, xrApp.Stage, predTime);
+
+                    xrApp!.LocateViews(xrApp.Head, predTime, headViews);
+
+                    camera.WorldMatrix = (Matrix4x4.CreateFromQuaternion(headLoc.Pose!.Orientation) *
+                                          Matrix4x4.CreateTranslation(headLoc.Pose.Position));
+
+
                     for (var i = 0; i < views.Length; i++)
                     {
-                        var transform = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
-                        if (i == 0)
-                        {
-                            camera.View = transform.View;
-                            camera.Projection = transform.Projection;
-                            camera.Eyes[0].Position = Vector3.Zero;
-    
-                        }
-                        else
-                        {
-                            Matrix4x4.Invert(transform.View, out var inverse);
-                            camera.Eyes[i].Position = camera.WorldMatrix.Translation - inverse.Translation;
-                        }
-
+                        var transform = XrCameraTransform.FromView(headViews[i], camera.Near, camera.Far);
+                        camera.Eyes[i].Transform = transform.Transform;
                         camera.Eyes[i].Projection = transform.Projection;
                     }
 
-
-
                     app.RenderFrame(rect);
                 }
-
             }
 
             xrApp.Layers.AddProjection(RenderView);
@@ -158,7 +155,6 @@ namespace Xr.Engine.OpenXr
 
             return renderer;
         }
-
 
         public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app)
         {
@@ -199,7 +195,6 @@ namespace Xr.Engine.OpenXr
                     throw new NotSupportedException();
 
                 renderer = new OpenGLRender(gl);
-                renderer.EnableDebug();
                 app.Renderer = renderer;
             }
             else
@@ -226,10 +221,10 @@ namespace Xr.Engine.OpenXr
                         var transform = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
 
                         camera.Projection = transform.Projection;
-                        camera.View = transform.View;
+                        camera.WorldMatrix = transform.Transform;
 
                         if (i == 0)
-                            app.RenderFrame(rect);
+                            app.RenderFrame(rect, false);
                         else
                             app.Renderer.Render(app.ActiveScene, camera, rect, true);
 
@@ -256,7 +251,7 @@ namespace Xr.Engine.OpenXr
                     renderer.SetRenderTarget(renderTarget);
 
                     camera.Projection = transforms[0].Projection;
-                    camera.View = transforms[0].View;
+                    camera.WorldMatrix = transforms[0].Transform;
 
                     app.RenderFrame(rect);
                 }

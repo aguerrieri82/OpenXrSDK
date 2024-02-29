@@ -44,9 +44,7 @@ namespace OpenXr.Framework
         {
             if (result != Result.Success)
                 throw new OpenXrException(result, context);
-
             //_logger.LogDebug("{context} OK", context);
-
             return true;
         }
 
@@ -479,8 +477,12 @@ namespace OpenXr.Framework
             return space;
         }
 
-
         protected ViewState LocateViews(Space space, long displayTime)
+        {
+            return LocateViews(space, displayTime, _views!);
+        }
+
+        public ViewState LocateViews(Space space, long displayTime, View[] views)
         {
             Debug.Assert(_viewInfo != null);
 
@@ -497,9 +499,9 @@ namespace OpenXr.Framework
                 Type = StructureType.ViewState
             };
 
-            uint count = (uint)_viewInfo.ViewCount;
+            uint count = (uint)views.Length;
 
-            fixed (View* pViews = _views)
+            fixed (View* pViews = views)
                 CheckResult(_xr!.LocateView(_session, in info, ref state, count, ref count, pViews), "LocateView");
 
             return state;

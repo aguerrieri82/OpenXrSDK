@@ -69,6 +69,7 @@ struct InitializeOptions {
 	void* context;
 	const char materialCachePath[256];
 	bool enableStereo;
+	bool oneViewPerTarget;
 };
 
 
@@ -121,7 +122,7 @@ struct RenderTargetOptions {
 };
 
 struct CameraEyeInfo {
-	Vector3 relPosition;
+	Matrix4x4 relTransform;
 	Matrix4x4 projection;
 };
 
@@ -172,9 +173,9 @@ struct VertexLayout {
 
 struct GeometryInfo {
 	uint32_t* indices;
-	size_t indicesCount;
+	uint32_t indicesCount;
 	uint8_t* vertices;
-	size_t verticesCount;
+	uint32_t verticesCount;
 	VertexLayout layout;
 	Bounds3 bounds;
 };
@@ -251,4 +252,5 @@ struct FilamentApp {
 	std::map<std::string, Material*> materials;
 	std::string materialCachePath;
 	bool isStereo;
+	bool oneViewPerTarget;
 };

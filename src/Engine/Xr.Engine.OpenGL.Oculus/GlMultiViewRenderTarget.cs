@@ -51,8 +51,8 @@ namespace Xr.Engine.OpenGL.Oculus
         {
             _matrices.Projection1 = eyes[0].Projection;
             _matrices.Projection2 = eyes[1].Projection;
-            _matrices.View1 = eyes[0].View;
-            _matrices.View2 = eyes[1].View;
+            Matrix4x4.Invert(eyes[0].Transform, out _matrices.View1);
+            Matrix4x4.Invert(eyes[1].Transform, out _matrices.View2);
         }
 
         public void UpdateShader(ShaderUpdateBuilder bld)

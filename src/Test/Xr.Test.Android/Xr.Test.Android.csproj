@@ -21,7 +21,6 @@
 		<AndroidEnableProfiledAot>True</AndroidEnableProfiledAot>
 	</PropertyGroup>
 
-
 	<ItemGroup>
 		<ProjectReference Include="..\..\Engine\Xr.Engine.Filament\Xr.Engine.Filament.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />

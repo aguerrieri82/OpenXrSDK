@@ -79,29 +79,26 @@
                 return;
         }
 
-        public void RenderFrame(Rect2I view)
+        public void RenderFrame(Rect2I view, bool flush = true)
         {
+            if (_activeScene == null || _activeScene.ActiveCamera == null || Renderer == null)
+                return;
+
             _context.Frame++;
             _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
 
-            if (_activeScene == null)
-                return;
-
             _activeScene.Update(_context);
 
-            if (_activeScene.ActiveCamera == null)
-                return;
-
-            if (Renderer == null)
-                return;
-
-            //Console.WriteLine($"Render frame {_context.Frame}");
             _stats.BeginFrame();
 
-            Renderer.Render(_activeScene, _activeScene.ActiveCamera, view, true);
-
-            _stats.EndFrame();
-
+            try
+            {
+                Renderer.Render(_activeScene, _activeScene.ActiveCamera, view, flush);
+            }
+            finally
+            {
+                _stats.EndFrame();
+            }
         }
 
         public ICollection<IObjectChangeListener> ChangeListeners => _changeListeners;
