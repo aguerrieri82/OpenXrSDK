@@ -7,6 +7,8 @@ using Silk.NET.OpenGL;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Diagnostics;
+using System;
 
 
 namespace Xr.Engine.OpenGL
@@ -117,7 +119,12 @@ namespace Xr.Engine.OpenGL
             if (!_curLocations!.TryGetValue(name, out var result))
             {
                 if (isBlock)
+                {
                     result = (int)_gl.GetUniformBlockIndex(_handle, name);
+                    if (result != -1)
+                        _gl.UniformBlockBinding(_handle, (uint)result, (uint)result);
+                }
+             
                 else
                     result = _gl.GetUniformLocation(_handle, name);
                 if (result == -1 && !optional)
@@ -143,6 +150,7 @@ namespace Xr.Engine.OpenGL
 
         public unsafe void SetUniform(string name, Matrix4x4 value, bool optional = false)
         {
+
             _gl.UniformMatrix4(LocateUniform(name, optional), 1, false, (float*)&value);
         }
 
@@ -161,18 +169,48 @@ namespace Xr.Engine.OpenGL
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
-        public void SetUniform(string name, IBuffer buffer, bool optional = false)
+        public unsafe void SetUniformBuffer<T>(string name, T data, bool optional = false, bool updateBuffer = false) 
         {
-            _gl.BindBufferBase(BufferTargetARB.UniformBuffer, (uint)LocateUniform(name, optional, true), ((GlObject)buffer).Handle);
+            var buffer = GetBuffer<T>(name);
+
+            if (updateBuffer)
+            {
+                if (data is IDynamicBuffer dynamic)
+                {
+                    using var dynBuffer = dynamic.GetBuffer();
+                    buffer.Update(dynBuffer.Data, dynBuffer.Size);
+                }
+                else
+                    buffer.Update(new Span<T>(ref data));
+            }
+            else
+                SetUniform(name, (IBuffer)buffer, optional);
         }
 
-        public unsafe void SetUniform(string name, Texture2D value, int slot = 0, bool optional = false)
+        protected virtual GlBuffer<T> GetBuffer<T>(string name) 
+        {
+            throw new NotSupportedException();
+        }
+
+        public void SetUniform(string name, IBuffer buffer, bool optional = false)
+        {
+            var index = (uint)LocateUniform(name, optional, true);
+
+            _gl.BindBufferBase(BufferTargetARB.UniformBuffer, index, ((GlObject)buffer).Handle);
+        }
+
+        public void LoadTexture(Texture2D value, int slot = 0)
         {
             _gl.ActiveTexture(TextureUnit.Texture0 + slot);
 
             var texture = value.GetResource(a => value.CreateGlTexture(_gl, OpenGLRender.Current!.Options.RequireTextureCompression));
 
             texture.Bind();
+        }
+
+        public unsafe void SetUniform(string name, Texture2D value, int slot = 0, bool optional = false)
+        {
+            LoadTexture(value, slot);
 
             SetUniform(name, slot, optional);
         }
@@ -268,5 +306,6 @@ namespace Xr.Engine.OpenGL
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]
         protected static partial Regex IncludeRegex();
 
+      
     }
 }

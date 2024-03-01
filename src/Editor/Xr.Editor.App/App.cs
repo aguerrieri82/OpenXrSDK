@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using OpenXr.Framework;
+using System.Windows;
 using Xr.Editor.Components;
 
 namespace Xr.Editor
@@ -21,6 +22,8 @@ namespace Xr.Editor
         [STAThread]
         public static void Main()
         {
+            Gpu.EnableNvAPi();
+
             Context.Implement<PanelManager>();
             Context.Implement<IMainDispatcher>(new MainDispatcher());
 
@@ -29,7 +32,7 @@ namespace Xr.Editor
             var window = new Window
             {
                 Title = "Xr Editor",
-                Content = new MainView(new FlGlRenderHost())
+                Content = new MainView(new GlRenderHost())
             };
 
 

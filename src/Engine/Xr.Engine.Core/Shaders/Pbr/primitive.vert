@@ -1,10 +1,16 @@
 #include <animation.glsl>
 
 
-uniform mat4 u_ViewProjectionMatrix;
-uniform mat4 u_ModelMatrix;
-uniform mat4 u_NormalMatrix;
+uniform mat4 uModelMatrix;
+uniform mat4 uNormalMatrix;
 
+layout(std140) uniform Camera {
+    mat4 ViewMatrix;
+    mat4 ProjectionMatrix;
+    mat4 ViewProjectionMatrix;
+    vec3 Position;
+    float Exposure;
+} uCamera;
  
 layout (location = 0) in vec3 a_position;
 out vec3 v_Position;
@@ -66,7 +72,7 @@ out vec4 v_Color;
 #else
     mat4 getViewProj() 
     {
-       return u_ViewProjectionMatrix;
+       return uCamera.ViewProjectionMatrix;
     }
 #endif
 
@@ -127,18 +133,18 @@ vec3 getTangent()
 void main()
 {
     gl_PointSize = 1.0f;
-    vec4 pos = u_ModelMatrix * getPosition();
+    vec4 pos = uModelMatrix * getPosition();
     v_Position = vec3(pos.xyz) / pos.w;
 
 #ifdef HAS_NORMAL_VEC3
 #ifdef HAS_TANGENT_VEC4
     vec3 tangent = getTangent();
-    vec3 normalW = normalize(vec3(u_NormalMatrix * vec4(getNormal(), 0.0)));
-    vec3 tangentW = normalize(vec3(u_ModelMatrix * vec4(tangent, 0.0)));
+    vec3 normalW = normalize(vec3(uNormalMatrix * vec4(getNormal(), 0.0)));
+    vec3 tangentW = normalize(vec3(uModelMatrix * vec4(tangent, 0.0)));
     vec3 bitangentW = cross(normalW, tangentW) * a_tangent.w;
     v_TBN = mat3(tangentW, bitangentW, normalW);
 #else
-    v_Normal = normalize(vec3(u_NormalMatrix * vec4(getNormal(), 0.0)));
+    v_Normal = normalize(vec3(uNormalMatrix * vec4(getNormal(), 0.0)));
 #endif
 #endif
 

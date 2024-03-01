@@ -34,7 +34,6 @@ namespace Xr.Engine.OpenGL
 
             vSource = ShaderPreprocessor.ParseShader(vSource);
 
-
             Vertex = new GlShader(_gl, ShaderType.VertexShader, vSource);
             Fragment = new GlShader(_gl, ShaderType.FragmentShader, fSource);
 

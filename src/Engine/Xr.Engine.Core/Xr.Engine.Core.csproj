@@ -9,6 +9,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Shaders\Pbr\uniforms.glsl" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.1.8" />
 	</ItemGroup>
 

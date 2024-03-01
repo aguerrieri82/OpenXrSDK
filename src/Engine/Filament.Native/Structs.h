@@ -119,6 +119,7 @@ struct RenderTargetOptions {
 	uint32_t height;
 	uint32_t sampleCount;
 	filament::Texture::InternalFormat format;
+	uint32_t depth;
 };
 
 struct CameraEyeInfo {

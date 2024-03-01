@@ -4,6 +4,8 @@ namespace Xr.Engine
 {
     public interface IUniformProvider
     {
+        void SetUniformBuffer<T>(string name, T data, bool optional = false, bool updateBuffer = false);
+
         void SetUniform(string name, int value, bool optional = false);
 
         void SetUniform(string name, Matrix4x4 value, bool optional = false);
@@ -17,6 +19,8 @@ namespace Xr.Engine
         void SetUniform(string name, Color value, bool optional = false);
 
         void SetUniform(string name, Texture2D value, int slot = 0, bool optional = false);
+
+        void LoadTexture(Texture2D value, int slot = 0);
 
         void SetUniform(string name, float[] value, bool optional = false);
 

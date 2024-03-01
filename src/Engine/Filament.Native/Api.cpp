@@ -130,6 +130,8 @@ RTID AddRenderTarget(FilamentApp* app, const RenderTargetOptions& options)
 		.width(options.width)
 		.height(options.height)
 		.levels(1)
+		.sampler(options.depth > 1 ? Texture::Sampler::SAMPLER_2D_ARRAY : Texture::Sampler::SAMPLER_2D)
+		.depth(options.depth)
 		.usage(filament::Texture::Usage::COLOR_ATTACHMENT | filament::Texture::Usage::SAMPLEABLE)
 		.format(options.format)
 		.import(options.textureId)
@@ -141,6 +143,8 @@ RTID AddRenderTarget(FilamentApp* app, const RenderTargetOptions& options)
 		.width(options.width)
 		.height(options.height)
 		.levels(1)
+		.sampler(options.depth > 1 ? Texture::Sampler::SAMPLER_2D_ARRAY : Texture::Sampler::SAMPLER_2D)
+		.depth(options.depth)
 		.usage(filament::Texture::Usage::DEPTH_ATTACHMENT)
 		.format(filament::Texture::InternalFormat::DEPTH24)
 		.build(*app->engine);
@@ -214,12 +218,13 @@ void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bo
 			viewInfo.viewport = target.viewport;
 		}
 
+		if (target.renderTargetId == -1)
+			hasMainView = true;
+
 		if (!app->oneViewPerTarget)
 		{
-			if (target.renderTargetId == -1) {
-				hasMainView = true;
+			if (target.renderTargetId == -1) 
 				viewInfo.view->setRenderTarget(nullptr);
-			}
 			else
 				viewInfo.view->setRenderTarget(app->renderTargets[target.renderTargetId]);
 		}

@@ -62,6 +62,7 @@ namespace Xr.Editor
         public void LoadScene()
         {
             _app = SampleScenes.CreateSimpleScene(new LocalAssetManager("Assets"));
+            _app.ActiveScene!.ActiveCamera!.BackgroundColor = new Color(0, 1, 0, 1);
 
             var cube = _app.ActiveScene!.FindByName<Object3D>("mesh");
             if (cube != null)
@@ -71,8 +72,7 @@ namespace Xr.Editor
             }
 
             var quad = _app.ActiveScene!.FindByName<Object3D>("quad");
-            if (quad != null)
-                quad.AddComponent(new FollowCamera { Offset = new Vector3(0, 0, -2) });
+            quad?.AddComponent(new FollowCamera { Offset = new Vector3(0, 0, -2) });
 
             _app.Start();
 

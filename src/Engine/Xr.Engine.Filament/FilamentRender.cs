@@ -50,6 +50,7 @@ namespace Xr.Engine.Filament
         protected Content? _content;
         protected FlBackend _driver;
         protected bool _oneViewPerTarget;
+        protected uint _renderTargetDepth;
 
         public FilamentRender(FilamentOptions options)
         {
@@ -65,6 +66,12 @@ namespace Xr.Engine.Filament
                 EnableStereo = options.EnableStereo,
                 OneViewPerTarget = options.OneViewPerTarget
             };
+
+            _renderTargetDepth = 1;
+            /*
+            if (options.EnableStereo && options.Driver == FlBackend.OpenGL)
+                _renderTargetDepth = 2;
+            */
 
             _oneViewPerTarget = options.OneViewPerTarget;
 
@@ -128,7 +135,7 @@ namespace Xr.Engine.Filament
             return AddView(_app, ref viewOpt);
         }
 
-        public void SetRenderTarget(uint width, uint height, IntPtr imageId, FilamentLib.FlTextureInternalFormat format)
+        public void SetRenderTarget(uint width, uint height, IntPtr imageId, FlTextureInternalFormat format)
         {
             if (!_renderTargets.TryGetValue(imageId, out var rtBind))
             {
@@ -138,7 +145,8 @@ namespace Xr.Engine.Filament
                     Height = height,
                     SampleCount = 1,
                     TextureId = imageId,
-                    Format = format
+                    Format = format,
+                    Depth = _renderTargetDepth
                 };
 
                 rtBind = new RenderTargetBind

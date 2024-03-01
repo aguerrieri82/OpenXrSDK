@@ -13,6 +13,10 @@
 		<AssemblyName>Xr.Engine.OpenGL</AssemblyName>
 	</PropertyGroup>
 	
+	<PropertyGroup Condition="'$(Configuration)'=='DebugGL'">
+	  <DefineConstants>$(DefineConstants);DEBUG;</DefineConstants>
+	</PropertyGroup>
+		
 
 	<ItemGroup Condition="'$(OpenGL)' == 'ES'">
 		<PackageReference Include="Silk.NET.OpenGLES" Version="2.20.0" />

@@ -163,6 +163,7 @@ namespace Xr.Engine.Filament
             public uint Height;
             public uint SampleCount;
             public FlTextureInternalFormat Format;
+            public uint Depth;
         }
 
         public struct RenderTarget

@@ -33,8 +33,7 @@
 
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)
         {
-            return lastUpdate.MaterialVersion != Version ||
-                   (_shader!.IsLit && lastUpdate.LightsVersion != ctx.LightsVersion);
+            return lastUpdate.MaterialVersion != Version;
         }
 
         public virtual void UpdateShader(ShaderUpdateBuilder bld)
