@@ -84,7 +84,7 @@ namespace OpenXr.Samples
 
             room.Transform.SetScale(1f);
             room.Transform.Position = new Vector3(0, 1, 0);
-        
+
             scene.AddChild(room);
             /*
              foreach (var child in room.Descendants<TriangleMesh>())

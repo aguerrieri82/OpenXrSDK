@@ -2,12 +2,13 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using System.Runtime.InteropServices;
 #endif
 
 
 namespace Xr.Engine.OpenGL
 {
-    public class GlBuffer<T> : GlObject, IBuffer where T : unmanaged
+    public class GlBuffer<T> : GlObject, IBuffer 
     {
         private readonly BufferTargetARB _bufferType;
         private uint _length;
@@ -29,13 +30,25 @@ namespace Xr.Engine.OpenGL
             Update(data);
         }
 
-        public unsafe void Update(Span<T> data)
+        public unsafe void Update(IntPtr data, int size)
         {
             Bind();
 
-            _gl.BufferData<T>(_bufferType, data, BufferUsageARB.StaticDraw);
+            var byteSpan = new ReadOnlySpan<byte>((byte*)data, size);
 
-            GlDebug.Log($"BufferData {_bufferType}");
+            _gl.BufferData(_bufferType, byteSpan, BufferUsageARB.StaticDraw);
+
+            _length = (uint)size;
+
+            Unbind();
+        }
+
+        public unsafe void Update(ReadOnlySpan<T> data)
+        {
+            Bind();
+     
+            fixed (T* pData = &data[0])
+                Update(new nint(pData), data.Length * sizeof(T));
 
             _length = (uint)data.Length;
 

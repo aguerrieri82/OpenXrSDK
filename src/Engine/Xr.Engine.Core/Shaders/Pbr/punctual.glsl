@@ -22,7 +22,12 @@ const int LightType_Spot = 2;
 
 
 #ifdef USE_PUNCTUAL
-uniform Light u_Lights[LIGHT_COUNT + 1]; //Array [0] is not allowed
+
+layout(std140) uniform Lights{
+  int count;
+  Light values[MAX_LIGHTS];
+} uLights;
+
 #endif
 
 

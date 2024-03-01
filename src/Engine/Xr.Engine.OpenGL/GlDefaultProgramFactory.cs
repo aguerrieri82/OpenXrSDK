@@ -13,6 +13,10 @@ namespace Xr.Engine.OpenGL
         {
             var shader = material.Shader!;
             var resolver = shader.Resolver!;
+            
+            if (material is PbrMaterial pbr)
+                return new GlPbrProgram(gl, resolver(shader.VertexSourceName!), resolver(shader.FragmentSourceName!), resolver); 
+
             return new GlSimpleProgram(gl, resolver(shader.VertexSourceName!), resolver(shader.FragmentSourceName!), resolver);
         }
     }

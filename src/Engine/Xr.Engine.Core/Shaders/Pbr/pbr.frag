@@ -17,6 +17,7 @@
 precision highp float;
 
 
+#include <uniforms.glsl>
 #include <tonemapping.glsl>
 #include <textures.glsl>
 #include <functions.glsl>
@@ -25,23 +26,23 @@ precision highp float;
 #include <ibl.glsl>
 #include <material_info.glsl>
 
+
 #ifdef MATERIAL_IRIDESCENCE
 #include <iridescence.glsl>
 #endif
 
-
 out vec4 g_finalColor;
-
 
 void main()
 {
     vec4 baseColor = getBaseColor();
 
+
 #if ALPHAMODE == ALPHAMODE_OPAQUE
     baseColor.a = 1.0;
 #endif
 
-    vec3 v = normalize(u_Camera - v_Position);
+    vec3 v = normalize(uCamera.Position - v_Position);
     NormalInfo normalInfo = getNormalInfo(v);
     vec3 n = normalInfo.n;
     vec3 t = normalInfo.t;
@@ -163,7 +164,7 @@ void main()
         n, v,
         materialInfo.perceptualRoughness,
         materialInfo.c_diff, materialInfo.f0, materialInfo.f90,
-        v_Position, u_ModelMatrix, u_ViewMatrix, u_ProjectionMatrix,
+        v_Position, uModelMatrix, uCamera.ViewMatrix, uCamera.ProjectionMatrix,
         materialInfo.ior, materialInfo.thickness, materialInfo.attenuationColor, materialInfo.attenuationDistance);
 #endif
 
@@ -177,9 +178,9 @@ void main()
     f_clearcoat = vec3(0.0);
 
 #ifdef USE_PUNCTUAL
-    for (int i = 0; i < LIGHT_COUNT; ++i)
+    for (int i = 0; i < uLights.count; ++i)
     {
-        Light light = u_Lights[i];
+        Light light = uLights.values[i];
 
         vec3 pointToLight;
         if (light.type != LightType_Directional)
@@ -231,7 +232,7 @@ void main()
 #ifdef MATERIAL_TRANSMISSION
         // If the light ray travels through the geometry, use the point it exits the geometry again.
         // That will change the angle to the light source, if the material refracts the light ray.
-        vec3 transmissionRay = getVolumeTransmissionRay(n, v, materialInfo.thickness, materialInfo.ior, u_ModelMatrix);
+        vec3 transmissionRay = getVolumeTransmissionRay(n, v, materialInfo.thickness, materialInfo.ior, uModelMatrix);
         pointToLight -= transmissionRay;
         l = normalize(pointToLight);
 
@@ -247,12 +248,12 @@ void main()
     }
 #endif
 
-    f_emissive = u_EmissiveFactor;
+    f_emissive = uMaterial.EmissiveFactor;
 #ifdef MATERIAL_EMISSIVE_STRENGTH
-    f_emissive *= u_EmissiveStrength;
+    f_emissive *= uMaterial.EmissiveStrength;
 #endif
 #ifdef HAS_EMISSIVE_MAP
-    f_emissive *= texture(u_EmissiveSampler, getEmissiveUV()).rgb;
+    f_emissive *= texture(uEmissiveSampler, getEmissiveUV()).rgb;
 #endif
 
     // Layer blending
@@ -267,20 +268,20 @@ void main()
     float ao = 1.0;
     // Apply optional PBR terms for additional (optional) shading
 #ifdef HAS_OCCLUSION_MAP
-    ao = texture(u_OcclusionSampler, getOcclusionUV()).r;
+    ao = texture(uOcclusionSampler, getOcclusionUV()).r;
     #ifdef USE_IBL
 
-        diffuse = f_diffuse + mix(f_diffuse_ibl, f_diffuse_ibl * ao, u_OcclusionStrength);
+        diffuse = f_diffuse + mix(f_diffuse_ibl, f_diffuse_ibl * ao, uMaterial.OcclusionStrength);
         // apply ambient occlusion to all lighting that is not punctual
-        specular = f_specular + mix(f_specular_ibl, f_specular_ibl * ao, u_OcclusionStrength);
-        sheen = f_sheen + mix(f_sheen_ibl, f_sheen_ibl * ao, u_OcclusionStrength);
-        clearcoat = f_clearcoat + mix(f_clearcoat_ibl, f_clearcoat_ibl * ao, u_OcclusionStrength);
+        specular = f_specular + mix(f_specular_ibl, f_specular_ibl * ao, uMaterial.OcclusionStrength);
+        sheen = f_sheen + mix(f_sheen_ibl, f_sheen_ibl * ao, uMaterial.OcclusionStrength);
+        clearcoat = f_clearcoat + mix(f_clearcoat_ibl, f_clearcoat_ibl * ao, uMaterial.OcclusionStrength);
     #else
-        diffuse = f_diffuse * clamp(ao + (1.0 - u_OcclusionStrength), 0.0, 1.0);
-        specular = f_specular * clamp(ao + (1.0 - u_OcclusionStrength), 0.0, 1.0);
-        //specular = f_specular + mix(f_specular_ibl, f_specular_ibl * ao, u_OcclusionStrength);
-        //sheen = f_sheen + mix(f_sheen_ibl, f_sheen_ibl * ao, u_OcclusionStrength);
-        //clearcoat = f_clearcoat + mix(f_clearcoat_ibl, f_clearcoat_ibl * ao, u_OcclusionStrength);
+        diffuse = f_diffuse * clamp(ao + (1.0 - uMaterial.OcclusionStrength), 0.0, 1.0);
+        specular = f_specular * clamp(ao + (1.0 - uMaterial.OcclusionStrength), 0.0, 1.0);
+        //specular = f_specular + mix(f_specular_ibl, f_specular_ibl * ao, uMaterial.OcclusionStrength);
+        //sheen = f_sheen + mix(f_sheen_ibl, f_sheen_ibl * ao, uMaterial.OcclusionStrength);
+        //clearcoat = f_clearcoat + mix(f_clearcoat_ibl, f_clearcoat_ibl * ao, uMaterial.OcclusionStrength);
     #endif
 
 #else
@@ -313,7 +314,7 @@ void main()
 
 #if ALPHAMODE == ALPHAMODE_MASK
     // Late discard to avoid samplig artifacts. See https://github.com/KhronosGroup/glTF-Sample-Viewer/issues/267
-    if (baseColor.a < u_AlphaCutoff)
+    if (baseColor.a < uMaterial.AlphaCutoff)
     {
        // discard;
     }
@@ -430,9 +431,9 @@ void main()
 #if DEBUG == DEBUG_SPECULAR_COLOR
 vec3 specularTexture = vec3(1.0);
 #ifdef HAS_SPECULAR_COLOR_MAP
-    specularTexture.rgb = texture(u_SpecularColorSampler, getSpecularColorUV()).rgb;
+    specularTexture.rgb = texture(uSpecularColorSampler, getSpecularColorUV()).rgb;
 #endif
-    g_finalColor.rgb = u_KHR_materials_specular_specularColorFactor * specularTexture.rgb;
+    g_finalColor.rgb = uMaterial.KHR_materials_specular_specularColorFactor * specularTexture.rgb;
 #endif
 #endif
 
@@ -447,7 +448,7 @@ vec3 specularTexture = vec3(1.0);
 #endif
 #ifdef MATERIAL_VOLUME
 #if DEBUG == DEBUG_VOLUME_THICKNESS
-    g_finalColor.rgb = vec3(materialInfo.thickness / u_ThicknessFactor);
+    g_finalColor.rgb = vec3(materialInfo.thickness / uMaterial.ThicknessFactor);
 #endif
 #endif
 
@@ -472,10 +473,10 @@ vec3 specularTexture = vec3(1.0);
 #if DEBUG == DEBUG_ANISOTROPIC_DIRECTION
     vec2 direction = vec2(1.0, 0.0);
 #ifdef HAS_ANISOTROPY_MAP
-    direction = texture(u_AnisotropySampler, getAnisotropyUV()).xy;
+    direction = texture(uAnisotropySampler, getAnisotropyUV()).xy;
     direction = direction * 2.0 - vec2(1.0); // [0, 1] -> [-1, 1]
 #endif
-    vec2 directionRotation = u_Anisotropy.xy; // cos(theta), sin(theta)
+    vec2 directionRotation = uMaterial.Anisotropy.xy; // cos(theta), sin(theta)
     mat2 rotationMatrix = mat2(directionRotation.x, directionRotation.y, -directionRotation.y, directionRotation.x);
     direction = (direction + vec2(1.0)) * 0.5; // [-1, 1] -> [0, 1]
 

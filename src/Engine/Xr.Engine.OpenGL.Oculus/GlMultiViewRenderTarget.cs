@@ -70,5 +70,10 @@ namespace Xr.Engine.OpenGL.Oculus
                 return (IBuffer)_sceneMatrices;
             });
         }
+
+        public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)
+        {
+            return true;
+        }
     }
 }

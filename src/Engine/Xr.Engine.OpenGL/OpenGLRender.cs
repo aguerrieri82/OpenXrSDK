@@ -6,6 +6,7 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Text;
 
 
@@ -27,6 +28,10 @@ namespace Xr.Engine.OpenGL
     {
         public GlProgram? Program;
 
+        public IShaderHandler? GlobalHandler;
+
+        public ShaderUpdate? LastUpdate { get; set; }
+
         public readonly Dictionary<Object3D, VertexContent> Contents = [];
     }
 
@@ -46,7 +51,6 @@ namespace Xr.Engine.OpenGL
         public ShaderMaterial? Material;
 
         public Action? Draw;
-
         public ShaderUpdate? LastUpdate { get; set; }
         public int DrawId { get; set; }
     }
@@ -97,7 +101,6 @@ namespace Xr.Engine.OpenGL
 
         public void ReleaseContext(bool release)
         {
-
         }
 
         public void Clear(Color color)
@@ -137,6 +140,11 @@ namespace Xr.Engine.OpenGL
                     {
                         shaderContent = new ShaderContent();
                         shaderContent.Program = GetProgram(material);
+                       
+                        var globalProp = material.GetType().GetField("GlobalHandler", BindingFlags.Static | BindingFlags.Public);
+                        if (globalProp != null)
+                            shaderContent.GlobalHandler = (IShaderHandler)globalProp.GetValue(null)!;
+
                         _content.ShaderContents[material.Shader] = shaderContent;
                     }
 
@@ -181,7 +189,7 @@ namespace Xr.Engine.OpenGL
                }
            }, 0);
 
-            // _gl.Enable(EnableCap.DebugOutput);
+            _gl.Enable(EnableCap.DebugOutput);
         }
 
         public void EnableFeature(EnableCap cap, bool value)
@@ -211,7 +219,7 @@ namespace Xr.Engine.OpenGL
                 Render(scene, camera, view, _target);
         }
 
-        protected ShaderUpdate UpdateProgram(GlProgram prog, string progId, params IShaderHandler?[] handlers)
+        protected ShaderUpdate UpdateProgram(GlProgram prog, string progId, ShaderUpdate? globalUpdate, params IShaderHandler?[] handlers)
         {
             var updateBuilder = new ShaderUpdateBuilder(_updateCtx);
 
@@ -220,7 +228,17 @@ namespace Xr.Engine.OpenGL
 
             updateBuilder.ComputeHash(progId);
 
+            if (globalUpdate?.Features != null)
+                foreach (var feature in globalUpdate.Features!)
+                    updateBuilder.AddFeature(feature);
+
+            if (globalUpdate?.Extensions != null)
+                foreach (var ext in globalUpdate.Extensions!)
+                    updateBuilder.AddExtension(ext);
+
+
             var update = updateBuilder.Result;
+
 
             prog.BeginEdit();
 
@@ -235,6 +253,20 @@ namespace Xr.Engine.OpenGL
                 foreach (var ext in update.Extensions)
                     prog.AddExtension(ext);
             }
+
+
+            if (globalUpdate?.Features != null)
+            {
+                foreach (var feature in globalUpdate.Features)
+                    prog.AddFeature(feature);
+            }
+
+            if (globalUpdate?.Features != null)
+            {
+                foreach (var feature in globalUpdate.Features)
+                    prog.AddFeature(feature);
+            }
+
 
             prog.Commit(update.FeaturesHash!);
 
@@ -320,6 +352,26 @@ namespace Xr.Engine.OpenGL
             {
                 var prog = shader.Value!.Program!;
 
+                var shUpdate = shader.Value.LastUpdate;
+
+                if (shader.Value.GlobalHandler != null)
+                {
+                    if (shUpdate == null || shader.Value.GlobalHandler.NeedUpdateShader(_updateCtx, shUpdate))
+                    {
+                        var builder = new ShaderUpdateBuilder(_updateCtx);
+
+                        shader.Value.GlobalHandler.UpdateShader(builder);
+
+                        shUpdate = builder.Result;
+                        shUpdate!.LightsVersion = _updateCtx.LightsVersion;
+
+                        shader.Value.LastUpdate = shUpdate;
+                    }
+
+                    foreach (var updateBuffer in shUpdate!.BufferUpdates!)
+                        updateBuffer(_updateCtx, prog);
+                }
+
                 foreach (var vertex in shader.Value.Contents)
                 {
                     var vHandler = vertex.Value.VertexHandler!;
@@ -359,10 +411,10 @@ namespace Xr.Engine.OpenGL
                         {
                             update = UpdateProgram(prog,
                                 draw.Material!.GetType().FullName!,
+                                shUpdate,
                                 draw.Material,
                                 targetHandler);
 
-                            update.LightsVersion = _updateCtx.LightsVersion;
                             update.MaterialVersion = draw.Material!.Version;
 
                             draw.LastUpdate = update;
@@ -370,11 +422,17 @@ namespace Xr.Engine.OpenGL
 
                         prog.Use(update.FeaturesHash!);
 
-                        if (update.Actions != null)
+                        if (shUpdate != null)
                         {
-                            foreach (var updateUniform in update.Actions)
+                            foreach (var updateUniform in shUpdate.Actions!)
                                 updateUniform(_updateCtx, prog);
                         }
+
+                        foreach (var updateBuffer in update.BufferUpdates!)
+                            updateBuffer(_updateCtx, prog);
+
+                        foreach (var updateUniform in update.Actions!)
+                            updateUniform(_updateCtx, prog);
 
                         // _gl.StencilFunc(StencilFunction.Equal, draw.DrawId, 0xFF);
 

@@ -136,7 +136,7 @@ namespace Xr.Editor
 
         protected unsafe override HandleRef BuildWindowCore(HandleRef hwndParent)
         {
-            Gpu.EnableNvAPi();
+
 
             if (DesignerProperties.GetIsInDesignMode(this))
                 return new HandleRef(null, 0);

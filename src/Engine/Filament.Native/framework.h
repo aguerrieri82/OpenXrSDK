@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <iostream>
 
+#define BACKEND_OPENGL_LEVEL_GLES31
+
 #ifdef _WINDOWS
 
 #define WIN32_LEAN_AND_MEAN             

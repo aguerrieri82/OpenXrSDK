@@ -153,6 +153,10 @@ namespace Xr.Editor
         const sbyte PFD_UNDERLAY_PLANE = -1;
 
 
+        const int WGL_CONTEXT_MAJOR_VERSION_ARB = 0x2091;
+        const int WGL_CONTEXT_MINOR_VERSION_ARB = 0x2092;
+        const int WGL_CONTEXT_PROFILE_MASK_ARB = 0x9126;
+        const int WGL_CONTEXT_CORE_PROFILE_BIT_ARB = 0x00000001;
         #endregion
 
         public GlRenderHost(bool createContext = true)
@@ -161,9 +165,8 @@ namespace Xr.Editor
             _createContext = createContext;
         }
 
-        protected virtual void CreateContext(HandleRef hwndParent)
+        protected unsafe virtual void CreateContext(HandleRef handle)
         {
-            var handle = base.BuildWindowCore(hwndParent);
             var pfd = new PIXELFORMATDESCRIPTOR
             {
                 nSize = (ushort)Marshal.SizeOf<PIXELFORMATDESCRIPTOR>(),
@@ -188,8 +191,25 @@ namespace Xr.Editor
 
             _glCtx = wglCreateContext(_hdc);
 
+          
+
             if (_glCtx == IntPtr.Zero)
                 throw new Win32Exception();
+
+            TakeContext();
+
+            var pointer = GetProcAddress("wglCreateContextAttribsARB");
+            wglCreateContextAttribsARB = Marshal.GetDelegateForFunctionPointer<wglCreateContextAttribsARBPtr>(pointer);
+
+            var attr = stackalloc int[7];
+            attr[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
+            attr[1] = 4;
+            attr[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
+            attr[3] = 0;
+            attr[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
+            attr[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+            attr[6] = 0;
+            _glCtx = wglCreateContextAttribsARB(_hdc, _glCtx, attr);
         }
 
         protected override HandleRef BuildWindowCore(HandleRef hwndParent)
@@ -197,8 +217,7 @@ namespace Xr.Editor
             var handle = base.BuildWindowCore(hwndParent);
 
             if (_createContext)
-                CreateContext(hwndParent);
-
+                CreateContext(handle);
 
             _gl = GL.GetApi(this);
 
@@ -215,6 +234,8 @@ namespace Xr.Editor
             });
 
             TakeContext();
+
+            render.EnableDebug();
 
             return render;
         }

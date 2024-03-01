@@ -27,6 +27,7 @@ namespace Xr.Editor.Components
                 Context = _glCtx,
                 Driver = FilamentLib.FlBackend.OpenGL,
                 EnableStereo = false,
+                OneViewPerTarget = true,
                 MaterialCachePath = "d:\\Materials"
             });
 

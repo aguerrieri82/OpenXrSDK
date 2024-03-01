@@ -3,15 +3,19 @@ using System.Numerics;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Xml.Linq;
 
 
 namespace Xr.Engine
 {
     public delegate void UpdateUniformAction(UpdateShaderContext ctx, IUniformProvider up);
 
+
     public class ShaderUpdate
     {
         public List<UpdateUniformAction>? Actions;
+
+        public List<UpdateUniformAction>? BufferUpdates;
 
         public List<string>? Features;
 
@@ -52,6 +56,7 @@ namespace Xr.Engine
             {
                 Features = [],
                 Actions = [],
+                BufferUpdates = [],
                 Extensions = []
             };
 
@@ -73,6 +78,13 @@ namespace Xr.Engine
         {
             Log(name, value);
             Update(value, (up, v) => up.SetUniform(name, v, optional));
+        }
+
+        public readonly void SetUniformBuffer<T>(string name, UpdateAction<T> value, bool optional = false)
+        {
+            Log(name, value);
+            _result.BufferUpdates!.Add((ctx, up) => up.SetUniformBuffer(name, value(ctx), optional, true));
+            _result.Actions!.Add((ctx, up) => up.SetUniformBuffer(name, default(T), optional, false));
         }
 
         public readonly void SetUniform(string name, UpdateAction<float> value, bool optional = false)
@@ -97,6 +109,11 @@ namespace Xr.Engine
         {
             Log(name, value);
             Update(value, (up, v) => up.SetUniform(name, v, optional));
+        }
+
+        public readonly void LoadTexture(UpdateAction<Texture2D> value, int slot = 0)
+        {
+            Update(value, (up, v) => up.LoadTexture(v, slot));
         }
 
         public readonly void SetUniform(string name, UpdateAction<Texture2D> value, int slot = 0, bool optional = false)
@@ -185,6 +202,8 @@ namespace Xr.Engine
                     throw new NotSupportedException();
             }
         }
+
+
 
 
         public readonly void AddFeature(string name)

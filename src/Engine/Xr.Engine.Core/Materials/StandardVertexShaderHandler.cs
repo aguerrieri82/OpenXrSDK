@@ -30,6 +30,11 @@ namespace Xr.Engine
                 bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
         }
 
+        public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)
+        {
+            return true;
+        }
+
         public static readonly StandardVertexShaderHandler Instance = new StandardVertexShaderHandler();
     }
 }

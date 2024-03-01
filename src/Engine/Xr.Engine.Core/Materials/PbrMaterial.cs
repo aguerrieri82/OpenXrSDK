@@ -1,4 +1,7 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Net.Http.Headers;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Xr.Engine
 {
@@ -16,20 +19,184 @@ namespace Xr.Engine
         Metallic
     }
 
-    public class PbrLightUniform
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public struct PbrCameraUniforms
     {
-        public Vector3 direction;
-        public float range;
-        public Vector3 color;
-        public float intensity;
-        public Vector3 position;
-        public float innerConeCos;
-        public float outerConeCos;
-        public int type;
+        public Matrix4x4 ViewMatrix;
+        public Matrix4x4 ProjectionMatrix;
+        public Matrix4x4 ViewProjectionMatrix;
+        public Vector3 Position;
+        public float _Pad1;
+        public float Exposure;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public struct PbrIBLUniforms
+    {
+        public int MipCount;
+        public Matrix3x3 EnvRotation;
+        public float EnvIntensity;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public struct PbrMaterialUniforms
+    {
+        public Vector4 BaseColorFactor;
+        public int BaseColorUVSet;
+
+        public float MetallicFactor;
+        public float RoughnessFactor;
+        public int MetallicRoughnessUVSet;
+
+        public float NormalScale;
+        public int NormalUVSet;
+
+        public float OcclusionStrength;
+        public int OcclusionUVSet;
+
+        public float AlphaCutoff;
+
+        public Matrix3x3 NormalUVTransform;
+        public Matrix3x3 EmissiveUVTransform;
+        public Matrix3x3 OcclusionUVTransform;
+        public Matrix3x3 BaseColorUVTransform;
+        public Matrix3x3 MetallicRoughnessUVTransform;
+
+        //Specular Glossiness
+
+        public Vector4 DiffuseFactor;
+        public int DiffuseUVSet;
+   
+        public Vector3 SpecularFactor;
+        public float GlossinessFactor;
+        public int SpecularGlossinessUVSet;
+
+        public Matrix3x3 DiffuseUVTransform;
+        public Matrix3x3 SpecularGlossinessUVTransform;
+
+        // Specular Dieletrics
+        public Vector3 KHR_materials_specular_specularColorFactor;
+        public float KHR_materials_specular_specularFactor;
+
+        // Emissive
+
+        public Vector3 EmissiveFactor;
+        public float EmissiveStrength;
+        public int EmissiveUVSet;
+
+        // Clearcoat Material
+
+        public float ClearcoatFactor;
+        public int ClearcoatUVSet;
+        public Matrix3x3 ClearcoatUVTransform;
+
+        public float ClearcoatRoughnessFactor;
+        public int ClearcoatRoughnessUVSet;
+        public Matrix3x3 ClearcoatRoughnessUVTransform;
+
+        public float ClearcoatNormalScale;
+        public int ClearcoatNormalUVSet;
+        public Matrix3x3 ClearcoatNormalUVTransform;
+
+        // Sheen Material
+
+        public Vector3 SheenColorFactor;
+        public int SheenColorUVSet;
+        public Matrix3x3 SheenColorUVTransform;
+
+        public float SheenRoughnessFactor;
+        public int SheenRoughnessUVSet;
+        public Matrix3x3 SheenRoughnessUVTransform;
+
+
+        // Specular Material
+        public int SpecularUVSet;
+        public Matrix3x3 SpecularUVTransform;
+
+        public int SpecularColorUVSet;
+        public Matrix3x3 SpecularColorUVTransform;
+
+        // Transmission Material
+        public float TransmissionFactor;
+        public int TransmissionUVSet;
+        public Matrix3x3 TransmissionUVTransform;
+        public Vector2I TransmissionFramebufferSize;
+
+        // Volume Material
+        public Vector3 AttenuationColor;
+        public float AttenuationDistance;
+
+        public float ThicknessFactor;
+        public int ThicknessUVSet;
+        public Matrix3x3 ThicknessUVTransform;
+
+        // Iridescence
+        public float IridescenceIor;
+
+        public float IridescenceFactor;
+        public int IridescenceUVSet;
+        public Matrix3x3 IridescenceUVTransform;
+
+        public float IridescenceThicknessMinimum;
+        public float IridescenceThicknessMaximum;
+        public int IridescenceThicknessUVSet;
+        public Matrix3x3 IridescenceThicknessUVTransform;
+
+        // Anisotropy
+        public Vector3 Anisotropy;
+        public int AnisotropyUVSet;
+        public Matrix3x3 AnisotropyUVTransform;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public struct PbrLightUniforms
+    {
+        public Vector3 Direction;
+        public float Range;
+        public Vector3 Color;
+        public float Intensity;
+        public Vector3 Position;
+        public float InnerConeCos;
+        public float OuterConeCos;
+        public int Type;
+        float _Pad1;
+        float _Pad2;
 
         public const int Directional = 0;
         public const int Point = 1;
         public const int Spot = 2;
+    }
+
+
+
+    public struct PbrLightsUniform : IDynamicBuffer
+    {
+        public uint LightCount;
+
+        public PbrLightUniforms[] Lights;
+
+        public unsafe DynamicBuffer GetBuffer()
+        {
+            var buffer = new DynamicBuffer();
+
+            buffer.Size = (sizeof(PbrLightUniforms) * (PbrLightsUniform.Max)) + 16;
+            buffer.Data = Marshal.AllocHGlobal(buffer.Size);
+            buffer.Free = () => Marshal.FreeHGlobal(new nint(buffer.Data));
+
+            ((int*)buffer.Data)[0] = Lights.Length;
+
+            fixed (PbrLightUniforms* pArray = Lights)
+            {
+                var srcSpan = new Span<PbrLightUniforms>(pArray, Lights.Length);
+                var dstSpan = new Span<PbrLightUniforms>((PbrLightUniforms*)(buffer.Data + 16), Lights.Length);
+                srcSpan.CopyTo(dstSpan);
+            }
+
+
+            return buffer;
+        }
+
+        public static int Max = 16;
     }
 
     public class PbrMetallicRoughness
@@ -130,7 +297,6 @@ namespace Xr.Engine
     {
         static readonly Shader SHADER;
 
-
         static PbrMaterial()
         {
             SHADER = new Shader
@@ -141,6 +307,93 @@ namespace Xr.Engine
                 IsLit = true
             };
         }
+
+        class GlobalShaderHandler : IShaderHandler
+        {
+            public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)
+            {
+                return lastUpdate.LightsVersion != ctx.LightsVersion;
+            }
+
+            public void UpdateShader(ShaderUpdateBuilder bld)
+            {
+                bld.SetUniformBuffer("Camera", (ctx) =>
+                {
+                    return new PbrCameraUniforms
+                    {
+                        Position = ctx.Camera!.WorldPosition,
+                        ProjectionMatrix = ctx.Camera.Projection,
+                        ViewMatrix = ctx.Camera.View,
+                        ViewProjectionMatrix = ctx.Camera!.View * ctx.Camera.Projection,
+                        Exposure = ctx.Camera.Exposure
+                    };
+                });
+
+                bld.SetUniformBuffer("Lights", (ctx) =>
+                {
+                    var lights = new List<PbrLightUniforms>();
+
+
+                    foreach (var light in bld.Context.Lights!)
+                    {
+                        if (light is PointLight point)
+                        {
+                            lights.Add(new PbrLightUniforms
+                            {
+                                Type = PbrLightUniforms.Point,
+                                Color = (Vector3)point.Color,
+                                Position = point.WorldPosition,
+                                Intensity = point.Intensity * 10,
+                                InnerConeCos = 0,
+                                OuterConeCos = MathF.Cos(MathF.PI / 4f),
+                                Range = point.Range,
+                            });
+                        }
+                        else if (light is DirectionalLight directional)
+                        {
+
+                            lights.Add(new PbrLightUniforms
+                            {
+                                Type = PbrLightUniforms.Directional,
+                                Color = (Vector3)directional.Color,
+                                Direction = directional.Direction,
+                                Intensity = directional.Intensity,
+                                InnerConeCos = 1,
+                                OuterConeCos = MathF.Cos(MathF.PI / 4f),
+                                Range = -1
+
+                            });
+                        }
+                        else if (light is SpotLight spot)
+                        {
+                            lights.Add(new PbrLightUniforms
+                            {
+                                Type = PbrLightUniforms.Spot,
+                                Color = (Vector3)spot.Color,
+                                Position = spot.WorldPosition,
+                                Intensity = spot.Intensity,
+                                Range = spot.Range,
+                                InnerConeCos = MathF.Cos(spot.InnerConeAngle),
+                                OuterConeCos = MathF.Cos(spot.OuterConeAngle)
+                            });
+                        }
+                    }
+
+                    if (lights.Count > 0)
+                        bld.AddFeature("USE_PUNCTUAL");
+
+                    bld.AddFeature("MAX_LIGHTS " + PbrLightsUniform.Max);
+
+                    return new PbrLightsUniform
+                    {
+                        LightCount = (uint)lights.Count,
+                        Lights = lights.ToArray()
+                    };
+                });
+            }
+        }
+
+        public static readonly IShaderHandler GlobalHandler = new GlobalShaderHandler();
 
 
         public PbrMaterial()
@@ -163,56 +416,62 @@ namespace Xr.Engine
             };
         }
 
+
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
+            var material = new PbrMaterialUniforms();
+
             if (NormalTexture != null)
             {
                 bld.AddFeature("HAS_NORMAL_MAP 1");
 
-                bld.SetUniform("u_NormalScale", (ctx) => NormalScale);
-                bld.SetUniform("u_NormalUVSet", (ctx) => NormalUVSet);
-                bld.SetUniform("u_NormalSampler", (ctx) => NormalTexture, 1);
+                material.NormalScale = NormalScale;
+                material.NormalUVSet = NormalUVSet;
+
+                bld.SetUniform("uNormalSampler", (ctx) => NormalTexture, 1);
             }
 
             if (OcclusionTexture != null)
             {
                 bld.AddFeature("HAS_OCCLUSION_MAP 1");
-                bld.SetUniform("u_OcclusionStrength", (ctx) => OcclusionStrength);
-                bld.SetUniform("u_OcclusionUVSet", (ctx) => OcclusionUVSet);
-                bld.SetUniform("u_OcclusionSampler", (ctx) => OcclusionTexture, 2);
+
+                material.OcclusionStrength = OcclusionStrength;
+                material.OcclusionUVSet = OcclusionUVSet;
+
+                bld.SetUniform("uOcclusionSampler", (ctx) => OcclusionTexture, 2);
             }
 
-            bld.SetUniform("u_EmissiveFactor", (ctx) => EmissiveFactor);
+            material.EmissiveFactor = EmissiveFactor;
 
             if (EmissiveTexture != null)
             {
                 bld.AddFeature("HAS_EMISSIVE_MAP 1");
-                bld.SetUniform("u_EmissiveSampler", (ctx) => EmissiveTexture, 3);
+                bld.SetUniform("uEmissiveSampler", (ctx) => EmissiveTexture, 3);
             }
 
             if (MetallicRoughness != null || Type == PbrMaterialType.Metallic)
             {
                 bld.AddFeature("MATERIAL_METALLICROUGHNESS 1");
 
-                bld.SetUniform("u_MetallicFactor", (ctx) => MetallicRoughness?.MetallicFactor ?? 1);
-                bld.SetUniform("u_RoughnessFactor", (ctx) => MetallicRoughness?.RoughnessFactor ?? 1);
-                bld.SetUniform("u_BaseColorFactor", (ctx) => MetallicRoughness?.BaseColorFactor ?? Color.White);
-
+                material.MetallicFactor = MetallicRoughness?.MetallicFactor ?? 1;
+                material.RoughnessFactor = MetallicRoughness?.RoughnessFactor ?? 1;
+                material.BaseColorFactor = MetallicRoughness?.BaseColorFactor ?? Color.White;
 
                 if (MetallicRoughness?.BaseColorTexture != null)
                 {
                     bld.AddFeature("HAS_BASE_COLOR_MAP 1");
 
-                    bld.SetUniform("u_BaseColorUVSet", (ctx) => MetallicRoughness.BaseColorUVSet);
-                    bld.SetUniform("u_BaseColorSampler", (ctx) => MetallicRoughness.BaseColorTexture, 4);
+                    material.BaseColorUVSet = MetallicRoughness.BaseColorUVSet;
+                    bld.SetUniform("uBaseColorSampler", (ctx) => MetallicRoughness.BaseColorTexture, 4);
                 }
 
                 if (MetallicRoughness?.MetallicRoughnessTexture != null)
                 {
                     bld.AddFeature("HAS_METALLIC_ROUGHNESS_MAP 1");
 
-                    bld.SetUniform("u_MetallicRoughnessUVSet", (ctx) => MetallicRoughness.MetallicRoughnessUVSet);
-                    bld.SetUniform("u_MetallicRoughnessSampler", (ctx) => MetallicRoughness.MetallicRoughnessTexture, 5);
+                    material.MetallicRoughnessUVSet = MetallicRoughness.MetallicRoughnessUVSet;
+
+                    bld.SetUniform("uMetallicRoughnessSampler", (ctx) => MetallicRoughness.MetallicRoughnessTexture, 5);
                 }
             }
 
@@ -224,21 +483,23 @@ namespace Xr.Engine
                 {
                     bld.AddFeature("HAS_DIFFUSE_MAP 1");
 
-                    bld.SetUniform("u_DiffuseUVSet", (ctx) => SpecularGlossiness.DiffuseUVSet);
-                    bld.SetUniform("u_DiffuseSampler", (ctx) => SpecularGlossiness.DiffuseTexture, 4);
+                    material.DiffuseUVSet = SpecularGlossiness.DiffuseUVSet;
+
+                    bld.SetUniform("uDiffuseSampler", (ctx) => SpecularGlossiness.DiffuseTexture, 4);
                 }
 
                 if (SpecularGlossiness?.SpecularGlossinessTexture != null)
                 {
                     bld.AddFeature("HAS_SPECULAR_GLOSSINESS_MAP 1");
 
-                    bld.SetUniform("u_SpecularGlossinessUVSet", (ctx) => SpecularGlossiness.SpecularGlossinessUVSet);
-                    bld.SetUniform("u_SpecularGlossinessSampler", (ctx) => SpecularGlossiness.SpecularGlossinessTexture, 5);
+                    material.SpecularGlossinessUVSet = SpecularGlossiness.SpecularGlossinessUVSet;
+
+                    bld.SetUniform("uSpecularGlossinessSampler", (ctx) => SpecularGlossiness.SpecularGlossinessTexture, 5);
                 }
 
-                bld.SetUniform("u_DiffuseFactor", (ctx) => SpecularGlossiness?.DiffuseFactor ?? Color.White);
-                bld.SetUniform("u_SpecularFactor", (ctx) => SpecularGlossiness?.SpecularFactor ?? Color.White);
-                bld.SetUniform("u_GlossinessFactor", (ctx) => SpecularGlossiness?.GlossinessFactor ?? 1);
+                material.DiffuseFactor = SpecularGlossiness?.DiffuseFactor ?? Color.White;
+                material.SpecularFactor = (Vector3)(SpecularGlossiness?.SpecularFactor ?? Color.White);
+                material.GlossinessFactor = SpecularGlossiness?.GlossinessFactor ?? 1;
             }
             else
                 bld.AddFeature("MATERIAL_UNLIT 1");
@@ -246,14 +507,12 @@ namespace Xr.Engine
             if (AlphaMode == AlphaMode.Mask)
             {
                 bld.AddFeature("ALPHAMODE ALPHAMODE_MASK");
-                bld.SetUniform("u_AlphaCutoff", (ctx) => AlphaCutoff);
+                material.AlphaCutoff = AlphaCutoff;
             }
             else if (AlphaMode == AlphaMode.Opaque)
                 bld.AddFeature("ALPHAMODE ALPHAMODE_OPAQUE");
             else
                 bld.AddFeature("ALPHAMODE ALPHAMODE_BLEND");
-
-
 
             if (LinearOutput)
                 bld.AddFeature("LINEAR_OUTPUT");
@@ -263,86 +522,20 @@ namespace Xr.Engine
                     bld.AddFeature(ToneMap.ToString());
             }
 
+            bld.SetUniform("uModelMatrix", (ctx) => ctx.Model!.WorldMatrix);
+            bld.SetUniform("uNormalMatrix", (ctx) => Matrix4x4.Transpose(ctx.Model!.WorldMatrixInverse));
+
+            bld.SetUniformBuffer("Material", (ctx) => material);
+
+
             bld.AddFeature("ALPHAMODE_OPAQUE 0");
             bld.AddFeature("ALPHAMODE_MASK 1");
             bld.AddFeature("ALPHAMODE_BLEND 2");
 
-            foreach (var value in Enum.GetValues<PbrDebugFlags>())
-                bld.AddFeature($"{value} {(int)value}");
-
             bld.AddFeature($"DEBUG {Debug}");
 
-            if (bld.Context.Model != null)
-            {
-                bld.SetUniform("u_ModelMatrix", (ctx) => ctx.Model!.WorldMatrix);
-                bld.SetUniform("u_NormalMatrix", (ctx) => Matrix4x4.Transpose(ctx.Model!.WorldMatrixInverse));
-            }
-
-            if (bld.Context.Camera != null)
-            {
-                bld.SetUniform("u_Exposure", (ctx) => ctx.Camera!.Exposure);
-                bld.SetUniform("u_Camera", (ctx) => ctx.Camera!.Transform.Position);
-                bld.SetUniform("u_ViewProjectionMatrix", (ctx) => ctx.Camera!.View * ctx.Camera.Projection);
-            }
-
-            if (bld.Context.Lights != null)
-            {
-                var lights = new List<PbrLightUniform>();
-
-                foreach (var light in bld.Context.Lights)
-                {
-                    if (light is PointLight point)
-                    {
-                        lights.Add(new PbrLightUniform
-                        {
-                            type = PbrLightUniform.Point,
-                            color = (Vector3)point.Color,
-                            position = point.WorldPosition,
-                            intensity = point.Intensity * 10,
-                            innerConeCos = 0,
-                            outerConeCos = MathF.Cos(MathF.PI / 4f),
-                            range = point.Range,
-                        });
-                    }
-                    else if (light is DirectionalLight directional)
-                    {
-
-                        lights.Add(new PbrLightUniform
-                        {
-                            type = PbrLightUniform.Directional,
-                            color = (Vector3)directional.Color,
-                            direction = directional.Direction,
-                            intensity = directional.Intensity,
-                            innerConeCos = 1,
-                            outerConeCos = MathF.Cos(MathF.PI / 4f),
-                            range = -1
-
-                        });
-                    }
-                    else if (light is SpotLight spot)
-                    {
-                        lights.Add(new PbrLightUniform
-                        {
-                            type = PbrLightUniform.Spot,
-                            color = (Vector3)spot.Color,
-                            position = spot.WorldPosition,
-                            intensity = spot.Intensity,
-                            range = spot.Range,
-                            innerConeCos = MathF.Cos(spot.InnerConeAngle),
-                            outerConeCos = MathF.Cos(spot.OuterConeAngle)
-                        });
-                    }
-                }
-
-                bld.SetUniformConstStructArray("u_Lights", lights);
-
-                bld.AddFeature("USE_PUNCTUAL 1");
-
-                bld.AddFeature($"LIGHT_COUNT {lights.Count}");
-            }
-            else
-                bld.AddFeature($"LIGHT_COUNT 0");
-
+            foreach (var value in Enum.GetValues<PbrDebugFlags>())
+                bld.AddFeature($"{value} {(int)value}");
 
             if ((bld.Context.ActiveComponents & VertexComponent.Normal) != 0)
                 bld.AddFeature("HAS_NORMAL_VEC3");
