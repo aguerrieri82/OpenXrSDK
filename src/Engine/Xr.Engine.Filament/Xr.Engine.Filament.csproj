@@ -16,6 +16,9 @@
 		<Content Include="..\Filament.Native\libs\arm64-v8a\libfilament-native.so"
 				 CopyToOutputDirectory="PreserveNewest"
 				 Link="runtimes/android-arm64/native/%(Filename)%(Extension)"/>
+
+		<AndroidNativeLibrary Include="..\Filament.Native\libs\arm64-v8a\libfilament-native.so"
+			 Abi="arm64-v8a"/>
 	</ItemGroup>
 
 

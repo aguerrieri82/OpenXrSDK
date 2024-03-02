@@ -26,11 +26,7 @@ namespace Xr.Engine.OpenGL
 
     public class ShaderContent
     {
-        public GlProgram? Program;
-
         public IShaderHandler? GlobalHandler;
-
-        public ShaderUpdate? LastUpdate { get; set; }
 
         public readonly Dictionary<Object3D, VertexContent> Contents = [];
     }
@@ -38,6 +34,8 @@ namespace Xr.Engine.OpenGL
     public class VertexContent
     {
         public GlVertexSourceHandle? VertexHandler;
+
+        public VertexComponent ActiveComponents;
 
         public readonly List<DrawContent> Contents = [];
 
@@ -48,11 +46,11 @@ namespace Xr.Engine.OpenGL
     {
         public Object3D? Object;
 
-        public ShaderMaterial? Material;
-
         public Action? Draw;
-        public ShaderUpdate? LastUpdate { get; set; }
-        public int DrawId { get; set; }
+        
+        public int DrawId;
+
+        public GlProgramInstance? ProgramInstance;
     }
 
     public class OpenGLRender : IRenderEngine
@@ -87,16 +85,10 @@ namespace Xr.Engine.OpenGL
             _options = options;
             _defaultTarget = new GlDefaultRenderTarget(gl);
             _target = _defaultTarget;
-            _options.ProgramFactory ??= new GlDefaultProgramFactory();
+
             _updateCtx = new UpdateShaderContext();
             _updateCtx.RenderEngine = this;
 
-        }
-
-        protected GlProgram GetProgram(ShaderMaterial material)
-        {
-            return material.Shader!.GetResource(a =>
-                    _options.ProgramFactory!.CreateProgram(_gl, material));
         }
 
         public void ReleaseContext(bool release)
@@ -139,12 +131,6 @@ namespace Xr.Engine.OpenGL
                     if (!_content.ShaderContents.TryGetValue(material.Shader, out var shaderContent))
                     {
                         shaderContent = new ShaderContent();
-                        shaderContent.Program = GetProgram(material);
-
-                        var globalProp = material.GetType().GetField("GlobalHandler", BindingFlags.Static | BindingFlags.Public);
-                        if (globalProp != null)
-                            shaderContent.GlobalHandler = (IShaderHandler)globalProp.GetValue(null)!;
-
                         _content.ShaderContents[material.Shader] = shaderContent;
                     }
 
@@ -156,14 +142,19 @@ namespace Xr.Engine.OpenGL
                             VertexHandler = obj3D.GetResource(a => GlVertexSourceHandle.Create(_gl, vrtSrc))
                         };
 
+                        vertexContent.ActiveComponents = VertexComponent.None;
+
+                        foreach (var attr in vertexContent.VertexHandler.Layout!.Attributes!)
+                            vertexContent.ActiveComponents |= attr.Component;
+
                         shaderContent.Contents[obj3D] = vertexContent;
                     }
 
                     vertexContent.Contents.Add(new DrawContent
                     {
                         Draw = () => vertexContent!.VertexHandler!.Draw(),
+                        ProgramInstance = new GlProgramInstance(_gl, material),
                         DrawId = drawId++,
-                        Material = material,
                         Object = obj3D
                     });
                 }
@@ -219,60 +210,6 @@ namespace Xr.Engine.OpenGL
                 Render(scene, camera, view, _target);
         }
 
-        protected ShaderUpdate UpdateProgram(GlProgram prog, string progId, ShaderUpdate? globalUpdate, params IShaderHandler?[] handlers)
-        {
-            var updateBuilder = new ShaderUpdateBuilder(_updateCtx);
-
-            foreach (var handler in handlers)
-                handler?.UpdateShader(updateBuilder);
-
-            updateBuilder.ComputeHash(progId);
-
-            if (globalUpdate?.Features != null)
-                foreach (var feature in globalUpdate.Features!)
-                    updateBuilder.AddFeature(feature);
-
-            if (globalUpdate?.Extensions != null)
-                foreach (var ext in globalUpdate.Extensions!)
-                    updateBuilder.AddExtension(ext);
-
-
-            var update = updateBuilder.Result;
-
-
-            prog.BeginEdit();
-
-            if (update.Features != null)
-            {
-                foreach (var feature in update.Features)
-                    prog.AddFeature(feature);
-            }
-
-            if (update.Extensions != null)
-            {
-                foreach (var ext in update.Extensions)
-                    prog.AddExtension(ext);
-            }
-
-
-            if (globalUpdate?.Features != null)
-            {
-                foreach (var feature in globalUpdate.Features)
-                    prog.AddFeature(feature);
-            }
-
-            if (globalUpdate?.Features != null)
-            {
-                foreach (var feature in globalUpdate.Features)
-                    prog.AddFeature(feature);
-            }
-
-
-            prog.Commit(update.FeaturesHash!);
-
-            return update;
-        }
-
         public void Render(Scene scene, Camera camera, Rect2I view, IGlRenderTarget target)
         {
             _view = view;
@@ -282,6 +219,7 @@ namespace Xr.Engine.OpenGL
             Clear(camera.BackgroundColor);
 
             _gl.FrontFace(FrontFaceDirection.Ccw);
+
             _gl.CullFace(TriangleFace.Back);
 
             _gl.Viewport(view.X, view.Y, view.Width, view.Height);
@@ -297,80 +235,14 @@ namespace Xr.Engine.OpenGL
             _updateCtx.Lights = _content.Lights;
             _updateCtx.LightsVersion = _content.Version;
 
-            /*
-                       int drawId = 1;
-
-                       _gl.Enable(EnableCap.StencilTest);
-
-                       _gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
-
-                       if (_writeStencil == null)
-                       {
-                           _writeStencil = new GlSimpleProgram(_gl,
-                               Embedded.GetString<Shader>("standard.vert"),
-                               Embedded.GetString<Shader>("empty.frag"),
-                               Embedded.GetString<Shader>);
-
-                           _writeStencilUpdate = UpdateProgram(_writeStencil, "write-stencil", targetHandler, StandardVertexShaderHandler.Instance);
-                       }
-
-                       _writeStencil.Use(_writeStencilUpdate!.FeaturesHash!);
-
-                       foreach (var updateUniform in _writeStencilUpdate.Actions!)
-                           updateUniform(_updateCtx, _writeStencil);
-
-                       foreach (var shader in _content.ShaderContents)
-                       {
-                           foreach (var vertex in shader.Value.Contents)
-                           {
-                               var vHandler = vertex.Value.VertexHandler!;
-
-                               vHandler.Bind();
-
-                               foreach (var draw in vertex.Value.Contents)
-                               {
-                                   ConfigureCaps(draw.Material!);
-
-                                   _writeStencil.SetUniform("uModel", draw.Object!.WorldMatrix);
-
-                                   _gl.StencilFunc(StencilFunction.Always, drawId, 0xFF);
-                                   draw.DrawId = drawId;
-                                   draw.Draw!();
-                                   drawId++;
-                               }
-                           }
-                       }
-
-                       _gl.Clear(ClearBufferMask.DepthBufferBit);
-
-                       _gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
-            */
-
             int skipCount = 0;
 
             foreach (var shader in _content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
-                var prog = shader.Value!.Program!;
+                var progInst = shader.Value!.Contents.First().Value.Contents!.First().ProgramInstance;
 
-                var shUpdate = shader.Value.LastUpdate;
-
-                if (shader.Value.GlobalHandler != null)
-                {
-                    if (shUpdate == null || shader.Value.GlobalHandler.NeedUpdateShader(_updateCtx, shUpdate))
-                    {
-                        var builder = new ShaderUpdateBuilder(_updateCtx);
-
-                        shader.Value.GlobalHandler.UpdateShader(builder);
-
-                        shUpdate = builder.Result;
-                        shUpdate!.LightsVersion = _updateCtx.LightsVersion;
-
-                        shader.Value.LastUpdate = shUpdate;
-                    }
-
-                    foreach (var updateBuffer in shUpdate!.BufferUpdates!)
-                        updateBuffer(_updateCtx, prog);
-                }
+                if (progInst!.Program != null)
+                    progInst.UpdateGlobal(_updateCtx);
 
                 foreach (var vertex in shader.Value.Contents)
                 {
@@ -378,7 +250,6 @@ namespace Xr.Engine.OpenGL
 
                     if (vertex.Key is TriangleMesh mesh)
                     {
-                        //vertex.Value.Contents[0].DrawId
                         if (!camera.CanSee(mesh.WorldBounds))
                         {
                             skipCount++;
@@ -394,56 +265,30 @@ namespace Xr.Engine.OpenGL
 
                     vHandler.Bind();
 
-                    _updateCtx.ActiveComponents = VertexComponent.None;
-
-                    foreach (var attr in vHandler.Layout!.Attributes!)
-                        _updateCtx.ActiveComponents |= attr.Component;
+                    _updateCtx.ActiveComponents = vertex.Value.ActiveComponents;
 
                     foreach (var draw in vertex.Value.Contents)
                     {
-                        ConfigureCaps(draw.Material!);
+                        progInst = draw.ProgramInstance!;
+
+                        ConfigureCaps(draw.ProgramInstance!.Material!);
 
                         _updateCtx.Model = draw.Object;
 
-                        var update = draw.LastUpdate;
+                        progInst.UpdateProgram(_updateCtx);
 
-                        if (update == null || draw.Material!.NeedUpdateShader(_updateCtx, update))
-                        {
-                            update = UpdateProgram(prog,
-                                draw.Material!.GetType().FullName!,
-                                shUpdate,
-                                draw.Material,
-                                targetHandler);
+                        progInst.Program!.Use();
 
-                            update.MaterialVersion = draw.Material!.Version;
-
-                            draw.LastUpdate = update;
-                        }
-
-                        prog.Use(update.FeaturesHash!);
-
-                        if (shUpdate != null)
-                        {
-                            foreach (var updateUniform in shUpdate.Actions!)
-                                updateUniform(_updateCtx, prog);
-                        }
-
-                        foreach (var updateBuffer in update.BufferUpdates!)
-                            updateBuffer(_updateCtx, prog);
-
-                        foreach (var updateUniform in update.Actions!)
-                            updateUniform(_updateCtx, prog);
-
-                        // _gl.StencilFunc(StencilFunction.Equal, draw.DrawId, 0xFF);
+                        progInst.UpdateInstance(_updateCtx);
 
                         draw.Draw!();
                     }
-
-                    vHandler.Unbind();
                 }
-
-                prog.Unbind();
             }
+
+            _gl.UseProgram(0);
+            
+            _gl.BindVertexArray(0);
 
             target.End();
 

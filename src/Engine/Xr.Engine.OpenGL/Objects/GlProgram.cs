@@ -7,50 +7,24 @@ using Silk.NET.OpenGL;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Collections.ObjectModel;
 
 
 namespace Xr.Engine.OpenGL
 {
     public abstract partial class GlProgram : GlObject, IUniformProvider, IFeatureList
     {
-        protected Dictionary<string, int>? _curLocations;
-        protected readonly Dictionary<uint, Dictionary<string, int>> _handleLocations = [];
+        protected readonly Dictionary<string, int> _locations = [];
         protected readonly List<string> _features = [];
         protected readonly List<string> _extensions = [];
         protected readonly Func<string, string> _resolver;
-        protected string _programId = "";
-
-        protected string _currentHash = string.Empty;
-
-        readonly protected static Dictionary<string, uint> _programsCache = [];
 
         public GlProgram(GL gl, Func<string, string> includeResolver) : base(gl)
         {
             _resolver = includeResolver;
         }
 
-        public virtual void BeginEdit()
-        {
-            _features.Clear();
-            _extensions.Clear();
-            _curLocations?.Clear();
-        }
-
-        protected virtual void Build()
-        {
-
-        }
-
-        public virtual void Commit(string hash)
-        {
-            if (!_programsCache.ContainsKey(hash))
-            {
-                Build();
-                _programsCache[hash] = _handle;
-                _curLocations = [];
-                _handleLocations[_handle] = _curLocations;
-            }
-        }
+        public abstract void Build();
 
         protected virtual void Create(params uint[] shaders)
         {
@@ -75,11 +49,8 @@ namespace Xr.Engine.OpenGL
             }
         }
 
-        public void Use(string featureHash)
+        public void Use()
         {
-            _handle = _programsCache[featureHash];
-            _curLocations = _handleLocations[_handle];
-
             _gl.UseProgram(_handle);
 
             GlDebug.Log($"UseProgram {_handle}");
@@ -88,6 +59,7 @@ namespace Xr.Engine.OpenGL
         public void Unbind()
         {
             _gl.UseProgram(0);
+
             GlDebug.Log($"UseProgram NULL");
         }
 
@@ -114,7 +86,7 @@ namespace Xr.Engine.OpenGL
         protected int LocateUniform(string name, bool optional = false, bool isBlock = false)
         {
 
-            if (!_curLocations!.TryGetValue(name, out var result))
+            if (!_locations.TryGetValue(name, out var result))
             {
                 if (isBlock)
                 {
@@ -131,7 +103,7 @@ namespace Xr.Engine.OpenGL
                     //throw new Exception($"{name} uniform not found on shader.");
                 }
 
-                _curLocations[name] = result;
+                _locations[name] = result;
             }
             return result;
         }
@@ -167,9 +139,16 @@ namespace Xr.Engine.OpenGL
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
-        public unsafe void SetUniformBuffer<T>(string name, T data, bool optional = false, bool updateBuffer = false)
+        public unsafe void SetUniformBuffer<T>(string name, T data, bool updateBuffer, bool isGlobal, bool optional = false)
         {
-            var buffer = GetBuffer<T>(name);
+            var buffer = BufferProvider?.GetBuffer<T>(name, isGlobal);
+
+            if (buffer == null)
+            {
+                if (optional)
+                    return;
+                throw new Exception();
+            }
 
             if (updateBuffer)
             {
@@ -183,11 +162,6 @@ namespace Xr.Engine.OpenGL
             }
             else
                 SetUniform(name, (IBuffer)buffer, optional);
-        }
-
-        protected virtual GlBuffer<T> GetBuffer<T>(string name)
-        {
-            throw new NotSupportedException();
         }
 
         public void SetUniform(string name, IBuffer buffer, bool optional = false)
@@ -300,6 +274,9 @@ namespace Xr.Engine.OpenGL
             _handle = 0;
             GC.SuppressFinalize(this);
         }
+
+        public IGlBufferProvider? BufferProvider { get; set; }
+
 
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]
         protected static partial Regex IncludeRegex();

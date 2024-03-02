@@ -10,14 +10,16 @@
         Render = 8,
         SceneAdd = Parent | 0x10,
         Geometry = 0x20,
-        Components = 0x40
+        Components = 0x40,
+        SceneRemove = Parent | 0x80
     }
 
     public readonly struct ObjectChange
     {
-        ObjectChange(ObjectChangeType type)
+        public ObjectChange(ObjectChangeType type, EngineObject? target = null)
         {
             Type = type;
+            Target = target;
         }
 
         public bool IsAny(params ObjectChangeType[] types)
@@ -28,11 +30,15 @@
             return false;
         }
 
-        public readonly ObjectChangeType Type;
 
         public static implicit operator ObjectChange(ObjectChangeType type)
         {
             return new ObjectChange(type);
         }
+
+
+        public readonly ObjectChangeType Type;
+
+        public readonly EngineObject? Target;
     }
 }

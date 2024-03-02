@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-
+		<TargetFrameworks>$(CoreVersion)</TargetFrameworks>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -13,12 +13,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\OpenXr.Entities\OpenXr.Entities.csproj" />
+		<ProjectReference Include="..\OpenXr.Entities\OpenXr.Entities.csproj" />
 	</ItemGroup>
 
 
 	<ItemGroup>
 		<Content Include="runtimes/**/*" CopyToOutputDirectory="PreserveNewest"/>
+
+		<AndroidNativeLibrary Include="runtimes/android-arm64/native/*"
+				 Abi="arm64-v8a"/>
 	</ItemGroup>
 
 </Project>

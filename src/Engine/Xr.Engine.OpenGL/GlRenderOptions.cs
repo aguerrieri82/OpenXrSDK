@@ -33,8 +33,6 @@
 
         public ShaderPrecision FloatPrecision { get; set; }
 
-        public IGlProgramFactory? ProgramFactory { get; set; }
-
         public bool RequireTextureCompression { get; set; }
 
         public TextureFormat DepthBufferFormat { get; set; }

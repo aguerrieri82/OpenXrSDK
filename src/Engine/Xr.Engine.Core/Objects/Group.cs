@@ -29,7 +29,6 @@
         {
             base.Update(ctx);
 
-
             UpdateSelf(ctx);
 
             _children.Update(ctx);
@@ -38,7 +37,6 @@
         protected virtual void UpdateSelf(RenderContext ctx)
         {
             _transform.Update();
-
         }
 
         public T AddChild<T>(T child, bool preserveTransform = false) where T : Object3D
@@ -69,6 +67,5 @@
 
         public IReadOnlyList<Object3D> Children => _children.AsReadOnly();
 
-        public int Version { get; set; }
     }
 }

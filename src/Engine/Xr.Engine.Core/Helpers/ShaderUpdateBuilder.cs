@@ -79,11 +79,11 @@ namespace Xr.Engine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void SetUniformBuffer<T>(string name, UpdateAction<T> value, bool optional = false)
+        public readonly void SetUniformBuffer<T>(string name, UpdateAction<T> value, bool isGlobal, bool optional = false)
         {
             Log(name, value);
-            _result.BufferUpdates!.Add((ctx, up) => up.SetUniformBuffer(name, value(ctx), optional, true));
-            _result.Actions!.Add((ctx, up) => up.SetUniformBuffer(name, default(T), optional, false));
+            _result.BufferUpdates!.Add((ctx, up) => up.SetUniformBuffer(name, value(ctx), true, isGlobal, optional));
+            _result.Actions!.Add((ctx, up) => up.SetUniformBuffer(name, default(T), false, isGlobal, optional));
         }
 
         public readonly void SetUniform(string name, UpdateAction<float> value, bool optional = false)
@@ -201,9 +201,6 @@ namespace Xr.Engine
                     throw new NotSupportedException();
             }
         }
-
-
-
 
         public readonly void AddFeature(string name)
         {
