@@ -14,8 +14,6 @@
                 IsLit = false
             };
         }
-
-
         public TextureMaterial()
             : base()
         {

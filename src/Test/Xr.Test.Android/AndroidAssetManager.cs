@@ -6,22 +6,28 @@ namespace Xr.Test.Android
     public class AndroidAssetManager : IAssetManager
     {
         readonly Context _context;
+        readonly string _basePath;
 
-        public AndroidAssetManager(Context context)
+        public AndroidAssetManager(Context context, string basePath)
         {
             _context = context;
+            _basePath = basePath;   
         }
 
         public string FullPath(string name)
         {
+            var filesBase = Path.Join(_context.FilesDir!.Path, _basePath);
 
-            string mainDir = Path.Combine(_context.FilesDir!.Path, name);
+            string mainDir = Path.Join(filesBase, name);
             if (File.Exists(mainDir))
                 return mainDir;
 
             Directory.CreateDirectory(Path.GetDirectoryName(mainDir)!);
 
-            using var srcStream = _context.Assets!.Open(name);
+            if (name.StartsWith(filesBase))
+                name = name.Substring(filesBase.Length + 1);
+            
+            using var srcStream = _context.Assets!.Open(Path.Join(_basePath, name));
             using var dstStream = File.OpenWrite(mainDir);
             srcStream.CopyTo(dstStream);
             return mainDir;
@@ -29,11 +35,11 @@ namespace Xr.Test.Android
 
         public Stream OpenAsset(string name)
         {
-            var fullPath = _context.FilesDir!.Path;
+            var fullPath = Path.Join(_context.FilesDir!.Path, _basePath);
             if (name.StartsWith(fullPath))
                 name = name.Substring(fullPath.Length + 1);
 
-            return _context.Assets!.Open(name);
+            return _context.Assets!.Open(Path.Join(_basePath, name));
         }
     }
 }

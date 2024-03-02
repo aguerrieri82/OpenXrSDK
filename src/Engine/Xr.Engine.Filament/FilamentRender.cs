@@ -1,8 +1,4 @@
-﻿
-using SkiaSharp;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
+﻿using System.Runtime.InteropServices;
 using static Xr.Engine.Filament.FilamentLib;
 
 namespace Xr.Engine.Filament
@@ -128,10 +124,10 @@ namespace Xr.Engine.Filament
                 StencilBufferEnabled = false,
                 FrustumCullingEnabled = false,
                 ScreenSpaceRefractionEnabled = false,
-                Viewport = new Rect2I() {  Width = width, Height = height },    
+                Viewport = new Rect2I() { Width = width, Height = height },
                 RenderTargetId = renderTargetId
             };
-            
+
             return AddView(_app, ref viewOpt);
         }
 
@@ -179,7 +175,7 @@ namespace Xr.Engine.Filament
         {
             FilamentLib.ReleaseContext(_app, release);
             Thread.Sleep(100);
-        } 
+        }
 
         protected uint GetOrCreate<T>(T obj, Action<uint> factory) where T : EngineObject
         {
@@ -228,7 +224,7 @@ namespace Xr.Engine.Filament
                     var mainData = texture.Data[0];
 
                     result.Data.Type = FlPixelType.UBYTE;
-                    result.Data.DataSize = (uint)mainData.Data!.Length; 
+                    result.Data.DataSize = (uint)mainData.Data!.Length;
 
                     switch (mainData.Format)
                     {
@@ -258,7 +254,7 @@ namespace Xr.Engine.Filament
             }
             _content.Scene = scene;
             _content.Version = scene.Version;
-      
+
             foreach (var obj in scene.Descendants())
             {
                 if (!obj.IsVisible)
@@ -291,10 +287,10 @@ namespace Xr.Engine.Filament
                         var info = new LightInfo
                         {
                             Type = FlLightType.Directional,
-                            Direction =  dir.Direction,
-                            Intensity = dir.Intensity,  
-                            Color = dir.Color,  
-                            CastShadows= true,
+                            Direction = dir.Direction,
+                            Intensity = dir.Intensity,
+                            Color = dir.Color,
+                            CastShadows = true,
                         };
                         AddLight(_app, id, ref info);
                     });
@@ -303,7 +299,7 @@ namespace Xr.Engine.Filament
                 {
                     GetOrCreate(group, groupId =>
                     {
-                        AddGroup(_app, groupId);    
+                        AddGroup(_app, groupId);
                         if (group.Parent is not Scene)
                             SetObjParent(_app, groupId, group.Parent!.Id);
                     });
@@ -329,7 +325,7 @@ namespace Xr.Engine.Filament
                                     Type = VertexAttributeType.Position
                                 });
 
-   
+
                             if ((geo.ActiveComponents & VertexComponent.Normal) != 0)
                                 attributes.Add(new VertexAttribute
                                 {
@@ -376,7 +372,7 @@ namespace Xr.Engine.Filament
                                         Vertices = (byte*)pVert,
                                         VerticesCount = geo.Vertices!.Length,
                                         Indices = pIndex,
-                                        IndicesCount = pIndex == null ? 0 : geo.Indices!.Length  
+                                        IndicesCount = pIndex == null ? 0 : geo.Indices!.Length
                                     };
 
                                     AddGeometry(_app, geoId, ref geoInfo);
@@ -399,11 +395,11 @@ namespace Xr.Engine.Filament
                                 RoughnessFactor = mat.MetallicRoughness?.RoughnessFactor ?? 1,
                                 NormalScale = mat.NormalScale,
                                 AoStrength = mat.OcclusionStrength,
-                                Blending =  mat.AlphaMode switch 
-                                { 
-                                    AlphaMode.Opaque => FlBlendingMode.OPAQUE,
-                                    AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
-                                    AlphaMode.Mask => FlBlendingMode.MASKED,
+                                Blending = mat.Alpha switch
+                                {
+                                    PbrMaterial.AlphaMode.Opaque => FlBlendingMode.OPAQUE,
+                                    PbrMaterial.AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
+                                    PbrMaterial.AlphaMode.Mask => FlBlendingMode.MASKED,
                                     _ => throw new NotSupportedException()
                                 },
                                 EmissiveFactor = mat.EmissiveFactor,
@@ -448,9 +444,9 @@ namespace Xr.Engine.Filament
         {
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);
-            
+
             var render = stackalloc RenderTarget[1];
-            var persp = (PerspectiveCamera)camera;  
+            var persp = (PerspectiveCamera)camera;
 
             render[0].Camera = new CameraInfo
             {
@@ -486,7 +482,7 @@ namespace Xr.Engine.Filament
             render[0].ViewId = _activeRenderTarget.ViewId;
             render[0].Viewport = viewport;
 
-            foreach (var mesh in _content!.Objects!.Where(a=> a.Key is TriangleMesh))
+            foreach (var mesh in _content!.Objects!.Where(a => a.Key is TriangleMesh))
                 SetObjTransform(_app, mesh.Value, ((Object3D)mesh.Key).WorldMatrix);
 
             FilamentLib.Render(_app, render, 1, flush);

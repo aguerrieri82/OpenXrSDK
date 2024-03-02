@@ -16,7 +16,7 @@ namespace OpenXr.Framework
 
         public static XrCameraTransform FromView(View view, float nearPlane, float farPlane, bool reverseUpDown = false)
         {
-            return FromView(view.Pose, view.Fov, nearPlane, farPlane, reverseUpDown);   
+            return FromView(view.Pose, view.Fov, nearPlane, farPlane, reverseUpDown);
         }
 
         public static XrCameraTransform FromView(Posef pose, Fovf fov, float nearPlane, float farPlane, bool reverseUpDown = false)

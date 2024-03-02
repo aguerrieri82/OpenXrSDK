@@ -1,9 +1,5 @@
-﻿using SkiaSharp;
-using System;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using static Xr.Engine.Filament.FilamentLib;
 
 namespace Xr.Engine.Filament
 {
@@ -11,18 +7,18 @@ namespace Xr.Engine.Filament
     {
         public enum FlLightType : byte
         {
-            Sun,           
-	        Directional,   
-	        Point,       
-	        FocusedSpot,  
-	        Spot,
+            Sun,
+            Directional,
+            Point,
+            FocusedSpot,
+            Spot,
         }
 
         public enum FlBackend : byte
         {
-            Auto ,
-	        OpenGL,
-	        Vulkan
+            Auto,
+            OpenGL,
+            Vulkan
         }
 
         public enum FlTextureInternalFormat
@@ -50,11 +46,11 @@ namespace Xr.Engine.Filament
         public enum VertexAttributeType
         {
             Position,
-	        Normal,
-	        Tangent,
-	        Color,
-	        UV0,
-	        UV1
+            Normal,
+            Tangent,
+            Color,
+            UV0,
+            UV1
         }
 
         public enum FlBlendingMode : byte
@@ -77,8 +73,8 @@ namespace Xr.Engine.Filament
 
         public enum FlAntiAliasing : byte
         {
-            NONE, 
-            FXAA    
+            NONE,
+            FXAA
         };
 
         public enum FlBlendMode : byte
@@ -89,10 +85,10 @@ namespace Xr.Engine.Filament
 
         public enum FlShadowType : byte
         {
-            PCF,     
-            VSM,       
-            DPCF,    
-            PCSS  
+            PCF,
+            VSM,
+            DPCF,
+            PCSS
         }
 
         public enum FlQualityLevel : byte
@@ -112,7 +108,7 @@ namespace Xr.Engine.Filament
         public struct VulkanSharedContext
         {
             public nint Instance;
-            public nint PhysicalDevice;  
+            public nint PhysicalDevice;
             public nint LogicalDevice;
             public uint GraphicsQueueFamilyIndex;
             public uint GraphicsQueueIndex;
@@ -130,7 +126,7 @@ namespace Xr.Engine.Filament
             [MarshalAs(UnmanagedType.U1)]
             public bool OneViewPerTarget;
         }
-        
+
         public struct ViewOptions
         {
             public FlBlendMode BlendMode;
@@ -198,7 +194,7 @@ namespace Xr.Engine.Filament
             public float HaloFalloff;
             public float HaloSize;
         }
-    
+
         public struct LightInfo
         {
             public FlLightType Type;
@@ -238,7 +234,7 @@ namespace Xr.Engine.Filament
         public struct VertexLayout
         {
             public uint SizeByte;
-	        public VertexAttribute* Attributes;
+            public VertexAttribute* Attributes;
             public uint AttributeCount;
         }
 
@@ -255,7 +251,7 @@ namespace Xr.Engine.Filament
         public struct ImageData
         {
             public FlPixelFormat Format;
-            public FlPixelType Type;    
+            public FlPixelType Type;
             public IntPtr Data;
             public uint DataSize;
 

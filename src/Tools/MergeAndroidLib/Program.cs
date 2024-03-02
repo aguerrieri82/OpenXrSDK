@@ -21,7 +21,7 @@ string? FindLib(string name)
         foreach (var dir in Directory.GetDirectories(path))
         {
             var res = FindDir(dir);
-            if (res != null) 
+            if (res != null)
                 return res;
         }
 
@@ -65,14 +65,14 @@ var mkFile = new StringBuilder();
 
 foreach (var lib in libs)
 {
-    var fullPath = FindLib(lib);    
+    var fullPath = FindLib(lib);
     if (fullPath == null)
     {
         Console.WriteLine("xxx");
     }
 
     var outFile = Path.Join(outPath, "libs", lib);
-    File.Copy(fullPath!, outFile, true);   
+    File.Copy(fullPath!, outFile, true);
 
     var objPath = Path.Join(outPath, "temp", lib);
 
@@ -107,4 +107,4 @@ joinArgs.AddRange(files);
 
 Exec(bin, joinArgs.ToArray());
 
-File.WriteAllText(Path.Join(outPath, "Android.mk"), mkFile.ToString());  
+File.WriteAllText(Path.Join(outPath, "Android.mk"), mkFile.ToString());

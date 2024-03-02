@@ -4,41 +4,38 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Security.Cryptography;
-using System.Text;
-using System.Diagnostics.CodeAnalysis;
 
 
 namespace Xr.Engine.OpenGL
 {
     public partial class GlPbrProgram : GlSimpleProgram
     {
-        static GlBuffer<PbrCameraUniforms>? _cameraBuffer;
-        static GlBuffer<PbrIBLUniforms>? _ibrBuffer;
-        static GlBuffer<PbrMaterialUniforms>? _materialBuffer;
-        static GlBuffer<PbrLightsUniform>? _lightsBuffer;
+        static GlBuffer<PbrMaterial.CameraUniforms>? _cameraBuffer;
+        static GlBuffer<PbrMaterial.IBLUniforms>? _ibrBuffer;
+        static GlBuffer<PbrMaterial.MaterialUniforms>? _materialBuffer;
+        static GlBuffer<PbrMaterial.LightsUniform>? _lightsBuffer;
 
         public GlPbrProgram(GL gl, string vSource, string fSource, Func<string, string> resolver)
             : base(gl, vSource, fSource, resolver)
         {
-            _cameraBuffer ??= new GlBuffer<PbrCameraUniforms>(_gl, BufferTargetARB.UniformBuffer);
-            _ibrBuffer ??= new GlBuffer<PbrIBLUniforms>(_gl, BufferTargetARB.UniformBuffer);
-            _materialBuffer ??= new GlBuffer<PbrMaterialUniforms>(_gl, BufferTargetARB.UniformBuffer);
-            _lightsBuffer ??= new GlBuffer<PbrLightsUniform>(_gl, BufferTargetARB.UniformBuffer);
+            _cameraBuffer ??= new GlBuffer<PbrMaterial.CameraUniforms>(_gl, BufferTargetARB.UniformBuffer);
+            _ibrBuffer ??= new GlBuffer<PbrMaterial.IBLUniforms>(_gl, BufferTargetARB.UniformBuffer);
+            _materialBuffer ??= new GlBuffer<PbrMaterial.MaterialUniforms>(_gl, BufferTargetARB.UniformBuffer);
+            _lightsBuffer ??= new GlBuffer<PbrMaterial.LightsUniform>(_gl, BufferTargetARB.UniformBuffer);
         }
 
         protected override GlBuffer<T> GetBuffer<T>(string name)
         {
-            if (typeof(T) == typeof(PbrCameraUniforms))
+            if (typeof(T) == typeof(PbrMaterial.CameraUniforms))
                 return (GlBuffer<T>)(object)_cameraBuffer!;
-            
-            if (typeof(T) == typeof(PbrIBLUniforms))
+
+            if (typeof(T) == typeof(PbrMaterial.IBLUniforms))
                 return (GlBuffer<T>)(object)_ibrBuffer!;
 
-            if (typeof(T) == typeof(PbrMaterialUniforms))
+            if (typeof(T) == typeof(PbrMaterial.MaterialUniforms))
                 return (GlBuffer<T>)(object)_materialBuffer!;
 
-            if (typeof(T) == typeof(PbrLightsUniform))
+            if (typeof(T) == typeof(PbrMaterial.LightsUniform))
                 return (GlBuffer<T>)(object)_lightsBuffer!;
 
             return base.GetBuffer<T>(name);

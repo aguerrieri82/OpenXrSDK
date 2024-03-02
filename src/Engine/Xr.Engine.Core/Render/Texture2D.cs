@@ -1,5 +1,4 @@
 ﻿using SkiaSharp;
-using System.IO;
 
 namespace Xr.Engine
 {
@@ -86,7 +85,7 @@ namespace Xr.Engine
             return FromData(data);
         }
 
-    
+
         public static Texture2D FromImage(SKBitmap image)
         {
             if (!FORMAT_MAP.TryGetValue(image.ColorType, out var format))
@@ -115,7 +114,7 @@ namespace Xr.Engine
         {
             var result = FromImage(SKBitmap.Decode(stream));
             stream.Dispose();
-            return result;  
+            return result;
         }
 
         public static Texture2D FromData(IList<TextureData> data)

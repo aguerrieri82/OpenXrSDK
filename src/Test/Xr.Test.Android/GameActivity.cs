@@ -56,10 +56,10 @@ namespace Xr.Test.Android
 
             Platform.Current = new Platform
             {
-                AssetManager = new AndroidAssetManager(this)
+                AssetManager = new AndroidAssetManager(this, "Assets")
             };
 
-            _game = SampleScenes.CreateSimpleScene(Platform.Current.AssetManager);
+            _game = SampleScenes.CreateChess(Platform.Current.AssetManager);
 
             IXrGraphicDriver driver;
 
@@ -67,7 +67,7 @@ namespace Xr.Test.Android
             {
                 var filamentOptions = new FilamentOptions
                 {
-                    Driver = FilamentLib.FlBackend.Vulkan,
+                    Driver = FilamentLib.FlBackend.OpenGL,
                     MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath,
                     EnableStereo = renderMode != XrRenderMode.SingleEye,
                     OneViewPerTarget = true
@@ -126,12 +126,15 @@ namespace Xr.Test.Android
 
             var xrApp = new SampleXrApp(logger,
                  driver,
-                 new OculusXrPlugin(),
+                 new OculusXrPlugin(new OculusXrPluginOptions
+                 {
+                     Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.ScaledBinBitFB
+                 }),
                  new AndroidXrPlugin(this));
 
             xrApp.RenderOptions.SampleCount = 1;
             xrApp.RenderOptions.RenderMode = renderMode;
-            xrApp.RenderOptions.ResolutionScale = 0.4f;
+            xrApp.RenderOptions.ResolutionScale = 1f;
 
             _inputs = xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.TriggerClick)

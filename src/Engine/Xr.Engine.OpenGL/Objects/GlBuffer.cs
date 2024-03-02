@@ -2,13 +2,12 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using System.Runtime.InteropServices;
 #endif
 
 
 namespace Xr.Engine.OpenGL
 {
-    public class GlBuffer<T> : GlObject, IBuffer 
+    public class GlBuffer<T> : GlObject, IBuffer
     {
         private readonly BufferTargetARB _bufferType;
         private uint _length;
@@ -46,7 +45,7 @@ namespace Xr.Engine.OpenGL
         public unsafe void Update(ReadOnlySpan<T> data)
         {
             Bind();
-     
+
             fixed (T* pData = &data[0])
                 Update(new nint(pData), data.Length * sizeof(T));
 

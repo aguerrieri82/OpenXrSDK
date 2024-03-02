@@ -1,6 +1,4 @@
-﻿using Xr.Engine;
-
-namespace Xr.Editor
+﻿namespace Xr.Editor
 {
     public interface IPanel
     {

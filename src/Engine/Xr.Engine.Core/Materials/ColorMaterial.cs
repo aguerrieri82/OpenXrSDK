@@ -22,7 +22,6 @@
             _shader = SHADER;
         }
 
-
         public ColorMaterial(Color color)
             : this()
         {
@@ -33,8 +32,6 @@
         {
             bld.SetUniform("uColor", ctx => Color);
             StandardVertexShaderHandler.Instance.UpdateShader(bld);
-
         }
-
     }
 }

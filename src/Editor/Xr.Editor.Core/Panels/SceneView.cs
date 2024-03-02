@@ -3,8 +3,6 @@ using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using System.Diagnostics.CodeAnalysis;
 using Xr.Engine;
-using Xr.Engine.Filament;
-using Xr.Engine.OpenGL;
 using Xr.Engine.OpenXr;
 
 namespace Xr.Editor
@@ -97,8 +95,8 @@ namespace Xr.Editor
 
         public void StartXr()
         {
-            _render!.ReleaseContext(true);
-            _renderSurface.TakeContext();
+            //_render!.ReleaseContext(true);
+            //_renderSurface.TakeContext();
             _renderSurface.EnableVSync(false);
 
             if (_xrApp == null)
@@ -120,8 +118,8 @@ namespace Xr.Editor
             }
             finally
             {
-                _renderSurface.ReleaseContext();
-                _render.ReleaseContext(false);
+                //_renderSurface.ReleaseContext();
+                //_render.ReleaseContext(false);
             }
 
             OnPropertyChanged(nameof(IsXrActive));
@@ -235,7 +233,7 @@ namespace Xr.Editor
         public override Task CloseAsync()
         {
             StopXr();
-            
+
             Stop();
 
             return base.CloseAsync();
@@ -279,7 +277,7 @@ namespace Xr.Editor
                     return;
 
                 _isXrActive = value;
-                
+
                 if (!_isXrActive && _xrApp != null)
                     _xrApp.RequestStop();
 

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using OpenXr.Samples;
-using Xr.Engine.Filament;
 
 
 

@@ -2,7 +2,6 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using System.ComponentModel;
 
 #endif
 

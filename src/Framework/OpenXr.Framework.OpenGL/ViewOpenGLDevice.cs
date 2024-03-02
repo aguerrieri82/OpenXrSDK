@@ -1,11 +1,6 @@
-﻿using Silk.NET.Windowing;
-using Silk.NET.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Silk.NET.OpenGL;
 using Silk.NET.OpenXR;
+using Silk.NET.Windowing;
 
 namespace OpenXr.Framework.OpenGL
 {
@@ -19,7 +14,7 @@ namespace OpenXr.Framework.OpenGL
         public ViewOpenGLDevice(IView view)
         {
             _view = view;
-            
+
             var binding = _view.CreateOpenGLBinding();
             if (binding.Type == StructureType.GraphicsBindingOpenglWin32Khr)
             {

@@ -85,7 +85,7 @@ namespace Xr.Engine.OpenGL
 
             _gl = gl;
             _options = options;
-            _defaultTarget  = new GlDefaultRenderTarget(gl);
+            _defaultTarget = new GlDefaultRenderTarget(gl);
             _target = _defaultTarget;
             _options.ProgramFactory ??= new GlDefaultProgramFactory();
             _updateCtx = new UpdateShaderContext();
@@ -140,7 +140,7 @@ namespace Xr.Engine.OpenGL
                     {
                         shaderContent = new ShaderContent();
                         shaderContent.Program = GetProgram(material);
-                       
+
                         var globalProp = material.GetType().GetField("GlobalHandler", BindingFlags.Static | BindingFlags.Public);
                         if (globalProp != null)
                             shaderContent.GlobalHandler = (IShaderHandler)globalProp.GetValue(null)!;

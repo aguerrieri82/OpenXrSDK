@@ -20,7 +20,7 @@
             _host?.NotifyChanged(ObjectChangeType.Render);
         }
 
-        public Color Color { get; set; }
+        public virtual Color Color { get; set; }
 
         public bool WriteDepth { get; set; }
 

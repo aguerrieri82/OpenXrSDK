@@ -10,7 +10,7 @@ namespace Xr.Editor
         public BasePanel()
         {
             _ui = Context.Require<IUserInteraction>();
-            _main = Context.Require<IMainDispatcher>(); 
+            _main = Context.Require<IMainDispatcher>();
             _panelManager = Context.Require<PanelManager>();
             _panelManager.NotifyLoaded(this);
         }

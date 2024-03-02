@@ -1,12 +1,6 @@
 ﻿
 using OpenXr.Framework;
 using OpenXr.Framework.Vulkan;
-using Silk.NET.Vulkan;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xr.Engine;
 using Xr.Engine.Filament;
 
@@ -51,7 +45,7 @@ namespace Xr.Editor.Components
 
         public IXrGraphicDriver CreateXrDriver()
         {
-           return new XrVulkanGraphicDriver(_device);
+            return new XrVulkanGraphicDriver(_device);
         }
 
     }

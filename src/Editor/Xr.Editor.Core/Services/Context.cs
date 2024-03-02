@@ -1,11 +1,4 @@
-﻿using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Xr.Editor
+﻿namespace Xr.Editor
 {
 
     public class GlobalContext
@@ -20,7 +13,7 @@ namespace Xr.Editor
         }
 
 
-        List<ServiceInfo> _services = [];
+        readonly List<ServiceInfo> _services = [];
 
         public object Require(Type type)
         {
@@ -58,12 +51,12 @@ namespace Xr.Editor
             return (T)Current.Require(typeof(T));
         }
 
-        public static void Implement<T>() where T: class, new()
+        public static void Implement<T>() where T : class, new()
         {
             Current.Implement(typeof(T), () => new T());
         }
 
-        public static void Implement<T>(T instance) where T: notnull
+        public static void Implement<T>(T instance) where T : notnull
         {
             Current.Implement(typeof(T), instance);
         }

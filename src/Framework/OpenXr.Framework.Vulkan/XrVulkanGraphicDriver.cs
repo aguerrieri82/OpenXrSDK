@@ -1,7 +1,7 @@
 ﻿using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
-using Silk.NET.Vulkan;
 using Silk.NET.OpenXR.Extensions.KHR;
+using Silk.NET.Vulkan;
 using System.Text;
 using StructureType = Silk.NET.OpenXR.StructureType;
 

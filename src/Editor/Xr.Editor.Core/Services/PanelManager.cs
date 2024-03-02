@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Xr.Editor
+﻿namespace Xr.Editor
 {
     public class PanelManager
     {
@@ -15,8 +9,8 @@ namespace Xr.Editor
             public Type? PanelType;
         }
 
-        List<IPanel> _panels = [];
-        List<PanelLoadListener> _loadListeners = [];
+        readonly List<IPanel> _panels = [];
+        readonly List<PanelLoadListener> _loadListeners = [];
 
         public void NotifyLoaded(IPanel panel)
         {
@@ -53,7 +47,7 @@ namespace Xr.Editor
 
         public async Task CloseAllAsync()
         {
-            await Task.WhenAll(_panels.Select(a=> a.CloseAsync()));
+            await Task.WhenAll(_panels.Select(a => a.CloseAsync()));
         }
     }
 }

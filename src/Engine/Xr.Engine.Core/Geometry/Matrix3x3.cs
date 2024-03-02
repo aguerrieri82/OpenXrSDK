@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Xr.Engine
+﻿namespace Xr.Engine
 {
     public struct Matrix3x3
     {

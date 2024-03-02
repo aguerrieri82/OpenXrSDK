@@ -51,7 +51,7 @@ namespace Xr.Editor
                 result.Add(new PropertyView
                 {
                     Label = "Position",
-                    Editor = new Vector3Editor(() => obj3d.Transform.Position, value => obj3d.Transform.Position = value, -0.1f, 0.1f)
+                    Editor = new Vector3Editor(() => obj3d.Transform.Position, value => obj3d.Transform.Position = value, -5f, 5f)
                 });
                 result.Add(new PropertyView
                 {
