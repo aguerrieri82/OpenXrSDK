@@ -16,6 +16,12 @@
 		<Content Include="..\Draco.Native\libs\arm64-v8a\libdraco-native.so"
 				 CopyToOutputDirectory="PreserveNewest"
 				 Link="runtimes/android-arm64/native/%(Filename)%(Extension)"/>
+
+		<AndroidNativeLibrary Include="..\Draco.Native\libs\arm64-v8a\libdraco-native.so"
+				 Abi="arm64-v8a"/>
+		
+		
+
 	</ItemGroup>
 
 	

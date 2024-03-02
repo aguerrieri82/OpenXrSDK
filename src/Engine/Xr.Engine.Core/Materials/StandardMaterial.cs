@@ -34,7 +34,6 @@ namespace Xr.Engine
                 bld.SetUniform("uTexture0", (ctx) => DiffuseTexture, 0);
             }
 
-
             bld.SetUniform("material.ambient", (ctx) => (Vector3)Ambient);
             bld.SetUniform("material.diffuse", (ctx) => (Vector3)Color);
             bld.SetUniform("material.specular", (ctx) => (Vector3)Specular);

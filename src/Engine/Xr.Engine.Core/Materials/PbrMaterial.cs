@@ -3,8 +3,6 @@ using System.Runtime.InteropServices;
 
 namespace Xr.Engine
 {
-
-
     public class PbrMaterial : ShaderMaterial
     {
         public enum AlphaMode
@@ -19,6 +17,51 @@ namespace Xr.Engine
             Unlit,
             Specular,
             Metallic
+        }
+
+        public enum DebugFlags
+        {
+            DEBUG_NORMAL_SHADING,
+            DEBUG_NORMAL_TEXTURE,
+            DEBUG_NORMAL_GEOMETRY,
+            DEBUG_TANGENT,
+            DEBUG_BITANGENT,
+            DEBUG_ALPHA,
+            DEBUG_UV_0,
+            DEBUG_UV_1,
+            DEBUG_OCCLUSION,
+            DEBUG_EMISSIVE,
+            DEBUG_METALLIC_ROUGHNESS,
+            DEBUG_BASE_COLOR,
+            DEBUG_ROUGHNESS,
+            DEBUG_METALLIC,
+            DEBUG_CLEARCOAT,
+            DEBUG_CLEARCOAT_FACTOR,
+            DEBUG_CLEARCOAT_ROUGHNESS,
+            DEBUG_CLEARCOAT_NORMAL,
+            DEBUG_SHEEN,
+            DEBUG_SHEEN_COLOR,
+            DEBUG_SHEEN_ROUGHNESS,
+            DEBUG_SPECULAR,
+            DEBUG_SPECULAR_FACTOR,
+            DEBUG_SPECULAR_COLOR,
+            DEBUG_TRANSMISSION_VOLUME,
+            DEBUG_TRANSMISSION_FACTOR,
+            DEBUG_VOLUME_THICKNESS,
+            DEBUG_IRIDESCENCE,
+            DEBUG_IRIDESCENCE_FACTOR,
+            DEBUG_IRIDESCENCE_THICKNESS,
+            DEBUG_ANISOTROPIC_STRENGTH,
+            DEBUG_ANISOTROPIC_DIRECTION,
+            DEBUG_NONE
+        }
+
+        public enum ToneMapType
+        {
+            TONEMAP_NONE,
+            TONEMAP_ACES_NARKOWICZ,
+            TONEMAP_ACES_HILL,
+            TONEMAP_ACES_HILL_EXPOSURE_BOOST
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -247,66 +290,8 @@ namespace Xr.Engine
             public Texture2D? SpecularGlossinessTexture { get; set; }
 
             public int SpecularGlossinessUVSet { get; set; }
-
         }
 
-        public enum DebugFlags
-        {
-            DEBUG_NORMAL_SHADING,
-            DEBUG_NORMAL_TEXTURE,
-            DEBUG_NORMAL_GEOMETRY,
-            DEBUG_TANGENT,
-            DEBUG_BITANGENT,
-            DEBUG_ALPHA,
-            DEBUG_UV_0,
-            DEBUG_UV_1,
-            DEBUG_OCCLUSION,
-            DEBUG_EMISSIVE,
-            DEBUG_METALLIC_ROUGHNESS,
-            DEBUG_BASE_COLOR,
-            DEBUG_ROUGHNESS,
-            DEBUG_METALLIC,
-            DEBUG_CLEARCOAT,
-            DEBUG_CLEARCOAT_FACTOR,
-            DEBUG_CLEARCOAT_ROUGHNESS,
-            DEBUG_CLEARCOAT_NORMAL,
-            DEBUG_SHEEN,
-            DEBUG_SHEEN_COLOR,
-            DEBUG_SHEEN_ROUGHNESS,
-            DEBUG_SPECULAR,
-            DEBUG_SPECULAR_FACTOR,
-            DEBUG_SPECULAR_COLOR,
-            DEBUG_TRANSMISSION_VOLUME,
-            DEBUG_TRANSMISSION_FACTOR,
-            DEBUG_VOLUME_THICKNESS,
-            DEBUG_IRIDESCENCE,
-            DEBUG_IRIDESCENCE_FACTOR,
-            DEBUG_IRIDESCENCE_THICKNESS,
-            DEBUG_ANISOTROPIC_STRENGTH,
-            DEBUG_ANISOTROPIC_DIRECTION,
-            DEBUG_NONE
-        }
-
-        public enum ToneMapType
-        {
-            TONEMAP_NONE,
-            TONEMAP_ACES_NARKOWICZ,
-            TONEMAP_ACES_HILL,
-            TONEMAP_ACES_HILL_EXPOSURE_BOOST
-        }
-
-        static readonly Shader SHADER;
-
-        static PbrMaterial()
-        {
-            SHADER = new Shader
-            {
-                FragmentSourceName = "pbr/pbr.frag",
-                VertexSourceName = "pbr/primitive.vert",
-                Resolver = str => Embedded.GetString(str),
-                IsLit = true
-            };
-        }
 
         class GlobalShaderHandler : IShaderHandler
         {
@@ -327,12 +312,11 @@ namespace Xr.Engine
                         ViewProjectionMatrix = ctx.Camera!.View * ctx.Camera.Projection,
                         Exposure = ctx.Camera.Exposure
                     };
-                });
+                }, true);
 
                 bld.SetUniformBuffer("Lights", (ctx) =>
                 {
                     var lights = new List<PbrLightUniforms>();
-
 
                     foreach (var light in bld.Context.Lights!)
                     {
@@ -351,7 +335,6 @@ namespace Xr.Engine
                         }
                         else if (light is DirectionalLight directional)
                         {
-
                             lights.Add(new PbrLightUniforms
                             {
                                 Type = PbrLightUniforms.Directional,
@@ -379,22 +362,36 @@ namespace Xr.Engine
                         }
                     }
 
-                    if (lights.Count > 0)
-                        bld.AddFeature("USE_PUNCTUAL");
-
-                    bld.AddFeature("MAX_LIGHTS " + LightsUniform.Max);
-
                     return new LightsUniform
                     {
                         LightCount = (uint)lights.Count,
                         Lights = lights.ToArray()
                     };
-                });
+                }, true);
+
+
+                if (bld.Context.Lights!.Any())
+                    bld.AddFeature("USE_PUNCTUAL");
+
+                bld.AddFeature("MAX_LIGHTS " + LightsUniform.Max);
+
             }
         }
 
         public static readonly IShaderHandler GlobalHandler = new GlobalShaderHandler();
 
+        static readonly Shader SHADER;
+
+        static PbrMaterial()
+        {
+            SHADER = new Shader
+            {
+                FragmentSourceName = "pbr/pbr.frag",
+                VertexSourceName = "pbr/primitive.vert",
+                Resolver = str => Embedded.GetString(str),
+                IsLit = true
+            };
+        }
 
         public PbrMaterial()
         {
@@ -524,7 +521,7 @@ namespace Xr.Engine
             bld.SetUniform("uModelMatrix", (ctx) => ctx.Model!.WorldMatrix);
             bld.SetUniform("uNormalMatrix", (ctx) => Matrix4x4.Transpose(ctx.Model!.WorldMatrixInverse));
 
-            bld.SetUniformBuffer("Material", (ctx) => material);
+            bld.SetUniformBuffer("Material", (ctx) => material, false);
 
 
             bld.AddFeature("ALPHAMODE_OPAQUE 0");

@@ -90,6 +90,9 @@ namespace Xr.Engine
 
             _scene = _parent == null ? null : this.FindAncestor<Scene>();
 
+            if (_scene == null)
+                changeType |= ObjectChangeType.SceneRemove;
+
             if (preserveTransform)
                 WorldMatrix = curWorldMatrix;
 

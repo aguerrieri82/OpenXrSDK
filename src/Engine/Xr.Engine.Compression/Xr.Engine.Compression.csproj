@@ -21,6 +21,10 @@
 		<Content Include="..\..\..\third-party\etcpak\libs\arm64-v8a\libetcpack.so"
 				 CopyToOutputDirectory="PreserveNewest"
 				 Link="runtimes/android-arm64/native/%(Filename)%(Extension)"/>
+
+
+		<AndroidNativeLibrary Include="..\..\..\third-party\etcpak\libs\arm64-v8a\libetcpack.so"
+			 	Abi="arm64-v8a"/>
 	</ItemGroup>
 
 

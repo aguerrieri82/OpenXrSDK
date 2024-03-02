@@ -49,7 +49,6 @@
             _components!.Remove(component);
 
             NotifyChanged(ObjectChangeType.Components);
-
         }
 
         public virtual void NotifyChanged(ObjectChange change)

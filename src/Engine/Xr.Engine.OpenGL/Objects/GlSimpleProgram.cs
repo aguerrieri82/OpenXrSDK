@@ -22,15 +22,14 @@ namespace Xr.Engine.OpenGL
         {
             _fSource = fSource;
             _vSource = vSource;
-            _programId = Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(vSource + fSource)));
         }
 
         [MemberNotNull(nameof(Vertex))]
         [MemberNotNull(nameof(Fragment))]
-        protected override void Build()
+        public override void Build()
         {
             var vSource = PatchShader(_vSource, ShaderType.VertexShader);
-            var fSource = PatchShader(_fSource, ShaderType.VertexShader);
+            var fSource = PatchShader(_fSource, ShaderType.FragmentShader);
 
             vSource = ShaderPreprocessor.ParseShader(vSource);
 

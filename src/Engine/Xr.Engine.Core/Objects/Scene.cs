@@ -7,11 +7,12 @@ namespace Xr.Engine
         protected List<IObjectChangeListener> _changeListener = [];
         protected readonly LayerManager _layers;
         protected EngineApp? _app;
-
+        protected UpdateHistory _history;
 
         public Scene()
         {
             _layers = new LayerManager(this);
+            _history = new UpdateHistory(this);
             _scene = this;
 
             this.AddLayer<TypeLayer<Light>>();
@@ -43,6 +44,9 @@ namespace Xr.Engine
 
             if (_app != null)
             {
+                foreach (var listener in _changeListener)
+                    listener.NotifyChanged(object3D, change);
+
                 foreach (var listener in _app.ChangeListeners)
                     listener.NotifyChanged(object3D, change);
             }
@@ -62,6 +66,8 @@ namespace Xr.Engine
                     AddChild(_activeCamera);
             }
         }
+
+        public UpdateHistory History => _history;
 
         public IList<IObjectChangeListener> ChangeListeners => _changeListener;
 

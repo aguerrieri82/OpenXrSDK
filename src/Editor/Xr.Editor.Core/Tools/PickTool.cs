@@ -39,7 +39,11 @@ namespace Xr.Editor
         protected virtual void OnLeave(Object3D obj)
         {
             if (obj is TriangleMesh mesh && mesh.Materials[0] is StandardMaterial mat && _oldColor != null)
+            {
                 mat.Color = _oldColor.Value;
+                mat.NotifyChanged();
+            }
+
         }
 
         protected virtual void OnEnter(Object3D obj)
@@ -48,6 +52,7 @@ namespace Xr.Editor
             {
                 _oldColor = mat.Color;
                 mat.Color = new Color(0, 1, 0, 1);
+                mat.NotifyChanged();
             }
         }
     }

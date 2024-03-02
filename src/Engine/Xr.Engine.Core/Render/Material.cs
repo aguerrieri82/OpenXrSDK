@@ -17,7 +17,7 @@
 
         public virtual void NotifyChanged()
         {
-            _host?.NotifyChanged(ObjectChangeType.Render);
+            _host?.NotifyChanged(new ObjectChange(ObjectChangeType.Render, this));
         }
 
         public virtual Color Color { get; set; }
