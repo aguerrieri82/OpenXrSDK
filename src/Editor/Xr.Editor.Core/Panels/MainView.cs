@@ -32,7 +32,6 @@ namespace Xr.Editor
         public string Text { get; set; }
 
         public Command CloseCommand { get; }
-
     }
 
 
@@ -61,15 +60,12 @@ namespace Xr.Editor
         [MemberNotNull(nameof(_app))]
         public void LoadScene()
         {
-            _app = SampleScenes.CreateSimpleScene(new LocalAssetManager("Assets"));
-            _app.ActiveScene!.ActiveCamera!.BackgroundColor = new Color(0, 1, 0, 1);
+            _app = SampleScenes.CreateRoom(new LocalAssetManager("Assets"));
 
-            var cube = _app.ActiveScene!.FindByName<Object3D>("mesh");
-            if (cube != null)
-            {
-                // cube.AddComponent<BoundsGrabbable>();
-                PropertiesEditor.ActiveObject = cube;
-            }
+            var mesh = _app.ActiveScene!.FindByName<Object3D>("mesh");
+            if (mesh != null)
+                PropertiesEditor.ActiveObject = mesh;
+
 
             var quad = _app.ActiveScene!.FindByName<Object3D>("quad");
             quad?.AddComponent(new FollowCamera { Offset = new Vector3(0, 0, -2) });

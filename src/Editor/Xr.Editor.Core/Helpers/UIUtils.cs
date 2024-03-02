@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Xr.Editor.Helpers
+﻿namespace Xr.Editor.Helpers
 {
     public static class UIUtils
     {
@@ -24,7 +18,7 @@ namespace Xr.Editor.Helpers
             if (_timer != null)
                 _timer.Dispose();
 
-            _timer = new Timer(OnTimer, null, (int)delay.TotalMilliseconds, Timeout.Infinite); 
+            _timer = new Timer(OnTimer, null, (int)delay.TotalMilliseconds, Timeout.Infinite);
 
             return source.Task;
         }

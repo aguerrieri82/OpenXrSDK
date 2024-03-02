@@ -224,12 +224,12 @@ namespace Xr.Engine.Gltf
                 result.AlphaCutoff = gltMat.AlphaCutoff;
 
                 result.EmissiveFactor = MathUtils.ToVector3(gltMat.EmissiveFactor);
-                result.AlphaMode = (AlphaMode)gltMat.AlphaMode;
+                result.Alpha = (PbrMaterial.AlphaMode)gltMat.AlphaMode;
                 result.DoubleSided = gltMat.DoubleSided;
 
                 if (gltMat.PbrMetallicRoughness != null)
                 {
-                    result.MetallicRoughness = new PbrMetallicRoughness
+                    result.MetallicRoughness = new PbrMaterial.MetallicRoughnessData
                     {
                         RoughnessFactor = gltMat.PbrMetallicRoughness.RoughnessFactor,
                         MetallicFactor = gltMat.PbrMetallicRoughness.MetallicFactor,
@@ -248,7 +248,7 @@ namespace Xr.Engine.Gltf
                         result.MetallicRoughness.MetallicRoughnessUVSet = gltMat.PbrMetallicRoughness.MetallicRoughnessTexture.TexCoord;
                     }
 
-                    result.Type = PbrMaterialType.Metallic;
+                    result.Type = PbrMaterial.MaterialType.Metallic;
                 }
 
                 if (gltMat.EmissiveTexture != null)
@@ -271,7 +271,7 @@ namespace Xr.Engine.Gltf
                 var specGlos = TryLoadExtension<KHR_materials_pbrSpecularGlossiness>(gltMat.Extensions);
                 if (specGlos != null)
                 {
-                    result.SpecularGlossiness = new PbrSpecularGlossiness
+                    result.SpecularGlossiness = new PbrMaterial.SpecularGlossinessData
                     {
                         DiffuseFactor = MathUtils.ToColor(specGlos.Value.diffuseFactor),
                         SpecularFactor = MathUtils.ToColor(specGlos.Value.specularFactor),
@@ -290,7 +290,7 @@ namespace Xr.Engine.Gltf
                         result.SpecularGlossiness.SpecularGlossinessUVSet = specGlos.Value.specularGlossinessTexture.TexCoord;
                     }
 
-                    result.Type = PbrMaterialType.Specular;
+                    result.Type = PbrMaterial.MaterialType.Specular;
                 }
 
                 mats[gltMat] = result;

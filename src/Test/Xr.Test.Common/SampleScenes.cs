@@ -1,5 +1,4 @@
-﻿
-using System.Numerics;
+﻿using System.Numerics;
 using Xr.Engine;
 using Xr.Engine.Compression;
 using Xr.Engine.Gltf;
@@ -9,100 +8,119 @@ namespace OpenXr.Samples
 {
     public static class SampleScenes
     {
-        public static EngineApp CreateSimpleScene(IAssetManager assets)
+        static readonly GltfLoaderOptions GltfOptions = new()
+        {
+            ConvertColorTextureSRgb = true,
+        };
+
+        static EngineApp CreateBaseScene()
         {
             var app = new EngineApp();
 
             var scene = new Scene();
 
-            //var cube = new TriangleMesh(Cube.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
-            var cube = new TriangleMesh(Cube.Instance, new PbrMaterial() 
-            { 
-                MetallicRoughness = new PbrMetallicRoughness
-                {
-                    BaseColorFactor = new Color(1f, 0, 0, 1)
-                }
+            scene.AddChild(new SunLight()
+            {
+                Name = "light",
+                Intensity = 1.5f,
+                Direction = new Vector3(-0.1f, -0.9f, -0.15f).Normalize(),
+                IsVisible = true
             });
-
-            cube.Transform.SetScale(0.1f);
-            cube.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), MathF.PI / 4f);
-            cube.Name = "test";
-            cube.AddComponent<MeshCollider>();
-            scene.AddChild(cube);
-
-            var quod = new TriangleMesh(Quad.Instance, new StandardMaterial() { Color = new Color(1f, 0, 0, 1) });
-            quod.Transform.SetScale(0.5f);
-            quod.Name = "quad";
-            //scene.AddChild(quod);
-
-            var contanier = new Group();
-            contanier.Transform.Position = new Vector3(1f, 0, 0);
-            contanier.Transform.SetScale(2);
-            contanier.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI / 4f);
-
-
-            scene.AddChild(contanier);
-
-            //scene.AddChild(new AmbientLight(0.1f));
-
-            var dl = scene.AddChild(new SunLight() { Intensity = 1.5f });
-            dl.Direction = new Vector3(-0.1f, -0.9f, -0.15f).Normalize();
-            dl.Name = "light";
-            dl.IsVisible = true;
-            /*
-            var pt = scene.AddChild(new PointLight() { Range = 30, Intensity = 0.8f });
-            pt.Transform.Position = new Vector3(0, 10, 0);
-            //pt.Name = "light";
-            pt.IsVisible = false;
-
- 
-
-            var dl2 = scene.AddChild(new DirectionalLight() { Intensity = 1.5f });
-            dl2.Transform.Rotation = new Vector3(0.16f, 0.18f, -0.35f);
-            dl2.Name = "light2";
-            dl2.IsVisible = false;
-            */
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
-            assets.FullPath("Sponza/Sponza.bin");
-            assets.FullPath("Game/ABeautifulGame.bin");
-
-            var glOptions = new GltfLoaderOptions
+            var camera = new PerspectiveCamera
             {
-                ConvertColorTextureSRgb = true,
+                Far = 50f,
+                Near = 0.01f,
+                BackgroundColor = Color.Transparent,
+                Exposure = 1
             };
 
-            //var room = GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets, glOptions);
-            //var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, glOptions);
-            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("Game/ABeautifulGame.gltf"), assets, glOptions);
-            room.Name = "mesh";
-            //room.Transform.SetScale(0.01f);
-
-            foreach (var child in room.Children.OfType<TriangleMesh>())
-                child.AddComponent<BoundsGrabbable>();
-
-            room.Transform.SetScale(1f);
-            room.Transform.Position = new Vector3(0, 1, 0);
-
-            scene.AddChild(room);
-            /*
-             foreach (var child in room.Descendants<TriangleMesh>())
-                 child.Materials[0] = new StandardMaterial() {  
-                     Color = new Color(1f, 1f, 1f, 1),
-                     DiffuseTexture = ((PbrMaterial)child.Materials[0]).MetallicRoughness.BaseColorTexture
-                 };
-             */
-            var camera = new PerspectiveCamera() { Far = 50f, Near = 0.01f };
-            camera.BackgroundColor = Color.Transparent;
-            //camera!.LookAt(new Vector3(0, 1.7f, 0), new Vector3(1, 1.7f, 0), new Vector3(0, 1, 0));
             camera!.LookAt(new Vector3(1, 1.7f, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
             scene.ActiveCamera = camera;
 
             app.OpenScene(scene);
 
             return app;
+
         }
+
+        public static EngineApp CreateChess(IAssetManager assets)
+        {
+            var app = CreateBaseScene();
+
+            assets.FullPath("Game/ABeautifulGame.bin");
+
+            var mesh = (Group)GltfLoader.Instance.Load(assets.FullPath("Game/ABeautifulGame.gltf"), assets, GltfOptions);
+            mesh.Name = "mesh";
+
+            foreach (var child in mesh.Children.OfType<TriangleMesh>())
+                child.AddComponent<BoundsGrabbable>();
+
+            mesh.Transform.SetScale(1f);
+            mesh.Transform.Position = new Vector3(0, 1, 0);
+
+            app.ActiveScene!.AddChild(mesh);
+            ((PerspectiveCamera)app.ActiveScene!.ActiveCamera!).Target = mesh.Transform.Position;
+
+            return app;
+
+        }
+
+        public static EngineApp CreateSponza(IAssetManager assets)
+        {
+            var app = CreateBaseScene();
+
+            assets.FullPath("Sponza/Sponza.bin");
+
+            var mesh = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, GltfOptions);
+            mesh.Name = "mesh";
+            mesh.Transform.SetScale(0.01f);
+
+            app.ActiveScene!.AddChild(mesh);
+
+            app.ActiveScene!.AddChild(new SunLight()
+            {
+                Name = "light2",
+                Intensity = 1.5f,
+                Direction = new Vector3(0.1f, -0.9f, 0.15f).Normalize(),
+                IsVisible = true
+            });
+
+            return app;
+        }
+
+        public static EngineApp CreateRoom(IAssetManager assets)
+        {
+            var app = CreateBaseScene();
+
+            var mesh = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, GltfOptions);
+            mesh.Name = "mesh";
+            mesh.Transform.SetScale(0.01f);
+
+            app.ActiveScene!.AddChild(mesh);
+
+            return app;
+        }
+
+        public static EngineApp CreateCube(IAssetManager assets)
+        {
+            var app = CreateBaseScene();
+
+            var cube = new TriangleMesh(Cube.Instance, new PbrMaterial() { Color = new Color(1f, 0, 0, 1) });
+
+            cube.Name = "mesh";
+            cube.Transform.SetScale(0.1f);
+            cube.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), MathF.PI / 4f);
+            cube.AddComponent<MeshCollider>();
+
+            app.ActiveScene!.AddChild(cube);
+
+            return app;
+        }
+
 
         public static EngineApp CreateDefaultScene(IAssetManager assets)
         {
@@ -116,14 +134,12 @@ namespace OpenXr.Samples
 
             var data = EtcCompressor.Encode(assets.FullPath("TestScreen.png"), 16);
 
-            var text = new TextureMaterial(Texture2D.FromData(data));
-            //var text = new TextureMaterial(Texture2D.FromPvrImage(assets.OpenAsset("TestScreen.pvr")));
-            //var text = new TextureMaterial(Texture2D.FromImage(assets.OpenAsset("TestScreen.png")));
-            text.DoubleSided = true;
+            var text = new TextureMaterial(Texture2D.FromData(data))
+            {
+                DoubleSided = true
+            };
 
             var cubes = new Group();
-            //cubes.Transform.SetScale(0.5f);
-            //cubes.Transform.SetPositionX(0.5f);
 
             for (var y = 0f; y <= 2f; y += 0.5f)
             {
@@ -135,7 +151,6 @@ namespace OpenXr.Samples
                     var cube = new TriangleMesh(Cube.Instance, red);
                     cube.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
                     cube.Transform.Position = new Vector3(x, y + 0.1f, z);
-                    //cube.Transform.Pivot = new Vector3(-1, -1, -1);
 
                     cube.AddBehavior((obj, ctx) =>
                     {
@@ -162,6 +177,7 @@ namespace OpenXr.Samples
                 Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
 
             });
+
             display.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
             display.Name = "display";
             display.AddComponent<MeshCollider>();
@@ -170,12 +186,6 @@ namespace OpenXr.Samples
 
             scene.AddChild(new AmbientLight(0.3f));
             scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
-
-
-            var room = (Group)GltfLoader.Instance.Load(assets.FullPath("769508.glb"), assets);
-            var mesh = room.Descendants<TriangleMesh>().First();
-            //mesh.Materials[0] = new StandardMaterial() { Color = new Color(1f, 1, 1, 1) };
-            scene.AddChild(mesh);
 
             app.OpenScene(scene);
 

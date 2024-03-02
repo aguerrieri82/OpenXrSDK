@@ -38,9 +38,9 @@ namespace Xr.Editor
 
         protected override void OnMouseDown(PointerEvent ev)
         {
-            var camera = _sceneView!.Camera!;
+            var camera = (PerspectiveCamera)_sceneView!.Camera!;
 
-            var relPos = (camera.WorldPosition - Target);
+            var relPos = (camera.WorldPosition - camera.Target);
 
             _startMouse = ev;
 
@@ -54,9 +54,9 @@ namespace Xr.Editor
             {
                 _action = OrbitAction.Translate;
                 _startWorld = camera.WorldMatrix;
-                _startTarget = Target;
+                _startTarget = camera.Target;
 
-                var targetZ = Vector4.Transform(new Vector4(Target.X, Target.Y, Target.Z, 1), camera.View * camera.Projection);
+                var targetZ = Vector4.Transform(new Vector4(camera.Target, 1), camera.View * camera.Projection);
 
                 _planeZ = targetZ.Z / targetZ.W;
                 _startPoint = ToWorld(ev, _planeZ);
@@ -68,18 +68,18 @@ namespace Xr.Editor
 
         protected override void OnWheelMove(PointerEvent ev)
         {
-            var camera = _sceneView!.Camera!;
-            var curDir = (camera.WorldPosition - Target);
+            var camera = (PerspectiveCamera)_sceneView!.Camera!;
+            var curDir = (camera.WorldPosition - camera.Target);
             var curLen = curDir.Length();
             var newLen = curLen + curLen * -ev.WheelDelta * 0.001f;
 
-            camera.WorldPosition = Target + curDir.Normalize() * newLen;
+            camera.WorldPosition = camera.Target + curDir.Normalize() * newLen;
 
         }
 
         protected override void OnMouseMove(PointerEvent ev)
         {
-            var camera = _sceneView!.Camera!;
+            var camera = (PerspectiveCamera)_sceneView!.Camera!;
 
             if (_action == OrbitAction.Rotate)
             {
@@ -88,9 +88,9 @@ namespace Xr.Editor
                 newPos.Azm = MathF.Max(0.0001f, MathF.Min(MathF.PI, newPos.Azm - (ev.Y - _startMouse.Y) * RotationSpeed));
                 newPos.Pol += (ev.X - _startMouse.X) * RotationSpeed;
 
-                var newPosVec = Target + newPos.ToCartesian();
+                var newPosVec = camera.Target + newPos.ToCartesian();
 
-                camera.View = Matrix4x4.CreateLookAt(newPosVec, Target, new Vector3(0, 1, 0));
+                camera.LookAt(newPosVec, camera.Target, new Vector3(0, 1, 0));
             }
             else if (_action == OrbitAction.Translate)
             {
@@ -100,8 +100,7 @@ namespace Xr.Editor
 
                 var deltaW = -(newPoint - _startPoint);
 
-                Target = _startTarget + deltaW;
-                camera.View = Matrix4x4.CreateLookAt(_startWorld.Translation + deltaW, Target, new Vector3(0, 1, 0));
+                camera.LookAt(_startWorld.Translation + deltaW, _startTarget + deltaW, new Vector3(0, 1, 0));
             }
         }
 
@@ -116,7 +115,6 @@ namespace Xr.Editor
 
         public float ZoomSpeed { get; set; }
 
-        public Vector3 Target { get; set; }
 
     }
 }

@@ -184,7 +184,7 @@ void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bo
 {
 	Renderer::ClearOptions opt;
 	opt.clear = true;
-	opt.clearColor = { 0, 1, 1, 1 };
+	opt.clearColor = { 0, 0, 0, 0 };
 
 	app->renderer->setClearOptions(opt);
 
@@ -593,6 +593,7 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 
 
 	builder.material(shader.c_str());
+	builder.generateDebugInfo(true);
 
 	return builder.build(app->engine->getJobSystem());
 }

@@ -9,7 +9,6 @@ using OpenXr.Framework;
 using Xr.Engine.OpenGL;
 using Xr.Engine.OpenGL.Oculus;
 using Xr.Engine.Filament;
-using Silk.NET.Windowing;
 using static Xr.Engine.Filament.FilamentLib;
 using System.Numerics;
 
@@ -39,7 +38,7 @@ namespace Xr.Engine.OpenXr
         public static IRenderEngine BindEngineApp(this XrApp xrApp, EngineApp app)
         {
             if (app.Renderer is OpenGLRender || app.Renderer == null)
-                return xrApp.BindEngineAppGL(app);  
+                return xrApp.BindEngineAppGL(app);
 
             if (app.Renderer is FilamentRender)
                 return xrApp.BindEngineAppFl(app);
@@ -112,7 +111,7 @@ namespace Xr.Engine.OpenXr
                             renderer.Render(app.ActiveScene, camera, rect, true);
                     }
                 }
-                else 
+                else
                 {
                     GetImage(0);
 

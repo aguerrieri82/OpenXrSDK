@@ -7,8 +7,6 @@ using Silk.NET.OpenGL;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Text;
-using System.Diagnostics;
-using System;
 
 
 namespace Xr.Engine.OpenGL
@@ -124,7 +122,7 @@ namespace Xr.Engine.OpenGL
                     if (result != -1)
                         _gl.UniformBlockBinding(_handle, (uint)result, (uint)result);
                 }
-             
+
                 else
                     result = _gl.GetUniformLocation(_handle, name);
                 if (result == -1 && !optional)
@@ -169,7 +167,7 @@ namespace Xr.Engine.OpenGL
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
-        public unsafe void SetUniformBuffer<T>(string name, T data, bool optional = false, bool updateBuffer = false) 
+        public unsafe void SetUniformBuffer<T>(string name, T data, bool optional = false, bool updateBuffer = false)
         {
             var buffer = GetBuffer<T>(name);
 
@@ -187,7 +185,7 @@ namespace Xr.Engine.OpenGL
                 SetUniform(name, (IBuffer)buffer, optional);
         }
 
-        protected virtual GlBuffer<T> GetBuffer<T>(string name) 
+        protected virtual GlBuffer<T> GetBuffer<T>(string name)
         {
             throw new NotSupportedException();
         }
@@ -306,6 +304,6 @@ namespace Xr.Engine.OpenGL
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]
         protected static partial Regex IncludeRegex();
 
-      
+
     }
 }

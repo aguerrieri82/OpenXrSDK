@@ -1,22 +1,20 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 #else
-using Silk.NET.OpenGL;
 #endif
 
 using System.ComponentModel;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
-using OpenXr.Framework;
 using System.Windows.Media;
-using System.Numerics;
 using Xr.Engine;
 
 
 
 namespace Xr.Editor
 {
-    public abstract class RenderHost : HwndHost,  IRenderSurface
+    public abstract class RenderHost : HwndHost, IRenderSurface
     {
         private HwndSource? _hwndSource;
 
@@ -180,7 +178,7 @@ namespace Xr.Editor
 
         public virtual void TakeContext()
         {
-  
+
         }
 
         public abstract IRenderEngine CreateRenderEngine();

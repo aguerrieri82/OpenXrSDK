@@ -16,12 +16,10 @@
             };
         }
 
-
         public DepthViewMaterial()
             : base()
         {
             _shader = SHADER;
-
         }
 
         public override void UpdateShader(ShaderUpdateBuilder bld)

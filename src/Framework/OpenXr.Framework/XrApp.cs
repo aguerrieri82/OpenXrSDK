@@ -4,7 +4,6 @@ using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
 using System.Collections;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -214,8 +213,8 @@ namespace OpenXr.Framework
 
         public void RequestStop()
         {
-            if (_state != XrAppState.Started && 
-                _state != XrAppState.Starting && 
+            if (_state != XrAppState.Started &&
+                _state != XrAppState.Starting &&
                 _state != XrAppState.SessionCreated)
                 return;
 
@@ -534,7 +533,7 @@ namespace OpenXr.Framework
             {
                 while (!states.Contains(_lastSessionState))
                 {
-                    if (_state== XrAppState.StopRequested || _state == XrAppState.Stopping || _state == XrAppState.Stopped)
+                    if (_state == XrAppState.StopRequested || _state == XrAppState.Stopping || _state == XrAppState.Stopped)
                         return false;
                     Monitor.Wait(_sessionLock);
                 }
@@ -573,7 +572,7 @@ namespace OpenXr.Framework
             }
             else
                 _state = XrAppState.Restarting;
-     
+
         }
 
         protected void BeginSession(ViewConfigurationType viewType)

@@ -1,12 +1,12 @@
-﻿using Silk.NET.OpenGL;
+﻿using OpenXr.Framework;
+using OpenXr.Framework.OpenGL;
 using Silk.NET.Core.Contexts;
+using Silk.NET.OpenGL;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using Xr.Engine;
 using Xr.Engine.OpenGL;
-using OpenXr.Framework.OpenGL;
-using OpenXr.Framework;
 
 
 
@@ -191,7 +191,7 @@ namespace Xr.Editor
 
             _glCtx = wglCreateContext(_hdc);
 
-          
+
 
             if (_glCtx == IntPtr.Zero)
                 throw new Win32Exception();
@@ -266,7 +266,7 @@ namespace Xr.Editor
             }
 
             if (_hwndSource != null)
-                _ = ReleaseDC(_hwndSource.Handle, _hdc); 
+                _ = ReleaseDC(_hwndSource.Handle, _hdc);
 
             base.DestroyWindowCore(hwnd);
         }

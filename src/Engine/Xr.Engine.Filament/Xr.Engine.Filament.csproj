@@ -1,25 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+	<PropertyGroup>
 
-  </PropertyGroup>
+	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\Filament.Native\bin\x64\Debug\filament-native.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Include="..\Filament.Native\bin\x64\Debug\filament-native.pdb">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Include="..\Filament.Native\libs\arm64-v8a\libfilament-native.so">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
+		<Content Include="..\Filament.Native\bin\x64\Debug\filament-native.dll"
+				 CopyToOutputDirectory="PreserveNewest"
+				 Link="runtimes/win-x64/native/%(Filename)%(Extension)"/>
+
+		<Content Include="..\Filament.Native\bin\x64\Debug\filament-native.pdb"
+				 CopyToOutputDirectory="PreserveNewest"
+				 Link="runtimes/win-x64/native/%(Filename)%(Extension)"/>
+
+		<Content Include="..\Filament.Native\libs\arm64-v8a\libfilament-native.so"
+				 CopyToOutputDirectory="PreserveNewest"
+				 Link="runtimes/android-arm64/native/%(Filename)%(Extension)"/>
 	</ItemGroup>
 
-	
+
 	<ItemGroup>
-    <ProjectReference Include="..\Filament.Native\Filament.Native.vcxproj" />
-    <ProjectReference Include="..\Xr.Engine.Core\Xr.Engine.Core.csproj" />
-  </ItemGroup>
+		<ProjectReference Include="..\Filament.Native\Filament.Native.vcxproj" />
+		<ProjectReference Include="..\Xr.Engine.Core\Xr.Engine.Core.csproj" />
+	</ItemGroup>
 
 </Project>

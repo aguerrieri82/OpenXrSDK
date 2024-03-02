@@ -1,6 +1,5 @@
 ﻿using OpenXr.Framework;
 using System.Windows;
-using Xr.Editor.Components;
 
 namespace Xr.Editor
 {

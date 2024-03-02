@@ -13,7 +13,7 @@ namespace OpenXr.Framework
     public unsafe class XrProjectionLayer : XrBaseLayer<CompositionLayerProjection>
     {
         readonly RenderViewDelegate? _renderView;
- 
+
         XrProjectionLayer()
         {
             _header->Type = StructureType.CompositionLayerProjection;
@@ -123,7 +123,7 @@ namespace OpenXr.Framework
                 foreach (var sw in swapchains)
                     _xrApp!.ReleaseSwapchainImage(sw.Swapchain);
             }
-            
+
             return true;
         }
 

@@ -12,6 +12,7 @@ namespace Xr.Engine
     public class PerspectiveCamera : Camera
     {
         protected Matrix4x4 _viewInverse;
+        protected Vector3 _target;
 
         public void SetFovCenter(float left, float right, float top, float bottom)
         {
@@ -26,16 +27,23 @@ namespace Xr.Engine
         public void SetFov(float angleDegree, float ratio)
         {
             var rads = MathF.PI / 180f * angleDegree;
-
             Projection = Matrix4x4.CreatePerspectiveFieldOfView(rads, ratio, Near, Far);
         }
 
         public void LookAt(Vector3 position, Vector3 target, Vector3 up)
         {
             View = Matrix4x4.CreateLookAt(position, target, up);
-            Transform.Matrix = ViewInverse;
+            _target = target;
         }
 
+        public Vector3 Target
+        {
+            get => _target;
+            set
+            {
+               LookAt(WorldPosition, value, Up);
+            }
+        }
 
         public CameraEye[]? Eyes { get; set; }
     }

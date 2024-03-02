@@ -29,7 +29,7 @@ namespace Xr.Engine
                     item.EnsureId();
                     item.Attach(this);
                 }
-             
+
             }
 
             NotifyChanged(ObjectChangeType.Render);
