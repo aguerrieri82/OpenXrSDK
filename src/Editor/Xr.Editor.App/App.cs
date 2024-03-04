@@ -1,4 +1,5 @@
 ﻿using OpenXr.Framework;
+using Silk.NET.GLFW;
 using System.Windows;
 using Xr.Editor.Components;
 using Xr.Engine.Filament;
@@ -33,7 +34,7 @@ namespace Xr.Editor
             var window = new Window
             {
                 Title = "Xr Editor",
-                Content = new MainView(new FlGlRenderHost())
+                Content = new MainView(new GlRenderHost())
             };
 
 

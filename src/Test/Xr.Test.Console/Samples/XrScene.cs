@@ -38,8 +38,6 @@ namespace OpenXr.Samples
 
             xrApp.BindEngineAppGL(_game);
 
-            xrApp.StartEventLoop(() => !isStarted);
-
             xrApp.Start(XrAppStartMode.Render);
 
             while (true)

@@ -70,7 +70,10 @@ namespace OpenXr.Framework.Oculus
         protected FBTriangleMesh? _mesh;
         protected NativeStruct<SwapchainCreateInfoFoveationFB> _foveationInfo;
         protected FBHapticPcm? _haptic;
+        protected FBDisplayRefreshRate? _refreshRate;
         protected FBSpatialEntityContainer? _container;
+        protected FBFoveation? _foveation;
+        protected FBSwapchainUpdateState? _swapChainUpdate;
         protected readonly ConcurrentDictionary<ulong, TaskCompletionSource<SpaceQueryResultFB[]>> _spaceQueries = [];
         protected readonly ConcurrentDictionary<ulong, TaskCompletionSource<Result>> _spaceCompStatus = [];
 
@@ -99,7 +102,12 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBSpatialEntityStorage.ExtensionName);
             extensions.Add(FBSpatialEntityQuery.ExtensionName);
             extensions.Add(FBHapticPcm.ExtensionName);
+            extensions.Add(FBDisplayRefreshRate.ExtensionName);
+            extensions.Add(FBFoveation.ExtensionName);
+            extensions.Add(FBSwapchainUpdateState.ExtensionName);
+            
             extensions.Add("XR_META_spatial_entity_mesh");
+            extensions.Add("XR_META_touch_controller_plus");
         }
 
         public override void OnInstanceCreated()
@@ -110,11 +118,18 @@ namespace OpenXr.Framework.Oculus
             _app.Xr.TryGetInstanceExtension<FBTriangleMesh>(null, _app.Instance, out _mesh);
             _app.Xr.TryGetInstanceExtension<FBHapticPcm>(null, _app.Instance, out _haptic);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityContainer>(null, _app.Instance, out _container);
+            _app.Xr.TryGetInstanceExtension<FBDisplayRefreshRate>(null, _app.Instance, out _refreshRate);
+            _app.Xr.TryGetInstanceExtension<FBFoveation>(null, _app.Instance, out _foveation);
+            _app.Xr.TryGetInstanceExtension<FBSwapchainUpdateState>(null, _app.Instance, out _swapChainUpdate);
+            
 
             var func = new PfnVoidFunction();
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
             GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));
         }
+
+
+
 
         public string[] GetSpaceSemanticLabels(Space space)
         {
@@ -392,9 +407,43 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
+        public void UpdateFoveation(FoveationDynamicFB dynamic, FoveationLevelFB level, float offset)
+        {
+            var create = new FoveationProfileCreateInfoFB()
+            {
+                Type = StructureType.FoveationProfileCreateInfoFB
+            };
+
+            var info = new FoveationLevelProfileCreateInfoFB
+            {
+                Type = StructureType.FoveationLevelProfileCreateInfoFB,
+                Dynamic = dynamic,
+                Level = level,
+                VerticalOffset = offset
+            };
+
+            create.Next = &info;
+
+            var profile = new FoveationProfileFB();
+
+            _app!.CheckResult(_foveation!.CreateFoveationProfileFB(_app!.Session, in create, ref profile), "CreateFoveationProfileFB");
+
+            var update = new SwapchainStateFoveationFB
+            {
+                Type = StructureType.SwapchainStateFoveationFB,
+                Profile = profile,
+                Flags = SwapchainStateFoveationFlagsFB.None,
+            };
+
+            foreach (var swapChain in _app.SwapChains)
+                _app.CheckResult(_swapChainUpdate!.UpdateSwapchainFB(swapChain, (SwapchainStateBaseHeaderFB*)&update), "UpdateSwapchainFB");
+
+            _foveation!.DestroyFoveationProfileFB(profile);
+
+        }
+
         public override void ConfigureSwapchain(ref SwapchainCreateInfo info)
         {
-
             if (_options.Foveation == SwapchainCreateFoveationFlagsFB.None)
                 return;
 
@@ -452,6 +501,25 @@ namespace OpenXr.Framework.Oculus
             }
             return result;
         }
+
+        public float[] EnumerateDisplayRefreshRates()
+        {
+            uint count = 0;
+            _app!.CheckResult(_refreshRate!.EnumerateDisplayRefreshRatesFB(_app!.Session, 0, ref count, null), "EnumerateDisplayRefreshRates");
+
+            var result = new float[(int)count];
+
+            fixed (float* pResult = result)
+                _app!.CheckResult(_refreshRate!.EnumerateDisplayRefreshRatesFB(_app!.Session, count, ref count, pResult), "EnumerateDisplayRefreshRates");
+
+            return result;
+        }
+
+        public void RequestDisplayRefreshRate(float value)
+        {
+            _app!.CheckResult(_refreshRate!.RequestDisplayRefreshRateFB(_app!.Session, value), "RequestDisplayRefreshRate");
+        }
+
 
         public void Dispose()
         {

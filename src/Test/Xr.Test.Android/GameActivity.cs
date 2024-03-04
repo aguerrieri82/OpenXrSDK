@@ -7,6 +7,7 @@ using OpenXr.Framework.Oculus;
 using OpenXr.Framework.Vulkan;
 using OpenXr.Samples;
 using Silk.NET.OpenGLES;
+using Silk.NET.OpenXR;
 using Xr.Engine;
 using Xr.Engine.Filament;
 using Xr.Engine.OpenGL;
@@ -34,11 +35,15 @@ namespace Xr.Test.Android
         private EngineApp? _game;
         private VulkanDevice? _vkDevice;
         private WebView? _webView;
-        private readonly XrWebViewLayer? _webViewLayer;
+        private XrWebViewLayer? _webViewLayer;
         private XrOculusTouchController? _inputs;
 
         protected override void OnAppStarted(XrApp app)
         {
+            var rates = app.Plugin<OculusXrPlugin>().EnumerateDisplayRefreshRates();
+
+            app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
+
             if (_webViewLayer != null)
             {
                 _webView = _webViewLayer.WebView!;
@@ -59,7 +64,7 @@ namespace Xr.Test.Android
                 AssetManager = new AndroidAssetManager(this, "Assets")
             };
 
-            _game = SampleScenes.CreateChess(Platform.Current.AssetManager);
+            _game = SampleScenes.CreateDisplay(Platform.Current.AssetManager);
 
             IXrGraphicDriver driver;
 
@@ -128,7 +133,7 @@ namespace Xr.Test.Android
                  driver,
                  new OculusXrPlugin(new OculusXrPluginOptions
                  {
-                     Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.ScaledBinBitFB | Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
+                     Foveation = SwapchainCreateFoveationFlagsFB.ScaledBinBitFB | SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
                  }),
                  new AndroidXrPlugin(this));
 
@@ -146,21 +151,21 @@ namespace Xr.Test.Android
                .AddAction(a => a.Right!.Haptic)
               );
 
-            //xrApp.Layers.Add<XrPassthroughLayer>();
+            xrApp.Layers.Add<XrPassthroughLayer>();
 
             var display = _game.ActiveScene!.FindByName<TriangleMesh>("display")!;
 
-            var controller = new SurfaceController(
-                _inputs.Right!.TriggerClick!,
-                _inputs.Right!.SqueezeClick!,
-                _inputs.Right!.Haptic!);
-
             if (display != null)
             {
+                var controller = new SurfaceController(
+                    _inputs.Right!.TriggerClick!,
+                    _inputs.Right!.SqueezeClick!,
+                    _inputs.Right!.Haptic!);
+
                 display.AddComponent(controller);
                 display.AddComponent<DisplayPosition>();
 
-                //_webViewLayer = result.Layers.AddWebView(this, display.BindToQuad(), controller);
+                _webViewLayer = xrApp.Layers.AddWebView(this, display.BindToQuad(), controller);
             }
 
             _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
@@ -170,7 +175,7 @@ namespace Xr.Test.Android
                 _inputs.Right!.SqueezeValue!,
                 _inputs.Right!.TriggerValue!));
 
-            _game.ActiveScene.AddChild(new OculusSceneModel());
+           // _game.ActiveScene.AddChild(new OculusSceneModel());
 
             var renderer = xrApp.BindEngineApp(_game);
 

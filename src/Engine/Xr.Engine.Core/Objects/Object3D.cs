@@ -60,8 +60,8 @@ namespace Xr.Engine
 
         protected void UpdateWorldInverse()
         {
-            //Matrix4x4.Invert(_worldMatrix, out _worldMatrixInverse);
-            _worldMatrixInverse = MathUtils.InvertRigidBody(_worldMatrix);
+            Matrix4x4.Invert(_worldMatrix, out _worldMatrixInverse);
+            //_worldMatrixInverse = MathUtils.InvertRigidBody(_worldMatrix);
             _worldInverseDirty = false;
         }
 

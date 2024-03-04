@@ -8,6 +8,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
 		<PackageReference Include="Silk.NET.Maths" Version="2.20.0" />
 		<PackageReference Include="Silk.NET.OpenXR" Version="2.20.0" />
+		<PackageReference Include="Silk.NET.OpenXR.Extensions.EXT" Version="2.20.0" />
 		<PackageReference Include="Silk.NET.OpenXR.Extensions.KHR" Version="2.20.0" />
 		<PackageReference Include="Silk.NET.Windowing" Version="2.20.0" />
 	</ItemGroup>
@@ -18,10 +19,9 @@
 
 
 	<ItemGroup>
-		<Content Include="runtimes/**/*" CopyToOutputDirectory="PreserveNewest"/>
+		<Content Include="runtimes/**/*" CopyToOutputDirectory="PreserveNewest" />
 
-		<AndroidNativeLibrary Include="runtimes/android-arm64/native/*"
-				 Abi="arm64-v8a"/>
+		<AndroidNativeLibrary Include="runtimes/android-arm64/native/*" Abi="arm64-v8a" />
 	</ItemGroup>
 
 </Project>
