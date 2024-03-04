@@ -32,7 +32,7 @@ namespace Xr.Test.Android
     public class GameActivity : XrActivity
     {
         private EngineApp? _game;
-        private VulkanDevice _vkDevice;
+        private VulkanDevice? _vkDevice;
         private WebView? _webView;
         private readonly XrWebViewLayer? _webViewLayer;
         private XrOculusTouchController? _inputs;
@@ -50,9 +50,9 @@ namespace Xr.Test.Android
 
         protected unsafe override SampleXrApp CreateApp()
         {
-            var renderMode = XrRenderMode.SingleEye;
-            var useFilament = true;
-
+            var renderMode = XrRenderMode.MultiView;
+            var useFilament = false;
+            uint sampleCount = 4;
 
             Platform.Current = new Platform
             {
@@ -67,7 +67,7 @@ namespace Xr.Test.Android
             {
                 var filamentOptions = new FilamentOptions
                 {
-                    Driver = FilamentLib.FlBackend.OpenGL,
+                    Driver = FilamentLib.FlBackend.Vulkan,
                     MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath,
                     EnableStereo = renderMode != XrRenderMode.SingleEye,
                     OneViewPerTarget = true
@@ -128,13 +128,13 @@ namespace Xr.Test.Android
                  driver,
                  new OculusXrPlugin(new OculusXrPluginOptions
                  {
-                     Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.ScaledBinBitFB
+                     Foveation = Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.ScaledBinBitFB | Silk.NET.OpenXR.SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
                  }),
                  new AndroidXrPlugin(this));
 
-            xrApp.RenderOptions.SampleCount = 1;
+            xrApp.RenderOptions.SampleCount = sampleCount;
             xrApp.RenderOptions.RenderMode = renderMode;
-            xrApp.RenderOptions.ResolutionScale = 1f;
+            xrApp.RenderOptions.ResolutionScale = 0.8f;
 
             _inputs = xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.TriggerClick)
@@ -146,7 +146,7 @@ namespace Xr.Test.Android
                .AddAction(a => a.Right!.Haptic)
               );
 
-            xrApp.Layers.Add<XrPassthroughLayer>();
+            //xrApp.Layers.Add<XrPassthroughLayer>();
 
             var display = _game.ActiveScene!.FindByName<TriangleMesh>("display")!;
 
@@ -170,8 +170,7 @@ namespace Xr.Test.Android
                 _inputs.Right!.SqueezeValue!,
                 _inputs.Right!.TriggerValue!));
 
-            //_game.ActiveScene.AddChild(new OculusSceneModel());
-
+            _game.ActiveScene.AddChild(new OculusSceneModel());
 
             var renderer = xrApp.BindEngineApp(_game);
 

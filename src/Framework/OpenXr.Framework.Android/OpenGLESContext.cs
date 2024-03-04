@@ -113,6 +113,10 @@ namespace OpenXr.Framework.Android
                 throw new Exception("EglMakeCurrent");
             }
 
+
+            EGL14.EglSwapInterval(display, 0);
+
+
             return new OpenGLESContext
             {
                 Display = display,

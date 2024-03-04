@@ -28,6 +28,8 @@ namespace Xr.Engine.OpenGL
     {
         public IShaderHandler? GlobalHandler;
 
+        public GlProgramGlobal? ProgramGlobal;
+
         public readonly Dictionary<Object3D, VertexContent> Contents = [];
     }
 
@@ -53,8 +55,18 @@ namespace Xr.Engine.OpenGL
         public GlProgramInstance? ProgramInstance;
     }
 
+
     public class OpenGLRender : IRenderEngine
     {
+        protected struct GlState
+        {
+            public bool WriteDepth;
+            public bool UseDepth;
+            public bool DoubleSided;
+            public bool WriteColor;
+            public uint ActiveProgram;
+        }
+
         protected GL _gl;
         protected GlobalContent? _content;
         protected IGlRenderTarget? _target;
@@ -65,6 +77,7 @@ namespace Xr.Engine.OpenGL
         protected ShaderUpdate? _writeStencilUpdate;
         protected Dictionary<uint, Texture2D> _depthCache = [];
         protected Rect2I _view;
+        protected GlState _glState;
 
 
         public static class Props
@@ -89,6 +102,9 @@ namespace Xr.Engine.OpenGL
             _updateCtx = new UpdateShaderContext();
             _updateCtx.RenderEngine = this;
 
+            _gl.FrontFace(FrontFaceDirection.Ccw);
+            _gl.CullFace(TriangleFace.Back);
+            _gl.LineWidth(1);
         }
 
         public void ReleaseContext(bool release)
@@ -97,10 +113,9 @@ namespace Xr.Engine.OpenGL
 
         public void Clear(Color color)
         {
-            _gl.ClearColor(color.R, color.G, color.B, color.A);
             _gl.ClearDepth(1.0f);
-            _gl.ClearStencil(0);
-            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            _gl.ClearColor(color.R, color.G, color.B, color.A);
+            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
 
@@ -130,7 +145,11 @@ namespace Xr.Engine.OpenGL
 
                     if (!_content.ShaderContents.TryGetValue(material.Shader, out var shaderContent))
                     {
-                        shaderContent = new ShaderContent();
+                        shaderContent = new ShaderContent
+                        {
+                            ProgramGlobal = material.Shader.GetResource(gl => new GlProgramGlobal(_gl, material.GetType()))
+                        };
+
                         _content.ShaderContents[material.Shader] = shaderContent;
                     }
 
@@ -139,10 +158,9 @@ namespace Xr.Engine.OpenGL
                         vertexContent = new VertexContent
                         {
                             Version = obj3D.Version,
-                            VertexHandler = obj3D.GetResource(a => GlVertexSourceHandle.Create(_gl, vrtSrc))
+                            VertexHandler = vrtSrc.Object.GetResource(a => GlVertexSourceHandle.Create(_gl, vrtSrc)),
+                            ActiveComponents = VertexComponent.None
                         };
-
-                        vertexContent.ActiveComponents = VertexComponent.None;
 
                         foreach (var attr in vertexContent.VertexHandler.Layout!.Attributes!)
                             vertexContent.ActiveComponents |= attr.Component;
@@ -153,7 +171,7 @@ namespace Xr.Engine.OpenGL
                     vertexContent.Contents.Add(new DrawContent
                     {
                         Draw = () => vertexContent!.VertexHandler!.Draw(),
-                        ProgramInstance = new GlProgramInstance(_gl, material),
+                        ProgramInstance = material.GetResource(gl => new GlProgramInstance(_gl, material, shaderContent.ProgramGlobal!)),
                         DrawId = drawId++,
                         Object = obj3D
                     });
@@ -193,15 +211,33 @@ namespace Xr.Engine.OpenGL
 
         protected void ConfigureCaps(ShaderMaterial material)
         {
-            _gl.DepthMask(material.WriteDepth);
-            EnableFeature(EnableCap.DepthTest, material.UseDepth);
-            EnableFeature(EnableCap.CullFace, !material.DoubleSided);
+            if (_glState.WriteDepth != material.WriteDepth)
+            {
+                _gl.DepthMask(material.WriteDepth);
+                _glState.WriteDepth = material.WriteDepth;  
+            }
+    
+            if (_glState.UseDepth != material.UseDepth)
+            {
+                EnableFeature(EnableCap.DepthTest, material.UseDepth);
+                _glState.UseDepth = material.UseDepth;  
+            }
 
-            if (!material.WriteColor)
-                _gl.ColorMask(false, false, false, false);
-            else
-                _gl.ColorMask(true, true, true, true);
+            if (_glState.DoubleSided != material.DoubleSided)
+            {
+                EnableFeature(EnableCap.CullFace, material.DoubleSided);
+                _glState.DoubleSided = material.DoubleSided;
+            }
 
+            if (_glState.WriteColor != material.WriteColor)
+            {
+                if (!material.WriteColor)
+                    _gl.ColorMask(false, false, false, false);
+                else
+                    _gl.ColorMask(true, true, true, true);
+
+                _glState.WriteColor = material.WriteColor;
+            }
         }
 
         public void Render(Scene scene, Camera camera, Rect2I view, bool flush)
@@ -212,19 +248,16 @@ namespace Xr.Engine.OpenGL
 
         public void Render(Scene scene, Camera camera, Rect2I view, IGlRenderTarget target)
         {
-            _view = view;
-
             target.Begin();
 
             Clear(camera.BackgroundColor);
 
-            _gl.FrontFace(FrontFaceDirection.Ccw);
+            if (!_view.Equals(view))
+            {
+                _gl.Viewport(view.X, view.Y, view.Width, view.Height);
 
-            _gl.CullFace(TriangleFace.Back);
-
-            _gl.Viewport(view.X, view.Y, view.Width, view.Height);
-
-            _gl.LineWidth(1);
+                _view = view;
+            }
 
             var targetHandler = target as IShaderHandler;
 
@@ -239,10 +272,9 @@ namespace Xr.Engine.OpenGL
 
             foreach (var shader in _content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
-                var progInst = shader.Value!.Contents.First().Value.Contents!.First().ProgramInstance;
+                var progGlobal = shader.Value!.ProgramGlobal;
 
-                if (progInst!.Program != null)
-                    progInst.UpdateGlobal(_updateCtx);
+                progGlobal!.UpdateProgram(_updateCtx, _target as IShaderHandler);
 
                 foreach (var vertex in shader.Value.Contents)
                 {
@@ -253,7 +285,7 @@ namespace Xr.Engine.OpenGL
                         if (!camera.CanSee(mesh.WorldBounds))
                         {
                             skipCount++;
-                            //continue;
+                           // continue;
                         }
                     }
 
@@ -269,7 +301,7 @@ namespace Xr.Engine.OpenGL
 
                     foreach (var draw in vertex.Value.Contents)
                     {
-                        progInst = draw.ProgramInstance!;
+                        var progInst = draw.ProgramInstance!;
 
                         ConfigureCaps(draw.ProgramInstance!.Material!);
 
@@ -277,21 +309,26 @@ namespace Xr.Engine.OpenGL
 
                         progInst.UpdateProgram(_updateCtx);
 
-                        progInst.Program!.Use();
-
-                        progInst.UpdateInstance(_updateCtx);
+                        if (_glState.ActiveProgram != progInst.Program!.Handle)
+                        {
+                            progInst.Program!.Use();
+                            _glState.ActiveProgram = progInst.Program!.Handle;
+                        }
+                 
+                        progInst.UpdateUniforms(_updateCtx);
 
                         draw.Draw!();
                     }
                 }
             }
 
+            _glState.ActiveProgram = 0;
+
             _gl.UseProgram(0);
             
             _gl.BindVertexArray(0);
 
             target.End();
-
         }
 
         public void SetRenderTarget(IGlRenderTarget target)
@@ -310,7 +347,6 @@ namespace Xr.Engine.OpenGL
 
             if (depthId == null || depthId == 0)
                 return null;
-
 
             if (!_depthCache.TryGetValue(depthId.Value, out var texture))
             {

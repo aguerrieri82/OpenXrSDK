@@ -139,7 +139,7 @@ namespace Xr.Engine.OpenGL
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
-        public unsafe void SetUniformBuffer<T>(string name, T data, bool updateBuffer, bool isGlobal, bool optional = false)
+        public unsafe void SetUniformBuffer<T>(string name, bool isGlobal, bool optional = false)
         {
             var buffer = BufferProvider?.GetBuffer<T>(name, isGlobal);
 
@@ -150,18 +150,7 @@ namespace Xr.Engine.OpenGL
                 throw new Exception();
             }
 
-            if (updateBuffer)
-            {
-                if (data is IDynamicBuffer dynamic)
-                {
-                    using var dynBuffer = dynamic.GetBuffer();
-                    buffer.Update(dynBuffer.Data, dynBuffer.Size);
-                }
-                else
-                    buffer.Update(new Span<T>(ref data));
-            }
-            else
-                SetUniform(name, (IBuffer)buffer, optional);
+            SetUniform(name, buffer, optional);         
         }
 
         public void SetUniform(string name, IBuffer buffer, bool optional = false)
@@ -275,7 +264,7 @@ namespace Xr.Engine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public IGlBufferProvider? BufferProvider { get; set; }
+        public IBufferProvider? BufferProvider { get; set; }
 
 
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]

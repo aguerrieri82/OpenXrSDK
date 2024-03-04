@@ -29,6 +29,7 @@ namespace Xr.Editor.Components
             _hdc = ctx.WinGl.HDc;
             _glCtx = ctx.WinGl.GlCTx;
 
+
             return render;
         }
 

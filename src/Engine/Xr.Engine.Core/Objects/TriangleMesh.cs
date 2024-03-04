@@ -80,6 +80,8 @@ namespace Xr.Engine
 
         #region IVertexSource
 
+        EngineObject IVertexSource.Object => _geometry!;
+
         VertexComponent IVertexSource.ActiveComponents => _geometry?.ActiveComponents ?? VertexComponent.None;
 
         DrawPrimitive IVertexSource.Primitive => DrawPrimitive.Triangle;

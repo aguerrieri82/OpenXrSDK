@@ -27,8 +27,6 @@ namespace OpenXr.Framework
         Starting,
         SessionCreated,
         Started,
-        Restarting,
-        StopRequested,
         Stopping,
         Stopped,
         Disposed,
@@ -70,11 +68,11 @@ namespace OpenXr.Framework
         protected readonly IXrPlugin[] _plugins;
         protected readonly ILogger _logger;
         protected readonly XrLayerManager _layers;
-        protected readonly SyncEvent _instanceReady;
         protected readonly XrRenderOptions _renderOptions;
-        protected readonly object _sessionLock;
+
 
         protected XrAppState _state;
+        private bool _isValid;
 
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
@@ -87,8 +85,6 @@ namespace OpenXr.Framework
             _logger = logger;
             _plugins = plugins;
             _lastSessionState = SessionState.Unknown;
-            _instanceReady = new SyncEvent();
-            _sessionLock = new object();
             _layers = new XrLayerManager(this);
             _renderOptions = new XrRenderOptions();
 
@@ -138,8 +134,6 @@ namespace OpenXr.Framework
                     GetSystemId();
 
                     PluginInvoke(p => p.OnInstanceCreated(), true);
-
-                    _instanceReady.Signal();
                 }
 
                 _state = XrAppState.Initialized;
@@ -172,56 +166,32 @@ namespace OpenXr.Framework
 
             _state = XrAppState.SessionCreated;
 
-            try
+            AssertSessionCreated();
+
+            CreateActions();
+
+            if (mode == XrAppStartMode.Render)
             {
-                if (!WaitForSession(SessionState.Ready, SessionState.Focused))
-                    return;
+                int swpCount = _renderOptions.RenderMode == XrRenderMode.SingleEye ? _viewInfo.ViewCount : 1;
 
-                AssertSessionCreated();
+                _swapchains = new XrSwapchainInfo[swpCount];
 
-                CreateActions();
-
-                BeginSession(_viewInfo.Type);
-
-                if (mode == XrAppStartMode.Render)
+                for (var i = 0; i < _swapchains.Length; i++)
                 {
-                    int swpCount = _renderOptions.RenderMode == XrRenderMode.SingleEye ? _viewInfo.ViewCount : 1;
-
-                    _swapchains = new XrSwapchainInfo[swpCount];
-
-                    for (var i = 0; i < _swapchains.Length; i++)
+                    var swapchain = CreateSwapChain();
+                    _swapchains[i] = new XrSwapchainInfo
                     {
-                        var swapchain = CreateSwapChain();
-                        _swapchains[i] = new XrSwapchainInfo
-                        {
-                            Swapchain = swapchain,
-                            Images = EnumerateSwapchainImages(swapchain),
-                            ViewSize = _renderOptions.Size
-                        };
-                    }
-
-                    _views = CreateStructArray<View>(_viewInfo.ViewCount, StructureType.View);
+                        Swapchain = swapchain,
+                        Images = EnumerateSwapchainImages(swapchain),
+                        ViewSize = _renderOptions.Size
+                    };
                 }
 
+                _views = CreateStructArray<View>(_viewInfo.ViewCount, StructureType.View);
             }
-            catch
-            {
-                _state = XrAppState.Initialized;
-                throw;
-            }
-        }
 
-        public void RequestStop()
-        {
-            if (_state != XrAppState.Started &&
-                _state != XrAppState.Starting &&
-                _state != XrAppState.SessionCreated)
-                return;
+            _state = XrAppState.Started;
 
-            _state = XrAppState.StopRequested;
-
-            lock (_sessionLock)
-                Monitor.PulseAll(_sessionLock);
         }
 
         public virtual void Stop()
@@ -257,9 +227,6 @@ namespace OpenXr.Framework
             PluginInvoke(p => p.OnSessionEnd());
 
             _logger.LogInformation("Stopped");
-
-            lock (_sessionLock)
-                Monitor.PulseAll(_sessionLock);
 
         }
 
@@ -527,19 +494,6 @@ namespace OpenXr.Framework
 
         #region SESSION
 
-        protected bool WaitForSession(params SessionState[] states)
-        {
-            lock (_sessionLock)
-            {
-                while (!states.Contains(_lastSessionState))
-                {
-                    if (_state == XrAppState.StopRequested || _state == XrAppState.Stopping || _state == XrAppState.Stopped)
-                        return false;
-                    Monitor.Wait(_sessionLock);
-                }
-            }
-            return true;
-        }
 
         [MemberNotNull(nameof(_views))]
         [MemberNotNull(nameof(_renderOptions))]
@@ -550,29 +504,6 @@ namespace OpenXr.Framework
         {
             if (_session.Handle == 0)
                 throw new InvalidOperationException();
-        }
-
-        public void RestartSession(bool wait)
-        {
-            AssertSessionCreated();
-
-            try
-            {
-                EndSession();
-            }
-            catch
-            {
-                return;
-            }
-
-            if (wait)
-            {
-                if (WaitForSession(SessionState.Ready, SessionState.Focused, SessionState.Synchronized))
-                    BeginSession(_viewInfo.Type);
-            }
-            else
-                _state = XrAppState.Restarting;
-
         }
 
         protected void BeginSession(ViewConfigurationType viewType)
@@ -587,20 +518,16 @@ namespace OpenXr.Framework
 
             PluginInvoke(p => p.OnSessionBegin());
 
-            _state = XrAppState.Started;
-
+            _isValid = true;
         }
 
         protected void EndSession()
         {
-            if (_state != XrAppState.Started)
-                return;
-
             CheckResult(_xr!.EndSession(_session), "EndSession");
 
             PluginInvoke(p => p.OnSessionEnd());
 
-            _state = XrAppState.Started;
+            _isValid = false;
         }
 
         protected Session CreateSession()
@@ -630,21 +557,25 @@ namespace OpenXr.Framework
         }
         protected virtual void OnSessionChanged(SessionState state, long time)
         {
+            _lastSessionState = state;
+
             switch (state)
             {
                 case SessionState.Ready:
+                    BeginSession(_viewInfo!.Type);
                     break;
                 case SessionState.Stopping:
+                    EndSession();
+                    break;
+                case SessionState.Exiting:
+                    Dispose();
+                    break;
+                case SessionState.LossPending:
+                    //TODO handle
                     break;
             }
 
             _logger.LogInformation("Session state: {state}", state);
-
-            lock (_sessionLock)
-            {
-                _lastSessionState = state;
-                Monitor.PulseAll(_sessionLock);
-            }
         }
 
         #endregion
@@ -785,6 +716,7 @@ namespace OpenXr.Framework
         {
             return _lastSessionState == SessionState.Ready ||
                    _lastSessionState == SessionState.Focused ||
+                   _lastSessionState == SessionState.Visible ||
                    _lastSessionState == SessionState.Synchronized;
         }
 
@@ -792,26 +724,16 @@ namespace OpenXr.Framework
         {
             AssertSessionCreated();
 
-            if (_state == XrAppState.Restarting)
-            {
-                BeginSession(_viewInfo.Type);
-                _state = XrAppState.Started;
-            }
+            PoolEvents();
 
-            if (_lastSessionState == SessionState.Stopping)
-            {
-                if (_state == XrAppState.Started)
-                    RestartSession(false);
-
-                return false;
-            }
-
-            if (!IsSessionReady())
+            if (!_isValid)
                 return false;
 
             var state = WaitFrame();
 
-            TrySyncActions(space, state.PredictedDisplayPeriod);
+            var frameTime = state.PredictedDisplayTime;
+
+            TrySyncActions(space, frameTime);
 
             BeginFrame();
 
@@ -825,19 +747,19 @@ namespace OpenXr.Framework
             {
                 if (state.ShouldRender != 0)
                 {
-                    var viewsState = LocateViews(space, state.PredictedDisplayTime);
+                    var viewsState = LocateViews(space, frameTime);
 
                     var isPosValid = (viewsState.ViewStateFlags & ViewStateFlags.OrientationValidBit) != 0 &&
                                      (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;
 
                     if (isPosValid)
-                        layers = _layers.Render(ref _views, _swapchains, space, state.PredictedDisplayTime, out layerCount);
+                        layers = _layers.Render(ref _views, _swapchains, space, frameTime, out layerCount);
                 }
             }
             finally
             {
                 ListInvoke<IXrLayer>(_layers.Layers, a => a.OnEndFrame());
-                EndFrame(state.PredictedDisplayPeriod, ref layers, layerCount);
+                EndFrame(frameTime, ref layers, layerCount);
             }
 
             return true;
@@ -1209,24 +1131,13 @@ namespace OpenXr.Framework
 
         #region EVENTS
 
-        public bool HandleEvents()
+        public bool PoolEvents()
         {
-            return HandleEvents(CancellationToken.None);
-        }
-
-        public bool HandleEvents(CancellationToken cancellationToken)
-        {
-            if (!_instanceReady.Wait(cancellationToken))
-                return true;
-
-            if (_instance.Handle == 0)
-                return false;
-
             Debug.Assert(_xr != null);
 
             var buffer = new EventDataBuffer();
 
-            while (!cancellationToken.IsCancellationRequested)
+            while (true)
             {
                 buffer.Type = StructureType.EventDataBuffer;
 
@@ -1245,6 +1156,9 @@ namespace OpenXr.Framework
                             _session = sessionChanged.Session;
                             OnSessionChanged(sessionChanged.State, sessionChanged.Time);
 
+                            break;
+                        case StructureType.EventDataInstanceLossPending:
+                            //TODO handle
                             break;
                     }
 
@@ -1327,7 +1241,8 @@ namespace OpenXr.Framework
 
             result.BlendMode = preferences.First(a => viewInfo.BlendModes.Contains(a));
             result.Size = viewInfo.RecommendedImageRect;
-            result.SampleCount = viewInfo.RecommendedSwapchainSampleCount;
+            //TODO change this
+            //result.SampleCount = viewInfo.RecommendedSwapchainSampleCount;
 
             result.Size = new Extent2Di
             {
@@ -1367,7 +1282,7 @@ namespace OpenXr.Framework
 
         public XrAppState State => _state;
 
-        public bool IsStarted => _state == XrAppState.Started || _state == XrAppState.Restarting;
+        public bool IsStarted => _state == XrAppState.Started;
 
         public ulong SystemId => _systemId;
 

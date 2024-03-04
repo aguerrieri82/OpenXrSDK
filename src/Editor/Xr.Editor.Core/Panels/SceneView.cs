@@ -2,6 +2,7 @@
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
 using Xr.Engine;
 using Xr.Engine.OpenXr;
 
@@ -157,6 +158,8 @@ namespace Xr.Editor
 
             if (_scene?.App != null)
                 _scene.App.Renderer = _render;
+
+            //_renderSurface.EnableVSync(false);
 
             while (_isStarted)
             {

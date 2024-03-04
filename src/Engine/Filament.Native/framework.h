@@ -54,6 +54,7 @@ int fopen_s(FILE** _Stream, char const* _FileName, char const* _Mode) {
 #include <filamat/MaterialBuilder.h>
 
 #include <geometry/SurfaceOrientation.h>
+#include <geometry/TangentSpaceMesh.h>
 
 #include <utils/EntityManager.h>
 #include <utils/Log.h>
@@ -63,3 +64,6 @@ int fopen_s(FILE** _Stream, char const* _FileName, char const* _Mode) {
 #include <backend/platforms/OpenGLPlatform.h>
 
 #include <backend/platforms/VulkanPlatform.h>
+
+
+

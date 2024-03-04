@@ -60,13 +60,12 @@ out vec4 v_Color;
 
     uniform SceneMatrices
     {
-        uniform mat4 view[NUM_VIEWS];
-        uniform mat4 projection[NUM_VIEWS];
+        uniform mat4 viewProj[NUM_VIEWS];
     } uMatrices;
 
     mat4 getViewProj() 
     {
-       return uMatrices.projection[VIEW_ID] * uMatrices.view[VIEW_ID];
+       return uMatrices.viewProj[VIEW_ID];
     }
 
 #else

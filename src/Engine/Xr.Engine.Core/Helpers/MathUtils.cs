@@ -22,6 +22,31 @@ namespace Xr.Engine
                 return *(Matrix4x4*)data;
         }
 
+        public unsafe static Matrix4x4 InvertRigidBody(this Matrix4x4 src)
+        {
+            var result = stackalloc float[16];
+            var srcArray = new Span<float>((float*)&src, 16);
+
+            result[0] = srcArray[0];
+            result[1] = srcArray[4];
+            result[2] = srcArray[8];
+            result[3] = 0.0f;
+            result[4] = srcArray[1];
+            result[5] = srcArray[5];
+            result[6] = srcArray[9];
+            result[7] = 0.0f;
+            result[8] = srcArray[2];
+            result[9] = srcArray[6];
+            result[10] = srcArray[10];
+            result[11] = 0.0f;
+            result[12] = -(srcArray[0] * srcArray[12] + srcArray[1] * srcArray[13] + srcArray[2] * srcArray[14]);
+            result[13] = -(srcArray[4] * srcArray[12] + srcArray[5] * srcArray[13] + srcArray[6] * srcArray[14]);
+            result[14] = -(srcArray[8] * srcArray[12] + srcArray[9] * srcArray[13] + srcArray[10] * srcArray[14]);
+            result[15] = 1.0f;
+
+            return *(Matrix4x4*)result;
+        }
+
         public static Quaternion QuatFromForwardUp(Vector3 forward, Vector3 up)
         {
             Vector3 zAxis = Vector3.Normalize(forward);

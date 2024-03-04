@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using SkiaSharp;
+using System.Numerics;
+using System.Text.Json;
 using Xr.Engine;
 using Xr.Engine.Compression;
 using Xr.Engine.Gltf;
@@ -56,14 +58,19 @@ namespace OpenXr.Samples
             var mesh = (Group)GltfLoader.Instance.Load(assets.FullPath("Game/ABeautifulGame.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
 
-            foreach (var child in mesh.Children.OfType<TriangleMesh>())
-                child.AddComponent<BoundsGrabbable>();
+            app.ActiveScene!.AddChild(new PointLight()).Transform.Position = new Vector3(0, 2, 0);
 
+            foreach (var child in mesh.Children.OfType<TriangleMesh>())
+            {
+                child.AddComponent<BoundsGrabbable>();
+            }
+        
             mesh.Transform.SetScale(1f);
             mesh.Transform.Position = new Vector3(0, 1, 0);
 
             app.ActiveScene!.AddChild(mesh);
             ((PerspectiveCamera)app.ActiveScene!.ActiveCamera!).Target = mesh.Transform.Position;
+
 
             return app;
 
@@ -128,7 +135,13 @@ namespace OpenXr.Samples
 
             var scene = new Scene();
 
-            scene.ActiveCamera = new PerspectiveCamera() { Far = 50f };
+            scene.ActiveCamera = new PerspectiveCamera() 
+            { 
+                Far = 50f
+            };
+
+            ((PerspectiveCamera)(scene.ActiveCamera))!.LookAt(new Vector3(0, 0, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
 
             var red = new StandardMaterial() { Color = new Color(1, 0, 0) };
 
@@ -138,6 +151,23 @@ namespace OpenXr.Samples
             {
                 DoubleSided = true
             };
+
+            var display = new TriangleMesh(Quad.Instance);
+            display.Materials.Add(text);
+            display.Transform.Scale = new Vector3(1.924f * 0.5f, 0.01f, 1.08f * 0.5f);
+            display.Transform.Position = new Vector3(0f, 0.5f, 0f);
+            display.AddBehavior((obj, ctx) =>
+            {
+                obj.Transform.Orientation =
+                Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f) *
+                Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
+
+            });
+
+            display.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
+            display.Name = "display";
+            display.AddComponent<MeshCollider>();
+
 
             var cubes = new Group();
 
@@ -166,25 +196,10 @@ namespace OpenXr.Samples
 
             scene.AddChild(cubes);
 
-            var display = new TriangleMesh(Quad.Instance);
-            display.Materials.Add(text);
-            display.Transform.Scale = new Vector3(1.924f * 0.5f, 0.01f, 1.08f * 0.5f);
-            display.Transform.Position = new Vector3(0f, 0.5f, 0f);
-            display.AddBehavior((obj, ctx) =>
-            {
-                obj.Transform.Orientation =
-                Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f) *
-                Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
 
-            });
+            //scene.AddChild(display);
 
-            display.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
-            display.Name = "display";
-            display.AddComponent<MeshCollider>();
-
-            scene.AddChild(display);
-
-            scene.AddChild(new AmbientLight(0.3f));
+            scene.AddChild(new AmbientLight(0.1f));
             scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
 
             app.OpenScene(scene);

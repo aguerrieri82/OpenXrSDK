@@ -9,12 +9,13 @@ namespace Xr.Engine
 {
     public delegate void UpdateUniformAction(UpdateShaderContext ctx, IUniformProvider up);
 
+    public delegate void UpdateBufferAction(UpdateShaderContext ctx);
 
     public class ShaderUpdate
     {
         public List<UpdateUniformAction>? Actions;
 
-        public List<UpdateUniformAction>? BufferUpdates;
+        public List<UpdateBufferAction>? BufferUpdates;
 
         public List<string>? Features;
 
@@ -39,6 +40,8 @@ namespace Xr.Engine
         public IRenderEngine? RenderEngine;
 
         public VertexComponent ActiveComponents;
+
+        public IBufferProvider? BufferProvider;
 
         public long LightsVersion;
     }
@@ -82,8 +85,10 @@ namespace Xr.Engine
         public readonly void SetUniformBuffer<T>(string name, UpdateAction<T> value, bool isGlobal, bool optional = false)
         {
             Log(name, value);
-            _result.BufferUpdates!.Add((ctx, up) => up.SetUniformBuffer(name, value(ctx), true, isGlobal, optional));
-            _result.Actions!.Add((ctx, up) => up.SetUniformBuffer(name, default(T), false, isGlobal, optional));
+
+            _result.BufferUpdates!.Add((ctx) => ctx.BufferProvider!.GetBuffer<T>(name, isGlobal).Update(value(ctx)!));
+            
+            _result.Actions!.Add((ctx, up) => up.SetUniformBuffer<T>(name, isGlobal, optional));
         }
 
         public readonly void SetUniform(string name, UpdateAction<float> value, bool optional = false)

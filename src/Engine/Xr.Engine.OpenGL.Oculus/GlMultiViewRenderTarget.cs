@@ -12,23 +12,17 @@ namespace Xr.Engine.OpenGL.Oculus
 
     public struct SceneMatrices
     {
-        public Matrix4x4 View1;
-        public Matrix4x4 View2;
-        public Matrix4x4 Projection1;
-        public Matrix4x4 Projection2;
-
+        public Matrix4x4 ViewProj1;
+        public Matrix4x4 ViewProj2;
     }
 
     public class GlMultiViewRenderTarget : GlTextureRenderTarget, IMultiViewTarget, IShaderHandler
     {
         static SceneMatrices _matrices;
-        private readonly GlBuffer<SceneMatrices> _sceneMatrices;
-
 
         protected GlMultiViewRenderTarget(GL gl, uint textId, uint sampleCount)
             : base(gl, textId, sampleCount)
         {
-            _sceneMatrices = new GlBuffer<SceneMatrices>(_gl, BufferTargetARB.UniformBuffer);
         }
 
         protected override GlFrameBuffer CreateFrameBuffer(uint texId, uint sampleCount)
@@ -49,10 +43,12 @@ namespace Xr.Engine.OpenGL.Oculus
 
         public void SetCameraTransforms(XrCameraTransform[] eyes)
         {
-            _matrices.Projection1 = eyes[0].Projection;
-            _matrices.Projection2 = eyes[1].Projection;
-            Matrix4x4.Invert(eyes[0].Transform, out _matrices.View1);
-            Matrix4x4.Invert(eyes[1].Transform, out _matrices.View2);
+
+            Matrix4x4.Invert(eyes[0].Transform, out var view1);
+            Matrix4x4.Invert(eyes[1].Transform, out var view2);
+
+            _matrices.ViewProj1 = view1 * eyes[0].Projection;
+            _matrices.ViewProj2 = view2 * eyes[1].Projection;
         }
 
         public void UpdateShader(ShaderUpdateBuilder bld)
@@ -61,14 +57,7 @@ namespace Xr.Engine.OpenGL.Oculus
 
             bld.AddFeature("MULTI_VIEW");
 
-            bld.SetUniform("SceneMatrices", ctx =>
-            {
-                var buffer = new Span<SceneMatrices>(ref _matrices);
-
-                _sceneMatrices.Update(buffer);
-
-                return (IBuffer)_sceneMatrices;
-            });
+            bld.SetUniformBuffer("SceneMatrices", ctx => _matrices, true);
         }
 
         public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)

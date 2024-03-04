@@ -36,7 +36,7 @@ namespace Xr.Editor.Components
                 Context = new nint(&ctx),
                 Driver = FilamentLib.FlBackend.Vulkan,
                 MaterialCachePath = "d:\\Materials",
-                EnableStereo = true,
+                EnableStereo = false,
                 OneViewPerTarget = false
             });
 

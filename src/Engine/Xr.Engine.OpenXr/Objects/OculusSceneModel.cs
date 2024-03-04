@@ -2,6 +2,7 @@
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;
+using System.Text.Json;
 using Xr.Engine;
 
 namespace Xr.Engine.OpenXr
@@ -45,32 +46,32 @@ namespace Xr.Engine.OpenXr
 
                 var sceneMesh = oculus.GetSpaceTriangleMesh(meshAnchor.Space);
 
+                var geo = new Geometry3D
+                {
+                    Indices = sceneMesh.Indices,
+                    ActiveComponents = VertexComponent.Position,
+                    Vertices = sceneMesh.Vertices!.Select(a => new VertexData
+                    {
+                        Pos = new Vector3(a.X, a.Y, a.Z)
+                    }).ToArray()
+                };
+
+                geo.Rebuild();
+                geo.ComputeNormals();
+
                 var isLocatable = oculus.EnumerateSpaceSupportedComponentsFB(meshAnchor.Space).Contains(SpaceComponentTypeFB.LocatableFB);
                 if (isLocatable)
                     await oculus.SetSpaceComponentStatusAsync(meshAnchor.Space, SpaceComponentTypeFB.LocatableFB, true);
 
-                var mesh = new TriangleMesh
-                {
-                    Geometry = new Geometry3D
-                    {
-                        Indices = sceneMesh.Indices,
-                        Vertices = sceneMesh.Vertices!.Select(a => new VertexData
-                        {
-                            Pos = new Vector3(a.X, a.Y, a.Z)
-                        }).ToArray()
-                    }
-                };
-
-                mesh.Geometry.Rebuild();
-                mesh.Geometry.ComputeNormals();
-
                 var location = _app!.LocateSpace(meshAnchor.Space, _app.Stage, 1);
 
+                var material = PbrMaterial.CreateDefault();
+                material.Color = Color.White;
+
+                var mesh = new TriangleMesh(geo, material);
+                mesh.Name = "global-mesh";
                 mesh.Transform.Position = location.Pose!.Position;
                 mesh.Transform.Orientation = location.Pose.Orientation;
-
-                mesh.Materials.Add(new StandardMaterial() { Color = Color.White });
-
                 mesh.AddComponent(new MeshCollider());
 
                 AddChild(mesh);

@@ -1,5 +1,7 @@
 ﻿using OpenXr.Framework;
 using System.Windows;
+using Xr.Editor.Components;
+using Xr.Engine.Filament;
 
 namespace Xr.Editor
 {
@@ -31,7 +33,7 @@ namespace Xr.Editor
             var window = new Window
             {
                 Title = "Xr Editor",
-                Content = new MainView(new GlRenderHost())
+                Content = new MainView(new FlGlRenderHost())
             };
 
 

@@ -1,4 +1,5 @@
-﻿using OpenXr.Samples;
+﻿using OpenXr.Framework;
+using OpenXr.Samples;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
@@ -60,7 +61,9 @@ namespace Xr.Editor
         [MemberNotNull(nameof(_app))]
         public void LoadScene()
         {
-            _app = SampleScenes.CreateRoom(new LocalAssetManager("Assets"));
+            _app = SampleScenes.CreateChess(new LocalAssetManager("Assets"));
+
+            _app.ActiveScene!.AddChild(new OculusSceneModel());
 
             var mesh = _app.ActiveScene!.FindByName<Object3D>("mesh");
             if (mesh != null)

@@ -12,8 +12,9 @@ namespace OpenXr.Framework.Android
         protected KhrOpenglEsEnable? _openGlEs;
 
         protected GLEnum[] _validFormats = [
+           GLEnum.Rgba8,
            GLEnum.Srgb8Alpha8,
-           GLEnum.Rgba8];
+           ];
 
         public AndroidXrOpenGLESGraphicDriver()
             : this(OpenGLESContext.Create())
