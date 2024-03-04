@@ -383,3 +383,4 @@ Makefile
 /src/Test/Xr.Test.Common/Assets/Game
 /third-party/filament-android
 /src/Test/Xr.Test.Android/Assets/Game
+/src/Oculus/Oculus.OVRPlugin/OVRPlugin.dll.i64
