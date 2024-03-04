@@ -33,6 +33,8 @@ namespace Xr.Engine.OpenXr
                     Direction = _rayView.Forward,
                 };
 
+                return;
+
                 var result = _host!.RayCollisions(ray).FirstOrDefault();
                 if (result != null)
                 {

@@ -52,8 +52,9 @@ FilamentApp* Initialize(const InitializeOptions& options) {
 		app->isStereo = true;
 	}
 		
-	auto builder = Engine::Builder()
-		.backend((Backend)options.driver)
+	auto builder = Engine::Builder();
+
+	builder.backend((Backend)options.driver)
 		.sharedContext(options.context)
 		.featureLevel(FeatureLevel::FEATURE_LEVEL_3)
 		.config(&cfg);
@@ -263,18 +264,34 @@ void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 	app->entities[id] = light;
 }
 
+
 void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 {
+	auto indices = info.indices;
+	auto indicesCount = info.indicesCount;
+
+	if (info.indicesCount == 0) {
+		indices = new uint32_t[info.verticesCount];
+		for (uint32_t i = 0; i < info.verticesCount; i++)
+			indices[i] = i;
+		indicesCount = info.verticesCount;
+	}
+
 	auto ib = IndexBuffer::Builder()
-		.indexCount(info.indicesCount)
+		.indexCount(indicesCount)
 		.bufferType(IndexBuffer::IndexType::UINT)
 		.build(*app->engine);
 
-	auto ibSize = sizeof(uint32_t) * info.indicesCount;
-	auto ibBuffer = new uint8_t[ibSize];
-	memcpy(ibBuffer, info.indices, ibSize);
+	auto ibSize = sizeof(uint32_t) * indicesCount;
 
-	ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(ibBuffer, ibSize, 0));
+	if (info.indicesCount > 0) {
+		auto ibBuffer = new uint8_t[ibSize];
+		memcpy(ibBuffer, info.indices, ibSize);
+		ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(ibBuffer, ibSize, 0));
+	}
+	else
+		ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(indices, ibSize, 0));
+
 
 	auto vbBuilder = VertexBuffer::Builder()
 		.vertexCount(info.verticesCount);
@@ -339,7 +356,6 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 
 	if (hasOrientation) {
 		vbBuilder.attribute(filament::VertexAttribute::TANGENTS, 1, VertexBuffer::AttributeType::FLOAT4);
-		//vbBuilder.normalized(filament::VertexAttribute::TANGENTS);
 	}
 
 	auto vb = vbBuilder.build(*app->engine);
@@ -380,6 +396,97 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 	result.box = { center, halfSize };
 
 	app->geometries[id] = result;
+}
+
+void AddGeometryV2(FilamentApp* app, OBJID id, const GeometryInfo& info)
+{
+	auto indices = info.indices;
+	auto indicesCount = info.indicesCount;
+
+	if (info.indicesCount == 0) {
+		indices = new uint32_t[info.verticesCount];
+		for (uint32_t i = 0; i < info.verticesCount; i++)
+			indices[i] = i;
+		indicesCount = info.verticesCount;
+	}
+
+	auto tangentMeshBld = geometry::TangentSpaceMesh::Builder();
+
+	tangentMeshBld.triangles((uint3*)indices)
+		.triangleCount(info.indicesCount / 3)
+		.algorithm((geometry::TangentSpaceMesh::Algorithm)5)
+		.vertexCount(info.verticesCount);
+
+	for (uint32_t i = 0; i < info.layout.attributeCount; i++) {
+		auto& attr = info.layout.attributes[i];
+		switch (attr.type)
+		{
+		case VertexAttributeType::Position:
+			tangentMeshBld.positions((float3*)(info.vertices + attr.offset), info.layout.sizeByte);
+			break;
+		case VertexAttributeType::Normal:
+			tangentMeshBld.normals((float3*)(info.vertices + attr.offset), info.layout.sizeByte);
+			break;
+		case VertexAttributeType::Tangent:
+			tangentMeshBld.tangents((float4*)(info.vertices + attr.offset), info.layout.sizeByte);
+			break;
+		case VertexAttributeType::UV0:
+			tangentMeshBld.uvs((float2*)(info.vertices + attr.offset), info.layout.sizeByte);
+			break;
+		}
+	};
+
+	auto tangentMesh = tangentMeshBld
+		.build();
+
+
+	auto ib = IndexBuffer::Builder()
+		.indexCount(tangentMesh->getTriangleCount() * 3)
+		.bufferType(IndexBuffer::IndexType::UINT)
+		.build(*app->engine);
+
+	auto ibBuffer = new uint3[tangentMesh->getTriangleCount()];
+	tangentMesh->getTriangles(ibBuffer);
+	ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(ibBuffer, sizeof(uint3) * tangentMesh->getTriangleCount(), 0));
+
+	auto vb = VertexBuffer::Builder()
+		.vertexCount(tangentMesh->getVertexCount())
+		.bufferCount(1)
+		.attribute(filament::VertexAttribute::POSITION, 0, VertexBuffer::AttributeType::FLOAT3, 0, 36)
+		.attribute(filament::VertexAttribute::UV0, 0, VertexBuffer::AttributeType::FLOAT2, 12, 36)
+		.attribute(filament::VertexAttribute::TANGENTS, 0, VertexBuffer::AttributeType::FLOAT2, 20, 36)
+		.build(*app->engine);
+
+
+	auto vbBuffer = new uint8_t[tangentMesh->getVertexCount() * 36];
+	tangentMesh->getPositions((float3*)vbBuffer, 36);
+	tangentMesh->getUVs((float2*)(vbBuffer + 12), 36);
+	tangentMesh->getQuats((quatf*)(vbBuffer + 20), 36);
+
+	vb->setBufferAt(*app->engine, 0, VertexBuffer::BufferDescriptor(vbBuffer, tangentMesh->getVertexCount() * 36, 0));
+
+	geometry::TangentSpaceMesh::destroy(tangentMesh);
+
+	float3 halfSize = {
+		(info.bounds.max.x - info.bounds.min.x) / 2.0f,
+		(info.bounds.max.y - info.bounds.min.y) / 2.0f,
+		(info.bounds.max.z - info.bounds.min.z) / 2.0f
+	};
+
+	float3 center = {
+		(info.bounds.max.x + info.bounds.min.x) / 2.0f,
+		(info.bounds.max.y + info.bounds.min.y) / 2.0f,
+		(info.bounds.max.z + info.bounds.min.z) / 2.0f
+	};
+
+	Geometry result;
+
+	result.ib = ib;
+	result.vb = vb;
+	result.box = { center, halfSize };
+
+	app->geometries[id] = result;
+
 }
 
 void AddGroup(FilamentApp* app, OBJID id) {

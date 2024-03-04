@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Xr.Engine.OpenGL
+namespace Xr.Engine
 {
-    public interface IGlBufferProvider
+    public interface IBufferProvider
     {
-        GlBuffer<T> GetBuffer<T>(string name, bool isGlobal);
+        IBuffer GetBuffer<T>(string name, bool isGlobal);
     }
 }

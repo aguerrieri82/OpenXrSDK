@@ -210,6 +210,8 @@ namespace Xr.Editor
             attr[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
             attr[6] = 0;
             _glCtx = wglCreateContextAttribsARB(_hdc, _glCtx, attr);
+
+
         }
 
         protected override HandleRef BuildWindowCore(HandleRef hwndParent)

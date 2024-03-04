@@ -20,6 +20,8 @@
 
         #region IVertexSource
 
+        EngineObject IVertexSource.Object => this!;
+
         DrawPrimitive IVertexSource.Primitive => DrawPrimitive.Line;
 
         uint[] IVertexSource<LineData, uint>.Indices => [];

@@ -5,11 +5,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Include="..\Filament.Native\bin\x64\Debug\filament-native.dll"
+		<Content Include="..\Filament.Native\bin\x64\Release\filament-native.dll"
 				 CopyToOutputDirectory="PreserveNewest"
 				 Link="runtimes/win-x64/native/%(Filename)%(Extension)"/>
 
-		<Content Include="..\Filament.Native\bin\x64\Debug\filament-native.pdb"
+		<Content Include="..\Filament.Native\bin\x64\Release\filament-native.pdb"
 				 CopyToOutputDirectory="PreserveNewest"
 				 Link="runtimes/win-x64/native/%(Filename)%(Extension)"/>
 

@@ -54,8 +54,6 @@ namespace OpenXr.Framework.Android
         {
             _xrApp = CreateApp();
 
-            _xrApp.StartEventLoop(() => _isExited);
-
             _xrApp.Start();
 
             _handler.Post(() => OnAppStarted(_xrApp));

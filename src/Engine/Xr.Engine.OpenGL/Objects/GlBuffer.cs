@@ -1,5 +1,7 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System;
 #else
 using Silk.NET.OpenGL;
 #endif
@@ -44,19 +46,28 @@ namespace Xr.Engine.OpenGL
 
         public unsafe void Update(ReadOnlySpan<T> data)
         {
-            Bind();
-
             fixed (T* pData = &data[0])
                 Update(new nint(pData), data.Length * sizeof(T));
 
             _length = (uint)data.Length;
+        }
 
-            Unbind();
+        void IBuffer.Update(object value)
+        {
+            if (value is IDynamicBuffer dynamic)
+            {
+                using var dynBuffer = dynamic.GetBuffer();
+                Update(dynBuffer.Data, dynBuffer.Size);
+            }
+            else
+            {
+                var data = (T)value;
+                Update(new Span<T>(ref data));
+            }
         }
 
         public void Bind()
         {
-
             _gl.BindBuffer(_bufferType, _handle);
             GlDebug.Log($"BindBuffer {_bufferType} {_handle}");
         }
@@ -75,6 +86,7 @@ namespace Xr.Engine.OpenGL
             GC.SuppressFinalize(this);
         }
 
+    
         public uint Length => _length;
     }
 }

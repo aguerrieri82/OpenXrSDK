@@ -14,6 +14,8 @@
 
         VertexComponent ActiveComponents { get; }
 
+        EngineObject Object { get; }
+
     }
 
     public interface IVertexSource<TVertices, TIndices> : IVertexSource

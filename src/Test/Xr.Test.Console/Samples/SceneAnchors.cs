@@ -19,15 +19,6 @@ namespace OpenXr.Samples
                       new XrOpenGLGraphicDriver(viewManager.View),
                 xrOculus);
 
-            _ = Task.Run(async () =>
-            {
-                while (true)
-                {
-                    app.HandleEvents();
-
-                    await Task.Delay(50);
-                }
-            });
 
             while (true)
             {

@@ -10,6 +10,7 @@ namespace Xr.Engine
         public Geometry3D()
         {
             _boundsDirty = true;
+            ActiveComponents = VertexComponent.Position;
         }
 
         public void ApplyTransform(Matrix4x4 matrix)
@@ -35,6 +36,7 @@ namespace Xr.Engine
 
             Vertices = vertices;
             Indices = [];
+
             Version++;
         }
 

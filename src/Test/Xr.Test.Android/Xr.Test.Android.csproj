@@ -22,28 +22,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<AndroidAsset
-			Include="../Xr.Test.Common/Assets/**/*"
-			Link="Assets/%(RecursiveDir)/%(Filename)%(Extension)" />
-		<AndroidAsset
-			Include="../../Framework/OpenXr.Framework.Oculus/Models/**/*"
-			Link="Assets/Models/%(RecursiveDir)/%(Filename)%(Extension)" />
+		<AndroidAsset Include="../Xr.Test.Common/Assets/**/*" Link="Assets/%(RecursiveDir)/%(Filename)%(Extension)" />
+		<AndroidAsset Include="../../Framework/OpenXr.Framework.Oculus/Models/**/*" Link="Assets/Models/%(RecursiveDir)/%(Filename)%(Extension)" />
 	</ItemGroup>
 
 
 	<ItemGroup>
-		<AndroidNativeLibrary
-			Abi="arm64-v8a"
-			Include="../../Framework/OpenXr.Framework/runtimes/android-arm64/native/*"/>
-		<AndroidNativeLibrary
-			Abi="arm64-v8a"
-			Include="../../Engine/Filament.Native/libs/arm64-v8a/*"/>
-		<AndroidNativeLibrary
-			Abi="arm64-v8a"
-			Include="../../Engine/Draco.Native/libs/arm64-v8a/*"/>
-		<AndroidNativeLibrary
-			Abi="arm64-v8a"
-			Include="../../../third-party/etcpak/libs/arm64-v8a/*"/>
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../Framework/OpenXr.Framework/runtimes/android-arm64/native/*" />
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../Engine/Filament.Native/libs/arm64-v8a/*" />
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../Engine/Draco.Native/libs/arm64-v8a/*" />
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../third-party/etcpak/libs/arm64-v8a/*" />
 	</ItemGroup>
 
 

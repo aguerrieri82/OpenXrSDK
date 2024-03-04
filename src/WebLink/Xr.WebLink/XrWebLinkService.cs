@@ -67,12 +67,6 @@ namespace Xr.WebLink
             _serviceLoops.Add(task);
         }
 
-        public Task HandleXrEventsAsync(CancellationToken cancellationToken)
-        {
-            _app.HandleEvents(cancellationToken);
-            return Task.CompletedTask;
-        }
-
         public async Task TrackAsync(CancellationToken cancellationToken)
         {
             if (!(_app.SessionState == SessionState.Ready || _app.SessionState == SessionState.Focused))
