@@ -316,7 +316,7 @@ void main()
     // Late discard to avoid samplig artifacts. See https://github.com/KhronosGroup/glTF-Sample-Viewer/issues/267
     if (baseColor.a < uMaterial.AlphaCutoff)
     {
-       // discard;
+       discard;
     }
     baseColor.a = 1.0;
 #endif

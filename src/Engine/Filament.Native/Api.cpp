@@ -599,6 +599,7 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 		.shading(Shading::LIT)
 		.specularAntiAliasing(info.specularAntiAliasing)
 		.doubleSided(info.doubleSided)
+	
 #ifdef __ANDROID__
 		.platform(MaterialBuilderBase::Platform::MOBILE)
 #endif
@@ -639,7 +640,7 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 
 	if (info.baseColorMap.data.data != nullptr) {
 		shader += R"SHADER(
-            material.baseColor.rgb *= texture(materialParams_baseColorMap, uv0).rgb;
+            material.baseColor *= texture(materialParams_baseColorMap, uv0);
         )SHADER";
 		builder.parameter("baseColorMap", MaterialBuilder::SamplerType::SAMPLER_2D);
 		hasUV = true;
@@ -711,6 +712,11 @@ void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcep
 	std::string hash("pbr_v1_p");
 
 	hash += std::to_string((int)app->engine->getBackend());
+
+	hash += "_bl" + std::to_string((int)info.blending);
+
+	if (info.doubleSided)
+		hash += "_ds";
 
 	if (info.normalMap.data.data != nullptr)
 		hash += "_nm";
@@ -814,6 +820,9 @@ void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcep
 		instance->setParameter("aoStrength", info.aoStrength);
 		instance->setParameter("aoMap", CreateTexture(app, info.aoMap), sampler);
 	}
+
+	if (info.blending == BlendingMode::MASKED)
+		instance->setMaskThreshold(info.alphaCutoff);
 
 	app->materialsInst[id] = instance;
 

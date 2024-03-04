@@ -68,7 +68,7 @@ namespace Xr.Engine.OpenXr
                 var material = PbrMaterial.CreateDefault();
                 material.Color = Color.White;
 
-                var mesh = new TriangleMesh(geo, material);
+                var mesh = new TriangleMesh(geo);
                 mesh.Name = "global-mesh";
                 mesh.Transform.Position = location.Pose!.Position;
                 mesh.Transform.Orientation = location.Pose.Orientation;

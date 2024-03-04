@@ -517,9 +517,47 @@ namespace OpenXr.Framework.Oculus
 
         public void RequestDisplayRefreshRate(float value)
         {
+
             _app!.CheckResult(_refreshRate!.RequestDisplayRefreshRateFB(_app!.Session, value), "RequestDisplayRefreshRate");
         }
 
+
+
+        public TriangleMeshFB CreateTriangleMesh(uint[] indices, Vector3f[] vertices)
+        {
+            if (indices.Length == 0)
+            {
+                indices = new uint[vertices.Length];
+                for (uint i = 0; i < indices.Length; ++i)
+                    indices[i] = i;
+            }
+
+            fixed (uint* pIndices = indices)
+
+            fixed (Vector3f* pVertices = vertices)
+                return CreateTriangleMesh(pIndices, (uint)indices.Length, pVertices, (uint)vertices.Length);
+        }
+
+        public TriangleMeshFB CreateTriangleMesh(uint* indices, uint indicesCount, Vector3f* vertices, uint verticesCount)
+        {
+            var info = new TriangleMeshCreateInfoFB
+            {
+                Type = StructureType.TriangleMeshCreateInfoFB,
+                Flags = TriangleMeshFlagsFB.None,
+                IndexBuffer = indices,
+                TriangleCount = indicesCount / 3,
+                VertexBuffer = vertices,
+                VertexCount = verticesCount,
+                WindingOrder = WindingOrderFB.CcwFB
+            };
+
+            var result = new TriangleMeshFB();
+
+            _app!.CheckResult(_mesh!.CreateTriangleMeshFB(_app!.Session, in info, ref result), "CreateTriangleMeshFB");
+
+            return result;
+
+        }
 
         public void Dispose()
         {

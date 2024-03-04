@@ -12,6 +12,7 @@ using Xr.Engine;
 using Xr.Engine.Filament;
 using Xr.Engine.OpenGL;
 using Xr.Engine.OpenXr;
+using Xr.Engine.OpenXr.Components;
 
 
 namespace Xr.Test.Android
@@ -151,9 +152,13 @@ namespace Xr.Test.Android
                .AddAction(a => a.Right!.Haptic)
               );
 
-            xrApp.Layers.Add<XrPassthroughLayer>();
 
-            var display = _game.ActiveScene!.FindByName<TriangleMesh>("display")!;
+            var ptLayer = xrApp.Layers.Add<XrPassthroughLayer>();
+            ptLayer.Purpose = PassthroughLayerPurposeFB.ProjectedFB;
+
+            var scene = _game.ActiveScene!;
+
+            var display = scene.FindByName<TriangleMesh>("display")!;
 
             if (display != null)
             {
@@ -168,14 +173,15 @@ namespace Xr.Test.Android
                 _webViewLayer = xrApp.Layers.AddWebView(this, display.BindToQuad(), controller);
             }
 
-            _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
-            _game.ActiveScene!.AddComponent(new ObjectGrabber(
+            scene.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
+            scene.AddComponent(new ObjectGrabber(
                 _inputs.Right!.GripPose!,
                 _inputs.Right!.Haptic!,
                 _inputs.Right!.SqueezeValue!,
                 _inputs.Right!.TriggerValue!));
 
-           // _game.ActiveScene.AddChild(new OculusSceneModel());
+            scene.AddComponent<PassthroughGeometry>();
+            scene.AddChild(new OculusSceneModel());
 
             var renderer = xrApp.BindEngineApp(_game);
 

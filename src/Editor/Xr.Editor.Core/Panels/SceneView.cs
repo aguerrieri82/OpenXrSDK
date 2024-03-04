@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
+using Silk.NET.OpenXR;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Linq;
 using Xr.Engine;
@@ -76,7 +77,11 @@ namespace Xr.Editor
                 _inputs.Right!.SqueezeValue!,
                 _inputs.Right!.TriggerValue!));
 
-            _xrApp.Layers.Add<XrPassthroughLayer>();
+            _scene.AddComponent<PassthroughGeometry>();
+            _scene.AddChild(new OculusSceneModel());
+
+            var ptLayer = _xrApp.Layers.Add<XrPassthroughLayer>();
+            ptLayer.Purpose = PassthroughLayerPurposeFB.ProjectedFB;
 
             _xrApp.BindEngineApp(_scene!.App!);
         }

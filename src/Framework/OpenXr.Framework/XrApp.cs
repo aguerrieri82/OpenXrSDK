@@ -53,6 +53,7 @@ namespace OpenXr.Framework
         protected Space _head;
         protected Space _local;
         protected Space _stage;
+        protected long _lastFrameTime;
 
         protected ulong _systemId;
         protected XrViewInfo? _viewInfo;
@@ -781,6 +782,8 @@ namespace OpenXr.Framework
                 EndFrame(frameTime, ref layers, layerCount);
             }
 
+            _lastFrameTime = frameTime;
+
             return true;
         }
 
@@ -1322,6 +1325,8 @@ namespace OpenXr.Framework
         public Space Local => _local;
 
         public Space Stage => _stage;
+
+        public long LastFrameTime => _lastFrameTime;    
 
         public SessionState SessionState => _lastSessionState;
 
