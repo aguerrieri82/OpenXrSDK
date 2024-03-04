@@ -5,6 +5,7 @@ using Xr.Engine;
 using Xr.Engine.Compression;
 using Xr.Engine.Gltf;
 using Xr.Engine.OpenXr;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace OpenXr.Samples
 {
@@ -49,6 +50,30 @@ namespace OpenXr.Samples
 
         }
 
+        public static EngineApp CreateDisplay(IAssetManager assets)
+        {
+            var app = CreateBaseScene();
+
+            var display = new TriangleMesh(Quad.Instance);
+            //display.Materials.Add(new StandardMaterial { Color = Color.White, DoubleSided = false, WriteDepth = false });
+
+            display.Name = "display";
+
+            var trans = Matrix4x4.CreateScale(0.5f) *
+                        Matrix4x4.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
+
+            display.Geometry!.ApplyTransform(trans);
+
+            display.Transform.Scale = new Vector3(1.924f, 1.08f, 0.01f);
+
+            display.AddComponent<MeshCollider>();
+
+            app.ActiveScene!.AddChild(display);
+
+            return app;
+        }
+
+
         public static EngineApp CreateChess(IAssetManager assets)
         {
             var app = CreateBaseScene();
@@ -71,9 +96,7 @@ namespace OpenXr.Samples
             app.ActiveScene!.AddChild(mesh);
             ((PerspectiveCamera)app.ActiveScene!.ActiveCamera!).Target = mesh.Transform.Position;
 
-
             return app;
-
         }
 
         public static EngineApp CreateSponza(IAssetManager assets)

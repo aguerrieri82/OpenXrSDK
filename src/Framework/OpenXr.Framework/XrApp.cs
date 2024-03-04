@@ -3,12 +3,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
+using Silk.NET.OpenXR.Extensions.EXT;
 using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Action = Silk.NET.OpenXR.Action;
-using Monitor = System.Threading.Monitor;
 
 
 namespace OpenXr.Framework
@@ -69,6 +69,7 @@ namespace OpenXr.Framework
         protected readonly ILogger _logger;
         protected readonly XrLayerManager _layers;
         protected readonly XrRenderOptions _renderOptions;
+        protected ExtPerformanceSettings? _perfSettings;
 
 
         protected XrAppState _state;
@@ -77,7 +78,7 @@ namespace OpenXr.Framework
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
         {
-
+   
         }
 
         public XrApp(ILogger logger, params IXrPlugin[] plugins)
@@ -87,6 +88,7 @@ namespace OpenXr.Framework
             _lastSessionState = SessionState.Unknown;
             _layers = new XrLayerManager(this);
             _renderOptions = new XrRenderOptions();
+            _extensions.Add(ExtPerformanceSettings.ExtensionName);
 
             Current = this;
         }
@@ -134,6 +136,8 @@ namespace OpenXr.Framework
                     GetSystemId();
 
                     PluginInvoke(p => p.OnInstanceCreated(), true);
+
+                    _xr.TryGetInstanceExtension<ExtPerformanceSettings>(null, _instance, out _perfSettings);
                 }
 
                 _state = XrAppState.Initialized;
@@ -143,6 +147,12 @@ namespace OpenXr.Framework
                 _state = XrAppState.Created;
                 throw;
             }
+        }
+
+        public void AttachInstance(ulong instance)
+        {
+            _instance.Handle = instance;
+            Initialize();
         }
 
         public virtual void Start(XrAppStartMode mode = XrAppStartMode.Render)
@@ -188,10 +198,15 @@ namespace OpenXr.Framework
                 }
 
                 _views = CreateStructArray<View>(_viewInfo.ViewCount, StructureType.View);
+
+                if (_perfSettings != null)
+                {
+                    CheckResult(_perfSettings.PerfSettingsSetPerformanceLevel(_session, PerfSettingsDomainEXT.GpuExt, _renderOptions.GpuLevel), "PerfSettingsSetPerformanceLevel");
+
+                    CheckResult(_perfSettings.PerfSettingsSetPerformanceLevel(_session, PerfSettingsDomainEXT.CpuExt, _renderOptions.CpuLevel), "PerfSettingsSetPerformanceLevel");
+                }
             }
-
             _state = XrAppState.Started;
-
         }
 
         public virtual void Stop()
@@ -727,7 +742,11 @@ namespace OpenXr.Framework
             PoolEvents();
 
             if (!_isValid)
+            {
+                Thread.Sleep(100);
                 return false;
+            }
+         
 
             var state = WaitFrame();
 
@@ -889,6 +908,7 @@ namespace OpenXr.Framework
                     try
                     {
                         SuggestInteractionProfileBindings(StringToPath(profile), suggBindings.ToArray());
+                        break;
                     }
                     catch (OpenXrException ex)
                     {
@@ -1145,7 +1165,8 @@ namespace OpenXr.Framework
                 {
                     var result = _xr.PollEvent(_instance, ref buffer);
                     if (result != Result.Success)
-                        break;
+                        return false;
+                     
 
                     _logger.LogDebug("New event {ev}", buffer.Type);
 
@@ -1306,10 +1327,13 @@ namespace OpenXr.Framework
 
         public ILogger Logger => _logger;
 
+        public IEnumerable<Swapchain> SwapChains => _swapchains?.Select(a=> a.Swapchain) ?? [];
+
         public IReadOnlyDictionary<string, IXrInput> Inputs => _inputs;
 
         public XR Xr => _xr ?? throw new InvalidOperationException("App not initialized");
 
         public static XrApp? Current { get; internal set; }
+
     }
 }

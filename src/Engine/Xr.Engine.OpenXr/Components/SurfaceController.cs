@@ -48,6 +48,7 @@ namespace Xr.Test.Android
         {
             _pointerTime = ctx.Time;
             _pointer = new Vector2(collision.LocalPoint.X, collision.LocalPoint.Y) + new Vector2(0.5f, 0.5f);
+            Console.WriteLine(_pointer);
             _pointerValid = true;
         }
 

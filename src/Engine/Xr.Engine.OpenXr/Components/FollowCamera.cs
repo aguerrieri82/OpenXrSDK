@@ -9,8 +9,8 @@ namespace Xr.Engine.OpenXr
             var camera = _host!.Scene!.ActiveCamera!;
 
             _host.Transform.Position = Offset.Transform(camera.WorldMatrix);
-            _host.Transform.Orientation = camera.Transform.Orientation *
-                                          Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2); //TODO wrong, because the quas is in xz
+            _host.Transform.Orientation = camera.Transform.Orientation;
+                                         
 
             base.Update(ctx);
         }

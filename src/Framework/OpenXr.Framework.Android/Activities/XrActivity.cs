@@ -4,7 +4,6 @@ using Android.Runtime;
 
 namespace OpenXr.Framework.Android
 {
-
     public abstract class XrActivity : Activity
     {
         private Thread? _loopThread;

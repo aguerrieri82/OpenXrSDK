@@ -79,8 +79,6 @@ namespace Xr.Editor
             _xrApp.Layers.Add<XrPassthroughLayer>();
 
             _xrApp.BindEngineApp(_scene!.App!);
-
-            _xrApp.StartEventLoop(() => !_isStarted);
         }
 
         protected void OnSizeChanged(object? sender, EventArgs e)
@@ -106,6 +104,7 @@ namespace Xr.Editor
             try
             {
                 _xrApp!.Start();
+
                 _xrState = SceneXrState.StartRequested;
                 _ui.NotifyMessage("XR Session started", MessageType.Info);
 
@@ -280,9 +279,6 @@ namespace Xr.Editor
                     return;
 
                 _isXrActive = value;
-
-                if (!_isXrActive && _xrApp != null)
-                    _xrApp.RequestStop();
 
                 OnPropertyChanged(nameof(IsXrActive));
             }

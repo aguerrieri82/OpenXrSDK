@@ -26,7 +26,7 @@ namespace Xr.Engine.OpenXr
                 var result = new XrQuad
                 {
                     IsVisible = mesh.IsVisible && mesh.Parent != null,
-                    Size = new System.Numerics.Vector2(mesh.Transform.Scale.X, mesh.Transform.Scale.Y),
+                    Size = new Vector2(mesh.Transform.Scale.X, mesh.Transform.Scale.Y),
                     Orientation = mesh.Transform.Orientation,
                     Position = mesh.Transform.Position
                 };

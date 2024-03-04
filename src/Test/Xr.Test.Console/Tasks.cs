@@ -1,4 +1,7 @@
 ﻿
+using Microsoft.Extensions.Logging;
+using OpenXr.Framework;
+using OpenXr.Framework.OpenGL;
 using Silk.NET.Assimp;
 using System.Globalization;
 using System.Numerics;
@@ -117,7 +120,7 @@ namespace OpenXr
             reader.Read(stream);
         }
 
-        public static Task OvrLibTask()
+        public static Task OvrLibTask(ILogger logger)
         {
 
             static bool CheckResult(OVRPlugin.Result result)
@@ -130,15 +133,38 @@ namespace OpenXr
                 return true;
             }
 
+
+
             Bool boolRes;
 
             var res2 = LoadOVRPlugin(null);
 
+            boolRes = OVRP_OBSOLETE.ovrp_PreInitialize();
+
             var isSup = GetIsSupportedDevice();
+
+            var viewManager = new ViewManager();
+            viewManager.Initialize();
+            using var xrApp = new XrApp(logger,
+                    new XrOpenGLGraphicDriver(viewManager.View),
+                    new OpenXr.Framework.Oculus.OculusXrPlugin());
+            
+           // xrApp.AttachInstance(inst);
+            xrApp.Start();
+
+            //boolRes = OVRP_OBSOLETE.ovrp_Initialize(5, 0);
+
+            CheckResult(OVRP_1_55_0.ovrp_GetNativeOpenXRHandles(out var inst, out var sess));
+            CheckResult(OVRP_1_55_0.ovrp_GetNativeXrApiType(out var xrApi));
+
+
+
+   
 
 
             var settings = new UserDefinedSettings()
             {
+
             };
 
             SetUserDefinedSettings(settings);
@@ -149,18 +175,13 @@ namespace OpenXr
             var isInit = OVRP_1_1_0.ovrp_GetInitialized();
 
 
-            boolRes = OVRP_OBSOLETE.ovrp_PreInitialize();
-            boolRes = OVRP_OBSOLETE.ovrp_Initialize(5, 0);
+
 
             CheckResult(OVRP_1_15_0.ovrp_InitializeMixedReality());
 
 
             CheckResult(OVRP_1_15_0.ovrp_InitializeMixedReality());
             CheckResult(OVRP_1_63_0.ovrp_InitializeInsightPassthrough());
-
-
-            CheckResult(OVRP_1_55_0.ovrp_GetNativeOpenXRHandles(out var inst, out var sess));
-            CheckResult(OVRP_1_55_0.ovrp_GetNativeXrApiType(out var xrApi));
 
 
             CheckResult(OVRP_1_38_0.ovrp_Media_Initialize());
