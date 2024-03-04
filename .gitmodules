@@ -4,3 +4,6 @@
 [submodule "third-party/zlib"]
 	path = third-party/zlib
 	url = https://github.com/madler/zlib
+[submodule "third-party/meshoptimizer"]
+	path = third-party/meshoptimizer
+	url = https://github.com/aguerrieri82/meshoptimizer

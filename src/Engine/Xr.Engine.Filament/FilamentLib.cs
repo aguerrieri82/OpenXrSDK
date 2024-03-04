@@ -296,6 +296,7 @@ namespace Xr.Engine.Filament
             public float MetallicFactor;
             public float EmissiveStrength;
             public Vector3 EmissiveFactor;
+            public float AlphaCutoff;
         };
 
 

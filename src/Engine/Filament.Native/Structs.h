@@ -219,6 +219,7 @@ struct MaterialInfo {
 	float metallicFactor;
 	float emissiveStrength;
 	Color3 emissiveFactor;
+	float alphaCutoff;
 };
 
 struct GraphicContextInfo {

@@ -3,15 +3,26 @@ using Silk.NET.OpenXR.Extensions.FB;
 
 namespace OpenXr.Framework.Oculus
 {
+    public class XrPassthroughMesh
+    {
+        public GeometryInstanceFB Instance;
+
+        public TriangleMeshFB Mesh;
+
+        public object? Tag;
+    }
+
     public class XrPassthroughLayer : XrBaseLayer<CompositionLayerPassthroughFB>
     {
         private FBPassthrough? _passthrough;
         private PassthroughFB _ptInstance;
         private PassthroughLayerFB _ptLayer;
         private bool _isStarted;
+        private readonly List<XrPassthroughMesh> _meshes = [];
 
         public XrPassthroughLayer()
         {
+            Purpose = PassthroughLayerPurposeFB.ReconstructionFB;
         }
 
         public override void Initialize(XrApp app, IList<string> extensions)
@@ -85,7 +96,7 @@ namespace OpenXr.Framework.Oculus
 
             CreatePt(PassthroughFlagsFB.IsRunningATCreationBitFB);
 
-            CreatePtLayer(PassthroughLayerPurposeFB.ReconstructionFB, PassthroughFlagsFB.IsRunningATCreationBitFB);
+            CreatePtLayer(Purpose, PassthroughFlagsFB.IsRunningATCreationBitFB);
 
             _header->Type = StructureType.CompositionLayerPassthroughFB;
 
@@ -112,12 +123,55 @@ namespace OpenXr.Framework.Oculus
             return true;
         }
 
-
-        public void AddMesh(FBTriangleMesh mesh)
+        public void UpdateMesh(XrPassthroughMesh mesh, Posef pose, Vector3f scale, Space baseSpace, long time)
         {
+            var info = new GeometryInstanceTransformFB
+            {
+                Pose = pose,
+                Scale = scale,
+                BaseSpace = baseSpace,
+                Time = time,
+                Type = StructureType.GeometryInstanceTransformFB
+            };
 
+            _xrApp!.CheckResult(_passthrough!.GeometryInstanceSetTransformFB(mesh.Instance, in info), "GeometryInstanceSetTransformFB");
+        } 
+
+        public XrPassthroughMesh AddMesh(XrTriangleMesh mesh, Space baseSpace, object? tag = null)
+        {
+            var fbMesh = _xrApp!.Plugin<OculusXrPlugin>().CreateTriangleMesh(mesh.Indices!, mesh.Vertices!);
+
+            var info = new GeometryInstanceCreateInfoFB
+            {
+                Type = StructureType.GeometryInstanceCreateInfoFB,
+                Mesh = fbMesh,
+                Layer = _ptLayer,
+                BaseSpace = baseSpace,
+                Pose = new Posef
+                {
+                    Orientation = new Quaternionf(0, 0, 0, 1),
+                },
+                Scale = new Vector3f(1, 1, 1)
+            };
+
+            var instance = new GeometryInstanceFB();
+
+            _xrApp.CheckResult(_passthrough!.CreateGeometryInstanceFB(_xrApp.Session, in info, ref instance), "CreateGeometryInstanceFB");
+
+            var result = new XrPassthroughMesh
+            {
+                Instance = instance,
+                Tag = tag,
+                Mesh = fbMesh
+            };
+
+            _meshes.Add(result);    
+
+            return result;
         }
 
         public override XrLayerFlags Flags => XrLayerFlags.EmptySpace;
+
+        public PassthroughLayerPurposeFB Purpose { get; set; }
     }
 }

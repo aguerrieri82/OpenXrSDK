@@ -85,7 +85,6 @@ namespace Xr.Engine.Filament
 
                 SetDefaultRenderTarget();
             }
-
         }
 
         public GraphicContextInfo GetContext()
@@ -96,7 +95,6 @@ namespace Xr.Engine.Filament
 
         public void Dispose()
         {
-
         }
 
         public Texture2D? GetDepth()
@@ -410,6 +408,7 @@ namespace Xr.Engine.Filament
                                 MultiBounceAO = true,
                                 SpecularAntiAliasing = true,
                                 ScreenSpaceReflection = true,
+                                AlphaCutoff = mat.AlphaCutoff,
                                 DoubleSided = mat.DoubleSided,
                                 SpecularAO = FlSpecularAO.Simple
                             };
