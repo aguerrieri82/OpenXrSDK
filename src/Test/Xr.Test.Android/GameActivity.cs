@@ -180,7 +180,7 @@ namespace Xr.Test.Android
 
             scene.AddComponent<PassthroughGeometry>();
             scene.AddChild(new OculusSceneModel());
-            scene.AddChild(new XrHandView(_rHand));
+            scene.AddChild(new OculusHandView(_rHand));
 
             var renderer = xrApp.BindEngineApp(_game);
 

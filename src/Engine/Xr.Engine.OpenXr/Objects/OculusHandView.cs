@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace Xr.Engine.OpenXr
 {
-    public class XrHandView : Group
+    public class OculusHandView : Group
     {
         protected XrHandInputMesh _input;
         protected bool _isInit;
 
-        public XrHandView(XrHandInputMesh input) 
+        public OculusHandView(XrHandInputMesh input) 
         {
             _input = input;
 
@@ -24,11 +24,13 @@ namespace Xr.Engine.OpenXr
         protected override void UpdateSelf(RenderContext ctx)
         {
         
-            if (!_isInit && XrApp.Current!.IsStarted)
+            if (!_isInit && XrApp.Current != null && XrApp.Current.IsStarted)
             {
                 _input.LoadMesh();
 
-                var capMaterial = new StandardMaterial() { Color = Color.White };
+                var capMaterial = PbrMaterial.CreateDefault();
+                capMaterial.Color = new Color(150 / 255f, 79 / 255f, 72 / 255f);
+                capMaterial.DoubleSided = false;
 
                 foreach (var capsule in _input.Mesh!.Capsules!)
                 {

@@ -3,6 +3,7 @@ using Silk.NET.GLFW;
 using System.Windows;
 using Xr.Editor.Components;
 using Xr.Engine.Filament;
+using Xr.Engine.OpenGL;
 
 namespace Xr.Editor
 {

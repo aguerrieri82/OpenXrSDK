@@ -17,7 +17,7 @@ namespace Xr.Engine.OpenGL
     {
         static Dictionary<string, GlProgram> _programs = [];
 
-        protected Dictionary<Type, IBuffer> _buffers = [];
+        protected Dictionary<string, IGlBuffer> _buffers = [];
         protected ShaderUpdate? _update;
         protected readonly GL _gl;
 
@@ -48,8 +48,7 @@ namespace Xr.Engine.OpenGL
                 var resolver = shader.Resolver!;
 
                 program = new GlSimpleProgram(_gl, resolver(shader.VertexSourceName!), resolver(shader.FragmentSourceName!), resolver);
-                program.BufferProvider = this;
-
+   
                 foreach (var ext in _update.Extensions!)
                     program.AddExtension(ext);
 
@@ -65,23 +64,26 @@ namespace Xr.Engine.OpenGL
                 program.Build();
 
                 _programs[_update.FeaturesHash!] = program;
-
-                foreach (var action in _update!.BufferUpdates!)
-                    action(ctx);
             }
+
+            program.Use();
+
+            foreach (var action in _update!.BufferUpdates!)
+                action(ctx);
 
             Program = program;
         }
 
-        public IBuffer GetBuffer<T>(string name, bool isGlobal)
+        public IBuffer GetBuffer<T>(string name, T data, bool isGlobal) 
         {
             if (isGlobal)
-                return Global.GetBuffer<T>(name, true);
+                return Global.GetBuffer(name, data, true);
 
-            if (!_buffers.TryGetValue(typeof(T), out var buffer))
+            if (!_buffers.TryGetValue(name, out var buffer))
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
-                _buffers[typeof(T)] = buffer; 
+                buffer.AssignSlot();
+                _buffers[name] = buffer; 
             }
             return buffer;
         }
@@ -89,12 +91,10 @@ namespace Xr.Engine.OpenGL
 
         public void UpdateUniforms(UpdateShaderContext ctx)
         {
-            ctx.BufferProvider = Global;
+            ctx.BufferProvider = this;
 
             foreach (var action in Global.Update!.Actions!)
                 action(ctx, Program!);
-
-            ctx.BufferProvider = this;
 
             foreach (var action in _update!.Actions!)
                 action(ctx, Program!);

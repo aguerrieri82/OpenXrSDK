@@ -17,7 +17,7 @@ namespace Xr.Engine.OpenGL
 {
     public class GlProgramGlobal : IBufferProvider
     {
-        protected readonly Dictionary<Type, IBuffer> _buffers = [];
+        protected readonly Dictionary<string, IGlBuffer> _buffers = [];
         protected readonly GL _gl;
 
         public GlProgramGlobal(GL gl, Type materialType)
@@ -50,12 +50,13 @@ namespace Xr.Engine.OpenGL
                 action(ctx);
         }
 
-        public IBuffer GetBuffer<T>(string name, bool isGlobal)
+        public IBuffer GetBuffer<T>(string name, T data,  bool isGlobal) 
         {
-            if (!_buffers.TryGetValue(typeof(T), out var buffer))
+            if (!_buffers.TryGetValue(name, out var buffer))
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
-                _buffers[typeof(T)] = buffer;
+                buffer.AssignSlot();
+                _buffers[name] = buffer;
             }
             return buffer;
         }

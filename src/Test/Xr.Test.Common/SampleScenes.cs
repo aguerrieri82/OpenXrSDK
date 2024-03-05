@@ -30,6 +30,8 @@ namespace OpenXr.Samples
                 IsVisible = true
             });
 
+            scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 2, 0);
+
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
             var camera = new PerspectiveCamera
@@ -82,7 +84,6 @@ namespace OpenXr.Samples
             var mesh = (Group)GltfLoader.Instance.Load(assets.FullPath("Game/ABeautifulGame.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
 
-            app.ActiveScene!.AddChild(new PointLight()).Transform.Position = new Vector3(0, 2, 0);
 
             foreach (var child in mesh.Children.OfType<TriangleMesh>())
             { 
@@ -95,6 +96,7 @@ namespace OpenXr.Samples
 
             app.ActiveScene!.AddChild(mesh);
             ((PerspectiveCamera)app.ActiveScene!.ActiveCamera!).Target = mesh.Transform.Position;
+
 
             return app;
         }
@@ -223,7 +225,7 @@ namespace OpenXr.Samples
             //scene.AddChild(display);
 
             scene.AddChild(new AmbientLight(0.1f));
-            scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 10, 10);
+
 
             app.OpenScene(scene);
 

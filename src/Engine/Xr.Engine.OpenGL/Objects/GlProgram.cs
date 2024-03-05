@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Collections.ObjectModel;
+using System;
 
 
 namespace Xr.Engine.OpenGL
@@ -85,19 +86,14 @@ namespace Xr.Engine.OpenGL
 
         protected int LocateUniform(string name, bool optional = false, bool isBlock = false)
         {
-
             if (!_locations.TryGetValue(name, out var result))
             {
                 if (isBlock)
-                {
                     result = (int)_gl.GetUniformBlockIndex(_handle, name);
-                    if (result != -1)
-                        _gl.UniformBlockBinding(_handle, (uint)result, (uint)result);
-                }
-
                 else
                     result = _gl.GetUniformLocation(_handle, name);
-                if (result == -1 && !optional)
+
+                if (result == -1 && !optional) //TODO uncomment
                 {
                     //Debug.WriteLine($"--- WARN --- {name} NOT FOUND");
                     //throw new Exception($"{name} uniform not found on shader.");
@@ -139,25 +135,15 @@ namespace Xr.Engine.OpenGL
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
-        public unsafe void SetUniformBuffer<T>(string name, bool isGlobal, bool optional = false)
-        {
-            var buffer = BufferProvider?.GetBuffer<T>(name, isGlobal);
-
-            if (buffer == null)
-            {
-                if (optional)
-                    return;
-                throw new Exception();
-            }
-
-            SetUniform(name, buffer, optional);         
-        }
 
         public void SetUniform(string name, IBuffer buffer, bool optional = false)
         {
+            var glBuffer = (IGlBuffer)buffer;
+
             var index = (uint)LocateUniform(name, optional, true);
 
-            _gl.BindBufferBase(BufferTargetARB.UniformBuffer, index, ((GlObject)buffer).Handle);
+            _gl.UniformBlockBinding(_handle, index, glBuffer.Slot);
+
         }
 
         public void LoadTexture(Texture2D value, int slot = 0)
@@ -263,9 +249,6 @@ namespace Xr.Engine.OpenGL
             _handle = 0;
             GC.SuppressFinalize(this);
         }
-
-        public IBufferProvider? BufferProvider { get; set; }
-
 
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]
         protected static partial Regex IncludeRegex();

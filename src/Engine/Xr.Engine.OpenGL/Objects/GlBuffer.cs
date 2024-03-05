@@ -1,32 +1,40 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System;
 #else
 using Silk.NET.OpenGL;
+using System;
 #endif
 
 
 namespace Xr.Engine.OpenGL
 {
-    public class GlBuffer<T> : GlObject, IBuffer
-    {
-        private readonly BufferTargetARB _bufferType;
-        private uint _length;
 
-        public unsafe GlBuffer(GL gl, BufferTargetARB bufferType)
+    internal static class GlBufferConst
+    {
+        public static uint UsedSlots = 0;
+    }
+
+    public class GlBuffer<T> : GlObject, IGlBuffer 
+    {
+        protected readonly BufferTargetARB _target;
+        protected uint _length;
+        protected uint _slot;
+        
+
+
+        public unsafe GlBuffer(GL gl, BufferTargetARB target)
              : base(gl)
         {
             _gl = gl;
-            _bufferType = bufferType;
+            _target = target;
 
             _handle = _gl.GenBuffer();
 
             GlDebug.Log($"GenBuffer {_handle}");
         }
 
-        public unsafe GlBuffer(GL gl, Span<T> data, BufferTargetARB bufferType)
-            : this(gl, bufferType)
+        public unsafe GlBuffer(GL gl, Span<T> data, BufferTargetARB target)
+            : this(gl, target)
         {
             Update(data);
         }
@@ -37,7 +45,7 @@ namespace Xr.Engine.OpenGL
 
             var byteSpan = new ReadOnlySpan<byte>((byte*)data, size);
 
-            _gl.BufferData(_bufferType, byteSpan, BufferUsageARB.StaticDraw);
+            _gl.BufferData(_target, byteSpan, BufferUsageARB.StaticDraw);
 
             _length = (uint)size;
 
@@ -52,7 +60,7 @@ namespace Xr.Engine.OpenGL
             _length = (uint)data.Length;
         }
 
-        void IBuffer.Update(object value)
+        unsafe void IBuffer.Update(object value)
         {
             if (value is IDynamicBuffer dynamic)
             {
@@ -62,21 +70,30 @@ namespace Xr.Engine.OpenGL
             else
             {
                 var data = (T)value;
-                Update(new Span<T>(ref data));
+                Update(new nint(&data), sizeof(T));
             }
         }
 
         public void Bind()
         {
-            _gl.BindBuffer(_bufferType, _handle);
-            GlDebug.Log($"BindBuffer {_bufferType} {_handle}");
+            _gl.BindBuffer(_target, _handle);
+
+            GlDebug.Log($"BindBuffer {_target} {_handle}");
         }
 
         public void Unbind()
         {
+            _gl.BindBuffer(_target, 0);
 
-            _gl.BindBuffer(_bufferType, 0);
-            GlDebug.Log($"BindBuffer {_bufferType} NULL");
+            GlDebug.Log($"BindBuffer {_target} NULL");
+        }
+
+
+        public void AssignSlot()
+        {
+            GlBufferConst.UsedSlots++;
+            _slot = GlBufferConst.UsedSlots;
+            _gl.BindBufferBase(_target, _slot, _handle);
         }
 
         public override void Dispose()
@@ -86,7 +103,11 @@ namespace Xr.Engine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-    
+
+        public BufferTargetARB Target => _target;
+
         public uint Length => _length;
+
+        public uint Slot => _slot;
     }
 }

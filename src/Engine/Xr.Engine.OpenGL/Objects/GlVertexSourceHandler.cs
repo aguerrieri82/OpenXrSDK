@@ -8,15 +8,9 @@ using Silk.NET.OpenGL;
 
 namespace Xr.Engine.OpenGL
 {
-    public abstract class GlVertexSourceHandle : GlObject
+    public abstract class GlVertexSourceHandle : IDisposable
     {
         protected static Dictionary<string, GlVertexLayout> _layouts = [];
-
-        protected GlVertexSourceHandle(GL gl)
-            : base(gl)
-        {
-
-        }
 
         public abstract void Unbind();
 
@@ -37,6 +31,8 @@ namespace Xr.Engine.OpenGL
 
             return (GlVertexSourceHandle)Activator.CreateInstance(type, [gl, obj])!;
         }
+
+        public abstract void Dispose();
     }
 
     public class GlVertexSourceHandler<TVert, TInd> : GlVertexSourceHandle where TVert : unmanaged where TInd : unmanaged
@@ -47,7 +43,6 @@ namespace Xr.Engine.OpenGL
         readonly IVertexSource<TVert, TInd> _source;
 
         public GlVertexSourceHandler(GL gl, IVertexSource<TVert, TInd> source)
-            : base(gl)
         {
 
             var lKey = string.Concat(typeof(TVert).FullName, source.ActiveComponents);
@@ -59,7 +54,7 @@ namespace Xr.Engine.OpenGL
             }
 
             _source = source;
-            _vertices = new GlVertexArray<TVert, TInd>(_gl, _source.Vertices, _source.Indices, layout);
+            _vertices = new GlVertexArray<TVert, TInd>(gl, _source.Vertices, _source.Indices, layout);
 
             _primitive = _source.Primitive switch
             {

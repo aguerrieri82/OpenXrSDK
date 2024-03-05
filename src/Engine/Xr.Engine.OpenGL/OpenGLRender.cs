@@ -188,10 +188,12 @@ namespace Xr.Engine.OpenGL
 
                unsafe
                {
-                   if (sev == GLEnum.DebugSeverityNotification)
-                       return;
                    var span = new Span<byte>((void*)msg, len);
                    var text = Encoding.UTF8.GetString(span);
+
+                   if (sev == GLEnum.DebugSeverityNotification)
+                       return;
+
                    Debug.WriteLine($"\n\n\n");
                    Debug.WriteLine($"------ OPENGL: {text}");
                    Debug.WriteLine($"\n\n\n");
@@ -289,15 +291,16 @@ namespace Xr.Engine.OpenGL
                         }
                     }
 
+
                     if (vertex.Key.Version != vertex.Value.Version)
                     {
                         vHandler.Update();
                         vertex.Value.Version = vertex.Key.Version;
                     }
 
-                    vHandler.Bind();
-
                     _updateCtx.ActiveComponents = vertex.Value.ActiveComponents;
+
+                    vHandler.Bind();
 
                     foreach (var draw in vertex.Value.Contents)
                     {
@@ -319,6 +322,9 @@ namespace Xr.Engine.OpenGL
 
                         draw.Draw!();
                     }
+
+                    vHandler.Unbind();
+
                 }
             }
 
