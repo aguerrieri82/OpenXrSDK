@@ -14,6 +14,13 @@ namespace Xr.Engine
             _materials.CollectionChanged += OnMaterialsChanged;
         }
 
+        public override T? Feature<T>() where T : class
+        {
+            if (typeof(T) == typeof(Geometry3D))
+                return (T?)(object?)Geometry;
+            return base.Feature<T>();
+        }
+
         private void OnMaterialsChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset)

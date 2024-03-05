@@ -61,7 +61,7 @@ namespace Xr.Editor
         [MemberNotNull(nameof(_app))]
         public void LoadScene()
         {
-            _app = SampleScenes.CreateSponza(new LocalAssetManager("Assets"));
+            _app = SampleScenes.CreateChess(new LocalAssetManager("Assets"));
 
             var mesh = _app.ActiveScene!.FindByName<Object3D>("mesh");
             if (mesh != null)

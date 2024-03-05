@@ -1,5 +1,6 @@
 ﻿namespace OpenXr.Framework
 {
+    [Obsolete]
     public readonly struct SyncEvent : IDisposable
     {
         readonly SemaphoreSlim _semaphore;

@@ -27,15 +27,17 @@ namespace Xr.Editor
 
     public class SceneView : BasePanel, IStateManager<SceneViewState>
     {
+        protected readonly IRenderSurface _renderSurface;
+
         protected Camera? _camera;
         protected Scene? _scene;
         protected Thread? _renderThread;
         protected bool _isStarted;
-        protected Rect2I _view = new();
-        protected readonly IRenderSurface _renderSurface;
-        protected XrApp? _xrApp;
-        protected XrOculusTouchController? _inputs;
         protected bool _isXrActive;
+        protected Rect2I _view = new();
+        protected XrApp? _xrApp;
+        protected XrHandInputMesh? _rHand;
+        protected XrOculusTouchController? _inputs;
         protected List<IEditorTool> _tools = [];
         protected SceneXrState _xrState;
         protected IRenderEngine? _render;
@@ -60,6 +62,10 @@ namespace Xr.Editor
                      new OculusXrPlugin());
 
             _xrApp.RenderOptions.RenderMode = XrRenderMode.SingleEye;
+
+            _rHand =_xrApp.AddHand<XrHandInputMesh>(HandEXT.RightExt);
+
+            _scene!.AddChild(new XrHandView(_rHand!));
 
             _inputs = _xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.Button!.AClick)
@@ -109,7 +115,7 @@ namespace Xr.Editor
             try
             {
                 _xrApp!.Start();
-
+               
                 _xrState = SceneXrState.StartRequested;
                 _ui.NotifyMessage("XR Session started", MessageType.Info);
 

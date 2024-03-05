@@ -1,9 +1,11 @@
 ﻿using Silk.NET.Core;
 using Silk.NET.Core.Native;
+using Silk.NET.Maths;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -19,13 +21,11 @@ namespace OpenXr.Framework.Oculus
 
         public static readonly OculusXrPluginOptions Default = new()
         {
-
             Foveation = SwapchainCreateFoveationFlagsFB.ScaledBinBitFB
         };
     }
 
-
-    public unsafe class OculusXrPlugin : BaseXrPlugin, IDisposable
+    public unsafe class OculusXrPlugin : XrBasePlugin, IDisposable
     {
         public static readonly string[] LABELS = ["CEILING", "DOOR_FRAME", "FLOOR", "INVISIBLE_WALL_FACE", "WALL_ART", "WALL_FACE", "WINDOW_FRAME", "COUCH", "TABLE", "BED", "LAMP", "PLANT", "SCREEN", "STORAGE", "GLOBAL_MESH", "OTHER"];
 
@@ -74,6 +74,7 @@ namespace OpenXr.Framework.Oculus
         protected FBSpatialEntityContainer? _container;
         protected FBFoveation? _foveation;
         protected FBSwapchainUpdateState? _swapChainUpdate;
+        protected FBHandTrackingMesh? _handMesh;
         protected readonly ConcurrentDictionary<ulong, TaskCompletionSource<SpaceQueryResultFB[]>> _spaceQueries = [];
         protected readonly ConcurrentDictionary<ulong, TaskCompletionSource<Result>> _spaceCompStatus = [];
 
@@ -105,14 +106,19 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBDisplayRefreshRate.ExtensionName);
             extensions.Add(FBFoveation.ExtensionName);
             extensions.Add(FBSwapchainUpdateState.ExtensionName);
-            
+            extensions.Add(FBHandTrackingMesh.ExtensionName);
+
+            extensions.Add("XR_FB_hand_tracking_capsules");
+            extensions.Add("XR_FB_hand_tracking_aim");
             extensions.Add("XR_META_spatial_entity_mesh");
             extensions.Add("XR_META_touch_controller_plus");
         }
 
         public override void OnInstanceCreated()
         {
-            _app!.Xr.TryGetInstanceExtension<FBScene>(null, _app.Instance, out _scene);
+            Debug.Assert(_app != null);
+
+            _app.Xr.TryGetInstanceExtension<FBScene>(null, _app.Instance, out _scene);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntity>(null, _app.Instance, out _spatial);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityQuery>(null, _app.Instance, out _spatialQuery);
             _app.Xr.TryGetInstanceExtension<FBTriangleMesh>(null, _app.Instance, out _mesh);
@@ -121,15 +127,12 @@ namespace OpenXr.Framework.Oculus
             _app.Xr.TryGetInstanceExtension<FBDisplayRefreshRate>(null, _app.Instance, out _refreshRate);
             _app.Xr.TryGetInstanceExtension<FBFoveation>(null, _app.Instance, out _foveation);
             _app.Xr.TryGetInstanceExtension<FBSwapchainUpdateState>(null, _app.Instance, out _swapChainUpdate);
-            
+            _app.Xr.TryGetInstanceExtension<FBHandTrackingMesh>(null, _app.Instance, out _handMesh);
 
             var func = new PfnVoidFunction();
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
             GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));
         }
-
-
-
 
         public string[] GetSpaceSemanticLabels(Space space)
         {
@@ -292,7 +295,7 @@ namespace OpenXr.Framework.Oculus
 
         }
 
-        public XrTriangleMesh GetSpaceTriangleMesh(Space space)
+        public XrMesh GetSpaceTriangleMesh(Space space)
         {
             var info = new SpaceTriangleMeshGetInfoMETA
             {
@@ -318,9 +321,9 @@ namespace OpenXr.Framework.Oculus
                 result.Indices = pIndex;
                 _app!.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
 
-                return new XrTriangleMesh
+                return new XrMesh
                 {
-                    Vertices = vertexArray,
+                    Vertices = vertexArray.Convert().To<Vector3>(),
                     Indices = indexArray
                 };
             }
@@ -557,6 +560,91 @@ namespace OpenXr.Framework.Oculus
 
             return result;
 
+        }
+
+        public XrHandMesh GetHandMesh(HandTrackerEXT tracker)
+        {
+            var mesh = new HandTrackingMeshFB
+            {
+                Type = StructureType.HandTrackingMeshFB
+            };
+
+            var capState = new HandTrackingCapsulesStateFB()
+            {
+                Type = StructureType.HandTrackingCapsulesStateFB,
+            };
+
+            _app!.CheckResult(_handMesh!.GetHandMeshFB(tracker, ref mesh), "GetHandMeshFB");
+
+            var jointBindPoses = new Posef[mesh.JointCountOutput];
+            var jointParents = new HandJointEXT[mesh.JointCountOutput];
+            var jointRadii = new float[mesh.JointCountOutput];
+
+            var vertexPositions = new Vector3f[mesh.VertexCountOutput];
+            var vertexNormals = new Vector3f[mesh.VertexCountOutput];
+            var vertexUVs = new Vector2f[mesh.VertexCountOutput];
+            var vertexBlendIndices = new Vector4D<short>[mesh.VertexCountOutput];
+            var vertexBlendWeights = new Vector4f[mesh.VertexCountOutput];
+
+            var indices = new short[mesh.IndexCountOutput];
+
+            fixed (Posef* pjointBindPoses = jointBindPoses)
+            fixed (HandJointEXT* pjointParents = jointParents)
+            fixed (float* pjointRadii = jointRadii)
+            fixed (Vector3f* pvertexPositions = vertexPositions)
+            fixed (Vector3f* pvertexNormals = vertexNormals)
+            fixed (Vector2f* pvertexUVs = vertexUVs)
+            fixed (Vector4D<short>* pvertexBlendIndices = vertexBlendIndices)
+            fixed (Vector4f* pvertexBlendWeights = vertexBlendWeights)
+            fixed (short* pindices = indices)
+            {
+                mesh.JointBindPoses = pjointBindPoses;
+                mesh.JointParents = pjointParents;
+                mesh.JointRadii = pjointRadii;
+                mesh.JointCapacityInput = mesh.JointCountOutput;
+
+                mesh.VertexPositions = pvertexPositions;
+                mesh.VertexNormals = pvertexNormals;
+                mesh.VertexUVs = pvertexUVs;
+                mesh.VertexBlendIndices = pvertexBlendIndices;
+                mesh.VertexBlendWeights = pvertexBlendWeights;
+                mesh.VertexCapacityInput = mesh.VertexCountOutput;
+
+                mesh.Indices = pindices;
+                mesh.IndexCapacityInput = mesh.IndexCountOutput;
+
+                mesh.Next = &capState;
+
+                _app!.CheckResult(_handMesh!.GetHandMeshFB(tracker, ref mesh), "GetHandMeshFB");
+            }
+
+            var result = new XrHandMesh();
+            result.Joints = new XrHandJoint[mesh.JointCountOutput];
+            result.Vertices = new XrHandVertex[mesh.VertexCountOutput];
+            result.Indices = new uint[mesh.IndexCountOutput];
+
+            for (var i = 0; i < mesh.JointCountOutput; i++)
+            {
+                result.Joints[i].BindPose = jointBindPoses[i];
+                result.Joints[i].Parent = jointParents[i];
+                result.Joints[i].Radii = jointRadii[i];
+            }
+
+            for (var i = 0; i < mesh.VertexCountOutput; i++)
+            {
+                result.Vertices[i].Pos = vertexPositions[i];
+                result.Vertices[i].Normal = vertexNormals[i];
+                result.Vertices[i].UV = vertexUVs[i];
+                result.Vertices[i].BlendIndex = vertexBlendIndices[i];
+                result.Vertices[i].BlendWeight = vertexBlendWeights[i];
+            }
+
+            for (var i = 0; i < mesh.IndexCountOutput; i++)
+                result.Indices[i] = (uint)indices[i];
+
+            result.Capsules = capState.Capsules.AsSpan().ToArray();
+
+            return result;
         }
 
         public void Dispose()

@@ -5,7 +5,7 @@ using Silk.NET.OpenXR.Extensions.KHR;
 
 namespace OpenXr.Framework.Android
 {
-    public class AndroidXrOpenGLESGraphicDriver : BaseXrPlugin, IXrGraphicDriver, IApiProvider
+    public class AndroidXrOpenGLESGraphicDriver : XrBasePlugin, IXrGraphicDriver, IApiProvider
     {
         protected OpenGLESContext _context;
         protected XrDynamicType _swapChainType;

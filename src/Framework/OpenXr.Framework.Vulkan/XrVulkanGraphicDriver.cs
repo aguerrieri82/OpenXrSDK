@@ -7,7 +7,7 @@ using StructureType = Silk.NET.OpenXR.StructureType;
 
 namespace OpenXr.Framework.Vulkan
 {
-    public unsafe class XrVulkanGraphicDriver : BaseXrPlugin, IXrGraphicDriver, IDisposable
+    public unsafe class XrVulkanGraphicDriver : XrBasePlugin, IXrGraphicDriver, IDisposable
     {
         protected IVulkanDevice _device;
         protected KhrVulkanEnable? _vulkanExt;

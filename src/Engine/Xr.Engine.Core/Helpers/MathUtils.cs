@@ -49,6 +49,13 @@ namespace Xr.Engine
 
         public static Quaternion QuatFromForwardUp(Vector3 forward, Vector3 up)
         {
+            var lookAt = Matrix4x4.CreateLookAt(Vector3.Zero, forward, up);
+            Matrix4x4.Invert(lookAt, out var rotMatrix);
+            return Quaternion.CreateFromRotationMatrix(rotMatrix);
+        }
+
+        public static Quaternion QuatFromForwardUp2(Vector3 forward, Vector3 up)
+        {
             Vector3 zAxis = Vector3.Normalize(forward);
             Vector3 xAxis = Vector3.Normalize(Vector3.Cross(up, zAxis));
             Vector3 yAxis = Vector3.Cross(zAxis, xAxis);

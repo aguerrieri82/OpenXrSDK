@@ -30,6 +30,13 @@ namespace Xr.Engine
             _worldDirty = true;
         }
 
+        public virtual T? Feature<T>() where T : class
+        {
+            if (this is T tInt)
+                return tInt;
+            return _components?.OfType<T>().FirstOrDefault();
+        }
+
         public virtual bool UpdateWorldMatrix(bool updateChildren, bool updateParent)
         {
             bool isParentChanged = false;
@@ -47,10 +54,7 @@ namespace Xr.Engine
 
                 _worldInverseDirty = true;
                 _worldBoundsDirty = true;
-
                 _worldDirty = false;
-                ;
-
 
                 isChanged = true;
             }
@@ -147,7 +151,6 @@ namespace Xr.Engine
                 _transform.Position = _parent != null ?
                     value.Transform(_parent.WorldMatrixInverse) : value;
             }
-
         }
 
         public Bounds3 WorldBounds

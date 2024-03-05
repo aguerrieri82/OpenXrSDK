@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace OpenXr.Framework.OpenGL
 {
-    public class XrOpenGLGraphicDriver : BaseXrPlugin, IXrGraphicDriver, IApiProvider
+    public class XrOpenGLGraphicDriver : XrBasePlugin, IXrGraphicDriver, IApiProvider
     {
         protected GraphicsBinding _binding;
         protected KhrOpenglEnable? _openGl;

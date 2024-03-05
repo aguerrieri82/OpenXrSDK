@@ -20,20 +20,20 @@ namespace OpenXr.Framework
             CpuLevel = PerfSettingsLevelEXT.BoostExt;
         }
 
-        public Extent2Di Size;
+        public Extent2Di Size { get; set; }
 
-        public float ResolutionScale;
+        public float ResolutionScale { get; set; }
 
-        public EnvironmentBlendMode BlendMode;
+        public EnvironmentBlendMode BlendMode { get; set; }
 
-        public uint SampleCount;
+        public uint SampleCount { get; set; }
 
-        public long SwapChainFormat;
+        public long SwapChainFormat { get; set; }
 
-        public XrRenderMode RenderMode;
+        public XrRenderMode RenderMode { get; set; }
 
-        public PerfSettingsLevelEXT CpuLevel;
+        public PerfSettingsLevelEXT CpuLevel { get; set; }
 
-        public PerfSettingsLevelEXT GpuLevel;
+        public PerfSettingsLevelEXT GpuLevel { get; set; }
     }
 }

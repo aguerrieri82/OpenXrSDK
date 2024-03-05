@@ -2,11 +2,11 @@
 
 namespace OpenXr.Framework
 {
-    public abstract class BaseXrPlugin : IXrPlugin
+    public abstract class XrBasePlugin : IXrPlugin
     {
         protected XrApp? _app;
 
-        public BaseXrPlugin()
+        public XrBasePlugin()
         {
 
         }

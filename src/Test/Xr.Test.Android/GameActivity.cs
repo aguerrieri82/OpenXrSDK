@@ -12,8 +12,6 @@ using Xr.Engine;
 using Xr.Engine.Filament;
 using Xr.Engine.OpenGL;
 using Xr.Engine.OpenXr;
-using Xr.Engine.OpenXr.Components;
-
 
 namespace Xr.Test.Android
 {
@@ -38,6 +36,7 @@ namespace Xr.Test.Android
         private WebView? _webView;
         private XrWebViewLayer? _webViewLayer;
         private XrOculusTouchController? _inputs;
+        private XrHandInputMesh _rHand;
 
         protected override void OnAppStarted(XrApp app)
         {
@@ -65,7 +64,7 @@ namespace Xr.Test.Android
                 AssetManager = new AndroidAssetManager(this, "Assets")
             };
 
-            _game = SampleScenes.CreateDisplay(Platform.Current.AssetManager);
+            _game = SampleScenes.CreateChess(Platform.Current.AssetManager);
 
             IXrGraphicDriver driver;
 
@@ -124,9 +123,7 @@ namespace Xr.Test.Android
                 });
 
                 driver = glDriver;
-
             }
-
 
             var logger = new AndroidLogger("XrApp");
 
@@ -152,6 +149,7 @@ namespace Xr.Test.Android
                .AddAction(a => a.Right!.Haptic)
               );
 
+            _rHand = xrApp.AddHand<XrHandInputMesh>(HandEXT.RightExt);
 
             var ptLayer = xrApp.Layers.Add<XrPassthroughLayer>();
             ptLayer.Purpose = PassthroughLayerPurposeFB.ProjectedFB;
@@ -182,6 +180,7 @@ namespace Xr.Test.Android
 
             scene.AddComponent<PassthroughGeometry>();
             scene.AddChild(new OculusSceneModel());
+            scene.AddChild(new XrHandView(_rHand));
 
             var renderer = xrApp.BindEngineApp(_game);
 

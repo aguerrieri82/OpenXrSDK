@@ -2,20 +2,26 @@
 
 namespace Xr.Engine
 {
-    public class MeshCollider : Behavior<TriangleMesh>, ICollider
+    public class MeshCollider : Behavior<Object3D>, ICollider
     {
         long _version = -1;
         Triangle3[]? _triangles;
 
+
         void Update()
         {
-            _triangles = _host!.Geometry!.Triangles().ToArray();
-            _version = _host!.Geometry!.Version;
+            var geo = _host!.Feature<Geometry3D>();
+
+            if (geo == null)
+                throw new Exception("Geometry3D not found in Object");
+
+            _triangles = geo.Triangles().ToArray();
+            _version = geo.Version;
         }
 
         public Collision? CollideWith(Ray3 ray)
         {
-            if (_version != _host!.Geometry!.Version)
+            if (_version != _host!.Feature<Geometry3D>()!.Version)
                 Update();
 
             var tRay = ray.Transform(_host!.WorldMatrixInverse);

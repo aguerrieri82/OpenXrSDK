@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using OpenXr.Framework.Input;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
@@ -62,6 +63,7 @@ namespace OpenXr.Framework
         protected XrSwapchainInfo[]? _swapchains;
         protected SystemProperties _systemProps;
 
+        protected readonly Dictionary<HandEXT, XrHandInput> _hands = [];
         protected readonly Dictionary<string, IXrInput> _inputs = [];
         protected readonly Dictionary<string, XrHaptic> _haptics = [];
         protected readonly List<string> _extensions = [];
@@ -70,11 +72,13 @@ namespace OpenXr.Framework
         protected readonly ILogger _logger;
         protected readonly XrLayerManager _layers;
         protected readonly XrRenderOptions _renderOptions;
-        protected ExtPerformanceSettings? _perfSettings;
 
+        //TODO leave here or move?
+        protected ExtPerformanceSettings? _perfSettings;
+        protected internal ExtHandTracking? _handTracking;
 
         protected XrAppState _state;
-        private bool _isValid;
+        protected bool _isValid; //TODO rethink on _state
 
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
@@ -89,7 +93,9 @@ namespace OpenXr.Framework
             _lastSessionState = SessionState.Unknown;
             _layers = new XrLayerManager(this);
             _renderOptions = new XrRenderOptions();
+            
             _extensions.Add(ExtPerformanceSettings.ExtensionName);
+            _extensions.Add(ExtHandTracking.ExtensionName);
 
             Current = this;
         }
@@ -139,6 +145,7 @@ namespace OpenXr.Framework
                     PluginInvoke(p => p.OnInstanceCreated(), true);
 
                     _xr.TryGetInstanceExtension<ExtPerformanceSettings>(null, _instance, out _perfSettings);
+                    _xr.TryGetInstanceExtension<ExtHandTracking>(null, _instance, out _handTracking);
                 }
 
                 _state = XrAppState.Initialized;
@@ -180,6 +187,9 @@ namespace OpenXr.Framework
             AssertSessionCreated();
 
             CreateActions();
+
+            foreach (var hand in _hands)
+                hand.Value.Initialize(hand.Key);
 
             if (mode == XrAppStartMode.Render)
             {
@@ -747,13 +757,15 @@ namespace OpenXr.Framework
                 Thread.Sleep(100);
                 return false;
             }
-         
 
             var state = WaitFrame();
 
             var frameTime = state.PredictedDisplayTime;
 
             TrySyncActions(space, frameTime);
+
+            foreach (var hand in _hands)
+                hand.Value.LocateHandJoints(space, frameTime);
 
             BeginFrame();
 
@@ -838,6 +850,26 @@ namespace OpenXr.Framework
         }
 
         #endregion
+
+        #region HANDS
+
+        public XrHandInput AddHand(HandEXT type)
+        {
+            return AddHand<XrHandInput>(type);
+        } 
+
+        public T AddHand<T>(HandEXT type) where T : XrHandInput
+        {
+            var instance = (T)Activator.CreateInstance(typeof(T), this)!;
+            if (_session.Handle != 0)
+                instance.Initialize(type);
+            _hands[type] = instance;
+            return instance;
+        }
+
+
+        #endregion
+
 
         #region ACTIONS
 
@@ -1335,6 +1367,8 @@ namespace OpenXr.Framework
         public IEnumerable<Swapchain> SwapChains => _swapchains?.Select(a=> a.Swapchain) ?? [];
 
         public IReadOnlyDictionary<string, IXrInput> Inputs => _inputs;
+
+        public IReadOnlyDictionary<HandEXT, XrHandInput> Hands => _hands;
 
         public XR Xr => _xr ?? throw new InvalidOperationException("App not initialized");
 
