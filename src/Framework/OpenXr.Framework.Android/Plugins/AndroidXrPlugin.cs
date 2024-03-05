@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace OpenXr.Framework
 {
-    public unsafe class AndroidXrPlugin : BaseXrPlugin
+    public unsafe class AndroidXrPlugin : XrBasePlugin
     {
         protected Context _context;
         protected KhrAndroidThreadSettings? _thread;

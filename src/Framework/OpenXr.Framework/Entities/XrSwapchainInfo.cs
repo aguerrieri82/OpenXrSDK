@@ -9,6 +9,5 @@ namespace OpenXr.Framework
         public Extent2Di ViewSize;
 
         public NativeArray<SwapchainImageBaseHeader>? Images;
-
     }
 }

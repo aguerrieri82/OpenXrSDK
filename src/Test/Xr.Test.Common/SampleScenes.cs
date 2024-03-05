@@ -47,7 +47,6 @@ namespace OpenXr.Samples
             app.OpenScene(scene);
 
             return app;
-
         }
 
         public static EngineApp CreateDisplay(IAssetManager assets)
@@ -86,8 +85,9 @@ namespace OpenXr.Samples
             app.ActiveScene!.AddChild(new PointLight()).Transform.Position = new Vector3(0, 2, 0);
 
             foreach (var child in mesh.Children.OfType<TriangleMesh>())
-            {
+            { 
                 child.AddComponent<BoundsGrabbable>();
+                //Xr.Engine.MeshOptimizer.Simplify(child.Geometry!);
             }
         
             mesh.Transform.SetScale(1f);

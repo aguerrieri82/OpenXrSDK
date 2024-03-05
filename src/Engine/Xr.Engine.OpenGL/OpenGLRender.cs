@@ -30,7 +30,7 @@ namespace Xr.Engine.OpenGL
 
         public GlProgramGlobal? ProgramGlobal;
 
-        public readonly Dictionary<Object3D, VertexContent> Contents = [];
+        public readonly Dictionary<EngineObject, VertexContent> Contents = [];
     }
 
     public class VertexContent
@@ -135,7 +135,7 @@ namespace Xr.Engine.OpenGL
 
             foreach (var obj3D in scene.VisibleDescendants<Object3D>())
             {
-                if (obj3D is not IVertexSource vrtSrc)
+                if (!obj3D.Feature<IVertexSource>(out var vrtSrc))
                     continue;
 
                 foreach (var material in vrtSrc.Materials.OfType<ShaderMaterial>())
@@ -153,7 +153,7 @@ namespace Xr.Engine.OpenGL
                         _content.ShaderContents[material.Shader] = shaderContent;
                     }
 
-                    if (!shaderContent.Contents.TryGetValue(obj3D, out var vertexContent))
+                    if (!shaderContent.Contents.TryGetValue(vrtSrc.Object, out var vertexContent))
                     {
                         vertexContent = new VertexContent
                         {
@@ -165,7 +165,7 @@ namespace Xr.Engine.OpenGL
                         foreach (var attr in vertexContent.VertexHandler.Layout!.Attributes!)
                             vertexContent.ActiveComponents |= attr.Component;
 
-                        shaderContent.Contents[obj3D] = vertexContent;
+                        shaderContent.Contents[vrtSrc.Object] = vertexContent;
                     }
 
                     vertexContent.Contents.Add(new DrawContent

@@ -21,7 +21,6 @@ namespace OpenXr.Framework
 
         public static XrCameraTransform FromView(XrPose pose, Fovf fov, float nearPlane, float farPlane, bool reverseUpDown = false)
         {
-
             var result = new XrCameraTransform();
 
             result.Projection = XrMath.CreateProjectionFov(

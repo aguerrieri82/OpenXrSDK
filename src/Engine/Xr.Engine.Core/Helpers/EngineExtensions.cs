@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Xr.Engine
@@ -46,6 +47,13 @@ namespace Xr.Engine
         public static T? FindAncestor<T>(this Object3D obj) where T : Group
         {
             return obj.Ancestors().OfType<T>().FirstOrDefault();
+        }
+
+
+        public static bool Feature<T>(this Object3D obj, [NotNullWhen(true)] out T? result) where T : class
+        {
+            result = obj.Feature<T>();
+            return result != null;
         }
 
         #endregion
@@ -201,6 +209,16 @@ namespace Xr.Engine
             }
             geo.ActiveComponents |= VertexComponent.Normal;
             geo.Version++;
+        }
+
+        public static void EnsureIndices(this Geometry3D geo)
+        {
+            if (geo.Indices == null || geo.Indices.Length == 0)
+            {
+                geo.Indices = new uint[geo.Vertices!.Length];
+                for (var i = 0; i < geo.Vertices.Length; i++)
+                    geo.Indices[i] = (uint)i;
+            }
         }
 
         public static void SmoothNormals(this Geometry3D geo)

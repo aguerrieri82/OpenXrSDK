@@ -5,10 +5,13 @@
   </PropertyGroup>
 	
 	<ItemGroup>
-		<Content Include="..\..\..\third-party\meshoptimizer\out\install\x64-Release\bin\meshoptimizer.dll"
+		<Content Include="..\..\..\third-party\meshoptimizer\out\install\x64-Debug\bin\meshoptimizer.dll"
 				 CopyToOutputDirectory="PreserveNewest"
 				 Link="runtimes/win-x64/native/%(Filename)%(Extension)"/>
-
+		<Content Include="..\..\..\third-party\meshoptimizer\out\install\x64-Debug\bin\meshoptimizer.pdb"
+				 CopyToOutputDirectory="PreserveNewest"
+				 Link="runtimes/win-x64/native/%(Filename)%(Extension)"/>
+		
 		<Content Include="..\..\..\third-party\meshoptimizer\libs\arm64-v8a\libmeshoptimizer.so"
 				 CopyToOutputDirectory="PreserveNewest"
 				 Link="runtimes/android-arm64/native/%(Filename)%(Extension)"/>

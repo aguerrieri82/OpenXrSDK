@@ -58,6 +58,8 @@ namespace Xr.Engine.Gltf
             var buffer = glTFLoader.Interface.LoadBinaryBuffer(model, 0, filePath);
             var mats = new Dictionary<glTFLoader.Schema.Material, PbrMaterial>();
             var images = new Dictionary<glTFLoader.Schema.Image, TextureData>();
+            var meshes = new Dictionary<glTFLoader.Schema.Mesh, Object3D>();
+
             var log = new StringBuilder();
 
             var basePath = Path.GetDirectoryName(filePath);
@@ -82,7 +84,6 @@ namespace Xr.Engine.Gltf
                 {
                     if (!supportedExt.Contains(key))
                         log.AppendLine($"Extensions '{key}' not supported");
-
                 }
             }
 
@@ -324,10 +325,12 @@ namespace Xr.Engine.Gltf
 
             Object3D ProcessMesh(glTFLoader.Schema.Mesh gltMesh)
             {
+                if (meshes.TryGetValue(gltMesh, out var result))
+                    return new Object3DInstance() { Reference =  result };
+
                 CheckExtensions(gltMesh.Extensions);
 
                 var group = gltMesh.Primitives.Length > 1 ? new Group() : null;
-
 
                 foreach (var primitive in gltMesh.Primitives)
                 {
@@ -473,7 +476,6 @@ namespace Xr.Engine.Gltf
                         if (primitive.Material != null)
                         {
                             var glftMat = model.Materials[primitive.Material.Value];
-                            //curMesh.Materials.Add(new StandardMaterial() { Color = Color.White });
                             curMesh.Materials.Add(DecodeMaterial(glftMat));
                         }
                     }
@@ -487,12 +489,16 @@ namespace Xr.Engine.Gltf
                         //curMesh.Geometry.ComputeTangents();
                     }
 
-
                     if (group == null)
+                    {
+                        meshes[gltMesh] = curMesh;
                         return curMesh;
+                    }
 
                     group.AddChild(curMesh);
                 }
+                
+                meshes[gltMesh] = group!;
 
                 return group!;
             }

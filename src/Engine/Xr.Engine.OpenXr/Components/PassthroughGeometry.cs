@@ -32,16 +32,16 @@ namespace Xr.Engine.OpenXr
                     {
                         var meshObj = (TriangleMesh)_sceneModel.Children[0];
 
-                        var triMesh = new XrTriangleMesh
+                        var triMesh = new XrMesh
                         {
                             Indices = meshObj.Geometry!.Indices,
-                            Vertices = meshObj.Geometry!.Vertices!.Select(a => a.Pos.ToVector3f()).ToArray()
+                            Vertices = meshObj.Geometry!.Vertices!.Select(a => a.Pos).ToArray()
                         };
 
                         var test = Cube.Instance;
 
                         triMesh.Indices = test.Indices!;
-                        triMesh.Vertices = test.Vertices!.Select(a => a.Pos.ToVector3f()).ToArray()!;
+                        triMesh.Vertices = test.Vertices!.Select(a => a.Pos).ToArray()!;
 
 
                         var ptMesh = _ptLayer.AddMesh(triMesh, xrApp!.Stage, meshObj);
