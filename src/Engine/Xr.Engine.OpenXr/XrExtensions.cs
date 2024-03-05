@@ -150,7 +150,7 @@ namespace Xr.Engine.OpenXr
 
             xrApp.Layers.AddProjection(RenderView);
 
-            app.ActiveScene!.AddChild(new XrGroup(xrApp));
+            app.ActiveScene!.AddChild(new XrRoot(xrApp));
 
             return renderer;
         }
@@ -258,7 +258,7 @@ namespace Xr.Engine.OpenXr
 
             xrApp.Layers.AddProjection(RenderView);
 
-            app.ActiveScene!.AddChild(new XrGroup(xrApp));
+            app.ActiveScene!.AddChild(new XrRoot(xrApp));
 
             return renderer;
         }

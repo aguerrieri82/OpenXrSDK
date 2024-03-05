@@ -82,13 +82,23 @@ namespace Xr.Engine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void SetUniformBuffer<T>(string name, UpdateAction<T> value, bool isGlobal, bool optional = false)
+        public readonly void SetUniformBuffer<T>(string name, UpdateAction<T> value, bool isGlobal, bool optional = false) where T : notnull
         {
             Log(name, value);
 
-            _result.BufferUpdates!.Add((ctx) => ctx.BufferProvider!.GetBuffer<T>(name, isGlobal).Update(value(ctx)!));
-            
-            _result.Actions!.Add((ctx, up) => up.SetUniformBuffer<T>(name, isGlobal, optional));
+            _result.BufferUpdates!.Add((ctx) =>
+            {
+                var curValue = value(ctx);
+                ctx.BufferProvider!.GetBuffer(name, curValue, isGlobal)
+                    .Update(curValue);
+            });
+
+            _result.Actions!.Add((ctx, up) => {
+
+                var curValue = value(ctx);
+                var buffer = ctx.BufferProvider!.GetBuffer(name, curValue, isGlobal);
+                up.SetUniform(name, buffer, optional);
+             });
         }
 
         public readonly void SetUniform(string name, UpdateAction<float> value, bool optional = false)

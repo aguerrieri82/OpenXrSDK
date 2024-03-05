@@ -80,7 +80,7 @@ namespace Xr.Engine
                 for (int x = 0; x <= Horizontal; x++)
                 {
                     float xf = (float)x / (float)Horizontal;
-                    float lon = (0.5f + xf) * MathF.PI * 2;
+                    float lon = (xf) * MathF.PI * 2;
                     index = y * (Horizontal + 1) + x + vertexIndexOffset;
                     verts[index].Pos.X = Radius * MathF.Cos(lon) * cosLat;
                     verts[index].Pos.Y = Radius * MathF.Sin(lon) * cosLat;
@@ -120,7 +120,7 @@ namespace Xr.Engine
                 for (int x = 0; x <= Horizontal; x++)
                 {
                     float xf = (float)x / (float)Horizontal;
-                    float lon = (0.5f + xf) * MathF.PI * 2;
+                    float lon = xf  * MathF.PI * 2;
                     index = y * (Horizontal + 1) + x + vertexIndexOffset;
                     verts[index].Pos.X = Radius * MathF.Cos(lon) * cosLat;
                     verts[index].Pos.Y = Radius * MathF.Sin(lon) * cosLat;
@@ -150,6 +150,7 @@ namespace Xr.Engine
 
             Vertices = verts;
             Indices = indices.Select(a => (uint)a).ToArray();
+            ActiveComponents |= VertexComponent.Normal;
         }
 
         public float Radius;

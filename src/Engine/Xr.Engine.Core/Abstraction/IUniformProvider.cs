@@ -4,7 +4,6 @@ namespace Xr.Engine
 {
     public interface IUniformProvider
     {
-        void SetUniformBuffer<T>(string name, bool isGlobal, bool optional = false);
 
         void SetUniform(string name, int value, bool optional = false);
 

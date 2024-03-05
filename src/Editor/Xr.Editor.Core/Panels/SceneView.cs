@@ -65,7 +65,7 @@ namespace Xr.Editor
 
             _rHand =_xrApp.AddHand<XrHandInputMesh>(HandEXT.RightExt);
 
-            _scene!.AddChild(new XrHandView(_rHand!));
+            _scene!.AddChild(new OculusHandView(_rHand!));
 
             _inputs = _xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.Button!.AClick)
@@ -138,8 +138,8 @@ namespace Xr.Editor
 
         public void StopXr()
         {
-            _render!.ReleaseContext(true);
-            _renderSurface.TakeContext();
+            //_render!.ReleaseContext(true);
+            //_renderSurface.TakeContext();
             _renderSurface.EnableVSync(true);
 
             try
@@ -157,8 +157,8 @@ namespace Xr.Editor
             }
             finally
             {
-                _renderSurface.ReleaseContext();
-                _render.ReleaseContext(false);
+                //_renderSurface.ReleaseContext();
+                //_render.ReleaseContext(false);
             }
         }
 

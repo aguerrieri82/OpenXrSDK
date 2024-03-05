@@ -4,11 +4,11 @@ using Xr.Engine.Gltf;
 
 namespace Xr.Engine.OpenXr
 {
-    public class XrGroup : Group
+    public class XrRoot : Group
     {
         readonly XrApp _xrApp;
 
-        public XrGroup(XrApp app)
+        public XrRoot(XrApp app)
         {
             _xrApp = app;
 
@@ -20,6 +20,7 @@ namespace Xr.Engine.OpenXr
 
         protected Group? AddController(string path, string name, string modelFileName)
         {
+
             var input = _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path);
             if (input == null)
                 return null;

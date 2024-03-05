@@ -13,12 +13,13 @@ namespace Xr.Engine.OpenGL.Oculus
     public struct SceneMatrices
     {
         public Matrix4x4 ViewProj1;
+
         public Matrix4x4 ViewProj2;
     }
 
     public class GlMultiViewRenderTarget : GlTextureRenderTarget, IMultiViewTarget, IShaderHandler
     {
-        static SceneMatrices _matrices;
+        static SceneMatrices _matrices = new SceneMatrices();
 
         protected GlMultiViewRenderTarget(GL gl, uint textId, uint sampleCount)
             : base(gl, textId, sampleCount)
@@ -43,7 +44,6 @@ namespace Xr.Engine.OpenGL.Oculus
 
         public void SetCameraTransforms(XrCameraTransform[] eyes)
         {
-
             Matrix4x4.Invert(eyes[0].Transform, out var view1);
             Matrix4x4.Invert(eyes[1].Transform, out var view2);
 
