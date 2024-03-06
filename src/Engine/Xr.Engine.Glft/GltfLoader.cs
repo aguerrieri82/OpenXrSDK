@@ -330,7 +330,7 @@ namespace Xr.Engine.Gltf
 
                 CheckExtensions(gltMesh.Extensions);
 
-                var group = gltMesh.Primitives.Length > 1 ? new Group() : null;
+                var group = gltMesh.Primitives.Length > 1 ? new Group3D() : null;
 
                 foreach (var primitive in gltMesh.Primitives)
                 {
@@ -509,57 +509,68 @@ namespace Xr.Engine.Gltf
                 throw new NotSupportedException();
             }
 
-            Object3D ProcessNode(glTFLoader.Schema.Node node, Group group)
+            Object3D ProcessNode(glTFLoader.Schema.Node node, Group3D curGrp)
             {
                 CheckExtensions(node.Extensions);
 
-                Object3D obj;
+                Object3D? nodeObj = null;
+                Group3D? nodeGrp = null;
 
+                if (node.Children != null && node.Children.Length > 0)
+                {
+                    nodeGrp = new Group3D();
+                    nodeObj = nodeGrp;
+                }
+        
                 if (node.Mesh != null)
                 {
-                    obj = ProcessMesh(model.Meshes[node.Mesh.Value]);
-
-                    //TODO uncomment
-                    //Debug.Assert(node.Children == null);
+                    var nodeMesh = ProcessMesh(model.Meshes[node.Mesh.Value]);
+                    if (nodeGrp != null)
+                        nodeGrp.AddChild(nodeMesh);
+                    else
+                        nodeObj = nodeMesh;
                 }
                 else if (node.Camera != null)
                 {
-                    obj = ProcessCamera(model.Cameras[node.Camera.Value]);
+                    nodeObj = ProcessCamera(model.Cameras[node.Camera.Value]);
 
                     Debug.Assert(node.Children == null);
                 }
-                else if (node.Children != null)
+                else if (nodeGrp == null)
                 {
-                    obj = new Group();
-
-                    foreach (var childNode in node.Children)
-                        ProcessNode(model.Nodes[childNode], (Group)obj);
+                    nodeObj = new Object3D();
                 }
-                else
-                    obj = new Object3D();
 
-                obj.Name = node.Name;
 
+                if (nodeGrp != null)
+                {
+                    foreach (var childNode in node.Children!)
+                        ProcessNode(model.Nodes[childNode], nodeGrp);
+                }
+    
+                nodeObj!.Name = node.Name;
 
                 if (node.Rotation != null)
-                    obj.Transform.Orientation = new Quaternion(node.Rotation[0], node.Rotation[1], node.Rotation[2], node.Rotation[3]);
+                    nodeObj.Transform.Orientation = new Quaternion(node.Rotation[0], node.Rotation[1], node.Rotation[2], node.Rotation[3]);
+                
                 if (node.Scale != null)
-                    obj.Transform.Scale = MathUtils.ToVector3(node.Scale);
+                    nodeObj.Transform.Scale = MathUtils.ToVector3(node.Scale);
+                
                 if (node.Translation != null)
-                    obj.Transform.Position = MathUtils.ToVector3(node.Translation);
+                    nodeObj.Transform.Position = MathUtils.ToVector3(node.Translation);
 
-                obj.Transform.Update();
+                nodeObj.Transform.Update();
 
                 //obj.Transform.SetMatrix(MathUtils.CreateMatrix(node.Matrix));
 
-                group.AddChild(obj);
+                curGrp.AddChild(nodeObj);
 
-                return obj;
+                return nodeObj;
             }
 
-            Group ProcessScene(glTFLoader.Schema.Scene glScene)
+            Group3D ProcessScene(glTFLoader.Schema.Scene glScene)
             {
-                var scene = new Group();
+                var scene = new Group3D();
 
                 foreach (var node in glScene.Nodes)
                     ProcessNode(model.Nodes[node], scene);
@@ -567,7 +578,7 @@ namespace Xr.Engine.Gltf
                 return scene;
             }
 
-            var root = new Group();
+            var root = new Group3D();
 
             foreach (var scene in model.Scenes)
                 root.AddChild(ProcessScene(scene));
@@ -576,7 +587,7 @@ namespace Xr.Engine.Gltf
 
             while (true)
             {
-                if (curRoot is Group grp && grp.Children.Count == 1 && grp.WorldMatrix.IsIdentity)
+                if (curRoot is Group3D grp && grp.Children.Count == 1 && grp.WorldMatrix.IsIdentity)
                     curRoot = grp.Children[0];
                 else
                     break;

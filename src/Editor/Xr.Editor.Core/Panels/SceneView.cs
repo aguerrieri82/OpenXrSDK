@@ -65,7 +65,8 @@ namespace Xr.Editor
 
             _rHand =_xrApp.AddHand<XrHandInputMesh>(HandEXT.RightExt);
 
-            _scene!.AddChild(new OculusHandView(_rHand!));
+            var hv = _scene!.AddChild(new OculusHandView(_rHand!));
+
 
             _inputs = _xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.Button!.AClick)
@@ -77,17 +78,20 @@ namespace Xr.Editor
                .AddAction(a => a.Right!.TriggerClick));
 
             _scene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
-            _scene.AddComponent(new ObjectGrabber(
+
+            _scene.AddComponent(new InputObjectGrabber(
                 _inputs.Right!.GripPose!,
                 _inputs.Right!.Haptic!,
                 _inputs.Right!.SqueezeValue!,
                 _inputs.Right!.TriggerValue!));
 
-            _scene.AddComponent<PassthroughGeometry>();
-            _scene.AddChild(new OculusSceneModel());
+            hv.AddComponent(new HandObjectGrabber(_inputs!.Right!.Haptic!));
+
+            //_scene.AddComponent<PassthroughGeometry>();
+            //_scene.AddChild(new OculusSceneModel());
 
             var ptLayer = _xrApp.Layers.Add<XrPassthroughLayer>();
-            ptLayer.Purpose = PassthroughLayerPurposeFB.ProjectedFB;
+            //ptLayer.Purpose = PassthroughLayerPurposeFB.ProjectedFB;
 
             _xrApp.BindEngineApp(_scene!.App!);
         }

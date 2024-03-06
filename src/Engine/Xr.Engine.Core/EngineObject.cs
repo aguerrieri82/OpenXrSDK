@@ -65,7 +65,10 @@
 
         public T? GetProp<T>(string name)
         {
-            return (T?)GetProp(name);
+            var result = GetProp(name);
+            if (result == null)
+                return default;
+            return (T)result;
         }
 
         public object? GetProp(string name)

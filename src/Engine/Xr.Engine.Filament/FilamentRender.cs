@@ -295,7 +295,7 @@ namespace Xr.Engine.Filament
                         AddLight(_app, id, ref info);
                     });
                 }
-                else if (obj is Group group)
+                else if (obj is Group3D group)
                 {
                     GetOrCreate(group, groupId =>
                     {

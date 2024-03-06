@@ -4,13 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Xr.Engine.OpenXr
 {
-    public class OculusHandView : Group
+    public class OculusHandView : Group3D
     {
         protected XrHandInputMesh _input;
         protected bool _isInit;
@@ -18,7 +19,13 @@ namespace Xr.Engine.OpenXr
         public OculusHandView(XrHandInputMesh input) 
         {
             _input = input;
+        }
 
+        public override T? Feature<T>() where T : class
+        {
+            if (typeof(T).IsAssignableFrom(_input.GetType()))
+                return (T)(object)_input;
+            return base.Feature<T>();
         }
 
         protected override void UpdateSelf(RenderContext ctx)
@@ -32,13 +39,28 @@ namespace Xr.Engine.OpenXr
                 capMaterial.Color = new Color(150 / 255f, 79 / 255f, 72 / 255f);
                 capMaterial.DoubleSided = false;
 
+                var capMaterial2 = PbrMaterial.CreateDefault();
+                capMaterial2.Color = new Color(100 / 255f, 79 / 255f, 72 / 255f);
+                capMaterial2.DoubleSided = false;
+
                 foreach (var capsule in _input.Mesh!.Capsules!)
                 {
                     var dir = (capsule.Points.Element1.ToVector3() - capsule.Points.Element0.ToVector3());
 
                     var len = dir.Length();
 
-                    var capMesh = new TriangleMesh(new Capsule(capsule.Radius, len), capMaterial);
+                    bool isTip = ((int)capsule.Joint + 1) % 5 == 0;
+
+                    var capMesh = new TriangleMesh(new Capsule3D(capsule.Radius, len), isTip ? capMaterial2 :  capMaterial);
+                    
+                    /*
+                    capMesh.AddComponent(new CapsuleCollider()
+                    {
+                        Height = len,
+                        Radius = capsule.Radius,
+                        Mode = CapsuleColliderMode.Top
+                    });
+                    */
 
                     AddChild(capMesh);
                 }
@@ -72,5 +94,8 @@ namespace Xr.Engine.OpenXr
 
             base.UpdateSelf(ctx);
         }
+
+
+        public XrHandInputMesh HandInput => _input;
     }
 }

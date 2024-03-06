@@ -1,9 +1,17 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Xr.Engine
 {
+    public struct ObjectFeature<T>
+    {
+        public Object3D Object;
+
+        public T Feature;
+    }
+
     public static class EngineExtensions
     {
         #region EngineObject
@@ -18,7 +26,7 @@ namespace Xr.Engine
         public static T AddComponent<T>(this EngineObject obj) where T : IComponent, new()
         {
             var result = new T();
-            obj.AddComponent(new T());
+            obj.AddComponent(result);
             return result;
         }
 
@@ -33,7 +41,7 @@ namespace Xr.Engine
             return vector.Transform(obj.WorldMatrixInverse);
         }
 
-        public static IEnumerable<Group> Ancestors(this Object3D obj)
+        public static IEnumerable<Group3D> Ancestors(this Object3D obj)
         {
             var curItem = obj.Parent;
 
@@ -44,7 +52,7 @@ namespace Xr.Engine
             }
         }
 
-        public static T? FindAncestor<T>(this Object3D obj) where T : Group
+        public static T? FindAncestor<T>(this Object3D obj) where T : Group3D
         {
             return obj.Ancestors().OfType<T>().FirstOrDefault();
         }
@@ -111,34 +119,49 @@ namespace Xr.Engine
 
         #region GROUP
 
-        public static T AddChild<T>(this Group group) where T : Object3D, new()
+        public static T AddChild<T>(this Group3D group) where T : Object3D, new()
         {
             return group.AddChild(new T());
         }
 
-        public static T? FindByName<T>(this Group group, string name) where T : Object3D
+
+        public static T? FindByName<T>(this Group3D group, string name) where T : Object3D
         {
             return group.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
         }
 
-        public static IEnumerable<T> VisibleDescendants<T>(this Group target) where T : Object3D
+        public static IEnumerable<ObjectFeature<T>> DescendantsWithFeature<T>(this Group3D group) where T : class
+        {
+            foreach (var item in group.Descendants())
+            {
+                var feat = item.Feature<T>();
+                if (feat != null)
+                    yield return new ObjectFeature<T> 
+                    { 
+                        Object = item, 
+                        Feature = feat 
+                    };
+            }
+        }
+
+        public static IEnumerable<T> VisibleDescendants<T>(this Group3D target) where T : Object3D
         {
             return target.Descendants<T>().Where(a => a.IsVisible);
         }
 
-        public static IEnumerable<Object3D> Descendants(this Group target)
+        public static IEnumerable<Object3D> Descendants(this Group3D target)
         {
             return target.Descendants<Object3D>();
         }
 
-        public static IEnumerable<T> Descendants<T>(this Group target) where T : Object3D
+        public static IEnumerable<T> Descendants<T>(this Group3D target) where T : Object3D
         {
             foreach (var child in target.Children)
             {
                 if (child is T validChild)
                     yield return validChild;
 
-                if (child is Group group)
+                if (child is Group3D group)
                 {
                     foreach (var desc in group.Descendants<T>())
                         yield return desc;
@@ -161,9 +184,32 @@ namespace Xr.Engine
 
         public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, T value);
 
+        public static unsafe Vector3[] ExtractPositions(this Geometry3D geo, bool useIndex = false)
+        {
+            if (!useIndex)
+            {
+                var result = new Vector3[geo.Vertices.Length];
+                var dstSpan = result.AsSpan();
+                var srcSpan = geo.Vertices.AsSpan();
+                for (var i = 0; i < dstSpan.Length; i++)
+                    dstSpan[i] = srcSpan[i].Pos;
+                return result;
+            }
+            else
+            {
+                var result = new Vector3[geo.Indices.Length];
+                var dstSpan = result.AsSpan();
+                var srcSpan = geo.Vertices.AsSpan();
+                var srcIdx = geo.Indices.AsSpan();
+                for (var i = 0; i < srcIdx.Length; i++)
+                    dstSpan[i] = srcSpan[(int)srcIdx[i]].Pos;
+                return result;
+            }
+        }
+
         public static void ComputeNormals(this Geometry3D geo)
         {
-            if (geo.Indices != null && geo.Indices.Length > 0)
+            if (geo.Indices.Length > 0)
             {
                 int i = 0;
                 while (i < geo.Indices.Length)
@@ -174,21 +220,21 @@ namespace Xr.Engine
 
                     var triangle = new Triangle3
                     {
-                        V0 = geo.Vertices![i0].Pos,
-                        V1 = geo.Vertices![i1].Pos,
-                        V2 = geo.Vertices![i2].Pos,
+                        V0 = geo.Vertices[i0].Pos,
+                        V1 = geo.Vertices[i1].Pos,
+                        V2 = geo.Vertices[i2].Pos,
                     };
 
                     var normal = triangle.Normal();
-                    geo.Vertices![i0].Normal = normal;
-                    geo.Vertices![i1].Normal = normal;
-                    geo.Vertices![i2].Normal = normal;
+                    geo.Vertices[i0].Normal = normal;
+                    geo.Vertices[i1].Normal = normal;
+                    geo.Vertices[i2].Normal = normal;
                 }
             }
             else
             {
                 int i = 0;
-                while (i < geo.Vertices!.Length)
+                while (i < geo.Vertices.Length)
                 {
                     var i0 = i++;
                     var i1 = i++;
@@ -196,15 +242,15 @@ namespace Xr.Engine
 
                     var triangle = new Triangle3
                     {
-                        V0 = geo.Vertices![i0].Pos,
-                        V1 = geo.Vertices![i1].Pos,
-                        V2 = geo.Vertices![i2].Pos,
+                        V0 = geo.Vertices[i0].Pos,
+                        V1 = geo.Vertices[i1].Pos,
+                        V2 = geo.Vertices[i2].Pos,
                     };
 
                     var normal = triangle.Normal();
-                    geo.Vertices![i0].Normal = normal;
-                    geo.Vertices![i1].Normal = normal;
-                    geo.Vertices![i2].Normal = normal;
+                    geo.Vertices[i0].Normal = normal;
+                    geo.Vertices[i1].Normal = normal;
+                    geo.Vertices[i2].Normal = normal;
                 }
             }
             geo.ActiveComponents |= VertexComponent.Normal;
@@ -215,7 +261,7 @@ namespace Xr.Engine
         {
             if (geo.Indices == null || geo.Indices.Length == 0)
             {
-                geo.Indices = new uint[geo.Vertices!.Length];
+                geo.Indices = new uint[geo.Vertices.Length];
                 for (var i = 0; i < geo.Vertices.Length; i++)
                     geo.Indices[i] = (uint)i;
             }
@@ -225,7 +271,7 @@ namespace Xr.Engine
         {
             Dictionary<Vector3, List<int>> groups = [];
 
-            for (var i = 0; i < geo.Vertices!.Length; i++)
+            for (var i = 0; i < geo.Vertices.Length; i++)
             {
                 var v = geo.Vertices[i].Pos;
                 if (!groups.TryGetValue(v, out var list))
@@ -254,16 +300,16 @@ namespace Xr.Engine
 
         public static IEnumerable<Triangle3> Triangles(this Geometry3D geo)
         {
-            if (geo.Indices != null && geo.Indices.Length > 0)
+            if (geo.Indices.Length > 0)
             {
                 int i = 0;
                 while (i < geo.Indices.Length)
                 {
                     var triangle = new Triangle3
                     {
-                        V0 = geo.Vertices![geo.Indices[i++]].Pos,
-                        V1 = geo.Vertices![geo.Indices[i++]].Pos,
-                        V2 = geo.Vertices![geo.Indices[i++]].Pos,
+                        V0 = geo.Vertices[geo.Indices[i++]].Pos,
+                        V1 = geo.Vertices[geo.Indices[i++]].Pos,
+                        V2 = geo.Vertices[geo.Indices[i++]].Pos,
                     };
                     yield return triangle;
                 }
@@ -271,7 +317,7 @@ namespace Xr.Engine
             else
             {
                 int i = 0;
-                while (i < geo.Vertices!.Length)
+                while (i < geo.Vertices.Length)
                 {
                     var i0 = i++;
                     var i1 = i++;
@@ -279,9 +325,9 @@ namespace Xr.Engine
 
                     var triangle = new Triangle3
                     {
-                        V0 = geo.Vertices![i0].Pos,
-                        V1 = geo.Vertices![i1].Pos,
-                        V2 = geo.Vertices![i2].Pos,
+                        V0 = geo.Vertices[i0].Pos,
+                        V1 = geo.Vertices[i1].Pos,
+                        V2 = geo.Vertices[i2].Pos,
                     };
 
                     yield return triangle;
@@ -292,9 +338,8 @@ namespace Xr.Engine
 
         public static void ComputeTangents(this Geometry3D geo)
         {
-
-            var tan1 = new Vector3[geo.Indices!.Length];
-            var tan2 = new Vector3[geo.Indices!.Length];
+            var tan1 = new Vector3[geo.Indices.Length];
+            var tan2 = new Vector3[geo.Indices.Length];
 
             int i = 0;
             while (i < geo.Indices!.Length)
@@ -303,13 +348,13 @@ namespace Xr.Engine
                 var i2 = geo.Indices[i++];
                 var i3 = geo.Indices[i++];
 
-                var v1 = geo.Vertices![i1].Pos;
-                var v2 = geo.Vertices![i2].Pos;
-                var v3 = geo.Vertices![i3].Pos;
+                var v1 = geo.Vertices[i1].Pos;
+                var v2 = geo.Vertices[i2].Pos;
+                var v3 = geo.Vertices[i3].Pos;
 
-                var w1 = geo.Vertices![i1].UV;
-                var w2 = geo.Vertices![i2].UV;
-                var w3 = geo.Vertices![i3].UV;
+                var w1 = geo.Vertices[i1].UV;
+                var w2 = geo.Vertices[i2].UV;
+                var w3 = geo.Vertices[i3].UV;
 
 
                 float x1 = v2.X - v1.X;
@@ -338,9 +383,9 @@ namespace Xr.Engine
             }
 
 
-            for (int a = 0; a < geo.Indices!.Length; a++)
+            for (int a = 0; a < geo.Indices.Length; a++)
             {
-                ref var vert = ref geo.Vertices![geo.Indices[a]];
+                ref var vert = ref geo.Vertices[geo.Indices[a]];
 
                 var n = vert.Normal;
                 var t = tan1[a];
@@ -369,13 +414,13 @@ namespace Xr.Engine
             }
 
             for (var i = 0; i < array.Length; i++)
-                selector(ref geo.Vertices![i], array[i]);
+                selector(ref geo.Vertices[i], array[i]);
         }
 
         public static Bounds3 ComputeBounds(this Geometry3D geo, Matrix4x4 transform)
         {
             if (geo.Vertices != null)
-                return ComputeBounds(geo.Vertices!.Select(a => a.Pos), transform);
+                return ComputeBounds(geo.ExtractPositions(), transform);
 
             return new Bounds3();
         }
@@ -394,14 +439,8 @@ namespace Xr.Engine
             foreach (var point in points)
             {
                 var tPoint = point.Transform(matrix);
-
-                result.Min.X = MathF.Min(result.Min.X, tPoint.X);
-                result.Min.Y = MathF.Min(result.Min.Y, tPoint.Y);
-                result.Min.Z = MathF.Min(result.Min.Z, tPoint.Z);
-
-                result.Max.X = MathF.Max(result.Max.X, tPoint.X);
-                result.Max.Y = MathF.Max(result.Max.Y, tPoint.Y);
-                result.Max.Z = MathF.Max(result.Max.Z, tPoint.Z);
+                result.Min = Vector3.Min(result.Min, tPoint);
+                result.Max = Vector3.Min(result.Max, tPoint);
             }
 
             return result;
@@ -770,6 +809,14 @@ namespace Xr.Engine
         #endregion
 
         #region MISC
+
+
+        public static bool Intersects(this Sphere sphere, Sphere other, float tollerance = 0f)
+        {
+            var dist = (sphere.Center - other.Center).Length();
+            
+            return dist < (sphere.Radius + other.Radius) + tollerance;
+        }
 
         public static void Update<T>(this IEnumerable<T> target, RenderContext ctx) where T : IRenderUpdate
         {

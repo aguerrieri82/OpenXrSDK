@@ -11,13 +11,12 @@ namespace Xr.Engine
         {
             _boundsDirty = true;
             ActiveComponents = VertexComponent.Position;
+            Indices = [];
+            Vertices = [];
         }
 
         public void ApplyTransform(Matrix4x4 matrix)
         {
-            if (Vertices == null)
-                return;
-
             for (int i = 0; i < Vertices.Length; i++)
                 Vertices[i].Pos = Vertices[i].Pos.Transform(matrix);
 
@@ -26,12 +25,12 @@ namespace Xr.Engine
 
         public void Rebuild()
         {
-            if (Indices == null)
+            if (Indices.Length == 0)
                 return;
 
-            var vertices = new VertexData[Indices!.Length];
+            var vertices = new VertexData[Indices.Length];
 
-            for (var i = 0; i < Indices!.Length; i++)
+            for (var i = 0; i < Indices.Length; i++)
                 vertices[i] = Vertices![Indices[i]];
 
             Vertices = vertices;
@@ -56,10 +55,11 @@ namespace Xr.Engine
             }
         }
 
+
         public VertexComponent ActiveComponents { get; set; }
 
-        public uint[]? Indices { get; set; }
+        public uint[] Indices { get; set; }
 
-        public VertexData[]? Vertices { get; set; }
+        public VertexData[] Vertices { get; set; }
     }
 }

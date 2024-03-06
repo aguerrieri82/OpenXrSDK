@@ -7,7 +7,6 @@ namespace Xr.Engine
         long _version = -1;
         Triangle3[]? _triangles;
 
-
         void Update()
         {
             var geo = _host!.Feature<Geometry3D>();

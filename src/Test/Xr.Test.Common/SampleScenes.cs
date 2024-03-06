@@ -5,6 +5,7 @@ using Xr.Engine;
 using Xr.Engine.Compression;
 using Xr.Engine.Gltf;
 using Xr.Engine.OpenXr;
+using Xr.Engine.Physics;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace OpenXr.Samples
@@ -21,6 +22,8 @@ namespace OpenXr.Samples
             var app = new EngineApp();
 
             var scene = new Scene();
+
+            scene.AddComponent<PhysicsManager>();
 
             scene.AddChild(new SunLight()
             {
@@ -55,7 +58,7 @@ namespace OpenXr.Samples
         {
             var app = CreateBaseScene();
 
-            var display = new TriangleMesh(Quad.Instance);
+            var display = new TriangleMesh(Quad3D.Instance);
             //display.Materials.Add(new StandardMaterial { Color = Color.White, DoubleSided = false, WriteDepth = false });
 
             display.Name = "display";
@@ -74,6 +77,23 @@ namespace OpenXr.Samples
             return app;
         }
 
+        public static EngineApp CreatePingPong(IAssetManager assets)
+        {
+            var app = CreateBaseScene();
+
+            assets.FullPath("ping-pong paddle red.glb");
+
+            var mesh = GltfLoader.Instance.Load(assets.FullPath("ping-pong paddle red.glb"), assets, GltfOptions);
+            mesh.Name = "mesh";
+            mesh.Transform.SetScale(1f);
+            mesh.Transform.Position = new Vector3(0, 1, 0);
+            mesh.AddComponent<BoundsGrabbable>();
+
+            app.ActiveScene!.AddChild(mesh);
+            ((PerspectiveCamera)app.ActiveScene!.ActiveCamera!).Target = mesh.Transform.Position;
+
+            return app;
+        }
 
         public static EngineApp CreateChess(IAssetManager assets)
         {
@@ -81,16 +101,26 @@ namespace OpenXr.Samples
 
             assets.FullPath("Game/ABeautifulGame.bin");
 
-            var mesh = (Group)GltfLoader.Instance.Load(assets.FullPath("Game/ABeautifulGame.gltf"), assets, GltfOptions);
+            var mesh = (Group3D)GltfLoader.Instance.Load(assets.FullPath("Game/ABeautifulGame.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
 
 
-            foreach (var child in mesh.Children.OfType<TriangleMesh>())
+            foreach (var child in mesh.Children)
             { 
-                child.AddComponent<BoundsGrabbable>();
-                //Xr.Engine.MeshOptimizer.Simplify(child.Geometry!);
+                var rb = child.AddComponent<RigidBody>();
+
+                if (child.Name!.Contains("board"))
+                {
+                    rb.BodyType = PhysicsActorType.Static;
+                    child.Transform.SetPositionY(-0.05f);
+                }
+                else
+                    child.AddComponent<BoundsGrabbable>();
+
+                if (child is TriangleMesh mc)
+                    Xr.Engine.MeshOptimizer.Simplify(mc.Geometry!);
             }
-        
+
             mesh.Transform.SetScale(1f);
             mesh.Transform.Position = new Vector3(0, 1, 0);
 
@@ -107,7 +137,7 @@ namespace OpenXr.Samples
 
             assets.FullPath("Sponza/Sponza.bin");
 
-            var mesh = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, GltfOptions);
+            var mesh = (Group3D)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.01f);
 
@@ -128,7 +158,7 @@ namespace OpenXr.Samples
         {
             var app = CreateBaseScene();
 
-            var mesh = (Group)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, GltfOptions);
+            var mesh = (Group3D)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.01f);
 
@@ -141,7 +171,7 @@ namespace OpenXr.Samples
         {
             var app = CreateBaseScene();
 
-            var cube = new TriangleMesh(Cube.Instance, new PbrMaterial() { Color = new Color(1f, 0, 0, 1) });
+            var cube = new TriangleMesh(Cube3D.Instance, new PbrMaterial() { Color = new Color(1f, 0, 0, 1) });
 
             cube.Name = "mesh";
             cube.Transform.SetScale(0.1f);
@@ -177,7 +207,7 @@ namespace OpenXr.Samples
                 DoubleSided = true
             };
 
-            var display = new TriangleMesh(Quad.Instance);
+            var display = new TriangleMesh(Quad3D.Instance);
             display.Materials.Add(text);
             display.Transform.Scale = new Vector3(1.924f * 0.5f, 0.01f, 1.08f * 0.5f);
             display.Transform.Position = new Vector3(0f, 0.5f, 0f);
@@ -194,7 +224,7 @@ namespace OpenXr.Samples
             display.AddComponent<MeshCollider>();
 
 
-            var cubes = new Group();
+            var cubes = new Group3D();
 
             for (var y = 0f; y <= 2f; y += 0.5f)
             {
@@ -203,7 +233,7 @@ namespace OpenXr.Samples
                     var x = MathF.Sin(rad) * 1;
                     var z = MathF.Cos(rad) * 1;
 
-                    var cube = new TriangleMesh(Cube.Instance, red);
+                    var cube = new TriangleMesh(Cube3D.Instance, red);
                     cube.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
                     cube.Transform.Position = new Vector3(x, y + 0.1f, z);
 

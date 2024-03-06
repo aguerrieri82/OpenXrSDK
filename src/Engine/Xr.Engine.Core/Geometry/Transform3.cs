@@ -10,15 +10,26 @@ namespace Xr.Engine
         protected Quaternion _orientation;
         protected Matrix4x4 _matrix;
         protected Vector3 _localPivot;
-        protected Object3D _host;
-        private Vector3 _rotation;
+        protected Vector3 _rotation;
+        protected Object3D? _host;
 
-        public Transform3(Object3D host)
+        public Transform3(Object3D? host = null)
         {
             _host = host;
             _scale = new Vector3(1, 1, 1);
             _orientation = Quaternion.Identity;
             _matrix = Matrix4x4.Identity;
+        }
+
+        public Transform3 Clone()
+        {
+            return new Transform3
+            {
+                LocalPivot = _localPivot,
+                Position = _position,
+                Orientation = _orientation,
+                Scale = _scale,
+            };
         }
 
         public bool Update(bool force = false)

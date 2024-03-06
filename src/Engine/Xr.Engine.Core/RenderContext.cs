@@ -7,5 +7,7 @@
         public long Frame { get; internal set; }
 
         public double Time { get; internal set; }
+
+        public double DeltaTime { get; internal set; }
     }
 }

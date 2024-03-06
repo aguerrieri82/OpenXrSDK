@@ -3,6 +3,7 @@ using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -32,17 +33,18 @@ namespace Xr.Engine.OpenXr
                     {
                         var meshObj = (TriangleMesh)_sceneModel.Children[0];
 
+                        Debug.Assert(meshObj.Geometry != null);
+
                         var triMesh = new XrMesh
                         {
-                            Indices = meshObj.Geometry!.Indices,
-                            Vertices = meshObj.Geometry!.Vertices!.Select(a => a.Pos).ToArray()
+                            Indices = meshObj.Geometry.Indices,
+                            Vertices = meshObj.Geometry.ExtractPositions()
                         };
 
-                        var test = Cube.Instance;
+                        var test = Cube3D.Instance;
 
                         triMesh.Indices = test.Indices!;
-                        triMesh.Vertices = test.Vertices!.Select(a => a.Pos).ToArray()!;
-
+                        triMesh.Vertices = test.Vertices.Select(a => a.Pos).ToArray()!;
 
                         var ptMesh = _ptLayer.AddMesh(triMesh, xrApp!.Stage, meshObj);
 

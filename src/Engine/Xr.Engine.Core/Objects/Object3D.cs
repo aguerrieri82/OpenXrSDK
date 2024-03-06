@@ -5,7 +5,7 @@ namespace Xr.Engine
     public class Object3D : EngineObject, ILayerObject
     {
         protected Transform3 _transform;
-        protected Group? _parent;
+        protected Group3D? _parent;
         protected bool _worldDirty;
         protected Bounds3 _worldBounds;
         protected bool _worldBoundsDirty;
@@ -82,7 +82,7 @@ namespace Xr.Engine
             base.Update(ctx);
         }
 
-        internal void SetParent(Group? value, bool preserveTransform)
+        internal void SetParent(Group3D? value, bool preserveTransform)
         {
             var changeType = ObjectChangeType.Parent | ObjectChangeType.Transform;
 
@@ -112,7 +112,7 @@ namespace Xr.Engine
             _scene?.NotifyChanged(this, change);
         }
 
-        public Group? Parent => _parent;
+        public Group3D? Parent => _parent;
 
         public Scene? Scene => _scene;
 
