@@ -28,6 +28,7 @@ namespace Xr.Editor
             Gpu.EnableNvAPi();
 
             Context.Implement<PanelManager>();
+            Context.Implement<NodeFactory>();
             Context.Implement<IMainDispatcher>(new MainDispatcher());
 
             var app = new App();

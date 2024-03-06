@@ -28,9 +28,10 @@ Gpu.EnableNvAPi();
 
 var logger = host.Services.GetRequiredService<ILogger<object>>();
 
+await Physics.Run(host.Services, logger);
 
 //await WebLinkApp.Run(host.Services, logger);
-await Tasks.OvrLibTask(logger);
+//await Tasks.OvrLibTask(logger);
 //await XrSceneApp.Run(host.Services, logger);
 //await SceneAnchors.Run(host.Services, logger);
 

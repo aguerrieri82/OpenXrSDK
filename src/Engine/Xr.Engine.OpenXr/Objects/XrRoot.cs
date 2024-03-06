@@ -4,7 +4,7 @@ using Xr.Engine.Gltf;
 
 namespace Xr.Engine.OpenXr
 {
-    public class XrRoot : Group
+    public class XrRoot : Group3D
     {
         readonly XrApp _xrApp;
 
@@ -15,17 +15,15 @@ namespace Xr.Engine.OpenXr
             AddController("/user/hand/right/input/aim/pose", "Right Hand", "Models/MetaQuestTouchPlus_Right.glb");
 
             AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/MetaQuestTouchPlus_Left.glb");
-
         }
 
-        protected Group? AddController(string path, string name, string modelFileName)
+        protected Group3D? AddController(string path, string name, string modelFileName)
         {
-
             var input = _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path);
             if (input == null)
                 return null;
 
-            var group = new Group();
+            var group = new Group3D();
             group.Name = name;
             group.AddBehavior((_, ctx) =>
             {
@@ -46,7 +44,7 @@ namespace Xr.Engine.OpenXr
 
             if (File.Exists(fullPath))
             {
-                var model = (Group)GltfLoader.Instance.Load(fullPath, assets);
+                var model = GltfLoader.Instance.Load(fullPath, assets);
                 model.Transform.SetMatrix(Matrix4x4.Identity);
                 model.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
                 model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
@@ -55,9 +53,6 @@ namespace Xr.Engine.OpenXr
                 //var laser = model.FindByName<Object3D>("laser_begin");
                 //model.Transform.Position = laser.Transform.Position;
                 //model.Transform.Orientation = laser.Transform.Orientation;
-
-
-
                 group.AddChild(model);
             }
 

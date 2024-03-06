@@ -14,10 +14,9 @@ namespace Xr.Engine.OpenXr
             _rayView = new RayView();
         }
 
-        public override void Start(RenderContext ctx)
+        protected override void Start(RenderContext ctx)
         {
             _host!.AddChild(_rayView);
-
         }
 
         protected override void Update(RenderContext ctx)

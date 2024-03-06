@@ -47,6 +47,8 @@ namespace Xr.Editor
 
             SceneView = new SceneView(surface);
 
+            Outline = new OutlinePanel();
+
             PropertiesEditor = new PropertiesEditor();
 
             Platform.Current = new Platform
@@ -61,7 +63,7 @@ namespace Xr.Editor
         [MemberNotNull(nameof(_app))]
         public void LoadScene()
         {
-            _app = SampleScenes.CreateChess(new LocalAssetManager("Assets"));
+            _app = SampleScenes.CreatePingPong(new LocalAssetManager("Assets"));
 
             var mesh = _app.ActiveScene!.FindByName<Object3D>("mesh");
             if (mesh != null)
@@ -100,6 +102,8 @@ namespace Xr.Editor
         public ObservableCollection<MessageView> Messages { get; } = [];
 
         public SceneView SceneView { get; }
+
+        public OutlinePanel Outline { get; }
 
         public PropertiesEditor PropertiesEditor { get; }
     }

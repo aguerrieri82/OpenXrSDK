@@ -1,7 +1,7 @@
 ﻿
 namespace Xr.Engine
 {
-    public class Scene : Group, IObjectChangeListener
+    public class Scene : Group3D, IObjectChangeListener
     {
         protected Camera? _activeCamera;
         protected List<IObjectChangeListener> _changeListener = [];

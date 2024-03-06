@@ -1,4 +1,6 @@
-﻿namespace Xr.Engine
+﻿using SkiaSharp;
+
+namespace Xr.Engine
 {
     public class EngineAppStats
     {
@@ -85,7 +87,11 @@
                 return;
 
             _context.Frame++;
+
+            var oldTime = _context.Time;
+
             _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
+            _context.DeltaTime = _context.Time - oldTime;
 
             _activeScene.Update(_context);
 

@@ -8,10 +8,15 @@
 		<ProjectReference Include="..\..\Engine\Xr.Engine.Compression\Xr.Engine.Compression.csproj" />
 		<ProjectReference Include="..\..\Engine\Xr.Engine.Glft\Xr.Engine.Gltf.csproj" />
 		<ProjectReference Include="..\..\Engine\Xr.Engine.OpenXr\Xr.Engine.OpenXr.csproj" />
+		<ProjectReference Include="..\..\Engine\Xr.Engine.Physics\Xr.Engine.Physics.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest"/>
+		<Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Assets\ping-pong paddle red.glb" />
 	</ItemGroup>
 
 </Project>

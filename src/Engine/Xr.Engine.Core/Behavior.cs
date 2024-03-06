@@ -2,16 +2,19 @@
 {
     public abstract class Behavior<T> : IBehavior, IComponent<T> where T : IComponentHost
     {
-        protected float _startTime;
         protected T? _host;
-        private bool _isStarted;
+        private double _startTime;
+        private double _lastUpdateTime;
+        private double _deltaTime;
+        private bool _isEnabled;
 
         public Behavior()
         {
-            IsEnabled = true;
+            _isEnabled = true;
+            _startTime = -1;
         }
 
-        public virtual void Start(RenderContext ctx)
+        protected virtual void Start(RenderContext ctx)
         {
 
         }
@@ -21,18 +24,32 @@
 
         }
 
+        protected virtual void OnDisabled()
+        {
+
+        }
+
+        protected virtual void OnEnabled()
+        {
+
+        }
+
         void IRenderUpdate.Update(RenderContext ctx)
         {
-            if (!IsEnabled)
+            if (!_isEnabled)
                 return;
 
-            if (!_isStarted)
+            if (_startTime == -1)
             {
                 Start(ctx);
-                _isStarted = true;
+                _startTime = ctx.Time;
             }
             else
+            {
+                _deltaTime = _lastUpdateTime == 0 ? 0 : ctx.Time - _lastUpdateTime;
                 Update(ctx);
+                _lastUpdateTime = ctx.Time; 
+            }
         }
 
         void IComponent<T>.Attach(T host)
@@ -45,7 +62,22 @@
             _host = default;
         }
 
-        public bool IsEnabled { get; set; }
+        public bool IsEnabled
+        {
+            get => _isEnabled;
+            set
+            {
+                if (_isEnabled == value)
+                    return;
+                _isEnabled = value;
+                if (!_isEnabled)
+                    OnDisabled();
+                else
+                    OnEnabled();
+            }
+        }
+
+        protected double DeltaTime => _deltaTime;
 
         T? IComponent<T>.Host => _host;
     }
@@ -58,7 +90,6 @@
         {
             _update = update;
         }
-
         protected override void Update(RenderContext ctx)
         {
             _update(_host!, ctx);

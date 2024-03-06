@@ -7,7 +7,7 @@ using Xr.Engine;
 
 namespace Xr.Engine.OpenXr
 {
-    public class OculusSceneModel : Group
+    public class OculusSceneModel : Group3D
     {
         protected bool _isSceneLoaded;
         protected Space _meshSpace;

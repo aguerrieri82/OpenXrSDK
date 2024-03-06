@@ -172,7 +172,7 @@ namespace Xr.Test.Android
             }
 
             scene.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
-            scene.AddComponent(new ObjectGrabber(
+            scene.AddComponent(new InputObjectGrabber(
                 _inputs.Right!.GripPose!,
                 _inputs.Right!.Haptic!,
                 _inputs.Right!.SqueezeValue!,
@@ -180,7 +180,9 @@ namespace Xr.Test.Android
 
             scene.AddComponent<PassthroughGeometry>();
             scene.AddChild(new OculusSceneModel());
-            scene.AddChild(new OculusHandView(_rHand));
+
+            var hw = scene.AddChild(new OculusHandView(_rHand));
+            hw.AddComponent(new HandObjectGrabber(_inputs.Right!.Haptic!));
 
             var renderer = xrApp.BindEngineApp(_game);
 
