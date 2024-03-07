@@ -14,7 +14,8 @@ namespace Xr.Engine.Physics
         public PhysicsManager()
         {
             _system = new PhysicsSystem();
-            Gravity = new Vector3(0, -0.981f, 0);
+            Gravity = new Vector3(0, -9.81f, 0);
+            StepSizeSecs = 1f / 100;
         }
 
         protected override void Start(RenderContext ctx)
@@ -25,10 +26,12 @@ namespace Xr.Engine.Physics
 
         protected override void Update(RenderContext ctx)
         {
-            _system.Simulate((float)DeltaTime);
+            _system.Simulate((float)DeltaTime, StepSizeSecs);
 
             base.Update(ctx);
         }
+
+        public float StepSizeSecs { get; set; }
 
         public PhysicsSystem System => _system;
 

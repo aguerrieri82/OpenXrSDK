@@ -11,7 +11,7 @@ namespace Xr.Engine
         All = Top | Center | Bottom,    
     }
 
-    public class CapsuleCollider : Behavior<Object3D>, ICollider
+    public class CapsuleCollider : Behavior<Object3D>, ICollider3D
     {
         public Collision? CollideWith(Ray3 ray)
         {

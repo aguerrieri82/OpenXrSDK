@@ -1,13 +1,13 @@
 ﻿namespace Xr.Engine
 {
-    public interface ILayer : IObjectChangeListener
+    public interface ILayer3D : IObjectChangeListener
     {
 
         void Attach(LayerManager manager);
 
         void Detach();
 
-        IEnumerable<ILayerObject> Content { get; }
+        IEnumerable<ILayer3DObject> Content { get; }
 
         bool IsVisible { get; set; }
 

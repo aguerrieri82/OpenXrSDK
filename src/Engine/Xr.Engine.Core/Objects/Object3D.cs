@@ -2,7 +2,7 @@
 
 namespace Xr.Engine
 {
-    public class Object3D : EngineObject, ILayerObject
+    public class Object3D : EngineObject, ILayer3DObject
     {
         protected Transform3 _transform;
         protected Group3D? _parent;
@@ -79,6 +79,14 @@ namespace Xr.Engine
         {
             if (_scene == null && _parent != null)
                 _scene = this.FindAncestor<Scene>();
+
+            //TODO can we made in update?
+            if (_components != null)
+            {
+                foreach (var component in _components.OfType<IDrawGizmos>())
+                    component.DrawGizmos(_scene!.Gizmos);
+            }
+
             base.Update(ctx);
         }
 
@@ -118,7 +126,7 @@ namespace Xr.Engine
 
         public bool IsVisible
         {
-            get => _isVisible;
+            get => _isVisible && (_parent == null || _parent.IsVisible);
             set
             {
                 if (_isVisible == value)

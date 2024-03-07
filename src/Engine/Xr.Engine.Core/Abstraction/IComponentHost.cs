@@ -2,7 +2,7 @@
 {
     public interface IComponentHost
     {
-        void AddComponent(IComponent component);
+        T AddComponent<T>(T component) where T : IComponent;    
 
         void RemoveComponent(IComponent component);
 

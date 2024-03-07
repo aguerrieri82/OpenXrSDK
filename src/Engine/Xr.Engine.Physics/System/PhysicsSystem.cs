@@ -65,6 +65,7 @@ namespace Xr.Engine.Physics
                 speed = 10
             };
 
+
             var param = tolScale.CookingParamsNew();
 
             /*
@@ -228,15 +229,25 @@ namespace Xr.Engine.Physics
             _dispatcher = phys_PxDefaultCpuDispatcherCreate(1, null, PxDefaultCpuDispatcherWaitForWorkMode.WaitForWork, 0);
         }
 
-        public void Simulate(TimeSpan delta)
+        public void Simulate(TimeSpan delta, float stepSize)
         {
-            Simulate((float)delta.TotalSeconds);
+            Simulate((float)delta.TotalSeconds, stepSize);
         }
 
-        public void Simulate(float deltaSecs)
+        public void Simulate(float deltaSecs, float stepSize)
         {
             uint error;
-            Scene.SimulateMut(deltaSecs, null, null, 0, true);
+            float curTime = 0;
+            while (curTime < deltaSecs)
+            {
+                if (curTime + stepSize > deltaSecs)
+                    stepSize = deltaSecs - curTime; 
+
+                Scene.SimulateMut(stepSize, null, null, 0, true);
+
+                curTime += stepSize;    
+            }
+
             Scene.FetchResultsMut(true, &error);
         }
 

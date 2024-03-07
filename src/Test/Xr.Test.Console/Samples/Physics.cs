@@ -24,7 +24,7 @@ namespace OpenXr.Samples
 
             for (int i = 0; i < 300; i++)
             {
-                manager.Simulate(1 / 30f);
+                manager.Simulate(1 / 30f, 1 / 30f);
 
                 var pose = actor.GlobalPose;
 

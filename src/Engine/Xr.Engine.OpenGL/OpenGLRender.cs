@@ -291,7 +291,6 @@ namespace Xr.Engine.OpenGL
                         }
                     }
 
-
                     if (vertex.Key.Version != vertex.Value.Version)
                     {
                         vHandler.Update();

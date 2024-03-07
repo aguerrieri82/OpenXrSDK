@@ -14,7 +14,7 @@ namespace Xr.Engine.OpenXr
         private Quaternion _startOrientation;
         private Vector3 _startPivot;
         private bool _isVibrating;
-        private bool _grabStarted;
+        protected bool _grabStarted;
 
         public BaseObjectGrabber(XrHaptic vibrate)
         {
@@ -25,10 +25,64 @@ namespace Xr.Engine.OpenXr
 
         protected override void Start(RenderContext ctx)
         {
-           // _host!.Scene!.AddChild(_grabView);
+           _host!.Scene!.AddChild(_grabView);
         }
 
         protected abstract bool IsGrabbing(out XrPose? grabPoint);
+
+        protected Object3D? FindGrabbable(Vector3 worldPos, out IGrabbable? grabbable)
+        {
+            foreach (var item in _host!.Scene!.ObjectsWithComponent<IGrabbable>())
+            {
+                foreach (var comp in item.Components<IGrabbable>())
+                {
+                    if (comp.IsEnabled && comp.CanGrab(worldPos))
+                    {
+                        grabbable = comp;
+                        return item;
+                    }
+                }
+            }
+
+            grabbable = null;
+            return null;
+        }
+
+        protected virtual void StartGrabbing(IGrabbable grabbable, Object3D grabObj, XrPose grabPoint)
+        {
+            _grabStarted = true;
+            _grabbable = grabbable;
+            _grabObject = grabObj;
+
+            _startPivot = _grabObject!.Transform.LocalPivot;
+            _startInputOrientation = grabPoint.Orientation;
+            _startOrientation = _grabObject!.Transform.Orientation;
+
+            _grabObject?.Transform.SetLocalPivot(_grabObject!.ToLocal(grabPoint.Position), true);
+            _grabObject?.SetProp("IsGrabbing", true);
+
+            _grabbable.Grab();
+        }
+
+        protected virtual void MoveGrabbing(XrPose grabPoint)
+        {
+            _grabObject!.WorldPosition = grabPoint.Position;
+            _grabObject!.Transform.Orientation = MathUtils.QuatAdd(_startOrientation, MathUtils.QuatDiff(grabPoint.Orientation, _startInputOrientation));
+        }
+
+        protected virtual void StopGrabbing()
+        {
+            _grabObject?.Transform.SetLocalPivot(_startPivot, true);
+            _grabObject?.SetProp("IsGrabbing", false);
+            _grabbable = null;
+            _grabObject = null;
+            _grabStarted = false;
+        }
+
+        protected override void OnDisabled()
+        {
+            StopGrabbing();
+        }
 
         protected override void Update(RenderContext ctx)
         {
@@ -40,57 +94,16 @@ namespace Xr.Engine.OpenXr
             _grabView.Transform.Position = grabPoint.Position;
             _grabView.Transform.Orientation = grabPoint.Orientation;
 
-            if (!isGrabbing && _grabObject != null)
+            if (!_grabStarted)
             {
-                _grabbable!.Release();
-                _grabbable = null;
-                _grabObject = null;
-            }
+                var grabObj = FindGrabbable(grabPoint.Position, out var grabbable);
 
-            if (_grabObject == null)
-            {
-                foreach (var item in _host!.Scene!.ObjectsWithComponent<IGrabbable>())
+                if (grabObj != null)
                 {
-                    foreach (var grabbable in item.Components<IGrabbable>())
-                    {
-                        if (grabbable.IsEnabled && grabbable.CanGrab(grabPoint.Position))
-                        {
-                            _grabbable = grabbable;
-                            _grabObject = item;
-                            _vibrate.VibrateStart(100, 1, TimeSpan.FromMilliseconds(500));
-                            _isVibrating = true;
-                            break;
-                        }
-
-                    }
-                    if (_grabObject != null)
-                        break;
-                }
-
-                if (_grabbable != null)
-                {
+                    _vibrate.VibrateStart(100, 1, TimeSpan.FromMilliseconds(500));
+                    _isVibrating = true;
                     if (isGrabbing)
-                    {
-                        _vibrate.VibrateStop();
-
-                        _grabbable.Grab();
-
-                        _startPivot = _grabObject!.Transform.LocalPivot;
-                        _startInputOrientation = grabPoint.Orientation;
-                        _startOrientation = _grabObject!.Transform.Orientation;
-
-                        _grabObject?.Transform.SetLocalPivot(_grabObject!.ToLocal(grabPoint.Position), true);
-                        _grabStarted = true;
-                        _grabObject?.SetProp("IsGrabbing", true);
-                    }
-                    else
-                    {
-                        _grabObject?.Transform.SetLocalPivot(_startPivot, true);
-                        _grabObject?.SetProp("IsGrabbing", false);
-                        _grabbable = null;
-                        _grabObject = null;
-                        _grabStarted = false;
-                    }
+                        StartGrabbing(grabbable!, grabObj, grabPoint);
                 }
                 else
                 {
@@ -101,16 +114,16 @@ namespace Xr.Engine.OpenXr
                     }
                 }
             }
-
-
-            if (isGrabbing && _grabObject != null)
+            else
             {
-
-                _grabObject!.WorldPosition = grabPoint.Position;
-                _grabObject!.Transform.Orientation = MathUtils.QuatAdd(_startOrientation, MathUtils.QuatDiff(grabPoint.Orientation, _startInputOrientation));
+                if (!isGrabbing)
+                    StopGrabbing();
             }
 
-            base.Update(ctx);
+            if (_grabStarted)
+                MoveGrabbing(grabPoint);
         }
+
+        public Object3D GrabView => _grabView;
     }
 }

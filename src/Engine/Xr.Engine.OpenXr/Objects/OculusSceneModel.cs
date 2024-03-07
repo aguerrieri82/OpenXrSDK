@@ -48,7 +48,7 @@ namespace Xr.Engine.OpenXr
 
                 var geo = new Geometry3D
                 {
-                    Indices = sceneMesh.Indices,
+                    Indices = sceneMesh.Indices!,
                     ActiveComponents = VertexComponent.Position,
                     Vertices = sceneMesh.Vertices!.Select(a => new VertexData
                     {
@@ -72,7 +72,7 @@ namespace Xr.Engine.OpenXr
                 mesh.Name = "global-mesh";
                 mesh.Transform.Position = location.Pose!.Position;
                 mesh.Transform.Orientation = location.Pose.Orientation;
-                mesh.AddComponent(new MeshCollider());
+                //mesh.AddComponent(new MeshCollider());
 
                 AddChild(mesh);
 

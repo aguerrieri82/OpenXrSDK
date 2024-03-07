@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
+using OpenXr.Samples;
 using Silk.NET.OpenXR;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Linq;
@@ -63,37 +64,7 @@ namespace Xr.Editor
 
             _xrApp.RenderOptions.RenderMode = XrRenderMode.SingleEye;
 
-            _rHand =_xrApp.AddHand<XrHandInputMesh>(HandEXT.RightExt);
-
-            var hv = _scene!.AddChild(new OculusHandView(_rHand!));
-
-
-            _inputs = _xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
-               .AddAction(a => a.Right!.Button!.AClick)
-               .AddAction(a => a.Right!.GripPose)
-               .AddAction(a => a.Right!.AimPose)
-               .AddAction(a => a.Right!.Haptic!)
-               .AddAction(a => a.Right!.TriggerValue!)
-               .AddAction(a => a.Right!.SqueezeValue!)
-               .AddAction(a => a.Right!.TriggerClick));
-
-            _scene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
-
-            _scene.AddComponent(new InputObjectGrabber(
-                _inputs.Right!.GripPose!,
-                _inputs.Right!.Haptic!,
-                _inputs.Right!.SqueezeValue!,
-                _inputs.Right!.TriggerValue!));
-
-            hv.AddComponent(new HandObjectGrabber(_inputs!.Right!.Haptic!));
-
-            //_scene.AddComponent<PassthroughGeometry>();
-            //_scene.AddChild(new OculusSceneModel());
-
-            var ptLayer = _xrApp.Layers.Add<XrPassthroughLayer>();
-            //ptLayer.Purpose = PassthroughLayerPurposeFB.ProjectedFB;
-
-            _xrApp.BindEngineApp(_scene!.App!);
+            SampleScenes.ConfigureXrApp(_scene!.App!, _xrApp);
         }
 
         protected void OnSizeChanged(object? sender, EventArgs e)

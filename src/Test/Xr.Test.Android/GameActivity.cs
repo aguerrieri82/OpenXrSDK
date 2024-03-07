@@ -35,8 +35,6 @@ namespace Xr.Test.Android
         private VulkanDevice? _vkDevice;
         private WebView? _webView;
         private XrWebViewLayer? _webViewLayer;
-        private XrOculusTouchController? _inputs;
-        private XrHandInputMesh _rHand;
 
         protected override void OnAppStarted(XrApp app)
         {
@@ -53,18 +51,20 @@ namespace Xr.Test.Android
             base.OnAppStarted(app);
         }
 
-        protected unsafe override SampleXrApp CreateApp()
+        protected unsafe override XrApp CreateApp()
         {
             var renderMode = XrRenderMode.MultiView;
             var useFilament = false;
             uint sampleCount = 4;
+
+            PbrMaterial.DefaultLinearOutput = true;
 
             Platform.Current = new Platform
             {
                 AssetManager = new AndroidAssetManager(this, "Assets")
             };
 
-            _game = SampleScenes.CreateChess(Platform.Current.AssetManager);
+            _game = SampleScenes.CreatePingPong(Platform.Current.AssetManager);
 
             IXrGraphicDriver driver;
 
@@ -127,64 +127,31 @@ namespace Xr.Test.Android
 
             var logger = new AndroidLogger("XrApp");
 
-            var xrApp = new SampleXrApp(logger,
-                 driver,
-                 new OculusXrPlugin(new OculusXrPluginOptions
-                 {
-                     Foveation = SwapchainCreateFoveationFlagsFB.ScaledBinBitFB | SwapchainCreateFoveationFlagsFB.FragmentDensityMapBitFB
-                 }),
-                 new AndroidXrPlugin(this));
+            var xrApp = new XrApp(logger, 
+                new OculusXrPlugin(),
+                driver, 
+                new AndroidXrPlugin(this));
 
             xrApp.RenderOptions.SampleCount = sampleCount;
             xrApp.RenderOptions.RenderMode = renderMode;
             xrApp.RenderOptions.ResolutionScale = 0.8f;
 
-            _inputs = xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
-               .AddAction(a => a.Right!.TriggerClick)
-               .AddAction(a => a.Right!.SqueezeClick)
-               .AddAction(a => a.Right!.TriggerValue)
-               .AddAction(a => a.Right!.SqueezeValue)
-               .AddAction(a => a.Right!.GripPose)
-               .AddAction(a => a.Right!.AimPose)
-               .AddAction(a => a.Right!.Haptic)
-              );
+            var inputs = SampleScenes.ConfigureXrApp(_game, xrApp);
 
-            _rHand = xrApp.AddHand<XrHandInputMesh>(HandEXT.RightExt);
-
-            var ptLayer = xrApp.Layers.Add<XrPassthroughLayer>();
-            ptLayer.Purpose = PassthroughLayerPurposeFB.ProjectedFB;
-
-            var scene = _game.ActiveScene!;
-
-            var display = scene.FindByName<TriangleMesh>("display")!;
+            var display = _game.ActiveScene!.FindByName<TriangleMesh>("display")!;
 
             if (display != null)
             {
                 var controller = new SurfaceController(
-                    _inputs.Right!.TriggerClick!,
-                    _inputs.Right!.SqueezeClick!,
-                    _inputs.Right!.Haptic!);
+                    inputs.Right!.TriggerClick!,
+                    inputs.Right!.SqueezeClick!,
+                    inputs.Right!.Haptic!);
 
                 display.AddComponent(controller);
                 display.AddComponent<DisplayPosition>();
 
                 _webViewLayer = xrApp.Layers.AddWebView(this, display.BindToQuad(), controller);
             }
-
-            scene.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
-            scene.AddComponent(new InputObjectGrabber(
-                _inputs.Right!.GripPose!,
-                _inputs.Right!.Haptic!,
-                _inputs.Right!.SqueezeValue!,
-                _inputs.Right!.TriggerValue!));
-
-            scene.AddComponent<PassthroughGeometry>();
-            scene.AddChild(new OculusSceneModel());
-
-            var hw = scene.AddChild(new OculusHandView(_rHand));
-            hw.AddComponent(new HandObjectGrabber(_inputs.Right!.Haptic!));
-
-            var renderer = xrApp.BindEngineApp(_game);
 
             // StartService(new Intent(this, typeof(WebLinkService)));
 

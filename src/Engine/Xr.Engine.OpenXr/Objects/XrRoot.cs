@@ -8,13 +8,14 @@ namespace Xr.Engine.OpenXr
     {
         readonly XrApp _xrApp;
 
+
         public XrRoot(XrApp app)
         {
             _xrApp = app;
 
-            AddController("/user/hand/right/input/aim/pose", "Right Hand", "Models/MetaQuestTouchPlus_Right.glb");
+           RightController = AddController("/user/hand/right/input/aim/pose", "Right Hand", "Models/MetaQuestTouchPlus_Right.glb");
 
-            AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/MetaQuestTouchPlus_Left.glb");
+           LeftController = AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/MetaQuestTouchPlus_Left.glb");
         }
 
         protected Group3D? AddController(string path, string name, string modelFileName)
@@ -59,5 +60,10 @@ namespace Xr.Engine.OpenXr
             AddChild(group);
             return group;
         }
+
+        public Group3D? RightController { get; }
+
+        public Group3D? LeftController { get; }
+
     }
 }

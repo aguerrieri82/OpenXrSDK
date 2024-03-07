@@ -55,7 +55,12 @@ namespace Xr.Engine.OpenXr
             {
                 var otherObj = _host!.Children[index];
                 var other = GetSphere(otherObj);
-                if (other.Intersects(thumb, -0.000f))
+
+                other.Intersects(thumb, out var offset);
+
+                bool isGrabbing = offset < 0 || (offset < 0.01 && _grabStarted);
+
+                if (isGrabbing)
                 {
                     var forward = Vector3.Normalize(Vector3.Cross(thumbObj.Forward, otherObj.Forward));
                     var up = Vector3.Cross(forward, thumbObj.Forward);
@@ -63,7 +68,6 @@ namespace Xr.Engine.OpenXr
                     grabPoint.Position = (thumb.Center + other.Center) / 2;
                     return true;
                 }
-
             }
 
             return false;

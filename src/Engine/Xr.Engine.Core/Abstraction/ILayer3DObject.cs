@@ -1,6 +1,6 @@
 ﻿namespace Xr.Engine
 {
-    public interface ILayerObject
+    public interface ILayer3DObject
     {
         ObjectId Id { get; }
     }

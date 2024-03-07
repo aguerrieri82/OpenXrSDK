@@ -1,19 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+	<PropertyGroup>
 
-  </PropertyGroup>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="MagicPhysX" Version="1.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="MagicPhysX" Version="1.0.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Xr.Engine.Core\Xr.Engine.Core.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Xr.Engine.Core\Xr.Engine.Core.csproj" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<Content Include="runtimes/**/*" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
+
 
 </Project>

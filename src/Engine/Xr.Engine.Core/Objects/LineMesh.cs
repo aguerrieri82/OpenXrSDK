@@ -3,7 +3,6 @@
 
     public class LineMesh : Object3D, IVertexSource<LineData, uint>
     {
-
         public LineMesh()
         {
             Material = new LineMaterial();

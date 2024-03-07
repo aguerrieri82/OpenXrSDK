@@ -16,7 +16,7 @@ namespace Xr.Engine
     }
 
 
-    public interface ICollider : IComponent
+    public interface ICollider3D : IComponent
     {
         Collision? CollideWith(Ray3 ray);
     }

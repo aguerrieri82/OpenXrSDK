@@ -7,3 +7,9 @@
 [submodule "third-party/meshoptimizer"]
 	path = third-party/meshoptimizer
 	url = https://github.com/aguerrieri82/meshoptimizer
+[submodule "third-party/MagicPhysX"]
+	path = third-party/MagicPhysX
+	url = https://github.com/aguerrieri82/MagicPhysX
+[submodule "third-party/filament"]
+	path = third-party/filament
+	url = https://github.com/aguerrieri82/filament

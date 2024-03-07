@@ -23,7 +23,7 @@ namespace Xr.Engine.Physics
             Material = new PhysicsMaterialInfo 
             {
                 DynamicFriction = 0.8f,
-                Restitution= 0.3f,
+                Restitution= 0.4f,
                 StaticFriction = 0.8f
             };
 
@@ -36,11 +36,12 @@ namespace Xr.Engine.Physics
 
             var newTrans = _host.Transform.Clone();
 
-            newTrans.Position = pose.p - _geometry!.Bounds.Center;
+            newTrans.Position = pose.p;
             newTrans.Orientation = pose.q;
-            newTrans.Update();
-
-            _host.Transform.SetMatrix(newTrans.Matrix * _host.Parent!.WorldMatrixInverse);
+            _host.Transform.SetMatrix(
+                Matrix4x4.CreateTranslation(-_geometry!.Bounds.Center) * 
+                newTrans.Matrix * 
+                _host.Parent!.WorldMatrixInverse);
         }
 
         protected PxTransform GetPose()
@@ -83,7 +84,7 @@ namespace Xr.Engine.Physics
 
             PhysicsGeometry? pyGeo = null;
 
-            var collider = _host.Feature<ICollider>();
+            var collider = _host.Feature<ICollider3D>();
 
             _geometry = _host.Feature<Geometry3D>();
 
@@ -123,6 +124,16 @@ namespace Xr.Engine.Physics
                 Transform = GetPose(),
                 Type = BodyType
             });
+
+            if (_host.Name == "Castle_W1")
+            {
+                var pose = new PxTransform
+                {
+                    p = new Vector3(0.136601955f, 1.18926859f, -0.0962362438f),
+                    q = new Quaternion(-0.255945385f, 0.0969442949f, 0.618091464f, 0.7369238f)
+                };
+                SetPose(pose);
+            }
         }
 
         protected override void Update(RenderContext ctx)
@@ -132,7 +143,7 @@ namespace Xr.Engine.Physics
 
             var isGrabbing = _host?.GetProp<bool>("IsGrabbing") == true;
 
-            if (isGrabbing)
+            if (!isGrabbing)
             {
                 if ( BodyType == PhysicsActorType.Dynamic)
                 {
