@@ -34,7 +34,7 @@ namespace Xr.Engine
             Vector3 intersectionPoint2 = localRay.Direction * t1;
 
 
-            throw new NotImplementedException();
+            return null;
         }
 
         public float Height { get; set; }

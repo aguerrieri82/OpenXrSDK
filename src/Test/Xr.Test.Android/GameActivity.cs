@@ -64,7 +64,7 @@ namespace Xr.Test.Android
                 AssetManager = new AndroidAssetManager(this, "Assets")
             };
 
-            _game = SampleScenes.CreatePingPong(Platform.Current.AssetManager);
+            _game = SampleScenes.CreateChess(Platform.Current.AssetManager);
 
             IXrGraphicDriver driver;
 

@@ -14,6 +14,7 @@
 		<ProjectReference Include="..\Xr.Engine.OpenGL.Oculus\Xr.Engine.OpenGL.Oculus.csproj" />
 		<ProjectReference Include="..\Xr.Engine.OpenGL\Xr.Engine.OpenGL.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework\OpenXr.Framework.csproj" />
+		<ProjectReference Include="..\Xr.Engine.Physics\Xr.Engine.Physics.csproj" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">

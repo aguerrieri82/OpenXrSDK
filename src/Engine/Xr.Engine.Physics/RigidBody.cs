@@ -15,6 +15,9 @@ namespace Xr.Engine.Physics
         private Geometry3D? _geometry;
         private PhysicsMaterial _material;
         private PhysicsShape _shape;
+        private bool _boundsTranslate;
+        private PhysicsGeometryType _geoType;
+
 
         public RigidBody()
         {
@@ -38,17 +41,30 @@ namespace Xr.Engine.Physics
 
             newTrans.Position = pose.p;
             newTrans.Orientation = pose.q;
-            _host.Transform.SetMatrix(
-                Matrix4x4.CreateTranslation(-_geometry!.Bounds.Center) * 
-                newTrans.Matrix * 
-                _host.Parent!.WorldMatrixInverse);
+
+            Matrix4x4 matrix;
+
+            if (_geoType == PhysicsGeometryType.Box)
+                matrix = Matrix4x4.CreateTranslation(-_geometry!.Bounds.Center) * newTrans.Matrix;
+            else
+                throw new NotSupportedException();
+
+
+            _host.Transform.SetMatrix(matrix * _host.Parent!.WorldMatrixInverse);
         }
 
         protected PxTransform GetPose()
         {
             Debug.Assert(_geometry != null);
 
-            var matrix = Matrix4x4.CreateTranslation(_geometry.Bounds.Center) * _host!.WorldMatrix;
+            Matrix4x4 matrix;
+
+            if (_geoType == PhysicsGeometryType.Box)
+                matrix = Matrix4x4.CreateTranslation(_geometry.Bounds.Center) * _host!.WorldMatrix;
+            else if (_geoType == PhysicsGeometryType.Capsule)
+                matrix = Matrix4x4.CreateRotationY(MathF.PI / 2) * _host!.WorldMatrix;
+            else
+                throw new NotSupportedException();
 
             Matrix4x4.Decompose(matrix, out var _, out var rotation, out var translation);
 
@@ -100,11 +116,20 @@ namespace Xr.Engine.Physics
                     _geometry.ExtractPositions(),
                    scale);
             }
+            else if (collider is CapsuleCollider cap)
+            {
+                pyGeo = _system.CreateCapsule(cap.Radius * scale.X, cap.Height * scale.X * 0.5f);
+            }
             else
+            {
+                _boundsTranslate = true;
                 pyGeo = _system.CreateBox(_geometry.Bounds.Size / 2 * scale);
+            }
 
             if (pyGeo == null)
                 return;
+
+            _geoType = pyGeo.Value.Type;
 
             _material = _system.CreateMaterial(Material);
 

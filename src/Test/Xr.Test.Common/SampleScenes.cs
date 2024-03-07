@@ -170,9 +170,10 @@ namespace OpenXr.Samples
                 }
                 else
                     child.AddComponent<BoundsGrabbable>();
-
+                /*
                 if (child is TriangleMesh mc)
                     Xr.Engine.MeshOptimizer.Simplify(mc.Geometry!);
+                */
             }
 
             mesh.Transform.SetScale(1f);

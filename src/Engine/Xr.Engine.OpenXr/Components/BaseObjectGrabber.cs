@@ -100,7 +100,7 @@ namespace Xr.Engine.OpenXr
 
                 if (grabObj != null)
                 {
-                    _vibrate.VibrateStart(100, 1, TimeSpan.FromMilliseconds(500));
+                   // _vibrate.VibrateStart(100, 1, TimeSpan.FromMilliseconds(500));
                     _isVibrating = true;
                     if (isGrabbing)
                         StartGrabbing(grabbable!, grabObj, grabPoint);

@@ -20,6 +20,7 @@ namespace Xr.Engine.Physics
 
         protected override void Start(RenderContext ctx)
         {
+            //_system.Create();
             _system.Create("localhost", 5425);
             _system.CreateScene(Gravity);
         }

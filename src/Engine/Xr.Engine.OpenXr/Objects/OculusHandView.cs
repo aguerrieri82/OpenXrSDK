@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Xr.Engine.Physics;
 
 namespace Xr.Engine.OpenXr
 {
@@ -31,7 +32,7 @@ namespace Xr.Engine.OpenXr
         protected override void UpdateSelf(RenderContext ctx)
         {
         
-            if (!_isInit && XrApp.Current != null && XrApp.Current.IsStarted)
+            if (!_isInit && XrApp.Current != null && XrApp.Current.IsStarted && _input.IsActive)
             {
                 _input.LoadMesh();
 
@@ -53,14 +54,23 @@ namespace Xr.Engine.OpenXr
 
                     var capMesh = new TriangleMesh(new Capsule3D(capsule.Radius, len), isTip ? capMaterial2 :  capMaterial);
                     
-                    /*
                     capMesh.AddComponent(new CapsuleCollider()
                     {
                         Height = len,
                         Radius = capsule.Radius,
                         Mode = CapsuleColliderMode.Top
                     });
-                    */
+
+                    var rb = capMesh.AddComponent<RigidBody>();
+                    rb.Material = new PhysicsMaterialInfo
+                    {
+                        StaticFriction = 10,
+                        Restitution = 0,
+                        DynamicFriction = 10
+                    };
+
+                    capMesh.SetProp("IsGrabbing", true);
+
 
                     AddChild(capMesh);
                 }
