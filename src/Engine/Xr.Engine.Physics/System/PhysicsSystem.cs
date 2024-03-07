@@ -241,14 +241,14 @@ namespace Xr.Engine.Physics
             while (curTime < deltaSecs)
             {
                 if (curTime + stepSize > deltaSecs)
-                    stepSize = deltaSecs - curTime; 
+                    stepSize = deltaSecs - curTime;
 
-                Scene.SimulateMut(stepSize, null, null, 0, true);
+                _scene->SimulateMut(stepSize, null, null, 0, true);
 
                 curTime += stepSize;    
             }
 
-            Scene.FetchResultsMut(true, &error);
+            _scene->FetchResultsMut(true, &error);
         }
 
         public ref PxPhysics Physics => ref Unsafe.AsRef<PxPhysics>(_physics);
