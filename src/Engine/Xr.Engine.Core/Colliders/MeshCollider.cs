@@ -2,7 +2,7 @@
 
 namespace Xr.Engine
 {
-    public class MeshCollider : Behavior<Object3D>, ICollider
+    public class MeshCollider : Behavior<Object3D>, ICollider3D
     {
         long _version = -1;
         Triangle3[]? _triangles;

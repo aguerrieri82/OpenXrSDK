@@ -21,10 +21,10 @@
             return _components.OfType<T>();
         }
 
-        public void AddComponent(IComponent component)
+        public T AddComponent<T>(T component) where T : IComponent  
         {
             if (component.Host == this)
-                return;
+                return component;
 
             if (component.Host != null)
                 component.Host.RemoveComponent(component);
@@ -37,6 +37,8 @@
             _components.Add(component);
 
             NotifyChanged(ObjectChangeType.Components);
+
+            return component;
         }
 
         public void RemoveComponent(IComponent component)

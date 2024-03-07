@@ -1,18 +1,39 @@
-﻿namespace Xr.Engine
+﻿using System.Collections;
+
+namespace Xr.Engine
 {
     public static class EnumerableExtensions
     {
         public static void ForeachSafe<T>(this IEnumerable<T> target, Action<T> action)
         {
-            foreach (var item in target)
+            if (target is IList<T> list)
             {
-                try
+                int curI = 0;
+                while (curI  < list.Count)
                 {
-                    action(item);
-                }
-                catch (Exception ex)
-                {
+                    try
+                    {
+                        action(list[curI]);
+                    }
+                    catch (Exception ex)
+                    {
 
+                    }
+                    curI++;
+                }
+            }
+            else
+            {
+                foreach (var item in target)
+                {
+                    try
+                    {
+                        action(item);
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
                 }
             }
         }

@@ -1,12 +1,17 @@
-﻿using SkiaSharp;
+﻿using Microsoft.Extensions.Logging.Abstractions;
+using OpenXr.Framework;
+using OpenXr.Framework.Oculus;
+using Silk.NET.OpenXR;
+using SkiaSharp;
 using System.Numerics;
 using System.Text.Json;
 using Xr.Engine;
+using Xr.Engine.Components;
 using Xr.Engine.Compression;
 using Xr.Engine.Gltf;
 using Xr.Engine.OpenXr;
 using Xr.Engine.Physics;
-using static System.Net.Mime.MediaTypeNames;
+
 
 namespace OpenXr.Samples
 {
@@ -17,6 +22,53 @@ namespace OpenXr.Samples
             ConvertColorTextureSRgb = true,
         };
 
+        public static XrOculusTouchController ConfigureXrApp(EngineApp app, XrApp xrApp)
+        {
+            var scene = app.ActiveScene!;
+
+            xrApp.RenderOptions.RenderMode = XrRenderMode.SingleEye;
+
+            var rHand = xrApp.AddHand<XrHandInputMesh>(HandEXT.RightExt);
+
+            var hv = scene!.AddChild(new OculusHandView(rHand!));
+
+            var inputs = xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
+               .AddAction(a => a.Right!.Button!.AClick)
+               .AddAction(a => a.Right!.GripPose)
+               .AddAction(a => a.Right!.AimPose)
+               .AddAction(a => a.Right!.Haptic!)
+               .AddAction(a => a.Right!.TriggerValue!)
+               .AddAction(a => a.Right!.SqueezeValue!)
+               .AddAction(a => a.Right!.TriggerClick));
+
+            var rayCol = scene!.AddComponent(new RayCollider(inputs.Right!.AimPose!));
+            rayCol.RayView.IsVisible = false;
+
+            scene.AddComponent(new InputObjectGrabber(
+                inputs.Right!.GripPose!,
+                inputs.Right!.Haptic!,
+                inputs.Right!.SqueezeValue!,
+                inputs.Right!.TriggerValue!));
+
+            hv.AddComponent(new HandObjectGrabber(inputs!.Right!.Haptic!));
+
+            //_scene.AddComponent<PassthroughGeometry>();
+            //_scene.AddChild(new OculusSceneModel());
+
+            var ptLayer = xrApp.Layers.Add<XrPassthroughLayer>();
+            //ptLayer.Purpose = PassthroughLayerPurposeFB.ProjectedFB;
+
+            xrApp.BindEngineApp(scene!.App!);
+
+            var xrRoot = scene.Descendants<XrRoot>().First();
+
+            xrRoot.RightController!.IsVisible = false;
+            
+            scene.Version++;
+
+            return inputs;
+        }
+
         static EngineApp CreateBaseScene()
         {
             var app = new EngineApp();
@@ -24,6 +76,8 @@ namespace OpenXr.Samples
             var scene = new Scene();
 
             scene.AddComponent<PhysicsManager>();
+
+            scene.AddComponent<DebugGizmos>();
 
             scene.AddChild(new SunLight()
             {

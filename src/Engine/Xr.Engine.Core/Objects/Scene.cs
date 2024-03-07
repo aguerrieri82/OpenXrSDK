@@ -1,4 +1,5 @@
 ﻿
+
 namespace Xr.Engine
 {
     public class Scene : Group3D, IObjectChangeListener
@@ -8,16 +9,27 @@ namespace Xr.Engine
         protected readonly LayerManager _layers;
         protected EngineApp? _app;
         protected UpdateHistory _history;
+        protected Canvas3D _gizmos;
 
         public Scene()
         {
             _layers = new LayerManager(this);
             _history = new UpdateHistory(this);
             _scene = this;
+            _gizmos = new Canvas3D();
+
+            AddChild(_gizmos.Content); 
 
             this.AddLayer<TypeLayer<Light>>();
             this.AddLayer<TypeLayer<Camera>>();
             this.AddLayer<TypeLayer<Object3D>>();
+        }
+
+        public override void Update(RenderContext ctx)
+        {
+            _gizmos.Clear();
+            base.Update(ctx);
+            _gizmos.Flush();
         }
 
         internal void Attach(EngineApp app)
@@ -66,6 +78,8 @@ namespace Xr.Engine
                     AddChild(_activeCamera);
             }
         }
+
+        public Canvas3D Gizmos => _gizmos;
 
         public UpdateHistory History => _history;
 

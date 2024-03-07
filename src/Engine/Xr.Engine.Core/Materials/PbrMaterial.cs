@@ -397,7 +397,7 @@ namespace Xr.Engine
         {
             Shader = SHADER;
             Debug = DebugFlags.DEBUG_NONE;
-            LinearOutput = false;
+            LinearOutput = DefaultLinearOutput;
         }
 
         public static PbrMaterial CreateDefault()
@@ -636,6 +636,8 @@ namespace Xr.Engine
 
         public DebugFlags Debug { get; set; }
 
+
+        public static bool DefaultLinearOutput = false;
 
     }
 }

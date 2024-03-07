@@ -4,14 +4,14 @@
     {
         readonly Scene _scene;
         readonly HashSet<string> _layersContent = [];
-        readonly List<ILayer> _layers = [];
+        readonly List<ILayer3D> _layers = [];
 
         public LayerManager(Scene scene)
         {
             _scene = scene;
         }
 
-        public void Add(ILayer layer)
+        public void Add(ILayer3D layer)
         {
             if (_layers.Contains(layer))
                 return;
@@ -27,12 +27,12 @@
                 layer.NotifyChanged(obj, ObjectChangeType.SceneAdd);
         }
 
-        public IEnumerable<T> OfType<T>() where T : ILayer
+        public IEnumerable<T> OfType<T>() where T : ILayer3D
         {
             return _layers.OfType<T>();
         }
 
-        public void Remove(ILayer layer)
+        public void Remove(ILayer3D layer)
         {
             foreach (var obj in layer.Content)
                 NotifyObjectRemoved(layer, obj);
@@ -48,22 +48,22 @@
                 layer.NotifyChanged(object3D, change);
         }
 
-        protected static string Hash(ILayer layer, ILayerObject obj)
+        protected static string Hash(ILayer3D layer, ILayer3DObject obj)
         {
             return $"{layer.Id}|{obj.Id}";
         }
 
-        internal protected void NotifyObjectAdded(ILayer layer, ILayerObject obj)
+        internal protected void NotifyObjectAdded(ILayer3D layer, ILayer3DObject obj)
         {
             _layersContent.Add(Hash(layer, obj));
         }
 
-        internal protected void NotifyObjectRemoved(ILayer layer, ILayerObject obj)
+        internal protected void NotifyObjectRemoved(ILayer3D layer, ILayer3DObject obj)
         {
             _layersContent.Remove(Hash(layer, obj));
         }
 
-        public bool LayerContains(ILayer layer, ILayerObject obj)
+        public bool LayerContains(ILayer3D layer, ILayer3DObject obj)
         {
             return _layersContent.Contains(Hash(layer, obj));
         }

@@ -68,12 +68,12 @@ namespace Xr.Engine
 
         #region SCENE
 
-        public static T AddLayer<T>(this Scene scene) where T : ILayer, new()
+        public static T AddLayer<T>(this Scene scene) where T : ILayer3D, new()
         {
             return scene.AddLayer(new T());
         }
 
-        public static T AddLayer<T>(this Scene scene, T layer) where T : ILayer
+        public static T AddLayer<T>(this Scene scene, T layer) where T : ILayer3D
         {
             scene.Layers.Add(layer);
             return layer;
@@ -102,9 +102,9 @@ namespace Xr.Engine
         public static IEnumerable<Collision> RayCollisions(this Scene scene, Ray3 ray)
         {
 
-            foreach (var obj in scene.ObjectsWithComponent<ICollider>())
+            foreach (var obj in scene.ObjectsWithComponent<ICollider3D>())
             {
-                foreach (var collider in obj.Components<ICollider>())
+                foreach (var collider in obj.Components<ICollider3D>())
                 {
                     if (!collider.IsEnabled)
                         continue;
@@ -440,7 +440,7 @@ namespace Xr.Engine
             {
                 var tPoint = point.Transform(matrix);
                 result.Min = Vector3.Min(result.Min, tPoint);
-                result.Max = Vector3.Min(result.Max, tPoint);
+                result.Max = Vector3.Max(result.Max, tPoint);
             }
 
             return result;
@@ -811,11 +811,13 @@ namespace Xr.Engine
         #region MISC
 
 
-        public static bool Intersects(this Sphere sphere, Sphere other, float tollerance = 0f)
+        public static bool Intersects(this Sphere sphere, Sphere other, out float offset)
         {
             var dist = (sphere.Center - other.Center).Length();
-            
-            return dist < (sphere.Radius + other.Radius) + tollerance;
+
+            offset = dist - (sphere.Radius + other.Radius);
+
+            return offset < 0;
         }
 
         public static void Update<T>(this IEnumerable<T> target, RenderContext ctx) where T : IRenderUpdate
