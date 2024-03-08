@@ -1,5 +1,6 @@
 ﻿using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
+using Xr.Math;
 
 namespace OpenXr.Framework.Oculus
 {
@@ -137,7 +138,7 @@ namespace OpenXr.Framework.Oculus
             _xrApp!.CheckResult(_passthrough!.GeometryInstanceSetTransformFB(mesh.Instance, in info), "GeometryInstanceSetTransformFB");
         } 
 
-        public XrPassthroughMesh AddMesh(XrMesh mesh, Space baseSpace, object? tag = null)
+        public XrPassthroughMesh AddMesh(Mesh mesh, Space baseSpace, object? tag = null)
         {
             var fbMesh = _xrApp!.Plugin<OculusXrPlugin>().CreateTriangleMesh(mesh.Indices!, mesh.Vertices!.Convert().To<Vector3f>());
 

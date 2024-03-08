@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using OpenXr;
 using OpenXr.Framework;
 using OpenXr.Samples;
+using Xr.Engine.Audio;
 
 
 
@@ -28,12 +29,15 @@ Gpu.EnableNvAPi();
 
 var logger = host.Services.GetRequiredService<ILogger<object>>();
 
-await Physics.Run(host.Services, logger);
+
+
+var audio = new AudioDevice();
 
 //await WebLinkApp.Run(host.Services, logger);
 //await Tasks.OvrLibTask(logger);
 //await XrSceneApp.Run(host.Services, logger);
 //await SceneAnchors.Run(host.Services, logger);
+//await Physics.Run(host.Services, logger);
 
 await host.StopAsync();
 

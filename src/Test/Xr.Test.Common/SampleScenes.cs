@@ -1,10 +1,7 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
-using OpenXr.Framework;
+﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
-using SkiaSharp;
 using System.Numerics;
-using System.Text.Json;
 using Xr.Engine;
 using Xr.Engine.Components;
 using Xr.Engine.Compression;
@@ -12,6 +9,7 @@ using Xr.Engine.Gltf;
 using Xr.Engine.OpenXr;
 using Xr.Engine.Physics;
 using Xr.Test;
+using Xr.Math;
 
 
 namespace OpenXr.Samples

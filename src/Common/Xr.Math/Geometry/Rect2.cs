@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace OpenXr.Framework
+namespace Xr.Math
 {
     public struct Rect2
     {

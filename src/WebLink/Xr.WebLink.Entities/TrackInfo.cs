@@ -1,4 +1,5 @@
 ﻿using OpenXr.Framework;
+using Xr.Math;
 
 namespace Xr.WebLink.Entities
 {
@@ -16,6 +17,6 @@ namespace Xr.WebLink.Entities
 
         public Guid? AnchorId { get; set; }
 
-        public XrPose? Pose { get; set; }
+        public Pose3? Pose { get; set; }
     }
 }

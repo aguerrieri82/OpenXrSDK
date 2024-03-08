@@ -1,4 +1,4 @@
-﻿namespace OpenXr.Framework
+﻿namespace Xr.Math
 {
     public struct Size2
     {

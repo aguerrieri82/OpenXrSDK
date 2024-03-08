@@ -10,72 +10,73 @@ namespace Xr.Engine
     public class Sphere3D : Geometry3D
     {
         public Sphere3D()
-            : this(1f, 10, 10)
+            : this(1f, 50, 50)
         {
 
         }
 
-        public Sphere3D(float radius, int latSegments, int lonSegments)
+        public Sphere3D(float radius, uint latSegments, uint lonSegments)
         {
             Radius = radius;
             Build(latSegments, lonSegments);
         }
         
-        public void Build(int latSegments, int lonSegments)
+        public void Build(uint horizontalSegments, uint verticalSegments)
         {
+            var indices = new List<uint>();
             var vertices = new List<VertexData>();
 
-            for (int lat = 0; lat <= latSegments; lat++)
+            for (int y = 0; y <= verticalSegments; y++)
             {
-                var theta = lat * Math.PI / latSegments;
-                var sinTheta = Math.Sin(theta);
-                var cosTheta = Math.Cos(theta);
+                float v = 1.0f - (float)y / verticalSegments;
+                float phi = v * (float)MathF.PI;
 
-                for (int lon = 0; lon <= lonSegments; lon++)
+                for (int x = 0; x <= horizontalSegments; x++)
                 {
-                    var phi = lon * 2 * Math.PI / lonSegments;
-                    var sinPhi = Math.Sin(phi);
-                    var cosPhi = Math.Cos(phi);
+                    float u = (float)x / horizontalSegments;
+                    float theta = u * 2.0f * (float)MathF.PI;
 
-                    var x = cosPhi * sinTheta;
-                    var y = cosTheta;
-                    var z = sinPhi * sinTheta;
-                    var u = 1 - (lon / (float)lonSegments);
-                    var v = 1 - (lat / (float)latSegments);
+                    float sinTheta = (float)MathF.Sin(theta);
+                    float cosTheta = (float)MathF.Cos(theta);
+                    float sinPhi = (float)MathF.Sin(phi);
+                    float cosPhi = (float)MathF.Cos(phi);
 
-                    var position = new Vector3((float)(Radius * x), (float)(Radius * y), (float)(Radius * z));
-                    var normal = Vector3.Normalize(position);
-                    var uv = new Vector2(u, v);
+                    var normal = new Vector3(cosTheta * sinPhi, cosPhi, sinTheta * sinPhi);
+                    var tangent = new Vector3(-sinTheta, 0.0f, cosTheta);
 
-                    vertices.Add(new VertexData { Pos = position, Normal = normal, UV = uv });
+                    vertices.Add(new VertexData
+                    {
+                        Pos = Radius * normal,
+                        Normal = normal,
+                        UV = new Vector2(u, v),
+                        Tangent = new Vector4(tangent, 1.0f)
+                    });
                 }
             }
 
-            var indices = new List<uint>();
-
-            for (uint lat = 0; lat < latSegments; lat++)
+            for (int y = 0; y < verticalSegments; y++)
             {
-                for (uint lon = 0; lon < lonSegments; lon++)
+                for (int x = 0; x < horizontalSegments; x++)
                 {
-                    uint first = (uint)(lat * (lonSegments + 1)) + lon;
-                    uint second = (uint)(first + lonSegments + 1);
+                    var index0 = (uint)( y * (horizontalSegments + 1) + x);
+                    var index1 = (uint)(index0 + 1);
+                    var index2 = (uint)((y + 1) * (horizontalSegments + 1) + x);
+                    var index3 = (uint)(index2 + 1);
 
-                    indices.Add(first);
-                    indices.Add(second);
-                    indices.Add(first + 1);
+                    indices.Add(index0);
+                    indices.Add(index1);
+                    indices.Add(index2);
 
-                    indices.Add(second);
-                    indices.Add(second + 1);
-                    indices.Add(first + 1);
+                    indices.Add(index2);
+                    indices.Add(index1);
+                    indices.Add(index3);
                 }
             }
-            
-            Indices = indices.ToArray();
+
             Vertices = vertices.ToArray();
-            this.ComputeNormals();
-            this.SmoothNormals();
+            Indices = indices.ToArray();
 
-            ActiveComponents |= VertexComponent.Normal;
+            ActiveComponents |= VertexComponent.Normal | VertexComponent.UV0 | VertexComponent.Tangent;
         }
 
         public float Radius;

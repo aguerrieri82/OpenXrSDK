@@ -1,33 +1,11 @@
 ﻿using System.Numerics;
+using Xr.Math;
 
 namespace OpenXr.Framework
 {
     public static class XrMath
     {
-        public static XrPose Inverse(this XrPose pose)
-        {
-            return new XrPose
-            {
-                Orientation = Quaternion.Inverse(pose.Orientation),
-                Position = Vector3.Transform(pose.Position * -1, pose.Orientation)
-            };
-        }
-
-        public static Vector3 PoseTransform(XrPose a, Vector3 b)
-        {
-            var result = Vector3.Transform(b, a.Orientation);
-            return result + a.Position;
-        }
-
-        public static XrPose PoseMultiply(XrPose a, XrPose b)
-        {
-            return new XrPose
-            {
-                Orientation = b.Orientation * a.Orientation,
-                Position = PoseTransform(a, b.Position)
-            };
-        }
-
+      
         /*
         public unsafe static Matrix4x4 InvertRigidBody(this Matrix4x4 src)
         {

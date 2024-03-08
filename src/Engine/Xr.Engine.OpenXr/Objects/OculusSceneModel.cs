@@ -70,7 +70,7 @@ namespace Xr.Engine.OpenXr
 
                 var mesh = new TriangleMesh(geo, material);
                 mesh.Name = "global-mesh";
-                mesh.Transform.Position = location.Pose!.Position;
+                mesh.Transform.Position = location.Pose.Position;
                 mesh.Transform.Orientation = location.Pose.Orientation;
                 //mesh.AddComponent(new MeshCollider());
 

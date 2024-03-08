@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Xr.Math;
 using Action = Silk.NET.OpenXR.Action;
 
 
@@ -295,7 +296,7 @@ namespace OpenXr.Framework.Oculus
 
         }
 
-        public XrMesh GetSpaceTriangleMesh(Space space)
+        public Mesh GetSpaceTriangleMesh(Space space)
         {
             var info = new SpaceTriangleMeshGetInfoMETA
             {
@@ -321,7 +322,7 @@ namespace OpenXr.Framework.Oculus
                 result.Indices = pIndex;
                 _app!.CheckResult(GetSpaceTriangleMeshMETA!(space, ref info, ref result), "GetSpaceTriangleMeshMETA");
 
-                return new XrMesh
+                return new Mesh
                 {
                     Vertices = vertexArray.Convert().To<Vector3>(),
                     Indices = indexArray

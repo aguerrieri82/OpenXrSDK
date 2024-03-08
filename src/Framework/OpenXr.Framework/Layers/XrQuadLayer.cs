@@ -1,9 +1,10 @@
 ﻿using Silk.NET.OpenXR;
+using Xr.Math;
 
 namespace OpenXr.Framework
 {
 
-    public delegate XrQuad GetQuadDelegate();
+    public delegate Quad3 GetQuadDelegate();
 
 
     public class XrQuadLayer : XrBaseLayer<CompositionLayerQuad>
@@ -23,14 +24,9 @@ namespace OpenXr.Framework
         {
             var quad = _getQuad();
 
-            if (!quad.IsVisible)
-                return false;
-
             layer.Size.Width = quad.Size.X;
             layer.Size.Height = quad.Size.Y;
-
-            layer.Pose.Position = quad.Position.Convert().To<Vector3f>();
-            layer.Pose.Orientation = quad.Orientation.Convert().To<Quaternionf>();
+            layer.Pose = quad.Pose.ToPoseF();
 
             return true;
         }

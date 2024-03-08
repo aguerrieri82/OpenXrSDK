@@ -1,10 +1,11 @@
 ﻿using System.Numerics;
+using Xr.Math;
 
 namespace Xr.Engine
 {
     public class Object3D : EngineObject, ILayer3DObject
     {
-        protected Transform3 _transform;
+        protected Transform3D _transform;
         protected Group3D? _parent;
         protected bool _worldDirty;
         protected Bounds3 _worldBounds;
@@ -18,7 +19,7 @@ namespace Xr.Engine
 
         public Object3D()
         {
-            _transform = new Transform3(this);
+            _transform = new Transform3D(this);
             _worldDirty = true;
             _boundsDirty = true;
             _worldInverseDirty = true;
@@ -198,7 +199,7 @@ namespace Xr.Engine
             }
         }
 
-        public Transform3 Transform => _transform;
+        public Transform3D Transform => _transform;
 
         public string? Tag { get; set; }
 

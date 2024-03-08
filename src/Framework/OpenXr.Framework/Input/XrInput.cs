@@ -1,5 +1,6 @@
 ﻿using Silk.NET.OpenXR;
 using System.Numerics;
+using Xr.Math;
 using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework
@@ -50,7 +51,7 @@ namespace OpenXr.Framework
             if (typeof(TValue) == typeof(Vector2))
                 return (new XrVector2Input(app, path, name) as XrInput<TValue>)!;
 
-            if (typeof(TValue) == typeof(XrPose))
+            if (typeof(TValue) == typeof(Pose3))
                 return (new XrPoseInput(app, path, name) as XrInput<TValue>)!;
 
             throw new NotSupportedException();
@@ -131,7 +132,7 @@ namespace OpenXr.Framework
         }
     }
 
-    public class XrPoseInput : XrInput<XrPose>
+    public class XrPoseInput : XrInput<Pose3>
     {
         protected Space _space;
 
@@ -155,8 +156,10 @@ namespace OpenXr.Framework
             _isActive = _app.GetActionPoseIsActive(_action, _subPath);
             _isChanged = true;
             _lastChangeTime = DateTime.Now;
+            
             var spaceInfo = _app.LocateSpace(_space, refSpace, predictTime);
-            _value = spaceInfo.Pose!;
+            if (spaceInfo.IsValid)
+                _value = spaceInfo.Pose;
         }
 
         public Space Space => _space;

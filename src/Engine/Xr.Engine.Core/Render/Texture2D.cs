@@ -153,7 +153,7 @@ namespace Xr.Engine
 
         public TextureCompressionFormat Compression { get; set; }
 
-        public Transform2? Transform { get; set; }
+        //public Transform2? Transform { get; set; }
 
         public uint SampleCount { get; set; }
     }

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Xr.Math;
 
 namespace Xr.Engine.OpenXr
 {
@@ -31,23 +32,23 @@ namespace Xr.Engine.OpenXr
             return new Sphere { Center = center, Radius = radius };
         }
 
-        protected override bool IsGrabbing(out XrPose? grabPoint)
+        protected override ObjectGrab IsGrabbing()
         {
-            if (!_isInit)
-            {
-                grabPoint = null;
-                return false;
-            }
+            Debug.Assert(_host != null);
+
+            var result = new ObjectGrab();
+            result.IsValid = _host.HandInput.IsActive;
+
+            if (!_isInit || !result.IsValid)
+                return result;
 
             var thumbObj = _host!.Children[_thumbIndex];
 
             var thumb = GetSphere(thumbObj);
 
-            grabPoint = new XrPose
-            {
-                Position = thumb.Center,
-                Orientation = thumbObj.Transform.Orientation,
-            };
+            result.IsValid = _host.HandInput.IsActive;
+            result.Pose.Position = thumb.Center;
+            result.Pose.Orientation = thumbObj.Transform.Orientation;
 
             foreach (var index in _distalIndices)
             {
@@ -56,19 +57,19 @@ namespace Xr.Engine.OpenXr
 
                 other.Intersects(thumb, out var offset);
 
-                bool isGrabbing = offset < 0 || (offset < 0.01 && _grabStarted);
+                result.IsGrabbing = offset < 0 || (offset < 0.01 && _grabStarted);
 
-                if (isGrabbing)
+                if (result.IsGrabbing)
                 {
                     var forward = Vector3.Normalize(Vector3.Cross(thumbObj.Forward, otherObj.Forward));
                     var up = Vector3.Cross(forward, thumbObj.Forward);
-                    grabPoint.Orientation = MathUtils.QuatFromForwardUp(forward, up);
-                    grabPoint.Position = (thumb.Center + other.Center) / 2;
-                    return true;
+                    result.Pose.Orientation = MathUtils.QuatFromForwardUp(forward, up);
+                    result.Pose.Position = (thumb.Center + other.Center) / 2;
+                    break;
                 }
             }
 
-            return false;
+            return result;
         }
 
         protected override void Update(RenderContext ctx)

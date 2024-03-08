@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Xr.Engine
+namespace Xr.Math
 {
     public struct Sphere
     {

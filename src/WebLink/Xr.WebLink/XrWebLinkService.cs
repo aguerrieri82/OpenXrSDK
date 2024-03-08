@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using Silk.NET.OpenXR;
+using Xr.Math;
 using Xr.WebLink.Entities;
 
 namespace Xr.WebLink
@@ -13,7 +14,7 @@ namespace Xr.WebLink
         protected readonly IHubContext<XrWebLinkHub> _hub;
         protected readonly ILogger<XrWebLinkService> _logger;
         protected CancellationTokenSource? _stopSource;
-        protected XrPose? _lastPose;
+        protected Pose3? _lastPose;
         protected readonly IXrThread _xrThread;
         protected IList<Task> _serviceLoops;
 
@@ -76,13 +77,13 @@ namespace Xr.WebLink
             {
                 var location = _app.LocateSpace(_app.Head, _app.Local, 1);
 
-                var curPose = new XrPose
+                var curPose = new Pose3
                 {
                     Orientation = location.Pose!.Orientation,
                     Position = location.Pose!.Position,
                 };
 
-                if (curPose.Similar(_lastPose!, 0.0001f))
+                if (curPose.Similar(_lastPose!.Value, 0.0001f))
                     return;
 
                 _lastPose = curPose;

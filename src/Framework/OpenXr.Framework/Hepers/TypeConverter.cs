@@ -1,16 +1,12 @@
 ﻿using Silk.NET.OpenXR;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Xr.Math;
 
 namespace OpenXr.Framework
 {
     public static unsafe class TypeConverter
     {
-        [Obsolete("AndroidCrash")]
-        public static unsafe XrPose _ToXrPose(this Posef pose)
-        {
-            return *(XrPose*)&pose;
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToVector3(this Vector3f value)
@@ -18,8 +14,7 @@ namespace OpenXr.Framework
             return new Vector3(value.X, value.Y, value.Z);
         }
 
-
-        public static Posef ToPoseF(this XrPose pose)
+        public static Posef ToPoseF(this Pose3 pose)
         {
             return new Posef
             {
@@ -40,9 +35,9 @@ namespace OpenXr.Framework
             return new Quaternionf(quat.X, quat.Y, quat.Z, quat.W);
         }
 
-        public static unsafe XrPose ToXrPose(this Posef pose)
+        public static unsafe Pose3 ToPose3(this Posef pose)
         {
-            return new XrPose
+            return new Pose3
             {
                 Orientation = new Quaternion(pose.Orientation.X, pose.Orientation.Y, pose.Orientation.Z, pose.Orientation.W),
                 Position = new Vector3(pose.Position.X, pose.Position.Y, pose.Position.Z)
@@ -53,7 +48,7 @@ namespace OpenXr.Framework
         {
             return new XrSpaceLocation
             {
-                Pose = value.Pose.ToXrPose(),
+                Pose = value.Pose.ToPose3(),
                 Flags = value.LocationFlags
             };
         }

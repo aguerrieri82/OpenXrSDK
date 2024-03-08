@@ -1,4 +1,4 @@
-﻿namespace Xr.Engine
+﻿namespace Xr.Math
 {
     public struct Rect2I
     {
