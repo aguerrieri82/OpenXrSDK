@@ -7,8 +7,6 @@ using Silk.NET.OpenGL;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Text;
-using System.Collections.ObjectModel;
-using System;
 using Xr.Math;
 
 

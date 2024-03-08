@@ -1,8 +1,5 @@
 ﻿using MagicPhysX;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
 using Xr.Engine.Colliders;
 
@@ -17,16 +14,16 @@ namespace Xr.Engine.Physics
         private PhysicsMaterial _material;
         private bool _boundsTranslate;
         private PhysicsGeometryType _geoType;
-        private List<PhysicsShape> _shapes = [];
+        private readonly List<PhysicsShape> _shapes = [];
 
         public RigidBody()
         {
             BodyType = PhysicsActorType.Dynamic;
 
-            Material = new PhysicsMaterialInfo 
+            Material = new PhysicsMaterialInfo
             {
                 DynamicFriction = 0.8f,
-                Restitution= 0.4f,
+                Restitution = 0.4f,
                 StaticFriction = 0.8f
             };
 
@@ -171,7 +168,7 @@ namespace Xr.Engine.Physics
 
             if (!isGrabbing)
             {
-                if ( BodyType == PhysicsActorType.Dynamic)
+                if (BodyType == PhysicsActorType.Dynamic)
                 {
                     SetPose(_actor.GlobalPose);
                     _actor.IsKinematic = false;
@@ -203,7 +200,7 @@ namespace Xr.Engine.Physics
                 foreach (var shape in _shapes)
                     shape.Release();
             }
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         public ref PhysicsActor Actor => ref _actor;

@@ -6,7 +6,6 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Text;
 using Xr.Math;
 
@@ -50,7 +49,7 @@ namespace Xr.Engine.OpenGL
         public Object3D? Object;
 
         public Action? Draw;
-        
+
         public int DrawId;
 
         public GlProgramInstance? ProgramInstance;
@@ -217,13 +216,13 @@ namespace Xr.Engine.OpenGL
             if (_glState.WriteDepth != material.WriteDepth)
             {
                 _gl.DepthMask(material.WriteDepth);
-                _glState.WriteDepth = material.WriteDepth;  
+                _glState.WriteDepth = material.WriteDepth;
             }
-    
+
             if (_glState.UseDepth != material.UseDepth)
             {
                 EnableFeature(EnableCap.DepthTest, material.UseDepth);
-                _glState.UseDepth = material.UseDepth;  
+                _glState.UseDepth = material.UseDepth;
             }
 
             if (_glState.DoubleSided != material.DoubleSided)
@@ -288,7 +287,7 @@ namespace Xr.Engine.OpenGL
                         if (!camera.CanSee(mesh.WorldBounds))
                         {
                             skipCount++;
-                           // continue;
+                            // continue;
                         }
                     }
 
@@ -317,7 +316,7 @@ namespace Xr.Engine.OpenGL
                             progInst.Program!.Use();
                             _glState.ActiveProgram = progInst.Program!.Handle;
                         }
-                 
+
                         progInst.UpdateUniforms(_updateCtx);
 
                         draw.Draw!();
@@ -331,7 +330,7 @@ namespace Xr.Engine.OpenGL
             _glState.ActiveProgram = 0;
 
             _gl.UseProgram(0);
-            
+
             _gl.BindVertexArray(0);
 
             target.End();

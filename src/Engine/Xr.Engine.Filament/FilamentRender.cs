@@ -20,7 +20,7 @@ namespace Xr.Engine.Filament
         protected class Content
         {
             public Scene? Scene;
-            
+
             public long Version;
 
             public Dictionary<EngineObject, uint>? Objects;

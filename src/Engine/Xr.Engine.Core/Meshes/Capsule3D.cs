@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using Xr.Math;
 
 namespace Xr.Engine
@@ -23,9 +18,9 @@ namespace Xr.Engine
             Vertical = vertical;
             Build();
         }
-        
+
         public void Build()
-        { 
+        {
             int vertexCount = (Horizontal + 1) * (Vertical + 1);
             int indexCount = Horizontal * Vertical * 6;
             float latRads = MathF.PI * 0.5f;
@@ -121,7 +116,7 @@ namespace Xr.Engine
                 for (int x = 0; x <= Horizontal; x++)
                 {
                     float xf = (float)x / (float)Horizontal;
-                    float lon = xf  * MathF.PI * 2;
+                    float lon = xf * MathF.PI * 2;
                     index = y * (Horizontal + 1) + x + vertexIndexOffset;
                     verts[index].Pos.X = Radius * MathF.Cos(lon) * cosLat;
                     verts[index].Pos.Y = Radius * MathF.Sin(lon) * cosLat;
@@ -155,9 +150,9 @@ namespace Xr.Engine
         }
 
         public float Radius;
-        
+
         public float Height;
-        
+
         public int Horizontal;
 
         public int Vertical;

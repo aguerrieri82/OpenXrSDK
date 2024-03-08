@@ -1,8 +1,4 @@
-﻿using Silk.NET.OpenXR;
-using System.Diagnostics;
-using System.Numerics;
-
-namespace OpenXr.Framework
+﻿namespace OpenXr.Framework
 {
     public static class XrExtensions
     {

@@ -1,13 +1,6 @@
-﻿using OpenXr.Framework;
-using OpenXr.Framework.Oculus;
-using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
+﻿using Silk.NET.OpenXR;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using Xr.Math;
 
 namespace Xr.Engine.OpenXr
@@ -83,7 +76,7 @@ namespace Xr.Engine.OpenXr
                         _thumbIndex = index;
                     else if (//cap.Joint == HandJointEXT.RingDistalExt ||
                              //cap.Joint == HandJointEXT.LittleDistalExt ||
-                        cap.Joint == HandJointEXT.IndexDistalExt 
+                        cap.Joint == HandJointEXT.IndexDistalExt
                         /*cap.Joint == HandJointEXT.MiddleDistalExt*/)
                     {
                         _distalIndices.Add(index);

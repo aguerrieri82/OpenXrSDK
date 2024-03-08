@@ -48,7 +48,7 @@
             {
                 _deltaTime = _lastUpdateTime == 0 ? 0 : ctx.Time - _lastUpdateTime;
                 Update(ctx);
-                _lastUpdateTime = ctx.Time; 
+                _lastUpdateTime = ctx.Time;
             }
         }
 

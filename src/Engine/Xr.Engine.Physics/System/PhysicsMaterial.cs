@@ -1,10 +1,5 @@
 ﻿using MagicPhysX;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xr.Engine.Physics
 {
@@ -19,11 +14,11 @@ namespace Xr.Engine.Physics
     }
 
 
-    public unsafe struct PhysicsMaterial 
+    public unsafe struct PhysicsMaterial
     {
-        PxMaterial* _handle;
+        readonly PxMaterial* _handle;
 
-        public PhysicsMaterial(PxMaterial* handle) 
+        public PhysicsMaterial(PxMaterial* handle)
         {
             _handle = handle;
         }

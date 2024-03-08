@@ -37,7 +37,7 @@ namespace Xr.Engine.OpenGL
             throw new NotSupportedException();
         }
 
-        public static unsafe TRes GetResource<T, TRes>(this T obj, Func<T, TRes> factory) where T : EngineObject 
+        public static unsafe TRes GetResource<T, TRes>(this T obj, Func<T, TRes> factory) where T : EngineObject
         {
             var glObj = obj.GetProp<TRes?>(Props.GlResId);
             if (glObj == null)

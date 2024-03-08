@@ -136,7 +136,7 @@ namespace OpenXr.Framework.Oculus
             };
 
             _xrApp!.CheckResult(_passthrough!.GeometryInstanceSetTransformFB(mesh.Instance, in info), "GeometryInstanceSetTransformFB");
-        } 
+        }
 
         public XrPassthroughMesh AddMesh(Mesh mesh, Space baseSpace, object? tag = null)
         {
@@ -166,7 +166,7 @@ namespace OpenXr.Framework.Oculus
                 Mesh = fbMesh
             };
 
-            _meshes.Add(result);    
+            _meshes.Add(result);
 
             return result;
         }

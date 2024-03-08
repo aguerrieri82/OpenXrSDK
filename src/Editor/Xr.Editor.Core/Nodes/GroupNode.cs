@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using System.Threading.Tasks;
-using Xr.Engine;
+﻿using Xr.Engine;
 
 namespace Xr.Editor.Nodes
 {
@@ -21,7 +15,7 @@ namespace Xr.Editor.Nodes
             get
             {
                 var factory = Context.Require<NodeFactory>();
-                return _value.Children.Select(a=> factory.CreateNode(a));   
+                return _value.Children.Select(a => factory.CreateNode(a));
             }
         }
     }

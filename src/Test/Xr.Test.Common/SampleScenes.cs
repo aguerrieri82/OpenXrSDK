@@ -8,8 +8,8 @@ using Xr.Engine.Compression;
 using Xr.Engine.Gltf;
 using Xr.Engine.OpenXr;
 using Xr.Engine.Physics;
-using Xr.Test;
 using Xr.Math;
+using Xr.Test;
 
 
 namespace OpenXr.Samples
@@ -76,7 +76,7 @@ namespace OpenXr.Samples
             var xrRoot = scene.Descendants<XrRoot>().First();
 
             xrRoot.RightController!.IsVisible = false;
-            
+
             scene.Version++;
 
             return inputs;
@@ -152,7 +152,7 @@ namespace OpenXr.Samples
 
             var mesh = (Group3D)GltfLoader.Instance.Load(assets.FullPath("ping-pong paddle red.glb"), assets, GltfOptions);
             mesh.Name = "mesh";
-            
+
             mesh.Transform.LocalPivot = new Vector3(0.054f, -0.04f, 0.174f);
             mesh.Transform.Update();
             mesh.Transform.Rotation = new Vector3(-0.863f, -0.21f, -1.25f);
@@ -160,13 +160,13 @@ namespace OpenXr.Samples
 
             mesh.Transform.Update();
 
-      
+
             foreach (var geo in mesh.DescendantsWithFeature<Geometry3D>())
                 geo.Feature.ApplyTransform(mesh.Transform.Matrix);
 
             mesh.Transform.Reset();
             mesh.Transform.Position = new Vector3(0, 1, 0);
-           
+
 
             // mesh.Forward = new Vector3(-0.14504775f, -0.97817063f, 0.14880678f);
 
@@ -184,7 +184,7 @@ namespace OpenXr.Samples
                 StaticFriction = 0.7f
             };
 
-            app.ActiveScene!.AddComponent<BallGenerator>(); 
+            app.ActiveScene!.AddComponent<BallGenerator>();
 
             app.ActiveScene!.AddChild(mesh);
             ((PerspectiveCamera)app.ActiveScene!.ActiveCamera!).Target = mesh.Transform.Position;
@@ -203,7 +203,7 @@ namespace OpenXr.Samples
 
 
             foreach (var child in mesh.Children)
-            { 
+            {
                 var rb = child.AddComponent<RigidBody>();
 
                 if (child.Name!.Contains("board"))
@@ -288,8 +288,8 @@ namespace OpenXr.Samples
 
             var scene = new Scene();
 
-            scene.ActiveCamera = new PerspectiveCamera() 
-            { 
+            scene.ActiveCamera = new PerspectiveCamera()
+            {
                 Far = 50f
             };
 

@@ -13,7 +13,7 @@ namespace Xr.Engine.OpenXr
         public bool IsValid;
     }
 
-    public abstract class BaseObjectGrabber<T> : Behavior<T>  where T : Object3D
+    public abstract class BaseObjectGrabber<T> : Behavior<T> where T : Object3D
     {
 
         private Object3D? _grabObject;
@@ -35,7 +35,7 @@ namespace Xr.Engine.OpenXr
 
         protected override void Start(RenderContext ctx)
         {
-           _host!.Scene!.AddChild(_grabView);
+            _host!.Scene!.AddChild(_grabView);
         }
 
         protected abstract ObjectGrab IsGrabbing();
@@ -116,7 +116,7 @@ namespace Xr.Engine.OpenXr
                         _vibrate.VibrateStart(100, 1, TimeSpan.FromMilliseconds(500));
                         _isVibrating = true;
                     }
-            
+
                     if (objGrab.IsGrabbing)
                         StartGrabbing(grabbable!, grabObj, objGrab.Pose);
 

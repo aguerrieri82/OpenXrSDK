@@ -1,10 +1,6 @@
 ﻿using MagicPhysX;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OpenXr.Framework;
-using OpenXr.Framework.OpenGL;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using Xr.Engine.Physics;
 using static MagicPhysX.NativeMethods;
 

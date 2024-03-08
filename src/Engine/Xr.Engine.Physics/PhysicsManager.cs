@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace Xr.Engine.Physics
 {
     public class PhysicsManager : Behavior<Scene>
     {
-        PhysicsSystem _system;
+        readonly PhysicsSystem _system;
 
         public PhysicsManager()
         {
@@ -36,6 +31,6 @@ namespace Xr.Engine.Physics
 
         public PhysicsSystem System => _system;
 
-        public Vector3 Gravity { get; set; }    
+        public Vector3 Gravity { get; set; }
     }
 }

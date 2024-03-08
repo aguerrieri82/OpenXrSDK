@@ -30,7 +30,7 @@
 
         public EngineObject? Object { get; set; }
 
-        public IObjectState? NewState { get; set; }    
+        public IObjectState? NewState { get; set; }
 
         public IObjectState? OldState { get; set; }
     }

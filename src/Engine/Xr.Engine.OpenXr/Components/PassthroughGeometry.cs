@@ -1,13 +1,8 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using Xr.Math;
 
 namespace Xr.Engine.OpenXr
@@ -61,16 +56,16 @@ namespace Xr.Engine.OpenXr
                             xrApp.LastFrameTime);
                         */
 
-                        
+
                         _ptLayer.UpdateMesh(
                             ptMesh, new Posef
                             {
-                                Orientation = Quaternion.Identity.ToQuaternionf() 
+                                Orientation = Quaternion.Identity.ToQuaternionf()
                             },
                             new Vector3f(0.2f, 0.2f, 0.2f),
                             xrApp.Stage,
                             xrApp.LastFrameTime);
-                        
+
                         _isInit = true;
                     }
                 }

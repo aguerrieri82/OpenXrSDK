@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace Xr.Engine
 {
@@ -20,7 +15,7 @@ namespace Xr.Engine
             Radius = radius;
             Build(latSegments, lonSegments);
         }
-        
+
         public void Build(uint horizontalSegments, uint verticalSegments)
         {
             var indices = new List<uint>();
@@ -58,7 +53,7 @@ namespace Xr.Engine
             {
                 for (int x = 0; x < horizontalSegments; x++)
                 {
-                    var index0 = (uint)( y * (horizontalSegments + 1) + x);
+                    var index0 = (uint)(y * (horizontalSegments + 1) + x);
                     var index1 = (uint)(index0 + 1);
                     var index2 = (uint)((y + 1) * (horizontalSegments + 1) + x);
                     var index3 = (uint)(index2 + 1);

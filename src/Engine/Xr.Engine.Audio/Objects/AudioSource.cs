@@ -1,10 +1,5 @@
 ﻿using Silk.NET.OpenAL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xr.Engine.Audio
 {
@@ -113,7 +108,8 @@ namespace Xr.Engine.Audio
 
         public float Pitch
         {
-            get {
+            get
+            {
                 _al.GetSourceProperty(_handle, SourceFloat.Pitch, out float value);
                 return value;
             }

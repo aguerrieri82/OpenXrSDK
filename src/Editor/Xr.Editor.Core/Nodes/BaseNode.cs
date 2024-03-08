@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Xr.Editor.Nodes
+﻿namespace Xr.Editor.Nodes
 {
-    public abstract class BaseNode<T> : INode where T: notnull
+    public abstract class BaseNode<T> : INode where T : notnull
     {
         protected INode? _parent;
         protected T _value;

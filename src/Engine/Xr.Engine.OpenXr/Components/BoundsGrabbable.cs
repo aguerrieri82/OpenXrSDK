@@ -11,7 +11,7 @@ namespace Xr.Engine.OpenXr
             if (local != null)
                 return local.LocalBounds.Contains(position.Transform(_host.WorldMatrixInverse));
 
-            return false;  
+            return false;
         }
 
         public void Grab()

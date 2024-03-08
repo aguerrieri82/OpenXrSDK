@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Xr.Engine
 {
@@ -43,7 +39,7 @@ namespace Xr.Engine
 
         public string Text()
         {
-            return _builder.ToString(); 
+            return _builder.ToString();
         }
     }
 }

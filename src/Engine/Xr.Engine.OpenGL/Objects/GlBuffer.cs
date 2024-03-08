@@ -14,12 +14,12 @@ namespace Xr.Engine.OpenGL
         public static uint UsedSlots = 0;
     }
 
-    public class GlBuffer<T> : GlObject, IGlBuffer 
+    public class GlBuffer<T> : GlObject, IGlBuffer
     {
         protected readonly BufferTargetARB _target;
         protected uint _length;
         protected uint _slot;
-        
+
 
 
         public unsafe GlBuffer(GL gl, BufferTargetARB target)

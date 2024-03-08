@@ -4,7 +4,6 @@ using SkiaSharp;
 using System.Diagnostics;
 using System.Numerics;
 using System.Text;
-using Xr.Engine;
 
 namespace Xr.Engine.Gltf
 {
@@ -326,7 +325,7 @@ namespace Xr.Engine.Gltf
             Object3D ProcessMesh(glTFLoader.Schema.Mesh gltMesh)
             {
                 if (meshes.TryGetValue(gltMesh, out var result))
-                    return new Object3DInstance() { Reference =  result };
+                    return new Object3DInstance() { Reference = result };
 
                 CheckExtensions(gltMesh.Extensions);
 
@@ -497,7 +496,7 @@ namespace Xr.Engine.Gltf
 
                     group.AddChild(curMesh);
                 }
-                
+
                 meshes[gltMesh] = group!;
 
                 return group!;
@@ -521,7 +520,7 @@ namespace Xr.Engine.Gltf
                     nodeGrp = new Group3D();
                     nodeObj = nodeGrp;
                 }
-        
+
                 if (node.Mesh != null)
                 {
                     var nodeMesh = ProcessMesh(model.Meshes[node.Mesh.Value]);
@@ -547,15 +546,15 @@ namespace Xr.Engine.Gltf
                     foreach (var childNode in node.Children!)
                         ProcessNode(model.Nodes[childNode], nodeGrp);
                 }
-    
+
                 nodeObj!.Name = node.Name;
 
                 if (node.Rotation != null)
                     nodeObj.Transform.Orientation = new Quaternion(node.Rotation[0], node.Rotation[1], node.Rotation[2], node.Rotation[3]);
-                
+
                 if (node.Scale != null)
                     nodeObj.Transform.Scale = MathUtils.ToVector3(node.Scale);
-                
+
                 if (node.Translation != null)
                     nodeObj.Transform.Position = MathUtils.ToVector3(node.Translation);
 

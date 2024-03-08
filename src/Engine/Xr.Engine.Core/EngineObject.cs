@@ -21,7 +21,7 @@
             return _components.OfType<T>();
         }
 
-        public T AddComponent<T>(T component) where T : IComponent  
+        public T AddComponent<T>(T component) where T : IComponent
         {
             if (component.Host == this)
                 return component;

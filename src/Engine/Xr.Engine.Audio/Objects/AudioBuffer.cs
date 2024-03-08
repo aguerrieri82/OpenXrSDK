@@ -1,15 +1,10 @@
 ﻿using Silk.NET.OpenAL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xr.Engine.Audio
 {
     public class AudioBuffer : AlObject, IDisposable
     {
-        public AudioBuffer(AL al) 
+        public AudioBuffer(AL al)
             : this(al, al.GenBuffer())
         {
         }

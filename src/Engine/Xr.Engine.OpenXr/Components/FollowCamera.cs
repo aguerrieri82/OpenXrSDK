@@ -11,7 +11,7 @@ namespace Xr.Engine.OpenXr
 
             _host.Transform.Position = Offset.Transform(camera.WorldMatrix);
             _host.Transform.Orientation = camera.Transform.Orientation;
-                                         
+
 
             base.Update(ctx);
         }

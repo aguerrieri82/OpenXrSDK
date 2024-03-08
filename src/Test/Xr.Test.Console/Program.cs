@@ -2,9 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OpenXr;
 using OpenXr.Framework;
-using OpenXr.Samples;
 using Xr.Engine.Audio;
 
 

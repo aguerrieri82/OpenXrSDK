@@ -42,7 +42,7 @@ namespace Xr.Editor
             if (_currentPick != null)
                 OnEnter(_currentPick);
 
-  
+
         }
 
         protected virtual bool CanPick(Object3D obj)
@@ -75,7 +75,7 @@ namespace Xr.Editor
             if (_lastCollision?.Normal != null)
             {
                 canvas.Save();
-                canvas.State.Color = new Color(0, 1, 0, 1); 
+                canvas.State.Color = new Color(0, 1, 0, 1);
                 canvas.DrawLine(_lastCollision.Point, (_lastCollision.LocalPoint + _lastCollision.Normal.Value).Transform(_lastCollision.Object!.WorldMatrix) * 1);
                 Debug.WriteLine(_lastCollision.Normal);
                 canvas.Restore();

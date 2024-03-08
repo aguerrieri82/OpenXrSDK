@@ -1,21 +1,14 @@
 ﻿using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xr.Engine;
 using Xr.Engine.Colliders;
-using Xr.Engine.Physics;
-using MagicPhysX;
-using System.Numerics;
 using Xr.Engine.OpenXr;
+using Xr.Engine.Physics;
 
 namespace Xr.Test
 {
     public class BallGenerator : Behavior<Scene>
     {
-        List<TriangleMesh> _balls = [];
+        readonly List<TriangleMesh> _balls = [];
 
         public BallGenerator()
         {
@@ -93,7 +86,7 @@ namespace Xr.Test
 
         }
 
-        public Material? Material { get; set; }  
+        public Material? Material { get; set; }
 
         public XrPoseInput? Pose { get; set; }
 

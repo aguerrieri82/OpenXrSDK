@@ -1,19 +1,14 @@
 ﻿using OpenXr.Framework.Input;
 using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Framework.Oculus
 {
     public class XrHandInputMesh : XrHandInput
     {
-        private OculusXrPlugin _oculus;
+        private readonly OculusXrPlugin _oculus;
         private XrHandMesh? _mesh;
         private HandTrackingCapsulesStateFB.CapsulesBuffer _capsules;
-        private HandJointVelocityEXT[] _velocities;
+        private readonly HandJointVelocityEXT[] _velocities;
         private float _scale;
 
         public XrHandInputMesh(XrApp app) : base(app)
@@ -38,7 +33,7 @@ namespace OpenXr.Framework.Oculus
                 Type = StructureType.HandTrackingCapsulesStateFB,
                 Next = &scale,
             };
-        
+
             var aimState = new HandTrackingAimStateFB
             {
                 Type = StructureType.HandTrackingAimStateFB,
@@ -58,10 +53,10 @@ namespace OpenXr.Framework.Oculus
                 var result = LocateHandJoints(space, time, &velocities);
 
                 _capsules = capsuleState.Capsules;
-                
+
                 _scale = scale.CurrentOutput;
 
-                 return result;
+                return result;
             }
         }
 

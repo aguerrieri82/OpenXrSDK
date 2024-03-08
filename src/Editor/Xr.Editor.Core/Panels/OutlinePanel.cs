@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Xr.Engine;
+﻿using Xr.Engine;
 
 namespace Xr.Editor
 {

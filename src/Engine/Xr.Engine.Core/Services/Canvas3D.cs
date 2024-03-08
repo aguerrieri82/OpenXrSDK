@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using System.Security.Cryptography.X509Certificates;
 using Xr.Math;
 
 namespace Xr.Engine
@@ -15,9 +14,9 @@ namespace Xr.Engine
 
     public class Canvas3D
     {
-        LineMesh _lineMesh = new();
-        List<LineData> _data = [];
-        Stack<Canvas3DState> _states = [];
+        readonly LineMesh _lineMesh = new();
+        readonly List<LineData> _data = [];
+        readonly Stack<Canvas3DState> _states = [];
         Canvas3DState _curState;
 
         public Canvas3D()
@@ -96,7 +95,7 @@ namespace Xr.Engine
             _states.Push(_curState);
         }
 
-        public void Restore() 
+        public void Restore()
         {
             _curState = _states.Pop();
         }

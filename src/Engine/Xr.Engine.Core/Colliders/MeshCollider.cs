@@ -16,7 +16,7 @@ namespace Xr.Engine
 
         public MeshCollider(Geometry3D geometry)
         {
-            _geometry = geometry;   
+            _geometry = geometry;
         }
 
         protected override void Start(RenderContext ctx)
