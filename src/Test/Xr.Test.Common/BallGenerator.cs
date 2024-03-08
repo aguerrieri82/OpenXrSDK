@@ -1,8 +1,8 @@
 ﻿using OpenXr.Framework;
-using Xr.Engine;
-using Xr.Engine.Colliders;
-using Xr.Engine.OpenXr;
-using Xr.Engine.Physics;
+using XrEngine;
+using XrEngine.Colliders;
+using XrEngine.OpenXr;
+using XrEngine.Physics;
 
 namespace Xr.Test
 {

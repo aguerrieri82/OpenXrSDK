@@ -5,11 +5,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Engine\Xr.Engine.Audio\Xr.Engine.Audio.csproj" />
-		<ProjectReference Include="..\..\Engine\Xr.Engine.Compression\Xr.Engine.Compression.csproj" />
-		<ProjectReference Include="..\..\Engine\Xr.Engine.Glft\Xr.Engine.Gltf.csproj" />
-		<ProjectReference Include="..\..\Engine\Xr.Engine.OpenXr\Xr.Engine.OpenXr.csproj" />
-		<ProjectReference Include="..\..\Engine\Xr.Engine.Physics\Xr.Engine.Physics.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Audio\XrEngine.Audio.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Compression\XrEngine.Compression.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Glft\XrEngine.Gltf.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Physics\XrEngine.Physics.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -9,7 +9,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using Xr.Math;
+using XrMath;
 using Action = Silk.NET.OpenXR.Action;
 
 

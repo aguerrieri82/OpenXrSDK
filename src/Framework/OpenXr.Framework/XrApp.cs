@@ -873,12 +873,8 @@ namespace OpenXr.Framework
 
         #region ACTIONS
 
-        public T WithInteractionProfile<T>(Action<XrActionsBuilder<T>> build) where T : new()
+        protected void AddActions(IXrActionBuilder builder)
         {
-            var builder = new XrActionsBuilder<T>(this);
-
-            build(builder);
-
             foreach (var item in builder.Inputs)
                 AddInput(item);
 
@@ -887,6 +883,29 @@ namespace OpenXr.Framework
 
             foreach (var item in builder.Profiles)
                 _interactionProfiles.Add(item);
+
+        }
+
+        public object WithInteractionProfile(Type type, Action<IXrActionBuilder> build)
+        {
+            var builderType = typeof(XrActionsBuilder<>).MakeGenericType(type);
+            
+            var builder = (IXrActionBuilder)Activator.CreateInstance(builderType, this)!;
+            
+            build(builder);
+            
+            AddActions(builder);
+
+            return builder.Result;
+        }
+
+        public T WithInteractionProfile<T>(Action<XrActionsBuilder<T>> build) where T : new()
+        {
+            var builder = new XrActionsBuilder<T>(this);
+
+            build(builder);
+
+            AddActions(builder);
 
             return builder.Result;
         }

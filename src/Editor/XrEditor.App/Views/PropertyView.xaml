@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate DataType="{x:Type local:PropertyView}">
+        <StackPanel Orientation="Vertical">
+            <TextBlock Text="{Binding Label}"/>
+            <ContentPresenter Content="{Binding Editor}"/>
+        </StackPanel>
+    </DataTemplate>
+   
+</ResourceDictionary>

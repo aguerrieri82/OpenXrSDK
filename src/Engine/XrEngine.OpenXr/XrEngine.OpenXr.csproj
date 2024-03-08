@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
+		<ProjectReference Include="..\XrEngine.Audio\XrEngine.Audio.csproj" />
+		<ProjectReference Include="..\XrEngine.Filament\XrEngine.Filament.csproj" />
+		<ProjectReference Include="..\XrEngine.Glft\XrEngine.Gltf.csproj" />
+		<ProjectReference Include="..\XrEngine.OpenGL.Oculus\XrEngine.OpenGL.Oculus.csproj" />
+		<ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework\OpenXr.Framework.csproj" />
+		<ProjectReference Include="..\XrEngine.Physics\XrEngine.Physics.csproj" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
+		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
+	</PropertyGroup>
+
+</Project>

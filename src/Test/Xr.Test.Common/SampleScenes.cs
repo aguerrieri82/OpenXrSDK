@@ -2,17 +2,16 @@
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;
-using Xr.Engine;
-using Xr.Engine.Components;
-using Xr.Engine.Compression;
-using Xr.Engine.Gltf;
-using Xr.Engine.OpenXr;
-using Xr.Engine.Physics;
-using Xr.Math;
-using Xr.Test;
+using XrEngine;
+using XrEngine.Components;
+using XrEngine.Compression;
+using XrEngine.Gltf;
+using XrEngine.OpenXr;
+using XrEngine.Physics;
+using XrMath;
 
 
-namespace OpenXr.Samples
+namespace Xr.Test
 {
     public static class SampleScenes
     {
@@ -21,65 +20,14 @@ namespace OpenXr.Samples
             ConvertColorTextureSRgb = true,
         };
 
-        public static XrOculusTouchController ConfigureXrApp(EngineApp app, XrApp xrApp)
+        public static void ConfigureXrApp(XrEngineAppBuilder builder)
         {
-            var scene = app.ActiveScene!;
-
-            xrApp.RenderOptions.RenderMode = XrRenderMode.SingleEye;
-
-            var rHand = xrApp.AddHand<XrHandInputMesh>(HandEXT.RightExt);
-            var lHand = xrApp.AddHand<XrHandInputMesh>(HandEXT.LeftExt);
-
-            var hv1 = scene!.AddChild(new OculusHandView(rHand!));
-            var hv2 = scene!.AddChild(new OculusHandView(lHand!));
-
-            var inputs = xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
-               .AddAction(a => a.Right!.Button!.AClick)
-               .AddAction(a => a.Right!.GripPose)
-               .AddAction(a => a.Right!.AimPose)
-               .AddAction(a => a.Right!.Haptic!)
-               .AddAction(a => a.Right!.TriggerValue!)
-               .AddAction(a => a.Right!.SqueezeValue!)
-               .AddAction(a => a.Right!.TriggerClick)
-
-               .AddAction(a => a.Left!.GripPose)
-               .AddAction(a => a.Left!.AimPose)
-               .AddAction(a => a.Left!.TriggerClick!)
-               .AddAction(a => a.Left!.TriggerValue!)
-               .AddAction(a => a.Left!.SqueezeValue!));
-
-            var rayCol = scene!.AddComponent(new RayCollider(inputs.Right!.AimPose!));
-            rayCol.RayView.IsVisible = false;
-
-            scene.AddComponent(new InputObjectGrabber(
-                inputs.Right!.GripPose!,
-                null,
-                inputs.Right!.SqueezeValue!,
-                inputs.Right!.TriggerValue!));
-
-            scene.AddComponent(new InputObjectGrabber(
-                inputs.Left!.GripPose!,
-                null,
-                inputs.Left!.SqueezeValue!,
-                inputs.Left!.TriggerValue!));
-
-            hv1.AddComponent(new HandObjectGrabber());
-
-            //_scene.AddComponent<PassthroughGeometry>();
-            //_scene.AddChild(new OculusSceneModel());
-
-            var ptLayer = xrApp.Layers.Add<XrPassthroughLayer>();
-            //ptLayer.Purpose = PassthroughLayerPurposeFB.ProjectedFB;
-
-            xrApp.BindEngineApp(scene!.App!);
-
-            var xrRoot = scene.Descendants<XrRoot>().First();
-
-            xrRoot.RightController!.IsVisible = false;
-
-            scene.Version++;
-
-            return inputs;
+            builder.UseHands()
+                   .UseControllers()
+                   .UseInputs<XrOculusTouchController>()
+                   .AddPassthrough()
+                   .UseRayCollider()
+                   .UseGrabbers();
         }
 
         static EngineApp CreateBaseScene()
@@ -87,8 +35,6 @@ namespace OpenXr.Samples
             var app = new EngineApp();
 
             var scene = new Scene();
-
-            scene.AddComponent<PhysicsManager>();
 
             scene.AddComponent<DebugGizmos>();
 
@@ -121,19 +67,16 @@ namespace OpenXr.Samples
             return app;
         }
 
-        public static EngineApp CreateDisplay(IAssetManager assets)
+        public static EngineApp CreateDisplay()
         {
+            var assets = Platform.Current!.AssetManager;
+
             var app = CreateBaseScene();
 
             var display = new TriangleMesh(Quad3D.Instance);
             //display.Materials.Add(new StandardMaterial { Color = Color.White, DoubleSided = false, WriteDepth = false });
 
             display.Name = "display";
-
-            var trans = Matrix4x4.CreateScale(0.5f) *
-                        Matrix4x4.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
-
-            display.Geometry!.ApplyTransform(trans);
 
             display.Transform.Scale = new Vector3(1.924f, 1.08f, 0.01f);
 
@@ -144,8 +87,10 @@ namespace OpenXr.Samples
             return app;
         }
 
-        public static EngineApp CreatePingPong(IAssetManager assets)
+        public static EngineApp CreatePingPong()
         {
+            var assets = Platform.Current!.AssetManager;
+
             var app = CreateBaseScene();
 
             assets.FullPath("ping-pong paddle red.glb");
@@ -192,8 +137,11 @@ namespace OpenXr.Samples
             return app;
         }
 
-        public static EngineApp CreateChess(IAssetManager assets)
+        public static EngineApp CreateChess()
         {
+
+            var assets = Platform.Current!.AssetManager;
+
             var app = CreateBaseScene();
 
             assets.FullPath("Game/ABeautifulGame.bin");
@@ -215,7 +163,7 @@ namespace OpenXr.Samples
                     child.AddComponent<BoundsGrabbable>();
                 /*
                 if (child is TriangleMesh mc)
-                    Xr.Engine.MeshOptimizer.Simplify(mc.Geometry!);
+                    XrEngine.MeshOptimizer.Simplify(mc.Geometry!);
                 */
             }
 
@@ -229,8 +177,10 @@ namespace OpenXr.Samples
             return app;
         }
 
-        public static EngineApp CreateSponza(IAssetManager assets)
+        public static EngineApp CreateSponza()
         {
+            var assets = Platform.Current!.AssetManager;
+
             var app = CreateBaseScene();
 
             assets.FullPath("Sponza/Sponza.bin");
@@ -252,8 +202,10 @@ namespace OpenXr.Samples
             return app;
         }
 
-        public static EngineApp CreateRoom(IAssetManager assets)
+        public static EngineApp CreateRoom()
         {
+            var assets = Platform.Current!.AssetManager;
+
             var app = CreateBaseScene();
 
             var mesh = (Group3D)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, GltfOptions);
@@ -312,8 +264,7 @@ namespace OpenXr.Samples
             display.AddBehavior((obj, ctx) =>
             {
                 obj.Transform.Orientation =
-                Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f) *
-                Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
+                Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f);
 
             });
 

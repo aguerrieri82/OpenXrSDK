@@ -1,7 +1,7 @@
 ﻿using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;
-using Xr.Math;
+using XrMath;
 
 namespace OpenXr.Framework
 {

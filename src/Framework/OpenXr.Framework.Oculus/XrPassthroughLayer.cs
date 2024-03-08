@@ -1,6 +1,6 @@
 ﻿using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
-using Xr.Math;
+using XrMath;
 
 namespace OpenXr.Framework.Oculus
 {

@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
-using Xr.Engine;
-using Xr.Math;
+using XrEngine;
+using XrMath;
 
 namespace Xr.Test.Android
 {

@@ -38,9 +38,9 @@
 
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Engine\Xr.Engine.Filament\Xr.Engine.Filament.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.OpenXr.Android\XrEngine.OpenXr.Android.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
-		<ProjectReference Include="..\..\Engine\Xr.Engine.OpenXr\Xr.Engine.OpenXr.csproj" />
 		<ProjectReference Include="..\Xr.Test.Common\Xr.Test.Common.csproj" />
 		<ProjectReference Include="..\..\WebLink\Xr.WebLink.Android\Xr.WebLink.Android.csproj" />
 	</ItemGroup>

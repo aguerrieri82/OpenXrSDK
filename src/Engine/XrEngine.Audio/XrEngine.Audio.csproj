@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenAl.Framework\OpenAl.Framework.csproj" />
+    <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+  </ItemGroup>
+
+
+</Project>
