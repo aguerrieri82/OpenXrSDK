@@ -1,20 +1,32 @@
-﻿using Xr.Engine;
+﻿using System.Diagnostics;
+using Xr.Engine;
+using Xr.Engine.Components;
 
 namespace Xr.Editor
 {
-    public class PickTool : BaseMouseTool
+    public class PickTool : BaseMouseTool, IDrawGizmos
     {
         protected Object3D? _currentPick;
         protected Color? _oldColor;
+        protected Collision? _lastCollision;
+
+        public override void NotifySceneChanged()
+        {
+            var debug = _sceneView?.Scene?.Components<DebugGizmos>().FirstOrDefault();
+
+            if (debug != null)
+                debug.Debuggers.Add(this);
+        }
 
         protected override void OnMouseMove(PointerEvent ev)
         {
+            Debug.Assert(_sceneView?.Scene != null);
+
             var ray = ToRay(ev);
 
+            _lastCollision = _sceneView.Scene.RayCollisions(ray).FirstOrDefault();
 
-            var collision = _sceneView!.Scene!.RayCollisions(ray).FirstOrDefault();
-
-            var newPick = collision?.Object;
+            var newPick = _lastCollision?.Object;
 
             if (newPick != null && !CanPick(newPick))
                 newPick = null;
@@ -29,6 +41,8 @@ namespace Xr.Editor
 
             if (_currentPick != null)
                 OnEnter(_currentPick);
+
+  
         }
 
         protected virtual bool CanPick(Object3D obj)
@@ -53,6 +67,18 @@ namespace Xr.Editor
                 _oldColor = mat.Color;
                 mat.Color = new Color(0, 1, 0, 1);
                 mat.NotifyChanged();
+            }
+        }
+
+        public void DrawGizmos(Canvas3D canvas)
+        {
+            if (_lastCollision?.Normal != null)
+            {
+                canvas.Save();
+                canvas.State.Color = new Color(0, 1, 0, 1); 
+                canvas.DrawLine(_lastCollision.Point, (_lastCollision.LocalPoint + _lastCollision.Normal.Value).Transform(_lastCollision.Object!.WorldMatrix) * 1);
+                Debug.WriteLine(_lastCollision.Normal);
+                canvas.Restore();
             }
         }
     }

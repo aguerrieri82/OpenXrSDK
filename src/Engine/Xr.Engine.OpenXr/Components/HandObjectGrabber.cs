@@ -16,10 +16,8 @@ namespace Xr.Engine.OpenXr
         protected List<int> _distalIndices = [];
         protected int _thumbIndex;
         protected bool _isInit;
-        private int _wirstIndex;
 
-        public HandObjectGrabber(XrHaptic vibrate)
-            : base(vibrate)
+        public HandObjectGrabber()
         {
         }
 
@@ -82,8 +80,6 @@ namespace Xr.Engine.OpenXr
                 {
                     if (cap.Joint == HandJointEXT.ThumbDistalExt)
                         _thumbIndex = index;
-                    else if (cap.Joint == HandJointEXT.WristExt)
-                        _wirstIndex = index;
                     else if (//cap.Joint == HandJointEXT.RingDistalExt ||
                              //cap.Joint == HandJointEXT.LittleDistalExt ||
                         cap.Joint == HandJointEXT.IndexDistalExt 

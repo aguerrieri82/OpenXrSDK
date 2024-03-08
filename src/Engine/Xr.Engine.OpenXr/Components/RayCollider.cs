@@ -51,6 +51,7 @@ namespace Xr.Engine.OpenXr
             base.Update(ctx);
         }
 
+
         public RayView RayView => _rayView;
     }
 }

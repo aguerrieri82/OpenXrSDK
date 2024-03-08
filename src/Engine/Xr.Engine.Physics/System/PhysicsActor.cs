@@ -15,14 +15,15 @@ namespace Xr.Engine.Physics
     public enum PhysicsActorType
     {
         Static,
-        Dynamic
+        Dynamic,
+        Kinematic
     }
 
     public struct PhysicsActorInfo
     {
         public PhysicsActorType Type;
 
-        public PhysicsShape Shape;
+        public IList<PhysicsShape> Shapes;
 
         public PxTransform Transform;
 
@@ -75,6 +76,13 @@ namespace Xr.Engine.Physics
                 _handle->ReleaseMut();
                 _handle = null;
             }
+        }
+
+        public void Stop()
+        {
+            PxVec3 zero = new Vector3(0, 0, 0);
+            RigidDynamic.SetAngularVelocityMut(&zero, true);
+            RigidDynamic.SetLinearVelocityMut(&zero, true);
         }
 
         public bool IsValid => _handle != null;

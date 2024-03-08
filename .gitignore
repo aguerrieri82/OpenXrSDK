@@ -384,3 +384,4 @@ Makefile
 /third-party/filament-android
 /src/Test/Xr.Test.Android/Assets/Game
 /src/Oculus/Oculus.OVRPlugin/OVRPlugin.dll.i64
+/sdk/oculus-audio-sdk

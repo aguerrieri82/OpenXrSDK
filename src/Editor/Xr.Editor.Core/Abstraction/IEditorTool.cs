@@ -11,6 +11,8 @@ namespace Xr.Editor
     {
         void Attach(SceneView view);
 
+        void NotifySceneChanged();
+
         bool IsActive { get; }
     }
 }

@@ -34,7 +34,7 @@ namespace Xr.Editor
             {
                 void SetPivot(Vector3 value)
                 {
-                    obj3d.Transform.SetLocalPivot(value, true);
+                    obj3d.Transform.SetLocalPivot(value, false);
                     _properties?.First(a => a.Label == "Position")?.Editor?.NotifyValueChanged();
                 }
 

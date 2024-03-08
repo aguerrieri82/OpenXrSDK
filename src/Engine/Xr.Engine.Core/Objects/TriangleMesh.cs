@@ -3,7 +3,7 @@ using System.Collections.Specialized;
 
 namespace Xr.Engine
 {
-    public class TriangleMesh : Object3D, IVertexSource<VertexData, uint>
+    public class TriangleMesh : Object3D, IVertexSource<VertexData, uint>, ILocalBounds
     {
         readonly ObservableCollection<Material> _materials;
         private Geometry3D? _geometry;
@@ -36,17 +36,16 @@ namespace Xr.Engine
                     item.EnsureId();
                     item.Attach(this);
                 }
-
             }
 
             NotifyChanged(ObjectChangeType.Render);
         }
 
-        public override void UpdateWorldBounds()
+        public override void UpdateBounds()
         {
             if (Geometry != null)
                 _worldBounds = Geometry.Bounds.Transform(WorldMatrix);
-            _worldBoundsDirty = false;
+            _boundsDirty = false;
         }
 
         public TriangleMesh(Geometry3D geometry, Material? material = null)
@@ -77,12 +76,13 @@ namespace Xr.Engine
                 if (_geometry == value)
                     return;
                 _geometry = value;
-                _worldBoundsDirty = true;
+                _boundsDirty = true;
                 _geometry?.EnsureId();
                 NotifyChanged(ObjectChangeType.Geometry);
             }
         }
 
+        public Bounds3 LocalBounds => _geometry!.Bounds;
 
 
         #region IVertexSource

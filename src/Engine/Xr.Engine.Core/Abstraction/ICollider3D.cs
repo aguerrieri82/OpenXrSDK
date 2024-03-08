@@ -10,6 +10,8 @@ namespace Xr.Engine
 
         public Vector2? UV;
 
+        public Vector3? Normal;
+
         public float Distance;
 
         public Object3D? Object;

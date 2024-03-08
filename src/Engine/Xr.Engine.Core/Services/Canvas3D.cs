@@ -103,6 +103,7 @@ namespace Xr.Engine
         public void Flush()
         {
             _lineMesh.Vertices = _data.ToArray();
+            _lineMesh.IsVisible = _data.Count > 0;
             _lineMesh.Version++;
         }
 

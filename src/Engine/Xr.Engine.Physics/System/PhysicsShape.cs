@@ -37,6 +37,7 @@ namespace Xr.Engine.Physics
         {
             _handle = handle;
             _name = string.Empty;
+            
         }
 
 
@@ -61,6 +62,15 @@ namespace Xr.Engine.Physics
                 fixed (byte* pData = data)
                     _handle->SetNameMut(pData);
                 _name = value;
+            }
+        }
+
+        public PxTransform LocalPose
+        {
+            get => _handle->GetLocalPose();
+            set
+            {
+                _handle->SetLocalPoseMut(&value);
             }
         }
 

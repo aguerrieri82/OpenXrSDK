@@ -8,8 +8,7 @@ namespace Xr.Engine
 {
     public class Object3DInstance : Object3D
     {
-
-        public override void UpdateWorldBounds()
+        public override void UpdateBounds()
         {
             if (Reference == null)
                 return;
@@ -18,7 +17,7 @@ namespace Xr.Engine
                 .Transform(Reference.WorldMatrixInverse)
                 .Transform(WorldMatrix);
 
-            base.UpdateWorldBounds();
+            base.UpdateBounds();
         }
 
         public override T? Feature<T>() where T : class

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using Xr.Engine.Colliders;
 
 
 namespace Xr.Engine.Physics
@@ -14,10 +15,9 @@ namespace Xr.Engine.Physics
         private PhysicsActor _actor;
         private Geometry3D? _geometry;
         private PhysicsMaterial _material;
-        private PhysicsShape _shape;
         private bool _boundsTranslate;
         private PhysicsGeometryType _geoType;
-
+        private List<PhysicsShape> _shapes = [];
 
         public RigidBody()
         {
@@ -46,16 +46,17 @@ namespace Xr.Engine.Physics
 
             if (_geoType == PhysicsGeometryType.Box)
                 matrix = Matrix4x4.CreateTranslation(-_geometry!.Bounds.Center) * newTrans.Matrix;
+            else if (_geoType == PhysicsGeometryType.Capsule)
+                matrix = Matrix4x4.CreateRotationY(-MathF.PI / 2) * newTrans.Matrix;
             else
-                throw new NotSupportedException();
-
+                matrix = newTrans.Matrix;
 
             _host.Transform.SetMatrix(matrix * _host.Parent!.WorldMatrixInverse);
         }
 
         protected PxTransform GetPose()
         {
-            Debug.Assert(_geometry != null);
+            //Debug.Assert(_geometry != null);
 
             Matrix4x4 matrix;
 
@@ -64,7 +65,7 @@ namespace Xr.Engine.Physics
             else if (_geoType == PhysicsGeometryType.Capsule)
                 matrix = Matrix4x4.CreateRotationY(MathF.PI / 2) * _host!.WorldMatrix;
             else
-                throw new NotSupportedException();
+                matrix = _host!.WorldMatrix;
 
             Matrix4x4.Decompose(matrix, out var _, out var rotation, out var translation);
 
@@ -98,67 +99,67 @@ namespace Xr.Engine.Physics
             if (_system == null)
                 return;
 
-            PhysicsGeometry? pyGeo = null;
-
-            var collider = _host.Feature<ICollider3D>();
+            Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
 
             _geometry = _host.Feature<Geometry3D>();
 
-            if (_geometry == null)
-                return;
-
-            Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
-
-            if (collider is MeshCollider)
-            {
-                pyGeo = _system.CreateConvexMesh(
-                    _geometry.Indices,
-                    _geometry.ExtractPositions(),
-                   scale);
-            }
-            else if (collider is CapsuleCollider cap)
-            {
-                pyGeo = _system.CreateCapsule(cap.Radius * scale.X, cap.Height * scale.X * 0.5f);
-            }
-            else
-            {
-                _boundsTranslate = true;
-                pyGeo = _system.CreateBox(_geometry.Bounds.Size / 2 * scale);
-            }
-
-            if (pyGeo == null)
-                return;
-
-            _geoType = pyGeo.Value.Type;
-
             _material = _system.CreateMaterial(Material);
 
-            _shape = _system.CreateShape(new PhysicsShapeInfo
+            foreach (var collider in _host!.Components<ICollider3D>())
             {
-                Geometry = pyGeo.Value,
-                Material = _material,
-            });
+                if (!collider.IsEnabled)
+                    continue;
 
-            if (_host.Name != null)
-                _shape.Name = _host.Name;
+                PhysicsGeometry? pyGeo = null;
+
+                if (collider is MeshCollider mc)
+                {
+                    pyGeo = _system.CreateTriangleMesh(
+                        mc.Geometry.Indices,
+                        mc.Geometry.ExtractPositions(),
+                       scale);
+                }
+                else if (collider is CapsuleCollider cap)
+                {
+                    pyGeo = _system.CreateCapsule(cap.Radius * scale.X, cap.Height * scale.X * 0.5f);
+                }
+                else if (collider is SphereCollider sphere)
+                {
+                    pyGeo = _system.CreateSphere(sphere.Radius * scale.X);
+                }
+                else if (_host is ILocalBounds bounds)
+                {
+                    _boundsTranslate = true;
+                    pyGeo = _system.CreateBox(bounds.LocalBounds.Size / 2 * scale);
+                }
+
+                if (pyGeo == null)
+                    return;
+
+                _geoType = pyGeo.Value.Type;
+
+
+                var shape = _system.CreateShape(new PhysicsShapeInfo
+                {
+                    Geometry = pyGeo.Value,
+                    Material = _material,
+                });
+
+                if (_host.Name != null)
+                    shape.Name = _host.Name;
+
+                _shapes.Add(shape);
+            }
+
+
 
             _actor = _system.CreateActor(new PhysicsActorInfo
             {
                 Density = Density,
-                Shape = _shape,
+                Shapes = _shapes,
                 Transform = GetPose(),
                 Type = BodyType
             });
-
-            if (_host.Name == "Castle_W1")
-            {
-                var pose = new PxTransform
-                {
-                    p = new Vector3(0.136601955f, 1.18926859f, -0.0962362438f),
-                    q = new Quaternion(-0.255945385f, 0.0969442949f, 0.618091464f, 0.7369238f)
-                };
-                SetPose(pose);
-            }
         }
 
         protected override void Update(RenderContext ctx)
@@ -178,9 +179,10 @@ namespace Xr.Engine.Physics
             }
             else
             {
-                if (BodyType == PhysicsActorType.Dynamic)
+                if (BodyType == PhysicsActorType.Dynamic || BodyType == PhysicsActorType.Kinematic)
                 {
-                    _actor.IsKinematic = true;
+                    if (BodyType == PhysicsActorType.Dynamic)
+                        _actor.IsKinematic = true;
                     _actor.KinematicTarget = GetPose();
                 }
                 else
@@ -197,10 +199,14 @@ namespace Xr.Engine.Physics
                     _system.Scene.RemoveActorMut(_actor, false);
                     _actor.Release();
                 }
-                _shape.Release();
+
+                foreach (var shape in _shapes)
+                    shape.Release();
             }
             GC.SuppressFinalize(this);  
         }
+
+        public ref PhysicsActor Actor => ref _actor;
 
         public PhysicsActorType BodyType { get; set; }
 

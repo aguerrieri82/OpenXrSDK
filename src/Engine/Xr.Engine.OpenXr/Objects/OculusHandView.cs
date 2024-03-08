@@ -62,15 +62,13 @@ namespace Xr.Engine.OpenXr
                     });
 
                     var rb = capMesh.AddComponent<RigidBody>();
+                    rb.BodyType = PhysicsActorType.Kinematic;
                     rb.Material = new PhysicsMaterialInfo
                     {
                         StaticFriction = 10,
                         Restitution = 0,
                         DynamicFriction = 10
                     };
-
-                    capMesh.SetProp("IsGrabbing", true);
-
 
                     AddChild(capMesh);
                 }

@@ -153,16 +153,25 @@ namespace Xr.Engine.Physics
             switch (info.Type)
             {
                 case PhysicsActorType.Static:
-                    actor = (PxActor*)_physics->PhysPxCreateStatic1(&info.Transform, info.Shape);
+                    actor = (PxActor*)_physics->PhysPxCreateStatic1(&info.Transform, info.Shapes[0]);
                     break;
                 case PhysicsActorType.Dynamic:
-                    actor = (PxActor*)_physics->PhysPxCreateDynamic1(&info.Transform, info.Shape, info.Density);
+                case PhysicsActorType.Kinematic:
+                    actor = (PxActor*)_physics->PhysPxCreateDynamic1(&info.Transform, info.Shapes[0], info.Density);
                     break;
             }
 
+            foreach (var shape in info.Shapes.Skip(1))
+                ((PxRigidActor*)actor)->AttachShapeMut(shape);
+
+            ((PxRigidBody*)actor)->ExtUpdateMassAndInertia1(info.Density, null, true);
+
             _scene->AddActorMut(actor, null);
 
-            return new PhysicsActor(actor);
+            var result = new PhysicsActor(actor);
+            if (info.Type == PhysicsActorType.Kinematic)
+                result.IsKinematic = true;
+            return result;
         }
 
         public void CreateScene(Vector3 gravity)

@@ -8,7 +8,7 @@ namespace Xr.Engine
         protected Group3D? _parent;
         protected bool _worldDirty;
         protected Bounds3 _worldBounds;
-        protected bool _worldBoundsDirty;
+        protected bool _boundsDirty;
         protected Scene? _scene;
         protected bool _isVisible;
 
@@ -20,7 +20,7 @@ namespace Xr.Engine
         {
             _transform = new Transform3(this);
             _worldDirty = true;
-            _worldBoundsDirty = true;
+            _boundsDirty = true;
             _worldInverseDirty = true;
             IsVisible = true;
         }
@@ -53,7 +53,7 @@ namespace Xr.Engine
                     _worldMatrix = _transform.Matrix;
 
                 _worldInverseDirty = true;
-                _worldBoundsDirty = true;
+                _boundsDirty = true;
                 _worldDirty = false;
 
                 isChanged = true;
@@ -70,9 +70,9 @@ namespace Xr.Engine
         }
 
         //TODO protected
-        public virtual void UpdateWorldBounds()
+        public virtual void UpdateBounds()
         {
-            _worldBoundsDirty = false;
+            _boundsDirty = false;
         }
 
         public override void Update(RenderContext ctx)
@@ -165,8 +165,8 @@ namespace Xr.Engine
         {
             get
             {
-                if (_worldBoundsDirty)
-                    UpdateWorldBounds();
+                if (_boundsDirty)
+                    UpdateBounds();
                 return _worldBounds;
             }
         }
