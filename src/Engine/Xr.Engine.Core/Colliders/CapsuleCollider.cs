@@ -11,8 +11,10 @@ namespace Xr.Engine
         All = Top | Center | Bottom,    
     }
 
+
     public class CapsuleCollider : Behavior<Object3D>, ICollider3D
     {
+        //TODO implement
         public Collision? CollideWith(Ray3 ray)
         {
             var localRay = ray.Transform(_host!.WorldMatrixInverse);

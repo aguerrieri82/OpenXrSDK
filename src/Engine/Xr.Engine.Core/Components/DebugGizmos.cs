@@ -1,28 +1,56 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Xr.Engine.Components
 {
     public class DebugGizmos : Behavior<Scene>, IDrawGizmos
     {
+        public DebugGizmos()
+        {
+            Debuggers = [];
+            ShowBounds = false;
+        }
+
         public void DrawGizmos(Canvas3D canvas)
         {
             canvas.Save();
 
-            canvas.State.Color = new Color(1, 1, 0, 1);
-
-            foreach (var obj in _host!.DescendantsWithFeature<Geometry3D>())
+            if (ShowBounds)
             {
-                var local = obj.Feature!.Bounds;
-                canvas.State.Transform = obj.Object.WorldMatrix;
-                canvas.DrawBounds(local);
+                foreach (var obj in _host!.DescendantsWithFeature<ILocalBounds>())
+                {
+                    if (obj.Object is Group3D)
+                        canvas.State.Color = new Color(0, 1, 1, 1);
+                    else
+                        canvas.State.Color = new Color(1, 1, 0, 1);
+                    var local = obj.Feature!.LocalBounds;
+                    canvas.State.Transform = obj.Object.WorldMatrix;
+                    canvas.DrawBounds(local);
+                }
+
+                /*
+                canvas.State.Color = new Color(0, 1, 1, 1);
+                canvas.State.Transform = Matrix4x4.Identity;
+
+                foreach (var obj in _host!.Descendants<Group3D>())
+                    canvas.DrawBounds(obj.WorldBounds);
+                */
             }
-    
+
+            foreach (var debugger in Debuggers)
+                debugger.DrawGizmos(canvas);    
 
             canvas.Restore();
         }
+
+
+        public HashSet<IDrawGizmos> Debuggers { get; }
+
+        public bool ShowBounds { get; set; }
     }
 }

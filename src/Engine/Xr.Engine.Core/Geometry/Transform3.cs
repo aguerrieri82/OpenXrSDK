@@ -132,6 +132,12 @@ namespace Xr.Engine
             _host?.NotifyChanged(ObjectChangeType.Transform);
         }
 
+        public void Reset()
+        {
+            SetLocalPivot(Vector3.Zero, true);
+            SetMatrix(Matrix4x4.Identity);
+        }
+
         public ref Matrix4x4 Matrix
         {
             get

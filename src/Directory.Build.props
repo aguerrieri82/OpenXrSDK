@@ -22,6 +22,10 @@
 	</PropertyGroup>
 
 
+	<PropertyGroup  Condition="'$(Configuration)' == 'DebugGL'">
+		<DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+	</PropertyGroup>
+			   
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
 		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
 	</PropertyGroup>

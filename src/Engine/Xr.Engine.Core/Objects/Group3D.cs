@@ -2,9 +2,10 @@
 
 namespace Xr.Engine
 {
-    public class Group3D : Object3D
+    public class Group3D : Object3D, ILocalBounds
     {
         protected List<Object3D> _children = [];
+        private Bounds3 _localBounds;
 
         public Group3D()
         {
@@ -57,22 +58,31 @@ namespace Xr.Engine
             return child;
         }
 
-        public override void UpdateWorldBounds()
+        public override void UpdateBounds()
         {
             var bounds = new Bounds3();
 
             if (_children.Count > 0)
             {
-                bounds = _children[0].WorldBounds;
-            
-                foreach (var child in _children.Skip(1))
+                bounds.Min = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+                bounds.Max = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+
+                foreach (var child in _children)
                 {
-                    bounds.Min = Vector3.Min(child.WorldBounds.Min, bounds.Min);
-                    bounds.Max = Vector3.Min(child.WorldBounds.Max, bounds.Max);
+                    if (child is ILocalBounds childLocal)
+                    {
+                        var childLocalBounds = childLocal.LocalBounds.Transform(child.Transform.Matrix);
+
+                        bounds.Min = Vector3.Min(childLocalBounds.Min, bounds.Min);
+                        bounds.Max = Vector3.Max(childLocalBounds.Max, bounds.Max);
+                    }
                 }
             }
 
-            _worldBounds = bounds;
+            _localBounds = bounds;
+            _worldBounds = bounds.Transform(WorldMatrix);
+
+            base.UpdateBounds();
         }
 
         public void RemoveChild(Object3D child, bool preserveTransform = false)
@@ -83,6 +93,16 @@ namespace Xr.Engine
             _children.Remove(child);
 
             child.SetParent(null, preserveTransform);
+        }
+
+        public Bounds3 LocalBounds
+        {
+            get
+            {
+                if (_boundsDirty)
+                    UpdateBounds();
+                return _localBounds;
+            }
         }
 
         public IReadOnlyList<Object3D> Children => _children.AsReadOnly();

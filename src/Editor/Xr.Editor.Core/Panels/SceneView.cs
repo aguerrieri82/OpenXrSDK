@@ -185,6 +185,12 @@ namespace Xr.Editor
             }
         }
 
+        protected virtual void OnSceneChanged()
+        {
+            foreach (var tool in _tools)
+                tool.NotifySceneChanged();
+        }
+
         protected void UpdateSize()
         {
             _view.Width = (uint)(_renderSurface!.Size.X);
@@ -241,6 +247,7 @@ namespace Xr.Editor
 
                 OnPropertyChanged(nameof(Scene));
                 OnPropertyChanged(nameof(CameraList));
+                OnSceneChanged();
             }
         }
 

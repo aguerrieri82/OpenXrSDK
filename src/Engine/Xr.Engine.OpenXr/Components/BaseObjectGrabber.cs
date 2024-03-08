@@ -8,7 +8,7 @@ namespace Xr.Engine.OpenXr
 
         private Object3D? _grabObject;
         private IGrabbable? _grabbable;
-        private readonly XrHaptic _vibrate;
+        private readonly XrHaptic? _vibrate;
         private readonly TriangleMesh _grabView;
         private Quaternion _startInputOrientation;
         private Quaternion _startOrientation;
@@ -16,11 +16,11 @@ namespace Xr.Engine.OpenXr
         private bool _isVibrating;
         protected bool _grabStarted;
 
-        public BaseObjectGrabber(XrHaptic vibrate)
+        public BaseObjectGrabber(XrHaptic? vibrate = null)
         {
             _vibrate = vibrate;
             _grabView = new TriangleMesh(Cube3D.Instance, new StandardMaterial { Color = new Color(0, 1, 1, 1) });
-            _grabView.Transform.SetScale(0.01f);
+            _grabView.Transform.SetScale(0.005f);
         }
 
         protected override void Start(RenderContext ctx)
@@ -94,24 +94,33 @@ namespace Xr.Engine.OpenXr
             _grabView.Transform.Position = grabPoint.Position;
             _grabView.Transform.Orientation = grabPoint.Orientation;
 
+
             if (!_grabStarted)
             {
                 var grabObj = FindGrabbable(grabPoint.Position, out var grabbable);
 
                 if (grabObj != null)
                 {
-                   // _vibrate.VibrateStart(100, 1, TimeSpan.FromMilliseconds(500));
-                    _isVibrating = true;
+                    if (_vibrate != null)
+                    {
+                        _vibrate.VibrateStart(100, 1, TimeSpan.FromMilliseconds(500));
+                        _isVibrating = true;
+                    }
+            
                     if (isGrabbing)
                         StartGrabbing(grabbable!, grabObj, grabPoint);
+
+                    ((StandardMaterial)_grabView.Materials[0]).Color = new Color(0, 1, 0, 1);
                 }
                 else
                 {
                     if (_isVibrating)
                     {
-                        _vibrate.VibrateStop();
+                        _vibrate?.VibrateStop();
                         _isVibrating = false;
                     }
+
+                    ((StandardMaterial)_grabView.Materials[0]).Color = new Color(0, 1, 1, 1);
                 }
             }
             else

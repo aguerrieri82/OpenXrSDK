@@ -85,6 +85,11 @@ namespace Xr.Editor
 
         }
 
+        public virtual void NotifySceneChanged()
+        {
+            
+        }
+
         public bool IsActive => _isActive;
 
     }

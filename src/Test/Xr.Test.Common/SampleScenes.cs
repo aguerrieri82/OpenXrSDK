@@ -11,6 +11,7 @@ using Xr.Engine.Compression;
 using Xr.Engine.Gltf;
 using Xr.Engine.OpenXr;
 using Xr.Engine.Physics;
+using Xr.Test;
 
 
 namespace OpenXr.Samples
@@ -29,8 +30,10 @@ namespace OpenXr.Samples
             xrApp.RenderOptions.RenderMode = XrRenderMode.SingleEye;
 
             var rHand = xrApp.AddHand<XrHandInputMesh>(HandEXT.RightExt);
+            var lHand = xrApp.AddHand<XrHandInputMesh>(HandEXT.LeftExt);
 
-            var hv = scene!.AddChild(new OculusHandView(rHand!));
+            var hv1 = scene!.AddChild(new OculusHandView(rHand!));
+            var hv2 = scene!.AddChild(new OculusHandView(lHand!));
 
             var inputs = xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.Button!.AClick)
@@ -39,18 +42,30 @@ namespace OpenXr.Samples
                .AddAction(a => a.Right!.Haptic!)
                .AddAction(a => a.Right!.TriggerValue!)
                .AddAction(a => a.Right!.SqueezeValue!)
-               .AddAction(a => a.Right!.TriggerClick));
+               .AddAction(a => a.Right!.TriggerClick)
+
+               .AddAction(a => a.Left!.GripPose)
+               .AddAction(a => a.Left!.AimPose)
+               .AddAction(a => a.Left!.TriggerClick!)
+               .AddAction(a => a.Left!.TriggerValue!)
+               .AddAction(a => a.Left!.SqueezeValue!));
 
             var rayCol = scene!.AddComponent(new RayCollider(inputs.Right!.AimPose!));
             rayCol.RayView.IsVisible = false;
 
             scene.AddComponent(new InputObjectGrabber(
                 inputs.Right!.GripPose!,
-                inputs.Right!.Haptic!,
+                null,
                 inputs.Right!.SqueezeValue!,
                 inputs.Right!.TriggerValue!));
 
-            hv.AddComponent(new HandObjectGrabber(inputs!.Right!.Haptic!));
+            scene.AddComponent(new InputObjectGrabber(
+                inputs.Left!.GripPose!,
+                null,
+                inputs.Left!.SqueezeValue!,
+                inputs.Left!.TriggerValue!));
+
+            hv1.AddComponent(new HandObjectGrabber());
 
             //_scene.AddComponent<PassthroughGeometry>();
             //_scene.AddChild(new OculusSceneModel());
@@ -137,11 +152,41 @@ namespace OpenXr.Samples
 
             assets.FullPath("ping-pong paddle red.glb");
 
-            var mesh = GltfLoader.Instance.Load(assets.FullPath("ping-pong paddle red.glb"), assets, GltfOptions);
+            var mesh = (Group3D)GltfLoader.Instance.Load(assets.FullPath("ping-pong paddle red.glb"), assets, GltfOptions);
             mesh.Name = "mesh";
-            mesh.Transform.SetScale(1f);
+            
+            mesh.Transform.LocalPivot = new Vector3(0.054f, -0.04f, 0.174f);
+            mesh.Transform.Update();
+            mesh.Transform.Rotation = new Vector3(-0.863f, -0.21f, -1.25f);
+            mesh.Transform.Position = Vector3.Zero;
+
+            mesh.Transform.Update();
+
+      
+            foreach (var geo in mesh.DescendantsWithFeature<Geometry3D>())
+                geo.Feature.ApplyTransform(mesh.Transform.Matrix);
+
+            mesh.Transform.Reset();
             mesh.Transform.Position = new Vector3(0, 1, 0);
+           
+
+            // mesh.Forward = new Vector3(-0.14504775f, -0.97817063f, 0.14880678f);
+
             mesh.AddComponent<BoundsGrabbable>();
+
+            foreach (var item in mesh.DescendantsWithFeature<TriangleMesh>())
+                mesh.AddComponent(new MeshCollider(item.Feature.Geometry!));
+
+            var rb = mesh.AddComponent<RigidBody>();
+            rb.BodyType = PhysicsActorType.Kinematic;
+            rb.Material = new PhysicsMaterialInfo
+            {
+                Restitution = 0.5f,
+                DynamicFriction = 0.7f,
+                StaticFriction = 0.7f
+            };
+
+            app.ActiveScene!.AddComponent<BallGenerator>(); 
 
             app.ActiveScene!.AddChild(mesh);
             ((PerspectiveCamera)app.ActiveScene!.ActiveCamera!).Target = mesh.Transform.Position;

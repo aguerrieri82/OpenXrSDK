@@ -8,7 +8,7 @@ namespace Xr.Engine.OpenXr
         protected readonly XrInput<XrPose> _input;
         protected readonly XrInput<float>[] _handlers;
 
-        public InputObjectGrabber(XrInput<XrPose> input, XrHaptic vibrate, params XrInput<float>[] handlers)
+        public InputObjectGrabber(XrInput<XrPose> input, XrHaptic? vibrate, params XrInput<float>[] handlers)
             : base(vibrate)
         {
             _input = input;

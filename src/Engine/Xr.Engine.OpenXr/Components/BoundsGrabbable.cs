@@ -6,11 +6,11 @@ namespace Xr.Engine.OpenXr
     {
         public bool CanGrab(Vector3 position)
         {
-            var mesh = _host!.Feature<TriangleMesh>();
-            if (mesh != null)
-                return mesh.Geometry!.Bounds.Contains(position.Transform(_host.WorldMatrixInverse));
+            var local = _host!.Feature<ILocalBounds>();
+            if (local != null)
+                return local.LocalBounds.Contains(position.Transform(_host.WorldMatrixInverse));
 
-            return _host!.WorldBounds.Contains(position);   
+            return false;  
         }
 
         public void Grab()
