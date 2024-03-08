@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\third-party\etcpak\EtcPack.vcxproj" />
+		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="..\..\..\third-party\etcpak\bin\x64\Release\etcpack.dll" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
+
+		<Content Include="..\..\..\third-party\etcpak\bin\x64\Release\etcpack.pdb" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
+
+		<Content Include="..\..\..\third-party\etcpak\libs\arm64-v8a\libetcpack.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
+
+
+		<AndroidNativeLibrary Include="..\..\..\third-party\etcpak\libs\arm64-v8a\libetcpack.so" Abi="arm64-v8a" />
+	</ItemGroup>
+
+
+	
+
+</Project>

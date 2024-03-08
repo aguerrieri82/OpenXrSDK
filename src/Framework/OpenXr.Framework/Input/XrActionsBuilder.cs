@@ -3,7 +3,20 @@ using System.Reflection;
 
 namespace OpenXr.Framework
 {
-    public class XrActionsBuilder<TProfile> where TProfile : new()
+
+    public interface IXrActionBuilder
+    {
+        public IList<string> Profiles { get; }
+
+        public IList<IXrInput> Inputs { get; }
+
+        public IList<XrHaptic> Haptics { get; }
+
+        public object Result { get; }
+    }
+
+
+    public class XrActionsBuilder<TProfile> : IXrActionBuilder where TProfile : new()
     {
         readonly List<IXrInput> _inputs = [];
         readonly TProfile _result;
@@ -204,6 +217,8 @@ namespace OpenXr.Framework
 
             return this;
         }
+
+        object IXrActionBuilder.Result => _result!;
 
         public TProfile Result => _result;
 

@@ -1,0 +1,44 @@
+﻿using OpenXr.Framework.Android;
+using OpenXr.Framework.Oculus;
+using OpenXr.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Xr.Test.Android;
+using XrEngine;
+using XrEngine.OpenXr;
+using Android.Content;
+
+namespace Xr.Test.Common
+{
+    public static class XrEngineAppBuilderExtension
+    {
+        public static XrEngineAppBuilder AddWebBrowser(this XrEngineAppBuilder builder, Context context, string objName) => 
+            
+            builder.UseInputs<XrOculusTouchController>(). 
+                    ConfigureApp(e =>
+        {
+            var display = e.App.ActiveScene!.FindByName<TriangleMesh>(objName);
+
+            if (display == null)
+                return;
+
+            var inputs = e.GetInputs<XrOculusTouchController>();
+
+            if (display != null)
+            {
+                var controller = new SurfaceController(
+                    inputs.Right!.TriggerClick!,
+                    inputs.Right!.SqueezeClick!,
+                    inputs.Right!.Haptic!);
+
+                display.AddComponent(controller);
+
+                e.XrApp.Layers.AddWebView(context, display.BindToQuad(), controller);
+            }
+
+        });
+    }
+}

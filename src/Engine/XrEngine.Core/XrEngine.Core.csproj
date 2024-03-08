@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>XrEngine</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Shaders/**/*.*" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Shaders\Pbr\uniforms.glsl" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.1.8" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
+	  <ProjectReference Include="..\MeshOptimizer\MeshOptimizer.csproj" />
+	</ItemGroup>
+
+</Project>

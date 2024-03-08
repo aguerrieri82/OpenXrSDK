@@ -1,6 +1,6 @@
 ﻿using Silk.NET.OpenXR;
 using System.Numerics;
-using Xr.Math;
+using XrMath;
 using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework

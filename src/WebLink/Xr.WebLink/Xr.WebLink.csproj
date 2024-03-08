@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
     <ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
-    <ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
     <ProjectReference Include="..\Xr.WebLink.Entities\Xr.WebLink.Entities.csproj" />
   </ItemGroup>
 

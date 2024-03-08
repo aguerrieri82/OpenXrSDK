@@ -2,8 +2,8 @@
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.OpenGL;
-using Xr.Engine;
-using Xr.Engine.OpenXr;
+using XrEngine;
+using XrEngine.OpenXr;
 
 namespace OpenXr.Samples
 {

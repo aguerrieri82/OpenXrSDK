@@ -5,11 +5,11 @@ using Silk.NET.OpenGL;
 #endif
 
 using Microsoft.Extensions.Logging;
-using Xr.Engine;
-using Xr.Engine.OpenGL;
+using XrEngine;
+using XrEngine.OpenGL;
 using Silk.NET.Windowing;
 using System.Numerics;
-using Xr.Math;
+using XrMath;
 
 
 

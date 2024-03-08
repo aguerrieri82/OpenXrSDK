@@ -1,7 +1,7 @@
 ﻿using MagicPhysX;
 using Microsoft.Extensions.Logging;
 using System.Numerics;
-using Xr.Engine.Physics;
+using XrEngine.Physics;
 using static MagicPhysX.NativeMethods;
 
 namespace OpenXr.Samples

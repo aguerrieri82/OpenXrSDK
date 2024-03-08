@@ -16,12 +16,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Engine\Xr.Engine.Compression\Xr.Engine.Compression.csproj" />
-		<ProjectReference Include="..\..\Engine\Xr.Engine.Filament\Xr.Engine.Filament.csproj" />
-		<ProjectReference Include="..\..\Engine\Xr.Engine.Glft\Xr.Engine.Gltf.csproj" />
-		<ProjectReference Include="..\..\Engine\Xr.Engine.OpenGL\Xr.Engine.OpenGL.csproj" />
-		<ProjectReference Include="..\..\Engine\Xr.Engine.OpenXr\Xr.Engine.OpenXr.csproj" />
-		<ProjectReference Include="..\..\Engine\Xr.Engine.Physics\Xr.Engine.Physics.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Compression\XrEngine.Compression.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Glft\XrEngine.Gltf.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Physics\XrEngine.Physics.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
 		<ProjectReference Include="..\..\Oculus\Oculus.OVRPlugin\Oculus.OVRPlugin.csproj" />
 		<ProjectReference Include="..\..\Oculus\Oculus.Platform\Oculus.Platform.csproj" />

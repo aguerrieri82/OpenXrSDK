@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\third-party\MagicPhysX\src\MagicPhysX\MagicPhysX.csproj" />
+		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="runtimes/**/*" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+
+</Project>

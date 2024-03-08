@@ -1,7 +1,7 @@
 ﻿using Silk.NET.OpenXR;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using Xr.Math;
+using XrMath;
 
 namespace OpenXr.Framework
 {

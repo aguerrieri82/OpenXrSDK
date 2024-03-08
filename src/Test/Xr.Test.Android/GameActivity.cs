@@ -4,14 +4,11 @@ using Android.Webkit;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Oculus;
-using OpenXr.Framework.Vulkan;
-using OpenXr.Samples;
-using Silk.NET.OpenGLES;
 using Silk.NET.OpenXR;
-using Xr.Engine;
-using Xr.Engine.Filament;
-using Xr.Engine.OpenGL;
-using Xr.Engine.OpenXr;
+using Xr.Test.Common;
+using XrEngine;
+using XrEngine.OpenXr;
+using XrEngine.OpenXr.Android;
 
 namespace Xr.Test.Android
 {
@@ -29,18 +26,16 @@ namespace Xr.Test.Android
     ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.Orientation,
     ScreenOrientation = ScreenOrientation.Landscape)]
     [MetaData("com.samsung.android.vr.application.mode", Value = "vr_only")]
-    public class GameActivity : XrActivity
+    public class GameActivity : XrEngineActivity
     {
-        private EngineApp? _game;
-        private VulkanDevice? _vkDevice;
         private WebView? _webView;
         private XrWebViewLayer? _webViewLayer;
 
         protected override void OnAppStarted(XrApp app)
         {
-            var rates = app.Plugin<OculusXrPlugin>().EnumerateDisplayRefreshRates();
-
             app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
+
+            _webViewLayer = _engine!.XrApp.Layers.Layers.OfType<XrWebViewLayer>().FirstOrDefault();
 
             if (_webViewLayer != null)
             {
@@ -51,114 +46,11 @@ namespace Xr.Test.Android
             base.OnAppStarted(app);
         }
 
-        protected unsafe override XrApp CreateApp()
+        protected override void Build(XrEngineAppBuilder builder)
         {
-            var renderMode = XrRenderMode.SingleEye;
-            var useFilament = true;
-            uint sampleCount = 4;
-
-            PbrMaterial.DefaultLinearOutput = true;
-
-            Platform.Current = new Platform
-            {
-                AssetManager = new AndroidAssetManager(this, "Assets")
-            };
-
-            _game = SampleScenes.CreatePingPong(Platform.Current.AssetManager);
-
-            _game.ActiveScene!.Descendants<PlaneGrid>().First().IsVisible = false;
-
-            IXrGraphicDriver driver;
-
-            if (useFilament)
-            {
-                var filamentOptions = new FilamentOptions
-                {
-                    Driver = FilamentLib.FlBackend.Vulkan,
-                    MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath,
-                    EnableStereo = renderMode != XrRenderMode.SingleEye,
-                    OneViewPerTarget = true,
-                    SampleCount = sampleCount
-                };
-
-                if (filamentOptions.Driver == FilamentLib.FlBackend.Vulkan)
-                {
-                    _vkDevice = new VulkanDevice();
-                    _vkDevice.Initialize(
-                        ["VK_KHR_surface", "VK_KHR_android_surface", "VK_KHR_external_memory_capabilities", "VK_KHR_get_physical_device_properties2"],
-                        ["VK_KHR_swapchain", "VK_KHR_external_memory", "VK_KHR_get_memory_requirements2"]
-                    );
-
-                    var ctx = new FilamentLib.VulkanSharedContext
-                    {
-                        GraphicsQueueFamilyIndex = _vkDevice.QueueFamilyIndex,
-                        GraphicsQueueIndex = _vkDevice.QueueIndex,
-                        Instance = _vkDevice.Instance.Handle,
-                        LogicalDevice = _vkDevice.LogicalDevice.Handle,
-                        PhysicalDevice = _vkDevice.PhysicalDevice.Handle
-                    };
-
-                    filamentOptions.Context = new(&ctx);
-
-                    _game.Renderer = new FilamentRender(filamentOptions);
-
-                    driver = new XrVulkanGraphicDriver(_vkDevice);
-
-                }
-                else
-                {
-                    var glDriver = new AndroidXrOpenGLESGraphicDriver();
-
-                    filamentOptions.Context = (IntPtr)glDriver.Context.Context!.NativeHandle;
-
-                    _game.Renderer = new FilamentRender(filamentOptions);
-
-                    driver = glDriver;
-                }
-            }
-            else
-            {
-                var glDriver = new AndroidXrOpenGLESGraphicDriver();
-
-                _game.Renderer = new OpenGLRender(glDriver.GetApi<GL>(), new GlRenderOptions
-                {
-                    RequireTextureCompression = true,
-                });
-
-                driver = glDriver;
-            }
-
-            var logger = new AndroidLogger("XrApp");
-
-            var xrApp = new XrApp(logger,
-                new OculusXrPlugin(),
-                driver,
-                new AndroidXrPlugin(this));
-
-            xrApp.RenderOptions.SampleCount = sampleCount;
-            xrApp.RenderOptions.RenderMode = renderMode;
-            xrApp.RenderOptions.ResolutionScale = 0.8f;
-
-            var inputs = SampleScenes.ConfigureXrApp(_game, xrApp);
-
-            var display = _game.ActiveScene!.FindByName<TriangleMesh>("display")!;
-
-            if (display != null)
-            {
-                var controller = new SurfaceController(
-                    inputs.Right!.TriggerClick!,
-                    inputs.Right!.SqueezeClick!,
-                    inputs.Right!.Haptic!);
-
-                display.AddComponent(controller);
-                display.AddComponent<DisplayPosition>();
-
-                _webViewLayer = xrApp.Layers.AddWebView(this, display.BindToQuad(), controller);
-            }
-
-            // StartService(new Intent(this, typeof(WebLinkService)));
-
-            return xrApp;
+            builder.UseApp(SampleScenes.CreatePingPong())
+                   .RemovePlaneGrid()
+                   .AddWebBrowser(this, "display");
         }
     }
 }

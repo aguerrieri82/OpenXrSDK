@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+
+	<ItemGroup>
+		<PackageReference Include="Silk.NET.OpenAL" Version="2.20.0" />
+		<PackageReference Include="Silk.NET.OpenAL.Extensions.Enumeration" Version="2.20.0" />
+		<PackageReference Include="Silk.NET.OpenAL.Extensions.Soft" Version="2.20.0" />
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
+	  <SupportedOSPlatformVersion>29</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
+    <ProjectReference Include="..\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using Xr.Math;
+using XrMath;
 
 namespace OpenXr.Framework
 {
