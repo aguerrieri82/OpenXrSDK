@@ -11,7 +11,7 @@ namespace Xr.Test.Android
         public AndroidAssetManager(Context context, string basePath)
         {
             _context = context;
-            _basePath = basePath;   
+            _basePath = basePath;
         }
 
         public string FullPath(string name)
@@ -26,7 +26,7 @@ namespace Xr.Test.Android
 
             if (name.StartsWith(filesBase))
                 name = name.Substring(filesBase.Length + 1);
-            
+
             using var srcStream = _context.Assets!.Open(Path.Join(_basePath, name));
             using var dstStream = File.OpenWrite(mainDir);
             srcStream.CopyTo(dstStream);

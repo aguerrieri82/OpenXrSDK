@@ -4,18 +4,12 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xr.Engine.OpenGL
 {
     public class GlProgramInstance : IBufferProvider
     {
-        static Dictionary<string, GlProgram> _programs = [];
+        static readonly Dictionary<string, GlProgram> _programs = [];
 
         protected Dictionary<string, IGlBuffer> _buffers = [];
         protected ShaderUpdate? _update;
@@ -48,7 +42,7 @@ namespace Xr.Engine.OpenGL
                 var resolver = shader.Resolver!;
 
                 program = new GlSimpleProgram(_gl, resolver(shader.VertexSourceName!), resolver(shader.FragmentSourceName!), resolver);
-   
+
                 foreach (var ext in _update.Extensions!)
                     program.AddExtension(ext);
 
@@ -74,7 +68,7 @@ namespace Xr.Engine.OpenGL
             Program = program;
         }
 
-        public IBuffer GetBuffer<T>(string name, T data, bool isGlobal) 
+        public IBuffer GetBuffer<T>(string name, T data, bool isGlobal)
         {
             if (isGlobal)
                 return Global.GetBuffer(name, data, true);
@@ -83,7 +77,7 @@ namespace Xr.Engine.OpenGL
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
                 buffer.AssignSlot();
-                _buffers[name] = buffer; 
+                _buffers[name] = buffer;
             }
             return buffer;
         }

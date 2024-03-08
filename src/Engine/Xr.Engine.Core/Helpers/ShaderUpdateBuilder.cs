@@ -94,12 +94,13 @@ namespace Xr.Engine
                     .Update(curValue);
             });
 
-            _result.Actions!.Add((ctx, up) => {
+            _result.Actions!.Add((ctx, up) =>
+            {
 
                 var curValue = value(ctx);
                 var buffer = ctx.BufferProvider!.GetBuffer(name, curValue, isGlobal);
                 up.SetUniform(name, buffer, optional);
-             });
+            });
         }
 
         public readonly void SetUniform(string name, UpdateAction<float> value, bool optional = false)

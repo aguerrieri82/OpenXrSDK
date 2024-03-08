@@ -13,7 +13,7 @@ namespace Xr.Math
         public Sphere TopSphere => new()
         {
             Center = Pose.Position + Vector3.Transform(new Vector3(0, Height / 2, 0), Pose.Orientation),
-            Radius = Radius,    
+            Radius = Radius,
         };
 
         public Sphere BottomSphere => new()

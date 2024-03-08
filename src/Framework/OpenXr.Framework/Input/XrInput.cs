@@ -156,7 +156,7 @@ namespace OpenXr.Framework
             _isActive = _app.GetActionPoseIsActive(_action, _subPath);
             _isChanged = true;
             _lastChangeTime = DateTime.Now;
-            
+
             var spaceInfo = _app.LocateSpace(_space, refSpace, predictTime);
             if (spaceInfo.IsValid)
                 _value = spaceInfo.Pose;

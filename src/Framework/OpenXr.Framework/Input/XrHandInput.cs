@@ -1,10 +1,5 @@
 ﻿using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.EXT;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenXr.Framework.Input
 {
@@ -35,7 +30,7 @@ namespace OpenXr.Framework.Input
 
         public virtual unsafe HandJointLocationEXT[] LocateHandJoints(Space space, long time)
         {
-            return LocateHandJoints(space, time, null); 
+            return LocateHandJoints(space, time, null);
         }
 
         protected unsafe HandJointLocationEXT[] LocateHandJoints(Space space, long time, void* next)

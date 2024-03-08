@@ -1,7 +1,4 @@
-﻿using Silk.NET.OpenAL;
-using Silk.NET.OpenAL.Extensions.Enumeration;
-
-namespace Xr.Engine.Audio
+﻿namespace Xr.Engine.Audio
 {
     public interface IAudioDecoder
     {

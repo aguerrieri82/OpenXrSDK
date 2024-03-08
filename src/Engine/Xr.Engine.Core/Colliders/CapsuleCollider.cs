@@ -9,7 +9,7 @@ namespace Xr.Engine
         Top = 0x1,
         Center = 0x2,
         Bottom = 0x4,
-        All = Top | Center | Bottom,    
+        All = Top | Center | Bottom,
     }
 
 
@@ -42,7 +42,7 @@ namespace Xr.Engine
 
         public float Height { get; set; }
 
-        public float Radius { get; set; }   
+        public float Radius { get; set; }
 
         public CapsuleColliderMode Mode { get; set; }
     }

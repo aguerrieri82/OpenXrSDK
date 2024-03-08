@@ -136,10 +136,10 @@ namespace Xr.Engine
             {
                 var feat = item.Feature<T>();
                 if (feat != null)
-                    yield return new ObjectFeature<T> 
-                    { 
-                        Object = item, 
-                        Feature = feat 
+                    yield return new ObjectFeature<T>
+                    {
+                        Object = item,
+                        Feature = feat
                     };
             }
         }

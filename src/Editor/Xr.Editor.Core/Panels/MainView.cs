@@ -1,5 +1,4 @@
-﻿using OpenXr.Framework;
-using OpenXr.Samples;
+﻿using OpenXr.Samples;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;

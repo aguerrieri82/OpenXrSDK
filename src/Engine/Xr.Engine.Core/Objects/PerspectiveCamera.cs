@@ -41,7 +41,7 @@ namespace Xr.Engine
             get => _target;
             set
             {
-               LookAt(WorldPosition, value, Up);
+                LookAt(WorldPosition, value, Up);
             }
         }
 

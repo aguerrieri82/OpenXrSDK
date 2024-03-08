@@ -1,13 +1,6 @@
 ﻿using MagicPhysX;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace Xr.Engine.Physics
 {
@@ -27,7 +20,7 @@ namespace Xr.Engine.Physics
 
         public PxShapeFlags Flags;
     }
-    
+
     public unsafe struct PhysicsShape
     {
         PxShape* _handle;
@@ -37,7 +30,7 @@ namespace Xr.Engine.Physics
         {
             _handle = handle;
             _name = string.Empty;
-            
+
         }
 
 
@@ -52,7 +45,7 @@ namespace Xr.Engine.Physics
 
         public string Name
         {
-            get 
+            get
             {
                 return _name;
             }

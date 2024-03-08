@@ -4,8 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Security.Cryptography;
-using System.Text;
 using System.Diagnostics.CodeAnalysis;
 
 

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace Xr.Engine
+﻿namespace Xr.Engine
 {
     public static class EnumerableExtensions
     {
@@ -9,7 +7,7 @@ namespace Xr.Engine
             if (target is IList<T> list)
             {
                 int curI = 0;
-                while (curI  < list.Count)
+                while (curI < list.Count)
                 {
                     try
                     {

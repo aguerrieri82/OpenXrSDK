@@ -1,17 +1,10 @@
 ﻿#if GLES
-using Microsoft.VisualBasic;
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xr.Engine.OpenGL
 {
@@ -23,7 +16,7 @@ namespace Xr.Engine.OpenGL
         public GlProgramGlobal(GL gl, Type materialType)
         {
             MaterialType = materialType;
-            _gl = gl;   
+            _gl = gl;
         }
 
         public void UpdateProgram(UpdateShaderContext ctx, params IShaderHandler?[] globalHandlers)
@@ -45,12 +38,12 @@ namespace Xr.Engine.OpenGL
                 Update = globalBuilder.Result;
             }
 
-   
+
             foreach (var action in Update!.BufferUpdates!)
                 action(ctx);
         }
 
-        public IBuffer GetBuffer<T>(string name, T data,  bool isGlobal) 
+        public IBuffer GetBuffer<T>(string name, T data, bool isGlobal)
         {
             if (!_buffers.TryGetValue(name, out var buffer))
             {

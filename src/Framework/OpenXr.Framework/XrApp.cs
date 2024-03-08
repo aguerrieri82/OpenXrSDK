@@ -83,7 +83,7 @@ namespace OpenXr.Framework
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
         {
-   
+
         }
 
         public XrApp(ILogger logger, params IXrPlugin[] plugins)
@@ -93,7 +93,7 @@ namespace OpenXr.Framework
             _lastSessionState = SessionState.Unknown;
             _layers = new XrLayerManager(this);
             _renderOptions = new XrRenderOptions();
-            
+
             _extensions.Add(ExtPerformanceSettings.ExtensionName);
             _extensions.Add(ExtHandTracking.ExtensionName);
 
@@ -856,7 +856,7 @@ namespace OpenXr.Framework
         public XrHandInput AddHand(HandEXT type)
         {
             return AddHand<XrHandInput>(type);
-        } 
+        }
 
         public T AddHand<T>(HandEXT type) where T : XrHandInput
         {
@@ -1201,7 +1201,7 @@ namespace OpenXr.Framework
                     var result = _xr.PollEvent(_instance, ref buffer);
                     if (result != Result.Success)
                         return false;
-                     
+
 
                     _logger.LogDebug("New event {ev}", buffer.Type);
 
@@ -1358,13 +1358,13 @@ namespace OpenXr.Framework
 
         public Space Stage => _stage;
 
-        public long LastFrameTime => _lastFrameTime;    
+        public long LastFrameTime => _lastFrameTime;
 
         public SessionState SessionState => _lastSessionState;
 
         public ILogger Logger => _logger;
 
-        public IEnumerable<Swapchain> SwapChains => _swapchains?.Select(a=> a.Swapchain) ?? [];
+        public IEnumerable<Swapchain> SwapChains => _swapchains?.Select(a => a.Swapchain) ?? [];
 
         public IReadOnlyDictionary<string, IXrInput> Inputs => _inputs;
 

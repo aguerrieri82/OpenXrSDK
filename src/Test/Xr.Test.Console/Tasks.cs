@@ -148,8 +148,8 @@ namespace OpenXr
             using var xrApp = new XrApp(logger,
                     new XrOpenGLGraphicDriver(viewManager.View),
                     new OpenXr.Framework.Oculus.OculusXrPlugin());
-            
-           // xrApp.AttachInstance(inst);
+
+            // xrApp.AttachInstance(inst);
             xrApp.Start();
 
             //boolRes = OVRP_OBSOLETE.ovrp_Initialize(5, 0);
@@ -159,7 +159,7 @@ namespace OpenXr
 
 
 
-   
+
 
 
             var settings = new UserDefinedSettings()

@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xr.Editor.Nodes;
+﻿using Xr.Editor.Nodes;
 
 namespace Xr.Editor
 {
     public class NodeFactory
     {
-        List<INodeHandler> _handlers = [];
+        readonly List<INodeHandler> _handlers = [];
 
-        public NodeFactory() 
+        public NodeFactory()
         {
             RegisterHandler(new EngineObjectNodeHandler());
         }

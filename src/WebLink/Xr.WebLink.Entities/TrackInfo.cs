@@ -1,5 +1,4 @@
-﻿using OpenXr.Framework;
-using Xr.Math;
+﻿using Xr.Math;
 
 namespace Xr.WebLink.Entities
 {

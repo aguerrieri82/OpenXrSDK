@@ -18,7 +18,7 @@ namespace Xr.Engine
             _scene = this;
             _gizmos = new Canvas3D();
 
-            AddChild(_gizmos.Content); 
+            AddChild(_gizmos.Content);
 
             this.AddLayer<TypeLayer<Light>>();
             this.AddLayer<TypeLayer<Camera>>();

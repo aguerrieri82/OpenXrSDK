@@ -7,7 +7,7 @@ namespace Xr.Engine.Audio
     {
         private Device* _device;
         private Context* _context;
-        private AL _al;
+        private readonly AL _al;
 
         public AudioDevice()
         {
@@ -33,7 +33,7 @@ namespace Xr.Engine.Audio
 
         public IList<string> ListDevices(ALContext alc)
         {
-            var result = new List<string>();    
+            var result = new List<string>();
 
             if (alc.TryGetExtension<Enumeration>(null, out var enumeration))
             {

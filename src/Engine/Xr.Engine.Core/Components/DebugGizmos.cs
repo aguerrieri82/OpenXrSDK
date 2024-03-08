@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-namespace Xr.Engine.Components
+﻿namespace Xr.Engine.Components
 {
     public class DebugGizmos : Behavior<Scene>, IDrawGizmos
     {
@@ -43,7 +35,7 @@ namespace Xr.Engine.Components
             }
 
             foreach (var debugger in Debuggers)
-                debugger.DrawGizmos(canvas);    
+                debugger.DrawGizmos(canvas);
 
             canvas.Restore();
         }

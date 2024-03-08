@@ -1,14 +1,6 @@
 ﻿using MagicPhysX;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Xsl;
 
 namespace Xr.Engine.Physics
 {
@@ -53,7 +45,7 @@ namespace Xr.Engine.Physics
 
         public PxTransform KinematicTarget
         {
-            get 
+            get
             {
                 PxTransform value;
                 RigidDynamic.GetKinematicTarget(&value);
@@ -92,7 +84,7 @@ namespace Xr.Engine.Physics
         public readonly ref PxRigidStatic RigidStatic => ref Unsafe.AsRef<PxRigidStatic>(_handle);
 
         public readonly ref PxRigidBody RigidBody => ref Unsafe.AsRef<PxRigidBody>(_handle);
-        
+
         public readonly ref PxRigidActor RigidActor => ref Unsafe.AsRef<PxRigidActor>(_handle);
 
         public readonly ref PxActor Actor => ref Unsafe.AsRef<PxActor>(_handle);

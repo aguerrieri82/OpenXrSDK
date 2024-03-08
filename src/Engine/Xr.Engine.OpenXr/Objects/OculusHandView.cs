@@ -1,13 +1,6 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Xr.Engine.Physics;
 using Xr.Math;
 
@@ -18,7 +11,7 @@ namespace Xr.Engine.OpenXr
         protected XrHandInputMesh _input;
         protected bool _isInit;
 
-        public OculusHandView(XrHandInputMesh input) 
+        public OculusHandView(XrHandInputMesh input)
         {
             _input = input;
         }
@@ -32,7 +25,7 @@ namespace Xr.Engine.OpenXr
 
         protected override void UpdateSelf(RenderContext ctx)
         {
-        
+
             if (!_isInit && XrApp.Current != null && XrApp.Current.IsStarted && _input.IsActive)
             {
                 _input.LoadMesh();
@@ -53,8 +46,8 @@ namespace Xr.Engine.OpenXr
 
                     bool isTip = ((int)capsule.Joint + 1) % 5 == 0;
 
-                    var capMesh = new TriangleMesh(new Capsule3D(capsule.Radius, len), isTip ? capMaterial2 :  capMaterial);
-                    
+                    var capMesh = new TriangleMesh(new Capsule3D(capsule.Radius, len), isTip ? capMaterial2 : capMaterial);
+
                     capMesh.AddComponent(new CapsuleCollider()
                     {
                         Height = len,

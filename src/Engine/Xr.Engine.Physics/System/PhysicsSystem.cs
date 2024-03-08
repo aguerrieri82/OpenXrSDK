@@ -1,8 +1,8 @@
-﻿using System.Numerics;
-using System.Text;
-using MagicPhysX;
-using static MagicPhysX.NativeMethods;
+﻿using MagicPhysX;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Text;
+using static MagicPhysX.NativeMethods;
 
 namespace Xr.Engine.Physics
 {
@@ -16,7 +16,7 @@ namespace Xr.Engine.Physics
         private PxDefaultCpuDispatcher* _dispatcher;
         private PxScene* _scene;
 
-        public PhysicsSystem() 
+        public PhysicsSystem()
         {
         }
 
@@ -29,7 +29,7 @@ namespace Xr.Engine.Physics
         public PhysicsGeometry CreateBox(Vector3 halfSize)
         {
             var geo = PxBoxGeometry_new_1(halfSize);
-     
+
             return new PhysicsGeometry((PxGeometry*)&geo, PhysicsGeometryType.Box);
         }
 
@@ -78,7 +78,7 @@ namespace Xr.Engine.Physics
             outStream->Delete();
             */
 
-            var mesh =  param.PhysPxCreateTriangleMesh(&desc, phys_PxGetStandaloneInsertionCallback(), &result);
+            var mesh = param.PhysPxCreateTriangleMesh(&desc, phys_PxGetStandaloneInsertionCallback(), &result);
 
             var meshScale = new PxMeshScale
             {
@@ -254,7 +254,7 @@ namespace Xr.Engine.Physics
 
                 _scene->SimulateMut(stepSize, null, null, 0, true);
 
-                curTime += stepSize;    
+                curTime += stepSize;
             }
 
             _scene->FetchResultsMut(true, &error);

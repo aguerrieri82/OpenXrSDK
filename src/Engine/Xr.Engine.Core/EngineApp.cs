@@ -1,5 +1,4 @@
-﻿using SkiaSharp;
-using Xr.Math;
+﻿using Xr.Math;
 
 namespace Xr.Engine
 {

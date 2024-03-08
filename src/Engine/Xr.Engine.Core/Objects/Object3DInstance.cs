@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xr.Math;
+﻿using Xr.Math;
 
 namespace Xr.Engine
 {
@@ -30,6 +25,6 @@ namespace Xr.Engine
         }
 
 
-        public Object3D? Reference { get; set; } 
+        public Object3D? Reference { get; set; }
     }
 }

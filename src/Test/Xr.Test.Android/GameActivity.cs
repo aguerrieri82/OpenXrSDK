@@ -130,9 +130,9 @@ namespace Xr.Test.Android
 
             var logger = new AndroidLogger("XrApp");
 
-            var xrApp = new XrApp(logger, 
+            var xrApp = new XrApp(logger,
                 new OculusXrPlugin(),
-                driver, 
+                driver,
                 new AndroidXrPlugin(this));
 
             xrApp.RenderOptions.SampleCount = sampleCount;

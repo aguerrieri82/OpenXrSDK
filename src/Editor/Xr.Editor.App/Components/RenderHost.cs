@@ -1,5 +1,4 @@
 ﻿#if GLES
-using Silk.NET.OpenGLES;
 #else
 #endif
 

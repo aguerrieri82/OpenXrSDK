@@ -2,11 +2,9 @@
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Samples;
-using Silk.NET.OpenXR;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Linq;
 using Xr.Engine;
-using Xr.Engine.OpenXr;
 
 namespace Xr.Editor
 {
@@ -90,7 +88,7 @@ namespace Xr.Editor
             try
             {
                 _xrApp!.Start();
-               
+
                 _xrState = SceneXrState.StartRequested;
                 _ui.NotifyMessage("XR Session started", MessageType.Info);
 

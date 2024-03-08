@@ -1,11 +1,10 @@
 ﻿using System.Numerics;
-using Xr.Math;
 
 namespace OpenXr.Framework
 {
     public static class XrMath
     {
-      
+
         /*
         public unsafe static Matrix4x4 InvertRigidBody(this Matrix4x4 src)
         {
