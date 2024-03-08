@@ -1,4 +1,6 @@
-﻿namespace OpenXr.Framework
+﻿using Xr.Math;
+
+namespace OpenXr.Framework
 {
     public class XrAnchor
     {
@@ -8,8 +10,8 @@
 
         public Rect2? Bounds2D { get; set; }
 
-        public XrPose? Pose { get; set; }
+        public Pose3? Pose { get; set; }
 
-        public XrMesh? Mesh { get; set; }
+        public Mesh? Mesh { get; set; }
     }
 }

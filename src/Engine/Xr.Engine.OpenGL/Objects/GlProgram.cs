@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Text;
 using System.Collections.ObjectModel;
 using System;
+using Xr.Math;
 
 
 namespace Xr.Engine.OpenGL

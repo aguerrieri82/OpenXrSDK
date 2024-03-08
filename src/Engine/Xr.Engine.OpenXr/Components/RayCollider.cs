@@ -1,14 +1,15 @@
 ﻿using OpenXr.Framework;
+using Xr.Math;
 
 namespace Xr.Engine.OpenXr
 {
     public class RayCollider : Behavior<Scene>
     {
-        readonly XrInput<XrPose> _input;
+        readonly XrInput<Pose3> _input;
         readonly RayView _rayView;
 
 
-        public RayCollider(XrInput<XrPose> input)
+        public RayCollider(XrInput<Pose3> input)
         {
             _input = input;
             _rayView = new RayView();
@@ -21,7 +22,7 @@ namespace Xr.Engine.OpenXr
 
         protected override void Update(RenderContext ctx)
         {
-            if (_input.IsChanged && _input.IsActive && _input.Value != null)
+            if (_input.IsChanged && _input.IsActive)
             {
                 _rayView.Transform.Position = _input.Value.Position;
                 _rayView.Transform.Orientation = _input.Value.Orientation;

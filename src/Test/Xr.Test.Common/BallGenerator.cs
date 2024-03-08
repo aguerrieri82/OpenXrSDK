@@ -40,8 +40,8 @@ namespace Xr.Test
             rb.Material = new PhysicsMaterialInfo
             {
                 Restitution = 1,
-                StaticFriction = 0.2f,
-                DynamicFriction = 0.2f
+                StaticFriction = 0.8f,
+                DynamicFriction = 0.8f
             };
 
             return ball;
@@ -49,16 +49,26 @@ namespace Xr.Test
 
         protected Object3D PickBall()
         {
+            /*
             foreach (var ball in _balls)
             {
                 if (ball.WorldPosition.Y < 10)
                 {
                     var rb = ball.Components<RigidBody>().First();
+
                     rb.Actor.Stop();
+                    rb.Actor.IsKinematic = true;
+                    rb.Actor.KinematicTarget = new PxTransform
+                    {
+                        p = Pose!.Value.Position,
+                        q = Quaternion.Identity
+                    };
+                    rb.Actor.IsKinematic = false;
 
                     return ball;
                 }
             }
+            */
 
             var newBall = NewBall();
             _balls.Add(newBall);

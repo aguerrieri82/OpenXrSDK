@@ -20,7 +20,7 @@ namespace OpenXr.Samples
             var mat = manager.CreateMaterial(new PhysicsMaterialInfo { StaticFriction = 0.5f, DynamicFriction = 0.5f, Restitution = 0.6f });
             var geo = manager.CreateBox(new Vector3(0.5f, 0.5f, 0.5f));
             var shape = manager.CreateShape(new PhysicsShapeInfo { Geometry = geo, Material = mat });
-            var actor = manager.CreateActor(new PhysicsActorInfo { Shape = shape, Transform = PxTransform_new_2(PxIDENTITY.PxIdentity), Type = PhysicsActorType.Dynamic, Density = 10f });
+            var actor = manager.CreateActor(new PhysicsActorInfo { Shapes = [shape], Transform = PxTransform_new_2(PxIDENTITY.PxIdentity), Type = PhysicsActorType.Dynamic, Density = 10f });
 
             for (int i = 0; i < 300; i++)
             {

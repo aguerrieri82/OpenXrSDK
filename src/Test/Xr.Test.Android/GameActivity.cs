@@ -53,8 +53,8 @@ namespace Xr.Test.Android
 
         protected unsafe override XrApp CreateApp()
         {
-            var renderMode = XrRenderMode.MultiView;
-            var useFilament = false;
+            var renderMode = XrRenderMode.SingleEye;
+            var useFilament = true;
             uint sampleCount = 4;
 
             PbrMaterial.DefaultLinearOutput = true;
@@ -64,7 +64,9 @@ namespace Xr.Test.Android
                 AssetManager = new AndroidAssetManager(this, "Assets")
             };
 
-            _game = SampleScenes.CreateChess(Platform.Current.AssetManager);
+            _game = SampleScenes.CreatePingPong(Platform.Current.AssetManager);
+
+            _game.ActiveScene!.Descendants<PlaneGrid>().First().IsVisible = false;
 
             IXrGraphicDriver driver;
 
@@ -75,7 +77,8 @@ namespace Xr.Test.Android
                     Driver = FilamentLib.FlBackend.Vulkan,
                     MaterialCachePath = GetExternalCacheDirs()![0].AbsolutePath,
                     EnableStereo = renderMode != XrRenderMode.SingleEye,
-                    OneViewPerTarget = true
+                    OneViewPerTarget = true,
+                    SampleCount = sampleCount
                 };
 
                 if (filamentOptions.Driver == FilamentLib.FlBackend.Vulkan)

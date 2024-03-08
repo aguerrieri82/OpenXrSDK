@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Xr.Engine
+namespace Xr.Math
 {
     public struct Spherical
     {
@@ -24,7 +24,6 @@ namespace Xr.Engine
                 Pol = MathF.Atan2(vector.Z, vector.X)
             };
             res.Azm = MathF.Acos(vector.Y / res.R);
-
             return res;
         }
 

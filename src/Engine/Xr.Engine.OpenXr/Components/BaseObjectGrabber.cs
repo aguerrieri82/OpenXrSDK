@@ -1,8 +1,18 @@
 ﻿using OpenXr.Framework;
 using System.Numerics;
+using Xr.Math;
 
 namespace Xr.Engine.OpenXr
 {
+    public struct ObjectGrab
+    {
+        public Pose3 Pose;
+
+        public bool IsGrabbing;
+
+        public bool IsValid;
+    }
+
     public abstract class BaseObjectGrabber<T> : Behavior<T>  where T : Object3D
     {
 
@@ -28,7 +38,7 @@ namespace Xr.Engine.OpenXr
            _host!.Scene!.AddChild(_grabView);
         }
 
-        protected abstract bool IsGrabbing(out XrPose? grabPoint);
+        protected abstract ObjectGrab IsGrabbing();
 
         protected Object3D? FindGrabbable(Vector3 worldPos, out IGrabbable? grabbable)
         {
@@ -48,7 +58,7 @@ namespace Xr.Engine.OpenXr
             return null;
         }
 
-        protected virtual void StartGrabbing(IGrabbable grabbable, Object3D grabObj, XrPose grabPoint)
+        protected virtual void StartGrabbing(IGrabbable grabbable, Object3D grabObj, Pose3 grabPoint)
         {
             _grabStarted = true;
             _grabbable = grabbable;
@@ -64,7 +74,7 @@ namespace Xr.Engine.OpenXr
             _grabbable.Grab();
         }
 
-        protected virtual void MoveGrabbing(XrPose grabPoint)
+        protected virtual void MoveGrabbing(Pose3 grabPoint)
         {
             _grabObject!.WorldPosition = grabPoint.Position;
             _grabObject!.Transform.Orientation = MathUtils.QuatAdd(_startOrientation, MathUtils.QuatDiff(grabPoint.Orientation, _startInputOrientation));
@@ -86,18 +96,18 @@ namespace Xr.Engine.OpenXr
 
         protected override void Update(RenderContext ctx)
         {
-            bool isGrabbing = IsGrabbing(out var grabPoint);
+            var objGrab = IsGrabbing();
 
-            if (grabPoint == null)
+            if (!objGrab.IsValid)
                 return;
 
-            _grabView.Transform.Position = grabPoint.Position;
-            _grabView.Transform.Orientation = grabPoint.Orientation;
+            _grabView.Transform.Position = objGrab.Pose.Position;
+            _grabView.Transform.Orientation = objGrab.Pose.Orientation;
 
 
             if (!_grabStarted)
             {
-                var grabObj = FindGrabbable(grabPoint.Position, out var grabbable);
+                var grabObj = FindGrabbable(objGrab.Pose.Position, out var grabbable);
 
                 if (grabObj != null)
                 {
@@ -107,8 +117,8 @@ namespace Xr.Engine.OpenXr
                         _isVibrating = true;
                     }
             
-                    if (isGrabbing)
-                        StartGrabbing(grabbable!, grabObj, grabPoint);
+                    if (objGrab.IsGrabbing)
+                        StartGrabbing(grabbable!, grabObj, objGrab.Pose);
 
                     ((StandardMaterial)_grabView.Materials[0]).Color = new Color(0, 1, 0, 1);
                 }
@@ -125,12 +135,12 @@ namespace Xr.Engine.OpenXr
             }
             else
             {
-                if (!isGrabbing)
+                if (!objGrab.IsGrabbing)
                     StopGrabbing();
             }
 
             if (_grabStarted)
-                MoveGrabbing(grabPoint);
+                MoveGrabbing(objGrab.Pose);
         }
 
         public Object3D GrabView => _grabView;

@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Xr.Math;
 
 namespace OpenXr.Framework
 {
@@ -38,10 +39,10 @@ namespace OpenXr.Framework
         public XrInput<bool>? ThumbrestTouch;
 
         [XrPath("/input/grip/pose")]
-        public XrInput<XrPose>? GripPose;
+        public XrInput<Pose3>? GripPose;
 
         [XrPath("/input/aim/pose")]
-        public XrInput<XrPose>? AimPose;
+        public XrInput<Pose3>? AimPose;
 
         [XrPath("/output/haptic")]
         public XrHaptic? Haptic;

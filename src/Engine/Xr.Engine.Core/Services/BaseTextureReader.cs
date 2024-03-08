@@ -46,7 +46,7 @@
 
             uint Align(uint value, uint align)
             {
-                return (uint)Math.Ceiling(value / (float)align) * align;
+                return (uint)MathF.Ceiling(value / (float)align) * align;
             }
 
             var results = new List<TextureData>();
@@ -55,8 +55,8 @@
             {
                 var item = new TextureData
                 {
-                    Width = Math.Max(1, width >> i),
-                    Height = Math.Max(1, height >> i),
+                    Width = (uint)MathF.Max(1, width >> i),
+                    Height = (uint)MathF.Max(1, height >> i),
                     MipLevel = (uint)i,
                     Format = format,
                     Compression = comp,

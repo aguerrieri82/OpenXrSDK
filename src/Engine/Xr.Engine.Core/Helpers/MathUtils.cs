@@ -74,7 +74,7 @@ namespace Xr.Engine
             Quaternion quaternion = new Quaternion();
             if (num8 > 0f)
             {
-                float num = (float)Math.Sqrt(num8 + 1f);
+                float num = MathF.Sqrt(num8 + 1f);
                 quaternion.W = num * 0.5f;
                 num = 0.5f / num;
                 quaternion.X = (m12 - m21) * num;
@@ -84,7 +84,7 @@ namespace Xr.Engine
             }
             if ((m00 >= m11) && (m00 >= m22))
             {
-                float num7 = (float)Math.Sqrt(((1f + m00) - m11) - m22);
+                float num7 = MathF.Sqrt(((1f + m00) - m11) - m22);
                 float num4 = 0.5f / num7;
                 quaternion.X = 0.5f * num7;
                 quaternion.Y = (m01 + m10) * num4;
@@ -94,7 +94,7 @@ namespace Xr.Engine
             }
             if (m11 > m22)
             {
-                float num6 = (float)Math.Sqrt(((1f + m11) - m00) - m22);
+                float num6 = MathF.Sqrt(((1f + m11) - m00) - m22);
                 float num3 = 0.5f / num6;
                 quaternion.X = (m10 + m01) * num3;
                 quaternion.Y = 0.5f * num6;
@@ -102,7 +102,7 @@ namespace Xr.Engine
                 quaternion.W = (m20 - m02) * num3;
                 return quaternion;
             }
-            float num5 = (float)Math.Sqrt(((1f + m22) - m00) - m11);
+            float num5 = MathF.Sqrt(((1f + m22) - m00) - m11);
             float num2 = 0.5f / num5;
             quaternion.X = (m20 + m02) * num2;
             quaternion.Y = (m21 + m12) * num2;

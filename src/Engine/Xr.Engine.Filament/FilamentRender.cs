@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using Xr.Math;
 using static Xr.Engine.Filament.FilamentLib;
 
 namespace Xr.Engine.Filament
@@ -11,6 +12,7 @@ namespace Xr.Engine.Filament
         public string? MaterialCachePath;
         public bool EnableStereo;
         public bool OneViewPerTarget;
+        public uint SampleCount;
     }
 
     public class FilamentRender : IRenderEngine
@@ -49,6 +51,7 @@ namespace Xr.Engine.Filament
         protected FlBackend _driver;
         protected bool _oneViewPerTarget;
         protected uint _renderTargetDepth;
+        protected uint _sampleCount;
 
         public FilamentRender(FilamentOptions options)
         {
@@ -66,6 +69,7 @@ namespace Xr.Engine.Filament
             };
 
             _renderTargetDepth = 1;
+            _sampleCount = options.SampleCount <= 0 ? 1 : _sampleCount;
             /*
             if (options.EnableStereo && options.Driver == FlBackend.OpenGL)
                 _renderTargetDepth = 2;
@@ -120,7 +124,7 @@ namespace Xr.Engine.Filament
                 ShadowingEnabled = false,
                 ShadowType = FlShadowType.PCF,
                 BlendMode = FlBlendMode.OPAQUE,
-                SampleCount = 1,
+                SampleCount = _sampleCount,
                 StencilBufferEnabled = false,
                 FrustumCullingEnabled = false,
                 ScreenSpaceRefractionEnabled = false,

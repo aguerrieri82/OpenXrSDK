@@ -1,8 +1,9 @@
 ﻿using System.Numerics;
+using Xr.Math;
 
 namespace Xr.Engine
 {
-    public class Transform3
+    public class Transform3D
     {
         protected bool _isDirty;
         protected Vector3 _scale;
@@ -13,7 +14,7 @@ namespace Xr.Engine
         protected Vector3 _rotation;
         protected Object3D? _host;
 
-        public Transform3(Object3D? host = null)
+        public Transform3D(Object3D? host = null)
         {
             _host = host;
             _scale = new Vector3(1, 1, 1);
@@ -21,9 +22,9 @@ namespace Xr.Engine
             _matrix = Matrix4x4.Identity;
         }
 
-        public Transform3 Clone()
+        public Transform3D Clone()
         {
-            return new Transform3
+            return new Transform3D
             {
                 LocalPivot = _localPivot,
                 Position = _position,

@@ -1,6 +1,7 @@
 ﻿using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;
+using Xr.Math;
 
 namespace OpenXr.Framework
 {
@@ -60,7 +61,7 @@ namespace OpenXr.Framework
                         xrOculus.GetSpaceComponentEnabled(space.Space, OculusXrPlugin.XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META))
                     {
                         var mesh = xrOculus.GetSpaceTriangleMesh(space.Space);
-                        item.Mesh = new XrMesh
+                        item.Mesh = new Mesh
                         {
                             Indices = mesh.Indices,
                             Vertices = mesh.Vertices!.Convert().To<Vector3>()

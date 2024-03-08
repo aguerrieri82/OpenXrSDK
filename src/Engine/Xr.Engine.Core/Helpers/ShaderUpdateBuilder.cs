@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using Xr.Math;
 
 
 namespace Xr.Engine

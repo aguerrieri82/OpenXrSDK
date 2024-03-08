@@ -125,8 +125,8 @@ namespace Xr.Engine.Compression
                 {
                     Compression = TextureCompressionFormat.Etc2,
                     MipLevel = (uint)level,
-                    Width = (uint)Math.Max(1, image.Width >> level),
-                    Height = (uint)Math.Max(1, image.Height >> level),
+                    Width = (uint)MathF.Max(1, image.Width >> level),
+                    Height = (uint)MathF.Max(1, image.Height >> level),
                     Format = useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32
                 };
 
@@ -144,8 +144,8 @@ namespace Xr.Engine.Compression
 
                 if (texData.Width != image.Width || texData.Height != image.Height)
                 {
-                    var pWidth = (int)Math.Ceiling(texData.Width / 4f) * 4;
-                    var pHeight = (int)Math.Ceiling(texData.Height / 4f) * 4;
+                    var pWidth = (int)MathF.Ceiling(texData.Width / 4f) * 4;
+                    var pHeight = (int)MathF.Ceiling(texData.Height / 4f) * 4;
 
                     var so = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
 

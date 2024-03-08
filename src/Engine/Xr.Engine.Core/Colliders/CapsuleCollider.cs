@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Xr.Math;
 
 namespace Xr.Engine
 {
@@ -27,7 +28,7 @@ namespace Xr.Engine
 
             float d2 = Vector3.Dot(oc, oc) - tca * tca;
 
-            float thc = (float)Math.Sqrt(Radius * Radius - d2);
+            float thc = MathF.Sqrt(Radius * Radius - d2);
 
             float t0 = tca - thc;
             float t1 = tca + thc;

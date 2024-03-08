@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Xr.Math;
 
 namespace Xr.Engine.OpenXr
 {
@@ -35,7 +36,7 @@ namespace Xr.Engine.OpenXr
 
                         Debug.Assert(meshObj.Geometry != null);
 
-                        var triMesh = new XrMesh
+                        var triMesh = new Mesh
                         {
                             Indices = meshObj.Geometry.Indices,
                             Vertices = meshObj.Geometry.ExtractPositions()

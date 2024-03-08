@@ -11,6 +11,7 @@ using Xr.Engine.OpenGL.Oculus;
 using Xr.Engine.Filament;
 using static Xr.Engine.Filament.FilamentLib;
 using System.Numerics;
+using Xr.Math;
 
 
 namespace Xr.Engine.OpenXr
@@ -23,12 +24,15 @@ namespace Xr.Engine.OpenXr
         {
             return () =>
             {
-                var result = new XrQuad
+                var result = new Quad3
                 {
-                    IsVisible = mesh.IsVisible && mesh.Parent != null,
+                    //IsVisible = mesh.IsVisible && mesh.Parent != null,
                     Size = new Vector2(mesh.Transform.Scale.X, mesh.Transform.Scale.Y),
-                    Orientation = mesh.Transform.Orientation,
-                    Position = mesh.Transform.Position
+                    Pose = new Pose3
+                    {
+                        Orientation = mesh.Transform.Orientation,
+                        Position = mesh.Transform.Position
+                    }
                 };
 
                 return result;
@@ -133,7 +137,7 @@ namespace Xr.Engine.OpenXr
 
                     xrApp!.LocateViews(xrApp.Head, predTime, headViews);
 
-                    camera.WorldMatrix = (Matrix4x4.CreateFromQuaternion(headLoc.Pose!.Orientation) *
+                    camera.WorldMatrix = (Matrix4x4.CreateFromQuaternion(headLoc.Pose.Orientation) *
                                           Matrix4x4.CreateTranslation(headLoc.Pose.Position));
 
 

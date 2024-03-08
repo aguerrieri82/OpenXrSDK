@@ -1,6 +1,7 @@
 ﻿using OpenXr.Framework;
 using System.Numerics;
 using Xr.Engine.Gltf;
+using Xr.Math;
 
 namespace Xr.Engine.OpenXr
 {
@@ -32,7 +33,7 @@ namespace Xr.Engine.OpenXr
 
                 if (input.IsChanged && input.IsActive)
                 {
-                    var pose = (XrPose)input.Value;
+                    var pose = (Pose3)input.Value;
                     group.Transform.Position = pose.Position;
                     group.Transform.Orientation = pose.Orientation;
                     group.UpdateWorldMatrix(true, false);

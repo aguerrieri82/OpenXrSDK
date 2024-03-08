@@ -1,4 +1,6 @@
-﻿namespace Xr.Engine
+﻿using Xr.Math;
+
+namespace Xr.Engine
 {
     public interface IRenderEngine : IDisposable
     {

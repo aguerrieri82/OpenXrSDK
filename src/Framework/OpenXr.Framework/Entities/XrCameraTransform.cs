@@ -1,5 +1,6 @@
 ﻿using Silk.NET.OpenXR;
 using System.Numerics;
+using Xr.Math;
 
 namespace OpenXr.Framework
 {
@@ -11,15 +12,15 @@ namespace OpenXr.Framework
 
         public static XrCameraTransform FromView(CompositionLayerProjectionView view, float nearPlane, float farPlane, bool reverseUpDown = false)
         {
-            return FromView(view.Pose.ToXrPose(), view.Fov, nearPlane, farPlane, reverseUpDown);
+            return FromView(view.Pose.ToPose3(), view.Fov, nearPlane, farPlane, reverseUpDown);
         }
 
         public static XrCameraTransform FromView(View view, float nearPlane, float farPlane, bool reverseUpDown = false)
         {
-            return FromView(view.Pose.ToXrPose(), view.Fov, nearPlane, farPlane, reverseUpDown);
+            return FromView(view.Pose.ToPose3(), view.Fov, nearPlane, farPlane, reverseUpDown);
         }
 
-        public static XrCameraTransform FromView(XrPose pose, Fovf fov, float nearPlane, float farPlane, bool reverseUpDown = false)
+        public static XrCameraTransform FromView(Pose3 pose, Fovf fov, float nearPlane, float farPlane, bool reverseUpDown = false)
         {
             var result = new XrCameraTransform();
 

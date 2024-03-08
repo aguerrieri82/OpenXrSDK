@@ -15,4 +15,4 @@
 	url = https://github.com/aguerrieri82/filament
 [submodule "third-party/openal-soft"]
 	path = third-party/openal-soft
-	url = https://github.com/sgothel/openal-soft/
+	url = https://github.com/JogAmp/openal-soft/
