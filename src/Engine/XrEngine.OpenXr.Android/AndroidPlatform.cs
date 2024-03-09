@@ -38,7 +38,7 @@ namespace XrEngine.OpenXr.Android
         public unsafe void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
         {
 
-            if (options.Driver == GraphicDriver.FilamentVulkan || options.Driver == GraphicDriver.OpenGL)
+            if (options.Driver == GraphicDriver.FilamentVulkan || options.Driver == GraphicDriver.FilamentOpenGL)
             {
                 var filamentOptions = new FilamentOptions
                 {

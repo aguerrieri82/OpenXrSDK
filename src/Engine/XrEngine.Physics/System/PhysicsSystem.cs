@@ -164,7 +164,8 @@ namespace XrEngine.Physics
             foreach (var shape in info.Shapes.Skip(1))
                 ((PxRigidActor*)actor)->AttachShapeMut(shape);
 
-            ((PxRigidBody*)actor)->ExtUpdateMassAndInertia1(info.Density, null, true);
+            if (info.Type != PhysicsActorType.Static)
+                ((PxRigidBody*)actor)->ExtUpdateMassAndInertia1(info.Density, null, true);
 
             _scene->AddActorMut(actor, null);
 
@@ -254,10 +255,11 @@ namespace XrEngine.Physics
 
                 _scene->SimulateMut(stepSize, null, null, 0, true);
 
+                _scene->FetchResultsMut(true, &error);
+
                 curTime += stepSize;
             }
 
-            _scene->FetchResultsMut(true, &error);
         }
 
         public ref PxPhysics Physics => ref Unsafe.AsRef<PxPhysics>(_physics);

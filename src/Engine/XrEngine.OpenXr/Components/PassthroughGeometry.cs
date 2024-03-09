@@ -23,7 +23,7 @@ namespace XrEngine.OpenXr
 
                 if (_sceneModel != null && _sceneModel.Children.Count > 0)
                 {
-                    _ptLayer ??= xrApp?.Layers.Layers.OfType<XrPassthroughLayer>().FirstOrDefault();
+                    _ptLayer ??= xrApp?.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
 
                     if (_ptLayer != null)
                     {

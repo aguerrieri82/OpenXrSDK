@@ -55,7 +55,6 @@ namespace OpenXr.Framework.Oculus
 
             _xrApp!.CheckResult(_passthrough!.CreatePassthroughFB(_xrApp!.Session, in info, ref _ptInstance), "CreatePassthroughFB");
 
-
             return _ptInstance;
         }
 
@@ -84,6 +83,34 @@ namespace OpenXr.Framework.Oculus
         {
             _xrApp!.CheckResult(_passthrough!.PassthroughPauseFB(_ptInstance), "PassthroughPauseFB");
             _isStarted = false;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+        }
+
+        public override void Destroy()
+        {
+            if (_passthrough != null)
+            {
+                foreach (var mesh in _meshes)
+                    _xrApp!.CheckResult(_passthrough.DestroyGeometryInstanceFB(mesh.Instance), "DestroyGeometryInstanceFB");
+
+                if (_ptLayer.Handle != 0)
+                    _xrApp!.CheckResult(_passthrough.DestroyPassthroughLayerFB(_ptLayer), "DestroyPassthroughLayerFB");
+
+                if (_ptInstance.Handle != 0)
+                    _xrApp!.CheckResult(_passthrough.DestroyPassthroughFB(_ptInstance), "DestroyPassthroughFB");
+ 
+                _ptInstance.Handle = 0;
+                _ptLayer.Handle = 0;
+
+            }
+
+            _meshes.Clear();
+
+            base.Destroy();
         }
 
         public unsafe override void Create()

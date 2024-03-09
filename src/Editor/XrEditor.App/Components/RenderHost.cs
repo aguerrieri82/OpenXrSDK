@@ -175,9 +175,9 @@ namespace XrEditor
 
         }
 
-        public virtual void TakeContext()
+        public virtual bool TakeContext()
         {
-
+            return true;
         }
 
         public abstract IRenderEngine CreateRenderEngine();

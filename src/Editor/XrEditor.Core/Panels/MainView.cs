@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using Xr.Test;
 using XrEditor.Helpers;
+using XrEngine;
 using XrEngine.OpenXr;
 
 
@@ -34,23 +35,17 @@ namespace XrEditor
 
     public class MainView : BaseView, IUserInteraction
     {
-
-        public MainView()
+        public MainView(GraphicDriver driver)
         {
-            var engineApp = new XrEngineAppBuilder()
-                          .UseOpenGL()
-                          .SetRenderQuality(1, 4)
-                          .UseApp(SampleScenes.CreatePingPong())
-                          .Configure(SampleScenes.ConfigureXrApp)
-                          .Build();
-
             Context.Implement<IUserInteraction>(this);
+
+            var surface = ((IRenderSurfaceProvider)Platform.Current!).CreateRenderSurface(driver);
 
             Outline = new OutlinePanel();
 
             PropertiesEditor = new PropertiesEditor();
 
-            SceneView = new SceneView(engineApp);
+            SceneView = new SceneView(surface);
         }
 
         public void NotifyMessage(string message, MessageType type, int showTimeMs = 2000)

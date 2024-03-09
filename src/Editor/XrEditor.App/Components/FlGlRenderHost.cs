@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Windows;
 using XrEngine;
 using XrEngine.Filament;
 
@@ -6,6 +7,7 @@ namespace XrEditor.Components
 {
     public class FlGlRenderHost : GlRenderHost
     {
+        private FilamentRender? _render;
 
         public FlGlRenderHost()
             : base(false)
@@ -14,7 +16,7 @@ namespace XrEditor.Components
 
         public unsafe override IRenderEngine CreateRenderEngine()
         {
-            var render = new FilamentRender(new FilamentOptions
+            _render = new FilamentRender(new FilamentOptions
             {
                 WindowHandle = HWnd,
                 Context = _glCtx,
@@ -24,19 +26,30 @@ namespace XrEditor.Components
                 MaterialCachePath = "d:\\Materials"
             });
 
-            var ctx = render.GetContext();
+            var ctx = _render.GetContext();
 
             _hdc = ctx.WinGl.HDc;
             _glCtx = ctx.WinGl.GlCTx;
 
-
-            return render;
+            return _render;
         }
 
-        protected override void CreateContext(HandleRef hwndParent)
+
+        public override bool TakeContext()
         {
-            base.CreateContext(hwndParent);
-            ReleaseContext();
+            try
+            {
+                return base.TakeContext();       
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public override void EnableVSync(bool enable)
+        {
+
         }
 
 

@@ -7,6 +7,12 @@ typedef int32_t RTID;
 typedef uint32_t VIEWID;
 typedef uint32_t OBJID;
 
+enum class ReleaseContextMode {
+	NotRelease = 0,
+	ReleaseOnExecute = 1,
+	ReleaseAndSuspend = 2
+};
+
 
 enum class LightType {
 	Sun,           

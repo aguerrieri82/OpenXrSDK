@@ -1,5 +1,6 @@
 ﻿using OpenXr.Framework.Oculus;
 using System.Xml.Linq;
+using Xr.Test;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrMath;
@@ -37,20 +38,15 @@ namespace XrEditor
         protected List<IEditorTool> _tools = [];
         protected SceneXrState _xrState;
         protected IRenderEngine? _render;
-        protected XrEngineApp _engine;
+        protected XrEngineApp? _engine;
 
-        public SceneView(XrEngineApp engine)
+        public SceneView(IRenderSurface renderSurface)
         {
-            _engine = engine;
-            _renderSurface = ((IRenderSurfaceProvider)Platform.Current!).RenderSurface;
+            _renderSurface = renderSurface;
             _renderSurface.SizeChanged += OnSizeChanged;
             _renderSurface.Ready += OnSurfaceReady;
-
-            AddTool(new PickTool());
-            AddTool(new OrbitTool());
-
-            Scene = _engine.App.ActiveScene;
         }
+
 
         protected void OnSizeChanged(object? sender, EventArgs e)
         {
@@ -59,15 +55,30 @@ namespace XrEditor
 
         protected void OnSurfaceReady(object? sender, EventArgs e)
         {
+            AddTool(new PickTool());
+            AddTool(new OrbitTool());
             UpdateSize();
             Start();
         }
 
         public void StartXr()
         {
+            /*
+            _render!.Suspend();
+
+            while (true)
+            {
+                if (_renderSurface.TakeContext())
+                    break;
+                Thread.Sleep(50);
+            }
+            */
+
             try
             {
-                _engine.EnterXr();
+                _renderSurface.EnableVSync(false);
+
+                _engine!.EnterXr();
 
                 _xrState = SceneXrState.StartRequested;
 
@@ -81,6 +92,10 @@ namespace XrEditor
             }
             finally
             {
+                /*
+                _render!.Resume();
+                _renderSurface.ReleaseContext();
+                */
             }
 
             OnPropertyChanged(nameof(IsXrActive));
@@ -88,17 +103,16 @@ namespace XrEditor
 
         public void StopXr()
         {
-
             try
             {
-                _engine.ExitXr();
+                _renderSurface.EnableVSync(true);
+                _engine!.ExitXr();
                 _xrState = SceneXrState.StopRequested;
                 _ui.NotifyMessage("XR Session stopped", MessageType.Info);
             }
             catch (Exception ex)
             {
                 _ui.NotifyMessage(ex.Message, MessageType.Error);
-
             }
             finally
             {
@@ -106,9 +120,24 @@ namespace XrEditor
             }
         }
 
+        protected void CreateApp()
+        {
+            _engine = new XrEngineAppBuilder()
+              .SetRenderQuality(1, 1) ///NOT INCREASE 
+              .UseApp(SampleScenes.CreateSponza())
+              .Configure(SampleScenes.ConfigureXrApp)
+              .Build();
+
+            Scene = _engine.App.ActiveScene;
+        }
+
         protected void RenderLoop()
         {
-            var renderer = _engine.App.Renderer!;
+            CreateApp();
+
+            _render = _engine!.App.Renderer!;
+
+            _renderSurface.TakeContext();
 
             while (_isStarted)
             {
@@ -116,12 +145,12 @@ namespace XrEditor
                     Thread.Sleep(50);
                 else
                 {
-                    if (_isXrActive && _xrState != SceneXrState.StartRequested)
+                    if (_isXrActive && !_engine.XrApp.IsStarted && _xrState != SceneXrState.StartRequested)
                     {
                         StartXr();
                     }
 
-                    if (!_isXrActive && _xrState != SceneXrState.StopRequested)
+                    if (!_isXrActive && _engine.XrApp.IsStarted && _xrState != SceneXrState.StopRequested)
                     {
                         StopXr();
                     }
@@ -136,13 +165,11 @@ namespace XrEditor
                         {
 
                         }
-                        
-                        renderer.SetDefaultRenderTarget();
-
-                        renderer.Render(_scene!, _camera!, _view, false);
+                        _render.SetDefaultRenderTarget();
+                        _render.Render(_scene!, _camera!, _view, false);
                     }
                     else
-                        _scene.App!.RenderFrame(_view);
+                         _scene.App!.RenderFrame(_view);
 
                     _renderSurface.SwapBuffers();
 
@@ -175,8 +202,10 @@ namespace XrEditor
 
             _renderSurface!.ReleaseContext();
 
-            _renderThread = new Thread(RenderLoop);
-            _renderThread.Name = "Render Thread";
+            _renderThread = new Thread(RenderLoop)
+            {
+                Name = "Render Thread"
+            };
 
             _renderThread.Start();
         }
@@ -214,6 +243,7 @@ namespace XrEditor
                 OnPropertyChanged(nameof(Scene));
                 OnPropertyChanged(nameof(CameraList));
                 OnSceneChanged();
+                UpdateSize();
             }
         }
 

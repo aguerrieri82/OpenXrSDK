@@ -191,8 +191,6 @@ namespace XrEditor
 
             _glCtx = wglCreateContext(_hdc);
 
-
-
             if (_glCtx == IntPtr.Zero)
                 throw new Win32Exception();
 
@@ -210,8 +208,7 @@ namespace XrEditor
             attr[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
             attr[6] = 0;
             _glCtx = wglCreateContextAttribsARB(_hdc, _glCtx, attr);
-
-
+ 
         }
 
         protected override HandleRef BuildWindowCore(HandleRef hwndParent)
@@ -296,10 +293,11 @@ namespace XrEditor
                 throw new Win32Exception();
         }
 
-        public override void TakeContext()
+        public override bool TakeContext()
         {
             if (!wglMakeCurrent(_hdc, _glCtx))
                 throw new Win32Exception();
+            return true;
         }
 
         public bool TryGetProcAddress(string proc, out nint addr, int? slot = null)

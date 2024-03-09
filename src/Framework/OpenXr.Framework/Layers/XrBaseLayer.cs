@@ -21,6 +21,10 @@ namespace OpenXr.Framework
 
         }
 
+        public virtual void Destroy()
+        {
+        }
+
         public virtual void Initialize(XrApp app, IList<string> extensions)
         {
             _xrApp = app;
@@ -33,6 +37,8 @@ namespace OpenXr.Framework
 
         public virtual void Dispose()
         {
+            Destroy();
+
             if (_header != null)
             {
                 Marshal.FreeHGlobal(new nint(_header));

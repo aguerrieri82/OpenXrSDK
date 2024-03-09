@@ -15,7 +15,7 @@ namespace XrEditor
 
         void ReleaseContext();
 
-        void TakeContext();
+        bool TakeContext();
 
         void SwapBuffers();
 

@@ -61,6 +61,6 @@ namespace OpenXr.Framework
             GC.SuppressFinalize(this);
         }
 
-        public IList<IXrLayer> Layers => _layers;
+        public IList<IXrLayer> List => _layers;
     }
 }

@@ -15,11 +15,14 @@ namespace OpenXr.Framework
 
         void Create();
 
+        void Destroy();
+
         void OnBeginFrame();
 
         bool Update(ref View[] views, XrSwapchainInfo[] swapchains, long predTime);
 
         void OnEndFrame();
+
 
         bool IsEnabled { get; set; }
 
