@@ -1,5 +1,7 @@
 ﻿using OpenXr.Framework;
 using System.Windows;
+using XrEngine;
+using XrEngine.OpenXr;
 
 namespace XrEditor
 {
@@ -23,16 +25,19 @@ namespace XrEditor
         {
             Gpu.EnableNvAPi();
 
+            Platform.Current = new EditorPlatform();
+
             Context.Implement<PanelManager>();
             Context.Implement<NodeFactory>();
             Context.Implement<IMainDispatcher>(new MainDispatcher());
+            Context.Implement(Platform.Current);
 
             var app = new App();
 
             var window = new Window
             {
                 Title = "Xr Editor",
-                Content = new MainView()
+                Content = new MainView(GraphicDriver.FilamentOpenGL)
             };
 
 

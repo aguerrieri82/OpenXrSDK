@@ -108,6 +108,7 @@ VIEWID AddView(FilamentApp* app, const ViewOptions& options)
 	if (app->isStereo) {
 		View::StereoscopicOptions stereoOpt;
 		stereoOpt.enabled = true;
+
 		view->setStereoscopicOptions(stereoOpt);
 	}
 
@@ -157,24 +158,23 @@ RTID AddRenderTarget(FilamentApp* app, const RenderTargetOptions& options)
 
 	app->renderTargets.push_back(rt);
 
-	app->engine->flushAndWait();
+    app->engine->flushAndWait();
 
 	return (VIEWID)(app->renderTargets.size() - 1);
 }
 
 
-void ReleaseContext(FilamentApp* app, bool release)
+void ReleaseContext(FilamentApp* app, ReleaseContextMode mode)
 {
 #ifdef _WINDOWS
 
 	auto plat = dynamic_cast<PlatformWGL2*>(app->engine->getPlatform());
 
 	if (plat != nullptr) {
-		plat->releaseContext = release;
+		plat->releaseContext = (int)mode;
 		app->renderer->beginFrame(app->swapChain);
 		app->renderer->endFrame();
 		app->engine->flush();
-		
 	}
 #endif
 }
@@ -230,7 +230,11 @@ void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bo
 				viewInfo.view->setRenderTarget(app->renderTargets[target.renderTargetId]);
 		}
 
-		app->renderer->render(viewInfo.view);
+		if (target.renderTargetId != -1)
+			app->renderer->renderStandaloneView(viewInfo.view);
+		else
+			app->renderer->render(viewInfo.view);
+
 	}
 
 #if _WINDOWS

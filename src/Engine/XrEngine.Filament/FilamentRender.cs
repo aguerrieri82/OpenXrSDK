@@ -70,6 +70,7 @@ namespace XrEngine.Filament
 
             _renderTargetDepth = 1;
             _sampleCount = options.SampleCount <= 0 ? 1 : _sampleCount;
+
             /*
             if (options.EnableStereo && options.Driver == FlBackend.OpenGL)
                 _renderTargetDepth = 2;
@@ -89,6 +90,8 @@ namespace XrEngine.Filament
 
                 SetDefaultRenderTarget();
             }
+
+            ReleaseContext(_app, ReleaseContextMode.ReleaseOnExecute);
         }
 
         public GraphicContextInfo GetContext()
@@ -128,7 +131,7 @@ namespace XrEngine.Filament
                 StencilBufferEnabled = false,
                 FrustumCullingEnabled = false,
                 ScreenSpaceRefractionEnabled = false,
-                Viewport = new Rect2I() { Width = width, Height = height },
+                Viewport = new Rect2I() { Width = width , Height = height  },
                 RenderTargetId = renderTargetId
             };
 
@@ -162,7 +165,7 @@ namespace XrEngine.Filament
                 {
                     viewBind = new ViewSizeRtBind
                     {
-                        ViewId = CreateView(width, height, rtBind.RenderTargetId),
+                        ViewId = CreateView(width , height , rtBind.RenderTargetId),
                         Viewport = new Rect2I() { Width = width, Height = height },
                         RenderTargetId = rtBind.RenderTargetId,
                     };
@@ -175,10 +178,14 @@ namespace XrEngine.Filament
             _activeRenderTarget = rtBind;
         }
 
-        public void ReleaseContext(bool release)
+        public void Suspend()
         {
-            FilamentLib.ReleaseContext(_app, release);
-            Thread.Sleep(100);
+            ReleaseContext(_app, ReleaseContextMode.ReleaseAndSuspend);
+        }
+
+        public void Resume()
+        {
+            ReleaseContext(_app, ReleaseContextMode.ReleaseOnExecute);
         }
 
         protected uint GetOrCreate<T>(T obj, Action<uint> factory) where T : EngineObject

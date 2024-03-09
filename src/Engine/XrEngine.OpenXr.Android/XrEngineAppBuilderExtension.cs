@@ -17,7 +17,7 @@ namespace Xr.Test.Common
     {
         public static XrEngineAppBuilder AddWebBrowser(this XrEngineAppBuilder builder, Context context, string objName) => 
             
-            builder.UseInputs<XrOculusTouchController>(). 
+            builder.UseRightController(). 
                     ConfigureApp(e =>
         {
             var display = e.App.ActiveScene!.FindByName<TriangleMesh>(objName);

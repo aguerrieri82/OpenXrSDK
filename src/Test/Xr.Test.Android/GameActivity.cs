@@ -35,7 +35,7 @@ namespace Xr.Test.Android
         {
             app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
 
-            _webViewLayer = _engine!.XrApp.Layers.Layers.OfType<XrWebViewLayer>().FirstOrDefault();
+            _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayer>().FirstOrDefault();
 
             if (_webViewLayer != null)
             {
@@ -48,7 +48,11 @@ namespace Xr.Test.Android
 
         protected override void Build(XrEngineAppBuilder builder)
         {
-            builder.UseApp(SampleScenes.CreatePingPong())
+            builder.UseFilament()
+                   //.UseStereo()
+                   //.UseMultiView()
+                   .UseApp(SampleScenes.CreatePingPong())
+                   .Configure(SampleScenes.ConfigureXrApp)
                    .RemovePlaneGrid()
                    .AddWebBrowser(this, "display");
         }

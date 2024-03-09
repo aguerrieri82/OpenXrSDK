@@ -31,7 +31,6 @@ namespace OpenXr.Framework
         Stopping,
         Stopped,
         Disposed,
-
     }
 
     public unsafe class XrApp : IDisposable, IXrSession
@@ -83,7 +82,6 @@ namespace OpenXr.Framework
         public XrApp(params IXrPlugin[] plugins)
             : this(NullLogger<XrApp>.Instance, plugins)
         {
-
         }
 
         public XrApp(ILogger logger, params IXrPlugin[] plugins)
@@ -222,6 +220,8 @@ namespace OpenXr.Framework
 
         public virtual void Stop()
         {
+            _isValid = false;
+
             _state = XrAppState.Stopping;
 
             _logger.LogDebug("Stopping");
@@ -240,6 +240,8 @@ namespace OpenXr.Framework
 
                 _swapchains = null;
             }
+
+            ListInvoke<IXrLayer>(_layers.List, p => p.Destroy());
 
             if (_session.Handle != 0)
             {
@@ -769,7 +771,7 @@ namespace OpenXr.Framework
 
             BeginFrame();
 
-            ListInvoke<IXrLayer>(_layers.Layers, a => a.OnBeginFrame());
+            ListInvoke<IXrLayer>(_layers.List, a => a.OnBeginFrame());
 
             CompositionLayerBaseHeader*[]? layers = null;
 
@@ -790,7 +792,7 @@ namespace OpenXr.Framework
             }
             finally
             {
-                ListInvoke<IXrLayer>(_layers.Layers, a => a.OnEndFrame());
+                ListInvoke<IXrLayer>(_layers.List, a => a.OnEndFrame());
                 EndFrame(frameTime, ref layers, layerCount);
             }
 
@@ -873,7 +875,7 @@ namespace OpenXr.Framework
 
         #region ACTIONS
 
-        protected void AddActions(IXrActionBuilder builder)
+        public void AddActions(IXrActionBuilder builder)
         {
             foreach (var item in builder.Inputs)
                 AddInput(item);
@@ -1266,7 +1268,7 @@ namespace OpenXr.Framework
 
         protected void LayersInvoke(Action<IXrLayer> action)
         {
-            ListInvoke(_layers.Layers, action);
+            ListInvoke(_layers.List, action);
         }
 
         protected void PluginInvoke(Action<IXrPlugin> action, bool mustSucceed = false)

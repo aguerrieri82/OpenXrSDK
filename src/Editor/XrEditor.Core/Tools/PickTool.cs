@@ -21,8 +21,9 @@ namespace XrEditor
 
         protected override void OnMouseMove(PointerEvent ev)
         {
-            Debug.Assert(_sceneView?.Scene != null);
-
+            if (_sceneView?.Scene == null)
+                return;
+    
             var ray = ToRay(ev);
 
             _lastCollision = _sceneView.Scene.RayCollisions(ray).FirstOrDefault();

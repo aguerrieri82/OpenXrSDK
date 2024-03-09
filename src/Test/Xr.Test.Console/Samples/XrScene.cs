@@ -2,6 +2,7 @@
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.OpenGL;
+using Xr.Test;
 using XrEngine;
 using XrEngine.OpenXr;
 
@@ -14,8 +15,6 @@ namespace OpenXr.Samples
 
         public static Task Run(IServiceProvider services, ILogger logger)
         {
-            bool isStarted = true;
-
             var viewManager = new ViewManager();
             viewManager.Initialize();
 
@@ -24,7 +23,6 @@ namespace OpenXr.Samples
                     new OculusXrPlugin());
 
             xrApp.RenderOptions.SampleCount = 1;
-
 
             _inputs = xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
                .AddAction(a => a.Right!.Button!.AClick)
@@ -48,11 +46,7 @@ namespace OpenXr.Samples
                 {
                     var key = Console.ReadKey();
                     if (key.Key == ConsoleKey.Enter)
-                    {
-                        isStarted = false;
                         break;
-                    }
-
                 }
             }
 

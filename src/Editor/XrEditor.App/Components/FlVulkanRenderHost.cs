@@ -8,9 +8,8 @@ namespace XrEditor.Components
 {
     public class FlVulkanRenderHost : RenderHost, IXrGraphicProvider
     {
-        FilamentLib.GraphicContextInfo.VulkanContext _vulkan;
         FilamentRender? _render;
-        VulkanDevice _device;
+        VulkanDevice? _device;
 
         public unsafe override IRenderEngine CreateRenderEngine()
         {
@@ -32,7 +31,7 @@ namespace XrEditor.Components
 
             _render = new FilamentRender(new FilamentOptions
             {
-                WindowHandle = HWnd,
+                WindowHandle = 0,
                 Context = new nint(&ctx),
                 Driver = FilamentLib.FlBackend.Vulkan,
                 MaterialCachePath = "d:\\Materials",
@@ -45,7 +44,7 @@ namespace XrEditor.Components
 
         public IXrGraphicDriver CreateXrDriver()
         {
-            return new XrVulkanGraphicDriver(_device);
+            return new XrVulkanGraphicDriver(_device!);
         }
 
     }

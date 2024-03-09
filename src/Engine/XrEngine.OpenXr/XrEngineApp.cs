@@ -34,7 +34,7 @@ namespace XrEngine.OpenXr
         public XrEngineApp(XrEngineAppOptions options, IXrPlatform platform)
         {
             _options = options;
-            _platform = platform;   
+            _platform = platform;
         }
 
         public void Create(EngineApp app)
@@ -50,7 +50,7 @@ namespace XrEngine.OpenXr
             _xrApp.RenderOptions.RenderMode = _options.RenderMode;
             _xrApp.RenderOptions.ResolutionScale = _options.ResolutionScale;
 
-            _xrApp.BindEngineApp(_app);
+  
         }
 
         public T GetInputs<T>()

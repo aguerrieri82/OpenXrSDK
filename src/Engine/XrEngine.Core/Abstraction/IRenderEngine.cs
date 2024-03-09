@@ -8,7 +8,9 @@ namespace XrEngine
 
         void SetDefaultRenderTarget();
 
-        void ReleaseContext(bool release);
+        void Suspend();
+
+        void Resume();
 
         Texture2D? GetDepth();
 

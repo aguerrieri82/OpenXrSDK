@@ -27,7 +27,7 @@ extern "C" {
 
 	EXPORT bool APIENTRY GetGraphicContext(FilamentApp* app, GraphicContextInfo& info);
 
-	EXPORT void APIENTRY ReleaseContext(FilamentApp* app, bool release);
+	EXPORT void APIENTRY ReleaseContext(FilamentApp* app, ReleaseContextMode release);
 
 
 }

@@ -23,10 +23,10 @@ namespace XrEngine.OpenXr
             _platform = Platform.Current;
         }
 
-
         public XrEngineAppBuilder UsePlatform(IXrPlatform platform)
         {
             _platform = platform;
+            Platform.Current = _platform;
             return this;
         }
 
@@ -66,15 +66,10 @@ namespace XrEngine.OpenXr
             return this;
         }
 
-        public XrEngineAppBuilder UseInputs<TProfile>() where TProfile : new() => ConfigureApp(e =>
+        public XrEngineAppBuilder UseInputs<TProfile>() where TProfile : new()
         {
-            if (_inputProfile != null && _inputProfile != typeof(TProfile))
-                throw new ArgumentException("Input profile differ");
-
-            _inputProfile = typeof(TProfile);
-            e.XrApp.WithInteractionProfile<TProfile>(bld => bld.AddAll());
-        });
-
+            return UseInputs<TProfile>(a => a.AddAll());
+        }
 
         public XrEngineAppBuilder UseApp(EngineApp app)
         {
@@ -88,6 +83,18 @@ namespace XrEngine.OpenXr
             return this;
         }
 
+        public XrEngineAppBuilder UseMultiView()
+        {
+            _options.RenderMode = XrRenderMode.MultiView;
+            return this;
+        }
+
+        public XrEngineAppBuilder UseStereo()
+        {
+            _options.RenderMode = XrRenderMode.Stereo;
+            return this;
+        }
+
         public XrEngineAppBuilder UseFilament()
         {
             _options.Driver = GraphicDriver.FilamentVulkan;
@@ -96,17 +103,42 @@ namespace XrEngine.OpenXr
 
         public XrEngineAppBuilder AddPassthrough() => ConfigureApp(e =>
         {
-            e.XrApp.Layers.Add<XrPassthroughLayer>();
+            e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer());
         });
 
-        public XrEngineAppBuilder UseControllers()
+        public XrEngineAppBuilder UseLeftController()
         {
+            UseInputs<XrOculusTouchController>(bld =>
+            bld.AddAction(a => a.Left!.AimPose)
+                .AddAction(a => a.Left!.GripPose)
+                .AddAction(a => a.Left!.SqueezeValue)
+                .AddAction(a => a.Left!.Button!.XClick)
+                .AddAction(a => a.Left!.Button!.YClick)
+                .AddAction(a => a.Left!.TriggerClick)
+                .AddAction(a => a.Left!.TriggerValue));
+         
+           return this;
+        }
+
+        public XrEngineAppBuilder UseRightController()
+        {
+            UseInputs<XrOculusTouchController>(bld => bld
+                .AddAction(a => a.Right!.AimPose)
+                .AddAction(a => a.Right!.GripPose)
+                .AddAction(a => a.Right!.SqueezeValue)
+                .AddAction(a => a.Right!.Button!.ATouch)
+                .AddAction(a => a.Right!.Button!.BClick)
+                .AddAction(a => a.Right!.TriggerClick)
+                .AddAction(a => a.Right!.TriggerValue));
+
             return this;
         }
 
         public XrEngineAppBuilder UseRayCollider() => ConfigureApp(e =>
         {
-            var rayCol = e.App!.ActiveScene!.AddComponent(new RayCollider((XrPoseInput)e.XrApp.Inputs["RightAimPose"]));
+            var inputs = e.GetInputs<XrOculusTouchController>();
+
+            var rayCol = e.App!.ActiveScene!.AddComponent(new RayCollider(inputs.Right!.AimPose!));
             rayCol.RayView.IsVisible = false;
         });
 
@@ -120,7 +152,8 @@ namespace XrEngine.OpenXr
             e.App.ActiveScene!.AddChild(new OculusHandView(lHand!));
         });
 
-        public XrEngineAppBuilder UseGrabbers() => UseInputs<XrOculusTouchController>().
+        public XrEngineAppBuilder UseGrabbers() => UseLeftController().
+                                                   UseRightController().
                                                    ConfigureApp(e =>
         { 
             var inputs = e.GetInputs<XrOculusTouchController>();
@@ -162,18 +195,35 @@ namespace XrEngine.OpenXr
             var engine = new XrEngineApp(_options, _platform);
  
             engine.Create(_app ?? new EngineApp());
-            
+
+            IXrActionBuilder? actionBuilder = null;
+
             foreach (var config in _configurations)
+            {
                 config(engine);
 
-            if (_inputProfile != null)
-            {
-                engine.Inputs = engine.XrApp.WithInteractionProfile(_inputProfile, bld =>
+                if (_inputProfile != null && actionBuilder == null)
                 {
-                    foreach (var input in _inputs)
-                        input(bld);
-                });
+                    var builderType = typeof(XrActionsBuilder<>).MakeGenericType(_inputProfile);
+
+                    actionBuilder = (IXrActionBuilder)Activator.CreateInstance(builderType, engine.XrApp)!;
+
+                    engine.Inputs = actionBuilder.Result;
+                }
+
+                while (_inputs.Count > 0)
+                {
+                    foreach (var input in _inputs) 
+                        input(actionBuilder!);
+
+                    _inputs.Clear();
+                }
             }
+
+            if (actionBuilder != null)
+                engine.XrApp.AddActions(actionBuilder);
+
+            engine.XrApp.BindEngineApp(engine.App);
 
             return engine;
         }

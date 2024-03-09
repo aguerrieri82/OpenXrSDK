@@ -16,16 +16,21 @@ namespace XrEditor
     {
         IRenderSurface? _renderSurface;
 
-        public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
+        public IRenderSurface CreateRenderSurface(GraphicDriver driver)
         {
-            if (options.Driver == GraphicDriver.OpenGL)
+            if (driver == GraphicDriver.OpenGL)
                 _renderSurface = new GlRenderHost();
-            else if (options.Driver == GraphicDriver.FilamentOpenGL)
+            else if (driver == GraphicDriver.FilamentOpenGL)
                 _renderSurface = new FlGlRenderHost();
             else
                 _renderSurface = new FlVulkanRenderHost();
 
-            renderEngine = _renderSurface.CreateRenderEngine();
+            return _renderSurface;
+        }
+
+        public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
+        {
+            renderEngine = _renderSurface!.CreateRenderEngine();
 
             xrDriver = ((IXrGraphicProvider)_renderSurface).CreateXrDriver();
         }
@@ -39,6 +44,6 @@ namespace XrEditor
 
         public IRenderSurface RenderSurface => _renderSurface!;
 
-         public IAssetManager AssetManager => throw new NotImplementedException();
+        public IAssetManager AssetManager { get; } = new LocalAssetManager("Assets");
     }
 }

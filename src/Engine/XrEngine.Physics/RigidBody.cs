@@ -1,6 +1,7 @@
 ﻿using MagicPhysX;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices.JavaScript;
 using XrEngine.Colliders;
 
 
@@ -10,9 +11,7 @@ namespace XrEngine.Physics
     {
         private PhysicsSystem? _system;
         private PhysicsActor _actor;
-        private Geometry3D? _geometry;
         private PhysicsMaterial _material;
-        private bool _boundsTranslate;
         private PhysicsGeometryType _geoType;
         private readonly List<PhysicsShape> _shapes = [];
 
@@ -41,8 +40,10 @@ namespace XrEngine.Physics
 
             Matrix4x4 matrix;
 
+            var bounds = _host?.Feature<ILocalBounds>();
+
             if (_geoType == PhysicsGeometryType.Box)
-                matrix = Matrix4x4.CreateTranslation(-_geometry!.Bounds.Center) * newTrans.Matrix;
+                matrix = Matrix4x4.CreateTranslation(-bounds!.LocalBounds.Center) * newTrans.Matrix;
             else if (_geoType == PhysicsGeometryType.Capsule)
                 matrix = Matrix4x4.CreateRotationY(-MathF.PI / 2) * newTrans.Matrix;
             else
@@ -53,12 +54,14 @@ namespace XrEngine.Physics
 
         protected PxTransform GetPose()
         {
-            //Debug.Assert(_geometry != null);
+            Debug.Assert(_host != null);
 
             Matrix4x4 matrix;
 
+            var bounds = _host.Feature<ILocalBounds>();
+
             if (_geoType == PhysicsGeometryType.Box)
-                matrix = Matrix4x4.CreateTranslation(_geometry.Bounds.Center) * _host!.WorldMatrix;
+                matrix = Matrix4x4.CreateTranslation(bounds!.LocalBounds.Center) * _host!.WorldMatrix;
             else if (_geoType == PhysicsGeometryType.Capsule)
                 matrix = Matrix4x4.CreateRotationY(MathF.PI / 2) * _host!.WorldMatrix;
             else
@@ -98,8 +101,6 @@ namespace XrEngine.Physics
 
             Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
 
-            _geometry = _host.Feature<Geometry3D>();
-
             _material = _system.CreateMaterial(Material);
 
             foreach (var collider in _host!.Components<ICollider3D>())
@@ -124,11 +125,7 @@ namespace XrEngine.Physics
                 {
                     pyGeo = _system.CreateSphere(sphere.Radius * scale.X);
                 }
-                else if (_host is ILocalBounds bounds)
-                {
-                    _boundsTranslate = true;
-                    pyGeo = _system.CreateBox(bounds.LocalBounds.Size / 2 * scale);
-                }
+
 
                 if (pyGeo == null)
                     return;
@@ -144,6 +141,26 @@ namespace XrEngine.Physics
 
                 if (_host.Name != null)
                     shape.Name = _host.Name;
+
+                _shapes.Add(shape);
+            }
+
+            if (_shapes.Count == 0)
+            {
+                var bounds = _host.Feature<ILocalBounds>();
+
+                if (bounds == null)
+                    throw new NotSupportedException();
+
+                var pyGeo = _system.CreateBox(bounds.LocalBounds.Size / 2 * scale);
+
+                var shape = _system.CreateShape(new PhysicsShapeInfo
+                {
+                    Geometry = pyGeo,
+                    Material = _material,
+                });
+
+                _geoType = PhysicsGeometryType.Box;
 
                 _shapes.Add(shape);
             }

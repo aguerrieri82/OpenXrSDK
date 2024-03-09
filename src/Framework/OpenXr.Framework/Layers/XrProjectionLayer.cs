@@ -28,16 +28,13 @@ namespace OpenXr.Framework
             _renderView = renderView;
         }
 
-
-        public override void Dispose()
+        public override void Destroy()
         {
             if (_header->Views != null)
             {
                 Marshal.FreeHGlobal(new nint(_header->Views));
                 _header->Views = null;
             }
-
-            base.Dispose();
         }
 
         protected override bool Update(ref CompositionLayerProjection layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)

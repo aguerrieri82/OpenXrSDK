@@ -16,7 +16,6 @@ namespace Xr.Test
             Material.Color = new Color(1, 1, 0);
         }
 
-
         protected TriangleMesh NewBall()
         {
             var ball = new TriangleMesh(Sphere3D.Instance, Material);
@@ -83,7 +82,6 @@ namespace Xr.Test
                 var ball = PickBall();
                 ball.WorldPosition = Pose!.Value.Position;
             }
-
         }
 
         public Material? Material { get; set; }

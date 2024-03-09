@@ -14,6 +14,11 @@ namespace XrEngine
         protected Matrix4x4 _viewInverse;
         protected Vector3 _target;
 
+        public PerspectiveCamera()
+        {
+
+        }
+
         public void SetFovCenter(float left, float right, float top, float bottom)
         {
             Projection = Matrix4x4.CreatePerspectiveOffCenter(left, right, bottom, top, Near, Far);

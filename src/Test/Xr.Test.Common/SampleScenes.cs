@@ -23,8 +23,9 @@ namespace Xr.Test
         public static void ConfigureXrApp(XrEngineAppBuilder builder)
         {
             builder.UseHands()
-                   .UseControllers()
-                   .UseInputs<XrOculusTouchController>()
+                   .UseLeftController()
+                   .UseRightController()
+                   .UsePhysics()
                    .AddPassthrough()
                    .UseRayCollider()
                    .UseGrabbers();
@@ -104,7 +105,6 @@ namespace Xr.Test
             mesh.Transform.Position = Vector3.Zero;
 
             mesh.Transform.Update();
-
 
             foreach (var geo in mesh.DescendantsWithFeature<Geometry3D>())
                 geo.Feature.ApplyTransform(mesh.Transform.Matrix);

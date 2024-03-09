@@ -105,6 +105,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenAl.Framework", "Engine\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XrEngine.OpenXr.Android", "Engine\XrEngine.OpenXr.Android\XrEngine.OpenXr.Android.csproj", "{FB83EAA4-9995-4E2D-A68F-FCF8198D3474}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "#Filament", "#Filament", "{B9E0214C-4072-4B48-95DE-D8746A1F5863}"
+	ProjectSection(SolutionItems) = preProject
+		..\third-party\filament\filament\backend\src\opengl\platforms\PlatformWGL.cpp = ..\third-party\filament\filament\backend\src\opengl\platforms\PlatformWGL.cpp
+		..\third-party\filament\filament\backend\include\backend\platforms\PlatformWGL.h = ..\third-party\filament\filament\backend\include\backend\platforms\PlatformWGL.h
+		..\third-party\filament\filament\backend\src\vulkan\VulkanDriver.cpp = ..\third-party\filament\filament\backend\src\vulkan\VulkanDriver.cpp
+		..\third-party\filament\filament\backend\src\vulkan\VulkanHandles.cpp = ..\third-party\filament\filament\backend\src\vulkan\VulkanHandles.cpp
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

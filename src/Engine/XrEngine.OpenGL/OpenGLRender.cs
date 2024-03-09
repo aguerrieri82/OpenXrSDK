@@ -107,8 +107,13 @@ namespace XrEngine.OpenGL
             _gl.LineWidth(1);
         }
 
-        public void ReleaseContext(bool release)
+        public void Suspend()
         {
+
+        }
+        public void Resume()
+        {
+
         }
 
         public void Clear(Color color)

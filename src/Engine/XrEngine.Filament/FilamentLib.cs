@@ -6,6 +6,15 @@ namespace XrEngine.Filament
 {
     public unsafe static class FilamentLib
     {
+
+        public enum ReleaseContextMode
+        {
+            NotRelease = 0,
+	        ReleaseOnExecute = 1,
+	        ReleaseAndSuspend = 2
+        };
+
+
         public enum FlLightType : byte
         {
             Sun,
@@ -364,7 +373,7 @@ namespace XrEngine.Filament
         public static extern bool GetGraphicContext(IntPtr app, out GraphicContextInfo info);
 
         [DllImport("filament-native")]
-        public static extern void ReleaseContext(IntPtr app, bool release);
+        public static extern void ReleaseContext(IntPtr app, ReleaseContextMode mode);
 
     }
 }
