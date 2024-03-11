@@ -19,6 +19,7 @@ namespace XrEngine.OpenXr
             var pbrMaterial = PbrMaterial.CreateDefault();
             pbrMaterial.Color = Color.White;
             Material = pbrMaterial;
+            Name = "SceneModel";
         }
 
         public override void Update(RenderContext ctx)

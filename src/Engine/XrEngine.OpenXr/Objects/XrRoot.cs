@@ -16,6 +16,8 @@ namespace XrEngine.OpenXr
         {
             _xrApp = app;
 
+            Name = "XrRoot";
+
             RightHand = AddController("/user/hand/right/input/aim/pose", "Right Hand", "Models/MetaQuestTouchPlus_Right.glb");
 
             LeftHand = AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/MetaQuestTouchPlus_Left.glb");
@@ -30,6 +32,9 @@ namespace XrEngine.OpenXr
 
             group.AddBehavior((_, ctx) =>
             {
+                if (!_xrApp.IsStarted)
+                    return;
+
                 var head = _xrApp.LocateSpace(_xrApp.Head, _xrApp.Stage, _xrApp.LastFrameTime);
 
                 if (head.IsValid)
@@ -40,6 +45,8 @@ namespace XrEngine.OpenXr
             });
 
             group.AddComponent<AudioReceiver>();
+
+            AddChild(group);
 
             return group;
         }

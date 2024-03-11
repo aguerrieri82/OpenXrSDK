@@ -10,6 +10,7 @@ namespace OpenXr.Framework.Input
         protected bool _isActive;
         protected readonly XrApp _app;
         protected HandJointLocationEXT[]? _joints;
+        protected HandEXT _handType;
 
         public XrHandInput(XrApp app)
         {
@@ -26,6 +27,7 @@ namespace OpenXr.Framework.Input
             };
 
             _app.CheckResult(_app._handTracking!.CreateHandTracker(_app.Session, in info, ref _tracker), "CreateHandTracker");
+            _handType = hand;
         }
 
         public virtual unsafe HandJointLocationEXT[] LocateHandJoints(Space space, long time)
@@ -76,6 +78,8 @@ namespace OpenXr.Framework.Input
         }
 
         protected ExtHandTracking HandTracking => _app._handTracking!;
+
+        public HandEXT HandType => _handType;
 
         public HandTrackerEXT Tracker => _tracker;
 
