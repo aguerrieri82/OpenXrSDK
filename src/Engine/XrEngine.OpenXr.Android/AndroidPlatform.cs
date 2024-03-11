@@ -11,6 +11,7 @@ using OpenXr.Framework;
 using XrEngine.Filament;
 using XrEngine.OpenGL;
 using OpenXr.Framework.Oculus;
+using Microsoft.Extensions.Logging;
 
 namespace XrEngine.OpenXr.Android
 {
@@ -22,14 +23,13 @@ namespace XrEngine.OpenXr.Android
         public AndroidPlatform(Context context)
         {
             AssetManager = new AndroidAssetManager(context, "Assets");
+            Logger = new AndroidLogger("XrApp");
             _context = context; 
         }
 
         public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
         {
-            var logger = new AndroidLogger("XrApp");
-
-            return new XrApp(logger,
+            return new XrApp(Logger,
                 new OculusXrPlugin(),
                 xrDriver,
                 new AndroidXrPlugin(_context));
@@ -46,7 +46,7 @@ namespace XrEngine.OpenXr.Android
                     MaterialCachePath = _context.GetExternalCacheDirs()![0].AbsolutePath,
                     EnableStereo = options.RenderMode != XrRenderMode.SingleEye,
                     OneViewPerTarget = true,
-                    SampleCount = options.SampleCount
+                    SampleCount = 4
                 };
 
                 if (filamentOptions.Driver == FilamentLib.FlBackend.Vulkan)
@@ -96,6 +96,8 @@ namespace XrEngine.OpenXr.Android
                 xrDriver = glDriver;
             }
         }
+
+        public ILogger Logger { get; }
 
         public IAssetManager AssetManager { get; }
     }

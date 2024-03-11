@@ -1,7 +1,9 @@
-﻿using OpenXr.Framework;
+﻿using glTFLoader.Schema;
+using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;
+using XrEngine.Physics;
 
 namespace XrEngine.OpenXr
 {
@@ -12,6 +14,12 @@ namespace XrEngine.OpenXr
         protected bool _isSceneLoading;
         protected XrApp? _app;
 
+        public OculusSceneModel()
+        {
+            var pbrMaterial = PbrMaterial.CreateDefault();
+            pbrMaterial.Color = Color.White;
+            Material = pbrMaterial;
+        }
 
         public override void Update(RenderContext ctx)
         {
@@ -63,14 +71,22 @@ namespace XrEngine.OpenXr
 
                 var location = _app!.LocateSpace(meshAnchor.Space, _app.Stage, 1);
 
-                var material = PbrMaterial.CreateDefault();
-                material.Color = Color.White;
-
-                var mesh = new TriangleMesh(geo, material);
+                var mesh = new TriangleMesh(geo, Material);
                 mesh.Name = "global-mesh";
                 mesh.Transform.Position = location.Pose.Position;
                 mesh.Transform.Orientation = location.Pose.Orientation;
-                //mesh.AddComponent(new MeshCollider());
+                
+                mesh.AddComponent(new MeshCollider());
+                
+                var rb = mesh.AddComponent<RigidBody>();
+
+                rb.BodyType = PhysicsActorType.Static;
+                rb.Material = new PhysicsMaterialInfo
+                {
+                    DynamicFriction = 1,
+                    StaticFriction = 1,
+                    Restitution = 1
+                };
 
                 AddChild(mesh);
 
@@ -88,5 +104,7 @@ namespace XrEngine.OpenXr
                 _isSceneLoading = false;
             }
         }
+
+        public Material Material { get; set; }
     }
 }

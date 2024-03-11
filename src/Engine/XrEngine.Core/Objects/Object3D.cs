@@ -16,6 +16,8 @@ namespace XrEngine
         private Matrix4x4 _worldMatrixInverse;
         private Matrix4x4 _worldMatrix;
         private bool _worldInverseDirty;
+        private double _creationTime;
+        private double _lastUpdateTime;
 
         public Object3D()
         {
@@ -78,6 +80,11 @@ namespace XrEngine
 
         public override void Update(RenderContext ctx)
         {
+            if (_creationTime == -1)
+                _creationTime = ctx.Time;
+
+            _lastUpdateTime = ctx.Time;
+
             if (_scene == null && _parent != null)
                 _scene = this.FindAncestor<Scene>();
 
@@ -198,6 +205,16 @@ namespace XrEngine
                     _transform.SetMatrix(_parent.WorldMatrixInverse * value);
             }
         }
+
+        public override void Dispose()
+        {
+            _parent?.RemoveChild(this);
+            base.Dispose();
+        }
+
+        public double CreationTime => _creationTime;
+
+        public double LiveTime => _lastUpdateTime - _creationTime;
 
         public Transform3D Transform => _transform;
 

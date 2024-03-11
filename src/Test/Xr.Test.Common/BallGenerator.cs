@@ -1,19 +1,28 @@
-﻿using OpenXr.Framework;
+﻿using Microsoft.Extensions.Logging;
+using OpenXr.Framework;
+using System.Diagnostics;
 using XrEngine;
+using XrEngine.Audio;
 using XrEngine.Colliders;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
+using XrMath;
 
 namespace Xr.Test
 {
     public class BallGenerator : Behavior<Scene>
     {
         readonly List<TriangleMesh> _balls = [];
+        readonly DynamicSound _sound;
 
-        public BallGenerator()
+        public BallGenerator(DynamicSound sound)
         {
-            Material = PbrMaterial.CreateDefault();
-            Material.Color = new Color(1, 1, 0);
+            _sound = sound;
+            var pbrMat = PbrMaterial.CreateDefault();
+            pbrMat.Color = new Color(1, 1, 0);
+            pbrMat.MetallicRoughness!.MetallicFactor = 0;
+            pbrMat.MetallicRoughness.RoughnessFactor = 0.3f;
+            Material = pbrMat;
         }
 
         protected TriangleMesh NewBall()
@@ -24,6 +33,8 @@ namespace Xr.Test
 
             ball.AddComponent<BoundsGrabbable>();
 
+            var emitter = ball.AddComponent<AudioEmitter>();
+
             var sc = ball.AddComponent<SphereCollider>();
             sc.Radius = 1;
 
@@ -31,36 +42,47 @@ namespace Xr.Test
             rb.BodyType = PhysicsActorType.Dynamic;
             rb.Material = new PhysicsMaterialInfo
             {
-                Restitution = 1,
+                Restitution = 0.5f,
                 StaticFriction = 0.8f,
                 DynamicFriction = 0.8f
+            };
+            rb.Contact += (me, other, index, data) =>
+            {
+                var dt = rb.Actor.System.LastDeltaTime;
+                var selfIndex = index == 0 ? 1 : 0;
+
+                var maxLinearAcc = data.Select(a =>
+                {
+                    var self = a.GetItem(selfIndex);
+                    return ((self.PostVelocity.Linear - self.PreVelocity.Linear) / dt).Length();
+                }).Max();
+               
+                var force = MathUtils.MapRange(maxLinearAcc, 8, 20);
+
+                Platform.Current!.Logger.LogWarning("Acceleration: {acc} {force}", maxLinearAcc, force);
+
+                if (maxLinearAcc > 5 || other.Name == "Racket")
+                    emitter.Play(_sound.Buffer(force), data[0].Points![0].Normal);
+
+                if (other.Name == "Racket")
+                {
+                    var haptic = XrApp.Current!.Haptics["RightHaptic"];
+                    haptic.VibrateStart(100, 1, TimeSpan.FromMilliseconds(50));
+                }
             };
 
             return ball;
         }
 
-        protected Object3D PickBall()
+        public Object3D PickBall()
         {
-            /*
-            foreach (var ball in _balls)
+            var toDelete = _balls.Where(a => a.LiveTime > 20).ToArray();
+
+            foreach (var item in toDelete)
             {
-                if (ball.WorldPosition.Y < 10)
-                {
-                    var rb = ball.Components<RigidBody>().First();
-
-                    rb.Actor.Stop();
-                    rb.Actor.IsKinematic = true;
-                    rb.Actor.KinematicTarget = new PxTransform
-                    {
-                        p = Pose!.Value.Position,
-                        q = Quaternion.Identity
-                    };
-                    rb.Actor.IsKinematic = false;
-
-                    return ball;
-                }
+                item.Dispose();
+                _balls.Remove(item);
             }
-            */
 
             var newBall = NewBall();
             _balls.Add(newBall);

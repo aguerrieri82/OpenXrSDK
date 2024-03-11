@@ -58,9 +58,6 @@ include $(PREBUILT_STATIC_LIBRARY)
 
 #------------
 
-#NDK_LIBS_OUT 
-#NDK_OUT  
-
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := filament-native

@@ -1,29 +1,66 @@
-﻿using MagicPhysX;
+﻿using PhysX;
+using System;
+using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
-using static MagicPhysX.NativeMethods;
+using static PhysX.NativeMethods;
+
 
 namespace XrEngine.Physics
 {
-    public unsafe class PhysicsSystem
+
+
+    public unsafe partial struct PxContactPairVelocity2
+    {
+        public byte type_;
+        public fixed byte structgen_pad0[3];
+        public PxVec3 linearVelocity1;
+        public PxVec3 linearVelocity2;
+        public PxVec3 angularVelocity1;
+        public PxVec3 angularVelocity2;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe partial struct PxContactPairPose2
+    {
+        public byte type_;
+        public fixed byte structgen_pad0[3];
+        public PxTransform globalPose1;
+        public PxTransform globalPose2;
+    }
+
+    public unsafe class PhysicsSystem : IDisposable
     {
         const uint VersionNumber = (5 << 24) + (1 << 16) + (3 << 8);
 
-        private PxFoundation* _foundation;
-        private PxPvd* _pvd;
-        private PxPhysics* _physics;
-        private PxDefaultCpuDispatcher* _dispatcher;
-        private PxScene* _scene;
+        protected PxFoundation* _foundation;
+        protected PxPvd* _pvd;
+        protected PxPhysics* _physics;
+        protected PxDefaultCpuDispatcher* _dispatcher;
+        protected PxScene* _scene;
+        protected uint _actorIds;
+        protected Dictionary<uint, PhysicsActor> _actors = [];
+        protected internal Dictionary<nint, object> _objects = [];
+        protected SimulationEventCallbacks _eventCallbacks;
+        protected ContactModifyCallback _contactModify;
+        private float _lastDeltaTime;
 
         public PhysicsSystem()
         {
+            Current = this;
+            _contactModify = new ContactModifyCallback();
+            _eventCallbacks = new SimulationEventCallbacks();
         }
 
         public PhysicsMaterial CreateMaterial(PhysicsMaterialInfo info)
         {
             var material = _physics->CreateMaterialMut(info.StaticFriction, info.DynamicFriction, info.Restitution);
-            return new PhysicsMaterial(material);
+            return new PhysicsMaterial(material, this);
         }
 
         public PhysicsGeometry CreateBox(Vector3 halfSize)
@@ -142,47 +179,146 @@ namespace XrEngine.Physics
 
         public PhysicsShape CreateShape(PhysicsShapeInfo info)
         {
-            var shape = _physics->CreateShapeMut(info.Geometry, info.Material, info.IsEsclusive, info.Flags);
-            return new PhysicsShape(shape);
+            var shape = _physics->CreateShapeMut(info.Geometry!, info.Material!, info.IsEsclusive, info.Flags);
+            var result = new PhysicsShape(shape, this);
+            _objects[new nint(shape)] = result;
+            return result;
         }
 
         public PhysicsActor CreateActor(PhysicsActorInfo info)
         {
             PxActor* actor = null;
-
+            var pxTrans = info.Pose.ToPxTransform();
             switch (info.Type)
             {
                 case PhysicsActorType.Static:
-                    actor = (PxActor*)_physics->PhysPxCreateStatic1(&info.Transform, info.Shapes[0]);
+                    actor = (PxActor*)_physics->PhysPxCreateStatic1(&pxTrans, info.Shapes[0]);
                     break;
                 case PhysicsActorType.Dynamic:
                 case PhysicsActorType.Kinematic:
-                    actor = (PxActor*)_physics->PhysPxCreateDynamic1(&info.Transform, info.Shapes[0], info.Density);
+                    actor = (PxActor*)_physics->PhysPxCreateDynamic1(&pxTrans, info.Shapes[0], info.Density);
                     break;
             }
 
             foreach (var shape in info.Shapes.Skip(1))
                 ((PxRigidActor*)actor)->AttachShapeMut(shape);
 
+            /*
             if (info.Type != PhysicsActorType.Static)
                 ((PxRigidBody*)actor)->ExtUpdateMassAndInertia1(info.Density, null, true);
+            */
 
             _scene->AddActorMut(actor, null);
 
-            var result = new PhysicsActor(actor);
+            var result = new PhysicsActor(actor, this);
+
             if (info.Type == PhysicsActorType.Kinematic)
                 result.IsKinematic = true;
+
+       
+            result.Id = _actorIds++;
+            _actors[result.Id] = result;
+
+            foreach (var shape in info.Shapes)
+            {
+                PxFilterData data;
+                data.word0 = result.Id;
+                shape.Shape.SetSimulationFilterDataMut(&data);
+            }
+
+            _objects[new nint(actor)] = result;
             return result;
         }
 
-        public void CreateScene(Vector3 gravity)
+        protected virtual internal void NotifyContact(PxContactPairHeader2 header)
+        {
+
+            var actor1 = (PhysicsActor)_objects[new nint(header.actor1)];
+            var actor2 = (PhysicsActor)_objects[new nint(header.actor2)];
+
+            var pairs = new ContactPair[header.nbPairs];
+
+            for (var i = 0; i < pairs.Length; i++)
+            {
+                var pair = header.pairs[i];
+
+                var newPair = new ContactPair()
+                {
+                    Points = new PhysicsContactPoint[pair.contactCount]
+                };
+
+                newPair.Item0.Shape = (PhysicsShape)_objects[new nint(pair.shape1)];
+                newPair.Item1.Shape = (PhysicsShape)_objects[new nint(pair.shape2)];
+
+                var points = new PxContactPairPoint[pair.contactCount];
+
+                fixed (PxContactPairPoint* pBuffer = points)
+                    PxContactPair_extractContacts((PxContactPair*)&pair, pBuffer, (uint)points.Length);
+        
+                for (var j = 0; j < pair.contactCount; j++)
+                {
+                    newPair.Points[j] = new PhysicsContactPoint
+                    {
+                        Position = points[j].position,
+                        Normal = points[j].normal,
+                        Separation = points[j].separation,
+                        Impulse = points[j].impulse,
+                    };
+                }
+
+                pairs[i] = newPair;
+            }
+
+            if (header.extraDataStreamSize > 0)
+            {
+                var iterator = PxContactPairExtraDataIterator_new(header.extraDataStream, header.extraDataStreamSize);
+
+                while (iterator.NextItemSetMut())
+                {
+                    if (iterator.postSolverVelocity != null)
+                    {
+                        var vel = *(PxContactPairVelocity2*)iterator.postSolverVelocity;
+                        pairs[iterator.contactPairIndex].Item0.PostVelocity.Linear = vel.linearVelocity1;
+                        pairs[iterator.contactPairIndex].Item0.PostVelocity.Angular = vel.angularVelocity1;
+                        pairs[iterator.contactPairIndex].Item1.PostVelocity.Linear = vel.linearVelocity2;
+                        pairs[iterator.contactPairIndex].Item1.PostVelocity.Angular = vel.angularVelocity2;
+                    }
+
+                    if (iterator.preSolverVelocity != null)
+                    {
+                        var vel = *(PxContactPairVelocity2*)iterator.preSolverVelocity;
+                        pairs[iterator.contactPairIndex].Item0.PreVelocity.Linear = vel.linearVelocity1;
+                        pairs[iterator.contactPairIndex].Item0.PreVelocity.Angular = vel.angularVelocity1;
+                        pairs[iterator.contactPairIndex].Item1.PreVelocity.Linear = vel.linearVelocity2;
+                        pairs[iterator.contactPairIndex].Item1.PreVelocity.Angular = vel.angularVelocity2;
+                    }
+
+                    if (iterator.eventPose != null)
+                    {
+                        var pose = *(PxContactPairPose2*)iterator.eventPose;
+                        pairs[iterator.contactPairIndex].Item0.Pose = pose.globalPose1.ToPose3();
+                        pairs[iterator.contactPairIndex].Item1.Pose = pose.globalPose2.ToPose3();
+                    }
+                }
+            }
+
+
+            actor1.OnContact(actor2, 1, pairs);
+
+            actor2.OnContact(actor1, 0, pairs);
+        }
+
+        public unsafe void CreateScene(Vector3 gravity)
         {
             var sceneDesc = PxSceneDesc_new(_physics->GetTolerancesScale());
-
+   
             sceneDesc.gravity = gravity;
             sceneDesc.cpuDispatcher = (PxCpuDispatcher*)_dispatcher;
             sceneDesc.filterShader = get_default_simulation_filter_shader();
             sceneDesc.solverType = PxSolverType.Pgs;
+            sceneDesc.contactModifyCallback = _contactModify.Handle;
+            sceneDesc.simulationEventCallback = _eventCallbacks.Handle;
+            sceneDesc.EnableCustomFilterShader(&FilterShader, 1);
 
             _scene = _physics->CreateSceneMut(&sceneDesc);
 
@@ -197,6 +333,26 @@ namespace XrEngine.Physics
                     pvdClient->SetScenePvdFlagMut(PxPvdSceneFlag.TransmitScenequeries, true);
                 }
             }
+        }
+
+
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        static unsafe PxFilterFlags FilterShader(FilterShaderCallbackInfo* info)
+        {
+            var actor1 = Current!._actors[info->filterData0.word0];
+            var actor2 = Current!._actors[info->filterData1.word0];
+
+            if (actor1.NotifyContacts || actor2.NotifyContacts)
+                info->pairFlags[0] |= 
+                    PxPairFlags.NotifyTouchFound | 
+                    PxPairFlags.NotifyContactPoints |
+                    PxPairFlags.PostSolverVelocity |
+                    PxPairFlags.PreSolverVelocity |
+                    PxPairFlags.ContactEventPose |
+                    PxPairFlags.DetectDiscreteContact |
+                    PxPairFlags.SolveContact;
+            
+            return 0;
         }
 
         public void Create()
@@ -222,7 +378,7 @@ namespace XrEngine.Physics
 
             var tolerancesScale = new PxTolerancesScale
             {
-                length = 1,
+                length = 10,
                 speed = 10
             };
 
@@ -244,26 +400,40 @@ namespace XrEngine.Physics
             Simulate((float)delta.TotalSeconds, stepSize);
         }
 
-        public void Simulate(float deltaSecs, float stepSize)
+        public void Simulate(float deltaSecs, float stepSizeSecs)
         {
             uint error;
             float curTime = 0;
+
             while (curTime < deltaSecs)
             {
-                if (curTime + stepSize > deltaSecs)
-                    stepSize = deltaSecs - curTime;
+                if (curTime + stepSizeSecs > deltaSecs)
+                    _lastDeltaTime = deltaSecs - curTime;
+                else
+                    _lastDeltaTime = stepSizeSecs;
 
-                _scene->SimulateMut(stepSize, null, null, 0, true);
+                _scene->SimulateMut(_lastDeltaTime, null, null, 0, true);
 
                 _scene->FetchResultsMut(true, &error);
 
-                curTime += stepSize;
+                curTime += stepSizeSecs;
             }
+        }
 
+        public void Dispose()
+        {
+            _contactModify.Dispose();
+            _eventCallbacks.Dispose();
         }
 
         public ref PxPhysics Physics => ref Unsafe.AsRef<PxPhysics>(_physics);
 
         public ref PxScene Scene => ref Unsafe.AsRef<PxScene>(_scene);
+
+        public static PhysicsSystem? Current { get; internal set; }
+
+        public float LastDeltaTime => _lastDeltaTime;
+
+        public event Action<PhysicsActor, PhysicsActor>? Contact;
     }
 }

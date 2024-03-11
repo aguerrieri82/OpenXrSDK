@@ -20,6 +20,7 @@
         {
             _shader = SHADER;
             WriteColor = false;
+            WriteDepth = true;
         }
 
         public override void UpdateShader(ShaderUpdateBuilder bld)

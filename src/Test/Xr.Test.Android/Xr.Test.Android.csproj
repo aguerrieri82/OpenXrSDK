@@ -30,6 +30,7 @@
 	<ItemGroup>
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../third-party/MagicPhysX/src/MagicPhysX/runtimes/android-arm64/native/*" />
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../Framework/OpenXr.Framework/runtimes/android-arm64/native/*" />
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../Engine/OpenAl.Framework/runtimes/android-arm64/native/*" />
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../Engine/Filament.Native/libs/arm64-v8a/*" />
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../Engine/Draco.Native/libs/arm64-v8a/*" />
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../third-party/etcpak/libs/arm64-v8a/*" />

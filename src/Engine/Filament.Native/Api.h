@@ -19,6 +19,8 @@ extern "C" {
 
 	EXPORT void APIENTRY AddGroup(FilamentApp* app, OBJID id);
 
+	EXPORT void APIENTRY SetObjVisible(FilamentApp* app, const OBJID id, const bool visible);
+
 	EXPORT void APIENTRY SetObjTransform(FilamentApp* app, OBJID id, const Matrix4x4 matrix);
 
 	EXPORT void APIENTRY SetObjParent(FilamentApp* app, OBJID id, OBJID parentId);

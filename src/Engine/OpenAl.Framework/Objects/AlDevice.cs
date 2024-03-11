@@ -3,39 +3,40 @@ using Silk.NET.OpenAL.Extensions.Enumeration;
 
 namespace OpenAl.Framework
 {
-    public unsafe class AudioDevice
+    public unsafe class AlDevice
     {
         private Device* _device;
         private Context* _context;
         private readonly AL _al;
+        private readonly ALContext _alc;
 
-        public AudioDevice()
+        public AlDevice()
         {
-            CreateContext();
+            _alc = ALContext.GetApi();
             _al = AL.GetApi();
+
+            CreateContext();
         }
 
         protected void CreateContext()
         {
-            using var alc = ALContext.GetApi();
+            var devices = ListDevices();
 
-            var devices = ListDevices(alc);
-
-            _device = alc.OpenDevice(devices[0]);
+            _device = _alc.OpenDevice(devices[0]);
             int[] attrs = [0];
 
             fixed (int* ptr = &attrs[0])
-                _context = alc.CreateContext(_device, ptr);
+                _context = _alc.CreateContext(_device, ptr);
 
-            alc.MakeContextCurrent(_context);
+            _alc.MakeContextCurrent(_context);
         }
 
 
-        public IList<string> ListDevices(ALContext alc)
+        public IList<string> ListDevices()
         {
             var result = new List<string>();
 
-            if (alc.TryGetExtension<Enumeration>(null, out var enumeration))
+            if (_alc.TryGetExtension<Enumeration>(null, out var enumeration))
             {
                 foreach (var device in enumeration.GetStringList(GetEnumerationContextStringList.DeviceSpecifiers))
                     result.Add(device);
@@ -43,5 +44,7 @@ namespace OpenAl.Framework
 
             return result;
         }
+
+        public AL Al => _al;
     }
 }

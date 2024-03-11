@@ -10,9 +10,9 @@ namespace OpenAl.Framework
         public Vector3 Up;
     }
 
-    public class AudioListener : AlObject
+    public class AlListener : AlObject
     {
-        public AudioListener(AL al) : base(al, 0)
+        public AlListener(AL al) : base(al, 0)
         {
 
         }

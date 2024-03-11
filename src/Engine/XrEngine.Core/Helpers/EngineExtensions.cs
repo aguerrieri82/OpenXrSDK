@@ -30,6 +30,10 @@ namespace XrEngine
             return result;
         }
 
+        public static T Component<T>(this EngineObject obj) where T : IComponent
+        {
+            return obj.Components<T>().Single();
+        }
 
         #endregion
 

@@ -9,16 +9,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="Shaders\Pbr\uniforms.glsl" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.1.8" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<Content Include="..\XrEngine.Native\bin\x64\Debug\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
+
+    </ItemGroup>
+	
+	<ItemGroup>
 	  <ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
 	  <ProjectReference Include="..\MeshOptimizer\MeshOptimizer.csproj" />
+	  <ProjectReference Include="..\XrEngine.Native\XrEngine.Native.vcxproj" />
 	</ItemGroup>
 
 </Project>

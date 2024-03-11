@@ -13,7 +13,6 @@
             return *buffer;
         }
 
-
         public unsafe static void WriteStruct<T>(this Stream stream, T value) where T : unmanaged
         {
             var span = new Span<byte>((byte*)&value, sizeof(T));

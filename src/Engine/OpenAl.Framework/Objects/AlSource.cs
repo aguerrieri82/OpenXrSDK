@@ -3,18 +3,18 @@ using System.Numerics;
 
 namespace OpenAl.Framework
 {
-    public class AudioSource : AlObject, IDisposable
+    public class AlSource : AlObject, IDisposable
     {
-        public AudioSource(AL al)
+        HashSet<AlBuffer> _buffers = [];
+
+        public AlSource(AL al)
             : base(al, al.GenSource())
         {
-
         }
 
-        public AudioSource(AL al, uint handle)
+        public AlSource(AL al, uint handle)
             : base(al, handle)
         {
-
         }
 
         public void Play()
@@ -36,6 +36,23 @@ namespace OpenAl.Framework
         {
             _al.SourceRewind(_handle);
         }
+
+        public void DeleteBuffers()
+        {
+            foreach (var buffer in _buffers)
+            {
+                
+            }
+
+            _buffers.Clear();
+        }
+
+        public void AddBuffer(AlBuffer buffer)
+        {
+            _al.SetSourceProperty(_handle, SourceInteger.Buffer, buffer.Handle);
+            _buffers.Add(buffer);   
+        }
+
 
         public Vector3 Velocity
         {
@@ -66,7 +83,6 @@ namespace OpenAl.Framework
             }
             set => _al.SetSourceProperty(_handle, SourceVector3.Direction, value);
         }
-
 
         public int PlayPositionSamples
         {

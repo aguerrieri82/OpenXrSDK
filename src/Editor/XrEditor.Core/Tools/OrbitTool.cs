@@ -39,7 +39,10 @@ namespace XrEditor
 
         protected override void OnMouseDown(PointerEvent ev)
         {
-            var camera = (PerspectiveCamera)_sceneView!.Camera!;
+            if (_sceneView?.Camera == null || _sceneView?.RenderSurface == null)
+                return;
+
+            var camera = (PerspectiveCamera)_sceneView.Camera;
 
             var relPos = (camera.WorldPosition - camera.Target);
 
@@ -49,7 +52,7 @@ namespace XrEditor
             {
                 _action = OrbitAction.Rotate;
                 _startPos = Spherical.FromCartesian(relPos);
-                _sceneView.RenderSurface!.CapturePointer();
+                _sceneView.RenderSurface.CapturePointer();
             }
             else if (ev.IsRightDown)
             {
@@ -61,7 +64,7 @@ namespace XrEditor
 
                 _planeZ = targetZ.Z / targetZ.W;
                 _startPoint = ToWorld(ev, _planeZ);
-                _sceneView.RenderSurface!.CapturePointer();
+                _sceneView.RenderSurface.CapturePointer();
             }
 
             base.OnMouseDown(ev);
@@ -69,7 +72,10 @@ namespace XrEditor
 
         protected override void OnWheelMove(PointerEvent ev)
         {
-            var camera = (PerspectiveCamera)_sceneView!.Camera!;
+            if (_sceneView?.Camera == null)
+                return;
+
+            var camera = (PerspectiveCamera)_sceneView.Camera;
             var curDir = (camera.WorldPosition - camera.Target);
             var curLen = curDir.Length();
             var newLen = curLen + curLen * -ev.WheelDelta * 0.001f;
@@ -80,7 +86,10 @@ namespace XrEditor
 
         protected override void OnMouseMove(PointerEvent ev)
         {
-            var camera = (PerspectiveCamera)_sceneView!.Camera!;
+            if (_sceneView?.Camera == null)
+                return;
+
+            var camera = (PerspectiveCamera)_sceneView.Camera;
 
             if (_action == OrbitAction.Rotate)
             {
@@ -107,8 +116,12 @@ namespace XrEditor
 
         protected override void OnMouseUp(PointerEvent ev)
         {
-            _sceneView!.RenderSurface!.ReleasePointer();
+            if (_sceneView?.RenderSurface == null)
+                return;
+
+            _sceneView.RenderSurface.ReleasePointer();
             _action = OrbitAction.None;
+
             base.OnMouseUp(ev);
         }
 

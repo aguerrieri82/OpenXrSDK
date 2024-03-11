@@ -1,4 +1,5 @@
 ﻿
+
 namespace XrEngine
 {
     public class LocalAssetManager : IAssetManager
@@ -7,18 +8,25 @@ namespace XrEngine
 
         public LocalAssetManager(string basePath)
         {
-            _basePath = basePath;
+            _basePath = Path.GetFullPath(basePath);
         }
 
-        public Stream OpenAsset(string name)
+        public Stream Open(string name)
         {
-            return File.OpenRead(FullPath(name));
+            return File.OpenRead(GetFsPath(name));
         }
 
-        public string FullPath(string name)
+        public string GetFsPath(string name)
         {
-            return Path.GetFullPath(Path.Combine(_basePath, name));
+            if (name.StartsWith(_basePath, StringComparison.OrdinalIgnoreCase))
+                return name;
+            return Path.Join(_basePath, name);
         }
 
+        public IEnumerable<string> List(string path)
+        {
+            return Directory.EnumerateFiles(Path.Join(_basePath, path))
+                  .Select(a => a.Substring(_basePath.Length));
+        }
     }
 }

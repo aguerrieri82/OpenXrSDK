@@ -31,7 +31,7 @@ namespace XrEditor.Components
 
             _render = new FilamentRender(new FilamentOptions
             {
-                WindowHandle = 0,
+                WindowHandle = HWnd,
                 Context = new nint(&ctx),
                 Driver = FilamentLib.FlBackend.Vulkan,
                 MaterialCachePath = "d:\\Materials",

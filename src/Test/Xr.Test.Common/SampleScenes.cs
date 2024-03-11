@@ -1,8 +1,10 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
+using PhysX;
 using Silk.NET.OpenXR;
 using System.Numerics;
 using XrEngine;
+using XrEngine.Audio;
 using XrEngine.Components;
 using XrEngine.Compression;
 using XrEngine.Gltf;
@@ -25,7 +27,9 @@ namespace Xr.Test
             builder.UseHands()
                    .UseLeftController()
                    .UseRightController()
+                   .UseInputs<XrOculusTouchController>(a=>a.AddAction(b=> b.Right!.Haptic))
                    .UsePhysics()
+                   .UseScene(true)
                    .AddPassthrough()
                    .UseRayCollider()
                    .UseGrabbers();
@@ -36,6 +40,8 @@ namespace Xr.Test
             var app = new EngineApp();
 
             var scene = new Scene();
+
+            scene.AddComponent<AudioSystem>();
 
             scene.AddComponent<DebugGizmos>();
 
@@ -94,48 +100,71 @@ namespace Xr.Test
 
             var app = CreateBaseScene();
 
-            assets.FullPath("ping-pong paddle red.glb");
+            assets.GetFsPath("ping-pong paddle red.glb");
 
-            var mesh = (Group3D)GltfLoader.Instance.Load(assets.FullPath("ping-pong paddle red.glb"), assets, GltfOptions);
-            mesh.Name = "mesh";
+            var mesh = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("ping-pong paddle red.glb"), assets, GltfOptions);
+            mesh.Name = "Racket";
 
+            //Reposition
             mesh.Transform.LocalPivot = new Vector3(0.054f, -0.04f, 0.174f);
             mesh.Transform.Update();
             mesh.Transform.Rotation = new Vector3(-0.863f, -0.21f, -1.25f);
             mesh.Transform.Position = Vector3.Zero;
 
             mesh.Transform.Update();
-
+     
             foreach (var geo in mesh.DescendantsWithFeature<Geometry3D>())
                 geo.Feature.ApplyTransform(mesh.Transform.Matrix);
-
+   
             mesh.Transform.Reset();
             mesh.Transform.Position = new Vector3(0, 1, 0);
+  
 
+            //Audio
+            var audio = app.ActiveScene!.Component<AudioSystem>();
+            var sound = new DynamicSound();
+            sound.AddBuffers(audio.Device.Al, Platform.Current.AssetManager, "BallSounds");
 
-            // mesh.Forward = new Vector3(-0.14504775f, -0.97817063f, 0.14880678f);
-
+            //Grabber
             mesh.AddComponent<BoundsGrabbable>();
 
+            //Colliders
             foreach (var item in mesh.DescendantsWithFeature<TriangleMesh>())
                 mesh.AddComponent(new MeshCollider(item.Feature.Geometry!));
 
+            //Rigid body
             var rb = mesh.AddComponent<RigidBody>();
             rb.BodyType = PhysicsActorType.Kinematic;
             rb.Material = new PhysicsMaterialInfo
             {
-                Restitution = 0.5f,
+                Restitution = 0.8f,
                 DynamicFriction = 0.7f,
                 StaticFriction = 0.7f
             };
 
-            app.ActiveScene!.AddComponent<BallGenerator>();
+            //Ball generator
+            var bg = app.ActiveScene!.AddComponent(new BallGenerator(sound));
 
+            //Sample ball
+            var ball = bg.PickBall();
+            ball.WorldPosition = new Vector3(-0.5f, 1.1f, 0);
+            ball.Component<RigidBody>().Started += (s, e) =>
+            {
+                ball.Component<RigidBody>().Actor.AddForce(new Vector3(0.3f, 0, 0), PxForceMode.Force);
+            };
+
+
+            //Add racket
             app.ActiveScene!.AddChild(mesh);
+
+
+            //Setup camera
             ((PerspectiveCamera)app.ActiveScene!.ActiveCamera!).Target = mesh.Transform.Position;
 
             return app;
         }
+
+     
 
         public static EngineApp CreateChess()
         {
@@ -144,9 +173,9 @@ namespace Xr.Test
 
             var app = CreateBaseScene();
 
-            assets.FullPath("Game/ABeautifulGame.bin");
+            assets.GetFsPath("Game/ABeautifulGame.bin");
 
-            var mesh = (Group3D)GltfLoader.Instance.Load(assets.FullPath("Game/ABeautifulGame.gltf"), assets, GltfOptions);
+            var mesh = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("Game/ABeautifulGame.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
 
 
@@ -157,7 +186,7 @@ namespace Xr.Test
                 if (child.Name!.Contains("board"))
                 {
                     rb.BodyType = PhysicsActorType.Static;
-                    child.Transform.SetPositionY(-0.05f);
+                    child.Transform.SetPositionY(-0.25f);
                 }
                 else
                     child.AddComponent<BoundsGrabbable>();
@@ -183,9 +212,9 @@ namespace Xr.Test
 
             var app = CreateBaseScene();
 
-            assets.FullPath("Sponza/Sponza.bin");
+            assets.GetFsPath("Sponza/Sponza.bin");
 
-            var mesh = (Group3D)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, GltfOptions);
+            var mesh = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("Sponza/Sponza.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.01f);
 
@@ -208,7 +237,7 @@ namespace Xr.Test
 
             var app = CreateBaseScene();
 
-            var mesh = (Group3D)GltfLoader.Instance.Load(assets.FullPath("Sponza/Sponza.gltf"), assets, GltfOptions);
+            var mesh = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("Sponza/Sponza.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.01f);
 
@@ -250,7 +279,7 @@ namespace Xr.Test
 
             var red = new StandardMaterial() { Color = new Color(1, 0, 0) };
 
-            var data = EtcCompressor.Encode(assets.FullPath("TestScreen.png"), 16);
+            var data = EtcCompressor.Encode(assets.GetFsPath("TestScreen.png"), 16);
 
             var text = new TextureMaterial(Texture2D.FromData(data))
             {

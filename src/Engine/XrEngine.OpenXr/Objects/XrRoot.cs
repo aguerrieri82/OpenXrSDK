@@ -53,6 +53,8 @@ namespace XrEngine.OpenXr
 
             if (input != null)
             {
+                Object3D? model = null;
+
                 group.AddBehavior((_, ctx) =>
                 {
                     input = _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path)!;
@@ -64,20 +66,23 @@ namespace XrEngine.OpenXr
                         group.Transform.Orientation = pose.Orientation;
                         group.UpdateWorldMatrix(true, false);
                     }
+
+                    if (model != null)
+                        model.IsVisible = input.IsActive;
                 });
 
                 var assets = Platform.Current!.AssetManager!;
 
-                var fullPath = assets.FullPath(modelFileName);
+                var fullPath = assets.GetFsPath(modelFileName);
 
                 if (File.Exists(fullPath))
                 {
-                    var model = GltfLoader.Instance.Load(fullPath, assets);
+                    model = GltfLoader.Instance.Load(fullPath, assets);
                     model.Transform.SetMatrix(Matrix4x4.Identity);
                     model.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
                     model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
                     model.Transform.SetScale(1.1f);
-                    model.Name = "Right Controller";
+                    model.Name = "Controller";
                     group.AddChild(model);
                 }
 

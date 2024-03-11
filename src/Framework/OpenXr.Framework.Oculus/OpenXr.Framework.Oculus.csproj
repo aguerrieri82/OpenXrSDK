@@ -15,17 +15,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Models\ImageToStl.com_metaquesttouchplus_right.glb">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Models\MetaQuestTouchPlus_Left.glb">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Models\MetaQuestTouchPlus_Right.glb">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
+		<Content Include="Models/**/*" Link="Assets/Models/%(RecursiveDir)/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
-
-
 
 </Project>

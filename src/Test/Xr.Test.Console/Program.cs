@@ -27,10 +27,6 @@ Gpu.EnableNvAPi();
 
 var logger = host.Services.GetRequiredService<ILogger<object>>();
 
-
-
-var audio = new AudioDevice();
-
 //await WebLinkApp.Run(host.Services, logger);
 //await Tasks.OvrLibTask(logger);
 //await XrSceneApp.Run(host.Services, logger);

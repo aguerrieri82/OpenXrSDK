@@ -122,8 +122,8 @@ namespace XrEngine.Filament
                 {
                     HdrColorBuffer = FlQualityLevel.MEDIUM
                 },
-                AntiAliasing = FlAntiAliasing.NONE,
-                PostProcessingEnabled = false,
+                AntiAliasing = FlAntiAliasing.FXAA,
+                PostProcessingEnabled = true,
                 ShadowingEnabled = false,
                 ShadowType = FlShadowType.PCF,
                 BlendMode = FlBlendMode.OPAQUE,
@@ -495,7 +495,12 @@ namespace XrEngine.Filament
             render[0].Viewport = viewport;
 
             foreach (var mesh in _content!.Objects!.Where(a => a.Key is TriangleMesh))
+            {
+                SetObjVisible(_app, mesh.Value, ((Object3D)mesh.Key).IsVisible);
+
                 SetObjTransform(_app, mesh.Value, ((Object3D)mesh.Key).WorldMatrix);
+            }
+
 
             FilamentLib.Render(_app, render, 1, flush);
 

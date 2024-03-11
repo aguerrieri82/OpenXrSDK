@@ -10,6 +10,7 @@ namespace XrEditor
         protected Object3D? _currentPick;
         protected Color? _oldColor;
         protected Collision? _lastCollision;
+        protected object _lock = new object();
 
         public override void NotifySceneChanged()
         {
@@ -21,12 +22,14 @@ namespace XrEditor
 
         protected override void OnMouseMove(PointerEvent ev)
         {
+
             if (_sceneView?.Scene == null)
                 return;
     
             var ray = ToRay(ev);
 
-            _lastCollision = _sceneView.Scene.RayCollisions(ray).FirstOrDefault();
+            lock (_lock)
+                _lastCollision = _sceneView.Scene.RayCollisions(ray).FirstOrDefault();
 
             var newPick = _lastCollision?.Object;
 
@@ -43,8 +46,6 @@ namespace XrEditor
 
             if (_currentPick != null)
                 OnEnter(_currentPick);
-
-
         }
 
         protected virtual bool CanPick(Object3D obj)
@@ -74,14 +75,17 @@ namespace XrEditor
 
         public void DrawGizmos(Canvas3D canvas)
         {
-            if (_lastCollision?.Normal != null)
+            lock (_lock)
             {
+                if (_lastCollision?.Normal == null)
+                    return;
+
                 canvas.Save();
                 canvas.State.Color = new Color(0, 1, 0, 1);
                 canvas.DrawLine(_lastCollision.Point, (_lastCollision.LocalPoint + _lastCollision.Normal.Value).Transform(_lastCollision.Object!.WorldMatrix) * 1);
-                Debug.WriteLine(_lastCollision.Normal);
                 canvas.Restore();
             }
+
         }
     }
 }

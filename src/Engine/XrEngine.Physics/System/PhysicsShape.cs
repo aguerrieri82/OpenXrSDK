@@ -1,4 +1,4 @@
-﻿using MagicPhysX;
+﻿using PhysX;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -12,35 +12,36 @@ namespace XrEngine.Physics
             Flags = PxShapeFlags.Visualization | PxShapeFlags.SceneQueryShape | PxShapeFlags.SimulationShape;
         }
 
-        public PhysicsGeometry Geometry;
+        public PhysicsGeometry? Geometry;
 
-        public PhysicsMaterial Material;
+        public PhysicsMaterial? Material;
 
         public bool IsEsclusive;
 
         public PxShapeFlags Flags;
     }
 
-    public unsafe struct PhysicsShape
+    public unsafe class PhysicsShape : PhysicsObject<PxShape>
     {
-        PxShape* _handle;
-        private string _name;
 
-        public PhysicsShape(PxShape* handle)
+        protected string _name;
+
+        internal PhysicsShape(PxShape* handle, PhysicsSystem system)
+    :            base(handle, system)
         {
-            _handle = handle;
             _name = string.Empty;
-
         }
 
-
-        public void Release()
+        public override void Dispose()
         {
+            _system._objects.Remove(new nint(_handle));
+
             if (_handle != null)
             {
                 _handle->ReleaseMut();
                 _handle = null;
             }
+            GC.SuppressFinalize(this);
         }
 
         public string Name
@@ -67,10 +68,7 @@ namespace XrEngine.Physics
             }
         }
 
-        public bool IsValid => _handle != null;
 
         public ref PxShape Shape => ref Unsafe.AsRef<PxShape>(_handle);
-
-        public static implicit operator PxShape*(PhysicsShape self) => self._handle;
     }
 }
