@@ -1,6 +1,7 @@
-﻿using MagicPhysX;
+﻿using PhysX;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using XrMath;
 
 namespace XrEngine.Physics
 {
@@ -17,19 +18,51 @@ namespace XrEngine.Physics
 
         public IList<PhysicsShape> Shapes;
 
-        public PxTransform Transform;
+        public Pose3 Pose;
 
         public float Density;
     }
 
+    public delegate void ActorContactEventHandler(PhysicsActor other, int otherIndex, ContactPair[] pairs);
 
-    public unsafe struct PhysicsActor
+
+    public unsafe class PhysicsActor : PhysicsObject<PxActor>
     {
-        PxActor* _handle;
+        internal PhysicsActor(PxActor* handle, PhysicsSystem system)
+            : base(handle, system)
+        { 
+        }
 
-        public PhysicsActor(PxActor* handler)
+        public void AddForce(Vector3 force, PxForceMode mode)
         {
-            _handle = handler;
+            RigidBody.AddForceMut((PxVec3*)&force, mode, true);
+        }
+
+        public void AddForce(Vector3 force, Vector3 worldPos, PxForceMode mode)
+        {
+            RigidBody.ExtAddForceAtPos((PxVec3*)&force, (PxVec3*)&worldPos, mode, true);
+        }
+
+        public void Stop()
+        { 
+            LinearVelocity = Vector3.Zero;
+            AngularVelocity = Vector3.Zero;
+        }
+
+        protected virtual internal void OnContact(PhysicsActor other, int otherIndex, ContactPair[] data)
+        {
+            Contact?.Invoke(other, otherIndex, data);
+        }
+
+        public override void Dispose()
+        {
+            _system._objects.Remove(new nint(_handle));
+            if (_handle != null)
+            {
+                _handle->ReleaseMut();
+                _handle = null;
+            }
+            GC.SuppressFinalize(this);
         }
 
         public float Mass
@@ -37,23 +70,15 @@ namespace XrEngine.Physics
             get => RigidBody.GetMass();
         }
 
-        public PxTransform GlobalPose
+        public Pose3 GlobalPose
         {
-            get => RigidActor.GetGlobalPose();
-            set => RigidActor.SetGlobalPoseMut(&value, true);
-        }
-
-        public PxTransform KinematicTarget
-        {
-            get
+            get => RigidActor.GetGlobalPose().ToPose3();
+            set  
             {
-                PxTransform value;
-                RigidDynamic.GetKinematicTarget(&value);
-                return value;
-            }
-            set => RigidDynamic.SetKinematicTargetMut(&value);
+                var newValue = value.ToPxTransform();
+                RigidActor.SetGlobalPoseMut(&newValue, true);
+            } 
         }
-
 
         public bool IsKinematic
         {
@@ -61,35 +86,48 @@ namespace XrEngine.Physics
             set => RigidBody.SetRigidBodyFlagMut(PxRigidBodyFlag.Kinematic, value);
         }
 
-        public void Release()
+        public Pose3 KinematicTarget
         {
-            if (_handle != null)
+            get
             {
-                _handle->ReleaseMut();
-                _handle = null;
+                PxTransform value;
+                RigidDynamic.GetKinematicTarget(&value);
+                return value.ToPose3();
+            }
+            set
+            {
+                var newValue = value.ToPxTransform();
+                RigidDynamic.SetKinematicTargetMut(&newValue);
             }
         }
 
-        public void Stop()
+        public Vector3 AngularVelocity
         {
-            PxVec3 zero = new Vector3(0, 0, 0);
-            RigidDynamic.SetAngularVelocityMut(&zero, true);
-            RigidDynamic.SetLinearVelocityMut(&zero, true);
+            get => RigidDynamic.GetAngularVelocity();
+            set => RigidDynamic.SetAngularVelocityMut((PxVec3*)&value, true);
         }
 
-        public bool IsValid => _handle != null;
-
-        public readonly ref PxRigidDynamic RigidDynamic => ref Unsafe.AsRef<PxRigidDynamic>(_handle);
-
-        public readonly ref PxRigidStatic RigidStatic => ref Unsafe.AsRef<PxRigidStatic>(_handle);
-
-        public readonly ref PxRigidBody RigidBody => ref Unsafe.AsRef<PxRigidBody>(_handle);
-
-        public readonly ref PxRigidActor RigidActor => ref Unsafe.AsRef<PxRigidActor>(_handle);
-
-        public readonly ref PxActor Actor => ref Unsafe.AsRef<PxActor>(_handle);
+        public Vector3 LinearVelocity
+        {
+            get => RigidDynamic.GetLinearVelocity();
+            set => RigidDynamic.SetLinearVelocityMut((PxVec3*)&value, true);
+        }
 
 
-        public static implicit operator PxActor*(PhysicsActor self) => self._handle;
+        public event ActorContactEventHandler? Contact;
+
+        public bool NotifyContacts { get; set; }
+
+        public uint Id { get; internal set; }
+
+        public ref PxRigidDynamic RigidDynamic => ref Unsafe.AsRef<PxRigidDynamic>(_handle);
+
+        public ref PxRigidStatic RigidStatic => ref Unsafe.AsRef<PxRigidStatic>(_handle);
+
+        public ref PxRigidBody RigidBody => ref Unsafe.AsRef<PxRigidBody>(_handle);
+
+        public ref PxRigidActor RigidActor => ref Unsafe.AsRef<PxRigidActor>(_handle);
+
+        public ref PxActor Actor => ref Unsafe.AsRef<PxActor>(_handle);
     }
 }

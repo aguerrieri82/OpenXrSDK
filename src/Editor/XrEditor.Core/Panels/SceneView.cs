@@ -48,6 +48,18 @@ namespace XrEditor
         }
 
 
+        protected void CreateApp()
+        {
+            _engine = new XrEngineAppBuilder()
+              .SetRenderQuality(1, 1) ///samples > 1 cause Filament to fuck up
+              .UseApp(SampleScenes.CreatePingPong())
+              .Configure(SampleScenes.ConfigureXrApp)
+              .Build();
+
+            Scene = _engine.App.ActiveScene;
+        }
+
+
         protected void OnSizeChanged(object? sender, EventArgs e)
         {
             UpdateSize();
@@ -63,16 +75,6 @@ namespace XrEditor
 
         public void StartXr()
         {
-            /*
-            _render!.Suspend();
-
-            while (true)
-            {
-                if (_renderSurface.TakeContext())
-                    break;
-                Thread.Sleep(50);
-            }
-            */
 
             try
             {
@@ -92,10 +94,6 @@ namespace XrEditor
             }
             finally
             {
-                /*
-                _render!.Resume();
-                _renderSurface.ReleaseContext();
-                */
             }
 
             OnPropertyChanged(nameof(IsXrActive));
@@ -118,17 +116,6 @@ namespace XrEditor
             {
 
             }
-        }
-
-        protected void CreateApp()
-        {
-            _engine = new XrEngineAppBuilder()
-              .SetRenderQuality(1, 1) ///NOT INCREASE 
-              .UseApp(SampleScenes.CreateSponza())
-              .Configure(SampleScenes.ConfigureXrApp)
-              .Build();
-
-            Scene = _engine.App.ActiveScene;
         }
 
         protected void RenderLoop()

@@ -1,19 +1,26 @@
-﻿using MagicPhysX;
+﻿using PhysX;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices.JavaScript;
 using XrEngine.Colliders;
+using XrMath;
 
 
 namespace XrEngine.Physics
 {
+
+
+    public delegate void RigidBodyContactEventHandler(Object3D self, Object3D other, int otherIndex, ContactPair[] pairs);
+
+
     public class RigidBody : Behavior<Object3D>, IDisposable
     {
         private PhysicsSystem? _system;
-        private PhysicsActor _actor;
-        private PhysicsMaterial _material;
+        private PhysicsActor? _actor;
+        private PhysicsMaterial? _material;
         private PhysicsGeometryType _geoType;
         private readonly List<PhysicsShape> _shapes = [];
+        private event RigidBodyContactEventHandler? _contactEvent;
 
         public RigidBody()
         {
@@ -29,14 +36,14 @@ namespace XrEngine.Physics
             Density = 10;
         }
 
-        protected void SetPose(PxTransform pose)
+        protected void SetPose(Pose3 pose)
         {
             Debug.Assert(_host != null);
 
             var newTrans = _host.Transform.Clone();
 
-            newTrans.Position = pose.p;
-            newTrans.Orientation = pose.q;
+            newTrans.Position = pose.Position;
+            newTrans.Orientation = pose.Orientation;
 
             Matrix4x4 matrix;
 
@@ -49,10 +56,10 @@ namespace XrEngine.Physics
             else
                 matrix = newTrans.Matrix;
 
-            _host.Transform.SetMatrix(matrix * _host.Parent!.WorldMatrixInverse);
+            _host!.Transform.SetMatrix(matrix * _host.Parent!.WorldMatrixInverse);
         }
 
-        protected PxTransform GetPose()
+        protected Pose3 GetPose()
         {
             Debug.Assert(_host != null);
 
@@ -67,12 +74,12 @@ namespace XrEngine.Physics
             else
                 matrix = _host!.WorldMatrix;
 
-            Matrix4x4.Decompose(matrix, out var _, out var rotation, out var translation);
+            Matrix4x4.Decompose(matrix, out var _, out var orientation, out var translation);
 
-            return new PxTransform
+            return new Pose3
             {
-                p = translation,
-                q = rotation
+                Position = translation,
+                Orientation = orientation
             };
         }
 
@@ -112,6 +119,8 @@ namespace XrEngine.Physics
 
                 if (collider is MeshCollider mc)
                 {
+                    mc.Geometry.EnsureIndices();
+
                     pyGeo = _system.CreateTriangleMesh(
                         mc.Geometry.Indices,
                         mc.Geometry.ExtractPositions(),
@@ -126,18 +135,17 @@ namespace XrEngine.Physics
                     pyGeo = _system.CreateSphere(sphere.Radius * scale.X);
                 }
 
-
                 if (pyGeo == null)
                     return;
 
-                _geoType = pyGeo.Value.Type;
-
+                _geoType = pyGeo.Type;
 
                 var shape = _system.CreateShape(new PhysicsShapeInfo
                 {
-                    Geometry = pyGeo.Value,
+                    Geometry = pyGeo,
                     Material = _material,
                 });
+                shape.Tag = collider;
 
                 if (_host.Name != null)
                     shape.Name = _host.Name;
@@ -160,6 +168,8 @@ namespace XrEngine.Physics
                     Material = _material,
                 });
 
+                shape.Tag = bounds;
+
                 _geoType = PhysicsGeometryType.Box;
 
                 _shapes.Add(shape);
@@ -169,9 +179,18 @@ namespace XrEngine.Physics
             {
                 Density = Density,
                 Shapes = _shapes,
-                Transform = GetPose(),
+                Pose = GetPose(),
                 Type = BodyType
             });
+
+            _actor.Tag = _host;
+            _actor.NotifyContacts = _contactEvent != null;
+            _actor.Contact += OnActorContact;
+        }
+
+        private void OnActorContact(PhysicsActor other, int otherIndex, ContactPair[] data)
+        {
+            _contactEvent?.Invoke(_host!, (Object3D)other.Tag!, otherIndex, data);
         }
 
         protected override void Update(RenderContext ctx)
@@ -186,7 +205,8 @@ namespace XrEngine.Physics
                 if (BodyType == PhysicsActorType.Dynamic)
                 {
                     SetPose(_actor.GlobalPose);
-                    _actor.IsKinematic = false;
+                    if (_actor.IsKinematic)
+                        _actor.IsKinematic = false;
                 }
             }
             else
@@ -199,6 +219,7 @@ namespace XrEngine.Physics
                 }
                 else
                     _actor.GlobalPose = GetPose();
+
             }
         }
 
@@ -206,19 +227,40 @@ namespace XrEngine.Physics
         {
             if (_system != null)
             {
-                if (_actor.IsValid)
+                if (_actor != null)
                 {
                     _system.Scene.RemoveActorMut(_actor, false);
-                    _actor.Release();
+                    _actor.Dispose();
+                    _actor = null;
                 }
 
                 foreach (var shape in _shapes)
-                    shape.Release();
+                    shape.Dispose();
+
+                _shapes.Clear();
+
+                _material?.Dispose();
+                _material = null;
             }
+
             GC.SuppressFinalize(this);
         }
 
-        public ref PhysicsActor Actor => ref _actor;
+        public event RigidBodyContactEventHandler Contact
+        {
+            add
+            {
+                _contactEvent += value;
+                if (_actor != null)
+                    _actor.NotifyContacts = true;
+            }
+            remove
+            {
+                _contactEvent -= value;
+            }
+        }
+
+        public PhysicsActor Actor => _actor ?? throw new ArgumentNullException();
 
         public PhysicsActorType BodyType { get; set; }
 

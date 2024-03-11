@@ -10,7 +10,7 @@ namespace XrEngine.Physics
         {
             _system = new PhysicsSystem();
             Gravity = new Vector3(0, -9.81f, 0);
-            StepSizeSecs = 1f / 100;
+            StepSizeSecs = 1f / 40f;
         }
 
         protected override void Start(RenderContext ctx)

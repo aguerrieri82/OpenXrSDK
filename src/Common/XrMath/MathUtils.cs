@@ -10,6 +10,12 @@ namespace XrMath
 {
     public static class MathUtils
     {
+        public static float MapRange(float value, float min, float max)
+        {
+            return MathF.Max(0, MathF.Min((max - min), value - min)) / (max - min);
+
+        }
+
         public static Vector3 ToVector3(float[] array)
         {
             return new Vector3(array[0], array[1], array[2]);

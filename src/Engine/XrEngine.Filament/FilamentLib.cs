@@ -375,5 +375,8 @@ namespace XrEngine.Filament
         [DllImport("filament-native")]
         public static extern void ReleaseContext(IntPtr app, ReleaseContextMode mode);
 
+        [DllImport("filament-native")]
+        public static extern void SetObjVisible(IntPtr app, uint id, bool visible);
+
     }
 }

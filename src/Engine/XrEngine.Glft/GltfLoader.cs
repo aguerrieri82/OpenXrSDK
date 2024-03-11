@@ -54,7 +54,7 @@ namespace XrEngine.Gltf
         {
             string[] supportedExt = { "KHR_draco_mesh_compression", "KHR_materials_pbrSpecularGlossiness" };
 
-            var model = glTFLoader.Interface.LoadModel(assetManager.FullPath(filePath));
+            var model = glTFLoader.Interface.LoadModel(assetManager.GetFsPath(filePath));
             var buffer = glTFLoader.Interface.LoadBinaryBuffer(model, 0, filePath);
             var mats = new Dictionary<glTFLoader.Schema.Material, PbrMaterial>();
             var images = new Dictionary<glTFLoader.Schema.Image, TextureData>();
@@ -111,7 +111,7 @@ namespace XrEngine.Gltf
                 }
                 else if (img.Uri != null)
                 {
-                    data = assetManager.OpenAsset(Path.Join(basePath!, img.Uri))
+                    data = assetManager.Open(Path.Join(basePath!, img.Uri))
                         .ToMemory()
                         .ToArray();
                 }

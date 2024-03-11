@@ -2,8 +2,10 @@
 {
     public interface IAssetManager
     {
-        Stream OpenAsset(string name);
+        Stream Open(string name);
 
-        string FullPath(string name);
+        string GetFsPath(string name);
+
+        IEnumerable<string> List(string path);
     }
 }

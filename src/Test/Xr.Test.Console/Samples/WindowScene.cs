@@ -10,6 +10,10 @@ using XrEngine.OpenGL;
 using Silk.NET.Windowing;
 using System.Numerics;
 using XrMath;
+using Xr.Test;
+using XrEngine.OpenXr;
+using OpenXr.Framework;
+using Microsoft.Extensions.Logging.Abstractions;
 
 
 
@@ -17,9 +21,28 @@ namespace OpenXr.Samples
 {
     public static class WindowSceneApp
     {
+        class ConsolePlatform : IXrPlatform
+        {
+            public IAssetManager AssetManager { get; } = new LocalAssetManager("Assets");
+
+            public ILogger Logger { get; } = NullLogger.Instance;
+
+            public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
+            {
+                throw new NotSupportedException();
+            }
+
+            public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public static Task Run(IServiceProvider services, ILogger logger)
         {
-            var app = SampleScenes.CreateChess(new LocalAssetManager("Assets"));
+            Platform.Current = new ConsolePlatform();
+
+            var app = SampleScenes.CreateChess();
 
             var view = Window.Create(WindowOptions.Default);
             view.ShouldSwapAutomatically = true;

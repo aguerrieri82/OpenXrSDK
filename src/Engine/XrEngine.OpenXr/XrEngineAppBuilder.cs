@@ -174,9 +174,13 @@ namespace XrEngine.OpenXr
                 hand.AddComponent(new HandObjectGrabber());
         });
 
-        public XrEngineAppBuilder UseScene() => ConfigureApp(e =>
+        public XrEngineAppBuilder UseScene(bool arMode) => ConfigureApp(e =>
         {
-            e.App.ActiveScene!.AddChild(new OculusSceneModel());
+            var model = new OculusSceneModel();
+            if (arMode)
+                model.Material = new ColorMaterial { Color = Color.Transparent };
+
+            e.App.ActiveScene!.AddChild(model);
 
         });
 
@@ -223,7 +227,7 @@ namespace XrEngine.OpenXr
             if (actionBuilder != null)
                 engine.XrApp.AddActions(actionBuilder);
 
-            engine.XrApp.BindEngineApp(engine.App);
+            engine.XrApp.BindEngineApp(engine.App); //TODO previous was in XrEngineApp.Create, but leads some error
 
             return engine;
         }

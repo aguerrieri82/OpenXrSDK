@@ -18,8 +18,16 @@ namespace XrEngine
 
         public void ApplyTransform(Matrix4x4 matrix)
         {
+            Matrix4x4.Invert(matrix, out var inverse);
+
+            var normalMatrix = Matrix4x4.Transpose(inverse);
+
             for (int i = 0; i < Vertices.Length; i++)
+            {
                 Vertices[i].Pos = Vertices[i].Pos.Transform(matrix);
+                Vertices[i].Normal = Vertices[i].Normal.Transform(normalMatrix).Normalize();
+            }
+
 
             Version++;
         }

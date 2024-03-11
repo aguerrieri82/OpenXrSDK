@@ -14,32 +14,34 @@ namespace XrEngine.OpenXr.Android
             _basePath = basePath;
         }
 
-        public string FullPath(string name)
+        public string GetFsPath(string name)
         {
-            var filesBase = Path.Join(_context.FilesDir!.Path, _basePath);
+            var cacheBase = Path.Join(_context.CacheDir!.Path, _basePath);
 
-            string mainDir = Path.Join(filesBase, name);
-            if (File.Exists(mainDir))
-                return mainDir;
+            if (name.StartsWith(cacheBase))
+                name = name.Substring(cacheBase.Length + 1);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(mainDir)!);
+            var cachePath = Path.Join(cacheBase, name);
+            if (File.Exists(cachePath))
+                return cachePath;
 
-            if (name.StartsWith(filesBase))
-                name = name.Substring(filesBase.Length + 1);
+            Directory.CreateDirectory(Path.GetDirectoryName(cachePath)!);
 
             using var srcStream = _context.Assets!.Open(Path.Join(_basePath, name));
-            using var dstStream = File.OpenWrite(mainDir);
+            using var dstStream = File.OpenWrite(cachePath);
             srcStream.CopyTo(dstStream);
-            return mainDir;
+            return cachePath;
         }
 
-        public Stream OpenAsset(string name)
+        public IEnumerable<string> List(string path)
         {
-            var fullPath = Path.Join(_context.FilesDir!.Path, _basePath);
-            if (name.StartsWith(fullPath))
-                name = name.Substring(fullPath.Length + 1);
+            return _context.Assets!.List(Path.Join(_basePath, path))!
+                .Select(a=> Path.Join(path, a));
+        }
 
-            return _context.Assets!.Open(Path.Join(_basePath, name));
+        public Stream Open(string name)
+        {
+            return File.OpenRead(GetFsPath(name));
         }
     }
 }

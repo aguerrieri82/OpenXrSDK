@@ -13,5 +13,7 @@ namespace OpenAl.Framework
 
             _handle = handle;
         }
+
+        public uint Handle => _handle;
     }
 }

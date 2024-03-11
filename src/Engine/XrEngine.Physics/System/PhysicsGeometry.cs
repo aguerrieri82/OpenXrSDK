@@ -1,4 +1,4 @@
-﻿using MagicPhysX;
+﻿using PhysX;
 using System.Runtime.InteropServices;
 
 namespace XrEngine.Physics
@@ -12,7 +12,7 @@ namespace XrEngine.Physics
         ConvexMesh
     }
 
-    public unsafe struct PhysicsGeometry : IDisposable
+    public unsafe class PhysicsGeometry : IDisposable
     {
         PxGeometryHolder* _holder;
         readonly PhysicsGeometryType _type;
@@ -31,6 +31,7 @@ namespace XrEngine.Physics
                 Marshal.FreeHGlobal(new nint(_holder));
                 _holder = null;
             }
+
             GC.SuppressFinalize(this);
         }
 

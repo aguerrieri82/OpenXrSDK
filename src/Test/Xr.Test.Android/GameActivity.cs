@@ -48,9 +48,9 @@ namespace Xr.Test.Android
 
         protected override void Build(XrEngineAppBuilder builder)
         {
-            builder.UseFilament()
+            builder.UseOpenGL()
                    //.UseStereo()
-                   //.UseMultiView()
+                   .UseMultiView()
                    .UseApp(SampleScenes.CreatePingPong())
                    .Configure(SampleScenes.ConfigureXrApp)
                    .RemovePlaneGrid()

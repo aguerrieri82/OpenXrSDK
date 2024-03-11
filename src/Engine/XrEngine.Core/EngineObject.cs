@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    public abstract class EngineObject : IComponentHost, IRenderUpdate
+    public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable
     {
         protected Dictionary<string, object?>? _props;
         protected List<IComponent>? _components;
@@ -86,6 +86,17 @@
         {
             if (_id == 0)
                 _id = ObjectId.New();
+        }
+
+        public virtual void Dispose()
+        {
+            if (_components != null)
+            {
+                foreach (var component in _components.OfType<IDisposable>())
+                    component.Dispose();
+                _components = null;
+            }
+            GC.SuppressFinalize(this);  
         }
 
         public long Version { get; set; }

@@ -1389,6 +1389,8 @@ namespace OpenXr.Framework
 
         public IReadOnlyDictionary<string, IXrInput> Inputs => _inputs;
 
+        public IReadOnlyDictionary<string, XrHaptic> Haptics => _haptics;
+
         public IReadOnlyDictionary<HandEXT, XrHandInput> Hands => _hands;
 
         public XR Xr => _xr ?? throw new InvalidOperationException("App not initialized");

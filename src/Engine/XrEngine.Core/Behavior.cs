@@ -43,6 +43,7 @@
             {
                 Start(ctx);
                 _startTime = ctx.Time;
+                Started?.Invoke(this, EventArgs.Empty);
             }
             else
             {
@@ -76,6 +77,9 @@
                     OnEnabled();
             }
         }
+
+
+        public event EventHandler? Started;
 
         protected double DeltaTime => _deltaTime;
 

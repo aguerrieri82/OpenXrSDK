@@ -1,5 +1,10 @@
 #include "pch.h"
 
+const uint8_t INVISIBLE_LAYER = 0x2;
+const uint8_t MAIN_LAYER = 0x1;
+
+
+
 #ifdef _WINDOWS
 
 class PlatformWGL2 : public PlatformWGL {
@@ -104,6 +109,9 @@ VIEWID AddView(FilamentApp* app, const ViewOptions& options)
 	view->setShadowingEnabled(options.shadowingEnabled);
 	view->setShadowType(options.shadowType);
 	view->setStencilBufferEnabled(options.stencilBufferEnabled);
+
+	view->setVisibleLayers(0xFF, 0xFF);
+	view->setVisibleLayers(INVISIBLE_LAYER, 0);
 
 	if (app->isStereo) {
 		View::StereoscopicOptions stereoOpt;
@@ -502,6 +510,7 @@ void AddGroup(FilamentApp* app, OBJID id) {
 	app->entities[id] = group;
 }
 
+
 void AddMesh(FilamentApp* app, OBJID id, const MeshInfo& info)
 {
 	auto mesh = EntityManager::get().create();
@@ -519,6 +528,9 @@ void AddMesh(FilamentApp* app, OBJID id, const MeshInfo& info)
 		.build(*app->engine, mesh);
 
 	auto& tcm = app->engine->getTransformManager();
+	auto& rm = app->engine->getRenderableManager();
+	rm.setLayerMask(rm.getInstance(mesh), MAIN_LAYER, MAIN_LAYER);
+
 	//tcm.create(mesh);
 	app->scene->addEntity(mesh);
 	app->entities[id] = mesh;
@@ -533,6 +545,15 @@ void SetObjParent(FilamentApp* app, OBJID id, OBJID parentId)
 	auto objInstance = tcm.getInstance(obj);
 	tcm.setParent(objInstance, parentInstance);
 }
+
+void SetObjVisible(FilamentApp* app, const OBJID id, const bool visible)
+{
+	auto& obj = app->entities[id];
+	auto& rm = app->engine->getRenderableManager();
+	auto objInstance = rm.getInstance(obj);
+	rm.setLayerMask(objInstance, INVISIBLE_LAYER, visible ? INVISIBLE_LAYER : 0);
+}
+
 
 static Texture* CreateTexture(FilamentApp* app, const TextureInfo& info) {
 

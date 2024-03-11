@@ -1,4 +1,5 @@
-﻿using OpenXr.Framework;
+﻿using Microsoft.Extensions.Logging;
+using OpenXr.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,7 @@ namespace XrEngine.OpenXr
         void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver);
 
         public IAssetManager AssetManager { get; }
+
+        public ILogger Logger { get; }
     }
 }
