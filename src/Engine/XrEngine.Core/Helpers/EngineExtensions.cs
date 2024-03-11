@@ -429,6 +429,46 @@ namespace XrEngine
             return new Bounds3();
         }
 
+        public static void EnsureCCW(this Geometry3D geo)
+        {
+            if (geo.Indices.Length == 0)
+                throw new NotSupportedException();
+
+            int i = 0;
+
+            var vSpan = new Span<VertexData>(geo.Vertices);
+            var iSpan = new Span<uint>(geo.Indices);
+
+            while (i < geo.Indices.Length)
+            {
+                var i0 = iSpan[i];
+                var i1 = iSpan[i + 1];
+                var i2 = iSpan[i + 2];
+
+                var tri = new Triangle3
+                {
+                    V0 = vSpan[(int)i0].Pos,
+                    V1 = vSpan[(int)i1].Pos,
+                    V2 = vSpan[(int)i2].Pos,
+                };
+
+                var normal = (
+                    (vSpan[(int)i0].Normal + 
+                     vSpan[(int)i1].Normal + 
+                     vSpan[(int)i2].Normal) / 3).Normalize();
+
+                var dot = Vector3.Dot(normal, tri.Normal());
+
+                if (dot < 0)
+                {
+                    iSpan[i] = i2; 
+                    iSpan[i + 2] = i0;
+                }
+         
+                i += 3;
+            }
+        }
+
         #endregion
 
         #region CAMERA

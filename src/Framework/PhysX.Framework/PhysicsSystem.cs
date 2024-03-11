@@ -11,7 +11,7 @@ using System.Text;
 using static PhysX.NativeMethods;
 
 
-namespace XrEngine.Physics
+namespace PhysX.Framework
 {
 
 
@@ -40,6 +40,7 @@ namespace XrEngine.Physics
 
         protected PxFoundation* _foundation;
         protected PxPvd* _pvd;
+        protected PxTolerancesScale _tolerancesScale;
         protected PxPhysics* _physics;
         protected PxDefaultCpuDispatcher* _dispatcher;
         protected PxScene* _scene;
@@ -84,7 +85,7 @@ namespace XrEngine.Physics
             return new PhysicsGeometry((PxGeometry*)&geo, PhysicsGeometryType.Capsule);
         }
 
-        public PhysicsGeometry CreateTriangleMesh(uint[] indices, Vector3[] vertices, Vector3 scale)
+        public PhysicsGeometry CreateTriangleMesh(uint[] indices, Vector3[] vertices, Vector3 scale, float tolerance)
         {
             PxTriangleMeshCookingResult result;
 
@@ -96,14 +97,13 @@ namespace XrEngine.Physics
             desc.triangles.data = Unsafe.AsPointer(ref indices[0]);
             desc.triangles.stride = 12;
 
-            var tolScale = new PxTolerancesScale
+            var curScale = new PxTolerancesScale()
             {
-                length = 1,
-                speed = 10
+                length = tolerance,
+                speed = _tolerancesScale.speed
             };
 
-
-            var param = tolScale.CookingParamsNew();
+            var param = curScale.CookingParamsNew();
 
             /*
             var allocator = phys_PxGetAllocatorCallback();
@@ -143,13 +143,9 @@ namespace XrEngine.Physics
             desc.polygonLimit = 10;
             desc.flags = PxConvexFlags.ComputeConvex | PxConvexFlags.DisableMeshValidation | PxConvexFlags.FastInertiaComputation;
 
-            var tolScale = new PxTolerancesScale
-            {
-                length = 1,
-                speed = 10
-            };
+            var curScale = _tolerancesScale;
 
-            var param = tolScale.CookingParamsNew();
+            var param = curScale.CookingParamsNew();
 
             /*
             var allocator = phys_PxGetAllocatorCallback();
@@ -343,15 +339,15 @@ namespace XrEngine.Physics
             var actor2 = Current!._actors[info->filterData1.word0];
 
             if (actor1.NotifyContacts || actor2.NotifyContacts)
-                info->pairFlags[0] |= 
-                    PxPairFlags.NotifyTouchFound | 
-                    PxPairFlags.NotifyContactPoints |
-                    PxPairFlags.PostSolverVelocity |
-                    PxPairFlags.PreSolverVelocity |
-                    PxPairFlags.ContactEventPose |
-                    PxPairFlags.DetectDiscreteContact |
-                    PxPairFlags.SolveContact;
-            
+                info->pairFlags[0] |=
+                    PxPairFlags.NotifyTouchFound;
+                    //PxPairFlags.NotifyContactPoints |
+                    //PxPairFlags.PostSolverVelocity |
+                    //PxPairFlags.PreSolverVelocity |
+                    //PxPairFlags.ContactEventPose |
+                    //PxPairFlags.DetectDiscreteContact |
+                    //PxPairFlags.SolveContact;
+
             return 0;
         }
 
@@ -376,16 +372,18 @@ namespace XrEngine.Physics
                 _pvd->ConnectMut(transport, PxPvdInstrumentationFlags.All);
             }
 
-            var tolerancesScale = new PxTolerancesScale
+            _tolerancesScale = new PxTolerancesScale
             {
                 length = 10,
-                speed = 10
+                speed = 4
             };
+
+            var curScale = _tolerancesScale;
 
             _physics = phys_PxCreatePhysics(
                 VersionNumber,
                 _foundation,
-                &tolerancesScale,
+                &curScale,
                 true,
                 _pvd,
                 null);

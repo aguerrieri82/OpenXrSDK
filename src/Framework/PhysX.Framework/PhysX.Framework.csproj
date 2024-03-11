@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\third-party\MagicPhysX\src\MagicPhysX\PhysX.csproj" />
+    <ProjectReference Include="..\..\Common\XrMath.Entities\XrMath.Entities.csproj" />
+  </ItemGroup>
+
+</Project>

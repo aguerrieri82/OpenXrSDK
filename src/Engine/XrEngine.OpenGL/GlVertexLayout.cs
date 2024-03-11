@@ -61,7 +61,7 @@ namespace XrEngine.OpenGL
                     item.Type = VertexAttribPointerType.Float;
                     item.Count = 3;
                 }
-                else if (info.Type == typeof(Vector4))
+                else if (info.Type == typeof(Quaternion))
                 {
                     item.Type = VertexAttribPointerType.Float;
                     item.Count = 4;

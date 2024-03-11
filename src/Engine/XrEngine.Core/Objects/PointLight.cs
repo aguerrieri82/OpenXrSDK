@@ -5,6 +5,7 @@
         public PointLight()
         {
             Specular = Color.White;
+            Range = 10;
         }
 
         public float Range { get; set; }

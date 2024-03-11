@@ -25,6 +25,7 @@ namespace XrEngine
             _worldDirty = true;
             _boundsDirty = true;
             _worldInverseDirty = true;
+            _creationTime = -1;
             IsVisible = true;
         }
 

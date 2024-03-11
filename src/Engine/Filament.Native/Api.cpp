@@ -314,7 +314,9 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 		.triangleCount(info.indicesCount / 3)
 		.vertexCount(info.verticesCount);
 
-	bool hasOrientation = false;
+
+	bool hasNormals = false;
+	bool hasTangents = false;
 
 	Geometry result;
 
@@ -335,13 +337,13 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 			break;
 		case VertexAttributeType::Normal:
 			surfBuilder.normals((float3*)(info.vertices + attr.offset), info.layout.sizeByte);
-			hasOrientation = true;
+			hasNormals = true;
 			isMainBuffer = false;
 			break;
 		case VertexAttributeType::Tangent:
-			surfBuilder.tangents((float4*)(info.vertices + attr.offset), info.layout.sizeByte);
-			hasOrientation = true;
-			isMainBuffer = false;
+			va = filament::VertexAttribute::TANGENTS;
+			at = VertexBuffer::AttributeType::FLOAT4;
+			hasTangents = true;
 			break;
 		case VertexAttributeType::Color:
 			va = filament::VertexAttribute::COLOR;
@@ -363,6 +365,8 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 		if (isMainBuffer)
 			vbBuilder.attribute(va, 0, at, attr.offset, info.layout.sizeByte);
 	};
+
+	bool hasOrientation = hasNormals && !hasTangents;
 
 	vbBuilder.bufferCount(hasOrientation ? 2 : 1);
 

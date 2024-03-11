@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XrEngine.Physics
+namespace PhysX.Framework
 {
     public unsafe abstract class PhysicsObject<T> : IDisposable where T: unmanaged
     {

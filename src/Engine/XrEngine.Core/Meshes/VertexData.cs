@@ -57,6 +57,6 @@ namespace XrEngine
         public Vector2 UV;
 
         [ShaderRef(3, "a_tangent", VertexComponent.Tangent)]
-        public Vector4 Tangent;
+        public Quaternion Tangent;
     }
 }

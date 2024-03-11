@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using XrMath;
 
-namespace XrEngine.Physics
+namespace PhysX.Framework
 {
     public static class PxExtensions
     {

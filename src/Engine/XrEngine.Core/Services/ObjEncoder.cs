@@ -28,9 +28,12 @@ namespace XrEngine
             _builder.AppendLine();
 
             var curI = 0;
-            while (curI < mesh.Geometry.Vertices.Length)
+            while (curI < mesh.Geometry.Indices.Length)
             {
-                _builder.AppendFormat("f {0} {1} {2}\n", curI + 1, curI + 2, curI + 3);
+                _builder.AppendFormat("f {0} {1} {2}\n",
+                    mesh.Geometry.Indices[curI + 0] + 1,
+                    mesh.Geometry.Indices[curI + 1] + 1,
+                    mesh.Geometry.Indices[curI + 2] + 1);
                 curI += 3;
             }
 

@@ -377,8 +377,8 @@ namespace XrEngine.Gltf
                                             geo.ActiveComponents |= VertexComponent.Normal;
                                             break;
                                         case "TANGENT":
-                                            var tValues = DracoDecoder.ReadAttribute<Vector4>(mesh, attr.Value);
-                                            geo.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
+                                            var tValues = DracoDecoder.ReadAttribute<Quaternion>(mesh, attr.Value);
+                                            geo.SetVertexData((ref VertexData a, Quaternion b) => a.Tangent = b, tValues);
                                             geo.ActiveComponents |= VertexComponent.Tangent;
                                             break;
                                         case "TEXCOORD_0":
@@ -429,8 +429,8 @@ namespace XrEngine.Gltf
                                         Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
                                         break;
                                     case "TANGENT":
-                                        var tValues = ConvertBuffer<Vector4>(buffer, view, acc);
-                                        geo.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
+                                        var tValues = ConvertBuffer<Quaternion>(buffer, view, acc);
+                                        geo.SetVertexData((ref VertexData a, Quaternion b) => a.Tangent = b, tValues);
                                         geo.ActiveComponents |= VertexComponent.Tangent;
                                         Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC4);
                                         Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
@@ -486,7 +486,7 @@ namespace XrEngine.Gltf
                         ((curMesh.Geometry.ActiveComponents & VertexComponent.UV0) != 0) &&
                         ((curMesh.Geometry.ActiveComponents & VertexComponent.Tangent) == 0))
                     {
-                        //curMesh.Geometry.ComputeTangents();
+                        curMesh.Geometry.ComputeTangents();
                     }
 
                     if (group == null)

@@ -2,8 +2,8 @@
 
 #ifdef _WINDOWS
 
-
 #define EXPORT __declspec(dllexport)
+
 #define APIENTRY __stdcall
 
 #else
@@ -14,5 +14,4 @@
 
 
 #include <draco/compression/decode.h>
-
-#include "DracoMeshDecoder.h"
+#include "Api.h"

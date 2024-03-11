@@ -208,5 +208,7 @@ namespace XrEditor
         public event PointerEventDelegate? WheelMove;
 
         public IntPtr HWnd => _hwndSource!.Handle;
+
+        public abstract bool SupportsDualRender { get; }
     }
 }
