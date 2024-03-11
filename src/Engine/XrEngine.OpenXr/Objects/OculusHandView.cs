@@ -15,6 +15,7 @@ namespace XrEngine.OpenXr
         public OculusHandView(XrHandInputMesh input)
         {
             _input = input;
+            Name = "Hand " + input.HandType;
         }
 
         public override T? Feature<T>() where T : class

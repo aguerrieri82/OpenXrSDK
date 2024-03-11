@@ -35,7 +35,6 @@ namespace Xr.Test
             ball.Transform.SetScale(0.02f);
             ball.Name = "Ball " + _balls.Count;
 
-
             ball.AddComponent<BoundsGrabbable>();
 
             var emitter = ball.AddComponent<AudioEmitter>();
@@ -56,6 +55,8 @@ namespace Xr.Test
 
             Object3D? lastContact = null;
 
+            Object3D? audioRecv = null;
+
             ball.AddBehavior((me, ctx) =>
             {
                 if (me.LiveTime < 0.1f || rb.BodyType == PhysicsActorType.Static)
@@ -72,8 +73,16 @@ namespace Xr.Test
                         lastContact = null;
                     }
 
-                    var force = MathUtils.MapRange(ds.Length(), 100, 500);
-                    emitter.Play(_sound.Buffer(force), rb.Actor.LinearVelocity.Normalize());
+                    audioRecv ??= _host!.ObjectsWithComponent<AudioReceiver>().FirstOrDefault();
+
+                    if (audioRecv != null)
+                    {
+                        var force = MathUtils.MapRange(ds.Length(), 100, 500);
+
+                        var dir = (ball.WorldPosition - audioRecv.WorldPosition).Normalize();
+
+                        emitter.Play(_sound.Buffer(force), dir);
+                    }
                 }
 
                 lastSpeed = rb.Actor.LinearVelocity;
