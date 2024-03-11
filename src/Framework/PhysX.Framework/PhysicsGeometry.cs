@@ -1,7 +1,7 @@
 ﻿using PhysX;
 using System.Runtime.InteropServices;
 
-namespace XrEngine.Physics
+namespace PhysX.Framework
 {
     public enum PhysicsGeometryType
     {

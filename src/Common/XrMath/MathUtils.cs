@@ -10,10 +10,18 @@ namespace XrMath
 {
     public static class MathUtils
     {
+        public unsafe static Vector3[] Vector3FromArray(float[] array)
+        {
+            fixed (float* pData = array)
+            {
+                var span = new Span<Vector3>(pData, array.Length / 3);
+                return span.ToArray();
+            }
+        }
+
         public static float MapRange(float value, float min, float max)
         {
             return MathF.Max(0, MathF.Min((max - min), value - min)) / (max - min);
-
         }
 
         public static Vector3 ToVector3(float[] array)

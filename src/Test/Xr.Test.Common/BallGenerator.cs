@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
+using PhysX.Framework;
+using Silk.NET.Vulkan;
 using System.Diagnostics;
+using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Colliders;
@@ -23,6 +26,7 @@ namespace Xr.Test
             pbrMat.MetallicRoughness!.MetallicFactor = 0;
             pbrMat.MetallicRoughness.RoughnessFactor = 0.3f;
             Material = pbrMat;
+            //Material = new StandardMaterial() { Color = new Color(1, 1, 0) };
         }
 
         protected TriangleMesh NewBall()
@@ -30,6 +34,7 @@ namespace Xr.Test
             var ball = new TriangleMesh(Sphere3D.Instance, Material);
             ball.Transform.SetScale(0.02f);
             ball.Name = "Ball " + _balls.Count;
+
 
             ball.AddComponent<BoundsGrabbable>();
 
@@ -46,37 +51,46 @@ namespace Xr.Test
                 StaticFriction = 0.8f,
                 DynamicFriction = 0.8f
             };
+
+            var lastSpeed = Vector3.Zero;
+
+            Object3D? lastContact = null;
+
+            ball.AddBehavior((me, ctx) =>
+            {
+                if (me.LiveTime < 0.1f || rb.BodyType == PhysicsActorType.Static)
+                    return;
+
+                var ds = (rb.Actor.LinearVelocity - lastSpeed) / (float)ctx.DeltaTime;
+
+                if (ds.Length() > 50)
+                {
+                    if (lastContact?.Name == "Racket")
+                    {
+                        var haptic = XrApp.Current!.Haptics["RightHaptic"];
+                        haptic.VibrateStart(200, 1, TimeSpan.FromMilliseconds(50));
+                        lastContact = null;
+                    }
+
+                    var force = MathUtils.MapRange(ds.Length(), 100, 500);
+                    emitter.Play(_sound.Buffer(force), rb.Actor.LinearVelocity.Normalize());
+                }
+
+                lastSpeed = rb.Actor.LinearVelocity;
+            });
+
             rb.Contact += (me, other, index, data) =>
             {
-                var dt = rb.Actor.System.LastDeltaTime;
-                var selfIndex = index == 0 ? 1 : 0;
-
-                var maxLinearAcc = data.Select(a =>
-                {
-                    var self = a.GetItem(selfIndex);
-                    return ((self.PostVelocity.Linear - self.PreVelocity.Linear) / dt).Length();
-                }).Max();
-               
-                var force = MathUtils.MapRange(maxLinearAcc, 8, 20);
-
-                Platform.Current!.Logger.LogWarning("Acceleration: {acc} {force}", maxLinearAcc, force);
-
-                if (maxLinearAcc > 5 || other.Name == "Racket")
-                    emitter.Play(_sound.Buffer(force), data[0].Points![0].Normal);
-
-                if (other.Name == "Racket")
-                {
-                    var haptic = XrApp.Current!.Haptics["RightHaptic"];
-                    haptic.VibrateStart(100, 1, TimeSpan.FromMilliseconds(50));
-                }
+                lastContact = other;
             };
+
 
             return ball;
         }
 
         public Object3D PickBall()
         {
-            var toDelete = _balls.Where(a => a.LiveTime > 20).ToArray();
+            var toDelete = _balls.Where(a => a.LiveTime > 0).ToArray();
 
             foreach (var item in toDelete)
             {
@@ -88,7 +102,6 @@ namespace Xr.Test
             _balls.Add(newBall);
             _host!.Scene!.AddChild(newBall);
             return newBall;
-
         }
 
         protected override void Update(RenderContext ctx)

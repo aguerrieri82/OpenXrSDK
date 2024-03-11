@@ -3,7 +3,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using XrMath;
 
-namespace XrEngine.Physics
+namespace PhysX.Framework
 {
     public enum PhysicsActorType
     {

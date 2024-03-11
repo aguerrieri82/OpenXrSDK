@@ -27,7 +27,13 @@ namespace OpenAl.Framework
                     _sources[i].Dispose();
                     _sources.RemoveAt(i);
                 }
+                else
+                {
+                    int x = 1;
+                }
             }
+            
+            //TODO try recycle old sources
 
             //var result = _sources.FirstOrDefault(a=> a.State != SourceState.Playing);
 

@@ -1,17 +1,14 @@
 ﻿using PhysX;
+using PhysX.Framework;
 using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices.JavaScript;
 using XrEngine.Colliders;
 using XrMath;
 
 
 namespace XrEngine.Physics
 {
-
-
     public delegate void RigidBodyContactEventHandler(Object3D self, Object3D other, int otherIndex, ContactPair[] pairs);
-
 
     public class RigidBody : Behavior<Object3D>, IDisposable
     {
@@ -34,6 +31,8 @@ namespace XrEngine.Physics
             };
 
             Density = 10;
+
+            Tolerance = 10;
         }
 
         protected void SetPose(Pose3 pose)
@@ -85,14 +84,12 @@ namespace XrEngine.Physics
 
         protected override void OnEnabled()
         {
-            if (_actor.IsValid)
-                _actor.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, false);
+            _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, false);
         }
 
         protected override void OnDisabled()
         {
-            if (_actor.IsValid)
-                _actor.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, true);
+            _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, true);
         }
 
         protected override void Start(RenderContext ctx)
@@ -124,7 +121,7 @@ namespace XrEngine.Physics
                     pyGeo = _system.CreateTriangleMesh(
                         mc.Geometry.Indices,
                         mc.Geometry.ExtractPositions(),
-                       scale);
+                       scale, Tolerance);
                 }
                 else if (collider is CapsuleCollider cap)
                 {
@@ -155,10 +152,7 @@ namespace XrEngine.Physics
 
             if (_shapes.Count == 0)
             {
-                var bounds = _host.Feature<ILocalBounds>();
-
-                if (bounds == null)
-                    throw new NotSupportedException();
+                var bounds = _host.Feature<ILocalBounds>() ?? throw new NotSupportedException();
 
                 var pyGeo = _system.CreateBox(bounds.LocalBounds.Size / 2 * scale);
 
@@ -195,7 +189,7 @@ namespace XrEngine.Physics
 
         protected override void Update(RenderContext ctx)
         {
-            if (!_actor.IsValid)
+            if (_actor == null)
                 return;
 
             var isGrabbing = _host?.GetProp<bool>("IsGrabbing") == true;
@@ -259,6 +253,8 @@ namespace XrEngine.Physics
                 _contactEvent -= value;
             }
         }
+
+        public float Tolerance { get; set; }
 
         public PhysicsActor Actor => _actor ?? throw new ArgumentNullException();
 

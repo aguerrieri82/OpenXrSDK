@@ -75,7 +75,6 @@ namespace XrEditor
 
         public void StartXr()
         {
-
             try
             {
                 _renderSurface.EnableVSync(false);
@@ -152,8 +151,12 @@ namespace XrEditor
                         {
 
                         }
-                        _render.SetDefaultRenderTarget();
-                        _render.Render(_scene!, _camera!, _view, false);
+
+                        if (_renderSurface.SupportsDualRender)
+                        {
+                            _render.SetDefaultRenderTarget();
+                            _render.Render(_scene!, _camera!, _view, false);
+                        }
                     }
                     else
                          _scene.App!.RenderFrame(_view);

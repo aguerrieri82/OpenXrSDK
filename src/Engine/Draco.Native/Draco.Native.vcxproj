@@ -27,11 +27,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DracoMeshDecoder.cpp" />
+    <ClCompile Include="Api.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DracoMeshDecoder.h" />
+    <ClInclude Include="Api.h" />
     <ClInclude Include="Library.h" />
   </ItemGroup>
   <ItemGroup>

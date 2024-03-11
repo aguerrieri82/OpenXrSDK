@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace XrEngine.Physics
+namespace PhysX.Framework
 {
     public struct PhysicsShapeInfo
     {

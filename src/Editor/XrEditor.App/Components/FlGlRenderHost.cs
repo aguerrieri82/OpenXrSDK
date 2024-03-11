@@ -56,5 +56,6 @@ namespace XrEditor.Components
         public override void SwapBuffers()
         {
         }
+
     }
 }

@@ -134,6 +134,14 @@ namespace XrMath
 
         #region TRIANGLE
 
+
+        public static bool IsCCW(this Triangle3 triangle)
+        {
+            var normal = triangle.Normal();
+            var dot = Vector3.Dot(normal, Vector3.UnitZ);
+            return dot > 0;
+        } 
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Normal(this Triangle3 triangle)
         {

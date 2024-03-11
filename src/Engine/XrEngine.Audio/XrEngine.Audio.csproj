@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenAl.Framework\OpenAl.Framework.csproj" />
+    <ProjectReference Include="..\..\Framework\OpenAl.Framework\OpenAl.Framework.csproj" />
     <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
   </ItemGroup>
 

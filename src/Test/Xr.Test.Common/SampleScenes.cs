@@ -1,6 +1,7 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using PhysX;
+using PhysX.Framework;
 using Silk.NET.OpenXR;
 using System.Numerics;
 using XrEngine;
@@ -53,7 +54,13 @@ namespace Xr.Test
                 IsVisible = true
             });
 
-            scene.AddChild(new PointLight()).Transform.Position = new Vector3(0, 2, 0);
+            var pl1 = scene.AddChild(new PointLight());
+            pl1.Transform.Position = new Vector3(0, 2, 0);
+            pl1.Intensity = 0.3f;
+
+            var pl2 = scene.AddChild(new PointLight());
+            pl2.Transform.Position = new Vector3(0, 0, 0);
+            pl2.Intensity = 0.3f;
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
@@ -135,6 +142,7 @@ namespace Xr.Test
             //Rigid body
             var rb = mesh.AddComponent<RigidBody>();
             rb.BodyType = PhysicsActorType.Kinematic;
+            rb.Tolerance = 100;
             rb.Material = new PhysicsMaterialInfo
             {
                 Restitution = 0.8f,
@@ -147,10 +155,15 @@ namespace Xr.Test
 
             //Sample ball
             var ball = bg.PickBall();
+
+
             ball.WorldPosition = new Vector3(-0.5f, 1.1f, 0);
+            ball.AddComponent<MeshCollider>();
+
+            ball.Component<RigidBody>().BodyType = PhysicsActorType.Static;
             ball.Component<RigidBody>().Started += (s, e) =>
             {
-                ball.Component<RigidBody>().Actor.AddForce(new Vector3(0.3f, 0, 0), PxForceMode.Force);
+                //ball.Component<RigidBody>().Actor.AddForce(new Vector3(0.3f, 0, 0), PxForceMode.Force);
             };
 
 

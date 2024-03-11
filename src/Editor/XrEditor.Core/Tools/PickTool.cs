@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
 using XrEngine;
 using XrEngine.Components;
 using XrMath;
@@ -82,7 +83,10 @@ namespace XrEditor
 
                 canvas.Save();
                 canvas.State.Color = new Color(0, 1, 0, 1);
-                canvas.DrawLine(_lastCollision.Point, (_lastCollision.LocalPoint + _lastCollision.Normal.Value).Transform(_lastCollision.Object!.WorldMatrix) * 1);
+
+                var normalMatrix = Matrix4x4.Transpose(_lastCollision.Object!.WorldMatrixInverse);
+
+                canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + _lastCollision.Normal.Value.Transform(normalMatrix).Normalize());
                 canvas.Restore();
             }
 

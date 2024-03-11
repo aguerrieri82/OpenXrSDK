@@ -19,7 +19,7 @@ namespace XrEngine
             _geometry = geometry;
         }
 
-        protected override void Start(RenderContext ctx)
+        protected override void OnAttach()
         {
             if (_geometry == null)
             {
@@ -50,25 +50,37 @@ namespace XrEngine
 
             var span = _triangles.AsSpan();
 
+            Collision? collision = null;
+
             for (var i = 0; i < span.Length; i++)
             {
                 var point = localRay.Intersects(span[i], out var _);
                 if (point != null)
                 {
                     var worldPoint = point.Value.Transform(_host.WorldMatrix);
-                    return new Collision
+                    var distance = Vector3.Distance(worldPoint, ray.Origin);
+
+                    if (collision == null || distance < collision.Distance)
                     {
-                        Distance = Vector3.Distance(worldPoint, ray.Origin),
-                        Object = _host,
-                        LocalPoint = point.Value,
-                        Point = worldPoint,
-                        Normal = span[i].Normal(),
-                        UV = null
-                    };
+                        uint ix = (uint)i * 3;
+                        if (_geometry.Indices.Length > 0)
+                            ix = _geometry.Indices[ix];
+
+                        collision = new Collision
+                        {
+                            Distance = distance,
+                            Object = _host,
+                            LocalPoint = point.Value,
+                            Point = worldPoint,
+                            Normal = _geometry.Vertices[ix].Normal,
+                            UV = null
+                        };
+                    }
+                        
                 }
             }
 
-            return null;
+            return collision;
 
         }
 

@@ -5,7 +5,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\third-party\MagicPhysX\src\MagicPhysX\PhysX.csproj" />
+		<ProjectReference Include="..\..\Framework\PhysX.Framework\PhysX.Framework.csproj" />
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
 	</ItemGroup>
 

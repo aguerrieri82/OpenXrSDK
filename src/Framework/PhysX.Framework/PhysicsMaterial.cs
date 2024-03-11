@@ -1,7 +1,7 @@
 ﻿using PhysX;
 using System.Runtime.CompilerServices;
 
-namespace XrEngine.Physics
+namespace PhysX.Framework
 {
 
     public struct PhysicsMaterialInfo

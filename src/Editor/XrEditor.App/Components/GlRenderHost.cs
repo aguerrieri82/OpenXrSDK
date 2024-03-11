@@ -316,5 +316,7 @@ namespace XrEditor
         public nint HDc => _hdc;
 
         public nint GlCtx => _glCtx;
+
+        public override bool SupportsDualRender => true;
     }
 }

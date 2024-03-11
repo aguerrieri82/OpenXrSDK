@@ -47,5 +47,7 @@ namespace XrEditor.Components
             return new XrVulkanGraphicDriver(_device!);
         }
 
+        public override bool SupportsDualRender => false;
+
     }
 }

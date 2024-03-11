@@ -34,6 +34,12 @@
 
         }
 
+        protected virtual void OnAttach()
+        {
+
+        }
+
+
         void IRenderUpdate.Update(RenderContext ctx)
         {
             if (!_isEnabled)
@@ -56,6 +62,7 @@
         void IComponent<T>.Attach(T host)
         {
             _host = host;
+            OnAttach();
         }
 
         void IComponent.Detach()
