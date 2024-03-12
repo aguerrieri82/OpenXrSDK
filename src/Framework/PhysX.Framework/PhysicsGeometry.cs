@@ -1,27 +1,18 @@
 ﻿using PhysX;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace PhysX.Framework
 {
-    public enum PhysicsGeometryType
-    {
-        Box,
-        Sphere,
-        Capsule,
-        TriangleMesh,
-        ConvexMesh
-    }
 
     public unsafe class PhysicsGeometry : IDisposable
     {
         PxGeometryHolder* _holder;
-        readonly PhysicsGeometryType _type;
 
-        public PhysicsGeometry(PxGeometry* handle, PhysicsGeometryType type)
+        public PhysicsGeometry(PxGeometry* handle)
         {
             _holder = (PxGeometryHolder*)Marshal.AllocHGlobal(sizeof(PxGeometryHolder));
             _holder->StoreAnyMut(handle);
-            _type = type;
         }
 
         public void Dispose()
@@ -35,7 +26,17 @@ namespace PhysX.Framework
             GC.SuppressFinalize(this);
         }
 
-        public PhysicsGeometryType Type => _type;
+        public ref PxConvexMeshGeometry ConvexMesh => ref Unsafe.AsRef<PxConvexMeshGeometry>(_holder->ConvexMesh());
+
+        public ref PxTriangleMeshGeometry TriangleMesh => ref Unsafe.AsRef<PxTriangleMeshGeometry>(_holder->TriangleMesh());
+
+        public ref PxCapsuleGeometry Capsule => ref Unsafe.AsRef<PxCapsuleGeometry>(_holder->Capsule());
+
+        public ref PxBoxGeometry Box => ref Unsafe.AsRef<PxBoxGeometry>(_holder->Box());
+
+        public ref PxSphereGeometry Sphere => ref Unsafe.AsRef<PxSphereGeometry>(_holder->Sphere());
+
+        public PxGeometryType Type => NativeMethods.PxGeometryHolder_getType(_holder);
 
 
         public static implicit operator PxGeometry*(PhysicsGeometry self) => self._holder->AnyMut();

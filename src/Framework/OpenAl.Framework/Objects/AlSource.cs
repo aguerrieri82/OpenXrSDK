@@ -1,4 +1,5 @@
 ﻿using Silk.NET.OpenAL;
+using System;
 using System.Numerics;
 
 namespace OpenAl.Framework
@@ -41,8 +42,9 @@ namespace OpenAl.Framework
         {
             foreach (var buffer in _buffers)
             {
-                
             }
+
+            _al.SetSourceProperty(_handle, SourceInteger.Buffer, 0);
 
             _buffers.Clear();
         }
@@ -52,7 +54,6 @@ namespace OpenAl.Framework
             _al.SetSourceProperty(_handle, SourceInteger.Buffer, buffer.Handle);
             _buffers.Add(buffer);   
         }
-
 
         public Vector3 Velocity
         {
@@ -120,6 +121,15 @@ namespace OpenAl.Framework
                 return value;
             }
             set => _al.SetSourceProperty(_handle, SourceBoolean.Looping, value);
+        }
+
+        public uint BufferHandle
+        {
+            get
+            {
+                _al.GetSourceProperty(_handle, GetSourceInteger.Buffer, out int value);
+                return (uint)value;
+            }
         }
 
         public float Pitch

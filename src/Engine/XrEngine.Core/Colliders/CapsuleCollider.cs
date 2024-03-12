@@ -15,27 +15,28 @@ namespace XrEngine
 
     public class CapsuleCollider : Behavior<Object3D>, ICollider3D
     {
-        //TODO implement
+
         public Collision? CollideWith(Ray3 ray)
         {
             var localRay = ray.Transform(_host!.WorldMatrixInverse);
 
-            Vector3 sphereCenter = new Vector3(0, 0, Height / 2);
+            var sphereCenter = new Vector3(0, 0, Height / 2);
 
-            Vector3 oc = sphereCenter - localRay.Origin;
+            var oc = sphereCenter - localRay.Origin;
 
-            float tca = Vector3.Dot(oc, localRay.Direction);
+            var tca = Vector3.Dot(oc, localRay.Direction);
 
-            float d2 = Vector3.Dot(oc, oc) - tca * tca;
+            var d2 = Vector3.Dot(oc, oc) - tca * tca;
 
-            float thc = MathF.Sqrt(Radius * Radius - d2);
+            var thc = MathF.Sqrt(Radius * Radius - d2);
 
-            float t0 = tca - thc;
-            float t1 = tca + thc;
+            var t0 = tca - thc;
+            var t1 = tca + thc;
 
-            Vector3 intersectionPoint1 = localRay.Direction * t0;
-            Vector3 intersectionPoint2 = localRay.Direction * t1;
+            var intersectionPoint1 = localRay.Direction * t0;
+            var intersectionPoint2 = localRay.Direction * t1;
 
+            //TODO implement
 
             return null;
         }

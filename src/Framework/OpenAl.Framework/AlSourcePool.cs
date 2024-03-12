@@ -8,6 +8,12 @@ using System.Threading.Tasks;
 
 namespace OpenAl.Framework
 {
+    public enum AlSourcePoolMode
+    {
+        Recycle,
+        CreateNew
+    }
+
     public class AlSourcePool
     {
         protected readonly List<AlSource> _sources = [];
@@ -20,40 +26,43 @@ namespace OpenAl.Framework
 
         public AlSource Get(AlBuffer buffer)
         {
-            for (var i = _sources.Count -1; i>= 0; i--)
+            AlSource? result = null;
+
+            if (Mode == AlSourcePoolMode.CreateNew)
             {
-                if (_sources[i].State != SourceState.Playing)
+                for (var i = _sources.Count - 1; i >= 0; i--)
                 {
-                    _sources[i].Dispose();
-                    _sources.RemoveAt(i);
-                }
-                else
-                {
-                    int x = 1;
+                    if (_sources[i].State != SourceState.Playing)
+                    {
+                        _sources[i].Dispose();
+                        _sources.RemoveAt(i);
+                    }
                 }
             }
-            
-            //TODO try recycle old sources
-
-            //var result = _sources.FirstOrDefault(a=> a.State != SourceState.Playing);
-
-            AlSource? result = null;
+            else
+                result = _sources.FirstOrDefault(a => a.State != SourceState.Playing);
 
             if (result == null)
             {
                 result = new AlSource(_al);
+                result.AddBuffer(buffer);
                 _sources.Add(result);
             }
             else
             {
-                result.DeleteBuffers();
+                if (result.BufferHandle != buffer.Handle)
+                {
+                    result.DeleteBuffers();
+                    result.AddBuffer(buffer);
+                }
+
                 result.Stop();
                 result.Rewind();
             }
           
-            result.AddBuffer(buffer);
-
             return result;
         }
+
+        public AlSourcePoolMode Mode { get; set; }
     }
 }

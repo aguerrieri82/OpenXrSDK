@@ -17,10 +17,12 @@ namespace Xr.Test
     {
         readonly List<TriangleMesh> _balls = [];
         readonly DynamicSound _sound;
+        readonly float _maxTtl;
 
-        public BallGenerator(DynamicSound sound)
+        public BallGenerator(DynamicSound sound, float maxTtl)
         {
             _sound = sound;
+            _maxTtl = maxTtl;
             var pbrMat = PbrMaterial.CreateDefault();
             pbrMat.Color = new Color(1, 1, 0);
             pbrMat.MetallicRoughness!.MetallicFactor = 0;
@@ -37,34 +39,38 @@ namespace Xr.Test
 
             ball.AddComponent<BoundsGrabbable>();
 
-            var emitter = ball.AddComponent<AudioEmitter>();
+            var audioEmitter = ball.AddComponent<AudioEmitter>();
 
-            var sc = ball.AddComponent<SphereCollider>();
-            sc.Radius = 1;
+            var collider = ball.AddComponent<SphereCollider>();
+            collider.Radius = 1;
 
-            var rb = ball.AddComponent<RigidBody>();
-            rb.BodyType = PhysicsActorType.Dynamic;
-            rb.Material = new PhysicsMaterialInfo
+            var rigidBody = ball.AddComponent<RigidBody>();
+            rigidBody.Type = PhysicsActorType.Dynamic;
+            rigidBody.Material = new PhysicsMaterialInfo
             {
                 Restitution = 0.5f,
                 StaticFriction = 0.8f,
                 DynamicFriction = 0.8f
             };
 
+            rigidBody.Started += (_, _) =>
+            {
+                rigidBody.DynamicActor.ContactReportThreshold = 1f;
+            };
+
             var lastSpeed = Vector3.Zero;
 
             Object3D? lastContact = null;
-
-            Object3D? audioRecv = null;
+            Object3D? audioReceiver = null;
 
             ball.AddBehavior((me, ctx) =>
             {
-                if (me.LiveTime < 0.1f || rb.BodyType == PhysicsActorType.Static)
+                if (me.LifeTime < 0.1f || rigidBody.Type == PhysicsActorType.Static)
                     return;
 
-                var ds = (rb.Actor.LinearVelocity - lastSpeed) / (float)ctx.DeltaTime;
+                var deltaSpeed = (rigidBody.DynamicActor.LinearVelocity - lastSpeed) / (float)ctx.DeltaTime;
 
-                if (ds.Length() > 50)
+                if (deltaSpeed.Length() > 50)
                 {
                     if (lastContact?.Name == "Racket")
                     {
@@ -73,44 +79,56 @@ namespace Xr.Test
                         lastContact = null;
                     }
 
-                    audioRecv ??= _host!.ObjectsWithComponent<AudioReceiver>().FirstOrDefault();
+                    audioReceiver ??= _host!.ObjectsWithComponent<AudioReceiver>().FirstOrDefault();
 
-                    if (audioRecv != null)
+                    if (audioReceiver != null)
                     {
-                        var force = MathUtils.MapRange(ds.Length(), 100, 500);
+                        var force = MathUtils.MapRange(deltaSpeed.Length(), 100, 500);
 
-                        var dir = (ball.WorldPosition - audioRecv.WorldPosition).Normalize();
+                        var dir = (ball.WorldPosition - audioReceiver.WorldPosition).Normalize();
 
-                        emitter.Play(_sound.Buffer(force), dir);
+                        audioEmitter.Play(_sound.Buffer(force), dir);
                     }
                 }
 
-                lastSpeed = rb.Actor.LinearVelocity;
+                lastSpeed = rigidBody.DynamicActor.LinearVelocity;
             });
 
-            rb.Contact += (me, other, index, data) =>
+            rigidBody.Contact += (me, other, index, data) =>
             {
                 lastContact = other;
             };
 
-
             return ball;
         }
 
-        public Object3D PickBall()
-        {
-            var toDelete = _balls.Where(a => a.LiveTime > 0).ToArray();
+        public Object3D PickBall(Vector3 worldPos)
+        { 
+            var expired = _balls.Where(a => a.LifeTime > _maxTtl);
 
-            foreach (var item in toDelete)
+            var ball = expired.FirstOrDefault();
+
+            foreach (var item in expired.Skip(1))
             {
                 item.Dispose();
                 _balls.Remove(item);
             }
 
-            var newBall = NewBall();
-            _balls.Add(newBall);
-            _host!.Scene!.AddChild(newBall);
-            return newBall;
+            if (ball != null)
+            {
+                var rigid = ball.Component<RigidBody>();
+                rigid.DynamicActor.Stop();
+                rigid.Teleport(worldPos);
+            }
+            else
+            {
+                ball = NewBall();
+                ball.WorldPosition = worldPos;
+                _balls.Add(ball);
+                _host!.Scene!.AddChild(ball);
+            }
+
+            return ball;
         }
 
         protected override void Update(RenderContext ctx)
@@ -123,8 +141,7 @@ namespace Xr.Test
 
             if (Generate != null && Generate.IsChanged && Generate.Value)
             {
-                var ball = PickBall();
-                ball.WorldPosition = Pose!.Value.Position;
+                PickBall(Pose!.Value.Position);
             }
         }
 

@@ -45,6 +45,16 @@ namespace XrEngine
             return vector.Transform(obj.WorldMatrixInverse);
         }
 
+        public static bool IsManipulating(this Object3D obj)
+        {
+            return obj.GetProp<bool>("IsManipulating");
+        }
+
+        public static void IsManipulating(this Object3D obj, bool value)
+        {
+            obj.SetProp("IsManipulating", value);
+        }
+
         public static IEnumerable<Group3D> Ancestors(this Object3D obj)
         {
             var curItem = obj.Parent;

@@ -69,7 +69,7 @@ namespace XrEngine.OpenXr
             _startOrientation = _grabObject!.Transform.Orientation;
 
             _grabObject?.Transform.SetLocalPivot(_grabObject!.ToLocal(grabPoint.Position), true);
-            _grabObject?.SetProp("IsGrabbing", true);
+            _grabObject?.IsManipulating(true);
 
             _grabbable.Grab();
         }
@@ -83,7 +83,7 @@ namespace XrEngine.OpenXr
         protected virtual void StopGrabbing()
         {
             _grabObject?.Transform.SetLocalPivot(_startPivot, true);
-            _grabObject?.SetProp("IsGrabbing", false);
+            _grabObject?.IsManipulating(false);
             _grabbable = null;
             _grabObject = null;
             _grabStarted = false;

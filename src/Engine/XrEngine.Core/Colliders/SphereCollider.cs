@@ -8,10 +8,9 @@ namespace XrEngine.Colliders
         {
         }
 
-
-        //TODO implement
         public Collision? CollideWith(Ray3 ray)
         {
+            //TODO implement
             return null;
         }
 
