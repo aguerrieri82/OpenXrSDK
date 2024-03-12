@@ -12,8 +12,8 @@ namespace XrMath
 
         public void Normalize()
         {
-            Azm = Azm % (MathF.PI * 2);
-            Pol = Pol % MathF.PI;
+            Azm %= (MathF.PI * 2);
+            Pol %= MathF.PI;
         }
 
         public static Spherical FromCartesian(Vector3 vector)

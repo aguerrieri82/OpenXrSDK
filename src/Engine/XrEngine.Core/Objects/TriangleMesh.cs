@@ -67,8 +67,6 @@ namespace XrEngine
             base.Update(ctx);
         }
 
-        public IList<Material> Materials => _materials;
-
         public Geometry3D? Geometry
         {
             get => _geometry;
@@ -82,6 +80,8 @@ namespace XrEngine
                 NotifyChanged(ObjectChangeType.Geometry);
             }
         }
+
+        public IList<Material> Materials => _materials;
 
         public Bounds3 LocalBounds => _geometry!.Bounds;
 

@@ -413,7 +413,6 @@ namespace XrEngine
             };
         }
 
-
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             var material = new MaterialUniforms();

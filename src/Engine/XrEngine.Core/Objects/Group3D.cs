@@ -70,7 +70,9 @@ namespace XrEngine
 
                 foreach (var child in _children)
                 {
-                    if (child is ILocalBounds childLocal)
+                    var childLocal = child.Feature<ILocalBounds>();
+
+                    if (childLocal != null)
                     {
                         var childLocalBounds = childLocal.LocalBounds.Transform(child.Transform.Matrix);
 

@@ -1,7 +1,10 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 #else
+using Silk.NET.Core.Contexts;
 using Silk.NET.OpenGL;
+using SkiaSharp;
+
 #endif
 
 using System.Diagnostics;
@@ -56,7 +59,7 @@ namespace XrEngine.OpenGL
     }
 
 
-    public class OpenGLRender : IRenderEngine
+    public class OpenGLRender : IRenderEngine, ISurfaceProvider
     {
         protected struct GlState
         {
@@ -78,7 +81,7 @@ namespace XrEngine.OpenGL
         protected Dictionary<uint, Texture2D> _depthCache = [];
         protected Rect2I _view;
         protected GlState _glState;
-
+        protected GRContext? _grContext;
 
         public static class Props
         {
@@ -381,6 +384,34 @@ namespace XrEngine.OpenGL
         }
         public void Dispose()
         {
+        }
+
+        public SKSurface CreateSurface(Texture2D texture, nint handle = 0)
+        {
+            var glTexture = texture.GetResource(a =>
+            {
+                if (handle == 0)
+                    return texture.CreateGlTexture(_gl, _options.RequireTextureCompression);
+
+                return new GlTexture2D(_gl, (uint)handle);
+            });
+
+            if (_grContext == null)
+            {
+                var grInterface = GRGlInterface.CreateOpenGl(name =>
+                {
+                    return _gl.Context.GetProcAddress(name);
+                });
+
+                _grContext = GRContext.CreateGl(grInterface);
+            }
+
+
+            var gerTextInfo = new GRGlTextureInfo((uint)glTexture.Target, glTexture.Handle, (uint)glTexture.InternalFormat); 
+
+            var grTexture = new GRBackendTexture((int)texture.Width, (int)texture.Height, true, gerTextInfo);
+
+            return SKSurface.Create(_grContext, grTexture, ImageUtils.GetFormat(texture.Format));
         }
 
         public GL GL => _gl;

@@ -23,8 +23,10 @@ namespace XrEngine.OpenGL
             MinFilter = TextureMinFilter.LinearMipmapLinear;
             MagFilter = TextureMagFilter.Linear;
             BaseLevel = 0;
-            MaxLevel = 8;
+            MaxLevel = 16;
             Target = TextureTarget.Texture2D;
+
+            _handle = _gl.GenTexture();
         }
 
         public GlTexture2D(GL gl, uint handle, uint sampleCount = 1)
@@ -83,11 +85,19 @@ namespace XrEngine.OpenGL
             Unbind();
         }
 
-        public unsafe void Create(uint width, uint height, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null)
+        public unsafe void Update(Texture2D texture2D)
         {
-            Dispose();
+            MinFilter = (TextureMinFilter)texture2D.MinFilter;
+            MagFilter = (TextureMagFilter)texture2D.MagFilter;
+            WrapS = (TextureWrapMode)texture2D.WrapS;
+            WrapT = (TextureWrapMode)texture2D.WrapT;
 
-            _handle = _gl.GenTexture();
+            Update(texture2D.Width, texture2D.Height, texture2D.Format, texture2D.Compression, texture2D.Data);
+        }
+
+        public unsafe void Update(uint width, uint height, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null)
+        {
+
             _width = width;
             _height = height;
 
@@ -99,77 +109,57 @@ namespace XrEngine.OpenGL
 
             if (compression == TextureCompressionFormat.Uncompressed)
             {
-
-                switch (format)
+                internalFormat = format switch
                 {
-                    case TextureFormat.Depth32Float:
-                        internalFormat = InternalFormat.DepthComponent32;
-                        break;
-                    case TextureFormat.Depth24Float:
-                        internalFormat = InternalFormat.DepthComponent24;
-                        break;
-                    case TextureFormat.Depth24Stencil8:
-                        internalFormat = InternalFormat.Depth24Stencil8Oes;
-                        break;
-                    case TextureFormat.SBgra32:
-                    case TextureFormat.SRgba32:
-                        internalFormat = InternalFormat.Srgb8Alpha8;
-                        break;
-                    case TextureFormat.Rgba32:
-                    case TextureFormat.Bgra32:
-                        internalFormat = InternalFormat.Rgba8;
-                        break;
-                    case TextureFormat.Gray8:
-                        internalFormat = InternalFormat.R8;
-                        break;
-                    default:
-                        throw new NotSupportedException();
-                }
+                    TextureFormat.Depth32Float => InternalFormat.DepthComponent32,
+                    TextureFormat.Depth24Float => InternalFormat.DepthComponent24,
+                    TextureFormat.Depth24Stencil8 => InternalFormat.Depth24Stencil8Oes,
 
-                switch (format)
-                {
-                    case TextureFormat.Depth32Float:
-                    case TextureFormat.Depth24Float:
-                        pixelFormat = PixelFormat.DepthComponent;
-                        break;
-                    case TextureFormat.Depth24Stencil8:
-                        pixelFormat = PixelFormat.DepthStencil;
-                        break;
-                    case TextureFormat.SRgba32:
-                    case TextureFormat.Rgba32:
-                        pixelFormat = PixelFormat.Rgba;
-                        break;
-                    case TextureFormat.SBgra32:
-                    case TextureFormat.Bgra32:
-                        pixelFormat = PixelFormat.Bgra;
-                        break;
-                    case TextureFormat.Gray8:
-                        pixelFormat = PixelFormat.Red;
-                        break;
-                    default:
-                        throw new NotSupportedException();
-                }
+                    TextureFormat.SBgra32 or
+                    TextureFormat.SRgba32 => InternalFormat.Srgb8Alpha8,
 
-                switch (format)
+                    TextureFormat.Rgba32 or
+                    TextureFormat.Bgra32 => InternalFormat.Rgba8,
+
+                    TextureFormat.Gray8 => InternalFormat.R8,
+
+                    _ => throw new NotSupportedException(),
+                };
+
+                pixelFormat = format switch
                 {
-                    case TextureFormat.Depth32Float:
-                    case TextureFormat.Depth24Float:
-                        pixelType = PixelType.Float;
-                        break;
-                    case TextureFormat.Depth24Stencil8:
-                        pixelType = PixelType.UnsignedInt248Oes;
-                        break;
-                    case TextureFormat.Rgba32:
-                    case TextureFormat.Bgra32:
-                    case TextureFormat.Gray8:
-                    case TextureFormat.SRgb24:
-                    case TextureFormat.SBgra32:
-                    case TextureFormat.SRgba32:
-                        pixelType = PixelType.UnsignedByte;
-                        break;
-                    default:
-                        throw new NotSupportedException();
-                }
+                    TextureFormat.Depth32Float or
+                    TextureFormat.Depth24Float => PixelFormat.DepthComponent,
+
+                    TextureFormat.Depth24Stencil8 => PixelFormat.DepthStencil,
+
+                    TextureFormat.SRgba32 or
+                    TextureFormat.Rgba32 => PixelFormat.Rgba,
+
+                    TextureFormat.SBgra32 or
+                    TextureFormat.Bgra32 => PixelFormat.Bgra,
+
+                    TextureFormat.Gray8 => PixelFormat.Red,
+
+                    _ => throw new NotSupportedException(),
+                };
+
+                pixelType = format switch
+                {
+                    TextureFormat.Depth32Float or
+                    TextureFormat.Depth24Float => PixelType.Float,
+
+                    TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
+
+                    TextureFormat.Rgba32 or
+                    TextureFormat.Bgra32 or
+                    TextureFormat.Gray8 or
+                    TextureFormat.SRgb24 or
+                    TextureFormat.SBgra32 or
+                    TextureFormat.SRgba32 => PixelType.UnsignedByte,
+
+                    _ => throw new NotSupportedException(),
+                };
 
                 if (SampleCount > 1)
                 {
@@ -234,25 +224,14 @@ namespace XrEngine.OpenGL
             {
                 if (compression == TextureCompressionFormat.Etc2)
                 {
-                    switch (format)
+                    internalFormat = format switch
                     {
-                        case TextureFormat.Rgb24:
-                            internalFormat = InternalFormat.CompressedRgb8Etc2;
-                            break;
-                        case TextureFormat.Rgba32:
-                            internalFormat = InternalFormat.CompressedRgba8Etc2Eac;
-                            break;
-                        case TextureFormat.SRgb24:
-                            internalFormat = InternalFormat.CompressedSrgb8Etc2;
-                            break;
-                        case TextureFormat.SRgba32:
-                            internalFormat = InternalFormat.CompressedSrgb8Alpha8Etc2Eac;
-                            break;
-
-
-                        default:
-                            throw new NotSupportedException(format.ToString());
-                    }
+                        TextureFormat.Rgb24 => InternalFormat.CompressedRgb8Etc2,
+                        TextureFormat.Rgba32 => InternalFormat.CompressedRgba8Etc2Eac,
+                        TextureFormat.SRgb24 => InternalFormat.CompressedSrgb8Etc2,
+                        TextureFormat.SRgba32 => InternalFormat.CompressedSrgb8Alpha8Etc2Eac,
+                        _ => throw new NotSupportedException(format.ToString()),
+                    };
                 }
                 else if (compression == TextureCompressionFormat.Etc1)
                 {
@@ -260,8 +239,6 @@ namespace XrEngine.OpenGL
                 }
                 else
                     throw new NotSupportedException();
-
-                _gl.PixelStore(PixelStoreParameter.PackAlignment, 1);
 
                 Debug.Assert(data != null);
 
@@ -312,6 +289,7 @@ namespace XrEngine.OpenGL
             Update();
         }
 
+
         public void Update()
         {
             Bind();
@@ -347,11 +325,13 @@ namespace XrEngine.OpenGL
 
         public override void Dispose()
         {
-            _gl.DeleteTexture(_handle);
-            _handle = 0;
+            if (_handle != 0)
+            {
+                _gl.DeleteTexture(_handle);
+                _handle = 0;
+            }
             GC.SuppressFinalize(this);
         }
-
 
         public TextureWrapMode WrapS;
 
@@ -369,8 +349,6 @@ namespace XrEngine.OpenGL
 
         public TextureTarget Target;
 
-        internal bool IsDepth => _internalFormat >= InternalFormat.DepthComponent16 && _internalFormat <= InternalFormat.DepthComponent32Sgix;
-
         public InternalFormat InternalFormat => _internalFormat;
 
         public bool IsCompressed => _isCompressed;
@@ -378,5 +356,7 @@ namespace XrEngine.OpenGL
         public uint Width => _width;
 
         public uint Height => _height;
+
+        public bool IsDepth => _internalFormat >= InternalFormat.DepthComponent16 && _internalFormat <= InternalFormat.DepthComponent32Sgix;
     }
 }

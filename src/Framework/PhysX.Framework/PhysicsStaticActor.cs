@@ -7,7 +7,7 @@ namespace PhysX.Framework
         internal PhysicsStaticActor(PxActor* handle, PhysicsSystem system)
             : base(handle, system)
         {
-
+            
         }
 
         protected internal ref PxRigidStatic RigidStatic => ref Unsafe.AsRef<PxRigidStatic>(_handle);

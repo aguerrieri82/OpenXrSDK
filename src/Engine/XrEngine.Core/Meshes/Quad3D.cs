@@ -8,7 +8,6 @@ namespace XrEngine
         public Quad3D()
             : this(new Size2(1, 1))
         {
-
         }
 
         public Quad3D(Size2 size)
@@ -23,10 +22,10 @@ namespace XrEngine
 
             Vertices = VertexData.FromPosNormalUV(
             [
-               -halfSize.X,  halfSize.Y,  0f, 0f, 1f,  0f, 0f,
-                halfSize.X, halfSize.Y,   0f, 0f, 1f,  1f, 0f,
-                halfSize.X, -halfSize.Y,  0f, 0f, 1f,  1f, 1f,
-                -halfSize.X, -halfSize.Y, 0f, 0f, 1f,  0f, 1f,
+               -halfSize.X,  halfSize.Y,  0f, 0f, 0f, 1f,  0f, 0f,
+                halfSize.X, halfSize.Y,   0f, 0f, 0f, 1f,  1f, 0f,
+                halfSize.X, -halfSize.Y,  0f, 0f, 0f, 1f,  1f, 1f,
+                -halfSize.X, -halfSize.Y, 0f, 0f, 0f, 1f,  0f, 1f,
              ]);
 
             Indices =

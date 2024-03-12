@@ -397,7 +397,6 @@ namespace XrEngine.Gltf
                             {
                                 DracoDecoder.DisposeMesh((IntPtr)mesh.Mesh);
                             }
-
                         }
                         else
                         {
@@ -486,7 +485,7 @@ namespace XrEngine.Gltf
                         ((curMesh.Geometry.ActiveComponents & VertexComponent.UV0) != 0) &&
                         ((curMesh.Geometry.ActiveComponents & VertexComponent.Tangent) == 0))
                     {
-                        curMesh.Geometry.ComputeTangents();
+                        //curMesh.Geometry.ComputeTangents();
                     }
 
                     if (group == null)

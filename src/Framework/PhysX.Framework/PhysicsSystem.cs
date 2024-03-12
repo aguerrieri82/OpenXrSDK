@@ -192,6 +192,7 @@ namespace PhysX.Framework
         {
             var shape = _physics->CreateShapeMut(info.Geometry!, info.Material!, info.IsEsclusive, info.Flags);
             var result = new PhysicsShape(shape, info.Geometry!, this);
+            result.ContactOffset = 0.01f;
             _objects[new nint(shape)] = result;
             return result;
         }

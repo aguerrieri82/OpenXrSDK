@@ -10,6 +10,7 @@
 		<ProjectReference Include="..\..\Engine\XrEngine.Glft\XrEngine.Gltf.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Physics\XrEngine.Physics.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.UI\XrEngine.UI.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

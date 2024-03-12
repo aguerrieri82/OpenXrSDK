@@ -4,8 +4,73 @@ namespace XrMath
 {
     public struct Rect2
     {
-        public Vector2 Offset;
+        public Rect2() { }
 
-        public Size2 Extent;
+        public Rect2(float x, float y, float width, float height)
+        {
+            X = x; Y = y; Width = width; Height = height;
+        }
+
+        public float Top
+        {
+            get => Y;
+            set
+            {
+                var delta = (value - Y);
+                Y += delta;
+                Height -= delta;
+            }
+        }
+
+        public float Left
+        {
+            get => X;
+            set
+            {
+                var delta = (value - X);
+                X += delta;
+                Width -= delta;
+            }
+        }
+
+        public float Bottom
+        {
+            get => Y + Height;
+            set => Height = (value - Y);
+        }
+
+        public float Right
+        {
+            get => X + Width;
+            set => Width = (value - X);
+        }
+
+        public float X;
+
+        public float Y;
+
+        public float Width;
+
+        public float Height;
+
+        public Vector2 Offset
+        {
+            get => new(X, Y);
+            set
+            {
+                X = value.X;    
+                Y = value.Y;
+            }
+        }
+
+        public Size2 Extent
+        {
+            get => new(Width, Height);
+            set
+            {
+                Width = value.Width;    
+                Height = value.Height;  
+            }
+        }
     }
 }

@@ -40,7 +40,8 @@ namespace XrEngine.OpenGL
                 SampleCount = _sampleCount,
                 Target = _gl.GetTexture2DTarget(Color.Handle)
             };
-            Depth.Create(Color.Width, Color.Height, OpenGLRender.Current!.Options.DepthBufferFormat);
+
+            Depth.Update(Color.Width, Color.Height, OpenGLRender.Current!.Options.DepthBufferFormat);
         }
 
         public override void BindDraw()
