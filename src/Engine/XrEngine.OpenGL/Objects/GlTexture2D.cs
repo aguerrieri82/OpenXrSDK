@@ -53,12 +53,12 @@ namespace XrEngine.OpenGL
             _gl.GetTexLevelParameter(Target, 0, GetTextureParameter.TextureHeight, out int h);
             _height = (uint)h;
 
-            _gl.GetTexLevelParameter(Target, 0, GetTextureParameter.TextureInternalFormat, out int intf);
+            _gl.GetTexLevelParameter(Target, 1, GetTextureParameter.TextureInternalFormat, out int intf);
             _internalFormat = (InternalFormat)intf;
 
             if (isMultiSample)
             {
-                _gl.GetTexLevelParameter(Target, 0, GLEnum.TextureSamples, out int sc);
+                _gl.GetTexLevelParameter(Target, 1, GLEnum.TextureSamples, out int sc);
                 SampleCount = (uint)sc;
             }
             else

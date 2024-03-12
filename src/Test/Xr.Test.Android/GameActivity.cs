@@ -50,8 +50,8 @@ namespace Xr.Test.Android
             builder.UseOpenGL()
                    //.UseStereo()
                    .UseMultiView()
-                   .UseApp(SampleScenes.CreatePingPong())
-                   .Configure(SampleScenes.ConfigureXrApp)
+                   .CreatePingPong()
+                   .ConfigureSampleApp()
                    .RemovePlaneGrid()
                    .AddWebBrowser(this, "display");
         }

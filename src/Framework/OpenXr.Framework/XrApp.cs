@@ -59,7 +59,6 @@ namespace OpenXr.Framework
         protected XrViewInfo? _viewInfo;
         protected SessionState _lastSessionState;
         protected View[]? _views;
-        protected XrSwapchainInfo[]? _swapchains;
         protected SystemProperties _systemProps;
 
         protected readonly Dictionary<HandEXT, XrHandInput> _hands = [];
@@ -191,20 +190,6 @@ namespace OpenXr.Framework
 
             if (mode == XrAppStartMode.Render)
             {
-                int swpCount = _renderOptions.RenderMode == XrRenderMode.SingleEye ? _viewInfo.ViewCount : 1;
-
-                _swapchains = new XrSwapchainInfo[swpCount];
-
-                for (var i = 0; i < _swapchains.Length; i++)
-                {
-                    var swapchain = CreateSwapChain();
-                    _swapchains[i] = new XrSwapchainInfo
-                    {
-                        Swapchain = swapchain,
-                        Images = EnumerateSwapchainImages(swapchain),
-                        ViewSize = _renderOptions.Size
-                    };
-                }
 
                 _views = CreateStructArray<View>(_viewInfo.ViewCount, StructureType.View);
 
@@ -229,17 +214,6 @@ namespace OpenXr.Framework
             DisposeSpace(ref _local);
             DisposeSpace(ref _head);
             DisposeSpace(ref _stage);
-
-            if (_swapchains != null)
-            {
-                foreach (var item in _swapchains)
-                {
-                    CheckResult(_xr!.DestroySwapchain(item.Swapchain), "DestroySwapchain");
-                    item.Images?.Dispose();
-                }
-
-                _swapchains = null;
-            }
 
             ListInvoke<IXrLayer>(_layers.List, p => p.Destroy());
 
@@ -526,7 +500,6 @@ namespace OpenXr.Framework
         [MemberNotNull(nameof(_views))]
         [MemberNotNull(nameof(_renderOptions))]
         [MemberNotNull(nameof(_xr))]
-        [MemberNotNull(nameof(_swapchains))]
         [MemberNotNull(nameof(_viewInfo))]
         protected void AssertSessionCreated()
         {
@@ -623,7 +596,7 @@ namespace OpenXr.Framework
             return result;
         }
 
-        protected NativeArray<SwapchainImageBaseHeader> EnumerateSwapchainImages(Swapchain swapchain)
+        protected internal NativeArray<SwapchainImageBaseHeader> EnumerateSwapchainImages(Swapchain swapchain)
         {
             uint count = 0;
 
@@ -679,7 +652,7 @@ namespace OpenXr.Framework
             CheckResult(_xr!.ReleaseSwapchainImage(swapchain, in info), "ReleaseSwapchainImage");
         }
 
-        protected Swapchain CreateSwapChain()
+        protected internal Swapchain CreateSwapChain()
         {
             if (_renderOptions == null)
                 throw new ArgumentNullException("renderOptions");
@@ -694,7 +667,7 @@ namespace OpenXr.Framework
             return CreateSwapChain(size, _renderOptions.SampleCount, _renderOptions.SwapChainFormat, arraySize);
         }
 
-        protected Swapchain CreateSwapChain(Extent2Di size, uint sampleCount, long format, uint arraySize)
+        protected internal Swapchain CreateSwapChain(Extent2Di size, uint sampleCount, long format, uint arraySize)
         {
             var info = new SwapchainCreateInfo
             {
@@ -716,8 +689,6 @@ namespace OpenXr.Framework
 
             return result;
         }
-
-
 
         #endregion
 
@@ -787,7 +758,7 @@ namespace OpenXr.Framework
                                      (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;
 
                     if (isPosValid)
-                        layers = _layers.Render(ref _views, _swapchains, space, frameTime, out layerCount);
+                        layers = _layers.Render(ref _views, space, frameTime, out layerCount);
                 }
             }
             finally
@@ -871,7 +842,6 @@ namespace OpenXr.Framework
 
 
         #endregion
-
 
         #region ACTIONS
 
@@ -1356,6 +1326,7 @@ namespace OpenXr.Framework
             Current = null;
         }
 
+        protected internal XrViewInfo? ViewInfo => _viewInfo;
 
         public XrAppState State => _state;
 
@@ -1384,8 +1355,6 @@ namespace OpenXr.Framework
         public SessionState SessionState => _lastSessionState;
 
         public ILogger Logger => _logger;
-
-        public IEnumerable<Swapchain> SwapChains => _swapchains?.Select(a => a.Swapchain) ?? [];
 
         public IReadOnlyDictionary<string, IXrInput> Inputs => _inputs;
 

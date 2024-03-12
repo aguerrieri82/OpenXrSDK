@@ -5,7 +5,7 @@ using Silk.NET.OpenXR.Extensions.KHR;
 
 namespace OpenXr.Framework.Android
 {
-    public class XrAndroidSurfaceQuadLayer : XrQuadLayer
+    public class XrAndroidSurfaceQuadLayer : XrBaseQuadLayer
     {
         protected Surface? _surface;
         protected KhrAndroidSurfaceSwapchain? _androidSurface;

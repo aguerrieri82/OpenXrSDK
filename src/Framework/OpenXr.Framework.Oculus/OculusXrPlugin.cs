@@ -439,11 +439,13 @@ namespace OpenXr.Framework.Oculus
                 Flags = SwapchainStateFoveationFlagsFB.None,
             };
 
-            foreach (var swapChain in _app.SwapChains)
-                _app.CheckResult(_swapChainUpdate!.UpdateSwapchainFB(swapChain, (SwapchainStateBaseHeaderFB*)&update), "UpdateSwapchainFB");
+            foreach (var proj in _app.Layers.List.OfType<XrProjectionLayer>())
+            {
+                foreach (var swapChain in proj.SwapChains)
+                    _app.CheckResult(_swapChainUpdate!.UpdateSwapchainFB(swapChain, (SwapchainStateBaseHeaderFB*)&update), "UpdateSwapchainFB");
+            }
 
             _foveation!.DestroyFoveationProfileFB(profile);
-
         }
 
         public override void ConfigureSwapchain(ref SwapchainCreateInfo info)

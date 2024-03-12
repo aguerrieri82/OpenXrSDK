@@ -46,13 +46,13 @@ namespace OpenXr.Framework
             }
         }
 
-        public bool Update(ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
+        public bool Update(ref View[] views,  long predTime)
         {
             var span = new Span<T>(_header, 1);
-            return Update(ref span[0], ref views, swapchains, predTime);
+            return Update(ref span[0], ref views, predTime);
         }
 
-        protected abstract bool Update(ref T layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime);
+        protected abstract bool Update(ref T layer, ref View[] views, long predTime);
 
         public virtual void OnBeginFrame()
         {

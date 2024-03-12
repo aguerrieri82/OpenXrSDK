@@ -1,4 +1,6 @@
-﻿namespace XrMath
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace XrMath
 {
     public struct Size2
     {
@@ -9,6 +11,8 @@
             Width = width;
             Height = height;
         }
+
+
 
         public float Width;
 

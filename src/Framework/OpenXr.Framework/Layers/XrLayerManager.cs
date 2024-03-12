@@ -13,7 +13,7 @@ namespace OpenXr.Framework
             _xrApp = xrApp;
         }
 
-        public CompositionLayerBaseHeader*[] Render(ref View[] views, XrSwapchainInfo[] swapchains, Space space, long predTime, out uint layerCount)
+        public CompositionLayerBaseHeader*[] Render(ref View[] views, Space space, long predTime, out uint layerCount)
         {
             if (_layersPointers == null || _layersPointers.Length != _layers.Count)
                 _layersPointers = new CompositionLayerBaseHeader*[_layers.Count];
@@ -25,7 +25,7 @@ namespace OpenXr.Framework
                 if (!layer.IsEnabled)
                     continue;
 
-                bool result = layer.Update(ref views, swapchains, predTime);
+                bool result = layer.Update(ref views, predTime);
                 if (result)
                 {
                     _layersPointers[layerCount] = layer.Header;

@@ -19,7 +19,7 @@ namespace OpenXr.Framework
 
         void OnBeginFrame();
 
-        bool Update(ref View[] views, XrSwapchainInfo[] swapchains, long predTime);
+        bool Update(ref View[] views, long predTime);
 
         void OnEndFrame();
 

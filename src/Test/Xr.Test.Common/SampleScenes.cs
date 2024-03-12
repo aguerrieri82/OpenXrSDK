@@ -1,6 +1,8 @@
-﻿using OpenXr.Framework.Oculus;
+﻿using OpenXr.Framework;
+using OpenXr.Framework.Oculus;
 using PhysX;
 using PhysX.Framework;
+using Silk.NET.OpenXR;
 using System.Diagnostics;
 using System.Numerics;
 using XrEngine;
@@ -12,6 +14,7 @@ using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.UI;
 using XrMath;
+using static SkiaSharp.SKPath;
 
 
 namespace Xr.Test
@@ -23,18 +26,6 @@ namespace Xr.Test
             ConvertColorTextureSRgb = true,
         };
 
-        public static void ConfigureXrApp(XrEngineAppBuilder builder)
-        {
-            builder.UseHands()
-                   .UseLeftController()
-                   .UseRightController()
-                   .UseInputs<XrOculusTouchController>(a => a.AddAction(b => b.Right!.Haptic))
-                   .UsePhysics()
-                   .UseScene(true)
-                   .AddPassthrough()
-                   .UseRayCollider()
-                   .UseGrabbers();
-        }
 
         static EngineApp CreateBaseScene()
         {
@@ -84,7 +75,7 @@ namespace Xr.Test
             return app;
         }
 
-        public static Panel3D CreateDebugPanel()
+        static Panel3D CreateDebugPanel(XrApp xrApp)
         {
             var panel = new Panel3D();
             
@@ -97,14 +88,29 @@ namespace Xr.Test
 
             panel.AddComponent(new FollowCamera() { Offset = new Vector3(0, 0, -1) });
 
+            panel.CreateOverlay(xrApp);
+
             return panel;
         }
 
-        public static EngineApp CreateDisplay()
+        public static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder)
+        {
+            return builder.UseHands()
+                   .UseLeftController()
+                   .UseRightController()
+                   .UseInputs<XrOculusTouchController>(a => a.AddAction(b => b.Right!.Haptic))
+                   .AddPassthrough()
+                   .UseRayCollider()
+                   .UseGrabbers();
+        }
+
+        public static XrEngineAppBuilder CreateDisplay(this XrEngineAppBuilder builder)
         {
             var assets = Platform.Current!.AssetManager;
 
             var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
 
             var display = new TriangleMesh(Quad3D.Instance);
             //display.Materials.Add(new StandardMaterial { Color = Color.White, DoubleSided = false, WriteDepth = false });
@@ -115,12 +121,12 @@ namespace Xr.Test
 
             display.AddComponent<MeshCollider>();
 
-            app.ActiveScene!.AddChild(display);
+            scene.AddChild(display);
 
-            return app;
+            return builder.UseApp(app);
         }
 
-        public static EngineApp CreatePingPong()
+        public static XrEngineAppBuilder CreatePingPong(this XrEngineAppBuilder builder)
         {
             var assets = Platform.Current!.AssetManager;
 
@@ -187,22 +193,29 @@ namespace Xr.Test
             scene!.AddChild(mesh);
 
             //Setup camera
-            ((PerspectiveCamera)scene.ActiveCamera!).Target = mesh.Transform.Position;
+            scene.PerspectiveCamera().Target = mesh.Transform.Position;
 
-            //Debug
-            scene.AddChild(CreateDebugPanel());
+            builder.UseApp(app)
+                   .UseScene(true)
+                   .UsePhysics()
+                   .ConfigureApp(engine =>
+                   {
+                       //Debug
+                       scene.AddChild(CreateDebugPanel(engine.XrApp));
+                   });
 
-            return app;
+            return builder;
         }
 
 
-
-        public static EngineApp CreateChess()
+        public static XrEngineAppBuilder CreateChess(this XrEngineAppBuilder builder)
         {
 
             var assets = Platform.Current!.AssetManager;
 
             var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
 
             assets.GetFsPath("Game/ABeautifulGame.bin");
 
@@ -230,18 +243,22 @@ namespace Xr.Test
             mesh.Transform.SetScale(1f);
             mesh.Transform.Position = new Vector3(0, 1, 0);
 
-            app.ActiveScene!.AddChild(mesh);
-            ((PerspectiveCamera)app.ActiveScene!.ActiveCamera!).Target = mesh.Transform.Position;
+            scene.AddChild(mesh);
 
+            scene.PerspectiveCamera().Target = mesh.Transform.Position;
 
-            return app;
+            return builder
+                    .UseApp(app)
+                    .UsePhysics();
         }
 
-        public static EngineApp CreateSponza()
+        public static XrEngineAppBuilder CreateSponza(this XrEngineAppBuilder builder)
         {
             var assets = Platform.Current!.AssetManager;
 
             var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
 
             assets.GetFsPath("Sponza/Sponza.bin");
 
@@ -249,9 +266,9 @@ namespace Xr.Test
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.01f);
 
-            app.ActiveScene!.AddChild(mesh);
+            scene.AddChild(mesh);
 
-            app.ActiveScene!.AddChild(new SunLight()
+            scene.AddChild(new SunLight()
             {
                 Name = "sun-light-2",
                 Intensity = 1.5f,
@@ -259,25 +276,11 @@ namespace Xr.Test
                 IsVisible = true
             });
 
-            return app;
+            return builder.UseApp(app);
         }
 
-        public static EngineApp CreateRoom()
-        {
-            var assets = Platform.Current!.AssetManager;
 
-            var app = CreateBaseScene();
-
-            var mesh = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("Sponza/Sponza.gltf"), assets, GltfOptions);
-            mesh.Name = "mesh";
-            mesh.Transform.SetScale(0.01f);
-
-            app.ActiveScene!.AddChild(mesh);
-
-            return app;
-        }
-
-        public static EngineApp CreateCube(IAssetManager assets)
+        public static XrEngineAppBuilder CreateCube(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
 
@@ -290,23 +293,17 @@ namespace Xr.Test
 
             app.ActiveScene!.AddChild(cube);
 
-            return app;
+            return builder.UseApp(app);
         }
 
 
-        public static EngineApp CreateDefaultScene(IAssetManager assets)
+        public static XrEngineAppBuilder CreateAnimatedCubes(this XrEngineAppBuilder builder)
         {
-            var app = new EngineApp();
+            var assets = Platform.Current!.AssetManager;
 
-            var scene = new Scene();
+            var app = CreateBaseScene();
 
-            scene.ActiveCamera = new PerspectiveCamera()
-            {
-                Far = 50f
-            };
-
-            ((PerspectiveCamera)(scene.ActiveCamera))!.LookAt(new Vector3(0, 0, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
-
+            var scene = app.ActiveScene!;
 
             var red = new StandardMaterial() { Color = new Color(1, 0, 0) };
 
@@ -316,22 +313,6 @@ namespace Xr.Test
             {
                 DoubleSided = true
             };
-
-            var display = new TriangleMesh(Quad3D.Instance);
-            display.Materials.Add(text);
-            display.Transform.Scale = new Vector3(1.924f * 0.5f, 0.01f, 1.08f * 0.5f);
-            display.Transform.Position = new Vector3(0f, 0.5f, 0f);
-            display.AddBehavior((obj, ctx) =>
-            {
-                obj.Transform.Orientation =
-                Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)ctx.Time * MathF.PI / 4f);
-
-            });
-
-            display.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(1f, 0, 0), MathF.PI / 2);
-            display.Name = "display";
-            display.AddComponent<MeshCollider>();
-
 
             var cubes = new Group3D();
 
@@ -357,16 +338,11 @@ namespace Xr.Test
                 }
             }
 
-
             scene.AddChild(cubes);
-
-            //scene.AddChild(display);
 
             scene.AddChild(new AmbientLight(0.1f));
 
-            app.OpenScene(scene);
-
-            return app;
+            return builder.UseApp(app);
         }
     }
 }

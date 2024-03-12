@@ -82,6 +82,11 @@ namespace XrEngine
 
         #region SCENE
 
+        public static PerspectiveCamera PerspectiveCamera(this Scene scene)
+        {
+            return ((PerspectiveCamera)scene.ActiveCamera!);
+        }
+
         public static T AddLayer<T>(this Scene scene) where T : ILayer3D, new()
         {
             return scene.AddLayer(new T());

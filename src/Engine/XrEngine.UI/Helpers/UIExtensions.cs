@@ -29,17 +29,17 @@ namespace XrEngine.UI
         }
 
 
-        public static void SetRatio(this Canvas3D canvas, float width, float ratio)
+        public static void SetRatio(this CanvasView3D canvas, float width, float ratio)
         {
-            canvas.Size = new Vector2(width, width / ratio);
+            canvas.Size = new Size2(width, width / ratio);
         }
 
-        public static void SetInches(this Canvas3D canvas, float diagonal, float ratio)
+        public static void SetInches(this CanvasView3D canvas, float diagonal, float ratio)
         {
             var height = diagonal / MathF.Sqrt(ratio * ratio + 1);
             var width = ratio * height;
 
-            canvas.Size = new Vector2(width * UnitConv.InchesToMeter, height * UnitConv.InchesToMeter);
+            canvas.Size = new Size2(width * UnitConv.InchesToMeter, height * UnitConv.InchesToMeter);
         }
 
         public static T AddChild<T>(this UiPanel self) where T : UiComponent, new()

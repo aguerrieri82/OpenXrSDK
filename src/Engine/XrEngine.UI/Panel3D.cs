@@ -9,7 +9,7 @@ using XrMath;
 
 namespace XrEngine.UI
 {
-    public class Panel3D : Canvas3D
+    public class Panel3D : CanvasView3D
     {
         public Panel3D()
         {
@@ -32,7 +32,7 @@ namespace XrEngine.UI
             }
         }
 
-        protected override bool NeedDraw => Panel != null && Panel.IsDirty;
+        public override bool NeedDraw => Panel != null && Panel.IsDirty;
 
         public UIRoot? Panel { get; set; }  
     }
