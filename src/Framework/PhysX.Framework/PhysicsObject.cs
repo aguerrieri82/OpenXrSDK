@@ -25,7 +25,7 @@ namespace PhysX.Framework
 
         public abstract void Dispose();
 
-        public bool IsValid => _handle != null;
+        public T* Handle => _handle;
 
 
         public static implicit operator T*(PhysicsObject<T> self) => self._handle;

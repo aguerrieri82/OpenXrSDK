@@ -15,24 +15,28 @@ namespace XrEngine.Physics
         private PhysicsSystem? _system;
         private PhysicsActor? _actor;
         private PhysicsMaterial? _material;
-        private PhysicsGeometryType _geoType;
-        private readonly List<PhysicsShape> _shapes = [];
         private event RigidBodyContactEventHandler? _contactEvent;
 
         public RigidBody()
         {
-            BodyType = PhysicsActorType.Dynamic;
+            Type = PhysicsActorType.Dynamic;
 
             Material = new PhysicsMaterialInfo
             {
-                DynamicFriction = 0.8f,
-                Restitution = 0.4f,
-                StaticFriction = 0.8f
+                DynamicFriction = 1f,
+                StaticFriction = 1f,
+                Restitution = 0.5f
             };
 
             Density = 10;
 
             Tolerance = 10;
+        }
+
+        public void Teleport(Vector3 worldPos)
+        {
+            _host!.WorldPosition = worldPos;
+            DynamicActor.GlobalPose = GetPose(); 
         }
 
         protected void SetPose(Pose3 pose)
@@ -44,36 +48,14 @@ namespace XrEngine.Physics
             newTrans.Position = pose.Position;
             newTrans.Orientation = pose.Orientation;
 
-            Matrix4x4 matrix;
-
-            var bounds = _host?.Feature<ILocalBounds>();
-
-            if (_geoType == PhysicsGeometryType.Box)
-                matrix = Matrix4x4.CreateTranslation(-bounds!.LocalBounds.Center) * newTrans.Matrix;
-            else if (_geoType == PhysicsGeometryType.Capsule)
-                matrix = Matrix4x4.CreateRotationY(-MathF.PI / 2) * newTrans.Matrix;
-            else
-                matrix = newTrans.Matrix;
-
-            _host!.Transform.SetMatrix(matrix * _host.Parent!.WorldMatrixInverse);
+            _host.Transform.SetMatrix(newTrans.Matrix * _host.Parent!.WorldMatrixInverse);
         }
 
         protected Pose3 GetPose()
         {
             Debug.Assert(_host != null);
 
-            Matrix4x4 matrix;
-
-            var bounds = _host.Feature<ILocalBounds>();
-
-            if (_geoType == PhysicsGeometryType.Box)
-                matrix = Matrix4x4.CreateTranslation(bounds!.LocalBounds.Center) * _host!.WorldMatrix;
-            else if (_geoType == PhysicsGeometryType.Capsule)
-                matrix = Matrix4x4.CreateRotationY(MathF.PI / 2) * _host!.WorldMatrix;
-            else
-                matrix = _host!.WorldMatrix;
-
-            Matrix4x4.Decompose(matrix, out var _, out var orientation, out var translation);
+            Matrix4x4.Decompose(_host.WorldMatrix, out var _, out var orientation, out var translation);
 
             return new Pose3
             {
@@ -92,94 +74,154 @@ namespace XrEngine.Physics
             _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, true);
         }
 
-        protected override void Start(RenderContext ctx)
+        protected PhysicsShape? CreateShape(ICollider3D? collider)
         {
+            Debug.Assert(_system != null);
             Debug.Assert(_host != null);
 
-            var manager = _host.Scene!.Components<PhysicsManager>().FirstOrDefault();
+            PhysicsShape? shape = null;
+            PhysicsGeometry? pyGeo = null;
+            EngineObject? shapeHost = null;
+            Pose3 pose = Pose3.Identity;
+
+            if (collider == null)
+            {
+                var local = _host.Feature<ILocalBounds>();
+
+                if (local == null)
+                    return null;
+
+                pyGeo = _system.CreateBox(local.LocalBounds.Size / 2);
+
+                pose.Position = local.LocalBounds.Center;
+
+                shapeHost = _host;
+            }
+            else
+            {
+                if (!collider.IsEnabled)
+                    return null;
+
+                var host = (collider.Host as Object3D)!;
+
+                var geo = host.Feature<Geometry3D>();
+
+                if (geo != null)
+                    shape = geo.GetProp<PhysicsShape>("PhysicsShape");
+
+                if (shape == null)
+                {
+                    if (collider is MeshCollider mc && mc.Geometry != null)
+                    {
+                        mc.Geometry.EnsureIndices();
+
+                        pyGeo = _system.CreateTriangleMesh(
+                            mc.Geometry.Indices,
+                            mc.Geometry.ExtractPositions(),
+                            Vector3.One, Tolerance
+                        );
+                    }
+                    else if (collider is CapsuleCollider cap)
+                    {
+                        pyGeo = _system.CreateCapsule(cap.Radius, cap.Height * 0.5f);
+                        pose.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI / 2);
+                    }
+                    else if (collider is SphereCollider sphere)
+                    {
+                        pyGeo = _system.CreateSphere(sphere.Radius);
+                    }
+                    else if (collider is BoxCollider box)
+                    {
+                        pyGeo = _system.CreateBox(box.Size / 2);
+                    }
+
+                    shapeHost = geo;
+                }
+            }
+
+            if (pyGeo != null)
+            {
+                shape = _system.CreateShape(new PhysicsShapeInfo
+                {
+                    Geometry = pyGeo,
+                    Material = _material,
+                });
+            }
+
+            if (shape != null)
+            {
+                shapeHost?.SetProp("PhysicsShape", shape);
+
+                shape.Tag = collider;
+
+                shape.LocalPose = pose;
+            }
+
+            return shape;
+        }
+
+        protected void Create()
+        {
+            Debug.Assert(_host?.Scene != null);
+
+            var manager = _host.Scene.Components<PhysicsManager>().FirstOrDefault();
 
             _system = manager?.System;
 
             if (_system == null)
-                return;
+                throw new NotSupportedException("Add PhysicsManager to the scene");
 
             Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
 
-            _material = _system.CreateMaterial(Material);
+            if (!scale.IsSameValue(10e-5f))
+                throw new NotSupportedException("Not uniform scale is not supported");
 
-            foreach (var collider in _host!.Components<ICollider3D>())
+            _material = _system.CreateOrGetMaterial(new PhysicsMaterialInfo
+            {
+                DynamicFriction = 1f,
+                StaticFriction = 1f,
+                Restitution = 0.5f
+            });
+
+            var shapes = new List<PhysicsShape>();
+
+            foreach (var collider in _host.Components<ICollider3D>())
             {
                 if (!collider.IsEnabled)
                     continue;
-
-                PhysicsGeometry? pyGeo = null;
-
-                if (collider is MeshCollider mc)
-                {
-                    mc.Geometry.EnsureIndices();
-
-                    pyGeo = _system.CreateTriangleMesh(
-                        mc.Geometry.Indices,
-                        mc.Geometry.ExtractPositions(),
-                       scale, Tolerance);
-                }
-                else if (collider is CapsuleCollider cap)
-                {
-                    pyGeo = _system.CreateCapsule(cap.Radius * scale.X, cap.Height * scale.X * 0.5f);
-                }
-                else if (collider is SphereCollider sphere)
-                {
-                    pyGeo = _system.CreateSphere(sphere.Radius * scale.X);
-                }
-
-                if (pyGeo == null)
-                    return;
-
-                _geoType = pyGeo.Type;
-
-                var shape = _system.CreateShape(new PhysicsShapeInfo
-                {
-                    Geometry = pyGeo,
-                    Material = _material,
-                });
-                shape.Tag = collider;
-
-                if (_host.Name != null)
-                    shape.Name = _host.Name;
-
-                _shapes.Add(shape);
+                
+                var shape = CreateShape(collider);
+                if (shape != null)
+                    shapes.Add(shape);
             }
 
-            if (_shapes.Count == 0)
+            if (shapes.Count == 0)
             {
-                var bounds = _host.Feature<ILocalBounds>() ?? throw new NotSupportedException();
-
-                var pyGeo = _system.CreateBox(bounds.LocalBounds.Size / 2 * scale);
-
-                var shape = _system.CreateShape(new PhysicsShapeInfo
-                {
-                    Geometry = pyGeo,
-                    Material = _material,
-                });
-
-                shape.Tag = bounds;
-
-                _geoType = PhysicsGeometryType.Box;
-
-                _shapes.Add(shape);
+                var boxShape = CreateShape(null);
+                if (boxShape == null)
+                    throw new NotSupportedException("Object has no collider or local bounds");
+                shapes.Add(boxShape);
             }
 
             _actor = _system.CreateActor(new PhysicsActorInfo
             {
                 Density = Density,
-                Shapes = _shapes,
+                Shapes = shapes,
                 Pose = GetPose(),
-                Type = BodyType
+                Type = Type
             });
+
+            _actor.SetScale(scale.X);
 
             _actor.Tag = _host;
             _actor.NotifyContacts = _contactEvent != null;
             _actor.Contact += OnActorContact;
+            _actor.Name = _host.Name ?? string.Empty;
+        }
+
+        protected override void Start(RenderContext ctx)
+        {
+            Create();
         }
 
         private void OnActorContact(PhysicsActor other, int otherIndex, ContactPair[] data)
@@ -192,28 +234,28 @@ namespace XrEngine.Physics
             if (_actor == null)
                 return;
 
-            var isGrabbing = _host?.GetProp<bool>("IsGrabbing") == true;
+            Debug.Assert(_host != null);
 
-            if (!isGrabbing)
+            if (!_host.IsManipulating())
             {
-                if (BodyType == PhysicsActorType.Dynamic)
+                if (Type == PhysicsActorType.Dynamic)
                 {
                     SetPose(_actor.GlobalPose);
-                    if (_actor.IsKinematic)
-                        _actor.IsKinematic = false;
+                    if (DynamicActor.IsKinematic)
+                        DynamicActor.IsKinematic = false;
                 }
             }
             else
             {
-                if (BodyType == PhysicsActorType.Dynamic || BodyType == PhysicsActorType.Kinematic)
+                if (Type != PhysicsActorType.Static)
                 {
-                    if (BodyType == PhysicsActorType.Dynamic)
-                        _actor.IsKinematic = true;
-                    _actor.KinematicTarget = GetPose();
+                    if (Type == PhysicsActorType.Dynamic && !DynamicActor.IsKinematic)
+                        DynamicActor.IsKinematic = true;
+
+                    DynamicActor.KinematicTarget = GetPose();
                 }
                 else
                     _actor.GlobalPose = GetPose();
-
             }
         }
 
@@ -223,18 +265,15 @@ namespace XrEngine.Physics
             {
                 if (_actor != null)
                 {
-                    _system.Scene.RemoveActorMut(_actor, false);
                     _actor.Dispose();
                     _actor = null;
                 }
 
-                foreach (var shape in _shapes)
-                    shape.Dispose();
-
-                _shapes.Clear();
-
-                _material?.Dispose();
-                _material = null;
+                if (_material != null)
+                {
+                    _material.Release();
+                    _material = null;
+                }
             }
 
             GC.SuppressFinalize(this);
@@ -256,9 +295,11 @@ namespace XrEngine.Physics
 
         public float Tolerance { get; set; }
 
-        public PhysicsActor Actor => _actor ?? throw new ArgumentNullException();
+        public PhysicsDynamicActor DynamicActor => (_actor as PhysicsDynamicActor) ?? throw new ArgumentNullException();
 
-        public PhysicsActorType BodyType { get; set; }
+        public PhysicsStaticActor StaticActor => (_actor as PhysicsStaticActor) ?? throw new ArgumentNullException();
+
+        public PhysicsActorType Type { get; set; }
 
         public PhysicsMaterialInfo Material { get; set; }
 

@@ -29,11 +29,6 @@ namespace XrEngine
             IsVisible = true;
         }
 
-        protected internal virtual void InvalidateWorld()
-        {
-            _worldDirty = true;
-        }
-
         public virtual T? Feature<T>() where T : class
         {
             if (this is T tInt)
@@ -66,12 +61,6 @@ namespace XrEngine
             return isChanged;
         }
 
-        protected void UpdateWorldInverse()
-        {
-            Matrix4x4.Invert(_worldMatrix, out _worldMatrixInverse);
-            //_worldMatrixInverse = MathUtils.InvertRigidBody(_worldMatrix);
-            _worldInverseDirty = false;
-        }
 
         //TODO protected
         public virtual void UpdateBounds()
@@ -99,6 +88,31 @@ namespace XrEngine
             base.Update(ctx);
         }
 
+        public override void NotifyChanged(ObjectChange change)
+        {
+            if (change.IsAny(ObjectChangeType.Transform))
+                InvalidateWorld();
+
+            _scene?.NotifyChanged(this, change);
+        }
+
+        public override void Dispose()
+        {
+            _parent?.RemoveChild(this);
+            base.Dispose();
+        }
+
+        protected internal virtual void InvalidateWorld()
+        {
+            _worldDirty = true;
+        }
+
+        protected void UpdateWorldInverse()
+        {
+            Matrix4x4.Invert(_worldMatrix, out _worldMatrixInverse);
+            _worldInverseDirty = false;
+        }
+
         internal void SetParent(Group3D? value, bool preserveTransform)
         {
             var changeType = ObjectChangeType.Parent | ObjectChangeType.Transform;
@@ -121,17 +135,6 @@ namespace XrEngine
             NotifyChanged(changeType);
         }
 
-        public override void NotifyChanged(ObjectChange change)
-        {
-            if (change.IsAny(ObjectChangeType.Transform))
-                InvalidateWorld();
-
-            _scene?.NotifyChanged(this, change);
-        }
-
-        public Group3D? Parent => _parent;
-
-        public Scene? Scene => _scene;
 
         public bool IsVisible
         {
@@ -156,7 +159,7 @@ namespace XrEngine
 
         public Vector3 Up
         {
-            get => new Vector3(0f, 1f, 0f).ToDirection(WorldMatrix);
+            get => Vector3.UnitY.ToDirection(WorldMatrix);
         }
 
         public Vector3 WorldPosition
@@ -207,15 +210,13 @@ namespace XrEngine
             }
         }
 
-        public override void Dispose()
-        {
-            _parent?.RemoveChild(this);
-            base.Dispose();
-        }
+        public Group3D? Parent => _parent;
+
+        public Scene? Scene => _scene;
 
         public double CreationTime => _creationTime;
 
-        public double LiveTime => _lastUpdateTime - _creationTime;
+        public double LifeTime => _lastUpdateTime - _creationTime;
 
         public Transform3D Transform => _transform;
 

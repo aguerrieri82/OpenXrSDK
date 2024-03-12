@@ -81,7 +81,7 @@ namespace XrEngine.OpenXr
                 
                 var rb = mesh.AddComponent<RigidBody>();
 
-                rb.BodyType = PhysicsActorType.Static;
+                rb.Type = PhysicsActorType.Static;
                 rb.Material = new PhysicsMaterialInfo
                 {
                     DynamicFriction = 1,

@@ -26,7 +26,7 @@ namespace XrEngine
                 _geometry = _host!.Feature<Geometry3D>();
 
                 if (_geometry == null)
-                    throw new Exception("Geometry3D not found in Object");
+                    throw new NotSupportedException("Geometry3D not found in Object");
             }
         }
 
@@ -76,16 +76,14 @@ namespace XrEngine
                             UV = null
                         };
                     }
-                        
                 }
             }
 
             return collision;
-
         }
 
 
-        public Geometry3D Geometry => _geometry;
+        public Geometry3D? Geometry => _geometry;
 
     }
 }

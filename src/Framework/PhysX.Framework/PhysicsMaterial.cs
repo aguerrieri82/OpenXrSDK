@@ -16,11 +16,12 @@ namespace PhysX.Framework
 
     public unsafe class PhysicsMaterial : PhysicsObject<PxMaterial>
     {
+        protected int _refCount;
 
         public PhysicsMaterial(PxMaterial* handle, PhysicsSystem system)
             : base(handle, system)
         {
-
+            AddRef();
         }
 
         public float Dumping
@@ -61,7 +62,20 @@ namespace PhysX.Framework
 
         public override void Dispose()
         {
+            _system.DeleteObject(this);
             GC.SuppressFinalize(this);
+        }
+
+        public void Release()
+        {
+            _refCount--;
+            if (_refCount == 0)
+                Dispose();
+        }
+
+        internal void AddRef()
+        {
+            _refCount++;
         }
 
         public ref PxMaterial Material => ref Unsafe.AsRef<PxMaterial>(_handle);

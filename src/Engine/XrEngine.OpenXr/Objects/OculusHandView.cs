@@ -16,6 +16,7 @@ namespace XrEngine.OpenXr
         {
             _input = input;
             Name = "Hand " + input.HandType;
+            CreateRigidBody = true;
         }
 
         public override T? Feature<T>() where T : class
@@ -27,7 +28,6 @@ namespace XrEngine.OpenXr
 
         protected override void UpdateSelf(RenderContext ctx)
         {
-
             if (!_isInit && XrApp.Current != null && XrApp.Current.IsStarted && _input.IsActive)
             {
                 _input.LoadMesh();
@@ -57,14 +57,17 @@ namespace XrEngine.OpenXr
                         Mode = CapsuleColliderMode.Top
                     });
 
-                    var rb = capMesh.AddComponent<RigidBody>();
-                    rb.BodyType = PhysicsActorType.Kinematic;
-                    rb.Material = new PhysicsMaterialInfo
+                    if (CreateRigidBody)
                     {
-                        StaticFriction = 10,
-                        Restitution = 0,
-                        DynamicFriction = 10
-                    };
+                        var rigidBody = capMesh.AddComponent<RigidBody>();
+                        rigidBody.Type = PhysicsActorType.Kinematic;
+                        rigidBody.Material = new PhysicsMaterialInfo
+                        {
+                            StaticFriction = 10,
+                            Restitution = 0,
+                            DynamicFriction = 10
+                        };
+                    }
 
                     AddChild(capMesh);
                 }
@@ -102,6 +105,7 @@ namespace XrEngine.OpenXr
             base.UpdateSelf(ctx);
         }
 
+        public bool CreateRigidBody { get; set; }
 
         public XrHandInputMesh HandInput => _input;
     }

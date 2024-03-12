@@ -134,7 +134,6 @@ namespace XrMath
 
         #region TRIANGLE
 
-
         public static bool IsCCW(this Triangle3 triangle)
         {
             var normal = triangle.Normal();
@@ -166,6 +165,13 @@ namespace XrMath
         #endregion
 
         #region VECTOR3
+
+        public static bool IsSameValue(this Vector3 value, float epsilon)
+        {
+            return MathF.Abs(value.X - value.Y) < epsilon &&
+                   MathF.Abs(value.X - value.Z) < epsilon &&
+                   MathF.Abs(value.Y - value.Z) < epsilon;
+        }
 
         public static bool Similar(this Vector3 value, Vector3 other, float epsilon)
         {

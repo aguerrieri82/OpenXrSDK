@@ -1,21 +1,13 @@
-﻿using PhysX;
-using System;
-using System.Diagnostics;
-using System.Drawing;
-using System.Numerics;
-using System.Reflection.PortableExecutable;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Text;
 using static PhysX.NativeMethods;
 
 
 namespace PhysX.Framework
 {
-
-
-    public unsafe partial struct PxContactPairVelocity2
+    internal unsafe partial struct PxContactPairVelocity2
     {
         public byte type_;
         public fixed byte structgen_pad0[3];
@@ -26,7 +18,7 @@ namespace PhysX.Framework
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe partial struct PxContactPairPose2
+    internal unsafe partial struct PxContactPairPose2
     {
         public byte type_;
         public fixed byte structgen_pad0[3];
@@ -44,12 +36,16 @@ namespace PhysX.Framework
         protected PxPhysics* _physics;
         protected PxDefaultCpuDispatcher* _dispatcher;
         protected PxScene* _scene;
+
         protected uint _actorIds;
         protected Dictionary<uint, PhysicsActor> _actors = [];
-        protected internal Dictionary<nint, object> _objects = [];
+        protected Dictionary<nint, object> _objects = [];
+        protected IList<PhysicsMaterial> _materials = [];
+
         protected SimulationEventCallbacks _eventCallbacks;
         protected ContactModifyCallback _contactModify;
-        private float _lastDeltaTime;
+
+        protected float _lastDeltaTime;
 
         public PhysicsSystem()
         {
@@ -58,31 +54,50 @@ namespace PhysX.Framework
             _eventCallbacks = new SimulationEventCallbacks();
         }
 
-        public PhysicsMaterial CreateMaterial(PhysicsMaterialInfo info)
+        public PhysicsMaterial CreateOrGetMaterial(PhysicsMaterialInfo info)
+        {
+            var result = _materials.FirstOrDefault(a =>
+                a.StaticFriction == info.StaticFriction &&
+                a.DynamicFriction == info.DynamicFriction &&
+                a.Restitution == info.Restitution);
+
+            if (result != null)
+                result.AddRef();
+            else
+                result = CreateMaterial(info, true);
+            
+            return result;
+        }
+
+        public PhysicsMaterial CreateMaterial(PhysicsMaterialInfo info, bool shared = false)
         {
             var material = _physics->CreateMaterialMut(info.StaticFriction, info.DynamicFriction, info.Restitution);
-            return new PhysicsMaterial(material, this);
+            var result = new PhysicsMaterial(material, this);
+            _objects[new nint(material)] = result;
+            if (shared)
+                _materials.Add(result);
+            return result;
         }
 
         public PhysicsGeometry CreateBox(Vector3 halfSize)
         {
             var geo = PxBoxGeometry_new_1(halfSize);
 
-            return new PhysicsGeometry((PxGeometry*)&geo, PhysicsGeometryType.Box);
+            return new PhysicsGeometry((PxGeometry*)&geo);
         }
 
         public PhysicsGeometry CreateSphere(float radius)
         {
             var geo = PxSphereGeometry_new(radius);
 
-            return new PhysicsGeometry((PxGeometry*)&geo, PhysicsGeometryType.Sphere);
+            return new PhysicsGeometry((PxGeometry*)&geo);
         }
 
         public PhysicsGeometry CreateCapsule(float radius, float height)
         {
             var geo = PxCapsuleGeometry_new(radius, height);
 
-            return new PhysicsGeometry((PxGeometry*)&geo, PhysicsGeometryType.Capsule);
+            return new PhysicsGeometry((PxGeometry*)&geo);
         }
 
         public PhysicsGeometry CreateTriangleMesh(uint[] indices, Vector3[] vertices, Vector3 scale, float tolerance)
@@ -124,7 +139,7 @@ namespace PhysX.Framework
 
             var geo = PxTriangleMeshGeometry_new(mesh, &meshScale, 0);
 
-            return new PhysicsGeometry((PxGeometry*)&geo, PhysicsGeometryType.TriangleMesh);
+            return new PhysicsGeometry((PxGeometry*)&geo);
         }
 
         public PhysicsGeometry? CreateConvexMesh(uint[] indices, Vector3[] vertices, Vector3 scale)
@@ -170,13 +185,13 @@ namespace PhysX.Framework
 
             var geo = PxConvexMeshGeometry_new(mesh, &meshScale, 0);
 
-            return new PhysicsGeometry((PxGeometry*)&geo, PhysicsGeometryType.ConvexMesh);
+            return new PhysicsGeometry((PxGeometry*)&geo);
         }
 
         public PhysicsShape CreateShape(PhysicsShapeInfo info)
         {
             var shape = _physics->CreateShapeMut(info.Geometry!, info.Material!, info.IsEsclusive, info.Flags);
-            var result = new PhysicsShape(shape, this);
+            var result = new PhysicsShape(shape, info.Geometry!, this);
             _objects[new nint(shape)] = result;
             return result;
         }
@@ -184,20 +199,26 @@ namespace PhysX.Framework
         public PhysicsActor CreateActor(PhysicsActorInfo info)
         {
             PxActor* actor = null;
+            PhysicsActor? result;
             var pxTrans = info.Pose.ToPxTransform();
+            
             switch (info.Type)
             {
                 case PhysicsActorType.Static:
                     actor = (PxActor*)_physics->PhysPxCreateStatic1(&pxTrans, info.Shapes[0]);
+                    result = new PhysicsStaticActor(actor, this);
                     break;
                 case PhysicsActorType.Dynamic:
                 case PhysicsActorType.Kinematic:
                     actor = (PxActor*)_physics->PhysPxCreateDynamic1(&pxTrans, info.Shapes[0], info.Density);
+                    result = new PhysicsDynamicActor(actor, this);
                     break;
+                default:
+                    throw new NotSupportedException();
             }
 
             foreach (var shape in info.Shapes.Skip(1))
-                ((PxRigidActor*)actor)->AttachShapeMut(shape);
+                result.AddShape(shape);
 
             /*
             if (info.Type != PhysicsActorType.Static)
@@ -206,13 +227,11 @@ namespace PhysX.Framework
 
             _scene->AddActorMut(actor, null);
 
-            var result = new PhysicsActor(actor, this);
-
             if (info.Type == PhysicsActorType.Kinematic)
-                result.IsKinematic = true;
+                ((PhysicsDynamicActor)result).IsKinematic = true;
 
-       
             result.Id = _actorIds++;
+
             _actors[result.Id] = result;
 
             foreach (var shape in info.Shapes)
@@ -223,12 +242,12 @@ namespace PhysX.Framework
             }
 
             _objects[new nint(actor)] = result;
+
             return result;
         }
 
         protected virtual internal void NotifyContact(PxContactPairHeader2 header)
         {
-
             var actor1 = (PhysicsActor)_objects[new nint(header.actor1)];
             var actor2 = (PhysicsActor)_objects[new nint(header.actor2)];
 
@@ -238,28 +257,28 @@ namespace PhysX.Framework
             {
                 var pair = header.pairs[i];
 
-                var newPair = new ContactPair()
+                var newPair = new ContactPair();
+                newPair.Item0.Shape = GetObject<PhysicsShape>(pair.shape1);
+                newPair.Item1.Shape = GetObject<PhysicsShape>(pair.shape2);
+                newPair.Points = pair.contactCount > 0 ? new PhysicsContactPoint[pair.contactCount] : [];
+ 
+                if (pair.contactCount > 0)
                 {
-                    Points = new PhysicsContactPoint[pair.contactCount]
-                };
+                    var points = new PxContactPairPoint[pair.contactCount];
 
-                newPair.Item0.Shape = (PhysicsShape)_objects[new nint(pair.shape1)];
-                newPair.Item1.Shape = (PhysicsShape)_objects[new nint(pair.shape2)];
+                    fixed (PxContactPairPoint* pBuffer = points)
+                        PxContactPair_extractContacts((PxContactPair*)&pair, pBuffer, (uint)points.Length);
 
-                var points = new PxContactPairPoint[pair.contactCount];
-
-                fixed (PxContactPairPoint* pBuffer = points)
-                    PxContactPair_extractContacts((PxContactPair*)&pair, pBuffer, (uint)points.Length);
-        
-                for (var j = 0; j < pair.contactCount; j++)
-                {
-                    newPair.Points[j] = new PhysicsContactPoint
+                    for (var j = 0; j < pair.contactCount; j++)
                     {
-                        Position = points[j].position,
-                        Normal = points[j].normal,
-                        Separation = points[j].separation,
-                        Impulse = points[j].impulse,
-                    };
+                        newPair.Points[j] = new PhysicsContactPoint
+                        {
+                            Position = points[j].position,
+                            Normal = points[j].normal,
+                            Separation = points[j].separation,
+                            Impulse = points[j].impulse,
+                        };
+                    }
                 }
 
                 pairs[i] = newPair;
@@ -297,7 +316,6 @@ namespace PhysX.Framework
                     }
                 }
             }
-
 
             actor1.OnContact(actor2, 1, pairs);
 
@@ -347,6 +365,7 @@ namespace PhysX.Framework
                     //PxPairFlags.ContactEventPose |
                     //PxPairFlags.DetectDiscreteContact |
                     //PxPairFlags.SolveContact;
+
 
             return 0;
         }
@@ -422,7 +441,33 @@ namespace PhysX.Framework
         {
             _contactModify.Dispose();
             _eventCallbacks.Dispose();
+
+            GC.SuppressFinalize(this);
         }
+
+        public void DeleteObject<T>(PhysicsObject<T> obj) where T: unmanaged
+        {
+            _objects.Remove(new nint(obj.Handle));
+            
+            if (obj is PhysicsMaterial mat)
+                _materials.Remove(mat);
+
+            else if (obj is PhysicsActor act)
+            {
+                _scene->RemoveActorMut(act.Handle, true);
+                _actors.Remove(act.Id);
+            }
+        }
+
+        public T GetObject<T>(void* handle)
+        {
+            return (T)_objects[new nint(handle)];
+        }
+
+        public float LastDeltaTime => _lastDeltaTime;
+
+
+        public event Action<PhysicsActor, PhysicsActor>? Contact;
 
         public ref PxPhysics Physics => ref Unsafe.AsRef<PxPhysics>(_physics);
 
@@ -430,8 +475,5 @@ namespace PhysX.Framework
 
         public static PhysicsSystem? Current { get; internal set; }
 
-        public float LastDeltaTime => _lastDeltaTime;
-
-        public event Action<PhysicsActor, PhysicsActor>? Contact;
     }
 }

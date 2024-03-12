@@ -6,6 +6,7 @@ using Silk.NET.OpenXR;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
+using XrEngine.Colliders;
 using XrEngine.Components;
 using XrEngine.Compression;
 using XrEngine.Gltf;
@@ -72,7 +73,7 @@ namespace Xr.Test
                 Exposure = 1
             };
 
-            camera!.LookAt(new Vector3(1, 1.7f, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            camera.LookAt(new Vector3(1, 1.7f, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
 
             scene.ActiveCamera = camera;
 
@@ -107,6 +108,8 @@ namespace Xr.Test
 
             var app = CreateBaseScene();
 
+            var scene = app.ActiveScene!;
+
             assets.GetFsPath("ping-pong paddle red.glb");
 
             var mesh = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("ping-pong paddle red.glb"), assets, GltfOptions);
@@ -128,7 +131,7 @@ namespace Xr.Test
   
 
             //Audio
-            var audio = app.ActiveScene!.Component<AudioSystem>();
+            var audio = scene.Component<AudioSystem>();
             var sound = new DynamicSound();
             sound.AddBuffers(audio.Device.Al, Platform.Current.AssetManager, "BallSounds");
 
@@ -140,10 +143,10 @@ namespace Xr.Test
                 mesh.AddComponent(new MeshCollider(item.Feature.Geometry!));
 
             //Rigid body
-            var rb = mesh.AddComponent<RigidBody>();
-            rb.BodyType = PhysicsActorType.Kinematic;
-            rb.Tolerance = 100;
-            rb.Material = new PhysicsMaterialInfo
+            var rigidBody = mesh.AddComponent<RigidBody>();
+            rigidBody.Type = PhysicsActorType.Kinematic;
+            rigidBody.Tolerance = 100; //1cm
+            rigidBody.Material = new PhysicsMaterialInfo
             {
                 Restitution = 0.8f,
                 DynamicFriction = 0.7f,
@@ -151,28 +154,22 @@ namespace Xr.Test
             };
 
             //Ball generator
-            var bg = app.ActiveScene!.AddComponent(new BallGenerator(sound));
+            var bg = scene!.AddComponent(new BallGenerator(sound, 5f));
 
             //Sample ball
-            var ball = bg.PickBall();
+            var ball = bg.PickBall(new Vector3(-0.5f, 1.1f, 0));
 
-
-            ball.WorldPosition = new Vector3(-0.5f, 1.1f, 0);
-            ball.AddComponent<MeshCollider>();
-
-            ball.Component<RigidBody>().BodyType = PhysicsActorType.Static;
-            ball.Component<RigidBody>().Started += (s, e) =>
+            var ballRigid = ball.Component<RigidBody>();
+            ballRigid.Started += (_, _) =>
             {
-                //ball.Component<RigidBody>().Actor.AddForce(new Vector3(0.3f, 0, 0), PxForceMode.Force);
+                ballRigid.DynamicActor.AddForce(new Vector3(0.3f, 0, 0), PxForceMode.Force);
             };
 
-
             //Add racket
-            app.ActiveScene!.AddChild(mesh);
-
+            scene!.AddChild(mesh);
 
             //Setup camera
-            ((PerspectiveCamera)app.ActiveScene!.ActiveCamera!).Target = mesh.Transform.Position;
+            ((PerspectiveCamera)scene.ActiveCamera!).Target = mesh.Transform.Position;
 
             return app;
         }
@@ -198,7 +195,7 @@ namespace Xr.Test
 
                 if (child.Name!.Contains("board"))
                 {
-                    rb.BodyType = PhysicsActorType.Static;
+                    rb.Type = PhysicsActorType.Static;
                     child.Transform.SetPositionY(-0.25f);
                 }
                 else
