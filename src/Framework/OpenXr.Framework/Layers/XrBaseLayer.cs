@@ -7,7 +7,7 @@ namespace OpenXr.Framework
     {
         protected T* _header;
         protected XrApp? _xrApp;
-        private bool _isEnabled;
+        protected bool _isEnabled;
 
         public XrBaseLayer()
         {
@@ -75,6 +75,8 @@ namespace OpenXr.Framework
                 OnEnabledChanged(_isEnabled);
             }
         }
+
+        public int Priority { get; set; }
 
         public virtual XrLayerFlags Flags => XrLayerFlags.None;
 

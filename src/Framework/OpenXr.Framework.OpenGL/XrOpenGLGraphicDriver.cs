@@ -74,7 +74,8 @@ namespace OpenXr.Framework.OpenGL
         {
             Debug.Assert(viewInfo.SwapChainFormats != null);
 
-            result.SwapChainFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
+            result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
+            result.DepthFormat = (long)InternalFormat.Depth24Stencil8;
         }
 
 

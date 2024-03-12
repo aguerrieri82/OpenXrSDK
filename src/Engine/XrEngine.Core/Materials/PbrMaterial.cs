@@ -6,12 +6,6 @@ namespace XrEngine
 {
     public class PbrMaterial : ShaderMaterial
     {
-        public enum AlphaMode
-        {
-            Opaque,
-            Mask,
-            Blend
-        }
 
         public enum MaterialType
         {
@@ -577,7 +571,6 @@ namespace XrEngine
 
         public float AlphaCutoff { get; set; }
 
-        public AlphaMode Alpha { get; set; }
 
         /*
         public bool HasClearcoat { get; set; }

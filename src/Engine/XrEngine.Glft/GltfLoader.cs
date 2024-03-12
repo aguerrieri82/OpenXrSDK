@@ -225,7 +225,7 @@ namespace XrEngine.Gltf
                 result.AlphaCutoff = gltMat.AlphaCutoff;
 
                 result.EmissiveFactor = MathUtils.ToVector3(gltMat.EmissiveFactor);
-                result.Alpha = (PbrMaterial.AlphaMode)gltMat.AlphaMode;
+                result.Alpha = (AlphaMode)gltMat.AlphaMode;
                 result.DoubleSided = gltMat.DoubleSided;
 
                 if (gltMat.PbrMetallicRoughness != null)

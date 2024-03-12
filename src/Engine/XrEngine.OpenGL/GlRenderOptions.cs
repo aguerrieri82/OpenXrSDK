@@ -26,7 +26,7 @@
         {
             FloatPrecision = ShaderPrecision.High;
             ShaderVersion = "300 es";
-            DepthBufferFormat = TextureFormat.Depth24Stencil8;
+            DepthFormat = TextureFormat.Depth24Stencil8;
         }
 
         public string? ShaderVersion { get; set; }
@@ -35,7 +35,7 @@
 
         public bool RequireTextureCompression { get; set; }
 
-        public TextureFormat DepthBufferFormat { get; set; }
+        public TextureFormat DepthFormat { get; set; }
 
         public static GlRenderOptions Default() => new();
 

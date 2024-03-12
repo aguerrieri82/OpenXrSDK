@@ -20,7 +20,7 @@ namespace XrEngine.OpenXr
 {
     public unsafe static class XrExtensions
     {
-        public delegate IGlRenderTarget GlRenderTargetFactory(GL gl, uint texId);
+        public delegate IGlRenderTarget GlRenderTargetFactory(GL gl, uint colorTex, uint depthTex);
 
         public static void CreateOverlay(this CanvasView3D canvas, XrApp app)
         {
@@ -83,17 +83,19 @@ namespace XrEngine.OpenXr
             for (var i = 0; i < 2; i++)
                 headViews[i].Type = StructureType.View;
 
-            void RenderView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader*[] images, XrRenderMode mode, long predTime)
+            void RenderView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader*[] colorImages, SwapchainImageBaseHeader*[] depthImages, XrRenderMode mode, long predTime)
             {
-                nint imagePtr;
+                nint colorImagePtr;
+                nint depthImagePtr;
                 FlTextureInternalFormat format;
 
                 void GetImage(int imgIndex)
                 {
                     if (renderer.Driver == FlBackend.OpenGL)
                     {
-                        imagePtr = (nint)((SwapchainImageOpenGLKHR*)images[imgIndex])->Image;
-                        format = ((GLEnum)(int)xrApp.RenderOptions.SwapChainFormat) switch
+                        colorImagePtr = (nint)((SwapchainImageOpenGLKHR*)colorImages[imgIndex])->Image;
+                        depthImagePtr = (nint)((SwapchainImageOpenGLKHR*)depthImages[imgIndex])->Image;
+                        format = ((GLEnum)(int)xrApp.RenderOptions.ColorFormat) switch
                         {
                             GLEnum.Srgb8Alpha8 => FlTextureInternalFormat.SRGB8_A8,
                             GLEnum.Rgba8 => FlTextureInternalFormat.RGBA8,
@@ -102,8 +104,9 @@ namespace XrEngine.OpenXr
                     }
                     else
                     {
-                        imagePtr = (nint)((SwapchainImageVulkanKHR*)images[imgIndex])->Image;
-                        format = ((Silk.NET.Vulkan.Format)(int)xrApp.RenderOptions.SwapChainFormat) switch
+                        colorImagePtr = (nint)((SwapchainImageVulkanKHR*)colorImages[imgIndex])->Image;
+                        depthImagePtr = (nint)((SwapchainImageVulkanKHR*)depthImages[imgIndex])->Image;
+                        format = ((Silk.NET.Vulkan.Format)(int)xrApp.RenderOptions.ColorFormat) switch
                         {
                             Silk.NET.Vulkan.Format.R8G8B8A8Srgb => FlTextureInternalFormat.SRGB8_A8,
                             Silk.NET.Vulkan.Format.R8G8B8A8SNorm => FlTextureInternalFormat.RGBA8,
@@ -116,7 +119,7 @@ namespace XrEngine.OpenXr
 
                 if (mode == XrRenderMode.SingleEye)
                 {
-                    for (var i = 0; i < images.Length; i++)
+                    for (var i = 0; i < colorImages.Length; i++)
                     {
                         GetImage(i);
 
@@ -125,13 +128,17 @@ namespace XrEngine.OpenXr
                         renderer.SetRenderTarget(
                             rect.Width,
                             rect.Height,
-                            imagePtr,
+                            colorImagePtr,
+                            depthImagePtr,
                             format);
 
                         var transform = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
 
                         camera.Projection = transform.Projection;
                         camera.WorldMatrix = transform.Transform;
+
+                        ((CompositionLayerDepthInfoKHR*)views[i].Next)->NearZ = camera.Near;
+                        ((CompositionLayerDepthInfoKHR*)views[i].Next)->FarZ = camera.Far;
 
                         if (i == 0)
                             app.RenderFrame(rect, false);
@@ -151,7 +158,8 @@ namespace XrEngine.OpenXr
                     renderer.SetRenderTarget(
                         rect.Width,
                         rect.Height,
-                        imagePtr,
+                        colorImagePtr,
+                        depthImagePtr,
                         format);
 
                     camera.Eyes ??= new CameraEye[2];
@@ -170,6 +178,9 @@ namespace XrEngine.OpenXr
                         var transform = XrCameraTransform.FromView(headViews[i], camera.Near, camera.Far);
                         camera.Eyes[i].Transform = transform.Transform;
                         camera.Eyes[i].Projection = transform.Projection;
+
+                        ((CompositionLayerDepthInfoKHR*)views[i].Next)->NearZ = camera.Near;
+                        ((CompositionLayerDepthInfoKHR*)views[i].Next)->FarZ = camera.Far;
                     }
 
                     app.RenderFrame(rect);
@@ -188,19 +199,19 @@ namespace XrEngine.OpenXr
             GlRenderTargetFactory factory;
 
             if (xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
-                factory = (gl, texId) => GlMultiViewRenderTarget.Attach(gl, texId, xrApp.RenderOptions.SampleCount);
+                factory = (gl, colorTex, depthTex) => GlMultiViewRenderTarget.Attach(gl, colorTex, depthTex, xrApp.RenderOptions.SampleCount);
             else
             {
                 if (xrApp.RenderOptions.SampleCount == 1)
-                    factory = (gl, texId) => GlTextureRenderTarget.Attach(gl, texId, xrApp.RenderOptions.SampleCount);
+                    factory = (gl, colorTex, depthTex) => GlTextureRenderTarget.Attach(gl, colorTex, depthTex, xrApp.RenderOptions.SampleCount);
                 else
-                    factory = (gl, texId) =>
+                    factory = (gl, colorTex, depthTex) =>
                     {
-                        var target = gl.GetTexture2DTarget(texId);
+                        var target = gl.GetTexture2DTarget(colorTex);
                         if (target == TextureTarget.Texture2DMultisample)
-                            return GlTextureRenderTarget.Attach(gl, texId, xrApp.RenderOptions.SampleCount);
+                            return GlTextureRenderTarget.Attach(gl, colorTex, depthTex, xrApp.RenderOptions.SampleCount);
                         else
-                            return GlMultiSampleRenderTarget.Attach(gl, texId, xrApp.RenderOptions.SampleCount);
+                            return GlMultiSampleRenderTarget.Attach(gl, colorTex, depthTex, xrApp.RenderOptions.SampleCount);
                     };
             }
 
@@ -229,19 +240,20 @@ namespace XrEngine.OpenXr
 
             app.Start();
 
-            void RenderView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader*[] images, XrRenderMode mode, long predTime)
+            void RenderView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader*[] colorImages, SwapchainImageBaseHeader*[] depthImages, XrRenderMode mode, long predTime)
             {
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 
                 if (mode == XrRenderMode.SingleEye)
                 {
-                    for (var i = 0; i < images.Length; i++)
+                    for (var i = 0; i < colorImages.Length; i++)
                     {
                         var rect = views[i].SubImage.ImageRect.Convert().To<Rect2I>();
 
-                        var glImage = (SwapchainImageOpenGLKHR*)images[i];
+                        var glColorImage = (SwapchainImageOpenGLKHR*)colorImages[i];
+                        var glDepthImage = (SwapchainImageOpenGLKHR*)depthImages[i];
 
-                        var renderTarget = targetFactory(renderer.GL, glImage->Image);
+                        var renderTarget = targetFactory(renderer.GL, glColorImage->Image, glDepthImage->Image);
 
                         renderer.SetRenderTarget(renderTarget);
 
@@ -249,6 +261,9 @@ namespace XrEngine.OpenXr
 
                         camera.Projection = transform.Projection;
                         camera.WorldMatrix = transform.Transform;
+
+                        ((CompositionLayerDepthInfoKHR*)views[i].Next)->NearZ = camera.Near;
+                        ((CompositionLayerDepthInfoKHR*)views[i].Next)->FarZ = camera.Far;
 
                         if (i == 0)
                             app.RenderFrame(rect, false);
@@ -261,9 +276,11 @@ namespace XrEngine.OpenXr
                 {
                     var rect = views[0].SubImage.ImageRect.Convert().To<Rect2I>();
 
-                    var glImage = (SwapchainImageOpenGLKHR*)images[0];
+                    var glColorImage = (SwapchainImageOpenGLKHR*)colorImages[0];
+                    
+                    var glDepthImage = (SwapchainImageOpenGLKHR*)depthImages[0];
 
-                    var renderTarget = targetFactory(renderer.GL, glImage->Image);
+                    var renderTarget = targetFactory(renderer.GL, glColorImage->Image, glDepthImage->Image);
 
                     if (renderTarget is not IMultiViewTarget multiTarget)
                         throw new NotSupportedException("Render target don't support multi-view");
@@ -279,6 +296,9 @@ namespace XrEngine.OpenXr
 
                     camera.Projection = transforms[0].Projection;
                     camera.WorldMatrix = transforms[0].Transform;
+
+                    ((CompositionLayerDepthInfoKHR*)views[0].Next)->NearZ = camera.Near;
+                    ((CompositionLayerDepthInfoKHR*)views[0].Next)->FarZ = camera.Far;
 
                     app.RenderFrame(rect);
                 }

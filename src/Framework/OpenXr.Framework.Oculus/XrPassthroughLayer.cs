@@ -24,6 +24,7 @@ namespace OpenXr.Framework.Oculus
         public XrPassthroughLayer()
         {
             Purpose = PassthroughLayerPurposeFB.ReconstructionFB;
+            Priority = 0;
         }
 
         public override void Initialize(XrApp app, IList<string> extensions)

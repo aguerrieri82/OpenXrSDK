@@ -148,7 +148,12 @@ namespace XrEngine.UI
                     MagFilter = ScaleFilter.Linear,
                 };
 
-                Materials.Add(new TextureMaterial(_defaultTexture) { DoubleSided = true, Color = Color.White });
+                Materials.Add(new TextureMaterial(_defaultTexture) 
+                {   
+                    DoubleSided = true, 
+                    Alpha = AlphaMode.Blend,
+                    Color = Color.White 
+                });
 
                 _activeTexture = _defaultTexture;
             }
