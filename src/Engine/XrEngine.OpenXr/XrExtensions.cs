@@ -12,6 +12,8 @@ using XrEngine.Filament;
 using static XrEngine.Filament.FilamentLib;
 using System.Numerics;
 using XrMath;
+using OpenXr.Framework.Layers;
+using XrEngine.UI;
 
 
 namespace XrEngine.OpenXr
@@ -19,6 +21,28 @@ namespace XrEngine.OpenXr
     public unsafe static class XrExtensions
     {
         public delegate IGlRenderTarget GlRenderTargetFactory(GL gl, uint texId);
+
+        public static void CreateOverlay(this CanvasView3D canvas, XrApp app)
+        {
+            canvas.Mode = CanvasViewMode.RenderTarget;
+
+            var layer = new XrTextureQuadLayer(canvas.BindToQuad(), (image, size, predTime) =>
+            {
+                if (image == null)
+                    return canvas.NeedDraw;
+
+                //TODO handle vulkan
+                var glImage = (SwapchainImageOpenGLKHR*)image;
+
+                canvas.SetRenderTarget((nint)glImage->Image, size.Width, size.Height);
+                canvas.Draw();
+
+                return true;
+
+            }, canvas.PixelSize);
+
+            app.Layers.Add(layer);
+        }
 
         public static GetQuadDelegate BindToQuad(this TriangleMesh mesh)
         {

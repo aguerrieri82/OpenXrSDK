@@ -55,7 +55,7 @@ namespace XrEditor
 
         protected virtual void OnLeave(Object3D obj)
         {
-            if (obj is TriangleMesh mesh && mesh.Materials[0] is StandardMaterial mat && _oldColor != null)
+            if (obj is TriangleMesh mesh && mesh.Materials.Count > 0 && mesh.Materials[0] is StandardMaterial mat && _oldColor != null)
             {
                 mat.Color = _oldColor.Value;
                 mat.NotifyChanged();
@@ -65,7 +65,7 @@ namespace XrEditor
 
         protected virtual void OnEnter(Object3D obj)
         {
-            if (obj is TriangleMesh mesh && mesh.Materials[0] is StandardMaterial mat)
+            if (obj is TriangleMesh mesh && mesh.Materials.Count > 0 && mesh.Materials[0] is StandardMaterial mat)
             {
                 _oldColor = mat.Color;
                 mat.Color = new Color(0, 1, 0, 1);

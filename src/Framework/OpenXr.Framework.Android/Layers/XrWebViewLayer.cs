@@ -180,9 +180,10 @@ namespace OpenXr.Framework.Android
             }
         }
 
-        protected override bool Update(ref CompositionLayerQuad layer, ref Silk.NET.OpenXR.View[] views, XrSwapchainInfo[] swapchains, long predTime)
+        protected override bool Update(ref CompositionLayerQuad layer, ref Silk.NET.OpenXR.View[] views, long predTime)
         {
-            var result = base.Update(ref layer, ref views, swapchains, predTime);
+            var result = base.Update(ref layer, ref views, predTime);
+
             layer.Size.Height *= -1;
 
             if (_webView != null)

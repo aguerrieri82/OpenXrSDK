@@ -406,12 +406,17 @@ namespace XrEngine.OpenGL
                 _grContext = GRContext.CreateGl(grInterface);
             }
 
+            var format = glTexture.InternalFormat;
+            if (format == InternalFormat.Rgba)
+                format = InternalFormat.Rgba8;
 
-            var gerTextInfo = new GRGlTextureInfo((uint)glTexture.Target, glTexture.Handle, (uint)glTexture.InternalFormat); 
+            var gerTextInfo = new GRGlTextureInfo((uint)glTexture.Target, glTexture.Handle, (uint)format); 
 
-            var grTexture = new GRBackendTexture((int)texture.Width, (int)texture.Height, true, gerTextInfo);
+            var grTexture = new GRBackendTexture((int)glTexture.Width, (int)glTexture.Height, true, gerTextInfo);
 
-            return SKSurface.Create(_grContext, grTexture, ImageUtils.GetFormat(texture.Format));
+            var props = new SKSurfaceProperties(SKPixelGeometry.RgbVertical);
+              
+            return SKSurface.Create(_grContext, grTexture, ImageUtils.GetFormat(texture.Format), props);
         }
 
         public GL GL => _gl;

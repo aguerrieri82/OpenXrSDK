@@ -18,6 +18,7 @@ namespace OpenXr.Samples
             var viewManager = new ViewManager();
             viewManager.Initialize();
 
+        
             using var xrApp = new XrApp(logger,
                     new XrOpenGLGraphicDriver(viewManager.View),
                     new OculusXrPlugin());
@@ -30,7 +31,8 @@ namespace OpenXr.Samples
                .AddAction(a => a.Right!.AimPose)
                .AddAction(a => a.Right!.TriggerClick));
 
-            _game = SampleScenes.CreateDefaultScene(new LocalAssetManager("Assets"));
+            _game = new EngineApp(); //TODO Fix this
+            //_game = SampleScenes.CreateDefaultScene();
 
             _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
 

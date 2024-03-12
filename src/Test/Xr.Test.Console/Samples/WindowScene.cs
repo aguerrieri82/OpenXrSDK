@@ -42,14 +42,16 @@ namespace OpenXr.Samples
         {
             Platform.Current = new ConsolePlatform();
 
-            var app = SampleScenes.CreateChess();
+            var builder = new XrEngineAppBuilder();
+
+            var app = builder.CreateChess().Build().App;
 
             var view = Window.Create(WindowOptions.Default);
             view.ShouldSwapAutomatically = true;
 
             var viewRect = new Rect2I();
 
-            var camera = (app.ActiveScene?.ActiveCamera as PerspectiveCamera)!;
+            var camera = app.ActiveScene!.PerspectiveCamera();
 
             void UpdateSize()
             {

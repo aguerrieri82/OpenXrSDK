@@ -13,6 +13,7 @@ namespace OpenXr.Framework
     public unsafe class XrProjectionLayer : XrBaseLayer<CompositionLayerProjection>
     {
         readonly RenderViewDelegate? _renderView;
+        protected XrSwapchainInfo[]? _swapchains;
 
         XrProjectionLayer()
         {
@@ -37,9 +38,33 @@ namespace OpenXr.Framework
             }
         }
 
-        protected override bool Update(ref CompositionLayerProjection layer, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
+        public override void Create()
         {
             Debug.Assert(_xrApp != null);
+
+            int swpCount = _xrApp.RenderOptions.RenderMode == XrRenderMode.SingleEye ? _xrApp.ViewInfo!.ViewCount : 1;
+
+            _swapchains = new XrSwapchainInfo[swpCount];
+
+            for (var i = 0; i < _swapchains.Length; i++)
+            {
+                var swapchain = _xrApp.CreateSwapChain();
+                _swapchains[i] = new XrSwapchainInfo
+                {
+                    Swapchain = swapchain,
+                    Images = _xrApp.EnumerateSwapchainImages(swapchain),
+                    ViewSize = _xrApp.RenderOptions.Size
+                };
+            }
+
+
+            base.Create();
+        }
+
+        protected override bool Update(ref CompositionLayerProjection layer, ref View[] views, long predTime)
+        {
+            Debug.Assert(_xrApp != null);
+            Debug.Assert(_swapchains != null);
 
             if (layer.Views == null)
             {
@@ -55,7 +80,7 @@ namespace OpenXr.Framework
                     if (_xrApp.RenderOptions.RenderMode == XrRenderMode.SingleEye)
                         swIndex = i;
 
-                    var swapchain = swapchains[swIndex];
+                    var swapchain = _swapchains[swIndex];
                     int swOfs = 0;
 
                     if (_xrApp.RenderOptions.RenderMode == XrRenderMode.Stereo)
@@ -82,7 +107,7 @@ namespace OpenXr.Framework
             var projViews = new Span<CompositionLayerProjectionView>(layer.Views, (int)layer.ViewCount);
 
             if (_renderView != null)
-                return Render(ref projViews, ref views, swapchains, predTime);
+                return Render(ref projViews, ref views, _swapchains, predTime);
 
             return false;
         }
@@ -123,6 +148,25 @@ namespace OpenXr.Framework
 
             return true;
         }
+
+
+        public override void Dispose()
+        {
+            if (_swapchains != null)
+            {
+                foreach (var item in _swapchains)
+                {
+                    _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.Swapchain), "DestroySwapchain");
+                    item.Images?.Dispose();
+                }
+
+                _swapchains = null;
+            }
+
+            base.Dispose();
+        }
+
+        public IEnumerable<Swapchain> SwapChains => _swapchains?.Select(a => a.Swapchain) ?? [];
 
     }
 }
