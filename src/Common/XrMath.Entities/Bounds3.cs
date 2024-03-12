@@ -8,7 +8,7 @@ namespace XrMath
 
         public Vector3 Min;
 
-        public IEnumerable<Vector3> Points
+        public readonly IEnumerable<Vector3> Points
         {
             get
             {

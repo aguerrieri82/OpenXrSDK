@@ -18,12 +18,11 @@ namespace XrEngine
 
         public override T? Feature<T>() where T : class
         {
-            var result = Reference?.Feature<T>();
+            var result = base.Feature<T>();
             if (result != null)
                 return result;
-            return base.Feature<T>();
+            return Reference?.Feature<T>();
         }
-
 
         public Object3D? Reference { get; set; }
     }

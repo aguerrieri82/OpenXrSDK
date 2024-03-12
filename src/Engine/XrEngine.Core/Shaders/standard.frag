@@ -53,7 +53,7 @@ void main()
       vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
       #ifdef TEXTURE
-       diffuse =  diffuse * texture(uTexture0, fUv).rgb;
+      diffuse =  diffuse * texture(uTexture0, fUv).rgb;
       #endif
 
       vec3 viewDirection = normalize(uViewPos - fPos);

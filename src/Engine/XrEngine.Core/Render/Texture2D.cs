@@ -48,20 +48,6 @@ namespace XrEngine
 
     public class Texture2D : Texture
     {
-        static readonly Dictionary<SKColorType, TextureFormat> FORMAT_MAP = new() {
-            { SKColorType.Bgra8888, TextureFormat.Bgra32 },
-            { SKColorType.Rgba8888, TextureFormat.Rgba32 },
-            { SKColorType.Srgba8888, TextureFormat.SRgba32 },
-            { SKColorType.Gray8, TextureFormat.Gray8 },
-        };
-
-        public static Texture2D FromImage(string fileName)
-        {
-            using var stream = File.OpenRead(fileName);
-
-            return FromImage(stream);
-        }
-
         public static Texture2D FromDdsImage(Stream stream)
         {
             var data = DdsReader.Instance.Read(stream);
@@ -73,6 +59,7 @@ namespace XrEngine
             var data = PkmReader.Instance.Read(stream);
             return FromData(data);
         }
+
         public static Texture2D FromKtxImage(Stream stream)
         {
             var data = KtxReader.Instance.Read(stream);
@@ -85,16 +72,12 @@ namespace XrEngine
             return FromData(data);
         }
 
-
         public static Texture2D FromImage(SKBitmap image)
         {
-            if (!FORMAT_MAP.TryGetValue(image.ColorType, out var format))
-                throw new NotSupportedException();
-
             var data = new TextureData
             {
                 Compression = TextureCompressionFormat.Uncompressed,
-                Format = format,
+                Format = ImageUtils.GetFormat(image.ColorType),
                 Data = image.GetPixelSpan().ToArray(),
                 Height = (uint)image.Height,
                 Width = (uint)image.Width,
@@ -103,6 +86,12 @@ namespace XrEngine
             image.Dispose();
 
             return FromData([data]);
+        }
+
+        public static Texture2D FromImage(string fileName)
+        {
+            using var stream = File.OpenRead(fileName);
+            return FromImage(stream);
         }
 
         public static Texture2D FromImage(byte[] data)
@@ -152,8 +141,6 @@ namespace XrEngine
         public TextureFormat Format { get; set; }
 
         public TextureCompressionFormat Compression { get; set; }
-
-        //public Transform2? Transform { get; set; }
 
         public uint SampleCount { get; set; }
     }

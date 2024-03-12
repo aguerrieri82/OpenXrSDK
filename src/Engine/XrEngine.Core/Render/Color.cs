@@ -8,7 +8,6 @@ namespace XrEngine
         {
         }
 
-
         public Color(float[] array)
         {
             R = array[0];
@@ -16,7 +15,6 @@ namespace XrEngine
             B = array[2];
             A = array[3];
         }
-
 
         public Color(float r, float g, float b, float a = 1f)
         {
@@ -48,11 +46,6 @@ namespace XrEngine
             return $"<{R},{G},{B},{A}>";
         }
 
-        public static Color White => new Color(1f, 1f, 1f, 1f);
-
-        public static Color Transparent => new Color(0f, 0f, 0f, 0f);
-
-
         public float R;
 
         public float G;
@@ -60,5 +53,13 @@ namespace XrEngine
         public float B;
 
         public float A;
+
+
+        public static Color Black => new(0f, 0f, 0f);
+
+        public static Color White => new(1f, 1f, 1f);
+
+        public static Color Transparent => new(0f, 0f, 0f, 0f);
+
     }
 }

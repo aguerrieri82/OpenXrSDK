@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 #endif
 
 using XrEngine.Compression;
-using static XrEngine.OpenGL.OpenGLRender;
+
 
 namespace XrEngine.OpenGL
 {
@@ -39,15 +39,18 @@ namespace XrEngine.OpenGL
 
         public static unsafe TRes GetResource<T, TRes>(this T obj, Func<T, TRes> factory) where T : EngineObject
         {
-            var glObj = obj.GetProp<TRes?>(Props.GlResId);
+            var glObj = obj.GetProp<TRes?>(OpenGLRender.Props.GlResId);
             if (glObj == null)
             {
                 glObj = factory(obj);
-                obj.SetProp(Props.GlResId, glObj);
+                obj.SetProp(OpenGLRender.Props.GlResId, glObj);
             }
 
             return glObj;
         }
+
+
+        //TODO bind GlTexture with Texture2D object
 
         public static unsafe GlTexture2D CreateGlTexture(this Texture2D value, GL gl, bool requireCompression)
         {
@@ -80,7 +83,7 @@ namespace XrEngine.OpenGL
                     comp = TextureCompressionFormat.Etc2;
                 }
 
-                texture.Create(value.Width, value.Height, data[0].Format, comp, data);
+                texture.Update(value.Width, value.Height, data[0].Format, comp, data);
 
                 value.Data = null;
             }
@@ -89,7 +92,7 @@ namespace XrEngine.OpenGL
                 if (value.Type == TextureType.Depth)
                     texture.Attach(OpenGLRender.Current!.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment));
                 else
-                    texture.Create(value.Width, value.Height, value.Format, value.Compression);
+                    texture.Update(value.Width, value.Height, value.Format, value.Compression);
             }
 
             return texture;

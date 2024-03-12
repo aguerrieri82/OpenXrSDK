@@ -1,6 +1,7 @@
 ﻿using OpenXr.Framework.Oculus;
 using PhysX;
 using PhysX.Framework;
+using System.Diagnostics;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
@@ -9,6 +10,7 @@ using XrEngine.Compression;
 using XrEngine.Gltf;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
+using XrEngine.UI;
 using XrMath;
 
 
@@ -46,19 +48,22 @@ namespace Xr.Test
 
             scene.AddChild(new SunLight()
             {
-                Name = "light",
+                Name = "sun-light",
                 Intensity = 1.5f,
                 Direction = new Vector3(-0.1f, -0.9f, -0.15f).Normalize(),
                 IsVisible = true
             });
 
             var pl1 = scene.AddChild(new PointLight());
+            pl1.Name = "point-light-1";
             pl1.Transform.Position = new Vector3(0, 2, 0);
             pl1.Intensity = 0.3f;
-
+            
             var pl2 = scene.AddChild(new PointLight());
-            pl2.Transform.Position = new Vector3(0, 0, 0);
+            pl2.Name = "point-light-2";
+            pl2.Transform.Position = new Vector3(0, -2, 0);
             pl2.Intensity = 0.3f;
+            
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
@@ -66,7 +71,7 @@ namespace Xr.Test
             {
                 Far = 50f,
                 Near = 0.01f,
-                BackgroundColor = Color.Transparent,
+                BackgroundColor = new Color(0, 0, 0, 0),
                 Exposure = 1
             };
 
@@ -77,6 +82,22 @@ namespace Xr.Test
             app.OpenScene(scene);
 
             return app;
+        }
+
+        public static Panel3D CreateDebugPanel()
+        {
+            var panel = new Panel3D();
+            
+            panel.SetInches(19, 16f / 9f);
+            panel.DpiScale = 3;
+
+            panel.Panel = new DebugPanel();
+
+            panel.WorldPosition = new Vector3(0, 1, -2);
+
+            panel.AddComponent(new FollowCamera() { Offset = new Vector3(0, 0, -1) });
+
+            return panel;
         }
 
         public static EngineApp CreateDisplay()
@@ -168,6 +189,9 @@ namespace Xr.Test
             //Setup camera
             ((PerspectiveCamera)scene.ActiveCamera!).Target = mesh.Transform.Position;
 
+            //Debug
+            scene.AddChild(CreateDebugPanel());
+
             return app;
         }
 
@@ -229,7 +253,7 @@ namespace Xr.Test
 
             app.ActiveScene!.AddChild(new SunLight()
             {
-                Name = "light2",
+                Name = "sun-light-2",
                 Intensity = 1.5f,
                 Direction = new Vector3(0.1f, -0.9f, 0.15f).Normalize(),
                 IsVisible = true
@@ -336,11 +360,9 @@ namespace Xr.Test
 
             scene.AddChild(cubes);
 
-
             //scene.AddChild(display);
 
             scene.AddChild(new AmbientLight(0.1f));
-
 
             app.OpenScene(scene);
 

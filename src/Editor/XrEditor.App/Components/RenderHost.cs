@@ -10,13 +10,11 @@ using System.Windows.Media;
 using XrEngine;
 
 
-
 namespace XrEditor
 {
     public abstract class RenderHost : HwndHost, IRenderSurface
     {
         private HwndSource? _hwndSource;
-
 
         #region NATIVE
 
@@ -50,7 +48,6 @@ namespace XrEditor
 
         public RenderHost()
         {
-
             Loaded += (_, _) => Ready?.Invoke(this, EventArgs.Empty);
             base.SizeChanged += (_, _) => SizeChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -133,11 +130,8 @@ namespace XrEditor
 
         protected unsafe override HandleRef BuildWindowCore(HandleRef hwndParent)
         {
-
-
             if (DesignerProperties.GetIsInDesignMode(this))
                 return new HandleRef(null, 0);
-
 
             _hwndSource = new HwndSource(0, (int)WS_CHILD, 0, 0, 0, "RenderView", hwndParent.Handle);
             _hwndSource.AddHook(OnMessage);
@@ -154,25 +148,15 @@ namespace XrEditor
             }
         }
 
-
-
-
         public virtual void EnableVSync(bool enable)
         {
-
-
         }
 
         public virtual void SwapBuffers()
         {
-
         }
-
-
-
         public virtual void ReleaseContext()
         {
-
         }
 
         public virtual bool TakeContext()

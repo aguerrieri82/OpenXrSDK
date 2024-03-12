@@ -52,7 +52,7 @@ namespace XrEditor
         {
             _engine = new XrEngineAppBuilder()
               .SetRenderQuality(1, 1) ///samples > 1 cause Filament to fuck up
-              .UseApp(SampleScenes.CreateChess())
+              .UseApp(SampleScenes.CreatePingPong())
               .Configure(SampleScenes.ConfigureXrApp)
               .Build();
 

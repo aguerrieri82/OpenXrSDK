@@ -9,7 +9,6 @@ namespace XrEngine
 
         public void BeginFrame()
         {
-
         }
 
         public void EndFrame()

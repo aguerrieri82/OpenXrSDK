@@ -96,6 +96,14 @@
                     component.Dispose();
                 _components = null;
             }
+            
+            if (_props != null)
+            {
+                foreach (var component in _props.Values.OfType<IDisposable>())
+                    component.Dispose();
+                _props = null;
+            }
+
             GC.SuppressFinalize(this);
         }
 
