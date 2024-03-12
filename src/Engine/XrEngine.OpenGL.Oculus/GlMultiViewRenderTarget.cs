@@ -21,22 +21,22 @@ namespace XrEngine.OpenGL.Oculus
     {
         static SceneMatrices _matrices = new SceneMatrices();
 
-        protected GlMultiViewRenderTarget(GL gl, uint textId, uint sampleCount)
-            : base(gl, textId, sampleCount)
+        protected GlMultiViewRenderTarget(GL gl, uint colorTex, uint depthTex, uint sampleCount)
+            : base(gl, colorTex, depthTex, sampleCount)
         {
         }
 
-        protected override GlFrameBuffer CreateFrameBuffer(uint texId, uint sampleCount)
+        protected override GlFrameBuffer CreateFrameBuffer(uint colorTex, uint depthTex, uint sampleCount)
         {
-            return new GlMultiViewFrameBuffer(_gl, texId, sampleCount);
+            return new GlMultiViewFrameBuffer(_gl, colorTex, depthTex, sampleCount);
         }
 
-        public static new GlMultiViewRenderTarget Attach(GL gl, uint texId, uint sampleCount)
+        public static new GlMultiViewRenderTarget Attach(GL gl, uint colorTex, uint depthTex, uint sampleCount)
         {
-            if (!_targets.TryGetValue(texId, out var target))
+            if (!_targets.TryGetValue(colorTex, out var target))
             {
-                target = new GlMultiViewRenderTarget(gl, texId, sampleCount);
-                _targets[texId] = target;
+                target = new GlMultiViewRenderTarget(gl, colorTex, depthTex, sampleCount);
+                _targets[colorTex] = target;
             }
 
             return (GlMultiViewRenderTarget)target;

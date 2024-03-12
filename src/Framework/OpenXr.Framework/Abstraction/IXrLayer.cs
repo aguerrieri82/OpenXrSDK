@@ -23,6 +23,7 @@ namespace OpenXr.Framework
 
         void OnEndFrame();
 
+        int Priority { get; set; }
 
         bool IsEnabled { get; set; }
 

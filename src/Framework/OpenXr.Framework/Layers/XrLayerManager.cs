@@ -13,6 +13,11 @@ namespace OpenXr.Framework
             _xrApp = xrApp;
         }
 
+        public void Commit()
+        {
+            _layers.Sort((a, b) => a.Priority - b.Priority);
+        }
+
         public CompositionLayerBaseHeader*[] Render(ref View[] views, Space space, long predTime, out uint layerCount)
         {
             if (_layersPointers == null || _layersPointers.Length != _layers.Count)

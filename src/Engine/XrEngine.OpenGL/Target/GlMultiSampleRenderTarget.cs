@@ -17,13 +17,12 @@ namespace XrEngine.OpenGL
         private readonly GL _gl;
 
 
-        GlMultiSampleRenderTarget(GL gl, uint destTexId, uint sampleCount)
+        GlMultiSampleRenderTarget(GL gl, uint destColorTex, uint destDepthTex, uint sampleCount)
         {
-            _destFrameBuffer = new GlTextureFrameBuffer(gl, new GlTexture2D(gl, destTexId), false);
+            _destFrameBuffer = new GlTextureFrameBuffer(gl, new GlTexture2D(gl, destColorTex), new GlTexture2D(gl, destDepthTex));
 
-            var msaaTex = gl.GenTexture();
-
-            gl.BindTexture(TextureTarget.Texture2DMultisample, msaaTex);
+            var msColorTex = gl.GenTexture();
+            gl.BindTexture(TextureTarget.Texture2DMultisample, msColorTex);
             gl.TexStorage2DMultisample(
                 TextureTarget.Texture2DMultisample,
                 sampleCount,
@@ -32,8 +31,19 @@ namespace XrEngine.OpenGL
                 _destFrameBuffer.Color.Height,
                 true);
 
+            var msDepthTex = gl.GenTexture();
+            gl.BindTexture(TextureTarget.Texture2DMultisample, msDepthTex);
+            gl.TexStorage2DMultisample(
+                TextureTarget.Texture2DMultisample,
+                sampleCount,
+                (SizedInternalFormat)_destFrameBuffer.Depth!.InternalFormat,
+                _destFrameBuffer.Depth!.Width,
+                _destFrameBuffer.Depth!.Height,
+                true);
+
             _renderFrameBuffer = new GlTextureFrameBuffer(gl,
-                new GlTexture2D(gl, msaaTex, sampleCount), true, sampleCount);
+                new GlTexture2D(gl, msColorTex, sampleCount), 
+                new GlTexture2D(gl, msDepthTex, sampleCount));
 
             _gl = gl;
         }
@@ -50,12 +60,12 @@ namespace XrEngine.OpenGL
             _renderFrameBuffer.Unbind();
         }
 
-        public static GlMultiSampleRenderTarget Attach(GL gl, uint destTexId, uint sampleCount)
+        public static GlMultiSampleRenderTarget Attach(GL gl, uint destColorTex, uint destDepthTex, uint sampleCount)
         {
-            if (!_targets.TryGetValue(destTexId, out var target))
+            if (!_targets.TryGetValue(destColorTex, out var target))
             {
-                target = new GlMultiSampleRenderTarget(gl, destTexId, sampleCount);
-                _targets[destTexId] = target;
+                target = new GlMultiSampleRenderTarget(gl, destColorTex, destDepthTex, sampleCount);
+                _targets[destColorTex] = target;
             }
 
             return target;

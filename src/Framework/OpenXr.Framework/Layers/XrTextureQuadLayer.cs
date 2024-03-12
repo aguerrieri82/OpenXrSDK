@@ -23,7 +23,7 @@ namespace OpenXr.Framework.Layers
         {
             _renderQuad = renderQuad;
             _size = size;
-
+            Priority = 2;
         }
 
         public unsafe override void Create()
@@ -32,7 +32,7 @@ namespace OpenXr.Framework.Layers
 
             var extent = new Extent2Di((int)_size.Width, (int)_size.Height);
 
-            _swapchain = _xrApp!.CreateSwapChain(extent, 1, _xrApp.RenderOptions.SwapChainFormat, 1);
+            _swapchain = _xrApp!.CreateSwapChain(extent, 1, _xrApp.RenderOptions.ColorFormat, 1, SwapchainUsageFlags.SampledBit | SwapchainUsageFlags.ColorAttachmentBit);
 
             _images = _xrApp.EnumerateSwapchainImages(_swapchain);
 
@@ -40,20 +40,21 @@ namespace OpenXr.Framework.Layers
             _header->SubImage.ImageArrayIndex = 0;
             _header->SubImage.ImageRect.Extent = extent;
             _header->EyeVisibility = EyeVisibility.Both;
-            _header->LayerFlags = CompositionLayerFlags.None;
+            _header->LayerFlags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
 
             base.Create();
         }
 
         protected unsafe override bool Update(ref CompositionLayerQuad layer, ref View[] views, long predTime)
         {
-            if (!_renderQuad(null, new Size2I(), 0))
-                return true;
-
             Debug.Assert(_xrApp != null);
             Debug.Assert(_images != null);
 
-            base.Update(ref layer, ref views, predTime);
+            if (!base.Update(ref layer, ref views, predTime))
+                return false;
+
+            if (!_renderQuad(null, new Size2I(), 0))
+                return true;
 
             var index = _xrApp.AcquireSwapchainImage(_swapchain);
 

@@ -41,7 +41,8 @@ namespace OpenXr.Framework.Vulkan
 
         public override void SelectRenderOptions(XrViewInfo viewInfo, XrRenderOptions result)
         {
-            result.SwapChainFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((long)a));
+            result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((long)a));
+            result.DepthFormat = (long)Format.D24UnormS8Uint;
         }
 
         public GraphicsBinding CreateBinding()

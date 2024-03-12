@@ -441,7 +441,7 @@ namespace OpenXr.Framework.Oculus
 
             foreach (var proj in _app.Layers.List.OfType<XrProjectionLayer>())
             {
-                foreach (var swapChain in proj.SwapChains)
+                foreach (var swapChain in proj.ColorSwapChains)
                     _app.CheckResult(_swapChainUpdate!.UpdateSwapchainFB(swapChain, (SwapchainStateBaseHeaderFB*)&update), "UpdateSwapchainFB");
             }
 

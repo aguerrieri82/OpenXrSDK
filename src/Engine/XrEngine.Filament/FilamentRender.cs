@@ -138,16 +138,17 @@ namespace XrEngine.Filament
             return AddView(_app, ref viewOpt);
         }
 
-        public void SetRenderTarget(uint width, uint height, IntPtr imageId, FlTextureInternalFormat format)
+        //TODO implement depth
+        public void SetRenderTarget(uint width, uint height, nint colorImage, nint depthImage, FlTextureInternalFormat format)
         {
-            if (!_renderTargets.TryGetValue(imageId, out var rtBind))
+            if (!_renderTargets.TryGetValue(colorImage, out var rtBind))
             {
                 var options = new RenderTargetOptions()
                 {
                     Width = width,
                     Height = height,
                     SampleCount = 1,
-                    TextureId = imageId,
+                    TextureId = colorImage,
                     Format = format,
                     Depth = _renderTargetDepth
                 };
@@ -172,7 +173,7 @@ namespace XrEngine.Filament
                     _views.Add(viewBind);
                 }
                 rtBind.ViewId = viewBind.ViewId;
-                _renderTargets[imageId] = rtBind;
+                _renderTargets[colorImage] = rtBind;
             }
 
             _activeRenderTarget = rtBind;
@@ -408,9 +409,9 @@ namespace XrEngine.Filament
                                 AoStrength = mat.OcclusionStrength,
                                 Blending = mat.Alpha switch
                                 {
-                                    PbrMaterial.AlphaMode.Opaque => FlBlendingMode.OPAQUE,
-                                    PbrMaterial.AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
-                                    PbrMaterial.AlphaMode.Mask => FlBlendingMode.MASKED,
+                                    AlphaMode.Opaque => FlBlendingMode.OPAQUE,
+                                    AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
+                                    AlphaMode.Mask => FlBlendingMode.MASKED,
                                     _ => throw new NotSupportedException()
                                 },
                                 EmissiveFactor = mat.EmissiveFactor,

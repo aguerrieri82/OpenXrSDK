@@ -10,21 +10,16 @@ namespace XrEngine.OpenGL
 {
     public class GlTextureFrameBuffer : GlFrameBuffer
     {
-        protected uint _sampleCount;
-
-
-        public GlTextureFrameBuffer(GL gl, GlTexture2D color, bool createDepth = true, uint sampleCount = 1)
+        public GlTextureFrameBuffer(GL gl, GlTexture2D color, GlTexture2D? depth)
             : base(gl)
         {
             _handle = _gl.GenFramebuffer();
-            _sampleCount = sampleCount;
 
             Color = color;
-
-            if (createDepth)
-                CreateDepth();
+            Depth = depth;
         }
 
+        /*
 
         [MemberNotNull(nameof(Depth))]
         protected unsafe void CreateDepth()
@@ -41,8 +36,9 @@ namespace XrEngine.OpenGL
                 Target = _gl.GetTexture2DTarget(Color.Handle)
             };
 
-            Depth.Update(Color.Width, Color.Height, OpenGLRender.Current!.Options.DepthBufferFormat);
+            Depth.Update(Color.Width, Color.Height, OpenGLRender.Current!.Options.DepthFormat);
         }
+        */
 
         public override void BindDraw()
         {

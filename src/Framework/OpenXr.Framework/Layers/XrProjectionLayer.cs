@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace OpenXr.Framework
 {
 
-    public unsafe delegate void RenderViewDelegate(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader*[] images, XrRenderMode mode, long predTime);
+    public unsafe delegate void RenderViewDelegate(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader*[] colorImages, SwapchainImageBaseHeader*[] depthImages, XrRenderMode mode, long predTime);
 
 
 
@@ -21,6 +21,7 @@ namespace OpenXr.Framework
             _header->LayerFlags =
                 CompositionLayerFlags.CorrectChromaticAberrationBit |
                 CompositionLayerFlags.BlendTextureSourceAlphaBit;
+            Priority = 1;
         }
 
         public XrProjectionLayer(RenderViewDelegate renderView)
@@ -48,15 +49,17 @@ namespace OpenXr.Framework
 
             for (var i = 0; i < _swapchains.Length; i++)
             {
-                var swapchain = _xrApp.CreateSwapChain();
+                var colorSwap = _xrApp.CreateSwapChain(false);
+                var depthSwap = _xrApp.CreateSwapChain(true);
                 _swapchains[i] = new XrSwapchainInfo
                 {
-                    Swapchain = swapchain,
-                    Images = _xrApp.EnumerateSwapchainImages(swapchain),
+                    ColorSwapchain = colorSwap,
+                    DepthSwapchain = depthSwap,
+                    ColorImages = _xrApp.EnumerateSwapchainImages(colorSwap),
+                    DepthImages = _xrApp.EnumerateSwapchainImages(depthSwap),
                     ViewSize = _xrApp.RenderOptions.Size
                 };
             }
-
 
             base.Create();
         }
@@ -88,11 +91,23 @@ namespace OpenXr.Framework
 
                     projView.Type = StructureType.CompositionLayerProjectionView;
                     projView.Next = null;
-                    projView.SubImage.Swapchain = swapchain.Swapchain;
+                    projView.SubImage.Swapchain = swapchain.ColorSwapchain;
                     projView.SubImage.ImageRect.Offset.X = swOfs;
                     projView.SubImage.ImageRect.Offset.Y = 0;
                     projView.SubImage.ImageRect.Extent.Height = swapchain.ViewSize.Height;
                     projView.SubImage.ImageRect.Extent.Width = swapchain.ViewSize.Width;
+
+                    var depthInfo = (CompositionLayerDepthInfoKHR*)Marshal.AllocHGlobal(sizeof(CompositionLayerDepthInfoKHR));
+                    depthInfo->Type = StructureType.CompositionLayerDepthInfoKhr;
+                    depthInfo->MinDepth = 0;
+                    depthInfo->MaxDepth = 1;
+                    depthInfo->NearZ = 0;
+                    depthInfo->FarZ = 0;
+                    depthInfo->Next = null;
+                    depthInfo->SubImage.Swapchain = swapchain.DepthSwapchain;
+                    depthInfo->SubImage.ImageRect = projView.SubImage.ImageRect;
+
+                    projView.Next = depthInfo;
 
                     if (_xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
                         projView.SubImage.ImageArrayIndex = (uint)i;
@@ -100,9 +115,6 @@ namespace OpenXr.Framework
                         projView.SubImage.ImageArrayIndex = 0;
                 }
             }
-
-            var c1 = layer.Views[1];
-
 
             var projViews = new Span<CompositionLayerProjectionView>(layer.Views, (int)layer.ViewCount);
 
@@ -114,14 +126,20 @@ namespace OpenXr.Framework
 
         protected bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
         {
-            var images = new SwapchainImageBaseHeader*[swapchains.Length];
+            var colorImages = new SwapchainImageBaseHeader*[swapchains.Length];
+            var depthImages = new SwapchainImageBaseHeader*[swapchains.Length];
 
-            for (var i = 0; i < images.Length; i++)
+            for (var i = 0; i < colorImages.Length; i++)
             {
                 var swc = swapchains[i];
-                var index = _xrApp!.AcquireSwapchainImage(swapchains[i].Swapchain);
-                images[i] = swc.Images!.ItemPointer((int)index);
-                _xrApp.WaitSwapchainImage(swapchains[i].Swapchain);
+                
+                var colorIndex = _xrApp!.AcquireSwapchainImage(swapchains[i].ColorSwapchain);
+                colorImages[i] = swc.ColorImages!.ItemPointer((int)colorIndex);
+                _xrApp.WaitSwapchainImage(swapchains[i].ColorSwapchain);
+
+                var depthIndex = _xrApp!.AcquireSwapchainImage(swapchains[i].DepthSwapchain);
+                depthImages[i] = swc.DepthImages!.ItemPointer((int)depthIndex);
+                _xrApp.WaitSwapchainImage(swapchains[i].DepthSwapchain);
             }
 
             for (var i = 0; i < views.Length; i++)
@@ -133,7 +151,7 @@ namespace OpenXr.Framework
 
             try
             {
-                _renderView!(ref projViews, images, _xrApp!.RenderOptions.RenderMode, predTime);
+                _renderView!(ref projViews, colorImages, depthImages, _xrApp!.RenderOptions.RenderMode, predTime);
             }
             catch (Exception ex)
             {
@@ -143,7 +161,10 @@ namespace OpenXr.Framework
             finally
             {
                 foreach (var sw in swapchains)
-                    _xrApp!.ReleaseSwapchainImage(sw.Swapchain);
+                {
+                    _xrApp!.ReleaseSwapchainImage(sw.ColorSwapchain);
+                    _xrApp!.ReleaseSwapchainImage(sw.DepthSwapchain);
+                }
             }
 
             return true;
@@ -156,17 +177,35 @@ namespace OpenXr.Framework
             {
                 foreach (var item in _swapchains)
                 {
-                    _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.Swapchain), "DestroySwapchain");
-                    item.Images?.Dispose();
+                    _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.ColorSwapchain), "DestroySwapchain");
+                    _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.DepthSwapchain), "DestroySwapchain");
+
+                    item.ColorImages?.Dispose();
+                    item.DepthImages?.Dispose();
                 }
 
                 _swapchains = null;
             }
 
+            if (_header != null && _header->Views != null)
+            {
+                var viewCount = _xrApp?.ViewInfo!.ViewCount;
+
+                for (var i = 0; i < _header->ViewCount; i++)
+                {
+                    if (_header->Views[i].Next != null)
+                        Marshal.FreeHGlobal(new nint(_header->Views[i].Next));
+                }
+
+                Marshal.FreeHGlobal(new nint(_header->Views));
+
+                _header->Views = null;
+            }
+
             base.Dispose();
         }
 
-        public IEnumerable<Swapchain> SwapChains => _swapchains?.Select(a => a.Swapchain) ?? [];
+        public IEnumerable<Swapchain> ColorSwapChains => _swapchains?.Select(a => a.ColorSwapchain) ?? [];
 
     }
 }

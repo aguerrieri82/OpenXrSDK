@@ -40,60 +40,21 @@ namespace XrEngine.OpenGL.Oculus
         static FramebufferTextureMultisampleMultiviewOVRDelegate? FramebufferTextureMultisampleMultiviewOVR;
 
         protected readonly uint _sampleCount;
-        protected readonly uint _colorTexId;
+        protected readonly uint _colorTex;
+        protected readonly uint _depthTex;
         protected readonly TextureTarget _target;
-        protected uint _width;
-        protected uint _height;
-        protected uint _depthTexId;
 
-        public GlMultiViewFrameBuffer(GL gl, uint colorTexId, uint sampleCount = 1)
+        public GlMultiViewFrameBuffer(GL gl, uint colorTex, uint depthTex, uint sampleCount)
             : base(gl)
         {
 
             _handle = _gl.GenFramebuffer();
-
-            _sampleCount = sampleCount;
-            _colorTexId = colorTexId;
+            _colorTex = colorTex;
+            _depthTex = depthTex;
             _target = TextureTarget.Texture2DArray;
+            _sampleCount = sampleCount;
 
-            UpdateTextureInfo();
-            CreateDepth();
             BindFunctions(gl);
-        }
-
-        protected void UpdateTextureInfo()
-        {
-            _gl.BindTexture(_target, _colorTexId);
-            _gl.GetTexLevelParameter(_target, 0, GetTextureParameter.TextureWidth, out int w);
-            _gl.GetTexLevelParameter(_target, 0, GetTextureParameter.TextureHeight, out int h);
-            _width = (uint)w;
-            _height = (uint)h;
-            _gl.BindTexture(_target, 0);
-        }
-
-        protected void CreateDepth()
-        {
-            _depthTexId = _gl.GenTexture();
-
-            _gl.BindTexture(_target, _depthTexId);
-
-            var texFormat = OpenGLRender.Current!.Options.DepthBufferFormat switch
-            {
-                TextureFormat.Depth24Float => SizedInternalFormat.DepthComponent24,
-                TextureFormat.Depth32Float => SizedInternalFormat.DepthComponent32,
-                TextureFormat.Depth24Stencil8 => SizedInternalFormat.Depth24Stencil8Oes,
-                _ => throw new NotSupportedException()
-            };
-
-            _gl.TexStorage3D(
-                   _target,
-                   _sampleCount,
-                   texFormat,
-                   _width,
-                   _height,
-                   2);
-
-            _gl.BindTexture(_target, 0);
         }
 
         static void BindFunctions(GL gl)
@@ -105,14 +66,6 @@ namespace XrEngine.OpenGL.Oculus
 
             gl.Context.TryGetProcAddress("glFramebufferTextureMultisampleMultiviewOVR", out addr);
             FramebufferTextureMultisampleMultiviewOVR = Marshal.GetDelegateForFunctionPointer<FramebufferTextureMultisampleMultiviewOVRDelegate>(addr);
-        }
-
-        public override void Dispose()
-        {
-            _gl.DeleteTexture(_depthTexId);
-            _depthTexId = 0;
-
-            base.Dispose();
         }
 
         public override void BindDraw()
@@ -127,7 +80,7 @@ namespace XrEngine.OpenGL.Oculus
                 FramebufferTextureMultisampleMultiviewOVR!(
                     FramebufferTarget.DrawFramebuffer,
                     FramebufferAttachment.ColorAttachment0,
-                    _colorTexId,
+                    _colorTex,
                     0,
                     _sampleCount,
                     0, 2);
@@ -135,7 +88,7 @@ namespace XrEngine.OpenGL.Oculus
                 FramebufferTextureMultisampleMultiviewOVR(
                     FramebufferTarget.DrawFramebuffer,
                     FramebufferAttachment.DepthAttachment,
-                    _depthTexId,
+                    _depthTex,
                     0,
                     _sampleCount,
                     0, 2);
@@ -149,13 +102,13 @@ namespace XrEngine.OpenGL.Oculus
                 FramebufferTextureMultiviewOVR!(
                     FramebufferTarget.DrawFramebuffer,
                     FramebufferAttachment.ColorAttachment0,
-                    _colorTexId,
+                    _colorTex,
                     0, 0, 2);
 
                 FramebufferTextureMultiviewOVR(
                     FramebufferTarget.DrawFramebuffer,
                     FramebufferAttachment.DepthAttachment,
-                    _depthTexId,
+                    _depthTex,
                     0, 0, 2);
             }
 
@@ -170,9 +123,11 @@ namespace XrEngine.OpenGL.Oculus
         public override uint QueryTexture(FramebufferAttachment attachment)
         {
             if (attachment == FramebufferAttachment.ColorAttachment0)
-                return _colorTexId;
+                return _colorTex;
+            
             if (attachment == FramebufferAttachment.DepthAttachment)
-                return _depthTexId;
+                return _depthTex;
+
             throw new NotSupportedException();
         }
 

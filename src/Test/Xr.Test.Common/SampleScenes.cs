@@ -195,16 +195,11 @@ namespace Xr.Test
             //Setup camera
             scene.PerspectiveCamera().Target = mesh.Transform.Position;
 
-            builder.UseApp(app)
+            return  builder
+                   .UseApp(app)
                    .UseScene(true)
                    .UsePhysics()
-                   .ConfigureApp(engine =>
-                   {
-                       //Debug
-                       scene.AddChild(CreateDebugPanel(engine.XrApp));
-                   });
-
-            return builder;
+                   .ConfigureApp(engine => scene.AddChild(CreateDebugPanel(engine.XrApp)));
         }
 
 

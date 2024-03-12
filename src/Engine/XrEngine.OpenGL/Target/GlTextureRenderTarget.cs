@@ -14,20 +14,22 @@ namespace XrEngine.OpenGL
 
         protected readonly GlFrameBuffer _frameBuffer;
         protected readonly GL _gl;
-        protected readonly uint _texId;
+        protected readonly uint _colorTex;
+        protected readonly uint _depthTex;
         protected readonly uint _sampleCount;
 
-        protected GlTextureRenderTarget(GL gl, uint texId, uint sampleCount = 1)
+        protected GlTextureRenderTarget(GL gl, uint colorTex, uint depthTex, uint sampleCount)
         {
             _gl = gl;
-            _texId = texId;
+            _colorTex = colorTex;
+            _depthTex = depthTex;
             _sampleCount = sampleCount;
-            _frameBuffer = CreateFrameBuffer(texId, sampleCount);
+            _frameBuffer = CreateFrameBuffer(colorTex, depthTex, sampleCount);
         }
 
-        protected virtual GlFrameBuffer CreateFrameBuffer(uint texId, uint sampleCount)
+        protected virtual GlFrameBuffer CreateFrameBuffer(uint colorTex, uint depthTex, uint sampleCount)
         {
-            return new GlTextureFrameBuffer(_gl, new GlTexture2D(_gl, texId), true, sampleCount);
+            return new GlTextureFrameBuffer(_gl, new GlTexture2D(_gl, colorTex), new GlTexture2D(_gl, depthTex));
         }
 
         public void Begin()
@@ -45,12 +47,12 @@ namespace XrEngine.OpenGL
             _frameBuffer.Unbind();
         }
 
-        public static GlTextureRenderTarget Attach(GL gl, uint texId, uint sampleCount)
+        public static GlTextureRenderTarget Attach(GL gl, uint colorTex, uint depthTex, uint sampleCount)
         {
-            if (!_targets.TryGetValue(texId, out var target))
+            if (!_targets.TryGetValue(colorTex, out var target))
             {
-                target = new GlTextureRenderTarget(gl, texId, sampleCount);
-                _targets[texId] = target;
+                target = new GlTextureRenderTarget(gl, colorTex, depthTex, sampleCount);
+                _targets[colorTex] = target;
             }
 
             return target;
@@ -58,7 +60,7 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
-            _targets.Remove(_texId);
+            _targets.Remove(_colorTex);
             _frameBuffer.Dispose();
 
             GC.SuppressFinalize(this);

@@ -175,6 +175,8 @@ namespace OpenXr.Framework
 
             SelectRenderOptions(_viewInfo, _renderOptions);
 
+            _layers.Commit();
+
             LayersInvoke(a => a.Create());
 
             PluginInvoke(p => p.OnSessionCreated());
@@ -652,7 +654,7 @@ namespace OpenXr.Framework
             CheckResult(_xr!.ReleaseSwapchainImage(swapchain, in info), "ReleaseSwapchainImage");
         }
 
-        protected internal Swapchain CreateSwapChain()
+        protected internal Swapchain CreateSwapChain(bool isDepth = false)
         {
             if (_renderOptions == null)
                 throw new ArgumentNullException("renderOptions");
@@ -664,11 +666,15 @@ namespace OpenXr.Framework
 
             var arraySize = (uint)(_renderOptions.RenderMode == XrRenderMode.MultiView ? 2 : 1);
 
-            return CreateSwapChain(size, _renderOptions.SampleCount, _renderOptions.SwapChainFormat, arraySize);
+            var format = isDepth ? _renderOptions.DepthFormat : _renderOptions.ColorFormat;
+            var usage = isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit;
+
+            return CreateSwapChain(size, _renderOptions.SampleCount, format, arraySize, usage | SwapchainUsageFlags.SampledBit);
         }
 
-        protected internal Swapchain CreateSwapChain(Extent2Di size, uint sampleCount, long format, uint arraySize)
+        protected internal Swapchain CreateSwapChain(Extent2Di size, uint sampleCount, long format, uint arraySize, SwapchainUsageFlags usage)
         {
+
             var info = new SwapchainCreateInfo
             {
                 Type = StructureType.SwapchainCreateInfo,
@@ -679,7 +685,7 @@ namespace OpenXr.Framework
                 MipCount = 1,
                 FaceCount = 1,
                 SampleCount = sampleCount,
-                UsageFlags = SwapchainUsageFlags.ColorAttachmentBit | SwapchainUsageFlags.SampledBit
+                UsageFlags = usage
             };
 
             PluginInvoke(p => p.ConfigureSwapchain(ref info));
@@ -805,7 +811,6 @@ namespace OpenXr.Framework
         protected void EndFrame(long displayTime, ref CompositionLayerBaseHeader*[]? layers, uint count)
         {
             AssertSessionCreated();
-
 
             fixed (CompositionLayerBaseHeader** pLayers = layers)
             {

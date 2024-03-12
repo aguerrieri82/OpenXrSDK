@@ -28,7 +28,9 @@ namespace OpenXr.Framework
 
         public uint SampleCount { get; set; }
 
-        public long SwapChainFormat { get; set; }
+        public long ColorFormat { get; set; }
+
+        public long DepthFormat { get; set; }
 
         public XrRenderMode RenderMode { get; set; }
 

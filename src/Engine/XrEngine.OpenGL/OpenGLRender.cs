@@ -25,6 +25,8 @@ namespace XrEngine.OpenGL
         public Scene? Scene;
 
         public readonly Dictionary<Shader, ShaderContent> ShaderContents = [];
+
+        public readonly List<KeyValuePair<Shader, ShaderContent>> ShaderContentsOrder = [];
     }
 
     public class ShaderContent
@@ -68,6 +70,7 @@ namespace XrEngine.OpenGL
             public bool DoubleSided;
             public bool WriteColor;
             public uint ActiveProgram;
+            public AlphaMode Alpha;
         }
 
         protected GL _gl;
@@ -185,6 +188,9 @@ namespace XrEngine.OpenGL
                     });
                 }
             }
+
+            _content.ShaderContentsOrder.Clear();
+            _content.ShaderContentsOrder.AddRange(_content.ShaderContents);
         }
 
         public void EnableDebug()
@@ -248,6 +254,11 @@ namespace XrEngine.OpenGL
 
                 _glState.WriteColor = material.WriteColor;
             }
+
+            if (material.Alpha == AlphaMode.Blend)
+                _gl.Enable(EnableCap.Blend);
+            else
+                _gl.Disable(EnableCap.Blend);
         }
 
         public void Render(Scene scene, Camera camera, Rect2I view, bool flush)
@@ -280,7 +291,7 @@ namespace XrEngine.OpenGL
 
             int skipCount = 0;
 
-            foreach (var shader in _content.ShaderContents.OrderBy(a => a.Key.Priority))
+            foreach (var shader in _content.ShaderContents)
             {
                 var progGlobal = shader.Value!.ProgramGlobal;
 
