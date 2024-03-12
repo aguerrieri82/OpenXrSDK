@@ -2,11 +2,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XrEditor.Components;
 using XrEngine;
 using XrEngine.OpenXr;

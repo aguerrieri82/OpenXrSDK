@@ -1,5 +1,4 @@
-﻿using PhysX;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace PhysX.Framework
 {

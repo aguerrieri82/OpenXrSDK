@@ -17,14 +17,14 @@ namespace XrEngine.OpenXr.Android
 {
     public class AndroidPlatform : IXrPlatform
     {
-        Context _context;
+        readonly Context _context;
         VulkanDevice? _vkDevice;
 
         public AndroidPlatform(Context context)
         {
             AssetManager = new AndroidAssetManager(context, "Assets");
             Logger = new AndroidLogger("XrApp");
-            _context = context; 
+            _context = context;
         }
 
         public XrApp CreateXrApp(IXrGraphicDriver xrDriver)

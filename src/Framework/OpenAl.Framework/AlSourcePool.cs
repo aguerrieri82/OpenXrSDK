@@ -1,10 +1,4 @@
-﻿using OpenAl.Framework;
-using Silk.NET.OpenAL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Silk.NET.OpenAL;
 
 namespace OpenAl.Framework
 {
@@ -59,7 +53,7 @@ namespace OpenAl.Framework
                 result.Stop();
                 result.Rewind();
             }
-          
+
             return result;
         }
 

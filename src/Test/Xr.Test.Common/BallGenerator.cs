@@ -1,8 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using OpenXr.Framework;
+﻿using OpenXr.Framework;
 using PhysX.Framework;
-using Silk.NET.Vulkan;
-using System.Diagnostics;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
@@ -103,7 +100,7 @@ namespace Xr.Test
         }
 
         public Object3D PickBall(Vector3 worldPos)
-        { 
+        {
             var expired = _balls.Where(a => a.LifeTime > _maxTtl);
 
             var ball = expired.FirstOrDefault();

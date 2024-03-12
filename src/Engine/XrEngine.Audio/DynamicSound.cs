@@ -1,20 +1,14 @@
 ﻿using OpenAl.Framework;
 using Silk.NET.OpenAL;
-using System;
-using System.Collections.Generic;
-using System.Formats.Tar;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XrEngine.Audio
 {
     public class DynamicSound
     {
-        List<Tuple<int, AlBuffer>> _buffers = [];
+        readonly List<Tuple<int, AlBuffer>> _buffers = [];
         int _maxVel;
-        int _minVel;   
-        
+        int _minVel;
+
         public DynamicSound()
         {
             _maxVel = int.MinValue;

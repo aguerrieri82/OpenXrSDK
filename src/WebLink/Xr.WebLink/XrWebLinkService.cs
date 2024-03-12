@@ -3,8 +3,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using Silk.NET.OpenXR;
-using XrMath;
 using Xr.WebLink.Entities;
+using XrMath;
 
 namespace Xr.WebLink
 {

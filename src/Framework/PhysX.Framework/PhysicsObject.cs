@@ -1,13 +1,6 @@
-﻿using PhysX;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PhysX.Framework
+﻿namespace PhysX.Framework
 {
-    public unsafe abstract class PhysicsObject<T> : IDisposable where T: unmanaged
+    public unsafe abstract class PhysicsObject<T> : IDisposable where T : unmanaged
     {
         protected T* _handle;
 

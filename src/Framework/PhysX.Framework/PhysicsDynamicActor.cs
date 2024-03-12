@@ -159,11 +159,11 @@ namespace PhysX.Framework
 
         public SolverIterations SolverIterations
         {
-            get 
+            get
             {
                 SolverIterations result;
-                RigidDynamic.GetSolverIterationCounts(&result.Min, &result.Max); 
-                return result;  
+                RigidDynamic.GetSolverIterationCounts(&result.Min, &result.Max);
+                return result;
             }
             set
             {

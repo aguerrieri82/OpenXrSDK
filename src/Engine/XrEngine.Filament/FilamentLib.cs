@@ -10,8 +10,8 @@ namespace XrEngine.Filament
         public enum ReleaseContextMode
         {
             NotRelease = 0,
-	        ReleaseOnExecute = 1,
-	        ReleaseAndSuspend = 2
+            ReleaseOnExecute = 1,
+            ReleaseAndSuspend = 2
         };
 
 

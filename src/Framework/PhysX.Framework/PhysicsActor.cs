@@ -90,11 +90,11 @@ namespace PhysX.Framework
         public Pose3 GlobalPose
         {
             get => RigidActor.GetGlobalPose().ToPose3();
-            set  
+            set
             {
                 var newValue = value.ToPxTransform();
                 RigidActor.SetGlobalPoseMut(&newValue, true);
-            } 
+            }
         }
 
         public PxActorFlags ActorFlags

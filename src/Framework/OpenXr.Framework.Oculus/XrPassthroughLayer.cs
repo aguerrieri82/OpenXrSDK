@@ -102,7 +102,7 @@ namespace OpenXr.Framework.Oculus
 
                 if (_ptInstance.Handle != 0)
                     _xrApp!.CheckResult(_passthrough.DestroyPassthroughFB(_ptInstance), "DestroyPassthroughFB");
- 
+
                 _ptInstance.Handle = 0;
                 _ptLayer.Handle = 0;
 

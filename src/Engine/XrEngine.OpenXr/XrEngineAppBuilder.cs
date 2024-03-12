@@ -5,12 +5,12 @@ using XrEngine.Physics;
 
 namespace XrEngine.OpenXr
 {
-    public class XrEngineAppBuilder 
+    public class XrEngineAppBuilder
     {
-        XrEngineAppOptions _options = new();
-        List<Action<XrEngineApp>> _configurations = [];
+        readonly XrEngineAppOptions _options = new();
+        readonly List<Action<XrEngineApp>> _configurations = [];
         EngineApp? _app;
-        List<Action<IXrActionBuilder>> _inputs = [];
+        readonly List<Action<IXrActionBuilder>> _inputs = [];
         Type? _inputProfile;
         IXrPlatform? _platform;
 
@@ -32,7 +32,7 @@ namespace XrEngine.OpenXr
 
         public XrEngineAppBuilder UsePlatform<T>() where T : IXrPlatform, new()
         {
-            return UsePlatform(new T());  
+            return UsePlatform(new T());
         }
 
         public XrEngineAppBuilder ConfigureApp(Action<XrEngineApp> configure)
@@ -50,17 +50,17 @@ namespace XrEngine.OpenXr
         public XrEngineAppBuilder SetRenderQuality(float resolutionScale, uint sampleCount)
         {
             _options.ResolutionScale = resolutionScale;
-            _options.SampleCount = sampleCount; 
+            _options.SampleCount = sampleCount;
             return this;
         }
 
-        public XrEngineAppBuilder UseInputs<TProfile>(Action<XrActionsBuilder<TProfile>> builder) where TProfile: new()
+        public XrEngineAppBuilder UseInputs<TProfile>(Action<XrActionsBuilder<TProfile>> builder) where TProfile : new()
         {
             if (_inputProfile != null && _inputProfile != typeof(TProfile))
                 throw new ArgumentException("Input profile differ");
 
             _inputProfile = typeof(TProfile);
-            
+
             _inputs.Add(a => builder((XrActionsBuilder<TProfile>)a));
 
             return this;
@@ -116,8 +116,8 @@ namespace XrEngine.OpenXr
                 .AddAction(a => a.Left!.Button!.YClick)
                 .AddAction(a => a.Left!.TriggerClick)
                 .AddAction(a => a.Left!.TriggerValue));
-         
-           return this;
+
+            return this;
         }
 
         public XrEngineAppBuilder UseRightController()
@@ -155,7 +155,7 @@ namespace XrEngine.OpenXr
         public XrEngineAppBuilder UseGrabbers() => UseLeftController().
                                                    UseRightController().
                                                    ConfigureApp(e =>
-        { 
+        {
             var inputs = e.GetInputs<XrOculusTouchController>();
 
             e.App!.ActiveScene!.AddComponent(new InputObjectGrabber(
@@ -197,7 +197,7 @@ namespace XrEngine.OpenXr
                 throw new ArgumentNullException("Platform not specified");
 
             var engine = new XrEngineApp(_options, _platform);
- 
+
             engine.Create(_app ?? new EngineApp());
 
             IXrActionBuilder? actionBuilder = null;
@@ -217,7 +217,7 @@ namespace XrEngine.OpenXr
 
                 while (_inputs.Count > 0)
                 {
-                    foreach (var input in _inputs) 
+                    foreach (var input in _inputs)
                         input(actionBuilder!);
 
                     _inputs.Clear();

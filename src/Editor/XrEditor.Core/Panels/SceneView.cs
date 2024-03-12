@@ -159,7 +159,7 @@ namespace XrEditor
                         }
                     }
                     else
-                         _scene.App!.RenderFrame(_view);
+                        _scene.App!.RenderFrame(_view);
 
                     _renderSurface.SwapBuffers();
 

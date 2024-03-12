@@ -65,7 +65,7 @@ namespace PhysX.Framework
                 result.AddRef();
             else
                 result = CreateMaterial(info, true);
-            
+
             return result;
         }
 
@@ -201,7 +201,7 @@ namespace PhysX.Framework
             PxActor* actor = null;
             PhysicsActor? result;
             var pxTrans = info.Pose.ToPxTransform();
-            
+
             switch (info.Type)
             {
                 case PhysicsActorType.Static:
@@ -261,7 +261,7 @@ namespace PhysX.Framework
                 newPair.Item0.Shape = GetObject<PhysicsShape>(pair.shape1);
                 newPair.Item1.Shape = GetObject<PhysicsShape>(pair.shape2);
                 newPair.Points = pair.contactCount > 0 ? new PhysicsContactPoint[pair.contactCount] : [];
- 
+
                 if (pair.contactCount > 0)
                 {
                     var points = new PxContactPairPoint[pair.contactCount];
@@ -325,7 +325,7 @@ namespace PhysX.Framework
         public unsafe void CreateScene(Vector3 gravity)
         {
             var sceneDesc = PxSceneDesc_new(_physics->GetTolerancesScale());
-   
+
             sceneDesc.gravity = gravity;
             sceneDesc.cpuDispatcher = (PxCpuDispatcher*)_dispatcher;
             sceneDesc.filterShader = get_default_simulation_filter_shader();
@@ -359,12 +359,12 @@ namespace PhysX.Framework
             if (actor1.NotifyContacts || actor2.NotifyContacts)
                 info->pairFlags[0] |=
                     PxPairFlags.NotifyTouchFound;
-                    //PxPairFlags.NotifyContactPoints |
-                    //PxPairFlags.PostSolverVelocity |
-                    //PxPairFlags.PreSolverVelocity |
-                    //PxPairFlags.ContactEventPose |
-                    //PxPairFlags.DetectDiscreteContact |
-                    //PxPairFlags.SolveContact;
+            //PxPairFlags.NotifyContactPoints |
+            //PxPairFlags.PostSolverVelocity |
+            //PxPairFlags.PreSolverVelocity |
+            //PxPairFlags.ContactEventPose |
+            //PxPairFlags.DetectDiscreteContact |
+            //PxPairFlags.SolveContact;
 
 
             return 0;
@@ -445,10 +445,10 @@ namespace PhysX.Framework
             GC.SuppressFinalize(this);
         }
 
-        public void DeleteObject<T>(PhysicsObject<T> obj) where T: unmanaged
+        public void DeleteObject<T>(PhysicsObject<T> obj) where T : unmanaged
         {
             _objects.Remove(new nint(obj.Handle));
-            
+
             if (obj is PhysicsMaterial mat)
                 _materials.Remove(mat);
 

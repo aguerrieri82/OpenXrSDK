@@ -1,5 +1,4 @@
 ﻿using Android.Content;
-using XrEngine;
 
 namespace XrEngine.OpenXr.Android
 {
@@ -36,7 +35,7 @@ namespace XrEngine.OpenXr.Android
         public IEnumerable<string> List(string path)
         {
             return _context.Assets!.List(Path.Join(_basePath, path))!
-                .Select(a=> Path.Join(path, a));
+                .Select(a => Path.Join(path, a));
         }
 
         public Stream Open(string name)

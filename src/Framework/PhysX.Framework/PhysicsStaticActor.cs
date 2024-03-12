@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
 
 namespace PhysX.Framework
 {
@@ -12,7 +7,7 @@ namespace PhysX.Framework
         internal PhysicsStaticActor(PxActor* handle, PhysicsSystem system)
             : base(handle, system)
         {
-     
+
         }
 
         protected internal ref PxRigidStatic RigidStatic => ref Unsafe.AsRef<PxRigidStatic>(_handle);

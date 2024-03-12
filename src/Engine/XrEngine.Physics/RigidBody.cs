@@ -36,7 +36,7 @@ namespace XrEngine.Physics
         public void Teleport(Vector3 worldPos)
         {
             _host!.WorldPosition = worldPos;
-            DynamicActor.GlobalPose = GetPose(); 
+            DynamicActor.GlobalPose = GetPose();
         }
 
         protected void SetPose(Pose3 pose)
@@ -189,7 +189,7 @@ namespace XrEngine.Physics
             {
                 if (!collider.IsEnabled)
                     continue;
-                
+
                 var shape = CreateShape(collider);
                 if (shape != null)
                     shapes.Add(shape);

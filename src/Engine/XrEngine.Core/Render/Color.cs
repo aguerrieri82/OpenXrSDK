@@ -13,7 +13,7 @@ namespace XrEngine
         {
             R = array[0];
             G = array[1];
-            B = array[2]; 
+            B = array[2];
             A = array[3];
         }
 
