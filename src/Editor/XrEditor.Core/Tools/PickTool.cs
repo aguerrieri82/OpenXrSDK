@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using XrEngine;
 using XrEngine.Components;
 using XrMath;
@@ -26,7 +25,7 @@ namespace XrEditor
 
             if (_sceneView?.Scene == null)
                 return;
-    
+
             var ray = ToRay(ev);
 
             lock (_lock)

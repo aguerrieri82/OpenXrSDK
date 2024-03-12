@@ -463,18 +463,18 @@ namespace XrEngine
                 };
 
                 var normal = (
-                    (vSpan[(int)i0].Normal + 
-                     vSpan[(int)i1].Normal + 
+                    (vSpan[(int)i0].Normal +
+                     vSpan[(int)i1].Normal +
                      vSpan[(int)i2].Normal) / 3).Normalize();
 
                 var dot = Vector3.Dot(normal, tri.Normal());
 
                 if (dot < 0)
                 {
-                    iSpan[i] = i2; 
+                    iSpan[i] = i2;
                     iSpan[i + 2] = i0;
                 }
-         
+
                 i += 3;
             }
         }

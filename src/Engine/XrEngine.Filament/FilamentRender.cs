@@ -131,7 +131,7 @@ namespace XrEngine.Filament
                 StencilBufferEnabled = false,
                 FrustumCullingEnabled = false,
                 ScreenSpaceRefractionEnabled = false,
-                Viewport = new Rect2I() { Width = width , Height = height  },
+                Viewport = new Rect2I() { Width = width, Height = height },
                 RenderTargetId = renderTargetId
             };
 
@@ -165,7 +165,7 @@ namespace XrEngine.Filament
                 {
                     viewBind = new ViewSizeRtBind
                     {
-                        ViewId = CreateView(width , height , rtBind.RenderTargetId),
+                        ViewId = CreateView(width, height, rtBind.RenderTargetId),
                         Viewport = new Rect2I() { Width = width, Height = height },
                         RenderTargetId = rtBind.RenderTargetId,
                     };

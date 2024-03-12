@@ -23,7 +23,7 @@ namespace OpenAl.Framework
         // Data
         public int data_header; // Contains "data"
         public int data_bytes; // Number of bytes in data. Number of samples * num_channels * sample byte size
-                                 // uint8_t bytes[]; // Remainder of wave file is bytes
+                               // uint8_t bytes[]; // Remainder of wave file is bytes
     }
 
     public class WavReader
@@ -35,10 +35,10 @@ namespace OpenAl.Framework
                 return *(int*)pData;
         }
 
-        static int RIFF = StrToInt("RIFF");
-        static int WAVE = StrToInt("WAVE");
-        static int FMT = StrToInt("fmt ");
-        static int DATA = StrToInt("data");
+        static readonly int RIFF = StrToInt("RIFF");
+        static readonly int WAVE = StrToInt("WAVE");
+        static readonly int FMT = StrToInt("fmt ");
+        static readonly int DATA = StrToInt("data");
 
         public AudioData Decode(Stream stream)
         {

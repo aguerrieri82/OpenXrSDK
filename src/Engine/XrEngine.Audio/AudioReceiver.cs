@@ -1,23 +1,18 @@
 ﻿using OpenAl.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XrEngine.Audio
 {
     public class AudioReceiver : Behavior<Object3D>
     {
-        static AlSourcePool? _pool;
+        static readonly AlSourcePool? _pool;
 
         private AlListener? _listener;
 
         protected override void Start(RenderContext ctx)
         {
             var system = _host!.Scene!.Component<AudioSystem>();
-            
+
             _listener = new AlListener(system.Device.Al);
 
             base.Start(ctx);

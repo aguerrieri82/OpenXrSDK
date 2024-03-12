@@ -96,7 +96,7 @@
                     component.Dispose();
                 _components = null;
             }
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         public long Version { get; set; }

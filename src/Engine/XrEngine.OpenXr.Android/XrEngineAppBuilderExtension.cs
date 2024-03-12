@@ -1,23 +1,17 @@
-﻿using OpenXr.Framework.Android;
-using OpenXr.Framework.Oculus;
+﻿using Android.Content;
 using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OpenXr.Framework.Oculus;
 using Xr.Test.Android;
 using XrEngine;
 using XrEngine.OpenXr;
-using Android.Content;
 
 namespace Xr.Test.Common
 {
     public static class XrEngineAppBuilderExtension
     {
-        public static XrEngineAppBuilder AddWebBrowser(this XrEngineAppBuilder builder, Context context, string objName) => 
-            
-            builder.UseRightController(). 
+        public static XrEngineAppBuilder AddWebBrowser(this XrEngineAppBuilder builder, Context context, string objName) =>
+
+            builder.UseRightController().
                     ConfigureApp(e =>
         {
             var display = e.App.ActiveScene!.FindByName<TriangleMesh>(objName);

@@ -76,9 +76,9 @@ namespace XrEngine.OpenXr
                 mesh.Name = "global-mesh";
                 mesh.Transform.Position = location.Pose.Position;
                 mesh.Transform.Orientation = location.Pose.Orientation;
-                
+
                 mesh.AddComponent(new MeshCollider());
-                
+
                 var rb = mesh.AddComponent<RigidBody>();
 
                 rb.Type = PhysicsActorType.Static;

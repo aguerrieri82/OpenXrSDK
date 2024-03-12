@@ -39,12 +39,12 @@ namespace OpenXr.Framework
         }
 
 
-       unsafe static Matrix4x4 CreateProjectionFov(float tanAngleLeft,
-                                                    float tanAngleRight,
-                                                    float tanAngleUp,
-                                                    float tanAngleDown,
-                                                    float nearZ,
-                                                    float farZ)
+        unsafe static Matrix4x4 CreateProjectionFov(float tanAngleLeft,
+                                                     float tanAngleRight,
+                                                     float tanAngleUp,
+                                                     float tanAngleDown,
+                                                     float nearZ,
+                                                     float farZ)
         {
             var result = stackalloc float[16];
 

@@ -96,7 +96,7 @@ namespace XrEngine.OpenXr
                     mesh.Transform.Position = start;
                     mesh.Transform.Orientation = orientation;
                     mesh.Transform.SetScale(_input.Scale);
-                }  
+                }
             }
 
             if (_isInit)

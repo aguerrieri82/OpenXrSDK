@@ -1,7 +1,5 @@
 ﻿using OpenXr.Framework;
-using System.IO;
 using System.Numerics;
-using System.Xml.Linq;
 using XrEngine.Audio;
 using XrEngine.Gltf;
 using XrMath;
@@ -95,7 +93,7 @@ namespace XrEngine.OpenXr
 
                 AddChild(group);
             }
-           
+
             return group;
         }
 

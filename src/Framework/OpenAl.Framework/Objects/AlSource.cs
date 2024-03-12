@@ -1,12 +1,11 @@
 ﻿using Silk.NET.OpenAL;
-using System;
 using System.Numerics;
 
 namespace OpenAl.Framework
 {
     public class AlSource : AlObject, IDisposable
     {
-        HashSet<AlBuffer> _buffers = [];
+        readonly HashSet<AlBuffer> _buffers = [];
 
         public AlSource(AL al)
             : base(al, al.GenSource())
@@ -52,7 +51,7 @@ namespace OpenAl.Framework
         public void AddBuffer(AlBuffer buffer)
         {
             _al.SetSourceProperty(_handle, SourceInteger.Buffer, buffer.Handle);
-            _buffers.Add(buffer);   
+            _buffers.Add(buffer);
         }
 
         public Vector3 Velocity

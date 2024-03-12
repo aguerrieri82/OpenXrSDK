@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using System.Windows;
-using XrEngine;
+﻿using XrEngine;
 using XrEngine.Filament;
 
 namespace XrEditor.Components
@@ -39,7 +37,7 @@ namespace XrEditor.Components
         {
             try
             {
-                return base.TakeContext();       
+                return base.TakeContext();
             }
             catch
             {

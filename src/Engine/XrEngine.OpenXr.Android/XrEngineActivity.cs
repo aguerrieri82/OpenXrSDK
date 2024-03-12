@@ -16,7 +16,7 @@ namespace XrEngine.OpenXr.Android
                    .UsePlatform(new AndroidPlatform(this));
 
             Build(builder);
-            
+
             _engine = builder.Build();
 
             return _engine.XrApp;

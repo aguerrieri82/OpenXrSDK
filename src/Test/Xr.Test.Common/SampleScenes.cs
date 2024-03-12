@@ -1,12 +1,9 @@
-﻿using OpenXr.Framework;
-using OpenXr.Framework.Oculus;
+﻿using OpenXr.Framework.Oculus;
 using PhysX;
 using PhysX.Framework;
-using Silk.NET.OpenXR;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
-using XrEngine.Colliders;
 using XrEngine.Components;
 using XrEngine.Compression;
 using XrEngine.Gltf;
@@ -29,7 +26,7 @@ namespace Xr.Test
             builder.UseHands()
                    .UseLeftController()
                    .UseRightController()
-                   .UseInputs<XrOculusTouchController>(a=>a.AddAction(b=> b.Right!.Haptic))
+                   .UseInputs<XrOculusTouchController>(a => a.AddAction(b => b.Right!.Haptic))
                    .UsePhysics()
                    .UseScene(true)
                    .AddPassthrough()
@@ -122,13 +119,13 @@ namespace Xr.Test
             mesh.Transform.Position = Vector3.Zero;
 
             mesh.Transform.Update();
-     
+
             foreach (var geo in mesh.DescendantsWithFeature<Geometry3D>())
                 geo.Feature.ApplyTransform(mesh.Transform.Matrix);
-   
+
             mesh.Transform.Reset();
             mesh.Transform.Position = new Vector3(0, 1, 0);
-  
+
 
             //Audio
             var audio = scene.Component<AudioSystem>();
@@ -174,7 +171,7 @@ namespace Xr.Test
             return app;
         }
 
-     
+
 
         public static EngineApp CreateChess()
         {

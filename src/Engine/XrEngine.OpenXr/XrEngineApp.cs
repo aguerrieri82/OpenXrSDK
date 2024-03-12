@@ -1,6 +1,4 @@
-﻿using glTFLoader.Schema;
-using OpenXr.Framework;
-using System.Diagnostics;
+﻿using OpenXr.Framework;
 
 namespace XrEngine.OpenXr
 {
@@ -24,12 +22,12 @@ namespace XrEngine.OpenXr
 
     }
 
-    public class XrEngineApp 
+    public class XrEngineApp
     {
         private XrApp? _xrApp;
         private EngineApp? _app;
-        private XrEngineAppOptions _options;
-        private IXrPlatform _platform;
+        private readonly XrEngineAppOptions _options;
+        private readonly IXrPlatform _platform;
 
         public XrEngineApp(XrEngineAppOptions options, IXrPlatform platform)
         {
@@ -50,7 +48,7 @@ namespace XrEngine.OpenXr
             _xrApp.RenderOptions.RenderMode = _options.RenderMode;
             _xrApp.RenderOptions.ResolutionScale = _options.ResolutionScale;
 
-  
+
         }
 
         public T GetInputs<T>()
@@ -75,5 +73,5 @@ namespace XrEngine.OpenXr
         public object? Inputs { get; internal set; }
     }
 
-  
+
 }

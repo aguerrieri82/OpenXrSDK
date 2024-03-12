@@ -1,5 +1,4 @@
-﻿using PhysX;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using XrMath;
@@ -30,7 +29,7 @@ namespace PhysX.Framework
         protected PhysicsGeometry _geometry;
 
         internal PhysicsShape(PxShape* handle, PhysicsGeometry geometry, PhysicsSystem system)
-    :            base(handle, system)
+    : base(handle, system)
         {
             _name = string.Empty;
             _geometry = geometry;
@@ -40,7 +39,7 @@ namespace PhysX.Framework
         {
             var result = new PxRaycastHit[maxHits];
             uint count;
-         
+
             fixed (PxRaycastHit* pResult = result)
                 count = _handle->ExtRaycast((PxRigidActor*)owner.Handle, (PxVec3*)&ray.Origin, (PxVec3*)&ray.Direction, maxDistance, flags, (uint)maxHits, pResult);
 

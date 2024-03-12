@@ -21,7 +21,7 @@ namespace XrEditor
 
         void EnableVSync(bool enable);
 
-        public bool SupportsDualRender { get; } 
+        public bool SupportsDualRender { get; }
 
         Vector2 Size { get; }
 

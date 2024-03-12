@@ -1,8 +1,4 @@
-﻿using SkiaSharp;
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -92,7 +88,7 @@ namespace XrEngine
             while (indicesLevels.Count < levels)
                 Subdivide();
 
-            Indices = indicesLevels[^1].ToArray(); 
+            Indices = indicesLevels[^1].ToArray();
             Vertices = new VertexData[vertices.Count];
 
 
@@ -111,19 +107,19 @@ namespace XrEngine
 
                 Vertices[i] = new VertexData
                 {
-                    Pos = vertices[i] * Radius,  
+                    Pos = vertices[i] * Radius,
                     Normal = normal,
                     Tangent = tangSpace,
                     UV = new Vector2(
-                        (spherical.Pol + MathF.PI) / (MathF.PI * 2), 
+                        (spherical.Pol + MathF.PI) / (MathF.PI * 2),
                         spherical.Azm / (MathF.PI))
                 };
             }
 
             this.EnsureCCW();
 
-        
-            ActiveComponents |= VertexComponent.Normal | VertexComponent.UV1 ;
+
+            ActiveComponents |= VertexComponent.Normal | VertexComponent.UV1;
         }
 
         public float Radius;

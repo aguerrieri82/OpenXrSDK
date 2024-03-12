@@ -891,11 +891,11 @@ namespace OpenXr.Framework
         public object WithInteractionProfile(Type type, Action<IXrActionBuilder> build)
         {
             var builderType = typeof(XrActionsBuilder<>).MakeGenericType(type);
-            
+
             var builder = (IXrActionBuilder)Activator.CreateInstance(builderType, this)!;
-            
+
             build(builder);
-            
+
             AddActions(builder);
 
             return builder.Result;
