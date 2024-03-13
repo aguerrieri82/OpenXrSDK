@@ -14,7 +14,6 @@ namespace OpenXr.Framework
         protected GetQuadDelegate _getQuad;
 
 
-
         public unsafe XrBaseQuadLayer(GetQuadDelegate getQuad)
         {
             _getQuad = getQuad;
@@ -33,14 +32,15 @@ namespace OpenXr.Framework
             return true;
         }
 
-        public override void Dispose()
+        public override void Destroy()
         {
             if (_swapchain.Handle != 0)
             {
                 _xrApp!.Xr.DestroySwapchain(_swapchain);
                 _swapchain.Handle = 0;
             }
-            base.Dispose();
+            base.Destroy();
         }
+
     }
 }

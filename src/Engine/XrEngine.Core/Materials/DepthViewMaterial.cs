@@ -24,6 +24,8 @@
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
+            bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
+
             var depth = bld.Context.RenderEngine?.GetDepth();
 
             if (depth != null)
@@ -41,9 +43,9 @@
                 bld.SetUniform("uNearPlane", ctx => ctx.Camera!.Near);
                 bld.SetUniform("uFarPlane", ctx => ctx.Camera!.Far);
             }
-
-            StandardVertexShaderHandler.Instance.UpdateShader(bld);
         }
+
+        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
     }
 }

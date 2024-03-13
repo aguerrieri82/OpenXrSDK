@@ -28,9 +28,8 @@ namespace XrEngine.Physics
                 Restitution = 0.5f
             };
 
-            Density = 10;
-
-            Tolerance = 10;
+            Density = 1000;
+            Tolerance = 1;
         }
 
         public void Teleport(Vector3 worldPos)
@@ -217,6 +216,15 @@ namespace XrEngine.Physics
             _actor.NotifyContacts = _contactEvent != null;
             _actor.Contact += OnActorContact;
             _actor.Name = _host.Name ?? string.Empty;
+
+            if (EnableCCD)
+            {
+                if (Type == PhysicsActorType.Dynamic)
+                    DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableCcd;
+             
+                if (Type == PhysicsActorType.Kinematic)
+                    DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableSpeculativeCcd;
+            }
         }
 
         protected override void Start(RenderContext ctx)
@@ -294,6 +302,8 @@ namespace XrEngine.Physics
         }
 
         public float Tolerance { get; set; }
+
+        public bool EnableCCD  { get; set; }
 
         public PhysicsDynamicActor DynamicActor => (_actor as PhysicsDynamicActor) ?? throw new ArgumentNullException();
 

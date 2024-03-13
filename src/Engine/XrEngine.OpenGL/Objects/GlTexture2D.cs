@@ -58,7 +58,7 @@ namespace XrEngine.OpenGL
 
             if (isMultiSample)
             {
-                _gl.GetTexLevelParameter(Target, 1, GLEnum.TextureSamples, out int sc);
+                _gl.GetTexLevelParameter(Target, 0, GLEnum.TextureSamples, out int sc);
                 SampleCount = (uint)sc;
             }
             else

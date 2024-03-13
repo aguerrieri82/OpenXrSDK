@@ -18,6 +18,8 @@ namespace XrEngine.OpenGL
         protected readonly List<string> _features = [];
         protected readonly List<string> _extensions = [];
         protected readonly Func<string, string> _resolver;
+        protected readonly Dictionary<string, int> _boundTextures = [];
+        protected readonly ushort[] _boundBuffers = new ushort[256];
 
         public GlProgram(GL gl, Func<string, string> includeResolver) : base(gl)
         {
@@ -43,10 +45,7 @@ namespace XrEngine.OpenGL
             }
 
             foreach (var shader in shaders)
-            {
                 _gl.DetachShader(_handle, shader);
-                _gl.DeleteShader(shader);
-            }
         }
 
         public void Use()
@@ -141,8 +140,11 @@ namespace XrEngine.OpenGL
 
             var index = (uint)LocateUniform(name, optional, true);
 
-            _gl.UniformBlockBinding(_handle, index, glBuffer.Slot);
-
+            if (_boundBuffers[index] != glBuffer.Slot)
+            {
+                _gl.UniformBlockBinding(_handle, index, glBuffer.Slot);
+                _boundBuffers[index] = (ushort)glBuffer.Slot;
+            }
         }
 
         public void LoadTexture(Texture2D value, int slot = 0)
@@ -158,7 +160,11 @@ namespace XrEngine.OpenGL
         {
             LoadTexture(value, slot);
 
-            SetUniform(name, slot, optional);
+            if (!_boundTextures.TryGetValue(name, out var curSlot) || slot != curSlot)
+            {
+                SetUniform(name, slot, optional);
+                _boundTextures[name] = slot;
+            }
         }
 
         public void SetUniform(string name, float[] obj, bool optional = false)
@@ -244,8 +250,11 @@ namespace XrEngine.OpenGL
 
         public override void Dispose()
         {
-            _gl.DeleteProgram(_handle);
-            _handle = 0;
+            if (_handle != 0)
+            {
+                _gl.DeleteProgram(_handle);
+                _handle = 0;
+            }
             GC.SuppressFinalize(this);
         }
 

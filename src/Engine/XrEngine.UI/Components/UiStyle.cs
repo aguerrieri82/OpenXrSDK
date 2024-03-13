@@ -37,7 +37,7 @@ namespace XrEngine.UI
 
         static readonly UiProperty<UiStyleValue<UnitValue>> FontSizeProp = CreateStyleProp<UnitValue>(nameof(FontSize));
 
-        static readonly UiProperty<UiStyleValue<string>> FontFamilyProp = CreateStyleProp(nameof(FontFamily), "Sans Serif");
+        static readonly UiProperty<UiStyleValue<string>> FontFamilyProp = CreateStyleProp(nameof(FontFamily), "sans-serif");
 
         static readonly UiProperty<UiStyleValue<UnitValue>> WidthProp = CreateStyleProp<UnitValue>(nameof(Width), UiStyleMode.Auto);
 

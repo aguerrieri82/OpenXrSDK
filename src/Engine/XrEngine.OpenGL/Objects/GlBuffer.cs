@@ -19,17 +19,13 @@ namespace XrEngine.OpenGL
         protected uint _length;
         protected uint _slot;
 
-
-
         public unsafe GlBuffer(GL gl, BufferTargetARB target)
              : base(gl)
         {
             _gl = gl;
             _target = target;
-
-            _handle = _gl.GenBuffer();
-
-            GlDebug.Log($"GenBuffer {_handle}");
+            Version = -1;
+            Create();
         }
 
         public unsafe GlBuffer(GL gl, Span<T> data, BufferTargetARB target)
@@ -38,13 +34,26 @@ namespace XrEngine.OpenGL
             Update(data);
         }
 
-        public unsafe void Update(IntPtr data, int size)
+        protected void Create()
+        {
+            _handle = _gl.GenBuffer();
+        }
+
+        public unsafe void Update(IntPtr data, int size, bool wait)
         {
             Bind();
 
             var byteSpan = new ReadOnlySpan<byte>((byte*)data, size);
 
-            _gl.BufferData(_target, byteSpan, BufferUsageARB.StaticDraw);
+            var usage = _target == BufferTargetARB.UniformBuffer ? BufferUsageARB.StreamDraw : BufferUsageARB.StaticDraw;
+
+            _gl.BufferData(_target, byteSpan, usage);
+
+            if (wait)
+            {
+                var fence = _gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, SyncBehaviorFlags.None);
+                _gl.WaitSync(fence, SyncBehaviorFlags.None, unchecked((ulong)-1));
+            }
 
             _length = (uint)size;
 
@@ -54,7 +63,7 @@ namespace XrEngine.OpenGL
         public unsafe void Update(ReadOnlySpan<T> data)
         {
             fixed (T* pData = &data[0])
-                Update(new nint(pData), data.Length * sizeof(T));
+                Update(new nint(pData), data.Length * sizeof(T), true);
 
             _length = (uint)data.Length;
         }
@@ -64,29 +73,24 @@ namespace XrEngine.OpenGL
             if (value is IDynamicBuffer dynamic)
             {
                 using var dynBuffer = dynamic.GetBuffer();
-                Update(dynBuffer.Data, dynBuffer.Size);
+                Update(dynBuffer.Data, dynBuffer.Size, false);
             }
             else
             {
                 var data = (T)value;
-                Update(new nint(&data), sizeof(T));
+                Update(new nint(&data), sizeof(T), true);
             }
         }
 
         public void Bind()
         {
             _gl.BindBuffer(_target, _handle);
-
-            GlDebug.Log($"BindBuffer {_target} {_handle}");
         }
 
         public void Unbind()
         {
             _gl.BindBuffer(_target, 0);
-
-            GlDebug.Log($"BindBuffer {_target} NULL");
         }
-
 
         public void AssignSlot()
         {
@@ -102,6 +106,7 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
+        public long Version { get; set; }
 
         public BufferTargetARB Target => _target;
 

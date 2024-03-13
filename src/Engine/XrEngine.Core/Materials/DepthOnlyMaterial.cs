@@ -25,9 +25,12 @@
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
+            bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
+
             bld.SetUniform("uColor", ctx => Color.Transparent);
-            StandardVertexShaderHandler.Instance.UpdateShader(bld);
         }
+
+        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
         public static readonly DepthOnlyMaterial Instance = new DepthOnlyMaterial();
     }

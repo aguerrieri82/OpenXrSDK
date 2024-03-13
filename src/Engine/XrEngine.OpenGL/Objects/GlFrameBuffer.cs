@@ -20,7 +20,6 @@ namespace XrEngine.OpenGL
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _handle);
         }
 
-
         public void Unbind()
         {
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);

@@ -34,7 +34,7 @@ namespace OpenXr.Framework.Layers
 
             _swapchain = _xrApp!.CreateSwapChain(extent, 1, _xrApp.RenderOptions.ColorFormat, 1, SwapchainUsageFlags.SampledBit | SwapchainUsageFlags.ColorAttachmentBit);
 
-            _images = _xrApp.EnumerateSwapchainImages(_swapchain);
+            _images =  _xrApp.EnumerateSwapchainImages(_swapchain);
 
             _header->SubImage.Swapchain = _swapchain;
             _header->SubImage.ImageArrayIndex = 0;
@@ -44,6 +44,7 @@ namespace OpenXr.Framework.Layers
 
             base.Create();
         }
+
 
         protected unsafe override bool Update(ref CompositionLayerQuad layer, ref View[] views, long predTime)
         {

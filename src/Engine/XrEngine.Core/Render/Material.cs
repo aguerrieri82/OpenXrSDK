@@ -16,6 +16,7 @@
         public Material()
         {
             Alpha = AlphaMode.Opaque;
+            Version = 0;
         }
 
         //TODO same material multiple objects, wrong
@@ -32,6 +33,7 @@
         public virtual void NotifyChanged()
         {
             _host?.NotifyChanged(new ObjectChange(ObjectChangeType.Render, this));
+            Version++;
         }
 
         public virtual Color Color { get; set; }

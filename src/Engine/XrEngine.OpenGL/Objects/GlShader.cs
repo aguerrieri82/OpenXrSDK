@@ -3,6 +3,8 @@ using Silk.NET.OpenGLES;
 
 #else
 using Silk.NET.OpenGL;
+using System.Security.Cryptography;
+using System.Text;
 #endif
 
 
@@ -10,10 +12,15 @@ namespace XrEngine.OpenGL
 {
     public class GlShader : GlObject
     {
+        static Dictionary<string, GlShader> _shaders = [];
+
+        protected int _refCount;
+
         public GlShader(GL gl)
             : base(gl)
         {
             Source = "";
+            _refCount++;
         }
 
         public GlShader(GL gl, ShaderType type, string source)
@@ -47,8 +54,29 @@ namespace XrEngine.OpenGL
 
         public override void Dispose()
         {
-            _gl.DeleteShader(_handle);
-            _handle = 0;
+            _refCount--;
+            
+            if (_refCount <= 0 && _handle != 0)
+            {
+                _gl.DeleteShader(_handle);
+                _handle = 0;
+                GC.SuppressFinalize(this);
+            }
+        }
+
+        public static GlShader GetOrCreate(GL gl, ShaderType type, string source)
+        {
+            var sourceHash = Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(source)));
+
+            if (!_shaders.TryGetValue(sourceHash, out var shader))
+            {
+                shader = new GlShader(gl, type, source);
+                _shaders[sourceHash] = shader;
+            }
+            else
+                shader._refCount++;
+
+            return shader;
         }
 
         public ShaderType Type { get; set; }

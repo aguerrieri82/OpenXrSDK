@@ -30,8 +30,11 @@
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
+            bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
+
             bld.SetUniform("uColor", ctx => Color);
-            StandardVertexShaderHandler.Instance.UpdateShader(bld);
         }
+
+        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
     }
 }

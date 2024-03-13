@@ -311,6 +311,9 @@ namespace XrEngine
 
                 bld.SetUniformBuffer("Lights", (ctx) =>
                 {
+                    if (ctx.CurrentBuffer!.Version != -1 && ctx.CurrentBuffer!.Version == ctx.LightsVersion)
+                        return null;
+
                     var lights = new List<PbrLightUniforms>();
 
                     foreach (var light in bld.Context.Lights!)
@@ -357,19 +360,19 @@ namespace XrEngine
                         }
                     }
 
-                    return new LightsUniform
+                    ctx.CurrentBuffer!.Version = ctx.LightsVersion;
+
+                    return (LightsUniform?)new LightsUniform
                     {
                         LightCount = (uint)lights.Count,
                         Lights = lights.ToArray()
                     };
                 }, true);
 
-
                 if (bld.Context.Lights!.Any())
                     bld.AddFeature("USE_PUNCTUAL");
 
                 bld.AddFeature("MAX_LIGHTS " + LightsUniform.Max);
-
             }
         }
 
@@ -515,8 +518,7 @@ namespace XrEngine
             bld.SetUniform("uModelMatrix", (ctx) => ctx.Model!.WorldMatrix);
             bld.SetUniform("uNormalMatrix", (ctx) => Matrix4x4.Transpose(ctx.Model!.WorldMatrixInverse));
 
-            bld.SetUniformBuffer("Material", (ctx) => material, false);
-
+            bld.SetUniformBuffer("Material", ctx => material, false);
 
             bld.AddFeature("ALPHAMODE_OPAQUE 0");
             bld.AddFeature("ALPHAMODE_MASK 1");

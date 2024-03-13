@@ -43,7 +43,7 @@ namespace XrEngine.OpenGL
                 action(ctx);
         }
 
-        public IBuffer GetBuffer<T>(string name, T data, bool isGlobal)
+        public IBuffer GetBuffer<T>(string name, bool isGlobal)
         {
             if (!_buffers.TryGetValue(name, out var buffer))
             {

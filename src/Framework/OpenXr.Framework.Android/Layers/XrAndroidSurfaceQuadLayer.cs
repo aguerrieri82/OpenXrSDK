@@ -75,7 +75,6 @@ namespace OpenXr.Framework.Android
             _header->SubImage.ImageRect.Extent = _size;
             _header->EyeVisibility = EyeVisibility.Both;
             _header->LayerFlags = CompositionLayerFlags.None;
-
         }
 
         public Surface? Surface => _surface;

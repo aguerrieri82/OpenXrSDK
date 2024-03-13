@@ -13,36 +13,18 @@ namespace XrEngine.OpenGL
         public GlTextureFrameBuffer(GL gl, GlTexture2D color, GlTexture2D? depth)
             : base(gl)
         {
-            _handle = _gl.GenFramebuffer();
-
+     
             Color = color;
             Depth = depth;
+
+            Create();
         }
 
-        /*
-
-        [MemberNotNull(nameof(Depth))]
-        protected unsafe void CreateDepth()
+        protected void Create()
         {
-            Depth = new GlTexture2D(_gl)
-            {
-                MagFilter = TextureMagFilter.Nearest,
-                MinFilter = TextureMinFilter.Nearest,
-                WrapT = Color.WrapT,
-                WrapS = Color.WrapS,
-                MaxLevel = Color.MaxLevel,
-                BaseLevel = Color.BaseLevel,
-                SampleCount = _sampleCount,
-                Target = _gl.GetTexture2DTarget(Color.Handle)
-            };
+            _handle = _gl.GenFramebuffer();
 
-            Depth.Update(Color.Width, Color.Height, OpenGLRender.Current!.Options.DepthFormat);
-        }
-        */
-
-        public override void BindDraw()
-        {
-            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _handle);
+            BindDraw();
 
             _gl.FramebufferTexture2D(
                 FramebufferTarget.DrawFramebuffer,
@@ -65,46 +47,39 @@ namespace XrEngine.OpenGL
             {
                 throw new Exception($"Frame buffer state invalid: {status}");
             }
+
+            Unbind();
         }
 
-        public override void Dispose()
+        public override void BindDraw()
         {
-
-            if (Depth != null)
-            {
-                Depth.Dispose();
-                Depth = null;
-            }
-
-            base.Dispose();
+            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _handle);
         }
 
         public void CopyTo(GlTextureFrameBuffer dest)
         {
             _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, _handle);
+            /*
             _gl.FramebufferTexture2D(
                 FramebufferTarget.ReadFramebuffer,
                 FramebufferAttachment.ColorAttachment0,
                 Color.Target,
                 Color, 0);
+             */
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
 
 
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, dest.Handle);
+            /*
             _gl.FramebufferTexture2D(
                  FramebufferTarget.DrawFramebuffer,
                  FramebufferAttachment.ColorAttachment0,
                  dest.Color.Target,
                  dest.Color, 0);
-
+             */
             _gl.DrawBuffers(1, DrawBufferMode.ColorAttachment0);
 
             _gl.BlitFramebuffer(0, 0, (int)Color.Width, (int)Color.Height, 0, 0, (int)dest.Color.Width, (int)dest.Color.Height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
-        }
-
-        public void InvalidateDepth()
-        {
-            _gl.InvalidateFramebuffer(FramebufferTarget.DrawFramebuffer, [InvalidateFramebufferAttachment.DepthAttachment]);
         }
 
         public override uint QueryTexture(FramebufferAttachment attachment)

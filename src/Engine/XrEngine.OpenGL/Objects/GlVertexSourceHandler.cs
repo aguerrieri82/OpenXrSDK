@@ -20,7 +20,13 @@ namespace XrEngine.OpenGL
 
         public abstract void Draw();
 
+        public abstract void Dispose();
+
         public abstract GlVertexLayout Layout { get; }
+
+        public abstract bool NeedUpdate { get; }
+
+        public long Version { get; protected set; }
 
         public static GlVertexSourceHandle Create(GL gl, IVertexSource obj)
         {
@@ -31,8 +37,6 @@ namespace XrEngine.OpenGL
 
             return (GlVertexSourceHandle)Activator.CreateInstance(type, [gl, obj])!;
         }
-
-        public abstract void Dispose();
     }
 
     public class GlVertexSourceHandler<TVert, TInd> : GlVertexSourceHandle where TVert : unmanaged where TInd : unmanaged
@@ -62,6 +66,8 @@ namespace XrEngine.OpenGL
                 DrawPrimitive.Line => PrimitiveType.Lines,
                 _ => throw new NotSupportedException()
             };
+
+            Version = -1;
         }
 
         public override void Bind()
@@ -82,6 +88,8 @@ namespace XrEngine.OpenGL
         public override void Update()
         {
             _vertices.Update(_source.Vertices, _source.Indices);
+
+            Version = _source.Object.Version;
         }
 
         public override void Dispose()
@@ -89,6 +97,8 @@ namespace XrEngine.OpenGL
             _vertices.Dispose();
             GC.SuppressFinalize(this);
         }
+
+        public override bool NeedUpdate => _source.Object.Version != Version;
 
         public override GlVertexLayout Layout => _vertices.Layout;
     }

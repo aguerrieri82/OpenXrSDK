@@ -34,7 +34,8 @@ namespace XrEngine.UI
             _size = new Size2(1, 0.56f);
             _sizeDirty = true;
             
-            Geometry = Cube3D.Instance;
+            Geometry = Quad3D.Instance;
+
             Mode = CanvasViewMode.Texture;
         }
 
@@ -81,11 +82,17 @@ namespace XrEngine.UI
 
             canvas.SetMatrix(SKMatrix.CreateScale(scaleX, scaleY));
 
+            var surfaceProvider = _scene?.App?.Renderer as ISurfaceProvider;
+
+            surfaceProvider!.BeginDrawSurface();
+
             Draw(canvas);
 
             canvas.Flush();
 
-            surface.Flush(true);
+            surface.Flush();
+
+            surfaceProvider.EndDrawSurface();
         }
 
         protected virtual void Draw(SKCanvas canvas)

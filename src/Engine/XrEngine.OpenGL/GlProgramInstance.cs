@@ -14,6 +14,7 @@ namespace XrEngine.OpenGL
         protected Dictionary<string, IGlBuffer> _buffers = [];
         protected ShaderUpdate? _update;
         protected readonly GL _gl;
+        protected long _programVersion = -1;
 
         public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global)
         {
@@ -24,7 +25,7 @@ namespace XrEngine.OpenGL
 
         public void UpdateProgram(UpdateShaderContext ctx)
         {
-            if (Program != null)
+            if (Program != null && _programVersion == Material!.Version)
                 return;
 
             ctx.BufferProvider = this;
@@ -66,12 +67,14 @@ namespace XrEngine.OpenGL
                 action(ctx);
 
             Program = program;
+
+            _programVersion = Material.Version;
         }
 
-        public IBuffer GetBuffer<T>(string name, T data, bool isGlobal)
+        public IBuffer GetBuffer<T>(string name,  bool isGlobal)
         {
             if (isGlobal)
-                return Global.GetBuffer(name, data, true);
+                return Global.GetBuffer<T>(name, true);
 
             if (!_buffers.TryGetValue(name, out var buffer))
             {
@@ -82,13 +85,15 @@ namespace XrEngine.OpenGL
             return buffer;
         }
 
-
-        public void UpdateUniforms(UpdateShaderContext ctx)
+        public void UpdateUniforms(UpdateShaderContext ctx, bool updateGlobals)
         {
             ctx.BufferProvider = this;
 
-            foreach (var action in Global.Update!.Actions!)
-                action(ctx, Program!);
+            if (updateGlobals)
+            {
+                foreach (var action in Global.Update!.Actions!)
+                    action(ctx, Program!);
+            }
 
             foreach (var action in _update!.Actions!)
                 action(ctx, Program!);
