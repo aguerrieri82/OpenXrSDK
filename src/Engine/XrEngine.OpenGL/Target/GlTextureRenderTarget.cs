@@ -12,7 +12,7 @@ namespace XrEngine.OpenGL
     {
         protected static readonly Dictionary<uint, GlTextureRenderTarget> _targets = [];
 
-        protected readonly GlFrameBuffer _frameBuffer;
+        protected readonly GlBaseFrameBuffer _frameBuffer;
         protected readonly GL _gl;
         protected readonly uint _colorTex;
         protected readonly uint _depthTex;
@@ -27,7 +27,7 @@ namespace XrEngine.OpenGL
             _frameBuffer = CreateFrameBuffer(colorTex, depthTex, sampleCount);
         }
 
-        protected virtual GlFrameBuffer CreateFrameBuffer(uint colorTex, uint depthTex, uint sampleCount)
+        protected virtual GlBaseFrameBuffer CreateFrameBuffer(uint colorTex, uint depthTex, uint sampleCount)
         {
             return new GlTextureFrameBuffer(_gl, new GlTexture2D(_gl, colorTex), new GlTexture2D(_gl, depthTex));
         }
@@ -42,17 +42,6 @@ namespace XrEngine.OpenGL
             _frameBuffer.Unbind();
         }
 
-        public static GlTextureRenderTarget Attach(GL gl, uint colorTex, uint depthTex, uint sampleCount)
-        {
-            if (!_targets.TryGetValue(colorTex, out var target))
-            {
-                target = new GlTextureRenderTarget(gl, colorTex, depthTex, sampleCount);
-                _targets[colorTex] = target;
-            }
-
-            return target;
-        }
-
         public void Dispose()
         {
             _targets.Remove(_colorTex);
@@ -65,5 +54,17 @@ namespace XrEngine.OpenGL
         {
             return _frameBuffer.QueryTexture(attachment);
         }
+
+        public static GlTextureRenderTarget Attach(GL gl, uint colorTex, uint depthTex, uint sampleCount)
+        {
+            if (!_targets.TryGetValue(colorTex, out var target))
+            {
+                target = new GlTextureRenderTarget(gl, colorTex, depthTex, sampleCount);
+                _targets[colorTex] = target;
+            }
+
+            return target;
+        }
+
     }
 }

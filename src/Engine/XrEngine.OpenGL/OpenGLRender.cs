@@ -15,10 +15,11 @@ namespace XrEngine.OpenGL
 {
     public class GlobalContent
     {
+        public IList<Light>? Lights;
 
-        public Light[]? Lights;
+        public long LightsVersion;
 
-        public long Version;
+        public long SceneVersion;
 
         public Scene? Scene;
 
@@ -77,7 +78,7 @@ namespace XrEngine.OpenGL
         protected GlSimpleProgram? _writeStencil;
         protected ShaderUpdate? _writeStencilUpdate;
         protected Dictionary<uint, Texture2D> _depthCache = [];
-        protected Rect2I _view;
+        protected Rect2I _lastView;
         protected GlState _glState;
         protected GRContext? _grContext;
 
@@ -103,17 +104,15 @@ namespace XrEngine.OpenGL
             _updateCtx = new UpdateShaderContext();
             _updateCtx.RenderEngine = this;
 
-
             ConfigureCaps();
         }
 
         public void Suspend()
         {
-
         }
+
         public void Resume()
         {
-
         }
 
         public void Clear(Color color)
@@ -130,9 +129,10 @@ namespace XrEngine.OpenGL
             if (_content == null)
                 _content = new GlobalContent();
 
-            _content.Lights = scene.VisibleDescendants<Light>().ToArray();
+            _content.Lights = new List<Light>();    
             _content.Scene = scene;
-            _content.Version = scene.Version;
+            _content.SceneVersion = scene.Version;
+            _content.LightsVersion = 0;
 
             _content.ShaderContents.Clear();
 
@@ -140,6 +140,13 @@ namespace XrEngine.OpenGL
 
             foreach (var obj3D in scene.VisibleDescendants<Object3D>())
             {
+                if (obj3D is Light light)
+                {
+                    _content.Lights.Add(light);
+                    _content.LightsVersion += light.Version;
+                    continue;
+                }
+           
                 if (!obj3D.Feature<IVertexSource>(out var vrtSrc))
                     continue;
 
@@ -182,8 +189,8 @@ namespace XrEngine.OpenGL
                 }
             }
 
-            _content.ShaderContentsOrder.Clear();
-            _content.ShaderContentsOrder.AddRange(_content.ShaderContents);
+            //_content.ShaderContentsOrder.Clear();
+            //_content.ShaderContentsOrder.AddRange(_content.ShaderContents);
         }
 
         public void EnableDebug()
@@ -276,23 +283,23 @@ namespace XrEngine.OpenGL
         {
             target.Begin();
       
-            if (!_view.Equals(view))
+            if (!_lastView.Equals(view))
             {
                 _gl.Viewport(view.X, view.Y, view.Width, view.Height);
 
-                _view = view;
+                _lastView = view;
             }
 
             Clear(camera.BackgroundColor);
 
             var targetHandler = target as IShaderHandler;
 
-            if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
+            if (_content == null || _content.Scene != scene || _content.SceneVersion != scene.Version)
                 BuildContent(scene);
 
             _updateCtx.Camera = camera;
             _updateCtx.Lights = _content.Lights;
-            _updateCtx.LightsVersion = _content.Version;
+            _updateCtx.LightsVersion = _content.LightsVersion;
 
             int skipCount = 0;
 
@@ -301,7 +308,6 @@ namespace XrEngine.OpenGL
                 var progGlobal = shader.Value!.ProgramGlobal;
 
                 progGlobal!.UpdateProgram(_updateCtx, _target as IShaderHandler);
-
 
                 foreach (var vertex in shader.Value.Contents)
                 {
@@ -355,12 +361,9 @@ namespace XrEngine.OpenGL
 
             _gl.UseProgram(0);
 
-            _gl.BindVertexArray(0);
-
             target.End();
 
             _gl.Finish();
-
         }
 
         public void SetRenderTarget(IGlRenderTarget target)
@@ -455,7 +458,6 @@ namespace XrEngine.OpenGL
                 {
                     return _gl.Context.GetProcAddress(name);
                 });
-
 #else
                 var grInterface = GRGlInterface.CreateOpenGl(name =>
                 {
@@ -482,8 +484,6 @@ namespace XrEngine.OpenGL
         }
 
         public GL GL => _gl;
-
-        public Rect2I View => _view;
 
         public IGlRenderTarget? RenderTarget => _target;
 

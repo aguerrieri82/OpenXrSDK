@@ -25,8 +25,7 @@ namespace XrEngine.OpenGL
             BaseLevel = 0;
             MaxLevel = 16;
             Target = TextureTarget.Texture2D;
-
-            _handle = _gl.GenTexture();
+            Create();
         }
 
         public GlTexture2D(GL gl, uint handle, uint sampleCount = 1)
@@ -36,6 +35,10 @@ namespace XrEngine.OpenGL
             Attach(handle);
         }
 
+        protected void Create()
+        {
+            _handle = _gl.GenTexture();
+        }
 
         public unsafe void Attach(uint handle)
         {
@@ -53,8 +56,15 @@ namespace XrEngine.OpenGL
             _gl.GetTexLevelParameter(Target, 0, GetTextureParameter.TextureHeight, out int h);
             _height = (uint)h;
 
-            _gl.GetTexLevelParameter(Target, 1, GetTextureParameter.TextureInternalFormat, out int intf);
-            _internalFormat = (InternalFormat)intf;
+            //NOTE: sometimes in level 0 sometimes 1, to investigate
+            for (var level = 0; level < 2; level++)
+            {
+                _gl.GetTexLevelParameter(Target, level, GetTextureParameter.TextureInternalFormat, out int intf);
+                if (intf != 0)
+                    break;
+                _internalFormat = (InternalFormat)intf;
+            }
+            //
 
             if (isMultiSample)
             {
@@ -97,19 +107,14 @@ namespace XrEngine.OpenGL
 
         public unsafe void Update(uint width, uint height, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null)
         {
-
             _width = width;
             _height = height;
 
             Bind();
 
-            InternalFormat internalFormat;
-            PixelFormat pixelFormat;
-            PixelType pixelType;
-
             if (compression == TextureCompressionFormat.Uncompressed)
             {
-                internalFormat = format switch
+                _internalFormat = format switch
                 {
                     TextureFormat.Depth32Float => InternalFormat.DepthComponent32,
                     TextureFormat.Depth24Float => InternalFormat.DepthComponent24,
@@ -126,63 +131,64 @@ namespace XrEngine.OpenGL
                     _ => throw new NotSupportedException(),
                 };
 
-                pixelFormat = format switch
-                {
-                    TextureFormat.Depth32Float or
-                    TextureFormat.Depth24Float => PixelFormat.DepthComponent,
-
-                    TextureFormat.Depth24Stencil8 => PixelFormat.DepthStencil,
-
-                    TextureFormat.SRgba32 or
-                    TextureFormat.Rgba32 => PixelFormat.Rgba,
-
-                    TextureFormat.SBgra32 or
-                    TextureFormat.Bgra32 => PixelFormat.Bgra,
-
-                    TextureFormat.Gray8 => PixelFormat.Red,
-
-                    _ => throw new NotSupportedException(),
-                };
-
-                pixelType = format switch
-                {
-                    TextureFormat.Depth32Float or
-                    TextureFormat.Depth24Float => PixelType.Float,
-
-                    TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
-
-                    TextureFormat.Rgba32 or
-                    TextureFormat.Bgra32 or
-                    TextureFormat.Gray8 or
-                    TextureFormat.SRgb24 or
-                    TextureFormat.SBgra32 or
-                    TextureFormat.SRgba32 => PixelType.UnsignedByte,
-
-                    _ => throw new NotSupportedException(),
-                };
-
+                
                 if (SampleCount > 1)
                 {
                     _gl.TexStorage2DMultisample(
                          Target,
                          SampleCount,
-                         (SizedInternalFormat)internalFormat,
+                         (SizedInternalFormat)_internalFormat,
                          width,
                          height,
                          true);
                 }
                 else
                 {
-                    if (pixelFormat == PixelFormat.DepthComponent)
+                    if (IsDepth)
                     {
                         _gl.TexStorage2D(Target,
                             1,
-                            (SizedInternalFormat)internalFormat,
+                            (SizedInternalFormat)_internalFormat,
                             width,
                             height);
                     }
                     else
                     {
+                        var pixelFormat = format switch
+                        {
+                            TextureFormat.Depth32Float or
+                            TextureFormat.Depth24Float => PixelFormat.DepthComponent,
+
+                            TextureFormat.Depth24Stencil8 => PixelFormat.DepthStencil,
+
+                            TextureFormat.SRgba32 or
+                            TextureFormat.Rgba32 => PixelFormat.Rgba,
+
+                            TextureFormat.SBgra32 or
+                            TextureFormat.Bgra32 => PixelFormat.Bgra,
+
+                            TextureFormat.Gray8 => PixelFormat.Red,
+
+                            _ => throw new NotSupportedException(),
+                        };
+
+                        var pixelType = format switch
+                        {
+                            TextureFormat.Depth32Float or
+                            TextureFormat.Depth24Float => PixelType.Float,
+
+                            TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
+
+                            TextureFormat.Rgba32 or
+                            TextureFormat.Bgra32 or
+                            TextureFormat.Gray8 or
+                            TextureFormat.SRgb24 or
+                            TextureFormat.SBgra32 or
+                            TextureFormat.SRgba32 => PixelType.UnsignedByte,
+
+                            _ => throw new NotSupportedException(),
+                        };
+
 
                         if (data != null && data.Count > 0)
                         {
@@ -190,11 +196,10 @@ namespace XrEngine.OpenGL
                             {
                                 fixed (byte* pData = level.Data)
                                 {
-
                                     _gl.TexImage2D(
                                         Target,
                                         (int)level.MipLevel,
-                                        internalFormat,
+                                        _internalFormat,
                                         level.Width,
                                         level.Height,
                                         0,
@@ -209,7 +214,7 @@ namespace XrEngine.OpenGL
                             _gl.TexImage2D(
                                 Target,
                                 0,
-                                internalFormat,
+                                _internalFormat,
                                 width,
                                 height,
                                 0,
@@ -224,7 +229,7 @@ namespace XrEngine.OpenGL
             {
                 if (compression == TextureCompressionFormat.Etc2)
                 {
-                    internalFormat = format switch
+                    _internalFormat = format switch
                     {
                         TextureFormat.Rgb24 => InternalFormat.CompressedRgb8Etc2,
                         TextureFormat.Rgba32 => InternalFormat.CompressedRgba8Etc2Eac,
@@ -235,7 +240,7 @@ namespace XrEngine.OpenGL
                 }
                 else if (compression == TextureCompressionFormat.Etc1)
                 {
-                    internalFormat = InternalFormat.Etc1Rgb8Oes;
+                    _internalFormat = InternalFormat.Etc1Rgb8Oes;
                 }
                 else
                     throw new NotSupportedException();
@@ -249,7 +254,7 @@ namespace XrEngine.OpenGL
                         _gl.CompressedTexImage2D(
                             Target,
                             (int)level.MipLevel,
-                            internalFormat,
+                            _internalFormat,
                             level.Width,
                             level.Height,
                             0,
@@ -260,8 +265,6 @@ namespace XrEngine.OpenGL
 
                 _isCompressed = true;
             }
-
-            _internalFormat = internalFormat;
 
             if (data != null)
             {

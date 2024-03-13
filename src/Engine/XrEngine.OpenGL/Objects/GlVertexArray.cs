@@ -16,14 +16,12 @@ namespace XrEngine.OpenGL
         protected readonly GlBuffer<TIndexType>? _iBuf;
         protected readonly DrawElementsType _drawType;
 
-
         public unsafe GlVertexArray(GL gl, TVertexType[] vertices, TIndexType[]? index, GlVertexLayout layout)
             : this(gl,
                   new GlBuffer<TVertexType>(gl, vertices.AsSpan(), BufferTargetARB.ArrayBuffer),
                   index == null || index.Length == 0 ? null : new GlBuffer<TIndexType>(gl, index.AsSpan(), BufferTargetARB.ElementArrayBuffer),
                   layout)
         {
-
         }
 
         public GlVertexArray(GL gl, GlBuffer<TVertexType> vBuf, GlBuffer<TIndexType>? iBuf, GlVertexLayout layout)
@@ -43,9 +41,7 @@ namespace XrEngine.OpenGL
             else
                 throw new NotSupportedException();
 
-
-            _handle = _gl.GenVertexArray();
-            GlDebug.Log($"GenVertexArray {_handle}");
+            Create();
 
             Bind();
 
@@ -58,20 +54,17 @@ namespace XrEngine.OpenGL
             Unbind();
         }
 
+        protected void Create()
+        {
+            _handle = _gl.GenVertexArray();
+        }
+
         public unsafe void Draw(PrimitiveType primitive = PrimitiveType.Triangles)
         {
-
             if (_iBuf != null)
-            {
                 _gl.DrawElements(primitive, _iBuf.Length, _drawType, null);
-                GlDebug.Log($"DrawElements Triangles {_iBuf.Length} {_drawType}");
-            }
-
             else
-            {
                 _gl.DrawArrays(primitive, 0, _vBuf.Length);
-                GlDebug.Log($"DrawArrays Triangles {_vBuf.Length}");
-            }
         }
 
         protected unsafe void Configure()
@@ -83,32 +76,35 @@ namespace XrEngine.OpenGL
             }
         }
 
+        public void Update(TVertexType[] vertices, TIndexType[]? indices = null)
+        {
+            _vBuf.Update(vertices);
+            _iBuf?.Update(indices);
+        }
+
         public void Bind()
         {
             _gl.BindVertexArray(_handle);
-            GlDebug.Log($"BindVertexArray {_handle}");
         }
 
         public void Unbind()
         {
             _gl.BindVertexArray(0);
-            GlDebug.Log($"BindVertexArray NULL");
         }
 
         public override void Dispose()
         {
-            _gl.DeleteVertexArray(_handle);
-            _handle = 0;
+            if (_handle != 0)
+            {
+                _gl.DeleteVertexArray(_handle);
+                _handle = 0;
+            }
             GC.SuppressFinalize(this);
         }
 
         public GlVertexLayout Layout => _layout;
 
-        internal void Update(TVertexType[] vertices, TIndexType[]? indices = null)
-        {
-            _vBuf.Update(vertices);
-            _iBuf?.Update(indices);
-        }
+        #region IGlVertexArray
 
         void IGlVertexArray.Update(object vertexSpan, object? indexSpan)
         {
@@ -118,6 +114,8 @@ namespace XrEngine.OpenGL
         Type IGlVertexArray.VertexType => typeof(TVertexType);
 
         Type IGlVertexArray.IndexType => typeof(TIndexType);
+
+        #endregion
 
     }
 }

@@ -41,9 +41,10 @@ namespace XrEngine.OpenGL
             .OrderBy(a => a.Ref!.Location)
             .ToArray();
 
-            var res = new GlVertexLayout();
-
-            res.Attributes = new GlVertexAttribute[infos.Length];
+            var res = new GlVertexLayout
+            {
+                Attributes = new GlVertexAttribute[infos.Length]
+            };
 
             uint curOfs = 0;
             for (var i = 0; i < infos.Length; i++)

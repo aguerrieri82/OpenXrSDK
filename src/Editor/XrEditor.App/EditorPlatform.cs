@@ -8,7 +8,7 @@ using XrEngine.OpenXr;
 
 namespace XrEditor
 {
-    public class EditorPlatform : IXrPlatform, IRenderSurfaceProvider
+    public class EditorPlatform : IXrEnginePlatform, IRenderSurfaceProvider
     {
         IRenderSurface? _renderSurface;
 

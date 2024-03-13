@@ -26,7 +26,7 @@ namespace XrEngine.OpenGL.Oculus
         {
         }
 
-        protected override GlFrameBuffer CreateFrameBuffer(uint colorTex, uint depthTex, uint sampleCount)
+        protected override GlBaseFrameBuffer CreateFrameBuffer(uint colorTex, uint depthTex, uint sampleCount)
         {
             return new GlMultiViewFrameBuffer(_gl, colorTex, depthTex, sampleCount);
         }

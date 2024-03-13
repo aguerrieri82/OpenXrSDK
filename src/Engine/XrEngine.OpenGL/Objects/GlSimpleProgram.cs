@@ -9,11 +9,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace XrEngine.OpenGL
 {
-    public partial class GlSimpleProgram : GlProgram
+    public partial class GlSimpleProgram : GlBaseProgram
     {
         readonly string _vSource;
         readonly string _fSource;
-
 
         public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string> resolver)
             : base(gl, resolver)

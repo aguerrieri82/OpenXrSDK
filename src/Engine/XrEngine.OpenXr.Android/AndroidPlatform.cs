@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace XrEngine.OpenXr.Android
 {
-    public class AndroidPlatform : IXrPlatform
+    public class AndroidPlatform : IXrEnginePlatform
     {
         readonly Context _context;
         VulkanDevice? _vkDevice;

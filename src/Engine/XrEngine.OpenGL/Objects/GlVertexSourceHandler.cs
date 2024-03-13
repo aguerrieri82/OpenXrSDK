@@ -48,7 +48,6 @@ namespace XrEngine.OpenGL
 
         public GlVertexSourceHandler(GL gl, IVertexSource<TVert, TInd> source)
         {
-
             var lKey = string.Concat(typeof(TVert).FullName, source.ActiveComponents);
 
             if (!_layouts.TryGetValue(lKey, out var layout))
@@ -95,10 +94,11 @@ namespace XrEngine.OpenGL
         public override void Dispose()
         {
             _vertices.Dispose();
+
             GC.SuppressFinalize(this);
         }
 
-        public override bool NeedUpdate => _source.Object.Version != Version;
+        public override bool NeedUpdate => _source.Object.Version != Version || Version == -1;
 
         public override GlVertexLayout Layout => _vertices.Layout;
     }

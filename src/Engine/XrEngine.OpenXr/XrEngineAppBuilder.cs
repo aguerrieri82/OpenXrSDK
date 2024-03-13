@@ -12,7 +12,7 @@ namespace XrEngine.OpenXr
         EngineApp? _app;
         readonly List<Action<IXrActionBuilder>> _inputs = [];
         Type? _inputProfile;
-        IXrPlatform? _platform;
+        IXrEnginePlatform? _platform;
 
         public XrEngineAppBuilder()
         {
@@ -23,14 +23,14 @@ namespace XrEngine.OpenXr
             _platform = Platform.Current;
         }
 
-        public XrEngineAppBuilder UsePlatform(IXrPlatform platform)
+        public XrEngineAppBuilder UsePlatform(IXrEnginePlatform platform)
         {
             _platform = platform;
             Platform.Current = _platform;
             return this;
         }
 
-        public XrEngineAppBuilder UsePlatform<T>() where T : IXrPlatform, new()
+        public XrEngineAppBuilder UsePlatform<T>() where T : IXrEnginePlatform, new()
         {
             return UsePlatform(new T());
         }

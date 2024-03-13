@@ -3,7 +3,7 @@ using OpenXr.Framework;
 
 namespace XrEngine.OpenXr
 {
-    public interface IXrPlatform
+    public interface IXrEnginePlatform
     {
         XrApp CreateXrApp(IXrGraphicDriver xrDriver);
 

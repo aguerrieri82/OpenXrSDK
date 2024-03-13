@@ -25,8 +25,10 @@ namespace XrEngine.OpenXr
 
         protected Group3D AddHead()
         {
-            var group = new Group3D();
-            group.Name = "Head";
+            var group = new Group3D
+            {
+                Name = "Head"
+            };
 
             group.AddBehavior((_, ctx) =>
             {
@@ -53,8 +55,10 @@ namespace XrEngine.OpenXr
         {
             var input = _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path);
 
-            var group = new Group3D();
-            group.Name = name;
+            var group = new Group3D
+            {
+                Name = name
+            };
 
             if (input != null)
             {
@@ -86,7 +90,6 @@ namespace XrEngine.OpenXr
                     model.Transform.SetMatrix(Matrix4x4.Identity);
                     model.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
                     model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
-                    model.Transform.SetScale(1.1f);
                     model.Name = "Controller";
                     group.AddChild(model);
                 }

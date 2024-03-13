@@ -19,7 +19,6 @@ namespace XrEngine.OpenGL
         public void Begin()
         {
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-            //_gl.DrawBuffer(DrawBufferMode.Back);
         }
 
         public void Dispose()

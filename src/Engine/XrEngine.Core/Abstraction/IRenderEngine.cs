@@ -13,7 +13,5 @@ namespace XrEngine
         void Resume();
 
         Texture2D? GetDepth();
-
-        Rect2I View { get; }
     }
 }

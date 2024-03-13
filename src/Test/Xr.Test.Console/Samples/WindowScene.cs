@@ -21,7 +21,7 @@ namespace OpenXr.Samples
 {
     public static class WindowSceneApp
     {
-        class ConsolePlatform : IXrPlatform
+        class ConsolePlatform : IXrEnginePlatform
         {
             public IAssetManager AssetManager { get; } = new LocalAssetManager("Assets");
 

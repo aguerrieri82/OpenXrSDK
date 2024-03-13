@@ -27,9 +27,9 @@ namespace XrEngine.OpenXr
         private XrApp? _xrApp;
         private EngineApp? _app;
         private readonly XrEngineAppOptions _options;
-        private readonly IXrPlatform _platform;
+        private readonly IXrEnginePlatform _platform;
 
-        public XrEngineApp(XrEngineAppOptions options, IXrPlatform platform)
+        public XrEngineApp(XrEngineAppOptions options, IXrEnginePlatform platform)
         {
             _options = options;
             _platform = platform;
