@@ -1,16 +1,14 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 #else
-using Silk.NET.Core.Contexts;
 using Silk.NET.OpenGL;
-using SkiaSharp;
-
 #endif
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using XrMath;
+using SkiaSharp;
 
 
 namespace XrEngine.OpenGL
@@ -45,8 +43,6 @@ namespace XrEngine.OpenGL
         public VertexComponent ActiveComponents;
 
         public readonly List<DrawContent> Contents = [];
-
-        public long Version;
     }
 
     public class DrawContent
@@ -60,17 +56,16 @@ namespace XrEngine.OpenGL
         public GlProgramInstance? ProgramInstance;
     }
 
-
     public class OpenGLRender : IRenderEngine, ISurfaceProvider
     {
         protected struct GlState
         {
-            public bool WriteDepth;
-            public bool UseDepth;
-            public bool DoubleSided;
-            public bool WriteColor;
-            public uint ActiveProgram;
-            public AlphaMode Alpha;
+            public bool? WriteDepth;
+            public bool? UseDepth;
+            public bool? DoubleSided;
+            public bool? WriteColor;
+            public uint? ActiveProgram;
+            public AlphaMode? Alpha;
         }
 
         protected GL _gl;
@@ -108,9 +103,8 @@ namespace XrEngine.OpenGL
             _updateCtx = new UpdateShaderContext();
             _updateCtx.RenderEngine = this;
 
-            _gl.FrontFace(FrontFaceDirection.Ccw);
-            _gl.CullFace(TriangleFace.Back);
-            _gl.LineWidth(1);
+
+            ConfigureCaps();
         }
 
         public void Suspend()
@@ -168,7 +162,6 @@ namespace XrEngine.OpenGL
                     {
                         vertexContent = new VertexContent
                         {
-                            Version = obj3D.Version,
                             VertexHandler = vrtSrc.Object.GetResource(a => GlVertexSourceHandle.Create(_gl, vrtSrc)),
                             ActiveComponents = VertexComponent.None
                         };
@@ -225,6 +218,17 @@ namespace XrEngine.OpenGL
                 _gl.Disable(cap);
         }
 
+        protected void ConfigureCaps()
+        {
+            _gl.FrontFace(FrontFaceDirection.Ccw);
+            _gl.CullFace(TriangleFace.Back);
+            _gl.Enable(EnableCap.FramebufferSrgb);
+            _gl.Enable(EnableCap.Dither);
+            _gl.Enable(EnableCap.Multisample);
+            _gl.Disable(EnableCap.ScissorTest);
+            _gl.LineWidth(1);
+        }
+
         protected void ConfigureCaps(ShaderMaterial material)
         {
             if (_glState.WriteDepth != material.WriteDepth)
@@ -241,7 +245,7 @@ namespace XrEngine.OpenGL
 
             if (_glState.DoubleSided != material.DoubleSided)
             {
-                EnableFeature(EnableCap.CullFace, material.DoubleSided);
+                EnableFeature(EnableCap.CullFace, !material.DoubleSided);
                 _glState.DoubleSided = material.DoubleSided;
             }
 
@@ -255,10 +259,11 @@ namespace XrEngine.OpenGL
                 _glState.WriteColor = material.WriteColor;
             }
 
-            if (material.Alpha == AlphaMode.Blend)
-                _gl.Enable(EnableCap.Blend);
-            else
-                _gl.Disable(EnableCap.Blend);
+            if (_glState.Alpha != material.Alpha)
+            {
+                EnableFeature(EnableCap.Blend, material.Alpha == AlphaMode.Blend);
+                _glState.Alpha = material.Alpha;
+            }
         }
 
         public void Render(Scene scene, Camera camera, Rect2I view, bool flush)
@@ -270,15 +275,15 @@ namespace XrEngine.OpenGL
         public void Render(Scene scene, Camera camera, Rect2I view, IGlRenderTarget target)
         {
             target.Begin();
-
-            Clear(camera.BackgroundColor);
-
+      
             if (!_view.Equals(view))
             {
                 _gl.Viewport(view.X, view.Y, view.Width, view.Height);
 
                 _view = view;
             }
+
+            Clear(camera.BackgroundColor);
 
             var targetHandler = target as IShaderHandler;
 
@@ -297,6 +302,7 @@ namespace XrEngine.OpenGL
 
                 progGlobal!.UpdateProgram(_updateCtx, _target as IShaderHandler);
 
+
                 foreach (var vertex in shader.Value.Contents)
                 {
                     var vHandler = vertex.Value.VertexHandler!;
@@ -310,11 +316,8 @@ namespace XrEngine.OpenGL
                         }
                     }
 
-                    if (vertex.Key.Version != vertex.Value.Version)
-                    {
+                    if (vHandler.NeedUpdate)
                         vHandler.Update();
-                        vertex.Value.Version = vertex.Key.Version;
-                    }
 
                     _updateCtx.ActiveComponents = vertex.Value.ActiveComponents;
 
@@ -330,29 +333,34 @@ namespace XrEngine.OpenGL
 
                         progInst.UpdateProgram(_updateCtx);
 
+                        bool updateGlobals = false;
+
                         if (_glState.ActiveProgram != progInst.Program!.Handle)
                         {
                             progInst.Program!.Use();
                             _glState.ActiveProgram = progInst.Program!.Handle;
+                            updateGlobals = true;
                         }
 
-                        progInst.UpdateUniforms(_updateCtx);
+                        progInst.UpdateUniforms(_updateCtx, updateGlobals);
 
                         draw.Draw!();
                     }
 
                     vHandler.Unbind();
-
                 }
             }
 
-            _glState.ActiveProgram = 0;
+            _glState.ActiveProgram = null;
 
             _gl.UseProgram(0);
 
             _gl.BindVertexArray(0);
 
             target.End();
+
+            _gl.Finish();
+
         }
 
         public void SetRenderTarget(IGlRenderTarget target)
@@ -397,6 +405,39 @@ namespace XrEngine.OpenGL
         {
         }
 
+        public void BeginDrawSurface()
+        {
+            var fence = _gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, SyncBehaviorFlags.None);
+            _gl.WaitSync(fence, SyncBehaviorFlags.None, unchecked((ulong)-1));
+            _grContext!.ResetContext(GRGlBackendState.All);
+        }
+
+        public void EndDrawSurface()
+        {
+            _grContext!.Submit(true);
+
+            _glState = new GlState();
+
+            _gl.BindVertexArray(0);
+            _gl.UseProgram(0);
+
+            _gl.Disable(EnableCap.Blend);
+            _gl.ActiveTexture(TextureUnit.Texture0);
+            _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
+            _gl.BindSampler(0, 0);
+            
+            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
+            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
+            _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
+            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
+            
+            _gl.Disable(EnableCap.ProgramPointSize);
+
+            ConfigureCaps();
+        }
+
         public SKSurface CreateSurface(Texture2D texture, nint handle = 0)
         {
             var glTexture = texture.GetResource(a =>
@@ -409,16 +450,26 @@ namespace XrEngine.OpenGL
 
             if (_grContext == null)
             {
+#if GLES
+                var grInterface = GRGlInterface.CreateGles(name =>
+                {
+                    return _gl.Context.GetProcAddress(name);
+                });
+
+#else
                 var grInterface = GRGlInterface.CreateOpenGl(name =>
                 {
                     return _gl.Context.GetProcAddress(name);
                 });
 
+                #endif
+
                 _grContext = GRContext.CreateGl(grInterface);
             }
 
             var format = glTexture.InternalFormat;
-            if (format == InternalFormat.Rgba)
+
+            if (format == InternalFormat.Rgba || format == 0)
                 format = InternalFormat.Rgba8;
 
             var gerTextInfo = new GRGlTextureInfo((uint)glTexture.Target, glTexture.Handle, (uint)format); 

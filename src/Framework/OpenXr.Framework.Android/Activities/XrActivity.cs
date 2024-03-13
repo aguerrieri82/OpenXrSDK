@@ -10,10 +10,16 @@ namespace OpenXr.Framework.Android
         private XrApp? _xrApp;
         private bool _isExited;
         private readonly Handler _handler;
+        protected string[] _permissions;
 
         public XrActivity()
         {
             _handler = new Handler(Looper.MainLooper!);
+            _permissions = [
+                "com.oculus.permission.USE_SCENE",
+                "android.permission.WRITE_EXTERNAL_STORAGE",
+                "android.permission.READ_EXTERNAL_STORAGE"
+                ];
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)
@@ -67,17 +73,22 @@ namespace OpenXr.Framework.Android
 
         private void CheckPermissionsAndRun()
         {
-            var perm = "com.oculus.permission.USE_SCENE";
+  
+            var toAsk = new List<string>();
 
-            if (CheckSelfPermission(perm) != Permission.Granted)
-                RequestPermissions([perm], 1);
+            foreach (var permission in _permissions)
+                if (CheckSelfPermission(permission) != Permission.Granted)
+                    toAsk.Add(permission);
+
+            if (toAsk.Count > 0)
+                RequestPermissions([.. toAsk], 1);
             else
                 RunAppThread();
         }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)
         {
-            if (requestCode == 1 && grantResults[0] == Permission.Granted)
+            if (requestCode == 1 && grantResults.All(a => a == Permission.Granted))
                 RunAppThread();
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);

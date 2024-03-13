@@ -8,6 +8,7 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
+    [Obsolete]
     public class GlMultiSampleRenderTarget : IGlRenderTarget
     {
         static readonly Dictionary<uint, GlMultiSampleRenderTarget> _targets = [];
@@ -15,7 +16,6 @@ namespace XrEngine.OpenGL
         private readonly GlTextureFrameBuffer _destFrameBuffer;
         private readonly GlTextureFrameBuffer _renderFrameBuffer;
         private readonly GL _gl;
-
 
         GlMultiSampleRenderTarget(GL gl, uint destColorTex, uint destDepthTex, uint sampleCount)
         {
@@ -50,7 +50,6 @@ namespace XrEngine.OpenGL
 
         public void Begin()
         {
-            _gl.Enable(EnableCap.Multisample);
             _renderFrameBuffer.BindDraw();
         }
 

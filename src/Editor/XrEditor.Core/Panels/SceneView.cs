@@ -47,12 +47,11 @@ namespace XrEditor
             _renderSurface.Ready += OnSurfaceReady;
         }
 
-
         protected void CreateApp()
         {
             _engine = new XrEngineAppBuilder()
-              .SetRenderQuality(1, 1) ///samples > 1 cause Filament to fuck up
-              .CreatePingPong()
+              .SetRenderQuality(1, 4) ///samples > 1 cause Filament to fuck up
+              .CreateSponza()
               .ConfigureSampleApp()
               .Build();
 

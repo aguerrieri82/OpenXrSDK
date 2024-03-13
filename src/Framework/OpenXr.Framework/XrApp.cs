@@ -231,7 +231,6 @@ namespace OpenXr.Framework
             PluginInvoke(p => p.OnSessionEnd());
 
             _logger.LogInformation("Stopped");
-
         }
 
         #endregion
@@ -1329,6 +1328,8 @@ namespace OpenXr.Framework
             _state = XrAppState.Disposed;
 
             Current = null;
+
+            GC.SuppressFinalize(this);
         }
 
         protected internal XrViewInfo? ViewInfo => _viewInfo;

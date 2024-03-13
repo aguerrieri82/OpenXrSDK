@@ -42,10 +42,14 @@ namespace Xr.Test
             collider.Radius = 1;
 
             var rigidBody = ball.AddComponent<RigidBody>();
+
             rigidBody.Type = PhysicsActorType.Dynamic;
+            rigidBody.Density = 100;
+            rigidBody.EnableCCD = true;
+
             rigidBody.Material = new PhysicsMaterialInfo
             {
-                Restitution = 0.5f,
+                Restitution = 0.7f,
                 StaticFriction = 0.8f,
                 DynamicFriction = 0.8f
             };

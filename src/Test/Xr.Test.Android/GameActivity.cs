@@ -1,6 +1,7 @@
 using Android.Content;
 using Android.Content.PM;
 using Android.Webkit;
+using Microsoft.DotNet.PlatformAbstractions;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Oculus;
@@ -47,6 +48,8 @@ namespace Xr.Test.Android
 
         protected override void Build(XrEngineAppBuilder builder)
         {
+           
+
             builder.UseOpenGL()
                    //.UseStereo()
                    .UseMultiView()

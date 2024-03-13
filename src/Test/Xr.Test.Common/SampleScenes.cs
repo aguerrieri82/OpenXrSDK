@@ -2,8 +2,6 @@
 using OpenXr.Framework.Oculus;
 using PhysX;
 using PhysX.Framework;
-using Silk.NET.OpenXR;
-using System.Diagnostics;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
@@ -14,7 +12,6 @@ using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.UI;
 using XrMath;
-using static SkiaSharp.SKPath;
 
 
 namespace Xr.Test
@@ -75,22 +72,40 @@ namespace Xr.Test
             return app;
         }
 
-        static Panel3D CreateDebugPanel(XrApp xrApp)
+        public static XrEngineAppBuilder AddDebugPanel(this XrEngineAppBuilder builder)
         {
             var panel = new Panel3D();
             
             panel.SetInches(19, 16f / 9f);
             panel.DpiScale = 3;
+            panel.Materials[0].UseDepth = false;
+            panel.Materials[0].WriteDepth = false;
 
-            panel.Panel = new DebugPanel();
+            var debug = new DebugPanel();
+
+            panel.Panel = debug;
 
             panel.WorldPosition = new Vector3(0, 1, -2);
 
-            panel.AddComponent(new FollowCamera() { Offset = new Vector3(0, 0, -1) });
+            panel.AddComponent(new FollowCamera() { Offset = new Vector3(0f, -0.1f, -0.6f) });
 
-            panel.CreateOverlay(xrApp);
+            var lastTime = 0;
 
-            return panel;
+            panel.AddBehavior((me, ctx) =>
+            {
+                var time = (int)ctx.Time;
+                //if (time % 0.5 == 0 && time != lastTime)
+                {
+                    debug.Text1.Text = ctx.Time.ToString();
+                    lastTime = time;
+                }
+            });
+
+            return builder.ConfigureApp(e =>
+            {
+                e.App.ActiveScene!.AddChild(panel);
+                //panel.CreateOverlay(e.XrApp);
+            });
         }
 
         public static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder)
@@ -169,7 +184,9 @@ namespace Xr.Test
             //Rigid body
             var rigidBody = mesh.AddComponent<RigidBody>();
             rigidBody.Type = PhysicsActorType.Kinematic;
-            rigidBody.Tolerance = 100; //1cm
+            //rigidBody.Tolerance = 1; //1cm
+            rigidBody.EnableCCD = true;
+
             rigidBody.Material = new PhysicsMaterialInfo
             {
                 Restitution = 0.8f,
@@ -195,11 +212,11 @@ namespace Xr.Test
             //Setup camera
             scene.PerspectiveCamera().Target = mesh.Transform.Position;
 
-            return  builder
+            return builder
                    .UseApp(app)
                    .UseScene(true)
-                   .UsePhysics()
-                   .ConfigureApp(engine => scene.AddChild(CreateDebugPanel(engine.XrApp)));
+                   .UsePhysics();
+                   //.AddDebugPanel();
         }
 
 

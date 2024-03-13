@@ -29,10 +29,12 @@
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
-            bld.SetUniform("uTexture0", (ctx) => Texture!, 0);
+            bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
 
-            StandardVertexShaderHandler.Instance.UpdateShader(bld);
+            bld.SetUniform("uTexture0", (ctx) => Texture!, 0);
         }
+
+        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
         public Texture2D? Texture { get; set; }
     }

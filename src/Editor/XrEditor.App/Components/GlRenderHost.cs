@@ -196,6 +196,8 @@ namespace XrEditor
 
             TakeContext();
 
+            EnableVSync(false);
+
             var pointer = GetProcAddress("wglCreateContextAttribsARB");
             wglCreateContextAttribsARB = Marshal.GetDelegateForFunctionPointer<wglCreateContextAttribsARBPtr>(pointer);
 

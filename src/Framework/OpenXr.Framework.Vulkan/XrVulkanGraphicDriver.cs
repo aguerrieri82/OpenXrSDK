@@ -15,7 +15,7 @@ namespace OpenXr.Framework.Vulkan
 
         protected Format[] _validFormats = [
             Format.R8G8B8A8Srgb,
-            Format.R8G8B8A8SNorm];
+            Format.R8G8B8A8Unorm];
 
 
         public XrVulkanGraphicDriver(IVulkanDevice device)

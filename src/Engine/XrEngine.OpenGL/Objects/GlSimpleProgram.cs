@@ -31,10 +31,21 @@ namespace XrEngine.OpenGL
 
             vSource = ShaderPreprocessor.ParseShader(vSource);
 
-            Vertex = new GlShader(_gl, ShaderType.VertexShader, vSource);
-            Fragment = new GlShader(_gl, ShaderType.FragmentShader, fSource);
+            Vertex = GlShader.GetOrCreate(_gl, ShaderType.VertexShader, vSource);
+            Fragment = GlShader.GetOrCreate(_gl, ShaderType.FragmentShader, fSource);
 
             Create(Vertex, Fragment);
+        }
+
+        public override void Dispose()
+        {
+            Vertex?.Dispose(); 
+            Fragment?.Dispose();
+
+            Vertex = null;
+            Fragment = null;
+
+            base.Dispose();
         }
 
         public GlShader? Vertex { get; set; }

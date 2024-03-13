@@ -19,7 +19,9 @@
 		<DebugSymbols>True</DebugSymbols>
 		<AndroidLinkTool>r8</AndroidLinkTool>
 		<AndroidEnableProfiledAot>True</AndroidEnableProfiledAot>
+		<AndroidPackageFormat>apk</AndroidPackageFormat>
 	</PropertyGroup>
+
 
 	<ItemGroup>
 		<AndroidAsset Include="../Xr.Test.Common/Assets/**/*" Link="Assets/%(RecursiveDir)/%(Filename)%(Extension)" />
@@ -29,7 +31,7 @@
 
 	<ItemGroup>
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../third-party/MagicPhysX/src/MagicPhysX/runtimes/android-arm64/native/*" />
-		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../third-party/MagicPhysX/src/libmagicphysx/target/aarch64-linux-android/release/libphysxnative.so"  />
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../third-party/MagicPhysX/src/libmagicphysx/target/aarch64-linux-android/release/libphysxnative.so" />
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../Framework/OpenXr.Framework/runtimes/android-arm64/native/*" />
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../Framework/OpenAl.Framework/runtimes/android-arm64/native/*" />
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../Engine/Filament.Native/libs/arm64-v8a/*" />

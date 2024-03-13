@@ -32,10 +32,33 @@ namespace OpenXr.Framework
 
         public override void Destroy()
         {
-            if (_header->Views != null)
+            if (_header != null && _header->Views != null)
             {
+                var viewCount = _xrApp?.ViewInfo!.ViewCount;
+
+                for (var i = 0; i < _header->ViewCount; i++)
+                {
+                    if (_header->Views[i].Next != null)
+                        Marshal.FreeHGlobal(new nint(_header->Views[i].Next));
+                }
+
                 Marshal.FreeHGlobal(new nint(_header->Views));
+
                 _header->Views = null;
+            }
+
+            if (_swapchains != null)
+            {
+                foreach (var item in _swapchains)
+                {
+                    _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.ColorSwapchain), "DestroySwapchain");
+                    _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.DepthSwapchain), "DestroySwapchain");
+
+                    item.ColorImages?.Dispose();
+                    item.DepthImages?.Dispose();
+                }
+
+                _swapchains = null;
             }
         }
 
@@ -170,40 +193,6 @@ namespace OpenXr.Framework
             return true;
         }
 
-
-        public override void Dispose()
-        {
-            if (_swapchains != null)
-            {
-                foreach (var item in _swapchains)
-                {
-                    _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.ColorSwapchain), "DestroySwapchain");
-                    _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.DepthSwapchain), "DestroySwapchain");
-
-                    item.ColorImages?.Dispose();
-                    item.DepthImages?.Dispose();
-                }
-
-                _swapchains = null;
-            }
-
-            if (_header != null && _header->Views != null)
-            {
-                var viewCount = _xrApp?.ViewInfo!.ViewCount;
-
-                for (var i = 0; i < _header->ViewCount; i++)
-                {
-                    if (_header->Views[i].Next != null)
-                        Marshal.FreeHGlobal(new nint(_header->Views[i].Next));
-                }
-
-                Marshal.FreeHGlobal(new nint(_header->Views));
-
-                _header->Views = null;
-            }
-
-            base.Dispose();
-        }
 
         public IEnumerable<Swapchain> ColorSwapChains => _swapchains?.Select(a => a.ColorSwapchain) ?? [];
 

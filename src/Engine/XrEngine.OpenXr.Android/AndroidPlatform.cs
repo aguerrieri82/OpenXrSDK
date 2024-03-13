@@ -13,6 +13,7 @@ using XrEngine.OpenGL;
 using OpenXr.Framework.Oculus;
 using Microsoft.Extensions.Logging;
 
+
 namespace XrEngine.OpenXr.Android
 {
     public class AndroidPlatform : IXrPlatform
@@ -23,6 +24,7 @@ namespace XrEngine.OpenXr.Android
         public AndroidPlatform(Context context)
         {
             AssetManager = new AndroidAssetManager(context, "Assets");
+          //  AssetManager = new LocalAssetManager(Path.Join(extPath, "Assets"));
             Logger = new AndroidLogger("XrApp");
             _context = context;
         }
@@ -46,7 +48,7 @@ namespace XrEngine.OpenXr.Android
                     MaterialCachePath = _context.GetExternalCacheDirs()![0].AbsolutePath,
                     EnableStereo = options.RenderMode != XrRenderMode.SingleEye,
                     OneViewPerTarget = true,
-                    SampleCount = 4
+                    SampleCount = options.SampleCount
                 };
 
                 if (filamentOptions.Driver == FilamentLib.FlBackend.Vulkan)
@@ -91,6 +93,7 @@ namespace XrEngine.OpenXr.Android
                 renderEngine = new OpenGLRender(glDriver.GetApi<GL>(), new GlRenderOptions
                 {
                     RequireTextureCompression = true,
+
                 });
 
                 xrDriver = glDriver;

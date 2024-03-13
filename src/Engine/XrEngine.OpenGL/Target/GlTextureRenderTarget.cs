@@ -34,11 +34,6 @@ namespace XrEngine.OpenGL
 
         public void Begin()
         {
-            if (_sampleCount == 1)
-                _gl.Disable(EnableCap.Multisample);
-            else
-                _gl.Enable(EnableCap.Multisample);
-
             _frameBuffer.BindDraw();
         }
 

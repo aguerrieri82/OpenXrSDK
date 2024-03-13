@@ -22,17 +22,18 @@ namespace XrEngine
 
             Vertices = VertexData.FromPosNormalUV(
             [
-               -halfSize.X,  halfSize.Y,  0f, 0f, 0f, 1f,  0f, 0f,
-                halfSize.X, halfSize.Y,   0f, 0f, 0f, 1f,  1f, 0f,
-                halfSize.X, -halfSize.Y,  0f, 0f, 0f, 1f,  1f, 1f,
-                -halfSize.X, -halfSize.Y, 0f, 0f, 0f, 1f,  0f, 1f,
+               -halfSize.X,  halfSize.Y,  0f, 0f, 0f, 1f,  0f, 1f,
+                halfSize.X, halfSize.Y,   0f, 0f, 0f, 1f,  1f, 1f,
+                halfSize.X, -halfSize.Y,  0f, 0f, 0f, 1f,  1f, 0f,
+                -halfSize.X, -halfSize.Y, 0f, 0f, 0f, 1f,  0f, 0f,
              ]);
 
             Indices =
             [
-                0,1,2,
-                0,2,3,
+                2,1,0,
+                3,2,0,
             ];
+
 
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0;
         }

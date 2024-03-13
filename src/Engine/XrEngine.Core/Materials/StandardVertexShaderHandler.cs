@@ -6,12 +6,15 @@ namespace XrEngine
     {
         public void UpdateShader(ShaderUpdateBuilder bld)
         {
-            if (bld.Context.Camera != null)
+            bld.ExecuteAction((ctx, up) =>
             {
-                bld.SetUniform("uView", (ctx) => ctx.Camera!.View);
-                bld.SetUniform("uProjection", (ctx) => ctx.Camera!.Projection);
-                bld.SetUniform("uViewPos", (ctx) => ctx.Camera!.Transform.Position, true);
-            }
+                var camera = ctx.Camera!;
+
+                up.SetUniform("uView", camera.View);
+                up.SetUniform("uProjection", camera.Projection);
+                up.SetUniform("uViewPos", camera.Transform.Position, true);
+            });
+
 
             foreach (var light in bld.Context.Lights!)
             {
@@ -25,9 +28,6 @@ namespace XrEngine
                     bld.SetUniform("light.specular", (ctx) => (Vector3)point.Specular);
                 }
             }
-
-            if (bld.Context.Model != null)
-                bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
         }
 
         public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)

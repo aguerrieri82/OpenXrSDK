@@ -86,11 +86,6 @@ namespace OpenXr.Framework.Oculus
             _isStarted = false;
         }
 
-        public override void Dispose()
-        {
-            base.Dispose();
-        }
-
         public override void Destroy()
         {
             if (_passthrough != null)

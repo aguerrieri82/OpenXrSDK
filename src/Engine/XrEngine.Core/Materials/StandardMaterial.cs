@@ -25,22 +25,27 @@ namespace XrEngine
             Shader = SHADER;
         }
 
-
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
+ 
             if (DiffuseTexture != null)
             {
                 bld.AddFeature("TEXTURE");
                 bld.SetUniform("uTexture0", (ctx) => DiffuseTexture, 0);
             }
 
-            bld.SetUniform("material.ambient", (ctx) => (Vector3)Ambient);
-            bld.SetUniform("material.diffuse", (ctx) => (Vector3)Color);
-            bld.SetUniform("material.specular", (ctx) => (Vector3)Specular);
-            bld.SetUniform("material.shininess", (ctx) => Shininess);
+            bld.ExecuteAction((ctx, up) =>
+            {
+                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
+                up.SetUniform("material.ambient", (Vector3)Ambient);
+                up.SetUniform("material.diffuse", (Vector3)Color);
+                up.SetUniform("material.specular", (Vector3)Specular);
+                up.SetUniform("material.shininess", Shininess);
+            });
 
-            StandardVertexShaderHandler.Instance.UpdateShader(bld);
         }
+
+        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
         public Texture2D? DiffuseTexture { get; set; }
 

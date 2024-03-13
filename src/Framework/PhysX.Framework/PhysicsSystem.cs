@@ -192,7 +192,7 @@ namespace PhysX.Framework
         {
             var shape = _physics->CreateShapeMut(info.Geometry!, info.Material!, info.IsEsclusive, info.Flags);
             var result = new PhysicsShape(shape, info.Geometry!, this);
-            result.ContactOffset = 0.01f;
+            result.ContactOffset = 0.1f;
             _objects[new nint(shape)] = result;
             return result;
         }
@@ -333,6 +333,7 @@ namespace PhysX.Framework
             sceneDesc.solverType = PxSolverType.Pgs;
             sceneDesc.contactModifyCallback = _contactModify.Handle;
             sceneDesc.simulationEventCallback = _eventCallbacks.Handle;
+            sceneDesc.flags = PxSceneFlags.EnableCcd | PxSceneFlags.EnablePcm | PxSceneFlags.EnableEnhancedDeterminism;
             sceneDesc.EnableCustomFilterShader(&FilterShader, 1);
 
             _scene = _physics->CreateSceneMut(&sceneDesc);
@@ -359,7 +360,11 @@ namespace PhysX.Framework
 
             if (actor1.NotifyContacts || actor2.NotifyContacts)
                 info->pairFlags[0] |=
-                    PxPairFlags.NotifyTouchFound;
+                    PxPairFlags.SolveContact |
+                    PxPairFlags.NotifyTouchFound | 
+                    PxPairFlags.DetectCcdContact |
+                    PxPairFlags.DetectDiscreteContact |
+                    PxPairFlags.NotifyTouchCcd;
             //PxPairFlags.NotifyContactPoints |
             //PxPairFlags.PostSolverVelocity |
             //PxPairFlags.PreSolverVelocity |
@@ -394,7 +399,7 @@ namespace PhysX.Framework
 
             _tolerancesScale = new PxTolerancesScale
             {
-                length = 10,
+                length = 1f,
                 speed = 4
             };
 

@@ -79,10 +79,10 @@ namespace XrEngine.OpenXr
 
                 mesh.AddComponent(new MeshCollider());
 
-                var rb = mesh.AddComponent<RigidBody>();
+                var rigidBody = mesh.AddComponent<RigidBody>();
 
-                rb.Type = PhysicsActorType.Static;
-                rb.Material = new PhysicsMaterialInfo
+                rigidBody.Type = PhysicsActorType.Static;
+                rigidBody.Material = new PhysicsMaterialInfo
                 {
                     DynamicFriction = 1,
                     StaticFriction = 1,

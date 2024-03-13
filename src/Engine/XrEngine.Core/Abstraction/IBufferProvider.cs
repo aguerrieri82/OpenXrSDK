@@ -2,6 +2,6 @@
 {
     public interface IBufferProvider
     {
-        IBuffer GetBuffer<T>(string name, T data, bool isGlobal);
+        IBuffer GetBuffer<T>(string name, bool isGlobal);
     }
 }

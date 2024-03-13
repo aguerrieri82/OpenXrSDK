@@ -44,6 +44,8 @@ namespace XrEngine
 
         public IBufferProvider? BufferProvider;
 
+        public IBuffer? CurrentBuffer;
+
         public long LightsVersion;
     }
 
@@ -83,24 +85,34 @@ namespace XrEngine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void SetUniformBuffer<T>(string name, UpdateAction<T> value, bool isGlobal, bool optional = false) where T : notnull
+        public readonly void SetUniformBuffer<T>(string name, UpdateAction<T> value, bool isGlobal, bool optional = false)
         {
             Log(name, value);
 
             _result.BufferUpdates!.Add((ctx) =>
             {
+                var buffer = ctx.BufferProvider!.GetBuffer<T>(name, isGlobal);
+
+                ctx.CurrentBuffer = buffer;
+
                 var curValue = value(ctx);
-                ctx.BufferProvider!.GetBuffer(name, curValue, isGlobal)
-                    .Update(curValue);
+
+                if (curValue != null)
+                    buffer.Update(curValue);
+
+                ctx.CurrentBuffer = null;
             });
 
             _result.Actions!.Add((ctx, up) =>
             {
-
-                var curValue = value(ctx);
-                var buffer = ctx.BufferProvider!.GetBuffer(name, curValue, isGlobal);
+                var buffer = ctx.BufferProvider!.GetBuffer<T>(name, isGlobal);
                 up.SetUniform(name, buffer, optional);
             });
+        }
+
+        public readonly void ExecuteAction(UpdateUniformAction action)
+        {
+            _result.Actions!.Add(action);
         }
 
         public readonly void SetUniform(string name, UpdateAction<float> value, bool optional = false)
