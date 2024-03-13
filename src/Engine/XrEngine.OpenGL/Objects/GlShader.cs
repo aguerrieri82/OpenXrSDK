@@ -1,11 +1,11 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-
 #else
 using Silk.NET.OpenGL;
+#endif
+
 using System.Security.Cryptography;
 using System.Text;
-#endif
 
 
 namespace XrEngine.OpenGL
@@ -19,7 +19,7 @@ namespace XrEngine.OpenGL
         public GlShader(GL gl)
             : base(gl)
         {
-            Source = "";
+            Source = string.Empty;
             _refCount++;
         }
 
@@ -49,7 +49,6 @@ namespace XrEngine.OpenGL
 
             if (!string.IsNullOrWhiteSpace(infoLog))
                 throw new Exception($"Error compiling shader of type {Type}, failed with error {infoLog}");
-
         }
 
         public override void Dispose()

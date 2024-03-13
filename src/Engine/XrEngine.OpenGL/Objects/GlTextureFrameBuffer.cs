@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace XrEngine.OpenGL
 {
-    public class GlTextureFrameBuffer : GlFrameBuffer
+    public class GlTextureFrameBuffer : GlBaseFrameBuffer
     {
         public GlTextureFrameBuffer(GL gl, GlTexture2D color, GlTexture2D? depth)
             : base(gl)

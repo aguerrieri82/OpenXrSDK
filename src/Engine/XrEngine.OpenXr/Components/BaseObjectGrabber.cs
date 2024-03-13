@@ -15,7 +15,6 @@ namespace XrEngine.OpenXr
 
     public abstract class BaseObjectGrabber<T> : Behavior<T> where T : Object3D
     {
-
         private Object3D? _grabObject;
         private IGrabbable? _grabbable;
         private readonly XrHaptic? _vibrate;
@@ -40,6 +39,7 @@ namespace XrEngine.OpenXr
 
         protected abstract ObjectGrab IsGrabbing();
 
+        //TODO: instance object are not included
         protected Object3D? FindGrabbable(Vector3 worldPos, out IGrabbable? grabbable)
         {
             foreach (var item in _host!.Scene!.ObjectsWithComponent<IGrabbable>())

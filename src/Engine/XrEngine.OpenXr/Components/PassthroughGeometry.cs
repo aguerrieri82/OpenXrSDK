@@ -69,8 +69,8 @@ namespace XrEngine.OpenXr
                         _isInit = true;
                     }
                 }
-
             }
+
             base.Update(ctx);
         }
     }

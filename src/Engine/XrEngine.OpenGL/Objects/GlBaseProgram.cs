@@ -12,7 +12,7 @@ using XrMath;
 
 namespace XrEngine.OpenGL
 {
-    public abstract partial class GlProgram : GlObject, IUniformProvider, IFeatureList
+    public abstract partial class GlBaseProgram : GlObject, IUniformProvider, IFeatureList
     {
         protected readonly Dictionary<string, int> _locations = [];
         protected readonly List<string> _features = [];
@@ -21,7 +21,7 @@ namespace XrEngine.OpenGL
         protected readonly Dictionary<string, int> _boundTextures = [];
         protected readonly ushort[] _boundBuffers = new ushort[256];
 
-        public GlProgram(GL gl, Func<string, string> includeResolver) : base(gl)
+        public GlBaseProgram(GL gl, Func<string, string> includeResolver) : base(gl)
         {
             _resolver = includeResolver;
         }

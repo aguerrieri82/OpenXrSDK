@@ -9,7 +9,7 @@ namespace XrEngine.OpenGL
 {
     public class GlProgramInstance : IBufferProvider
     {
-        static readonly Dictionary<string, GlProgram> _programs = [];
+        static readonly Dictionary<string, GlBaseProgram> _programs = [];
 
         protected Dictionary<string, IGlBuffer> _buffers = [];
         protected ShaderUpdate? _update;
@@ -103,7 +103,7 @@ namespace XrEngine.OpenGL
 
         public ShaderMaterial Material { get; }
 
-        public GlProgram? Program { get; set; }
+        public GlBaseProgram? Program { get; set; }
 
     }
 }

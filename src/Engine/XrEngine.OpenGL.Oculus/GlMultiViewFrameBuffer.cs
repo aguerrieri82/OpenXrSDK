@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace XrEngine.OpenGL.Oculus
 {
-    public class GlMultiViewFrameBuffer : GlFrameBuffer
+    public class GlMultiViewFrameBuffer : GlBaseFrameBuffer
     {
         static readonly Dictionary<uint, GlMultiViewRenderTarget> _targets = [];
 

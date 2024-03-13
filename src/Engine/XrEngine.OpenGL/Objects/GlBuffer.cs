@@ -101,8 +101,11 @@ namespace XrEngine.OpenGL
 
         public override void Dispose()
         {
-            _gl.DeleteBuffer(_handle);
-            _handle = 0;
+            if (_handle != 0)
+            {
+                _gl.DeleteBuffer(_handle);
+                _handle = 0;
+            }
             GC.SuppressFinalize(this);
         }
 

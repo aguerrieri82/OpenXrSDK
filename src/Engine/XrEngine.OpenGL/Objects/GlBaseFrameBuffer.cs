@@ -7,12 +7,11 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public abstract class GlFrameBuffer : GlObject
+    public abstract class GlBaseFrameBuffer : GlObject
     {
-        public GlFrameBuffer(GL gl)
+        public GlBaseFrameBuffer(GL gl)
             : base(gl)
         {
-
         }
 
         public virtual void BindDraw()

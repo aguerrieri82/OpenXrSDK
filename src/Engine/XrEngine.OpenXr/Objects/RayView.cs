@@ -31,7 +31,6 @@ namespace XrEngine.OpenXr
             }
 
             base.Update(ctx);
-
         }
 
         public float Length

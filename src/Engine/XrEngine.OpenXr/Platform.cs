@@ -4,6 +4,6 @@ namespace XrEngine
 {
     public static class Platform
     {
-        public static IXrPlatform? Current { get; set; }
+        public static IXrEnginePlatform? Current { get; set; }
     }
 }
