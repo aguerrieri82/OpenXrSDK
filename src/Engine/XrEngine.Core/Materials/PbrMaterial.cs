@@ -4,7 +4,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class PbrMaterial : ShaderMaterial
+    public class PbrMaterial : ShaderMaterial, IColorSource
     {
 
         public enum MaterialType
@@ -398,7 +398,7 @@ namespace XrEngine
             LinearOutput = DefaultLinearOutput;
         }
 
-        public static PbrMaterial CreateDefault()
+        public static PbrMaterial CreateDefault(Color color)
         {
             return new PbrMaterial()
             {
@@ -407,6 +407,11 @@ namespace XrEngine
                 AlphaCutoff = 0.5f,
                 Name = "Default Material",
                 MetallicRoughness = new MetallicRoughnessData()
+                {
+                    BaseColorFactor = color,
+                    MetallicFactor = 0,
+                    RoughnessFactor = 0.5f
+                }
             };
         }
 
@@ -594,7 +599,7 @@ namespace XrEngine
         public bool HasAnisotropy { get; set; }
         */
 
-        public override Color Color
+        Color IColorSource.Color
         {
             get
             {

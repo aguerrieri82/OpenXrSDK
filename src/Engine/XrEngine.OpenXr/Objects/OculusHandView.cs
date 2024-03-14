@@ -32,13 +32,9 @@ namespace XrEngine.OpenXr
             {
                 _input.LoadMesh();
 
-                var capMaterial = PbrMaterial.CreateDefault();
-                capMaterial.Color = new Color(150 / 255f, 79 / 255f, 72 / 255f);
-                capMaterial.DoubleSided = false;
-
-                var capMaterial2 = PbrMaterial.CreateDefault();
-                capMaterial2.Color = new Color(100 / 255f, 79 / 255f, 72 / 255f);
-                capMaterial2.DoubleSided = false;
+                var capMaterial = PbrMaterial.CreateDefault(new Color(150 / 255f, 79 / 255f, 72 / 255f));
+                var capMaterial2 = PbrMaterial.CreateDefault(new Color(100 / 255f, 79 / 255f, 72 / 255f));
+       
 
                 foreach (var capsule in _input.Mesh!.Capsules!)
                 {

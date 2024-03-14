@@ -1,8 +1,7 @@
 ﻿namespace XrEngine
 {
-    public class ShaderMaterial : Material, IShaderHandler
+    public abstract class ShaderMaterial : Material, IShaderHandler
     {
-
         protected Shader? _shader;
         protected long _lastLightVersion = -1;
 

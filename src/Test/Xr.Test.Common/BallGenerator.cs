@@ -20,10 +20,8 @@ namespace Xr.Test
         {
             _sound = sound;
             _maxTtl = maxTtl;
-            var pbrMat = PbrMaterial.CreateDefault();
-            pbrMat.Color = new Color(1, 1, 0);
-            pbrMat.MetallicRoughness!.MetallicFactor = 0;
-            pbrMat.MetallicRoughness.RoughnessFactor = 0.3f;
+            var pbrMat = PbrMaterial.CreateDefault(new Color(1, 1, 0));
+            pbrMat.MetallicRoughness!.RoughnessFactor = 0.3f;
             Material = pbrMat;
             //Material = new StandardMaterial() { Color = new Color(1, 1, 0) };
         }

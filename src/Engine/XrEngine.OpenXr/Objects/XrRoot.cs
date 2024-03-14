@@ -73,7 +73,6 @@ namespace XrEngine.OpenXr
                         var pose = (Pose3)input.Value;
                         group.Transform.Position = pose.Position;
                         group.Transform.Orientation = pose.Orientation;
-                        group.UpdateWorldMatrix(true, false);
                     }
 
                     if (model != null)

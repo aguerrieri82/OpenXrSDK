@@ -36,7 +36,8 @@ namespace XrEngine.OpenXr
                 var result = _host!.RayCollisions(ray).FirstOrDefault();
                 if (result != null)
                 {
-                    _rayView.Materials[0].Color = new Color(0, 1, 0);
+                    _rayView.UpdateColor(new Color(0, 1, 0));
+
                     _rayView.Length = result.Distance;
 
                     var rayTarget = result.Object!.Components<IRayTarget>().FirstOrDefault();
@@ -45,7 +46,7 @@ namespace XrEngine.OpenXr
                 else
                 {
                     _rayView.Length = 3;
-                    _rayView.Materials[0].Color = new Color(1, 1, 1);
+                    _rayView.UpdateColor(new Color(1, 1, 1));
                 }
             }
 

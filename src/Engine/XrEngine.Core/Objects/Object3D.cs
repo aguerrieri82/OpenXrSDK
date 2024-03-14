@@ -5,17 +5,19 @@ namespace XrEngine
 {
     public class Object3D : EngineObject, ILayer3DObject
     {
+        protected Bounds3 _worldBounds;
+        private Matrix4x4 _worldMatrixInverse;
+        private Matrix4x4 _worldMatrix;
+
+        protected bool _worldDirty;
+        protected bool _worldInverseDirty;
+        protected bool _boundsDirty;
+
         protected Transform3D _transform;
         protected Group3D? _parent;
-        protected bool _worldDirty;
-        protected Bounds3 _worldBounds;
-        protected bool _boundsDirty;
         protected Scene? _scene;
         protected bool _isVisible;
 
-        private Matrix4x4 _worldMatrixInverse;
-        private Matrix4x4 _worldMatrix;
-        private bool _worldInverseDirty;
         private double _creationTime;
         private double _lastUpdateTime;
 
@@ -36,34 +38,21 @@ namespace XrEngine
             return _components?.OfType<T>().FirstOrDefault();
         }
 
-        public virtual bool UpdateWorldMatrix(bool updateChildren, bool updateParent)
+        public virtual void UpdateWorldMatrix(bool force = false)
         {
-            bool isParentChanged = false;
-            bool isChanged = false;
+            if (!_worldDirty && !force)
+                return;
 
-            if (updateParent && _parent != null)
-                isParentChanged = _parent.UpdateWorldMatrix(false, updateParent);
+            if (_parent != null && !_parent.WorldMatrix.IsIdentity)
+                _worldMatrix = _transform.Matrix * _parent!.WorldMatrix;
+            else
+                _worldMatrix = _transform.Matrix;
 
-            if (_transform.Update() || isParentChanged || _worldDirty)
-            {
-                if (_parent != null && !_parent.WorldMatrix.IsIdentity)
-                    _worldMatrix = _transform.Matrix * _parent!.WorldMatrix;
-                else
-                    _worldMatrix = _transform.Matrix;
-
-                _worldInverseDirty = true;
-                _boundsDirty = true;
-                _worldDirty = false;
-
-                isChanged = true;
-            }
-
-            return isChanged;
+            _worldInverseDirty = true;
+            _worldDirty = false;
         }
 
-
-        //TODO protected
-        public virtual void UpdateBounds()
+        public virtual void UpdateBounds(bool force = false)
         {
             _boundsDirty = false;
         }
@@ -91,7 +80,15 @@ namespace XrEngine
         public override void NotifyChanged(ObjectChange change)
         {
             if (change.IsAny(ObjectChangeType.Transform))
+            {
                 InvalidateWorld();
+
+                if (this is ILocalBounds local && local.BoundUpdateMode != UpdateMode.Manual)
+                    _parent?.InvalidateBounds();
+            }
+
+            if (change.IsAny(ObjectChangeType.Geometry))
+                InvalidateBounds();
 
             _scene?.NotifyChanged(this, change);
         }
@@ -105,10 +102,18 @@ namespace XrEngine
         protected internal virtual void InvalidateWorld()
         {
             _worldDirty = true;
+            _worldInverseDirty = true;
+        }
+
+        protected internal void InvalidateBounds()
+        {
+            _parent?.InvalidateBounds(); 
+            _boundsDirty = true;
         }
 
         protected void UpdateWorldInverse()
         {
+            UpdateWorldMatrix();
             Matrix4x4.Invert(_worldMatrix, out _worldMatrixInverse);
             _worldInverseDirty = false;
         }
@@ -134,7 +139,6 @@ namespace XrEngine
 
             NotifyChanged(changeType);
         }
-
 
         public bool IsVisible
         {
@@ -187,7 +191,7 @@ namespace XrEngine
         {
             get
             {
-                if (UpdateWorldMatrix(false, false) || _worldInverseDirty)
+                if (_worldInverseDirty)
                     UpdateWorldInverse();
                 return _worldMatrixInverse;
             }
@@ -197,8 +201,8 @@ namespace XrEngine
         {
             get
             {
-                if (_transform.Update() || _worldDirty)
-                    UpdateWorldMatrix(false, false);
+                if (_worldDirty)
+                    UpdateWorldMatrix();
                 return _worldMatrix;
             }
             set
@@ -207,6 +211,8 @@ namespace XrEngine
                     _transform.SetMatrix(value);
                 else
                     _transform.SetMatrix(_parent.WorldMatrixInverse * value);
+
+                _worldInverseDirty = true;
             }
         }
 

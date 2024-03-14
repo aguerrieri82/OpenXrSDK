@@ -117,6 +117,18 @@ namespace XrEngine.OpenGL
 
         public void Clear(Color color)
         {
+            if (_glState.WriteColor != true)
+            {
+                _glState.WriteColor = true;
+                _gl.ColorMask(true, true, true, true);
+            }
+
+            if (_glState.WriteDepth != true)
+            {
+                _gl.DepthMask(true);
+                _glState.WriteDepth = true;
+            }
+
             _gl.ClearDepth(1.0f);
             _gl.ClearColor(color.R, color.G, color.B, color.A);
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -268,7 +280,7 @@ namespace XrEngine.OpenGL
 
             if (_glState.Alpha != material.Alpha)
             {
-                EnableFeature(EnableCap.Blend, material.Alpha == AlphaMode.Blend);
+                EnableFeature(EnableCap.Blend, material.Alpha != AlphaMode.Opaque);
                 _glState.Alpha = material.Alpha;
             }
         }
@@ -339,6 +351,8 @@ namespace XrEngine.OpenGL
 
                         progInst.UpdateProgram(_updateCtx);
 
+                        _updateCtx.InstanceId = progInst.Program!.Handle;
+
                         bool updateGlobals = false;
 
                         if (_glState.ActiveProgram != progInst.Program!.Handle)
@@ -362,8 +376,6 @@ namespace XrEngine.OpenGL
             _gl.UseProgram(0);
 
             target.End();
-
-            _gl.Finish();
         }
 
         public void SetRenderTarget(IGlRenderTarget target)
@@ -417,8 +429,6 @@ namespace XrEngine.OpenGL
 
         public void EndDrawSurface()
         {
-            _grContext!.Submit(true);
-
             _glState = new GlState();
 
             _gl.BindVertexArray(0);

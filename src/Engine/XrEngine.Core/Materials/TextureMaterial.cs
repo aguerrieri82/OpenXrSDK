@@ -20,7 +20,6 @@
             _shader = SHADER;
         }
 
-
         public TextureMaterial(Texture2D texture)
             : this()
         {
@@ -30,7 +29,6 @@
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
-
             bld.SetUniform("uTexture0", (ctx) => Texture!, 0);
         }
 

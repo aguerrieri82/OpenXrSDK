@@ -12,6 +12,7 @@ namespace XrEngine.OpenXr.Android
 
         protected override XrApp CreateApp()
         {
+
             var builder = new XrEngineAppBuilder()
                    .UsePlatform(new AndroidPlatform(this));
 

@@ -10,29 +10,19 @@ namespace XrEngine
 
         public Group3D()
         {
+            BoundUpdateMode = UpdateMode.Manual;
         }
 
         protected internal override void InvalidateWorld()
         {
+            _worldDirty = true;
+
             foreach (var child in _children)
                 child.InvalidateWorld();
-            base.InvalidateWorld();
-        }
-
-        public override bool UpdateWorldMatrix(bool updateChildren, bool updateParent)
-        {
-            var isChanged = base.UpdateWorldMatrix(updateChildren, updateParent);
-
-            if (updateChildren || isChanged)
-                _children.ForEach(a => a.UpdateWorldMatrix(true, false));
-
-            return isChanged;
         }
 
         public override void Update(RenderContext ctx)
         {
-            base.Update(ctx);
-
             UpdateSelf(ctx);
 
             _children.Update(ctx);
@@ -40,7 +30,7 @@ namespace XrEngine
 
         protected virtual void UpdateSelf(RenderContext ctx)
         {
-            _transform.Update();
+            base.Update(ctx);
         }
 
         public T AddChild<T>(T child, bool preserveTransform = false) where T : Object3D
@@ -56,11 +46,16 @@ namespace XrEngine
 
             _children.Add(child);
 
+            InvalidateBounds();
+
             return child;
         }
 
-        public override void UpdateBounds()
+        public override void UpdateBounds(bool force = false)
         {
+            if (!_boundsDirty && !force)
+                return;
+
             var bounds = new Bounds3();
 
             if (_children.Count > 0)
@@ -96,17 +91,21 @@ namespace XrEngine
             _children.Remove(child);
 
             child.SetParent(null, preserveTransform);
+
+            InvalidateBounds();
         }
 
         public Bounds3 LocalBounds
         {
             get
             {
-                if (_boundsDirty)
+                if (_boundsDirty && BoundUpdateMode == UpdateMode.Automatic)
                     UpdateBounds();
                 return _localBounds;
             }
         }
+
+        public UpdateMode BoundUpdateMode { get; set; }
 
         public IReadOnlyList<Object3D> Children => _children.AsReadOnly();
 

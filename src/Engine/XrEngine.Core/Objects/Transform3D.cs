@@ -47,7 +47,6 @@ namespace XrEngine
 
             _isDirty = false;
 
-            _host?.NotifyChanged(ObjectChangeType.Transform);
 
             return true;
         }
@@ -65,6 +64,8 @@ namespace XrEngine
         protected void NotifyChanged()
         {
             _isDirty = true;
+
+            _host?.NotifyChanged(ObjectChangeType.Transform);
         }
 
         public Vector3 Scale

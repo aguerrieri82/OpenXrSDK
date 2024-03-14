@@ -15,10 +15,8 @@ namespace XrEngine.OpenXr
         protected XrApp? _app;
 
         public OculusSceneModel()
-        {
-            var pbrMaterial = PbrMaterial.CreateDefault();
-            pbrMaterial.Color = Color.White;
-            Material = pbrMaterial;
+        { 
+            Material = PbrMaterial.CreateDefault(Color.White);
             Name = "SceneModel";
         }
 

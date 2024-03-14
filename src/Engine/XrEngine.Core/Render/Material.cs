@@ -36,7 +36,6 @@
             Version++;
         }
 
-        public virtual Color Color { get; set; }
 
         public bool WriteDepth { get; set; }
 
