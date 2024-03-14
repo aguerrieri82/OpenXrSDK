@@ -42,6 +42,7 @@ namespace XrEngine.UI
 
             var paint = SKResources.FillColor(color!.Value);
 
+
             canvas.DrawText(Text, _clientRect.X, _clientRect.Y + font.Size, font, paint);
         }
 

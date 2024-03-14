@@ -4,7 +4,7 @@ namespace XrEngine
 {
     public class Object3DInstance : Object3D
     {
-        public override void UpdateBounds()
+        public override void UpdateBounds(bool force = false)
         {
             if (Reference == null)
                 return;

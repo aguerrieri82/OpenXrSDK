@@ -23,7 +23,9 @@ namespace XrEngine.OpenXr.Android
 
         public AndroidPlatform(Context context)
         {
-            AssetManager = new AndroidAssetManager(context, "Assets");
+            PbrMaterial.DefaultLinearOutput = true;
+
+AssetManager = new AndroidAssetManager(context, "Assets");
           //  AssetManager = new LocalAssetManager(Path.Join(extPath, "Assets"));
             Logger = new AndroidLogger("XrApp");
             _context = context;

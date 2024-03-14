@@ -4,6 +4,8 @@ namespace XrEngine
 {
     public class StandardVertexShaderHandler : IShaderHandler
     {
+        Dictionary<uint, long> _lightVersions = [];
+
         public void UpdateShader(ShaderUpdateBuilder bld)
         {
             bld.ExecuteAction((ctx, up) =>
@@ -13,21 +15,26 @@ namespace XrEngine
                 up.SetUniform("uView", camera.View);
                 up.SetUniform("uProjection", camera.Projection);
                 up.SetUniform("uViewPos", camera.Transform.Position, true);
-            });
 
 
-            foreach (var light in bld.Context.Lights!)
-            {
-                if (light is AmbientLight ambient)
-                    bld.SetUniform("light.ambient", (ctx) => (Vector3)ambient.Color * ambient.Intensity);
-
-                else if (light is PointLight point)
+                if (!_lightVersions.TryGetValue(ctx.InstanceId, out var ver) || ctx.LightsVersion != ver)
                 {
-                    bld.SetUniform("light.diffuse", (ctx) => (Vector3)point.Color * point.Intensity);
-                    bld.SetUniform("light.position", (ctx) => point.WorldPosition);
-                    bld.SetUniform("light.specular", (ctx) => (Vector3)point.Specular);
+                    foreach (var light in bld.Context.Lights!)
+                    {
+                        if (light is AmbientLight ambient)
+                            up.SetUniform("light.ambient", (Vector3)ambient.Color * ambient.Intensity);
+
+                        else if (light is PointLight point)
+                        {
+                            up.SetUniform("light.diffuse", (Vector3)point.Color * point.Intensity);
+                            up.SetUniform("light.position", point.WorldPosition);
+                            up.SetUniform("light.specular", (Vector3)point.Specular);
+                        }
+                    }
+
+                    _lightVersions[ctx.InstanceId] = ctx.LightsVersion;
                 }
-            }
+            });
         }
 
         public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)

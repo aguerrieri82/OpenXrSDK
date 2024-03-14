@@ -540,7 +540,6 @@ namespace XrEngine.Gltf
                     nodeObj = new Object3D();
                 }
 
-
                 if (nodeGrp != null)
                 {
                     foreach (var childNode in node.Children!)

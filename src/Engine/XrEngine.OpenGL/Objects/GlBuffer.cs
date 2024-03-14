@@ -53,6 +53,7 @@ namespace XrEngine.OpenGL
             {
                 var fence = _gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, SyncBehaviorFlags.None);
                 _gl.WaitSync(fence, SyncBehaviorFlags.None, unchecked((ulong)-1));
+                //_gl.Finish();
             }
 
             _length = (uint)size;

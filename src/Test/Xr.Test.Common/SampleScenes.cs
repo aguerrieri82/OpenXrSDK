@@ -96,7 +96,7 @@ namespace Xr.Test
                 var time = (int)ctx.Time;
                 //if (time % 0.5 == 0 && time != lastTime)
                 {
-                    debug.Text1.Text = ctx.Time.ToString();
+                    debug.Text1.Text = ctx.Time.ToString() + "\n" + "sssd";
                     lastTime = time;
                 }
             });
@@ -108,7 +108,7 @@ namespace Xr.Test
             });
         }
 
-        public static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder)
+        static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder)
         {
             return builder.UseHands()
                    .UseLeftController()
@@ -138,7 +138,8 @@ namespace Xr.Test
 
             scene.AddChild(display);
 
-            return builder.UseApp(app);
+            return builder.UseApp(app)
+                          .ConfigureSampleApp();
         }
 
         public static XrEngineAppBuilder CreatePingPong(this XrEngineAppBuilder builder)
@@ -205,6 +206,7 @@ namespace Xr.Test
             {
                 ballRigid.DynamicActor.AddForce(new Vector3(0.3f, 0, 0), PxForceMode.Force);
             };
+        
 
             //Add racket
             scene!.AddChild(mesh);
@@ -215,8 +217,10 @@ namespace Xr.Test
             return builder
                    .UseApp(app)
                    .UseScene(true)
+                   .ConfigureSampleApp()
                    .UsePhysics();
                    //.AddDebugPanel();
+
         }
 
 
@@ -261,6 +265,7 @@ namespace Xr.Test
 
             return builder
                     .UseApp(app)
+                    .ConfigureSampleApp()
                     .UsePhysics();
         }
 
@@ -288,7 +293,9 @@ namespace Xr.Test
                 IsVisible = true
             });
 
-            return builder.UseApp(app);
+            return builder
+                .UseApp(app)
+                .ConfigureSampleApp();
         }
 
 
@@ -296,16 +303,20 @@ namespace Xr.Test
         {
             var app = CreateBaseScene();
 
-            var cube = new TriangleMesh(Cube3D.Instance, new PbrMaterial() { Color = new Color(1f, 0, 0, 1) });
+            var cube = new TriangleMesh(Cube3D.Instance, PbrMaterial.CreateDefault(new Color(1f, 0, 0, 1)))
+            {
+                Name = "mesh"
+            };
 
-            cube.Name = "mesh";
             cube.Transform.SetScale(0.1f);
             cube.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), MathF.PI / 4f);
             cube.AddComponent<MeshCollider>();
 
             app.ActiveScene!.AddChild(cube);
 
-            return builder.UseApp(app);
+            return builder
+                .UseApp(app)
+                .ConfigureSampleApp();
         }
 
 
@@ -354,7 +365,9 @@ namespace Xr.Test
 
             scene.AddChild(new AmbientLight(0.1f));
 
-            return builder.UseApp(app);
+            return builder
+                .UseApp(app)
+                .ConfigureSampleApp();
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public class StandardMaterial : ShaderMaterial
+    public class StandardMaterial : ShaderMaterial, IColorSource
     {
         static readonly Shader SHADER;
 
@@ -48,6 +48,8 @@ namespace XrEngine
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
         public Texture2D? DiffuseTexture { get; set; }
+
+        public Color Color { get; set; }
 
         public Color Ambient { get; set; }
 

@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    public class ColorMaterial : ShaderMaterial
+    public class ColorMaterial : ShaderMaterial, IColorSource
     {
         static readonly Shader SHADER;
 
@@ -31,9 +31,10 @@
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
-
             bld.SetUniform("uColor", ctx => Color);
         }
+
+        public Color Color { get; set; }
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
     }

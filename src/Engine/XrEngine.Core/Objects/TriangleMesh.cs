@@ -13,13 +13,43 @@ namespace XrEngine
         {
             _materials = [];
             _materials.CollectionChanged += OnMaterialsChanged;
+            BoundUpdateMode = UpdateMode.Automatic;
         }
+
+        public TriangleMesh(Geometry3D geometry, Material? material = null)
+            : this()
+        {
+            Geometry = geometry;
+
+            if (material != null)
+                Materials.Add(material);
+        }
+
 
         public override T? Feature<T>() where T : class
         {
             if (typeof(T) == typeof(Geometry3D))
                 return (T?)(object?)Geometry;
             return base.Feature<T>();
+        }
+
+
+        public override void UpdateBounds(bool force = false)
+        {
+            if (Geometry != null)
+                _worldBounds = Geometry.Bounds.Transform(WorldMatrix);
+
+            _boundsDirty = false;
+        }
+
+
+        public override void Update(RenderContext ctx)
+        {
+            _materials.Update(ctx);
+
+            Geometry?.Update(ctx);
+
+            base.Update(ctx);
         }
 
         private void OnMaterialsChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -42,31 +72,6 @@ namespace XrEngine
             NotifyChanged(ObjectChangeType.Render);
         }
 
-        public override void UpdateBounds()
-        {
-            if (Geometry != null)
-                _worldBounds = Geometry.Bounds.Transform(WorldMatrix);
-            _boundsDirty = false;
-        }
-
-        public TriangleMesh(Geometry3D geometry, Material? material = null)
-            : this()
-        {
-            Geometry = geometry;
-
-            if (material != null)
-                Materials.Add(material);
-        }
-
-        public override void Update(RenderContext ctx)
-        {
-            _materials.Update(ctx);
-
-            Geometry?.Update(ctx);
-
-            base.Update(ctx);
-        }
-
         public Geometry3D? Geometry
         {
             get => _geometry;
@@ -75,7 +80,6 @@ namespace XrEngine
                 if (_geometry == value)
                     return;
                 _geometry = value;
-                _boundsDirty = true;
                 _geometry?.EnsureId();
                 NotifyChanged(ObjectChangeType.Geometry);
             }
@@ -85,6 +89,7 @@ namespace XrEngine
 
         public Bounds3 LocalBounds => _geometry!.Bounds;
 
+        public UpdateMode BoundUpdateMode { get; set; }
 
         #region IVertexSource
 

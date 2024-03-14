@@ -90,6 +90,8 @@ namespace XrEngine.Physics
                 if (local == null)
                     return null;
 
+                local.BoundUpdateMode = UpdateMode.Automatic;
+
                 pyGeo = _system.CreateBox(local.LocalBounds.Size / 2);
 
                 pose.Position = local.LocalBounds.Center;

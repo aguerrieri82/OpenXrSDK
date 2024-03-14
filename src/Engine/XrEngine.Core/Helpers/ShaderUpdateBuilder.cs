@@ -47,6 +47,8 @@ namespace XrEngine
         public IBuffer? CurrentBuffer;
 
         public long LightsVersion;
+
+        public uint InstanceId;
     }
 
     public struct ShaderUpdateBuilder : IFeatureList

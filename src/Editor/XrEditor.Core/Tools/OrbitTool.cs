@@ -81,7 +81,6 @@ namespace XrEditor
             var newLen = curLen + curLen * -ev.WheelDelta * 0.001f;
 
             camera.WorldPosition = camera.Target + curDir.Normalize() * newLen;
-
         }
 
         protected override void OnMouseMove(PointerEvent ev)

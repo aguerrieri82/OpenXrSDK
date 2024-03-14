@@ -1,12 +1,10 @@
 using Android.Content;
 using Android.Content.PM;
 using Android.Webkit;
-using Microsoft.DotNet.PlatformAbstractions;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
-using Xr.Test.Common;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
 
@@ -48,13 +46,10 @@ namespace Xr.Test.Android
 
         protected override void Build(XrEngineAppBuilder builder)
         {
-           
-
             builder.UseOpenGL()
                    //.UseStereo()
                    .UseMultiView()
                    .CreatePingPong()
-                   .ConfigureSampleApp()
                    .RemovePlaneGrid()
                    .AddWebBrowser(this, "display");
         }

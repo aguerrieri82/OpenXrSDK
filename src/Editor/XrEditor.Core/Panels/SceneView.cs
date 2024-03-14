@@ -51,13 +51,11 @@ namespace XrEditor
         {
             _engine = new XrEngineAppBuilder()
               .SetRenderQuality(1, 4) ///samples > 1 cause Filament to fuck up
-              .CreateSponza()
-              .ConfigureSampleApp()
+              .CreatePingPong()
               .Build();
 
             Scene = _engine.App.ActiveScene;
         }
-
 
         protected void OnSizeChanged(object? sender, EventArgs e)
         {

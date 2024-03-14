@@ -5,7 +5,7 @@ using Xr.Test.Android;
 using XrEngine;
 using XrEngine.OpenXr;
 
-namespace Xr.Test.Common
+namespace XrEngine.OpenXr.Android
 {
     public static class XrEngineAppBuilderExtension
     {

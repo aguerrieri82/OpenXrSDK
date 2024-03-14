@@ -5,8 +5,9 @@ using XrMath;
 
 namespace XrEngine
 {
-    public struct ObjectFeature<T>
+    public struct ObjectFeature<T> where T: notnull 
     {
+
         public Object3D Object;
 
         public T Feature;
@@ -664,17 +665,22 @@ namespace XrEngine
         */
         #endregion
 
-        #region MISC
+        #region MATERIAL
 
-
-        public static bool Intersects(this Sphere sphere, Sphere other, out float offset)
+        public static void UpdateColor(this TriangleMesh mesh, Color color)
         {
-            var dist = (sphere.Center - other.Center).Length();
-
-            offset = dist - (sphere.Radius + other.Radius);
-
-            return offset < 0;
+            mesh.Materials[0].UpdateColor(color);
         }
+
+        public static void UpdateColor(this Material material, Color color)
+        {
+            ((IColorSource)material).Color = color;
+            material.NotifyChanged();
+        }
+
+        #endregion
+
+        #region MISC
 
         public static void Update<T>(this IEnumerable<T> target, RenderContext ctx) where T : IRenderUpdate
         {

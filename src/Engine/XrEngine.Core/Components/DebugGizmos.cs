@@ -20,7 +20,9 @@
                         canvas.State.Color = new Color(0, 1, 1, 1);
                     else
                         canvas.State.Color = new Color(1, 1, 0, 1);
-                    var local = obj.Feature!.LocalBounds;
+
+                    var local = obj.Feature.LocalBounds;
+
                     canvas.State.Transform = obj.Object.WorldMatrix;
                     canvas.DrawBounds(local);
                 }

@@ -28,7 +28,7 @@ namespace XrEngine.OpenXr
         public BaseObjectGrabber(XrHaptic? vibrate = null)
         {
             _vibrate = vibrate;
-            _grabView = new TriangleMesh(Cube3D.Instance, new StandardMaterial { Color = new Color(0, 1, 1, 1) });
+            _grabView = new TriangleMesh(Cube3D.Instance, PbrMaterial.CreateDefault(new Color(0, 1, 1, 1)));
             _grabView.Transform.SetScale(0.005f);
         }
 
@@ -120,7 +120,7 @@ namespace XrEngine.OpenXr
                     if (objGrab.IsGrabbing)
                         StartGrabbing(grabbable!, grabObj, objGrab.Pose);
 
-                    ((StandardMaterial)_grabView.Materials[0]).Color = new Color(0, 1, 0, 1);
+                    _grabView.UpdateColor(new Color(0, 1, 0, 1));
                 }
                 else
                 {
@@ -130,7 +130,7 @@ namespace XrEngine.OpenXr
                         _isVibrating = false;
                     }
 
-                    ((StandardMaterial)_grabView.Materials[0]).Color = new Color(0, 1, 1, 1);
+                    _grabView.UpdateColor(new Color(0, 1, 1, 1));
                 }
             }
             else

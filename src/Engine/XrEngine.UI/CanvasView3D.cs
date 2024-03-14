@@ -159,7 +159,6 @@ namespace XrEngine.UI
                 {   
                     DoubleSided = true, 
                     Alpha = AlphaMode.Blend,
-                    Color = Color.White 
                 });
 
                 _activeTexture = _defaultTexture;
