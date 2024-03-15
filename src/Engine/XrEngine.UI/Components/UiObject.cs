@@ -17,6 +17,19 @@ namespace XrEngine.UI.Components
         Layout = 0x1
     }
 
+    public class UiPropertyAttribute : Attribute
+    {
+        public UiPropertyAttribute(object? defaultValue, UiPropertyFlags flags = UiPropertyFlags.None)
+        {
+            DefaultValue = defaultValue;    
+            Flags = flags;
+        }
+
+        public object? DefaultValue { get; }
+
+        public UiPropertyFlags Flags { get; }   
+    }
+
     public class UiProperty
     {
         public UiProperty(string name, Type type, Type ownerType)
@@ -56,23 +69,40 @@ namespace XrEngine.UI.Components
 
         public static Dictionary<string, UiProperty> RegisterType(Type compType)
         {
-            var props = new Dictionary<string, UiProperty>();
+            if (_props.TryGetValue(compType, out var props))
+                return props;
 
-            foreach (var typeProp in compType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            props = new Dictionary<string, UiProperty>();
+
+            foreach (var typeProp in compType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
             {
                 var propType = typeof(UiProperty<>).MakeGenericType(typeProp.PropertyType);
                 
                 var prop = (UiProperty)Activator.CreateInstance(propType, typeProp.Name, compType)!;
 
-                var defValue = typeProp.GetCustomAttribute<DefaultValueAttribute>();
+                var propDesc = typeProp.GetCustomAttribute<UiPropertyAttribute>();
 
-                if (defValue != null)
+                if (propDesc != null)
                 {
-                    if (!UiTypeConverter.TryConvert(defValue.Value, typeProp.PropertyType, out prop.DefaultValue))
+                    prop.Flags = propDesc.Flags;    
+
+                    if (!UiTypeConverter.TryConvert(propDesc.DefaultValue, typeProp.PropertyType, out prop.DefaultValue))
                         throw new InvalidCastException();
                 }
 
                 props[typeProp.Name] = prop;
+            }
+
+            var curBase = compType.BaseType;
+
+            while (curBase != null && curBase != typeof(object))
+            {
+                var baseProps = RegisterType(curBase);
+
+                foreach (var prop in baseProps)
+                    props[prop.Key] = prop.Value;
+
+                curBase = curBase.BaseType;
             }
 
             _props[compType] = props;
@@ -110,10 +140,11 @@ namespace XrEngine.UI.Components
 
             var oldValue = GetValue<T>(propName);
 
+            _values[prop] = value;
+
             if (!Equals(value, oldValue))
                 OnPropertyChanged(propName, value, oldValue);
 
-            _values[prop] = value;
         }
 
         public virtual T? GetValue<T>(string propName)

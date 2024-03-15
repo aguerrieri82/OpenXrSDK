@@ -40,6 +40,7 @@ namespace XrEngine.UI
         internal void SetViewport(float x, float y, float width, float height)
         {
             _viewport = new Rect2(x, y, width, height);
+            _clientRect = _viewport;
             _isLayoutDirty = true;
         }
     }

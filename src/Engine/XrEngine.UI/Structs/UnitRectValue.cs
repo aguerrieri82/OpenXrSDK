@@ -26,14 +26,24 @@ namespace XrEngine.UI
             };
         }
 
-        public float ToHorizontalPixel(UiComponent ctx)
+        public float ToHorizontalPixel(UiComponent ctx, float reference = 0)
         {
-            return Left.ToPixel(ctx) + Right.ToPixel(ctx);
+            return Left.ToPixel(ctx, reference) + Right.ToPixel(ctx, reference);
         }
 
-        public float ToVerticalPixel(UiComponent ctx)
+        public float ToVerticalPixel(UiComponent ctx, float reference = 0)
         {
-            return Top.ToPixel(ctx) + Bottom.ToPixel(ctx);
+            return Top.ToPixel(ctx, reference) + Bottom.ToPixel(ctx, reference);
+        }
+
+        public float ToHorizontalPixel(UiComponent ctx, UiValueReference reference = UiValueReference.None)
+        {
+            return Left.ToPixel(ctx, reference) + Right.ToPixel(ctx, reference);
+        }
+
+        public float ToVerticalPixel(UiComponent ctx, UiValueReference reference = UiValueReference.None)
+        {
+            return Top.ToPixel(ctx, reference) + Bottom.ToPixel(ctx, reference);
         }
 
 

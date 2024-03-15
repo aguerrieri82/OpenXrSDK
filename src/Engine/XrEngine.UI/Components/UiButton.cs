@@ -11,11 +11,17 @@ using XrMath;
 
 namespace XrEngine.UI
 {
-    public class UiButton : UiContentBase
+    public class UiButton : UiContentView
     {
-        protected override void DrawWork(SKCanvas canvas)
+
+
+        protected override void OnPointerUp(UiPointerEvent ev)
         {
-            throw new NotImplementedException();
+            Click?.Invoke(this, EventArgs.Empty);
+            base.OnPointerUp(ev);
         }
+
+
+        public event EventHandler? Click;
     }
 }

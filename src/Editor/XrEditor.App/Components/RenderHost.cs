@@ -5,9 +5,11 @@
 using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
 using XrEngine;
+using XrEngine.Interaction;
 
 
 namespace XrEditor
@@ -54,7 +56,15 @@ namespace XrEditor
 
         public void CapturePointer()
         {
+            this.MouseDown += RenderHost_MouseDown;
             SetCapture(_hwndSource!.Handle);
+        }
+
+        private void RenderHost_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            ButtonBase x;
+            x.Click
+            throw new NotImplementedException();
         }
 
         public void ReleasePointer()
@@ -74,13 +84,13 @@ namespace XrEditor
                     ev.Y = ((int)lParam) >> 16;
 
                     if (((uint)wParam & MK_LBUTTON) == MK_LBUTTON)
-                        ev.Buttons |= MouseButton.Left;
+                        ev.Buttons |= PointerButton.Left;
 
                     if (((uint)wParam & MK_RBUTTON) == MK_RBUTTON)
-                        ev.Buttons |= MouseButton.Right;
+                        ev.Buttons |= PointerButton.Right;
 
                     if (((uint)wParam & MK_MBUTTON) == MK_MBUTTON)
-                        ev.Buttons |= MouseButton.Right;
+                        ev.Buttons |= PointerButton.Right;
 
                     PointerMove?.Invoke(ev);
                     break;
@@ -91,11 +101,11 @@ namespace XrEditor
                     ev.Y = ((int)lParam) >> 16;
 
                     if (msg == WM_MBUTTONDOWN)
-                        ev.Buttons = MouseButton.Middle;
+                        ev.Buttons = PointerButton.Middle;
                     else if (msg == WM_LBUTTONDOWN)
-                        ev.Buttons = MouseButton.Left;
+                        ev.Buttons = PointerButton.Left;
                     else if (msg == WM_RBUTTONDOWN)
-                        ev.Buttons = MouseButton.Right;
+                        ev.Buttons = PointerButton.Right;
 
                     PointerDown?.Invoke(ev);
 
@@ -115,11 +125,11 @@ namespace XrEditor
                     ev.Y = ((int)lParam) >> 16;
 
                     if (msg == WM_MBUTTONUP)
-                        ev.Buttons = MouseButton.Middle;
+                        ev.Buttons = PointerButton.Middle;
                     else if (msg == WM_LBUTTONUP)
-                        ev.Buttons = MouseButton.Left;
+                        ev.Buttons = PointerButton.Left;
                     else if (msg == WM_RBUTTONUP)
-                        ev.Buttons = MouseButton.Right;
+                        ev.Buttons = PointerButton.Right;
 
                     PointerUp?.Invoke(ev);
                     break;

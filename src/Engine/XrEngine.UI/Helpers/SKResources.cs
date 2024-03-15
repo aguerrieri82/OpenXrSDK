@@ -15,6 +15,29 @@ namespace XrEngine.UI
         static readonly Dictionary<string, SKTypeface> _typefaces = [];
         static readonly Dictionary<string, SKFont> _fonts = [];
 
+        public static SKTypeface TypefaceFromRes(string resName)
+        {
+            if (!_typefaces.TryGetValue(resName, out var result))
+            {
+                var assembly = typeof(SKResources).Assembly;
+
+                
+
+                var name = assembly.GetManifestResourceNames().Where(a => a.Contains(resName)).FirstOrDefault();
+                if (name == null)
+                    throw new NotSupportedException();
+
+                using (var stream = assembly.GetManifestResourceStream(name))
+                    result = SKFontManager.Default.CreateTypeface(stream);
+
+             
+
+                 _typefaces[resName] = result;
+            }
+
+            return result;
+        }
+
         public static SKTypeface Typeface(string familyName)
         {
             if (!_typefaces.TryGetValue(familyName, out var result))
@@ -37,6 +60,7 @@ namespace XrEngine.UI
             }
             return result;
         }
+
 
         public static SKFont Font(string family, float size)
         {

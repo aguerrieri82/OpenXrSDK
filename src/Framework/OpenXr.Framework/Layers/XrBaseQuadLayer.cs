@@ -18,6 +18,7 @@ namespace OpenXr.Framework
         {
             _getQuad = getQuad;
             _header->Type = StructureType.CompositionLayerQuad;
+
         }
 
 

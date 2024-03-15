@@ -77,7 +77,7 @@ namespace Xr.Test
             var panel = new Panel3D();
             
             panel.SetInches(19, 16f / 9f);
-            panel.DpiScale = 3;
+            panel.DpiScale = 2;
             panel.Materials[0].UseDepth = false;
             panel.Materials[0].WriteDepth = false;
 
@@ -85,9 +85,9 @@ namespace Xr.Test
 
             panel.Panel = debug;
 
-            panel.WorldPosition = new Vector3(0, 1, -2);
+            panel.WorldPosition = new Vector3(0, 1, 0);
 
-            panel.AddComponent(new FollowCamera() { Offset = new Vector3(0f, -0.0f, -1.6f) });
+            //panel.AddComponent(new FollowCamera() { Offset = new Vector3(0f, -0.0f, -1f) });
 
             var lastTime = 0;
 
@@ -96,7 +96,7 @@ namespace Xr.Test
                 var time = (int)ctx.Time;
                 //if (time % 0.5 == 0 && time != lastTime)
                 {
-                    debug.Text1.Text = ctx.Time.ToString() + "\n" + "prova di un testo molto lungo che va a capo ma mi sa di no";
+                    debug.Text1.Text = ctx.Time.ToString() + "\n" + "prova";
                     lastTime = time;
                 }
             });
@@ -104,7 +104,7 @@ namespace Xr.Test
             return builder.ConfigureApp(e =>
             {
                 e.App.ActiveScene!.AddChild(panel);
-                //panel.CreateOverlay(e.XrApp);
+                panel.CreateOverlay(e.XrApp);
             });
         }
 

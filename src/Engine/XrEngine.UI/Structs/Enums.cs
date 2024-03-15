@@ -61,4 +61,13 @@ namespace XrEngine.UI
         Hover = 16
     }
 
+    public enum UiValueReference
+    {
+        None,
+        ParentWidth,
+        ParentHeight,
+        ParentFontSize
+    }
+
+
 }

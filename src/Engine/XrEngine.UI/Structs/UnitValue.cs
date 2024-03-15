@@ -11,6 +11,7 @@ namespace XrEngine.UI
         Perc
     }
 
+
     public struct UnitValue
     {
         public UnitValue() { }
@@ -50,16 +51,38 @@ namespace XrEngine.UI
                 Value = float.Parse(value, CultureInfo.InvariantCulture);
         }
 
+        public static float Reference(UiComponent ctx, UiValueReference reference = UiValueReference.None)
+        {
+            return reference switch
+            {
+                UiValueReference.None => 0,
+                UiValueReference.ParentWidth => ctx.Parent?.ActualWidth ?? 0,
+                UiValueReference.ParentHeight => ctx.Parent?.ActualHeight ?? 0,
+                UiValueReference.ParentFontSize => ctx.Parent?.ActualStyle.FontSize.ToPixel(ctx.Parent, UiValueReference.ParentFontSize) ?? 0,
+                _ => throw new NotSupportedException()
+            };
+        }
+
+        public readonly float ToPixel(UiComponent ctx, UiValueReference reference = UiValueReference.None)
+        {
+            return ToPixel(ctx, () => Reference(ctx, reference));
+        }
+
         public readonly float ToPixel(UiComponent ctx, float reference = 0)
+        {
+            return ToPixel(ctx, () => reference);
+        }
+
+        public readonly float ToPixel(UiComponent ctx, Func<float> reference)
         {
             if (Unit == Unit.Dp)
                 return Value;
 
             if (Unit == Unit.Em)
-                return ctx.ActualStyle.FontSize.ToPixel(ctx) * Value;
+                return ctx.ActualStyle.FontSize.ToPixel(ctx, UiValueReference.ParentFontSize) * Value;
 
             if (Unit == Unit.Perc)
-                return reference * Value / 100f;
+                return reference() * Value / 100f;
 
             throw new NotSupportedException();
         }

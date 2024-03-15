@@ -43,7 +43,7 @@ namespace XrEngine.UI
         protected TextLayout LayoutText(Size2 availSize)
         {
             var font = ActualStyle.GetFont();
-            var lineSize = ActualStyle.LineSize.ToPixel(this);
+            var lineSize = ActualStyle.LineSize.ToPixel(this, UiValueReference.ParentFontSize);
             var alignment = ActualStyle.TextAlign.Value;
             var wrap = ActualStyle.TextWrap.Value;
 
@@ -66,6 +66,9 @@ namespace XrEngine.UI
             void NewLine()
             {
                 curY += lineSize;
+
+                if (curLine[^1] == ' ')
+                    curLine.Length--;
 
                 var newLine = new TextLine
                 {
@@ -185,9 +188,10 @@ namespace XrEngine.UI
             var paint = SKResources.FillColor(color!.Value);
 
             foreach (var line in _lastLayout.Lines)
-                canvas.DrawText(line.Text, _contentRect.X + line.Position.X, _contentRect.Y + line.Position.Y, _lastLayout.Font, paint);
+                canvas.DrawText(line.Text, _contentRect.X + line.Position.X, _contentRect.Y + line.Position.Y - _lastLayout.Font.Metrics.Descent, _lastLayout.Font, paint);
         }
 
+        [UiProperty("", UiPropertyFlags.Layout)]
         public string Text
         {
             get => GetValue<string>(nameof(Text))!;
