@@ -50,7 +50,25 @@ namespace XrEngine.UI
             {
                 paint = new SKPaint();
                 paint.ColorF = new SKColorF(color.R, color.G, color.B, color.A);
+                paint.Style = SKPaintStyle.Fill;
                 _paints[id] = paint; 
+            }
+            return paint;
+        }
+
+        public static SKPaint Stroke(Color color, float width)
+        {
+            var id = string.Concat("stroke_", color.ToString(), "_", width);
+            if (!_paints.TryGetValue(id, out var paint))
+            {
+                paint = new();
+                paint.ColorF = new SKColorF(color.R, color.G, color.B, color.A);
+                paint.StrokeWidth = width;
+                paint.Style = SKPaintStyle.Stroke;
+                paint.IsStroke = true;
+                paint.IsAntialias = false;
+                paint.StrokeJoin = SKStrokeJoin.Miter;
+                _paints[id] = paint;
             }
             return paint;
         }

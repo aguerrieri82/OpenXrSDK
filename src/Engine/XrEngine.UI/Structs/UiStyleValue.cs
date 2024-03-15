@@ -11,26 +11,16 @@ namespace XrEngine.UI
         Auto
     }
 
-
-    public struct UiStyleValue<T>
+    public interface IUiStyleValue
     {
-        internal UiProperty<UiStyleValue<T>> _property;
+        UiStyleMode Mode { get; }
 
-        public T? Value;
+        object? Value { get; }  
+    }
 
-        public UiStyleMode Mode;
+    public struct UiStyleValue<T> : IUiStyleValue
+    {
 
-        public readonly T? ActualValue(UiComponent component)
-        {
-            
-            if (Mode == UiStyleMode.Value)
-                return Value;
-
-            if (Mode == UiStyleMode.Inherit && component.Parent != null)
-                return component.Parent.Style.GetStyleValue(_property).ActualValue(component.Parent);
-
-            return default;
-        }
 
         public static readonly UiStyleValue<T> Inherit = new() { Mode = UiStyleMode.Inherit };
 
@@ -52,5 +42,15 @@ namespace XrEngine.UI
         {
             return value.Value;
         }
+
+        readonly UiStyleMode IUiStyleValue.Mode => Mode;
+
+        readonly object? IUiStyleValue.Value => Value;
+
+
+        public T? Value;
+
+        public UiStyleMode Mode;
+
     }
 }

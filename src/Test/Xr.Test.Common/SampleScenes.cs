@@ -87,7 +87,7 @@ namespace Xr.Test
 
             panel.WorldPosition = new Vector3(0, 1, -2);
 
-            panel.AddComponent(new FollowCamera() { Offset = new Vector3(0f, -0.1f, -0.6f) });
+            panel.AddComponent(new FollowCamera() { Offset = new Vector3(0f, -0.0f, -1.6f) });
 
             var lastTime = 0;
 
@@ -96,7 +96,7 @@ namespace Xr.Test
                 var time = (int)ctx.Time;
                 //if (time % 0.5 == 0 && time != lastTime)
                 {
-                    debug.Text1.Text = ctx.Time.ToString() + "\n" + "sssd";
+                    debug.Text1.Text = ctx.Time.ToString() + "\n" + "prova di un testo molto lungo che va a capo ma mi sa di no";
                     lastTime = time;
                 }
             });
@@ -218,8 +218,8 @@ namespace Xr.Test
                    .UseApp(app)
                    .UseScene(true)
                    .ConfigureSampleApp()
-                   .UsePhysics();
-                   //.AddDebugPanel();
+                   .UsePhysics()
+                   .AddDebugPanel();
 
         }
 
