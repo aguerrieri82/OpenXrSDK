@@ -149,10 +149,10 @@ namespace XrEngine.UI
                     NewRow(false);
                 }
 
-                var occupyWidth = childAvailSize.Width + gap.X;
+                var occupyWidth = childSize.Width + gap.X;
 
                 curRowSize.Width += occupyWidth;
-                curRowSize.Height = Math.Max(curRowSize.Height, childAvailSize.Height);
+                curRowSize.Height = Math.Max(curRowSize.Height, childSize.Height);
 
                 leftRowSize.Width -= occupyWidth;
 
@@ -207,10 +207,10 @@ namespace XrEngine.UI
                 else if (lp.AlignContent == UiAlignment.End)
                     curPos.Y += overflow.Y;
 
-                else if (lp.JustifyContent == UiAlignment.SpaceBetween)
+                else if (lp.AlignContent == UiAlignment.SpaceBetween)
                     gap.Y += overflow.X / measure.Items.Length - 1;
 
-                else if (lp.JustifyContent == UiAlignment.SpaceAround)
+                else if (lp.AlignContent == UiAlignment.SpaceAround)
                 {
                     gap.Y = overflow.X / measure.Items.Length + 1;
                     curPos.Y += gap.X;
@@ -224,13 +224,13 @@ namespace XrEngine.UI
                 var rowSize = new Size2
                 {
                     Width = row.Sum(a => a.Width),
-                    Height = row.Sum(a => a.Height),
+                    Height = row.Max(a => a.Height),
                 };
 
                 var rowShrink = lp.Children.Skip(childIndex).Take(row.Length).Sum(a => a.Shrink);
                 var rowGrow = lp.Children.Skip(childIndex).Take(row.Length).Sum(a => a.Grow);
 
-                overflow.X = finalRect.Width - rowSize.Width;
+                overflow.X = finalRect.Width - (rowSize.Width + gap.X * (row.Length -1));
                 
                 curPos.X = finalRect.X;
 
@@ -257,9 +257,9 @@ namespace XrEngine.UI
                     ref var childSize = ref row[i];
                     var child = lp.Children[childIndex];
 
-                    if (rowShrink > 0)
+                    if (rowShrink > 0 && overflow.X < 0)
                         childSize.Width += overflow.X * (child.Shrink / rowShrink);
-                    if (rowGrow > 0)
+                    if (rowGrow > 0 && overflow.X > 0)
                         childSize.Width += overflow.X * (child.Grow / rowGrow);
 
                     var align = child.Align ?? lp.AlignItems;

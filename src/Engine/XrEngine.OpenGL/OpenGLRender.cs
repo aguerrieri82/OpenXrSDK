@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using XrMath;
 using SkiaSharp;
+using System.Numerics;
 
 
 namespace XrEngine.OpenGL
@@ -132,6 +133,8 @@ namespace XrEngine.OpenGL
             _gl.ClearDepth(1.0f);
             _gl.ClearColor(color.R, color.G, color.B, color.A);
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+
         }
 
 
@@ -294,7 +297,9 @@ namespace XrEngine.OpenGL
         public void Render(Scene scene, Camera camera, Rect2I view, IGlRenderTarget target)
         {
             target.Begin();
-      
+
+
+
             if (!_lastView.Equals(view))
             {
                 _gl.Viewport(view.X, view.Y, view.Width, view.Height);
@@ -429,7 +434,10 @@ namespace XrEngine.OpenGL
 
         public void EndDrawSurface()
         {
+
+
             _glState = new GlState();
+            _lastView.Width = 0;
 
             _gl.BindVertexArray(0);
             _gl.UseProgram(0);
@@ -460,6 +468,7 @@ namespace XrEngine.OpenGL
 
                 return new GlTexture2D(_gl, (uint)handle);
             });
+
 
             if (_grContext == null)
             {

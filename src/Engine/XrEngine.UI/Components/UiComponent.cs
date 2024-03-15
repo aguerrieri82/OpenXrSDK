@@ -27,6 +27,7 @@ namespace XrEngine.UI
         protected Rect2 _clientRect;
         protected Rect2 _contentRect;
         protected Size2 _desiredSize;
+        protected Size2 _renderSize;
         protected UiComponent? _host;
         protected UIActualStyle _actualStyle;
 
@@ -36,31 +37,48 @@ namespace XrEngine.UI
             Style = new UiStyle(this);
         }
 
+        #region LAYOUT
+
         public void Measure(Size2 availSize)
         {
-            var contentSize = availSize;
-
-            if (ActualStyle.Width.Mode == UiStyleMode.Value)
-                contentSize.Width = ActualStyle.Width.ToPixel(this, contentSize.Width);
-
-            if (ActualStyle.Height.Mode == UiStyleMode.Value)
-                contentSize.Height = ActualStyle.Height.ToPixel(this, contentSize.Height);
+            if (ActualStyle.Visibility == UiVisibility.Collapsed)
+            {
+                _desiredSize = Size2.Zero;
+                return;
+            }
+ 
+            var clientSize = availSize;
 
             var padding = ActualStyle.Padding.Value;
             var margin = ActualStyle.Margin.Value;
             var border = ActualStyle.Border.Value;
 
-            contentSize.Width -= padding.ToHorizontalPixel(this) + 
-                             margin.ToHorizontalPixel(this) + 
-                             border.Left.Width.ToPixel(this) + 
-                             border.Right.Width.ToPixel(this);
+            var marginValue = new Size2(margin.ToHorizontalPixel(this, UiValueReference.ParentWidth),
+                                        margin.ToVerticalPixel(this, UiValueReference.ParentHeight));
 
-            contentSize.Height -= padding.ToVerticalPixel(this) +
-                              margin.ToVerticalPixel(this) + 
-                              border.Top.Width.ToPixel(this) + 
-                              border.Bottom.Width.ToPixel(this);
 
-            _desiredSize = MeasureWork(contentSize);   
+            if (ActualStyle.Width.Mode == UiStyleMode.Value)
+                clientSize.Width = ActualStyle.Width.ToPixel(this, UiValueReference.ParentWidth);
+
+            if (ActualStyle.Height.Mode == UiStyleMode.Value)
+                clientSize.Height = ActualStyle.Height.ToPixel(this, UiValueReference.ParentHeight);
+
+
+            var padBorder = new Size2();
+
+            padBorder.Width = padding.ToHorizontalPixel(this, UiValueReference.ParentWidth) + 
+                              border.Left.Width.ToPixel(this, UiValueReference.ParentWidth) + 
+                              border.Right.Width.ToPixel(this, UiValueReference.ParentWidth);
+
+            padBorder.Height = padding.ToVerticalPixel(this, UiValueReference.ParentHeight) +
+                               border.Top.Width.ToPixel(this, UiValueReference.ParentHeight) + 
+                               border.Bottom.Width.ToPixel(this, UiValueReference.ParentHeight);
+
+            var contentSize = clientSize - padBorder;
+
+            _desiredSize = MeasureWork(contentSize);
+
+            _desiredSize += marginValue + padBorder;
         }
 
         public void Arrange(Rect2 finalRect)
@@ -77,30 +95,30 @@ namespace XrEngine.UI
 
             var margin = ActualStyle.Margin.Value;
 
-            _clientRect.Left += margin.Left.ToPixel(this, finalRect.Width);
-            _clientRect.Right -= margin.Right.ToPixel(this, finalRect.Width);
+            _clientRect.Left += margin.Left.ToPixel(this, UiValueReference.ParentWidth);
+            _clientRect.Right -= margin.Right.ToPixel(this, UiValueReference.ParentWidth);
 
-            _clientRect.Top += margin.Top.ToPixel(this, finalRect.Height);
-            _clientRect.Bottom -= margin.Bottom.ToPixel(this, finalRect.Height);;
+            _clientRect.Top += margin.Top.ToPixel(this, UiValueReference.ParentHeight);
+            _clientRect.Bottom -= margin.Bottom.ToPixel(this, UiValueReference.ParentHeight);;
 
             var padding = ActualStyle.Padding.Value;
             var border = ActualStyle.Border.Value;
 
             _contentRect = _clientRect;
 
-            _contentRect.Left += padding.Left.ToPixel(this, finalRect.Width) + border.Left.Width.ToPixel(this, finalRect.Width);
-            _contentRect.Right -= padding.Right.ToPixel(this, finalRect.Width) + border.Right.Width.ToPixel(this, finalRect.Width);
+            _contentRect.Left += padding.Left.ToPixel(this, UiValueReference.ParentWidth) + 
+                                 border.Left.Width.ToPixel(this, UiValueReference.ParentWidth);
 
-            _contentRect.Top += padding.Top.ToPixel(this, finalRect.Height) + border.Top.Width.ToPixel(this, finalRect.Height);
-            _contentRect.Bottom -= padding.Bottom.ToPixel(this, finalRect.Height) + border.Bottom.Width.ToPixel(this, finalRect.Height);
+            _contentRect.Right -= padding.Right.ToPixel(this, UiValueReference.ParentWidth) + 
+                                  border.Right.Width.ToPixel(this, UiValueReference.ParentWidth);
 
-            var newSize = ArrangeWork(_contentRect);
+            _contentRect.Top += padding.Top.ToPixel(this, UiValueReference.ParentHeight) + 
+                                border.Top.Width.ToPixel(this, UiValueReference.ParentHeight);
 
-            var delta = newSize - _contentRect.Size;
+            _contentRect.Bottom -= padding.Bottom.ToPixel(this, UiValueReference.ParentHeight) + 
+                                   border.Bottom.Width.ToPixel(this, UiValueReference.ParentHeight);
 
-            _contentRect.Expand(delta);
-
-            _clientRect.Expand(delta);
+            _renderSize = ArrangeWork(_contentRect);
 
             _isLayoutDirty = false;
         }
@@ -115,6 +133,110 @@ namespace XrEngine.UI
             return availSize;
         }
 
+        protected virtual void InvalidateLayout()
+        {
+            _isLayoutDirty = true;
+            _parent?.InvalidateLayout();
+        }
+
+        Size2 ILayoutItem.Measure(Size2 size)
+        {
+            Measure(size);
+            return _desiredSize;
+        }
+
+        Size2 ILayoutItem.Arrange(Rect2 finalRect)
+        {
+            Arrange(finalRect);
+            return _clientRect.Size;
+        }
+
+        #endregion
+
+        #region EVENTS
+
+
+        public void DispatchEvent(UiRoutedEvent ev)
+        {
+            if (ev is UiPointerEvent pointerEvent)
+            {
+                var result = this.HitTest(pointerEvent.ScreenPosition);
+            }
+            else
+            {
+
+            }
+
+            switch (ev.Type)
+            {
+                case UiEventType.PointerDown:
+                    OnPointerDown((UiPointerEvent)ev);
+                    break;
+                case UiEventType.PointerUp:
+                    OnPointerUp((UiPointerEvent)ev);
+                    break;
+                case UiEventType.PointerMove:
+                    OnPointerMove((UiPointerEvent)ev);
+                    break;
+                case UiEventType.GotFocus:
+                    OnGotFocus(ev);
+                    break;
+                case UiEventType.LostFocus:
+                    OnLostFocus(ev);
+                    break;
+            }
+
+            if (!ev.StopBubble && ev.Dispatch == UiEventDispatch.Bubble)
+            {
+                (_parent ?? _host)?.DispatchEvent(ev);
+            }
+            else if (ev.Dispatch == UiEventDispatch.Tunnel)
+            {
+                foreach (var child in VisualChildren)
+                    child.DispatchEvent(ev);
+            }
+        }
+
+        protected virtual void OnGotFocus(UiRoutedEvent ev)
+        {
+            GotFocus?.Invoke(this, ev);
+        }
+
+        protected virtual void OnLostFocus(UiRoutedEvent ev)
+        {
+            LostFocus?.Invoke(this, ev);
+        }
+
+        protected virtual void OnPointerDown(UiPointerEvent ev)
+        {
+            PointerDown?.Invoke(this, ev);  
+        }
+
+        protected virtual void OnPointerMove(UiPointerEvent ev)
+        {
+            PointerMove?.Invoke(this, ev);
+        }
+
+        protected virtual void OnPointerUp(UiPointerEvent ev)
+        {
+            PointerUp?.Invoke(this, ev);
+        }
+
+        public event UiEventHandler<UiPointerEvent>? PointerDown;
+
+        public event UiEventHandler<UiPointerEvent>? PointerMove;
+
+        public event UiEventHandler<UiPointerEvent>? PointerUp;
+
+        public event UiEventHandler<UiRoutedEvent>? GotFocus;
+
+        public event UiEventHandler<UiRoutedEvent>? LostFocus;
+
+
+        #endregion
+
+        #region PROPS
+
         protected override void OnPropertyChanged(string propName, object? value, object? oldValue)
         {
             var prop = GetProperty(propName, GetType());
@@ -127,18 +249,17 @@ namespace XrEngine.UI
             base.OnPropertyChanged(propName, value, oldValue);
         }
 
-        protected virtual void InvalidateLayout()
-        {
-            _isLayoutDirty = true;
-            _parent?.InvalidateLayout();
-        }
-
         protected internal void OnStyleChanged(string propName, IUiStyleValue value, IUiStyleValue oldValue)
         {
             var prop = GetProperty(propName, typeof(UiStyle));
             if ((prop.Flags & UiPropertyFlags.Layout) == UiPropertyFlags.Layout)
                 InvalidateLayout();
         }
+
+        #endregion
+
+
+        #region RENDER
 
         protected virtual void DrawBox(SKCanvas canvas)
         {
@@ -152,28 +273,31 @@ namespace XrEngine.UI
             var border = ActualStyle.Border.Value;
             if (border.Top.HasValue)
             {
-                var paint = SKResources.Stroke(border.Top.Color, border.Top.Width.ToPixel(this));
+                var paint = SKResources.Stroke(border.Top.Color, border.Top.Width.ToPixel(this, UiValueReference.ParentWidth));
                 canvas.DrawLine(_clientRect.X, _clientRect.Y, _clientRect.Right, _clientRect.Y, paint);
             }
             if (border.Bottom.HasValue)
             {
-                var paint = SKResources.Stroke(border.Bottom.Color, border.Bottom.Width.ToPixel(this));
+                var paint = SKResources.Stroke(border.Bottom.Color, border.Bottom.Width.ToPixel(this, UiValueReference.ParentWidth));
                 canvas.DrawLine(_clientRect.X, _clientRect.Bottom, _clientRect.Right, _clientRect.Bottom, paint);
             }
             if (border.Left.HasValue)
             {
-                var paint = SKResources.Stroke(border.Left.Color, border.Left.Width.ToPixel(this));
+                var paint = SKResources.Stroke(border.Left.Color, border.Left.Width.ToPixel(this, UiValueReference.ParentHeight));
                 canvas.DrawLine(_clientRect.X, _clientRect.Y, _clientRect.X, _clientRect.Bottom, paint);
             }
             if (border.Right.HasValue)
             {
-                var paint = SKResources.Stroke(border.Right.Color, border.Right.Width.ToPixel(this));
+                var paint = SKResources.Stroke(border.Right.Color, border.Right.Width.ToPixel(this, UiValueReference.ParentHeight));
                 canvas.DrawLine(_clientRect.Right, _clientRect.Y, _clientRect.Right, _clientRect.Bottom, paint);
             }
         }
 
         public virtual void Draw(SKCanvas canvas)
         {
+            if (ActualStyle.Visibility != UiVisibility.Visible)
+                return;
+
             canvas.Save();
             DrawBox(canvas);
             DrawWork(canvas);
@@ -182,6 +306,12 @@ namespace XrEngine.UI
         }
 
         protected abstract void DrawWork(SKCanvas canvas);
+
+        #endregion
+
+        #region STYLE
+
+
 
         public UiStyle StateActualStyle(UiControlState state)
         {
@@ -215,17 +345,10 @@ namespace XrEngine.UI
             return value;
         }
 
-        Size2 ILayoutItem.Measure(Size2 size)
-        {
-            Measure(size);
-            return _desiredSize;
-        }
 
-        Size2 ILayoutItem.Arrange(Rect2 finalRect)
-        {
-            Arrange(finalRect);
-            return _clientRect.Size;
-        }
+        #endregion
+
+
 
         public bool IsDirty
         {
@@ -260,6 +383,7 @@ namespace XrEngine.UI
             }
         }
 
+
         public UiStyle Style
         {
             get => GetValue<UiStyle>(nameof(Style))!;
@@ -270,10 +394,15 @@ namespace XrEngine.UI
 
         public Size2 DesiredSize => _desiredSize;
 
+        public Size2 RenderSize => _renderSize;
+
         public float ActualWidth => _clientRect.Width;
 
         public float ActualHeight => _clientRect.Height;
 
         public Rect2 ClientRect => _clientRect;
+
+        public virtual IEnumerable<UiComponent> VisualChildren => [];
+
     }
 }

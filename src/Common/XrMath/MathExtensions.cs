@@ -292,6 +292,12 @@ namespace XrMath
 
         #region MISC
 
+        public static bool Contains(this Rect2 rect, Vector2 point)
+        {
+            return point.X >= rect.X && point.X <= rect.Left &&
+                   point.Y >= rect.Y && point.Y <= rect.Bottom;
+        }
+
         public static bool Intersects(this Sphere sphere, Sphere other, out float offset)
         {
             var dist = (sphere.Center - other.Center).Length();

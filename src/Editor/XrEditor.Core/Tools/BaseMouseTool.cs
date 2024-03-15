@@ -1,17 +1,12 @@
 ﻿using System.Numerics;
 using XrEngine;
+using XrEngine.Interaction;
 using XrMath;
 
 
 namespace XrEditor
 {
-    [Flags]
-    public enum MouseButton
-    {
-        Left = 0x1,
-        Middle = 0x2,
-        Right = 0x4
-    }
+
 
     public abstract class BaseMouseTool : IEditorTool
     {

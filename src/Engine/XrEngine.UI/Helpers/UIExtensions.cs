@@ -5,22 +5,61 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using XrEngine.UI.Components;
 using XrMath;
 
 namespace XrEngine.UI
 {
     public static class UIExtensions
     {
-        public static float ToPixel(this UiStyleValue<UnitValue> value, UiComponent component, float reference = 0)
+        public static Vector2 Position(this UiPointerEvent ev, UiComponent component)
         {
-            return value.Value.ToPixel(component, reference);
+            return ev.ScreenPosition - component.ClientRect.Position;
+        }
+
+        public static void Focus(this UiComponent component)
+        {
+            UiFocusManager.SetFocus(component);
+        }
+
+        public static UiComponent? HitTest(this UiComponent component, Vector2 point)
+        {
+            UiComponent? Visit(UiComponent curItem)
+            {
+                if (curItem.ActualStyle.Visibility == UiVisibility.Visible &&
+                    curItem.ClientRect.Contains(point))
+                {
+                    foreach (var child in curItem.VisualChildren)
+                    {
+                        var childRes = Visit(child);
+                        if (childRes != null)
+                            return childRes;
+                    }
+
+                    return curItem;
+                }
+
+                return null;
+            }
+
+            return Visit(component);
+        }
+
+        public static float ToPixel(this UiStyleValue<UnitValue> value, UiComponent ctx, float reference = 0)
+        {
+            return value.Value.ToPixel(ctx, reference);
+        }
+
+        public static float ToPixel(this UiStyleValue<UnitValue> value, UiComponent ctx, UiValueReference reference = UiValueReference.None)
+        {
+            return value.Value.ToPixel(ctx, reference);
         }
 
         public static SKFont GetFont(this UiStyle style)
         {
             return SKResources.Font(
                 style.FontFamily.Value!,
-                style.FontSize.ToPixel(style.Owner)
+                style.FontSize.ToPixel(style.Owner, UiValueReference.ParentFontSize)
             );
         }
 

@@ -165,6 +165,14 @@ namespace XrEngine.UI
             }
             else
             {
+                Materials.Add(new ColorMaterial
+                {
+                    Color = Color.Transparent,
+                    WriteColor = true,
+                    WriteDepth = true,
+                    DoubleSided = false,
+                });
+
                 if (_defaultTexture != null)
                 {
                     _defaultTexture.Dispose();

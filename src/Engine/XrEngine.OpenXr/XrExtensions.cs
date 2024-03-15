@@ -41,6 +41,8 @@ namespace XrEngine.OpenXr
 
             }, canvas.PixelSize);
 
+            layer.Priority = 5;
+
             app.Layers.Add(layer);
         }
 

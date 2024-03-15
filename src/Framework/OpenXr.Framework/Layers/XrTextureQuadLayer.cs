@@ -23,7 +23,7 @@ namespace OpenXr.Framework.Layers
         {
             _renderQuad = renderQuad;
             _size = size;
-            Priority = 2;
+            Priority = 5;
         }
 
         public unsafe override void Create()

@@ -13,7 +13,6 @@ namespace XrEngine.UI
     {
         protected List<UiComponent> _children = [];
 
-
         protected (IUiLayoutManager, object) GetLayoutManager()
         {
             var layout = ActualStyle.Layout.Value;
@@ -111,6 +110,9 @@ namespace XrEngine.UI
             _isDirty = true;
             _isLayoutDirty = true;
         }
+
+
+        public override IEnumerable<UiComponent> VisualChildren => _children;
 
         public IReadOnlyList<UiComponent> Children => _children;
     }

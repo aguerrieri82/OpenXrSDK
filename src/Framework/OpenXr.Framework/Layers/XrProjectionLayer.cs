@@ -21,7 +21,7 @@ namespace OpenXr.Framework
             _header->LayerFlags =
                 CompositionLayerFlags.CorrectChromaticAberrationBit |
                 CompositionLayerFlags.BlendTextureSourceAlphaBit;
-            Priority = 1;
+            Priority = 10;
         }
 
         public XrProjectionLayer(RenderViewDelegate renderView)
