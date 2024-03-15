@@ -17,9 +17,13 @@ namespace Xr.Test
             Style.FontSize = UnitValue.Dp(16);
             Style.Padding = UnitRectValue.All(16);
 
+
             Text1 = this.AddChild<UiTextBlock>();
             Text1.SetPosition(10, 10);
             Text1.Text = "Hello";
+            Text1.Style.BackgroundColor = new Color(1, 0, 0, 1);
+            Text1.Style.Border = BorderRectValue.All(1, Color.Black);
+            Text1.Style.Height = UnitValue.Perc(100);
         }
 
         public UiTextBlock Text1;

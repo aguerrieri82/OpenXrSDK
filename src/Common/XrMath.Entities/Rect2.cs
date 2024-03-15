@@ -11,6 +11,12 @@ namespace XrMath
             X = x; Y = y; Width = width; Height = height;
         }
 
+        public void Expand(Size2 amount)
+        {
+            Width += amount.Width;
+            Height += amount.Height;
+        }
+
         public float Top
         {
             get => Y;
@@ -53,7 +59,7 @@ namespace XrMath
 
         public float Height;
 
-        public Vector2 Offset
+        public Vector2 Position
         {
             get => new(X, Y);
             set
@@ -63,9 +69,9 @@ namespace XrMath
             }
         }
 
-        public Size2 Extent
+        public Size2 Size
         {
-            get => new(Width, Height);
+            get => new (Width, Height);
             set
             {
                 Width = value.Width;    

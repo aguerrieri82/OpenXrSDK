@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -10,6 +11,19 @@ namespace XrEngine.UI
 {
     public static class UIExtensions
     {
+        public static float ToPixel(this UiStyleValue<UnitValue> value, UiComponent component, float reference = 0)
+        {
+            return value.Value.ToPixel(component, reference);
+        }
+
+        public static SKFont GetFont(this UiStyle style)
+        {
+            return SKResources.Font(
+                style.FontFamily.Value!,
+                style.FontSize.ToPixel(style.Owner)
+            );
+        }
+
         public static void SetPosition(this UiComponent comp, float x, float y, Unit unit = Unit.Dp)
         {
             comp.Style.Top = UnitValue.Get(y, unit);
@@ -42,7 +56,7 @@ namespace XrEngine.UI
             canvas.Size = new Size2(width * UnitConv.InchesToMeter, height * UnitConv.InchesToMeter);
         }
 
-        public static T AddChild<T>(this UiPanel self) where T : UiComponent, new()
+        public static T AddChild<T>(this UiContainer self) where T : UiComponent, new()
         {
             var res = new T();
             self.AddChild(res);
