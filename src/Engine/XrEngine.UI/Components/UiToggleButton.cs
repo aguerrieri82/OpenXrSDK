@@ -13,6 +13,11 @@ namespace XrEngine.UI
 {
     public class UiToggleButton : UiContentView
     {
+        public UiToggleButton()
+        {
+            IsFocusable = true;
+        }
+
         protected override void OnPointerUp(UiPointerEvent ev)
         {
             IsChecked = !IsChecked;

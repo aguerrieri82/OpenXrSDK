@@ -59,6 +59,17 @@ namespace XrEngine.UI
             return All(value, Color.Black, BorderStyle.Solid);
         }
 
+        public static implicit operator UnitRectValue(BorderRectValue value)
+        {
+            return new UnitRectValue
+            {
+                Bottom = value.Bottom.Width,
+                Top = value.Top.Width,
+                Left = value.Left.Width,
+                Right = value.Right.Width
+            };
+        }
+
 
         public BorderValue Top;
 

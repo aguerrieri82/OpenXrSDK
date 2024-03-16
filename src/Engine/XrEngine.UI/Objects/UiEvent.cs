@@ -48,6 +48,7 @@ namespace XrEngine.UI
 
     public class UiPointerEvent : UiRoutedEvent
     {
+        public int PointerId;
 
         public Vector2 ScreenPosition;
 

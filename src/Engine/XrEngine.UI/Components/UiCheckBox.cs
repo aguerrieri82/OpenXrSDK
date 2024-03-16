@@ -15,6 +15,8 @@ namespace XrEngine.UI.Components
 
         public UiCheckBox()
         {
+            IsFocusable = true;
+
             _toggle = this.AddChild<UiToggleButton>();
             _toggle.CheckedChange += OnCheckedChange;
             _toggle.Style.FontSize = UnitValue.Dp(24);

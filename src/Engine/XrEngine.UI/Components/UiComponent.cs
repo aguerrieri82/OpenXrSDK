@@ -39,6 +39,35 @@ namespace XrEngine.UI
 
         #region LAYOUT
 
+        protected void ApplySizeLimit(ref Rect2 rect)
+        {
+            if (ActualStyle.Width.HasValue)
+                rect.Width = ActualStyle.Width.ToPixel(this, UiValueReference.ParentWidth);
+
+            if (ActualStyle.MinWidth.HasValue)
+                rect.Width = Math.Max(ActualStyle.MinWidth.ToPixel(this, UiValueReference.ParentWidth), rect.Width);
+
+            if (ActualStyle.MaxWidth.HasValue)
+                rect.Width = Math.Min(ActualStyle.MaxWidth.ToPixel(this, UiValueReference.ParentWidth), rect.Width);
+
+            if (ActualStyle.Height.HasValue)
+                rect.Height = ActualStyle.Height.ToPixel(this, UiValueReference.ParentHeight);
+
+            if (ActualStyle.MinHeight.HasValue)
+                rect.Height = Math.Max(ActualStyle.MinHeight.ToPixel(this, UiValueReference.ParentHeight), rect.Height);
+
+            if (ActualStyle.MaxHeight.HasValue)
+                rect.Height = Math.Min(ActualStyle.MaxHeight.ToPixel(this, UiValueReference.ParentHeight), rect.Height);
+        }
+
+        protected void ApplyOffset(ref Rect2 rect, UnitRectValue value, float dir = 1)
+        {
+            rect.Left += value.Left.ToPixel(this, UiValueReference.ParentWidth) * dir;
+            rect.Right -= value.Right.ToPixel(this, UiValueReference.ParentWidth) * dir;
+            rect.Top += value.Top.ToPixel(this, UiValueReference.ParentHeight) * dir;
+            rect.Bottom -= value.Bottom.ToPixel(this, UiValueReference.ParentHeight) * dir;
+        }
+
         public void Measure(Size2 availSize)
         {
             if (ActualStyle.Visibility == UiVisibility.Collapsed)
@@ -46,99 +75,45 @@ namespace XrEngine.UI
                 _desiredSize = Size2.Zero;
                 return;
             }
- 
-            var clientSize = availSize;
+
+            var hasFixedSize = ActualStyle.Width.HasValue && ActualStyle.Height.HasValue;
 
             var padding = ActualStyle.Padding.Value;
             var margin = ActualStyle.Margin.Value;
             var border = ActualStyle.Border.Value;
 
-            void ApplySizeLimit(ref Size2 checkSize)
-            {
-                if (ActualStyle.Width.HasValue)
-                    checkSize.Width = ActualStyle.Width.ToPixel(this, UiValueReference.ParentWidth);
+            var measureRect = new Rect2(0, 0, availSize.Width, availSize.Height);
 
-                if (ActualStyle.Height.HasValue)
-                    checkSize.Height = ActualStyle.Height.ToPixel(this, UiValueReference.ParentHeight);
-
-                if (ActualStyle.MinWidth.HasValue)
-                    checkSize.Width = Math.Max(ActualStyle.MinWidth.ToPixel(this, UiValueReference.ParentWidth), checkSize.Width);
-
-                if (ActualStyle.MaxWidth.HasValue)
-                    checkSize.Width = Math.Min(ActualStyle.MaxWidth.ToPixel(this, UiValueReference.ParentWidth), checkSize.Width);
-
-                if (ActualStyle.MinHeight.HasValue)
-                    checkSize.Height = Math.Max(ActualStyle.MinHeight.ToPixel(this, UiValueReference.ParentHeight), checkSize.Height);
-
-                if (ActualStyle.MaxHeight.HasValue)
-                    checkSize.Height = Math.Min(ActualStyle.MaxHeight.ToPixel(this, UiValueReference.ParentHeight), checkSize.Height);
-            }
-
-            ApplySizeLimit(ref clientSize);
-
-            var padBorder = new Size2();
-
-            padBorder.Width = padding.ToHorizontalPixel(this, UiValueReference.ParentWidth) + 
-                              border.Left.Width.ToPixel(this, UiValueReference.ParentWidth) + 
-                              border.Right.Width.ToPixel(this, UiValueReference.ParentWidth);
-
-            padBorder.Height = padding.ToVerticalPixel(this, UiValueReference.ParentHeight) +
-                               border.Top.Width.ToPixel(this, UiValueReference.ParentHeight) + 
-                               border.Bottom.Width.ToPixel(this, UiValueReference.ParentHeight);
-
-            var contentSize = clientSize - padBorder;
-
-            var hasFixedSize = ActualStyle.Width.HasValue && ActualStyle.Height.HasValue;
+            ApplySizeLimit(ref measureRect);
 
             if (!hasFixedSize)
-                _desiredSize = MeasureWork(contentSize);
+            {    
+                ApplyOffset(ref measureRect, padding);
+                ApplyOffset(ref measureRect, border);
 
-            _desiredSize += padBorder;
+                measureRect.Size = MeasureWork(measureRect.Size);
 
-            ApplySizeLimit(ref _desiredSize);
+                ApplyOffset(ref measureRect, padding, -1);
+                ApplyOffset(ref measureRect, border, -1);
 
-            var marginValue = new Size2(margin.ToHorizontalPixel(this, UiValueReference.ParentWidth),
-                                        margin.ToVerticalPixel(this, UiValueReference.ParentHeight));
+                ApplySizeLimit(ref measureRect);
+            }
 
-            _desiredSize += marginValue;
+            ApplyOffset(ref measureRect, margin, -1);
+
+            _desiredSize = measureRect.Size;
         }
 
         public void Arrange(Rect2 finalRect)
         {
             _clientRect = finalRect;
 
-            /*
-            if (ActualStyle.Top.Mode == UiStyleMode.Value)
-                _clientRect.Top += ActualStyle.Top.Value.ToPixel(this, finalRect.Height);
-
-            if (ActualStyle.Left.Mode == UiStyleMode.Value)
-                _clientRect.Left += ActualStyle.Left.Value.ToPixel(this, finalRect.Width);
-            */
-
-            var margin = ActualStyle.Margin.Value;
-
-            _clientRect.Left += margin.Left.ToPixel(this, UiValueReference.ParentWidth);
-            _clientRect.Right -= margin.Right.ToPixel(this, UiValueReference.ParentWidth);
-
-            _clientRect.Top += margin.Top.ToPixel(this, UiValueReference.ParentHeight);
-            _clientRect.Bottom -= margin.Bottom.ToPixel(this, UiValueReference.ParentHeight);;
-
-            var padding = ActualStyle.Padding.Value;
-            var border = ActualStyle.Border.Value;
+            ApplyOffset(ref _clientRect, ActualStyle.Margin.Value);
 
             _contentRect = _clientRect;
 
-            _contentRect.Left += padding.Left.ToPixel(this, UiValueReference.ParentWidth) + 
-                                 border.Left.Width.ToPixel(this, UiValueReference.ParentWidth);
-
-            _contentRect.Right -= padding.Right.ToPixel(this, UiValueReference.ParentWidth) + 
-                                  border.Right.Width.ToPixel(this, UiValueReference.ParentWidth);
-
-            _contentRect.Top += padding.Top.ToPixel(this, UiValueReference.ParentHeight) + 
-                                border.Top.Width.ToPixel(this, UiValueReference.ParentHeight);
-
-            _contentRect.Bottom -= padding.Bottom.ToPixel(this, UiValueReference.ParentHeight) + 
-                                   border.Bottom.Width.ToPixel(this, UiValueReference.ParentHeight);
+            ApplyOffset(ref _contentRect, ActualStyle.Padding.Value);
+            ApplyOffset(ref _contentRect, ActualStyle.Border.Value);
 
             _renderSize = ArrangeWork(_contentRect);
 
@@ -176,7 +151,6 @@ namespace XrEngine.UI
         #endregion
 
         #region EVENTS
-
 
         public void DispatchEvent(UiRoutedEvent ev)
         {
@@ -242,6 +216,8 @@ namespace XrEngine.UI
 
         protected virtual void OnPointerDown(UiPointerEvent ev)
         {
+            if (IsFocusable)
+                UiFocusManager.SetFocus(this);
             PointerDown?.Invoke(this, ev);  
         }
 
@@ -423,6 +399,12 @@ namespace XrEngine.UI
             }
         }
 
+        [UiProperty(false)]       
+        public bool IsFocusable
+        {
+            get => GetValue<bool>(nameof(IsFocusable))!;
+            set => SetValue(nameof(IsFocusable), value);
+        }
 
         public UiStyle Style
         {

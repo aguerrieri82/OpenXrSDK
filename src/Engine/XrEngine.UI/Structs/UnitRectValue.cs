@@ -47,6 +47,12 @@ namespace XrEngine.UI
         }
 
 
+        public static implicit operator UnitRectValue(float value)
+        {
+            return All(value);
+        }
+
+
         public float Value
         {
             set
@@ -57,12 +63,6 @@ namespace XrEngine.UI
                 Bottom.Value = value;
             }
         }
-
-        public static implicit operator UnitRectValue(float value)
-        {
-            return All(value);
-        }
-
 
         public UnitValue Top;
         

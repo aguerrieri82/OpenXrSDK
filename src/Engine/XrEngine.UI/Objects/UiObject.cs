@@ -6,9 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using XrEngine.UI.Helpers;
 
-namespace XrEngine.UI.Components
+namespace XrEngine.UI
 {
     [Flags]
     public enum UiPropertyFlags
@@ -86,7 +85,7 @@ namespace XrEngine.UI.Components
                 {
                     prop.Flags = propDesc.Flags;    
 
-                    if (!UiTypeConverter.TryConvert(propDesc.DefaultValue, typeProp.PropertyType, out prop.DefaultValue))
+                    if (!TypeConverter.TryConvert(propDesc.DefaultValue, typeProp.PropertyType, out prop.DefaultValue))
                         throw new InvalidCastException();
                 }
 

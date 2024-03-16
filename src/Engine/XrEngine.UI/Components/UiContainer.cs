@@ -14,62 +14,6 @@ namespace XrEngine.UI
         protected List<UiComponent> _children = [];
         protected object? _layoutParams;
 
-
-        protected void UpdateLayoutParams()
-        {
-            var layout = ActualStyle.Layout.Value;
-
-            if (layout == UiLayoutType.Flex)
-            {
-                var lp = new FlexLayoutManager.LayoutParams
-                {
-                    AlignContent = ActualStyle.AlignContent.Value,
-                    AlignItems = ActualStyle.AlignItems.Value,
-                    Gap = new Vector2(ActualStyle.ColGap.Value, ActualStyle.RowGap.Value),
-                    JustifyContent = ActualStyle.JustifyContent.Value,
-                    Orientation = ActualStyle.FlexDirection.Value,
-                    WrapMode = ActualStyle.LayoutWrap.Value,
-                    Children = new FlexLayoutManager.ChildParams[_children.Count]
-                };
-
-                for (var i = 0; i < _children.Count; i++)
-                {
-                    var child = _children[i];
-
-                    lp.Children[i] = new FlexLayoutManager.ChildParams
-                    {
-                        Align = child.ActualStyle.AlignSelf.Value,
-                        Basis = child.ActualStyle.FlexBasis.Value,
-                        Grow = child.ActualStyle.FlexGrow.Value,
-                        Shrink = child.ActualStyle.FlexShrink.Value,
-                        Item = child
-                    };
-                }
-
-                _layoutParams = lp;
-            }
-            else if (layout == UiLayoutType.Absolute)
-            {
-                var lp = new AbsoluteLayoutManager.LayoutParams
-                {
-                    Children = new AbsoluteLayoutManager.ChildParams[_children.Count]
-                };
-
-                for (var i = 0; i < _children.Count; i++)
-                {
-                    var child = _children[i];
-                    lp.Children[i] = new AbsoluteLayoutManager.ChildParams
-                    {
-                        Position = new Vector2(child.ActualStyle.Left.ToPixel(child, UiValueReference.ParentWidth),
-                                               child.ActualStyle.Top.ToPixel(child, UiValueReference.ParentHeight))
-                    };
-                }
-                _layoutParams = lp;
-            }
-            else
-                _layoutParams = null;
-        }
-
         protected IUiLayoutManager GetLayoutManager()
         {
             var layout = ActualStyle.Layout.Value;
@@ -85,19 +29,18 @@ namespace XrEngine.UI
 
         protected override void InvalidateLayout()
         {
+            _layoutParams = null;
             base.InvalidateLayout();
         }
 
-
         protected override Size2 MeasureWork(Size2 availSize)
         {
-            UpdateLayoutParams();
-
             var manager = GetLayoutManager();
+
+            _layoutParams = manager.ExtractLayoutParams(this);  
 
             return manager.Measure(availSize, _layoutParams);
         }
-
 
         protected override Size2 ArrangeWork(Rect2 finalRect)
         {

@@ -24,7 +24,7 @@ namespace XrEngine.UI
             };
         }
 
-        public bool HasValue => Style != BorderStyle.None && Width.Value > 0;
+        public readonly bool HasValue => Style != BorderStyle.None && Width.Value > 0;
 
         public Color Color;
 
