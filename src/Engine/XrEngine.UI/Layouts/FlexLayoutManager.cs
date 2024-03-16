@@ -11,12 +11,11 @@ using XrMath;
 
 namespace XrEngine.UI
 {
- 
-    
-
 
     public class FlexLayoutManager : IUiLayoutManager
     {
+        #region STRUCTS 
+
         public struct ChildParams
         {
             public float Basis;
@@ -60,6 +59,10 @@ namespace XrEngine.UI
             public float Grow;
         }
 
+        #endregion
+
+        protected FlexLayoutManager() { }
+
         static Size2 Convert(Size2 value, UIOrientation ort)
         {
             if (ort == UIOrientation.Vertical)
@@ -81,9 +84,7 @@ namespace XrEngine.UI
             return value;
         }
 
-        protected FlexLayoutManager() { }
-
-        MeasureResult MeasureWork(Size2 availSize, LayoutParams lp, bool isArrange)
+        static MeasureResult MeasureWork(Size2 availSize, LayoutParams lp, bool isArrange)
         {
             availSize = Convert(availSize, lp.Orientation);
 
@@ -179,13 +180,13 @@ namespace XrEngine.UI
             return result;
         }
 
-        public Size2 Measure(Size2 availSize, LayoutParams lp)
+        static Size2 Measure(Size2 availSize, LayoutParams lp)
         {
             var result = MeasureWork(availSize, lp, false);
             return result.FinalSize;
         }
 
-        public void Arrange(Rect2 finalRect, LayoutParams lp)
+        static void Arrange(Rect2 finalRect, LayoutParams lp)
         {
             var measure = MeasureWork(finalRect.Size, lp, true);
 
@@ -316,6 +317,36 @@ namespace XrEngine.UI
             Arrange(finalRect, (LayoutParams)layoutParams!);
 
             return finalRect.Size;
+        }
+
+        public object? ExtractLayoutParams(UiContainer container)
+        {
+            var result = new LayoutParams
+            {
+                AlignContent = container.ActualStyle.AlignContent.Value,
+                AlignItems = container.ActualStyle.AlignItems.Value,
+                Gap = new Vector2(container.ActualStyle.ColGap.Value, container.ActualStyle.RowGap.Value),
+                JustifyContent = container.ActualStyle.JustifyContent.Value,
+                Orientation = container.ActualStyle.FlexDirection.Value,
+                WrapMode = container.ActualStyle.LayoutWrap.Value,
+                Children = new ChildParams[container.Children.Count]
+            };
+
+            for (var i = 0; i < container.Children.Count; i++)
+            {
+                var child = container.Children[i];
+
+                result.Children[i] = new ChildParams
+                {
+                    Align = child.ActualStyle.AlignSelf.Value,
+                    Basis = child.ActualStyle.FlexBasis.Value,
+                    Grow = child.ActualStyle.FlexGrow.Value,
+                    Shrink = child.ActualStyle.FlexShrink.Value,
+                    Item = child
+                };
+            }
+
+            return result;
         }
 
         public static readonly FlexLayoutManager Instance = new FlexLayoutManager();

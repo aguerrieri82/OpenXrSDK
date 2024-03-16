@@ -10,7 +10,7 @@ using XrMath;
 
 namespace XrEngine.UI
 {
-    public static class UIExtensions
+    public static class UiExtensions
     {
         public static IEnumerable<UiComponent> VisualAncestorsAndSelf(this UiComponent? component)
         {

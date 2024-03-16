@@ -6,9 +6,9 @@ using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XrEngine.UI.Helpers
+namespace XrEngine.UI
 {
-    public static class UiTypeConverter
+    public static class TypeConverter
     {
         public static bool TryConvert(object? value, Type type, out object? result)
         {

@@ -6,13 +6,16 @@ using System.Numerics;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
-using XrEngine.UI.Components;
-using XrMath;
+
 
 namespace XrEngine.UI
 {
     public class UiSlider : UiComponent
     {
+        public UiSlider()
+        {
+            IsFocusable = true;
+        }
 
         protected virtual void OnValueChanged()
         {

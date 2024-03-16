@@ -10,6 +10,8 @@ namespace XrEngine.UI
 {
     public class AbsoluteLayoutManager : IUiLayoutManager
     {
+        #region STRUCT
+
         public struct ChildParams
         {
             public Vector2 Position;
@@ -17,11 +19,14 @@ namespace XrEngine.UI
             public ILayoutItem Item;
         }
 
-
         public struct LayoutParams
         {
             public ChildParams[] Children;
         }
+
+        #endregion
+
+        protected AbsoluteLayoutManager() { }
 
         public Size2 Arrange(Rect2 finalRect, object? layoutParams)
         {
@@ -70,6 +75,26 @@ namespace XrEngine.UI
             return totSize;
         }
 
-        public static readonly AbsoluteLayoutManager Instance = new AbsoluteLayoutManager(); 
+        public object? ExtractLayoutParams(UiContainer container)
+        {
+            var result = new LayoutParams
+            {
+                Children = new ChildParams[container.Children.Count]
+            };
+
+            for (var i = 0; i < container.Children.Count; i++)
+            {
+                var child = container.Children[i];
+                result.Children[i] = new ChildParams
+                {
+                    Position = new Vector2(child.ActualStyle.Left.ToPixel(child, UiValueReference.ParentWidth),
+                                           child.ActualStyle.Top.ToPixel(child, UiValueReference.ParentHeight))
+                };
+            }
+
+            return result;
+        }
+
+        public static readonly AbsoluteLayoutManager Instance = new(); 
     }
 }
