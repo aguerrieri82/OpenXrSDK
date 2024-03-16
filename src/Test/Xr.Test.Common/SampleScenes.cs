@@ -101,11 +101,13 @@ namespace Xr.Test
                 }
             });
 
-            return builder.ConfigureApp(e =>
-            {
-                e.App.ActiveScene!.AddChild(panel);
-                panel.CreateOverlay(e.XrApp);
-            });
+            return builder
+                .AddRightPointer()
+                .ConfigureApp(e =>
+                {
+                    e.App.ActiveScene!.AddChild(panel);
+                    //panel.CreateOverlay(e.XrApp);
+                });
         }
 
         static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder)

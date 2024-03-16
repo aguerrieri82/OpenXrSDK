@@ -48,16 +48,19 @@ namespace XrEditor
 
         protected Ray3 ToRay(PointerEvent ev)
         {
+            if (_sceneView?.Camera == null)
+                return new Ray3();
+
             var normPoint = ToView(ev);
 
-            var dirEye = Vector4.Transform(new Vector4(normPoint, 1.0f), _sceneView!.Camera!.ProjectionInverse);
+            var dirEye = Vector4.Transform(new Vector4(normPoint, 1.0f), _sceneView.Camera.ProjectionInverse);
             dirEye.W = 0;
 
-            var dirWorld = Vector4.Transform(dirEye, _sceneView!.Camera.WorldMatrix);
+            var dirWorld = Vector4.Transform(dirEye, _sceneView.Camera.WorldMatrix);
 
             return new Ray3
             {
-                Origin = _sceneView!.Camera.WorldPosition,
+                Origin = _sceneView.Camera.WorldPosition,
                 Direction = new Vector3(dirWorld.X, dirWorld.Y, dirWorld.Z).Normalize()
             };
         }

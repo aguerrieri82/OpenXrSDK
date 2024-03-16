@@ -157,7 +157,7 @@ namespace XrEngine.UI
 
                 Materials.Add(new TextureMaterial(_defaultTexture) 
                 {   
-                    DoubleSided = true, 
+                    DoubleSided = false, 
                     Alpha = AlphaMode.Blend,
                 });
 

@@ -6,12 +6,13 @@ using XrMath;
 
 namespace XrEditor
 {
-    public class PickTool : BaseMouseTool, IDrawGizmos
+    public class PickTool : BaseMouseTool, IDrawGizmos, IRayPointer
     {
         protected Object3D? _currentPick;
         protected Color? _oldColor;
         protected Collision? _lastCollision;
         protected object _lock = new object();
+        protected RayPointerStatus _lastRay;
 
         public override void NotifySceneChanged()
         {
@@ -21,16 +22,41 @@ namespace XrEditor
                 debug.Debuggers.Add(this);
         }
 
+        RayPointerStatus IRayPointer.GetPointerStatus()
+        {
+            var result = _lastRay;
+            _lastRay.IsActive = false;
+            return result;
+        }
+
+        protected void UpdateRay(PointerEvent ev)
+        {
+            _lastRay.Ray = ToRay(ev);
+            _lastRay.Buttons = ev.Buttons;
+            _lastRay.IsActive = true;
+        }
+
+        protected override void OnMouseDown(PointerEvent ev)
+        {
+            UpdateRay(ev);
+            base.OnMouseDown(ev);
+        }
+
+        protected override void OnMouseUp(PointerEvent ev)
+        {
+            UpdateRay(ev);
+            base.OnMouseUp(ev);
+        }
+
         protected override void OnMouseMove(PointerEvent ev)
         {
-
             if (_sceneView?.Scene == null)
                 return;
 
-            var ray = ToRay(ev);
+            UpdateRay(ev);
 
             lock (_lock)
-                _lastCollision = _sceneView.Scene.RayCollisions(ray).FirstOrDefault();
+                _lastCollision = _sceneView.Scene.RayCollisions(_lastRay.Ray).FirstOrDefault();
 
             var newPick = _lastCollision?.Object;
 
@@ -91,5 +117,7 @@ namespace XrEditor
             }
 
         }
+
+
     }
 }

@@ -1,19 +1,111 @@
 ﻿using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using XrEngine.Interaction;
 using XrMath;
 
 namespace XrEngine.UI
 {
     public class Panel3D : CanvasView3D
     {
+        protected RayPointerStatus _lastStatus;
+        protected MeshCollider _collider;
+        protected Vector2 _lastPosition;
+
         public Panel3D()
         {
-            AddComponent(new MeshCollider());
+            _collider = this.AddComponent<MeshCollider>();
+            _lastPosition.X = float.NaN;
+        }
+
+        protected override void Start(RenderContext ctx)
+        {
+            Pointers ??= Scene?
+                .Components<IComponent>()
+                .OfType<IRayPointer>()
+                .ToArray();
+        }
+
+        public override void Update(RenderContext ctx)
+        {
+            ProcessPointers();
+
+            base.Update(ctx);
+        }
+
+        protected void ProcessPointers()
+        {
+            if (Pointers == null)
+                return;
+
+            foreach (var pointer in Pointers)
+            {
+                var status = pointer.GetPointerStatus();
+
+                if (!status.IsActive)
+                    continue;
+
+                var collision = _collider.CollideWith(status.Ray);
+
+                if (collision != null)
+                {
+                    var pos = new Vector2(collision.LocalPoint.X + 0.5f, 1 - (collision.LocalPoint.Y + 0.5f));
+
+                    DispatchPointerEvent(pos, status.Buttons, UiEventType.PointerMove);
+
+                    _lastPosition = pos;
+                }
+
+                foreach (var button in Enum.GetValues<PointerButton>())
+                {
+                    var isOn = (status.Buttons & button) == button;
+                    var wasOn = (_lastStatus.Buttons & button) == button;
+
+                    if (isOn && !wasOn)
+                        DispatchPointerEvent(_lastPosition, button, UiEventType.PointerDown);
+
+                    if (!isOn && wasOn)
+                        DispatchPointerEvent(_lastPosition, button, UiEventType.PointerUp);
+                }
+
+                _lastStatus = status;
+            }
+        }
+
+
+        private void DispatchPointerEvent(Vector2 uv, PointerButton buttons, UiEventType type)
+        {
+            if (Panel == null)
+                return;
+
+            var pos = new Vector2(
+                _pixelSize.Width / _dpiScale * uv.X,
+                _pixelSize.Height / _dpiScale * uv.Y
+            );
+
+            var hitTest = Panel.HitTest(pos);
+
+            UiFocusManager.SetHoverElement(hitTest, pos, buttons);
+
+            if (hitTest != null)
+            {
+                var uiEv = new UiPointerEvent
+                {
+                    Buttons = buttons,
+                    ScreenPosition = pos,
+                    Type = type,
+                    Source = hitTest,
+                    Dispatch = UiEventDispatch.Bubble
+                };
+
+                hitTest.DispatchEvent(uiEv);
+            }
         }
 
         protected override void UpdateSize()
@@ -35,5 +127,7 @@ namespace XrEngine.UI
         public override bool NeedDraw => Panel != null && Panel.IsDirty;
 
         public UIRoot? Panel { get; set; }  
+
+        public IRayPointer[]? Pointers { get; set; }
     }
 }

@@ -12,6 +12,17 @@ namespace XrEngine.UI
 {
     public static class UIExtensions
     {
+        public static IEnumerable<UiComponent> VisualAncestorsAndSelf(this UiComponent? component)
+        {
+            var curElement = component;
+
+            while (curElement != null)
+            {
+                yield return curElement;
+                curElement = curElement.VisualParent;
+            }
+        }
+
         public static Vector2 Position(this UiPointerEvent ev, UiComponent component)
         {
             return ev.ScreenPosition - component.ClientRect.Position;

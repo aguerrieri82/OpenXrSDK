@@ -47,6 +47,8 @@ namespace XrEngine.UI
 
         readonly object? IUiStyleValue.Value => Value;
 
+        public readonly bool HasValue => Mode == UiStyleMode.Value && Value != null;   
+
 
         public T? Value;
 

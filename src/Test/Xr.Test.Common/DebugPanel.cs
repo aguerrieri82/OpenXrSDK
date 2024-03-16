@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using XrEngine;
 using XrEngine.UI;
+using XrEngine.UI.Components;
 
 namespace Xr.Test
 {
@@ -12,11 +13,12 @@ namespace Xr.Test
     {
         public DebugPanel()
         {
-            Style.BackgroundColor = new Color(1, 1, 1, 0.5f);
+            Style.BackgroundColor = new Color(1, 1, 1, 0.8f);
             Style.Padding = UnitRectValue.All(16);
-            Style.ColGap = UnitValue.Dp(16);
-            Style.AlignContent = UiAlignment.Start;
+            Style.RowGap = UnitValue.Dp(16);
+            Style.AlignContent = UiAlignment.Center;
             Style.AlignItems = UiAlignment.Center;
+            Style.FlexDirection = UIOrientation.Vertical;
 
             var icon = this.AddChild<UiIcon>();
             icon.Icon = IconName.IconJoystick;
@@ -33,13 +35,14 @@ namespace Xr.Test
             Text1.Style.FlexShrink = UnitValue.Dp(1);
             Text1.Style.Padding = UnitRectValue.All(16);
             Text1.Style.TextAlign = UiAlignment.Center;
+            Text1.Style.AlignSelf = UiAlignment.Stretch;
 
-            Button1 = this.AddChild<UiButton>();
+            Button1 = this.AddChild<UiCheckBox>();
             Button1.Content = "Click Mep";
-            Button1.Style.BackgroundColor = new Color(0, 1, 0, 1);
+            //Button1.Style.BackgroundColor = new Color(0, 1, 0, 1);
         }
 
-        public UiButton Button1;
+        public UiCheckBox Button1;
 
         public UiTextBlock Text1;
     }

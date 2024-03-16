@@ -81,10 +81,10 @@ namespace XrMath
 
         #region POSE
 
-        public static bool Similar(this Pose3 value, Pose3 other, float epsilon)
+        public static bool IsSimilar(this Pose3 value, Pose3 other, float epsilon)
         {
-            return value.Position.Similar(other.Position, epsilon) &&
-                   value.Orientation.Similar(other.Orientation, epsilon);
+            return value.Position.IsSimilar(other.Position, epsilon) &&
+                   value.Orientation.IsSimilar(other.Orientation, epsilon);
         }
 
         public static Matrix4x4 ToMatrix(this Pose3 pose)
@@ -173,7 +173,13 @@ namespace XrMath
                    MathF.Abs(value.Y - value.Z) < epsilon;
         }
 
-        public static bool Similar(this Vector3 value, Vector3 other, float epsilon)
+        public static bool IsSimilar(this Vector2 value, Vector2 other, float epsilon)
+        {
+            return MathF.Abs(value.X - other.X) < epsilon &&
+                MathF.Abs(value.Y - other.Y) < epsilon;
+        }
+
+        public static bool IsSimilar(this Vector3 value, Vector3 other, float epsilon)
         {
             return MathF.Abs(value.X - other.X) < epsilon &&
                 MathF.Abs(value.Y - other.Y) < epsilon &&
@@ -269,7 +275,7 @@ namespace XrMath
 
         #region QUATERNION
 
-        public static bool Similar(this Quaternion value, Quaternion other, float epsilon)
+        public static bool IsSimilar(this Quaternion value, Quaternion other, float epsilon)
         {
             return MathF.Abs(value.X - other.X) < epsilon &&
                 MathF.Abs(value.Y - other.Y) < epsilon &&
@@ -294,7 +300,7 @@ namespace XrMath
 
         public static bool Contains(this Rect2 rect, Vector2 point)
         {
-            return point.X >= rect.X && point.X <= rect.Left &&
+            return point.X >= rect.X && point.X <= rect.Right &&
                    point.Y >= rect.Y && point.Y <= rect.Bottom;
         }
 

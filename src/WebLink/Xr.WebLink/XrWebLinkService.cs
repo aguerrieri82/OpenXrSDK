@@ -83,7 +83,7 @@ namespace Xr.WebLink
                     Position = location.Pose!.Position,
                 };
 
-                if (curPose.Similar(_lastPose!.Value, 0.0001f))
+                if (curPose.IsSimilar(_lastPose!.Value, 0.0001f))
                     return;
 
                 _lastPose = curPose;

@@ -17,16 +17,25 @@ namespace XrEngine.UI.Components
         {
             _toggle = this.AddChild<UiToggleButton>();
             _toggle.CheckedChange += OnCheckedChange;
+            _toggle.Style.FontSize = UnitValue.Dp(24);
 
             _checkedContent = new UiIcon() { Icon = IconName.IconCheckBox };
             _uncheckedContent = new UiIcon() { Icon = IconName.IconCheckBoxOutlineBlank };
 
             _content = this.AddChild<UiContentView>();
+            _content.PointerUp += OnContentPointerUp;
 
             Style.Layout = UiLayoutType.Flex;
             Style.FlexDirection = UIOrientation.Horizontal;
-            Style.ColGap = UnitValue.Dp(8);
+            Style.ColGap = UnitValue.Dp(4);
             Style.AlignItems = UiAlignment.Center;
+
+            _toggle.Content = _uncheckedContent;
+        }
+
+        private void OnContentPointerUp(UiComponent sender, UiPointerEvent uiEvent)
+        {
+            _toggle.IsChecked = !_toggle.IsChecked; 
         }
 
         private void OnCheckedChange(object? sender, EventArgs e)

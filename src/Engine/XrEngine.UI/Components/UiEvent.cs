@@ -17,7 +17,9 @@ namespace XrEngine.UI
         LostFocus,
         PointerDown,
         PointerUp,
-        PointerMove
+        PointerMove,
+        PointerEnter,
+        PointerLeave
     }
 
     public enum UiEventDispatch

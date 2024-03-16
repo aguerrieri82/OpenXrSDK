@@ -23,6 +23,8 @@ namespace XrEngine.UI
             _owner.OnStyleChanged(propName, (IUiStyleValue)value!, (IUiStyleValue)oldValue!);
         }
 
+
+
         [UiProperty(UiStyleMode.NotSet)]
         public UiStyleValue<Color?> BackgroundColor
         {
@@ -58,12 +60,41 @@ namespace XrEngine.UI
             set => SetValue(nameof(Width), value);
         }
 
+        [UiProperty(UiStyleMode.NotSet, UiPropertyFlags.Layout)]
+        public UiStyleValue<UnitValue> MinWidth
+        {
+            get => GetValue<UiStyleValue<UnitValue>>(nameof(MinWidth));
+            set => SetValue(nameof(MinWidth), value);
+        }
+
+        [UiProperty(UiStyleMode.NotSet, UiPropertyFlags.Layout)]
+        public UiStyleValue<UnitValue> MaxWidth
+        {
+            get => GetValue<UiStyleValue<UnitValue>>(nameof(MaxWidth));
+            set => SetValue(nameof(MaxWidth), value);
+        }
+
         [UiProperty(UiStyleMode.Auto, UiPropertyFlags.Layout)]
         public UiStyleValue<UnitValue> Height
         {
             get => GetValue<UiStyleValue<UnitValue>>(nameof(Height));
             set => SetValue(nameof(Height), value);
         }
+
+        [UiProperty(UiStyleMode.NotSet, UiPropertyFlags.Layout)]
+        public UiStyleValue<UnitValue> MinHeight
+        {
+            get => GetValue<UiStyleValue<UnitValue>>(nameof(MinHeight));
+            set => SetValue(nameof(MinHeight), value);
+        }
+
+        [UiProperty(UiStyleMode.Auto, UiPropertyFlags.Layout)]
+        public UiStyleValue<UnitValue> MaxHeight
+        {
+            get => GetValue<UiStyleValue<UnitValue>>(nameof(MaxHeight));
+            set => SetValue(nameof(MaxHeight), value);
+        }
+
 
         [UiProperty(0f, UiPropertyFlags.Layout)]
         public UiStyleValue<UnitValue> Top
@@ -241,7 +272,7 @@ namespace XrEngine.UI
 
         public override T? GetValue<T>(string propName) where T : default
         {
-            var parent = _owner.Parent ?? _owner.Host;
+            var parent = _owner.VisualParent;
 
             if (BaseStyle == null)
             {
@@ -262,7 +293,7 @@ namespace XrEngine.UI
                     curStyle = curStyle.BaseStyle?.Invoke();
 
                     if (curStyle == null)
-                        return default;
+                        return value;
 
                     styleValue = (IUiStyleValue)curStyle.GetValue<T>(propName)!;
                 }

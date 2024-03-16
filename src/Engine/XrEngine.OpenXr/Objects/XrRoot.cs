@@ -79,6 +79,7 @@ namespace XrEngine.OpenXr
                         model.IsVisible = input.IsActive;
                 });
 
+
                 var assets = Platform.Current!.AssetManager!;
 
                 var fullPath = assets.GetFsPath(modelFileName);
