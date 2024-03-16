@@ -48,7 +48,7 @@ namespace XrEngine.UI
         public static void ExtractLayoutParams(UiStyle style, ref LayoutParams result)
         {
             result.Font = style.GetFont();
-            result.LineSize = style.LineSize.ToPixel(style.Owner, UiValueReference.ParentFontSize);
+            result.LineSize = style.LineSize.ToPixel(style.Owner, UiValueReference.FontSize);
             result.Alignment = style.TextAlign.Value;
             result.Wrap = style.TextWrap.Value;
         }

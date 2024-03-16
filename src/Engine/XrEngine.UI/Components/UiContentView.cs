@@ -10,16 +10,15 @@ using XrMath;
 
 namespace XrEngine.UI
 {
-    public class UiContentView : UiComponent
+    public class UiContentView : UiElement
     {
- 
-        protected UiComponent? _content;
+        protected UiElement? _content;
 
-        protected UiComponent? GetContent()
+        protected virtual UiElement? GetContent()
         {
             if (Content == null)
                 return null;
-            if (Content is UiComponent comp)
+            if (Content is UiElement comp)
                 return comp;
             var text = Content.ToString();
             return new UiTextBlock() { Text = text ?? string.Empty };
@@ -42,12 +41,6 @@ namespace XrEngine.UI
                 OnContentChanged();
 
             base.OnPropertyChanged(propName, value, oldValue);
-        }
-
-        public object? Content
-        {
-            get => GetValue<object?>(nameof(Content))!;
-            set => SetValue(nameof(Content), value);
         }
 
         protected override Size2 ArrangeWork(Rect2 finalRect)
@@ -76,13 +69,20 @@ namespace XrEngine.UI
             _content?.Draw(canvas);
         }
 
-        public override IEnumerable<UiComponent> VisualChildren
+        public override IEnumerable<UiElement> VisualChildren
         {
             get
             {
                 if (_content != null)
                     yield return _content;
             }
+        }
+
+        [UiProperty(null, UiPropertyFlags.Layout)]
+        public object? Content
+        {
+            get => GetValue<object?>(nameof(Content))!;
+            set => SetValue(nameof(Content), value);
         }
     }
 }

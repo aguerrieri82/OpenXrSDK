@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace XrEngine.UI
 {
-    public class UiSlider : UiComponent
+    public class UiSlider : UiElement, IInputElement<float>
     {
         public UiSlider()
         {

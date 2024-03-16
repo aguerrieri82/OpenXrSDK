@@ -14,5 +14,8 @@ namespace XrEngine.UI
         Size2 Arrange(Rect2 finalRect);
 
         Size2 DesiredSize { get; }
+
+        string? Name { get; }
+
     }
 }

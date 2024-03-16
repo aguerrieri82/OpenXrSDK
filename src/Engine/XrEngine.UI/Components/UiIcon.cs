@@ -3265,7 +3265,7 @@ namespace XrEngine.UI
 
     #endregion
 
-    public class UiIcon : UiComponent
+    public class UiIcon : UiElement
     {
         public UiIcon()
         {
@@ -3289,7 +3289,7 @@ namespace XrEngine.UI
             var font = GetFont();
             var text = new string((char)(int)Icon, 1);
             var width = font.MeasureText(text);
-            var lineSize = Style.LineSize.ToPixel(this, UiValueReference.ParentFontSize);
+            var lineSize = Style.LineSize.ToPixel(this, UiValueReference.FontSize);
            
             return new Size2(width, lineSize);
         }

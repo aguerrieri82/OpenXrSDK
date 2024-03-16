@@ -11,9 +11,9 @@ namespace XrEngine.UI
     public class UiStyle : UiObject
     {
 
-        protected UiComponent _owner;
+        protected UiElement _owner;
 
-        public UiStyle(UiComponent owner)
+        public UiStyle(UiElement owner)
         {
             _owner = owner;
         }
@@ -209,23 +209,23 @@ namespace XrEngine.UI
         }
 
         [UiProperty(0f, UiPropertyFlags.Layout)]
-        public UiStyleValue<UnitValue> FlexGrow
+        public UiStyleValue<float> FlexGrow
         {
-            get => GetValue<UiStyleValue<UnitValue>>(nameof(FlexGrow));
+            get => GetValue<UiStyleValue<float>>(nameof(FlexGrow));
             set => SetValue(nameof(FlexGrow), value);
         }
 
         [UiProperty(0f, UiPropertyFlags.Layout)]
-        public UiStyleValue<UnitValue> FlexShrink
+        public UiStyleValue<float> FlexShrink
         {
-            get => GetValue<UiStyleValue<UnitValue>>(nameof(FlexShrink));
+            get => GetValue<UiStyleValue<float>>(nameof(FlexShrink));
             set => SetValue(nameof(FlexShrink), value);
         }
 
         [UiProperty(0f, UiPropertyFlags.Layout)]
-        public UiStyleValue<UnitValue> FlexBasis
+        public UiStyleValue<float> FlexBasis
         {
-            get => GetValue<UiStyleValue<UnitValue>>(nameof(FlexBasis));
+            get => GetValue<UiStyleValue<float>>(nameof(FlexBasis));
             set => SetValue(nameof(FlexBasis), value);
         }
 
@@ -259,13 +259,13 @@ namespace XrEngine.UI
 
         public Func<UiStyle>? BaseStyle { get; set; }
 
-        public UiComponent Owner => _owner;
+        public UiElement Owner => _owner;
     }
 
 
     public class UIActualStyle : UiStyle
     {
-        public UIActualStyle(UiComponent owner)
+        public UIActualStyle(UiElement owner)
             : base(owner)
         {
         }

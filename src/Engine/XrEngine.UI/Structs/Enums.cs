@@ -66,7 +66,8 @@ namespace XrEngine.UI
         None,
         ParentWidth,
         ParentHeight,
-        ParentFontSize
+        ParentFontSize,
+        FontSize
     }
 
 

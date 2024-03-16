@@ -43,6 +43,8 @@ namespace XrEngine.UI
 
             public UiWrapMode WrapMode;
 
+            public string? Name;
+
             public ChildParams[] Children;
         }
 
@@ -152,6 +154,9 @@ namespace XrEngine.UI
                     NewRow(false);
                 }
 
+                if (child.Basis != 0 && childSize.Width < childAvailSize.Width)
+                    childSize.Width = childAvailSize.Width;
+
                 var occupyWidth = childSize.Width + gap.X;
 
                 curRowSize.Width += occupyWidth;
@@ -183,7 +188,7 @@ namespace XrEngine.UI
         static Size2 Measure(Size2 availSize, LayoutParams lp)
         {
             var result = MeasureWork(availSize, lp, false);
-            return result.FinalSize;
+            return Convert(result.FinalSize, lp.Orientation);
         }
 
         static void Arrange(Rect2 finalRect, LayoutParams lp)
@@ -225,7 +230,6 @@ namespace XrEngine.UI
             //Process rows
             foreach (var row in measure.Items)
             {
-
                 var rowSize = new Size2
                 {
                     Width = row.Sum(a => a.Width),
@@ -329,7 +333,8 @@ namespace XrEngine.UI
                 JustifyContent = container.ActualStyle.JustifyContent.Value,
                 Orientation = container.ActualStyle.FlexDirection.Value,
                 WrapMode = container.ActualStyle.LayoutWrap.Value,
-                Children = new ChildParams[container.Children.Count]
+                Children = new ChildParams[container.Children.Count],
+                Name = container.Name
             };
 
             for (var i = 0; i < container.Children.Count; i++)

@@ -41,6 +41,34 @@ namespace XrEngine
             return new Vector4(color.R, color.G, color.B, color.A);
         }
 
+        public static implicit operator Color(string color)
+        {
+            return Parse(color);
+        }
+
+        public static Color Parse(string colorString)
+        {
+            colorString = colorString.TrimStart('#');
+
+            if (colorString.Length == 3)
+            {
+                colorString = $"{colorString[0]}{colorString[0]}{colorString[1]}{colorString[1]}{colorString[2]}{colorString[2]}";
+            }
+
+
+            int r = Convert.ToInt32(colorString.Substring(0, 2), 16);
+            int g = Convert.ToInt32(colorString.Substring(2, 2), 16);
+            int b = Convert.ToInt32(colorString.Substring(4, 2), 16);
+            int a = colorString.Length == 8 ? Convert.ToInt32(colorString.Substring(6, 2), 16) : 255;
+
+            float rf = r / 255f;
+            float gf = g / 255f;
+            float bf = b / 255f;
+            float af = a / 255f;
+
+            return new Color(rf, gf, bf, af);
+        }
+
         public override string ToString()
         {
             return $"<{R},{G},{B},{A}>";

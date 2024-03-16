@@ -9,9 +9,9 @@ using XrMath;
 
 namespace XrEngine.UI
 {
-    public class UiContainer : UiComponent
+    public class UiContainer : UiElement
     {
-        protected List<UiComponent> _children = [];
+        protected List<UiElement> _children = [];
         protected object? _layoutParams;
 
         protected IUiLayoutManager GetLayoutManager()
@@ -55,7 +55,7 @@ namespace XrEngine.UI
                 child.Draw(canvas);
         }
 
-        public void AddChild(UiComponent child)
+        public void AddChild(UiElement child)
         {
             if (child.Parent == this)
                 return;
@@ -70,7 +70,7 @@ namespace XrEngine.UI
             child.Parent = this;
         }
 
-        public void RemoveChild(UiComponent child) 
+        public void RemoveChild(UiElement child) 
         {
             _children.Remove(child);
 
@@ -93,8 +93,8 @@ namespace XrEngine.UI
         }
 
 
-        public override IEnumerable<UiComponent> VisualChildren => _children;
+        public override IEnumerable<UiElement> VisualChildren => _children;
 
-        public IReadOnlyList<UiComponent> Children => _children;
+        public IReadOnlyList<UiElement> Children => _children;
     }
 }
