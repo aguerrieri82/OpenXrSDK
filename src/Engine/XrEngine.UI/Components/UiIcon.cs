@@ -3307,7 +3307,7 @@ namespace XrEngine.UI
             var font = GetFont();
 
             var text = new string((char)(int)Icon, 1);
-            canvas.DrawText(text, _contentRect.X, _contentRect.Y - font.Metrics.Ascent, font, paint);
+            canvas.DrawText(text, _contentRect.X, _contentRect.Y + _contentRect.Height, font, paint);
         }
 
         [UiProperty(IconName.Icon10k, UiPropertyFlags.Layout)]

@@ -44,7 +44,6 @@ namespace XrEngine.UI
             base.OnPropertyChanged(propName, value, oldValue);
         }
 
-
         public object? Content
         {
             get => GetValue<object?>(nameof(Content))!;
@@ -69,7 +68,6 @@ namespace XrEngine.UI
                 _content.Measure(availSize);
                 return _content.DesiredSize;
             }
-
             return Size2.Zero;
         }
 

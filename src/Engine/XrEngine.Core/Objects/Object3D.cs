@@ -57,10 +57,18 @@ namespace XrEngine
             _boundsDirty = false;
         }
 
+        protected virtual void Start(RenderContext ctx)
+        {
+
+        }
+
         public override void Update(RenderContext ctx)
         {
             if (_creationTime == -1)
+            {
                 _creationTime = ctx.Time;
+                Start(ctx);
+            }
 
             _lastUpdateTime = ctx.Time;
 

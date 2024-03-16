@@ -72,12 +72,12 @@ namespace XrEngine
             return obj.Ancestors().OfType<T>().FirstOrDefault();
         }
 
-
         public static bool Feature<T>(this Object3D obj, [NotNullWhen(true)] out T? result) where T : class
         {
             result = obj.Feature<T>();
             return result != null;
         }
+
 
         #endregion
 
@@ -144,10 +144,22 @@ namespace XrEngine
             return group.AddChild(new T());
         }
 
-
         public static T? FindByName<T>(this Group3D group, string name) where T : Object3D
         {
             return group.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
+        }
+
+        public static T? FindFeature<T>(this Object3D obj) where T: class
+        {
+            var result = obj.Feature<T>();
+            
+            if (result != null)
+                return result;
+
+            if (obj is Group3D group)
+                return group.DescendantsWithFeature<T>().FirstOrDefault().Feature;
+
+            return null;    
         }
 
         public static IEnumerable<ObjectFeature<T>> DescendantsWithFeature<T>(this Group3D group) where T : class

@@ -56,15 +56,7 @@ namespace XrEditor
 
         public void CapturePointer()
         {
-            this.MouseDown += RenderHost_MouseDown;
             SetCapture(_hwndSource!.Handle);
-        }
-
-        private void RenderHost_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            ButtonBase x;
-            x.Click
-            throw new NotImplementedException();
         }
 
         public void ReleasePointer()

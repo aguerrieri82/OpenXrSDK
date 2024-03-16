@@ -109,8 +109,10 @@ namespace XrEngine.OpenXr
         public XrEngineAppBuilder UseLeftController()
         {
             UseInputs<XrOculusTouchController>(bld =>
+
             bld.AddAction(a => a.Left!.AimPose)
                 .AddAction(a => a.Left!.GripPose)
+                .AddAction(a => a.Left!.SqueezeClick)
                 .AddAction(a => a.Left!.SqueezeValue)
                 .AddAction(a => a.Left!.Button!.XClick)
                 .AddAction(a => a.Left!.Button!.YClick)
@@ -120,16 +122,31 @@ namespace XrEngine.OpenXr
             return this;
         }
 
+        public XrEngineAppBuilder AddRightPointer() => ConfigureApp(e =>
+        {
+            var inputs = e.Inputs as XrOculusTouchController;
+
+            e.App.ActiveScene!.AddComponent(new XrInputPointer
+            {
+                PoseInput = inputs!.Right!.AimPose,
+                RightButton = inputs!.Right!.SqueezeClick!,
+                LeftButton = inputs!.Right!.TriggerClick!,
+            });
+        });
+
         public XrEngineAppBuilder UseRightController()
         {
             UseInputs<XrOculusTouchController>(bld => bld
                 .AddAction(a => a.Right!.AimPose)
                 .AddAction(a => a.Right!.GripPose)
                 .AddAction(a => a.Right!.SqueezeValue)
+                .AddAction(a => a.Right!.SqueezeClick)
                 .AddAction(a => a.Right!.Button!.ATouch)
                 .AddAction(a => a.Right!.Button!.BClick)
                 .AddAction(a => a.Right!.TriggerClick)
                 .AddAction(a => a.Right!.TriggerValue));
+
+
 
             return this;
         }
@@ -139,7 +156,6 @@ namespace XrEngine.OpenXr
             var inputs = e.GetInputs<XrOculusTouchController>();
 
             var rayCol = e.App!.ActiveScene!.AddComponent(new RayCollider(inputs.Right!.AimPose!));
-            rayCol.RayView.IsVisible = false;
         });
 
 

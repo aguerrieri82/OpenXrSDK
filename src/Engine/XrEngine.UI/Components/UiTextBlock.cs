@@ -67,7 +67,7 @@ namespace XrEngine.UI
             {
                 curY += lineSize;
 
-                if (curLine[^1] == ' ')
+                if (curLine.Length > 0 && curLine[^1] == ' ')
                     curLine.Length--;
 
                 var newLine = new TextLine

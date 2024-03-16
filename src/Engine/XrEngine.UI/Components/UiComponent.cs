@@ -53,16 +53,28 @@ namespace XrEngine.UI
             var margin = ActualStyle.Margin.Value;
             var border = ActualStyle.Border.Value;
 
-            var marginValue = new Size2(margin.ToHorizontalPixel(this, UiValueReference.ParentWidth),
-                                        margin.ToVerticalPixel(this, UiValueReference.ParentHeight));
+            void ApplySizeLimit(ref Size2 checkSize)
+            {
+                if (ActualStyle.Width.HasValue)
+                    checkSize.Width = ActualStyle.Width.ToPixel(this, UiValueReference.ParentWidth);
 
+                if (ActualStyle.Height.HasValue)
+                    checkSize.Height = ActualStyle.Height.ToPixel(this, UiValueReference.ParentHeight);
 
-            if (ActualStyle.Width.Mode == UiStyleMode.Value)
-                clientSize.Width = ActualStyle.Width.ToPixel(this, UiValueReference.ParentWidth);
+                if (ActualStyle.MinWidth.HasValue)
+                    checkSize.Width = Math.Max(ActualStyle.MinWidth.ToPixel(this, UiValueReference.ParentWidth), checkSize.Width);
 
-            if (ActualStyle.Height.Mode == UiStyleMode.Value)
-                clientSize.Height = ActualStyle.Height.ToPixel(this, UiValueReference.ParentHeight);
+                if (ActualStyle.MaxWidth.HasValue)
+                    checkSize.Width = Math.Min(ActualStyle.MaxWidth.ToPixel(this, UiValueReference.ParentWidth), checkSize.Width);
 
+                if (ActualStyle.MinHeight.HasValue)
+                    checkSize.Height = Math.Max(ActualStyle.MinHeight.ToPixel(this, UiValueReference.ParentHeight), checkSize.Height);
+
+                if (ActualStyle.MaxHeight.HasValue)
+                    checkSize.Height = Math.Min(ActualStyle.MaxHeight.ToPixel(this, UiValueReference.ParentHeight), checkSize.Height);
+            }
+
+            ApplySizeLimit(ref clientSize);
 
             var padBorder = new Size2();
 
@@ -76,9 +88,19 @@ namespace XrEngine.UI
 
             var contentSize = clientSize - padBorder;
 
-            _desiredSize = MeasureWork(contentSize);
+            var hasFixedSize = ActualStyle.Width.HasValue && ActualStyle.Height.HasValue;
 
-            _desiredSize += marginValue + padBorder;
+            if (!hasFixedSize)
+                _desiredSize = MeasureWork(contentSize);
+
+            _desiredSize += padBorder;
+
+            ApplySizeLimit(ref _desiredSize);
+
+            var marginValue = new Size2(margin.ToHorizontalPixel(this, UiValueReference.ParentWidth),
+                                        margin.ToVerticalPixel(this, UiValueReference.ParentHeight));
+
+            _desiredSize += marginValue;
         }
 
         public void Arrange(Rect2 finalRect)
@@ -136,7 +158,7 @@ namespace XrEngine.UI
         protected virtual void InvalidateLayout()
         {
             _isLayoutDirty = true;
-            _parent?.InvalidateLayout();
+            VisualParent?.InvalidateLayout();
         }
 
         Size2 ILayoutItem.Measure(Size2 size)
@@ -158,15 +180,6 @@ namespace XrEngine.UI
 
         public void DispatchEvent(UiRoutedEvent ev)
         {
-            if (ev is UiPointerEvent pointerEvent)
-            {
-                var result = this.HitTest(pointerEvent.ScreenPosition);
-            }
-            else
-            {
-
-            }
-
             switch (ev.Type)
             {
                 case UiEventType.PointerDown:
@@ -184,11 +197,17 @@ namespace XrEngine.UI
                 case UiEventType.LostFocus:
                     OnLostFocus(ev);
                     break;
+                case UiEventType.PointerEnter:
+                    OnPointerEnter((UiPointerEvent)ev);
+                    break;
+                case UiEventType.PointerLeave:
+                    OnPointerLeave((UiPointerEvent)ev);
+                    break;
             }
 
             if (!ev.StopBubble && ev.Dispatch == UiEventDispatch.Bubble)
             {
-                (_parent ?? _host)?.DispatchEvent(ev);
+                VisualParent?.DispatchEvent(ev);
             }
             else if (ev.Dispatch == UiEventDispatch.Tunnel)
             {
@@ -197,13 +216,27 @@ namespace XrEngine.UI
             }
         }
 
+        protected virtual void OnPointerEnter(UiPointerEvent ev)
+        {
+            EnableState(UiControlState.Hover, true);
+            PointerEnter?.Invoke(this, ev);
+        }
+
+        protected virtual void OnPointerLeave(UiPointerEvent ev)
+        {
+            EnableState(UiControlState.Hover, false);
+            PointerLeave?.Invoke(this, ev);
+        }
+
         protected virtual void OnGotFocus(UiRoutedEvent ev)
         {
+            EnableState(UiControlState.Focused, true);
             GotFocus?.Invoke(this, ev);
         }
 
         protected virtual void OnLostFocus(UiRoutedEvent ev)
         {
+            EnableState(UiControlState.Focused, false);
             LostFocus?.Invoke(this, ev);
         }
 
@@ -227,6 +260,10 @@ namespace XrEngine.UI
         public event UiEventHandler<UiPointerEvent>? PointerMove;
 
         public event UiEventHandler<UiPointerEvent>? PointerUp;
+
+        public event UiEventHandler<UiPointerEvent>? PointerEnter;
+
+        public event UiEventHandler<UiPointerEvent>? PointerLeave;
 
         public event UiEventHandler<UiRoutedEvent>? GotFocus;
 
@@ -257,7 +294,6 @@ namespace XrEngine.UI
         }
 
         #endregion
-
 
         #region RENDER
 
@@ -311,7 +347,13 @@ namespace XrEngine.UI
 
         #region STYLE
 
-
+        protected void EnableState(UiControlState state, bool enable)
+        {
+            if (enable)
+                State |= state;
+            else
+                State &= ~state;
+        }
 
         public UiStyle StateActualStyle(UiControlState state)
         {
@@ -347,8 +389,6 @@ namespace XrEngine.UI
 
 
         #endregion
-
-
 
         public bool IsDirty
         {
@@ -390,6 +430,12 @@ namespace XrEngine.UI
             set => SetValue(nameof(Style), value);
         }
 
+        public UiControlState State
+        {
+            get => GetValue<UiControlState>(nameof(State))!;
+            protected set => SetValue(nameof(State), value);
+        }
+
         public UiStyle ActualStyle => _actualStyle;
 
         public Size2 DesiredSize => _desiredSize;
@@ -401,6 +447,8 @@ namespace XrEngine.UI
         public float ActualHeight => _clientRect.Height;
 
         public Rect2 ClientRect => _clientRect;
+
+        public UiComponent? VisualParent => _parent ?? _host;
 
         public virtual IEnumerable<UiComponent> VisualChildren => [];
 

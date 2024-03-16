@@ -2,6 +2,7 @@
 using System.Xml.Linq;
 using Xr.Test;
 using XrEngine;
+using XrEngine.Interaction;
 using XrEngine.OpenXr;
 using XrMath;
 
@@ -21,6 +22,21 @@ namespace XrEditor
         None,
         StartRequested,
         StopRequested
+    }
+
+    class RayPointerHost : Behavior<Scene>, IRayPointer
+    {
+        readonly IRayPointer _pointer;
+
+        public RayPointerHost(IRayPointer pointer)
+        {
+            _pointer = pointer;   
+        }
+
+        public RayPointerStatus GetPointerStatus()
+        {
+            return _pointer.GetPointerStatus();
+        }
     }
 
     public class SceneView : BasePanel, IStateManager<SceneViewState>
@@ -53,6 +69,8 @@ namespace XrEditor
               .SetRenderQuality(1, 4) ///samples > 1 cause Filament to fuck up
               .CreatePingPong()
               .Build();
+
+            _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
 
             Scene = _engine.App.ActiveScene;
         }

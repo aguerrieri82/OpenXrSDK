@@ -153,7 +153,11 @@ namespace XrEngine.UI.Components
 
             if (_values != null && _values.TryGetValue(prop, out var value))
                 return (T?)value;
-            return (T?)prop.DefaultValue;
+            
+            if (prop.DefaultValue != null)
+                return (T?)prop.DefaultValue;
+
+            return default;
         }
     }
 }

@@ -12,39 +12,41 @@ using XrMath;
 namespace XrEngine.UI
 {
  
-    public struct FlexLayoutChildParams
-    {
-        public float Basis;
-
-        public float Grow;
-
-        public float Shrink;
-
-        public UiAlignment? Align;
-
-        public ILayoutItem Item;
-    }
-
-    public struct FlexLayoutParams
-    {
-        public UIOrientation Orientation;
-
-        public UiAlignment AlignItems;
-
-        public UiAlignment AlignContent;
-
-        public UiAlignment JustifyContent;
-
-        public Vector2 Gap;
-
-        public UiWrapMode WrapMode;
-
-        public FlexLayoutChildParams[] Children;
-    }
+    
 
 
     public class FlexLayoutManager : IUiLayoutManager
     {
+        public struct ChildParams
+        {
+            public float Basis;
+
+            public float Grow;
+
+            public float Shrink;
+
+            public UiAlignment? Align;
+
+            public ILayoutItem Item;
+        }
+
+        public struct LayoutParams
+        {
+            public UIOrientation Orientation;
+
+            public UiAlignment AlignItems;
+
+            public UiAlignment AlignContent;
+
+            public UiAlignment JustifyContent;
+
+            public Vector2 Gap;
+
+            public UiWrapMode WrapMode;
+
+            public ChildParams[] Children;
+        }
+
         struct MeasureResult
         {
             public Size2[][] Items;
@@ -81,7 +83,7 @@ namespace XrEngine.UI
 
         protected FlexLayoutManager() { }
 
-        MeasureResult MeasureWork(Size2 availSize, FlexLayoutParams lp, bool isArrange)
+        MeasureResult MeasureWork(Size2 availSize, LayoutParams lp, bool isArrange)
         {
             availSize = Convert(availSize, lp.Orientation);
 
@@ -177,13 +179,13 @@ namespace XrEngine.UI
             return result;
         }
 
-        public Size2 Measure(Size2 availSize, FlexLayoutParams lp)
+        public Size2 Measure(Size2 availSize, LayoutParams lp)
         {
             var result = MeasureWork(availSize, lp, false);
             return result.FinalSize;
         }
 
-        public void Arrange(Rect2 finalRect, FlexLayoutParams lp)
+        public void Arrange(Rect2 finalRect, LayoutParams lp)
         {
             var measure = MeasureWork(finalRect.Size, lp, true);
 
@@ -215,6 +217,8 @@ namespace XrEngine.UI
                     gap.Y = overflow.X / measure.Items.Length + 1;
                     curPos.Y += gap.X;
                 }
+                else if (lp.AlignContent == UiAlignment.Stretch)
+                    throw new NotSupportedException();
             }
 
             //Process rows
@@ -250,6 +254,8 @@ namespace XrEngine.UI
                         gap.X = overflow.X / row.Length + 1;
                         curPos.X += gap.X;
                     }
+                    else if (lp.JustifyContent == UiAlignment.Stretch)
+                        throw new NotSupportedException();
                 }
 
                 for (var i = 0; i < row.Length; i++)
@@ -302,12 +308,12 @@ namespace XrEngine.UI
 
         Size2 IUiLayoutManager.Measure(Size2 availSize, object? layoutParams)
         {
-            return Measure(availSize, (FlexLayoutParams)layoutParams!);
+            return Measure(availSize, (LayoutParams)layoutParams!);
         }
 
         Size2 IUiLayoutManager.Arrange(Rect2 finalRect, object? layoutParams)
         {
-            Arrange(finalRect, (FlexLayoutParams)layoutParams!);
+            Arrange(finalRect, (LayoutParams)layoutParams!);
 
             return finalRect.Size;
         }
