@@ -17,7 +17,7 @@ using XrMath;
 
 namespace XrEngine.UI
 {
-    public abstract class UiComponent : UiObject, ICanvasDraw, ILayoutItem
+    public abstract class UiElement : UiObject, ICanvasDraw, ILayoutItem
     {
         protected bool _isDirty;
         protected bool _isLayoutDirty;
@@ -28,10 +28,10 @@ namespace XrEngine.UI
         protected Rect2 _contentRect;
         protected Size2 _desiredSize;
         protected Size2 _renderSize;
-        protected UiComponent? _host;
+        protected UiElement? _host;
         protected UIActualStyle _actualStyle;
 
-        public UiComponent()
+        public UiElement()
         {
             _actualStyle = new UIActualStyle(this) { BaseStyle = () => Style };
             Style = new UiStyle(this);
@@ -389,7 +389,7 @@ namespace XrEngine.UI
             }
         }
 
-        public UiComponent? Host
+        public UiElement? Host
         {
             get => _host;
 
@@ -404,6 +404,12 @@ namespace XrEngine.UI
         {
             get => GetValue<bool>(nameof(IsFocusable))!;
             set => SetValue(nameof(IsFocusable), value);
+        }
+
+        public string? Name
+        {
+            get => GetValue<string>(nameof(Name))!;
+            set => SetValue(nameof(Name), value);
         }
 
         public UiStyle Style
@@ -430,9 +436,9 @@ namespace XrEngine.UI
 
         public Rect2 ClientRect => _clientRect;
 
-        public UiComponent? VisualParent => _parent ?? _host;
+        public UiElement? VisualParent => _parent ?? _host;
 
-        public virtual IEnumerable<UiComponent> VisualChildren => [];
+        public virtual IEnumerable<UiElement> VisualChildren => [];
 
     }
 }

@@ -1,6 +1,4 @@
 ﻿using System.Globalization;
-using System.Text;
-using XrEngine.UI.Components;
 
 namespace XrEngine.UI
 {
@@ -51,35 +49,40 @@ namespace XrEngine.UI
                 Value = float.Parse(value, CultureInfo.InvariantCulture);
         }
 
-        public static float Reference(UiComponent ctx, UiValueReference reference = UiValueReference.None)
+        public static float Reference(UiElement ctx, UiValueReference reference = UiValueReference.None)
         {
             return reference switch
             {
                 UiValueReference.None => 0,
                 UiValueReference.ParentWidth => ctx.Parent?.ActualWidth ?? 0,
                 UiValueReference.ParentHeight => ctx.Parent?.ActualHeight ?? 0,
-                UiValueReference.ParentFontSize => ctx.Parent?.ActualStyle.FontSize.ToPixel(ctx.Parent, UiValueReference.ParentFontSize) ?? 0,
+                UiValueReference.ParentFontSize => ctx.Parent != null ? Reference(ctx.Parent, UiValueReference.FontSize) : 0,
+                UiValueReference.FontSize => ctx.ActualStyle.FontSize.ToPixel(ctx, UiValueReference.ParentFontSize),
                 _ => throw new NotSupportedException()
             };
         }
 
-        public readonly float ToPixel(UiComponent ctx, UiValueReference reference = UiValueReference.None)
+        public readonly float ToPixel(UiElement ctx, UiValueReference reference = UiValueReference.None)
         {
-            return ToPixel(ctx, () => Reference(ctx, reference));
+            return ToPixel(ctx, () => Reference(ctx, reference), reference);
         }
 
-        public readonly float ToPixel(UiComponent ctx, float reference = 0)
+        public readonly float ToPixel(UiElement ctx, float reference = 0)
         {
-            return ToPixel(ctx, () => reference);
+            return ToPixel(ctx, () => reference, UiValueReference.None);
         }
 
-        public readonly float ToPixel(UiComponent ctx, Func<float> reference)
+        public readonly float ToPixel(UiElement ctx, Func<float> reference, UiValueReference refType)
         {
             if (Unit == Unit.Dp)
                 return Value;
 
             if (Unit == Unit.Em)
-                return ctx.ActualStyle.FontSize.ToPixel(ctx, UiValueReference.ParentFontSize) * Value;
+            {
+                if (refType == UiValueReference.ParentFontSize || refType == UiValueReference.FontSize)
+                    return reference() * Value;
+                return Reference(ctx, UiValueReference.FontSize) * Value;
+            }
 
             if (Unit == Unit.Perc)
                 return reference() * Value / 100f;

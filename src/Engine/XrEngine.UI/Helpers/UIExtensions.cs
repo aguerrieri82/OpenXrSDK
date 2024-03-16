@@ -12,9 +12,31 @@ namespace XrEngine.UI
 {
     public static class UiExtensions
     {
-        public static IEnumerable<UiComponent> VisualAncestorsAndSelf(this UiComponent? component)
+
+        #region UI ELEMENT
+
+        public static void SetPosition(this UiElement comp, float x, float y, Unit unit = Unit.Dp)
         {
-            var curElement = component;
+            comp.Style.Top = UnitValue.Get(y, unit);
+            comp.Style.Left = UnitValue.Get(x, unit);
+        }
+
+        public static void SetSize(this UiElement comp, float width, float height, Unit unit = Unit.Dp)
+        {
+            comp.Style.Width = UnitValue.Get(width, unit);
+            comp.Style.Height = UnitValue.Get(height, unit);
+        }
+
+        public static void SetRect(this UiElement comp, Rect2 rect)
+        {
+            comp.SetPosition(rect.X, rect.Y);
+            comp.SetSize(rect.Width, rect.Height);
+        }
+
+
+        public static IEnumerable<UiElement> VisualAncestorsAndSelf(this UiElement? self)
+        {
+            var curElement = self;
 
             while (curElement != null)
             {
@@ -23,19 +45,14 @@ namespace XrEngine.UI
             }
         }
 
-        public static Vector2 Position(this UiPointerEvent ev, UiComponent component)
+        public static void Focus(this UiElement self)
         {
-            return ev.ScreenPosition - component.ClientRect.Position;
+            UiFocusManager.SetFocus(self);
         }
 
-        public static void Focus(this UiComponent component)
+        public static UiElement? HitTest(this UiElement self, Vector2 point)
         {
-            UiFocusManager.SetFocus(component);
-        }
-
-        public static UiComponent? HitTest(this UiComponent component, Vector2 point)
-        {
-            UiComponent? Visit(UiComponent curItem)
+            UiElement? Visit(UiElement curItem)
             {
                 if (curItem.ActualStyle.Visibility == UiVisibility.Visible &&
                     curItem.ClientRect.Contains(point))
@@ -53,17 +70,21 @@ namespace XrEngine.UI
                 return null;
             }
 
-            return Visit(component);
+            return Visit(self);
         }
 
-        public static float ToPixel(this UiStyleValue<UnitValue> value, UiComponent ctx, float reference = 0)
+        #endregion
+
+        #region STYLE
+
+        public static float ToPixel(this UiStyleValue<UnitValue> self, UiElement ctx, float reference = 0)
         {
-            return value.Value.ToPixel(ctx, reference);
+            return self.Value.ToPixel(ctx, reference);
         }
 
-        public static float ToPixel(this UiStyleValue<UnitValue> value, UiComponent ctx, UiValueReference reference = UiValueReference.None)
+        public static float ToPixel(this UiStyleValue<UnitValue> self, UiElement ctx, UiValueReference reference = UiValueReference.None)
         {
-            return value.Value.ToPixel(ctx, reference);
+            return self.Value.ToPixel(ctx, reference);
         }
 
         public static SKFont GetFont(this UiStyle style)
@@ -74,24 +95,24 @@ namespace XrEngine.UI
             );
         }
 
-        public static void SetPosition(this UiComponent comp, float x, float y, Unit unit = Unit.Dp)
+        #endregion
+
+        #region MISC
+
+        public static Vector2 Position(this UiPointerEvent ev, UiElement element)
         {
-            comp.Style.Top = UnitValue.Get(y, unit);
-            comp.Style.Left = UnitValue.Get(x, unit);
+            return ev.ScreenPosition - element.ClientRect.Position;
+        }
+        public static T AddChild<T>(this UiContainer self) where T : UiElement, new()
+        {
+            var res = new T();
+            self.AddChild(res);
+            return res;
         }
 
-        public static void SetSize(this UiComponent comp, float width, float height, Unit unit = Unit.Dp)
-        {
-            comp.Style.Width = UnitValue.Get(width, unit);
-            comp.Style.Height = UnitValue.Get(height, unit);
-        }
+        #endregion
 
-        public static void SetRect(this UiComponent comp, Rect2 rect)
-        {
-            comp.SetPosition(rect.X, rect.Y);
-            comp.SetSize(rect.Width, rect.Height);
-        }
-
+        #region CANVAS 3D
 
         public static void SetRatio(this CanvasView3D canvas, float width, float ratio)
         {
@@ -106,11 +127,6 @@ namespace XrEngine.UI
             canvas.Size = new Size2(width * UnitConv.InchesToMeter, height * UnitConv.InchesToMeter);
         }
 
-        public static T AddChild<T>(this UiContainer self) where T : UiComponent, new()
-        {
-            var res = new T();
-            self.AddChild(res);
-            return res;
-        }
+        #endregion
     }
 }

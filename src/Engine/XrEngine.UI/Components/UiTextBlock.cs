@@ -3,7 +3,7 @@ using XrMath;
 
 namespace XrEngine.UI
 {
-    public class UiTextBlock : UiComponent
+    public class UiTextBlock : UiElement
     {
         TextLayoutManager.Layout _lastLayout;
         TextLayoutManager.LayoutParams _layoutParams;

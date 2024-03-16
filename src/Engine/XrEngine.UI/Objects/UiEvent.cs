@@ -9,7 +9,7 @@ using XrEngine.Interaction;
 namespace XrEngine.UI
 {
 
-    public delegate void UiEventHandler<T>(UiComponent sender, T uiEvent) where T : UiEvent;    
+    public delegate void UiEventHandler<T>(UiElement sender, T uiEvent) where T : UiEvent;    
 
     public enum UiEventType
     {
@@ -39,7 +39,7 @@ namespace XrEngine.UI
 
     public class UiRoutedEvent : UiEvent
     {
-        public UiComponent? Source;
+        public UiElement? Source;
 
         public UiEventDispatch Dispatch;
 

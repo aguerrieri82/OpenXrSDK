@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace XrEngine.UI.Components
 {
-    public class UiCheckBox : UiContainer
+    public class UiCheckBox : UiContainer, IInputElement<bool>
     {
         protected readonly UiToggleButton _toggle;
         protected readonly UiContentView _content;
@@ -18,7 +18,7 @@ namespace XrEngine.UI.Components
             IsFocusable = true;
 
             _toggle = this.AddChild<UiToggleButton>();
-            _toggle.CheckedChange += OnCheckedChange;
+            _toggle.CheckedChange += OnValueChange;
             _toggle.Style.FontSize = UnitValue.Dp(24);
 
             _checkedContent = new UiIcon() { Icon = IconName.IconCheckBox };
@@ -35,12 +35,12 @@ namespace XrEngine.UI.Components
             _toggle.Content = _uncheckedContent;
         }
 
-        private void OnContentPointerUp(UiComponent sender, UiPointerEvent uiEvent)
+        private void OnContentPointerUp(UiElement sender, UiPointerEvent uiEvent)
         {
             _toggle.IsChecked = !_toggle.IsChecked; 
         }
 
-        private void OnCheckedChange(object? sender, EventArgs e)
+        private void OnValueChange(object? sender, EventArgs e)
         {
             if (_toggle.IsChecked)
                 _toggle.Content = _checkedContent;
@@ -54,7 +54,7 @@ namespace XrEngine.UI.Components
             set => _content.Content = value;    
         }
         
-        public bool IsChecked
+        public bool Value
         {
             get => _toggle.IsChecked;
             set => _toggle.IsChecked = value;

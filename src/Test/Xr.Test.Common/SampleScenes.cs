@@ -72,7 +72,7 @@ namespace Xr.Test
             return app;
         }
 
-        public static XrEngineAppBuilder AddDebugPanel(this XrEngineAppBuilder builder)
+        public static XrEngineAppBuilder AddPanel<T>(this XrEngineAppBuilder builder) where T : UIRoot, new()
         {
             var panel = new Panel3D();
             
@@ -81,25 +81,12 @@ namespace Xr.Test
             panel.Materials[0].UseDepth = false;
             panel.Materials[0].WriteDepth = false;
 
-            var debug = new DebugPanel();
+            var uiRoot = new T();
 
-            panel.Panel = debug;
-
+            panel.Panel = uiRoot;
             panel.WorldPosition = new Vector3(0, 1, 0);
 
             //panel.AddComponent(new FollowCamera() { Offset = new Vector3(0f, -0.0f, -1f) });
-
-            var lastTime = 0;
-
-            panel.AddBehavior((me, ctx) =>
-            {
-                var time = (int)ctx.Time;
-                //if (time % 0.5 == 0 && time != lastTime)
-                {
-                    debug.Text1.Text = ctx.Time.ToString() + "\n" + "prova";
-                    lastTime = time;
-                }
-            });
 
             return builder
                 .AddRightPointer()
@@ -221,7 +208,7 @@ namespace Xr.Test
                    .UseScene(true)
                    .ConfigureSampleApp()
                    .UsePhysics()
-                   .AddDebugPanel();
+                   .AddPanel<PingPongSettings>();
 
         }
 

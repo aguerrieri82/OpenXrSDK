@@ -10,10 +10,10 @@ namespace XrEngine.UI
 {
     public static class UiFocusManager
     {
-        private static UiComponent? _activeFocus;
-        private static UiComponent? _hoverElement;
+        private static UiElement? _activeFocus;
+        private static UiElement? _hoverElement;
 
-        public static void SetHoverElement(UiComponent? element, Vector2 screenPos, PointerButton buttons)
+        public static void SetHoverElement(UiElement? element, Vector2 screenPos, PointerButton buttons)
         {
             if (element == _hoverElement)
                 return;
@@ -52,7 +52,7 @@ namespace XrEngine.UI
         }
 
 
-        public static void SetFocus(UiComponent? element)
+        public static void SetFocus(UiElement? element)
         {
             if (_activeFocus == element)
                 return;
@@ -75,6 +75,6 @@ namespace XrEngine.UI
         }
 
 
-        public static UiComponent? ActiveFocus => _activeFocus;
+        public static UiElement? ActiveFocus => _activeFocus;
     }
 }

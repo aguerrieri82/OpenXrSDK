@@ -15,9 +15,9 @@
                     <BeginStoryboard>
                         <Storyboard>
                             <DoubleAnimation
-              Storyboard.TargetName="MessageView" 
-              Storyboard.TargetProperty="Opacity"
-              From="0.0" To="1.0" Duration="0:0:0.3" />
+                              Storyboard.TargetName="MessageView" 
+                              Storyboard.TargetProperty="Opacity"
+                              From="0.0" To="1.0" Duration="0:0:0.3" />
                         </Storyboard>
                     </BeginStoryboard>
                 </EventTrigger>
