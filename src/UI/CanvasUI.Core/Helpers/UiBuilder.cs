@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-
-namespace CanvasUI
+﻿namespace CanvasUI
 {
     public struct UiBuilder
     {
-        public static UiBuilder<T> From<T>(T element) where  T : UiElement
+        public static UiBuilder<T> From<T>(T element) where T : UiElement
         {
             return new UiBuilder<T>(element);
         }
@@ -21,7 +13,7 @@ namespace CanvasUI
         public T Element { get; }
     }
 
-    public interface IUiChildBuilder<out TChild, out TParent> : IUiBuilder<TChild> 
+    public interface IUiChildBuilder<out TChild, out TParent> : IUiBuilder<TChild>
            where TChild : UiElement
            where TParent : UiContainer
     {
@@ -32,7 +24,7 @@ namespace CanvasUI
     {
         public UiBuilder(T element)
         {
-            Element = element;  
+            Element = element;
         }
 
 
@@ -58,7 +50,7 @@ namespace CanvasUI
         public IUiBuilder<TParent> Parent;
 
         public TChild Element;
-    } 
+    }
 
     public static class UiBuilderExtensions
     {
@@ -67,7 +59,7 @@ namespace CanvasUI
             build(new UiStyleBuilder(element.Style));
         }
 
-        public static IUiChildBuilder<TChild, TCont> BeginChild<TCont, TChild>(this IUiBuilder<TCont> builder) 
+        public static IUiChildBuilder<TChild, TCont> BeginChild<TCont, TChild>(this IUiBuilder<TCont> builder)
             where TChild : UiElement, new()
             where TCont : UiContainer
         {
@@ -87,7 +79,7 @@ namespace CanvasUI
         }
 
 
-        public static IUiBuilder<TCont> Child<TCont, TChild>(this IUiBuilder<TCont> builder, Action<IUiBuilder<TChild>>? build = null) where TChild : UiElement, new() where TCont: UiContainer
+        public static IUiBuilder<TCont> Child<TCont, TChild>(this IUiBuilder<TCont> builder, Action<IUiBuilder<TChild>>? build = null) where TChild : UiElement, new() where TCont : UiContainer
         {
             var child = new TChild();
 

@@ -5,7 +5,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public struct ObjectFeature<T> where T: notnull 
+    public struct ObjectFeature<T> where T : notnull
     {
 
         public Object3D Object;
@@ -149,17 +149,17 @@ namespace XrEngine
             return group.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
         }
 
-        public static T? FindFeature<T>(this Object3D obj) where T: class
+        public static T? FindFeature<T>(this Object3D obj) where T : class
         {
             var result = obj.Feature<T>();
-            
+
             if (result != null)
                 return result;
 
             if (obj is Group3D group)
                 return group.DescendantsWithFeature<T>().FirstOrDefault().Feature;
 
-            return null;    
+            return null;
         }
 
         public static IEnumerable<ObjectFeature<T>> DescendantsWithFeature<T>(this Group3D group) where T : class

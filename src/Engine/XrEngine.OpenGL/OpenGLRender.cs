@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using XrMath;
 using SkiaSharp;
-using System.Numerics;
 
 
 namespace XrEngine.OpenGL
@@ -144,7 +143,7 @@ namespace XrEngine.OpenGL
             if (_content == null)
                 _content = new GlobalContent();
 
-            _content.Lights = new List<Light>();    
+            _content.Lights = new List<Light>();
             _content.Scene = scene;
             _content.SceneVersion = scene.Version;
             _content.LightsVersion = 0;
@@ -161,7 +160,7 @@ namespace XrEngine.OpenGL
                     _content.LightsVersion += light.Version;
                     continue;
                 }
-           
+
                 if (!obj3D.Feature<IVertexSource>(out var vrtSrc))
                     continue;
 
@@ -446,14 +445,14 @@ namespace XrEngine.OpenGL
             _gl.ActiveTexture(TextureUnit.Texture0);
             _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
             _gl.BindSampler(0, 0);
-            
+
             _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
             _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
             _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
             _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-            
+
             _gl.Disable(EnableCap.ProgramPointSize);
 
             ConfigureCaps();
@@ -483,7 +482,7 @@ namespace XrEngine.OpenGL
                     return _gl.Context.GetProcAddress(name);
                 });
 
-                #endif
+#endif
 
                 _grContext = GRContext.CreateGl(grInterface);
             }
@@ -493,12 +492,12 @@ namespace XrEngine.OpenGL
             if (format == InternalFormat.Rgba || format == 0)
                 format = InternalFormat.Rgba8;
 
-            var gerTextInfo = new GRGlTextureInfo((uint)glTexture.Target, glTexture.Handle, (uint)format); 
+            var gerTextInfo = new GRGlTextureInfo((uint)glTexture.Target, glTexture.Handle, (uint)format);
 
             var grTexture = new GRBackendTexture((int)glTexture.Width, (int)glTexture.Height, true, gerTextInfo);
 
             var props = new SKSurfaceProperties(SKPixelGeometry.RgbVertical);
-              
+
             return SKSurface.Create(_grContext, grTexture, ImageUtils.GetFormat(texture.Format), props);
         }
 

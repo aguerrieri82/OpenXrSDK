@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using XrMath;
 
 namespace CanvasUI
@@ -65,7 +60,7 @@ namespace CanvasUI
 
                 childSize.Width -= child.Position.X;
                 childSize.Height -= child.Position.Y;
-                
+
                 childSize = child.Item.Measure(childSize);
 
                 totSize.Width = MathF.Max(totSize.Width, childSize.Width + child.Position.X);
@@ -95,6 +90,6 @@ namespace CanvasUI
             return result;
         }
 
-        public static readonly AbsoluteLayoutManager Instance = new(); 
+        public static readonly AbsoluteLayoutManager Instance = new();
     }
 }

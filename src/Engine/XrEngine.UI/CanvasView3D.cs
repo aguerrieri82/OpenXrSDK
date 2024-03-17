@@ -1,12 +1,7 @@
 ﻿using CanvasUI;
 using SkiaSharp;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace XrEngine.UI
@@ -34,7 +29,7 @@ namespace XrEngine.UI
             _dpi = 72;
             _size = new Size2(1, 0.56f);
             _sizeDirty = true;
-            
+
             Geometry = Quad3D.Instance;
 
             Mode = CanvasViewMode.Texture;
@@ -53,7 +48,7 @@ namespace XrEngine.UI
                 CreateSurface(texture, imageId);
                 _targets[imageId] = texture;
             }
-            _activeTexture = texture;   
+            _activeTexture = texture;
         }
 
 
@@ -116,7 +111,7 @@ namespace XrEngine.UI
 
             return surface;
         }
-    
+
         protected static SKSurface? GetSurface(Texture2D texture)
         {
             return texture.GetProp<SKSurface>("Surface");
@@ -156,9 +151,9 @@ namespace XrEngine.UI
                     MagFilter = ScaleFilter.Linear,
                 };
 
-                Materials.Add(new TextureMaterial(_defaultTexture) 
-                {   
-                    DoubleSided = true, 
+                Materials.Add(new TextureMaterial(_defaultTexture)
+                {
+                    DoubleSided = true,
                     Alpha = AlphaMode.Blend,
                 });
 

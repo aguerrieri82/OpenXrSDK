@@ -3,7 +3,7 @@
     public struct Vector2I
     {
         public Vector2I() { }
-    
+
         public Vector2I(int x, int y)
         {
             X = x;

@@ -72,7 +72,7 @@ namespace XrEngine.OpenGL
             foreach (var attr in _layout.Attributes!)
             {
                 _gl.EnableVertexAttribArray(attr.Location);
-                _gl.VertexAttribPointer(attr.Location, (int)attr.Count, attr.Type, false, _layout.Size, (void*)attr.Offset); 
+                _gl.VertexAttribPointer(attr.Location, (int)attr.Count, attr.Type, false, _layout.Size, (void*)attr.Offset);
             }
         }
 

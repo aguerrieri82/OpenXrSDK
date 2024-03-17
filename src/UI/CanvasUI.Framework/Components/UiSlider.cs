@@ -1,12 +1,4 @@
 ﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
-using XrMath;
 
 
 namespace CanvasUI
@@ -20,7 +12,7 @@ namespace CanvasUI
 
         protected virtual void OnValueChanged()
         {
-            ValueChanged?.Invoke(this, EventArgs.Empty); 
+            ValueChanged?.Invoke(this, EventArgs.Empty);
         }
 
         protected override void OnPropertyChanged(string propName, object? value, object? oldValue)

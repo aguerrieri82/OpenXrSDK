@@ -5,7 +5,6 @@
 using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
 using XrEngine;

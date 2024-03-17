@@ -155,7 +155,7 @@ namespace OpenXr.Framework
             for (var i = 0; i < colorImages.Length; i++)
             {
                 var swc = swapchains[i];
-                
+
                 var colorIndex = _xrApp!.AcquireSwapchainImage(swapchains[i].ColorSwapchain);
                 colorImages[i] = swc.ColorImages!.ItemPointer((int)colorIndex);
                 _xrApp.WaitSwapchainImage(swapchains[i].ColorSwapchain);

@@ -140,7 +140,7 @@ namespace OpenXr.Framework.Oculus
                 PausePt();
         }
 
-        protected override bool Update(ref CompositionLayerPassthroughFB layer, ref View[] views,  long predTime)
+        protected override bool Update(ref CompositionLayerPassthroughFB layer, ref View[] views, long predTime)
         {
             layer.LayerHandle = _ptLayer;
             layer.Flags = CompositionLayerFlags.BlendTextureSourceAlphaBit;

@@ -71,7 +71,7 @@ namespace XrEngine.OpenGL
             _programVersion = Material.Version;
         }
 
-        public IBuffer GetBuffer<T>(string name,  bool isGlobal)
+        public IBuffer GetBuffer<T>(string name, bool isGlobal)
         {
             if (isGlobal)
                 return Global.GetBuffer<T>(name, true);

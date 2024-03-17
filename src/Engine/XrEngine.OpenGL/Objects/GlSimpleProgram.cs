@@ -38,7 +38,7 @@ namespace XrEngine.OpenGL
 
         public override void Dispose()
         {
-            Vertex?.Dispose(); 
+            Vertex?.Dispose();
             Fragment?.Dispose();
 
             Vertex = null;

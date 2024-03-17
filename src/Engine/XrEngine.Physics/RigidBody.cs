@@ -223,7 +223,7 @@ namespace XrEngine.Physics
             {
                 if (Type == PhysicsActorType.Dynamic)
                     DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableCcd;
-             
+
                 if (Type == PhysicsActorType.Kinematic)
                     DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableSpeculativeCcd;
             }
@@ -305,7 +305,7 @@ namespace XrEngine.Physics
 
         public float Tolerance { get; set; }
 
-        public bool EnableCCD  { get; set; }
+        public bool EnableCCD { get; set; }
 
         public PhysicsDynamicActor DynamicActor => (_actor as PhysicsDynamicActor) ?? throw new ArgumentNullException();
 

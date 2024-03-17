@@ -28,7 +28,7 @@ namespace XrEngine
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
- 
+
             if (DiffuseTexture != null)
             {
                 bld.AddFeature("TEXTURE");

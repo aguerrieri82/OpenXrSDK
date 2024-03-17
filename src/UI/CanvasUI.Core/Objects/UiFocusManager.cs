@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace CanvasUI
 {
@@ -55,12 +50,12 @@ namespace CanvasUI
         {
             if (_activeFocus == element)
                 return;
-            
-            _activeFocus?.DispatchEvent(new UiRoutedEvent 
-            { 
-                Source = _activeFocus, 
-                Type = UiEventType.LostFocus, 
-                Dispatch = UiEventDispatch.Bubble 
+
+            _activeFocus?.DispatchEvent(new UiRoutedEvent
+            {
+                Source = _activeFocus,
+                Type = UiEventType.LostFocus,
+                Dispatch = UiEventDispatch.Bubble
             });
 
             _activeFocus = element;

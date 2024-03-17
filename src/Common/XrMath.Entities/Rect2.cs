@@ -64,18 +64,18 @@ namespace XrMath
             get => new(X, Y);
             set
             {
-                X = value.X;    
+                X = value.X;
                 Y = value.Y;
             }
         }
 
         public Size2 Size
         {
-            get => new (Width, Height);
+            get => new(Width, Height);
             set
             {
-                Width = value.Width;    
-                Height = value.Height;  
+                Width = value.Width;
+                Height = value.Height;
             }
         }
     }

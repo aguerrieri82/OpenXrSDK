@@ -1,10 +1,4 @@
 ﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace CanvasUI
@@ -3273,11 +3267,11 @@ namespace CanvasUI
         protected SKFont GetFont()
         {
             var typeface = SKResources.TypefaceFromRes("GoogleSymblIcons.Outline");
-            
-            var style = new SKFontStyle(SKFontStyleWeight.Medium, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
-            
 
-            var font = SKResources.Font(typeface, 
+            var style = new SKFontStyle(SKFontStyleWeight.Medium, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
+
+
+            var font = SKResources.Font(typeface,
                                        ActualStyle.FontSize.ToPixel(this, UiValueReference.ParentFontSize));
 
             return font;
@@ -3289,7 +3283,7 @@ namespace CanvasUI
             var text = new string((char)(int)Icon, 1);
             var width = font.MeasureText(text);
             var lineSize = Style.LineSize.ToPixel(this, UiValueReference.FontSize);
-           
+
             return new Size2(width, lineSize);
         }
 

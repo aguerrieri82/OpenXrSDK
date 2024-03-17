@@ -73,7 +73,7 @@ namespace OpenXr.Framework.Android
 
         private void CheckPermissionsAndRun()
         {
-  
+
             var toAsk = new List<string>();
 
             foreach (var permission in _permissions)

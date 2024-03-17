@@ -2,7 +2,6 @@
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.OpenGL;
-using Xr.Test;
 using XrEngine;
 using XrEngine.OpenXr;
 
@@ -18,7 +17,7 @@ namespace OpenXr.Samples
             var viewManager = new ViewManager();
             viewManager.Initialize();
 
-        
+
             using var xrApp = new XrApp(logger,
                     new XrOpenGLGraphicDriver(viewManager.View),
                     new OculusXrPlugin());

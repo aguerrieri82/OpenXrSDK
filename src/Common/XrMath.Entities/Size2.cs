@@ -2,10 +2,10 @@
 
 namespace XrMath
 {
-    public struct Size2 : IEquatable<Size2> 
+    public struct Size2 : IEquatable<Size2>
     {
         public Size2() { }
-       
+
         public Size2(float width, float height)
         {
             Width = width;
@@ -34,7 +34,7 @@ namespace XrMath
 
         public readonly bool Equals(Size2 other)
         {
-            return other.Width == Width && other.Height == Height;  
+            return other.Width == Width && other.Height == Height;
         }
 
         public readonly override bool Equals([NotNullWhen(true)] object? obj)

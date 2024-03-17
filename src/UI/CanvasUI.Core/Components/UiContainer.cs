@@ -1,10 +1,4 @@
 ﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace CanvasUI
@@ -19,8 +13,8 @@ namespace CanvasUI
             var layout = ActualStyle.Layout.Value;
 
             if (layout == UiLayoutType.Flex)
-                return FlexLayoutManager.Instance; 
-            
+                return FlexLayoutManager.Instance;
+
             if (layout == UiLayoutType.Absolute)
                 return AbsoluteLayoutManager.Instance;
 
@@ -37,7 +31,7 @@ namespace CanvasUI
         {
             var manager = GetLayoutManager();
 
-            _layoutParams = manager.ExtractLayoutParams(this);  
+            _layoutParams = manager.ExtractLayoutParams(this);
 
             return manager.Measure(availSize, _layoutParams);
         }
@@ -60,8 +54,8 @@ namespace CanvasUI
             if (child.Parent == this)
                 return;
 
-            child.Parent?.RemoveChild(child);  
-            
+            child.Parent?.RemoveChild(child);
+
             _children.Add(child);
 
             _isDirty = true;
@@ -70,7 +64,7 @@ namespace CanvasUI
             child.Parent = this;
         }
 
-        public void RemoveChild(UiElement child) 
+        public void RemoveChild(UiElement child)
         {
             _children.Remove(child);
 

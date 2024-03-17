@@ -46,12 +46,12 @@ namespace Xr.Test
             pl1.Name = "point-light-1";
             pl1.Transform.Position = new Vector3(0, 2, 0);
             pl1.Intensity = 0.3f;
-            
+
             var pl2 = scene.AddChild(new PointLight());
             pl2.Name = "point-light-2";
             pl2.Transform.Position = new Vector3(0, -2, 0);
             pl2.Intensity = 0.3f;
-            
+
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
@@ -75,7 +75,7 @@ namespace Xr.Test
         public static XrEngineAppBuilder AddPanel<T>(this XrEngineAppBuilder builder) where T : UIRoot, new()
         {
             var panel = new Panel3D();
-            
+
             panel.SetInches(19, 16f / 9f);
             panel.DpiScale = 2;
 
@@ -193,7 +193,7 @@ namespace Xr.Test
             {
                 ballRigid.DynamicActor.AddForce(new Vector3(0.3f, 0, 0), PxForceMode.Force);
             };
-        
+
 
             //Add racket
             scene!.AddChild(mesh);

@@ -12,7 +12,7 @@ namespace XrEngine.OpenGL
 {
     public class GlShader : GlObject
     {
-        static Dictionary<string, GlShader> _shaders = [];
+        static readonly Dictionary<string, GlShader> _shaders = [];
 
         protected int _refCount;
 
@@ -54,7 +54,7 @@ namespace XrEngine.OpenGL
         public override void Dispose()
         {
             _refCount--;
-            
+
             if (_refCount <= 0 && _handle != 0)
             {
                 _gl.DeleteShader(_handle);

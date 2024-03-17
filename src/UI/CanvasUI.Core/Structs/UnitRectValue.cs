@@ -65,9 +65,9 @@ namespace CanvasUI
         }
 
         public UnitValue Top;
-        
+
         public UnitValue Left;
-        
+
         public UnitValue Right;
 
         public UnitValue Bottom;

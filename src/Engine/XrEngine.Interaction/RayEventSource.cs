@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine.Interaction
+﻿namespace XrEngine.Interaction
 {
     public class RayEventSource : Behavior<Scene>, IRayTarget, IPointerEventSource
     {
@@ -30,9 +24,9 @@ namespace XrEngine.Interaction
         }
 
         public event PointerEventDelegate? PointerDown;
-        
+
         public event PointerEventDelegate? PointerUp;
-        
+
         public event PointerEventDelegate? PointerMove;
 
         public event PointerEventDelegate? WheelMove;

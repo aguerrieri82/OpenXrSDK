@@ -15,7 +15,7 @@ namespace CanvasUI
     {
         UiStyleMode Mode { get; }
 
-        object? Value { get; }  
+        object? Value { get; }
     }
 
     public struct UiStyleValue<T> : IUiStyleValue
@@ -47,7 +47,7 @@ namespace CanvasUI
 
         readonly object? IUiStyleValue.Value => Value;
 
-        public readonly bool HasValue => Mode == UiStyleMode.Value && Value != null;   
+        public readonly bool HasValue => Mode == UiStyleMode.Value && Value != null;
 
 
         public T? Value;

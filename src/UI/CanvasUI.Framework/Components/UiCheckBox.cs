@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CanvasUI
+﻿namespace CanvasUI
 {
     public class UiCheckBox : UiContainer, IInputElement<bool>
     {
@@ -40,7 +34,7 @@ namespace CanvasUI
 
         private void OnContentPointerUp(UiElement sender, UiPointerEvent uiEvent)
         {
-            _toggle.IsChecked = !_toggle.IsChecked; 
+            _toggle.IsChecked = !_toggle.IsChecked;
         }
 
         private void OnValueChange(object? sender, EventArgs e)
@@ -48,15 +42,15 @@ namespace CanvasUI
             if (_toggle.IsChecked)
                 _toggle.Content = _checkedContent;
             else
-                _toggle.Content = _uncheckedContent;    
+                _toggle.Content = _uncheckedContent;
         }
 
         public object? Content
         {
             get => _content.Content;
-            set => _content.Content = value;    
+            set => _content.Content = value;
         }
-        
+
         public bool Value
         {
             get => _toggle.IsChecked;

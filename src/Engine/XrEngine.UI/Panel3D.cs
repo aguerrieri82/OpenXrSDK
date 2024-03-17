@@ -1,15 +1,7 @@
 ﻿using CanvasUI;
 using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using XrEngine.Interaction;
-using XrMath;
 
 namespace XrEngine.UI
 {
@@ -127,7 +119,7 @@ namespace XrEngine.UI
 
         public override bool NeedDraw => Panel != null && Panel.IsDirty;
 
-        public UIRoot? Panel { get; set; }  
+        public UIRoot? Panel { get; set; }
 
         public IRayPointer[]? Pointers { get; set; }
     }

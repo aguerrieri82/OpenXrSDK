@@ -1,10 +1,4 @@
 ﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace CanvasUI
@@ -49,7 +43,7 @@ namespace CanvasUI
                 _content.Arrange(finalRect);
                 return _content.RenderSize;
             }
-  
+
             return base.ArrangeWork(finalRect);
         }
 
