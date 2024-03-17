@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using XrMath;
 
-namespace XrEngine
+namespace CanvasUI
 {
-    public interface IColorSource
+    public static class UnitConv
     {
-        Color Color { get; set; }
+        public const float InchesToMeter = 0.0254f;
     }
 }

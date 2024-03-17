@@ -1,4 +1,4 @@
-﻿using OpenXr.Framework;
+﻿using CanvasUI;
 using OpenXr.Framework.Oculus;
 using PhysX;
 using PhysX.Framework;
@@ -78,8 +78,6 @@ namespace Xr.Test
             
             panel.SetInches(19, 16f / 9f);
             panel.DpiScale = 2;
-            panel.Materials[0].UseDepth = false;
-            panel.Materials[0].WriteDepth = false;
 
             var uiRoot = new T();
 

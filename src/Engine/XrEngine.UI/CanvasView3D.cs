@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+﻿using CanvasUI;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -157,7 +158,7 @@ namespace XrEngine.UI
 
                 Materials.Add(new TextureMaterial(_defaultTexture) 
                 {   
-                    DoubleSided = false, 
+                    DoubleSided = true, 
                     Alpha = AlphaMode.Blend,
                 });
 

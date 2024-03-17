@@ -1,11 +1,13 @@
-﻿using System;
+﻿using CanvasUI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XrEngine;
 using XrEngine.UI;
-using XrEngine.UI.Components;
+using XrMath;
+
 
 namespace Xr.Test
 {

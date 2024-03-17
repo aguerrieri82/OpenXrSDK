@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <RootNamespace>CanvasUI</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
+  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.1.8" />
+	</ItemGroup>
+</Project>

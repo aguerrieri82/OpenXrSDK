@@ -1,4 +1,6 @@
-﻿namespace XrEngine.Components
+﻿using XrMath;
+
+namespace XrEngine.Components
 {
     public class DebugGizmos : Behavior<Scene>, IDrawGizmos
     {

@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+﻿using CanvasUI;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -91,13 +92,13 @@ namespace XrEngine.UI
 
             var hitTest = Panel.HitTest(pos);
 
-            UiFocusManager.SetHoverElement(hitTest, pos, buttons);
+            UiFocusManager.SetHoverElement(hitTest, pos, (UiPointerButton)buttons);
 
             if (hitTest != null)
             {
                 var uiEv = new UiPointerEvent
                 {
-                    Buttons = buttons,
+                    Buttons = (UiPointerButton)buttons,
                     ScreenPosition = pos,
                     Type = type,
                     Source = hitTest,
