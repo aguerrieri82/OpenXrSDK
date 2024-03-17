@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using XrMath;
+
+namespace XrEngine
 {
     public abstract class Light : Object3D
     {

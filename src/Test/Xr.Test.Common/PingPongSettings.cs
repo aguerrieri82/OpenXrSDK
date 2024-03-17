@@ -1,11 +1,12 @@
-﻿using System;
+﻿using CanvasUI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XrEngine;
 using XrEngine.UI;
-using XrEngine.UI.Components;
+
 
 namespace Xr.Test
 {
@@ -14,7 +15,7 @@ namespace Xr.Test
         public PingPongSettings()
         {
             UiBuilder.From(this).Name("main").AsColumn()
-                .Style(s=> s.Padding(16).BackgroundColor("#aaa"))
+                .Style(s=> s.Padding(16).Color("#F5F5F5").BackgroundColor("#050505AF"))
             .BeginRow(s=> s.ColGap(16).FlexGrow(1)).Name("cols")
                 .BeginColumn(s => s.FlexBasis(1)).Name("col-1")
                     .AddText("Scene 1", s => s.FontSize(1.5f, Unit.Em))

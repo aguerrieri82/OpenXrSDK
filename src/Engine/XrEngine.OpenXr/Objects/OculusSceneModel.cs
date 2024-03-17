@@ -4,6 +4,7 @@ using PhysX.Framework;
 using Silk.NET.OpenXR;
 using System.Numerics;
 using XrEngine.Physics;
+using XrMath;
 
 namespace XrEngine.OpenXr
 {

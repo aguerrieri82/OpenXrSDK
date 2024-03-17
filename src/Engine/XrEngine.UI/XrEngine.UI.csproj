@@ -5,14 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\GoogleSymblIcons.Outline.ttf" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\GoogleSymblIcons.Outline.ttf" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\UI\CanvasUI.Framework\CanvasUI.Framework.csproj" />
     <ProjectReference Include="..\XrEngine.Interaction\XrEngine.Interaction.csproj" />
   </ItemGroup>
 
