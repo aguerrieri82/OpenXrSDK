@@ -145,6 +145,14 @@ namespace CanvasUI
             return this;
         }
 
+        public readonly UiStyleBuilder Overflow(UiOverflow value)
+        {
+            Style.OverflowX = value;
+            Style.OverflowY = value;
+            return this;
+        }
+
+
         public readonly UiStyleBuilder FontSize(float value, Unit unit = Unit.Dp)
         {
             Style.FontSize = UnitValue.Get(value, unit);

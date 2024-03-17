@@ -21,13 +21,13 @@ namespace XrEngine.OpenXr
             _options.ResolutionScale = 1;
             _options.SampleCount = 1;
             _options.RenderMode = XrRenderMode.SingleEye;
-            _platform = Platform.Current;
+            _platform = XrPlatform.Current;
         }
 
         public XrEngineAppBuilder UsePlatform(IXrEnginePlatform platform)
         {
             _platform = platform;
-            Platform.Current = _platform;
+            XrPlatform.Current = _platform;
             return this;
         }
 
@@ -208,7 +208,7 @@ namespace XrEngine.OpenXr
 
         public XrEngineApp Build()
         {
-            _platform ??= Platform.Current;
+            _platform ??= XrPlatform.Current;
 
             if (_platform == null)
                 throw new ArgumentNullException("Platform not specified");

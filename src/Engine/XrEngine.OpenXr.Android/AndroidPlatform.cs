@@ -105,5 +105,7 @@ namespace XrEngine.OpenXr.Android
         public ILogger Logger { get; }
 
         public IAssetManager AssetManager { get; }
+
+        public string PersistentPath => _context.GetExternalFilesDir(null)!.AbsolutePath;
     }
 }

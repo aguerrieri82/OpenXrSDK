@@ -6,6 +6,19 @@ namespace CanvasUI
 {
     public static class UiExtensions
     {
+        #region BINDING
+
+        public static IProperty<TDst> Convert<TSrc, TDst>(this IProperty<TSrc> prop, IValueConverter<TSrc, TDst> converter)
+        {
+            return new ConvertProperty<TSrc, TDst>(prop, converter);
+        }
+
+        public static IProperty<TDst> Convert<TSrc, TDst>(this IProperty<TSrc> prop)
+        {
+            return new ConvertProperty<TSrc, TDst>(prop, ValueConverters.Get<TSrc, TDst>());
+        }
+
+        #endregion
 
         #region UI ELEMENT
 

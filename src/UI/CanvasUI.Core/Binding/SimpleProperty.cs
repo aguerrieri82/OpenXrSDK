@@ -19,7 +19,12 @@
 
         public void Set(T value)
         {
+            if (Equals(value, Get()))
+                return;
+
             _setter(value);
+
+            Changed?.Invoke(this, EventArgs.Empty);
         }
 
         public string Name { get; }

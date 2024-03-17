@@ -80,7 +80,7 @@ namespace XrEngine.OpenXr
                 });
 
 
-                var assets = Platform.Current!.AssetManager!;
+                var assets = XrPlatform.Current!.AssetManager!;
 
                 var fullPath = assets.GetFsPath(modelFileName);
 
