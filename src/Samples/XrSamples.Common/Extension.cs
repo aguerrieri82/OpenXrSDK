@@ -34,7 +34,7 @@ namespace XrSamples
         }
         public static IUiBuilder<T> AddInputRange<T>(this IUiBuilder<T> builder, string label, float min, float max, IProperty<float> binding) where T : UiContainer
         {
-            var scale = LogScale.Instance;
+            IValueScale scale = (min > 0 && min < 1) ? LogScale.Instance : LinearScale.Instance;
 
             TextBlock? text = null;
 
@@ -42,7 +42,14 @@ namespace XrSamples
            .BeginColumn(s=> s.RowGap(4))
                .AddText(label)
                .BeginRow(s=> s.AlignItems(UiAlignment.Center).ColGap(8))
-                  .AddText(b => b.Text("").Set(e => text = e).Style(s=> s.Width(3, Unit.Em).Padding(4).Border(1, "#777")))
+
+                  .AddText(b => b.Text(binding.Get().ToString())
+                                 .Set(e => text = e)
+                                 .Style(s=> s
+                                        .Width(3, Unit.Em)
+                                        .Overflow(UiOverflow.Hidden)
+                                        .Padding(4)
+                                        .Border(1, "#777")))
                   .AddSlider(b => b.Style(s=> s.FlexGrow(1)).Set(s => 
                   {
                       s.Min = scale.ToScale(min);

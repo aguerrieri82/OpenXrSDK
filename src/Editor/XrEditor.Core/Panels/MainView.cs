@@ -38,7 +38,7 @@ namespace XrEditor
         {
             Context.Implement<IUserInteraction>(this);
 
-            var surface = ((IRenderSurfaceProvider)Platform.Current!).CreateRenderSurface(driver);
+            var surface = ((IRenderSurfaceProvider)XrPlatform.Current!).CreateRenderSurface(driver);
 
             Outline = new OutlinePanel();
 

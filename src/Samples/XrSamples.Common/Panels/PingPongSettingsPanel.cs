@@ -1,6 +1,8 @@
 ﻿using CanvasUI;
 using CanvasUI.Objects;
 using System.Reflection;
+using System.Text.Json;
+using XrEngine;
 
 
 namespace XrSamples
@@ -16,13 +18,37 @@ namespace XrSamples
         public bool UseCCD { get; set; }
     }
 
-    public class PingPongSettings
+    public class PingPongSettings : BaseAppSettings
     {
+
         public PingPongSettings()
         {
             Ball = new PhysicSettings();
             Racket = new PhysicSettings();
             Terrain = new PhysicSettings();
+
+            LengthScale = 1;
+            UsePcm = true;
+
+            Ball.LengthScale = 1;
+            Ball.ContactDistance = 0.2f;
+            Ball.Restitution = 0.8f;
+            Ball.UseCCD = true;
+
+            Racket.LengthScale = 1;
+            Racket.ContactDistance = 0.2f;
+            Racket.Restitution = 0.8f;
+            Racket.UseCCD = true;
+
+            Terrain.LengthScale = 1;
+            Terrain.ContactDistance = 0.2f;
+            Terrain.Restitution = 0.8f;
+            Terrain.UseCCD = true;
+        }
+
+        public override void Apply(Scene3D scene)
+        {
+
         }
 
         public PhysicSettings Ball { get; }
@@ -39,13 +65,13 @@ namespace XrSamples
 
     public class PingPongSettingsPanel : UIRoot
     {
-        public PingPongSettingsPanel(PingPongSettings settings)
+        public PingPongSettingsPanel(PingPongSettings settings, Scene3D scene)
         {
-            var binder = new Binder<PingPongSettings>();
+            var binder = new Binder<PingPongSettings>(settings);
 
             binder.PropertyChanged += (_, _, _, _) =>
             {
-
+                settings.Apply(scene);
             };
 
             UiBuilder.From(this).Name("main").AsColumn()

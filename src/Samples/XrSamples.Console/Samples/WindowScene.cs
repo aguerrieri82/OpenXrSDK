@@ -23,6 +23,8 @@ namespace XrSamples
     {
         class ConsolePlatform : IXrEnginePlatform
         {
+            public string PersistentPath => Path.GetFullPath("Data");
+
             public IAssetManager AssetManager { get; } = new LocalAssetManager("Assets");
 
             public ILogger Logger { get; } = NullLogger.Instance;
@@ -40,7 +42,7 @@ namespace XrSamples
 
         public static Task Run(IServiceProvider services, ILogger logger)
         {
-            Platform.Current = new ConsolePlatform();
+            XrPlatform.Current = new ConsolePlatform();
 
             var builder = new XrEngineAppBuilder();
 

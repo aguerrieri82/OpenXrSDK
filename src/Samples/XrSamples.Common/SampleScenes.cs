@@ -72,14 +72,12 @@ namespace XrSamples
             return app;
         }
 
-        public static XrEngineAppBuilder AddPanel<T>(this XrEngineAppBuilder builder) where T : UIRoot, new()
+        public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot)
         {
             var panel = new Window3D();
 
-            panel.SetInches(19, 16f / 9f);
-            panel.DpiScale = 2;
-
-            var uiRoot = new T();
+            panel.SetInches(19, 18f / 9f);
+            panel.DpiScale = 1.6f;
 
             panel.Content = uiRoot;
             panel.WorldPosition = new Vector3(0, 1, 0);
@@ -95,6 +93,11 @@ namespace XrSamples
                 });
         }
 
+        public static XrEngineAppBuilder AddPanel<T>(this XrEngineAppBuilder builder) where T : UIRoot, new()
+        {
+            return builder.AddPanel(new T());
+        }
+
         static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder)
         {
             return builder.UseHands()
@@ -108,7 +111,7 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateDisplay(this XrEngineAppBuilder builder)
         {
-            var assets = Platform.Current!.AssetManager;
+            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 
@@ -131,7 +134,7 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreatePingPong(this XrEngineAppBuilder builder)
         {
-            var assets = Platform.Current!.AssetManager;
+            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 
@@ -160,7 +163,7 @@ namespace XrSamples
             //Audio
             var audio = scene.Component<AudioSystem>();
             var sound = new DynamicSound();
-            sound.AddBuffers(audio.Device.Al, Platform.Current.AssetManager, "BallSounds");
+            sound.AddBuffers(audio.Device.Al, XrPlatform.Current.AssetManager, "BallSounds");
 
             //Grabber
             mesh.AddComponent<BoundsGrabbable>();
@@ -201,12 +204,15 @@ namespace XrSamples
             //Setup camera
             scene.PerspectiveCamera().Target = mesh.Transform.Position;
 
+            var settings = new PingPongSettings();
+            settings.Load(Path.Join(XrPlatform.Current.PersistentPath, "settigs.json"));
+
             return builder
                    .UseApp(app)
                    .UseScene(true)
                    .ConfigureSampleApp()
                    .UsePhysics()
-                   .AddPanel<PingPongSettingsPanel>();
+                   .AddPanel(new PingPongSettingsPanel(settings, scene));
 
         }
 
@@ -214,7 +220,7 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateChess(this XrEngineAppBuilder builder)
         {
 
-            var assets = Platform.Current!.AssetManager;
+            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 
@@ -258,7 +264,7 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateSponza(this XrEngineAppBuilder builder)
         {
-            var assets = Platform.Current!.AssetManager;
+            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 
@@ -309,7 +315,7 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateAnimatedCubes(this XrEngineAppBuilder builder)
         {
-            var assets = Platform.Current!.AssetManager;
+            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 

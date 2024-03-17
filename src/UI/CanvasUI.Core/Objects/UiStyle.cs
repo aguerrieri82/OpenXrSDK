@@ -153,14 +153,14 @@ namespace CanvasUI
             set => SetValue(nameof(Visibility), value);
         }
 
-        [UiProperty(UiOverflow.Hidden, UiPropertyFlags.Layout)]
+        [UiProperty(UiOverflow.Visible, UiPropertyFlags.Layout)]
         public StyleValue<UiOverflow> OverflowX
         {
             get => GetValue<StyleValue<UiOverflow>>(nameof(OverflowX));
             set => SetValue(nameof(OverflowX), value);
         }
 
-        [UiProperty(UiOverflow.Hidden, UiPropertyFlags.Layout)]
+        [UiProperty(UiOverflow.Visible, UiPropertyFlags.Layout)]
         public StyleValue<UiOverflow> OverflowY
         {
             get => GetValue<StyleValue<UiOverflow>>(nameof(OverflowY));

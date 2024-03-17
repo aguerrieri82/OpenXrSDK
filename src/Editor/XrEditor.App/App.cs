@@ -25,12 +25,12 @@ namespace XrEditor
         {
             Gpu.EnableNvAPi();
 
-            Platform.Current = new EditorPlatform();
+            XrPlatform.Current = new EditorPlatform();
 
             Context.Implement<PanelManager>();
             Context.Implement<NodeFactory>();
             Context.Implement<IMainDispatcher>(new MainDispatcher());
-            Context.Implement(Platform.Current);
+            Context.Implement(XrPlatform.Current);
 
             var app = new App();
 
