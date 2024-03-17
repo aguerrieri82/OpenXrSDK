@@ -206,7 +206,7 @@ namespace XrSamples
                    .UseScene(true)
                    .ConfigureSampleApp()
                    .UsePhysics()
-                   .AddPanel<PingPongSettings>();
+                   .AddPanel<PingPongSettingsPanel>();
 
         }
 

@@ -2,56 +2,13 @@
 
 namespace CanvasUI
 {
-    [Flags]
-    public enum UiPropertyFlags
+
+    public delegate void UiPropertyChangedHandler(UiObject owner, string propName, object? value, object? oldValue);
+
+    public abstract class UiObject : IDisposable
     {
-        None,
-        Layout = 0x1
-    }
+        #region PROPERTIES 
 
-    public class UiPropertyAttribute : Attribute
-    {
-        public UiPropertyAttribute(object? defaultValue = null, UiPropertyFlags flags = UiPropertyFlags.None)
-        {
-            DefaultValue = defaultValue;
-            Flags = flags;
-        }
-
-        public object? DefaultValue { get; }
-
-        public UiPropertyFlags Flags { get; }
-    }
-
-    public class UiProperty
-    {
-        public UiProperty(string name, Type type, Type ownerType)
-        {
-            Name = name;
-            OwnerType = ownerType;
-            Type = type;
-        }
-
-        public string Name;
-
-        public Type Type;
-
-        public object? DefaultValue;
-
-        public Type OwnerType;
-
-        public UiPropertyFlags Flags;
-    }
-
-    public class UiProperty<T> : UiProperty
-    {
-        public UiProperty(string name, Type ownerType)
-            : base(name, typeof(T), ownerType)
-        {
-        }
-    }
-
-    public abstract class UiObject
-    {
         protected static Dictionary<Type, Dictionary<string, UiProperty>> _props = [];
 
         public static Dictionary<string, UiProperty> RegisterType<T>()
@@ -104,23 +61,26 @@ namespace CanvasUI
             return props;
         }
 
-        public static UiProperty<T> GetProperty<T>(string name, Type type)
+        public static UiProperty<TValue> GetProperty<TValue>(string name, Type ownerType)
         {
-            return (UiProperty<T>)GetProperty(name, type);
+            return (UiProperty<TValue>)GetProperty(name, ownerType);
         }
 
-        public static UiProperty GetProperty(string name, Type type)
+        public static UiProperty GetProperty(string name, Type ownerType)
         {
-            if (!_props.TryGetValue(type, out var props))
-                props = RegisterType(type);
+            if (!_props.TryGetValue(ownerType, out var props))
+                props = RegisterType(ownerType);
             return props[name];
         }
 
+        #endregion
+
         protected Dictionary<UiProperty, object?>? _values;
+        protected List<Binding>? _bindings = null;
 
         protected virtual void OnPropertyChanged(string propName, object? value, object? oldValue)
         {
-
+            PropertyChanged?.Invoke(this, propName, value, oldValue);
         }
 
         public virtual void SetValue<T>(string propName, T? value)
@@ -153,5 +113,31 @@ namespace CanvasUI
 
             return default;
         }
+
+        public Binding Bind<TValue>(string propName, IProperty<TValue> other, BindingMode mode)
+        {
+            _bindings ??= [];
+            
+            var result = new Binding(other, new UiPropertyInstance<TValue>(this, propName), mode);
+            _bindings.Add(result);
+            return result;
+        }
+
+        public virtual void Dispose()
+        {
+            if (_bindings != null)
+            {
+                foreach (var binding in _bindings)  
+                    binding.Dispose();
+            }
+            
+            _bindings = null;
+            _props.Clear();
+
+            GC.SuppressFinalize(this);
+        }
+
+
+        public event UiPropertyChangedHandler? PropertyChanged;
     }
 }

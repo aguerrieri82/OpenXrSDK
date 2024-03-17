@@ -75,7 +75,7 @@ namespace CanvasUI
         protected Vector2 GetThumbPos()
         {
             return new Vector2(
-                _clientRect.X + Value / (Max - Min) * (_clientRect.Width),
+                _clientRect.X + (Value - Min) / MathF.Abs(Max - Min) * (_clientRect.Width),
                 _clientRect.Y + _clientRect.Height / 2);
         }
 
@@ -83,7 +83,7 @@ namespace CanvasUI
         {
             var relX = (windowPos.X - _clientRect.X) / _clientRect.Width;
 
-            var value = Min + relX * (Max - Min); 
+            var value = Min + relX * MathF.Abs(Max - Min); 
             
             if (Step != 0)
                 value = MathF.Round(value / Step) * Step;
