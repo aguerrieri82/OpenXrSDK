@@ -3,7 +3,7 @@ using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public class InputObjectGrabber : BaseObjectGrabber<Scene>
+    public class InputObjectGrabber : BaseObjectGrabber<Scene3D>
     {
         protected readonly XrInput<Pose3> _input;
         protected readonly XrInput<float>[] _handlers;

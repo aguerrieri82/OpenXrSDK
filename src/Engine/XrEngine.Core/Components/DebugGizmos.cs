@@ -2,7 +2,7 @@
 
 namespace XrEngine.Components
 {
-    public class DebugGizmos : Behavior<Scene>, IDrawGizmos
+    public class DebugGizmos : Behavior<Scene3D>, IDrawGizmos
     {
         public DebugGizmos()
         {

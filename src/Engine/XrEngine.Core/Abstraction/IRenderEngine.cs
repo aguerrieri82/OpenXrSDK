@@ -4,7 +4,7 @@ namespace XrEngine
 {
     public interface IRenderEngine : IDisposable
     {
-        void Render(Scene scene, Camera camera, Rect2I view, bool flush);
+        void Render(Scene3D scene, Camera camera, Rect2I view, bool flush);
 
         void SetDefaultRenderTarget();
 

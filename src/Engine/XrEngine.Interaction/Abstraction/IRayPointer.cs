@@ -14,5 +14,7 @@ namespace XrEngine.Interaction
     public interface IRayPointer
     {
         RayPointerStatus GetPointerStatus();
+
+        int Id { get; } 
     }
 }

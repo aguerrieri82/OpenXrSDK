@@ -14,7 +14,7 @@ namespace CanvasUI
             if (Content is UiElement comp)
                 return comp;
             var text = Content.ToString();
-            return new UiTextBlock() { Text = text ?? string.Empty };
+            return new TextBlock() { Text = text ?? string.Empty };
         }
 
         protected virtual void OnContentChanged()

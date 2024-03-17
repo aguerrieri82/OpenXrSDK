@@ -30,10 +30,10 @@ namespace XrEngine
 
     public class EngineApp
     {
-        protected readonly HashSet<Scene> _scenes = [];
+        protected readonly HashSet<Scene3D> _scenes = [];
         protected RenderContext _context;
         protected float _startTime;
-        protected Scene? _activeScene;
+        protected Scene3D? _activeScene;
         protected EngineAppStats _stats;
         protected bool _isStarted;
         protected readonly HashSet<IObjectChangeListener> _changeListeners = [];
@@ -47,13 +47,13 @@ namespace XrEngine
             Current = this;
         }
 
-        public void AddScene(Scene scene)
+        public void AddScene(Scene3D scene)
         {
             _scenes.Add(scene);
             scene.Attach(this);
         }
 
-        public void OpenScene(Scene scene)
+        public void OpenScene(Scene3D scene)
         {
             if (_activeScene == scene)
                 return;
@@ -63,7 +63,7 @@ namespace XrEngine
 
             _activeScene = scene;
 
-            Scene.Current = scene;
+            Scene3D.Current = scene;
         }
 
         public void Start()
@@ -108,11 +108,11 @@ namespace XrEngine
 
         public ICollection<IObjectChangeListener> ChangeListeners => _changeListeners;
 
-        public IReadOnlyCollection<Scene> Scenes => _scenes;
+        public IReadOnlyCollection<Scene3D> Scenes => _scenes;
 
         public EngineAppStats Stats => _stats;
 
-        public Scene? ActiveScene => _activeScene;
+        public Scene3D? ActiveScene => _activeScene;
 
         public IRenderEngine? Renderer { get; set; }
 

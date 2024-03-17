@@ -15,7 +15,7 @@ namespace XrEngine
 
         protected Transform3D _transform;
         protected Group3D? _parent;
-        protected Scene? _scene;
+        protected Scene3D? _scene;
         protected bool _isVisible;
 
         private double _creationTime;
@@ -73,7 +73,7 @@ namespace XrEngine
             _lastUpdateTime = ctx.Time;
 
             if (_scene == null && _parent != null)
-                _scene = this.FindAncestor<Scene>();
+                _scene = this.FindAncestor<Scene3D>();
 
             //TODO can we made in update?
             if (_components != null)
@@ -137,7 +137,7 @@ namespace XrEngine
             if (_scene == null && value != null)
                 changeType |= ObjectChangeType.SceneAdd;
 
-            _scene = _parent == null ? null : this.FindAncestor<Scene>();
+            _scene = _parent == null ? null : this.FindAncestor<Scene3D>();
 
             if (_scene == null)
                 changeType |= ObjectChangeType.SceneRemove;
@@ -226,7 +226,7 @@ namespace XrEngine
 
         public Group3D? Parent => _parent;
 
-        public Scene? Scene => _scene;
+        public Scene3D? Scene => _scene;
 
         public double CreationTime => _creationTime;
 

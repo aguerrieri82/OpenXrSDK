@@ -12,21 +12,21 @@
 
     public class SceneAddAction : UpdateAction
     {
-        public Scene? Scene { get; set; }
+        public Scene3D? Scene { get; set; }
 
         public Object3D? Object { get; set; }
     }
 
     public class SceneRemoveAction : UpdateAction
     {
-        public Scene? Scene { get; set; }
+        public Scene3D? Scene { get; set; }
 
         public Object3D? Object { get; set; }
     }
 
     public class EntityChangedAction : UpdateAction
     {
-        public Scene? Scene { get; set; }
+        public Scene3D? Scene { get; set; }
 
         public EngineObject? Object { get; set; }
 
@@ -39,9 +39,9 @@
     {
         protected int _index;
         protected List<UpdateAction> _actions = [];
-        protected Scene _scene;
+        protected Scene3D _scene;
 
-        public UpdateHistory(Scene scene)
+        public UpdateHistory(Scene3D scene)
         {
             _scene = scene;
             _scene.ChangeListeners.Add(this);

@@ -21,7 +21,7 @@ namespace XrEngine.OpenGL
 
         public long SceneVersion;
 
-        public Scene? Scene;
+        public Scene3D? Scene;
 
         public readonly Dictionary<Shader, ShaderContent> ShaderContents = [];
 
@@ -138,7 +138,7 @@ namespace XrEngine.OpenGL
 
 
         [MemberNotNull(nameof(_content))]
-        protected void BuildContent(Scene scene)
+        protected void BuildContent(Scene3D scene)
         {
             if (_content == null)
                 _content = new GlobalContent();
@@ -287,13 +287,13 @@ namespace XrEngine.OpenGL
             }
         }
 
-        public void Render(Scene scene, Camera camera, Rect2I view, bool flush)
+        public void Render(Scene3D scene, Camera camera, Rect2I view, bool flush)
         {
             if (_target != null)
                 Render(scene, camera, view, _target);
         }
 
-        public void Render(Scene scene, Camera camera, Rect2I view, IGlRenderTarget target)
+        public void Render(Scene3D scene, Camera camera, Rect2I view, IGlRenderTarget target)
         {
             target.Begin();
 

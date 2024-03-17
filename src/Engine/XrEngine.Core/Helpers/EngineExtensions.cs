@@ -83,23 +83,23 @@ namespace XrEngine
 
         #region SCENE
 
-        public static PerspectiveCamera PerspectiveCamera(this Scene scene)
+        public static PerspectiveCamera PerspectiveCamera(this Scene3D scene)
         {
             return ((PerspectiveCamera)scene.ActiveCamera!);
         }
 
-        public static T AddLayer<T>(this Scene scene) where T : ILayer3D, new()
+        public static T AddLayer<T>(this Scene3D scene) where T : ILayer3D, new()
         {
             return scene.AddLayer(new T());
         }
 
-        public static T AddLayer<T>(this Scene scene, T layer) where T : ILayer3D
+        public static T AddLayer<T>(this Scene3D scene, T layer) where T : ILayer3D
         {
             scene.Layers.Add(layer);
             return layer;
         }
 
-        public static IEnumerable<Object3D> ObjectsWithComponent<TComp>(this Scene scene) where TComp : IComponent
+        public static IEnumerable<Object3D> ObjectsWithComponent<TComp>(this Scene3D scene) where TComp : IComponent
         {
             var layer = scene.Layers.OfType<ComponentLayer<TComp>>().FirstOrDefault();
             if (layer == null)
@@ -111,7 +111,7 @@ namespace XrEngine
             return layer.Content.Cast<Object3D>();
         }
 
-        public static IEnumerable<T> TypeLayerContent<T>(this Scene scene) where T : Object3D
+        public static IEnumerable<T> TypeLayerContent<T>(this Scene3D scene) where T : Object3D
         {
             var layer = scene.Layers.OfType<TypeLayer<T>>().FirstOrDefault();
             if (layer == null)
@@ -119,7 +119,7 @@ namespace XrEngine
             return layer.Content.Cast<T>();
         }
 
-        public static IEnumerable<Collision> RayCollisions(this Scene scene, Ray3 ray)
+        public static IEnumerable<Collision> RayCollisions(this Scene3D scene, Ray3 ray)
         {
 
             foreach (var obj in scene.ObjectsWithComponent<ICollider3D>())

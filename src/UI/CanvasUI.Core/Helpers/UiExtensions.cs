@@ -41,7 +41,7 @@ namespace CanvasUI
 
         public static void Focus(this UiElement self)
         {
-            UiFocusManager.SetFocus(self);
+            UiManager.SetFocus(self);
         }
 
         public static UiElement? HitTest(this UiElement self, Vector2 point)
@@ -71,12 +71,12 @@ namespace CanvasUI
 
         #region STYLE
 
-        public static float ToPixel(this UiStyleValue<UnitValue> self, UiElement ctx, float reference = 0)
+        public static float ToPixel(this StyleValue<UnitValue> self, UiElement ctx, float reference = 0)
         {
             return self.Value.ToPixel(ctx, reference);
         }
 
-        public static float ToPixel(this UiStyleValue<UnitValue> self, UiElement ctx, UiValueReference reference = UiValueReference.None)
+        public static float ToPixel(this StyleValue<UnitValue> self, UiElement ctx, UiValueReference reference = UiValueReference.None)
         {
             return self.Value.ToPixel(ctx, reference);
         }
@@ -95,7 +95,7 @@ namespace CanvasUI
 
         public static Vector2 Position(this UiPointerEvent ev, UiElement element)
         {
-            return ev.ScreenPosition - element.ClientRect.Position;
+            return ev.WindowPosition - element.ClientRect.Position;
         }
         public static T AddChild<T>(this UiContainer self) where T : UiElement, new()
         {

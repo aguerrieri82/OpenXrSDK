@@ -1,12 +1,5 @@
 ﻿namespace CanvasUI
 {
-    public struct UiBuilder
-    {
-        public static UiBuilder<T> From<T>(T element) where T : UiElement
-        {
-            return new UiBuilder<T>(element);
-        }
-    }
 
     public interface IUiBuilder<out T>
     {
@@ -31,6 +24,14 @@
         readonly T IUiBuilder<T>.Element => Element;
 
         public T Element;
+    }
+
+    public struct UiBuilder
+    {
+        public static UiBuilder<T> From<T>(T element) where T : UiElement
+        {
+            return new UiBuilder<T>(element);
+        }
     }
 
     public struct UiChildBuilder<TChild, TParent> : IUiChildBuilder<TChild, TParent>
@@ -78,8 +79,15 @@
             return childBuild.Parent;
         }
 
+        public static IUiBuilder<TCont> AddChild<TCont>(this IUiBuilder<TCont> builder, UiElement child) where TCont : UiContainer
+        {
+            builder.Element.AddChild(child);
 
-        public static IUiBuilder<TCont> Child<TCont, TChild>(this IUiBuilder<TCont> builder, Action<IUiBuilder<TChild>>? build = null) where TChild : UiElement, new() where TCont : UiContainer
+            return builder;
+        }
+
+
+        public static IUiBuilder<TCont> AddChild<TCont, TChild>(this IUiBuilder<TCont> builder, Action<IUiBuilder<TChild>>? build = null) where TChild : UiElement, new() where TCont : UiContainer
         {
             var child = new TChild();
 
