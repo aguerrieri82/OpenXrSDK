@@ -86,6 +86,17 @@ namespace CanvasUI
             _isLayoutDirty = true;
         }
 
+        public override void Dispose()
+        {
+            for (var i = _children.Count - 1; i >= 0; i--)
+            {
+                var child = _children[i];   
+                _children.RemoveAt(i);
+                child.Dispose();
+            }
+
+            base.Dispose();
+        }
 
         public override IEnumerable<UiElement> VisualChildren => _children;
 

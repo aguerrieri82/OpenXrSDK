@@ -332,6 +332,20 @@ namespace CanvasUI
 
         #endregion
 
+        public override void Dispose()
+        {
+            if (_parent != null)
+                _parent.RemoveChild(this);  
+
+            foreach (var child in VisualChildren)
+            {
+                child.Host = null;
+                child.Dispose();
+            }
+
+            base.Dispose();
+        }
+
         public bool IsDirty
         {
             get => _isDirty;
