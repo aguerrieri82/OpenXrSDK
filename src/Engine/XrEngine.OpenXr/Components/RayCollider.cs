@@ -4,7 +4,7 @@ using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public class RayCollider : Behavior<Scene>
+    public class RayCollider : Behavior<Scene3D>
     {
         readonly XrInput<Pose3> _input;
         readonly RayView _rayView;

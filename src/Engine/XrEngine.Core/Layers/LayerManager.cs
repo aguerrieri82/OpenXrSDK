@@ -2,11 +2,11 @@
 {
     public class LayerManager : IObjectChangeListener
     {
-        readonly Scene _scene;
+        readonly Scene3D _scene;
         readonly HashSet<string> _layersContent = [];
         readonly List<ILayer3D> _layers = [];
 
-        public LayerManager(Scene scene)
+        public LayerManager(Scene3D scene)
         {
             _scene = scene;
         }

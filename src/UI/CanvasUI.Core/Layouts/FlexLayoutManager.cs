@@ -18,7 +18,7 @@ namespace CanvasUI
 
             public UiAlignment? Align;
 
-            public ILayoutItem Item;
+            public IUiLayoutItem Item;
         }
 
         public struct LayoutParams

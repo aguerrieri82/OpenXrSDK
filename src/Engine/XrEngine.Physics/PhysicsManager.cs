@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace XrEngine.Physics
 {
-    public class PhysicsManager : Behavior<Scene>
+    public class PhysicsManager : Behavior<Scene3D>
     {
         readonly PhysicsSystem _system;
 

@@ -1,4 +1,5 @@
 ﻿using SkiaSharp;
+using System.Reflection;
 using XrMath;
 
 namespace CanvasUI
@@ -13,9 +14,7 @@ namespace CanvasUI
         {
             if (!_typefaces.TryGetValue(resName, out var result))
             {
-                var assembly = typeof(SKResources).Assembly;
-
-
+                var assembly = Assembly.GetCallingAssembly();
 
                 var name = assembly.GetManifestResourceNames().Where(a => a.Contains(resName)).FirstOrDefault();
                 if (name == null)
@@ -23,8 +22,6 @@ namespace CanvasUI
 
                 using (var stream = assembly.GetManifestResourceStream(name))
                     result = SKFontManager.Default.CreateTypeface(stream);
-
-
 
                 _typefaces[resName] = result;
             }
@@ -54,7 +51,6 @@ namespace CanvasUI
             }
             return result;
         }
-
 
         public static SKFont Font(string family, float size)
         {

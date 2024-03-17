@@ -2,7 +2,7 @@
 
 namespace XrEngine.Audio
 {
-    public class AudioSystem : Behavior<Scene>
+    public class AudioSystem : Behavior<Scene3D>
     {
         protected readonly AlDevice _device;
 

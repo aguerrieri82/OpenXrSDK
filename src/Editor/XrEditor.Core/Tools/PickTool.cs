@@ -119,5 +119,7 @@ namespace XrEditor
         }
 
 
+        int IRayPointer.Id => -100;
+
     }
 }

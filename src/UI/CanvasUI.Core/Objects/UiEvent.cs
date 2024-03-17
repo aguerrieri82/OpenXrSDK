@@ -49,9 +49,9 @@ namespace CanvasUI
 
     public class UiPointerEvent : UiRoutedEvent
     {
-        public int PointerId;
+        public IUiPointer? Pointer;
 
-        public Vector2 ScreenPosition;
+        public Vector2 WindowPosition;
 
         public UiPointerButton Buttons;
 

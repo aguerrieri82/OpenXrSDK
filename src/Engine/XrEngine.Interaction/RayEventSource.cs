@@ -1,6 +1,6 @@
 ﻿namespace XrEngine.Interaction
 {
-    public class RayEventSource : Behavior<Scene>, IRayTarget, IPointerEventSource
+    public class RayEventSource : Behavior<Scene3D>, IRayTarget, IPointerEventSource
     {
 
         public RayEventSource()

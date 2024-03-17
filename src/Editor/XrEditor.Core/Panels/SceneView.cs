@@ -1,6 +1,6 @@
 ﻿using OpenXr.Framework.Oculus;
 using System.Xml.Linq;
-using Xr.Test;
+using XrSamples;
 using XrEngine;
 using XrEngine.Interaction;
 using XrEngine.OpenXr;
@@ -24,7 +24,7 @@ namespace XrEditor
         StopRequested
     }
 
-    class RayPointerHost : Behavior<Scene>, IRayPointer
+    class RayPointerHost : Behavior<Scene3D>, IRayPointer
     {
         readonly IRayPointer _pointer;
 
@@ -37,6 +37,8 @@ namespace XrEditor
         {
             return _pointer.GetPointerStatus();
         }
+
+        public int Id => _pointer.Id;   
     }
 
     public class SceneView : BasePanel, IStateManager<SceneViewState>
@@ -44,7 +46,7 @@ namespace XrEditor
         protected readonly IRenderSurface _renderSurface;
 
         protected Camera? _camera;
-        protected Scene? _scene;
+        protected Scene3D? _scene;
         protected Thread? _renderThread;
         protected bool _isStarted;
         protected bool _isXrActive;
@@ -233,7 +235,7 @@ namespace XrEditor
             return base.CloseAsync();
         }
 
-        public Scene? Scene
+        public Scene3D? Scene
         {
             get => _scene;
             set

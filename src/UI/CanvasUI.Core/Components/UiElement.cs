@@ -4,7 +4,7 @@ using XrMath;
 
 namespace CanvasUI
 {
-    public abstract class UiElement : UiObject, ICanvasDraw, ILayoutItem
+    public abstract class UiElement : UiObject, ICanvasDraw, IUiLayoutItem
     {
         protected bool _isDirty;
         protected bool _isLayoutDirty;
@@ -123,13 +123,13 @@ namespace CanvasUI
             VisualParent?.InvalidateLayout();
         }
 
-        Size2 ILayoutItem.Measure(Size2 size)
+        Size2 IUiLayoutItem.Measure(Size2 size)
         {
             Measure(size);
             return _desiredSize;
         }
 
-        Size2 ILayoutItem.Arrange(Rect2 finalRect)
+        Size2 IUiLayoutItem.Arrange(Rect2 finalRect)
         {
             Arrange(finalRect);
             return _clientRect.Size;
@@ -204,7 +204,7 @@ namespace CanvasUI
         protected virtual void OnPointerDown(UiPointerEvent ev)
         {
             if (IsFocusable)
-                UiFocusManager.SetFocus(this);
+                UiManager.SetFocus(this);
             PointerDown?.Invoke(this, ev);
         }
 
@@ -249,7 +249,7 @@ namespace CanvasUI
             base.OnPropertyChanged(propName, value, oldValue);
         }
 
-        protected internal void OnStyleChanged(string propName, IUiStyleValue value, IUiStyleValue oldValue)
+        protected internal void OnStyleChanged(string propName, IStyleValue value, IStyleValue oldValue)
         {
             var prop = GetProperty(propName, typeof(UiStyle));
             if ((prop.Flags & UiPropertyFlags.Layout) == UiPropertyFlags.Layout)

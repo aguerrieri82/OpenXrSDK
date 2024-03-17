@@ -19,7 +19,7 @@ namespace XrEngine.Filament
     {
         protected class Content
         {
-            public Scene? Scene;
+            public Scene3D? Scene;
 
             public long Version;
 
@@ -255,7 +255,7 @@ namespace XrEngine.Filament
             return result;
         }
 
-        protected unsafe void BuildContent(Scene scene)
+        protected unsafe void BuildContent(Scene3D scene)
         {
             if (_content == null)
             {
@@ -312,7 +312,7 @@ namespace XrEngine.Filament
                     GetOrCreate(group, groupId =>
                     {
                         AddGroup(_app, groupId);
-                        if (group.Parent is not Scene)
+                        if (group.Parent is not Scene3D)
                             SetObjParent(_app, groupId, group.Parent!.Id);
                     });
                 }
@@ -445,7 +445,7 @@ namespace XrEngine.Filament
 
                         AddMesh(_app, meshId, ref meshInfo);
 
-                        if (mesh.Parent is not Scene)
+                        if (mesh.Parent is not Scene3D)
                             SetObjParent(_app, meshId, mesh.Parent!.Id);
                     });
                 }
@@ -453,7 +453,7 @@ namespace XrEngine.Filament
         }
 
 
-        public unsafe void Render(Scene scene, Camera camera, Rect2I viewport, bool flush)
+        public unsafe void Render(Scene3D scene, Camera camera, Rect2I viewport, bool flush)
         {
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);

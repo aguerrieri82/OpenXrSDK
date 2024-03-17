@@ -9,6 +9,6 @@
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
-		<ProjectReference Include="..\..\Test\Xr.Test.Common\Xr.Test.Common.csproj" />
+		<ProjectReference Include="..\..\Samples\XrSamples.Common\XrSamples.Common.csproj" />
 	</ItemGroup>
 </Project>

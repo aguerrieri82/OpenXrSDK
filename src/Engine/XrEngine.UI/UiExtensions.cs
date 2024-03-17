@@ -5,8 +5,6 @@ namespace XrEngine.UI
 {
     public static class UiExtensions
     {
-        #region CANVAS 3D
-
         public static void SetRatio(this CanvasView3D canvas, float width, float ratio)
         {
             canvas.Size = new Size2(width, width / ratio);
@@ -20,6 +18,5 @@ namespace XrEngine.UI
             canvas.Size = new Size2(width * UnitConv.InchesToMeter, height * UnitConv.InchesToMeter);
         }
 
-        #endregion
     }
 }

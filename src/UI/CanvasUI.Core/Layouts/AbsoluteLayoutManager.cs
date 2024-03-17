@@ -11,7 +11,7 @@ namespace CanvasUI
         {
             public Vector2 Position;
 
-            public ILayoutItem Item;
+            public IUiLayoutItem Item;
         }
 
         public struct LayoutParams

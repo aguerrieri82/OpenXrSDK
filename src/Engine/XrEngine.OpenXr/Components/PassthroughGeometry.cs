@@ -7,7 +7,7 @@ using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public class PassthroughGeometry : Behavior<Scene>
+    public class PassthroughGeometry : Behavior<Scene3D>
     {
         private bool _isInit;
         private OculusSceneModel? _sceneModel;

@@ -39,5 +39,6 @@ namespace XrEngine.OpenXr
 
         public XrInput<bool>? RightButton { get; set; }
 
+        public int Id => (int)_host!.Id.Value;
     }
 }
