@@ -30,7 +30,7 @@ namespace CanvasUI
                 {
                     unitIndex = i;
                     break;
-                }    
+                }
             }
 
             if (unitIndex != -1)

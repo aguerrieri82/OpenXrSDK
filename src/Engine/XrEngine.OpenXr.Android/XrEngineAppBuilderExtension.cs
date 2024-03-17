@@ -2,8 +2,6 @@
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using Xr.Test.Android;
-using XrEngine;
-using XrEngine.OpenXr;
 
 namespace XrEngine.OpenXr.Android
 {

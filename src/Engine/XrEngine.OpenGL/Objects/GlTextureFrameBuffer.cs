@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Diagnostics.CodeAnalysis;
 
 namespace XrEngine.OpenGL
 {
@@ -13,7 +12,7 @@ namespace XrEngine.OpenGL
         public GlTextureFrameBuffer(GL gl, GlTexture2D color, GlTexture2D? depth)
             : base(gl)
         {
-     
+
             Color = color;
             Depth = depth;
 

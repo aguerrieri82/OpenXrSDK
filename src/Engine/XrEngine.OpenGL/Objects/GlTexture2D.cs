@@ -131,7 +131,7 @@ namespace XrEngine.OpenGL
                     _ => throw new NotSupportedException(),
                 };
 
-                
+
                 if (SampleCount > 1)
                 {
                     _gl.TexStorage2DMultisample(

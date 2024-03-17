@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace CanvasUI
 {
@@ -20,13 +13,13 @@ namespace CanvasUI
     {
         public UiPropertyAttribute(object? defaultValue = null, UiPropertyFlags flags = UiPropertyFlags.None)
         {
-            DefaultValue = defaultValue;    
+            DefaultValue = defaultValue;
             Flags = flags;
         }
 
         public object? DefaultValue { get; }
 
-        public UiPropertyFlags Flags { get; }   
+        public UiPropertyFlags Flags { get; }
     }
 
     public class UiProperty
@@ -83,7 +76,7 @@ namespace CanvasUI
                     continue;
 
                 var propType = typeof(UiProperty<>).MakeGenericType(typeProp.PropertyType);
-                
+
                 var prop = (UiProperty)Activator.CreateInstance(propType, typeProp.Name, compType)!;
 
                 prop.Flags = propDesc.Flags;
@@ -136,7 +129,7 @@ namespace CanvasUI
 
             if (value != null && !prop.Type.IsAssignableFrom(value.GetType()))
                 throw new ArgumentException();
-            
+
             _values ??= [];
 
             var oldValue = GetValue<T>(propName);
@@ -154,7 +147,7 @@ namespace CanvasUI
 
             if (_values != null && _values.TryGetValue(prop, out var value))
                 return (T?)value;
-            
+
             if (prop.DefaultValue != null)
                 return (T?)prop.DefaultValue;
 

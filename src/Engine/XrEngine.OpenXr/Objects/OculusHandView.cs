@@ -34,7 +34,7 @@ namespace XrEngine.OpenXr
 
                 var capMaterial = PbrMaterial.CreateDefault(new Color(150 / 255f, 79 / 255f, 72 / 255f));
                 var capMaterial2 = PbrMaterial.CreateDefault(new Color(100 / 255f, 79 / 255f, 72 / 255f));
-       
+
 
                 foreach (var capsule in _input.Mesh!.Capsules!)
                 {

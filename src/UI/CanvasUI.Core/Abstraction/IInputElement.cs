@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CanvasUI
+﻿namespace CanvasUI
 {
     public interface IInputElement
     {
-        object? Value { get; set; }  
+        object? Value { get; set; }
 
         Type ValueType { get; }
     }
@@ -21,7 +15,7 @@ namespace CanvasUI
             set => Value = (T)value!;
         }
 
-        Type IInputElement.ValueType => typeof(T);    
+        Type IInputElement.ValueType => typeof(T);
 
         new T Value { get; set; }
     }

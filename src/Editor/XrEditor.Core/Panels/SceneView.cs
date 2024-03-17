@@ -30,7 +30,7 @@ namespace XrEditor
 
         public RayPointerHost(IRayPointer pointer)
         {
-            _pointer = pointer;   
+            _pointer = pointer;
         }
 
         public RayPointerStatus GetPointerStatus()

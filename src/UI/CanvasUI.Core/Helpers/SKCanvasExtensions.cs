@@ -1,9 +1,4 @@
 ﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace CanvasUI
@@ -12,7 +7,7 @@ namespace CanvasUI
     {
         public static SKRect ToSKRect(this Rect2 rect)
         {
-            return new SKRect(rect.Left, rect.Top, rect.Right, rect.Bottom);    
+            return new SKRect(rect.Left, rect.Top, rect.Right, rect.Bottom);
         }
 
         public static void DrawRect(this SKCanvas canvas, Rect2 rect, UiStyle style)

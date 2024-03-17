@@ -115,7 +115,7 @@ namespace XrEngine
 
         protected internal void InvalidateBounds()
         {
-            _parent?.InvalidateBounds(); 
+            _parent?.InvalidateBounds();
             _boundsDirty = true;
         }
 

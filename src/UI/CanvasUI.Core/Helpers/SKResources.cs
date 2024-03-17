@@ -1,10 +1,4 @@
 ﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace CanvasUI
@@ -21,7 +15,7 @@ namespace CanvasUI
             {
                 var assembly = typeof(SKResources).Assembly;
 
-                
+
 
                 var name = assembly.GetManifestResourceNames().Where(a => a.Contains(resName)).FirstOrDefault();
                 if (name == null)
@@ -30,9 +24,9 @@ namespace CanvasUI
                 using (var stream = assembly.GetManifestResourceStream(name))
                     result = SKFontManager.Default.CreateTypeface(stream);
 
-             
 
-                 _typefaces[resName] = result;
+
+                _typefaces[resName] = result;
             }
 
             return result;
@@ -75,7 +69,7 @@ namespace CanvasUI
                 paint = new SKPaint();
                 paint.ColorF = new SKColorF(color.R, color.G, color.B, color.A);
                 paint.Style = SKPaintStyle.Fill;
-                _paints[id] = paint; 
+                _paints[id] = paint;
             }
             return paint;
         }

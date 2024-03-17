@@ -11,7 +11,7 @@ namespace CanvasUI
         public UiTextBlock()
         {
         }
-  
+
         protected override void OnPropertyChanged(string propName, object? value, object? oldValue)
         {
             if (propName == nameof(Text))
@@ -27,7 +27,7 @@ namespace CanvasUI
         {
             TextLayoutManager.ExtractLayoutParams(ActualStyle, ref _layoutParams);
 
-            _lastLayout = TextLayoutManager.Arrange(availSize, _layoutParams, Text); 
+            _lastLayout = TextLayoutManager.Arrange(availSize, _layoutParams, Text);
 
             return _lastLayout.CurrentSize;
         }

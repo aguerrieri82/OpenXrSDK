@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace CanvasUI
 {
 
-    public delegate void UiEventHandler<T>(UiElement sender, T uiEvent) where T : UiEvent;    
+    public delegate void UiEventHandler<T>(UiElement sender, T uiEvent) where T : UiEvent;
 
     public enum UiPointerButton
     {
@@ -49,7 +44,7 @@ namespace CanvasUI
 
         public UiEventDispatch Dispatch;
 
-        public bool StopBubble; 
+        public bool StopBubble;
     }
 
     public class UiPointerEvent : UiRoutedEvent

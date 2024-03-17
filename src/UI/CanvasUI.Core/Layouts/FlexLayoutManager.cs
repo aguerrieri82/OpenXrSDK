@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using XrMath;
 
 namespace CanvasUI
@@ -55,7 +47,7 @@ namespace CanvasUI
             public Size2 FinalSize;
 
             public float Basis;
-           
+
             public float Shrink;
 
             public float Grow;
@@ -142,8 +134,8 @@ namespace CanvasUI
                 if (child.Basis != 0)
                     childAvailSize.Width = availSize.Width * child.Basis / result.Basis;
 
-                var childSize = Convert(isArrange ? 
-                        child.Item.DesiredSize : 
+                var childSize = Convert(isArrange ?
+                        child.Item.DesiredSize :
                         child.Item.Measure(Convert(childAvailSize, lp.Orientation)), lp.Orientation);
 
                 if (childSize.Width > leftRowSize.Width &&
@@ -239,8 +231,8 @@ namespace CanvasUI
                 var rowShrink = lp.Children.Skip(childIndex).Take(row.Length).Sum(a => a.Shrink);
                 var rowGrow = lp.Children.Skip(childIndex).Take(row.Length).Sum(a => a.Grow);
 
-                overflow.X = finalRect.Width - (rowSize.Width + gap.X * (row.Length -1));
-                
+                overflow.X = finalRect.Width - (rowSize.Width + gap.X * (row.Length - 1));
+
                 curPos.X = finalRect.X;
 
                 if (overflow.X > 0 && rowShrink == 0 && rowGrow == 0)

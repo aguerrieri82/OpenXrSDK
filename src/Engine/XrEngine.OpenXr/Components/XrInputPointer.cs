@@ -1,11 +1,5 @@
 ﻿using OpenXr.Framework;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using XrEngine.Interaction;
 using XrMath;
 
@@ -33,10 +27,10 @@ namespace XrEngine.OpenXr
                                  .Normalize()
                 };
 
-                result.IsActive = true; 
+                result.IsActive = true;
             }
-      
-            return result;  
+
+            return result;
         }
 
         public XrInput<Pose3>? PoseInput { get; set; }

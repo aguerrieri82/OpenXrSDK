@@ -46,7 +46,7 @@ namespace OpenXr.Framework
             }
         }
 
-        public bool Update(ref View[] views,  long predTime)
+        public bool Update(ref View[] views, long predTime)
         {
             var span = new Span<T>(_header, 1);
             return Update(ref span[0], ref views, predTime);

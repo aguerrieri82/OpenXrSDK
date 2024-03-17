@@ -124,7 +124,7 @@ namespace XrEngine.OpenGL.Oculus
         {
             if (attachment == FramebufferAttachment.ColorAttachment0)
                 return _colorTex;
-            
+
             if (attachment == FramebufferAttachment.DepthAttachment)
                 return _depthTex;
 

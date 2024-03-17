@@ -74,7 +74,7 @@ namespace CanvasUI
             ApplySizeLimit(ref measureRect);
 
             if (!hasFixedSize)
-            {    
+            {
                 ApplyOffset(ref measureRect, padding);
                 ApplyOffset(ref measureRect, border);
 
@@ -205,7 +205,7 @@ namespace CanvasUI
         {
             if (IsFocusable)
                 UiFocusManager.SetFocus(this);
-            PointerDown?.Invoke(this, ev);  
+            PointerDown?.Invoke(this, ev);
         }
 
         protected virtual void OnPointerMove(UiPointerEvent ev)
@@ -271,12 +271,12 @@ namespace CanvasUI
                 return;
 
             canvas.Save();
-            
+
             DrawBox(canvas);
 
             if (ActualStyle.OverflowX.Value == UiOverflow.Hidden && ActualStyle.OverflowY.Value == UiOverflow.Hidden)
                 canvas.ClipRect(_clientRect.ToSKRect());
-            
+
             DrawWork(canvas);
 
             canvas.Restore();
@@ -351,7 +351,7 @@ namespace CanvasUI
 
             internal set
             {
-                _parent = value;    
+                _parent = value;
             }
         }
 
@@ -365,7 +365,7 @@ namespace CanvasUI
             }
         }
 
-        [UiProperty(false)]       
+        [UiProperty(false)]
         public bool IsFocusable
         {
             get => GetValue<bool>(nameof(IsFocusable))!;

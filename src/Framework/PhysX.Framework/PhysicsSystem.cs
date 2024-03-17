@@ -361,7 +361,7 @@ namespace PhysX.Framework
             if (actor1.NotifyContacts || actor2.NotifyContacts)
                 info->pairFlags[0] |=
                     PxPairFlags.SolveContact |
-                    PxPairFlags.NotifyTouchFound | 
+                    PxPairFlags.NotifyTouchFound |
                     PxPairFlags.DetectCcdContact |
                     PxPairFlags.DetectDiscreteContact |
                     PxPairFlags.NotifyTouchCcd;

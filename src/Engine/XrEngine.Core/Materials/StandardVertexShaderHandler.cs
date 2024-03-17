@@ -4,7 +4,7 @@ namespace XrEngine
 {
     public class StandardVertexShaderHandler : IShaderHandler
     {
-        Dictionary<uint, long> _lightVersions = [];
+        readonly Dictionary<uint, long> _lightVersions = [];
 
         public void UpdateShader(ShaderUpdateBuilder bld)
         {

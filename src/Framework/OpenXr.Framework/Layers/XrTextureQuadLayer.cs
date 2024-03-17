@@ -1,10 +1,5 @@
 ﻿using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace OpenXr.Framework.Layers
@@ -19,7 +14,7 @@ namespace OpenXr.Framework.Layers
         protected NativeArray<SwapchainImageBaseHeader>? _images;
 
         public XrTextureQuadLayer(GetQuadDelegate getQuad, RenderQuadDelegate renderQuad, Size2I size)
-            : base(getQuad) 
+            : base(getQuad)
         {
             _renderQuad = renderQuad;
             _size = size;
@@ -34,7 +29,7 @@ namespace OpenXr.Framework.Layers
 
             _swapchain = _xrApp!.CreateSwapChain(extent, 1, _xrApp.RenderOptions.ColorFormat, 1, SwapchainUsageFlags.SampledBit | SwapchainUsageFlags.ColorAttachmentBit);
 
-            _images =  _xrApp.EnumerateSwapchainImages(_swapchain);
+            _images = _xrApp.EnumerateSwapchainImages(_swapchain);
 
             _header->SubImage.Swapchain = _swapchain;
             _header->SubImage.ImageArrayIndex = 0;

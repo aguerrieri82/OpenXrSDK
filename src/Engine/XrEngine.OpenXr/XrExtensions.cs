@@ -279,7 +279,7 @@ namespace XrEngine.OpenXr
                     var rect = views[0].SubImage.ImageRect.Convert().To<Rect2I>();
 
                     var glColorImage = (SwapchainImageOpenGLKHR*)colorImages[0];
-                    
+
                     var glDepthImage = (SwapchainImageOpenGLKHR*)depthImages[0];
 
                     var renderTarget = targetFactory(renderer.GL, glColorImage->Image, glDepthImage->Image);
