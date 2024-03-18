@@ -1,6 +1,6 @@
 ﻿using XrMath;
 
-namespace XrEngine.Components
+namespace XrEngine
 {
     public class DebugGizmos : Behavior<Scene3D>, IDrawGizmos
     {

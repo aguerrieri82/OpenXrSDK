@@ -1,4 +1,4 @@
-﻿namespace XrEditor.Abstraction
+﻿namespace XrEditor
 {
     public interface IItemView
     {

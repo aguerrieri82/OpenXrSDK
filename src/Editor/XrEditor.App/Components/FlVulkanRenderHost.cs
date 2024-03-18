@@ -4,7 +4,7 @@ using OpenXr.Framework.Vulkan;
 using XrEngine;
 using XrEngine.Filament;
 
-namespace XrEditor.Components
+namespace XrEditor
 {
     public class FlVulkanRenderHost : RenderHost, IXrGraphicProvider
     {

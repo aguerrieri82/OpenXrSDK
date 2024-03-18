@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using System.IO;
-using XrEditor.Components;
 using XrEngine;
 using XrEngine.OpenXr;
 

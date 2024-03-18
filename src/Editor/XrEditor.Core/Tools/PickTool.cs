@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using XrEngine;
-using XrEngine.Components;
 using XrEngine.Interaction;
 using XrMath;
 

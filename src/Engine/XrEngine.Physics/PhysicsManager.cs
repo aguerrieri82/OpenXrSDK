@@ -11,15 +11,13 @@ namespace XrEngine.Physics
         {
             _system = new PhysicsSystem();
             Options = new PhysicsOptions();
-            Gravity = new Vector3(0, -9.81f, 0);
             StepSizeSecs = 1f / 40f;
-
         }
 
         protected override void Start(RenderContext ctx)
         {
             _system.Create(Options);
-            _system.CreateScene(Gravity);
+            _system.CreateScene(Options.Gravity);
         }
 
         protected override void Update(RenderContext ctx)
@@ -34,7 +32,5 @@ namespace XrEngine.Physics
         public PhysicsOptions Options { get; set; } 
 
         public PhysicsSystem System => _system;
-
-        public Vector3 Gravity { get; set; }
     }
 }

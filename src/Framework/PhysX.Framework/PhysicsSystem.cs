@@ -38,6 +38,7 @@ namespace PhysX.Framework
             DebugHost = "localhost";
             DebugPort = 5425;
             UseDebug = false;
+            Gravity = new Vector3(0, -9.81f, 0);
         }
 
         public ILogger? Logger { get; set; }    
@@ -51,6 +52,8 @@ namespace PhysX.Framework
         public float LengthTolerance { get; set; }
 
         public float SpeedTolerance { get; set; }
+
+        public Vector3 Gravity { get; set; }
     }
 
     public unsafe class PhysicsSystem : IDisposable
@@ -366,7 +369,6 @@ namespace PhysX.Framework
 
             _scene = new PhysicsScene(_physics->CreateSceneMut(&sceneDesc), this);
 
-
             if (_pvd != null)
             {
                 var pvdClient = _scene!.PvdClient;
@@ -394,17 +396,13 @@ namespace PhysX.Framework
                     PxPairFlags.DetectCcdContact |
                     PxPairFlags.DetectDiscreteContact |
                     PxPairFlags.NotifyTouchCcd |
-            PxPairFlags.NotifyContactPoints |
-            PxPairFlags.PostSolverVelocity |
-            PxPairFlags.PreSolverVelocity |
-           PxPairFlags.ContactEventPose |
-           PxPairFlags.DetectDiscreteContact |
-            PxPairFlags.SolveContact;
-
+                    PxPairFlags.NotifyContactPoints |
+                    PxPairFlags.PostSolverVelocity |
+                    PxPairFlags.PreSolverVelocity |
+                    PxPairFlags.ContactEventPose;
 
             return 0;
         }
-
 
         public void Create(PhysicsOptions options)
         {

@@ -1,7 +1,7 @@
 ﻿using XrEngine;
 using XrEngine.Filament;
 
-namespace XrEditor.Components
+namespace XrEditor
 {
     public class FlGlRenderHost : GlRenderHost
     {

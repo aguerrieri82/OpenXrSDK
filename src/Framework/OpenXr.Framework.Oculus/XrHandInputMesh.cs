@@ -1,5 +1,4 @@
-﻿using OpenXr.Framework.Input;
-using Silk.NET.OpenXR;
+﻿using Silk.NET.OpenXR;
 
 namespace OpenXr.Framework.Oculus
 {

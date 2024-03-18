@@ -5,7 +5,6 @@ using PhysX.Framework;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
-using XrEngine.Components;
 using XrEngine.Compression;
 using XrEngine.Gltf;
 using XrEngine.OpenXr;
@@ -90,7 +89,7 @@ namespace XrSamples
                 .ConfigureApp(e =>
                 {
                     e.App.ActiveScene!.AddChild(panel);
-                    panel.CreateOverlay(e.XrApp);
+                    //panel.CreateOverlay(e.XrApp);
 
                     e.App.ActiveScene.AddBehavior((_, _) =>
                     {
@@ -101,7 +100,7 @@ namespace XrSamples
                             panel.Transform.Orientation = panel.Scene!.ActiveCamera!.Transform.Orientation;
                         }
                     });
-      
+
 
                 });
         }

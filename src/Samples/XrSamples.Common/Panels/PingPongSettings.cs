@@ -1,6 +1,7 @@
 ﻿using CanvasUI;
 using PhysX;
 using XrEngine;
+using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrMath;
 
@@ -9,6 +10,8 @@ namespace XrSamples
 
     public class PingPongSettings : BaseAppSettings
     {
+        static Material matShow = PbrMaterial.CreateDefault("#fff");
+        static Material matHide = new ColorMaterial(Color.Transparent);
 
         public PingPongSettings()
         {
@@ -18,6 +21,7 @@ namespace XrSamples
 
             LengthToleranceScale = 1;
             EnablePCM = true;
+            EnableCCD = true;
             ShowTerrain = false;
 
             Ball.LengthToleranceScale = 1;
@@ -44,8 +48,14 @@ namespace XrSamples
         public void Apply(Object3D obj, PhysicSettings settings)
         {
             var body = obj.Component<RigidBody>();
+
             body.LengthToleranceScale = settings.LengthToleranceScale;
             body.EnableCCD = settings.EnableCCD;
+            body.ContactReportThreshold = settings.ContactReportThreshold; 
+
+            var curMat = body.Material;
+            curMat.Restitution = settings.Restitution;
+            body.Material = curMat;
 
             if (body.Type != PhysX.Framework.PhysicsActorType.Static)
                 body.DynamicActor.ContactReportThreshold = settings.ContactReportThreshold;
@@ -70,11 +80,11 @@ namespace XrSamples
                 Apply(mesh, Terrain);
 
                 if (ShowTerrain)
-                    mesh.Materials[0] = PbrMaterial.CreateDefault("#fff");
+                    mesh.Materials[0] = matShow;
                 else
-                    mesh.Materials[0] = new ColorMaterial(Color.Transparent);
+                    mesh.Materials[0] = matHide;
 
-                mesh.Version++;
+                mesh.NotifyChanged(ObjectChangeType.Render);
             }
 
 
@@ -112,18 +122,6 @@ namespace XrSamples
         {
             var binder = new Binder<PingPongSettings>(settings);
 
-            binder.PropertyChanged += (_, _, _, _) =>
-            {
-
-            };
-
-            var generator = scene.FindFeature<BallGenerator>()!;
-
-            generator.NewBallCreated += ball =>
-            {
-                settings.Apply(ball, settings.Ball);
-            };
-
             TextBlock? logger = null;
 
             UiBuilder.From(this).Name("main").AsColumn()
@@ -137,7 +135,7 @@ namespace XrSamples
                     .AddText("Ball", s => s.FontSize(1.5f, Unit.Em))
                     .AddInputRange("Contact Distance", 0.01f, 1f, binder.Prop(a => a.Ball.ContactOffset))
                     .AddInputRange("Restitution", 0, 1, binder.Prop(a => a.Ball.Restitution))
-                    .AddInputRange("Contact", 0.01f, 10, binder.Prop(a => a.Ball.ContactReportThreshold))
+                    .AddInputRange("Contact Threshold", 0.01f, 10, binder.Prop(a => a.Ball.ContactReportThreshold))
                     .AddInput("Use CCD", new CheckBox(), binder.Prop(a => a.Ball.EnableCCD))
                 .EndChild()
                 .BeginColumn(s => s.FlexBasis(1).RowGap(16))
@@ -145,7 +143,7 @@ namespace XrSamples
                     .AddInputRange("Contact Distance", 0.01f, 1f, binder.Prop(a => a.Racket.ContactOffset))
                     .AddInputRange("Length Scale", 0.01f, 100, binder.Prop(a => a.Racket.LengthToleranceScale))
                     .AddInputRange("Restitution", 0, 1, binder.Prop(a => a.Racket.Restitution))
-                    .AddInputRange("Contact", 0.01f, 10, binder.Prop(a => a.Racket.ContactReportThreshold))
+                    .AddInputRange("Contact Threshold", 0.01f, 10, binder.Prop(a => a.Racket.ContactReportThreshold))
                     .AddInput("Use CCD", new CheckBox(), binder.Prop(a => a.Racket.EnableCCD))
                 .EndChild()
                 .BeginColumn(s => s.FlexBasis(1).RowGap(16))
