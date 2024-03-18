@@ -4,7 +4,6 @@ using PhysX.Framework;
 using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
-using XrEngine.Colliders;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrMath;

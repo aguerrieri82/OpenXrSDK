@@ -3,7 +3,7 @@ using System.Numerics;
 using XrEngine;
 using XrEngine.Interaction;
 
-namespace Xr.Test.Android
+namespace XrEngine.OpenXr
 {
     public class SurfaceController : Behavior<Object3D>, IRayTarget, ISurfaceInput
     {

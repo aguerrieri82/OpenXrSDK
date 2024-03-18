@@ -1,8 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-	
 	<PropertyGroup>
-
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">

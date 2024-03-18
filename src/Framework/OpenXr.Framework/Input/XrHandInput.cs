@@ -1,7 +1,7 @@
 ﻿using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.EXT;
 
-namespace OpenXr.Framework.Input
+namespace OpenXr.Framework
 {
     public class XrHandInput : IDisposable
     {

@@ -1,4 +1,4 @@
-﻿namespace XrEditor.Helpers
+﻿namespace XrEditor
 {
     public static class UIUtils
     {

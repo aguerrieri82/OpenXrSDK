@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using XrMath;
 
-namespace XrEngine.Colliders
+namespace XrEngine
 {
     public class BoxCollider : Behavior<Object3D>, ICollider3D
     {

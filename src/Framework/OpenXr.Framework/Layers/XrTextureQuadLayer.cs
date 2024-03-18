@@ -2,10 +2,9 @@
 using System.Diagnostics;
 using XrMath;
 
-namespace OpenXr.Framework.Layers
+namespace OpenXr.Framework
 {
     public unsafe delegate bool RenderQuadDelegate(SwapchainImageBaseHeader* image, Size2I size, long predTime);
-
 
     public class XrTextureQuadLayer : XrBaseQuadLayer
     {

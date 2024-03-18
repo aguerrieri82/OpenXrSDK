@@ -9,11 +9,10 @@ using OpenXr.Framework;
 using XrEngine.OpenGL;
 using XrEngine.OpenGL.Oculus;
 using XrEngine.Filament;
-using static XrEngine.Filament.FilamentLib;
 using System.Numerics;
 using XrMath;
-using OpenXr.Framework.Layers;
 using XrEngine.UI;
+using static XrEngine.Filament.FilamentLib;
 
 
 namespace XrEngine.OpenXr

@@ -7,7 +7,7 @@ using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
 using System.Runtime.InteropServices;
 
-namespace OpenXr.Framework
+namespace OpenXr.Framework.Android
 {
     public unsafe class AndroidXrPlugin : XrBasePlugin
     {

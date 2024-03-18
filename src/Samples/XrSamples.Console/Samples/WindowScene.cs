@@ -10,7 +10,6 @@ using XrEngine.OpenGL;
 using Silk.NET.Windowing;
 using System.Numerics;
 using XrMath;
-using Xr.Test;
 using XrEngine.OpenXr;
 using OpenXr.Framework;
 using Microsoft.Extensions.Logging.Abstractions;

@@ -1,6 +1,4 @@
-﻿using XrEngine.OpenXr;
-
-namespace XrEngine
+﻿namespace XrEngine.OpenXr
 {
     public static class XrPlatform
     {

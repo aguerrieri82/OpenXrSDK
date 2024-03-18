@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using XrEditor.Helpers;
 using XrEngine;
 using XrEngine.OpenXr;
 

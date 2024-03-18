@@ -1,6 +1,6 @@
 ﻿using XrMath;
 
-namespace XrEngine.Colliders
+namespace XrEngine
 {
     public class SphereCollider : Behavior<Object3D>, ICollider3D
     {

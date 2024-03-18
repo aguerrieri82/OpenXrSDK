@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using OpenXr.Framework.Input;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.OpenXR;
