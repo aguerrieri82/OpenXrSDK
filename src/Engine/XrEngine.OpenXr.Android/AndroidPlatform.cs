@@ -102,7 +102,7 @@ namespace XrEngine.OpenXr.Android
             }
         }
 
-        public ILogger Logger { get; }
+        public ILogger Logger { get; set; }
 
         public IAssetManager AssetManager { get; }
 

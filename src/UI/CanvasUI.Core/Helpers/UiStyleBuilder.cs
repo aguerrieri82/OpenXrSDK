@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using System;
+using XrMath;
 
 namespace CanvasUI
 {
@@ -21,7 +22,6 @@ namespace CanvasUI
             return this;
         }
 
-
         public readonly UiStyleBuilder Padding(float value, Unit unit = Unit.Dp)
         {
             Style.Padding = UnitRectValue.All(value, unit);
@@ -30,7 +30,7 @@ namespace CanvasUI
 
         public readonly UiStyleBuilder Padding(float vert, float hor, Unit unit = Unit.Dp)
         {
-            Style.Padding = UnitRectValue.Axis(vert, hor, unit);
+            Style.Padding = UnitRectValue.Axis(hor, vert, unit);
             return this;
         }
 
@@ -52,6 +52,11 @@ namespace CanvasUI
             return this;
         }
 
+        public readonly UiStyleBuilder JustifyContent(UiAlignment value)
+        {
+            Style.JustifyContent = value;
+            return this;
+        }
 
         public readonly UiStyleBuilder AlignContent(UiAlignment value)
         {
@@ -152,10 +157,15 @@ namespace CanvasUI
             return this;
         }
 
-
         public readonly UiStyleBuilder FontSize(float value, Unit unit = Unit.Dp)
         {
             Style.FontSize = UnitValue.Get(value, unit);
+            return this;
+        }
+
+        public readonly UiStyleBuilder LineSize(float value, Unit unit = Unit.Dp)
+        {
+            Style.LineSize = UnitValue.Get(value, unit);
             return this;
         }
 

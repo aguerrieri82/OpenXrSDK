@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using XrEngine;
 
@@ -10,7 +11,7 @@ namespace XrSamples
 {
     public abstract class BaseAppSettings
     {
-        string? _filePath;
+        protected  string? _filePath;
 
         public abstract void Apply(Scene3D scene);
 
@@ -26,7 +27,8 @@ namespace XrSamples
         {
             var dir = Path.GetDirectoryName(filePath)!;
             Directory.CreateDirectory(dir);
-            File.WriteAllText(filePath, JsonSerializer.Serialize(this));
+            var json = JsonSerializer.Serialize(this, GetType());
+            File.WriteAllText(filePath, json);
         }
 
 
@@ -35,9 +37,10 @@ namespace XrSamples
             _filePath = filePath;
             if (File.Exists(filePath))
             {
-
+                var obj = JsonSerializer.Deserialize(File.ReadAllText(filePath), GetType());
+                foreach (var prop in GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
+                    prop.SetValue(this, prop.GetValue(obj));
             }
         }
-
     }
 }

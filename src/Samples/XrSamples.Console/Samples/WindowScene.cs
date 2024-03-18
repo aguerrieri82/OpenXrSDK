@@ -23,11 +23,17 @@ namespace XrSamples
     {
         class ConsolePlatform : IXrEnginePlatform
         {
+            public ConsolePlatform()
+            {
+                Logger = NullLogger.Instance;
+                AssetManager = new LocalAssetManager("Assets");
+            }
+
             public string PersistentPath => Path.GetFullPath("Data");
 
-            public IAssetManager AssetManager { get; } = new LocalAssetManager("Assets");
+            public IAssetManager AssetManager { get; }
 
-            public ILogger Logger { get; } = NullLogger.Instance;
+            public ILogger Logger { get; set; }
 
             public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
             {

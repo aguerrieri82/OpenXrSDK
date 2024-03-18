@@ -15,6 +15,16 @@
             return builder;
         }
 
+        public static IUiBuilder<T> AddButton<T>(this IUiBuilder<T> builder, object content, Action onClick, Action<UiStyleBuilder>? style = null) where T : UiContainer
+        {
+            return builder.AddChild<T, Button>(bld => bld.Set(e =>
+            {
+                e.Click += (s, e) => onClick();
+                e.Content = content;
+            }).Style(style));
+        }
+
+
         public static IUiBuilder<T> AddButton<T>(this IUiBuilder<T> builder, Action<IUiBuilder<Button>>? build = null) where T : UiContainer
         {
             return builder.AddChild(build);

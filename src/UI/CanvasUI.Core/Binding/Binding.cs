@@ -25,24 +25,25 @@ namespace CanvasUI
 
         private void OnDestChanged(object? sender, EventArgs e)
         {
-            var srcValue = Source.Get();
-            var dstValue = Dest.Get();
+            var srcValue = Source.Value;
+            var dstValue = Dest.Value;
             if (!Equals(srcValue, dstValue))
-                Source.Set(dstValue);
+                Source.Value = dstValue;
         }
 
         private void OnSourceChanged(object? sender, EventArgs e)
         {
-            var srcValue = Source.Get();
-            var dstValue = Dest.Get();
+            var srcValue = Source.Value;
+            var dstValue = Dest.Value;
             if (!Equals(srcValue, dstValue))
-                Dest.Set(srcValue);
+                Dest.Value = srcValue;
         }
 
         public void Dispose()
         {
             Source.Changed -= OnSourceChanged;
             Dest.Changed -= OnDestChanged;
+            GC.SuppressFinalize(this);
         }
 
         public BindingMode Mode;

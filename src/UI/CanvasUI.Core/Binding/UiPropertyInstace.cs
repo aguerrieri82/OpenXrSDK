@@ -30,14 +30,13 @@ namespace CanvasUI
             GC.SuppressFinalize(this);
         }
 
-        public T Get()
+        public T Value
         {
-            return _obj.GetValue<T>(_prop.Name)!;
-        }
-
-        public void Set(T value)
-        {
-            _obj.SetValue(_prop.Name, value);
+            get => _obj.GetValue<T>(_prop.Name)!;
+            set
+            {
+                _obj.SetValue(_prop.Name, value);
+            }
         }
 
         private void OnPropertyChanged(UiObject owner, string propName, object? value, object? oldValue)

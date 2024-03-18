@@ -1,4 +1,5 @@
-﻿using OpenXr.Framework;
+﻿using Microsoft.Extensions.Logging;
+using OpenXr.Framework;
 using PhysX.Framework;
 using System.Numerics;
 using XrEngine;
@@ -10,6 +11,20 @@ using XrMath;
 
 namespace XrSamples
 {
+    public class PhysicSettings
+    {
+        public float ContactOffset { get; set; }
+
+        public float Restitution { get; set; }
+
+        public float LengthToleranceScale { get; set; }
+
+        public bool EnableCCD { get; set; }
+
+        public float ContactReportThreshold { get; set; }
+    }
+
+
     public class BallGenerator : Behavior<Scene3D>
     {
         readonly List<TriangleMesh> _balls = [];
@@ -43,25 +58,27 @@ namespace XrSamples
 
             rigidBody.Type = PhysicsActorType.Dynamic;
             rigidBody.Density = 100;
-            rigidBody.EnableCCD = true;
+            rigidBody.EnableCCD = PhysicSettings.EnableCCD;
+            rigidBody.ContactReportThreshold = PhysicSettings.ContactReportThreshold;
+            rigidBody.ContactOffset = PhysicSettings.ContactOffset;
 
             rigidBody.Material = new PhysicsMaterialInfo
             {
-                Restitution = 0.7f,
+                Restitution = PhysicSettings.Restitution,
                 StaticFriction = 0.8f,
                 DynamicFriction = 0.8f
             };
 
             rigidBody.Started += (_, _) =>
             {
-                rigidBody.DynamicActor.ContactReportThreshold = 1f;
+                rigidBody.DynamicActor.ContactReportThreshold = PhysicSettings.ContactReportThreshold;
             };
 
             var lastSpeed = Vector3.Zero;
 
+
             Object3D? lastContact = null;
             Object3D? audioReceiver = null;
-
             ball.AddBehavior((me, ctx) =>
             {
                 if (me.LifeTime < 0.1f || rigidBody.Type == PhysicsActorType.Static)
@@ -71,6 +88,9 @@ namespace XrSamples
 
                 if (deltaSpeed.Length() > 50)
                 {
+                    XrPlatform.Current!.Logger.LogInformation("SPEED: {dv}", Math.Round(deltaSpeed.Length(), 2));
+
+
                     if (lastContact?.Name == "Racket")
                     {
                         var haptic = XrApp.Current!.Haptics["RightHaptic"];
@@ -93,10 +113,26 @@ namespace XrSamples
                 lastSpeed = rigidBody.DynamicActor.LinearVelocity;
             });
 
-            rigidBody.Contact += (me, other, index, data) =>
+            rigidBody.Contact += (me, other, otherIndex, data) =>
             {
+          
+                var meIndex = otherIndex == 0 ? 1 : 0;
+                
+                var maxDv = data.Select(a => {
+                    var me = a.GetItem(meIndex);
+                    return (me.PostVelocity.Linear - me.PreVelocity.Linear).Length();
+                }).Max();
+
+                var minSep = data.Where(a => a.Points != null).SelectMany(a => a.Points!.Select(b => b.Separation)).Min();
+
+                var maxImpulse = data.Where(a => a.Points != null).SelectMany(a => a.Points!.Select(b => b.Impulse.Length())).Max();
+
+                XrPlatform.Current!.Logger.LogInformation("COLL: '{a}' '{b}' - Imp: {imp} - dv: {dv} - sep: {sep}", me.Name, other.Name, Math.Round(maxImpulse, 4), Math.Round(maxDv, 4), Math.Round(minSep, 4));
+                
                 lastContact = other;
             };
+
+            NewBallCreated?.Invoke(ball);
 
             return ball;
         }
@@ -143,6 +179,13 @@ namespace XrSamples
                 PickBall(Pose!.Value.Position);
             }
         }
+
+        public PhysicSettings PhysicSettings { get; set; }
+
+
+        public event Action<TriangleMesh>? NewBallCreated;
+
+        public IReadOnlyList<TriangleMesh> Balls => _balls.AsReadOnly();
 
         public Material? Material { get; set; }
 

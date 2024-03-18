@@ -11,7 +11,7 @@ namespace XrEngine.OpenXr
 
         public IAssetManager AssetManager { get; }
 
-        public ILogger Logger { get; }
+        public ILogger Logger { get; set; }
 
         public string PersistentPath { get; }
     }

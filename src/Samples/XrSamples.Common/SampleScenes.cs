@@ -76,7 +76,7 @@ namespace XrSamples
         {
             var panel = new Window3D();
 
-            panel.SetInches(19, 18f / 9f);
+            panel.Size = new Size2(0.8f, 0.6f);
             panel.DpiScale = 1.6f;
 
             panel.Content = uiRoot;
@@ -84,12 +84,25 @@ namespace XrSamples
 
             //panel.AddComponent(new FollowCamera() { Offset = new Vector3(0f, -0.0f, -1f) });
 
+
             return builder
                 .AddRightPointer()
                 .ConfigureApp(e =>
                 {
                     e.App.ActiveScene!.AddChild(panel);
-                    //panel.CreateOverlay(e.XrApp);
+                    panel.CreateOverlay(e.XrApp);
+
+                    e.App.ActiveScene.AddBehavior((_, _) =>
+                    {
+                        var click = ((XrOculusTouchController)e.Inputs!).Right!.Button!.AClick!;
+                        if (click.IsChanged && click.Value)
+                        {
+                            panel.WorldPosition = panel.Scene!.ActiveCamera!.WorldPosition + panel.Scene.ActiveCamera.Forward * 0.5f;
+                            panel.Transform.Orientation = panel.Scene!.ActiveCamera!.Transform.Orientation;
+                        }
+                    });
+      
+
                 });
         }
 
@@ -134,6 +147,9 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreatePingPong(this XrEngineAppBuilder builder)
         {
+            var settings = new PingPongSettings();
+            settings.Load(Path.Join(XrPlatform.Current!.PersistentPath, "settings.json"));
+
             var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
@@ -142,22 +158,22 @@ namespace XrSamples
 
             assets.GetFsPath("ping-pong paddle red.glb");
 
-            var mesh = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("ping-pong paddle red.glb"), assets, GltfOptions);
-            mesh.Name = "Racket";
+            var racket = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("ping-pong paddle red.glb"), assets, GltfOptions);
+            racket.Name = "Racket";
 
             //Reposition
-            mesh.Transform.LocalPivot = new Vector3(0.054f, -0.04f, 0.174f);
-            mesh.Transform.Update();
-            mesh.Transform.Rotation = new Vector3(-0.863f, -0.21f, -1.25f);
-            mesh.Transform.Position = Vector3.Zero;
+            racket.Transform.LocalPivot = new Vector3(0.054f, -0.04f, 0.174f);
+            racket.Transform.Update();
+            racket.Transform.Rotation = new Vector3(-0.863f, -0.21f, -1.25f);
+            racket.Transform.Position = Vector3.Zero;
 
-            mesh.Transform.Update();
+            racket.Transform.Update();
 
-            foreach (var geo in mesh.DescendantsWithFeature<Geometry3D>())
-                geo.Feature.ApplyTransform(mesh.Transform.Matrix);
+            foreach (var geo in racket.DescendantsWithFeature<Geometry3D>())
+                geo.Feature.ApplyTransform(racket.Transform.Matrix);
 
-            mesh.Transform.Reset();
-            mesh.Transform.Position = new Vector3(0, 1, 0);
+            racket.Transform.Reset();
+            racket.Transform.Position = new Vector3(0, 1, 0);
 
 
             //Audio
@@ -166,27 +182,31 @@ namespace XrSamples
             sound.AddBuffers(audio.Device.Al, XrPlatform.Current.AssetManager, "BallSounds");
 
             //Grabber
-            mesh.AddComponent<BoundsGrabbable>();
+            racket.AddComponent<BoundsGrabbable>();
 
             //Colliders
-            foreach (var item in mesh.DescendantsWithFeature<TriangleMesh>())
-                mesh.AddComponent(new MeshCollider(item.Feature.Geometry!));
+            foreach (var item in racket.DescendantsWithFeature<TriangleMesh>())
+                racket.AddComponent(new MeshCollider(item.Feature.Geometry!));
 
             //Rigid body
-            var rigidBody = mesh.AddComponent<RigidBody>();
+            var rigidBody = racket.AddComponent<RigidBody>();
             rigidBody.Type = PhysicsActorType.Kinematic;
             //rigidBody.Tolerance = 1; //1cm
-            rigidBody.EnableCCD = true;
+            rigidBody.EnableCCD = settings.Racket.EnableCCD;
+            rigidBody.LengthToleranceScale = settings.Racket.LengthToleranceScale;
+            rigidBody.ContactOffset = settings.Racket.ContactOffset;
+            rigidBody.ContactReportThreshold = settings.Racket.ContactReportThreshold;
 
             rigidBody.Material = new PhysicsMaterialInfo
             {
-                Restitution = 0.8f,
+                Restitution = settings.Racket.Restitution,
                 DynamicFriction = 0.7f,
                 StaticFriction = 0.7f
             };
 
             //Ball generator
             var bg = scene!.AddComponent(new BallGenerator(sound, 5f));
+            bg.PhysicSettings = settings.Ball;
 
             //Sample ball
             var ball = bg.PickBall(new Vector3(-0.5f, 1.1f, 0));
@@ -199,23 +219,22 @@ namespace XrSamples
 
 
             //Add racket
-            scene!.AddChild(mesh);
+            scene!.AddChild(racket);
 
             //Setup camera
-            scene.PerspectiveCamera().Target = mesh.Transform.Position;
-
-            var settings = new PingPongSettings();
-            settings.Load(Path.Join(XrPlatform.Current.PersistentPath, "settigs.json"));
+            scene.PerspectiveCamera().Target = racket.Transform.Position;
 
             return builder
                    .UseApp(app)
                    .UseScene(true)
                    .ConfigureSampleApp()
-                   .UsePhysics()
+                   .UsePhysics(new PhysicsOptions
+                   {
+                       LengthTolerance = settings.LengthToleranceScale,
+                   })
                    .AddPanel(new PingPongSettingsPanel(settings, scene));
 
         }
-
 
         public static XrEngineAppBuilder CreateChess(this XrEngineAppBuilder builder)
         {
@@ -259,7 +278,7 @@ namespace XrSamples
             return builder
                     .UseApp(app)
                     .ConfigureSampleApp()
-                    .UsePhysics();
+                    .UsePhysics(new PhysicsOptions());
         }
 
         public static XrEngineAppBuilder CreateSponza(this XrEngineAppBuilder builder)

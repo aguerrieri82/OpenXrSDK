@@ -13,8 +13,8 @@ namespace XrSamples
 
         public static IUiBuilder<T> AddInput<T, TValue>(this IUiBuilder<T> builder, string label, IInputElement<TValue> input, IProperty<TValue> binding) where T : UiContainer
         {
-            input.Value = binding.Get();
-            input.ValueChanged += (_, v, _) => binding.Set(v);
+            input.Value = binding.Value;
+            input.ValueChanged += (_, v, _) => binding.Value = v;
 
             if (input is CheckBox cb)
             {
@@ -43,7 +43,7 @@ namespace XrSamples
                .AddText(label)
                .BeginRow(s=> s.AlignItems(UiAlignment.Center).ColGap(8))
 
-                  .AddText(b => b.Text(binding.Get().ToString())
+                  .AddText(b => b.Text(binding.Value.ToString())
                                  .Set(e => text = e)
                                  .Style(s=> s
                                         .Width(3, Unit.Em)
@@ -54,12 +54,12 @@ namespace XrSamples
                   {
                       s.Min = scale.ToScale(min);
                       s.Max = scale.ToScale(max);
-                      s.Value = scale.ToScale(binding.Get());
+                      s.Value = scale.ToScale(binding.Value);
                       s.ValueChanged += (_, v, _) =>
                       {
                           var value = scale.FromScale(v);
                           text!.Text = value.ToString();
-                          binding.Set(value);
+                          binding.Value = value;
                       };
                   }))
                .EndChild()
@@ -68,9 +68,6 @@ namespace XrSamples
             return builder;
         }
 
-        private static void S_ValueChanged(IInputElement<float> sender, float value, float oldValue)
-        {
-            throw new NotImplementedException();
-        }
+
     }
 }

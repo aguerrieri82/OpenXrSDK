@@ -17,19 +17,20 @@ namespace CanvasUI
             _srcProp = srcProp;
         }
 
-        public TDst Get()
-        {
-            throw new NotImplementedException();
-        }
 
-        public void Set(TDst value)
+        public TDst Value
         {
-            throw new NotImplementedException();
+            get => _converter.ConvertTo(_srcProp.Value);
+            set => _srcProp.Value = _converter.ConvertFrom(value);
         }
 
         public string? Name => _srcProp.Name;
 
-        public event EventHandler Changed;
+        public event EventHandler Changed
+        {
+            add { _srcProp.Changed += value; }
 
+            remove { _srcProp.Changed -= value; }
+        }
     }
 }

@@ -122,7 +122,6 @@ namespace PhysX.Framework
 
         public event ActorContactEventHandler? Contact;
 
-
         protected internal ref PxRigidActor RigidActor => ref Unsafe.AsRef<PxRigidActor>(_handle);
 
         public ref PxActor Actor => ref Unsafe.AsRef<PxActor>(_handle);

@@ -2,6 +2,8 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using PhysX;
 using static PhysX.NativeMethods;
 
 
@@ -26,6 +28,31 @@ namespace PhysX.Framework
         public PxTransform globalPose2;
     }
 
+
+    public class PhysicsOptions
+    {
+        public PhysicsOptions()
+        {
+            LengthTolerance = 1;
+            SpeedTolerance = 4;
+            DebugHost = "localhost";
+            DebugPort = 5425;
+            UseDebug = false;
+        }
+
+        public ILogger? Logger { get; set; }    
+
+        public bool UseDebug { get; set; }
+
+        public string? DebugHost { get; set; }
+
+        public int DebugPort { get; set; }  
+
+        public float LengthTolerance { get; set; }
+
+        public float SpeedTolerance { get; set; }
+    }
+
     public unsafe class PhysicsSystem : IDisposable
     {
         const uint VersionNumber = (5 << 24) + (1 << 16) + (3 << 8);
@@ -35,7 +62,9 @@ namespace PhysX.Framework
         protected PxTolerancesScale _tolerancesScale;
         protected PxPhysics* _physics;
         protected PxDefaultCpuDispatcher* _dispatcher;
-        protected PxScene* _scene;
+        protected PhysicsScene? _scene;
+
+        protected ILogger? _logger;
 
         protected uint _actorIds;
         protected Dictionary<uint, PhysicsActor> _actors = [];
@@ -192,7 +221,6 @@ namespace PhysX.Framework
         {
             var shape = _physics->CreateShapeMut(info.Geometry!, info.Material!, info.IsEsclusive, info.Flags);
             var result = new PhysicsShape(shape, info.Geometry!, this);
-            result.ContactOffset = 0.1f;
             _objects[new nint(shape)] = result;
             return result;
         }
@@ -226,7 +254,7 @@ namespace PhysX.Framework
                 ((PxRigidBody*)actor)->ExtUpdateMassAndInertia1(info.Density, null, true);
             */
 
-            _scene->AddActorMut(actor, null);
+            _scene!.AddActor(result);
 
             if (info.Type == PhysicsActorType.Kinematic)
                 ((PhysicsDynamicActor)result).IsKinematic = true;
@@ -336,11 +364,12 @@ namespace PhysX.Framework
             sceneDesc.flags = PxSceneFlags.EnableCcd | PxSceneFlags.EnablePcm | PxSceneFlags.EnableEnhancedDeterminism;
             sceneDesc.EnableCustomFilterShader(&FilterShader, 1);
 
-            _scene = _physics->CreateSceneMut(&sceneDesc);
+            _scene = new PhysicsScene(_physics->CreateSceneMut(&sceneDesc), this);
+
 
             if (_pvd != null)
             {
-                var pvdClient = _scene->GetScenePvdClientMut();
+                var pvdClient = _scene!.PvdClient;
 
                 if (pvdClient != null)
                 {
@@ -364,43 +393,41 @@ namespace PhysX.Framework
                     PxPairFlags.NotifyTouchFound |
                     PxPairFlags.DetectCcdContact |
                     PxPairFlags.DetectDiscreteContact |
-                    PxPairFlags.NotifyTouchCcd;
-            //PxPairFlags.NotifyContactPoints |
-            //PxPairFlags.PostSolverVelocity |
-            //PxPairFlags.PreSolverVelocity |
-            //PxPairFlags.ContactEventPose |
-            //PxPairFlags.DetectDiscreteContact |
-            //PxPairFlags.SolveContact;
+                    PxPairFlags.NotifyTouchCcd |
+            PxPairFlags.NotifyContactPoints |
+            PxPairFlags.PostSolverVelocity |
+            PxPairFlags.PreSolverVelocity |
+           PxPairFlags.ContactEventPose |
+           PxPairFlags.DetectDiscreteContact |
+            PxPairFlags.SolveContact;
 
 
             return 0;
         }
 
-        public void Create()
+
+        public void Create(PhysicsOptions options)
         {
             _foundation = physx_create_foundation();
+            _logger = options.Logger;
 
-            _physics = _foundation->PhysxCreatePhysics();
-
-            _dispatcher = phys_PxDefaultCpuDispatcherCreate(1, null, PxDefaultCpuDispatcherWaitForWorkMode.WaitForWork, 0);
-        }
-
-        public void Create(string host, int port)
-        {
-            _foundation = physx_create_foundation();
-
-            _pvd = _foundation->PhysPxCreatePvd();
-
-            fixed (byte* bytePointer = Encoding.UTF8.GetBytes(host))
+            if (options.DebugHost != null && options.UseDebug)
             {
-                var transport = phys_PxDefaultPvdSocketTransportCreate(bytePointer, port, 10000);
-                _pvd->ConnectMut(transport, PxPvdInstrumentationFlags.All);
+                _pvd = _foundation->PhysPxCreatePvd();
+
+                fixed (byte* bytePointer = Encoding.UTF8.GetBytes(options.DebugHost))
+                {
+                    var transport = phys_PxDefaultPvdSocketTransportCreate(bytePointer, options.DebugPort, 10000);
+                    _pvd->ConnectMut(transport, PxPvdInstrumentationFlags.All);
+                }
             }
+            else
+                _pvd = null;
 
             _tolerancesScale = new PxTolerancesScale
             {
-                length = 1f,
-                speed = 4
+                length = options.LengthTolerance,
+                speed = options.SpeedTolerance
             };
 
             var curScale = _tolerancesScale;
@@ -435,9 +462,9 @@ namespace PhysX.Framework
                 else
                     _lastDeltaTime = stepSizeSecs;
 
-                _scene->SimulateMut(_lastDeltaTime, null, null, 0, true);
+                _scene!.Scene.SimulateMut(_lastDeltaTime, null, null, 0, true);
 
-                _scene->FetchResultsMut(true, &error);
+                _scene.Scene.FetchResultsMut(true, &error);
 
                 curTime += stepSizeSecs;
             }
@@ -460,7 +487,7 @@ namespace PhysX.Framework
 
             else if (obj is PhysicsActor act)
             {
-                _scene->RemoveActorMut(act.Handle, true);
+                _scene!.RemoveActor(act);
                 _actors.Remove(act.Id);
             }
         }
@@ -477,7 +504,7 @@ namespace PhysX.Framework
 
         public ref PxPhysics Physics => ref Unsafe.AsRef<PxPhysics>(_physics);
 
-        public ref PxScene Scene => ref Unsafe.AsRef<PxScene>(_scene);
+        public PhysicsScene Scene => _scene ?? throw new NullReferenceException();
 
         public static PhysicsSystem? Current { get; internal set; }
 

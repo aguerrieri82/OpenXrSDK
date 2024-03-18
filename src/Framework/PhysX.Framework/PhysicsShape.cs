@@ -29,7 +29,7 @@ namespace PhysX.Framework
         protected PhysicsGeometry _geometry;
 
         internal PhysicsShape(PxShape* handle, PhysicsGeometry geometry, PhysicsSystem system)
-    : base(handle, system)
+            : base(handle, system)
         {
             _name = string.Empty;
             _geometry = geometry;

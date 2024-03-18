@@ -12,20 +12,21 @@
             Name = name;
         }
 
-        public T Get()
+        public T Value
         {
-            return _getter();
+            get => _getter();
+
+            set 
+            {
+                if (Equals(value, Value))
+                    return;
+
+                _setter(value);
+
+                Changed?.Invoke(this, EventArgs.Empty);
+            }
         }
 
-        public void Set(T value)
-        {
-            if (Equals(value, Get()))
-                return;
-
-            _setter(value);
-
-            Changed?.Invoke(this, EventArgs.Empty);
-        }
 
         public string Name { get; }
 

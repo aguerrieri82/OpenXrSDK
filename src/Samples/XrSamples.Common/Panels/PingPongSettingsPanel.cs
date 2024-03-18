@@ -1,22 +1,11 @@
 ﻿using CanvasUI;
-using CanvasUI.Objects;
-using System.Reflection;
-using System.Text.Json;
+using PhysX;
 using XrEngine;
-
+using XrEngine.Physics;
+using XrMath;
 
 namespace XrSamples
 {
-    public class PhysicSettings
-    {
-        public float ContactDistance { get; set; }
-
-        public float Restitution { get; set; }
-
-        public float LengthScale { get; set; }
-
-        public bool UseCCD { get; set; }
-    }
 
     public class PingPongSettings : BaseAppSettings
     {
@@ -27,40 +16,94 @@ namespace XrSamples
             Racket = new PhysicSettings();
             Terrain = new PhysicSettings();
 
-            LengthScale = 1;
-            UsePcm = true;
+            LengthToleranceScale = 1;
+            EnablePCM = true;
+            ShowTerrain = false;
 
-            Ball.LengthScale = 1;
-            Ball.ContactDistance = 0.2f;
-            Ball.Restitution = 0.8f;
-            Ball.UseCCD = true;
+            Ball.LengthToleranceScale = 1;
+            Ball.ContactOffset = 0.01f;
+            Ball.Restitution = 0.7f;
+            Ball.EnableCCD = true;
+            Ball.ContactReportThreshold = 1;
 
-            Racket.LengthScale = 1;
-            Racket.ContactDistance = 0.2f;
-            Racket.Restitution = 0.8f;
-            Racket.UseCCD = true;
+            Racket.LengthToleranceScale = 1;
+            Racket.ContactOffset = 0.01f;
+            Racket.Restitution = 0.7f;
+            Racket.EnableCCD = true;
+            Racket.ContactReportThreshold = 1;
 
-            Terrain.LengthScale = 1;
-            Terrain.ContactDistance = 0.2f;
-            Terrain.Restitution = 0.8f;
-            Terrain.UseCCD = true;
+            Terrain.LengthToleranceScale = 1;
+            Terrain.ContactOffset = 0.2f;
+            Terrain.Restitution = 0.7f;
+            Terrain.EnableCCD = true;
+            Terrain.ContactReportThreshold = 1;
+
+        }
+
+
+        public void Apply(Object3D obj, PhysicSettings settings)
+        {
+            var body = obj.Component<RigidBody>();
+            body.LengthToleranceScale = settings.LengthToleranceScale;
+            body.EnableCCD = settings.EnableCCD;
+
+            if (body.Type != PhysX.Framework.PhysicsActorType.Static)
+                body.DynamicActor.ContactReportThreshold = settings.ContactReportThreshold;
+
+            foreach (var shape in body.Actor.GetShapes())
+            {
+                var mat = shape.GetMaterials()[0];
+                mat.Restitution = settings.Restitution;
+                shape.ContactOffset = settings.ContactOffset;
+            }
         }
 
         public override void Apply(Scene3D scene)
         {
+            var system = scene.FindFeature<PhysicsManager>()!.System;
+            var racket = scene.FindByName<Object3D>("Racket");
+            var generator = scene.FindFeature<BallGenerator>()!;
+            var mesh = scene.FindByName<TriangleMesh>("global-mesh");
 
+            if (mesh != null)
+            {
+                Apply(mesh, Terrain);
+
+                if (ShowTerrain)
+                    mesh.Materials[0] = PbrMaterial.CreateDefault("#fff");
+                else
+                    mesh.Materials[0] = new ColorMaterial(Color.Transparent);
+
+                mesh.Version++;
+            }
+
+
+            Apply(racket!, Racket);
+
+            generator.PhysicSettings = Ball;
+            foreach (var ball in generator.Balls)
+                Apply(ball, Ball);
+
+            system.Scene.SetFlag(PxSceneFlag.EnablePcm, EnablePCM);
+            system.Scene.SetFlag(PxSceneFlag.EnableCcd, EnableCCD);
+
+            if (_filePath != null)
+                Save();
         }
 
-        public PhysicSettings Ball { get; }
+        public PhysicSettings Ball { get; set; }
 
-        public PhysicSettings Racket { get; }
+        public PhysicSettings Racket { get; set; }
 
-        public PhysicSettings Terrain { get; }
+        public PhysicSettings Terrain { get; set; }
 
-        public float LengthScale { get; set; }
+        public float LengthToleranceScale { get; set; }
 
-        public bool UsePcm { get; set; }
+        public bool EnablePCM { get; set; }
 
+        public bool EnableCCD { get; set; }
+
+        public bool ShowTerrain { get; set; }
     }
 
     public class PingPongSettingsPanel : UIRoot
@@ -71,40 +114,68 @@ namespace XrSamples
 
             binder.PropertyChanged += (_, _, _, _) =>
             {
-                settings.Apply(scene);
+
             };
 
+            var generator = scene.FindFeature<BallGenerator>()!;
+
+            generator.NewBallCreated += ball =>
+            {
+                settings.Apply(ball, settings.Ball);
+            };
+
+            TextBlock? logger = null;
+
             UiBuilder.From(this).Name("main").AsColumn()
-                .Style(s => s.Padding(16).Color("#F5F5F5").BackgroundColor("#050505AF"))
-            .BeginRow(s => s.ColGap(16).FlexGrow(1))
+                .Style(s => 
+                    s.Padding(16)
+                    .RowGap(16)
+                    .Color("#F5F5F5")
+                    .BackgroundColor("#050505AF"))
+            .BeginRow(s => s.ColGap(16))
                 .BeginColumn(s => s.FlexBasis(1).RowGap(16))
                     .AddText("Ball", s => s.FontSize(1.5f, Unit.Em))
-                    .AddInputRange("Contact Distance", 0.01f, 1f, binder.Prop(a=> a.Ball.ContactDistance))
-                    .AddInputRange("Length Scale", 0.01f, 100, binder.Prop(a => a.Ball.LengthScale))
+                    .AddInputRange("Contact Distance", 0.01f, 1f, binder.Prop(a => a.Ball.ContactOffset))
                     .AddInputRange("Restitution", 0, 1, binder.Prop(a => a.Ball.Restitution))
-                    .AddInput("Use CCD", new CheckBox(), binder.Prop(a => a.Ball.UseCCD))
+                    .AddInputRange("Contact", 0.01f, 10, binder.Prop(a => a.Ball.ContactReportThreshold))
+                    .AddInput("Use CCD", new CheckBox(), binder.Prop(a => a.Ball.EnableCCD))
                 .EndChild()
                 .BeginColumn(s => s.FlexBasis(1).RowGap(16))
                     .AddText("Racket", s => s.FontSize(1.5f, Unit.Em))
-                    .AddInputRange("Contact Distance", 0.01f, 1f, binder.Prop(a => a.Racket.ContactDistance))
-                    .AddInputRange("Length Scale", 0.01f, 100, binder.Prop(a => a.Racket.LengthScale))
+                    .AddInputRange("Contact Distance", 0.01f, 1f, binder.Prop(a => a.Racket.ContactOffset))
+                    .AddInputRange("Length Scale", 0.01f, 100, binder.Prop(a => a.Racket.LengthToleranceScale))
                     .AddInputRange("Restitution", 0, 1, binder.Prop(a => a.Racket.Restitution))
-                    .AddInput("Use CCD", new CheckBox(), binder.Prop(a => a.Racket.UseCCD))
+                    .AddInputRange("Contact", 0.01f, 10, binder.Prop(a => a.Racket.ContactReportThreshold))
+                    .AddInput("Use CCD", new CheckBox(), binder.Prop(a => a.Racket.EnableCCD))
                 .EndChild()
                 .BeginColumn(s => s.FlexBasis(1).RowGap(16))
                     .AddText("Terrain", s => s.FontSize(1.5f, Unit.Em))
-                    .AddInputRange("Contact Distance", 0.01f, 1f, binder.Prop(a => a.Terrain.ContactDistance))
-                    .AddInputRange("Length Scale", 0.01f, 100, binder.Prop(a => a.Terrain.LengthScale))
+                    .AddInputRange("Contact Distance", 0.01f, 1f, binder.Prop(a => a.Terrain.ContactOffset))
+                    .AddInputRange("Length Scale", 0.01f, 100, binder.Prop(a => a.Terrain.LengthToleranceScale))
                     .AddInputRange("Restitution", 0, 1, binder.Prop(a => a.Terrain.Restitution))
-                    .AddInput("Use CCD", new CheckBox(), binder.Prop(a => a.Terrain.UseCCD))
+                    .AddInput("Use CCD", new CheckBox(), binder.Prop(a => a.Terrain.EnableCCD))
                 .EndChild()
                 .BeginColumn(s => s.FlexBasis(1).RowGap(16))
                     .AddText("Scene", s => s.FontSize(1.5f, Unit.Em))
-                    .AddInputRange("Length Scale", 0.01f, 100, binder.Prop(a=> a.LengthScale))
-                    .AddInput("Use PCM", new CheckBox(), binder.Prop(a => a.UsePcm))
+                    .AddInputRange("Length Scale", 0.01f, 100, binder.Prop(a => a.LengthToleranceScale))
+                    .AddInput("Use PCM", new CheckBox(), binder.Prop(a => a.EnablePCM))
+                    .AddInput("Use CCD", new CheckBox(), binder.Prop(a => a.EnableCCD))
+                    .AddInput("Show Terrain", new CheckBox(), binder.Prop(a => a.ShowTerrain))
                 .EndChild()
             .EndChild()
-            .AddText("Footer");
+            .AddText(bld => bld
+                .Style(s=> s
+                    .Padding(16)
+                    .FlexGrow(1)
+                    .LineSize(20)
+                    .AlignSelf(UiAlignment.Stretch)
+                    .Border(1,"#0f0"))
+                .Set(a=> logger = a))
+            .BeginRow(s => s.JustifyContent(UiAlignment.End))
+                .AddButton("Apply", () => settings.Apply(scene), s => s.Padding(8, 16).BackgroundColor("#1565C0"))
+            .EndChild();
+
+            XrPlatform.Current!.Logger = new TextBlockLogger(logger!, 25);
         }
 
     }

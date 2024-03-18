@@ -35,7 +35,7 @@ namespace CanvasUI
 
             result.Changed += (s, e) =>
             {
-                PropertyChanged?.Invoke(Value, result, result.Get(), null);
+                PropertyChanged?.Invoke(Value, result, result.Value, null);
             };
 
             return result;
