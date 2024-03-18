@@ -127,12 +127,14 @@ namespace CanvasUI
                 result.Grow += child.Basis;
             }
 
+            var availWidthWithGap = availSize.Width - gap.X * (lp.Children.Length - 1);
+
             foreach (var child in lp.Children)
             {
                 var childAvailSize = leftRowSize;
 
                 if (child.Basis != 0)
-                    childAvailSize.Width = availSize.Width * child.Basis / result.Basis;
+                    childAvailSize.Width = availWidthWithGap * child.Basis / result.Basis;
 
                 var childSize = Convert(isArrange ?
                         child.Item.DesiredSize :

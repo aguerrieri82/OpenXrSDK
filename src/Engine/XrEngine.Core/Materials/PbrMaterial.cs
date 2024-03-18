@@ -637,7 +637,7 @@ namespace XrEngine
         public DebugFlags Debug { get; set; }
 
 
-        public static bool DefaultLinearOutput = false;
+        public static bool DefaultLinearOutput = true;
 
     }
 }

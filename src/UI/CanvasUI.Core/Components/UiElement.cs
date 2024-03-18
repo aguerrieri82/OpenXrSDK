@@ -254,6 +254,7 @@ namespace CanvasUI
             var prop = GetProperty(propName, typeof(UiStyle));
             if ((prop.Flags & UiPropertyFlags.Layout) == UiPropertyFlags.Layout)
                 InvalidateLayout();
+            IsDirty = true;
         }
 
         #endregion

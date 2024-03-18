@@ -29,7 +29,7 @@ namespace XrEngine.Physics
             };
 
             Density = 1000;
-            Tolerance = 1;
+            LengthToleranceScale = 1;
         }
 
         public void Teleport(Vector3 worldPos)
@@ -119,7 +119,7 @@ namespace XrEngine.Physics
                         pyGeo = _system.CreateTriangleMesh(
                             mc.Geometry.Indices,
                             mc.Geometry.ExtractPositions(),
-                            Vector3.One, Tolerance
+                            Vector3.One, LengthToleranceScale
                         );
                     }
                     else if (collider is CapsuleCollider cap)
@@ -147,6 +147,8 @@ namespace XrEngine.Physics
                     Geometry = pyGeo,
                     Material = _material,
                 });
+
+                shape.ContactOffset = ContactOffset;
             }
 
             if (shape != null)
@@ -218,6 +220,9 @@ namespace XrEngine.Physics
             _actor.NotifyContacts = _contactEvent != null;
             _actor.Contact += OnActorContact;
             _actor.Name = _host.Name ?? string.Empty;
+
+            if (Type != PhysicsActorType.Static)
+                DynamicActor.ContactReportThreshold = ContactReportThreshold;
 
             if (EnableCCD)
             {
@@ -303,19 +308,26 @@ namespace XrEngine.Physics
             }
         }
 
-        public float Tolerance { get; set; }
+        public float ContactReportThreshold { get; set; }
+
+        public float LengthToleranceScale { get; set; }
+
+        public float ContactOffset { get; set; }
+
+        public float Density { get; set; }
 
         public bool EnableCCD { get; set; }
-
-        public PhysicsDynamicActor DynamicActor => (_actor as PhysicsDynamicActor) ?? throw new ArgumentNullException();
-
-        public PhysicsStaticActor StaticActor => (_actor as PhysicsStaticActor) ?? throw new ArgumentNullException();
 
         public PhysicsActorType Type { get; set; }
 
         public PhysicsMaterialInfo Material { get; set; }
 
-        public float Density { get; set; }
+        public PhysicsDynamicActor DynamicActor => (_actor as PhysicsDynamicActor) ?? throw new ArgumentNullException();
+
+        public PhysicsStaticActor StaticActor => (_actor as PhysicsStaticActor) ?? throw new ArgumentNullException();
+
+        public PhysicsActor Actor => _actor ?? throw new ArgumentNullException();
+
 
     }
 }

@@ -8,9 +8,7 @@ namespace CanvasUI
 {
     public interface IProperty
     {
-        object? Get();
-
-        void Set(object? value);    
+        object? Value { get; set; } 
 
         Type Type { get; }
 
@@ -21,15 +19,15 @@ namespace CanvasUI
 
     public interface IProperty<T> : IProperty
     {
-        new T Get();
-
-        void Set(T value);
+        new T Value { get; set; }   
 
         Type IProperty.Type => typeof(T);
 
-        object? IProperty.Get() => Get();
-
-        void IProperty.Set(object? value) => Set((T)value!);
+        object? IProperty.Value
+        {
+            get => Value;
+            set => Value = (T)value!;
+        }
 
     }
 }

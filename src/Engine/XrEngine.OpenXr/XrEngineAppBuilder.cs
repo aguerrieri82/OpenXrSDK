@@ -1,5 +1,6 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
+using PhysX.Framework;
 using Silk.NET.OpenXR;
 using XrEngine.Physics;
 using XrMath;
@@ -142,7 +143,7 @@ namespace XrEngine.OpenXr
                 .AddAction(a => a.Right!.GripPose)
                 .AddAction(a => a.Right!.SqueezeValue)
                 .AddAction(a => a.Right!.SqueezeClick)
-                .AddAction(a => a.Right!.Button!.ATouch)
+                .AddAction(a => a.Right!.Button!.AClick)
                 .AddAction(a => a.Right!.Button!.BClick)
                 .AddAction(a => a.Right!.TriggerClick)
                 .AddAction(a => a.Right!.TriggerValue));
@@ -201,9 +202,9 @@ namespace XrEngine.OpenXr
 
         });
 
-        public XrEngineAppBuilder UsePhysics() => ConfigureApp(e =>
+        public XrEngineAppBuilder UsePhysics(PhysicsOptions options) => ConfigureApp(e =>
         {
-            e.App.ActiveScene!.AddComponent<PhysicsManager>();
+            e.App.ActiveScene!.AddComponent(new PhysicsManager() { Options = options });
         });
 
         public XrEngineApp Build()

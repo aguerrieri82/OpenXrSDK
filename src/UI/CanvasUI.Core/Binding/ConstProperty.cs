@@ -10,15 +10,12 @@
             Name = name;
         }
 
-        public T Get()
+        public T Value
         {
-            return _value;
+            get => _value;
+            set => throw new NotSupportedException();
         }
 
-        public void Set(T value)
-        {
-            throw new NotSupportedException();
-        }
 
         public string Name { get; }
 
