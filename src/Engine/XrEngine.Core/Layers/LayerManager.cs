@@ -48,22 +48,22 @@
                 layer.NotifyChanged(object3D, change);
         }
 
-        protected static string Hash(ILayer3D layer, ILayer3DObject obj)
+        protected static string Hash(ILayer3D layer, ILayer3DItem obj)
         {
             return $"{layer.Id}|{obj.Id}";
         }
 
-        internal protected void NotifyObjectAdded(ILayer3D layer, ILayer3DObject obj)
+        internal protected void NotifyObjectAdded(ILayer3D layer, ILayer3DItem obj)
         {
             _layersContent.Add(Hash(layer, obj));
         }
 
-        internal protected void NotifyObjectRemoved(ILayer3D layer, ILayer3DObject obj)
+        internal protected void NotifyObjectRemoved(ILayer3D layer, ILayer3DItem obj)
         {
             _layersContent.Remove(Hash(layer, obj));
         }
 
-        public bool LayerContains(ILayer3D layer, ILayer3DObject obj)
+        public bool LayerContains(ILayer3D layer, ILayer3DItem obj)
         {
             return _layersContent.Contains(Hash(layer, obj));
         }

@@ -29,7 +29,7 @@ namespace XrEngine.OpenGL
 
         protected virtual GlBaseFrameBuffer CreateFrameBuffer(uint colorTex, uint depthTex, uint sampleCount)
         {
-            return new GlTextureFrameBuffer(_gl, new GlTexture2D(_gl, colorTex), new GlTexture2D(_gl, depthTex));
+            return new GlTextureFrameBuffer(_gl, new GlTexture(_gl, colorTex), new GlTexture(_gl, depthTex));
         }
 
         public void Begin()

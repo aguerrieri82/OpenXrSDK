@@ -7,7 +7,7 @@
 
         void Detach();
 
-        IEnumerable<ILayer3DObject> Content { get; }
+        IEnumerable<ILayer3DItem> Content { get; }
 
         bool IsVisible { get; set; }
 

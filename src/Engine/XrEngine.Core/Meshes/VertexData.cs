@@ -4,6 +4,21 @@ namespace XrEngine
 {
     public struct VertexData
     {
+        public static VertexData[] FromPos(float[] data)
+        {
+            var result = new VertexData[data.Length / 3];
+            var di = 0;
+            for (int i = 0; i < result.Length; i++)
+            {
+                ref var item = ref result[i];
+
+                item.Pos.X = data[di++];
+                item.Pos.Y = data[di++];
+                item.Pos.Z = data[di++];
+            }
+            return result;
+        }
+
         public static VertexData[] FromPosNormal(float[] data)
         {
             var result = new VertexData[data.Length / 6];

@@ -45,26 +45,28 @@ namespace XrEngine.UI
                     continue;
 
                 var collision = _collider.CollideWith(status.Ray);
+                
+                //TODO infinite plane collision
 
                 if (collision != null)
                 {
                     var pos = new Vector2(collision.LocalPoint.X + 0.5f, 1 - (collision.LocalPoint.Y + 0.5f));
 
-                    DispatchPointerEvent(pos, status.Buttons, UiEventType.PointerMove, pointer.Id);
+                    DispatchPointerEvent(pos, status.Buttons, UiEventType.PointerMove, pointer);
 
                     _lastPosition = pos;
                 }
 
-                foreach (var button in Enum.GetValues<PointerButton>())
+                foreach (var button in Enum.GetValues<Pointer2Button>())
                 {
                     var isOn = (status.Buttons & button) == button;
                     var wasOn = (_lastStatus.Buttons & button) == button;
 
                     if (isOn && !wasOn)
-                        DispatchPointerEvent(_lastPosition, button, UiEventType.PointerDown, pointer.Id);
+                        DispatchPointerEvent(_lastPosition, button, UiEventType.PointerDown, pointer);
 
                     if (!isOn && wasOn)
-                        DispatchPointerEvent(_lastPosition, button, UiEventType.PointerUp, pointer.Id);
+                        DispatchPointerEvent(_lastPosition, button, UiEventType.PointerUp, pointer);
                 }
 
                 _lastStatus = status;
@@ -72,31 +74,30 @@ namespace XrEngine.UI
         }
 
 
-        private void DispatchPointerEvent(Vector2 uv, PointerButton buttons, UiEventType type, int id)
+        private void DispatchPointerEvent(Vector2 surfacePos, Pointer2Button buttons, UiEventType type, IRayPointer pointer)
         {
             if (Content == null)
                 return;
 
             var pos = new Vector2(
-                _pixelSize.Width / _dpiScale * uv.X,
-                _pixelSize.Height / _dpiScale * uv.Y
+                _pixelSize.Width / _dpiScale * surfacePos.X,
+                _pixelSize.Height / _dpiScale * surfacePos.Y
             );
 
-            var capture = UiManager.GetPointerCapture(id);
+            var capture = UiManager.GetPointerCapture(pointer.Id);
 
             if (capture != null)
             {
-                var uiEv = new UiPointerEvent
-                {
-                    Buttons = (UiPointerButton)buttons,
-                    Pointer = new UiDefaultPointer(id),
-                    WindowPosition = pos,
-                    Type = type,
-                    Source = capture,
-                    Dispatch = UiEventDispatch.Direct
-                };
+                var uiEv = UiManager.AcquireEvent<UiPointerEvent>();
 
+                uiEv.Buttons = (UiPointerButton)buttons;
+                uiEv.Pointer = new UiRayPointer(pointer);
+                uiEv.WindowPosition = pos;
+                uiEv.Type = type;
+                uiEv.Source = capture;
+                uiEv.Dispatch = UiEventDispatch.Direct;
                 capture.DispatchEvent(uiEv);
+
             }
             else
             {
@@ -106,15 +107,14 @@ namespace XrEngine.UI
 
                 if (hitTest != null)
                 {
-                    var uiEv = new UiPointerEvent
-                    {
-                        Buttons = (UiPointerButton)buttons,
-                        Pointer = new UiDefaultPointer(id),
-                        WindowPosition = pos,
-                        Type = type,
-                        Source = hitTest,
-                        Dispatch = UiEventDispatch.Bubble
-                    };
+                    var uiEv = UiManager.AcquireEvent<UiPointerEvent>();
+
+                    uiEv.Buttons = (UiPointerButton)buttons;
+                    uiEv.Pointer = new UiRayPointer(pointer);
+                    uiEv.WindowPosition = pos;
+                    uiEv.Type = type;
+                    uiEv.Source = hitTest;
+                    uiEv.Dispatch = UiEventDispatch.Bubble;
 
                     hitTest.DispatchEvent(uiEv);
                 }

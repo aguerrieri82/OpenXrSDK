@@ -9,7 +9,7 @@ namespace XrEngine.OpenGL
 {
     public class GlTextureFrameBuffer : GlBaseFrameBuffer
     {
-        public GlTextureFrameBuffer(GL gl, GlTexture2D color, GlTexture2D? depth)
+        public GlTextureFrameBuffer(GL gl, GlTexture color, GlTexture? depth)
             : base(gl)
         {
 
@@ -92,9 +92,9 @@ namespace XrEngine.OpenGL
         }
 
 
-        public GlTexture2D Color;
+        public GlTexture Color;
 
-        public GlTexture2D? Depth;
+        public GlTexture? Depth;
 
     }
 }

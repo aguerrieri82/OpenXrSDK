@@ -2,6 +2,7 @@ const float GAMMA = 2.2;
 const float INV_GAMMA = 1.0 / GAMMA;
 
 
+
 // sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
 const mat3 ACESInputMat = mat3
 (
@@ -81,10 +82,22 @@ vec3 toneMapACES_Hill(vec3 color)
     return color;
 }
 
+#ifdef UNIFORM_EXP
+
+uniform float u_Exposure;
+
+#endif
+
+
 
 vec3 toneMap(vec3 color)
 {
+
+#ifdef UNIFORM_EXP
+    color *= u_Exposure;
+#else
     color *= uCamera.Exposure;
+#endif
 
 #ifdef TONEMAP_ACES_NARKOWICZ
     color = toneMapACES_Narkowicz(color);

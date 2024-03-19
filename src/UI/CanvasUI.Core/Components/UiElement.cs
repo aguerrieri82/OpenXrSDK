@@ -175,6 +175,8 @@ namespace CanvasUI
                 foreach (var child in VisualChildren)
                     child.DispatchEvent(ev);
             }
+
+            UiManager.ReleaseEvent(ev);
         }
 
         protected virtual void OnPointerEnter(UiPointerEvent ev)

@@ -17,6 +17,5 @@ namespace XrEngine.UI
 
             canvas.Size = new Size2(width * UnitConv.InchesToMeter, height * UnitConv.InchesToMeter);
         }
-
     }
 }

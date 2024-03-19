@@ -5,7 +5,7 @@ using XrMath;
 
 namespace XrEditor
 {
-    public class PickTool : BaseMouseTool, IDrawGizmos, IRayPointer
+    public class PickTool : BasePointerTool, IDrawGizmos, IRayPointer
     {
         protected Object3D? _currentPick;
         protected Color? _oldColor;
@@ -28,26 +28,26 @@ namespace XrEditor
             return result;
         }
 
-        protected void UpdateRay(PointerEvent ev)
+        protected void UpdateRay(Pointer2Event ev)
         {
             _lastRay.Ray = ToRay(ev);
             _lastRay.Buttons = ev.Buttons;
             _lastRay.IsActive = true;
         }
 
-        protected override void OnMouseDown(PointerEvent ev)
+        protected override void OnPointerDown(Pointer2Event ev)
         {
             UpdateRay(ev);
-            base.OnMouseDown(ev);
+            base.OnPointerDown(ev);
         }
 
-        protected override void OnMouseUp(PointerEvent ev)
+        protected override void OnPointerUp(Pointer2Event ev)
         {
             UpdateRay(ev);
-            base.OnMouseUp(ev);
+            base.OnPointerUp(ev);
         }
 
-        protected override void OnMouseMove(PointerEvent ev)
+        protected override void OnPointerMove(Pointer2Event ev)
         {
             if (_sceneView?.Scene == null)
                 return;
@@ -81,7 +81,7 @@ namespace XrEditor
 
         protected virtual void OnLeave(Object3D obj)
         {
-            if (obj is TriangleMesh mesh && mesh.Materials.Count > 0 && mesh.Materials[0] is StandardMaterial mat && _oldColor != null)
+            if (obj is TriangleMesh mesh && mesh.Materials.Count > 0 && mesh.Materials[0] is BasicMaterial mat && _oldColor != null)
             {
                 mat.Color = _oldColor.Value;
                 mat.NotifyChanged();
@@ -91,7 +91,7 @@ namespace XrEditor
 
         protected virtual void OnEnter(Object3D obj)
         {
-            if (obj is TriangleMesh mesh && mesh.Materials.Count > 0 && mesh.Materials[0] is StandardMaterial mat)
+            if (obj is TriangleMesh mesh && mesh.Materials.Count > 0 && mesh.Materials[0] is BasicMaterial mat)
             {
                 _oldColor = mat.Color;
                 mat.Color = new Color(0, 1, 0, 1);
@@ -114,9 +114,18 @@ namespace XrEditor
                 canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + _lastCollision.Normal.Value.Transform(normalMatrix).Normalize());
                 canvas.Restore();
             }
-
         }
 
+        public void CapturePointer()
+        {
+            _sceneView.ActiveTool = this;
+        }
+
+        public void ReleasePointer()
+        {
+            if (_sceneView.ActiveTool == this)
+                _sceneView.ActiveTool = null;
+        }
 
         int IRayPointer.Id => -100;
 

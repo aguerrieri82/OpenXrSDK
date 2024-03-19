@@ -110,12 +110,12 @@ namespace XrSamples
         public static void CompressTexture(string path)
         {
             var data = EtcCompressor.Encode(path, 16);
-            PvrDecoder.Instance.Write(File.OpenWrite("d:\\test.pvr"), data);
+            PvrTranscoder.Instance.Write(File.OpenWrite("d:\\test.pvr"), data);
         }
 
         public unsafe static void LoadTexture()
         {
-            var reader = PvrDecoder.Instance; ;
+            var reader = PvrTranscoder.Instance; ;
             using var stream = File.OpenRead(@"d:\TestScreen.pvr");
             reader.Read(stream);
         }

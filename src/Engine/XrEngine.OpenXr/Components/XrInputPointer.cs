@@ -12,10 +12,10 @@ namespace XrEngine.OpenXr
             var result = new RayPointerStatus();
 
             if (LeftButton != null && LeftButton.IsActive && LeftButton.Value)
-                result.Buttons |= PointerButton.Left;
+                result.Buttons |= Pointer2Button.Left;
 
             if (RightButton != null && RightButton.IsActive && RightButton.Value)
-                result.Buttons |= PointerButton.Right;
+                result.Buttons |= Pointer2Button.Right;
 
             if (PoseInput != null && PoseInput.IsActive)
             {
@@ -31,6 +31,15 @@ namespace XrEngine.OpenXr
             }
 
             return result;
+        }
+
+        public void CapturePointer()
+        {
+
+        }
+
+        public void ReleasePointer()
+        {
         }
 
         public XrInput<Pose3>? PoseInput { get; set; }

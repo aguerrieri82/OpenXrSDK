@@ -30,9 +30,10 @@ namespace CanvasUI
         Tunnel
     }
 
-
     public class UiEvent
     {
+        public long Timestamp;
+
         public bool IsHandled;
 
         public UiEventType Type;

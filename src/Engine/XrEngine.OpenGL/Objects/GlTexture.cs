@@ -1,0 +1,436 @@
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
+using System.Diagnostics;
+using System.Linq.Expressions;
+
+namespace XrEngine.OpenGL
+{
+    public class GlTexture : GlObject
+    {
+        protected uint _width;
+        protected uint _height;
+        protected bool _isCompressed;
+        protected InternalFormat _internalFormat;
+
+        public GlTexture(GL gl)
+            : base(gl)
+        {
+            WrapS = TextureWrapMode.ClampToEdge;
+            WrapT = TextureWrapMode.ClampToEdge;
+            MinFilter = TextureMinFilter.LinearMipmapLinear;
+            MagFilter = TextureMagFilter.Linear;
+            BaseLevel = 0;
+            MaxLevel = 16;
+            Target = TextureTarget.Texture2D;
+            Create();
+        }
+
+        public GlTexture(GL gl, uint handle, uint sampleCount = 1, TextureTarget target = 0)
+            : base(gl)
+        {
+            SampleCount = sampleCount;
+            Attach(handle, target);
+        }
+
+        protected void Create()
+        {
+            _handle = _gl.GenTexture();
+        }
+
+        public unsafe void Attach(uint handle, TextureTarget target = 0)
+        {
+            _handle = handle;
+
+            Target = target != 0 ? target : _gl.GetTextureTarget(handle);
+
+            Bind();
+
+            bool isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
+            
+            var levelTarget = Target == TextureTarget.TextureCubeMap ? TextureTarget.TextureCubeMapPositiveX : Target;
+        
+            _gl.GetTexLevelParameter(levelTarget, 0, GetTextureParameter.TextureWidth, out int w);
+            _width = (uint)w;
+
+            _gl.GetTexLevelParameter(levelTarget, 0, GetTextureParameter.TextureHeight, out int h);
+            _height = (uint)h;
+
+            //NOTE: sometimes in level 0 sometimes 1, to investigate
+            for (var level = 0; level < 2; level++)
+            {
+                _gl.GetTexLevelParameter(levelTarget, level, GetTextureParameter.TextureInternalFormat, out int intf);
+                if (intf != 0)
+                    break;
+                _internalFormat = (InternalFormat)intf;
+            }
+            //
+
+            if (isMultiSample)
+            {
+                _gl.GetTexLevelParameter(levelTarget, 0, GLEnum.TextureSamples, out int sc);
+                SampleCount = (uint)sc;
+            }
+            else
+            {
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureWrapS, out int ws);
+                WrapS = (TextureWrapMode)ws;
+
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureWrapT, out int wt);
+                WrapT = (TextureWrapMode)wt;
+
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureMinFilter, out int min);
+                MinFilter = (TextureMinFilter)min;
+
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureMagFilter, out int mag);
+                MagFilter = (TextureMagFilter)mag;
+            }
+
+            _gl.GetTexParameter(Target, GetTextureParameter.TextureBaseLevelSgis, out int bl);
+            BaseLevel = (uint)bl;
+
+            _gl.GetTexParameter(Target, GetTextureParameter.TextureMaxLevelSgis, out int ml);
+            MaxLevel = (uint)ml;
+
+            Unbind();
+        }
+
+        public unsafe IList<TextureData>? Read(TextureFormat format, uint startMipLevel = 0, uint endMipLevel = 0)
+        {
+            var result = new List<TextureData>();
+
+            void ReadTarget(TextureTarget mainTarget, TextureTarget target, uint mipLevel, uint face = 0)
+            {
+                _gl.BindTexture(mainTarget, _handle);
+
+                _gl.GetTexLevelParameter(target, (int)mipLevel, GetTextureParameter.TextureWidth, out int w);
+                _gl.GetTexLevelParameter(target, (int)mipLevel, GetTextureParameter.TextureWidth, out int h);
+                _gl.GetTexLevelParameter(target, (int)mipLevel, GetTextureParameter.TextureInternalFormat, out int intFormat);
+
+                var pixelSize = format switch
+                {
+                    TextureFormat.Rgba32 => 32,
+                    TextureFormat.Rgb24 => 24,
+                    TextureFormat.RgbFloat => 32 * 3,
+                    TextureFormat.RgbaFloat => 32 * 4,
+                    _ => throw new NotSupportedException()
+                };
+
+                var item = new TextureData
+                {
+                    Width = (uint)w,
+                    Height = (uint)h,
+                    Format = format,
+                    MipLevel = mipLevel,
+                    Face = face
+                };
+                item.Data = new byte[pixelSize * item.Width * item.Height / 8];
+
+                GetPixelFormat(format, out var pixelFormat, out var pixelType);
+
+                fixed (byte* pData = item.Data)
+                    _gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, pData);
+
+                _gl.BindTexture(mainTarget, 0);
+
+                result.Add(item);
+            }
+
+            for (var i = startMipLevel; i <= endMipLevel; i++)
+            {
+                if (Target == TextureTarget.TextureCubeMap)
+                {
+                    for (var j = 0; j < 6; j++)
+                        ReadTarget(TextureTarget.TextureCubeMap, TextureTarget.TextureCubeMapPositiveX + j, i, (uint)j);
+                }
+                else
+                    ReadTarget(Target, Target, i);
+            }
+
+            return result;
+        }
+
+        protected static void GetPixelFormat(TextureFormat format, out PixelFormat pixelFormat, out PixelType pixelType)
+        {
+            pixelFormat = format switch
+            {
+                TextureFormat.Depth32Float or
+                TextureFormat.Depth24Float => PixelFormat.DepthComponent,
+
+                TextureFormat.Depth24Stencil8 => PixelFormat.DepthStencil,
+
+                TextureFormat.SRgba32 or
+                TextureFormat.Rgba32 => PixelFormat.Rgba,
+
+                TextureFormat.SBgra32 or
+                TextureFormat.Bgra32 => PixelFormat.Bgra,
+
+                TextureFormat.Gray8 => PixelFormat.Red,
+
+                TextureFormat.Rgb24 => PixelFormat.Rgb,
+
+                TextureFormat.RgbFloat => PixelFormat.Rgb,
+
+                TextureFormat.RgbaFloat => PixelFormat.Rgba,
+
+                _ => throw new NotSupportedException(),
+            };
+
+            pixelType = format switch
+            {
+                TextureFormat.Depth32Float or
+                TextureFormat.RgbFloat or
+                TextureFormat.RgbaFloat or
+                TextureFormat.Depth24Float => PixelType.Float,
+
+                TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
+
+                TextureFormat.Rgba32 or
+                TextureFormat.Bgra32 or
+                TextureFormat.Gray8 or
+                TextureFormat.Rgb24 or
+                TextureFormat.SRgb24 or
+                TextureFormat.SBgra32 or
+                TextureFormat.SRgba32 => PixelType.UnsignedByte,
+
+                _ => throw new NotSupportedException(),
+            };
+
+        }
+
+        protected static InternalFormat GetInternalFormat(TextureFormat format, TextureCompressionFormat compression)
+        {
+            if (compression == TextureCompressionFormat.Uncompressed)
+            {
+                return format switch
+                {
+                    TextureFormat.Depth32Float => InternalFormat.DepthComponent32,
+                    TextureFormat.Depth24Float => InternalFormat.DepthComponent24,
+                    TextureFormat.Depth24Stencil8 => InternalFormat.Depth24Stencil8Oes,
+
+                    TextureFormat.SBgra32 or
+                    TextureFormat.SRgba32 => InternalFormat.Srgb8Alpha8,
+
+                    TextureFormat.Rgba32 or
+                    TextureFormat.Bgra32 => InternalFormat.Rgba8,
+
+                    TextureFormat.Gray8 => InternalFormat.R8,
+
+                    _ => throw new NotSupportedException(),
+                };
+            }
+
+            if (compression == TextureCompressionFormat.Etc2)
+            {
+                return format switch
+                {
+                    TextureFormat.Rgb24 => InternalFormat.CompressedRgb8Etc2,
+                    TextureFormat.Rgba32 => InternalFormat.CompressedRgba8Etc2Eac,
+                    TextureFormat.SRgb24 => InternalFormat.CompressedSrgb8Etc2,
+                    TextureFormat.SRgba32 => InternalFormat.CompressedSrgb8Alpha8Etc2Eac,
+                    _ => throw new NotSupportedException(format.ToString()),
+                };
+            }
+            
+            if (compression == TextureCompressionFormat.Etc1)
+            {
+                return InternalFormat.Etc1Rgb8Oes;
+            }
+
+            throw new NotSupportedException();
+        }
+
+        public unsafe void Update(uint width, uint height, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null)
+        {
+            _width = width;
+            _height = height;
+
+            Bind();
+
+            _internalFormat = GetInternalFormat(format, compression);
+
+            if (compression == TextureCompressionFormat.Uncompressed)
+            {
+                if (SampleCount > 1)
+                {
+                    _gl.TexStorage2DMultisample(
+                         Target,
+                         SampleCount,
+                         (SizedInternalFormat)_internalFormat,
+                         width,
+                         height,
+                         true);
+                }
+                else
+                {
+                    if (IsDepth)
+                    {
+                        _gl.TexStorage2D(Target,
+                            1,
+                            (SizedInternalFormat)_internalFormat,
+                            width,
+                            height);
+                    }
+                    else
+                    {
+                        GetPixelFormat(format, out var pixelFormat, out var pixelType);
+
+                        if (data != null && data.Count > 0)
+                        {
+                            foreach (var level in data)
+                            {
+                                fixed (byte* pData = level.Data)
+                                {
+                                    _gl.TexImage2D(
+                                        Target,
+                                        (int)level.MipLevel,
+                                        _internalFormat,
+                                        level.Width,
+                                        level.Height,
+                                        0,
+                                        pixelFormat,
+                                        pixelType,
+                                        pData);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _gl.TexImage2D(
+                                Target,
+                                0,
+                                _internalFormat,
+                                width,
+                                height,
+                                0,
+                                pixelFormat,
+                                pixelType,
+                                null);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Debug.Assert(data != null);
+
+                foreach (var level in data)
+                {
+                    fixed (byte* pData = level.Data)
+                    {
+                        _gl.CompressedTexImage2D(
+                            Target,
+                            (int)level.MipLevel,
+                            _internalFormat,
+                            level.Width,
+                            level.Height,
+                            0,
+                            (uint)level.Data!.Length,
+                            pData);
+                    }
+                }
+
+                _isCompressed = true;
+            }
+
+            if (data != null)
+            {
+                if (data.Count == 1)
+                {
+                    if (MinFilter == TextureMinFilter.LinearMipmapLinear)
+                    {
+                        if (!_isCompressed)
+                        {
+                            _gl.GenerateMipmap(Target);
+                            _gl.GetTexParameter(Target, GetTextureParameter.TextureMaxLevelSgis, out int ml);
+                            MaxLevel = (uint)ml;
+                        }
+                        else
+                            MinFilter = TextureMinFilter.Linear;
+                    }
+                }
+                else
+                {
+                    MaxLevel = data[data.Count - 1].MipLevel;
+                    MinFilter = TextureMinFilter.LinearMipmapLinear;
+                }
+            }
+
+            Update();
+        }
+
+
+        public void Update()
+        {
+            Bind();
+
+            bool isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
+
+            if (!isMultiSample)
+            {
+                _gl.TexParameter(Target, TextureParameterName.TextureWrapS, (int)WrapS);
+                _gl.TexParameter(Target, TextureParameterName.TextureWrapT, (int)WrapT);
+                _gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)MinFilter);
+                _gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
+            }
+
+            if (!IsDepth)
+            {
+                _gl.TexParameter(Target, TextureParameterName.TextureBaseLevel, BaseLevel);
+                _gl.TexParameter(Target, TextureParameterName.TextureMaxLevel, MaxLevel);
+            }
+
+            Unbind();
+        }
+
+        public void Bind()
+        {
+            _gl.BindTexture(Target, _handle);
+        }
+
+        public void Unbind()
+        {
+            _gl.BindTexture(Target, 0);
+        }
+
+        public override void Dispose()
+        {
+            if (_handle != 0)
+            {
+                _gl.DeleteTexture(_handle);
+                _handle = 0;
+            }
+            GC.SuppressFinalize(this);
+        }
+
+
+        public TextureWrapMode WrapS;
+
+        public TextureWrapMode WrapT;
+
+        public TextureMinFilter MinFilter;
+
+        public TextureMagFilter MagFilter;
+
+        public uint SampleCount;
+
+        public uint BaseLevel;
+
+        public uint MaxLevel;
+
+        public TextureTarget Target;
+
+        public InternalFormat InternalFormat => _internalFormat;
+
+        public bool IsCompressed => _isCompressed;
+
+        public uint Width => _width;
+
+        public uint Height => _height;
+
+        public bool IsDepth => _internalFormat >= InternalFormat.DepthComponent16 && _internalFormat <= InternalFormat.DepthComponent32Sgix;
+    }
+}

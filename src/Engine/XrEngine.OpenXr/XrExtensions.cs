@@ -208,7 +208,7 @@ namespace XrEngine.OpenXr
                 else
                     factory = (gl, colorTex, depthTex) =>
                     {
-                        var target = gl.GetTexture2DTarget(colorTex);
+                        var target = gl.GetTextureTarget(colorTex);
                         if (target == TextureTarget.Texture2DMultisample)
                             return GlTextureRenderTarget.Attach(gl, colorTex, depthTex, xrApp.RenderOptions.SampleCount);
                         else

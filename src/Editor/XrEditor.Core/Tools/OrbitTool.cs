@@ -15,10 +15,10 @@ namespace XrEditor
 
     }
 
-    public class OrbitTool : BaseMouseTool
+    public class OrbitTool : BasePointerTool
     {
         private Spherical _startPos;
-        private PointerEvent _startMouse;
+        private Vector2 _startMouse;
         private OrbitAction _action;
         private Matrix4x4 _startWorld;
         private Vector3 _startTarget;
@@ -38,7 +38,7 @@ namespace XrEditor
             ZoomSpeed = 0.001f;
         }
 
-        protected override void OnMouseDown(PointerEvent ev)
+        protected override void OnPointerDown(Pointer2Event ev)
         {
             if (_sceneView?.Camera == null || _sceneView?.RenderSurface == null)
                 return;
@@ -47,13 +47,14 @@ namespace XrEditor
 
             var relPos = (camera.WorldPosition - camera.Target);
 
-            _startMouse = ev;
+            _startMouse = ev.Position;
 
             if (ev.IsLeftDown)
             {
                 _action = OrbitAction.Rotate;
                 _startPos = Spherical.FromCartesian(relPos);
                 _sceneView.RenderSurface.CapturePointer();
+                _sceneView.ActiveTool = this;
             }
             else if (ev.IsRightDown)
             {
@@ -66,12 +67,13 @@ namespace XrEditor
                 _planeZ = targetZ.Z / targetZ.W;
                 _startPoint = ToWorld(ev, _planeZ);
                 _sceneView.RenderSurface.CapturePointer();
+                _sceneView.ActiveTool = this;
             }
 
-            base.OnMouseDown(ev);
+            base.OnPointerDown(ev);
         }
 
-        protected override void OnWheelMove(PointerEvent ev)
+        protected override void OnWheelMove(Pointer2Event ev)
         {
             if (_sceneView?.Camera == null)
                 return;
@@ -84,9 +86,12 @@ namespace XrEditor
             camera.WorldPosition = camera.Target + curDir.Normalize() * newLen;
         }
 
-        protected override void OnMouseMove(PointerEvent ev)
+        protected override void OnPointerMove(Pointer2Event ev)
         {
             if (_sceneView?.Camera == null)
+                return;
+
+            if (_sceneView.ActiveTool != this)
                 return;
 
             var camera = (PerspectiveCamera)_sceneView.Camera;
@@ -95,8 +100,8 @@ namespace XrEditor
             {
                 var newPos = _startPos;
 
-                newPos.Azm = MathF.Max(0.0001f, MathF.Min(MathF.PI, newPos.Azm - (ev.Y - _startMouse.Y) * RotationSpeed));
-                newPos.Pol += (ev.X - _startMouse.X) * RotationSpeed;
+                newPos.Azm = MathF.Max(0.0001f, MathF.Min(MathF.PI, newPos.Azm - (ev.Position.Y - _startMouse.Y) * RotationSpeed));
+                newPos.Pol += (ev.Position.X - _startMouse.X) * RotationSpeed;
 
                 var newPosVec = camera.Target + newPos.ToCartesian();
 
@@ -114,15 +119,18 @@ namespace XrEditor
             }
         }
 
-        protected override void OnMouseUp(PointerEvent ev)
+        protected override void OnPointerUp(Pointer2Event ev)
         {
             if (_sceneView?.RenderSurface == null)
                 return;
 
+            if (_sceneView.ActiveTool == this)
+                _sceneView.ActiveTool = null;
+
             _sceneView.RenderSurface.ReleasePointer();
             _action = OrbitAction.None;
 
-            base.OnMouseUp(ev);
+            base.OnPointerUp(ev);
         }
 
         public float RotationSpeed { get; set; }

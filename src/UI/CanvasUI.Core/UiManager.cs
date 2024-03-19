@@ -6,7 +6,8 @@ namespace CanvasUI
     {
         private static UiElement? _activeFocus;
         private static UiElement? _hoverElement;
-        private static Dictionary<int, UiElement?> _pointerCaptures = [];
+        private static readonly Dictionary<int, UiElement?> _pointerCaptures = [];
+        private static Dictionary<Type, Queue<UiEvent>> _eventPool = [];
 
 
         public static void SetPointerCapture(int pointerId, UiElement? element)
@@ -33,27 +34,29 @@ namespace CanvasUI
             foreach (var item in curParents)
             {
                 if (!newParents.Contains(item))
-                    item.DispatchEvent(new UiPointerEvent
-                    {
-                        Buttons = buttons,
-                        WindowPosition = screenPos,
-                        Dispatch = UiEventDispatch.Direct,
-                        Source = item,
-                        Type = UiEventType.PointerLeave
-                    });
+                {
+                    var ev = AcquireEvent<UiPointerEvent>();
+                    ev.Buttons = buttons;
+                    ev.WindowPosition = screenPos;
+                    ev.Dispatch = UiEventDispatch.Direct;
+                    ev.Source = item;
+                    ev.Type = UiEventType.PointerLeave;
+                    item.DispatchEvent(ev);
+                }
             }
 
             foreach (var item in newParents)
             {
                 if (!curParents.Contains(item))
-                    item.DispatchEvent(new UiPointerEvent
-                    {
-                        Buttons = buttons,
-                        WindowPosition = screenPos,
-                        Dispatch = UiEventDispatch.Direct,
-                        Source = item,
-                        Type = UiEventType.PointerEnter
-                    });
+                {
+                    var ev = AcquireEvent<UiPointerEvent>();
+                    ev.Buttons = buttons;
+                    ev.WindowPosition = screenPos;
+                    ev.Dispatch = UiEventDispatch.Direct;
+                    ev.Source = item;
+                    ev.Type = UiEventType.PointerEnter;
+                    item.DispatchEvent(ev);
+                }
             }
 
             _hoverElement = element;
@@ -65,23 +68,50 @@ namespace CanvasUI
             if (_activeFocus == element)
                 return;
 
-            _activeFocus?.DispatchEvent(new UiRoutedEvent
-            {
-                Source = _activeFocus,
-                Type = UiEventType.LostFocus,
-                Dispatch = UiEventDispatch.Bubble
-            });
 
+            if (_activeFocus != null)
+            {
+                var ev = AcquireEvent<UiRoutedEvent>();
+                ev.Source = _activeFocus;
+                ev.Type = UiEventType.LostFocus;
+                ev.Dispatch = UiEventDispatch.Bubble;
+                _activeFocus.DispatchEvent(ev);
+            }
+           
             _activeFocus = element;
 
-            _activeFocus?.DispatchEvent(new UiRoutedEvent
+            if (_activeFocus != null)
             {
-                Source = _activeFocus,
-                Type = UiEventType.GotFocus,
-                Dispatch = UiEventDispatch.Bubble
-            });
+                var ev = AcquireEvent<UiRoutedEvent>();
+                ev.Source = _activeFocus;
+                ev.Type = UiEventType.GotFocus;
+                ev.Dispatch = UiEventDispatch.Bubble;
+                _activeFocus.DispatchEvent(ev);
+            }
         }
 
+        public static T AcquireEvent<T>() where T : UiEvent, new()
+        {
+            if (!_eventPool.TryGetValue(typeof(T), out var pool))
+            {
+                pool = [];
+                _eventPool[typeof(T)] = pool;   
+            }
+
+            if (pool.Count == 0)
+                pool.Enqueue(new T());
+            
+            var res = (T)pool.Dequeue();
+            res.Timestamp = DateTime.Now.Ticks;
+            return res;
+        }
+
+        public static void ReleaseEvent(UiEvent ev)
+        {
+            var pool = _eventPool[ev.GetType()];
+            if (!pool.Contains(ev))
+                pool.Enqueue(ev);
+        }
 
         public static UiElement? ActiveFocus => _activeFocus;
 

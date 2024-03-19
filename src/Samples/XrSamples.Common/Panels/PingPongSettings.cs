@@ -1,4 +1,5 @@
 ﻿using CanvasUI;
+using Microsoft.Extensions.Logging;
 using PhysX;
 using XrEngine;
 using XrEngine.OpenXr;
@@ -98,7 +99,11 @@ namespace XrSamples
             system.Scene.SetFlag(PxSceneFlag.EnableCcd, EnableCCD);
 
             if (_filePath != null)
+            {
                 Save();
+                XrPlatform.Current!.Logger.LogInformation("Settings SAVED");
+            }
+
         }
 
         public PhysicSettings Ball { get; set; }

@@ -38,6 +38,16 @@ namespace XrEditor
             return _pointer.GetPointerStatus();
         }
 
+        public void CapturePointer()
+        {
+            _pointer.CapturePointer();
+        }
+
+        public void ReleasePointer()
+        {
+            _pointer.ReleasePointer();
+        }
+
         public int Id => _pointer.Id;   
     }
 
@@ -306,5 +316,7 @@ namespace XrEditor
         public IRenderSurface RenderSurface => _renderSurface;
 
         public IEnumerable<Camera> CameraList => _scene?.Descendants<Camera>() ?? [];
+
+        public IEditorTool? ActiveTool { get;  set; }
     }
 }
