@@ -8,12 +8,12 @@ namespace XrEditor
 {
 
 
-    public abstract class BaseMouseTool : IEditorTool
+    public abstract class BasePointerTool : IEditorTool
     {
         protected SceneView? _sceneView;
         protected bool _isActive;
 
-        public BaseMouseTool()
+        public BasePointerTool()
         {
             _isActive = true;
         }
@@ -21,32 +21,32 @@ namespace XrEditor
         public virtual void Attach(SceneView view)
         {
             _sceneView = view;
-            _sceneView.RenderSurface.PointerDown += OnMouseDown;
-            _sceneView.RenderSurface.PointerUp += OnMouseUp;
-            _sceneView.RenderSurface.PointerMove += OnMouseMove;
+            _sceneView.RenderSurface.PointerDown += OnPointerDown;
+            _sceneView.RenderSurface.PointerUp += OnPointerUp;
+            _sceneView.RenderSurface.PointerMove += OnPointerMove;
             _sceneView.RenderSurface.WheelMove += OnWheelMove; ;
         }
 
 
-        protected Vector3 ToView(PointerEvent ev, float z = -1f)
+        protected Vector3 ToView(Pointer2Event ev, float z = -1f)
         {
             var width = _sceneView!.RenderSurface.Size.X;
             var height = _sceneView!.RenderSurface.Size.Y;
 
             return new Vector3(
-                2.0f * ev.X / (float)width - 1.0f,
-                1.0f - 2.0f * ev.Y / (float)height,
+                2.0f * ev.Position.X / (float)width - 1.0f,
+                1.0f - 2.0f * ev.Position.Y / (float)height,
                 z
             );
         }
 
-        protected Vector3 ToWorld(PointerEvent ev, float z = -1f)
+        protected Vector3 ToWorld(Pointer2Event ev, float z = -1f)
         {
             var normPoint = ToView(ev, z);
             return _sceneView!.Camera!.Unproject(normPoint);
         }
 
-        protected Ray3 ToRay(PointerEvent ev)
+        protected Ray3 ToRay(Pointer2Event ev)
         {
             if (_sceneView?.Camera == null)
                 return new Ray3();
@@ -65,21 +65,21 @@ namespace XrEditor
             };
         }
 
-        protected virtual void OnWheelMove(PointerEvent ev)
+        protected virtual void OnWheelMove(Pointer2Event ev)
         {
 
         }
-        protected virtual void OnMouseDown(PointerEvent ev)
-        {
-
-        }
-
-        protected virtual void OnMouseUp(PointerEvent ev)
+        protected virtual void OnPointerDown(Pointer2Event ev)
         {
 
         }
 
-        protected virtual void OnMouseMove(PointerEvent ev)
+        protected virtual void OnPointerUp(Pointer2Event ev)
+        {
+
+        }
+
+        protected virtual void OnPointerMove(Pointer2Event ev)
         {
 
         }

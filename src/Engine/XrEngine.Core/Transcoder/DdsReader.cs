@@ -66,7 +66,7 @@ namespace XrEngine
             var format = TextureFormat.Rgb24;
 
 
-            return ReadMips(memStream, (uint)file.header.dwWidth, (uint)file.header.dwHeight, (uint)file.header.dwMipMapCount, comp, format);
+            return ReadData(memStream, (uint)file.header.dwWidth, (uint)file.header.dwHeight, (uint)file.header.dwMipMapCount, 1, comp, format);
         }
 
         public static readonly DdsReader Instance = new();

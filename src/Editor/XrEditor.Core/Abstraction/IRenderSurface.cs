@@ -6,7 +6,7 @@ using XrEngine.Interaction;
 
 namespace XrEditor
 {
-    public interface IRenderSurface : IPointerEventSource
+    public interface IRenderSurface : IPointer2EventSource
     {
         event EventHandler SizeChanged;
 

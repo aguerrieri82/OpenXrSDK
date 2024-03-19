@@ -13,10 +13,13 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<RunAOTCompilation>True</RunAOTCompilation>
-		<PublishTrimmed>True</PublishTrimmed>
+		<RunAOTCompilation>False</RunAOTCompilation>
+		<PublishTrimmed>False</PublishTrimmed>
 		<EnableLLVM>False</EnableLLVM>
+		<Optimize>True</Optimize>
+		<EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
 		<DebugSymbols>True</DebugSymbols>
+		<AndroidManagedSymbols>True</AndroidManagedSymbols>
 		<AndroidLinkTool>r8</AndroidLinkTool>
 		<AndroidEnableProfiledAot>True</AndroidEnableProfiledAot>
 		<AndroidPackageFormat>apk</AndroidPackageFormat>

@@ -3,7 +3,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class Object3D : EngineObject, ILayer3DObject
+    public class Object3D : EngineObject, ILayer3DItem
     {
         protected Bounds3 _worldBounds;
         private Matrix4x4 _worldMatrixInverse;

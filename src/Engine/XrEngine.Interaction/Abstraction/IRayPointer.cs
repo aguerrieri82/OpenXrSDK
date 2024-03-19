@@ -6,7 +6,7 @@ namespace XrEngine.Interaction
     {
         public Ray3 Ray;
 
-        public PointerButton Buttons;
+        public Pointer2Button Buttons;
 
         public bool IsActive;
     }
@@ -14,6 +14,10 @@ namespace XrEngine.Interaction
     public interface IRayPointer
     {
         RayPointerStatus GetPointerStatus();
+
+        void CapturePointer();
+
+        void ReleasePointer();  
 
         int Id { get; } 
     }

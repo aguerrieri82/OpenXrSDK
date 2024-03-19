@@ -78,7 +78,7 @@ namespace XrEngine
                     throw new NotSupportedException();
             }
 
-            return ReadMips(memStream, header.pixelWidth, header.pixelHeight, header.numberOfMipmapLevels, comp, format);
+            return ReadData(memStream, header.pixelWidth, header.pixelHeight, header.numberOfMipmapLevels, header.numberOfFaces, comp, format);
         }
 
         public static readonly KtxReader Instance = new();

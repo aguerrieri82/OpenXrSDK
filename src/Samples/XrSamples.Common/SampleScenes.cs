@@ -3,6 +3,7 @@ using OpenXr.Framework.Oculus;
 using PhysX;
 using PhysX.Framework;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Compression;
@@ -71,6 +72,19 @@ namespace XrSamples
             return app;
         }
 
+        public static XrEngineAppBuilder UseEnvironmentHDR(this XrEngineAppBuilder builder, string assetPath)
+        {
+            var assets = XrPlatform.Current!.AssetManager;
+
+            return builder
+            .AddRightPointer()
+            .ConfigureApp(e =>
+            {
+                var item = e.App.ActiveScene!.AddChild<EnvironmentView>();
+                item.LoadPanorama(assets.GetFsPath(assetPath));
+            });
+        }
+
         public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot)
         {
             var panel = new Window3D();
@@ -89,7 +103,9 @@ namespace XrSamples
                 .ConfigureApp(e =>
                 {
                     e.App.ActiveScene!.AddChild(panel);
-                    //panel.CreateOverlay(e.XrApp);
+
+                    if (RuntimeInformation.RuntimeIdentifier.StartsWith("android"))
+                        panel.CreateOverlay(e.XrApp);
 
                     e.App.ActiveScene.AddBehavior((_, _) =>
                     {
@@ -227,6 +243,7 @@ namespace XrSamples
                    .UseApp(app)
                    .UseScene(true)
                    .ConfigureSampleApp()
+                   .UseEnvironmentHDR("pisa.hdr")
                    .UsePhysics(new PhysicsOptions
                    {
                        LengthTolerance = settings.LengthToleranceScale,
@@ -339,7 +356,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var red = new StandardMaterial() { Color = new Color(1, 0, 0) };
+            var red = new BasicMaterial() { Color = new Color(1, 0, 0) };
 
             var data = EtcCompressor.Encode(assets.GetFsPath("TestScreen.png"), 16);
 

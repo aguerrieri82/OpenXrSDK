@@ -65,45 +65,45 @@ namespace XrEditor
 
         public IntPtr OnMessage(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            PointerEvent ev = new PointerEvent();
+            Pointer2Event ev = new Pointer2Event();
 
             switch (msg)
             {
                 case WM_MOUSEMOVE:
 
-                    ev.X = (short)(((int)lParam) & 0x0000FFFF);
-                    ev.Y = ((int)lParam) >> 16;
+                    ev.Position.X = (short)(((int)lParam) & 0x0000FFFF);
+                    ev.Position.Y = ((int)lParam) >> 16;
 
                     if (((uint)wParam & MK_LBUTTON) == MK_LBUTTON)
-                        ev.Buttons |= PointerButton.Left;
+                        ev.Buttons |= Pointer2Button.Left;
 
                     if (((uint)wParam & MK_RBUTTON) == MK_RBUTTON)
-                        ev.Buttons |= PointerButton.Right;
+                        ev.Buttons |= Pointer2Button.Right;
 
                     if (((uint)wParam & MK_MBUTTON) == MK_MBUTTON)
-                        ev.Buttons |= PointerButton.Right;
+                        ev.Buttons |= Pointer2Button.Right;
 
                     PointerMove?.Invoke(ev);
                     break;
                 case WM_MBUTTONDOWN:
                 case WM_LBUTTONDOWN:
                 case WM_RBUTTONDOWN:
-                    ev.X = (short)(((int)lParam) & 0x0000FFFF);
-                    ev.Y = ((int)lParam) >> 16;
+                    ev.Position.X = (short)(((int)lParam) & 0x0000FFFF);
+                    ev.Position.Y = ((int)lParam) >> 16;
 
                     if (msg == WM_MBUTTONDOWN)
-                        ev.Buttons = PointerButton.Middle;
+                        ev.Buttons = Pointer2Button.Middle;
                     else if (msg == WM_LBUTTONDOWN)
-                        ev.Buttons = PointerButton.Left;
+                        ev.Buttons = Pointer2Button.Left;
                     else if (msg == WM_RBUTTONDOWN)
-                        ev.Buttons = PointerButton.Right;
+                        ev.Buttons = Pointer2Button.Right;
 
                     PointerDown?.Invoke(ev);
 
                     break;
                 case WM_MOUSEWHEEL:
-                    ev.X = (short)(((int)lParam) & 0x0000FFFF);
-                    ev.Y = ((int)lParam) >> 16;
+                    ev.Position.X = (short)(((int)lParam) & 0x0000FFFF);
+                    ev.Position.Y = ((int)lParam) >> 16;
                     ev.WheelDelta = (int)wParam >> 16;
 
                     WheelMove?.Invoke(ev);
@@ -112,15 +112,15 @@ namespace XrEditor
                 case WM_MBUTTONUP:
                 case WM_LBUTTONUP:
                 case WM_RBUTTONUP:
-                    ev.X = (short)(((int)lParam) & 0x0000FFFF);
-                    ev.Y = ((int)lParam) >> 16;
+                    ev.Position.X = (short)(((int)lParam) & 0x0000FFFF);
+                    ev.Position.Y = ((int)lParam) >> 16;
 
                     if (msg == WM_MBUTTONUP)
-                        ev.Buttons = PointerButton.Middle;
+                        ev.Buttons = Pointer2Button.Middle;
                     else if (msg == WM_LBUTTONUP)
-                        ev.Buttons = PointerButton.Left;
+                        ev.Buttons = Pointer2Button.Left;
                     else if (msg == WM_RBUTTONUP)
-                        ev.Buttons = PointerButton.Right;
+                        ev.Buttons = Pointer2Button.Right;
 
                     PointerUp?.Invoke(ev);
                     break;

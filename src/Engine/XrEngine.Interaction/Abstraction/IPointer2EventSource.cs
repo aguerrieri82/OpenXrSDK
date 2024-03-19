@@ -1,9 +1,9 @@
 ﻿namespace XrEngine.Interaction
 {
 
-    public delegate void PointerEventDelegate(PointerEvent ev);
+    public delegate void PointerEventDelegate(Pointer2Event ev);
 
-    public interface IPointerEventSource
+    public interface IPointer2EventSource
     {
         void CapturePointer();
 

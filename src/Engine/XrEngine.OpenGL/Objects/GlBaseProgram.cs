@@ -114,9 +114,15 @@ namespace XrEngine.OpenGL
 
         public unsafe void SetUniform(string name, Matrix4x4 value, bool optional = false)
         {
-
             _gl.UniformMatrix4(LocateUniform(name, optional), 1, false, (float*)&value);
         }
+
+
+        public unsafe void SetUniform(string name, Matrix3x3 value, bool optional = false)
+        {
+            _gl.UniformMatrix3(LocateUniform(name, optional), 1, false, (float*)&value);
+        }
+
 
         public void SetUniform(string name, float value, bool optional = false)
         {
@@ -147,16 +153,18 @@ namespace XrEngine.OpenGL
             }
         }
 
-        public void LoadTexture(Texture2D value, int slot = 0)
+        public void LoadTexture(Texture value, int slot = 0)
         {
+            var tex2d = value as Texture2D ?? throw new NotSupportedException();
+
             _gl.ActiveTexture(TextureUnit.Texture0 + slot);
 
-            var texture = value.GetResource(a => value.CreateGlTexture(_gl, OpenGLRender.Current!.Options.RequireTextureCompression));
+            var texture = value.GetResource(a => tex2d.CreateGlTexture(_gl, OpenGLRender.Current!.Options.RequireTextureCompression));
 
             texture.Bind();
         }
 
-        public unsafe void SetUniform(string name, Texture2D value, int slot = 0, bool optional = false)
+        public unsafe void SetUniform(string name, Texture value, int slot = 0, bool optional = false)
         {
             LoadTexture(value, slot);
 
@@ -166,6 +174,8 @@ namespace XrEngine.OpenGL
                 _boundTextures[name] = slot;
             }
         }
+
+
 
         public void SetUniform(string name, float[] obj, bool optional = false)
         {

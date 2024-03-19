@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public abstract class BaseAutoLayer<T> : ILayer3D where T : ILayer3DObject
+    public abstract class BaseAutoLayer<T> : ILayer3D where T : ILayer3DItem
     {
         protected readonly ObjectId _id;
         protected readonly HashSet<T> _content = [];
@@ -65,7 +65,7 @@ namespace XrEngine
         protected abstract bool BelongsToLayer(T obj);
 
 
-        public IEnumerable<ILayer3DObject> Content => (IEnumerable<ILayer3DObject>)_content;
+        public IEnumerable<ILayer3DItem> Content => (IEnumerable<ILayer3DItem>)_content;
 
         public bool IsVisible { get; set; }
 

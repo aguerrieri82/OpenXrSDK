@@ -13,12 +13,12 @@ namespace CanvasUI
             Id = id;
         }
 
-        public void Capture(UiElement element)
+        public readonly void Capture(UiElement element)
         {
             UiManager.SetPointerCapture(Id, element);   
         }
 
-        public void Release()
+        public readonly void Release()
         {
             UiManager.SetPointerCapture(Id, null);
         }

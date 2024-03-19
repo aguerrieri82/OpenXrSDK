@@ -7,7 +7,11 @@
 
         public uint Height { get; set; }
 
+        public uint Depth { get; set; }
+
         public uint MipLevel { get; set; }
+
+        public uint Face { get; set; }
 
         public TextureFormat Format { get; set; }
 

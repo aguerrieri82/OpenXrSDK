@@ -288,6 +288,21 @@ namespace XrEngine
         }
 
 
+        public class IBLTextures
+        {
+            public TextureCube? LambertianEnv;
+            public Texture2D? LambertianLut;
+
+            public TextureCube? GGXEnv;
+            public Texture2D? GGXLUT;
+
+            public TextureCube? CharlieEnv;
+            public Texture2D? CharlieLUT;
+
+            public uint MipCount;
+        }
+
+
         class GlobalShaderHandler : IShaderHandler
         {
             public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)

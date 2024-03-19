@@ -34,13 +34,24 @@
                 result.AlignY = 4;
                 result.BitPerPixel = 4;
             }
+            else if (comp == TextureCompressionFormat.Uncompressed)
+            {
+                if (format == TextureFormat.RgbFloat)
+                {
+                    result.AlignX = 1;
+                    result.AlignY = 1;
+                    result.BitPerPixel = 32;
+                }
+                else
+                    throw new NotSupportedException();
+            }
             else
                 throw new NotSupportedException();
 
             return result;
         }
 
-        protected static IList<TextureData> ReadMips(Stream stream, uint width, uint height, uint mipCount, TextureCompressionFormat comp, TextureFormat format)
+        protected static IList<TextureData> ReadData(Stream stream, uint width, uint height, uint mipCount, uint faceCount, TextureCompressionFormat comp, TextureFormat format)
         {
             var padding = GetFormatAlign(comp, format);
 
@@ -51,28 +62,32 @@
 
             var results = new List<TextureData>();
 
-            for (var i = 0; i < mipCount; i++)
+            for (var m = 0; m < mipCount; m++)
             {
-                var item = new TextureData
+                for (var f = 0 ; f < faceCount; f++)
                 {
-                    Width = (uint)MathF.Max(1, width >> i),
-                    Height = (uint)MathF.Max(1, height >> i),
-                    MipLevel = (uint)i,
-                    Format = format,
-                    Compression = comp,
-                };
+                    var item = new TextureData
+                    {
+                        Width = (uint)MathF.Max(1, width >> m),
+                        Height = (uint)MathF.Max(1, height >> m),
+                        MipLevel = (uint)m,
+                        Format = format,
+                        Face = (uint)f,
+                        Compression = comp,
+                    };
 
-                var size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * padding.BitPerPixel) / 8;
+                    var size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * padding.BitPerPixel) / 8;
 
-                item.Data = new byte[size];
+                    item.Data = new byte[size];
 
-                var totRead = stream.Read(item.Data);
+                    var totRead = stream.Read(item.Data);
 
-                results.Add(item);
+                    results.Add(item);
 
-                if (totRead != item.Data.Length)
-                    break;
-
+                    if (totRead != item.Data.Length)
+                        break;
+                }
+             
             }
 
             return results;

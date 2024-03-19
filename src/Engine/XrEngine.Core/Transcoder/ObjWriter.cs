@@ -3,11 +3,11 @@ using System.Text;
 
 namespace XrEngine
 {
-    public class ObjEncoder
+    public class ObjWriter
     {
         protected readonly StringBuilder _builder;
 
-        public ObjEncoder()
+        public ObjWriter()
         {
             _builder = new StringBuilder();
             Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;

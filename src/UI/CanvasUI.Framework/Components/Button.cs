@@ -14,6 +14,7 @@ namespace CanvasUI
 
         protected override void OnPointerDown(UiPointerEvent ev)
         {
+            ev.Pointer!.Capture(this);
             _oldBk = Style.BackgroundColor;
             Style.BackgroundColor = new Color(1, 1, 1);
             base.OnPointerDown(ev);
@@ -21,8 +22,13 @@ namespace CanvasUI
 
         protected override void OnPointerUp(UiPointerEvent ev)
         {
-            Click?.Invoke(this, EventArgs.Empty);
+            ev.Pointer!.Release();
+
+            if (_clientRect.Contains(ev.WindowPosition))
+                Click?.Invoke(this, EventArgs.Empty);
+
             Style.BackgroundColor = _oldBk;
+
             base.OnPointerUp(ev);
         }
 

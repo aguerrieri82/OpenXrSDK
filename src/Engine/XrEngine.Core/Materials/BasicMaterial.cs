@@ -3,22 +3,22 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class StandardMaterial : ShaderMaterial, IColorSource
+    public class BasicMaterial : ShaderMaterial, IColorSource
     {
         static readonly Shader SHADER;
 
-        static StandardMaterial()
+        static BasicMaterial()
         {
             SHADER = new Shader
             {
-                FragmentSourceName = "standard.frag",
+                FragmentSourceName = "basic.frag",
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = true
             };
         }
 
-        public StandardMaterial()
+        public BasicMaterial()
         {
             Specular.Rgb(0.5f);
             Ambient = Color.White;

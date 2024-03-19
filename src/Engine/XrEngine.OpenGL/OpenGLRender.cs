@@ -57,7 +57,7 @@ namespace XrEngine.OpenGL
         public GlProgramInstance? ProgramInstance;
     }
 
-    public class OpenGLRender : IRenderEngine, ISurfaceProvider
+    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor
     {
         protected struct GlState
         {
@@ -132,8 +132,6 @@ namespace XrEngine.OpenGL
             _gl.ClearDepth(1.0f);
             _gl.ClearColor(color.R, color.G, color.B, color.A);
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-
         }
 
 
@@ -297,8 +295,6 @@ namespace XrEngine.OpenGL
         {
             target.Begin();
 
-
-
             if (!_lastView.Equals(view))
             {
                 _gl.Viewport(view.X, view.Y, view.Width, view.Height);
@@ -319,7 +315,7 @@ namespace XrEngine.OpenGL
 
             int skipCount = 0;
 
-            foreach (var shader in _content.ShaderContents)
+            foreach (var shader in _content.ShaderContents.OrderBy(a=> a.Key.Priority))
             {
                 var progGlobal = shader.Value!.ProgramGlobal;
 
@@ -401,7 +397,7 @@ namespace XrEngine.OpenGL
 
             if (!_depthCache.TryGetValue(depthId.Value, out var texture))
             {
-                var glTexture = new GlTexture2D(_gl, depthId.Value);
+                var glTexture = new GlTexture(_gl, depthId.Value);
                 glTexture.Bind();
                 _gl.TexParameter(glTexture.Target, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 glTexture.Unbind();
@@ -433,8 +429,6 @@ namespace XrEngine.OpenGL
 
         public void EndDrawSurface()
         {
-
-
             _glState = new GlState();
             _lastView.Width = 0;
 
@@ -465,7 +459,7 @@ namespace XrEngine.OpenGL
                 if (handle == 0)
                     return texture.CreateGlTexture(_gl, _options.RequireTextureCompression);
 
-                return new GlTexture2D(_gl, (uint)handle);
+                return new GlTexture(_gl, (uint)handle);
             });
 
 
@@ -499,6 +493,67 @@ namespace XrEngine.OpenGL
             var props = new SKSurfaceProperties(SKPixelGeometry.RgbVertical);
 
             return SKSurface.Create(_grContext, grTexture, ImageUtils.GetFormat(texture.Format), props);
+        }
+
+        public PbrMaterial.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
+        {
+            using var processor = new GlIBLProcessorV2(_gl);
+
+            processor.Use8Bit = options.Use8Bit;
+            processor.Resolution = options.Resolution;
+            processor.SampleCount = options.SampleCount;
+            processor.LodBias = options.LodBias;
+            processor.MipCount = options.MipLevelCount;
+
+            processor.Initialize(data, options.ShaderResolver!);
+
+            processor.PanoramaToCubeMap();
+
+            var result = new PbrMaterial.IBLTextures
+            {
+                MipCount = processor.MipCount
+            };
+
+            var cube = (TextureCube)_gl.TexIdToEngineTexture(processor.OutCubeMapId, TextureFormat.RgbFloat);
+
+            using (var out1 = File.OpenWrite("d:\\env.pvr"))
+                PvrTranscoder.Instance.Write(out1, cube.Data!);
+
+
+            uint envId, lutId;
+
+            if ((options.Mode & IBLProcessMode.Lambertian) == IBLProcessMode.Lambertian)
+            {
+                processor.ApplyFilter(GlIBLProcessorV2.Distribution.Lambertian, out envId, out lutId);
+
+                result.LambertianEnv = (TextureCube)_gl.TexIdToEngineTexture(envId, TextureFormat.RgbFloat);
+                result.LambertianLut = (Texture2D)_gl.TexIdToEngineTexture(lutId, TextureFormat.RgbFloat);
+
+                using (var out1 = File.OpenWrite("d:\\lamb.pvr"))
+                    PvrTranscoder.Instance.Write(out1, result.LambertianEnv.Data!);
+
+                using (var out1 = File.OpenWrite("d:\\lamb-lut.pvr"))
+                    PvrTranscoder.Instance.Write(out1, result.LambertianLut.Data!);
+            }
+
+            if ((options.Mode & IBLProcessMode.GGX) == IBLProcessMode.GGX)
+            {
+                processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGX, out envId, out lutId);
+      
+                result.GGXEnv = (TextureCube)_gl.TexIdToEngineTexture(envId);
+                result.GGXLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId, TextureFormat.Rgb24);
+            }
+
+            if ((options.Mode & IBLProcessMode.Charlie) == IBLProcessMode.Charlie)
+            {
+                processor.ApplyFilter(GlIBLProcessorV2.Distribution.Charlie, out envId, out lutId);
+
+                result.CharlieEnv = (TextureCube)_gl.TexIdToEngineTexture(envId);
+                result.CharlieLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId, TextureFormat.Rgb24);
+            }
+
+         
+            return result;
         }
 
         public GL GL => _gl;

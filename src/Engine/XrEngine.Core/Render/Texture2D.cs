@@ -4,6 +4,8 @@ namespace XrEngine
 {
     public enum TextureFormat
     {
+        Unknown,
+
         Depth32Float,
         Depth24Float,
         Depth24Stencil8,
@@ -11,6 +13,9 @@ namespace XrEngine
         Rgb24,
         Rgba32,
         Bgra32,
+
+        RgbFloat,
+        RgbaFloat,
 
         SRgb24,
         SBgra32,
@@ -48,44 +53,11 @@ namespace XrEngine
 
     public class Texture2D : Texture
     {
-        public static Texture2D FromDdsImage(Stream stream)
-        {
-            var data = DdsReader.Instance.Read(stream);
-            return FromData(data);
-        }
-
-        public static Texture2D FromPkmImage(Stream stream)
-        {
-            var data = PkmReader.Instance.Read(stream);
-            return FromData(data);
-        }
-
-        public static Texture2D FromKtxImage(Stream stream)
-        {
-            var data = KtxReader.Instance.Read(stream);
-            return FromData(data);
-        }
-
+  
         public static Texture2D FromPvrImage(Stream stream)
         {
-            var data = PvrDecoder.Instance.Read(stream);
+            var data = PvrTranscoder.Instance.Read(stream);
             return FromData(data);
-        }
-
-        public static Texture2D FromImage(SKBitmap image)
-        {
-            var data = new TextureData
-            {
-                Compression = TextureCompressionFormat.Uncompressed,
-                Format = ImageUtils.GetFormat(image.ColorType),
-                Data = image.GetPixelSpan().ToArray(),
-                Height = (uint)image.Height,
-                Width = (uint)image.Width,
-            };
-
-            image.Dispose();
-
-            return FromData([data]);
         }
 
         public static Texture2D FromImage(string fileName)
@@ -106,41 +78,41 @@ namespace XrEngine
             return result;
         }
 
-        public static Texture2D FromData(IList<TextureData> data)
+        public static Texture2D FromImage(SKBitmap image)
         {
-            return new Texture2D
+            var data = new TextureData
             {
-                Data = data,
-                Width = data[0].Width,
-                Height = data[0].Height,
-                Format = data[0].Format,
-                Compression = data[0].Compression,
-                MagFilter = ScaleFilter.Linear,
-                MinFilter = data.Count > 1 ? ScaleFilter.LinearMipmapLinear : ScaleFilter.Linear,
-                WrapS = WrapMode.ClampToEdge,
-                WrapT = WrapMode.ClampToEdge,
+                Compression = TextureCompressionFormat.Uncompressed,
+                Format = ImageUtils.GetFormat(image.ColorType),
+                Data = image.GetPixelSpan().ToArray(),
+                Height = (uint)image.Height,
+                Width = (uint)image.Width,
             };
+
+            image.Dispose();
+
+            return FromData([data]);
         }
 
-        public IList<TextureData>? Data { get; set; }
+        public static Texture2D FromData(IList<TextureData> data)
+        {
+            return new Texture2D(data);
+        }
 
-        public TextureType Type { get; set; }
+        public Texture2D() { }
 
-        public uint Width { get; set; }
+        public Texture2D(IList<TextureData> data) 
+            : base(data)
+        {
+            Height = data[0].Height;
+            WrapT = WrapMode.ClampToEdge;
+        }
 
         public uint Height { get; set; }
-
-        public WrapMode WrapS { get; set; }
-
+        
         public WrapMode WrapT { get; set; }
 
-        public ScaleFilter MagFilter { get; set; }
-
-        public ScaleFilter MinFilter { get; set; }
-
-        public TextureFormat Format { get; set; }
-
-        public TextureCompressionFormat Compression { get; set; }
+        public TextureType Type { get; set; }
 
         public uint SampleCount { get; set; }
     }

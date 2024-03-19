@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace XrEngine
 {
 
-    public class PvrDecoder : BaseTextureReader
+    public class PvrTranscoder : BaseTextureReader
     {
         const uint Version = 0x03525650;
 
@@ -15,12 +15,22 @@ namespace XrEngine
             ETC2_RGB = 22,
             ETC2_RGBA = 23,
             ETC2_RGB_A1 = 24,
+            RGBA8 = 0x0808080861626772,
+            RGB8 = 0x0008080800626772,
+            RGBFloat =   0x0020202000626772,
+            RGBAFloat = 0x2020202061626772
         }
 
         public enum ColourSpace : uint
         {
             LinearRGB = 0,
             sRGB = 1,
+            Float = 12
+        }
+
+        public enum ChannelType : uint
+        {
+            UnsignedByteNormalised  = 0,
             Float = 12
         }
 
@@ -31,7 +41,7 @@ namespace XrEngine
             public uint Flags;
             public PixelFormat PixelFormat;
             public ColourSpace ColourSpace;
-            public uint ChannelType;
+            public ChannelType ChannelType;
             public uint Height;
             public uint Width;
             public uint Depth;
@@ -47,11 +57,9 @@ namespace XrEngine
             public uint FourCC;
             public uint Key;
             public uint DataSize;
-
         }
 
-
-        PvrDecoder()
+        PvrTranscoder()
         {
         }
 
@@ -62,35 +70,50 @@ namespace XrEngine
             header.Width = images[0].Width;
             header.Height = images[0].Height;
             header.NumSurfaces = 1;
-            header.NumFaces = 1;
+            header.NumFaces = images.Max(a=> a.Face) + 1;
             header.Depth = 1;
-            header.MIPMapCount = (uint)images.Count;
+            header.MIPMapCount = images.Max(a => a.MipLevel) + 1;
 
-            if (images[0].Compression == TextureCompressionFormat.Etc2)
+            switch (images[0].Format)
             {
-                switch (images[0].Format)
-                {
-                    case TextureFormat.Rgba32:
-                        header.ColourSpace = ColourSpace.LinearRGB;
+                case TextureFormat.Rgba32:
+                    header.ColourSpace = ColourSpace.LinearRGB;
+                    if (images[0].Compression == TextureCompressionFormat.Etc2)
                         header.PixelFormat = PixelFormat.ETC2_RGBA;
+                    else
+                        header.PixelFormat = PixelFormat.RGBA8;
                         break;
-                    case TextureFormat.Rgb24:
-                        header.ColourSpace = ColourSpace.LinearRGB;
+                case TextureFormat.Rgb24:
+                    header.ColourSpace = ColourSpace.LinearRGB;
+                    if (images[0].Compression == TextureCompressionFormat.Etc2)
                         header.PixelFormat = PixelFormat.ETC2_RGB;
-                        break;
-                    case TextureFormat.SRgb24:
-                        header.ColourSpace = ColourSpace.sRGB;
+                    else
+                        header.PixelFormat = PixelFormat.RGB8;
+                    break;
+                case TextureFormat.SRgb24:
+                    header.ColourSpace = ColourSpace.sRGB;
+                    if (images[0].Compression == TextureCompressionFormat.Etc2)
                         header.PixelFormat = PixelFormat.ETC2_RGB;
-                        break;
-                    default:
-                        throw new NotSupportedException();
-                }
+                    else
+                        header.PixelFormat = PixelFormat.RGB8;
+                    break;
+                case TextureFormat.RgbFloat:
+                    header.ColourSpace = ColourSpace.LinearRGB;
+                    header.PixelFormat = PixelFormat.RGBFloat;
+                    header.ChannelType = ChannelType.Float;
+                    break;
+                case TextureFormat.RgbaFloat:
+                    header.ColourSpace = ColourSpace.LinearRGB;
+                    header.PixelFormat = PixelFormat.RGBAFloat;
+                    header.ChannelType = ChannelType.Float;
+                    break;
+                default:
+                    throw new NotSupportedException();
             }
-            else
-                throw new NotSupportedException();
+
 
             stream.WriteStruct(header);
-            foreach (var img in images)
+            foreach (var img in images.OrderBy(a => a.MipLevel).ThenBy(a => a.Face))
                 stream.Write(img.Data);
 
             stream.Dispose();
@@ -122,7 +145,7 @@ namespace XrEngine
                 throw new NotSupportedException();
             }
 
-            TextureCompressionFormat comp;
+            TextureCompressionFormat comp = TextureCompressionFormat.Uncompressed;
             TextureFormat format;
 
             switch (header.PixelFormat)
@@ -142,15 +165,24 @@ namespace XrEngine
                     comp = TextureCompressionFormat.Etc1;
                     format = TextureFormat.Rgb24;
                     break;
+                case PixelFormat.RGB8:
+                    if (header.ColourSpace == ColourSpace.LinearRGB)
+                        format = TextureFormat.Rgb24;
+                    else
+                        format = TextureFormat.SRgb24;
+                    break;
+                case PixelFormat.RGBFloat:
+                    format = TextureFormat.RgbFloat;
+                    break;
                 default:
                     throw new NotSupportedException();
             }
 
-            return ReadMips(memStream, header.Width, header.Height, header.MIPMapCount, comp, format);
+            return ReadData(memStream, header.Width, header.Height, header.MIPMapCount, header.NumFaces, comp, format);
 
 
         }
 
-        public static readonly PvrDecoder Instance = new();
+        public static readonly PvrTranscoder Instance = new();
     }
 }
