@@ -15,11 +15,11 @@ in vec3 v_TexCoords;
 
 void main()
 {
-    vec4 color = textureLod(u_GGXEnvSampler, v_TexCoords, u_EnvBlurNormalized * float(u_MipCount - 1)) * u_EnvIntensity;
+    vec4 color = textureLod(u_GGXEnvSampler, v_TexCoords, u_EnvBlurNormalized * float(u_MipCount - 1));
 
 #ifdef LINEAR_OUTPUT
-    FragColor = color.rgba;
+    FragColor = vec4(color.rgb * u_EnvIntensity, color.a);
 #else
-    FragColor = vec4(toneMap(color.rgb), color.a);
+    FragColor = vec4(toneMap(color.rgb * u_EnvIntensity), color.a);
 #endif
 }

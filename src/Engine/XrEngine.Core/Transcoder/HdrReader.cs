@@ -176,7 +176,7 @@ namespace XrEngine
                 return [new TextureData {
                     Compression = TextureCompressionFormat.Uncompressed,
                     Data = new Span<byte>((byte*)pData, dst.Length * 4).ToArray(),
-                    Format = TextureFormat.RgbFloat,
+                    Format = TextureFormat.RgbFloat32,
                     Height = (uint) height,
                     Width =  (uint)width,
                 }];

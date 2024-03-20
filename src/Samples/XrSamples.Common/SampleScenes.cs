@@ -1,4 +1,5 @@
 ﻿using CanvasUI;
+using glTFLoader.Schema;
 using OpenXr.Framework.Oculus;
 using PhysX;
 using PhysX.Framework;
@@ -8,6 +9,7 @@ using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Compression;
 using XrEngine.Gltf;
+using XrEngine.Materials;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.UI;
@@ -34,6 +36,7 @@ namespace XrSamples
 
             scene.AddComponent<DebugGizmos>();
 
+            /*
             scene.AddChild(new SunLight()
             {
                 Name = "sun-light",
@@ -51,7 +54,7 @@ namespace XrSamples
             pl2.Name = "point-light-2";
             pl2.Transform.Position = new Vector3(0, -2, 0);
             pl2.Intensity = 0.3f;
-
+            */
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
@@ -77,11 +80,33 @@ namespace XrSamples
             var assets = XrPlatform.Current!.AssetManager;
 
             return builder
-            .AddRightPointer()
+      
             .ConfigureApp(e =>
             {
-                var item = e.App.ActiveScene!.AddChild<EnvironmentView>();
-                item.LoadPanorama(assets.GetFsPath(assetPath));
+                var scene = e.App.ActiveScene!;
+
+                scene.PerspectiveCamera().Exposure = 0.5f;
+
+                var item = scene.AddChild<EnvironmentView>();
+
+                var envCube = (item.Materials[0] as CubeMapMaterial)!;
+                envCube.Exposure = scene.PerspectiveCamera().Exposure;
+
+                var light = scene.AddChild<ImageLight>();
+                light.Intensity = 1f;
+
+                if (assetPath.Contains("pisa"))
+                {
+                    light.Textures = new PbrMaterial.IBLTextures
+                    {
+                        MipCount = 10,
+                        GGXEnv = new TextureCube(PvrTranscoder.Instance.Read(assets.GetFsPath("Pisa/GGX.pvr"))),
+                        LambertianEnv = new TextureCube(PvrTranscoder.Instance.Read(assets.GetFsPath("Pisa/Lambertian.pvr"))),
+                        GGXLUT = new Texture2D(ImageReader.Instance.Read(assets.GetFsPath("Pisa/GGX.png"))),
+                    };
+                }
+                else
+                    light.LoadPanorama(assets.GetFsPath(assetPath));
             });
         }
 
@@ -241,14 +266,14 @@ namespace XrSamples
 
             return builder
                    .UseApp(app)
-                   .UseScene(true)
+                   //.UseScene(true)
                    .ConfigureSampleApp()
                    .UseEnvironmentHDR("pisa.hdr")
                    .UsePhysics(new PhysicsOptions
                    {
                        LengthTolerance = settings.LengthToleranceScale,
                    })
-                   .AddPanel(new PingPongSettingsPanel(settings, scene));
+                  .AddPanel(new PingPongSettingsPanel(settings, scene));
 
         }
 
@@ -294,6 +319,7 @@ namespace XrSamples
             return builder
                     .UseApp(app)
                     .ConfigureSampleApp()
+                    .UseEnvironmentHDR("pisa.hdr")
                     .UsePhysics(new PhysicsOptions());
         }
 
@@ -323,6 +349,29 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
+                .ConfigureSampleApp();
+        }
+
+
+        public static XrEngineAppBuilder CreateHelmet(this XrEngineAppBuilder builder)
+        {
+            var assets = XrPlatform.Current!.AssetManager;
+
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var mesh = (Object3D)GltfLoader.Instance.Load(assets.GetFsPath("DamagedHelmet.gltf"), assets, GltfOptions);
+            mesh.Name = "mesh";
+            mesh.Transform.SetScale(0.4f);
+            mesh.Transform.SetPositionY(1);
+            mesh.AddComponent<BoundsGrabbable>();
+
+            scene.AddChild(mesh);
+
+            return builder
+                .UseApp(app)
+                .UseEnvironmentHDR("CameraEnv.jpg")
                 .ConfigureSampleApp();
         }
 

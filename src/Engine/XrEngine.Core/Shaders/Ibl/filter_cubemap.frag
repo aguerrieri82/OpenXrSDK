@@ -6,7 +6,7 @@ void main()
 	 
 	vec2 newUV = inUV*2.0-1.0;
 	
-	for(int face = 0; face < 6; ++face)
+	for (int face = 0; face < 6; ++face)
 	{
 		vec3 scan = uvToXYZ(face, newUV);		
 			

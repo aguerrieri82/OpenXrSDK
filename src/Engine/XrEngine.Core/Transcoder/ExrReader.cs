@@ -27,7 +27,7 @@ namespace XrEngine
             var data = new TextureData
             {
                 Compression = TextureCompressionFormat.Uncompressed,
-                Format = TextureFormat.RgbFloat,
+                Format = TextureFormat.RgbFloat32,
                 Data = new Span<byte>((byte*)&floats, floats.Length * 4).ToArray(),
                 Height = (uint)part.Header.DataWindow.Height,
                 Width = (uint)part.Header.DataWindow.Width,

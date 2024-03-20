@@ -82,12 +82,33 @@ vec3 toneMapACES_Hill(vec3 color)
     return color;
 }
 
-#ifdef UNIFORM_EXP
 
-uniform float u_Exposure;
+// Khronos PBR neutral tone mapping
+#ifdef TONEMAP_KHR_PBR_NEUTRAL
+float startCompression = 0.8 - 0.04;
+float desaturation = 0.15;
+vec3 toneMap_KhronosPbrNeutral( vec3 color )
+{
+    float x = min(color.r, min(color.g, color.b));
+    float offset = x < 0.08 ? x - 6.25 * x * x : 0.04;
+    color -= offset;
 
+    float peak = max(color.r, max(color.g, color.b));
+    if (peak < startCompression) return color;
+
+    float d = 1. - startCompression;
+    float newPeak = 1. - d * d / (peak + d - startCompression);
+    color *= newPeak / peak;
+
+    float g = 1. - 1. / (desaturation * (peak - newPeak) + 1.);
+    return mix(color, vec3(1, 1, 1), g);
+}
 #endif
 
+
+#ifdef UNIFORM_EXP
+uniform float u_Exposure;
+#endif
 
 
 vec3 toneMap(vec3 color)
@@ -114,6 +135,8 @@ vec3 toneMap(vec3 color)
     color /= 0.6;
     color = toneMapACES_Hill(color);
 #endif
-
+#ifdef TONEMAP_KHR_PBR_NEUTRAL
+    color = toneMap_KhronosPbrNeutral(color);
+#endif
     return linearTosRGB(color);
 }

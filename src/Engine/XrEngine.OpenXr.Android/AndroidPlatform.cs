@@ -23,7 +23,7 @@ namespace XrEngine.OpenXr.Android
 
         public AndroidPlatform(Context context)
         {
-            PbrMaterial.DefaultLinearOutput = true;
+            PbrMaterial.DefaultLinearOutput = false;
 
             AssetManager = new AndroidAssetManager(context, "Assets");
             //  AssetManager = new LocalAssetManager(Path.Join(extPath, "Assets"));

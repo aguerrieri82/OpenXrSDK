@@ -126,8 +126,8 @@ namespace XrEngine.OpenGL
                     TextureFormat.Rgba32 => 32,
                     TextureFormat.Rgb24 => 24,
                     TextureFormat.SRgb24 => 24,
-                    TextureFormat.RgbFloat => 32 * 3,
-                    TextureFormat.RgbaFloat => 32 * 4,
+                    TextureFormat.RgbFloat32 => 32 * 3,
+                    TextureFormat.RgbaFloat32 => 32 * 4,
                     _ => throw new NotSupportedException()
                 };
 
@@ -177,7 +177,7 @@ namespace XrEngine.OpenGL
             return result;
         }
 
-        protected static void GetPixelFormat(TextureFormat format, out PixelFormat pixelFormat, out PixelType pixelType)
+        public static void GetPixelFormat(TextureFormat format, out PixelFormat pixelFormat, out PixelType pixelType)
         {
             pixelFormat = format switch
             {
@@ -187,7 +187,8 @@ namespace XrEngine.OpenGL
                 TextureFormat.Depth24Stencil8 => PixelFormat.DepthStencil,
 
                 TextureFormat.SRgba32 or
-                TextureFormat.RgbaFloat or
+                TextureFormat.RgbaFloat32 or
+                TextureFormat.RgbaFloat16 or
                 TextureFormat.Rgba32 => PixelFormat.Rgba,
 
                 TextureFormat.SBgra32 or
@@ -196,7 +197,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.Gray8 => PixelFormat.Red,
 
                 TextureFormat.Rgb24 or 
-                TextureFormat.RgbFloat or 
+                TextureFormat.RgbFloat32 or 
                 TextureFormat.SRgb24 => PixelFormat.Rgb,
 
                 _ => throw new NotSupportedException(),
@@ -205,9 +206,12 @@ namespace XrEngine.OpenGL
             pixelType = format switch
             {
                 TextureFormat.Depth32Float or
-                TextureFormat.RgbFloat or
-                TextureFormat.RgbaFloat or
+                TextureFormat.RgbFloat32 or
+                TextureFormat.RgbaFloat32 or
+
                 TextureFormat.Depth24Float => PixelType.Float,
+
+                TextureFormat.RgbaFloat16 => PixelType.HalfFloat,
 
                 TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
 
@@ -224,7 +228,7 @@ namespace XrEngine.OpenGL
 
         }
 
-        protected static InternalFormat GetInternalFormat(TextureFormat format, TextureCompressionFormat compression)
+        public static InternalFormat GetInternalFormat(TextureFormat format, TextureCompressionFormat compression)
         {
             if (compression == TextureCompressionFormat.Uncompressed)
             {
@@ -241,6 +245,12 @@ namespace XrEngine.OpenGL
                     TextureFormat.Bgra32 => InternalFormat.Rgba8,
 
                     TextureFormat.Gray8 => InternalFormat.R8,
+
+                    TextureFormat.RgbFloat32 => InternalFormat.Rgb32f,
+
+                    TextureFormat.RgbFloat16 => InternalFormat.Rgb16f,
+
+                    TextureFormat.RgbaFloat16 => InternalFormat.Rgba32f,
 
                     _ => throw new NotSupportedException(),
                 };
@@ -307,8 +317,12 @@ namespace XrEngine.OpenGL
                             {
                                 fixed (byte* pData = level.Data)
                                 {
+                                    var realTarget = Target == TextureTarget.TextureCubeMap ?
+                                        (TextureTarget.TextureCubeMapPositiveX + (int)level.Face) :
+                                        Target;
+
                                     _gl.TexImage2D(
-                                        Target,
+                                        realTarget,
                                         (int)level.MipLevel,
                                         _internalFormat,
                                         level.Width,

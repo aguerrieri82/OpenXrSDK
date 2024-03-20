@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using XrMath;
 
@@ -6,6 +8,7 @@ namespace XrEngine
 {
     public class PbrMaterial : ShaderMaterial, IColorSource
     {
+        #region ENUMS
 
         public enum MaterialType
         {
@@ -13,6 +16,19 @@ namespace XrEngine
             Specular,
             Metallic
         }
+
+        public enum ToneMapType
+        {
+            TONEMAP_NONE,
+            TONEMAP_ACES_NARKOWICZ,
+            TONEMAP_ACES_HILL,
+            TONEMAP_ACES_HILL_EXPOSURE_BOOST,
+            TONEMAP_KHR_PBR_NEUTRAL
+        }
+
+        #endregion
+
+        #region DebugFlags
 
         public enum DebugFlags
         {
@@ -51,13 +67,9 @@ namespace XrEngine
             DEBUG_NONE
         }
 
-        public enum ToneMapType
-        {
-            TONEMAP_NONE,
-            TONEMAP_ACES_NARKOWICZ,
-            TONEMAP_ACES_HILL,
-            TONEMAP_ACES_HILL_EXPOSURE_BOOST
-        }
+        #endregion
+
+        #region CameraUniforms
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         public struct CameraUniforms
@@ -69,13 +81,98 @@ namespace XrEngine
             public float Exposure;
         }
 
-        [StructLayout(LayoutKind.Sequential, Pack = 4)]
-        public struct IBLUniforms
+        #endregion
+
+        #region IBLTextures
+
+        public class IBLTextures : IDisposable
         {
+            public void Dispose()
+            {
+                LambertianEnv?.Dispose();
+                LambertianEnv = null;
+
+                GGXEnv?.Dispose();
+                GGXEnv = null;
+
+                GGXLUT?.Dispose();
+                GGXLUT = null;
+
+                CharlieEnv?.Dispose();
+                CharlieEnv = null;
+
+                CharlieLUT?.Dispose();
+                CharlieLUT = null;
+
+                Env?.Dispose();
+                Env = null;
+            }
+
+            public TextureCube? LambertianEnv;
+
+            public TextureCube? GGXEnv;
+            public Texture2D? GGXLUT;
+
+            public TextureCube? CharlieEnv;
+            public Texture2D? CharlieLUT;
+
+            public TextureCube? Env;
+
+            public uint MipCount;
+        }
+
+
+        #endregion
+
+        #region IBLUniforms
+
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        public unsafe struct IBLUniforms : IDynamicBuffer
+        {
+            static DynamicBuffer _buffer;
+
             public int MipCount;
             public Matrix3x3 EnvRotation;
             public float EnvIntensity;
+
+            public unsafe DynamicBuffer GetBuffer()
+            {
+                if (_buffer.Data == 0)
+                {
+                    _buffer.Size = 80;
+                    _buffer.Data = Marshal.AllocHGlobal(_buffer.Size);
+                }
+
+                using var stream = new MemoryStream();
+                using var writer = new BinaryWriter(stream);
+
+                writer.Write(MipCount);
+                stream.Position += 12;
+                writer.Write(EnvRotation.M00);
+                writer.Write(EnvRotation.M01);
+                writer.Write(EnvRotation.M02);
+                stream.Position += 4;
+                writer.Write(EnvRotation.M10);
+                writer.Write(EnvRotation.M11);
+                writer.Write(EnvRotation.M12);
+                stream.Position += 4;
+                writer.Write(EnvRotation.M20);
+                writer.Write(EnvRotation.M21);
+                writer.Write(EnvRotation.M22);
+                stream.Position += 4;
+                writer.Write(EnvIntensity);
+                writer.Flush();
+
+                var bytes = stream.ToArray();
+                Marshal.Copy(bytes, 0, _buffer.Data, bytes.Length);
+         
+                return _buffer;
+            }
         }
+
+        #endregion
+
+        #region MaterialUniforms
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         public struct MaterialUniforms
@@ -183,8 +280,12 @@ namespace XrEngine
             public Matrix3x3 AnisotropyUVTransform;
         }
 
+        #endregion
+
+        #region LightUniforms
+
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
-        public struct PbrLightUniforms
+        public struct LightUniforms
         {
             public const int Directional = 0;
             public const int Point = 1;
@@ -202,18 +303,21 @@ namespace XrEngine
             readonly float _Pad2;
         }
 
+        #endregion
 
-        public struct LightsUniform : IDynamicBuffer
+        #region LightListUniforms
+
+        public struct LightListUniforms : IDynamicBuffer
         {
             static DynamicBuffer _buffer;
 
             public uint LightCount;
 
-            public PbrLightUniforms[] Lights;
+            public LightUniforms[] Lights;
 
             public unsafe DynamicBuffer GetBuffer()
             {
-                var newSize = (sizeof(PbrLightUniforms) * Max) + 16;
+                var newSize = (sizeof(LightUniforms) * Max) + 16;
 
                 if (_buffer.Size != newSize)
                 {
@@ -225,10 +329,10 @@ namespace XrEngine
 
                     ((int*)_buffer.Data)[0] = Lights.Length;
 
-                    fixed (PbrLightUniforms* pArray = Lights)
+                    fixed (LightUniforms* pArray = Lights)
                     {
-                        var srcSpan = new Span<PbrLightUniforms>(pArray, Lights.Length);
-                        var dstSpan = new Span<PbrLightUniforms>((PbrLightUniforms*)(_buffer.Data + 16), Lights.Length);
+                        var srcSpan = new Span<LightUniforms>(pArray, Lights.Length);
+                        var dstSpan = new Span<LightUniforms>((LightUniforms*)(_buffer.Data + 16), Lights.Length);
                         srcSpan.CopyTo(dstSpan);
                     }
                 }
@@ -239,6 +343,9 @@ namespace XrEngine
             public static int Max { get; set; } = 16;
         }
 
+        #endregion
+
+        #region MetallicRoughnessData
         public class MetallicRoughnessData
         {
             public MetallicRoughnessData()
@@ -262,6 +369,10 @@ namespace XrEngine
 
             public int MetallicRoughnessUVSet { get; set; }
         }
+
+        #endregion
+
+        #region SpecularGlossinessData
 
         public class SpecularGlossinessData
         {
@@ -287,21 +398,9 @@ namespace XrEngine
             public int SpecularGlossinessUVSet { get; set; }
         }
 
+        #endregion
 
-        public class IBLTextures
-        {
-            public TextureCube? LambertianEnv;
-            public Texture2D? LambertianLut;
-
-            public TextureCube? GGXEnv;
-            public Texture2D? GGXLUT;
-
-            public TextureCube? CharlieEnv;
-            public Texture2D? CharlieLUT;
-
-            public uint MipCount;
-        }
-
+        #region GlobalShaderHandler
 
         class GlobalShaderHandler : IShaderHandler
         {
@@ -312,6 +411,7 @@ namespace XrEngine
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
+
                 bld.SetUniformBuffer("Camera", (ctx) =>
                 {
                     return new CameraUniforms
@@ -329,15 +429,15 @@ namespace XrEngine
                     if (ctx.CurrentBuffer!.Version != -1 && ctx.CurrentBuffer!.Version == ctx.LightsVersion)
                         return null;
 
-                    var lights = new List<PbrLightUniforms>();
+                    var lights = new List<LightUniforms>();
 
                     foreach (var light in bld.Context.Lights!)
                     {
                         if (light is PointLight point)
                         {
-                            lights.Add(new PbrLightUniforms
+                            lights.Add(new LightUniforms
                             {
-                                Type = PbrLightUniforms.Point,
+                                Type = LightUniforms.Point,
                                 Color = (Vector3)point.Color,
                                 Position = point.WorldPosition,
                                 Intensity = point.Intensity * 10,
@@ -348,9 +448,9 @@ namespace XrEngine
                         }
                         else if (light is DirectionalLight directional)
                         {
-                            lights.Add(new PbrLightUniforms
+                            lights.Add(new LightUniforms
                             {
-                                Type = PbrLightUniforms.Directional,
+                                Type = LightUniforms.Directional,
                                 Color = (Vector3)directional.Color,
                                 Direction = directional.Direction,
                                 Intensity = directional.Intensity,
@@ -362,9 +462,9 @@ namespace XrEngine
                         }
                         else if (light is SpotLight spot)
                         {
-                            lights.Add(new PbrLightUniforms
+                            lights.Add(new LightUniforms
                             {
-                                Type = PbrLightUniforms.Spot,
+                                Type = LightUniforms.Spot,
                                 Color = (Vector3)spot.Color,
                                 Position = spot.WorldPosition,
                                 Intensity = spot.Intensity,
@@ -373,23 +473,66 @@ namespace XrEngine
                                 OuterConeCos = MathF.Cos(spot.OuterConeAngle)
                             });
                         }
+                
                     }
 
                     ctx.CurrentBuffer!.Version = ctx.LightsVersion;
 
-                    return (LightsUniform?)new LightsUniform
+                    return (LightListUniforms?)new LightListUniforms
                     {
                         LightCount = (uint)lights.Count,
                         Lights = lights.ToArray()
                     };
                 }, true);
 
+                var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();    
+                if (imgLight?.Textures != null)
+                {
+                    bld.AddFeature("USE_IBL");
+
+                    bld.SetUniformBuffer("Ibl", (ctx) =>
+                    {
+                        if (ctx.CurrentBuffer!.Version != -1 && ctx.CurrentBuffer!.Version == imgLight.Version)
+                            return null;
+
+                        ctx.CurrentBuffer!.Version = imgLight.Version;
+
+                        return (IBLUniforms?) new IBLUniforms
+                        {
+                           EnvIntensity = imgLight.Intensity,
+                           EnvRotation = Matrix3x3.Rotation(imgLight.Rotation),
+                           MipCount = (int)imgLight.Textures.MipCount
+                        };
+                    }, true);
+
+                    bld.ExecuteAction((ctx, up) =>
+                    {
+                        if (imgLight.Textures.LambertianEnv != null)
+                            up.SetUniform("uLambertianEnvSampler", imgLight.Textures.LambertianEnv, 6);
+
+                        if (imgLight.Textures.GGXEnv != null)
+                            up.SetUniform("uGGXEnvSampler", imgLight.Textures.GGXEnv, 7);
+                        
+                        if (imgLight.Textures.GGXLUT != null)
+                            up.SetUniform("uGGXLUT", imgLight.Textures.GGXLUT, 8);
+                        
+                        if (imgLight.Textures.CharlieLUT != null)
+                            up.SetUniform("uCharlieLUT", imgLight.Textures.CharlieLUT, 9);
+
+                        if (imgLight.Textures.CharlieEnv != null)
+                            up.SetUniform("uCharlieEnvSampler", imgLight.Textures.CharlieEnv, 10);                        
+                    });
+
+                }
+
                 if (bld.Context.Lights!.Any())
                     bld.AddFeature("USE_PUNCTUAL");
 
-                bld.AddFeature("MAX_LIGHTS " + LightsUniform.Max);
+                bld.AddFeature("MAX_LIGHTS " + LightListUniforms.Max);
             }
         }
+
+        #endregion
 
         public static readonly IShaderHandler GlobalHandler = new GlobalShaderHandler();
 
@@ -397,6 +540,9 @@ namespace XrEngine
 
         static PbrMaterial()
         {
+            LinearOutput = true;
+            ToneMap = ToneMapType.TONEMAP_KHR_PBR_NEUTRAL;
+
             SHADER = new Shader
             {
                 FragmentSourceName = "pbr/pbr.frag",
@@ -410,7 +556,6 @@ namespace XrEngine
         {
             Shader = SHADER;
             Debug = DebugFlags.DEBUG_NONE;
-            LinearOutput = DefaultLinearOutput;
         }
 
         public static PbrMaterial CreateDefault(Color color)
@@ -643,16 +788,14 @@ namespace XrEngine
             }
         }
 
-        public bool LinearOutput { get; set; }
-
-        public ToneMapType ToneMap { get; set; }
-
         public MaterialType Type { get; set; }
 
         public DebugFlags Debug { get; set; }
 
 
-        public static bool DefaultLinearOutput = true;
+        public static bool LinearOutput { get; set; }
+
+        public static ToneMapType ToneMap { get; set; }
 
     }
 }
