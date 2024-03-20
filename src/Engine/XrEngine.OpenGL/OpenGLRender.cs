@@ -497,13 +497,13 @@ namespace XrEngine.OpenGL
 
         public PbrMaterial.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
         {
-            using var processor = new GlIBLProcessorV2(_gl);
+            using var processor = new GlIBLProcessor(_gl);
 
             processor.Use8Bit = options.Use8Bit;
             processor.Resolution = options.Resolution;
             processor.SampleCount = options.SampleCount;
             processor.LodBias = options.LodBias;
-            processor.MipCount = options.MipLevelCount;
+            processor.MipLevelCount = options.MipLevelCount;
 
             processor.Initialize(data, options.ShaderResolver!);
 
@@ -511,7 +511,7 @@ namespace XrEngine.OpenGL
 
             var result = new PbrMaterial.IBLTextures
             {
-                MipCount = processor.MipCount
+                MipCount = processor.MipLevelCount
             };
 
             var cube = (TextureCube)_gl.TexIdToEngineTexture(processor.OutCubeMapId, TextureFormat.RgbFloat);
@@ -524,10 +524,10 @@ namespace XrEngine.OpenGL
 
             if ((options.Mode & IBLProcessMode.Lambertian) == IBLProcessMode.Lambertian)
             {
-                processor.ApplyFilter(GlIBLProcessorV2.Distribution.Lambertian, out envId, out lutId);
+                processor.ApplyFilter(GlIBLProcessor.Distribution.Lambertian, out envId, out lutId);
 
                 result.LambertianEnv = (TextureCube)_gl.TexIdToEngineTexture(envId, TextureFormat.RgbFloat);
-                result.LambertianLut = (Texture2D)_gl.TexIdToEngineTexture(lutId, TextureFormat.RgbFloat);
+                result.LambertianLut = (Texture2D)_gl.TexIdToEngineTexture(lutId, TextureFormat.Rgb24);
 
                 using (var out1 = File.OpenWrite("d:\\lamb.pvr"))
                     PvrTranscoder.Instance.Write(out1, result.LambertianEnv.Data!);
@@ -535,22 +535,34 @@ namespace XrEngine.OpenGL
                 using (var out1 = File.OpenWrite("d:\\lamb-lut.pvr"))
                     PvrTranscoder.Instance.Write(out1, result.LambertianLut.Data!);
             }
-
-            if ((options.Mode & IBLProcessMode.GGX) == IBLProcessMode.GGX)
-            {
-                processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGX, out envId, out lutId);
-      
-                result.GGXEnv = (TextureCube)_gl.TexIdToEngineTexture(envId);
-                result.GGXLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId, TextureFormat.Rgb24);
-            }
-
             if ((options.Mode & IBLProcessMode.Charlie) == IBLProcessMode.Charlie)
             {
-                processor.ApplyFilter(GlIBLProcessorV2.Distribution.Charlie, out envId, out lutId);
+                processor.ApplyFilter(GlIBLProcessor.Distribution.Charlie, out envId, out lutId);
 
-                result.CharlieEnv = (TextureCube)_gl.TexIdToEngineTexture(envId);
-                result.CharlieLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId, TextureFormat.Rgb24);
+                result.CharlieEnv = (TextureCube)_gl.TexIdToEngineTexture(envId, TextureFormat.RgbFloat);
+                result.CharlieLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId, TextureFormat.SRgb24);
+
+                using (var out1 = File.OpenWrite("d:\\charlie.pvr"))
+                    PvrTranscoder.Instance.Write(out1, result.CharlieEnv.Data!);
+
+                using (var out1 = File.OpenWrite("d:\\charlie-lut.pvr"))
+                    PvrTranscoder.Instance.Write(out1, result.CharlieLUT.Data!);
             }
+            if ((options.Mode & IBLProcessMode.GGX) == IBLProcessMode.GGX)
+            {
+                processor.ApplyFilter(GlIBLProcessor.Distribution.GGX, out envId, out lutId);
+      
+                result.GGXEnv = (TextureCube)_gl.TexIdToEngineTexture(envId, TextureFormat.RgbFloat);
+                result.GGXLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId, TextureFormat.SRgb24);
+
+                using (var out1 = File.OpenWrite("d:\\ggx.pvr"))
+                    PvrTranscoder.Instance.Write(out1, result.GGXEnv.Data!);
+
+                using (var out1 = File.OpenWrite("d:\\ggx-lut.pvr"))
+                    PvrTranscoder.Instance.Write(out1, result.GGXLUT.Data!);
+            }
+
+
 
          
             return result;

@@ -8,6 +8,8 @@ namespace XrEngine
 
         void SetUniform(string name, int value, bool optional = false);
 
+        void SetUniform(string name, uint value, bool optional = false);
+
         void SetUniform(string name, Matrix4x4 value, bool optional = false);
 
         void SetUniform(string name, Matrix3x3 value, bool optional = false);

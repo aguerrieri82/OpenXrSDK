@@ -2,6 +2,7 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using System.Collections.Generic;
 #endif
 
 
@@ -9,7 +10,7 @@ namespace XrEngine.OpenGL
 {
     public class GlIBLProcessor : IDisposable
     {
-        protected enum Distribution
+        public enum Distribution
         {
             Lambertian,
             GGX,
@@ -21,21 +22,15 @@ namespace XrEngine.OpenGL
         private uint _inputTextureId;
         private uint _cubeMapId;
         private uint _frameBufferId;
-        private uint _lambertianTextureId;
-        private uint _ggxTextureId;
-        private uint _sheenTextureId;
         private uint _fooVa;
-        private uint _ggxLutTextureId;
-        private uint _charlieLutTextureId;
-        private uint _mipmapLevels;
         private GlSimpleProgram? _panToCubeProg;
         private GlSimpleProgram? _filterProg;
-        private bool _keepGenTextures;
+
 
         public GlIBLProcessor(GL gl)
         {
             _gl = gl;
-            _keepGenTextures = true;
+
         }
 
         public void Initialize(TextureData panoramaHdr, Func<string, string> shaderResolver)
@@ -48,7 +43,8 @@ namespace XrEngine.OpenGL
             _cubeMapId = CreateCubeMap(true);
             _fooVa = _gl.GenVertexArray();
 
-            _mipmapLevels = (uint)MathF.Floor(MathF.Log2(TextureSize)) + 1 - LowestMipLevel;
+            if (MipLevelCount == 0)
+                MipLevelCount = (uint)MathF.Floor(MathF.Log2(Resolution));
 
             _panToCubeProg = new GlSimpleProgram(_gl, 
                 shaderResolver("Ibl/fullscreen.vert"), 
@@ -59,7 +55,7 @@ namespace XrEngine.OpenGL
 
             _filterProg = new GlSimpleProgram(_gl,
                 shaderResolver("Ibl/fullscreen.vert"),
-                shaderResolver("Ibl/ibl_filtering.frag"),
+                shaderResolver("Ibl/filter_cubemap.frag"),
                 shaderResolver);
 
             _filterProg.Build();
@@ -72,183 +68,104 @@ namespace XrEngine.OpenGL
             _gl.FrontFace(FrontFaceDirection.Ccw);
         }
 
-        public void ProcessAll()
+
+        public void ApplyFilter(Distribution distribution, out uint envTexId, out uint lutTexId)
         {
-            PanoramaToCubeMap();
-            
-            CubeMapToLambertian();
-            
-            CubeMapToGGX();
-            SampleGGXLut();
+            var mipCount = distribution == Distribution.Lambertian ? 1 : MipLevelCount;
 
-            CubeMapToSheen();
-
-            SampleCharlieLut();
-        }
-
-        public void SampleGGXLut()
-        {
-            if (_ggxLutTextureId == 0)
-                _ggxLutTextureId = CreateLutTexture();
-
-            SampleLut(Distribution.GGX, _ggxLutTextureId, LutResolution);
-        }
-
-        public void SampleCharlieLut()
-        {
-            if (_charlieLutTextureId == 0)
-                _charlieLutTextureId = CreateLutTexture();
-            SampleLut(Distribution.Charlie, _charlieLutTextureId, LutResolution);
-        }
-
-
-        public void CubeMapToLambertian()
-        {
-            if (_lambertianTextureId == 0)
-                _lambertianTextureId = CreateCubeMap(false);
-
-            ApplyFilter(Distribution.Lambertian,
-                0,
-                0,
-                _lambertianTextureId,
-                LambertianSampleCount,
-                LodBias);
-        }
-
-        public void CubeMapToGGX()
-        {
-            if (_ggxTextureId == 0)
-                _ggxTextureId = CreateCubeMap(true);
-
-            for (var currentMipLevel = 0; currentMipLevel <= _mipmapLevels; ++currentMipLevel)
-            {
-                var roughness = (currentMipLevel) / (_mipmapLevels - 1f);
-                ApplyFilter(
-                    Distribution.GGX,
-                    roughness,
-                    currentMipLevel,
-                    _ggxTextureId,
-                    GGXSampleCount,
-                    LodBias);
-            }
-        }
-
-        public void CubeMapToSheen()
-        {
-            if (_sheenTextureId == 0)
-                _sheenTextureId = CreateCubeMap(true);
-
-            for (var currentMipLevel = 0; currentMipLevel <= _mipmapLevels; ++currentMipLevel)
-            {
-                var roughness = (currentMipLevel) / (_mipmapLevels - 1f);
-                ApplyFilter(
-                    Distribution.Charlie,
-                    roughness,
-                    currentMipLevel,
-                    _sheenTextureId,
-                    SheenSampleCount,
-                    LodBias);
-            }
-        }
-
-        protected void SampleLut(Distribution distribution, uint targetTexture, uint currentTextureSize)
-        {
-            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBufferId);
-
-            _gl.FramebufferTexture2D(
-                FramebufferTarget.Framebuffer,
-                FramebufferAttachment.ColorAttachment0,
-                TextureTarget.Texture2D,
-                targetTexture, 0);
-
-
-            _gl.Viewport(0, 0, currentTextureSize, currentTextureSize);
-
-            _gl.ActiveTexture(TextureUnit.Texture0);
-            _gl.BindTexture(TextureTarget.TextureCubeMap, _cubeMapId);
-
-            _gl.UseProgram(_filterProg!.Handle);
- 
-            _filterProg.SetUniform("uCubeMap", 0);
-            _filterProg.SetUniform("u_roughness", 0);
-            _filterProg.SetUniform("u_sampleCount", 512);
-            _filterProg.SetUniform("u_width", 0);
-            _filterProg.SetUniform("u_lodBias", 0f);
-            _filterProg.SetUniform("u_distribution", (int)distribution);
-            _filterProg.SetUniform("u_currentFace", 0);
-            _filterProg.SetUniform("u_isGeneratingLUT", 1);
-
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, 6);
-        }
-
-
-        protected void ApplyFilter(Distribution distribution, float roughness, int targetMipLevel, uint targetTexture, uint sampleCount, float lodBias = 0)
-        {
-            var currentTextureSize = TextureSize >> targetMipLevel;
-
-            _gl.Viewport(0, 0, currentTextureSize, currentTextureSize);
+            envTexId = CreateCubeMap(mipCount > 1);
+            lutTexId = CreateLutTexture();
 
             _gl.ActiveTexture(TextureUnit.Texture0);
             _gl.BindTexture(TextureTarget.TextureCubeMap, _cubeMapId);
 
             _filterProg!.Use();
 
-            _filterProg.SetUniform("uCubeMap", 0);
-            _filterProg.SetUniform("u_roughness", roughness);
-            _filterProg.SetUniform("u_sampleCount", (int)sampleCount);
-            _filterProg.SetUniform("u_width", (int)TextureSize);
-            _filterProg.SetUniform("u_lodBias", lodBias);
-            _filterProg.SetUniform("u_distribution", (int)distribution);
-            _filterProg.SetUniform("u_isGeneratingLUT", (int)0);
+            for (var mipLevel = 0; mipLevel < mipCount; ++mipLevel)
+            {
+                ApplyFilter(
+                    distribution,
+                    mipLevel,
+                    envTexId, lutTexId);
+            }
+        }
 
+        public void PanoramaToCubeMap()
+        {
+            _gl.ClearColor(0, 0, 0, 1);
+
+            _gl.ActiveTexture(TextureUnit.Texture0);
+            _gl.BindTexture(TextureTarget.Texture2D, _inputTextureId);
+
+            _gl.UseProgram(_panToCubeProg!.Handle);
+
+            _panToCubeProg.SetUniform("uPanorama", 0);
+
+            BindFrameBufferCube(_cubeMapId);
+
+            _gl.Viewport(0, 0, Resolution, Resolution);
+
+            _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
+
+            _gl.BindTexture(TextureTarget.TextureCubeMap, _cubeMapId);
+            _gl.GenerateMipmap(TextureTarget.TextureCubeMap);
+        }
+
+
+        protected void BindFrameBufferCube(uint cubeTexId, int mipLevel = 0)
+        {
             _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBufferId);
 
             for (var i = 0; i < 6; ++i)
             {
                 _gl.FramebufferTexture2D(
                      FramebufferTarget.Framebuffer,
-                     FramebufferAttachment.ColorAttachment0,
+                     FramebufferAttachment.ColorAttachment0 + i,
                      TextureTarget.TextureCubeMapPositiveX + i,
-                     targetTexture, targetMipLevel);
-
-                _filterProg.SetUniform("u_currentFace", i);
-
-                _gl.DrawArrays(PrimitiveType.Triangles, 0, 6);
+                     cubeTexId, mipLevel);
             }
+
+            List<DrawBufferMode> targets = [DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1, DrawBufferMode.ColorAttachment2, DrawBufferMode.ColorAttachment3, DrawBufferMode.ColorAttachment4, DrawBufferMode.ColorAttachment5];
+            if (mipLevel == 0)
+                targets.Add(DrawBufferMode.ColorAttachment6);
+
+
+            var buffers = new ReadOnlySpan<DrawBufferMode>(targets.ToArray());
+            _gl.DrawBuffers(buffers);
         }
-    
 
-        public void PanoramaToCubeMap()
+
+        protected void ApplyFilter(Distribution distribution, int mipLevel, uint envTexId, uint lutTexId)
         {
+            var currentTextureSize = Resolution >> mipLevel;
 
-            _gl.Viewport(0, 0, TextureSize, TextureSize);
-            _gl.ClearColor(0, 0, 0, 1);
- 
-            _gl.ActiveTexture(TextureUnit.Texture0);
-            _gl.BindTexture(TextureTarget.Texture2D, _inputTextureId);
+            var roughness = (mipLevel) / (MipLevelCount - 1f);
 
-            _gl.UseProgram(_panToCubeProg!.Handle);
+            _filterProg!.SetUniform("uCubeMap", 0);
+            _filterProg.SetUniform("uRoughness", (float)roughness);
+            _filterProg.SetUniform("uSampleCount", (uint)SampleCount);
+            _filterProg.SetUniform("uWidth", (uint)Resolution);
+            _filterProg.SetUniform("uLodBias", (float)LodBias);
+            _filterProg.SetUniform("uDistribution", (uint)distribution);
+            _filterProg.SetUniform("uCurrentMipLevel", (uint)mipLevel);
 
-            _panToCubeProg.SetUniform("u_panorama", 0);
+            BindFrameBufferCube(envTexId, mipLevel);
 
-            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _frameBufferId);
-
-
-            for (var i = 0; i < 6; ++i)
+            if (lutTexId != 0)
             {
                 _gl.FramebufferTexture2D(
-                     FramebufferTarget.DrawFramebuffer,
-                     FramebufferAttachment.ColorAttachment0,
-                     TextureTarget.TextureCubeMapPositiveX + i,
-                     _cubeMapId, 0);
-
-                _panToCubeProg.SetUniform("u_currentFace", i);
-
-                _gl.DrawArrays(PrimitiveType.Triangles, 0, 6);
+                     FramebufferTarget.Framebuffer,
+                     FramebufferAttachment.ColorAttachment6,
+                     TextureTarget.Texture2D,
+                     lutTexId, 0);
             }
 
-            _gl.BindTexture(TextureTarget.TextureCubeMap, _cubeMapId);
-            _gl.GenerateMipmap(TextureTarget.TextureCubeMap);
+            _gl.Viewport(0, 0, currentTextureSize, currentTextureSize);
+
+            _gl.ClearColor(0, 0, 0, 0);
+            _gl.Clear(ClearBufferMask.ColorBufferBit);
+
+            _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
         }
 
         protected unsafe uint LoadHdr(TextureData data)
@@ -289,11 +206,11 @@ namespace XrEngine.OpenGL
             _gl.TexImage2D(
                 TextureTarget.Texture2D,
                 0,
-                Use8Bit ? InternalFormat.Rgba8 : InternalFormat.Rgba32f,
-                LutResolution,
-                LutResolution,
+                Use8Bit ? InternalFormat.Rgb8 : InternalFormat.Rgb32f,
+                Resolution,
+                Resolution,
                 0,
-                PixelFormat.Rgba,
+                PixelFormat.Rgb,
                 Use8Bit ? PixelType.UnsignedByte : PixelType.Float,
                 null
             ); 
@@ -302,6 +219,7 @@ namespace XrEngine.OpenGL
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
+            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 0);
 
             return targetTexture;
         }
@@ -317,8 +235,8 @@ namespace XrEngine.OpenGL
                     TextureTarget.TextureCubeMapPositiveX + i,
                     0,
                     Use8Bit ? InternalFormat.Rgba8 : InternalFormat.Rgba32f,
-                    TextureSize,
-                    TextureSize,
+                    Resolution,
+                    Resolution,
                     0,
                     PixelFormat.Rgba,
                     Use8Bit ? PixelType.UnsignedByte : PixelType.Float,
@@ -333,10 +251,11 @@ namespace XrEngine.OpenGL
 
             if (withMipmaps)
             {
-                _gl.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMaxLevel, (int)_mipmapLevels);
+                _gl.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMaxLevel, (int)MipLevelCount - 1);
                 _gl.GenerateMipmap(TextureTarget.TextureCubeMap);   
             }
-        
+            else
+                _gl.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMaxLevel, 0);
 
             return targetTexture;
         }
@@ -350,33 +269,8 @@ namespace XrEngine.OpenGL
             if (_fooVa != 0)
                 _gl.DeleteVertexArray(_fooVa);
 
-            if (!_keepGenTextures)
-            {
-                if (_cubeMapId != 0)
-                    _gl.DeleteTexture(_cubeMapId);
-
-                if (_lambertianTextureId != 0)
-                    _gl.DeleteTexture(_lambertianTextureId);
-
-                if (_ggxTextureId != 0)
-                    _gl.DeleteTexture(_ggxTextureId);
-
-                if (_sheenTextureId != 0)
-                    _gl.DeleteTexture(_sheenTextureId);
-
-                if (_charlieLutTextureId != 0)
-                    _gl.DeleteTexture(_charlieLutTextureId);
-
-                if (_ggxLutTextureId != 0)
-                    _gl.DeleteTexture(_ggxLutTextureId);
-
-                _lambertianTextureId = 0;
-                _ggxTextureId = 0;
-                _sheenTextureId = 0;
-                _charlieLutTextureId = 0;
-                _ggxLutTextureId = 0;
-            }
-
+            if (_cubeMapId != 0)
+                _gl.DeleteTexture(_cubeMapId);
 
             if (_frameBufferId != 0)
                 _gl.DeleteFramebuffer(_frameBufferId);
@@ -399,35 +293,17 @@ namespace XrEngine.OpenGL
             _gl.BindTexture(TextureTarget.TextureCubeMap, 0);
         }
 
-        public uint OutMipMapLevels => _mipmapLevels;
-
-        public uint OutLambertianTextureId => _lambertianTextureId;
 
         public uint OutCubeMapId => _cubeMapId;
 
-        public uint OutGGXTextureId => _ggxTextureId;
-
-        public uint OutSheenTextureId => _sheenTextureId;
-
-        public uint OutGGXLutTextureId => _ggxLutTextureId;
-
-        public uint OutCharlieLutTextureId => _charlieLutTextureId;
-
-
         public bool Use8Bit;
 
-        public uint TextureSize;
-        
-        public uint GGXSampleCount;
-        
-        public uint LambertianSampleCount;
-        
-        public uint SheenSampleCount;
-        
-        public float LodBias;
-        
-        public uint LowestMipLevel;
+        public uint Resolution;
 
-        public uint LutResolution;
+        public uint SampleCount;
+
+        public float LodBias;
+
+        public uint MipLevelCount;
     }
 }
