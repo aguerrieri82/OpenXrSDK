@@ -7,18 +7,15 @@ const uint cLambertian = 0u;
 const uint cGGX = 1u;
 const uint cCharlie = 2u;
 
-struct FilterParameters {
-  float roughness;
-  uint sampleCount;
-  uint currentMipLevel;
-  uint width;
-  float lodBias;
-  uint distribution; // enum
-};
-
+uniform float uRoughness;
+uniform uint uSampleCount;
+uniform uint uCurrentMipLevel;
+uniform uint uWidth;
+uniform float uLodBias;
+uniform uint uDistribution;
 
 uniform samplerCube uCubeMap;
-uniform FilterParameters pFilterParameters;
+
 
 layout (location = 0) in vec2 inUV;
 
@@ -216,23 +213,23 @@ MicrofacetDistributionSample Lambertian(vec2 xi, float roughness)
 vec4 getImportanceSample(int sampleIndex, vec3 N, float roughness)
 {
     // generate a quasi monte carlo point in the unit square [0.1)^2
-    vec2 xi = hammersley2d(sampleIndex, int(pFilterParameters.sampleCount));
+    vec2 xi = hammersley2d(sampleIndex, int(uSampleCount));
 
     MicrofacetDistributionSample importanceSample;
 
     // generate the points on the hemisphere with a fitting mapping for
     // the distribution (e.g. lambertian uses a cosine importance)
-    if(pFilterParameters.distribution == cLambertian)
+    if(uDistribution == cLambertian)
     {
         importanceSample = Lambertian(xi, roughness);
     }
-    else if(pFilterParameters.distribution == cGGX)
+    else if(uDistribution == cGGX)
     {
         // Trowbridge-Reitz / GGX microfacet model (Walter et al)
         // https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.html
         importanceSample = GGX(xi, roughness);
     }
-    else if(pFilterParameters.distribution == cCharlie)
+    else if(uDistribution == cCharlie)
     {
         importanceSample = Charlie(xi, roughness);
     }
@@ -259,7 +256,7 @@ float computeLod(float pdf)
     // float omegaS = 1.0 / (float(FilterParameters.sampleCoun) * pdf);
     // // Solid angle of texel
     // // note: the factor of 4.0 * UX3D_MATH_PI 
-    // float omegaP = 4.0 * UX3D_MATH_PI / (6.0 * float(pFilterParameters.width) * float(pFilterParameters.width));
+    // float omegaP = 4.0 * UX3D_MATH_PI / (6.0 * float(uWidth) * float(uWidth));
     // // Mip level is determined by the ratio of our sample's solid angle to a texel's solid angle 
     // // note that 0.5 * log2 is equivalent to log4
     // float lod = 0.5 * log2(omegaS / omegaP);
@@ -273,7 +270,7 @@ float computeLod(float pdf)
     // We achieved good results by using the original formulation from Krivanek & Colbert adapted to cubemaps
 
     // https://cgg.mff.cuni.cz/~jaroslav/papers/2007-sketch-fis/Final_sap_0073.pdf
-    float lod = 0.5 * log2( 6.0 * float(pFilterParameters.width) * float(pFilterParameters.width) / (float(pFilterParameters.sampleCount) * pdf));
+    float lod = 0.5 * log2( 6.0 * float(uWidth) * float(uWidth) / (float(uSampleCount) * pdf));
 
 
     return lod;
@@ -285,9 +282,9 @@ vec3 filterColor(vec3 N)
     vec3 color = vec3(0.f);
     float weight = 0.0f;
 
-    for(int i = 0; i < int(pFilterParameters.sampleCount); ++i)
+    for(int i = 0; i < int(uSampleCount); ++i)
     {
-        vec4 importanceSample = getImportanceSample(i, N, pFilterParameters.roughness);
+        vec4 importanceSample = getImportanceSample(i, N, uRoughness);
 
         vec3 H = vec3(importanceSample.xyz);
         float pdf = importanceSample.w;
@@ -296,9 +293,9 @@ vec3 filterColor(vec3 N)
         float lod = computeLod(pdf);
 
         // apply the bias to the lod
-        lod += pFilterParameters.lodBias;
+        lod += uLodBias;
 
-        if(pFilterParameters.distribution == cLambertian)
+        if(uDistribution == cLambertian)
         {
             // sample lambertian at a lower resolution to avoid fireflies
             vec3 lambertian = textureLod(uCubeMap, H, lod).rgb;
@@ -310,7 +307,7 @@ vec3 filterColor(vec3 N)
 
             color += lambertian;
         }
-        else if(pFilterParameters.distribution == cGGX || pFilterParameters.distribution == cCharlie)
+        else if(uDistribution == cGGX || uDistribution == cCharlie)
         {
             // Note: reflect takes incident vector.
             vec3 V = N;
@@ -319,10 +316,10 @@ vec3 filterColor(vec3 N)
 
             if (NdotL > 0.0)
             {
-                if(pFilterParameters.roughness == 0.0)
+                if(uRoughness == 0.0)
                 {
                     // without this the roughness=0 lod is too high
-                    lod = pFilterParameters.lodBias;
+                    lod = uLodBias;
                 }
                 vec3 sampleColor = textureLod(uCubeMap, L, lod).rgb;
                 color += sampleColor * NdotL;
@@ -337,7 +334,7 @@ vec3 filterColor(vec3 N)
     }
     else
     {
-        color /= float(pFilterParameters.sampleCount);
+        color /= float(uSampleCount);
     }
 
     return color.rgb ;
@@ -377,7 +374,7 @@ vec3 LUT(float NdotV, float roughness)
     float B = 0.0;
     float C = 0.0;
 
-    for(int i = 0; i < int(pFilterParameters.sampleCount); ++i)
+    for(int i = 0; i < int(uSampleCount); ++i)
     {
         // Importance sampling, depending on the distribution.
         vec4 importanceSample = getImportanceSample(i, N, roughness);
@@ -390,7 +387,7 @@ vec3 LUT(float NdotV, float roughness)
         float VdotH = saturate(dot(V, H));
         if (NdotL > 0.0)
         {
-            if (pFilterParameters.distribution == cGGX)
+            if (uDistribution == cGGX)
             {
                 // LUT for GGX distribution.
 
@@ -404,7 +401,7 @@ vec3 LUT(float NdotV, float roughness)
                 C += 0.0;
             }
 
-            if (pFilterParameters.distribution == cCharlie)
+            if (uDistribution == cCharlie)
             {
                 // LUT for Charlie distribution.
                 float sheenDistribution = D_Charlie(roughness, NdotH);
@@ -420,5 +417,5 @@ vec3 LUT(float NdotV, float roughness)
     // The PDF is simply pdf(v, h) -> NDF * <nh>.
     // To parametrize the PDF over l, use the Jacobian transform, yielding to: pdf(v, l) -> NDF * <nh> / 4<vh>
     // Since the BRDF divide through the PDF to be normalized, the 4 can be pulled out of the integral.
-    return vec3(4.0 * A, 4.0 * B, 4.0 * 2.0 * UX3D_MATH_PI * C) / float(pFilterParameters.sampleCount);
+    return vec3(4.0 * A, 4.0 * B, 4.0 * 2.0 * UX3D_MATH_PI * C) / float(uSampleCount);
 }

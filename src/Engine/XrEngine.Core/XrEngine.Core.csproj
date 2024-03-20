@@ -21,10 +21,8 @@
 	<ItemGroup>
 	  <None Remove="Shaders\Ibl\filter_cubemap.frag" />
 	  <None Remove="Shaders\Ibl\fullscreen.vert" />
-	  <None Remove="Shaders\Ibl\ibl_filtering.frag" />
 	  <None Remove="Shaders\Ibl\ibl_shared.frag" />
 	  <None Remove="Shaders\Ibl\panorama_to_cubemap.frag" />
-	  <None Remove="Shaders\Ibl\panorama_to_cubemap_v2.frag" />
 	</ItemGroup>
 	
 	<ItemGroup>

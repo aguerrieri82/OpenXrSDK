@@ -112,6 +112,11 @@ namespace XrEngine.OpenGL
             _gl.Uniform1(LocateUniform(name, optional), value);
         }
 
+        public void SetUniform(string name, uint value, bool optional = false)
+        {
+            _gl.Uniform1(LocateUniform(name, optional), value);
+        }
+
         public unsafe void SetUniform(string name, Matrix4x4 value, bool optional = false)
         {
             _gl.UniformMatrix4(LocateUniform(name, optional), 1, false, (float*)&value);

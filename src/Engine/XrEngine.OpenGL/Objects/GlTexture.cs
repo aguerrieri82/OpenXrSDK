@@ -16,6 +16,9 @@ namespace XrEngine.OpenGL
         protected bool _isCompressed;
         protected InternalFormat _internalFormat;
 
+        protected static uint _texReadFbId = 0;
+
+
         public GlTexture(GL gl)
             : base(gl)
         {
@@ -98,22 +101,31 @@ namespace XrEngine.OpenGL
             Unbind();
         }
 
-        public unsafe IList<TextureData>? Read(TextureFormat format, uint startMipLevel = 0, uint endMipLevel = 0)
+        public unsafe IList<TextureData>? Read(TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null)
         {
             var result = new List<TextureData>();
 
-            void ReadTarget(TextureTarget mainTarget, TextureTarget target, uint mipLevel, uint face = 0)
+
+            void ReadTarget(TextureTarget target, uint mipLevel, uint face = 0)
             {
-                _gl.BindTexture(mainTarget, _handle);
+
+                _gl.FramebufferTexture2D(
+                     FramebufferTarget.ReadFramebuffer,
+                     FramebufferAttachment.ColorAttachment0,
+                     target,
+                     _handle, (int)mipLevel);
+
 
                 _gl.GetTexLevelParameter(target, (int)mipLevel, GetTextureParameter.TextureWidth, out int w);
                 _gl.GetTexLevelParameter(target, (int)mipLevel, GetTextureParameter.TextureWidth, out int h);
-                _gl.GetTexLevelParameter(target, (int)mipLevel, GetTextureParameter.TextureInternalFormat, out int intFormat);
+
+                _gl.Viewport(0, 0, (uint)w, (uint)h);
 
                 var pixelSize = format switch
                 {
                     TextureFormat.Rgba32 => 32,
                     TextureFormat.Rgb24 => 24,
+                    TextureFormat.SRgb24 => 24,
                     TextureFormat.RgbFloat => 32 * 3,
                     TextureFormat.RgbaFloat => 32 * 4,
                     _ => throw new NotSupportedException()
@@ -134,21 +146,33 @@ namespace XrEngine.OpenGL
                 fixed (byte* pData = item.Data)
                     _gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, pData);
 
-                _gl.BindTexture(mainTarget, 0);
-
                 result.Add(item);
             }
 
-            for (var i = startMipLevel; i <= endMipLevel; i++)
+            Bind();
+
+            if (_texReadFbId == 0)
+                _texReadFbId = _gl.GenFramebuffer();
+
+            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, _texReadFbId);
+
+            if (endMipLevel == null)
+                endMipLevel = MaxLevel;
+
+            for (var mipLevel = startMipLevel; mipLevel <= endMipLevel; mipLevel++)
             {
                 if (Target == TextureTarget.TextureCubeMap)
                 {
-                    for (var j = 0; j < 6; j++)
-                        ReadTarget(TextureTarget.TextureCubeMap, TextureTarget.TextureCubeMapPositiveX + j, i, (uint)j);
+                    for (var face = 0; face < 6; face++)
+                        ReadTarget(TextureTarget.TextureCubeMapPositiveX + face, mipLevel, (uint)face);
                 }
                 else
-                    ReadTarget(Target, Target, i);
+                    ReadTarget(Target, mipLevel);
             }
+
+            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
+
+            Unbind();
 
             return result;
         }
@@ -163,6 +187,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.Depth24Stencil8 => PixelFormat.DepthStencil,
 
                 TextureFormat.SRgba32 or
+                TextureFormat.RgbaFloat or
                 TextureFormat.Rgba32 => PixelFormat.Rgba,
 
                 TextureFormat.SBgra32 or
@@ -170,11 +195,9 @@ namespace XrEngine.OpenGL
 
                 TextureFormat.Gray8 => PixelFormat.Red,
 
-                TextureFormat.Rgb24 => PixelFormat.Rgb,
-
-                TextureFormat.RgbFloat => PixelFormat.Rgb,
-
-                TextureFormat.RgbaFloat => PixelFormat.Rgba,
+                TextureFormat.Rgb24 or 
+                TextureFormat.RgbFloat or 
+                TextureFormat.SRgb24 => PixelFormat.Rgb,
 
                 _ => throw new NotSupportedException(),
             };

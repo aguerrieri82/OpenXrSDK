@@ -22,10 +22,10 @@ namespace XrEngine
         {
             return new()
             {
-                Resolution = 512,
+                Resolution = 1024,
                 SampleCount = 1024,
                 LodBias = 0f,
-                MipLevelCount = 4,
+                MipLevelCount = 10,
                 Use8Bit = false,
                 Mode = IBLProcessMode.Lambertian | IBLProcessMode.GGX | IBLProcessMode.Charlie,
                 ShaderResolver = str => Embedded.GetString(str),
