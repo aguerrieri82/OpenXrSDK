@@ -157,6 +157,9 @@ namespace XrEditor
         const int WGL_CONTEXT_MINOR_VERSION_ARB = 0x2092;
         const int WGL_CONTEXT_PROFILE_MASK_ARB = 0x9126;
         const int WGL_CONTEXT_CORE_PROFILE_BIT_ARB = 0x00000001;
+        const int WGL_SAMPLE_BUFFERS_ARB = 0x2041;
+        const int WGL_SAMPLES_ARB = 0x2042;
+
         #endregion
 
         public GlRenderHost(bool createContext = true)
@@ -177,6 +180,7 @@ namespace XrEditor
                 cColorBits = 24,
                 cAlphaBits = 8,
                 cDepthBits = 24,
+               
                 cStencilBits = 8
             };
 
@@ -201,14 +205,25 @@ namespace XrEditor
             var pointer = GetProcAddress("wglCreateContextAttribsARB");
             wglCreateContextAttribsARB = Marshal.GetDelegateForFunctionPointer<wglCreateContextAttribsARBPtr>(pointer);
 
-            var attr = stackalloc int[7];
+            var attr = stackalloc int[11];
+
             attr[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
             attr[1] = 4;
+
             attr[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
             attr[3] = 0;
+            
             attr[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
             attr[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+            
+            attr[6] = WGL_SAMPLE_BUFFERS_ARB;
+            attr[7] = 1;
+            
+            attr[8] = WGL_SAMPLES_ARB;
+            attr[9] = 4;
+            
             attr[6] = 0;
+            
             _glCtx = wglCreateContextAttribsARB(_hdc, _glCtx, attr);
 
         }

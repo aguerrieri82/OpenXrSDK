@@ -11,6 +11,12 @@
             public uint BitPerPixel;
         }
 
+        public  IList<TextureData> Read(string fileName)
+        {
+            using (var stream = File.OpenRead(fileName))
+                return Read(stream);
+        }
+        
         public abstract IList<TextureData> Read(Stream stream);
 
         protected static AlignSize GetFormatAlign(TextureCompressionFormat comp, TextureFormat format)
@@ -19,7 +25,6 @@
 
             if (comp == TextureCompressionFormat.Etc2)
             {
-
                 result.AlignX = 4;
                 result.AlignY = 4;
 
@@ -36,11 +41,16 @@
             }
             else if (comp == TextureCompressionFormat.Uncompressed)
             {
-                if (format == TextureFormat.RgbFloat)
+                result.AlignX = 1;
+                result.AlignY = 1;
+
+                if (format == TextureFormat.RgbFloat32)
                 {
-                    result.AlignX = 1;
-                    result.AlignY = 1;
-                    result.BitPerPixel = 32;
+                    result.BitPerPixel = 128;
+                }
+                if (format == TextureFormat.RgbaFloat16)
+                {
+                    result.BitPerPixel = 64;
                 }
                 else
                     throw new NotSupportedException();
@@ -62,17 +72,17 @@
 
             var results = new List<TextureData>();
 
-            for (var m = 0; m < mipCount; m++)
+            for (var mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
-                for (var f = 0 ; f < faceCount; f++)
+                for (var face = 0 ; face < faceCount; face++)
                 {
                     var item = new TextureData
                     {
-                        Width = (uint)MathF.Max(1, width >> m),
-                        Height = (uint)MathF.Max(1, height >> m),
-                        MipLevel = (uint)m,
+                        Width = (uint)MathF.Max(1, width >> mipLevel),
+                        Height = (uint)MathF.Max(1, height >> mipLevel),
+                        MipLevel = (uint)mipLevel,
                         Format = format,
-                        Face = (uint)f,
+                        Face = (uint)face,
                         Compression = comp,
                     };
 

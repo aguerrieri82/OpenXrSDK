@@ -86,7 +86,7 @@ namespace XrEngine.OpenGL
             switch (glTexture.InternalFormat)
             {
                 case InternalFormat.Rgb32f:
-                    res.Format = TextureFormat.RgbFloat;
+                    res.Format = TextureFormat.RgbFloat32;
                     break;
             }
             
@@ -103,6 +103,8 @@ namespace XrEngine.OpenGL
 
         public static unsafe GlTexture CreateGlTexture(this Texture2D value, GL gl, bool requireCompression)
         {
+            //TODO !!WARN!! change this
+            requireCompression = false;
 
             var texture = new GlTexture(gl)
             {
@@ -111,6 +113,9 @@ namespace XrEngine.OpenGL
                 WrapS = (TextureWrapMode)value.WrapS,
                 WrapT = (TextureWrapMode)value.WrapT
             };
+
+            if (value is TextureCube)
+                texture.Target = TextureTarget.TextureCubeMap;
 
             if (value.Data != null)
             {

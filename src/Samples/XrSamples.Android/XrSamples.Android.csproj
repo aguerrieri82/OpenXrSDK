@@ -13,8 +13,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<RunAOTCompilation>False</RunAOTCompilation>
-		<PublishTrimmed>False</PublishTrimmed>
+		<RunAOTCompilation>True</RunAOTCompilation>
+		<PublishTrimmed>True</PublishTrimmed>
 		<EnableLLVM>False</EnableLLVM>
 		<Optimize>True</Optimize>
 		<EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>

@@ -34,8 +34,9 @@ namespace XrSamples
         {
             _sound = sound;
             _maxTtl = maxTtl;
-            var pbrMat = PbrMaterial.CreateDefault(new Color(1, 1, 0));
-            pbrMat.MetallicRoughness!.RoughnessFactor = 0.3f;
+            var pbrMat = PbrMaterial.CreateDefault("#EF6C00");
+            pbrMat.MetallicRoughness!.RoughnessFactor = 0.4f;
+            pbrMat.MetallicRoughness!.MetallicFactor = 0.1f;
             Material = pbrMat;
             //Material = new StandardMaterial() { Color = new Color(1, 1, 0) };
         }
@@ -142,7 +143,7 @@ namespace XrSamples
 
             var ball = expired.FirstOrDefault();
 
-            foreach (var item in expired.Skip(1))
+            foreach (var item in expired.Skip(1).ToArray())
             {
                 item.Dispose();
                 _balls.Remove(item);

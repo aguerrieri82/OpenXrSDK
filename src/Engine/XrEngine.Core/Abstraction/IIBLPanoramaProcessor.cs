@@ -22,7 +22,7 @@ namespace XrEngine
         {
             return new()
             {
-                Resolution = 1024,
+                Resolution = 512,
                 SampleCount = 1024,
                 LodBias = 0f,
                 MipLevelCount = 10,

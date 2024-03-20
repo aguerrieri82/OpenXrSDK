@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XrEngine.Materials;
+using XrMath;
 
 namespace XrEngine
 {
@@ -39,40 +40,40 @@ namespace XrEngine
             ActiveComponents = VertexComponent.Position
         };
 
+        public class EnvViewMaterial : CubeMapMaterial
+        {
+            public override void UpdateShader(ShaderUpdateBuilder bld)
+            {
+                bld.AddFeature("UNIFORM_EXP");
+
+                if (PbrMaterial.LinearOutput)
+                    bld.AddFeature("LINEAR_OUTPUT");
+
+                bld.AddFeature(PbrMaterial.ToneMap.ToString());
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    var image = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
+                    var textures = image?.Textures;
+
+                    if (image != null && textures != null && ctx.Camera != null)
+                    {
+                        up.SetUniform("u_GGXEnvSampler", textures.GGXEnv!, 0);
+                        up.SetUniform("u_MipCount", (int)textures.MipCount);
+                        up.SetUniform("u_EnvBlurNormalized", Blur);
+                        up.SetUniform("u_EnvIntensity", image.Intensity);
+                        up.SetUniform("u_ViewProjectionMatrix", ctx.Camera.View * ctx.Camera.Projection);
+                        up.SetUniform("u_Exposure", ctx.Camera.Exposure);
+                        up.SetUniform("u_EnvRotation", Matrix3x3.Rotation(image.Rotation));
+                    }
+                });
+            }
+        }
+
         public EnvironmentView()
         {
             Geometry = CubeGeometry;
-            Materials.Add(new CubeMapMaterial() { });
-        }
-
-        public void LoadPanorama(string hdrFileName)
-        {
-            using (var stream = File.OpenRead(hdrFileName))
-                LoadPanorama(stream);
-        }
-
-        public void LoadPanorama(Stream hdrStream)
-        {
-            LoadPanorama(HdrReader.Instance.Read(hdrStream)[0]);
-            hdrStream.Dispose();
-        }
-
-        public void LoadPanorama(TextureData data)
-        {
-            var processor = _scene?.App?.Renderer as IIBLPanoramaProcessor;
-            
-            if (processor == null)
-                throw new NotSupportedException();
-
-            var textures = processor.ProcessPanoramaIBL(data, PanoramaProcessorOptions.Default());
-
-            var map = ((CubeMapMaterial)Materials[0]);
-
-            map.Texture = textures.LambertianEnv!;
-            map.MipCount = (int)textures.MipCount;
-
-            //textures.GGXLUT!.Data = null;
-            //textures.CharlieLUT!.Data = null;
+            Materials.Add(new EnvViewMaterial() { });
         }
     }
 }

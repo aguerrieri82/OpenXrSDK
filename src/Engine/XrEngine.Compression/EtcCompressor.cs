@@ -101,6 +101,7 @@ namespace XrEngine.Compression
                 TextureFormat.Bgra32 => SKColorType.Bgra8888,
                 TextureFormat.SBgra32 => SKColorType.Bgra8888,
                 TextureFormat.Gray8 => SKColorType.Gray8,
+                TextureFormat.RgbaFloat16 => SKColorType.RgbaF16,
                 _ => throw new NotSupportedException()
             };
 

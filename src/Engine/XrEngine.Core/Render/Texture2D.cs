@@ -14,8 +14,11 @@ namespace XrEngine
         Rgba32,
         Bgra32,
 
-        RgbFloat,
-        RgbaFloat,
+        RgbFloat32,
+        RgbaFloat32,
+
+        RgbFloat16,
+        RgbaFloat16,
 
         SRgb24,
         SBgra32,

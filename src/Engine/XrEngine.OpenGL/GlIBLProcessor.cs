@@ -1,5 +1,6 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+using System.Xml.Schema;
 #else
 using Silk.NET.OpenGL;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace XrEngine.OpenGL
 
 
         private readonly GL _gl;
-        private uint _inputTextureId;
+        private GlTexture? _inputTexture;
         private uint _cubeMapId;
         private uint _frameBufferId;
         private uint _fooVa;
@@ -30,7 +31,11 @@ namespace XrEngine.OpenGL
         public GlIBLProcessor(GL gl)
         {
             _gl = gl;
+            EnvFormat = InternalFormat.Rgba32f;
+            LutFormat = InternalFormat.Rgba32f;
 
+            //EnvFormat = InternalFormat.CompressedRgba8Etc2EacOes;
+            //LutFormat = InternalFormat.CompressedRgb8Etc2Oes;
         }
 
         public void Initialize(TextureData panoramaHdr, Func<string, string> shaderResolver)
@@ -39,8 +44,8 @@ namespace XrEngine.OpenGL
 
             _frameBufferId = _gl.GenFramebuffer();
 
-            _inputTextureId = LoadHdr(panoramaHdr);
-            _cubeMapId = CreateCubeMap(true);
+            _inputTexture = LoadHdr(panoramaHdr);
+
             _fooVa = _gl.GenVertexArray();
 
             if (MipLevelCount == 0)
@@ -92,10 +97,13 @@ namespace XrEngine.OpenGL
 
         public void PanoramaToCubeMap()
         {
+            if (_cubeMapId == 0)
+                _cubeMapId = CreateCubeMap(true);
+
             _gl.ClearColor(0, 0, 0, 1);
 
             _gl.ActiveTexture(TextureUnit.Texture0);
-            _gl.BindTexture(TextureTarget.Texture2D, _inputTextureId);
+            _inputTexture!.Bind();
 
             _gl.UseProgram(_panToCubeProg!.Handle);
 
@@ -162,59 +170,57 @@ namespace XrEngine.OpenGL
 
             _gl.Viewport(0, 0, currentTextureSize, currentTextureSize);
 
-            _gl.ClearColor(0, 0, 0, 0);
+            _gl.ClearColor(0, 0, 0, 1);
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
             _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
         }
 
-        protected unsafe uint LoadHdr(TextureData data)
+        protected GlTexture LoadHdr(TextureData data)
         {
-            if (data.Format != TextureFormat.RgbFloat)
-                throw new NotSupportedException();
+            var res = new GlTexture(_gl)
+            {
+                MinFilter = TextureMinFilter.Linear,
+                MagFilter = TextureMagFilter.Linear,
+                WrapT = TextureWrapMode.MirroredRepeat,
+                WrapS = TextureWrapMode.MirroredRepeat
+            };
 
-            var targetTexture = _gl.GenTexture();
-            _gl.BindTexture(TextureTarget.Texture2D, targetTexture);
+            res.Update(data.Width, data.Height, data.Format, data.Compression, [data]);
 
-            fixed (byte* pData = data.Data)
-                _gl.TexImage2D(
-                    TextureTarget.Texture2D,
-                    0,
-                    InternalFormat.Rgb32f,
-                    data.Width,
-                    data.Height,
-                    0,
-                    PixelFormat.Rgb,
-                    PixelType.Float,
-                    pData
-                );
-
-            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.Linear);
-            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
-            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.MirroredRepeat);
-            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.MirroredRepeat);
-
-            return targetTexture;
+            return res;
         }
 
 
         protected unsafe uint CreateLutTexture()
         {
+
             var targetTexture = _gl.GenTexture();
             _gl.BindTexture(TextureTarget.Texture2D, targetTexture);
 
+            /*
             _gl.TexImage2D(
                 TextureTarget.Texture2D,
                 0,
-                Use8Bit ? InternalFormat.Rgb8 : InternalFormat.Rgb32f,
+                //Use8Bit ? InternalFormat.Rgb8 : InternalFormat.Rgb32f,
+                LutFormat,
                 Resolution,
                 Resolution,
                 0,
                 PixelFormat.Rgb,
                 Use8Bit ? PixelType.UnsignedByte : PixelType.Float,
                 null
-            ); 
-            
+            );
+            */
+
+            _gl.TexStorage2D(
+                TextureTarget.Texture2D,
+                1,
+                (SizedInternalFormat)LutFormat,
+                Resolution,
+                Resolution
+            );
+
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.Linear);
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);
@@ -231,10 +237,12 @@ namespace XrEngine.OpenGL
 
             for (var i = 0; i < 6; ++i)
             {
+                /*
                 _gl.TexImage2D(
                     TextureTarget.TextureCubeMapPositiveX + i,
                     0,
-                    Use8Bit ? InternalFormat.Rgba8 : InternalFormat.Rgba32f,
+                    //Use8Bit ? InternalFormat.Rgba8 : InternalFormat.Rgba32f,
+                    EnvFormat,
                     Resolution,
                     Resolution,
                     0,
@@ -242,7 +250,17 @@ namespace XrEngine.OpenGL
                     Use8Bit ? PixelType.UnsignedByte : PixelType.Float,
                     null
                 );
+                */
+              
             }
+
+            _gl.TexStorage2D(
+                   TextureTarget.TextureCubeMap,
+                   MipLevelCount,
+                   (SizedInternalFormat)EnvFormat,
+                   Resolution,
+                   Resolution
+               );
 
             _gl.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)(withMipmaps ? GLEnum.LinearMipmapLinear : GLEnum.Linear));
             _gl.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)GLEnum.Linear);
@@ -252,7 +270,7 @@ namespace XrEngine.OpenGL
             if (withMipmaps)
             {
                 _gl.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMaxLevel, (int)MipLevelCount - 1);
-                _gl.GenerateMipmap(TextureTarget.TextureCubeMap);   
+                //_gl.GenerateMipmap(TextureTarget.TextureCubeMap);   
             }
             else
                 _gl.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMaxLevel, 0);
@@ -263,14 +281,16 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
-            if (_inputTextureId != 0)
-                _gl.DeleteTexture(_inputTextureId);
+            _inputTexture?.Dispose();
 
             if (_fooVa != 0)
                 _gl.DeleteVertexArray(_fooVa);
 
+            //TODO uncomment
+            /*
             if (_cubeMapId != 0)
                 _gl.DeleteTexture(_cubeMapId);
+            */
 
             if (_frameBufferId != 0)
                 _gl.DeleteFramebuffer(_frameBufferId);
@@ -283,7 +303,7 @@ namespace XrEngine.OpenGL
 
             _panToCubeProg = null;
             _filterProg = null;
-            _inputTextureId = 0;
+            _inputTexture = null;
             _cubeMapId = 0;
             _fooVa = 0;
 
@@ -293,6 +313,9 @@ namespace XrEngine.OpenGL
             _gl.BindTexture(TextureTarget.TextureCubeMap, 0);
         }
 
+        public InternalFormat EnvFormat;
+
+        public InternalFormat LutFormat;
 
         public uint OutCubeMapId => _cubeMapId;
 

@@ -17,8 +17,9 @@ namespace XrEngine
             ETC2_RGB_A1 = 24,
             RGBA8 = 0x0808080861626772,
             RGB8 = 0x0008080800626772,
-            RGBFloat =   0x0020202000626772,
-            RGBAFloat = 0x2020202061626772
+            RGBFloat32 =   0x0020202000626772,
+            RGBAFloat32 = 0x2020202061626772,
+            RGBAFloat16 = 0x1010101061626772
         }
 
         public enum ColourSpace : uint
@@ -97,14 +98,14 @@ namespace XrEngine
                     else
                         header.PixelFormat = PixelFormat.RGB8;
                     break;
-                case TextureFormat.RgbFloat:
+                case TextureFormat.RgbFloat32:
                     header.ColourSpace = ColourSpace.LinearRGB;
-                    header.PixelFormat = PixelFormat.RGBFloat;
+                    header.PixelFormat = PixelFormat.RGBFloat32;
                     header.ChannelType = ChannelType.Float;
                     break;
-                case TextureFormat.RgbaFloat:
+                case TextureFormat.RgbaFloat32:
                     header.ColourSpace = ColourSpace.LinearRGB;
-                    header.PixelFormat = PixelFormat.RGBAFloat;
+                    header.PixelFormat = PixelFormat.RGBAFloat32;
                     header.ChannelType = ChannelType.Float;
                     break;
                 default:
@@ -139,7 +140,6 @@ namespace XrEngine
             var test = (ulong)header.PixelFormat >> 32;
 
             if (header.NumSurfaces != 1 ||
-                header.NumFaces != 1 ||
                 header.Depth != 1)
             {
                 throw new NotSupportedException();
@@ -171,8 +171,11 @@ namespace XrEngine
                     else
                         format = TextureFormat.SRgb24;
                     break;
-                case PixelFormat.RGBFloat:
-                    format = TextureFormat.RgbFloat;
+                case PixelFormat.RGBFloat32:
+                    format = TextureFormat.RgbFloat32;
+                    break;
+                case PixelFormat.RGBAFloat16:
+                    format = TextureFormat.RgbaFloat16;
                     break;
                 default:
                     throw new NotSupportedException();

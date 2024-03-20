@@ -8,6 +8,12 @@ using XrMath;
 
 namespace XrSamples
 {
+    public class MaterialSettings
+    {
+        public float Metallic { get; set; }
+
+        public float Roughness { get; set; }
+    }
 
     public class PingPongSettings : BaseAppSettings
     {
@@ -24,6 +30,10 @@ namespace XrSamples
             EnablePCM = true;
             EnableCCD = true;
             ShowTerrain = false;
+
+            BallMaterial = new MaterialSettings();
+            BallMaterial.Roughness = 0.4f;
+            BallMaterial.Metallic = 0.1f;
 
             Ball.LengthToleranceScale = 1;
             Ball.ContactOffset = 0.01f;
@@ -43,6 +53,8 @@ namespace XrSamples
             Terrain.EnableCCD = true;
             Terrain.ContactReportThreshold = 1;
 
+            Exposure = 0.7f;
+            LightIntensity = 1f;
         }
 
 
@@ -106,6 +118,9 @@ namespace XrSamples
 
         }
 
+        public MaterialSettings BallMaterial { get; set; }
+
+
         public PhysicSettings Ball { get; set; }
 
         public PhysicSettings Racket { get; set; }
@@ -119,6 +134,10 @@ namespace XrSamples
         public bool EnableCCD { get; set; }
 
         public bool ShowTerrain { get; set; }
+
+        public float Exposure { get; set; }
+
+        public float LightIntensity { get; set; }
     }
 
     public class PingPongSettingsPanel : UIRoot
@@ -126,6 +145,31 @@ namespace XrSamples
         public PingPongSettingsPanel(PingPongSettings settings, Scene3D scene)
         {
             var binder = new Binder<PingPongSettings>(settings);
+
+            void Binder_PropertyChanged(PingPongSettings? obj, IProperty property, object? value, object? oldValue)
+            {
+                if (property.Name!.Contains("BallMaterial"))
+                {
+                    var generator = scene.FindFeature<BallGenerator>()!;
+
+                    (generator.Material as PbrMaterial)!.MetallicRoughness!.RoughnessFactor = obj!.BallMaterial!.Roughness;
+                    (generator.Material as PbrMaterial)!.MetallicRoughness!.MetallicFactor = obj!.BallMaterial!.Metallic;
+                     generator.Material.NotifyChanged();
+
+                }
+                if (property.Name!.Contains("Exposure"))
+                {
+                    scene.PerspectiveCamera().Exposure = obj!.Exposure;
+                }
+                if (property.Name!.Contains("Light"))
+                {
+                    var light = scene.Descendants<ImageLight>().First();
+                    light.Intensity = obj!.LightIntensity;
+                    light.NotifyChanged(ObjectChangeType.Render);
+                }
+            }
+
+            binder.PropertyChanged += Binder_PropertyChanged;
 
             TextBlock? logger = null;
 
@@ -166,14 +210,24 @@ namespace XrSamples
                     .AddInput("Show Terrain", new CheckBox(), binder.Prop(a => a.ShowTerrain))
                 .EndChild()
             .EndChild()
-            .AddText(bld => bld
-                .Style(s=> s
-                    .Padding(16)
-                    .FlexGrow(1)
-                    .LineSize(20)
-                    .AlignSelf(UiAlignment.Stretch)
-                    .Border(1,"#0f0"))
-                .Set(a=> logger = a))
+            .BeginRow(s => s.ColGap(16))
+                .AddText(bld => bld
+                    .Style(s=> s
+                        .Padding(16)
+                        .FlexBasis(2)
+                        .FlexGrow(1)
+                        .LineSize(20)
+                        .AlignSelf(UiAlignment.Stretch)
+                        .Border(1,"#0f0"))
+                    .Set(a=> logger = a))
+                .BeginColumn(s => s.FlexBasis(1).RowGap(16))
+                    .AddInputRange("Metallic", 0f, 1f, binder.Prop(a => a.BallMaterial.Metallic))
+                    .AddInputRange("Roughness", 0f, 1f, binder.Prop(a => a.BallMaterial.Roughness))
+                    .AddInputRange("Exposure", 0f, 1f, binder.Prop(a => a.Exposure))
+                    .AddInputRange("Intensity", 0f, 1f, binder.Prop(a => a.LightIntensity))
+                .EndChild()
+
+            .EndChild()
             .BeginRow(s => s.JustifyContent(UiAlignment.End))
                 .AddButton("Apply", () => settings.Apply(scene), s => s.Padding(8, 16).BackgroundColor("#1565C0"))
             .EndChild();
