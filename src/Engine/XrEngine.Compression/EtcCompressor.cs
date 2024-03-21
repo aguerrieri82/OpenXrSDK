@@ -59,20 +59,7 @@ namespace XrEngine.Compression
 
         #endregion
 
-        static uint GetPixelSize(SKColorType type)
-        {
-            switch (type)
-            {
-                case SKColorType.Gray8:
-                    return 1;
-                case SKColorType.Srgba8888:
-                case SKColorType.Rgba8888:
-                case SKColorType.Bgra8888:
-                    return 4;
-                default:
-                    throw new NotSupportedException();
-            }
-        }
+   
 
         static unsafe SKBitmap CreateImage(TextureData data, SKColorType type)
         {
@@ -81,7 +68,7 @@ namespace XrEngine.Compression
             var image = new SKBitmap(info);
             fixed (byte* pDst = image.GetPixelSpan())
             fixed (byte* pSrc = data.Data)
-                PackImage(data.Width, data.Height, pSrc, data.Width, data.Height, pDst, GetPixelSize(type));
+                PackImage(data.Width, data.Height, pSrc, data.Width, data.Height, pDst, ImageUtils.GetPixelSizeByte(type));
 
             return image;
         }
@@ -94,16 +81,7 @@ namespace XrEngine.Compression
 
         public unsafe static IList<TextureData> Encode(TextureData data, int mipsLevels)
         {
-            var skType = data.Format switch
-            {
-                TextureFormat.Rgba32 => SKColorType.Rgba8888,
-                TextureFormat.SRgba32 => SKColorType.Rgba8888,
-                TextureFormat.Bgra32 => SKColorType.Bgra8888,
-                TextureFormat.SBgra32 => SKColorType.Bgra8888,
-                TextureFormat.Gray8 => SKColorType.Gray8,
-                TextureFormat.RgbaFloat16 => SKColorType.RgbaF16,
-                _ => throw new NotSupportedException()
-            };
+            var skType = ImageUtils.GetFormat(data.Format);
 
             bool useSrgb = data.Format == TextureFormat.SRgba32 || data.Format == TextureFormat.SBgra32;
 
@@ -111,7 +89,16 @@ namespace XrEngine.Compression
 
             using var bgrImage = ImageUtils.ChangeColorSpace(image, SKColorType.Bgra8888); //TODO investigate, on android rgb is treated as bgr 
 
-            return Encode(bgrImage, mipsLevels, useSrgb);
+            var result = Encode(bgrImage, mipsLevels, useSrgb);
+
+            foreach (var item in result)
+            {
+                if (mipsLevels == 0)
+                    item.MipLevel = data.MipLevel;
+                item.Face = data.Face;
+            }
+
+            return result;
         }
 
         public unsafe static IList<TextureData> Encode(SKBitmap image, int mipsLevels, bool useSrgb = false)

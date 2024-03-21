@@ -97,7 +97,13 @@ namespace XrEngine.OpenXr
             return this;
         }
 
-        public XrEngineAppBuilder UseFilament()
+        public XrEngineAppBuilder UseFilamentOpenGL()
+        {
+            _options.Driver = GraphicDriver.FilamentOpenGL;
+            return this;
+        }
+
+        public XrEngineAppBuilder UseFilamentVulkan()
         {
             _options.Driver = GraphicDriver.FilamentVulkan;
             return this;

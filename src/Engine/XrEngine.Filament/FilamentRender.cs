@@ -126,7 +126,7 @@ namespace XrEngine.Filament
                 PostProcessingEnabled = true,
                 ShadowingEnabled = false,
                 ShadowType = FlShadowType.PCF,
-                BlendMode = FlBlendMode.OPAQUE,
+                BlendMode = FlBlendMode.TRANSLUCENT,
                 SampleCount = _sampleCount,
                 StencilBufferEnabled = false,
                 FrustumCullingEnabled = false,

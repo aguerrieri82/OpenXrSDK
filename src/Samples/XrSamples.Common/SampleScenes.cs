@@ -36,7 +36,7 @@ namespace XrSamples
 
             scene.AddComponent<DebugGizmos>();
 
-            /*
+     
             scene.AddChild(new SunLight()
             {
                 Name = "sun-light",
@@ -54,7 +54,7 @@ namespace XrSamples
             pl2.Name = "point-light-2";
             pl2.Transform.Position = new Vector3(0, -2, 0);
             pl2.Intensity = 0.3f;
-            */
+            
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
@@ -75,7 +75,7 @@ namespace XrSamples
             return app;
         }
 
-        public static XrEngineAppBuilder UseEnvironmentHDR(this XrEngineAppBuilder builder, string assetPath)
+        public static XrEngineAppBuilder UseEnvironmentHDR(this XrEngineAppBuilder builder, string assetPath, bool showEnv = false)
         {
             var assets = XrPlatform.Current!.AssetManager;
 
@@ -87,19 +87,24 @@ namespace XrSamples
 
                 scene.PerspectiveCamera().Exposure = 0.5f;
 
-                var item = scene.AddChild<EnvironmentView>();
-
-                var envCube = (item.Materials[0] as CubeMapMaterial)!;
-                envCube.Exposure = scene.PerspectiveCamera().Exposure;
+                if (showEnv)
+                    scene.AddChild<EnvironmentView>();
 
                 var light = scene.AddChild<ImageLight>();
                 light.Intensity = 1f;
 
+                foreach (var l in scene.Descendants<Light>())
+                {
+                    if (l != light)
+                        l.IsVisible = false;
+                }
+                   
                 if (assetPath.Contains("pisa"))
                 {
                     light.Textures = new PbrMaterial.IBLTextures
                     {
                         MipCount = 10,
+                        Env = new TextureCube(PvrTranscoder.Instance.Read(assets.GetFsPath("Pisa/Env.pvr"))),
                         GGXEnv = new TextureCube(PvrTranscoder.Instance.Read(assets.GetFsPath("Pisa/GGX.pvr"))),
                         LambertianEnv = new TextureCube(PvrTranscoder.Instance.Read(assets.GetFsPath("Pisa/Lambertian.pvr"))),
                         GGXLUT = new Texture2D(ImageReader.Instance.Read(assets.GetFsPath("Pisa/GGX.png"))),
@@ -266,14 +271,14 @@ namespace XrSamples
 
             return builder
                    .UseApp(app)
-                   //.UseScene(true)
+                   .UseScene(true)
                    .ConfigureSampleApp()
-                   .UseEnvironmentHDR("pisa.hdr")
+                   .UseEnvironmentHDR("pisa.hdr", false)
                    .UsePhysics(new PhysicsOptions
                    {
                        LengthTolerance = settings.LengthToleranceScale,
                    })
-                  .AddPanel(new PingPongSettingsPanel(settings, scene));
+                   .AddPanel(new PingPongSettingsPanel(settings, scene));
 
         }
 

@@ -91,6 +91,21 @@ namespace XrEngine.OpenXr
                     model.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
                     model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
                     model.Name = "Controller";
+
+                    //TODO check this, override controller material
+                    foreach (var child in ((Group3D)model).Descendants<TriangleMesh>())
+                    {
+                        foreach (var  mat in child.Materials)
+                        {
+                            if (mat is PbrMaterial pbr && pbr.MetallicRoughness != null && pbr.MetallicRoughness.RoughnessFactor == 0.2f)
+                            {
+                                pbr.MetallicRoughness.RoughnessFactor = 0.5f;
+                                pbr.MetallicRoughness.MetallicFactor = 0f;
+                                pbr.MetallicRoughness.MetallicRoughnessTexture = null;
+                            }
+                    
+                        }
+                    }
                     group.AddChild(model);
                 }
 

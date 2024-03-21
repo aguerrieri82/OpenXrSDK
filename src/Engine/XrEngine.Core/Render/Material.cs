@@ -2,7 +2,6 @@
 {
     public enum AlphaMode
     {
-        Unspecified,
         Opaque,
         Mask,
         Blend

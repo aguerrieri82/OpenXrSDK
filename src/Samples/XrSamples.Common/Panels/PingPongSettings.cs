@@ -53,7 +53,7 @@ namespace XrSamples
             Terrain.EnableCCD = true;
             Terrain.ContactReportThreshold = 1;
 
-            Exposure = 0.7f;
+            Exposure = 0f;
             LightIntensity = 1f;
         }
 
@@ -224,7 +224,7 @@ namespace XrSamples
                     .AddInputRange("Metallic", 0f, 1f, binder.Prop(a => a.BallMaterial.Metallic))
                     .AddInputRange("Roughness", 0f, 1f, binder.Prop(a => a.BallMaterial.Roughness))
                     .AddInputRange("Exposure", 0f, 1f, binder.Prop(a => a.Exposure))
-                    .AddInputRange("Intensity", 0f, 1f, binder.Prop(a => a.LightIntensity))
+                    .AddInputRange("Intensity", 0.01f, 5f, binder.Prop(a => a.LightIntensity))
                 .EndChild()
 
             .EndChild()

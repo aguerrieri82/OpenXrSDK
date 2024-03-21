@@ -176,7 +176,11 @@ namespace XrEngine.Physics
             Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
 
             if (!scale.IsSameValue(10e-5f))
+            {
+                return;
                 throw new NotSupportedException("Not uniform scale is not supported");
+            }
+               
 
             _material = _system.CreateOrGetMaterial(new PhysicsMaterialInfo
             {
