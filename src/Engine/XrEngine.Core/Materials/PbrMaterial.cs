@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -140,7 +141,7 @@ namespace XrEngine
                 if (_buffer.Data == 0)
                 {
                     _buffer.Size = 80;
-                    _buffer.Data = Marshal.AllocHGlobal(_buffer.Size);
+                    _buffer.Data = MemoryManager.Allocate(_buffer.Size, this);
                 }
 
                 using var stream = new MemoryStream();
@@ -322,10 +323,10 @@ namespace XrEngine
                 if (_buffer.Size != newSize)
                 {
                     if (_buffer.Data != 0)
-                        Marshal.FreeHGlobal(_buffer.Data);
+                        MemoryManager.Free(_buffer.Data);
 
                     _buffer.Size = newSize;
-                    _buffer.Data = Marshal.AllocHGlobal(_buffer.Size);
+                    _buffer.Data = MemoryManager.Allocate(_buffer.Size, this);
 
                     ((int*)_buffer.Data)[0] = Lights.Length;
 

@@ -51,7 +51,7 @@ namespace XrEngine
 
         public override unsafe IList<TextureData> Read(Stream stream)
         {
-            using var memStream = stream.ToMemory();
+            using var memStream = stream.EnsureSeek();
 
             var file = memStream.ReadStruct<DDS_FILE>();
 

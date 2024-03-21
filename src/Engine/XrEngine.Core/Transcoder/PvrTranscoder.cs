@@ -115,7 +115,7 @@ namespace XrEngine
 
             stream.WriteStruct(header);
             foreach (var img in images.OrderBy(a => a.MipLevel).ThenBy(a => a.Face))
-                stream.Write(img.Data);
+                stream.Write(img.Data.Span);
 
             stream.Dispose();
         }
@@ -123,18 +123,18 @@ namespace XrEngine
 
         public override unsafe IList<TextureData> Read(Stream stream)
         {
-            using var memStream = stream.ToMemory();
+            using var seekStream = stream.EnsureSeek();
 
-            var header = memStream.ReadStruct<PvrHeader>();
+            var header = seekStream.ReadStruct<PvrHeader>();
 
             if (header.Version != Version)
                 throw new InvalidOperationException();
 
             if (header.MetaDataSize > 0)
             {
-                var meta = memStream.ReadStruct<PvrMeta>();
+                var meta = seekStream.ReadStruct<PvrMeta>();
                 if (meta.DataSize > 0)
-                    memStream.Position += (header.MetaDataSize - sizeof(PvrMeta));
+                    seekStream.Position += (header.MetaDataSize - sizeof(PvrMeta));
             }
 
             var test = (ulong)header.PixelFormat >> 32;
@@ -181,7 +181,7 @@ namespace XrEngine
                     throw new NotSupportedException();
             }
 
-            return ReadData(memStream, header.Width, header.Height, header.MIPMapCount, header.NumFaces, comp, format);
+            return ReadData(seekStream, header.Width, header.Height, header.MIPMapCount, header.NumFaces, comp, format);
 
 
         }

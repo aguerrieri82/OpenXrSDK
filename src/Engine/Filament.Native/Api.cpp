@@ -276,6 +276,10 @@ void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 	app->entities[id] = light;
 }
 
+static void DeleteBuffer(void* buffer, size_t size, void* user) {
+	delete[] buffer;
+}
+
 
 void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 {
@@ -299,10 +303,10 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 	if (info.indicesCount > 0) {
 		auto ibBuffer = new uint8_t[ibSize];
 		memcpy(ibBuffer, info.indices, ibSize);
-		ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(ibBuffer, ibSize, 0));
+		ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(ibBuffer, ibSize, DeleteBuffer));
 	}
 	else
-		ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(indices, ibSize, 0));
+		ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(indices, ibSize, DeleteBuffer));
 
 
 	auto vbBuilder = VertexBuffer::Builder()
@@ -380,7 +384,7 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 	auto vbBuffer = new uint8_t[vbSize];
 	memcpy(vbBuffer, info.vertices, vbSize);
 
-	vb->setBufferAt(*app->engine, 0, VertexBuffer::BufferDescriptor(vbBuffer, vbSize, 0));
+	vb->setBufferAt(*app->engine, 0, VertexBuffer::BufferDescriptor(vbBuffer, vbSize, DeleteBuffer));
 
 	if (hasOrientation) {
 
@@ -390,7 +394,7 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 		result.soBuffer = new quatf[so->getVertexCount()];
 		so->getQuats(result.soBuffer, so->getVertexCount());
 
-		vb->setBufferAt(*app->engine, 1, VertexBuffer::BufferDescriptor(result.soBuffer, so->getVertexCount() * sizeof(quatf), 0));
+		vb->setBufferAt(*app->engine, 1, VertexBuffer::BufferDescriptor(result.soBuffer, so->getVertexCount() * sizeof(quatf), DeleteBuffer));
 
 		delete so;
 	}
@@ -463,7 +467,7 @@ void AddGeometryV2(FilamentApp* app, OBJID id, const GeometryInfo& info)
 
 	auto ibBuffer = new uint3[tangentMesh->getTriangleCount()];
 	tangentMesh->getTriangles(ibBuffer);
-	ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(ibBuffer, sizeof(uint3) * tangentMesh->getTriangleCount(), 0));
+	ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(ibBuffer, sizeof(uint3) * tangentMesh->getTriangleCount(), DeleteBuffer));
 
 	auto vb = VertexBuffer::Builder()
 		.vertexCount(tangentMesh->getVertexCount())
@@ -479,7 +483,7 @@ void AddGeometryV2(FilamentApp* app, OBJID id, const GeometryInfo& info)
 	tangentMesh->getUVs((float2*)(vbBuffer + 12), 36);
 	tangentMesh->getQuats((quatf*)(vbBuffer + 20), 36);
 
-	vb->setBufferAt(*app->engine, 0, VertexBuffer::BufferDescriptor(vbBuffer, tangentMesh->getVertexCount() * 36, 0));
+	vb->setBufferAt(*app->engine, 0, VertexBuffer::BufferDescriptor(vbBuffer, tangentMesh->getVertexCount() * 36, DeleteBuffer));
 
 	geometry::TangentSpaceMesh::destroy(tangentMesh);
 
@@ -569,7 +573,7 @@ static Texture* CreateTexture(FilamentApp* app, const TextureInfo& info) {
 		.build(*app->engine);
 
 	Texture::PixelBufferDescriptor buffer(info.data.data, info.data.dataSize,
-		info.data.format, info.data.type);
+		info.data.format, info.data.type, info.data.autoFree ? DeleteBuffer : nullptr);
 
 	texture->setImage(*app->engine, 0, std::move(buffer));
 
@@ -854,7 +858,6 @@ void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcep
 		instance->setMaskThreshold(info.alphaCutoff);
 
 	app->materialsInst[id] = instance;
-
 }
 
 bool GetGraphicContext(FilamentApp* app, GraphicContextInfo& info)

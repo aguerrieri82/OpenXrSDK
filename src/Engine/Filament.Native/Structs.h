@@ -192,6 +192,7 @@ struct ImageData {
 	Texture::Type type;
 	uint8_t* data;
 	uint32_t dataSize;
+	bool autoFree;
 };
 
 struct TextureInfo {

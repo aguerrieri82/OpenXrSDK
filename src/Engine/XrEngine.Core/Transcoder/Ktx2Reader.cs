@@ -52,8 +52,8 @@ namespace XrEngine
 
         public override unsafe IList<TextureData> Read(Stream stream)
         {
-            using var memStream = stream.ToMemory();
-            var header = memStream.ReadStruct<KtxHeader>();
+            using var seekStream = stream.EnsureSeek();
+            var header = seekStream.ReadStruct<KtxHeader>();
             var magic = Encoding.ASCII.GetString(new Span<byte>(header.identifier, 12));
             if (!magic.Contains("KTX 20"))
                 throw new NotSupportedException();
@@ -85,11 +85,11 @@ namespace XrEngine
 
 
             if (header.sgdByteOffset == 0)
-                memStream.Position = header.kvdByteOffset + header.kvdByteLength;
+                seekStream.Position = header.kvdByteOffset + header.kvdByteLength;
             else
-                memStream.Position = header.sgdByteOffset;
+                seekStream.Position = header.sgdByteOffset;
 
-            return ReadData(memStream, header.pixelWidth, header.pixelHeight, header.levelCount, header.faceCount, comp, format);
+            return ReadData(seekStream, header.pixelWidth, header.pixelHeight, header.levelCount, header.faceCount, comp, format);
         }
 
         public static readonly Ktx2Reader Instance = new();

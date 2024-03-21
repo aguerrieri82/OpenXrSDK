@@ -94,7 +94,7 @@
 
                     item.Data = new byte[size];
 
-                    var totRead = stream.Read(item.Data);
+                    var totRead = stream.Read(item.Data.Span);
 
                     results.Add(item);
 

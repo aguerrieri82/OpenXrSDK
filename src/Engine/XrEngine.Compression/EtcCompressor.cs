@@ -67,7 +67,7 @@ namespace XrEngine.Compression
 
             var image = new SKBitmap(info);
             fixed (byte* pDst = image.GetPixelSpan())
-            fixed (byte* pSrc = data.Data)
+            fixed (byte* pSrc = data.Data.Span)
                 PackImage(data.Width, data.Height, pSrc, data.Width, data.Height, pDst, ImageUtils.GetPixelSizeByte(type));
 
             return image;

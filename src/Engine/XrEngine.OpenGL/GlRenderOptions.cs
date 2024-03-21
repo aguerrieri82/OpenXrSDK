@@ -12,7 +12,7 @@
         public GlRenderOptions()
         {
             FloatPrecision = ShaderPrecision.High;
-            ShaderVersion = "300 es";
+            ShaderVersion = "310 es";
         }
 
         public string? ShaderVersion { get; set; }

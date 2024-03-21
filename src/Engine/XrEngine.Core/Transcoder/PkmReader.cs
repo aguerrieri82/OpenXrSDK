@@ -26,9 +26,9 @@ namespace XrEngine
 
         public unsafe IList<TextureData> Read(Stream stream)
         {
-            using var memStream = stream.ToMemory();
+            using var seekStream = stream.EnsureSeek();
 
-            var header = memStream.ReadStruct<Etc2Header>();
+            var header = seekStream.ReadStruct<Etc2Header>();
 
             var result = new TextureData();
             var magic = Encoding.ASCII.GetString(new Span<byte>(header.magic, 6));
@@ -37,11 +37,11 @@ namespace XrEngine
 
             result.Width = Invert(header.encodedWidth);
             result.Height = Invert(header.encodedHeight);
-            result.Data = new byte[memStream.Length - memStream.Position];
+            result.Data = new byte[seekStream.Length - seekStream.Position];
             result.Compression = TextureCompressionFormat.Etc2;
             result.Format = TextureFormat.SRgb24;
 
-            memStream.Read(result.Data);
+            seekStream.Read(result.Data.Span);
 
             return [result];
         }
