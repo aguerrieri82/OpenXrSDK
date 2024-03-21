@@ -20,11 +20,13 @@ namespace XrEngine
         RgbFloat16,
         RgbaFloat16,
 
+        RgFloat32,
+
         SRgb24,
         SBgra32,
         SRgba32,
 
-        Gray8
+        Gray8,
     }
 
     public enum TextureCompressionFormat

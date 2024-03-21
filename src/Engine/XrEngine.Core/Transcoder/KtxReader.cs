@@ -49,8 +49,8 @@ namespace XrEngine
 
         public override unsafe IList<TextureData> Read(Stream stream)
         {
-            using var memStream = stream.ToMemory();
-            var header = memStream.ReadStruct<KtxHeader>();
+            using var seekStream = stream.EnsureSeek();
+            var header = seekStream.ReadStruct<KtxHeader>();
             var magic = Encoding.ASCII.GetString(new Span<byte>(header.identifier, 12));
             if (!magic.Contains("KTX 11"))
                 throw new NotSupportedException();
@@ -63,7 +63,7 @@ namespace XrEngine
                 throw new NotSupportedException();
             }
 
-            var imageSize = memStream.ReadStruct<uint>();
+            var imageSize = seekStream.ReadStruct<uint>();
 
             TextureCompressionFormat comp;
             TextureFormat format;
@@ -78,7 +78,7 @@ namespace XrEngine
                     throw new NotSupportedException();
             }
 
-            return ReadData(memStream, header.pixelWidth, header.pixelHeight, header.numberOfMipmapLevels, header.numberOfFaces, comp, format);
+            return ReadData(seekStream, header.pixelWidth, header.pixelHeight, header.numberOfMipmapLevels, header.numberOfFaces, comp, format);
         }
 
         public static readonly KtxReader Instance = new();

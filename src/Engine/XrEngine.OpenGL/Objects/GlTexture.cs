@@ -145,8 +145,7 @@ namespace XrEngine.OpenGL
 
                 GetPixelFormat(format, out var pixelFormat, out var pixelType);
 
-                fixed (byte* pData = item.Data)
-                    _gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, pData);
+                _gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, item.Data.Span);
 
                 result.Add(item);
             }
@@ -198,6 +197,8 @@ namespace XrEngine.OpenGL
 
                 TextureFormat.Gray8 => PixelFormat.Red,
 
+                TextureFormat.RgFloat32 => PixelFormat.RG,
+
                 TextureFormat.Rgb24 or 
                 TextureFormat.RgbFloat32 or 
                 TextureFormat.SRgb24 => PixelFormat.Rgb,
@@ -210,7 +211,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.Depth32Float or
                 TextureFormat.RgbFloat32 or
                 TextureFormat.RgbaFloat32 or
-
+                TextureFormat.RgFloat32 or
                 TextureFormat.Depth24Float => PixelType.Float,
 
                 TextureFormat.RgbaFloat16 => PixelType.HalfFloat,
@@ -232,6 +233,7 @@ namespace XrEngine.OpenGL
 
         public static InternalFormat GetInternalFormat(TextureFormat format, TextureCompressionFormat compression)
         {
+
             if (compression == TextureCompressionFormat.Uncompressed)
             {
                 return format switch
@@ -253,6 +255,8 @@ namespace XrEngine.OpenGL
                     TextureFormat.RgbFloat16 => InternalFormat.Rgb16f,
 
                     TextureFormat.RgbaFloat16 => InternalFormat.Rgba16f,
+
+                    TextureFormat.RgFloat32 => InternalFormat.RG32f,
 
                     _ => throw new NotSupportedException(),
                 };
@@ -352,22 +356,19 @@ namespace XrEngine.OpenGL
                     {
                         GetPixelFormat(level.Format, out var pixelFormat, out var pixelType);
 
-                        fixed (byte* pData = level.Data)
-                        {
-                            var realTarget = Target == TextureTarget.TextureCubeMap ?
-                               TextureTarget.TextureCubeMapPositiveX + (int)level.Face : Target;
+                        var realTarget = Target == TextureTarget.TextureCubeMap ?
+                                             TextureTarget.TextureCubeMapPositiveX + (int)level.Face : Target;
 
-                            _gl.TexSubImage2D(
-                                realTarget,
-                                (int)level.MipLevel,
-                                0,
-                                0,
-                                level.Width,
-                                level.Height,
-                                pixelFormat,
-                                pixelType,
-                                pData);
-                        }
+                        _gl.TexSubImage2D(
+                            realTarget,
+                            (int)level.MipLevel,
+                            0,
+                            0,
+                            level.Width,
+                            level.Height,
+                            pixelFormat,
+                            pixelType,
+                            (ReadOnlySpan<byte>)level.Data.Span);
                     }
                 }
             }
@@ -377,22 +378,19 @@ namespace XrEngine.OpenGL
 
                 foreach (var level in data)
                 {
-                    fixed (byte* pData = level.Data)
-                    {
-                        var realTarget = Target == TextureTarget.TextureCubeMap ?
-                           (TextureTarget.TextureCubeMapPositiveX + (int)level.Face) :
-                           Target;
+                    var realTarget = Target == TextureTarget.TextureCubeMap ?
+                                    (TextureTarget.TextureCubeMapPositiveX + (int)level.Face) :
+                                    Target;
 
-                        _gl.CompressedTexImage2D(
-                            realTarget,
-                            (int)level.MipLevel,
-                            _internalFormat,
-                            level.Width,
-                            level.Height,
-                            0,
-                            (uint)level.Data!.Length,
-                            pData);
-                    }
+                    _gl.CompressedTexImage2D(
+                        realTarget,
+                        (int)level.MipLevel,
+                        _internalFormat,
+                        level.Width,
+                        level.Height,
+                        0,
+                        (uint)level.Data!.Length,
+                        (ReadOnlySpan<byte>)level.Data.Span);
                 }
 
                 _isCompressed = true;

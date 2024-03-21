@@ -201,9 +201,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            assets.GetFsPath("ping-pong paddle red.glb");
-
-            var racket = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("ping-pong paddle red.glb"), assets, GltfOptions);
+            var racket = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("Paddle.glb"), assets, GltfOptions);
             racket.Name = "Racket";
 
             //Reposition
@@ -271,9 +269,9 @@ namespace XrSamples
 
             return builder
                    .UseApp(app)
-                   .UseScene(true)
+                   //.UseScene(true)
                    .ConfigureSampleApp()
-                   .UseEnvironmentHDR("pisa.hdr", true)
+                   .UseEnvironmentHDR("Envs/footprint_court.hdr", true)
                    .UsePhysics(new PhysicsOptions
                    {
                        LengthTolerance = settings.LengthToleranceScale,
@@ -291,9 +289,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            assets.GetFsPath("Game/ABeautifulGame.bin");
-
-            var mesh = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("Game/ABeautifulGame.gltf"), assets, GltfOptions);
+            var mesh = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("Chess/ABeautifulGame.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
 
 
@@ -324,7 +320,7 @@ namespace XrSamples
             return builder
                     .UseApp(app)
                     .ConfigureSampleApp()
-                    .UseEnvironmentHDR("pisa.hdr")
+                    .UseEnvironmentHDR("Envs/pisa.hdr")
                     .UsePhysics(new PhysicsOptions());
         }
 
@@ -366,7 +362,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var mesh = (Object3D)GltfLoader.Instance.Load(assets.GetFsPath("DamagedHelmet.gltf"), assets, GltfOptions);
+            var mesh = (Object3D)GltfLoader.Instance.Load(assets.GetFsPath("Helmet/DamagedHelmet.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.4f);
             mesh.Transform.SetPositionY(1);
@@ -376,7 +372,7 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                .UseEnvironmentHDR("CameraEnv.jpg")
+                .UseEnvironmentHDR("Envs/CameraEnv.jpg")
                 .ConfigureSampleApp();
         }
 

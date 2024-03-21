@@ -157,6 +157,7 @@ namespace XrEditor
         const int WGL_CONTEXT_MINOR_VERSION_ARB = 0x2092;
         const int WGL_CONTEXT_PROFILE_MASK_ARB = 0x9126;
         const int WGL_CONTEXT_CORE_PROFILE_BIT_ARB = 0x00000001;
+        const int WGL_CONTEXT_ES_PROFILE_BIT_EXT = 0x00000004;
         const int WGL_SAMPLE_BUFFERS_ARB = 0x2041;
         const int WGL_SAMPLES_ARB = 0x2042;
 
@@ -208,14 +209,15 @@ namespace XrEditor
             var attr = stackalloc int[11];
 
             attr[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
-            attr[1] = 4;
+            attr[1] = 3;
 
             attr[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
-            attr[3] = 0;
+            attr[3] = 1;
             
             attr[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
-            attr[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-            
+            attr[5] = WGL_CONTEXT_ES_PROFILE_BIT_EXT; //WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+
+
             attr[6] = WGL_SAMPLE_BUFFERS_ARB;
             attr[7] = 1;
             

@@ -28,7 +28,6 @@ namespace XrEngine
 
                 LoadPanorama(data);
             }
-
         }
 
 
@@ -40,7 +39,8 @@ namespace XrEngine
                 throw new NotSupportedException();
 
             var options = PanoramaProcessorOptions.Default();
-            
+
+            options.SampleCount = 1024;
             options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
 
             Textures = processor.ProcessPanoramaIBL(data, options);

@@ -21,10 +21,11 @@
 	  <None Remove="Assets\CameraEnv.jpg" />
 	  <None Remove="Assets\CameraEnv.pvr" />
 	  <None Remove="Assets\DavideEnv.jpg" />
-	  <None Remove="Assets\ping-pong paddle red.glb" />
-	  <None Remove="Assets\Pisa\GGX.ktx2" />
-	  <None Remove="Assets\Pisa\GGX.png" />
-	  <None Remove="Assets\Pisa\Lambertan.ktx2" />
+	  <None Remove="Assets\Envs\neutral.hdr" />
+	  <None Remove="Assets\Paddle.glb" />
+	  <None Remove="Assets\Envs\Pisa\GGX.ktx2" />
+	  <None Remove="Assets\Envs\Pisa\GGX.png" />
+	  <None Remove="Assets\Envs\Pisa\Lambertan.ktx2" />
 	</ItemGroup>
 
 </Project>

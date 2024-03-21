@@ -29,5 +29,12 @@
             stream.Dispose();
             return result;
         }
+
+        public unsafe static Stream EnsureSeek(this Stream stream)
+        {
+            if (!stream.CanSeek)
+                return stream.ToMemory();
+            return stream;
+        }
     }
 }

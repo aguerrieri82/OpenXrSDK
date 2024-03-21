@@ -1,10 +1,10 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using System.Xml.Schema;
 #else
 using Silk.NET.OpenGL;
-using System.Collections.Generic;
 #endif
+
+using System.Numerics;
 
 
 namespace XrEngine.OpenGL
@@ -21,11 +21,13 @@ namespace XrEngine.OpenGL
 
         private readonly GL _gl;
         private GlTexture? _inputTexture;
+        private GlBuffer<Vector4>? _hams;
         private uint _cubeMapId;
         private uint _frameBufferId;
         private uint _fooVa;
         private GlSimpleProgram? _panToCubeProg;
         private GlSimpleProgram? _filterProg;
+
 
 
         public GlIBLProcessor(GL gl)
@@ -38,13 +40,17 @@ namespace XrEngine.OpenGL
             //LutFormat = InternalFormat.CompressedRgb8Etc2Oes;
         }
 
-        public void Initialize(TextureData panoramaHdr, Func<string, string> shaderResolver)
+        public unsafe void Initialize(TextureData panoramaHdr, Func<string, string> shaderResolver)
         {
             Dispose();
 
             _frameBufferId = _gl.GenFramebuffer();
 
             _inputTexture = LoadHdr(panoramaHdr);
+
+            _hams = new GlBuffer<Vector4>(_gl, BufferTargetARB.UniformBuffer);
+            _hams.AssignSlot();
+            _hams.Update(GenerateHammersley((int)SampleCount).Select(a => new Vector4(a.X, a.Y, 0, 0)).ToArray().AsSpan());
 
             _fooVa = _gl.GenVertexArray();
 
@@ -56,6 +62,8 @@ namespace XrEngine.OpenGL
                 shaderResolver("Ibl/panorama_to_cubemap.frag"),
                 shaderResolver);
 
+
+            _panToCubeProg.AddFeature("SAMPLE_COUNT 1");
             _panToCubeProg.Build();
 
             _filterProg = new GlSimpleProgram(_gl,
@@ -63,8 +71,17 @@ namespace XrEngine.OpenGL
                 shaderResolver("Ibl/filter_cubemap.frag"),
                 shaderResolver);
 
+            _filterProg.AddFeature("SAMPLE_COUNT " + SampleCount);
             _filterProg.Build();
+            _filterProg.Use();
 
+            _filterProg.SetUniform("uCubeMap", 0);
+            _filterProg.SetUniform("uSampleCount", (float)SampleCount);
+            _filterProg.SetUniform("uLodBias", (float)LodBias);
+            _filterProg.SetUniform("uWidth", (float)Resolution);
+            _filterProg.SetUniform("HammersleyBuffer", (IBuffer)_hams);
+
+  
             _gl.BindVertexArray(_fooVa);
             _gl.ColorMask(true, true, true, true);
             _gl.CullFace(TriangleFace.Back);
@@ -72,6 +89,7 @@ namespace XrEngine.OpenGL
             _gl.Disable(EnableCap.DepthTest);
             _gl.FrontFace(FrontFaceDirection.Ccw);
         }
+
 
 
         public void ApplyFilter(Distribution distribution, out uint envTexId, out uint lutTexId)
@@ -85,6 +103,8 @@ namespace XrEngine.OpenGL
             _gl.BindTexture(TextureTarget.TextureCubeMap, _cubeMapId);
 
             _filterProg!.Use();
+            _filterProg.SetUniform("uDistribution", (int)distribution);
+
 
             for (var mipLevel = 0; mipLevel < mipCount; ++mipLevel)
             {
@@ -149,13 +169,9 @@ namespace XrEngine.OpenGL
 
             var roughness = (mipLevel) / (MipLevelCount - 1f);
 
-            _filterProg!.SetUniform("uCubeMap", 0);
-            _filterProg.SetUniform("uRoughness", (float)roughness);
-            _filterProg.SetUniform("uSampleCount", (uint)SampleCount);
-            _filterProg.SetUniform("uWidth", (uint)Resolution);
-            _filterProg.SetUniform("uLodBias", (float)LodBias);
-            _filterProg.SetUniform("uDistribution", (uint)distribution);
-            _filterProg.SetUniform("uCurrentMipLevel", (uint)mipLevel);
+            _filterProg!.SetUniform("uRoughness", (float)roughness);
+            _filterProg.SetUniform("uCurrentMipLevel", (int)mipLevel);
+
 
             BindFrameBufferCube(envTexId, mipLevel);
 
@@ -176,6 +192,29 @@ namespace XrEngine.OpenGL
             _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
         }
 
+        public unsafe Vector2[] GenerateHammersley(int sampleCount)
+        {
+
+            float radicalInverse_VdC(uint bits)
+            {
+                bits = (bits << 16) | (bits >> 16);
+                bits = ((bits & 0x55555555) << 1) | ((bits & 0xAAAAAAAA) >> 1);
+                bits = ((bits & 0x33333333) << 2) | ((bits & 0xCCCCCCCC) >> 2);
+                bits = ((bits & 0x0F0F0F0F) << 4) | ((bits & 0xF0F0F0F0) >> 4);
+                bits = ((bits & 0x00FF00FF) << 8) | ((bits & 0xFF00FF00) >> 8);
+                return ((float)bits) * 2.3283064365386963e-10f; // / 0x100000000
+            }
+
+
+            var buf = new Vector2[sampleCount];
+            for (var i = 0; i < sampleCount; i++)
+                buf[i] = new Vector2(i / (float)sampleCount, radicalInverse_VdC((uint)i));
+
+            return buf;
+        }
+
+
+
         protected GlTexture LoadHdr(TextureData data)
         {
             var res = new GlTexture(_gl)
@@ -183,7 +222,8 @@ namespace XrEngine.OpenGL
                 MinFilter = TextureMinFilter.Linear,
                 MagFilter = TextureMagFilter.Linear,
                 WrapT = TextureWrapMode.MirroredRepeat,
-                WrapS = TextureWrapMode.MirroredRepeat
+                WrapS = TextureWrapMode.MirroredRepeat,
+                MaxLevel = 0
             };
 
             res.Update(data.Width, data.Height, data.Format, data.Compression, [data]);
@@ -282,6 +322,7 @@ namespace XrEngine.OpenGL
         public void Dispose()
         {
             _inputTexture?.Dispose();
+            _hams?.Dispose();
 
             if (_fooVa != 0)
                 _gl.DeleteVertexArray(_fooVa);
@@ -295,14 +336,12 @@ namespace XrEngine.OpenGL
             if (_frameBufferId != 0)
                 _gl.DeleteFramebuffer(_frameBufferId);
 
-            if (_panToCubeProg != null)
-                _panToCubeProg.Dispose();
-
-            if (_filterProg != null)
-                _filterProg.Dispose();
+            _panToCubeProg?.Dispose();
+            _filterProg?.Dispose();
 
             _panToCubeProg = null;
             _filterProg = null;
+            _hams = null;
             _inputTexture = null;
             _cubeMapId = 0;
             _fooVa = 0;

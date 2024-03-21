@@ -82,7 +82,7 @@ namespace XrEngine.OpenGL
 #endif
         }
 
-        protected int LocateUniform(string name, bool optional = false, bool isBlock = false)
+        public int LocateUniform(string name, bool optional = false, bool isBlock = false)
         {
             if (!_locations.TryGetValue(name, out var result))
             {

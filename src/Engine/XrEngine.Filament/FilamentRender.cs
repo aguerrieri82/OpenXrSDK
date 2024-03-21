@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using XrMath;
 using static XrEngine.Filament.FilamentLib;
 
@@ -204,12 +205,12 @@ namespace XrEngine.Filament
         {
             if (info.Data.Data != 0)
             {
-                Marshal.FreeHGlobal(info.Data.Data);
+                MemoryManager.Free(info.Data.Data);
                 info.Data.Data = 0;
             }
         }
 
-        internal TextureInfo ToTextureInfo(Texture2D? texture)
+        internal unsafe TextureInfo AllocateTexture(Texture2D? texture)
         {
             var result = new TextureInfo();
 
@@ -218,6 +219,7 @@ namespace XrEngine.Filament
                 result.Width = texture.Width;
                 result.Height = texture.Height;
                 result.Levels = 100;
+
 
                 switch (texture.Format)
                 {
@@ -243,8 +245,12 @@ namespace XrEngine.Filament
                         case TextureFormat.Rgba32:
                         case TextureFormat.SRgba32:
                             result.Data.Format = FlPixelFormat.RGBA;
-                            result.Data.Data = Marshal.AllocHGlobal(mainData.Data.Length);
-                            Marshal.Copy(mainData.Data, 0, result.Data.Data, mainData.Data.Length);
+                            result.Data.Data = MemoryManager.Allocate(mainData.Data.Length, this);
+                            result.Data.AutoFree = true;
+
+                            var dstMem = new Span<byte>(result.Data.Data.ToPointer(), mainData.Data.Length);
+                            mainData.Data.Span.CopyTo(dstMem);
+
                             break;
                         default:
                             throw new NotSupportedException();
@@ -398,11 +404,11 @@ namespace XrEngine.Filament
 
                             var matInfo = new MaterialInfo
                             {
-                                NormalMap = ToTextureInfo(mat.NormalTexture),
+                                NormalMap = AllocateTexture(mat.NormalTexture),
                                 Color = mat.MetallicRoughness?.BaseColorFactor ?? Color.White,
-                                BaseColorMap = ToTextureInfo(mat.MetallicRoughness?.BaseColorTexture),
-                                MetallicRoughnessMap = ToTextureInfo(mat.MetallicRoughness?.MetallicRoughnessTexture),
-                                AoMap = ToTextureInfo(mat.OcclusionTexture),
+                                BaseColorMap = AllocateTexture(mat.MetallicRoughness?.BaseColorTexture),
+                                MetallicRoughnessMap = AllocateTexture(mat.MetallicRoughness?.MetallicRoughnessTexture),
+                                AoMap = AllocateTexture(mat.OcclusionTexture),
                                 MetallicFactor = mat.MetallicRoughness?.MetallicFactor ?? 1,
                                 RoughnessFactor = mat.MetallicRoughness?.RoughnessFactor ?? 1,
                                 NormalScale = mat.NormalScale,
@@ -415,7 +421,7 @@ namespace XrEngine.Filament
                                     _ => throw new NotSupportedException()
                                 },
                                 EmissiveFactor = mat.EmissiveFactor,
-                                EmissiveMap = ToTextureInfo(mat.EmissiveTexture),
+                                EmissiveMap = AllocateTexture(mat.EmissiveTexture),
                                 EmissiveStrength = 1,
                                 MultiBounceAO = true,
                                 SpecularAntiAliasing = true,
@@ -426,11 +432,6 @@ namespace XrEngine.Filament
                             };
 
                             AddMaterial(_app, mat.Id, ref matInfo);
-
-                            //FreeTexture(matInfo.NormalMap);
-                            //FreeTexture(matInfo.BaseColorMap);
-                            //FreeTexture(matInfo.MetallicRoughnessMap);
-                            //FreeTexture(matInfo.AoMap);
                         });
 
                         var meshInfo = new MeshInfo

@@ -264,6 +264,8 @@ namespace XrEngine.Filament
             public FlPixelType Type;
             public IntPtr Data;
             public uint DataSize;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool AutoFree;
 
         };
 
