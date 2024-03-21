@@ -226,7 +226,16 @@ namespace XrEngine.OpenGL
                 MaxLevel = 0
             };
 
-            res.Update(data.Width, data.Height, data.Format, data.Compression, [data]);
+            TextureFormat format;
+
+            if (data.Format == TextureFormat.RgbFloat16)
+                format = TextureFormat.RgbaFloat16;
+            else if (data.Format == TextureFormat.Rgb24)
+                format = TextureFormat.Rgba32;
+            else
+                format = data.Format;
+
+            res.Update(data.Width, data.Height, format, data.Compression, [data]);
 
             return res;
         }

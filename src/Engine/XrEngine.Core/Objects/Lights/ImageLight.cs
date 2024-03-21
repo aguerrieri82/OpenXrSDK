@@ -24,7 +24,7 @@ namespace XrEngine
                 else if (ext.ToLower() == ".pvr")
                     data = PvrTranscoder.Instance.Read(stream)[0];
                 else
-                    data = ImageReader.Instance.Read(stream)[0];
+                    data = ImageReader.Instance.Read(stream, new TextureReadOptions { Format = TextureFormat.RgbaFloat32 })[0];
 
                 LoadPanorama(data);
             }

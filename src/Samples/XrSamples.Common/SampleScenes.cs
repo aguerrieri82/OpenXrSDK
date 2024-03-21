@@ -269,9 +269,9 @@ namespace XrSamples
 
             return builder
                    .UseApp(app)
-                   //.UseScene(true)
+                   .UseScene(true)
                    .ConfigureSampleApp()
-                   .UseEnvironmentHDR("Envs/footprint_court.hdr", true)
+                   .UseEnvironmentHDR("Envs/neutral.hdr", true)
                    .UsePhysics(new PhysicsOptions
                    {
                        LengthTolerance = settings.LengthToleranceScale,
