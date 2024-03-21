@@ -23,7 +23,7 @@ namespace XrEditor
         [STAThread]
         public static void Main()
         {
-            //Gpu.EnableNvAPi();
+            Gpu.EnableNvAPi();
 
             XrPlatform.Current = new EditorPlatform();
 
