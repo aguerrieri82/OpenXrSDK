@@ -23,7 +23,7 @@ namespace XrEngine.OpenXr.Android
 
         public AndroidPlatform(Context context)
         {
-            PbrMaterial.DefaultLinearOutput = false;
+            PbrMaterial.LinearOutput = false;
 
             AssetManager = new AndroidAssetManager(context, "Assets");
             //  AssetManager = new LocalAssetManager(Path.Join(extPath, "Assets"));
@@ -46,7 +46,7 @@ namespace XrEngine.OpenXr.Android
             {
                 var filamentOptions = new FilamentOptions
                 {
-                    Driver = FilamentLib.FlBackend.Vulkan,
+                    Driver = options.Driver == GraphicDriver.FilamentVulkan ? FilamentLib.FlBackend.Vulkan : FilamentLib.FlBackend.OpenGL,
                     MaterialCachePath = _context.GetExternalCacheDirs()![0].AbsolutePath,
                     EnableStereo = options.RenderMode != XrRenderMode.SingleEye,
                     OneViewPerTarget = true,

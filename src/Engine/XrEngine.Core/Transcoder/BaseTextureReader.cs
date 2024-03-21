@@ -46,9 +46,13 @@
 
                 if (format == TextureFormat.RgbFloat32)
                 {
+                    result.BitPerPixel = 96;
+                }
+                else if (format == TextureFormat.RgbaFloat32)
+                {
                     result.BitPerPixel = 128;
                 }
-                if (format == TextureFormat.RgbaFloat16)
+                else if (format == TextureFormat.RgbaFloat16)
                 {
                     result.BitPerPixel = 64;
                 }

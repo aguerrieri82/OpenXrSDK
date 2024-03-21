@@ -9,7 +9,29 @@ namespace XrEngine
             { SKColorType.Rgba8888, TextureFormat.Rgba32 },
             { SKColorType.Srgba8888, TextureFormat.SRgba32 },
             { SKColorType.Gray8, TextureFormat.Gray8 },
+            { SKColorType.RgbaF16, TextureFormat.RgbaFloat16 },
+            { SKColorType.RgbaF32, TextureFormat.RgbaFloat32 },
         };
+
+
+        public static uint GetPixelSizeByte(SKColorType type)
+        {
+            switch (type)
+            {
+                case SKColorType.Gray8:
+                    return 1;
+                case SKColorType.Srgba8888:
+                case SKColorType.Rgba8888:
+                case SKColorType.Bgra8888:
+                    return 4;
+                case SKColorType.RgbaF16:
+                    return 8;
+                case SKColorType.RgbaF32:
+                    return 16;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
 
         public static SKColorType GetFormat(TextureFormat format)
         {

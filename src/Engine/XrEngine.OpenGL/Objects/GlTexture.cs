@@ -6,6 +6,7 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics;
 using System.Linq.Expressions;
+using static XrEngine.KtxReader;
 
 namespace XrEngine.OpenGL
 {
@@ -15,6 +16,7 @@ namespace XrEngine.OpenGL
         protected uint _height;
         protected bool _isCompressed;
         protected InternalFormat _internalFormat;
+        protected bool _isAllocated;
 
         protected static uint _texReadFbId = 0;
 
@@ -250,7 +252,7 @@ namespace XrEngine.OpenGL
 
                     TextureFormat.RgbFloat16 => InternalFormat.Rgb16f,
 
-                    TextureFormat.RgbaFloat16 => InternalFormat.Rgba32f,
+                    TextureFormat.RgbaFloat16 => InternalFormat.Rgba16f,
 
                     _ => throw new NotSupportedException(),
                 };
@@ -281,71 +283,90 @@ namespace XrEngine.OpenGL
             _width = width;
             _height = height;
 
+            if (data != null && data.Count > 1)
+            {
+                MaxLevel = data != null ? data.Max(a => a.MipLevel) : 0;
+
+                if (MaxLevel > 0)
+                {
+                    if (MinFilter == TextureMinFilter.Nearest)
+                        MinFilter = TextureMinFilter.NearestMipmapNearest;
+                    else
+                        MinFilter = TextureMinFilter.LinearMipmapLinear;
+                }
+                else
+                {
+                    if (MinFilter == TextureMinFilter.NearestMipmapNearest)
+                        MinFilter = TextureMinFilter.Nearest;
+                    else
+                        MinFilter = TextureMinFilter.Linear;
+                }
+            }
+            else
+            {
+                if (MaxLevel > 0)
+                {
+                    var realMax = (uint)MathF.Floor(MathF.Log2(width)) - 1;
+                    if (MaxLevel > realMax)
+                        MaxLevel = realMax;
+                }    
+            }
+
+            Update();
+    
             Bind();
 
             _internalFormat = GetInternalFormat(format, compression);
 
             if (compression == TextureCompressionFormat.Uncompressed)
             {
-                if (SampleCount > 1)
+                if (!_isAllocated)
                 {
-                    _gl.TexStorage2DMultisample(
-                         Target,
-                         SampleCount,
-                         (SizedInternalFormat)_internalFormat,
-                         width,
-                         height,
-                         true);
-                }
-                else
-                {
-                    if (IsDepth)
+                    if (SampleCount > 1 && Target == TextureTarget.Texture2DMultisample)
                     {
-                        _gl.TexStorage2D(Target,
-                            1,
-                            (SizedInternalFormat)_internalFormat,
-                            width,
-                            height);
+                        _gl.TexStorage2DMultisample(
+                             Target,
+                             SampleCount,
+                             (SizedInternalFormat)_internalFormat,
+                             width,
+                             height,
+                             true);
                     }
                     else
                     {
-                        GetPixelFormat(format, out var pixelFormat, out var pixelType);
+      
+                        _gl.TexStorage2D(Target,
+                                  MaxLevel + 1,
+                                  (SizedInternalFormat)_internalFormat,
+                                  width,
+                                  height);
+                    }
 
-                        if (data != null && data.Count > 0)
-                        {
-                            foreach (var level in data)
-                            {
-                                fixed (byte* pData = level.Data)
-                                {
-                                    var realTarget = Target == TextureTarget.TextureCubeMap ?
-                                        (TextureTarget.TextureCubeMapPositiveX + (int)level.Face) :
-                                        Target;
+                    _isAllocated = true;
+                }
+               
 
-                                    _gl.TexImage2D(
-                                        realTarget,
-                                        (int)level.MipLevel,
-                                        _internalFormat,
-                                        level.Width,
-                                        level.Height,
-                                        0,
-                                        pixelFormat,
-                                        pixelType,
-                                        pData);
-                                }
-                            }
-                        }
-                        else
+                if (data != null)
+                {
+                    foreach (var level in data)
+                    {
+                        GetPixelFormat(level.Format, out var pixelFormat, out var pixelType);
+
+                        fixed (byte* pData = level.Data)
                         {
-                            _gl.TexImage2D(
-                                Target,
+                            var realTarget = Target == TextureTarget.TextureCubeMap ?
+                               TextureTarget.TextureCubeMapPositiveX + (int)level.Face : Target;
+
+                            _gl.TexSubImage2D(
+                                realTarget,
+                                (int)level.MipLevel,
                                 0,
-                                _internalFormat,
-                                width,
-                                height,
                                 0,
+                                level.Width,
+                                level.Height,
                                 pixelFormat,
                                 pixelType,
-                                null);
+                                pData);
                         }
                     }
                 }
@@ -358,8 +379,12 @@ namespace XrEngine.OpenGL
                 {
                     fixed (byte* pData = level.Data)
                     {
+                        var realTarget = Target == TextureTarget.TextureCubeMap ?
+                           (TextureTarget.TextureCubeMapPositiveX + (int)level.Face) :
+                           Target;
+
                         _gl.CompressedTexImage2D(
-                            Target,
+                            realTarget,
                             (int)level.MipLevel,
                             _internalFormat,
                             level.Width,
@@ -373,32 +398,9 @@ namespace XrEngine.OpenGL
                 _isCompressed = true;
             }
 
-            if (data != null)
-            {
-                if (data.Count == 1)
-                {
-                    if (MinFilter == TextureMinFilter.LinearMipmapLinear)
-                    {
-                        if (!_isCompressed)
-                        {
-                            _gl.GenerateMipmap(Target);
-                            _gl.GetTexParameter(Target, GetTextureParameter.TextureMaxLevelSgis, out int ml);
-                            MaxLevel = (uint)ml;
-                        }
-                        else
-                            MinFilter = TextureMinFilter.Linear;
-                    }
-                }
-                else
-                {
-                    MaxLevel = data[data.Count - 1].MipLevel;
-                    MinFilter = TextureMinFilter.LinearMipmapLinear;
-                }
-            }
-
-            Update();
+            if (data != null && data.Count == 1 && MaxLevel > 0 && !_isCompressed)
+                _gl.GenerateMipmap(Target);
         }
-
 
         public void Update()
         {
@@ -459,7 +461,7 @@ namespace XrEngine.OpenGL
         public uint MaxLevel;
 
         public TextureTarget Target;
-
+    
         public InternalFormat InternalFormat => _internalFormat;
 
         public bool IsCompressed => _isCompressed;

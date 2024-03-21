@@ -58,7 +58,7 @@ namespace XrEngine
 
                     if (image != null && textures != null && ctx.Camera != null)
                     {
-                        up.SetUniform("u_GGXEnvSampler", textures.GGXEnv!, 0);
+                        up.SetUniform("u_GGXEnvSampler", textures.Env!, 0);
                         up.SetUniform("u_MipCount", (int)textures.MipCount);
                         up.SetUniform("u_EnvBlurNormalized", Blur);
                         up.SetUniform("u_EnvIntensity", image.Intensity);

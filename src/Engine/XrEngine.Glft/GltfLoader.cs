@@ -225,7 +225,13 @@ namespace XrEngine.Gltf
                 result.AlphaCutoff = gltMat.AlphaCutoff;
 
                 result.EmissiveFactor = MathUtils.ToVector3(gltMat.EmissiveFactor);
-                result.Alpha = (AlphaMode)gltMat.AlphaMode;
+                result.Alpha = gltMat.AlphaMode switch
+                {
+                    glTFLoader.Schema.Material.AlphaModeEnum.OPAQUE => AlphaMode.Opaque,
+                    glTFLoader.Schema.Material.AlphaModeEnum.MASK => AlphaMode.Mask,
+                    glTFLoader.Schema.Material.AlphaModeEnum.BLEND => AlphaMode.Blend,
+                    _ => throw new NotSupportedException()
+                };
                 result.DoubleSided = gltMat.DoubleSided;
 
                 if (gltMat.PbrMetallicRoughness != null)

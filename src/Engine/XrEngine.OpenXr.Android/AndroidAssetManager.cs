@@ -6,6 +6,7 @@ namespace XrEngine.OpenXr.Android
     {
         readonly Context _context;
         readonly string _basePath;
+        readonly HashSet<string> _loadedFiles = [];
 
         public AndroidAssetManager(Context context, string basePath)
         {
@@ -21,14 +22,21 @@ namespace XrEngine.OpenXr.Android
                 name = name.Substring(cacheBase.Length + 1);
 
             var cachePath = Path.Join(cacheBase, name);
+            if (_loadedFiles.Contains(cachePath))
+                return cachePath;  
+            /*
             if (File.Exists(cachePath))
                 return cachePath;
+            */
 
             Directory.CreateDirectory(Path.GetDirectoryName(cachePath)!);
 
             using var srcStream = _context.Assets!.Open(Path.Join(_basePath, name));
             using var dstStream = File.OpenWrite(cachePath);
             srcStream.CopyTo(dstStream);
+
+            _loadedFiles.Add(cachePath);
+
             return cachePath;
         }
 
