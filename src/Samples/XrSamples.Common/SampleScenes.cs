@@ -273,7 +273,7 @@ namespace XrSamples
                    .UseApp(app)
                    .UseScene(true)
                    .ConfigureSampleApp()
-                   .UseEnvironmentHDR("pisa.hdr", false)
+                   .UseEnvironmentHDR("pisa.hdr", true)
                    .UsePhysics(new PhysicsOptions
                    {
                        LengthTolerance = settings.LengthToleranceScale,

@@ -154,6 +154,7 @@ namespace XrEngine.Gltf
                     var sampler = model.Samplers[texture.Sampler.Value];
                     CheckExtensions(sampler.Extensions);
 
+
                     result.WrapS = (WrapMode)sampler.WrapS;
                     result.WrapT = (WrapMode)sampler.WrapT;
 

@@ -256,7 +256,7 @@ namespace XrEngine.OpenGL
 
             _gl.TexStorage2D(
                    TextureTarget.TextureCubeMap,
-                   MipLevelCount,
+                   withMipmaps ? MipLevelCount : 1,
                    (SizedInternalFormat)EnvFormat,
                    Resolution,
                    Resolution
