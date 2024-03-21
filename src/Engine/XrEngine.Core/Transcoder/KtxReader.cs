@@ -47,7 +47,7 @@ namespace XrEngine
         {
         }
 
-        public override unsafe IList<TextureData> Read(Stream stream)
+        public override unsafe IList<TextureData> Read(Stream stream, TextureReadOptions? options = null)
         {
             using var seekStream = stream.EnsureSeek();
             var header = seekStream.ReadStruct<KtxHeader>();

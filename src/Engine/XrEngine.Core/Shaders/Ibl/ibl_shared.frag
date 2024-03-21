@@ -262,6 +262,10 @@ float computeLod(float pdf)
     return lod;
 }
 
+float luma(vec3 color) {
+  return dot(color, vec3(0.299, 0.587, 0.114));
+}
+
 vec3 filterColor(vec3 N)
 {
     //return  textureLod(uCubeMap, N, 3.0).rgb;
@@ -322,6 +326,9 @@ vec3 filterColor(vec3 N)
     {
         color /= uSampleCount;
     }
+
+    if(uRoughness > 0.5)
+        color = mix(color, vec3( luma(color)), pow(uRoughness, 2.0));
 
     return color.rgb ;
 }

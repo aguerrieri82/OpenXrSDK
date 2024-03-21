@@ -252,6 +252,8 @@ namespace XrEngine.OpenGL
 
                     TextureFormat.RgbFloat32 => InternalFormat.Rgb32f,
 
+                    TextureFormat.RgbaFloat32 => InternalFormat.Rgba32f,
+
                     TextureFormat.RgbFloat16 => InternalFormat.Rgb16f,
 
                     TextureFormat.RgbaFloat16 => InternalFormat.Rgba16f,

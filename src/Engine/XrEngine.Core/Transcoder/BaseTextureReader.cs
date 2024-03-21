@@ -11,13 +11,13 @@
             public uint BitPerPixel;
         }
 
-        public  IList<TextureData> Read(string fileName)
+        public IList<TextureData> Read(string fileName, TextureReadOptions? options = null)
         {
             using (var stream = File.OpenRead(fileName))
-                return Read(stream);
+                return Read(stream, options);
         }
         
-        public abstract IList<TextureData> Read(Stream stream);
+        public abstract IList<TextureData> Read(Stream stream, TextureReadOptions? options = null);
 
         protected static AlignSize GetFormatAlign(TextureCompressionFormat comp, TextureFormat format)
         {

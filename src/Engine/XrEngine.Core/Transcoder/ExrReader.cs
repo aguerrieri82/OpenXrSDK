@@ -15,7 +15,7 @@ namespace XrEngine
         {
         }
 
-        public unsafe override IList<TextureData> Read(Stream stream)
+        public unsafe override IList<TextureData> Read(Stream stream, TextureReadOptions? options = null)
         {
             var exrFile = EXRFile.FromStream(stream);
             var part = exrFile.Parts[0];

@@ -13,9 +13,13 @@ namespace XrEngine
         }
 
 
-        public override unsafe IList<TextureData> Read(Stream stream)
+        public override unsafe IList<TextureData> Read(Stream stream, TextureReadOptions? options = null)
         {
             var image = SKBitmap.Decode(stream);
+
+            var outFormat = options?.Format;
+            if (outFormat != null)
+                image = ImageUtils.ChangeColorSpace(image, ImageUtils.GetFormat(outFormat.Value));
 
             var data = new TextureData
             {
