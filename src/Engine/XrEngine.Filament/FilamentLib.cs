@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using XrMath;
 
 namespace XrEngine.Filament
@@ -33,23 +34,75 @@ namespace XrEngine.Filament
 
         public enum FlTextureInternalFormat
         {
-            RGB8 = 17,
-            SRGB8 = 18,
-            RGBA8 = 30,
-            SRGB8_A8 = 31
+            // 8-bits per element
+            R8, R8_SNORM, R8UI, R8I, STENCIL8,
+
+            // 16-bits per element
+            R16F, R16UI, R16I,
+            RG8, RG8_SNORM, RG8UI, RG8I,
+            RGB565,
+            RGB9_E5, // 9995 is actually 32 bpp but it's here for historical reasons.
+            RGB5_A1,
+            RGBA4,
+            DEPTH16,
+
+            // 24-bits per element
+            RGB8, SRGB8, RGB8_SNORM, RGB8UI, RGB8I,
+            DEPTH24,
+
+            // 32-bits per element
+            R32F, R32UI, R32I,
+            RG16F, RG16UI, RG16I,
+            R11F_G11F_B10F,
+            RGBA8, SRGB8_A8, RGBA8_SNORM,
+            UNUSED, // used to be rgbm
+            RGB10_A2, RGBA8UI, RGBA8I,
+            DEPTH32F, DEPTH24_STENCIL8, DEPTH32F_STENCIL8,
+
+            // 48-bits per element
+            RGB16F, RGB16UI, RGB16I,
+
+            // 64-bits per element
+            RG32F, RG32UI, RG32I,
+            RGBA16F, RGBA16UI, RGBA16I,
+
+            // 96-bits per element
+            RGB32F, RGB32UI, RGB32I,
+
+            // 128-bits per element
+            RGBA32F, RGBA32UI, RGBA32I,
         }
 
         public enum FlPixelFormat : byte
         {
-            RGB = 4,
-            RGB_INTEGER = 5,
-            RGBA = 6,
-            RGBA_INTEGER = 7
+            R,                  //!< One Red channel, float
+            R_INTEGER,          //!< One Red channel, integer
+            RG,                 //!< Two Red and Green channels, float
+            RG_INTEGER,         //!< Two Red and Green channels, integer
+            RGB,                //!< Three Red, Green and Blue channels, float
+            RGB_INTEGER,        //!< Three Red, Green and Blue channels, integer
+            RGBA,               //!< Four Red, Green, Blue and Alpha channels, float
+            RGBA_INTEGER,       //!< Four Red, Green, Blue and Alpha channels, integer
+            UNUSED,             // used to be rgbm
+            DEPTH_COMPONENT,    //!< Depth, 16-bit or 24-bits usually
+            DEPTH_STENCIL,      //!< Two Depth (24-bits) + Stencil (8-bits) channels
+            ALPHA               //! One Alpha channel, float
         }
 
         public enum FlPixelType : byte
         {
-            UBYTE = 0
+            UBYTE,                //!< unsigned byte
+            BYTE,                 //!< signed byte
+            USHORT,               //!< unsigned short (16-bit)
+            SHORT,                //!< signed short (16-bit)
+            UINT,                 //!< unsigned int (32-bit)
+            INT,                  //!< signed int (32-bit)
+            HALF,                 //!< half-float (16-bit float)
+            FLOAT,                //!< float (32-bits float)
+            COMPRESSED,           //!< compressed pixels, @see CompressedPixelDataType
+            UINT_10F_11F_11F_REV, //!< three low precision floating-point numbers
+            USHORT_565,           //!< unsigned int (16-bit), encodes 3 RGB channels
+            UINT_2_10_10_10_REV,  //!< unsigned normalized 10 bits RGB, 2 bits alpha
         }
 
 
@@ -311,6 +364,15 @@ namespace XrEngine.Filament
             public float AlphaCutoff;
         };
 
+        public struct ImageLightInfo
+        {
+            public TextureInfo Texture;
+            public float Intensity;
+            public float Rotation;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool ShowSkybox;
+        };
+
 
         public struct GraphicContextInfo
         {
@@ -379,6 +441,9 @@ namespace XrEngine.Filament
 
         [DllImport("filament-native")]
         public static extern void SetObjVisible(IntPtr app, uint id, bool visible);
+
+        [DllImport("filament-native")]
+        public static extern void AddImageLight(IntPtr app, ref ImageLightInfo info);
 
     }
 }

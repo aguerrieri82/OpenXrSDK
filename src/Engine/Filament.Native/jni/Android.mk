@@ -56,6 +56,10 @@ LOCAL_SRC_FILES := $(FILAMENT_LIBS)/libvkshaders.a
 include $(PREBUILT_STATIC_LIBRARY)
 
 
+LOCAL_MODULE := libfilament-iblprefilter
+LOCAL_SRC_FILES := $(FILAMENT_LIBS)/libfilament-iblprefilter.a
+include $(PREBUILT_STATIC_LIBRARY)
+
 #------------
 
 include $(CLEAR_VARS)
@@ -66,7 +70,7 @@ LOCAL_C_INCLUDES := $(FILAMENT_SDK)/include
 
 LOCAL_SRC_FILES	:= 	$(LOCAL_PATH)/../Api.cpp
 					
-LOCAL_STATIC_LIBRARIES := libfilament libutils libfilamat libfilabridge libbackend libfilaflat libibl libbluevk libgeometry libsmol-v libshaders libvkshaders
+LOCAL_STATIC_LIBRARIES := libfilament libutils libfilamat libfilabridge libbackend libfilaflat libibl libbluevk libgeometry libsmol-v libshaders libvkshaders libfilament-iblprefilter
 
 LOCAL_LDLIBS := -llog -lEGL -lGLESv3 
 

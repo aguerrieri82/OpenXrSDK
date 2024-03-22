@@ -99,7 +99,7 @@ namespace XrSamples
                         l.IsVisible = false;
                 }
                    
-                if (assetPath.Contains("pisa"))
+                if (assetPath.Contains("__pisa"))
                 {
                     light.Textures = new PbrMaterial.IBLTextures
                     {
@@ -271,12 +271,12 @@ namespace XrSamples
                    .UseApp(app)
                    .UseScene(true)
                    .ConfigureSampleApp()
-                   .UseEnvironmentHDR("Envs/neutral.hdr", true)
+                   .UseEnvironmentHDR("Envs/footprint_court.hdr", true) 
                    .UsePhysics(new PhysicsOptions
                    {
                        LengthTolerance = settings.LengthToleranceScale,
-                   })
-                   .AddPanel(new PingPongSettingsPanel(settings, scene));
+                   });
+                   //.AddPanel(new PingPongSettingsPanel(settings, scene));
 
         }
 

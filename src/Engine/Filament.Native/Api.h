@@ -13,6 +13,8 @@ extern "C" {
 
 	EXPORT void APIENTRY AddLight(FilamentApp* app, OBJID id, const LightInfo& info);
 
+	EXPORT void APIENTRY AddImageLight(FilamentApp* app, const ImageLightInfo& info);
+
 	EXPORT void APIENTRY AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info);
 
 	EXPORT void APIENTRY AddMesh(FilamentApp* app, OBJID id, const MeshInfo& info);

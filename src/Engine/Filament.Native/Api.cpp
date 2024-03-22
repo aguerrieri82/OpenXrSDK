@@ -1,4 +1,4 @@
-#include "pch.h"
+	#include "pch.h"
 
 const uint8_t INVISIBLE_LAYER = 0x2;
 const uint8_t MAIN_LAYER = 0x1;
@@ -41,6 +41,10 @@ FilamentApp* Initialize(const InitializeOptions& options) {
 #endif
 
 	auto app = new FilamentApp();
+	app->iblTexture = nullptr;
+	app->indirectLight = nullptr;
+	app->skyboxTexture = nullptr;
+	app->skybox = nullptr;
 
 	app->materialCachePath = options.materialCachePath;
 	app->oneViewPerTarget = options.oneViewPerTarget;
@@ -56,7 +60,8 @@ FilamentApp* Initialize(const InitializeOptions& options) {
 
 		app->isStereo = true;
 	}
-		
+
+
 	auto builder = Engine::Builder();
 
 	builder.backend((Backend)options.driver)
@@ -104,11 +109,13 @@ VIEWID AddView(FilamentApp* app, const ViewOptions& options)
 	view->setFrustumCullingEnabled(options.frustumCullingEnabled);
 	view->setPostProcessingEnabled(options.postProcessingEnabled);
 	view->setRenderQuality(options.renderQuality);
-	view->setMultiSampleAntiAliasingOptions(msaa);
+	//view->setMultiSampleAntiAliasingOptions(msaa);
 	view->setScreenSpaceRefractionEnabled(options.screenSpaceRefractionEnabled);
 	view->setShadowingEnabled(options.shadowingEnabled);
 	view->setShadowType(options.shadowType);
 	view->setStencilBufferEnabled(options.stencilBufferEnabled);
+
+	view->setSampleCount(options.sampleCount);
 
 	view->setVisibleLayers(0xFF, 0xFF);
 	view->setVisibleLayers(INVISIBLE_LAYER, 0);
@@ -572,12 +579,14 @@ static Texture* CreateTexture(FilamentApp* app, const TextureInfo& info) {
 		.format(info.internalFormat)
 		.build(*app->engine);
 
+
 	Texture::PixelBufferDescriptor buffer(info.data.data, info.data.dataSize,
 		info.data.format, info.data.type, info.data.autoFree ? DeleteBuffer : nullptr);
 
 	texture->setImage(*app->engine, 0, std::move(buffer));
 
-	texture->generateMipmaps(*app->engine);
+	if (info.levels > 1)
+		texture->generateMipmaps(*app->engine);
 
 	return texture;
 }
@@ -618,6 +627,7 @@ static Package BuildMaterialDebug(FilamentApp* app, const ::MaterialInfo& info) 
 
 	return builder.build(app->engine->getJobSystem());
 }
+
 
 
 static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
@@ -858,6 +868,42 @@ void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcep
 		instance->setMaskThreshold(info.alphaCutoff);
 
 	app->materialsInst[id] = instance;
+}
+
+
+void AddImageLight(FilamentApp* app, const ImageLightInfo& info) {
+	
+	auto equirectTxt = CreateTexture(app, info.texture);
+	
+	IBLPrefilterContext context(*app->engine);	
+	IBLPrefilterContext::EquirectangularToCubemap equirectangularToCubemap(context, { false });
+	IBLPrefilterContext::SpecularFilter specularFilter(context);
+	IBLPrefilterContext::IrradianceFilter irradianceFilter(context);
+
+	app->skyboxTexture = equirectangularToCubemap(equirectTxt);
+
+	app->engine->destroy(equirectTxt);
+
+	app->iblTexture = specularFilter(app->skyboxTexture);
+
+	auto rotMat = mat3f::rotation(info.rotation, vec3<float>(0.0f, 1.0f, 0.0f));
+
+	app->indirectLight = IndirectLight::Builder()
+		.reflections(app->iblTexture)
+		.intensity(info.intensity * 10000)
+		.rotation(rotMat)
+		.build(*app->engine);
+
+	app->scene->setIndirectLight(app->indirectLight);
+
+	if (info.showSkybox) {
+		app->skybox = Skybox::Builder()
+			.environment(app->skyboxTexture)
+			.showSun(true)
+			.build(*app->engine);
+
+		app->scene->setSkybox(app->skybox);
+	}
 }
 
 bool GetGraphicContext(FilamentApp* app, GraphicContextInfo& info)

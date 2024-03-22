@@ -90,6 +90,9 @@ namespace XrEngine
         {
             public void Dispose()
             {
+                Panorama?.Dispose();
+                Panorama = null;
+
                 LambertianEnv?.Dispose();
                 LambertianEnv = null;
 
@@ -108,6 +111,8 @@ namespace XrEngine
                 Env?.Dispose();
                 Env = null;
             }
+
+            public Texture2D? Panorama;
 
             public TextureCube? LambertianEnv;
 

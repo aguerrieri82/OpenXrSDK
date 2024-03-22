@@ -204,6 +204,14 @@ struct TextureInfo {
 };
 
 
+struct ImageLightInfo {
+	TextureInfo texture;
+	float intensity;
+	float rotation;
+	bool showSkybox;
+};
+
+
 struct MaterialInfo {
 	TextureInfo normalMap;
 	TextureInfo aoMap;
@@ -260,6 +268,11 @@ struct FilamentApp {
 	std::map<OBJID, MaterialInstance*> materialsInst;
 	std::map<std::string, Material*> materials;
 	std::string materialCachePath;
+	Texture* iblTexture;
+	Texture* skyboxTexture;
+	IndirectLight* indirectLight;
+	Skybox* skybox;
+
 	bool isStereo;
 	bool oneViewPerTarget;
 };
