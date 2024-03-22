@@ -26,6 +26,7 @@
 	#pragma comment(lib, FL_LIB("shaders.lib"))
 	#pragma comment(lib, FL_LIB("matdbg.lib"))
 	#pragma comment(lib, FL_LIB("bluevk.lib"))
+#pragma comment(lib, FL_LIB("filament-iblprefilter.lib"))
 
 	#pragma comment(lib, "opengl32.lib")
 

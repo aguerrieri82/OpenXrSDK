@@ -35,15 +35,18 @@ namespace XrEngine
         {
             var processor = _scene?.App?.Renderer as IIBLPanoramaProcessor;
 
-            if (processor == null)
-                throw new NotSupportedException();
+            if (processor != null)
+            {
+                var options = PanoramaProcessorOptions.Default();
+                options.SampleCount = 1024;
+                options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
 
-            var options = PanoramaProcessorOptions.Default();
+                Textures = processor.ProcessPanoramaIBL(data, options);
+            }
+            else
+                Textures = new PbrMaterial.IBLTextures();
 
-            options.SampleCount = 1024;
-            options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
-
-            Textures = processor.ProcessPanoramaIBL(data, options);
+            Textures.Panorama = new Texture2D([data]);
         }
 
         public PbrMaterial.IBLTextures? Textures { get; set; }

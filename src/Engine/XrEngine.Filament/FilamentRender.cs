@@ -220,41 +220,48 @@ namespace XrEngine.Filament
                 result.Height = texture.Height;
                 result.Levels = 100;
 
-
-                switch (texture.Format)
+                result.InternalFormat = texture.Format switch
                 {
-                    case TextureFormat.Rgba32:
-                        result.InternalFormat = FlTextureInternalFormat.RGBA8;
-                        break;
-                    case TextureFormat.SRgba32:
-                        result.InternalFormat = FlTextureInternalFormat.SRGB8_A8;
-                        break;
-                    default:
-                        throw new NotSupportedException();
-                }
-
+                    TextureFormat.Rgba32 => FlTextureInternalFormat.RGBA8,
+                    TextureFormat.SRgba32 => FlTextureInternalFormat.SRGB8_A8,
+                    TextureFormat.RgbFloat32 => FlTextureInternalFormat.RGB32F,
+                    TextureFormat.RgbFloat16 => FlTextureInternalFormat.RGB16F,
+                    _ => throw new NotSupportedException(),
+                };
                 if (texture.Data != null)
                 {
                     var mainData = texture.Data[0];
 
-                    result.Data.Type = FlPixelType.UBYTE;
-                    result.Data.DataSize = (uint)mainData.Data!.Length;
-
-                    switch (mainData.Format)
+                    result.Data.Format = mainData.Format switch
                     {
-                        case TextureFormat.Rgba32:
-                        case TextureFormat.SRgba32:
-                            result.Data.Format = FlPixelFormat.RGBA;
-                            result.Data.Data = MemoryManager.Allocate(mainData.Data.Length, this);
-                            result.Data.AutoFree = true;
+                        TextureFormat.Rgba32 or 
+                        TextureFormat.SRgba32 => FlPixelFormat.RGBA,
 
-                            var dstMem = new Span<byte>(result.Data.Data.ToPointer(), mainData.Data.Length);
-                            mainData.Data.Span.CopyTo(dstMem);
+                        TextureFormat.RgbFloat32 => FlPixelFormat.RGB,
+                        
+                        _ => throw new NotSupportedException(),
+                    };
 
-                            break;
-                        default:
-                            throw new NotSupportedException();
-                    }
+                    result.Data.Type = mainData.Format switch
+                    {
+                        TextureFormat.RgbFloat32 or
+                        TextureFormat.RgbFloat16 or
+                        TextureFormat.RgbaFloat16 or
+                        TextureFormat.RgbaFloat32
+                            => FlPixelType.FLOAT,
+                        
+                        TextureFormat.Rgba32 or
+                        TextureFormat.SRgba32 
+                            => FlPixelType.UBYTE,
+
+                        _ => throw new NotSupportedException(),
+                    };
+                    result.Data.DataSize = (uint)mainData.Data!.Length;
+                    result.Data.Data = MemoryManager.Allocate(mainData.Data.Length, this);
+                    result.Data.AutoFree = true;
+
+                    var dstMem = new Span<byte>(result.Data.Data.ToPointer(), mainData.Data.Length);
+                    mainData.Data.Span.CopyTo(dstMem);
                 }
             }
 
@@ -311,6 +318,25 @@ namespace XrEngine.Filament
                             CastShadows = true,
                         };
                         AddLight(_app, id, ref info);
+                    });
+                }
+                else if (obj is ImageLight img && img.Textures?.Panorama != null)
+                {
+                    GetOrCreate(img, id =>
+                    {
+                        img.Textures.Panorama.Format = TextureFormat.RgbFloat16;
+
+                        var info = new ImageLightInfo
+                        {
+                            Intensity = img.Intensity,
+                            Rotation = img.Rotation,
+                            ShowSkybox = true,
+                            Texture = AllocateTexture(img.Textures.Panorama)
+                        };
+
+                        //info.Texture.Levels = 1;
+
+                        AddImageLight(_app, ref info);
                     });
                 }
                 else if (obj is Group3D group)

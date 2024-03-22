@@ -50,6 +50,8 @@ int fopen_s(FILE** _Stream, char const* _FileName, char const* _Mode) {
 #include <filament/Material.h>
 #include <filament/TextureSampler.h>
 #include <filament/Viewport.h>
+#include <filament/IndirectLight.h>
+#include <filament/Skybox.h>
 
 #include <filamat/MaterialBuilder.h>
 
@@ -66,4 +68,5 @@ int fopen_s(FILE** _Stream, char const* _FileName, char const* _Mode) {
 #include <backend/platforms/VulkanPlatform.h>
 
 
+#include <filament-iblprefilter/IBLPrefilterContext.h>
 
