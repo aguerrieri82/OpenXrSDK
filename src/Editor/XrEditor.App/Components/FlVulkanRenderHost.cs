@@ -36,7 +36,7 @@ namespace XrEditor
                 Driver = FilamentLib.FlBackend.Vulkan,
                 MaterialCachePath = "d:\\Materials",
                 EnableStereo = false,
-                OneViewPerTarget = false
+                OneViewPerTarget = false,
             });
 
             return _render;

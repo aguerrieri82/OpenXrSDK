@@ -11,6 +11,7 @@ namespace XrEditor
         public PropertiesEditor()
         {
             Instance = this;
+
         }
 
         public EngineObject? ActiveObject
@@ -57,6 +58,49 @@ namespace XrEditor
                 {
                     Label = "Rotation",
                     Editor = new Vector3Editor(() => obj3d.Transform.Rotation, value => obj3d.Transform.Rotation = value, -MathF.PI, MathF.PI)
+                });
+            }
+
+
+            if (ActiveObject is PbrMaterial pbrMat)
+            {
+
+                result.Add(new PropertyView
+                {
+                    Label = "Roughness",
+                    Editor = new FloatEditor(() => pbrMat.MetallicRoughness!.RoughnessFactor, value => 
+                    { 
+                        pbrMat.MetallicRoughness!.RoughnessFactor = value; 
+                        pbrMat.NotifyChanged(ObjectChangeType.Render); 
+                    }, 0, 1f)
+                });
+                result.Add(new PropertyView
+                {
+                    Label = "Metallic",
+                    Editor = new FloatEditor(() => pbrMat.MetallicRoughness!.MetallicFactor, value =>
+                    {
+                        pbrMat.MetallicRoughness!.MetallicFactor = value;
+                        pbrMat.MetallicRoughness!.BaseColorFactor = new XrMath.Color(value, 1, 0, 1);
+                        pbrMat.NotifyChanged(ObjectChangeType.Render);
+                    }, 0, 1f)
+                });
+
+
+          
+            }
+
+            var light = EngineApp.Current?.ActiveScene?.Descendants<ImageLight>().FirstOrDefault();
+
+            if (light != null)
+            {
+                result.Add(new PropertyView
+                {
+                    Label = "Light Intensity",
+                    Editor = new FloatEditor(() => light.Intensity, value =>
+                    {
+                        light.Intensity = value;
+                        light.NotifyChanged(ObjectChangeType.Render);
+                    }, 0f, 50000f)
                 });
             }
 

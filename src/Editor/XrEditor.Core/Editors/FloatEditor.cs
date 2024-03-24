@@ -1,4 +1,7 @@
-﻿namespace XrEditor
+﻿using System.Numerics;
+using XrEngine.OpenGL;
+
+namespace XrEditor
 {
     public class FloatEditor : BaseEditor<float>
     {
@@ -10,6 +13,20 @@
             _max = 2f;
             _min = -2f;
         }
+
+
+        public FloatEditor(Func<float> getter, Action<float> setter, float min, float max)
+        {
+            _max = max;
+            _min = min;
+            Value = getter();
+
+            ValueChanged += (s, v) =>
+            {
+                setter(v);
+            };
+        }
+
 
         protected override void OnValueChanged(float newValue)
         {

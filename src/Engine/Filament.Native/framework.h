@@ -47,6 +47,7 @@ int fopen_s(FILE** _Stream, char const* _FileName, char const* _Mode) {
 #include <filament/TransformManager.h>
 #include <filament/IndexBuffer.h>
 #include <filament/VertexBuffer.h>
+#include <filament/BufferObject.h>
 #include <filament/Material.h>
 #include <filament/TextureSampler.h>
 #include <filament/Viewport.h>

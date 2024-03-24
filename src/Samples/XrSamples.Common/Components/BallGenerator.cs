@@ -132,7 +132,6 @@ namespace XrSamples
                 lastContact = other;
             };
 
-            NewBallCreated?.Invoke(ball);
 
             return ball;
         }
@@ -162,6 +161,9 @@ namespace XrSamples
                 _balls.Add(ball);
                 _host!.Scene!.AddChild(ball);
             }
+
+
+            NewBallCreated?.Invoke(ball);
 
             return ball;
         }

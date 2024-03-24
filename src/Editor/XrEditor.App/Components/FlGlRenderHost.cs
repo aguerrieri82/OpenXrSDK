@@ -17,11 +17,11 @@ namespace XrEditor
             _render = new FilamentRender(new FilamentOptions
             {
                 WindowHandle = HWnd,
-                Context = _glCtx,
+                //Context = _glCtx,
                 Driver = FilamentLib.FlBackend.OpenGL,
                 EnableStereo = false,
                 OneViewPerTarget = true,
-                MaterialCachePath = "d:\\Materials"
+                MaterialCachePath = "d:\\Materials",
             });
 
             var ctx = _render.GetContext();

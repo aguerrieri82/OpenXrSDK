@@ -215,17 +215,21 @@ namespace XrEditor
             attr[3] = 1;
             
             attr[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
-            attr[5] = WGL_CONTEXT_ES_PROFILE_BIT_EXT; //WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+            attr[5] =WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+           //attr[5] = WGL_CONTEXT_ES_PROFILE_BIT_EXT; ;
 
 
+            attr[6] = 0;
+
+            /*
             attr[6] = WGL_SAMPLE_BUFFERS_ARB;
             attr[7] = 1;
             
             attr[8] = WGL_SAMPLES_ARB;
             attr[9] = 4;
-            
-            attr[6] = 0;
-            
+            */
+
+
             _glCtx = wglCreateContextAttribsARB(_hdc, _glCtx, attr);
 
         }

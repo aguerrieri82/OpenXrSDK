@@ -188,6 +188,8 @@ namespace XrEngine.Filament
             public bool EnableStereo;
             [MarshalAs(UnmanagedType.U1)]
             public bool OneViewPerTarget;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool UseSrgb;
         }
 
         public struct ViewOptions
@@ -432,6 +434,8 @@ namespace XrEngine.Filament
 
         [DllImport("filament-native")]
         public static extern void AddMaterial(IntPtr app, uint id, ref MaterialInfo material);
+        [DllImport("filament-native")]
+        public static extern void UpdateMaterial(IntPtr app, uint id, ref MaterialInfo material);
 
         [DllImport("filament-native")]
         public static extern bool GetGraphicContext(IntPtr app, out GraphicContextInfo info);
@@ -444,6 +448,9 @@ namespace XrEngine.Filament
 
         [DllImport("filament-native")]
         public static extern void AddImageLight(IntPtr app, ref ImageLightInfo info);
+
+        [DllImport("filament-native")]
+        public static extern void UpdateImageLight(IntPtr app, ref ImageLightInfo info);
 
     }
 }

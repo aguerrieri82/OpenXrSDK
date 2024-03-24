@@ -76,13 +76,14 @@ struct InitializeOptions {
 	const char materialCachePath[256];
 	bool enableStereo;
 	bool oneViewPerTarget;
+	bool useSrgb;
 };
 
 
 struct Geometry {
 	VertexBuffer* vb;
 	IndexBuffer* ib;
-	quatf* soBuffer;
+	short4* soBuffer;
 	Box box;
 
 };
