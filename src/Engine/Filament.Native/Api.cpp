@@ -83,10 +83,16 @@ FilamentApp* Initialize(const InitializeOptions& options) {
 
 	app->scene = app->engine->createScene();
 	app->renderer = app->engine->createRenderer();
+
 	app->camera = app->engine->createCamera(EntityManager::get().create());
 
+	auto flags = filament::SwapChain::CONFIG_HAS_STENCIL_BUFFER;
+	if (options.useSrgb)
+		flags |= filament::SwapChain::CONFIG_SRGB_COLORSPACE;
+
+
 	if (options.windowHandle != nullptr)
-		app->swapChain = app->engine->createSwapChain(options.windowHandle, filament::SwapChain::CONFIG_HAS_STENCIL_BUFFER | filament::SwapChain::CONFIG_SRGB_COLORSPACE);
+		app->swapChain = app->engine->createSwapChain(options.windowHandle, flags);
 	else
 		app->swapChain = app->engine->createSwapChain(8, 8);
 
@@ -119,6 +125,7 @@ VIEWID AddView(FilamentApp* app, const ViewOptions& options)
 
 	view->setVisibleLayers(0xFF, 0xFF);
 	view->setVisibleLayers(INVISIBLE_LAYER, 0);
+
 
 	if (app->isStereo) {
 		View::StereoscopicOptions stereoOpt;
@@ -284,7 +291,7 @@ void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 }
 
 static void DeleteBuffer(void* buffer, size_t size, void* user) {
-	delete[] buffer;
+	//delete[] buffer;
 }
 
 
@@ -305,15 +312,15 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 		.bufferType(IndexBuffer::IndexType::UINT)
 		.build(*app->engine);
 
-	auto ibSize = sizeof(uint32_t) * indicesCount;
+	auto ibSizeByte = sizeof(uint32_t) * indicesCount;
 
 	if (info.indicesCount > 0) {
-		auto ibBuffer = new uint8_t[ibSize];
-		memcpy(ibBuffer, info.indices, ibSize);
-		ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(ibBuffer, ibSize, DeleteBuffer));
+		auto ibBuffer = new uint8_t[ibSizeByte];
+		memcpy(ibBuffer, info.indices, ibSizeByte);
+		ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(ibBuffer, ibSizeByte, DeleteBuffer, (void*)"IB"));
 	}
 	else
-		ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(indices, ibSize, DeleteBuffer));
+		ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(indices, ibSizeByte, DeleteBuffer, (void*)"IB-GEN"));
 
 
 	auto vbBuilder = VertexBuffer::Builder()
@@ -352,9 +359,8 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 			isMainBuffer = false;
 			break;
 		case VertexAttributeType::Tangent:
-			va = filament::VertexAttribute::TANGENTS;
-			at = VertexBuffer::AttributeType::FLOAT4;
-			hasTangents = true;
+			surfBuilder.tangents((float4*)(info.vertices + attr.offset), info.layout.sizeByte);
+			isMainBuffer = false;
 			break;
 		case VertexAttributeType::Color:
 			va = filament::VertexAttribute::COLOR;
@@ -377,31 +383,33 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 			vbBuilder.attribute(va, 0, at, attr.offset, info.layout.sizeByte);
 	};
 
-	bool hasOrientation = hasNormals && !hasTangents;
+	bool hasOrientation = hasNormals;
 
 	vbBuilder.bufferCount(hasOrientation ? 2 : 1);
 
 	if (hasOrientation) {
-		vbBuilder.attribute(filament::VertexAttribute::TANGENTS, 1, VertexBuffer::AttributeType::FLOAT4);
+		vbBuilder.attribute(filament::VertexAttribute::TANGENTS, 1, VertexBuffer::AttributeType::SHORT4, 0, sizeof(short4));
+		vbBuilder.normalized(filament::VertexAttribute::TANGENTS);
 	}
 
 	auto vb = vbBuilder.build(*app->engine);
+
 
 	auto vbSize = info.verticesCount * info.layout.sizeByte;
 	auto vbBuffer = new uint8_t[vbSize];
 	memcpy(vbBuffer, info.vertices, vbSize);
 
-	vb->setBufferAt(*app->engine, 0, VertexBuffer::BufferDescriptor(vbBuffer, vbSize, DeleteBuffer));
+	vb->setBufferAt(*app->engine, 0, VertexBuffer::BufferDescriptor(vbBuffer, vbSize, DeleteBuffer, (void*)"VB"));
 
 	if (hasOrientation) {
 
 		auto so = surfBuilder.
 			build();
 
-		result.soBuffer = new quatf[so->getVertexCount()];
+		result.soBuffer = new short4[so->getVertexCount()];
 		so->getQuats(result.soBuffer, so->getVertexCount());
 
-		vb->setBufferAt(*app->engine, 1, VertexBuffer::BufferDescriptor(result.soBuffer, so->getVertexCount() * sizeof(quatf), DeleteBuffer));
+		vb->setBufferAt(*app->engine, 1, VertexBuffer::BufferDescriptor(result.soBuffer, so->getVertexCount() * sizeof(short4), DeleteBuffer, (void*)"QUAD"));
 
 		delete so;
 	}
@@ -425,6 +433,7 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 	app->geometries[id] = result;
 }
 
+/*
 void AddGeometryV2(FilamentApp* app, OBJID id, const GeometryInfo& info)
 {
 	auto indices = info.indices;
@@ -513,8 +522,8 @@ void AddGeometryV2(FilamentApp* app, OBJID id, const GeometryInfo& info)
 	result.box = { center, halfSize };
 
 	app->geometries[id] = result;
-
 }
+*/
 
 void AddGroup(FilamentApp* app, OBJID id) {
 
@@ -577,11 +586,12 @@ static Texture* CreateTexture(FilamentApp* app, const TextureInfo& info) {
 		.height(info.height)
 		.levels(info.levels)
 		.format(info.internalFormat)
+		.sampler(Texture::Sampler::SAMPLER_2D)
 		.build(*app->engine);
 
 
 	Texture::PixelBufferDescriptor buffer(info.data.data, info.data.dataSize,
-		info.data.format, info.data.type, info.data.autoFree ? DeleteBuffer : nullptr);
+		info.data.format, info.data.type, info.data.autoFree ? DeleteBuffer : nullptr, (void*)"TEX");
 
 	texture->setImage(*app->engine, 0, std::move(buffer));
 
@@ -666,13 +676,13 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 
 	if (info.normalMap.data.data != nullptr) {
 		shader += R"SHADER(
-            material.normal = texture(materialParams_normalMap, uv0).xyz;
+            material.normal = texture(materialParams_normalMap, uv0).xyz * 2.0 - 1.0;
             material.normal.xy *= materialParams.normalScale;
         )SHADER";
 
 		builder.parameter("normalMap", MaterialBuilder::SamplerType::SAMPLER_2D);
 		builder.parameter("normalScale", MaterialBuilder::UniformType::FLOAT);
-		builder.require(filament::VertexAttribute::TANGENTS);
+		//builder.require(filament::VertexAttribute::TANGENTS);
 		hasUV = true;
 	}
 
@@ -699,10 +709,12 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 	builder.parameter("metallicFactor", MaterialBuilder::UniformType::FLOAT);
 	builder.parameter("emissiveFactor", MaterialBuilder::UniformType::FLOAT3);
 	builder.parameter("emissiveStrength", MaterialBuilder::UniformType::FLOAT);
+	builder.parameter("reflectance", MaterialBuilder::UniformType::FLOAT);
 
 	shader += R"SHADER(
                 material.roughness = materialParams.roughnessFactor;
                 material.metallic = materialParams.metallicFactor;
+                material.reflectance = materialParams.reflectance;
             )SHADER";
 
 
@@ -740,10 +752,11 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 		replaceAll(shader, "${uv}", "getUV0()");
 	}
 	else
-		replaceAll(shader, "${uv}", "vec2(0)");
+		replaceAll(shader, "${uv}", "vec2(0.0)");
 
 
 	builder.material(shader.c_str());
+	builder.optimization(MaterialBuilder::Optimization::NONE);
 	builder.generateDebugInfo(true);
 
 	return builder.build(app->engine->getJobSystem());
@@ -837,16 +850,24 @@ void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcep
 	else
 		flMat = app->materials[hash];
 
-	auto instance = flMat->createInstance();
+	app->materialsInst[id] = flMat->createInstance();
+
+	UpdateMaterial(app, id, info);
+}
+
+void UpdateMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) 
+{
+	auto instance = app->materialsInst[id];
 
 	TextureSampler sampler(TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR,
 		TextureSampler::MagFilter::LINEAR, TextureSampler::WrapMode::REPEAT);
 
 
-	instance->setParameter("baseColor", RgbaType::LINEAR, float4(info.baseColorFactor.r, info.baseColorFactor.g, info.baseColorFactor.b,  info.baseColorFactor.a ));
+	instance->setParameter("baseColor", RgbaType::LINEAR, float4(info.baseColorFactor.r, info.baseColorFactor.g, info.baseColorFactor.b, info.baseColorFactor.a));
 	instance->setParameter("metallicFactor", info.metallicFactor);
 	instance->setParameter("roughnessFactor", info.roughnessFactor);
 	instance->setParameter("emissiveStrength", info.emissiveStrength);
+	instance->setParameter("reflectance", 0.0f);
 	instance->setParameter("emissiveFactor", float3(info.emissiveFactor.r, info.emissiveFactor.g, info.emissiveFactor.b));
 
 	if (info.normalMap.data.data != nullptr) {
@@ -867,13 +888,14 @@ void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcep
 	if (info.blending == BlendingMode::MASKED)
 		instance->setMaskThreshold(info.alphaCutoff);
 
-	app->materialsInst[id] = instance;
 }
-
 
 void AddImageLight(FilamentApp* app, const ImageLightInfo& info) {
 	
-	auto equirectTxt = CreateTexture(app, info.texture);
+	auto texture = info.texture;
+	texture.internalFormat = Texture::InternalFormat::R11F_G11F_B10F;
+
+	auto equirectTxt = CreateTexture(app, texture);
 	
 	IBLPrefilterContext context(*app->engine);	
 	IBLPrefilterContext::EquirectangularToCubemap equirectangularToCubemap(context, { false });
@@ -896,15 +918,26 @@ void AddImageLight(FilamentApp* app, const ImageLightInfo& info) {
 
 	app->scene->setIndirectLight(app->indirectLight);
 
-	if (info.showSkybox) {
-		app->skybox = Skybox::Builder()
-			.environment(app->skyboxTexture)
-			.showSun(true)
-			.build(*app->engine);
+	app->skybox = Skybox::Builder()
+		.environment(app->skyboxTexture)
+		.showSun(true)
+		.intensity(info.intensity * 10000)
+		.build(*app->engine);
 
+
+	if (info.showSkybox)
 		app->scene->setSkybox(app->skybox);
-	}
 }
+
+void UpdateImageLight(FilamentApp* app, const ImageLightInfo& info) {
+
+	auto rotMat = mat3f::rotation(info.rotation, vec3<float>(0.0f, 1.0f, 0.0f));
+
+	app->indirectLight->setRotation(rotMat);
+	app->indirectLight->setIntensity(info.intensity);
+	app->scene->setSkybox(info.showSkybox ? app->skybox : nullptr);
+}
+
 
 bool GetGraphicContext(FilamentApp* app, GraphicContextInfo& info)
 {

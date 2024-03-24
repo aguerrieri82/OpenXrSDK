@@ -49,16 +49,19 @@ namespace XrEngine
         {
             if (src.ColorType == dest)
                 return src;
-
-            var newInfo = new SKImageInfo(src.Width, src.Height, dest);
+       
+            var newInfo = new SKImageInfo(src.Info.Width, src.Info.Height, dest, SKAlphaType.Unpremul, src.Info.ColorSpace);
 
             var newBitmap = new SKBitmap(newInfo);
 
             using var canvas = new SKCanvas(newBitmap);
 
-            canvas.Clear(SKColors.Transparent);
+            canvas.Clear(new SKColor(1, 1, 1, 1));
 
-            canvas.DrawBitmap(src, 0, 0);
+            using var paint  = new SKPaint();
+            paint.BlendMode = SKBlendMode.DstOver;
+
+            canvas.DrawBitmap(src, 0, 0, paint);
 
             src.Dispose();
 

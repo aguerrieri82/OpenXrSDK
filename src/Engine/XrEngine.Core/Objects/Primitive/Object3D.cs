@@ -99,6 +99,8 @@ namespace XrEngine
                 InvalidateBounds();
 
             _scene?.NotifyChanged(this, change);
+
+            base.NotifyChanged(change);
         }
 
         public override void Dispose()

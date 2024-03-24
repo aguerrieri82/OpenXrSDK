@@ -26,6 +26,7 @@ namespace XrEngine
                 else
                     data = ImageReader.Instance.Read(stream, new TextureReadOptions { Format = TextureFormat.RgbaFloat32 })[0];
 
+
                 LoadPanorama(data);
             }
         }

@@ -75,7 +75,7 @@ namespace XrEditor
             _renderSurface.Ready += OnSurfaceReady;
         }
 
-        protected void CreateApp()
+        protected async void CreateApp()
         {
             _engine = new XrEngineAppBuilder()
               .SetRenderQuality(1, 1) ///samples > 1 cause Filament to fuck up
@@ -85,6 +85,16 @@ namespace XrEditor
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
 
             Scene = _engine.App.ActiveScene;
+
+
+            /*
+            Scene.Component<BallGenerator>().NewBallCreated += async obj =>
+            {
+                (await _panelManager.PanelAsync<PropertiesEditor>()).ActiveObject = obj.Materials[0];
+            };
+            */
+            
+            (await _panelManager.PanelAsync<PropertiesEditor>()).ActiveObject = Scene;
         }
 
         protected void OnSizeChanged(object? sender, EventArgs e)

@@ -10,6 +10,11 @@ namespace XrEngine.Gltf
 {
     public class GltfLoaderOptions
     {
+        public GltfLoaderOptions()
+        {
+            ConvertColorTextureSRgb = true;
+        }
+
         public bool ConvertColorTextureSRgb { get; set; }
 
         public TextureFormat TextureFormat { get; set; }
@@ -120,6 +125,8 @@ namespace XrEngine.Gltf
 
                 using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
 
+                //Debug.Assert(image.ColorSpace.IsSrgb && useSrgb);
+
                 result = new TextureData
                 {
                     Width = (uint)image.Width,
@@ -128,7 +135,7 @@ namespace XrEngine.Gltf
                     Format = image.ColorType switch
                     {
                         SKColorType.Srgba8888 => TextureFormat.SRgba32,
-                        SKColorType.Bgra8888 => useSrgb ? TextureFormat.SBgra32 : TextureFormat.Bgra32,
+                        SKColorType.Bgra8888 => useSrgb  ? TextureFormat.SBgra32 : TextureFormat.Bgra32,
                         SKColorType.Rgba8888 => useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
                         SKColorType.Gray8 => TextureFormat.Gray8,
                         _ => throw new NotSupportedException()

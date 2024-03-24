@@ -686,8 +686,14 @@ namespace XrEngine
 
         public static void UpdateColor(this Material material, Color color)
         {
-            ((IColorSource)material).Color = color;
-            material.NotifyChanged();
+            var src = (IColorSource)material;
+
+            if ((Vector4)src.Color != (Vector4)color)
+            {
+                ((IColorSource)material).Color = color;
+                material.NotifyChanged(ObjectChangeType.Render);
+            }
+
         }
 
         #endregion

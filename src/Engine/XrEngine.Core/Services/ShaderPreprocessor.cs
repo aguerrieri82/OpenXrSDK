@@ -10,6 +10,7 @@ namespace XrEngine
             Define,
             If,
             IfDef,
+            IfnDef,
             Undef,
             Else,
             EndIf,
@@ -24,6 +25,11 @@ namespace XrEngine
             public TokenType Type;
 
             public string? Text;
+
+            public override string ToString()
+            {
+                return $"{Type} {Text}";
+            }
         }
 
         static Token[] Tokenize(string data)
@@ -91,6 +97,10 @@ namespace XrEngine
                                     break;
                                 case "ifdef":
                                     token.Type = TokenType.IfDef;
+                                    state = 8;
+                                    break;
+                                case "ifndef":
+                                    token.Type = TokenType.IfnDef;
                                     state = 8;
                                     break;
                                 case "elif":
@@ -224,6 +234,12 @@ namespace XrEngine
                         if (!defs.ContainsKey(symbol))
                             return false;
                     }
+                    else if (part.StartsWith("!defined("))
+                    {
+                        var symbol = part[9..^1];
+                        if (defs.ContainsKey(symbol))
+                            return false;
+                    }
                     else
                     {
                         var op = part.Split("==");
@@ -236,8 +252,12 @@ namespace XrEngine
                                     return false;
                             }
                         }
+
                         else
-                            throw new NotSupportedException();
+                        {
+                            //throw new NotSupportedException();
+                        }
+        
                     }
                 }
 
@@ -269,6 +289,9 @@ namespace XrEngine
                                 break;
                             case TokenType.IfDef:
                                 state = 2;
+                                break;
+                            case TokenType.IfnDef:
+                                state = 21;
                                 break;
                             case TokenType.Else:
                                 var lastWrite = outWrite.Pop();
@@ -323,6 +346,20 @@ namespace XrEngine
                         {
                             var isDef = defs.ContainsKey(t.Text!);
                             outWrite.Push(isDef);
+                            curOutWrite = outWrite.All(a => a);
+                            state = 0;
+                        }
+                        else if (t.Type == TokenType.Comment)
+                            continue;
+                        else
+                            state = 0;
+
+                        break;
+                    case 21:
+                        if (t.Type == TokenType.Expression)
+                        {
+                            var isnDef = !defs.ContainsKey(t.Text!);
+                            outWrite.Push(isnDef);
                             curOutWrite = outWrite.All(a => a);
                             state = 0;
                         }

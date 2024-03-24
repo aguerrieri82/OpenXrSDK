@@ -110,7 +110,7 @@ namespace XrEngine.OpenXr
                         format = ((Silk.NET.Vulkan.Format)(int)xrApp.RenderOptions.ColorFormat) switch
                         {
                             Silk.NET.Vulkan.Format.R8G8B8A8Srgb => FlTextureInternalFormat.SRGB8_A8,
-                            Silk.NET.Vulkan.Format.R8G8B8A8SNorm => FlTextureInternalFormat.RGBA8,
+                            Silk.NET.Vulkan.Format.R8G8B8A8Unorm => FlTextureInternalFormat.RGBA8,
                             _ => throw new NotSupportedException()
                         };
                     }

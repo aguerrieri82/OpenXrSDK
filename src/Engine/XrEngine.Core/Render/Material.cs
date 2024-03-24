@@ -29,10 +29,11 @@
             _host = null;
         }
 
-        public virtual void NotifyChanged()
+        public override void NotifyChanged(ObjectChange change)
         {
             _host?.NotifyChanged(new ObjectChange(ObjectChangeType.Render, this));
             Version++;
+            base.NotifyChanged(change);
         }
 
 

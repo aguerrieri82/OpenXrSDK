@@ -55,7 +55,7 @@
 
         public virtual void NotifyChanged(ObjectChange change)
         {
-
+            Changed?.Invoke(this, change);
         }
 
         public void SetProp(string name, object? value)
@@ -106,6 +106,8 @@
 
             GC.SuppressFinalize(this);
         }
+
+        public event Action<EngineObject, ObjectChange>? Changed;
 
         public long Version { get; set; }
 

@@ -26,7 +26,7 @@
                 if (value == _shader)
                     return;
                 _shader = value;
-                NotifyChanged();
+                NotifyChanged(ObjectChangeType.Render);
             }
         }
 

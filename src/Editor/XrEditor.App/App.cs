@@ -1,4 +1,5 @@
 ﻿using OpenXr.Framework;
+using System.IO;
 using System.Windows;
 using XrEngine;
 using XrEngine.OpenXr;
@@ -37,7 +38,7 @@ namespace XrEditor
             var window = new Window
             {
                 Title = "Xr Editor",
-                Content = new MainView(GraphicDriver.FilamentOpenGL)
+                Content = new MainView(GraphicDriver.OpenGL)
             };
 
 

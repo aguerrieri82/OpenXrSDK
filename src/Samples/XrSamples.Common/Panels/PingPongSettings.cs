@@ -154,7 +154,7 @@ namespace XrSamples
 
                     (generator.Material as PbrMaterial)!.MetallicRoughness!.RoughnessFactor = obj!.BallMaterial!.Roughness;
                     (generator.Material as PbrMaterial)!.MetallicRoughness!.MetallicFactor = obj!.BallMaterial!.Metallic;
-                     generator.Material.NotifyChanged();
+                     generator.Material.NotifyChanged(ObjectChangeType.Render);
 
                 }
                 if (property.Name!.Contains("Exposure"))

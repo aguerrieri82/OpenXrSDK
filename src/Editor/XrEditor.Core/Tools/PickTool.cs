@@ -84,7 +84,7 @@ namespace XrEditor
             if (obj is TriangleMesh mesh && mesh.Materials.Count > 0 && mesh.Materials[0] is BasicMaterial mat && _oldColor != null)
             {
                 mat.Color = _oldColor.Value;
-                mat.NotifyChanged();
+                mat.NotifyChanged(ObjectChangeType.Render);
             }
 
         }
@@ -95,7 +95,7 @@ namespace XrEditor
             {
                 _oldColor = mat.Color;
                 mat.Color = new Color(0, 1, 0, 1);
-                mat.NotifyChanged();
+                mat.NotifyChanged(ObjectChangeType.Render);
             }
         }
 

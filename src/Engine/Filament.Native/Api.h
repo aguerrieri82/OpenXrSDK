@@ -15,6 +15,8 @@ extern "C" {
 
 	EXPORT void APIENTRY AddImageLight(FilamentApp* app, const ImageLightInfo& info);
 
+	EXPORT void APIENTRY UpdateImageLight(FilamentApp* app, const ImageLightInfo& info);
+
 	EXPORT void APIENTRY AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info);
 
 	EXPORT void APIENTRY AddMesh(FilamentApp* app, OBJID id, const MeshInfo& info);
@@ -28,6 +30,8 @@ extern "C" {
 	EXPORT void APIENTRY SetObjParent(FilamentApp* app, OBJID id, OBJID parentId);
 
 	EXPORT void APIENTRY AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcept(false);
+
+	EXPORT void APIENTRY UpdateMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info);
 
 	EXPORT bool APIENTRY GetGraphicContext(FilamentApp* app, GraphicContextInfo& info);
 

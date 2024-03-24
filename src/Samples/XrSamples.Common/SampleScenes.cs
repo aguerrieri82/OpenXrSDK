@@ -271,7 +271,7 @@ namespace XrSamples
                    .UseApp(app)
                    .UseScene(true)
                    .ConfigureSampleApp()
-                   .UseEnvironmentHDR("Envs/footprint_court.hdr", true) 
+                   .UseEnvironmentHDR("Envs/lightroom_14b.hdr", true) 
                    .UsePhysics(new PhysicsOptions
                    {
                        LengthTolerance = settings.LengthToleranceScale,
@@ -350,6 +350,43 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
+                .ConfigureSampleApp();
+        }
+
+        public static XrEngineAppBuilder CreateController(this XrEngineAppBuilder builder)
+        {
+            var assets = XrPlatform.Current!.AssetManager;
+
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var mesh = (Object3D)GltfLoader.Instance.Load(assets.GetFsPath("Models/MetaQuestTouchPlus_Right.glb"), assets, GltfOptions);
+            mesh.Name = "mesh";
+            mesh.Transform.SetPositionY(1);
+            mesh.AddComponent<BoundsGrabbable>();
+
+            foreach (var child in ((Group3D)mesh).Descendants<TriangleMesh>())
+            {
+                foreach (var mat in child.Materials)
+                {
+                    if (mat is PbrMaterial pbr && pbr.MetallicRoughness != null && pbr.MetallicRoughness.RoughnessFactor == 0.2f)
+                    {
+                        //pbr.MetallicRoughness.RoughnessFactor = 0.2f;
+                        // pbr.MetallicRoughness.MetallicFactor = 0f;
+                        //pbr.MetallicRoughness.MetallicRoughnessTexture = null;
+                    }
+
+                }
+            }
+
+            scene.AddChild(mesh);
+
+            scene.PerspectiveCamera().Target = mesh.Transform.Position;
+            scene.PerspectiveCamera().Transform.Position = new Vector3(0.2f, 1.4f, 0.2f);
+            return builder
+                .UseApp(app)
+                .UseEnvironmentHDR("Envs/lightroom_14b.hdr")
                 .ConfigureSampleApp();
         }
 

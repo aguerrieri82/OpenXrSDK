@@ -21,6 +21,7 @@
 	  <None Remove="Assets\CameraEnv.jpg" />
 	  <None Remove="Assets\CameraEnv.pvr" />
 	  <None Remove="Assets\DavideEnv.jpg" />
+	  <None Remove="Assets\Envs\lightroom_14b.hdr" />
 	  <None Remove="Assets\Envs\neutral.hdr" />
 	  <None Remove="Assets\Paddle.glb" />
 	  <None Remove="Assets\Envs\Pisa\GGX.ktx2" />

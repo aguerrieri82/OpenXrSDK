@@ -66,7 +66,8 @@ namespace XrEngine.Filament
                 Context = options.Context,
                 MaterialCachePath = options.MaterialCachePath ?? string.Empty,
                 EnableStereo = options.EnableStereo,
-                OneViewPerTarget = options.OneViewPerTarget
+                OneViewPerTarget = options.OneViewPerTarget,
+                UseSrgb = true
             };
 
             _renderTargetDepth = 1;
@@ -92,7 +93,7 @@ namespace XrEngine.Filament
                 SetDefaultRenderTarget();
             }
 
-            ReleaseContext(_app, ReleaseContextMode.ReleaseOnExecute);
+            ReleaseContext(_app, ReleaseContextMode.NotRelease);
         }
 
         public GraphicContextInfo GetContext()
@@ -125,7 +126,7 @@ namespace XrEngine.Filament
                 },
                 AntiAliasing = FlAntiAliasing.FXAA,
                 PostProcessingEnabled = true,
-                ShadowingEnabled = false,
+                ShadowingEnabled = true,
                 ShadowType = FlShadowType.PCF,
                 BlendMode = FlBlendMode.TRANSLUCENT,
                 SampleCount = _sampleCount,
@@ -201,6 +202,7 @@ namespace XrEngine.Filament
             return obj.Id;
         }
 
+        /*
         internal void FreeTexture(TextureInfo info)
         {
             if (info.Data.Data != 0)
@@ -209,6 +211,7 @@ namespace XrEngine.Filament
                 info.Data.Data = 0;
             }
         }
+        */
 
         internal unsafe TextureInfo AllocateTexture(Texture2D? texture)
         {
@@ -231,6 +234,8 @@ namespace XrEngine.Filament
                 if (texture.Data != null)
                 {
                     var mainData = texture.Data[0];
+
+
 
                     result.Data.Format = mainData.Format switch
                     {
@@ -337,6 +342,17 @@ namespace XrEngine.Filament
                         //info.Texture.Levels = 1;
 
                         AddImageLight(_app, ref info);
+
+                        img.Changed += (s, e) =>
+                        {
+                            info = new ImageLightInfo
+                            {
+                                Intensity = img.Intensity,
+                                Rotation = img.Rotation,
+                                ShowSkybox = true,
+                            };
+                            UpdateImageLight(_app, ref info);
+                        };
                     });
                 }
                 else if (obj is Group3D group)
@@ -427,37 +443,47 @@ namespace XrEngine.Filament
                         var matId = GetOrCreate(mesh.Materials[0], matId =>
                         {
                             var mat = (PbrMaterial)mesh.Materials[0];
-
-                            var matInfo = new MaterialInfo
+                            
+                            MaterialInfo UpdateMatInfo()
                             {
-                                NormalMap = AllocateTexture(mat.NormalTexture),
-                                Color = mat.MetallicRoughness?.BaseColorFactor ?? Color.White,
-                                BaseColorMap = AllocateTexture(mat.MetallicRoughness?.BaseColorTexture),
-                                MetallicRoughnessMap = AllocateTexture(mat.MetallicRoughness?.MetallicRoughnessTexture),
-                                AoMap = AllocateTexture(mat.OcclusionTexture),
-                                MetallicFactor = mat.MetallicRoughness?.MetallicFactor ?? 1,
-                                RoughnessFactor = mat.MetallicRoughness?.RoughnessFactor ?? 1,
-                                NormalScale = mat.NormalScale,
-                                AoStrength = mat.OcclusionStrength,
-                                Blending = mat.Alpha switch
+                                return new MaterialInfo
                                 {
-                                    AlphaMode.Opaque => FlBlendingMode.OPAQUE,
-                                    AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
-                                    AlphaMode.Mask => FlBlendingMode.MASKED,
-                                    _ => throw new NotSupportedException()
-                                },
-                                EmissiveFactor = mat.EmissiveFactor,
-                                EmissiveMap = AllocateTexture(mat.EmissiveTexture),
-                                EmissiveStrength = 1,
-                                MultiBounceAO = true,
-                                SpecularAntiAliasing = true,
-                                ScreenSpaceReflection = true,
-                                AlphaCutoff = mat.AlphaCutoff,
-                                DoubleSided = mat.DoubleSided,
-                                SpecularAO = FlSpecularAO.Simple
-                            };
+                                    NormalMap = AllocateTexture(mat.NormalTexture),
+                                    Color = mat.MetallicRoughness?.BaseColorFactor ?? Color.White,
+                                    BaseColorMap = AllocateTexture(mat.MetallicRoughness?.BaseColorTexture),
+                                    MetallicRoughnessMap = AllocateTexture(mat.MetallicRoughness?.MetallicRoughnessTexture),
+                                    AoMap = AllocateTexture(mat.OcclusionTexture),
+                                    MetallicFactor = mat.MetallicRoughness?.MetallicFactor ?? 1,
+                                    RoughnessFactor = mat.MetallicRoughness?.RoughnessFactor ?? 1,
+                                    NormalScale = mat.NormalScale,
+                                    AoStrength = mat.OcclusionStrength,
+                                    Blending = mat.Alpha switch
+                                    {
+                                        AlphaMode.Opaque => FlBlendingMode.OPAQUE,
+                                        AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
+                                        AlphaMode.Mask => FlBlendingMode.MASKED,
+                                        _ => throw new NotSupportedException()
+                                    },
+                                    EmissiveFactor = mat.EmissiveFactor,
+                                    EmissiveMap = AllocateTexture(mat.EmissiveTexture),
+                                    EmissiveStrength = 1,
+                                    MultiBounceAO = true,
+                                    SpecularAntiAliasing = true,
+                                    ScreenSpaceReflection = true,
+                                    AlphaCutoff = mat.AlphaCutoff,
+                                    DoubleSided = mat.DoubleSided,
+                                    SpecularAO = FlSpecularAO.Simple
+                                };
+                            }
 
+                            var matInfo = UpdateMatInfo();
                             AddMaterial(_app, mat.Id, ref matInfo);
+
+                            mat.Changed += (s, c) =>
+                            {
+                                matInfo = UpdateMatInfo();
+                                UpdateMaterial(_app,mat.Id, ref matInfo);   
+                            };
                         });
 
                         var meshInfo = new MeshInfo
@@ -525,15 +551,12 @@ namespace XrEngine.Filament
             foreach (var mesh in _content!.Objects!.Where(a => a.Key is TriangleMesh))
             {
                 SetObjVisible(_app, mesh.Value, ((Object3D)mesh.Key).IsVisible);
-
                 SetObjTransform(_app, mesh.Value, ((Object3D)mesh.Key).WorldMatrix);
             }
-
 
             FilamentLib.Render(_app, render, 1, flush);
 
             _viewport = viewport;
-
         }
 
         public FlBackend Driver => _driver;
