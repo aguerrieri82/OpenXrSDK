@@ -40,7 +40,7 @@ namespace XrSamples
             scene.AddChild(new SunLight()
             {
                 Name = "sun-light",
-                Intensity = 1.5f,
+                Intensity = 0.0f,
                 Direction = new Vector3(-0.1f, -0.9f, -0.15f).Normalize(),
                 IsVisible = true
             });
@@ -54,7 +54,6 @@ namespace XrSamples
             pl2.Name = "point-light-2";
             pl2.Transform.Position = new Vector3(0, -2, 0);
             pl2.Intensity = 0.3f;
-            
 
             scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
@@ -95,7 +94,7 @@ namespace XrSamples
 
                 foreach (var l in scene.Descendants<Light>())
                 {
-                    if (l != light)
+                    if (l != light && l is not SunLight)
                         l.IsVisible = false;
                 }
                    
@@ -343,7 +342,7 @@ namespace XrSamples
             scene.AddChild(new SunLight()
             {
                 Name = "sun-light-2",
-                Intensity = 1.5f,
+                Intensity = 0.0f,
                 Direction = new Vector3(0.1f, -0.9f, 0.15f).Normalize(),
                 IsVisible = true
             });
@@ -389,6 +388,41 @@ namespace XrSamples
                 .UseEnvironmentHDR("Envs/lightroom_14b.hdr")
                 .ConfigureSampleApp();
         }
+
+
+        public static XrEngineAppBuilder CreateBed(this XrEngineAppBuilder builder)
+        {
+            var assets = XrPlatform.Current!.AssetManager;
+
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var mesh = (TriangleMesh)GltfLoader.Instance.Load(assets.GetFsPath("IkeaBed.glb"), assets, GltfOptions);
+            mesh.Name = "mesh";
+            mesh.AddComponent<MeshCollider>();
+            mesh.AddComponent<BoundsGrabbable>();
+
+
+            foreach (var mat in mesh.Materials)
+            {
+                if (mat is PbrMaterial pbr)
+                {
+                    //pbr.MetallicRoughness.RoughnessFactor = 0.2f;
+                    // pbr.MetallicRoughness.MetallicFactor = 0f;
+                    //pbr.MetallicRoughness.MetallicRoughnessTexture = null;
+                }
+
+            }
+
+            scene.AddChild(mesh);
+
+            return builder
+                .UseApp(app)
+                .UseEnvironmentHDR("Envs/lightroom_14b.hdr")
+                .ConfigureSampleApp();
+        }
+
 
 
         public static XrEngineAppBuilder CreateHelmet(this XrEngineAppBuilder builder)

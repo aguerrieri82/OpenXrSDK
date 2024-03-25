@@ -236,6 +236,12 @@ struct MaterialInfo {
 	float emissiveStrength;
 	Color3 emissiveFactor;
 	float alphaCutoff;
+	float reflectance;
+	bool isLit;
+	bool writeDepth;
+	bool useDepth;
+	bool writeColor;
+	bool isShadowOnly;
 };
 
 struct GraphicContextInfo {

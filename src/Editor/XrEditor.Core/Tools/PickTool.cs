@@ -112,18 +112,27 @@ namespace XrEditor
                 var normalMatrix = Matrix4x4.Transpose(_lastCollision.Object!.WorldMatrixInverse);
 
                 canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + _lastCollision.Normal.Value.Transform(normalMatrix).Normalize());
+
+                if (_lastCollision.Tangent != null)
+                {
+                    canvas.State.Color = new Color(0, 1, 1, 1);
+                    var nq = Quaternion.Normalize(_lastCollision.Tangent.Value);
+                    canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + new Vector3(nq.X, nq.Y, nq.Z));
+                }
+
                 canvas.Restore();
             }
         }
 
         public void CapturePointer()
         {
-            _sceneView.ActiveTool = this;
+            if (_sceneView != null)
+                _sceneView.ActiveTool = this;
         }
 
         public void ReleasePointer()
         {
-            if (_sceneView.ActiveTool == this)
+            if (_sceneView?.ActiveTool == this)
                 _sceneView.ActiveTool = null;
         }
 

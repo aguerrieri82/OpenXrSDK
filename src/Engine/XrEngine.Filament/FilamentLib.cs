@@ -364,6 +364,17 @@ namespace XrEngine.Filament
             public float EmissiveStrength;
             public Vector3 EmissiveFactor;
             public float AlphaCutoff;
+            public float Reflectance;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool IsLit;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool WriteDepth;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool UseDepth;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool WriteColor;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool IsShadowOnly;
         };
 
         public struct ImageLightInfo
