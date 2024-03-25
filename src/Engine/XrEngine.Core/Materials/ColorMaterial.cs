@@ -36,6 +36,8 @@ namespace XrEngine
             bld.SetUniform("uColor", ctx => Color);
         }
 
+        public bool IsShadowOnly { get; set; }
+
         public Color Color { get; set; }
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;

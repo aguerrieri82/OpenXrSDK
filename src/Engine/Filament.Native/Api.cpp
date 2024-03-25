@@ -3,8 +3,6 @@
 const uint8_t INVISIBLE_LAYER = 0x2;
 const uint8_t MAIN_LAYER = 0x1;
 
-
-
 #ifdef _WINDOWS
 
 class PlatformWGL2 : public PlatformWGL {
@@ -19,6 +17,24 @@ public:
 };
 
 #endif
+
+static void saveBuffer(const char* fileName, void* buffer, size_t len) {
+	if (buffer == nullptr)
+		return;
+	std::ofstream myfile;
+	myfile.open(fileName, std::ios::binary);
+	myfile.write((const char*)buffer, len);
+	myfile.close();
+}
+
+static void loadBuffer(const char* fileName, void* buffer, size_t len) {
+	std::ifstream inFile;
+	inFile.open(fileName, std::ios::binary);
+	inFile.read((char*)buffer, len);
+	inFile.close();
+}
+
+
 
 static inline mat4 MatFromArray(const Matrix4x4 array) {
 	return mat4(array[0], array[1], array[2], array[3],
@@ -50,6 +66,7 @@ FilamentApp* Initialize(const InitializeOptions& options) {
 	app->oneViewPerTarget = options.oneViewPerTarget;
 	
 	Engine::Config cfg;
+
 
 	if (options.enableStereo) {
 		cfg.stereoscopicEyeCount = 2;
@@ -110,6 +127,9 @@ VIEWID AddView(FilamentApp* app, const ViewOptions& options)
 	msaa.enabled = options.sampleCount > 1;
 	msaa.sampleCount = options.sampleCount;
 
+	View::SoftShadowOptions softOpt;
+
+
 	view->setBlendMode(options.blendMode);
 	view->setAntiAliasing(options.antiAliasing);
 	view->setFrustumCullingEnabled(options.frustumCullingEnabled);
@@ -120,7 +140,6 @@ VIEWID AddView(FilamentApp* app, const ViewOptions& options)
 	view->setShadowingEnabled(options.shadowingEnabled);
 	view->setShadowType(options.shadowType);
 	view->setStencilBufferEnabled(options.stencilBufferEnabled);
-
 	view->setSampleCount(options.sampleCount);
 
 	view->setVisibleLayers(0xFF, 0xFF);
@@ -273,12 +292,18 @@ void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bo
 void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 {
 	auto light = EntityManager::get().create();
+
+	LightManager::ShadowOptions shadowOptions;
+
+	
 	LightManager::Builder(info.type)
 		.color({ info.color.r ,info.color.g, info.color.b })
 		.intensity(info.intensity * 100000)
 		.direction({ info.direction.x, info.direction.y, info.direction.z })
 		.sunAngularRadius(info.sun.angularRadius)
 		.sunHaloFalloff(info.sun.haloFalloff)
+		.castShadows(true)
+		.shadowOptions(shadowOptions)
 		.sunHaloSize(info.sun.haloSize)
 		.castShadows(info.castShadows)
 		//.position({ info.position.x, info.position.y, info.position.z })
@@ -292,6 +317,20 @@ void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 
 static void DeleteBuffer(void* buffer, size_t size, void* user) {
 	//delete[] buffer;
+}
+
+template <typename T>
+T* UnpackBuffer(uint8_t* pSrc, int offset, size_t stride, size_t count) {
+	T* pDst = new T[count];
+	T* curDst = pDst;
+	pSrc += offset;
+	while (count-- > 0)
+	{
+		*curDst = *(T*)pSrc;
+		pSrc += stride;
+		curDst++;
+	}
+	return pDst;
 }
 
 
@@ -335,6 +374,7 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 
 	bool hasNormals = false;
 	bool hasTangents = false;
+
 
 	Geometry result;
 
@@ -383,17 +423,16 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 			vbBuilder.attribute(va, 0, at, attr.offset, info.layout.sizeByte);
 	};
 
-	bool hasOrientation = hasNormals;
+	bool hasOrientation = hasNormals && !hasTangents;
 
 	vbBuilder.bufferCount(hasOrientation ? 2 : 1);
 
 	if (hasOrientation) {
-		vbBuilder.attribute(filament::VertexAttribute::TANGENTS, 1, VertexBuffer::AttributeType::SHORT4, 0, sizeof(short4));
+		vbBuilder.attribute(filament::VertexAttribute::TANGENTS, 1, VertexBuffer::AttributeType::SHORT4);
 		vbBuilder.normalized(filament::VertexAttribute::TANGENTS);
 	}
 
 	auto vb = vbBuilder.build(*app->engine);
-
 
 	auto vbSize = info.verticesCount * info.layout.sizeByte;
 	auto vbBuffer = new uint8_t[vbSize];
@@ -407,6 +446,8 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 			build();
 
 		result.soBuffer = new short4[so->getVertexCount()];
+		memset(result.soBuffer, 0, so->getVertexCount() * sizeof(short4));
+
 		so->getQuats(result.soBuffer, so->getVertexCount());
 
 		vb->setBufferAt(*app->engine, 1, VertexBuffer::BufferDescriptor(result.soBuffer, so->getVertexCount() * sizeof(short4), DeleteBuffer, (void*)"QUAD"));
@@ -434,6 +475,160 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 }
 
 /*
+void AddGeometryV3(FilamentApp* app, OBJID id, const GeometryInfo& info)
+{
+	auto indices = info.indices;
+	auto indicesCount = info.indicesCount;
+
+	if (info.indicesCount == 0) {
+		indices = new uint32_t[info.verticesCount];
+		for (uint32_t i = 0; i < info.verticesCount; i++)
+			indices[i] = i;
+		indicesCount = info.verticesCount;
+	}
+
+	auto ib = IndexBuffer::Builder()
+		.indexCount(indicesCount)
+		.bufferType(IndexBuffer::IndexType::UINT)
+		.build(*app->engine);
+
+	auto ibSizeByte = sizeof(uint32_t) * indicesCount;
+
+	if (info.indicesCount > 0) {
+		auto ibBuffer = new uint8_t[ibSizeByte];
+		memcpy(ibBuffer, info.indices, ibSizeByte);
+		ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(ibBuffer, ibSizeByte, DeleteBuffer, (void*)"IB"));
+	}
+	else
+		ib->setBuffer(*app->engine, IndexBuffer::BufferDescriptor(indices, ibSizeByte, DeleteBuffer, (void*)"IB-GEN"));
+
+
+	auto vbBuilder = VertexBuffer::Builder()
+		.vertexCount(info.verticesCount);
+
+	auto surfBuilder = geometry::SurfaceOrientation::Builder();
+	surfBuilder
+		.triangles((uint3*)info.indices)
+		.triangleCount(info.indicesCount / 3)
+		.vertexCount(info.verticesCount);
+
+
+	bool hasNormals = false;
+	bool hasTangents = false;
+
+	float3* normals = nullptr;
+	float2* uvs = nullptr;
+	float3* positions = nullptr;
+	float4* tangents = nullptr;
+
+	Geometry result;
+
+	for (uint32_t i = 0; i < info.layout.attributeCount; i++) {
+		auto& attr = info.layout.attributes[i];
+
+		filament::VertexAttribute va;
+		VertexBuffer::AttributeType at;
+
+		bool isMainBuffer = true;
+
+		switch (attr.type)
+		{
+		case VertexAttributeType::Position:
+			va = filament::VertexAttribute::POSITION;
+			at = VertexBuffer::AttributeType::FLOAT3;
+			positions = UnpackBuffer<float3>(info.vertices, attr.offset, info.layout.sizeByte, info.verticesCount);
+			surfBuilder.positions((float3*)positions);
+
+			break;
+		case VertexAttributeType::Normal:
+			normals = UnpackBuffer<float3>(info.vertices, attr.offset, info.layout.sizeByte, info.verticesCount);
+			surfBuilder.normals(normals);
+			hasNormals = true;
+			isMainBuffer = false;
+			break;
+		case VertexAttributeType::Tangent:
+			va = filament::VertexAttribute::TANGENTS;
+			at = VertexBuffer::AttributeType::FLOAT4;
+			tangents = UnpackBuffer<float4>(info.vertices, attr.offset, info.layout.sizeByte, info.verticesCount);
+			surfBuilder.tangents(tangents);
+			hasTangents = false;
+			isMainBuffer = false;
+			break;
+		case VertexAttributeType::Color:
+			va = filament::VertexAttribute::COLOR;
+			at = VertexBuffer::AttributeType::FLOAT4;
+			break;
+		case VertexAttributeType::UV0:
+			va = filament::VertexAttribute::UV0;
+			at = VertexBuffer::AttributeType::FLOAT2;
+			
+			uvs = UnpackBuffer<float2>(info.vertices, attr.offset, info.layout.sizeByte, info.verticesCount);
+			surfBuilder.uvs(uvs);
+
+			break;
+		case VertexAttributeType::UV1:
+			va = filament::VertexAttribute::UV1;
+			at = VertexBuffer::AttributeType::FLOAT2;
+			break;
+		default:
+			break;
+		}
+
+		if (isMainBuffer)
+			vbBuilder.attribute(va, 0, at, attr.offset, info.layout.sizeByte);
+	};
+
+	bool hasOrientation = hasNormals && !hasTangents;
+
+	vbBuilder.bufferCount(hasOrientation ? 2 : 1);
+
+	if (hasOrientation) {
+		vbBuilder.attribute(filament::VertexAttribute::TANGENTS, 1, VertexBuffer::AttributeType::SHORT4);
+		vbBuilder.normalized(filament::VertexAttribute::TANGENTS);
+	}
+
+	auto vb = vbBuilder.build(*app->engine);
+
+	auto vbSize = info.verticesCount * info.layout.sizeByte;
+	auto vbBuffer = new uint8_t[vbSize];
+	memcpy(vbBuffer, info.vertices, vbSize);
+
+	vb->setBufferAt(*app->engine, 0, VertexBuffer::BufferDescriptor(vbBuffer, vbSize, DeleteBuffer, (void*)"VB"));
+
+	if (hasOrientation) {
+
+		auto so = surfBuilder.
+			build();
+
+		result.soBuffer = new short4[so->getVertexCount()];
+		memset(result.soBuffer, 0, so->getVertexCount() * sizeof(short4));
+		so->getQuats(result.soBuffer, so->getVertexCount());
+		vb->setBufferAt(*app->engine, 1, VertexBuffer::BufferDescriptor(result.soBuffer, so->getVertexCount() * sizeof(short4), DeleteBuffer, (void*)"QUAD"));
+
+		delete so;
+	}
+
+	float3 halfSize = {
+		(info.bounds.max.x - info.bounds.min.x) / 2.0f,
+		(info.bounds.max.y - info.bounds.min.y) / 2.0f,
+		(info.bounds.max.z - info.bounds.min.z) / 2.0f
+	};
+
+	float3 center = {
+		(info.bounds.max.x + info.bounds.min.x) / 2.0f,
+		(info.bounds.max.y + info.bounds.min.y) / 2.0f,
+		(info.bounds.max.z + info.bounds.min.z) / 2.0f
+	};
+
+	result.ib = ib;
+	result.vb = vb;
+	result.box = { center, halfSize };
+
+	app->geometries[id] = result;
+}
+
+
+
 void AddGeometryV2(FilamentApp* app, OBJID id, const GeometryInfo& info)
 {
 	auto indices = info.indices;
@@ -649,9 +844,12 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 		.flipUV(false)
 		.multiBounceAmbientOcclusion(info.multiBounceAO)
 		.specularAmbientOcclusion(info.specularAO)
-		.shading(Shading::LIT)
+		.shading(info.isLit ? Shading::LIT : Shading::UNLIT)
 		.specularAntiAliasing(info.specularAntiAliasing)
 		.doubleSided(info.doubleSided)
+		.colorWrite(info.writeColor)
+		.depthCulling(info.useDepth)
+		.depthWrite(info.writeDepth)
 	
 #ifdef __ANDROID__
 		.platform(MaterialBuilderBase::Platform::MOBILE)
@@ -661,6 +859,13 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 		.transparencyMode(info.doubleSided ? TransparencyMode::TWO_PASSES_TWO_SIDES : TransparencyMode::DEFAULT)
 		.targetApi(targetApiFromBackend(app->engine->getBackend()))
 		.blending(info.blending);
+
+	if (info.blending == BlendingMode::TRANSPARENT || info.blending == BlendingMode::FADE)
+		builder.transparentShadow(true);
+
+	if (!info.isLit && info.isShadowOnly)
+		builder.shadowMultiplier(true);
+
 
 	builder.parameter("baseColor", MaterialBuilder::UniformType::FLOAT4);
 
@@ -705,45 +910,49 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
         )SHADER";
 	}
 
-	builder.parameter("roughnessFactor", MaterialBuilder::UniformType::FLOAT);
-	builder.parameter("metallicFactor", MaterialBuilder::UniformType::FLOAT);
-	builder.parameter("emissiveFactor", MaterialBuilder::UniformType::FLOAT3);
-	builder.parameter("emissiveStrength", MaterialBuilder::UniformType::FLOAT);
-	builder.parameter("reflectance", MaterialBuilder::UniformType::FLOAT);
+	builder.parameter("enableDiagnostics", MaterialBuilder::UniformType::BOOL);
 
-	shader += R"SHADER(
+	if (info.isLit) {
+
+		builder.parameter("roughnessFactor", MaterialBuilder::UniformType::FLOAT);
+		builder.parameter("metallicFactor", MaterialBuilder::UniformType::FLOAT);
+		builder.parameter("emissiveFactor", MaterialBuilder::UniformType::FLOAT3);
+		builder.parameter("emissiveStrength", MaterialBuilder::UniformType::FLOAT);
+		builder.parameter("reflectance", MaterialBuilder::UniformType::FLOAT);
+
+		shader += R"SHADER(
                 material.roughness = materialParams.roughnessFactor;
                 material.metallic = materialParams.metallicFactor;
                 material.reflectance = materialParams.reflectance;
-            )SHADER";
+				)SHADER";
 
 
-	if (info.metallicRoughnessMap.data.data != nullptr) {
-		shader += R"SHADER(
+		if (info.metallicRoughnessMap.data.data != nullptr) {
+			shader += R"SHADER(
             material.metallic *= texture(materialParams_metallicRoughnessMap, uv0).b;
             material.roughness *= texture(materialParams_metallicRoughnessMap, uv0).g;
-        )SHADER";
-		builder.parameter("metallicRoughnessMap", MaterialBuilder::SamplerType::SAMPLER_2D);
-		hasUV = true;
-	}
+			)SHADER";
+			builder.parameter("metallicRoughnessMap", MaterialBuilder::SamplerType::SAMPLER_2D);
+			hasUV = true;
+		}
 
-	if (info.aoMap.data.data != nullptr) {
+		if (info.aoMap.data.data != nullptr) {
 
-		shader += R"SHADER(
+			shader += R"SHADER(
             float occlusion = texture(materialParams_aoMap, uv0).r;
             material.ambientOcclusion = 1.0 + materialParams.aoStrength * (occlusion - 1.0);
-        )SHADER";
-		builder.parameter("aoMap", MaterialBuilder::SamplerType::SAMPLER_2D);
-		builder.parameter("aoStrength", MaterialBuilder::UniformType::FLOAT);
-		hasUV = true;
-	}
-	else {
-		shader += R"SHADER(
+			)SHADER";
+			builder.parameter("aoMap", MaterialBuilder::SamplerType::SAMPLER_2D);
+			builder.parameter("aoStrength", MaterialBuilder::UniformType::FLOAT);
+			hasUV = true;
+		}
+		else {
+			shader += R"SHADER(
             material.ambientOcclusion = 1.0;
-        )SHADER";
+			)SHADER";
+		}
 	}
-
-
+	
 	shader += "}\n";
 
 	if (hasUV) {
@@ -788,6 +997,19 @@ void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcep
 
 	if (app->isStereo)
 		hash += "_st";
+
+	if (!info.isLit)
+		hash += "_nl";
+
+	if (!info.writeColor)
+		hash += "_nc";
+	
+	if (!info.writeDepth)
+		hash += "_nd";
+
+	if (!info.useDepth)
+		hash += "_nud";
+
 
 	Material* flMat;
 
@@ -862,31 +1084,38 @@ void UpdateMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info)
 	TextureSampler sampler(TextureSampler::MinFilter::LINEAR_MIPMAP_LINEAR,
 		TextureSampler::MagFilter::LINEAR, TextureSampler::WrapMode::REPEAT);
 
-
+	instance->setParameter("enableDiagnostics", false);
 	instance->setParameter("baseColor", RgbaType::LINEAR, float4(info.baseColorFactor.r, info.baseColorFactor.g, info.baseColorFactor.b, info.baseColorFactor.a));
-	instance->setParameter("metallicFactor", info.metallicFactor);
-	instance->setParameter("roughnessFactor", info.roughnessFactor);
-	instance->setParameter("emissiveStrength", info.emissiveStrength);
-	instance->setParameter("reflectance", 0.0f);
-	instance->setParameter("emissiveFactor", float3(info.emissiveFactor.r, info.emissiveFactor.g, info.emissiveFactor.b));
+	
+	if (info.blending == BlendingMode::MASKED)
+		instance->setMaskThreshold(info.alphaCutoff);
 
-	if (info.normalMap.data.data != nullptr) {
-		instance->setParameter("normalMap", CreateTexture(app, info.normalMap), sampler);
-		instance->setParameter("normalScale", info.normalScale);
-	}
 	if (info.baseColorMap.data.data != nullptr)
 		instance->setParameter("baseColorMap", CreateTexture(app, info.baseColorMap), sampler);
 
-	if (info.metallicRoughnessMap.data.data != nullptr)
-		instance->setParameter("metallicRoughnessMap", CreateTexture(app, info.metallicRoughnessMap), sampler);
+	if (info.isLit) {
 
-	if (info.aoMap.data.data != nullptr) {
-		instance->setParameter("aoStrength", info.aoStrength);
-		instance->setParameter("aoMap", CreateTexture(app, info.aoMap), sampler);
+		instance->setParameter("metallicFactor", info.metallicFactor);
+		instance->setParameter("roughnessFactor", info.roughnessFactor);
+		instance->setParameter("emissiveStrength", info.emissiveStrength);
+		instance->setParameter("reflectance", info.reflectance);
+		instance->setParameter("emissiveFactor", float3(info.emissiveFactor.r, info.emissiveFactor.g, info.emissiveFactor.b));
+
+		if (info.normalMap.data.data != nullptr) {
+			instance->setParameter("normalMap", CreateTexture(app, info.normalMap), sampler);
+			instance->setParameter("normalScale", info.normalScale);
+		}
+
+
+		if (info.metallicRoughnessMap.data.data != nullptr)
+			instance->setParameter("metallicRoughnessMap", CreateTexture(app, info.metallicRoughnessMap), sampler);
+
+		if (info.aoMap.data.data != nullptr) {
+			instance->setParameter("aoStrength", info.aoStrength);
+			instance->setParameter("aoMap", CreateTexture(app, info.aoMap), sampler);
+		}
+
 	}
-
-	if (info.blending == BlendingMode::MASKED)
-		instance->setMaskThreshold(info.alphaCutoff);
 
 }
 
@@ -894,11 +1123,12 @@ void AddImageLight(FilamentApp* app, const ImageLightInfo& info) {
 	
 	auto texture = info.texture;
 	texture.internalFormat = Texture::InternalFormat::R11F_G11F_B10F;
+	texture.levels = 0xFF;
 
 	auto equirectTxt = CreateTexture(app, texture);
 	
 	IBLPrefilterContext context(*app->engine);	
-	IBLPrefilterContext::EquirectangularToCubemap equirectangularToCubemap(context, { false });
+	IBLPrefilterContext::EquirectangularToCubemap equirectangularToCubemap(context);
 	IBLPrefilterContext::SpecularFilter specularFilter(context);
 	IBLPrefilterContext::IrradianceFilter irradianceFilter(context);
 
@@ -921,7 +1151,6 @@ void AddImageLight(FilamentApp* app, const ImageLightInfo& info) {
 	app->skybox = Skybox::Builder()
 		.environment(app->skyboxTexture)
 		.showSun(true)
-		.intensity(info.intensity * 10000)
 		.build(*app->engine);
 
 

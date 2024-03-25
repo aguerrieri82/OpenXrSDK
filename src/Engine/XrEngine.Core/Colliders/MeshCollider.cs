@@ -73,6 +73,7 @@ namespace XrEngine
                             LocalPoint = point.Value,
                             Point = worldPoint,
                             Normal = _geometry.Vertices[ix].Normal,
+                            Tangent = _geometry.Vertices[ix].Tangent,
                             UV = null
                         };
                     }

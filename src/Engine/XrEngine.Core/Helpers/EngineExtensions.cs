@@ -422,7 +422,7 @@ namespace XrEngine
                 var n = vert.Normal;
                 var t = tan1[a];
 
-                var txyz = Vector3.Normalize(t - n * Vector3.Dot(n, t)); ;
+                var txyz = Vector3.Normalize(t - n * Vector3.Dot(n, t));
 
                 vert.Tangent.X = txyz.X;
                 vert.Tangent.Y = txyz.Y;

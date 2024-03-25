@@ -16,6 +16,8 @@ namespace XrEngine
         public float Distance;
 
         public Object3D? Object;
+
+        public Quaternion? Tangent;
     }
 
 
