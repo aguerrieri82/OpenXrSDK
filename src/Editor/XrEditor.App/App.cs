@@ -38,7 +38,7 @@ namespace XrEditor
             var window = new Window
             {
                 Title = "Xr Editor",
-                Content = new MainView(GraphicDriver.FilamentVulkan)
+                Content = new MainView(GraphicDriver.OpenGL)
             };
 
 

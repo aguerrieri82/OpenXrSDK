@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using XrMath;
 using SkiaSharp;
+using System.Runtime.InteropServices;
 
 
 namespace XrEngine.OpenGL
@@ -495,11 +496,19 @@ namespace XrEngine.OpenGL
             return SKSurface.Create(_grContext, grTexture, ImageUtils.GetFormat(texture.Format), props);
         }
 
+
+        public unsafe string[] GetExtensions()
+        {
+            var data = _gl.GetString(StringName.Extensions);
+            var allExt = Marshal.PtrToStringAuto(new nint(data))!;
+            return allExt.Split(' ');
+        }
+
+
         public PbrMaterial.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
         {
             using var processor = new GlIBLProcessor(_gl);
 
-            processor.Use8Bit = options.Use8Bit;
             processor.Resolution = options.Resolution;
             processor.SampleCount = options.SampleCount;
             processor.LodBias = options.LodBias;

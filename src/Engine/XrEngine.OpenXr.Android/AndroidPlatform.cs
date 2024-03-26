@@ -49,7 +49,7 @@ namespace XrEngine.OpenXr.Android
                     Driver = options.Driver == GraphicDriver.FilamentVulkan ? FilamentLib.FlBackend.Vulkan : FilamentLib.FlBackend.OpenGL,
                     MaterialCachePath = _context.GetExternalCacheDirs()![0].AbsolutePath,
                     EnableStereo = options.RenderMode != XrRenderMode.SingleEye,
-                    OneViewPerTarget = true,
+                    OneViewPerTarget = false,
                     SampleCount = options.SampleCount
                 };
 
@@ -95,7 +95,6 @@ namespace XrEngine.OpenXr.Android
                 renderEngine = new OpenGLRender(glDriver.GetApi<GL>(), new GlRenderOptions
                 {
                     RequireTextureCompression = true,
-
                 });
 
                 xrDriver = glDriver;

@@ -16,7 +16,8 @@ namespace XrEngine.OpenXr
         {
             _input = input;
             Name = "Hand " + input.HandType;
-            CreateRigidBody = true;
+            //TODO option to craete RB
+            CreateRigidBody = false;
         }
 
         public override T? Feature<T>() where T : class

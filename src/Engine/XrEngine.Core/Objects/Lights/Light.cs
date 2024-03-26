@@ -8,6 +8,7 @@ namespace XrEngine
         {
             Color = Color.White;
             Intensity = 1f;
+            CastShadows = true; 
         }
 
         public override void NotifyChanged(ObjectChange change)
@@ -17,6 +18,8 @@ namespace XrEngine
 
             base.NotifyChanged(change);
         }
+
+        public bool CastShadows { get; set; }
 
         public Color Color { get; set; }
 

@@ -29,15 +29,11 @@ namespace XrEngine.OpenGL
         private GlSimpleProgram? _filterProg;
 
 
-
         public GlIBLProcessor(GL gl)
         {
             _gl = gl;
-            EnvFormat = InternalFormat.Rgba32f;
-            LutFormat = InternalFormat.Rgba32f;
-
-            //EnvFormat = InternalFormat.CompressedRgba8Etc2EacOes;
-            //LutFormat = InternalFormat.CompressedRgb8Etc2Oes;
+            EnvFormat = InternalFormat.Rgba16f;
+            LutFormat = InternalFormat.Rgba16f;
         }
 
         public unsafe void Initialize(TextureData panoramaHdr, Func<string, string> shaderResolver)
@@ -54,8 +50,10 @@ namespace XrEngine.OpenGL
 
             _fooVa = _gl.GenVertexArray();
 
-            if (MipLevelCount == 0)
-                MipLevelCount = (uint)MathF.Floor(MathF.Log2(Resolution));
+            var maxMipLevels = (uint)MathF.Floor(MathF.Log2(Resolution));
+
+            if (MipLevelCount == 0 || MipLevelCount > maxMipLevels)
+                MipLevelCount = maxMipLevels;
 
             _panToCubeProg = new GlSimpleProgram(_gl, 
                 shaderResolver("Ibl/fullscreen.vert"), 
@@ -89,7 +87,6 @@ namespace XrEngine.OpenGL
             _gl.Disable(EnableCap.DepthTest);
             _gl.FrontFace(FrontFaceDirection.Ccw);
         }
-
 
 
         public void ApplyFilter(Distribution distribution, out uint envTexId, out uint lutTexId)
@@ -213,8 +210,6 @@ namespace XrEngine.OpenGL
             return buf;
         }
 
-
-
         protected GlTexture LoadHdr(TextureData data)
         {
             var res = new GlTexture(_gl)
@@ -243,24 +238,8 @@ namespace XrEngine.OpenGL
 
         protected unsafe uint CreateLutTexture()
         {
-
             var targetTexture = _gl.GenTexture();
             _gl.BindTexture(TextureTarget.Texture2D, targetTexture);
-
-            /*
-            _gl.TexImage2D(
-                TextureTarget.Texture2D,
-                0,
-                //Use8Bit ? InternalFormat.Rgb8 : InternalFormat.Rgb32f,
-                LutFormat,
-                Resolution,
-                Resolution,
-                0,
-                PixelFormat.Rgb,
-                Use8Bit ? PixelType.UnsignedByte : PixelType.Float,
-                null
-            );
-            */
 
             _gl.TexStorage2D(
                 TextureTarget.Texture2D,
@@ -284,24 +263,6 @@ namespace XrEngine.OpenGL
             var targetTexture = _gl.GenTexture();
             _gl.BindTexture(TextureTarget.TextureCubeMap, targetTexture);
 
-            for (var i = 0; i < 6; ++i)
-            {
-                /*
-                _gl.TexImage2D(
-                    TextureTarget.TextureCubeMapPositiveX + i,
-                    0,
-                    //Use8Bit ? InternalFormat.Rgba8 : InternalFormat.Rgba32f,
-                    EnvFormat,
-                    Resolution,
-                    Resolution,
-                    0,
-                    PixelFormat.Rgba,
-                    Use8Bit ? PixelType.UnsignedByte : PixelType.Float,
-                    null
-                );
-                */
-              
-            }
 
             _gl.TexStorage2D(
                    TextureTarget.TextureCubeMap,
@@ -367,7 +328,6 @@ namespace XrEngine.OpenGL
 
         public uint OutCubeMapId => _cubeMapId;
 
-        public bool Use8Bit;
 
         public uint Resolution;
 

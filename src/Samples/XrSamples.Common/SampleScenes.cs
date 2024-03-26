@@ -36,11 +36,10 @@ namespace XrSamples
 
             scene.AddComponent<DebugGizmos>();
 
-     
             scene.AddChild(new SunLight()
             {
                 Name = "sun-light",
-                Intensity = 0.0f,
+                Intensity = 1.0f,
                 Direction = new Vector3(-0.1f, -0.9f, -0.15f).Normalize(),
                 IsVisible = true
             });
@@ -94,7 +93,7 @@ namespace XrSamples
 
                 foreach (var l in scene.Descendants<Light>())
                 {
-                    if (l != light && l is not SunLight)
+                    if (l != light)
                         l.IsVisible = false;
                 }
                    
@@ -265,12 +264,12 @@ namespace XrSamples
 
             //Setup camera
             scene.PerspectiveCamera().Target = racket.Transform.Position;
-
+          
             return builder
                    .UseApp(app)
                    .UseScene(true)
                    .ConfigureSampleApp()
-                   .UseEnvironmentHDR("Envs/lightroom_14b.hdr", true) 
+                   .UseEnvironmentHDR("Envs/lightroom_14b.hdr", false)
                    .UsePhysics(new PhysicsOptions
                    {
                        LengthTolerance = settings.LengthToleranceScale,
@@ -339,14 +338,6 @@ namespace XrSamples
 
             scene.AddChild(mesh);
 
-            scene.AddChild(new SunLight()
-            {
-                Name = "sun-light-2",
-                Intensity = 0.0f,
-                Direction = new Vector3(0.1f, -0.9f, 0.15f).Normalize(),
-                IsVisible = true
-            });
-
             return builder
                 .UseApp(app)
                 .ConfigureSampleApp();
@@ -400,8 +391,8 @@ namespace XrSamples
 
             var mesh = (TriangleMesh)GltfLoader.Instance.Load(assets.GetFsPath("IkeaBed.glb"), assets, GltfOptions);
             mesh.Name = "mesh";
-            mesh.AddComponent<MeshCollider>();
-            mesh.AddComponent<BoundsGrabbable>();
+            //mesh.AddComponent<MeshCollider>();
+            //mesh.AddComponent<BoundsGrabbable>();
 
 
             foreach (var mat in mesh.Materials)

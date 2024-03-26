@@ -67,7 +67,6 @@ FilamentApp* Initialize(const InitializeOptions& options) {
 	
 	Engine::Config cfg;
 
-
 	if (options.enableStereo) {
 		cfg.stereoscopicEyeCount = 2;
 		if (options.driver == Backend::OPENGL)
@@ -106,12 +105,17 @@ FilamentApp* Initialize(const InitializeOptions& options) {
 	auto flags = filament::SwapChain::CONFIG_HAS_STENCIL_BUFFER;
 	if (options.useSrgb)
 		flags |= filament::SwapChain::CONFIG_SRGB_COLORSPACE;
-
+	
+	//filament::SwapChain::CONFIG_TRANSPARENT
 
 	if (options.windowHandle != nullptr)
 		app->swapChain = app->engine->createSwapChain(options.windowHandle, flags);
 	else
 		app->swapChain = app->engine->createSwapChain(8, 8);
+
+	Renderer::DisplayInfo displayInfo;
+	displayInfo.refreshRate = 0;
+	app->renderer->setDisplayInfo(displayInfo);
 
 	MaterialBuilder::init();
 
@@ -232,6 +236,9 @@ void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bo
 
 	app->renderer->beginFrame(app->swapChain);
 
+
+
+
 	bool hasMainView = false;
 
 	for (uint32_t i = 0; i < count; i++) {
@@ -284,7 +291,7 @@ void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bo
 		plat->skipSwap = !hasMainView;
 #endif
 
-	app->renderer->endFrame(hasMainView);
+	//app->renderer->endFrame(hasMainView);
 	if (wait)
 		app->engine->flushAndWait();
 }
@@ -295,14 +302,16 @@ void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 
 	LightManager::ShadowOptions shadowOptions;
 
-	
+	shadowOptions.shadowFar = 10;
+	shadowOptions.shadowFarHint = 5;
+	shadowOptions.shadowNearHint = 0.05;
+
 	LightManager::Builder(info.type)
 		.color({ info.color.r ,info.color.g, info.color.b })
 		.intensity(info.intensity * 100000)
 		.direction({ info.direction.x, info.direction.y, info.direction.z })
 		.sunAngularRadius(info.sun.angularRadius)
 		.sunHaloFalloff(info.sun.haloFalloff)
-		.castShadows(true)
 		.shadowOptions(shadowOptions)
 		.sunHaloSize(info.sun.haloSize)
 		.castShadows(info.castShadows)
@@ -739,6 +748,7 @@ void AddMesh(FilamentApp* app, OBJID id, const MeshInfo& info)
 
 	RenderableManager::Builder(1)
 		.boundingBox(geo.box)
+		.culling(info.culling)
 		.castShadows(info.castShadows)
 		.receiveShadows(info.receiveShadows)
 		.material(0, mat)
@@ -974,7 +984,7 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 
 void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcept(false)
 {
-	std::string hash("pbr_v1_p");
+	std::string hash("pbr_v3_p");
 
 	hash += std::to_string((int)app->engine->getBackend());
 
@@ -1009,6 +1019,10 @@ void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcep
 
 	if (!info.useDepth)
 		hash += "_nud";
+
+	if (info.isShadowOnly)
+		hash += "_so";
+
 
 
 	Material* flMat;

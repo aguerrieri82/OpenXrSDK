@@ -19,6 +19,7 @@
     </ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Shaders\clear.frag" />
 	  <None Remove="Shaders\Ibl\filter_cubemap.frag" />
 	  <None Remove="Shaders\Ibl\fullscreen.vert" />
 	  <None Remove="Shaders\Ibl\ibl_shared.frag" />

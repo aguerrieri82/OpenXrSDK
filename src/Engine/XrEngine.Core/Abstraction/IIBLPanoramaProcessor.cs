@@ -26,15 +26,12 @@ namespace XrEngine
                 SampleCount = 1024,
                 LodBias = 0f,
                 MipLevelCount = 10,
-                Use8Bit = false,
                 Mode = IBLProcessMode.Lambertian | IBLProcessMode.GGX | IBLProcessMode.Charlie,
                 ShaderResolver = str => Embedded.GetString(str),
             };
         }
 
         public Func<string, string>? ShaderResolver;
-
-        public bool Use8Bit;
 
         public uint Resolution;
 

@@ -7,6 +7,8 @@ using Silk.NET.OpenGL;
 using System.Numerics;
 using OpenXr.Framework;
 
+
+
 namespace XrEngine.OpenGL.Oculus
 {
 
@@ -17,30 +19,51 @@ namespace XrEngine.OpenGL.Oculus
         public Matrix4x4 ViewProj2;
     }
 
-    public class GlMultiViewRenderTarget : GlTextureRenderTarget, IMultiViewTarget, IShaderHandler
+    public class GlMultiViewRenderTarget : IGlRenderTarget, IMultiViewTarget, IShaderHandler
     {
-        static SceneMatrices _matrices = new SceneMatrices();
+        static GlMultiViewRenderTarget? _instance;
+        
+        protected GlMultiViewFrameBuffer _frameBuffer;
+        protected SceneMatrices _matrices = new SceneMatrices();
 
-        protected GlMultiViewRenderTarget(GL gl, uint colorTex, uint depthTex, uint sampleCount)
-            : base(gl, colorTex, depthTex, sampleCount)
+
+
+        protected GlMultiViewRenderTarget(GL gl)
         {
+            _frameBuffer = new GlMultiViewFrameBuffer(gl);
+
         }
 
-        protected override GlBaseFrameBuffer CreateFrameBuffer(uint colorTex, uint depthTex, uint sampleCount)
+        public static GlMultiViewRenderTarget Attach(GL gl, uint colorTex, uint depthTex, uint sampleCount)
         {
-            return new GlMultiViewFrameBuffer(_gl, colorTex, depthTex, sampleCount);
+            if (_instance == null)
+                _instance = new GlMultiViewRenderTarget(gl);
+
+            _instance.FrameBuffer.Configure(colorTex, depthTex, sampleCount);
+
+            return _instance;
         }
 
-        public static new GlMultiViewRenderTarget Attach(GL gl, uint colorTex, uint depthTex, uint sampleCount)
+        public void Begin()
         {
-            if (!_targets.TryGetValue(colorTex, out var target))
-            {
-                target = new GlMultiViewRenderTarget(gl, colorTex, depthTex, sampleCount);
-                _targets[colorTex] = target;
-            }
-
-            return (GlMultiViewRenderTarget)target;
+            _frameBuffer.BindDraw();
         }
+
+        public void End()
+        {
+            _frameBuffer.Unbind();
+        }
+
+        public uint QueryTexture(FramebufferAttachment attachment)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            _frameBuffer.Dispose();
+        }
+     
 
         public void SetCameraTransforms(XrCameraTransform[] eyes)
         {
@@ -64,5 +87,8 @@ namespace XrEngine.OpenGL.Oculus
         {
             return true;
         }
+
+        public GlMultiViewFrameBuffer FrameBuffer => _frameBuffer;
+
     }
 }

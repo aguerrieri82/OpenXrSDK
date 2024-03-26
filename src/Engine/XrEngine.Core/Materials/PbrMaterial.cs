@@ -562,6 +562,7 @@ namespace XrEngine
         {
             Shader = SHADER;
             Debug = DebugFlags.DEBUG_NONE;
+            CastShadows = true;
         }
 
         public static PbrMaterial CreateDefault(Color color)
@@ -744,6 +745,12 @@ namespace XrEngine
 
         public float AlphaCutoff { get; set; }
 
+        public MaterialType Type { get; set; }
+
+        public DebugFlags Debug { get; set; }
+
+        public bool CastShadows { get; set; }
+
 
         /*
         public bool HasClearcoat { get; set; }
@@ -793,10 +800,6 @@ namespace XrEngine
                     throw new NotSupportedException();
             }
         }
-
-        public MaterialType Type { get; set; }
-
-        public DebugFlags Debug { get; set; }
 
 
         public static bool LinearOutput { get; set; }
