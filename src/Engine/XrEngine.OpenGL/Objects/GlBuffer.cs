@@ -52,7 +52,11 @@ namespace XrEngine.OpenGL
             if (wait)
             {
                 var fence = _gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, SyncBehaviorFlags.None);
+                
                 _gl.WaitSync(fence, SyncBehaviorFlags.None, unchecked((ulong)-1));
+                
+                _gl.DeleteSync(fence);  
+
                 //_gl.Finish();
             }
 

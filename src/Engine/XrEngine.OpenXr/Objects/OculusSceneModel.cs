@@ -82,11 +82,12 @@ namespace XrEngine.OpenXr
                 var rigidBody = mesh.AddComponent<RigidBody>();
 
                 rigidBody.Type = PhysicsActorType.Static;
+                rigidBody.ContactOffset = 0.2f;
                 rigidBody.Material = new PhysicsMaterialInfo
                 {
                     DynamicFriction = 1,
                     StaticFriction = 1,
-                    Restitution = 1
+                    Restitution = 0.7f
                 };
 
                 AddChild(mesh);

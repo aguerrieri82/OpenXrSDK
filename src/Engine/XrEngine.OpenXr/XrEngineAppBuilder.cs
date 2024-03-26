@@ -202,7 +202,7 @@ namespace XrEngine.OpenXr
         {
             var model = new OculusSceneModel();
             if (arMode)
-                model.Material = new ColorMaterial { Color = new Color(0,0,0,0.7f) };
+                model.Material = new ColorMaterial { Color = Color.Transparent, ShadowIntensity = 0.7f, IsShadowOnly = true };
 
             e.App.ActiveScene!.AddChild(model);
 

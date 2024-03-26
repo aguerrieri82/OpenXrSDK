@@ -1,5 +1,7 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
 using System.Runtime.InteropServices;
+using XrEngine;
 using XrMath;
 using static XrEngine.Filament.FilamentLib;
 
@@ -7,6 +9,18 @@ namespace XrEngine.Filament
 {
     public class FilamentOptions
     {
+
+        public FilamentOptions()
+        {
+            PostProcessing = false;
+            AntiAliasing = FlAntiAliasing.NONE;
+            ShadowingEnabled = true;
+            ShadowType = FlShadowType.PCF;
+            HdrColorBuffer = FlQualityLevel.MEDIUM;
+            SampleCount = 1;
+            UseSrgb = true; 
+        }
+
         public IntPtr Context;
         public IntPtr WindowHandle;
         public FlBackend Driver;
@@ -14,6 +28,12 @@ namespace XrEngine.Filament
         public bool EnableStereo;
         public bool OneViewPerTarget;
         public uint SampleCount;
+        public bool PostProcessing;
+        public bool UseSrgb;
+        public FlAntiAliasing AntiAliasing;
+        public bool ShadowingEnabled;
+        public FlShadowType ShadowType;
+        public FlQualityLevel HdrColorBuffer;
     }
 
     public class FilamentRender : IRenderEngine
@@ -50,9 +70,9 @@ namespace XrEngine.Filament
         protected RenderTargetBind? _activeRenderTarget;
         protected Content? _content;
         protected FlBackend _driver;
-        protected bool _oneViewPerTarget;
         protected uint _renderTargetDepth;
-        protected uint _sampleCount;
+
+        protected FilamentOptions _options;
 
         public FilamentRender(FilamentOptions options)
         {
@@ -67,18 +87,18 @@ namespace XrEngine.Filament
                 MaterialCachePath = options.MaterialCachePath ?? string.Empty,
                 EnableStereo = options.EnableStereo,
                 OneViewPerTarget = options.OneViewPerTarget,
-                UseSrgb = false
+                UseSrgb = options.UseSrgb
             };
 
+            _options = options;
             _renderTargetDepth = 1;
-            _sampleCount = options.SampleCount <= 0 ? 1 : _sampleCount;
+
 
             /*
             if (options.EnableStereo && options.Driver == FlBackend.OpenGL)
                 _renderTargetDepth = 2;
             */
 
-            _oneViewPerTarget = options.OneViewPerTarget;
 
             _driver = options.Driver;
 
@@ -122,14 +142,14 @@ namespace XrEngine.Filament
             {
                 RenderQuality = new RenderQuality
                 {
-                    HdrColorBuffer = FlQualityLevel.MEDIUM
+                    HdrColorBuffer = _options.HdrColorBuffer,
                 },
-                AntiAliasing = FlAntiAliasing.FXAA,
-                PostProcessingEnabled = true,
-                ShadowingEnabled = true,
-                ShadowType = FlShadowType.PCF,
+                AntiAliasing = _options.AntiAliasing,
+                PostProcessingEnabled = _options.PostProcessing,
+                ShadowingEnabled = _options.ShadowingEnabled,
+                ShadowType = _options.ShadowType,
                 BlendMode = FlBlendMode.TRANSLUCENT,
-                SampleCount = _sampleCount,
+                SampleCount = _options.SampleCount,
                 StencilBufferEnabled = false,
                 FrustumCullingEnabled = false,
                 ScreenSpaceRefractionEnabled = false,
@@ -160,7 +180,7 @@ namespace XrEngine.Filament
                     RenderTargetId = AddRenderTarget(_app, ref options)
                 };
 
-                var viewBind = _oneViewPerTarget ?
+                var viewBind = _options.OneViewPerTarget ?
                     _views.FirstOrDefault(a => a.RenderTargetId == rtBind.RenderTargetId) :
                     _views.FirstOrDefault(a => a.Viewport.Width == width && a.Viewport.Height == height);
 
@@ -287,6 +307,7 @@ namespace XrEngine.Filament
             {
                 if (!obj.IsVisible)
                     continue;
+
                 if (obj is SunLight sun)
                 {
                     GetOrCreate(sun, id =>
@@ -303,7 +324,7 @@ namespace XrEngine.Filament
                                 AngularRadius = sun.SunRadius,
                                 HaloFalloff = sun.HaloFallOff,
                             },
-                            CastShadows = true,
+                            CastShadows = sun.CastShadows,
                         };
                         AddLight(_app, id, ref info);
                     });
@@ -318,7 +339,7 @@ namespace XrEngine.Filament
                             Direction = dir.Direction,
                             Intensity = dir.Intensity,
                             Color = dir.Color,
-                            CastShadows = true,
+                            CastShadows = dir.CastShadows,
                         };
                         AddLight(_app, id, ref info);
                     });
@@ -436,6 +457,7 @@ namespace XrEngine.Filament
                             }
                         });
 
+
                         var matId = GetOrCreate(mesh.Materials[0], matId =>
                         {
                             var mat = mesh.Materials[0];
@@ -475,17 +497,20 @@ namespace XrEngine.Filament
                                         IsLit = true,
                                         WriteDepth = pbr.WriteDepth,
                                         WriteColor = pbr.WriteColor,
-                                        UseDepth = pbr.UseDepth,    
-
+                                        UseDepth = pbr.UseDepth
                                     };
                                 }
 
                                 if (mat is ColorMaterial color)
                                 {
+                                    var matColor = color.Color;
+                                    if (color.IsShadowOnly)
+                                        matColor.A = color.ShadowIntensity;
+
                                     return new MaterialInfo
                                     {
-                                        Color = color.Color,
-                                        Blending = color.IsShadowOnly || color.Color.A < 1.0f ? FlBlendingMode.TRANSPARENT : FlBlendingMode.OPAQUE,
+                                        Color = matColor,
+                                        Blending = color.IsShadowOnly || matColor.A < 1.0f ? FlBlendingMode.TRANSPARENT : FlBlendingMode.OPAQUE,
                                         DoubleSided = color.DoubleSided,
                                         IsLit = false,
                                         WriteDepth = color.WriteDepth,
@@ -510,13 +535,15 @@ namespace XrEngine.Filament
 
                         var meshInfo = new MeshInfo
                         {
-                            CastShadows = true,
-                            Culling = false,
+                            Culling = true,
                             Fog = false,
                             GeometryId = geoId,
                             MaterialId = matId,
-                            ReceiveShadows = true
+                            ReceiveShadows = true,
                         };
+
+                        if (mesh.Materials[0] is PbrMaterial pbr)
+                            meshInfo.CastShadows = pbr.CastShadows;
 
                         AddMesh(_app, meshId, ref meshInfo);
 

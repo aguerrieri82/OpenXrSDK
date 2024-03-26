@@ -1,14 +1,11 @@
-﻿using XrEngine.Materials;
-using XrMath;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
+﻿
 namespace XrEngine
 {
     public class ImageLight : Light
     {
         public ImageLight()
         {
-            Intensity = 1;
+            Intensity = 3;
         }
 
         public void LoadPanorama(string hdrFileName)
@@ -40,6 +37,7 @@ namespace XrEngine
             {
                 var options = PanoramaProcessorOptions.Default();
                 options.SampleCount = 1024;
+                options.Resolution = 256;
                 options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
 
                 Textures = processor.ProcessPanoramaIBL(data, options);

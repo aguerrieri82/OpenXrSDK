@@ -22,6 +22,7 @@ namespace XrEngine
             : base()
         {
             _shader = SHADER;
+            ShadowIntensity = 0.7f;
         }
 
         public ColorMaterial(Color color)
@@ -35,6 +36,8 @@ namespace XrEngine
             bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
             bld.SetUniform("uColor", ctx => Color);
         }
+
+        public float ShadowIntensity { get; set; }  
 
         public bool IsShadowOnly { get; set; }
 

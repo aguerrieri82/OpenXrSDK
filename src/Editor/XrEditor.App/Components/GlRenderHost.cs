@@ -209,15 +209,14 @@ namespace XrEditor
             var attr = stackalloc int[11];
 
             attr[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
-            attr[1] = 3;
+            attr[1] = 4;
 
             attr[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
-            attr[3] = 1;
+            attr[3] = 6;
             
             attr[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
-            attr[5] =WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+            attr[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
            //attr[5] = WGL_CONTEXT_ES_PROFILE_BIT_EXT; ;
-
 
             attr[6] = 0;
 

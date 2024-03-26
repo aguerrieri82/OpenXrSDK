@@ -1,4 +1,5 @@
 ﻿#if GLES
+
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
@@ -39,22 +40,26 @@ namespace XrEngine.OpenGL.Oculus
 
         static FramebufferTextureMultisampleMultiviewOVRDelegate? FramebufferTextureMultisampleMultiviewOVR;
 
-        protected readonly uint _sampleCount;
-        protected readonly uint _colorTex;
-        protected readonly uint _depthTex;
+        protected uint _width;
+        protected uint _height;
+        protected uint _sampleCount;
+        protected uint _colorTex;
+        protected uint _depthTex;
         protected readonly TextureTarget _target;
+        protected Dictionary<uint, uint> _depths = [];
 
-        public GlMultiViewFrameBuffer(GL gl, uint colorTex, uint depthTex, uint sampleCount)
+        public GlMultiViewFrameBuffer(GL gl)
             : base(gl)
         {
 
             _handle = _gl.GenFramebuffer();
-            _colorTex = colorTex;
-            _depthTex = depthTex;
             _target = TextureTarget.Texture2DArray;
-            _sampleCount = sampleCount;
+            _gl.CheckError();
 
             BindFunctions(gl);
+            //UpdateTextureInfo();
+            //CreateDepth();
+
         }
 
         static void BindFunctions(GL gl)
@@ -68,8 +73,56 @@ namespace XrEngine.OpenGL.Oculus
             FramebufferTextureMultisampleMultiviewOVR = Marshal.GetDelegateForFunctionPointer<FramebufferTextureMultisampleMultiviewOVRDelegate>(addr);
         }
 
-        public override void BindDraw()
+
+        protected void UpdateTextureInfo()
         {
+            _gl.BindTexture(_target, _colorTex);
+            _gl.GetTexLevelParameter(_target, 0, GetTextureParameter.TextureWidth, out int w);
+            _gl.GetTexLevelParameter(_target, 0, GetTextureParameter.TextureHeight, out int h);
+            _width = (uint)w;
+            _height = (uint)h;
+            _gl.BindTexture(_target, 0);
+        }
+
+
+        protected void CreateDepth()
+        {
+            _depthTex = _gl.GenTexture();
+
+            _gl.BindTexture(_target, _depthTex);
+
+            _gl.TexStorage3D(
+                   _target,
+                   1,
+                   SizedInternalFormat.DepthComponent24,
+                   _width,
+                   _height,
+                   2);
+
+            _gl.CheckError();
+
+            _gl.BindTexture(_target, 0);
+        }
+
+
+        public void Configure(uint colorTex, uint depthTex, uint sampleCount)
+        {
+            _colorTex = colorTex;
+            _depthTex = depthTex;
+            _sampleCount = sampleCount;
+
+            if (_depthTex == 0 && !_depths.TryGetValue(_colorTex, out _depthTex))
+            {
+                if (_width == 0)
+                    UpdateTextureInfo();
+
+                CreateDepth();
+
+                _depths[_colorTex] = _depthTex;
+            }
+
+            _gl.Enable(EnableCap.Multisample);
+
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _handle);
 
             if (_sampleCount > 1)
@@ -77,7 +130,18 @@ namespace XrEngine.OpenGL.Oculus
                 if (FramebufferTextureMultisampleMultiviewOVR == null)
                     throw new Exception("glFramebufferTextureMultisampleMultiviewOVR not supported");
 
-                FramebufferTextureMultisampleMultiviewOVR!(
+
+                FramebufferTextureMultisampleMultiviewOVR(
+                        FramebufferTarget.DrawFramebuffer,
+                        FramebufferAttachment.DepthAttachment,
+                        _depthTex,
+                        0,
+                        _sampleCount,
+                        0, 2);
+                
+                _gl.CheckError();
+
+                FramebufferTextureMultisampleMultiviewOVR(
                     FramebufferTarget.DrawFramebuffer,
                     FramebufferAttachment.ColorAttachment0,
                     _colorTex,
@@ -85,20 +149,14 @@ namespace XrEngine.OpenGL.Oculus
                     _sampleCount,
                     0, 2);
 
-                FramebufferTextureMultisampleMultiviewOVR(
-                    FramebufferTarget.DrawFramebuffer,
-                    FramebufferAttachment.DepthAttachment,
-                    _depthTex,
-                    0,
-                    _sampleCount,
-                    0, 2);
+                _gl.CheckError();
 
             }
             else
             {
                 if (FramebufferTextureMultiviewOVR == null)
                     throw new Exception("glFramebufferTextureMultiviewOVR not supported");
-
+                
                 FramebufferTextureMultiviewOVR!(
                     FramebufferTarget.DrawFramebuffer,
                     FramebufferAttachment.ColorAttachment0,
@@ -118,6 +176,16 @@ namespace XrEngine.OpenGL.Oculus
             {
                 throw new Exception($"Frame buffer state invalid: {status}");
             }
+
+
+            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+        }
+
+        public override void Unbind()
+        {
+            //var attach = new InvalidateFramebufferAttachment[] { InvalidateFramebufferAttachment.DepthAttachment };
+            //_gl.InvalidateFramebuffer(FramebufferTarget.DrawFramebuffer, attach.AsSpan());
+            base.Unbind();
         }
 
         public override uint QueryTexture(FramebufferAttachment attachment)

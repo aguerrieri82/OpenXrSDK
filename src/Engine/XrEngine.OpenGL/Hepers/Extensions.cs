@@ -1,5 +1,7 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+using System;
+
 
 #else
 using Silk.NET.OpenGL;
@@ -12,6 +14,16 @@ namespace XrEngine.OpenGL
 {
     public static class Extensions
     {
+        public static void CheckError(this GL gl)
+        {
+            GLEnum err;
+
+            while ((err = gl.GetError()) != GLEnum.NoError)
+            {
+                throw new Exception(err.ToString());
+            }
+        }
+
         public static TextureTarget GetTextureTarget(this GL gL, uint texId)
         {
             TextureTarget[] targets = [TextureTarget.Texture2DMultisample, TextureTarget.Texture2D, TextureTarget.Texture2DMultisampleArray, TextureTarget.Texture2DArray, TextureTarget.TextureCubeMap];
