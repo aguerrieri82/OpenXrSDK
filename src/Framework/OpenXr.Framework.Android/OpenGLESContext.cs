@@ -4,7 +4,7 @@ namespace OpenXr.Framework.Android
 {
     public class OpenGLESContext
     {
-        public static OpenGLESContext Create()
+        public static OpenGLESContext Create(bool debugMode)
         {
             int[] numConfigs = new int[1];
             int[] value = new int[1];
@@ -35,12 +35,10 @@ namespace OpenXr.Framework.Android
                 8,
                 EGL14.EglDepthSize,
                 16,
-                /*
                 EGL14.EglStencilSize,
                 0,
                 EGL14.EglSamples,
                 0,
-                */
                 EGL14.EglNone
             };
 
@@ -87,7 +85,13 @@ namespace OpenXr.Framework.Android
                 display,
                 config,
                 EGL14.EglNoContext,
-                [EGL14.EglContextClientVersion, 3, EGL14.EglNone],
+                [
+                    EGL15.EglContextMajorVersion, 3,
+                   // EGL15.EglContextMinorVersion, 2,
+                    EGL15.EglContextOpenglDebug, (debugMode ? EGL14.EglTrue : EGL14.EglFalse),
+                   // EGL15.EglContextOpenglProfileMask, EGL15.EglContextOpenglCoreProfileBit,
+                    EGL14.EglNone
+                ],
                 0);
 
             if (context == EGL14.EglNoContext)
@@ -114,7 +118,7 @@ namespace OpenXr.Framework.Android
             }
 
 
-            EGL14.EglSwapInterval(display, 0);
+            //EGL14.EglSwapInterval(display, 0);
 
 
             return new OpenGLESContext

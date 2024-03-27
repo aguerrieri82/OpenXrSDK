@@ -1,4 +1,6 @@
-﻿namespace XrEditor
+﻿using XrEditor.Services;
+
+namespace XrEditor
 {
     public static class UIUtils
     {

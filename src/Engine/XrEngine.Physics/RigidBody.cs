@@ -133,6 +133,7 @@ namespace XrEngine.Physics
                     else if (collider is BoxCollider box)
                     {
                         pyGeo = _system.CreateBox(box.Size / 2);
+                        pose.Position = box.Center;
                     }
 
                     shapeHost = geo;
@@ -145,6 +146,7 @@ namespace XrEngine.Physics
                 {
                     Geometry = pyGeo,
                     Material = _material,
+                    IsEsclusive = false,
                 });
 
                 shape.ContactOffset = ContactOffset;
@@ -217,7 +219,8 @@ namespace XrEngine.Physics
                 Type = Type
             });
 
-            _actor.SetScale(scale.X);
+            if (scale.X != 1)
+                _actor.SetScale(scale.X);
 
             _actor.Tag = _host;
             _actor.NotifyContacts = _contactEvent != null;

@@ -17,7 +17,7 @@ namespace OpenXr.Framework.Android
         ];
 
         public AndroidXrOpenGLESGraphicDriver()
-            : this(OpenGLESContext.Create())
+            : this(OpenGLESContext.Create(true))
         {
         }
 

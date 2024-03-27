@@ -5,7 +5,7 @@ using XrMath;
 
 namespace XrEditor
 {
-    public class PickTool : BasePointerTool, IDrawGizmos, IRayPointer
+    public abstract class PickTool : BasePointerTool, IDrawGizmos, IRayPointer
     {
         protected Object3D? _currentPick;
         protected Color? _oldColor;
@@ -55,7 +55,9 @@ namespace XrEditor
             UpdateRay(ev);
 
             lock (_lock)
-                _lastCollision = _sceneView.Scene.RayCollisions(_lastRay.Ray).FirstOrDefault();
+                _lastCollision = _sceneView.Scene.RayCollisions(_lastRay.Ray)
+                               .OrderBy(a => a.Distance)
+                               .FirstOrDefault();
 
             var newPick = _lastCollision?.Object;
 
@@ -99,29 +101,9 @@ namespace XrEditor
             }
         }
 
-        public void DrawGizmos(Canvas3D canvas)
+        public virtual void DrawGizmos(Canvas3D canvas)
         {
-            lock (_lock)
-            {
-                if (_lastCollision?.Normal == null)
-                    return;
-
-                canvas.Save();
-                canvas.State.Color = new Color(0, 1, 0, 1);
-
-                var normalMatrix = Matrix4x4.Transpose(_lastCollision.Object!.WorldMatrixInverse);
-
-                canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + _lastCollision.Normal.Value.Transform(normalMatrix).Normalize());
-
-                if (_lastCollision.Tangent != null)
-                {
-                    canvas.State.Color = new Color(0, 1, 1, 1);
-                    var nq = Quaternion.Normalize(_lastCollision.Tangent.Value);
-                    canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + new Vector3(nq.X, nq.Y, nq.Z));
-                }
-
-                canvas.Restore();
-            }
+            
         }
 
         public void CapturePointer()

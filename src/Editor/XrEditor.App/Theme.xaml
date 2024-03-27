@@ -1,0 +1,13 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="SurfaceColor">#333</SolidColorBrush>
+    <SolidColorBrush x:Key="SurfaceTextColor">#CCC</SolidColorBrush>
+    <SolidColorBrush x:Key="Yellow">#FBC02D</SolidColorBrush>
+    
+    <Style TargetType="Window">
+        <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
+        <Setter Property="Foreground" Value="{StaticResource SurfaceTextColor}"/>
+    </Style>
+</ResourceDictionary>

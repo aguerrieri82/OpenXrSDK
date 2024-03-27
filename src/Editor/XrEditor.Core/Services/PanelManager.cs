@@ -1,4 +1,4 @@
-﻿namespace XrEditor
+﻿namespace XrEditor.Services
 {
     public class PanelManager
     {
@@ -24,6 +24,12 @@
                     _loadListeners.RemoveAt(i);
                 }
             }
+        }
+
+
+        public T? Panel<T>() where T : IPanel
+        {
+            return _panels.OfType<T>().FirstOrDefault();
         }
 
 

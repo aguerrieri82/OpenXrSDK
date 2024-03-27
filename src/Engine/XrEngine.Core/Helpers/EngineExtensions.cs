@@ -569,7 +569,7 @@ namespace XrEngine
 
             foreach (var line in camera.FrustumLines())
             {
-                if (bounds.Intersects(line))
+                if (bounds.Intersects(line, out var _))
                     return true;
             }
 

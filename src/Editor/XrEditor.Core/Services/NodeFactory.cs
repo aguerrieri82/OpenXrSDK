@@ -1,6 +1,6 @@
 ﻿using XrEditor.Nodes;
 
-namespace XrEditor
+namespace XrEditor.Services
 {
     public class NodeFactory
     {
@@ -15,6 +15,7 @@ namespace XrEditor
         {
             if (value is INode node)
                 return node;
+
             if (value is INodeProvider provider)
                 return provider.Node;
 

@@ -11,5 +11,7 @@
         public object Value { get; }
 
         public INode? Parent { get; }
+
+        public bool IsLeaf { get; } 
     }
 }

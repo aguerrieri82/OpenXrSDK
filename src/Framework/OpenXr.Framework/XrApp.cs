@@ -191,7 +191,6 @@ namespace OpenXr.Framework
 
             if (mode == XrAppStartMode.Render)
             {
-
                 _views = CreateStructArray<View>(_viewInfo.ViewCount, StructureType.View);
 
                 if (_perfSettings != null)
@@ -663,11 +662,11 @@ namespace OpenXr.Framework
                 size.Width *= 2;
 
             var arraySize = (uint)(_renderOptions.RenderMode == XrRenderMode.MultiView ? 2 : 1);
-            var sampleCount = (uint)(_renderOptions.RenderMode == XrRenderMode.MultiView ? 1 : _renderOptions.SampleCount);
+            var sampleCount = _renderOptions.RenderMode == XrRenderMode.MultiView ? 1 : _renderOptions.SampleCount;
             var format = isDepth ? _renderOptions.DepthFormat : _renderOptions.ColorFormat;
             var usage = (isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit) | SwapchainUsageFlags.SampledBit;
 
-            return CreateSwapChain(size, _renderOptions.SampleCount, format, arraySize, usage);
+            return CreateSwapChain(size, sampleCount, format, arraySize, usage);
         }
 
         protected internal Swapchain CreateSwapChain(Extent2Di size, uint sampleCount, long format, uint arraySize, SwapchainUsageFlags usage)

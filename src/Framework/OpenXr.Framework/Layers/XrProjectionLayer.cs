@@ -10,9 +10,9 @@ namespace OpenXr.Framework
 
     public unsafe class XrProjectionLayer : XrBaseLayer<CompositionLayerProjection>
     {
-        readonly RenderViewDelegate? _renderView;
+        protected readonly RenderViewDelegate? _renderView;
         protected XrSwapchainInfo[]? _swapchains;
-        protected bool _useDepthSWC = false;
+        protected bool _useDepthSWC = true;
 
         XrProjectionLayer()
         {
@@ -215,6 +215,12 @@ namespace OpenXr.Framework
 
 
         public IEnumerable<Swapchain> ColorSwapChains => _swapchains?.Select(a => a.ColorSwapchain) ?? [];
+
+        public bool UseDepthSwapchain
+        {
+            get => _useDepthSWC;
+            set => _useDepthSWC = value;
+        }
 
     }
 }

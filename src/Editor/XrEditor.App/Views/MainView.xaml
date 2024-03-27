@@ -30,8 +30,8 @@
     
     <DataTemplate DataType="{x:Type local:MainView}">
         <DockPanel>
-            <ContentPresenter Width="250px" DockPanel.Dock="Left" Content="{Binding OutlineEditor}"/>
-            <ContentPresenter Width="250px" DockPanel.Dock="Right" Content="{Binding PropertiesEditor}"/>
+            <ContentPresenter Width="250px" DockPanel.Dock="Left" Content="{Binding Outline}"/>
+            <ContentPresenter MinWidth="250px" DockPanel.Dock="Right" Content="{Binding PropertiesEditor}"/>
             <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Messages}"/>
             <ContentPresenter Content="{Binding SceneView}"/>
         </DockPanel>
