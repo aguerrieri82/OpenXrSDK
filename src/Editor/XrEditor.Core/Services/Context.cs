@@ -1,4 +1,4 @@
-﻿namespace XrEditor
+﻿namespace XrEditor.Services
 {
 
     public class GlobalContext
@@ -62,6 +62,6 @@
         }
 
 
-        public static GlobalContext Current = new GlobalContext();
+        public static GlobalContext Current = new();
     }
 }

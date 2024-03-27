@@ -267,14 +267,14 @@ namespace XrSamples
           
             return builder
                    .UseApp(app)
-                   .UseScene(true)
+                   //.UseScene(true)
                    .ConfigureSampleApp()
                    .UseEnvironmentHDR("Envs/lightroom_14b.hdr", false)
                    .UsePhysics(new PhysicsOptions
                    {
                        LengthTolerance = settings.LengthToleranceScale,
-                   });
-                   //.AddPanel(new PingPongSettingsPanel(settings, scene));
+                   })
+                   .AddPanel(new PingPongSettingsPanel(settings, scene));
 
         }
 
@@ -289,11 +289,13 @@ namespace XrSamples
 
             var mesh = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("Chess/ABeautifulGame.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
+            mesh.BoundUpdateMode = UpdateMode.Automatic;
 
 
             foreach (var child in mesh.Children)
             {
                 var rb = child.AddComponent<RigidBody>();
+                child.AddComponent<BoxCollider>();
 
                 if (child.Name!.Contains("board"))
                 {
@@ -391,8 +393,8 @@ namespace XrSamples
 
             var mesh = (TriangleMesh)GltfLoader.Instance.Load(assets.GetFsPath("IkeaBed.glb"), assets, GltfOptions);
             mesh.Name = "mesh";
-            //mesh.AddComponent<MeshCollider>();
-            //mesh.AddComponent<BoundsGrabbable>();
+           // mesh.AddComponent<MeshCollider>();
+            mesh.AddComponent<BoundsGrabbable>();
 
 
             foreach (var mat in mesh.Materials)
@@ -403,7 +405,6 @@ namespace XrSamples
                     // pbr.MetallicRoughness.MetallicFactor = 0f;
                     //pbr.MetallicRoughness.MetallicRoughnessTexture = null;
                 }
-
             }
 
             scene.AddChild(mesh);

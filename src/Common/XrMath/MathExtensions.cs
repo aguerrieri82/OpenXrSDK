@@ -60,7 +60,7 @@ namespace XrMath
             return true;
         }
 
-        public static bool Intersects(this Bounds3 bounds, Line3 line)
+        public static bool Intersects(this Bounds3 bounds, Line3 line, out float distance)
         {
             Vector3 dir = (line.To - line.From).Normalize(); // direction of the line
             Vector3 tMin = (bounds.Min - line.From) / dir; // minimum t to hit the box
@@ -72,6 +72,8 @@ namespace XrMath
 
             float tNear = MathF.Max(MathF.Max(t1.X, t1.Y), t1.Z);
             float tFar = MathF.Min(MathF.Min(t2.X, t2.Y), t2.Z);
+
+            distance = tNear;
 
             // Return whether intersection exists
             return tNear <= tFar && tFar >= 0;
@@ -220,6 +222,17 @@ namespace XrMath
         #endregion
 
         #region RAY 
+
+        public static Line3 ToLine(this Ray3 ray, float len)
+        {
+            return new Line3()
+            {
+                From = ray.Origin,
+                To = ray.Origin + ray.Direction * len,
+            };
+        }
+
+
 
         public static Vector3? Intersects(this Ray3 ray, Triangle3 triangle, out float distance, float epsilon = 1e-6f)
         {

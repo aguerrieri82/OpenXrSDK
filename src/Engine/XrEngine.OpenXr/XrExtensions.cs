@@ -324,7 +324,7 @@ namespace XrEngine.OpenXr
             xrApp.Layers.AddProjection(RenderView);
 
             //TODO add optionlly xrroot
-            //app.ActiveScene!.AddChild(new XrRoot(xrApp));
+            app.ActiveScene!.AddChild(new XrRoot(xrApp));
 
             return renderer;
         }

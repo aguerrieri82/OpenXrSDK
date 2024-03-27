@@ -1,10 +1,11 @@
-﻿using XrEngine;
+﻿using XrEditor.Services;
+using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    internal class GroupNode : BaseNode<Group3D>
+    public class Group3DNode : EngineObjectNode<Group3D>
     {
-        public GroupNode(Group3D value)
+        public Group3DNode(Group3D value)
             : base(value)
         {
 
@@ -18,5 +19,12 @@ namespace XrEditor.Nodes
                 return _value.Children.Select(a => factory.CreateNode(a));
             }
         }
+
+
+        public override IconView? Icon => new()
+        {
+            Color = "#1565C0",
+            Name = "icon_category"
+        };
     }
 }

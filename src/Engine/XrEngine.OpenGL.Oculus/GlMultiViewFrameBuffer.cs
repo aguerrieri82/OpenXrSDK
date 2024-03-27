@@ -57,9 +57,6 @@ namespace XrEngine.OpenGL.Oculus
             _gl.CheckError();
 
             BindFunctions(gl);
-            //UpdateTextureInfo();
-            //CreateDepth();
-
         }
 
         static void BindFunctions(GL gl)
@@ -73,7 +70,6 @@ namespace XrEngine.OpenGL.Oculus
             FramebufferTextureMultisampleMultiviewOVR = Marshal.GetDelegateForFunctionPointer<FramebufferTextureMultisampleMultiviewOVRDelegate>(addr);
         }
 
-
         protected void UpdateTextureInfo()
         {
             _gl.BindTexture(_target, _colorTex);
@@ -84,9 +80,10 @@ namespace XrEngine.OpenGL.Oculus
             _gl.BindTexture(_target, 0);
         }
 
-
         protected void CreateDepth()
         {
+            _gl.CheckError();
+
             _depthTex = _gl.GenTexture();
 
             _gl.BindTexture(_target, _depthTex);
@@ -103,7 +100,6 @@ namespace XrEngine.OpenGL.Oculus
 
             _gl.BindTexture(_target, 0);
         }
-
 
         public void Configure(uint colorTex, uint depthTex, uint sampleCount)
         {
@@ -183,8 +179,8 @@ namespace XrEngine.OpenGL.Oculus
 
         public override void Unbind()
         {
-            //var attach = new InvalidateFramebufferAttachment[] { InvalidateFramebufferAttachment.DepthAttachment };
-            //_gl.InvalidateFramebuffer(FramebufferTarget.DrawFramebuffer, attach.AsSpan());
+            var attach = new InvalidateFramebufferAttachment[] { InvalidateFramebufferAttachment.DepthAttachment };
+            _gl.InvalidateFramebuffer(FramebufferTarget.DrawFramebuffer, attach.AsSpan());
             base.Unbind();
         }
 

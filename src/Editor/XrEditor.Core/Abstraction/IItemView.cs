@@ -4,6 +4,6 @@
     {
         string DisplayName { get; }
 
-        object Icon { get; }
+        IconView? Icon { get; }
     }
 }

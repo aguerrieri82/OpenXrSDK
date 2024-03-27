@@ -1,0 +1,33 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:i="clr-namespace:WPF_Icons;assembly=WPF-Icons"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+
+    <DataTemplate DataType="{x:Type local:OutlinePanel}">
+
+        <TreeView BorderThickness="0" Background="Transparent" ItemsSource="{Binding RootChildren}">
+            <TreeView.Resources>
+                <DataTemplate DataType="{x:Type local:IconView}">
+                    <i:Icon Kind="{Binding Name}" Size="18" Color="{Binding Color}"/>
+                </DataTemplate>
+            </TreeView.Resources>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                </Style>
+            </TreeView.ItemContainerStyle>
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <StackPanel Orientation="Horizontal">
+                        <ContentPresenter HorizontalAlignment="Left" Width="22" Content="{Binding Icon}"/>
+                        <TextBlock Foreground="{DynamicResource SurfaceTextColor}" VerticalAlignment="Center" Text="{Binding DisplayName}"/>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+   
+    </DataTemplate>
+   
+</ResourceDictionary>

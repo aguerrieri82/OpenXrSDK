@@ -1,4 +1,7 @@
-﻿using System.Numerics;
+﻿using System.Collections.ObjectModel;
+using System.Linq;
+using System.Numerics;
+using XrEditor.Services;
 using XrEngine;
 
 namespace XrEditor
@@ -11,7 +14,13 @@ namespace XrEditor
         public PropertiesEditor()
         {
             Instance = this;
+            Context.Require<SelectionManager>().Changed += OnSelectionChanged;
 
+        }
+
+        private void OnSelectionChanged(IReadOnlyCollection<INode> items)
+        {
+            ActiveObject = items.Select(a=> a.Value).OfType<EngineObject>().FirstOrDefault();
         }
 
         public EngineObject? ActiveObject

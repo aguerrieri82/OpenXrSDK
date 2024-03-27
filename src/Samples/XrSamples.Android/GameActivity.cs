@@ -31,7 +31,7 @@ namespace XrSamples.Android
 
         protected override void OnAppStarted(XrApp app)
         {
-            app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
+           // app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
 
             _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayer>().FirstOrDefault();
 
@@ -47,8 +47,10 @@ namespace XrSamples.Android
         protected override void Build(XrEngineAppBuilder builder)
         {
             builder.UseOpenGL()
+                    //.UseFilamentVulkan()
                    //.UseStereo()
                    .UseMultiView()
+                   .SetRenderQuality(1, 4)
                    .CreatePingPong()
                    .RemovePlaneGrid()
                    .AddWebBrowser(this, "display");

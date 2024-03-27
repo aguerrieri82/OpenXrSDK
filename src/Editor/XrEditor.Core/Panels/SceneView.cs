@@ -75,26 +75,18 @@ namespace XrEditor
             _renderSurface.Ready += OnSurfaceReady;
         }
 
-        protected async void CreateApp()
+        protected void CreateApp()
         {
             _engine = new XrEngineAppBuilder()
               .SetRenderQuality(1, 4) ///samples > 1 cause Filament to fuck up
-              .CreatePingPong()
+              .CreateChess()
               .Build();
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
 
             Scene = _engine.App.ActiveScene;
 
-
-            /*
-            Scene.Component<BallGenerator>().NewBallCreated += async obj =>
-            {
-                (await _panelManager.PanelAsync<PropertiesEditor>()).ActiveObject = obj.Materials[0];
-            };
-            */
-            
-            (await _panelManager.PanelAsync<PropertiesEditor>()).ActiveObject = Scene;
+            _panelManager.Panel<PropertiesEditor>()!.ActiveObject = Scene;
         }
 
         protected void OnSizeChanged(object? sender, EventArgs e)
@@ -104,7 +96,7 @@ namespace XrEditor
 
         protected void OnSurfaceReady(object? sender, EventArgs e)
         {
-            AddTool(new PickTool());
+            AddTool(new SelectionTool());
             AddTool(new OrbitTool());
             UpdateSize();
             Start();
@@ -209,6 +201,8 @@ namespace XrEditor
         {
             foreach (var tool in _tools)
                 tool.NotifySceneChanged();
+
+            SceneChanged?.Invoke(_scene);
         }
 
         protected void UpdateSize()
@@ -318,6 +312,8 @@ namespace XrEditor
         {
             throw new NotImplementedException();
         }
+
+        public event Action<Scene3D?>? SceneChanged;
 
         public IReadOnlyList<IEditorTool> Tools => _tools;
 

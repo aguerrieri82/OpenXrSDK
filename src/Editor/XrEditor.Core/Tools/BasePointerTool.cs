@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using Silk.NET.Vulkan;
+using System.Numerics;
+using XrEditor.Services;
 using XrEngine;
 using XrEngine.Interaction;
 using XrMath;
@@ -12,10 +14,12 @@ namespace XrEditor
     {
         protected SceneView? _sceneView;
         protected bool _isActive;
+        protected readonly IMainDispatcher _main;
 
         public BasePointerTool()
         {
             _isActive = true;
+            _main = Context.Require<IMainDispatcher>();
         }
 
         public virtual void Attach(SceneView view)
