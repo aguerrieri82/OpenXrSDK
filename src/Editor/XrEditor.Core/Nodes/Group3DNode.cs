@@ -3,7 +3,7 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class Group3DNode : EngineObjectNode<Group3D>
+    public class Group3DNode : Object3DNode<Group3D>
     {
         public Group3DNode(Group3D value)
             : base(value)

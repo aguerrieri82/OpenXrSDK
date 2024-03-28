@@ -5,6 +5,8 @@ using XrEngine;
 using XrEngine.Interaction;
 using XrEngine.OpenXr;
 using XrMath;
+using XrEditor.Services;
+using XrEditor.Helpers;
 
 namespace XrEditor
 {
@@ -86,7 +88,7 @@ namespace XrEditor
 
             Scene = _engine.App.ActiveScene;
 
-            _panelManager.Panel<PropertiesEditor>()!.ActiveObject = Scene;
+            Context.Require<SelectionManager>().Set(Scene.GetNode());
         }
 
         protected void OnSizeChanged(object? sender, EventArgs e)

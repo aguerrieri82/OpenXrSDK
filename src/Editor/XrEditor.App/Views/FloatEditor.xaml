@@ -4,7 +4,13 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <DataTemplate DataType="{x:Type local:FloatEditor}">
-        <comp:FloatEditor Max="{Binding Max}" Min="{Binding Min}"  Value="{Binding Value, Mode=TwoWay}"/>
+        <comp:FloatEditor 
+            Max="{Binding Scale.ScaleMax}" 
+            Min="{Binding Scale.ScaleMin}" 
+            Step="{Binding Scale.ScaleStep}" 
+            SmallStep="{Binding Scale.ScaleSmallStep}" 
+            Format="{Binding ScaleFormat}"  
+            Value="{Binding ScaleValue, Mode=TwoWay}"/>
     </DataTemplate>
 
 </ResourceDictionary>

@@ -7,7 +7,7 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class TriangleMeshNode : EngineObjectNode<TriangleMesh> 
+    public class TriangleMeshNode : Object3DNode<TriangleMesh> 
     {
         public TriangleMeshNode(TriangleMesh value) : base(value)
         {

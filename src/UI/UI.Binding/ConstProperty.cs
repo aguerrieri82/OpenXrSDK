@@ -1,4 +1,4 @@
-﻿namespace CanvasUI
+﻿namespace UI.Binding
 {
     public struct ConstProperty<T> : IProperty<T>
     {
