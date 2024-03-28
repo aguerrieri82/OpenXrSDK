@@ -4,19 +4,42 @@
     {
         protected INode? _parent;
         protected T _value;
+        protected string[]? _types;
 
         public BaseNode(T value)
         {
             _value = value;
         }
 
+        protected virtual string[] ComputeType(object value)
+        {
+            var result = new List<string>();
+
+            var curType = value.GetType()!;
+
+            while (curType != typeof(object))
+            {
+                result.Insert(0, curType!.Name);
+                curType = curType.BaseType;
+            }
+
+            return [.. result];
+        }
+
         public virtual bool IsLeaf => false;
 
         public virtual IEnumerable<INode> Children => [];
 
-        public IEnumerable<INode> Components => throw new NotImplementedException();
+        public virtual IEnumerable<INode> Components => [];
 
-        public ICollection<string> Types => throw new NotImplementedException();
+        public ICollection<string> Types
+        {
+            get
+            {
+                _types ??= ComputeType(_value);   
+                return _types;
+            }
+        }
 
         public T Value => _value;
 

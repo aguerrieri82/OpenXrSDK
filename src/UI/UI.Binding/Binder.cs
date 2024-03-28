@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CanvasUI
+namespace UI.Binding
 {
     public delegate void PropertyChangedHandler<T>(T? obj, IProperty property, object? value, object? oldValue);
 

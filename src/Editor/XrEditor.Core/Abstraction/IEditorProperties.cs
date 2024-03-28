@@ -8,6 +8,6 @@ namespace XrEditor
 {
     public interface IEditorProperties
     {
-        IList<PropertyView> EditorProperties();
+        void EditorProperties(IList<PropertyView> curProps);
     }
 }

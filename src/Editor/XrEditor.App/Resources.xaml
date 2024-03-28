@@ -8,5 +8,6 @@
         <ResourceDictionary Source="/Views/PropertyView.xaml"/>
         <ResourceDictionary Source="/Views/MainView.xaml"/>
         <ResourceDictionary Source="/Views/OutlinePanel.xaml"/>
+        <ResourceDictionary Source="/Views/PropertiesGroupView.xaml"/>
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

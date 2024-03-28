@@ -1,42 +1,91 @@
 ﻿#pragma warning disable CS8618 
 
+using Newtonsoft.Json.Linq;
+using UI.Binding;
+
 namespace XrEditor
 {
-    public abstract class BaseEditor<TValue> : BaseView, IPropertyEditor
+    public abstract class BaseEditor<TValue, TEdit> : BaseView, IPropertyEditor
     {
-        private TValue _value;
-
-        protected virtual void OnValueChanged(TValue newValue)
-        {
-            ValueChanged?.Invoke(this, newValue);
-        }
+        protected TEdit _editValue;
+        protected IProperty<TValue>? _binding;
 
         public virtual void NotifyValueChanged()
         {
-            OnPropertyChanged(nameof(Value));
+            OnPropertyChanged(nameof(EditValue));
         }
 
-        public TValue Value
+        public TEdit EditValue
         {
-            get => _value;
+            get => _editValue;
             set
             {
-                if (Equals(Value, value))
+                if (Equals(EditValue, value))
                     return;
-                _value = value;
-                OnPropertyChanged(nameof(Value));
-                OnValueChanged(Value);
+                _editValue = value;
+                OnPropertyChanged(nameof(EditValue));
+                OnEditValueChanged(EditValue);
             }
+        }
+
+        public IProperty<TValue>? Binding
+        {
+            get => _binding;
+            set
+            {
+                if (_binding == value) 
+                    return;
+                
+                if (_binding != null)
+                    _binding.Changed -= OnBindValueChanged;
+
+                _binding = value;
+
+                if (_binding != null)
+                {
+                    _binding.Changed += OnBindValueChanged;
+                    OnBindValueChanged(_binding.Value);
+                }
+
+            }
+        }
+
+        protected virtual TEdit BindToEditValue(TValue value)
+        {
+            return (TEdit)Convert.ChangeType(value, typeof(TEdit))!;
+        }
+
+
+        protected virtual TValue EditValueToBind(TEdit value)
+        {
+            return (TValue)Convert.ChangeType(value, typeof(TValue))!;
+        }
+
+        protected virtual void OnEditValueChanged(TEdit newValue)
+        {
+            if (_binding != null)
+                _binding.Value = EditValueToBind(newValue);
+
+            EditValueChanged?.Invoke(this, newValue);
+        }
+
+        protected virtual void OnBindValueChanged(TValue newValue)
+        {
+            EditValue = BindToEditValue(newValue);
+        }
+
+        private void OnBindValueChanged(object? sender, EventArgs e)
+        {
+            OnBindValueChanged(_binding!.Value);
         }
 
         object IPropertyEditor.Value
         {
-            get => Value!;
-            set => Value = (TValue)value;
+            get => EditValue!;
+            set => EditValue = (TEdit)value;
         }
 
 
-        public EventHandler<TValue>? ValueChanged;
-
+        public EventHandler<TEdit>? EditValueChanged;
     }
 }

@@ -21,14 +21,15 @@
 
         <Button VerticalAlignment="Center" Style="{StaticResource Arrow}"  Click="OnLeftClick" DockPanel.Dock="Left">❮</Button>
         <Button VerticalAlignment="Center" Style="{StaticResource Arrow}"  Click="OnRightClick" DockPanel.Dock="Right">❯</Button>
-        <Grid VerticalAlignment="Center" MinWidth="50">
+        <Grid VerticalAlignment="Center" >
             <TextBlock 
                 x:Name="text"
                 MouseDown="OnTextMouseDown" 
                 MouseUp="OnTextMouseUp" 
+                MouseMove="OnTextMouseMove" 
                 Padding="0,1,0,0"
                 TextAlignment="Center" 
-                Text="{Binding Value, ElementName=uc}">
+                Text="{Binding TextValue, ElementName=uc}">
                 <TextBlock.Style>
                     <Style TargetType="TextBlock">
                         <Style.Triggers>

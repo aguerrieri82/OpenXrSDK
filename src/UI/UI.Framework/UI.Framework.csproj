@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CanvasUI.Core\CanvasUI.Core.csproj" />
+    <ProjectReference Include="..\UI.Canvas\UI.Canvas.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,11 +1,25 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:i="clr-namespace:WPF_Icons;assembly=WPF-Icons"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <DataTemplate DataType="{x:Type local:PropertiesEditor}">
         <ScrollViewer Padding="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
-            <ItemsControl ItemsSource="{Binding Properties}">
-            </ItemsControl>
+            <ScrollViewer.Resources>
+                <DataTemplate DataType="{x:Type local:IconView}">
+                    <i:Icon Kind="{Binding Name}" Size="32" Color="{Binding Color}"/>
+                </DataTemplate>
+            </ScrollViewer.Resources>
+            
+            <StackPanel Orientation="Vertical">
+                <DockPanel>
+                    <ContentPresenter DockPanel.Dock="Left" Content="{Binding NodeIcon}"/>
+                    <TextBox VerticalAlignment="Bottom"  DockPanel.Dock="Top" Text="{Binding NodeName, Mode=TwoWay}"/>
+                </DockPanel>
+                <ItemsControl ItemsSource="{Binding Groups}">
+                </ItemsControl>
+            </StackPanel>
+
         </ScrollViewer>
     </DataTemplate>
    

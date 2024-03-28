@@ -3,9 +3,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <DataTemplate DataType="{x:Type local:PropertyView}">
-        <StackPanel Orientation="Vertical">
-            <TextBlock Text="{Binding Label}"/>
-            <ContentPresenter Content="{Binding Editor}"/>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock VerticalAlignment="Center" Width="130" Text="{Binding Label}"/>
+            <ContentPresenter VerticalAlignment="Center" Content="{Binding Editor}"/>
         </StackPanel>
     </DataTemplate>
    

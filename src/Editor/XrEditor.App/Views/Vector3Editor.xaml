@@ -6,15 +6,15 @@
         <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
             <DockPanel>
                 <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">X</Label>
-                <ContentControl VerticalAlignment="Center" Content="{Binding X}"/>
+                <ContentControl Width="70" VerticalAlignment="Center" Content="{Binding X}"/>
             </DockPanel>
             <DockPanel>
                 <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">Y</Label>
-                <ContentControl VerticalAlignment="Center" Content="{Binding Y}"/>
+                <ContentControl  Width="70" VerticalAlignment="Center" Content="{Binding Y}"/>
             </DockPanel>
             <DockPanel>
                 <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">Z</Label>
-                <ContentControl VerticalAlignment="Center"  Content="{Binding Z}"/>
+                <ContentControl  Width="70" VerticalAlignment="Center"  Content="{Binding Z}"/>
             </DockPanel>
         </StackPanel>
     </DataTemplate>

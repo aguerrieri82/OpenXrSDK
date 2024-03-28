@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CanvasUI
+namespace UI.Binding
 {
     public class ConvertProperty<TSrc, TDst> : IProperty<TDst>
     {

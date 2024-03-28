@@ -1,4 +1,5 @@
 ﻿using XrEngine;
+using XrEngine.Physics;
 
 namespace XrEditor.Nodes
 {
@@ -6,15 +7,16 @@ namespace XrEditor.Nodes
     {
         public bool CanHandle(object value)
         {
-            return value is EngineObject;
+            return value is EngineObject || value is IComponent;
         }
 
         public INode CreateNode(object value)
         {
+            Type nodeType;
+
             if (value is EngineObject obj)
             {
-                var node = obj.GetProp<INode>("Node");;
-                Type nodeType;
+                var node = obj.GetProp<INode>("Node");
 
                 if (node == null)
                 {
@@ -43,7 +45,15 @@ namespace XrEditor.Nodes
                     return node;
                 }
             }
+            if (value is IComponent comp)
+            {
+                if (value is RigidBody)
+                    nodeType = typeof(RigidBodyNode);   
+                else
+                    nodeType = typeof(ComponentNode<>).MakeGenericType(comp.GetType());
 
+                return (INode)Activator.CreateInstance(nodeType, comp)!;
+            }
 
             throw new NotSupportedException();
         }

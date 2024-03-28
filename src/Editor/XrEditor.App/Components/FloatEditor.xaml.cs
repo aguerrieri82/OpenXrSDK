@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,10 +19,10 @@ namespace XrEditor.Components
     /// <summary>
     /// Interaction logic for FloatEditor.xaml
     /// </summary>
-    public partial class FloatEditor : UserControl
+    public partial class FloatEditor : UserControl, INotifyPropertyChanged
     {
         public static readonly DependencyProperty ValueProperty =
-            DependencyProperty.Register("Value", typeof(float), typeof(FloatEditor), new PropertyMetadata(0f));
+            DependencyProperty.Register("Value", typeof(float), typeof(FloatEditor), new PropertyMetadata(0f, OnValueChanged));
 
         public static readonly DependencyProperty MinProperty =
             DependencyProperty.Register("Min", typeof(float), typeof(FloatEditor), new PropertyMetadata(0f));
@@ -30,17 +31,56 @@ namespace XrEditor.Components
             DependencyProperty.Register("Max", typeof(float), typeof(FloatEditor), new PropertyMetadata(1f));
 
         public static readonly DependencyProperty StepProperty =
-            DependencyProperty.Register("Step", typeof(float), typeof(FloatEditor), new PropertyMetadata(0f));
+            DependencyProperty.Register("Step", typeof(float), typeof(FloatEditor), new PropertyMetadata(1f));
 
+        public static readonly DependencyProperty SmallStepProperty =
+            DependencyProperty.Register("SmallStep", typeof(float), typeof(FloatEditor), new PropertyMetadata(0.01f));
+       
+        public static readonly DependencyProperty FormatProperty =
+            DependencyProperty.Register("Format", typeof(Func<float, string>), typeof(FloatEditor), new PropertyMetadata(null, OnFormatChanged));
+        
+        public static readonly DependencyProperty ParseProperty =
+            DependencyProperty.Register("Parse", typeof(Func<string?, float>), typeof(FloatEditor), new PropertyMetadata(null));
+
+        public static readonly DependencyProperty TextValueProperty =
+          DependencyProperty.Register("TextValue", typeof(string), typeof(FloatEditor), new PropertyMetadata(""));
+
+
+        static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            ((FloatEditor)d).OnValueChanged();
+        }
+
+        static void OnFormatChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            ((FloatEditor)d).OnFormatChanged();
+        }
 
         bool _editMode;
         private Point _downPos;
+        private float _downValue;
+        private bool _isMoving;
 
         public FloatEditor()
         {
             InitializeComponent();
-            UpdateControls();   
+            UpdateControls();
+            UpdateValue();
+        }
 
+        protected virtual void OnFormatChanged()
+        {
+            UpdateValue();
+        }
+
+        protected virtual void OnValueChanged()
+        {
+            UpdateValue();
+        }
+
+        protected void UpdateValue()
+        {
+            TextValue = Format != null ? Format(Value) : Value.ToString();
         }
 
         protected void UpdateControls()
@@ -62,7 +102,19 @@ namespace XrEditor.Components
         private void OnTextMouseDown(object sender, MouseButtonEventArgs e)
         {
             _downPos = e.GetPosition(this);
+            _downValue = Value;
+            _isMoving = true;
+            text.CaptureMouse();
         }
+
+        private void OnTextMouseMove(object sender, MouseEventArgs e)
+        {
+            if (!_isMoving)
+                return;
+            var pos = e.GetPosition(this);
+            Value = _downValue + (int)(pos.X - _downPos.X) * SmallStep;
+        }
+
 
         private void OnTextMouseUp(object sender, MouseButtonEventArgs e)
         {
@@ -74,7 +126,21 @@ namespace XrEditor.Components
                 textBox.Focus();
                 textBox.SelectAll();
             }
+            text.ReleaseMouseCapture();
+            _isMoving = false;
         }
+        private void OnTextLostFocus(object sender, RoutedEventArgs e)
+        {
+            _editMode = false;
+            UpdateControls();
+        }
+
+        protected void OnPropertyChanged(string name)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+
 
         public float Value
         {
@@ -100,11 +166,32 @@ namespace XrEditor.Components
             set { SetValue(StepProperty, value); }
         }
 
-
-        private void OnTextLostFocus(object sender, RoutedEventArgs e)
+        public float SmallStep
         {
-            _editMode = false;
-            UpdateControls();
+            get { return (float)GetValue(SmallStepProperty); }
+            set { SetValue(SmallStepProperty, value); }
         }
+
+        public Func<float,string>? Format
+        {
+            get { return (Func<float, string>)GetValue(FormatProperty); }
+            set { SetValue(FormatProperty, value); }
+        }
+
+        public Func<string?, float>? Parse
+        {
+            get { return (Func<string?, float>)GetValue(ParseProperty); }
+            set { SetValue(ParseProperty, value); }
+        }
+
+        public string TextValue
+        {
+            get { return (string)GetValue(TextValueProperty); }
+            protected set { SetValue(TextValueProperty, value); }
+        }
+
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
     }
 }

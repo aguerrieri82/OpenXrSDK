@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
+using System.Text.RegularExpressions;
+using UI.Binding;
 using XrEditor.Services;
 using XrEngine;
 
@@ -8,8 +10,8 @@ namespace XrEditor
 {
     public class PropertiesEditor : BasePanel
     {
-        private EngineObject? _activeObject;
-        private IList<PropertyView>? _properties;
+        private INode? _activeNode;
+        private IList<PropertiesGroupView>? _groups;
 
         public PropertiesEditor()
         {
@@ -20,109 +22,94 @@ namespace XrEditor
 
         private void OnSelectionChanged(IReadOnlyCollection<INode> items)
         {
-            ActiveObject = items.Select(a=> a.Value).OfType<EngineObject>().FirstOrDefault();
+            var obj = items.Select(a => a.Value).OfType<EngineObject>().FirstOrDefault();
+
+            ActiveNode = obj != null ? Context.Require<NodeFactory>().CreateNode(obj) : null;
         }
 
-        public EngineObject? ActiveObject
+        public INode? ActiveNode
         {
-            get => _activeObject;
+            get => _activeNode;
             set
             {
-                if (_activeObject == value)
+                if (_activeNode == value)
                     return;
-                _activeObject = value;
-                OnPropertyChanged(nameof(ActiveObject));
+                _activeNode = value;
+                OnPropertyChanged(nameof(ActiveNode));
+                OnPropertyChanged(nameof(NodeName));
+                OnPropertyChanged(nameof(NodeIcon));
                 UpdateProperties();
             }
         }
 
-        protected void UpdateProperties()
+        public string NodeName
         {
-            var result = new List<PropertyView>();
-
-            if (ActiveObject is Object3D obj3d)
+            get
             {
-                void SetPivot(Vector3 value)
-                {
-                    obj3d.Transform.SetLocalPivot(value, false);
-                    _properties?.First(a => a.Label == "Position")?.Editor?.NotifyValueChanged();
-                }
-
-                result.Add(new PropertyView
-                {
-                    Label = "Pivot",
-                    Editor = new Vector3Editor(() => obj3d.Transform.LocalPivot, SetPivot, -2f, 2f)
-                });
-                result.Add(new PropertyView
-                {
-                    Label = "Scale",
-                    Editor = new Vector3Editor(() => obj3d.Transform.Scale, value => obj3d.Transform.Scale = value, 0.01f, 5f)
-                });
-                result.Add(new PropertyView
-                {
-                    Label = "Position",
-                    Editor = new Vector3Editor(() => obj3d.Transform.Position, value => obj3d.Transform.Position = value, -5f, 5f)
-                });
-                result.Add(new PropertyView
-                {
-                    Label = "Rotation",
-                    Editor = new Vector3Editor(() => obj3d.Transform.Rotation, value => obj3d.Transform.Rotation = value, -MathF.PI, MathF.PI)
-                });
+                if (_activeNode is IItemView view)
+                    return view.DisplayName;
+                return string.Empty;
             }
-
-
-            if (ActiveObject is PbrMaterial pbrMat)
-            {
-
-                result.Add(new PropertyView
-                {
-                    Label = "Roughness",
-                    Editor = new FloatEditor(() => pbrMat.MetallicRoughness!.RoughnessFactor, value => 
-                    { 
-                        pbrMat.MetallicRoughness!.RoughnessFactor = value; 
-                        pbrMat.NotifyChanged(ObjectChangeType.Render); 
-                    }, 0, 1f)
-                });
-                result.Add(new PropertyView
-                {
-                    Label = "Metallic",
-                    Editor = new FloatEditor(() => pbrMat.MetallicRoughness!.MetallicFactor, value =>
-                    {
-                        pbrMat.MetallicRoughness!.MetallicFactor = value;
-                        pbrMat.MetallicRoughness!.BaseColorFactor = new XrMath.Color(value, 1, 0, 1);
-                        pbrMat.NotifyChanged(ObjectChangeType.Render);
-                    }, 0, 1f)
-                });
-
-
-          
-            }
-
-            var light = EngineApp.Current?.ActiveScene?.Descendants<ImageLight>().FirstOrDefault();
-
-            if (light != null)
-            {
-                result.Add(new PropertyView
-                {
-                    Label = "Light Intensity",
-                    Editor = new FloatEditor(() => light.Intensity, value =>
-                    {
-                        light.Intensity = value;
-                        light.NotifyChanged(ObjectChangeType.Render);
-                    }, 0f, 50000f)
-                });
-            }
-
-            Properties = result;
-        }
-
-        public IList<PropertyView>? Properties
-        {
-            get => _properties;
             set
             {
-                _properties = value;
-                OnPropertyChanged(nameof(Properties));
+
+            }
+        }
+        public IconView? NodeIcon
+        {
+            get
+            {
+                if (_activeNode is IItemView view)
+                    return view.Icon;
+                return null;
+            }
+        }
+
+
+        protected PropertiesGroupView? CreateProps(INode node)
+        {
+            if (node is not IEditorProperties editorProps)
+                return null;
+
+            var result = new PropertiesGroupView();
+
+            var view = node as IItemView;
+            if (view != null)
+            {
+                result.Header = view.DisplayName;
+            }
+
+            result.Properties = new List<PropertyView>();
+
+            editorProps.EditorProperties(result.Properties);
+
+            return result;
+        }
+
+        protected void UpdateProperties()
+        {
+            var result = new List<PropertiesGroupView>();
+
+            if (_activeNode != null)
+            {
+                foreach (var compo in _activeNode.Components)
+                {
+                    var group = CreateProps(compo);
+                    if (group != null)
+                        result.Add(group);
+                }
+            }
+
+            Groups = result;
+        }
+
+        public IList<PropertiesGroupView>? Groups
+        {
+            get => _groups;
+            set
+            {
+                _groups = value;
+                OnPropertyChanged(nameof(Groups));
             }
         }
 

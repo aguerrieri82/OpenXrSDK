@@ -1,66 +1,56 @@
-﻿using System.Numerics;
+﻿using Newtonsoft.Json.Linq;
+using System.Numerics;
+using UI.Binding;
 using XrEngine.OpenGL;
 
 namespace XrEditor
 {
-    public class FloatEditor : BaseEditor<float>
+    public class FloatEditor : BaseEditor<float, float>
     {
-        private float _min;
-        private float _max;
+        private IValueScale _scale;
 
         public FloatEditor()
         {
-            _max = 2f;
-            _min = -2f;
+            _scale = new ValueScale();
         }
 
-
-        public FloatEditor(Func<float> getter, Action<float> setter, float min, float max)
+        public float ScaleValue
         {
-            _max = max;
-            _min = min;
-            Value = getter();
-
-            ValueChanged += (s, v) =>
+            get => _scale.ValueToScale(_editValue);
+            set
             {
-                setter(v);
+                if (Equals(ScaleValue, value))
+                    return;
+                EditValue = _scale.ScaleToValue(value);
+                OnPropertyChanged(nameof(ScaleValue));
+            }
+        }
+
+        public FloatEditor(IProperty<float> binding, float min, float max)
+        {
+            Binding = binding;
+
+            _scale = new ValueScale
+            {
+                ScaleMin = min,
+                ScaleMax = max
             };
         }
 
 
-        protected override void OnValueChanged(float newValue)
+        public IValueScale Scale
         {
-            if (newValue > _max)
-                Max = newValue;
-
-            if (newValue < _min)
-                Min = newValue;
-
-            base.OnValueChanged(newValue);
-        }
-
-        public float Min
-        {
-            get => _min;
+            get => _scale;
             set
             {
-                if (_min == value)
+                if (_scale == value)
                     return;
-                _min = value;
-                OnPropertyChanged(nameof(Min));
+                _scale = value;
+                OnPropertyChanged(nameof(Scale));
             }
         }
 
-        public float Max
-        {
-            get => _max;
-            set
-            {
-                if (_max == value)
-                    return;
-                _max = value;
-                OnPropertyChanged(nameof(Max));
-            }
-        }
+
+        public Func<float, string?> ScaleFormat => _scale.Format;
     }
 }

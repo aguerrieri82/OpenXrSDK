@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\UI\CanvasUI.Framework\CanvasUI.Framework.csproj" />
+    <ProjectReference Include="..\..\UI\UI.Framework\UI.Framework.csproj" />
     <ProjectReference Include="..\XrEngine.Interaction\XrEngine.Interaction.csproj" />
   </ItemGroup>
 

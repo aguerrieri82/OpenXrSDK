@@ -1,69 +1,82 @@
-﻿using System.Numerics;
+﻿using CanvasUI;
+using System.Numerics;
+using UI.Binding;
 
 namespace XrEditor
 {
-    public class Vector3Editor : BaseEditor<Vector3>
+    public class Vector3Editor : BaseEditor<Vector3, Vector3>
     {
-        readonly Func<Vector3> _getter;
-        readonly Action<Vector3> _setter;
         private int _suspendUpdate;
+        private IValueScale _scale;
 
-        public Vector3Editor(Func<Vector3> getter, Action<Vector3> setter, float min, float max)
+        public Vector3Editor(IProperty<Vector3> binding, float min, float max)
+            : this(binding, new ValueScale() { ScaleMin = min, ScaleMax = max })
         {
-            X = new FloatEditor() { Max = max, Min = min };
-            Y = new FloatEditor() { Max = max, Min = min };
-            Z = new FloatEditor() { Max = max, Min = min };
 
-            _getter = getter;
+        }
 
-            _setter = setter;
+        public Vector3Editor(IProperty<Vector3> binding, IValueScale scale)
+        {
+            _scale = scale;
 
+            X = new FloatEditor() { Scale = _scale }; 
+            Y = new FloatEditor() { Scale = _scale };
+            Z = new FloatEditor() { Scale = _scale };
 
-            Value = getter();
+            Binding = binding;
 
-            X.ValueChanged += (s, v) =>
+            X.EditValueChanged += (s, v) =>
             {
                 if (_suspendUpdate > 0)
                     return;
-                var curValue = _getter();
-                Value = new Vector3(v, curValue.Y, curValue.Z);
+                var curValue = Binding.Value;
+                EditValue = new Vector3(v, curValue.Y, curValue.Z);
             };
 
-            Y.ValueChanged += (s, v) =>
+            Y.EditValueChanged += (s, v) =>
             {
                 if (_suspendUpdate > 0)
                     return;
-                var curValue = _getter();
-                Value = new Vector3(curValue.X, v, curValue.Z);
+                var curValue = Binding.Value;
+                EditValue = new Vector3(curValue.X, v, curValue.Z);
             };
 
-            Z.ValueChanged += (s, v) =>
+            Z.EditValueChanged += (s, v) =>
             {
                 if (_suspendUpdate > 0)
                     return;
-                var curValue = _getter();
-                Value = new Vector3(curValue.X, curValue.Y, v);
+                var curValue = Binding.Value;
+                EditValue = new Vector3(curValue.X, curValue.Y, v);
             };
         }
 
-        public override void NotifyValueChanged()
-        {
-            Value = _getter();
-        }
 
-        protected override void OnValueChanged(Vector3 newValue)
+        protected override void OnEditValueChanged(Vector3 newValue)
         {
-            _setter(newValue);
             _suspendUpdate++;
             try
             {
-                X.Value = newValue.X;
-                Y.Value = newValue.Y;
-                Z.Value = newValue.Z;
+                X.EditValue = newValue.X;
+                Y.EditValue = newValue.Y;
+                Z.EditValue = newValue.Z;
             }
             finally
             {
                 _suspendUpdate--;
+            }
+
+            base.OnEditValueChanged(newValue);
+        }
+
+        public IValueScale Scale
+        {
+            get => _scale;
+            set
+            {
+                _scale = value;
+                X.Scale = value;
+                Y.Scale = value;
+                Z.Scale = value;
             }
         }
 
