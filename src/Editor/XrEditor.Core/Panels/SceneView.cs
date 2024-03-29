@@ -10,14 +10,6 @@ using XrEditor.Helpers;
 
 namespace XrEditor
 {
-    public class SceneViewState : IObjectState
-    {
-        public ObjectId Camera;
-
-        public ObjectId Scene;
-
-        public Dictionary<string, object>? Tools;
-    }
 
     public enum SceneXrState
     {
@@ -53,7 +45,7 @@ namespace XrEditor
         public int Id => _pointer.Id;   
     }
 
-    public class SceneView : BasePanel, IStateManager<SceneViewState>
+    public class SceneView : BasePanel
     {
         protected readonly IRenderSurface _renderSurface;
 
@@ -305,15 +297,7 @@ namespace XrEditor
             return tool;
         }
 
-        public SceneViewState GetState(StateContext ctx)
-        {
-            throw new NotImplementedException();
-        }
 
-        public void SetState(SceneViewState state, StateContext ctx)
-        {
-            throw new NotImplementedException();
-        }
 
         public event Action<Scene3D?>? SceneChanged;
 

@@ -5,15 +5,6 @@ using XrMath;
 
 namespace XrEditor
 {
-    public class OrbitToolState : BaseToolState
-    {
-        public float RotationSpeed;
-
-        public float ZoomSpeed;
-
-        public Vector3 Target;
-
-    }
 
     public class OrbitTool : BasePointerTool
     {

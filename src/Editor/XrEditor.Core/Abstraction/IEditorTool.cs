@@ -2,10 +2,6 @@
 
 namespace XrEditor
 {
-    public class BaseToolState : IObjectState
-    {
-
-    }
 
     public interface IEditorTool
     {

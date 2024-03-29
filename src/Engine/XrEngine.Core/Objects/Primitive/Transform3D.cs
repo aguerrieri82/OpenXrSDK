@@ -3,7 +3,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class Transform3D
+    public class Transform3D : IStateManager
     {
         protected bool _isDirty;
         protected Vector3 _scale;
@@ -138,6 +138,24 @@ namespace XrEngine
         {
             SetLocalPivot(Vector3.Zero, true);
             SetMatrix(Matrix4x4.Identity);
+        }
+
+        public void GetState(StateContext ctx, IStateContainer container)
+        {
+            container.Write(nameof(Scale), _scale);
+            container.Write(nameof(Position), _position);
+            container.Write(nameof(Orientation), _orientation);
+            container.Write(nameof(LocalPivot), _localPivot);
+        }
+
+        public void SetState(StateContext ctx, IStateContainer container)
+        {
+            _scale = container.Read<Vector3>(nameof(Scale));
+            _position = container.Read<Vector3>(nameof(Position));
+            _orientation = container.Read<Quaternion>(nameof(Orientation));
+            _localPivot = container.Read<Vector3>(nameof(LocalPivot));
+            _isDirty = true;
+            _host?.NotifyChanged(ObjectChangeType.Transform);
         }
 
         public ref Matrix4x4 Matrix

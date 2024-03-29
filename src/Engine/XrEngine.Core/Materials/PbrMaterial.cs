@@ -352,6 +352,7 @@ namespace XrEngine
         #endregion
 
         #region MetallicRoughnessData
+
         public class MetallicRoughnessData
         {
             public MetallicRoughnessData()

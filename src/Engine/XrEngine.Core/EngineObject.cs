@@ -5,6 +5,36 @@
         protected Dictionary<string, object?>? _props;
         protected List<IComponent>? _components;
         protected ObjectId _id;
+        protected ObjectChange? _lastChange;
+        private int _updateCount;
+
+        public virtual void SetState(StateContext ctx, IStateContainer container)
+        {
+            BeginUpdate();
+            SetStateWork(ctx, container);
+            EndUpdate();
+        }
+
+        protected virtual void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+
+        }
+
+        public void BeginUpdate()
+        {
+            _updateCount++;
+        }
+
+        public void EndUpdate()
+        {
+            _updateCount--;
+
+            if (_updateCount != 0 && _lastChange != null)
+            {
+                NotifyChanged(_lastChange.Value);
+                _lastChange = null;
+            }
+        }
 
         public virtual void Update(RenderContext ctx)
         {
@@ -53,7 +83,19 @@
             NotifyChanged(ObjectChangeType.Components);
         }
 
-        public virtual void NotifyChanged(ObjectChange change)
+        public void NotifyChanged(ObjectChange change)
+        {
+            if (_updateCount > 0)
+            {
+                _lastChange = change;
+                return;
+            }
+
+            OnChanged(change);  
+
+        }
+
+        protected virtual void OnChanged(ObjectChange change)
         {
             Changed?.Invoke(this, change);
         }

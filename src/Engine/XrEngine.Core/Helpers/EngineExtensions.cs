@@ -706,5 +706,23 @@ namespace XrEngine
         }
 
         #endregion
+
+        #region STATE
+
+
+
+        public static void WriteTypeObject(this IStateContainer container, StateContext ctx, string key, IStateManager value)
+        {
+            var objState = container.Enter(key);
+            objState.Write("$type", value.GetType().FullName);
+            value.GetState(ctx, objState);
+        }
+
+        public static void ReadTypeObject<T>(this IStateContainer container, StateContext ctx, string key)
+        {
+
+        }
+
+        #endregion
     }
 }
