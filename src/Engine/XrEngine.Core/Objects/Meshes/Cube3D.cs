@@ -52,6 +52,16 @@
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0;
         }
 
+        protected override void GetState(StateContext ctx, IStateContainer container)
+        {
+
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+
+        }
+
 
         public static readonly Cube3D Instance = new Cube3D();
     }

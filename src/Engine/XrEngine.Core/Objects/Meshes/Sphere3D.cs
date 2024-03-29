@@ -17,6 +17,17 @@ namespace XrEngine
             Build(levels);
         }
 
+        protected override void GetState(StateContext ctx, IStateContainer container)
+        {
+            container.Write(nameof(Radius), Radius);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            Radius = container.Read<float>(nameof(Radius));
+            Build(3);
+        }
+
         public void Build(uint levels)
         {
             float X = 0.525731112119133606f;

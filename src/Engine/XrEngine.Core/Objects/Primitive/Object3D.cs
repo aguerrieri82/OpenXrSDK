@@ -150,10 +150,9 @@ namespace XrEngine
             NotifyChanged(changeType);
         }
 
-        public virtual void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(StateContext ctx, IStateContainer container)
         {
-            EnsureId();
-            container.Write(nameof(Id), _id);
+            base.GetState(ctx, container);
             container.Write(nameof(Name), Name);
             container.Write(nameof(Tag), Tag);
             _transform.GetState(ctx, container.Enter("Transform"));
@@ -162,7 +161,7 @@ namespace XrEngine
 
         protected override void SetStateWork(StateContext ctx, IStateContainer container)
         {
-            _id = container.Read<ObjectId>(nameof(Id));
+            base.SetStateWork(ctx, container);  
             Name = container.Read<string?>(nameof(Name));
             Tag = container.Read<string?>(nameof(Tag));
             _transform.SetState(ctx, container.Enter("Transform"));

@@ -16,6 +16,27 @@ namespace XrEngine
             Exposure = 1;
         }
 
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.Write(nameof(BackgroundColor), BackgroundColor);
+            container.Write(nameof(Near), Near);
+            container.Write(nameof(Far), Far);
+            container.Write(nameof(Exposure), Exposure);
+            container.Write(nameof(Projection), Projection);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            BackgroundColor = container.Read<Color>(nameof(BackgroundColor));
+            Near = container.Read<float>(nameof(Near));
+            Far = container.Read<float>(nameof(Far));
+            Exposure = container.Read<float>(nameof(Exposure));
+            Projection = container.Read<Matrix4x4>(nameof(Projection));
+        }
+
+
         public Color BackgroundColor { get; set; }
 
         public float Near { get; set; }

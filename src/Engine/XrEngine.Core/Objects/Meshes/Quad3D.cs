@@ -16,6 +16,17 @@ namespace XrEngine
             Build();
         }
 
+        protected override void GetState(StateContext ctx, IStateContainer container)
+        {
+            container.Write(nameof(Size), Size);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            Size = container.Read<Size2>(nameof(Size));
+            Build();
+        }
+
         public void Build()
         {
             var halfSize = new Vector2(Size.Width, Size.Height) / 2;

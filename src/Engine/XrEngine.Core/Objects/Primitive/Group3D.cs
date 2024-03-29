@@ -15,16 +15,18 @@ namespace XrEngine
 
         public override void GetState(StateContext ctx, IStateContainer container)
         {
+            base.GetState(ctx, container);
+
             var children = container.Enter(nameof(Children));
 
             for (var i = 0; i < _children.Count; i++)
                 children.WriteTypeObject(ctx, i.ToString(), _children[i]); 
-
-            base.GetState(ctx, container);
         }
 
         protected override void SetStateWork(StateContext ctx, IStateContainer container)
         {
+            base.SetStateWork(ctx, container);
+
             var childrenState = container.Enter(nameof(Children));
             HashSet<Object3D> foundChildren = [];
             foreach (var key in childrenState.Keys)
@@ -50,7 +52,7 @@ namespace XrEngine
                 if (!foundChildren.Contains(_children[i]))
                     RemoveChild(_children[i]);
             }
-            base.SetStateWork(ctx, container);
+
         }
 
         protected internal override void InvalidateWorld()

@@ -50,6 +50,19 @@ namespace XrEngine
             }
         }
 
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.Write(nameof(Target), Target);
+
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            Target = container.Read<Vector3>(nameof(Target));
+        }
+
         public CameraEye[]? Eyes { get; set; }
     }
 }

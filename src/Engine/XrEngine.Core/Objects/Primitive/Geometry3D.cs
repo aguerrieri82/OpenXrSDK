@@ -16,6 +16,43 @@ namespace XrEngine
             Vertices = [];
         }
 
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            throw new NotImplementedException();
+            base.SetStateWork(ctx, container);
+        }
+
+        protected override void GetState(StateContext ctx, IStateContainer container)
+        {
+            container.Write(nameof(Indices), Indices);
+            
+            var vert = container.Enter(nameof(Vertices));   
+
+            foreach (var component in Enum.GetValues< VertexComponent>())
+            {
+                if ((ActiveComponents & component) != component)
+                    continue;
+
+                if (component == VertexComponent.Position)
+                    vert.Write("Position", Vertices.SelectMany(a => new float[] { a.Pos.X, a.Pos.Y, a.Pos.Z }));
+
+                else if (component == VertexComponent.Normal)
+                    vert.Write("Normal", Vertices.SelectMany(a => new float[] { a.Normal.X, a.Normal.Y, a.Normal.Z }));
+
+                else if (component == VertexComponent.Tangent)
+                    vert.Write("Tangent", Vertices.SelectMany(a => new float[] { a.Tangent.X, a.Tangent.Y, a.Tangent.Z, a.Tangent.W}));
+
+                else if (component == VertexComponent.UV0)
+                    vert.Write("UV0", Vertices.SelectMany(a => new float[] { a.UV.X, a.UV.Y }));
+
+                else
+                    throw new NotImplementedException();
+            }
+
+            base.GetState(ctx, container);
+        }
+
+
         public void ApplyTransform(Matrix4x4 matrix)
         {
             Matrix4x4.Invert(matrix, out var inverse);
@@ -27,7 +64,6 @@ namespace XrEngine
                 Vertices[i].Pos = Vertices[i].Pos.Transform(matrix);
                 Vertices[i].Normal = Vertices[i].Normal.Transform(normalMatrix).Normalize();
             }
-
 
             Version++;
         }

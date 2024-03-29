@@ -23,7 +23,6 @@ namespace XrEngine
                 else
                     data = ImageReader.Instance.Read(stream, new TextureReadOptions { Format = TextureFormat.RgbaFloat32 })[0];
 
-
                 LoadPanorama(data);
             }
         }
@@ -46,6 +45,19 @@ namespace XrEngine
                 Textures = new PbrMaterial.IBLTextures();
 
             Textures.Panorama = new Texture2D([data]);
+        }
+
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.Write(nameof(Rotation), Rotation);
+
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            Rotation = container.Read<float>(nameof(Rotation));
         }
 
         public PbrMaterial.IBLTextures? Textures { get; set; }

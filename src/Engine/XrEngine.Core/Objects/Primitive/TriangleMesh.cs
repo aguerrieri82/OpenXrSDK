@@ -25,6 +25,25 @@ namespace XrEngine
                 Materials.Add(material);
         }
 
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+
+            container.WriteRef(nameof(Geometry), Geometry);
+            var matState = container.Enter(nameof(Materials));
+
+            for (var i = 0; i < Materials.Count; i++) 
+                matState.WriteRef(i.ToString(), Materials[i]);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+
+            Geometry = container.Read<Geometry3D>(nameof(Geometry));
+
+            var matState = container.Enter(nameof(Materials));
+        }
 
         public override T? Feature<T>() where T : class
         {

@@ -24,6 +24,18 @@ namespace XrEngine
             return Reference?.Feature<T>();
         }
 
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.WriteRef(nameof(Reference), Reference);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            Reference = container.Read<Object3D>(nameof(Reference));
+        }
+
         public Object3D? Reference { get; set; }
     }
 }
