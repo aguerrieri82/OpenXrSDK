@@ -16,6 +16,19 @@ namespace XrEngine
             Build(horizontal, vertical);
         }
 
+        protected override void GetState(StateContext ctx, IStateContainer container)
+        {
+            container.Write(nameof(Radius), Radius);
+            container.Write(nameof(Height), Height);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            Radius = container.Read<float>(nameof(Radius));
+            Height = container.Read<float>(nameof(Height));
+            Build(7, 7);
+        }
+
         public void Build(int horizontal, int vertical)
         {
             int vertexCount = (horizontal + 1) * (vertical + 1);

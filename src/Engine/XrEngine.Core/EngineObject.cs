@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable
+    public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateManager
     {
         protected Dictionary<string, object?>? _props;
         protected List<IComponent>? _components;
@@ -8,16 +8,22 @@
         protected ObjectChange? _lastChange;
         private int _updateCount;
 
-        public virtual void SetState(StateContext ctx, IStateContainer container)
+        public void SetState(StateContext ctx, IStateContainer container)
         {
             BeginUpdate();
             SetStateWork(ctx, container);
             EndUpdate();
         }
 
+        public virtual void GetState(StateContext ctx, IStateContainer container)
+        {
+            EnsureId();
+            container.Write(nameof(Id), _id.Value);
+        }
+
         protected virtual void SetStateWork(StateContext ctx, IStateContainer container)
         {
-
+            _id.Value = container.Read<uint>(nameof(Id));
         }
 
         public void BeginUpdate()
