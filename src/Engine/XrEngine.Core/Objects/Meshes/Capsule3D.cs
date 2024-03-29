@@ -16,7 +16,7 @@ namespace XrEngine
             Build(horizontal, vertical);
         }
 
-        protected override void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(StateContext ctx, IStateContainer container)
         {
             container.Write(nameof(Radius), Radius);
             container.Write(nameof(Height), Height);

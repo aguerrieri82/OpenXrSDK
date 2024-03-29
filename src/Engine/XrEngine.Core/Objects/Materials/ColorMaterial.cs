@@ -31,6 +31,18 @@ namespace XrEngine
             Color = color;
         }
 
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.WriteObject<ColorMaterial>(this);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            container.ReadObject<ColorMaterial>(this);
+        }
+
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);

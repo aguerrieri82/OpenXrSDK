@@ -19,6 +19,7 @@ namespace XrEngine
             base.GetState(ctx, container);
             container.Write(nameof(Direction), Direction);
         }
+
         protected override void SetStateWork(StateContext ctx, IStateContainer container)
         {
             base.SetStateWork(ctx, container);

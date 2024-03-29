@@ -155,6 +155,7 @@ namespace XrEngine
             base.GetState(ctx, container);
             container.Write(nameof(Name), Name);
             container.Write(nameof(Tag), Tag);
+            container.Write(nameof(IsVisible), IsVisible);
             _transform.GetState(ctx, container.Enter("Transform"));
         }
 
@@ -162,8 +163,10 @@ namespace XrEngine
         protected override void SetStateWork(StateContext ctx, IStateContainer container)
         {
             base.SetStateWork(ctx, container);  
+
             Name = container.Read<string?>(nameof(Name));
             Tag = container.Read<string?>(nameof(Tag));
+            IsVisible = container.Read<bool>(nameof(IsVisible));
             _transform.SetState(ctx, container.Enter("Transform"));
         }
 

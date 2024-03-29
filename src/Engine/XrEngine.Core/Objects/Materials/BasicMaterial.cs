@@ -26,6 +26,18 @@ namespace XrEngine
             Shader = SHADER;
         }
 
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.WriteObject<BasicMaterial>(this);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            container.ReadObject<BasicMaterial>(this);
+        }
+
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
 

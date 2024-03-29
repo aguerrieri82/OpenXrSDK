@@ -13,6 +13,7 @@ namespace XrEngine.OpenXr
         public XrRoot(XrApp app)
         {
             _xrApp = app;
+            _childGenerated = true;
 
             Name = "XrRoot";
 
@@ -101,6 +102,8 @@ namespace XrEngine.OpenXr
 
             return group;
         }
+
+
 
         public Group3D Head { get; }
 

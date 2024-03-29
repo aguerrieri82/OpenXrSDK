@@ -1,5 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Buffers.Text;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using XrMath;
 
@@ -709,18 +711,67 @@ namespace XrEngine
 
         #region STATE
 
+        public static void WriteTypeName(this IStateContainer container, object? obj)
+        {
+            if (obj != null)
+                container.Write("$type", obj.GetType().FullName);
+        }
+
+        public static string? ReadTypeName(this IStateContainer container)
+        {
+            if (container.Contains("$type"))
+                return container.Read<string>("$type");
+            return null;
+        }
+
+        public static unsafe void WriteBuffer<T>(this IStateContainer container, string key, T[] value) where T : unmanaged
+        {
+            fixed (T* pBuffer = value)
+            {
+                var buffer = new Span<byte>((byte*)pBuffer, value.Length * sizeof(T));
+                var base64 = Convert.ToBase64String(buffer);
+                container.Write(key, base64);   
+            }
+        }
+
+        public static unsafe T[] ReadBuffer<T>(this IStateContainer container, string key) where T : unmanaged
+        {
+            var base64 = container.Read<string>(key);
+            var bytes = Convert.FromBase64String(base64);   
+
+            fixed (byte* pBuffer = bytes)
+            {
+                var buffer = new Span<T>((T*)pBuffer, bytes.Length / sizeof(T));
+                return buffer.ToArray();
+            }
+        }
 
 
-        public static void WriteTypeObject(this IStateContainer container, StateContext ctx, string key, IStateManager value)
+        public static void WriteObject<T>(this IStateContainer container, T obj)
+        {
+            foreach (var prop in typeof(T).GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+                container.Write(prop.Name, prop.GetValue(obj));
+        }
+
+        public static void ReadObject<T>(this IStateContainer container, T obj)
+        {
+            foreach (var prop in typeof(T).GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+                prop.SetValue(obj, container.Read(prop.Name, prop.PropertyType));
+        }
+
+        public static void WriteTypeObject(this IStateContainer container, string key, IStateManager value, StateContext ctx)
         {
             var objState = container.Enter(key);
-            objState.Write("$type", value.GetType().FullName);
+            objState.WriteTypeName(value);
             value.GetState(ctx, objState);
         }
 
-        public static void ReadTypeObject<T>(this IStateContainer container, StateContext ctx, string key)
+        public static void ReadTypeObject<T>(this IStateContainer container, string key, StateContext ctx) where T : IStateManager
         {
-
+            var objState = container.Enter(key);
+            var typeName = objState.ReadTypeName();
+            var obj = (IStateManager)ObjectFactory.Instance.CreateObject(typeName!);
+            obj.SetState(ctx, objState);
         }
 
         #endregion

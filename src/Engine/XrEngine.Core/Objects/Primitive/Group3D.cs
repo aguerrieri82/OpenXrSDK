@@ -6,6 +6,7 @@ namespace XrEngine
     public class Group3D : Object3D, ILocalBounds
     {
         protected List<Object3D> _children = [];
+        protected bool _childGenerated = false;
         private Bounds3 _localBounds;
 
         public Group3D()
@@ -17,28 +18,34 @@ namespace XrEngine
         {
             base.GetState(ctx, container);
 
+            if (_childGenerated)
+                return;
+
             var children = container.Enter(nameof(Children));
 
             for (var i = 0; i < _children.Count; i++)
-                children.WriteTypeObject(ctx, i.ToString(), _children[i]); 
+                children.WriteTypeObject(i.ToString(), _children[i], ctx); 
         }
 
         protected override void SetStateWork(StateContext ctx, IStateContainer container)
         {
             base.SetStateWork(ctx, container);
 
+            if (_childGenerated)
+                return;
+
             var childrenState = container.Enter(nameof(Children));
             HashSet<Object3D> foundChildren = [];
             foreach (var key in childrenState.Keys)
             {
                 var childState = childrenState.Enter(key);
-                var childId = childState.Read<ObjectId>("Id");
+                var childId = childState.Read<uint>("Id");
 
                 var curChild = _children.FirstOrDefault(a => a.Id == childId);
                 if (curChild == null)
                 {
-                    var typeName = childState.Read<string>("$type");
-                    curChild = (Object3D)ObjectFactory.Instance.CreateObject(typeName);
+                    var typeName = childState.ReadTypeName();
+                    curChild = (Object3D)ObjectFactory.Instance.CreateObject(typeName!);
                     AddChild(curChild);
                 }
                 else
@@ -47,7 +54,7 @@ namespace XrEngine
                 curChild.SetState(ctx, childState);
             }
 
-            for (var i = _children.Count; i >= 0; i--)
+            for (var i = _children.Count - 1; i >= 0; i--)
             {
                 if (!foundChildren.Contains(_children[i]))
                     RemoveChild(_children[i]);

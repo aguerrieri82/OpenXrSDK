@@ -21,18 +21,13 @@ namespace XrEngine
         public override void GetState(StateContext ctx, IStateContainer container)
         {
             base.GetState(ctx, container);
-            container.Write(nameof(CastShadows), CastShadows);
-            container.Write(nameof(Color), Color);
-            container.Write(nameof(Intensity), Intensity);
-
+            container.WriteObject<Light>(this);
         }
 
         protected override void SetStateWork(StateContext ctx, IStateContainer container)
         {
             base.SetStateWork(ctx, container);
-            CastShadows = container.Read<bool>(nameof(CastShadows));
-            Color = container.Read<Color>(nameof(Color));
-            Intensity = container.Read<float>(nameof(Intensity));
+            container.ReadObject<Light>(this);
         }
 
         public bool CastShadows { get; set; }
