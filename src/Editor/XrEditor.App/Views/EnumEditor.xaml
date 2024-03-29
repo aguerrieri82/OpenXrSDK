@@ -1,0 +1,13 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate x:Key="EnumEditor" DataType="{x:Type local:IEnumEditor}">
+        <ComboBox ItemsSource="{Binding Values}" SelectedValue="{Binding EditValue, Mode=TwoWay}" >
+            <ComboBox.Resources>
+
+            </ComboBox.Resources>
+        </ComboBox>
+    </DataTemplate>
+
+</ResourceDictionary>

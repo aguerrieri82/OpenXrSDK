@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using Silk.NET.Core.Native;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
@@ -76,7 +77,14 @@ namespace XrEditor
             var view = node as IItemView;
             if (view != null)
             {
-                result.Header = view.DisplayName;
+                if (node.Value is IComponent comp)
+                    result.Header = new ComponentHeaderView(comp)
+                    {
+                        Name = view.DisplayName,
+                        Icon = view.Icon,
+                    };
+                else
+                    result.Header = view.DisplayName;
             }
 
             result.Properties = new List<PropertyView>();
@@ -92,6 +100,14 @@ namespace XrEditor
 
             if (_activeNode != null)
             {
+                var mainGrp = CreateProps(_activeNode);
+                if (mainGrp != null && mainGrp.Properties.Count > 0)
+                {
+                    mainGrp.Header = _activeNode.Types.First();
+                    result.Add(mainGrp);
+                }
+      
+
                 foreach (var compo in _activeNode.Components)
                 {
                     var group = CreateProps(compo);

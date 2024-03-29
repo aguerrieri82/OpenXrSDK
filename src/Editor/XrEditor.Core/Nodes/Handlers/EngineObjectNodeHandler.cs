@@ -23,6 +23,9 @@ namespace XrEditor.Nodes
                     if (obj is Group3D)
                         nodeType = typeof(Group3DNode);
 
+                    else if (obj is ImageLight)
+                        nodeType = typeof(ImageLightNode);
+
                     else if (obj is Light)
                         nodeType = typeof(LightNode<>).MakeGenericType(obj.GetType());
 
@@ -31,6 +34,12 @@ namespace XrEditor.Nodes
 
                     else if (obj is TriangleMesh)
                         nodeType = typeof(TriangleMeshNode);
+
+                    else if (obj is PbrMaterial)
+                        nodeType = typeof(PbrMaterialNode);
+
+                    else if (obj is Material)
+                        nodeType = typeof(MaterialNode<>).MakeGenericType(obj.GetType());
 
                     else
                         nodeType = typeof(EngineObjectNode<>).MakeGenericType(obj.GetType());

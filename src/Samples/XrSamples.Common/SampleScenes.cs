@@ -85,8 +85,8 @@ namespace XrSamples
 
                 scene.PerspectiveCamera().Exposure = 0.5f;
 
-                if (showEnv)
-                    scene.AddChild<EnvironmentView>();
+                scene.AddChild<EnvironmentView>();
+
 
                 var light = scene.AddChild<ImageLight>();
                 light.Intensity = 1f;

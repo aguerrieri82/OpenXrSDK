@@ -1,11 +1,15 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:app="clr-namespace:XrEditor"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <DataTemplate DataType="{x:Type local:PropertyView}">
         <StackPanel Orientation="Horizontal">
+            <StackPanel.Resources>
+                <app:EditorSelector x:Key="EditorSelector"/>
+            </StackPanel.Resources>
             <TextBlock VerticalAlignment="Center" Width="130" Text="{Binding Label}"/>
-            <ContentPresenter VerticalAlignment="Center" Content="{Binding Editor}"/>
+            <ContentPresenter ContentTemplateSelector="{StaticResource EditorSelector}" VerticalAlignment="Center" Content="{Binding Editor}"/>
         </StackPanel>
     </DataTemplate>
    

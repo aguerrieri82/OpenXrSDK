@@ -5,6 +5,8 @@
     <SolidColorBrush x:Key="SurfaceColor">#333</SolidColorBrush>
     <SolidColorBrush x:Key="SurfaceTextColor">#CCC</SolidColorBrush>
     <SolidColorBrush x:Key="Yellow">#FBC02D</SolidColorBrush>
+    <SolidColorBrush x:Key="InputColor">#444</SolidColorBrush>
+    <SolidColorBrush x:Key="InputTextColor">#eee</SolidColorBrush>
     
     <Style TargetType="Window">
         <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
@@ -13,7 +15,23 @@
     <Style TargetType="Button" x:Key="IconButton">
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style TargetType="TextBox">
+        <Setter Property="Background" Value="{StaticResource InputColor}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="Foreground" Value="{StaticResource InputTextColor}"/>
+    </Style>
+    <Style TargetType="ComboBox">
+        <Setter Property="Background" Value="{StaticResource InputColor}"/>
+        <Setter Property="BorderThickness" Value="0"/>
 
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ComboBoxItem">
 
+                </Style>
+            </Setter.Value>
+        </Setter>
     </Style>
 </ResourceDictionary>

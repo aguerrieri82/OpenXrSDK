@@ -14,6 +14,25 @@ namespace XrEditor
             _scale = new ValueScale();
         }
 
+        public FloatEditor(IProperty<float> binding, IValueScale scale)
+        {
+            _scale = scale;
+            Binding = binding;  
+        }
+
+        public FloatEditor(IProperty<float> binding, float min, float max, float step = 1f)
+        {
+            _scale = new ValueScale()
+            {
+                ScaleMin = min,
+                ScaleMax = max,
+                ScaleSmallStep = step,
+                ScaleStep = step
+            };
+
+            Binding = binding;
+        }
+
         public float ScaleValue
         {
             get => _scale.ValueToScale(_editValue);

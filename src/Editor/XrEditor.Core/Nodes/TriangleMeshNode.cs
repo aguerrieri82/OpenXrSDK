@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using XrEditor.Services;
 using XrEngine;
 
 namespace XrEditor.Nodes
@@ -11,6 +12,15 @@ namespace XrEditor.Nodes
     {
         public TriangleMeshNode(TriangleMesh value) : base(value)
         {
+        }
+
+        public override IEnumerable<INode> Children
+        {
+            get
+            {
+                var factory = Context.Require<NodeFactory>();
+                return _value.Materials.Select(a => factory.CreateNode(a));
+            }
         }
 
         public override IconView? Icon => new()

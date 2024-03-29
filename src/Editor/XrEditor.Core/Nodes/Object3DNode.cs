@@ -14,6 +14,8 @@ namespace XrEditor.Nodes
             _components.Add(new Transform3DNode(value.Transform));
         }
 
+        public override string DisplayName => _value.Name ?? _value.GetType().Name;
+
         protected INode GetNode(object value)
         {
             if (!_components.TryGetValue(value, out var node))
