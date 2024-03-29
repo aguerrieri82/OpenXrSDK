@@ -10,5 +10,6 @@ namespace XrEngine
     {
 
 
+        public Uri? AssetUri { get; set; }
     }
 }

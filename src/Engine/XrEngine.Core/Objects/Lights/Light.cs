@@ -11,12 +11,11 @@ namespace XrEngine
             CastShadows = true; 
         }
 
-        public override void NotifyChanged(ObjectChange change)
+        protected override void OnChanged(ObjectChange change)
         {
             if (change.IsAny(ObjectChangeType.Render))
                 Version++;
-
-            base.NotifyChanged(change);
+            base.OnChanged(change);
         }
 
         public bool CastShadows { get; set; }

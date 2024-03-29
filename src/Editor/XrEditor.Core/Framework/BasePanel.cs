@@ -1,9 +1,10 @@
 ﻿
 using XrEditor.Services;
+using XrEngine;
 
 namespace XrEditor
 {
-    public abstract class BasePanel : BaseView, IPanel
+    public abstract class BasePanel : BaseView, IPanel, IStateManager
     {
         protected readonly PanelManager _panelManager;
         protected readonly IUserInteraction _ui;
@@ -28,6 +29,16 @@ namespace XrEditor
         public virtual Task CloseAsync()
         {
             return Task.CompletedTask;
+        }
+
+        public virtual void GetState(StateContext ctx, IStateContainer container)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void SetState(StateContext ctx, IStateContainer container)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -9,6 +9,8 @@
         bool IsEnabled { get; set; }
 
         IComponentHost? Host { get; }
+
+        ObjectId Id { get; }
     }
 
     public interface IComponent<THost> : IComponent where THost : IComponentHost

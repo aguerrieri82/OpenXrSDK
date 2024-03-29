@@ -13,6 +13,46 @@ namespace XrEngine
             BoundUpdateMode = UpdateMode.Manual;
         }
 
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            var children = container.Enter(nameof(Children));
+
+            for (var i = 0; i < _children.Count; i++)
+                children.WriteTypeObject(ctx, i.ToString(), _children[i]); 
+
+            base.GetState(ctx, container);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            var childrenState = container.Enter(nameof(Children));
+            HashSet<Object3D> foundChildren = [];
+            foreach (var key in childrenState.Keys)
+            {
+                var childState = childrenState.Enter(key);
+                var childId = childState.Read<ObjectId>("Id");
+
+                var curChild = _children.FirstOrDefault(a => a.Id == childId);
+                if (curChild == null)
+                {
+                    var typeName = childState.Read<string>("$type");
+                    curChild = (Object3D)ObjectFactory.Instance.CreateObject(typeName);
+                    AddChild(curChild);
+                }
+                else
+                    foundChildren.Add(curChild);
+
+                curChild.SetState(ctx, childState);
+            }
+
+            for (var i = _children.Count; i >= 0; i--)
+            {
+                if (!foundChildren.Contains(_children[i]))
+                    RemoveChild(_children[i]);
+            }
+            base.SetStateWork(ctx, container);
+        }
+
         protected internal override void InvalidateWorld()
         {
             _worldDirty = true;

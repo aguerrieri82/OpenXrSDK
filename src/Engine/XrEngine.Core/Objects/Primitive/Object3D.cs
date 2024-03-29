@@ -3,7 +3,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class Object3D : EngineObject, ILayer3DItem
+    public class Object3D : EngineObject, ILayer3DItem, IStateManager
     {
         protected Bounds3 _worldBounds;
         private Matrix4x4 _worldMatrixInverse;
@@ -85,7 +85,7 @@ namespace XrEngine
             base.Update(ctx);
         }
 
-        public override void NotifyChanged(ObjectChange change)
+        protected override void OnChanged(ObjectChange change)
         {
             if (change.IsAny(ObjectChangeType.Transform))
             {
@@ -100,7 +100,7 @@ namespace XrEngine
 
             _scene?.NotifyChanged(this, change);
 
-            base.NotifyChanged(change);
+            base.OnChanged(change);
         }
 
         public override void Dispose()
@@ -148,6 +148,24 @@ namespace XrEngine
                 WorldMatrix = curWorldMatrix;
 
             NotifyChanged(changeType);
+        }
+
+        public virtual void GetState(StateContext ctx, IStateContainer container)
+        {
+            EnsureId();
+            container.Write(nameof(Id), _id);
+            container.Write(nameof(Name), Name);
+            container.Write(nameof(Tag), Tag);
+            _transform.GetState(ctx, container.Enter("Transform"));
+        }
+
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            _id = container.Read<ObjectId>(nameof(Id));
+            Name = container.Read<string?>(nameof(Name));
+            Tag = container.Read<string?>(nameof(Tag));
+            _transform.SetState(ctx, container.Enter("Transform"));
         }
 
         public bool IsVisible

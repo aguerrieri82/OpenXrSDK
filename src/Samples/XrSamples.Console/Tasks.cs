@@ -104,7 +104,7 @@ namespace XrSamples
 
         public static void LoadModel(string path)
         {
-            GltfLoader.Instance.Load(path, new LocalAssetManager("Assets"));
+            GltfLoader.LoadFile(path, new LocalAssetManager("Assets"));
         }
 
         public static void CompressTexture(string path)

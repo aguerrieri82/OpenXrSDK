@@ -199,7 +199,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var racket = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("Paddle.glb"), assets, GltfOptions);
+            var racket = (Group3D)GltfLoader.LoadFile(assets.GetFsPath("Paddle.glb"), assets, GltfOptions);
             racket.Name = "Racket";
 
             //Reposition
@@ -287,7 +287,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var mesh = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("Chess/ABeautifulGame.gltf"), assets, GltfOptions);
+            var mesh = (Group3D)GltfLoader.LoadFile(assets.GetFsPath("Chess/ABeautifulGame.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
             mesh.BoundUpdateMode = UpdateMode.Automatic;
 
@@ -334,7 +334,7 @@ namespace XrSamples
 
             assets.GetFsPath("Sponza/Sponza.bin");
 
-            var mesh = (Group3D)GltfLoader.Instance.Load(assets.GetFsPath("Sponza/Sponza.gltf"), assets, GltfOptions);
+            var mesh = (Group3D)GltfLoader.LoadFile(assets.GetFsPath("Sponza/Sponza.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.01f);
 
@@ -353,7 +353,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var mesh = (Object3D)GltfLoader.Instance.Load(assets.GetFsPath("Models/MetaQuestTouchPlus_Right.glb"), assets, GltfOptions);
+            var mesh = (Object3D)GltfLoader.LoadFile(assets.GetFsPath("Models/MetaQuestTouchPlus_Right.glb"), assets, GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetPositionY(1);
             mesh.AddComponent<BoundsGrabbable>();
@@ -391,7 +391,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var mesh = (TriangleMesh)GltfLoader.Instance.Load(assets.GetFsPath("IkeaBed.glb"), assets, GltfOptions);
+            var mesh = (TriangleMesh)GltfLoader.LoadFile(assets.GetFsPath("IkeaBed.glb"), assets, GltfOptions);
             mesh.Name = "mesh";
            // mesh.AddComponent<MeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
@@ -425,7 +425,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var mesh = (Object3D)GltfLoader.Instance.Load(assets.GetFsPath("Helmet/DamagedHelmet.gltf"), assets, GltfOptions);
+            var mesh = (Object3D)GltfLoader.LoadFile(assets.GetFsPath("Helmet/DamagedHelmet.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.4f);
             mesh.Transform.SetPositionY(1);

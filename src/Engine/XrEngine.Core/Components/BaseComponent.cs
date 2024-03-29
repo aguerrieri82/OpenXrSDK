@@ -4,6 +4,7 @@
     {
         protected bool _isEnabled;
         protected T? _host;
+        protected ObjectId _id;
 
         public BaseComponent()
         {
@@ -55,6 +56,8 @@
 
 
         T? IComponent<T>.Host => _host;
+
+        public ObjectId Id => _id;
     }
 
 }

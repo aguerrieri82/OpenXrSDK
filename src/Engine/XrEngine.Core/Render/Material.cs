@@ -29,13 +29,12 @@
             _host = null;
         }
 
-        public override void NotifyChanged(ObjectChange change)
+        protected override void OnChanged(ObjectChange change)
         {
             _host?.NotifyChanged(new ObjectChange(ObjectChangeType.Render, this));
             Version++;
-            base.NotifyChanged(change);
+            base.OnChanged(change);
         }
-
 
         public bool WriteDepth { get; set; }
 

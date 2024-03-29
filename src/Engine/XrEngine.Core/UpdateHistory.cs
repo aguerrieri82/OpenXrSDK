@@ -29,9 +29,9 @@
 
         public EngineObject? Object { get; set; }
 
-        public IObjectState? NewState { get; set; }
+        public IStateContainer? NewState { get; set; }
 
-        public IObjectState? OldState { get; set; }
+        public IStateContainer? OldState { get; set; }
     }
 
     public class UpdateHistory : IObjectChangeListener
