@@ -12,8 +12,8 @@
             </ScrollViewer.Resources>
             
             <StackPanel Orientation="Vertical">
-                <DockPanel>
-                    <ContentPresenter DockPanel.Dock="Left" Content="{Binding NodeIcon}"/>
+                <DockPanel Margin="0,0,0,16">
+                    <ContentPresenter Margin="0,0,8,0" DockPanel.Dock="Left" Content="{Binding NodeIcon}"/>
                     <TextBox VerticalAlignment="Bottom"  DockPanel.Dock="Top" Text="{Binding NodeName, Mode=TwoWay}"/>
                 </DockPanel>
                 <ItemsControl ItemsSource="{Binding Groups}">

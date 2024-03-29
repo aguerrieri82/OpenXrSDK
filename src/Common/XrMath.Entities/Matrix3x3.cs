@@ -10,12 +10,10 @@
             var res = new Matrix3x3
             {
                 M00 = cosTheta,
-                M01 = -sinTheta,
-
-                M10 = sinTheta,
-                M11 = cosTheta,
-
-                M22 = 1
+                M02 = sinTheta,
+                M11 = 1,
+                M20 = -sinTheta,
+                M22 = cosTheta,
             };
 
             return res;

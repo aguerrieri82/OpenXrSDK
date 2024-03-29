@@ -8,6 +8,7 @@
             Max="{Binding Scale.ScaleMax}" 
             Min="{Binding Scale.ScaleMin}" 
             Step="{Binding Scale.ScaleStep}" 
+            Width="80"
             SmallStep="{Binding Scale.ScaleSmallStep}" 
             Format="{Binding ScaleFormat}"  
             Value="{Binding ScaleValue, Mode=TwoWay}"/>

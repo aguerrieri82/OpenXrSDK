@@ -1,12 +1,11 @@
 ﻿namespace XrEngine
 {
-    public abstract class Behavior<T> : IBehavior, IComponent<T> where T : IComponentHost
+    public abstract class Behavior<T> : BaseComponent<T>, IBehavior, IComponent<T> where T : EngineObject
     {
-        protected T? _host;
         private double _startTime;
         private double _lastUpdateTime;
         private double _deltaTime;
-        private bool _isEnabled;
+
 
         public Behavior()
         {
@@ -23,22 +22,6 @@
         {
 
         }
-
-        protected virtual void OnDisabled()
-        {
-
-        }
-
-        protected virtual void OnEnabled()
-        {
-
-        }
-
-        protected virtual void OnAttach()
-        {
-
-        }
-
 
         void IRenderUpdate.Update(RenderContext ctx)
         {
@@ -59,41 +42,12 @@
             }
         }
 
-        void IComponent<T>.Attach(T host)
-        {
-            _host = host;
-            OnAttach();
-        }
-
-        void IComponent.Detach()
-        {
-            _host = default;
-        }
-
-        public bool IsEnabled
-        {
-            get => _isEnabled;
-            set
-            {
-                if (_isEnabled == value)
-                    return;
-                _isEnabled = value;
-                if (!_isEnabled)
-                    OnDisabled();
-                else
-                    OnEnabled();
-            }
-        }
-
-
         public event EventHandler? Started;
 
         protected double DeltaTime => _deltaTime;
-
-        T? IComponent<T>.Host => _host;
     }
 
-    public class LambdaBehavior<T> : Behavior<T> where T : IComponentHost
+    public class LambdaBehavior<T> : Behavior<T> where T : EngineObject
     {
         readonly Action<T, RenderContext> _update;
 
