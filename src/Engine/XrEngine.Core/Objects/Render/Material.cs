@@ -39,21 +39,13 @@
         protected override void SetStateWork(StateContext ctx, IStateContainer container)
         {
             base.SetStateWork(ctx, container);
-            WriteDepth = container.Read<bool>(nameof(WriteDepth));
-            UseDepth = container.Read<bool>(nameof(UseDepth));
-            WriteColor = container.Read<bool>(nameof(WriteColor));
-            WriteColor = container.Read<bool>(nameof(WriteColor));
+            container.ReadObject<Material>(this);
         }
 
         public override void GetState(StateContext ctx, IStateContainer container)
         {
             base.GetState(ctx, container);
-            container.Write(nameof(WriteDepth), WriteDepth);
-            container.Write(nameof(UseDepth), UseDepth);
-            container.Write(nameof(WriteColor), WriteColor);
-            container.Write(nameof(DoubleSided), DoubleSided);
-            container.Write(nameof(Alpha), Alpha);
-            container.Write(nameof(Name), Name);
+            container.WriteObject<Material>(this);
         }
 
         public bool WriteDepth { get; set; }

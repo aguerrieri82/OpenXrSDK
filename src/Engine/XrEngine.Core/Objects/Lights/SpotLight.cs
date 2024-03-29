@@ -9,17 +9,13 @@
         public override void GetState(StateContext ctx, IStateContainer container)
         {
             base.GetState(ctx, container);
-            container.Write(nameof(Range), Range);
-            container.Write(nameof(InnerConeAngle), InnerConeAngle);
-            container.Write(nameof(OuterConeAngle), OuterConeAngle);
+            container.WriteObject<SpotLight>(this);
         }
 
         protected override void SetStateWork(StateContext ctx, IStateContainer container)
         {
             base.SetStateWork(ctx, container);
-            Range = container.Read<float>(nameof(Range));
-            InnerConeAngle = container.Read<float>(nameof(InnerConeAngle));
-            OuterConeAngle = container.Read<float>(nameof(OuterConeAngle));
+            container.ReadObject<SpotLight>(this);
         }
 
         public float Range { get; set; }

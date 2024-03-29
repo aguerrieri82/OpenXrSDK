@@ -10,14 +10,17 @@ namespace XrEngine
 
         public PlaneGrid(float size, float subs, float axisSize)
         {
-            Create(size, subs, axisSize);
+            Size = size;
+            Subs = subs;
+            AxisSize = axisSize;
+            Create();
         }
 
-        public void Create(float size, float subs, float axisSize)
+        public void Create()
         {
             var list = new List<LineData>();
 
-            float subSize = size / subs;
+            float subSize = Size / Subs;
 
             var color1 = new Vector3(0.7f, 0.7f, 0.7f);
 
@@ -40,9 +43,9 @@ namespace XrEngine
                 });
             }
 
-            float halfSize = size / 2f;
+            float halfSize = Size / 2f;
 
-            for (int z = 0; z < subs; z++)
+            for (int z = 0; z < Subs; z++)
             {
                 var zVal = -halfSize + z * subSize;
 
@@ -52,7 +55,7 @@ namespace XrEngine
                        );
 
             }
-            for (int x = 0; x < subs; x++)
+            for (int x = 0; x < Subs; x++)
             {
                 var xVal = -halfSize + x * subSize;
 
@@ -62,20 +65,20 @@ namespace XrEngine
                        );
             }
 
-            if (axisSize > 0)
+            if (AxisSize > 0)
             {
                 float yTop = 0.001f;
 
                 AddLine(new Vector3(0, yTop, 0),
-                       new Vector3(axisSize, yTop, 0),
+                       new Vector3(AxisSize, yTop, 0),
                        new Vector3(1, 0, 0)
                 );
                 AddLine(new Vector3(0, yTop, 0),
-                       new Vector3(0, axisSize, 0),
+                       new Vector3(0, AxisSize, 0),
                        new Vector3(0, 1, 0)
                 );
                 AddLine(new Vector3(0, yTop, 0),
-                     new Vector3(0, yTop, axisSize),
+                     new Vector3(0, yTop, AxisSize),
                      new Vector3(0, 0, 1)
                 );
             }
@@ -84,5 +87,24 @@ namespace XrEngine
 
             Version++;
         }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            container.ReadObject<PlaneGrid>(this);
+            Create();
+        }
+
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);  
+            container.WriteObject<PlaneGrid>(this);
+        }
+
+        public float Size { get; set; }
+            
+        public float Subs { get; set; }
+
+        public float AxisSize { get; set; }
     }
 }

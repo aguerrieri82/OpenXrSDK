@@ -36,6 +36,18 @@ namespace XrEngine.Materials
 
         }
 
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.WriteObject<CubeMapMaterial>(this);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            container.ReadObject<CubeMapMaterial>(this);
+        }
+
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             bld.AddFeature("UNIFORM_EXP");

@@ -16,7 +16,7 @@ namespace XrEngine
             Build();
         }
 
-        protected override void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(StateContext ctx, IStateContainer container)
         {
             container.Write(nameof(Size), Size);
         }

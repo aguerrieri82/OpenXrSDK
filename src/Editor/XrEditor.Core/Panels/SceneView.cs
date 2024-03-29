@@ -7,6 +7,7 @@ using XrEngine.OpenXr;
 using XrMath;
 using XrEditor.Services;
 using XrEditor.Helpers;
+using XrEngine.Services;
 
 namespace XrEditor
 {
@@ -79,6 +80,14 @@ namespace XrEditor
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
 
             Scene = _engine.App.ActiveScene;
+
+            var ctx = new StateContext();
+            var json = new JsonStateContainer(ctx);
+            Scene.GetState(ctx, json);
+            json.Clear();
+
+            var newScene = new Scene3D();
+            newScene.SetState(ctx, json);
 
             Context.Require<SelectionManager>().Set(Scene.GetNode());
         }

@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using XrEngine.Materials;
 using XrMath;
 
 namespace XrEngine
@@ -581,6 +582,18 @@ namespace XrEngine
                     RoughnessFactor = 0.5f
                 }
             };
+        }
+
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.WriteObject<PbrMaterial>(this);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            container.ReadObject<PbrMaterial>(this);
         }
 
         public override void UpdateShader(ShaderUpdateBuilder bld)

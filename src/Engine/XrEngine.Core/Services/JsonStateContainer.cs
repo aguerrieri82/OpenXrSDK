@@ -1,41 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
+
 
 namespace XrEngine.Services
 {
     public class JsonStateContainer : IStateContainer
     {
-        JsonObject _state;
-        JsonArray _refs;
-        Dictionary<object, int> _resolvedRefs;
+        protected readonly JsonObject? _main;
+        protected readonly JsonObject _state;
+        protected readonly JsonStateContainer _refs;
+        protected readonly Dictionary<object, int> _resolvedRefs;
+        protected readonly StateContext _context;
 
-        public JsonStateContainer()
+        public JsonStateContainer(StateContext ctx)
         {
-            var main = new JsonObject();
-            _refs = new JsonArray();
+            _main = new JsonObject();
+            _refs = new JsonStateContainer(ctx, new JsonObject());
             _state = new JsonObject();
             _resolvedRefs = [];
-            main["refs"] = _refs;
-            main["root"] = _state;
+            _context = ctx;
+            _main["refs"] = _refs._state;
+            _main["root"] = _state;
         }
 
-        public JsonStateContainer(string json)
+        public JsonStateContainer(string json, StateContext ctx)
         {
-            var main = JsonSerializer.Deserialize<JsonObject>(json)!;
-            _state = (JsonObject)main["root"]!;
-            _refs = (JsonArray)main["refs"]!;
+            _main = JsonSerializer.Deserialize<JsonObject>(json)!;
+            _state = (JsonObject)_main["root"]!;
+            _refs = new JsonStateContainer(ctx, (JsonObject)_main["refs"]!);
             _resolvedRefs = [];
+            _context = ctx;
         }
 
-        internal JsonStateContainer(JsonObject state, JsonArray refs, Dictionary<object, int> resolvedRefs)
+        protected JsonStateContainer(StateContext ctx, JsonObject state)
+        {
+            _state = state;
+            _refs = this;
+            _resolvedRefs = [];
+            _context = ctx;
+        }
+
+        protected JsonStateContainer(JsonObject state, JsonStateContainer refs, Dictionary<object, int> resolvedRefs, StateContext ctx)
         {
             _refs = refs;
             _state = state;
+            _context = ctx; 
             _resolvedRefs = resolvedRefs;
         }
 
@@ -46,50 +60,89 @@ namespace XrEngine.Services
                 var newObj = new JsonObject();
                 _state[key] = newObj;
             }
-            return new JsonStateContainer((JsonObject)_state[key]!, _refs, _resolvedRefs);
+            return new JsonStateContainer((JsonObject)_state[key]!, _refs, _resolvedRefs, _context);
         }
+
+        public object? Read(string key, Type type)
+        {
+            if (type.IsClass && type != typeof(string) && _state[key] is JsonObject)
+            {
+                var objState = Enter(key);
+                if (objState.Contains("$ref"))
+                {
+                    var index = objState.Read<int>("$ref");
+                    var curObj = _resolvedRefs.Where(a => a.Value == index).Select(a => a.Key).FirstOrDefault();
+                    if (curObj == null)
+                    {
+                        curObj = _refs.Read(index.ToString(), type);
+                        _resolvedRefs[curObj!] = index;
+                    }
+                    return curObj;
+                }
+            }
+
+            var manager = TypeStateManager.Instance.Get(type);
+            if (manager != null)
+                return manager.Read(key, type, this, _context);
+
+            return _state[key].Deserialize(type)!;
+        }
+
 
         public T Read<T>(string key)
         {
-            var value = _state[key]!;    
-            if (value is JsonValue val && val.GetValueKind() == JsonValueKind.String)
-            {
-                var strValue = value.GetValue<string>();
-
-                if (strValue.StartsWith("$(ref):"))
-                {
-                    var index = int.Parse(strValue.Substring(7));
-                    var curObj = _resolvedRefs.Where(a => a.Value == index).Select(a=> a.Key).FirstOrDefault();
-                    if (curObj == null)
-                    {
-                        curObj = _refs[index].Deserialize<T>()!;
-                        _resolvedRefs[curObj] = index;
-                    }
-                    return (T)curObj;
-                }
-            }
-            return value.Deserialize<T>()!;
+            return (T)Read(key, typeof(T))!;
         }
 
-        public void Write(string key, object value)
+        public void Write(string key, object? value)
         {
+            if (value != null)
+            {
+                var manager = TypeStateManager.Instance.Get(value.GetType());
+                if (manager != null)
+                {
+                    manager.Write(key, value, this, _context);
+                    return;
+                }
+            }
+
             _state[key] = JsonSerializer.SerializeToNode(value);
         }
 
-        public void WriteRef(string key, object value)
+        public void WriteRef(string key, object? value)
         {
-            if (!_resolvedRefs.TryGetValue(value, out var index))
+            if (value == null)
+                Write(key, null);
+            else
             {
-                index = _refs.Count;
-                _resolvedRefs[value] = index;
-                _refs.Add(JsonSerializer.SerializeToNode(value));
+                if (!_resolvedRefs.TryGetValue(value, out var index))
+                {
+                    index = _refs.Count;
+                    _resolvedRefs[value] = index;
+                    _refs.Write(index.ToString(), value);
+                }
+
+                Enter(key).Write("$ref", index);
             }
-            _state[key] = "$(ref):" + index;
+        }
+
+        public bool Contains(string key)
+        {
+            return _state.ContainsKey(key);
+        }
+
+        public string AsJson()
+        {
+            return (_state).ToJsonString(new JsonSerializerOptions { WriteIndented = true });   
+        }
+
+        public void Clear()
+        {
+            _resolvedRefs.Clear();
         }
 
         public int Count => _state.Count;
 
         public IEnumerable<string> Keys => _state.Select(a=> a.Key);
-
     }
 }

@@ -26,6 +26,18 @@
             Texture = texture;
         }
 
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.WriteObject<TextureMaterial>(this);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            container.ReadObject<TextureMaterial>(this);
+        }
+
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);

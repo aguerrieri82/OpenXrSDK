@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,57 +9,77 @@ namespace XrEngine.Services
 {
     public class MemoryStateContainer : IStateContainer
     {
-        Dictionary<string, object> _state = [];
-        Dictionary<object, int> _refTable;
-
-        struct ObjectRef
+        struct ObjectRef(object obj)
         {
-            public int Index;
-        }
-
-        public MemoryStateContainer()
-        {
-            _refTable = [];
+            public object Reference = obj;
         }
 
 
-        protected MemoryStateContainer(Dictionary<object, int> refTable)
+        private readonly Dictionary<string, object?> _state = [];
+        private readonly StateContext _ctx;
+
+        public MemoryStateContainer(StateContext ctx)
         {
-            _refTable = refTable;
+            _ctx = ctx; 
         }
 
         public IStateContainer Enter(string key)
         {
             if (!_state.TryGetValue(key, out var value))
             {
-                value = new MemoryStateContainer(_refTable);
+                value = new MemoryStateContainer(_ctx);
                 _state[key] = value;    
             }
 
-            return (IStateContainer)value;
+            return (IStateContainer)value!;
+        }
+
+
+        public object? Read(string key, Type type)
+        {
+            var value = _state[key];
+
+            if (value is ObjectRef objectRef)
+                return objectRef.Reference;
+
+            var manager = TypeStateManager.Instance.Get(type);
+            if (manager != null)
+                return manager.Read(key, type, this, _ctx);
+
+            return value;
         }
 
         public T Read<T>(string key)
         {
-            var value = _state[key];
-            if (value is ObjectRef objectRef)
-                value = _refTable[objectRef.Index];
-            return (T)value;
+            return (T)Read(key, typeof(T))!;
         }
 
-        public void Write(string key, object value)
+        public void Write(string key, object? value)
         {
+            if (value != null)
+            {
+                var manager = TypeStateManager.Instance.Get(value.GetType());
+                if (manager != null)
+                {
+                    manager.Write(key, value, this, _ctx);
+                    return;
+                }
+            }
+
             _state[key] = value;
         }
 
-        public void WriteRef(string key, object value)
+        public void WriteRef(string key, object? value)
         {
-            if (!_refTable.TryGetValue(value, out var index))
-            {
-                index = _refTable.Count;
-                _refTable[value] = index;
-            }
-            _state[key] = new ObjectRef() { Index = index };
+            if (value != null)
+                _state[key] = new ObjectRef(value);
+            else
+                _state[key] = null; 
+        }
+
+        public bool Contains(string key)
+        {
+            return _state.ContainsKey(key); 
         }
 
         public int Count => _state.Count;

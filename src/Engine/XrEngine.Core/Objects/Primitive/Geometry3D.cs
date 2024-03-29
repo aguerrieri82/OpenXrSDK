@@ -18,38 +18,16 @@ namespace XrEngine
 
         protected override void SetStateWork(StateContext ctx, IStateContainer container)
         {
-            throw new NotImplementedException();
             base.SetStateWork(ctx, container);
+            Indices = container.ReadBuffer<uint>(nameof(Indices));
+            Vertices = container.ReadBuffer<VertexData>(nameof(Vertices));
         }
 
-        protected override void GetState(StateContext ctx, IStateContainer container)
+        public unsafe override void GetState(StateContext ctx, IStateContainer container)
         {
-            container.Write(nameof(Indices), Indices);
-            
-            var vert = container.Enter(nameof(Vertices));   
-
-            foreach (var component in Enum.GetValues< VertexComponent>())
-            {
-                if ((ActiveComponents & component) != component)
-                    continue;
-
-                if (component == VertexComponent.Position)
-                    vert.Write("Position", Vertices.SelectMany(a => new float[] { a.Pos.X, a.Pos.Y, a.Pos.Z }));
-
-                else if (component == VertexComponent.Normal)
-                    vert.Write("Normal", Vertices.SelectMany(a => new float[] { a.Normal.X, a.Normal.Y, a.Normal.Z }));
-
-                else if (component == VertexComponent.Tangent)
-                    vert.Write("Tangent", Vertices.SelectMany(a => new float[] { a.Tangent.X, a.Tangent.Y, a.Tangent.Z, a.Tangent.W}));
-
-                else if (component == VertexComponent.UV0)
-                    vert.Write("UV0", Vertices.SelectMany(a => new float[] { a.UV.X, a.UV.Y }));
-
-                else
-                    throw new NotImplementedException();
-            }
-
             base.GetState(ctx, container);
+            container.WriteBuffer(nameof(Indices), Indices);
+            container.WriteBuffer(nameof(Vertices), Vertices);
         }
 
 

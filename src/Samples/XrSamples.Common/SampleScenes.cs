@@ -25,7 +25,6 @@ namespace XrSamples
             ConvertColorTextureSRgb = true,
         };
 
-
         static EngineApp CreateBaseScene()
         {
             var app = new EngineApp();
@@ -280,7 +279,6 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateChess(this XrEngineAppBuilder builder)
         {
-
             var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
@@ -290,7 +288,6 @@ namespace XrSamples
             var mesh = (Group3D)GltfLoader.LoadFile(assets.GetFsPath("Chess/ABeautifulGame.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
             mesh.BoundUpdateMode = UpdateMode.Automatic;
-
 
             foreach (var child in mesh.Children)
             {
