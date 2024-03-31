@@ -118,7 +118,7 @@ namespace XrEditor
                 _sceneView.ActiveTool = null;
         }
 
-        int IRayPointer.Id => -100;
+        int IRayPointer.PointerId => -100;
 
     }
 }

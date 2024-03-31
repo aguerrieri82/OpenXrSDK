@@ -19,7 +19,7 @@ namespace XrEngine
             _geometry = geometry;
         }
 
-        protected override void OnAttach()
+        protected override void Start(RenderContext ctx)
         {
             if (_geometry == null)
             {
@@ -28,6 +28,18 @@ namespace XrEngine
                 if (_geometry == null)
                     throw new NotSupportedException("Geometry3D not found in Object");
             }
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            _geometry = container.Read<Geometry3D?>(nameof(Geometry));
+        }
+
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.WriteRef(nameof(Geometry), Geometry);
         }
 
         void Update()

@@ -6,24 +6,36 @@ namespace XrEngine.OpenXr
 {
     public class RayCollider : Behavior<Scene3D>
     {
-        readonly XrInput<Pose3> _input;
-        readonly RayView _rayView;
+        protected XrPoseInput? _input;
+        protected readonly RayView _rayView;
 
-
-        public RayCollider(XrInput<Pose3> input)
+        public RayCollider()
         {
-            _input = input;
             _rayView = new RayView();
+        }
+
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.Write(nameof(InputName), InputName);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            InputName = container.Read<string>(nameof(InputName));
         }
 
         protected override void Start(RenderContext ctx)
         {
+            _input = (XrPoseInput)XrApp.Current!.Inputs[InputName!];
+
             _host!.AddChild(_rayView);
         }
 
         protected override void Update(RenderContext ctx)
         {
-            if (_input.IsChanged && _input.IsActive)
+            if (_input!.IsChanged && _input.IsActive)
             {
                 _rayView.Transform.Position = _input.Value.Position;
                 _rayView.Transform.Orientation = _input.Value.Orientation;
@@ -54,6 +66,7 @@ namespace XrEngine.OpenXr
             base.Update(ctx);
         }
 
+        public string? InputName { get; set; }
 
         public RayView RayView => _rayView;
     }

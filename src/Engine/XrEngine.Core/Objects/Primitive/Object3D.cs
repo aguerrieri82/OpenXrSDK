@@ -159,7 +159,6 @@ namespace XrEngine
             _transform.GetState(ctx, container.Enter("Transform"));
         }
 
-
         protected override void SetStateWork(StateContext ctx, IStateContainer container)
         {
             base.SetStateWork(ctx, container);  

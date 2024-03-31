@@ -6,7 +6,6 @@
         private double _lastUpdateTime;
         private double _deltaTime;
 
-
         public Behavior()
         {
             _isEnabled = true;

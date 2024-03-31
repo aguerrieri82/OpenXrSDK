@@ -12,6 +12,7 @@ using XrEngine.Filament;
 using XrEngine.OpenGL;
 using OpenXr.Framework.Oculus;
 using Microsoft.Extensions.Logging;
+using XrEngine.Services;
 
 
 namespace XrEngine.OpenXr.Android
@@ -26,6 +27,7 @@ namespace XrEngine.OpenXr.Android
             PbrMaterial.LinearOutput = false;
 
             AssetManager = new AndroidAssetManager(context, "Assets");
+            AssetLoader.Instance.AssetManager = AssetManager;
             //  AssetManager = new LocalAssetManager(Path.Join(extPath, "Assets"));
             Logger = new AndroidLogger("XrApp");
             _context = context;

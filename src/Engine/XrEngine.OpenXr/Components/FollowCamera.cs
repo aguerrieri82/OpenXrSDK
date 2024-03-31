@@ -14,7 +14,6 @@ namespace XrEngine.OpenXr
                 _host!.Transform.Position = Offset.Transform(camera.WorldMatrix);
                 _host.Transform.Orientation = camera.Transform.Orientation;
             }
-
         }
 
         public Vector3 Offset { get; set; }

@@ -72,6 +72,8 @@ namespace XrEngine.OpenGL
             glTexture.WrapT = (TextureWrapMode)texture2D.WrapT;
 
             glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Format, texture2D.Compression, texture2D.Data);
+
+            glTexture.Version = texture2D.Version;  
         }
 
         public static unsafe Texture TexIdToEngineTexture(this GL gl, uint texId, TextureFormat? readFormat = null)
@@ -123,8 +125,10 @@ namespace XrEngine.OpenGL
                 MinFilter = (TextureMinFilter)value.MinFilter,
                 MagFilter = (TextureMagFilter)value.MagFilter,
                 WrapS = (TextureWrapMode)value.WrapS,
-                WrapT = (TextureWrapMode)value.WrapT
+                WrapT = (TextureWrapMode)value.WrapT,
+                Version = value.Version,
             };
+
 
             if (value is TextureCube)
                 texture.Target = TextureTarget.TextureCubeMap;
@@ -151,8 +155,6 @@ namespace XrEngine.OpenGL
                 }
 
                 texture.Update(value.Width, value.Height, data[0].Format, comp, data);
-
-                value.Data = null;
             }
             else
             {

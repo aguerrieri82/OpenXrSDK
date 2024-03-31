@@ -1,12 +1,22 @@
-﻿namespace XrEngine
+﻿using XrEngine;
+
+namespace XrEngine
 {
-    public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateManager
+    [Flags]
+    public enum EngineObjectFlags
+    {
+        None = 0,
+        Generated = 0x1,
+        ChildGenerated = 0x2
+    }
+
+    public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateManager, IObjectId
     {
         protected Dictionary<string, object?>? _props;
         protected List<IComponent>? _components;
         protected ObjectId _id;
         protected ObjectChange? _lastChange;
-        private int _updateCount;
+        protected int _updateCount;
 
         public void SetState(StateContext ctx, IStateContainer container)
         {
@@ -19,11 +29,16 @@
         {
             EnsureId();
             container.Write(nameof(Id), _id.Value);
+
+            if (_components != null)
+                container.WriteArray(ctx, nameof(Components), _components);
         }
 
         protected virtual void SetStateWork(StateContext ctx, IStateContainer container)
         {
             _id.Value = container.Read<uint>(nameof(Id));
+            _components ??= [];
+            container.ReadArray(ctx, nameof(Components), _components, a => AddComponent(a), RemoveComponent);
         }
 
         public void BeginUpdate()
@@ -97,8 +112,7 @@
                 return;
             }
 
-            OnChanged(change);  
-
+            OnChanged(change);
         }
 
         protected virtual void OnChanged(ObjectChange change)
@@ -158,6 +172,8 @@
         public event Action<EngineObject, ObjectChange>? Changed;
 
         public long Version { get; set; }
+
+        public EngineObjectFlags Flags { get; set; }    
 
         public ObjectId Id => _id;
     }

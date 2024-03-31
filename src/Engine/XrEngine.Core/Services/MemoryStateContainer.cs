@@ -23,7 +23,7 @@ namespace XrEngine.Services
             _ctx = ctx; 
         }
 
-        public IStateContainer Enter(string key)
+        public IStateContainer Enter(string key, bool resolveRef = false)
         {
             if (!_state.TryGetValue(key, out var value))
             {

@@ -17,7 +17,6 @@ namespace XrEngine.OpenXr
     {
         private Object3D? _grabObject;
         private IGrabbable? _grabbable;
-        private readonly XrHaptic? _vibrate;
         private readonly TriangleMesh _grabView;
         private Quaternion _startInputOrientation;
         private Quaternion _startOrientation;
@@ -27,9 +26,10 @@ namespace XrEngine.OpenXr
 
         public BaseObjectGrabber(XrHaptic? vibrate = null)
         {
-            _vibrate = vibrate;
+            Vibrate = vibrate;
             _grabView = new TriangleMesh(Cube3D.Instance, PbrMaterial.CreateDefault(new Color(0, 1, 1, 1)));
             _grabView.Transform.SetScale(0.005f);
+            _grabView.Flags |= EngineObjectFlags.Generated;
         }
 
         protected override void Start(RenderContext ctx)
@@ -111,9 +111,9 @@ namespace XrEngine.OpenXr
 
                 if (grabObj != null)
                 {
-                    if (_vibrate != null)
+                    if (Vibrate != null)
                     {
-                        _vibrate.VibrateStart(100, 1, TimeSpan.FromMilliseconds(500));
+                        Vibrate.VibrateStart(100, 1, TimeSpan.FromMilliseconds(500));
                         _isVibrating = true;
                     }
 
@@ -126,7 +126,7 @@ namespace XrEngine.OpenXr
                 {
                     if (_isVibrating)
                     {
-                        _vibrate?.VibrateStop();
+                        Vibrate?.VibrateStop();
                         _isVibrating = false;
                     }
 
@@ -144,5 +144,7 @@ namespace XrEngine.OpenXr
         }
 
         public Object3D GrabView => _grabView;
+
+        public XrHaptic? Vibrate { get; set; }
     }
 }

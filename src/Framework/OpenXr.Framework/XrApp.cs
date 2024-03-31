@@ -834,9 +834,13 @@ namespace OpenXr.Framework
 
         public T AddHand<T>(HandEXT type) where T : XrHandInput
         {
+            if (_hands.TryGetValue(type, out var value))
+                return (T)value;
+
             var instance = (T)Activator.CreateInstance(typeof(T), this)!;
             if (_session.Handle != 0)
                 instance.Initialize(type);
+            
             _hands[type] = instance;
             return instance;
         }

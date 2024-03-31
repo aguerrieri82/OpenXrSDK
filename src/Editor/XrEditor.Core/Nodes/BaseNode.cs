@@ -19,7 +19,7 @@
 
             while (curType != typeof(object))
             {
-                result.Insert(0, curType!.Name);
+                result.Add(curType!.Name);
                 curType = curType.BaseType;
             }
 

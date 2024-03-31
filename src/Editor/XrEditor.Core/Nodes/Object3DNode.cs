@@ -1,4 +1,5 @@
-﻿using XrEditor.Services;
+﻿using UI.Binding;
+using XrEditor.Services;
 using XrEngine;
 
 namespace XrEditor.Nodes
@@ -14,7 +15,16 @@ namespace XrEditor.Nodes
             _components.Add(new Transform3DNode(value.Transform));
         }
 
-        public override string DisplayName => _value.Name ?? _value.GetType().Name;
+        protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
+        {
+            base.EditorProperties(binder, curProps);
+
+            curProps.Add(new PropertyView
+            {
+                Label = "Visible",
+                Editor = new BoolEditor(binder.Prop(a => a.IsVisible))
+            });
+        }
 
         protected INode GetNode(object value)
         {
@@ -36,5 +46,8 @@ namespace XrEditor.Nodes
                     yield return GetNode(component);
             }
         }
+
+        public override string DisplayName => _value.Name ?? _value.GetType().Name;
+
     }
 }

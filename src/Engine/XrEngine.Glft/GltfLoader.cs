@@ -2,8 +2,10 @@
 using Newtonsoft.Json.Linq;
 using SkiaSharp;
 using System.Diagnostics;
+using System.Globalization;
 using System.Numerics;
 using System.Text;
+using System.Web;
 using XrMath;
 
 namespace XrEngine.Gltf
@@ -23,7 +25,54 @@ namespace XrEngine.Gltf
         public static readonly GltfLoaderOptions Default = new();
     }
 
-    public class GltfLoader : IAssetLoader
+    public class GltfAssetLoader : IAssetLoader
+    {
+        public bool CanHandle(Uri uri, out Type resType)
+        {
+            if (uri.Scheme == "res" && uri.Host == "gltf")
+            {
+                var seg = uri.Segments.FirstOrDefault();
+                if (seg == "/texture")
+                {
+                    resType = typeof(Texture2D);
+                    return true;
+                }
+            }
+
+            var ext = Path.GetExtension(uri.ToString());
+            if (ext == ".glb" || ext == ".gltf")
+            {
+                resType = typeof(Object3D);
+                return true;
+            }
+
+            resType = typeof(object);
+
+            return false;
+        }
+
+        public EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, object? options = null)
+        {
+            var loader = new GltfLoader();
+            var query = HttpUtility.ParseQueryString(uri.Query);
+            var src = query["src"]!;
+
+            loader.LoadModel(src, assetManager, (GltfLoaderOptions?)options);
+
+            var seg = uri.Segments[1].TrimEnd('/');
+
+            switch (seg)
+            {
+                case "texture":
+                    var id = int.Parse(uri.Segments[2].TrimEnd('/'));
+                    return loader.CreateTexture(loader.Model!.Textures[id], id);
+            }
+
+            throw new NotSupportedException();
+        }
+    }
+
+    public class GltfLoader 
     {
         GltfLoaderOptions? _options;
         IAssetManager? _assetManager;
@@ -140,12 +189,16 @@ namespace XrEngine.Gltf
             return result;
         }
 
-        protected Texture2D CreateTexture(TextureData data, glTFLoader.Schema.Texture texture, string? name, int id)
+        public Texture2D CreateTexture(glTFLoader.Schema.Texture texture, int id)
         {
+            var imageInfo = _model!.Images[texture.Source!.Value];
+
+            var data = LoadImage(imageInfo);
+
             CheckExtensions(texture.Extensions);
 
             var result = Texture2D.FromData([data]);
-            result.Name = texture.Name ?? name;
+            result.Name = texture.Name ?? (imageInfo.Name ?? "");
 
             bool hasMinFilter = false;
 
@@ -183,41 +236,23 @@ namespace XrEngine.Gltf
 
         protected Texture2D DecodeTextureOcclusion(glTFLoader.Schema.MaterialOcclusionTextureInfo info)
         {
-            var textInfo = _model!.Textures[info.Index];
-
-            var imageInfo = _model.Images[textInfo.Source!.Value];
-
-            var image = LoadImage(imageInfo);
-
             CheckExtensions(info.Extensions);
 
-            return CreateTexture(image, textInfo, imageInfo.Name ?? imageInfo.Uri, info.Index);
+            return CreateTexture(_model!.Textures[info.Index], info.Index);
         }
 
         protected Texture2D DecodeTextureNormal(glTFLoader.Schema.MaterialNormalTextureInfo info)
         {
-            var textInfo = _model!.Textures[info.Index];
-
-            var imageInfo = _model.Images[textInfo.Source!.Value];
-
-            var image = LoadImage(imageInfo);
-
             CheckExtensions(info.Extensions);
 
-            return CreateTexture(image, textInfo, imageInfo.Name ?? imageInfo.Uri, info.Index);
+            return CreateTexture(_model!.Textures[info.Index], info.Index);
         }
 
         protected Texture2D DecodeTextureBase(glTFLoader.Schema.TextureInfo info, bool useSRgb = false)
         {
-            var textInfo = _model!.Textures[info.Index];
-
-            var imageInfo = _model.Images[textInfo.Source!.Value];
-
-            var image = LoadImage(imageInfo, useSRgb);
-
             CheckExtensions(info.Extensions);
 
-            return CreateTexture(image, textInfo, imageInfo.Name ?? imageInfo.Uri, info.Index);
+            return CreateTexture(_model!.Textures[info.Index], info.Index);
         }
 
         protected PbrMaterial DecodeMaterial(glTFLoader.Schema.Material gltMat)
@@ -588,7 +623,7 @@ namespace XrEngine.Gltf
             return scene;
         }
 
-        protected void LoadModel(string filePath, IAssetManager assetManager, GltfLoaderOptions options)
+        public void LoadModel(string filePath, IAssetManager assetManager, GltfLoaderOptions options)
         {
             _buffers.Clear();
             _log.Clear();
@@ -640,42 +675,7 @@ namespace XrEngine.Gltf
             return loader.Load(filePath, assetManager, options);
         }
 
-        public bool CanHandle(Uri uri, out Type resType)
-        {
-            if (uri.Scheme == "res" && uri.Host == "gltf")
-            {
-                var seg = uri.Segments.FirstOrDefault();    
-                if (seg == "/texture")
-                {
-                    resType = typeof(Texture2D);
-                    return true;
-                }
-            }
 
-            var ext = Path.GetExtension(uri.ToString());
-            if (ext == ".glb" || ext == ".gltf")
-            {
-                resType = typeof(Object3D);
-                return true;
-            }
-
-            resType = typeof(object);
-
-            return false;
-        }
-
-        public object LoadAsset(Uri uri, Type resType, IAssetManager assetManager, object? options = null)
-        {
-            if (uri.Scheme == "res" && uri.Host == "gltf")
-            {
-                var seg = uri.Segments.FirstOrDefault();
-                if (seg == "/texture")
-                {
-                    return true;
-                }
-            }
-
-            throw new NotSupportedException();
-        }
+        public glTFLoader.Schema.Gltf? Model => _model;
     }
 }

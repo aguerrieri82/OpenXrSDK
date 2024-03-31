@@ -22,6 +22,8 @@ namespace XrEditor.Nodes
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
+            base.EditorProperties(binder, curProps);
+
             binder.PropertyChanged += (_, _, _, _) => _value.NotifyChanged(ObjectChangeType.Render);
 
             curProps.Add(new PropertyView
@@ -43,7 +45,6 @@ namespace XrEditor.Nodes
                 Editor = new ColorEditor(binder.Prop(a => a.Color))
             });
 
-            base.EditorProperties(binder, curProps);
         }
     }
 }

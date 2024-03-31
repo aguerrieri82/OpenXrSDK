@@ -5,12 +5,13 @@ namespace XrEngine
 {
     public class BoxCollider : Behavior<Object3D>, ICollider3D
     {
-        protected override void OnAttach()
+
+        protected override void Start(RenderContext ctx)
         {
             if (Size.Length() == 0)
             {
                 var local = _host?.Feature<ILocalBounds>();
-  
+
                 if (local != null)
                 {
                     local.UpdateBounds();
@@ -19,7 +20,6 @@ namespace XrEngine
                 }
             }
 
-            base.OnAttach();
         }
 
         public Collision? CollideWith(Ray3 ray)
@@ -41,6 +41,21 @@ namespace XrEngine
             }
             return null;
         }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            Size = container.Read<Vector3>(nameof(Size));
+            Center = container.Read<Vector3>(nameof(Center));
+        }
+
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.Write(nameof(Size), Size);
+            container.Write(nameof(Center), Center);
+        }
+
 
         public Vector3 Size { get; set; }
 

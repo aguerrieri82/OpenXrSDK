@@ -163,17 +163,14 @@ namespace XrEngine.OpenXr
         {
             var inputs = e.GetInputs<XrOculusTouchController>();
 
-            var rayCol = e.App!.ActiveScene!.AddComponent(new RayCollider(inputs.Right!.AimPose!));
+            var rayCol = e.App!.ActiveScene!.AddComponent(new RayCollider() { InputName = "RightAimPose" });
         });
 
 
         public XrEngineAppBuilder UseHands() => ConfigureApp(e =>
         {
-            var rHand = e.XrApp.AddHand<XrHandInputMesh>(HandEXT.RightExt);
-            var lHand = e.XrApp.AddHand<XrHandInputMesh>(HandEXT.LeftExt);
-
-            e.App.ActiveScene!.AddChild(new OculusHandView(rHand!));
-            e.App.ActiveScene!.AddChild(new OculusHandView(lHand!));
+            e.App.ActiveScene!.AddChild(new OculusHandView() { HandType = HandEXT.RightExt });
+            e.App.ActiveScene!.AddChild(new OculusHandView() { HandType = HandEXT.LeftExt });
         });
 
         public XrEngineAppBuilder UseGrabbers() => UseLeftController().

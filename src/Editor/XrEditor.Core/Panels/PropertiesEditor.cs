@@ -87,9 +87,24 @@ namespace XrEditor
                     result.Header = view.DisplayName;
             }
 
-            result.Properties = new List<PropertyView>();
+            var props  = new List<PropertyView>();
+            editorProps.EditorProperties(props);
 
-            editorProps.EditorProperties(result.Properties);
+            var propsCats = props.GroupBy(a => a.Category);
+
+            foreach (var cat in propsCats)
+            {
+                if (string.IsNullOrEmpty(cat.Key))
+                    result.Properties = cat.ToArray();
+                else
+                {
+                    var catGrp = new PropertiesGroupView();
+                    catGrp.Header = cat.Key;
+                    catGrp.Properties = cat.ToArray();
+                    result.Groups ??= new List<PropertiesGroupView>();
+                    result.Groups.Add(catGrp);
+                }
+            }
 
             return result;
         }

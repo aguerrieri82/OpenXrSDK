@@ -8,20 +8,30 @@ namespace XrEngine.OpenXr
 {
     public class XrRoot : Group3D
     {
-        readonly XrApp _xrApp;
+        protected XrApp? _xrApp;
 
-        public XrRoot(XrApp app)
+
+        public XrRoot()
         {
-            _xrApp = app;
-            _childGenerated = true;
+            Flags |= EngineObjectFlags.ChildGenerated;
 
             Name = "XrRoot";
+        }
 
-            RightHand = AddController("/user/hand/right/input/aim/pose", "Right Hand", "Models/MetaQuestTouchPlus_Right.glb");
+        protected override void Start(RenderContext ctx)
+        {
+            if (XrApp.Current == null)
+                throw new InvalidOperationException();
 
-            LeftHand = AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/MetaQuestTouchPlus_Left.glb");
+            _xrApp = XrApp.Current;
+
+            RightController = AddController("/user/hand/right/input/aim/pose", "Right Hand", "Models/MetaQuestTouchPlus_Right.glb");
+
+            LeftController = AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/MetaQuestTouchPlus_Left.glb");
 
             Head = AddHead();
+
+            base.Start(ctx);
         }
 
         protected Group3D AddHead()
@@ -33,7 +43,7 @@ namespace XrEngine.OpenXr
 
             group.AddBehavior((_, ctx) =>
             {
-                if (!_xrApp.IsStarted)
+                if (!_xrApp!.IsStarted)
                     return;
 
                 var head = _xrApp.LocateSpace(_xrApp.Head, _xrApp.Stage, _xrApp.LastFrameTime);
@@ -54,7 +64,7 @@ namespace XrEngine.OpenXr
 
         protected Group3D AddController(string path, string name, string modelFileName)
         {
-            var input = _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path);
+            var input = _xrApp!.Inputs.Values.FirstOrDefault(a => a.Path == path);
 
             var group = new Group3D
             {
@@ -105,10 +115,10 @@ namespace XrEngine.OpenXr
 
 
 
-        public Group3D Head { get; }
+        public Group3D? Head { get; protected set; }
 
-        public Group3D RightHand { get; }
+        public Group3D? RightController { get; protected set; }
 
-        public Group3D LeftHand { get; }
+        public Group3D? LeftController { get; protected set; }
     }
 }

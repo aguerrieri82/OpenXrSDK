@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace XrEngine
 {
-    public class AssetSource : BaseComponent<EngineObject>
+    public interface IObjectId
     {
-        public Uri? AssetUri { get; set; }
+        ObjectId Id { get; }    
     }
 }
