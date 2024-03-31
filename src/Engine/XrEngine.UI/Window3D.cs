@@ -84,7 +84,7 @@ namespace XrEngine.UI
                 _pixelSize.Height / _dpiScale * surfacePos.Y
             );
 
-            var capture = UiManager.GetPointerCapture(pointer.Id);
+            var capture = UiManager.GetPointerCapture(pointer.PointerId);
 
             if (capture != null)
             {

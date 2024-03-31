@@ -5,6 +5,7 @@ using WPF_Icons;
 using XrEditor.Services;
 using XrEngine;
 using XrEngine.OpenXr;
+using XrEngine.Services;
 
 namespace XrEditor
 {
@@ -14,8 +15,6 @@ namespace XrEditor
         {
             var res = (ResourceDictionary)LoadComponent(new Uri("/XrEditor.App;component/Resources.xaml", UriKind.Relative));
             Resources = res;
-
-  
         }
 
         protected override void OnExit(ExitEventArgs e)
@@ -37,6 +36,8 @@ namespace XrEditor
             Context.Implement<SelectionManager>();
             Context.Implement<IMainDispatcher>(new MainDispatcher());
             Context.Implement(XrPlatform.Current);
+
+            ModuleManager.Instance.Init();
 
             var app = new App();
 

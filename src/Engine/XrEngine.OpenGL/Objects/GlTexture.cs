@@ -445,23 +445,24 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
+        public long Version { get; set; }
 
-        public TextureWrapMode WrapS;
+        public TextureWrapMode WrapS { get; set; }
 
-        public TextureWrapMode WrapT;
+        public TextureWrapMode WrapT { get; set; }
 
-        public TextureMinFilter MinFilter;
+        public TextureMinFilter MinFilter { get; set; }
 
-        public TextureMagFilter MagFilter;
+        public TextureMagFilter MagFilter { get; set; }
 
-        public uint SampleCount;
+        public uint SampleCount { get; set; }
 
-        public uint BaseLevel;
+        public uint BaseLevel { get; set; }
 
-        public uint MaxLevel;
+        public uint MaxLevel { get; set; }
 
-        public TextureTarget Target;
-    
+        public TextureTarget Target { get; set; }
+
         public InternalFormat InternalFormat => _internalFormat;
 
         public bool IsCompressed => _isCompressed;

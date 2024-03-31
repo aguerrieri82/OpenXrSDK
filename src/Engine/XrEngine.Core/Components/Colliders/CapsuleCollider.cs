@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -39,6 +40,22 @@ namespace XrEngine
             //TODO implement
 
             return null;
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            Height = container.Read<float>(nameof(Height));
+            Radius = container.Read<float>(nameof(Radius));
+            Mode = container.Read<CapsuleColliderMode>(nameof(Mode));
+        }
+
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.Write(nameof(Height), Height);
+            container.Write(nameof(Radius), Radius);
+            container.Write(nameof(Mode), Mode);
         }
 
         public float Height { get; set; }

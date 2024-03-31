@@ -5,7 +5,7 @@ using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public class XrInputPointer : Behavior<Object3D>, IRayPointer
+    public class XrInputPointer : BaseComponent<Object3D>, IRayPointer
     {
         public RayPointerStatus GetPointerStatus()
         {
@@ -48,6 +48,6 @@ namespace XrEngine.OpenXr
 
         public XrInput<bool>? RightButton { get; set; }
 
-        public int Id => (int)_host!.Id.Value;
+        public int PointerId => (int)_host!.Id.Value;
     }
 }

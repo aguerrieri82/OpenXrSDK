@@ -164,7 +164,7 @@ namespace XrEngine.Physics
             return shape;
         }
 
-        protected void Create()
+        protected void Create(RenderContext ctx)
         {
             Debug.Assert(_host?.Scene != null);
 
@@ -197,6 +197,9 @@ namespace XrEngine.Physics
             {
                 if (!collider.IsEnabled)
                     continue;
+
+                if (collider is IRenderUpdate update)
+                    update.Update(ctx);
 
                 var shape = CreateShape(collider);
                 if (shape != null)
@@ -242,7 +245,7 @@ namespace XrEngine.Physics
 
         protected override void Start(RenderContext ctx)
         {
-            Create();
+            Create(ctx);
         }
 
         private void OnActorContact(PhysicsActor other, int otherIndex, ContactPair[] data)

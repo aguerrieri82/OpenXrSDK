@@ -5,6 +5,7 @@ using OpenXr.Framework.Oculus;
 using System.IO;
 using XrEngine;
 using XrEngine.OpenXr;
+using XrEngine.Services;
 
 namespace XrEditor
 {
@@ -15,6 +16,7 @@ namespace XrEditor
         public EditorPlatform()
         {
             AssetManager = new LocalAssetManager("Assets");
+            AssetLoader.Instance.AssetManager = AssetManager;   
             Logger = NullLogger.Instance;
         }
 

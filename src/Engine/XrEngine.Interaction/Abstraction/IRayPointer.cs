@@ -19,6 +19,6 @@ namespace XrEngine.Interaction
 
         void ReleasePointer();  
 
-        int Id { get; } 
+        int PointerId { get; } 
     }
 }

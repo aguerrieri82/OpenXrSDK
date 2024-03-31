@@ -43,7 +43,7 @@ namespace XrEditor
             _pointer.ReleasePointer();
         }
 
-        public int Id => _pointer.Id;   
+        public int PointerId => _pointer.PointerId;   
     }
 
     public class SceneView : BasePanel
@@ -79,15 +79,14 @@ namespace XrEditor
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
 
-            Scene = _engine.App.ActiveScene;
 
             var ctx = new StateContext();
             var json = new JsonStateContainer(ctx);
-            Scene.GetState(ctx, json);
-            json.Clear();
+            //_engine.App.ActiveScene.GetState(ctx, json);
 
-            var newScene = new Scene3D();
-            newScene.SetState(ctx, json);
+            //var newScene = new Scene3D();
+            //newScene.SetState(ctx, json);
+            Scene = _engine.App.ActiveScene;
 
             Context.Require<SelectionManager>().Set(Scene.GetNode());
         }

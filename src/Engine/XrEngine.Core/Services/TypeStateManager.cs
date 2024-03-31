@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using XrEngine.Services;
 using XrMath;
 
 namespace XrEngine
@@ -113,7 +114,8 @@ namespace XrEngine
                 if (objState.Contains("$uri"))
                 {
                     var assetUri = objState.Read<string>("$uri");
-                    throw new NotImplementedException();
+
+                    return AssetLoader.Instance.Load(new Uri(assetUri), objType, null);
                 }
                 else
                 {

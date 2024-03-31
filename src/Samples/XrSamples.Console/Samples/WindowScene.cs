@@ -13,6 +13,7 @@ using XrMath;
 using XrEngine.OpenXr;
 using OpenXr.Framework;
 using Microsoft.Extensions.Logging.Abstractions;
+using XrEngine.Services;
 
 
 
@@ -26,6 +27,7 @@ namespace XrSamples
             {
                 Logger = NullLogger.Instance;
                 AssetManager = new LocalAssetManager("Assets");
+                AssetLoader.Instance.AssetManager = AssetManager;
             }
 
             public string PersistentPath => Path.GetFullPath("Data");

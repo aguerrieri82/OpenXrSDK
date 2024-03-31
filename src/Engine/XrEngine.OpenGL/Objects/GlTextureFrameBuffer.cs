@@ -92,9 +92,9 @@ namespace XrEngine.OpenGL
         }
 
 
-        public GlTexture Color;
+        public GlTexture Color { get; set; }
 
-        public GlTexture? Depth;
+        public GlTexture? Depth { get; set; }
 
     }
 }

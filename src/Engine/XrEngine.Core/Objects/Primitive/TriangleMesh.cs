@@ -30,10 +30,7 @@ namespace XrEngine
             base.GetState(ctx, container);
 
             container.WriteRef(nameof(Geometry), Geometry);
-            var matState = container.Enter(nameof(Materials));
-
-            for (var i = 0; i < Materials.Count; i++) 
-                matState.WriteRef(i.ToString(), Materials[i]);
+            container.WriteRefArray(nameof(Materials), _materials);
         }
 
         protected override void SetStateWork(StateContext ctx, IStateContainer container)
@@ -42,7 +39,7 @@ namespace XrEngine
 
             Geometry = container.Read<Geometry3D>(nameof(Geometry));
 
-            var matState = container.Enter(nameof(Materials));
+            container.ReadArray(ctx, nameof(Materials), _materials, _materials.Add, a => _materials.Remove(a));
         }
 
         public override T? Feature<T>() where T : class

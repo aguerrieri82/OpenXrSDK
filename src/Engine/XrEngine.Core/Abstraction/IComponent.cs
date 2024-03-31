@@ -1,6 +1,7 @@
-﻿namespace XrEngine
+﻿
+namespace XrEngine
 {
-    public interface IComponent
+    public interface IComponent : IStateManager, IObjectId
     {
         void Attach(IComponentHost host);
 
@@ -9,8 +10,6 @@
         bool IsEnabled { get; set; }
 
         IComponentHost? Host { get; }
-
-        ObjectId Id { get; }
     }
 
     public interface IComponent<THost> : IComponent where THost : IComponentHost

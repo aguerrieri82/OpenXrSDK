@@ -4,6 +4,75 @@
                                         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+
+    <DataTemplate x:Key="InnerGroup" DataType="{x:Type local:PropertiesGroupView}">
+        <StackPanel Margin="4,0,0,0" x:Name="groupView" Orientation="Vertical">
+
+            <i:Interaction.Triggers>
+                <i:DataTrigger Binding="{Binding IsCollapsed}" Comparison="Equal" Value="True">
+                    <i:GoToStateAction TargetObject="{Binding groupView}" StateName="Collapsed"/>
+                </i:DataTrigger>
+                <i:DataTrigger Binding="{Binding IsCollapsed}" Comparison="Equal" Value="False">
+                    <i:GoToStateAction TargetObject="{Binding groupView}" StateName="Normal"/>
+                </i:DataTrigger>
+            </i:Interaction.Triggers>
+
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal"/>
+                    <VisualState x:Name="Collapsed">
+                        <Storyboard>
+                            <DoubleAnimation
+                                Storyboard.TargetName="collapseIcon"
+                                Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                 To="-90" Duration="0:0:0.200" />
+                            <DoubleAnimation
+                                Storyboard.TargetName="content"
+                                Storyboard.TargetProperty="Opacity"
+                                From="1.0" To="0" Duration="0:0:0.200" />
+                            <DoubleAnimation
+                                 Storyboard.TargetName="content"
+                                 Storyboard.TargetProperty="(FrameworkElement.Height)"
+                                 From="100" To="0" Duration="0:0:0.200" />
+                            <ObjectAnimationUsingKeyFrames 
+                                 Storyboard.TargetName="content"
+                                 Storyboard.TargetProperty="Visibility"
+                                Duration="0:0:0.200" >
+                                <DiscreteObjectKeyFrame Value="{x:Static Visibility.Hidden}"/>
+                            </ObjectAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+
+            <DockPanel>
+
+                <Button Command="{Binding ToggleCollapseCommand}" Margin="0,0,5,0" Style="{DynamicResource IconButton}" DockPanel.Dock="Left">
+                    <ic:Icon x:Name="collapseIcon" Filled="True" Color="#666" Size="12" Kind="icon_arrow_drop_down">
+                        <ic:Icon.RenderTransform>
+                            <RotateTransform CenterX="6" CenterY="6" />
+                        </ic:Icon.RenderTransform>
+                    </ic:Icon>
+                </Button>
+  
+                <ContentControl FontWeight="Bold" Content="{Binding Header}"/>
+            </DockPanel>
+            
+            <StackPanel x:Name="content" Orientation="Vertical">
+                <Border Padding="30,8,8,8">
+                    <ItemsControl ItemsSource="{Binding Properties}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ContentPresenter Margin="0,0,0,8" Content="{Binding}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </StackPanel>
+
+        </StackPanel>
+    </DataTemplate>
+    
     <DataTemplate DataType="{x:Type local:PropertiesGroupView}">
         <StackPanel x:Name="groupView" Orientation="Vertical">
 
@@ -67,7 +136,8 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </Border>
-                <ItemsControl ItemsSource="{Binding Groups}">
+                <ItemsControl ItemTemplate="{StaticResource InnerGroup}" ItemsSource="{Binding Groups}">
+                    
                 </ItemsControl>
             </StackPanel>
 

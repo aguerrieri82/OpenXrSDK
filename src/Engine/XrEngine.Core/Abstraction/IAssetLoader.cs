@@ -10,7 +10,7 @@ namespace XrEngine
     {
         bool CanHandle(Uri uri, out Type resType);
 
-        object LoadAsset(Uri uri, Type resType, IAssetManager assetManager, object? options = null);
+        EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, object? options = null);
 
 
     }

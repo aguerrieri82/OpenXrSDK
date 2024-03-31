@@ -29,6 +29,6 @@ namespace XrEngine.UI
             _pointer.ReleasePointer();
         }
 
-        public readonly int Id => _pointer.Id;
+        public readonly int Id => _pointer.PointerId;
     }
 }

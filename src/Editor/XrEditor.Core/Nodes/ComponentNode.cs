@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UI.Binding;
 using XrEngine;
 
 namespace XrEditor.Nodes
@@ -14,7 +15,13 @@ namespace XrEditor.Nodes
         {
         }
 
-        public virtual void EditorProperties(IList<PropertyView> curProps)
+        public void EditorProperties(IList<PropertyView> curProps)
+        {
+            var binder = new Binder<T>(_value);
+            EditorProperties(binder, curProps);
+        }
+
+        protected virtual void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
 
         }

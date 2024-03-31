@@ -2,7 +2,7 @@
 {
     public interface IStateContainer
     {
-        IStateContainer Enter(string key);
+        IStateContainer Enter(string key, bool resolveRef = false);
 
         void WriteRef(string key, object? value);
 

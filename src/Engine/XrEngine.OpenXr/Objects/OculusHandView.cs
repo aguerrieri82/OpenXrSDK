@@ -1,6 +1,8 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using PhysX.Framework;
+using Silk.NET.OpenXR;
+using System.Diagnostics;
 using System.Numerics;
 using XrEngine.Physics;
 using XrMath;
@@ -9,27 +11,50 @@ namespace XrEngine.OpenXr
 {
     public class OculusHandView : Group3D
     {
-        protected XrHandInputMesh _input;
+        protected XrHandInputMesh? _input;
         protected bool _isInit;
 
-        public OculusHandView(XrHandInputMesh input)
+        public OculusHandView()
         {
-            _input = input;
-            Name = "Hand " + input.HandType;
-            //TODO option to craete RB
             CreateRigidBody = false;
+        }
+
+        protected override void Start(RenderContext ctx)
+        {
+            if (XrApp.Current == null)
+                throw new ArgumentNullException();
+
+            Name ??= "Hand " + HandType;
+            _input = XrApp.Current!.AddHand<XrHandInputMesh>(HandType);
+
+            base.Start(ctx);
+        }
+
+        public override void GetState(StateContext ctx, IStateContainer container)
+        {
+            base.GetState(ctx, container);
+            container.Write(nameof(HandType), HandType);
+            container.Write(nameof(CreateRigidBody), CreateRigidBody);
+        }
+
+        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        {
+            base.SetStateWork(ctx, container);
+            HandType = container.Read<HandEXT>(nameof(HandType));
+            CreateRigidBody = container.Read<bool>(nameof(CreateRigidBody));
         }
 
         public override T? Feature<T>() where T : class
         {
-            if (typeof(T).IsAssignableFrom(_input.GetType()))
+            if (typeof(T).IsAssignableFrom(_input!.GetType()))
                 return (T)(object)_input;
             return base.Feature<T>();
         }
 
         protected override void UpdateSelf(RenderContext ctx)
         {
-            if (!_isInit && XrApp.Current != null && XrApp.Current.IsStarted && _input.IsActive)
+
+            if (!_isInit && _input != null && XrApp.Current!.IsStarted && _input.IsActive)
             {
                 _input.LoadMesh();
 
@@ -71,7 +96,7 @@ namespace XrEngine.OpenXr
                 _isInit = true;
             }
 
-            if (_isInit && _input.IsActive)
+            if (_isInit && _input!.IsActive)
             {
                 for (var i = 0; i < _input.Capsules.Length; i++)
                 {
@@ -97,13 +122,15 @@ namespace XrEngine.OpenXr
             }
 
             if (_isInit)
-                IsVisible = _input.IsActive;
+                IsVisible = _input!.IsActive;
 
             base.UpdateSelf(ctx);
         }
 
         public bool CreateRigidBody { get; set; }
 
-        public XrHandInputMesh HandInput => _input;
+        public HandEXT HandType { get; set; }   
+
+        public XrHandInputMesh HandInput => _input ?? throw new ArgumentNullException();
     }
 }

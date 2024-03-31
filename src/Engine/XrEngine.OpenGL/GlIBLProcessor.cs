@@ -322,19 +322,18 @@ namespace XrEngine.OpenGL
             _gl.BindTexture(TextureTarget.TextureCubeMap, 0);
         }
 
-        public InternalFormat EnvFormat;
-
-        public InternalFormat LutFormat;
-
         public uint OutCubeMapId => _cubeMapId;
 
+        public InternalFormat EnvFormat { get; set; }
 
-        public uint Resolution;
+        public InternalFormat LutFormat { get; set; }
 
-        public uint SampleCount;
+        public uint Resolution { get; set; }
 
-        public float LodBias;
+        public uint SampleCount { get; set; }
 
-        public uint MipLevelCount;
+        public float LodBias { get; set; }
+
+        public uint MipLevelCount { get; set; }
     }
 }
