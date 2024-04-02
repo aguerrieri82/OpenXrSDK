@@ -33,7 +33,7 @@ namespace XrSamples
             _game = new EngineApp(); //TODO Fix this
             //_game = SampleScenes.CreateDefaultScene();
 
-            _game.ActiveScene!.AddComponent(new RayCollider(_inputs.Right!.AimPose!));
+            _game.ActiveScene!.AddComponent(new RayCollider() { InputName = "RightAimPose" });
 
             xrApp.BindEngineAppGL(_game);
 

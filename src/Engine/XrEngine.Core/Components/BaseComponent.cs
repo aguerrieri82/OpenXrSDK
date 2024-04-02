@@ -40,7 +40,7 @@ namespace XrEngine
             _host = default;
         }
 
-        public virtual void GetState(StateContext ctx, IStateContainer container)
+        public virtual void GetState(IStateContainer container)
         {
             if (_id.Value == 0)
                 _id = ObjectId.New();
@@ -49,12 +49,12 @@ namespace XrEngine
             container.Write(nameof(IsEnabled), IsEnabled);
         }
 
-        public void SetState(StateContext ctx, IStateContainer container)
+        public void SetState(IStateContainer container)
         {
-            SetStateWork(ctx, container);
+            SetStateWork(container);
         }
 
-        protected virtual void SetStateWork(StateContext ctx, IStateContainer container)
+        protected virtual void SetStateWork(IStateContainer container)
         {
             _id.Value = container.Read<uint>(nameof(Id));
             IsEnabled = container.Read<bool>(nameof(IsEnabled));

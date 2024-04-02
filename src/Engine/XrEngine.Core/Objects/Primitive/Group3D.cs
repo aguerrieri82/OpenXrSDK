@@ -13,24 +13,24 @@ namespace XrEngine
             BoundUpdateMode = UpdateMode.Manual;
         }
 
-        public override void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(IStateContainer container)
         {
-            base.GetState(ctx, container);
+            base.GetState(container);
 
             if ((Flags & EngineObjectFlags.ChildGenerated) == EngineObjectFlags.ChildGenerated)
                 return;
 
-            container.WriteArray(ctx, nameof(Children), _children);
+            container.WriteArray(nameof(Children), _children);
         }
 
-        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        protected override void SetStateWork(IStateContainer container)
         {
-            base.SetStateWork(ctx, container);
+            base.SetStateWork(container);
 
             if ((Flags & EngineObjectFlags.ChildGenerated) == EngineObjectFlags.ChildGenerated)
                 return;
 
-            container.ReadArray(ctx, nameof(Children), _children, a => AddChild(a), a => RemoveChild(a));
+            container.ReadArray(nameof(Children), _children, a => AddChild(a), a => RemoveChild(a));
         }
 
         protected internal override void InvalidateWorld()

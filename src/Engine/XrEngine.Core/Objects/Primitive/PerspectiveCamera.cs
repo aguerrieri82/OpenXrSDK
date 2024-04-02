@@ -50,16 +50,16 @@ namespace XrEngine
             }
         }
 
-        public override void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(IStateContainer container)
         {
-            base.GetState(ctx, container);
+            base.GetState(container);
             container.Write(nameof(Target), Target);
 
         }
 
-        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        protected override void SetStateWork(IStateContainer container)
         {
-            base.SetStateWork(ctx, container);
+            base.SetStateWork(container);
             Target = container.Read<Vector3>(nameof(Target));
         }
 

@@ -31,12 +31,12 @@ namespace XrEditor
             return Task.CompletedTask;
         }
 
-        public virtual void GetState(StateContext ctx, IStateContainer container)
+        public virtual void GetState(IStateContainer container)
         {
             throw new NotImplementedException();
         }
 
-        public virtual void SetState(StateContext ctx, IStateContainer container)
+        public virtual void SetState(IStateContainer container)
         {
             throw new NotImplementedException();
         }

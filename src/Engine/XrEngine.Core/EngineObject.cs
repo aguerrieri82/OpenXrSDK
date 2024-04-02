@@ -18,27 +18,27 @@ namespace XrEngine
         protected ObjectChange? _lastChange;
         protected int _updateCount;
 
-        public void SetState(StateContext ctx, IStateContainer container)
+        public void SetState(IStateContainer container)
         {
             BeginUpdate();
-            SetStateWork(ctx, container);
+            SetStateWork(container);
             EndUpdate();
         }
 
-        public virtual void GetState(StateContext ctx, IStateContainer container)
+        public virtual void GetState(IStateContainer container)
         {
             EnsureId();
             container.Write(nameof(Id), _id.Value);
 
             if (_components != null)
-                container.WriteArray(ctx, nameof(Components), _components);
+                container.WriteArray(nameof(Components), _components);
         }
 
-        protected virtual void SetStateWork(StateContext ctx, IStateContainer container)
+        protected virtual void SetStateWork(IStateContainer container)
         {
             _id.Value = container.Read<uint>(nameof(Id));
             _components ??= [];
-            container.ReadArray(ctx, nameof(Components), _components, a => AddComponent(a), RemoveComponent);
+            container.ReadArray(nameof(Components), _components, a => AddComponent(a), RemoveComponent);
         }
 
         public void BeginUpdate()

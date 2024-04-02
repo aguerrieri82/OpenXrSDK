@@ -16,18 +16,20 @@ namespace XrEngine
             Vertices = [];
         }
 
-        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        protected override void SetStateWork(IStateContainer container)
         {
-            base.SetStateWork(ctx, container);
+            base.SetStateWork(container);
             Indices = container.ReadBuffer<uint>(nameof(Indices));
             Vertices = container.ReadBuffer<VertexData>(nameof(Vertices));
+            ActiveComponents = container.Read<VertexComponent>(nameof(ActiveComponents));
         }
 
-        public unsafe override void GetState(StateContext ctx, IStateContainer container)
+        public unsafe override void GetState(IStateContainer container)
         {
-            base.GetState(ctx, container);
+            base.GetState(container);
             container.WriteBuffer(nameof(Indices), Indices);
             container.WriteBuffer(nameof(Vertices), Vertices);
+            container.Write(nameof(ActiveComponents), ActiveComponents);
         }
 
 

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -46,7 +47,6 @@ namespace XrEngine
 
 
             _isDirty = false;
-
 
             return true;
         }
@@ -125,11 +125,11 @@ namespace XrEngine
 
         public void SetMatrix(Matrix4x4 matrix)
         {
-            _matrix = matrix;
 
             Matrix4x4.Decompose(matrix, out _scale, out _orientation, out _position);
 
             _rotation = _orientation.ToEuler();
+            _matrix = matrix;
 
             _host?.NotifyChanged(ObjectChangeType.Transform);
         }
@@ -140,7 +140,7 @@ namespace XrEngine
             SetMatrix(Matrix4x4.Identity);
         }
 
-        public void GetState(StateContext ctx, IStateContainer container)
+        public void GetState(IStateContainer container)
         {
             container.Write(nameof(Scale), _scale);
             container.Write(nameof(Position), _position);
@@ -148,7 +148,7 @@ namespace XrEngine
             container.Write(nameof(LocalPivot), _localPivot);
         }
 
-        public void SetState(StateContext ctx, IStateContainer container)
+        public void SetState(IStateContainer container)
         {
             _scale = container.Read<Vector3>(nameof(Scale));
             _position = container.Read<Vector3>(nameof(Position));

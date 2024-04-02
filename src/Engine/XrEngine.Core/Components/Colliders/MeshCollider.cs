@@ -30,15 +30,15 @@ namespace XrEngine
             }
         }
 
-        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        protected override void SetStateWork(IStateContainer container)
         {
-            base.SetStateWork(ctx, container);
+            base.SetStateWork(container);
             _geometry = container.Read<Geometry3D?>(nameof(Geometry));
         }
 
-        public override void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(IStateContainer container)
         {
-            base.GetState(ctx, container);
+            base.GetState(container);
             container.WriteRef(nameof(Geometry), Geometry);
         }
 

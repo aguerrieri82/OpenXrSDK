@@ -64,6 +64,18 @@ namespace XrEngine
             }
         }
 
+        public override void GetState(IStateContainer container)
+        {
+            base.GetState(container);
+            container.WriteRef(nameof(ActiveCamera), ActiveCamera);
+        }
+
+        protected override void SetStateWork(IStateContainer container)
+        {
+            base.SetStateWork(container);
+            ActiveCamera = container.ReadTypedRef<Camera>(nameof(ActiveCamera));
+        }
+
         public Camera? ActiveCamera
         {
             get => _activeCamera;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -9,26 +10,41 @@ namespace XrEngine.Services
 {
     public class MemoryStateContainer : IStateContainer
     {
-        struct ObjectRef(object obj)
+        public class StateContext : IStateContext
         {
-            public object Reference = obj;
+            public RefTable RefTable { get; } = new();
         }
 
+        private readonly Dictionary<string, object?> _state;
 
-        private readonly Dictionary<string, object?> _state = [];
-        private readonly StateContext _ctx;
+        private readonly StateContext _context;
 
-        public MemoryStateContainer(StateContext ctx)
+
+        public MemoryStateContainer()
         {
-            _ctx = ctx; 
+            _context = new StateContext();
+            _context.RefTable.Container = new MemoryStateContainer(_context, []);
+            _state = [];
+        }
+
+        MemoryStateContainer(StateContext ctx, Dictionary<string, object?> state)
+        {
+            _context = ctx;
+            _state = state; 
         }
 
         public IStateContainer Enter(string key, bool resolveRef = false)
         {
             if (!_state.TryGetValue(key, out var value))
             {
-                value = new MemoryStateContainer(_ctx);
+                value = new MemoryStateContainer(_context, []);
                 _state[key] = value;    
+            }
+
+            if (resolveRef && IsRef(key))
+            {
+                var id = (ObjectId)_state[key]!;
+                return _context.RefTable.Container!.Enter(id.ToString());
             }
 
             return (IStateContainer)value!;
@@ -37,21 +53,16 @@ namespace XrEngine.Services
 
         public object? Read(string key, Type type)
         {
-            var value = _state[key];
+            if (IsRef(key))
+                throw new InvalidOperationException();
 
-            if (value is ObjectRef objectRef)
-                return objectRef.Reference;
+            var value = _state[key];
 
             var manager = TypeStateManager.Instance.Get(type);
             if (manager != null)
-                return manager.Read(key, type, this, _ctx);
+                return manager.Read(key, type, this);
 
             return value;
-        }
-
-        public T Read<T>(string key)
-        {
-            return (T)Read(key, typeof(T))!;
         }
 
         public void Write(string key, object? value)
@@ -61,7 +72,7 @@ namespace XrEngine.Services
                 var manager = TypeStateManager.Instance.Get(value.GetType());
                 if (manager != null)
                 {
-                    manager.Write(key, value, this, _ctx);
+                    manager.Write(key, value, this);
                     return;
                 }
             }
@@ -69,20 +80,20 @@ namespace XrEngine.Services
             _state[key] = value;
         }
 
-        public void WriteRef(string key, object? value)
-        {
-            if (value != null)
-                _state[key] = new ObjectRef(value);
-            else
-                _state[key] = null; 
-        }
 
         public bool Contains(string key)
         {
             return _state.ContainsKey(key); 
         }
 
+        public bool IsRef(string key)
+        {
+            return _state[key] is ObjectId;
+        }
+
         public int Count => _state.Count;
+
+        public IStateContext Context => _context;
 
         public IEnumerable<string> Keys => _state.Keys;
 

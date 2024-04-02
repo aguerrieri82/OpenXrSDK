@@ -88,16 +88,16 @@ namespace XrEngine
             Version++;
         }
 
-        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        protected override void SetStateWork(IStateContainer container)
         {
-            base.SetStateWork(ctx, container);
+            base.SetStateWork(container);
             container.ReadObject<PlaneGrid>(this);
             Create();
         }
 
-        public override void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(IStateContainer container)
         {
-            base.GetState(ctx, container);  
+            base.GetState(container);  
             container.WriteObject<PlaneGrid>(this);
         }
 

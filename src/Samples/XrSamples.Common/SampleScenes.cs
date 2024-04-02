@@ -84,8 +84,8 @@ namespace XrSamples
 
                 scene.PerspectiveCamera().Exposure = 0.5f;
 
-                scene.AddChild<EnvironmentView>();
-
+                var envView = scene.AddChild<EnvironmentView>();
+                envView.IsVisible = showEnv;
 
                 var light = scene.AddChild<ImageLight>();
                 light.Intensity = 1f;
@@ -266,7 +266,7 @@ namespace XrSamples
           
             return builder
                    .UseApp(app)
-                   //.UseScene(true)
+                   .UseScene(true)
                    .ConfigureSampleApp()
                    .UseEnvironmentHDR("Envs/lightroom_14b.hdr", false)
                    .UsePhysics(new PhysicsOptions
@@ -284,7 +284,7 @@ namespace XrSamples
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
-
+            assets.GetFsPath("Chess/ABeautifulGame.bin");
             var mesh = (Group3D)GltfLoader.LoadFile(assets.GetFsPath("Chess/ABeautifulGame.gltf"), assets, GltfOptions);
             mesh.Name = "mesh";
             mesh.BoundUpdateMode = UpdateMode.Automatic;
@@ -307,8 +307,8 @@ namespace XrSamples
                 */
             }
 
-            mesh.Transform.SetScale(1f);
-            mesh.Transform.Position = new Vector3(0, 1, 0);
+            mesh.Transform.SetScale(4f);
+            mesh.Transform.Position = new Vector3(0, 1.5f, 0);
 
             scene.AddChild(mesh);
 
@@ -317,7 +317,7 @@ namespace XrSamples
             return builder
                     .UseApp(app)
                     .ConfigureSampleApp()
-                    .UseEnvironmentHDR("Envs/pisa.hdr")
+                    .UseEnvironmentHDR("Envs/pisa.hdr", false)
                     .UsePhysics(new PhysicsOptions());
         }
 

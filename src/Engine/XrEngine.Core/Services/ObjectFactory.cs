@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ namespace XrEngine
 
         public object CreateObject(string typeName)
         {
+            Debug.WriteLine($"Create new {typeName}");
+
             var type = FindType(typeName);
 
             if (type == null)

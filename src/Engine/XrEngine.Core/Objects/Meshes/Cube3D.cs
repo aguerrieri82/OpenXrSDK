@@ -52,12 +52,12 @@
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0;
         }
 
-        public override void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(IStateContainer container)
         {
 
         }
 
-        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        protected override void SetStateWork(IStateContainer container)
         {
 
         }
