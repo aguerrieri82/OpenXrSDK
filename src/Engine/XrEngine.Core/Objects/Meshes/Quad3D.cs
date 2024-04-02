@@ -16,12 +16,12 @@ namespace XrEngine
             Build();
         }
 
-        public override void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(IStateContainer container)
         {
             container.Write(nameof(Size), Size);
         }
 
-        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        protected override void SetStateWork(IStateContainer container)
         {
             Size = container.Read<Size2>(nameof(Size));
             Build();

@@ -27,6 +27,15 @@ namespace XrEngine.Gltf
 
     public class GltfAssetLoader : IAssetLoader
     {
+        Dictionary<string, GltfAssetCache> _cache = [];
+
+        class GltfAssetCache
+        {
+            public GltfLoader? Loader { get; set; }  
+
+            public DateTime LastEditTime { get; set; }
+        }
+
         public bool CanHandle(Uri uri, out Type resType)
         {
             if (uri.Scheme == "res" && uri.Host == "gltf")
@@ -53,11 +62,27 @@ namespace XrEngine.Gltf
 
         public EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, object? options = null)
         {
-            var loader = new GltfLoader();
             var query = HttpUtility.ParseQueryString(uri.Query);
-            var src = query["src"]!;
+            string src;
 
-            loader.LoadModel(src, assetManager, (GltfLoaderOptions?)options);
+            if (uri.Scheme == "res")
+                src = query["src"]!;
+            else
+                src = uri.LocalPath;
+
+            var fsSrc = assetManager.GetFsPath(src);
+            var lastEditTime = File.GetLastWriteTime(fsSrc);
+
+            if (!_cache.TryGetValue(fsSrc, out var cache) || lastEditTime > cache.LastEditTime)
+            {
+                cache = new GltfAssetCache
+                {
+                    LastEditTime = lastEditTime,
+                    Loader = new GltfLoader()
+                };
+                cache.Loader.LoadModel(src, assetManager, (GltfLoaderOptions?)options);
+                _cache[fsSrc] = cache;
+            }
 
             var seg = uri.Segments[1].TrimEnd('/');
 
@@ -65,7 +90,7 @@ namespace XrEngine.Gltf
             {
                 case "texture":
                     var id = int.Parse(uri.Segments[2].TrimEnd('/'));
-                    return loader.CreateTexture(loader.Model!.Textures[id], id);
+                    return cache.Loader!.CreateTexture(cache.Loader.Model!.Textures[id], id);
             }
 
             throw new NotSupportedException();
@@ -623,7 +648,7 @@ namespace XrEngine.Gltf
             return scene;
         }
 
-        public void LoadModel(string filePath, IAssetManager assetManager, GltfLoaderOptions options)
+        public void LoadModel(string filePath, IAssetManager assetManager, GltfLoaderOptions? options)
         {
             _buffers.Clear();
             _log.Clear();
@@ -636,8 +661,8 @@ namespace XrEngine.Gltf
             _basePath = Path.GetDirectoryName(filePath)!;
             _filePath = filePath;
 
-            _model = glTFLoader.Interface.LoadModel(assetManager.GetFsPath(filePath));
 
+            _model = glTFLoader.Interface.LoadModel(assetManager.GetFsPath(filePath));
         }
 
 

@@ -1,21 +1,23 @@
 ﻿namespace XrEngine
 {
+
+
     public interface IStateContainer
     {
         IStateContainer Enter(string key, bool resolveRef = false);
 
-        void WriteRef(string key, object? value);
+        bool IsRef(string key);
 
         void Write(string key, object? value);
 
         object? Read(string key, Type type);
-
-        T Read<T>(string key);
 
         int Count { get; }
 
         bool Contains(string key);  
 
         IEnumerable<string> Keys { get; }  
+
+        IStateContext Context { get; }
     }
 }

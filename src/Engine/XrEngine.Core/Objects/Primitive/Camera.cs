@@ -16,9 +16,9 @@ namespace XrEngine
             Exposure = 1;
         }
 
-        public override void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(IStateContainer container)
         {
-            base.GetState(ctx, container);
+            base.GetState(container);
             container.Write(nameof(BackgroundColor), BackgroundColor);
             container.Write(nameof(Near), Near);
             container.Write(nameof(Far), Far);
@@ -26,9 +26,9 @@ namespace XrEngine
             container.Write(nameof(Projection), Projection);
         }
 
-        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        protected override void SetStateWork(IStateContainer container)
         {
-            base.SetStateWork(ctx, container);
+            base.SetStateWork(container);
             BackgroundColor = container.Read<Color>(nameof(BackgroundColor));
             Near = container.Read<float>(nameof(Near));
             Far = container.Read<float>(nameof(Far));

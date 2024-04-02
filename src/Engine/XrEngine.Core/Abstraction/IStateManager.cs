@@ -1,17 +1,29 @@
 ﻿using Microsoft.VisualBasic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 namespace XrEngine
 {
-    public class StateContext
+    public class RefTable
     {
+
+
+        public readonly Dictionary<ObjectId, object> Resolved = [];
+
+        public IStateContainer? Container;
+
+    }
+
+    public interface IStateContext
+    {
+        public RefTable RefTable { get; }
     }
 
     public interface IStateManager
     {
-        void GetState(StateContext ctx, IStateContainer container);
+        void GetState(IStateContainer container);
 
-        void SetState(StateContext ctx, IStateContainer container);
+        void SetState(IStateContainer container);
     }
 
 }

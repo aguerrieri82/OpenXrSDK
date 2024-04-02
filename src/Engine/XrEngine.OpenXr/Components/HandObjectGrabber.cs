@@ -83,7 +83,7 @@ namespace XrEngine.OpenXr
                     }
                     index++;
                 }
-                _isInit = true;
+                _isInit = _distalIndices.Count > 0;
             }
 
             base.Update(ctx);

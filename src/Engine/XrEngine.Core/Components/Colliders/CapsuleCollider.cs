@@ -42,17 +42,17 @@ namespace XrEngine
             return null;
         }
 
-        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        protected override void SetStateWork(IStateContainer container)
         {
-            base.SetStateWork(ctx, container);
+            base.SetStateWork(container);
             Height = container.Read<float>(nameof(Height));
             Radius = container.Read<float>(nameof(Radius));
             Mode = container.Read<CapsuleColliderMode>(nameof(Mode));
         }
 
-        public override void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(IStateContainer container)
         {
-            base.GetState(ctx, container);
+            base.GetState(container);
             container.Write(nameof(Height), Height);
             container.Write(nameof(Radius), Radius);
             container.Write(nameof(Mode), Mode);

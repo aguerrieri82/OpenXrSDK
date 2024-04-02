@@ -3,6 +3,9 @@ namespace XrEngine
 {
     public class ImageLight : Light
     {
+        string? _hdrFileName;
+        TextureData? _hdrData;
+
         public ImageLight()
         {
             Intensity = 3;
@@ -10,6 +13,9 @@ namespace XrEngine
 
         public void LoadPanorama(string hdrFileName)
         {
+            if (_hdrFileName == hdrFileName)
+                return;
+
             using (var stream = File.OpenRead(hdrFileName))
             {
                 var ext = Path.GetExtension(hdrFileName);
@@ -23,10 +29,24 @@ namespace XrEngine
                 else
                     data = ImageReader.Instance.Read(stream, new TextureReadOptions { Format = TextureFormat.RgbaFloat32 })[0];
 
-                LoadPanorama(data);
+                _hdrData = data;
             }
+
+            _hdrFileName = hdrFileName;
+
+
         }
 
+        public override void Update(RenderContext ctx)
+        {
+            if (_hdrData != null)
+            {
+                LoadPanorama(_hdrData);
+                NotifyChanged(ObjectChangeType.Render);
+                _hdrData = null;
+            }
+            base.Update(ctx);
+        }
 
         public void LoadPanorama(TextureData data)
         {
@@ -47,17 +67,19 @@ namespace XrEngine
             Textures.Panorama = new Texture2D([data]);
         }
 
-        public override void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(IStateContainer container)
         {
-            base.GetState(ctx, container);
+            base.GetState(container);
             container.Write(nameof(Rotation), Rotation);
-
+            container.Write("HdrFileName", _hdrFileName);
         }
 
-        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        protected override void SetStateWork(IStateContainer container)
         {
-            base.SetStateWork(ctx, container);
+            base.SetStateWork(container);
             Rotation = container.Read<float>(nameof(Rotation));
+            if (container.Contains("HdrFileName"))
+                LoadPanorama(container.Read<string>("HdrFileName"));
         }
 
         public PbrMaterial.IBLTextures? Textures { get; set; }

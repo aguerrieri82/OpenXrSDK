@@ -79,14 +79,13 @@ namespace XrEditor
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
 
+            var json = new MemoryStateContainer();
+            _engine.App.ActiveScene.GetState(json);
 
-            var ctx = new StateContext();
-            var json = new JsonStateContainer(ctx);
-            //_engine.App.ActiveScene.GetState(ctx, json);
-
-            //var newScene = new Scene3D();
-            //newScene.SetState(ctx, json);
-            Scene = _engine.App.ActiveScene;
+            var newScene = new Scene3D();
+            newScene.SetState(json);
+            Scene = newScene;
+            _engine.App.OpenScene(newScene);
 
             Context.Require<SelectionManager>().Set(Scene.GetNode());
         }

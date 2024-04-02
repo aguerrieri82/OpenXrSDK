@@ -150,23 +150,23 @@ namespace XrEngine
             NotifyChanged(changeType);
         }
 
-        public override void GetState(StateContext ctx, IStateContainer container)
+        public override void GetState(IStateContainer container)
         {
-            base.GetState(ctx, container);
+            base.GetState(container);
             container.Write(nameof(Name), Name);
             container.Write(nameof(Tag), Tag);
             container.Write(nameof(IsVisible), IsVisible);
-            _transform.GetState(ctx, container.Enter("Transform"));
+            _transform.GetState(container.Enter("Transform"));
         }
 
-        protected override void SetStateWork(StateContext ctx, IStateContainer container)
+        protected override void SetStateWork(IStateContainer container)
         {
-            base.SetStateWork(ctx, container);  
+            base.SetStateWork(container);  
 
             Name = container.Read<string?>(nameof(Name));
             Tag = container.Read<string?>(nameof(Tag));
             IsVisible = container.Read<bool>(nameof(IsVisible));
-            _transform.SetState(ctx, container.Enter("Transform"));
+            _transform.SetState(container.Enter("Transform"));
         }
 
         public bool IsVisible
@@ -206,10 +206,24 @@ namespace XrEngine
             }
         }
 
+        public Quaternion WorldOrientation
+        {
+            get => Quaternion.CreateFromRotationMatrix(_worldMatrix);
+            set
+            {
+                _transform.Orientation = _parent != null ?
+                   Quaternion.Multiply(
+                       value,
+                       Quaternion.Inverse(Quaternion.CreateFromRotationMatrix(_parent.WorldMatrix))) : value;
+            }
+        }
+
+
         public Bounds3 WorldBounds
         {
             get
             {
+
                 if (_boundsDirty)
                     UpdateBounds();
                 return _worldBounds;

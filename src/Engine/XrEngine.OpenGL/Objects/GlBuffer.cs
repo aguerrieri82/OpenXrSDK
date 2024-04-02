@@ -68,8 +68,11 @@ namespace XrEngine.OpenGL
 
         public unsafe void Update(ReadOnlySpan<T> data)
         {
-            fixed (T* pData = &data[0])
-                Update(new nint(pData), data.Length * sizeof(T), true);
+            if (data.Length > 0)
+            {
+                fixed (T* pData = &data[0])
+                    Update(new nint(pData), data.Length * sizeof(T), true);
+            }
 
             _length = (uint)data.Length;
         }

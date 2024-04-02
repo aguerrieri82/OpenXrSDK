@@ -2,6 +2,7 @@
 using PhysX.Framework;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices.JavaScript;
 using XrMath;
 
 
@@ -27,8 +28,11 @@ namespace XrEngine.Physics
                 Restitution = 0.5f
             };
 
-            Density = 1000;
+            Density = 100;
             LengthToleranceScale = 1;
+            ContactOffset = 0.01f;
+            ContactReportThreshold = 1f;
+            EnableCCD = false;
         }
 
         public void Teleport(Vector3 worldPos)
@@ -41,12 +45,8 @@ namespace XrEngine.Physics
         {
             Debug.Assert(_host != null);
 
-            var newTrans = _host.Transform.Clone();
-
-            newTrans.Position = pose.Position;
-            newTrans.Orientation = pose.Orientation;
-
-            _host.Transform.SetMatrix(newTrans.Matrix * _host.Parent!.WorldMatrixInverse);
+            _host.WorldPosition = pose.Position;
+            _host.WorldOrientation = pose.Orientation;
         }
 
         protected Pose3 GetPose()
@@ -106,8 +106,10 @@ namespace XrEngine.Physics
 
                 var geo = host.Feature<Geometry3D>();
 
+                /*
                 if (geo != null)
                     shape = geo.GetProp<PhysicsShape>("PhysicsShape");
+                */
 
                 if (shape == null)
                 {
@@ -146,7 +148,7 @@ namespace XrEngine.Physics
                 {
                     Geometry = pyGeo,
                     Material = _material,
-                    IsEsclusive = false,
+                    IsEsclusive = true,
                 });
 
                 shape.ContactOffset = ContactOffset;
@@ -281,6 +283,18 @@ namespace XrEngine.Physics
                 else
                     _actor.GlobalPose = GetPose();
             }
+        }
+
+        public override void GetState(IStateContainer container)
+        {
+            base.GetState(container);
+            container.Write(nameof(Type), Type);
+        }
+
+        protected override void SetStateWork(IStateContainer container)
+        {
+            base.SetStateWork(container);
+            Type = container.Read<PhysicsActorType>(nameof(Type));
         }
 
         public unsafe void Dispose()
