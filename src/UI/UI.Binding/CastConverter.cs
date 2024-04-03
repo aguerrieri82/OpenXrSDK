@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace UI.Binding
+{
+    public struct CastConverter<TSrc, TDst> : IValueConverter<TSrc, TDst>
+    {
+        public readonly TSrc ConvertFrom(TDst value)
+        {
+            return (TSrc)(object)value!;
+        }
+
+        public readonly TDst ConvertTo(TSrc value)
+        {
+            return (TDst)(object)value!;
+        }
+    }
+}

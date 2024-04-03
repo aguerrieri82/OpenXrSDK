@@ -27,13 +27,13 @@ namespace XrEngine
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
-            container.WriteRef(nameof(Reference), Reference);
+            container.Write(nameof(Reference), Reference);
         }
 
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-            Reference = container.ReadTypedRef<Object3D>(nameof(Reference));
+            Reference = container.Read<Object3D>(nameof(Reference));
         }
 
         public Object3D? Reference { get; set; }

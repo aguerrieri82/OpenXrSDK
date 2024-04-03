@@ -141,6 +141,20 @@ namespace XrEngine
 
         #region GROUP
 
+        public static void Clear(this Group3D group)
+        {
+            group.BeginUpdate();
+            try
+            {
+                for (var i = group.Children.Count - 1; i>= 0; i--)  
+                    group.RemoveChild(group.Children[i]);   
+            }
+            finally
+            {
+                group.EndUpdate();
+            }
+        }
+
         public static T AddChild<T>(this Group3D group) where T : Object3D, new()
         {
             return group.AddChild(new T());

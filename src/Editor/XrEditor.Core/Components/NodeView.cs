@@ -33,17 +33,19 @@ namespace XrEditor
 
         }
 
-        protected async Task LoadChildrenAsync()
+        protected Task LoadChildrenAsync()
         {
             _children.Clear();
 
             if (!_node.IsLeaf)
             {
                 foreach (var item in _node.Children)
-                    _children.Add(_host.CreateNodeView(item, this));    
+                    _children.Add(_host.CreateNodeView(item, this)!);    
             }
 
             _isLoaded = true;
+
+            return Task.CompletedTask;  
         }
 
         public bool IsExpanded

@@ -26,7 +26,7 @@ namespace XrEditor
 
         public string HexValue
         {
-            get => _editValue.ToHex();
+            get => _editValue.ToHexARGB();
             set
             {
                 EditValue = Color.Parse(value);

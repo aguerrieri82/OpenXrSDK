@@ -493,14 +493,17 @@ namespace XrEngine
                     };
                 }, true);
 
-                var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();    
+                var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
+
                 if (imgLight?.Textures != null)
                 {
                     bld.AddFeature("USE_IBL");
 
                     bld.SetUniformBuffer("Ibl", (ctx) =>
                     {
-                        if (ctx.CurrentBuffer!.Version != -1 && ctx.CurrentBuffer!.Version == imgLight.Version)
+                        var imgLight = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
+
+                        if (imgLight?.Textures == null || (ctx.CurrentBuffer!.Version != -1 && ctx.CurrentBuffer!.Version == imgLight.Version))
                             return null;
 
                         ctx.CurrentBuffer!.Version = imgLight.Version;
@@ -513,8 +516,14 @@ namespace XrEngine
                         };
                     }, true);
 
+
                     bld.ExecuteAction((ctx, up) =>
                     {
+                        var imgLight = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
+
+                        if (imgLight?.Textures == null)
+                            return;
+
                         if (imgLight.Textures.LambertianEnv != null)
                             up.SetUniform("uLambertianEnvSampler", imgLight.Textures.LambertianEnv, 6);
 

@@ -111,6 +111,7 @@ namespace XrEngine
         {
             Height = data[0].Height;
             WrapT = WrapMode.ClampToEdge;
+
         }
 
         public uint Height { get; set; }
@@ -120,5 +121,7 @@ namespace XrEngine
         public TextureType Type { get; set; }
 
         public uint SampleCount { get; set; }
+
+        public uint MaxLevels { get; set; }
     }
 }

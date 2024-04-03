@@ -24,6 +24,10 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+	  <PackageReference Include="Silk.NET.OpenGL.Extensions.ARB" Version="2.20.0" />
+	</ItemGroup>
+	
+	<ItemGroup>
 		<ProjectReference Include="..\XrEngine.Compression\XrEngine.Compression.csproj" />
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
 	</ItemGroup>

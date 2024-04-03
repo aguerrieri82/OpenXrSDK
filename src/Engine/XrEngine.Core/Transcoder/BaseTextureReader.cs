@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    public abstract class BaseTextureReader : ITextureReader
+    public abstract class BaseTextureReader : ITextureLoader
     {
         protected struct AlignSize
         {

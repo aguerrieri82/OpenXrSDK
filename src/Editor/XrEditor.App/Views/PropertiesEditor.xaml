@@ -1,7 +1,10 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
                     xmlns:i="clr-namespace:WPF_Icons;assembly=WPF-Icons"
+                    xmlns:app="clr-namespace:XrEditor"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <app:VisibilityToBool x:Key="VisibilityToBool"/>
 
     <DataTemplate DataType="{x:Type local:PropertiesEditor}">
         <ScrollViewer Padding="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
@@ -16,6 +19,9 @@
                     <ContentPresenter Margin="0,0,8,0" DockPanel.Dock="Left" Content="{Binding NodeIcon}"/>
                     <TextBox VerticalAlignment="Bottom"  DockPanel.Dock="Top" Text="{Binding NodeName, Mode=TwoWay}"/>
                 </DockPanel>
+
+                <app:SKBitmapView Visibility="{Binding NodePreviewVisible, Converter={StaticResource VisibilityToBool}}" Width="100" Height="100" RenderOptions.BitmapScalingMode="HighQuality" SKSource="{Binding NodePreview}" />
+
                 <ItemsControl ItemsSource="{Binding Groups}">
                 </ItemsControl>
             </StackPanel>

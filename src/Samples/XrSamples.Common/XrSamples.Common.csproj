@@ -17,17 +17,5 @@
 		<Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <None Remove="Assets\CameraEnv.jpg" />
-	  <None Remove="Assets\CameraEnv.pvr" />
-	  <None Remove="Assets\Chair.glb" />
-	  <None Remove="Assets\DavideEnv.jpg" />
-	  <None Remove="Assets\Envs\lightroom_14b.hdr" />
-	  <None Remove="Assets\Envs\neutral.hdr" />
-	  <None Remove="Assets\Paddle.glb" />
-	  <None Remove="Assets\Envs\Pisa\GGX.ktx2" />
-	  <None Remove="Assets\Envs\Pisa\GGX.png" />
-	  <None Remove="Assets\Envs\Pisa\Lambertan.ktx2" />
-	</ItemGroup>
 
 </Project>

@@ -89,6 +89,8 @@ namespace XrEngine.OpenGL
             _vertices.Update(_source.Vertices, _source.Indices);
 
             Version = _source.Object.Version;
+
+            _source.NotifyLoaded();
         }
 
         public override void Dispose()

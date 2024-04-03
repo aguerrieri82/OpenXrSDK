@@ -12,6 +12,7 @@ namespace XrEngine
             return new ObjectId() { Value = _lastId++ };
         }
 
+
         public override readonly int GetHashCode()
         {
             return (int)Value;

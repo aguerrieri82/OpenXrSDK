@@ -39,7 +39,7 @@ namespace XrEngine
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
-            container.WriteRef(nameof(Geometry), Geometry);
+            container.Write(nameof(Geometry), Geometry);
         }
 
         void Update()

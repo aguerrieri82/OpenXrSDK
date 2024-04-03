@@ -1,4 +1,5 @@
 ﻿using Silk.NET.Core.Native;
+using SkiaSharp;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
@@ -21,11 +22,19 @@ namespace XrEditor
 
         }
 
-        private void OnSelectionChanged(IReadOnlyCollection<INode> items)
+        private async void OnSelectionChanged(IReadOnlyCollection<INode> items)
         {
             var obj = items.Select(a => a.Value).OfType<EngineObject>().FirstOrDefault();
 
             ActiveNode = obj != null ? Context.Require<NodeFactory>().CreateNode(obj) : null;
+
+            if (ActiveNode is IItemPreview preview)
+                NodePreview = await preview.CreatePreviewAsync();
+            else
+                NodePreview = null; 
+
+            OnPropertyChanged(nameof(NodePreview));
+            OnPropertyChanged(nameof(NodePreviewVisible));
         }
 
         public INode? ActiveNode
@@ -66,6 +75,9 @@ namespace XrEditor
             }
         }
 
+        public SKBitmap? NodePreview { get; set; }
+
+        public bool NodePreviewVisible => NodePreview != null;
 
         protected PropertiesGroupView? CreateProps(INode node)
         {

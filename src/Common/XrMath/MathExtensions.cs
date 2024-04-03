@@ -309,6 +309,32 @@ namespace XrMath
 
         #endregion
 
+        #region COLOR
+
+        public static string ToHex(this Color color)
+        {
+            static string ToHex(float value)
+            {
+                var iVal = (int)Math.Max(0, Math.Min(255, value * 255));
+                return iVal.ToString("X").PadLeft(2, '0');
+            }
+
+            return $"#{ToHex(color.R)}{ToHex(color.G)}{ToHex(color.B)}{ToHex(color.A)}";
+        }
+
+        public static string ToHexARGB(this Color color)
+        {
+            static string ToHex(float value)
+            {
+                var iVal = (int)Math.Max(0, Math.Min(255, value * 255));
+                return iVal.ToString("X").PadLeft(2, '0');
+            }
+
+            return $"#{ToHex(color.A)}{ToHex(color.R)}{ToHex(color.G)}{ToHex(color.B)}";
+        }
+
+        #endregion
+
         #region MISC
 
         public static bool Contains(this Rect2 rect, Vector2 point)

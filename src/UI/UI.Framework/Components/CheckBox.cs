@@ -62,6 +62,6 @@
 
         public ToggleButton Toggle => _toggle;
 
-        public event InputValueChangedHandler<bool> ValueChanged;
+        public event InputValueChangedHandler<bool>? ValueChanged;
     }
 }

@@ -335,7 +335,7 @@ namespace XrEditor
             return new XrOpenGLGraphicDriver(this);
         }
 
-        public GL? Gl => _gl;
+        public GL Gl => _gl ?? throw new NullReferenceException();
 
         public nint HDc => _hdc;
 

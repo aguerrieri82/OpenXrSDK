@@ -2,10 +2,10 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using Silk.NET.OpenGL.Extensions.ARB;
 #endif
 
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using XrMath;
 using SkiaSharp;
@@ -58,20 +58,21 @@ namespace XrEngine.OpenGL
         public GlProgramInstance? ProgramInstance;
     }
 
-    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor
+    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader
     {
-        protected struct GlState
+        protected class GlState
         {
             public bool? WriteDepth;
             public bool? UseDepth;
             public bool? DoubleSided;
             public bool? WriteColor;
             public uint? ActiveProgram;
+            public bool? Wireframe;
             public AlphaMode? Alpha;
         }
 
         protected GL _gl;
-        protected GlobalContent? _content;
+        protected Dictionary<Scene3D, GlobalContent> _contents = [];
         protected IGlRenderTarget? _target;
         protected GlRenderOptions _options;
         protected GlDefaultRenderTarget _defaultTarget;
@@ -82,6 +83,8 @@ namespace XrEngine.OpenGL
         protected Rect2I _lastView;
         protected GlState _glState;
         protected GRContext? _grContext;
+        protected QueueDispatcher _dispatcher;
+
 
         public static class Props
         {
@@ -94,9 +97,18 @@ namespace XrEngine.OpenGL
         }
 
         public OpenGLRender(GL gl, GlRenderOptions options)
+            : this(gl, options, new GlState())
+        {
+   
+
+            
+        }
+
+        protected OpenGLRender(GL gl, GlRenderOptions options, GlState state)
         {
             Current = this;
 
+            _glState = state;
             _gl = gl;
             _options = options;
             _defaultTarget = new GlDefaultRenderTarget(gl);
@@ -104,6 +116,8 @@ namespace XrEngine.OpenGL
 
             _updateCtx = new UpdateShaderContext();
             _updateCtx.RenderEngine = this;
+
+            _dispatcher = new QueueDispatcher();
 
             ConfigureCaps();
         }
@@ -135,19 +149,20 @@ namespace XrEngine.OpenGL
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
-
-        [MemberNotNull(nameof(_content))]
-        protected void BuildContent(Scene3D scene)
+        protected GlobalContent BuildContent(Scene3D scene)
         {
-            if (_content == null)
-                _content = new GlobalContent();
+            if (!_contents.TryGetValue(scene, out var content))
+            {
+                content = new GlobalContent();
+                _contents[scene] = content;
+            }
 
-            _content.Lights = new List<Light>();
-            _content.Scene = scene;
-            _content.SceneVersion = scene.Version;
-            _content.LightsVersion = 0;
+            content.Lights = new List<Light>();
+            content.Scene = scene;
+            content.SceneVersion = scene.Version;
+            content.LightsVersion = 0;
 
-            _content.ShaderContents.Clear();
+            content.ShaderContents.Clear();
 
             var drawId = 0;
 
@@ -155,8 +170,8 @@ namespace XrEngine.OpenGL
             {
                 if (obj3D is Light light)
                 {
-                    _content.Lights.Add(light);
-                    _content.LightsVersion += light.Version;
+                    content.Lights.Add(light);
+                    content.LightsVersion += light.Version;
                     continue;
                 }
 
@@ -168,14 +183,14 @@ namespace XrEngine.OpenGL
                     if (material.Shader == null)
                         continue;
 
-                    if (!_content.ShaderContents.TryGetValue(material.Shader, out var shaderContent))
+                    if (!content.ShaderContents.TryGetValue(material.Shader, out var shaderContent))
                     {
                         shaderContent = new ShaderContent
                         {
                             ProgramGlobal = material.Shader.GetResource(gl => new GlProgramGlobal(_gl, material.GetType()))
                         };
 
-                        _content.ShaderContents[material.Shader] = shaderContent;
+                        content.ShaderContents[material.Shader] = shaderContent;
                     }
 
                     if (!shaderContent.Contents.TryGetValue(vrtSrc.Object, out var vertexContent))
@@ -204,6 +219,8 @@ namespace XrEngine.OpenGL
 
             //_content.ShaderContentsOrder.Clear();
             //_content.ShaderContentsOrder.AddRange(_content.ShaderContents);
+
+            return content;
         }
 
         public void EnableDebug()
@@ -284,6 +301,19 @@ namespace XrEngine.OpenGL
                 EnableFeature(EnableCap.Blend, material.Alpha != AlphaMode.Opaque);
                 _glState.Alpha = material.Alpha;
             }
+
+            bool isWireframe = material is WireframeMaterial;
+            if (isWireframe != _glState.Wireframe)
+            {
+                if (isWireframe)
+                    _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
+                else
+                {
+                    _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
+                    _gl.CullFace(TriangleFace.Back); 
+                }
+                _glState.Wireframe = isWireframe;
+            }
         }
 
         public void Render(Scene3D scene, Camera camera, Rect2I view, bool flush)
@@ -307,18 +337,20 @@ namespace XrEngine.OpenGL
 
             var targetHandler = target as IShaderHandler;
 
-            if (_content == null || _content.Scene != scene || _content.SceneVersion != scene.Version)
-                BuildContent(scene);
+            if (!_contents.TryGetValue(scene, out var content) || content.SceneVersion != scene.Version)
+                content = BuildContent(scene);
 
             _updateCtx.Camera = camera;
-            _updateCtx.Lights = _content.Lights;
-            _updateCtx.LightsVersion = _content.LightsVersion;
+            _updateCtx.Lights = content.Lights;
+            _updateCtx.LightsVersion = content.LightsVersion;
 
             int skipCount = 0;
 
-            foreach (var shader in _content.ShaderContents.OrderBy(a=> a.Key.Priority))
+            foreach (var shader in content.ShaderContents.OrderBy(a=> a.Key.Priority))
             {
                 var progGlobal = shader.Value!.ProgramGlobal;
+
+                _updateCtx.Shader = shader.Key;
 
                 progGlobal!.UpdateProgram(_updateCtx, _target as IShaderHandler);
 
@@ -346,8 +378,6 @@ namespace XrEngine.OpenGL
                     {
                         var progInst = draw.ProgramInstance!;
 
-                        ConfigureCaps(draw.ProgramInstance!.Material!);
-
                         _updateCtx.Model = draw.Object;
 
                         progInst.UpdateProgram(_updateCtx);
@@ -365,6 +395,8 @@ namespace XrEngine.OpenGL
 
                         progInst.UpdateUniforms(_updateCtx, updateGlobals);
 
+                        ConfigureCaps(draw.ProgramInstance!.Material!);
+
                         draw.Draw!();
                     }
 
@@ -377,6 +409,8 @@ namespace XrEngine.OpenGL
             _gl.UseProgram(0);
 
             target.End();
+
+            _dispatcher.ProcessQueue();
         }
 
         public void SetRenderTarget(IGlRenderTarget target)
@@ -415,8 +449,8 @@ namespace XrEngine.OpenGL
             }
 
             return texture;
-
         }
+
         public void Dispose()
         {
         }
@@ -565,7 +599,27 @@ namespace XrEngine.OpenGL
             return result;
         }
 
+        public void SetRenderTarget(Texture2D texture)
+        {
+            var glTexture = texture.GetResource(tex => tex.CreateGlTexture(_gl, false));
+
+            SetRenderTarget(GlTextureRenderTarget.Attach(_gl, glTexture.Handle, 0, 1));
+        }
+
+        public TextureData ReadFrame()
+        {
+            if (_target is not GlTextureRenderTarget texTarget)
+                throw new NotSupportedException();
+            
+            if (texTarget.FrameBuffer is not GlTextureFrameBuffer texFb)
+                throw new NotSupportedException();
+
+            return texFb.Read();
+        }
+
         public GL GL => _gl;
+
+        public IDispatcher Dispatcher => _dispatcher;
 
         public IGlRenderTarget? RenderTarget => _target;
 

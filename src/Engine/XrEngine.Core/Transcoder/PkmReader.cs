@@ -5,7 +5,7 @@ using System.Text;
 
 namespace XrEngine
 {
-    public class PkmReader : ITextureReader
+    public class PkmReader : ITextureLoader
     {
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]

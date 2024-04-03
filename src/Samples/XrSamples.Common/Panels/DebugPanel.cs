@@ -41,8 +41,8 @@ namespace XrSamples
              );
         }
 
-        public CheckBox Button1;
+        public CheckBox? Button1;
 
-        public TextBlock Text1;
+        public TextBlock? Text1;
     }
 }

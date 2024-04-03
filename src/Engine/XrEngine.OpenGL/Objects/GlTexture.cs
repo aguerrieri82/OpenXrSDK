@@ -68,9 +68,9 @@ namespace XrEngine.OpenGL
             for (var level = 0; level < 2; level++)
             {
                 _gl.GetTexLevelParameter(levelTarget, level, GetTextureParameter.TextureInternalFormat, out int intf);
+                _internalFormat = (InternalFormat)intf;
                 if (intf != 0)
                     break;
-                _internalFormat = (InternalFormat)intf;
             }
             //
 

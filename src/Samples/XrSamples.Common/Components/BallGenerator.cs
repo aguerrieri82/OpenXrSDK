@@ -58,7 +58,7 @@ namespace XrSamples
 
             rigidBody.Type = PhysicsActorType.Dynamic;
             rigidBody.Density = 100;
-            rigidBody.EnableCCD = PhysicSettings.EnableCCD;
+            rigidBody.EnableCCD = PhysicSettings!.EnableCCD;
             rigidBody.ContactReportThreshold = PhysicSettings.ContactReportThreshold;
             rigidBody.ContactOffset = PhysicSettings.ContactOffset;
 
@@ -182,7 +182,7 @@ namespace XrSamples
             }
         }
 
-        public PhysicSettings PhysicSettings { get; set; }
+        public PhysicSettings? PhysicSettings { get; set; }
 
 
         public event Action<TriangleMesh>? NewBallCreated;

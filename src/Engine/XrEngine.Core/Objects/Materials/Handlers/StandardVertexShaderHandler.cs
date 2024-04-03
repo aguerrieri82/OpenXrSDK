@@ -16,8 +16,7 @@ namespace XrEngine
                 up.SetUniform("uProjection", camera.Projection);
                 up.SetUniform("uViewPos", camera.Transform.Position, true);
 
-
-                if (!_lightVersions.TryGetValue(ctx.InstanceId, out var ver) || ctx.LightsVersion != ver)
+                if (ctx.Shader!.IsLit && (!_lightVersions.TryGetValue(ctx.InstanceId, out var ver) || ctx.LightsVersion != ver))
                 {
                     foreach (var light in bld.Context.Lights!)
                     {

@@ -11,7 +11,7 @@ namespace PhysX.Framework
 {
     internal unsafe partial struct PxContactPairVelocity2
     {
-        public byte type_;
+        public readonly byte type_;
         public fixed byte structgen_pad0[3];
         public PxVec3 linearVelocity1;
         public PxVec3 linearVelocity2;

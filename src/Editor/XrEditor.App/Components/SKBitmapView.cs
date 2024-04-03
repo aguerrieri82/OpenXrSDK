@@ -1,0 +1,54 @@
+﻿using SkiaSharp;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media.Imaging;
+
+namespace XrEditor
+{
+    public class SKBitmapView : System.Windows.Controls.Image
+    {
+
+        static void OnSKSourceChanged(object obj, DependencyPropertyChangedEventArgs e)
+        {
+            ((SKBitmapView)obj).OnSKSourceChanged((SKBitmap?)e.NewValue);
+        }
+
+        protected void OnSKSourceChanged(SKBitmap? value)
+        {
+            if (value != null)
+            {
+                var stream = new MemoryStream();
+
+                value.Encode(stream, SKEncodedImageFormat.Png, 100);
+                stream.Position = 0;
+
+                var bitmap = new BitmapImage();
+
+                bitmap.BeginInit();
+                bitmap.StreamSource = stream;
+                bitmap.EndInit();
+
+                Source = bitmap;
+            }
+            else
+                Source = null;
+        }
+
+        public SKBitmap? SKSource
+        {
+            get { return (SKBitmap?)GetValue(SKSourceProperty); }
+            set { SetValue(SKSourceProperty, value); }
+        }
+
+
+        public static readonly DependencyProperty SKSourceProperty =
+            DependencyProperty.Register("SKSource", typeof(SKBitmap), typeof(SKBitmapView), new PropertyMetadata(null, OnSKSourceChanged));
+
+
+    }
+}

@@ -2,6 +2,7 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using static XrEngine.KtxReader;
 #endif
 
 
@@ -13,6 +14,9 @@ namespace XrEngine.OpenGL
             : base(gl)
         {
         }
+
+
+
 
         public virtual void BindDraw()
         {

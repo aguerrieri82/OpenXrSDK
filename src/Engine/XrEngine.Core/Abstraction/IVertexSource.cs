@@ -16,6 +16,7 @@
 
         EngineObject Object { get; }
 
+        void NotifyLoaded();
     }
 
     public interface IVertexSource<TVertices, TIndices> : IVertexSource

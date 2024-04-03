@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CanvasUI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,14 +32,29 @@ namespace XrEditor.Nodes
 
                 curProps.Add(new PropertyView
                 {
+                    Label = "Base Color Tex",
+                    Editor = ElementPicker.Create(binder.Prop(a => a.MetallicRoughness!.BaseColorTexture))
+                });
+
+                curProps.Add(new PropertyView
+                {
                     Label = "Roughness",
                     Editor = new FloatEditor(binder.Prop(a => a.MetallicRoughness!.RoughnessFactor), 0, 1, 0.01f)
                 });
+
+
 
                 curProps.Add(new PropertyView
                 {
                     Label = "Metallic",
                     Editor = new FloatEditor(binder.Prop(a => a.MetallicRoughness!.MetallicFactor), 0, 1, 0.01f)
+                });
+
+
+                curProps.Add(new PropertyView
+                {
+                    Label = "Roughness Metallic Tex",
+                    Editor = ElementPicker.Create(binder.Prop(a => a.MetallicRoughness!.MetallicRoughnessTexture))
                 });
 
             }
@@ -50,6 +66,13 @@ namespace XrEditor.Nodes
                 Editor = new FloatEditor(binder.Prop(a => a.OcclusionStrength), 0, 1, 0.01f)
             });
 
+
+            curProps.Add(new PropertyView
+            {
+                Label = "Occlusion Tex",
+                Editor = ElementPicker.Create(binder.Prop(a => a.OcclusionTexture))
+            });
+
             curProps.Add(new PropertyView
             {
                 Label = "Normal Scale",
@@ -57,6 +80,11 @@ namespace XrEditor.Nodes
             });
 
 
+            curProps.Add(new PropertyView
+            {
+                Label = "Normal Tex",
+                Editor = ElementPicker.Create(binder.Prop(a => a.NormalTexture))
+            });
 
         }
 
