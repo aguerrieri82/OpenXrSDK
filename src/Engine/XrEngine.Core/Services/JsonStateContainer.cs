@@ -62,15 +62,14 @@ namespace XrEngine.Services
                 result = [];
                 _state[key] = result;
             }
-            else
-                result = (JsonObject)_state[key]!;
 
             if (resolveRef && IsRef(key))
             {
-                var id = result[KEY_REF].Deserialize<ObjectId>();
+                var id = this.Read<ObjectId>(key);
                 return _context.RefTable.Container!.Enter(id.ToString());
             }
 
+            result = (JsonObject)_state[key]!;
             return new JsonStateContainer(_context, result);
         }
 
@@ -78,9 +77,6 @@ namespace XrEngine.Services
         {
             if (_state[key] == null)
                 return null;
-
-            if (IsRef(key))
-                throw new InvalidOperationException();
 
             var manager = TypeStateManager.Instance.Get(type);
             if (manager != null)
@@ -110,7 +106,7 @@ namespace XrEngine.Services
         public readonly bool IsRef(string key)
         {
             var item = _state[key];
-            return item is JsonObject obj && obj.ContainsKey(KEY_REF);
+            return item is JsonValue obj;
         }
 
         public readonly bool Contains(string key)

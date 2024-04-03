@@ -1222,8 +1222,6 @@ namespace OpenXr.Framework
                 }
 
             }
-
-            return true;
         }
 
         #endregion

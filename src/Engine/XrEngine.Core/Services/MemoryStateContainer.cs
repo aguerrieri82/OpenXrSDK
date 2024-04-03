@@ -53,9 +53,6 @@ namespace XrEngine.Services
 
         public object? Read(string key, Type type)
         {
-            if (IsRef(key))
-                throw new InvalidOperationException();
-
             var value = _state[key];
 
             var manager = TypeStateManager.Instance.Get(type);

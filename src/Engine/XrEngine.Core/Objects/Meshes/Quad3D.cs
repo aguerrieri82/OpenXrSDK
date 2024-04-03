@@ -33,10 +33,10 @@ namespace XrEngine
 
             Vertices = VertexData.FromPosNormalUV(
             [
-               -halfSize.X,  halfSize.Y,  0f, 0f, 0f, 1f,  0f, 1f,
-                halfSize.X, halfSize.Y,   0f, 0f, 0f, 1f,  1f, 1f,
-                halfSize.X, -halfSize.Y,  0f, 0f, 0f, 1f,  1f, 0f,
-                -halfSize.X, -halfSize.Y, 0f, 0f, 0f, 1f,  0f, 0f,
+               -halfSize.X,  halfSize.Y,  0f, 0f, 0f, 1f,  0f, 0f,
+                halfSize.X, halfSize.Y,   0f, 0f, 0f, 1f,  1f, 0f,
+                halfSize.X, -halfSize.Y,  0f, 0f, 0f, 1f,  1f, 1f,
+                -halfSize.X, -halfSize.Y, 0f, 0f, 0f, 1f,  0f, 1f,
              ]);
 
             Indices =

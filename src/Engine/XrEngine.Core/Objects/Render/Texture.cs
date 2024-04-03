@@ -16,6 +16,11 @@
             WrapS = WrapMode.ClampToEdge;
         }
 
+        public void NotifyLoaded()
+        {
+
+        }
+
         public IList<TextureData>? Data { get; set; }
 
         public uint Width { get; set; }

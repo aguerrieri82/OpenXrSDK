@@ -38,6 +38,12 @@ namespace XrEditor.Nodes
                     else if (obj is PbrMaterial)
                         nodeType = typeof(PbrMaterialNode);
 
+                    else if (obj is Geometry3D)
+                        nodeType = typeof(Geometry3DNode);
+
+                    else if (obj is Texture2D)
+                        nodeType = typeof(Texture2DNode);
+                    
                     else if (obj is Material)
                         nodeType = typeof(MaterialNode<>).MakeGenericType(obj.GetType());
 

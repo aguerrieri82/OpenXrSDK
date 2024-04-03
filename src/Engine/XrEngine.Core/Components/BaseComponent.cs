@@ -14,6 +14,12 @@ namespace XrEngine
 
         }
 
+        public void EnsureId()
+        {
+            if (_id.Value == 0)
+                _id = ObjectId.New();
+        }
+
         protected virtual void OnDisabled()
         {
 

@@ -3,6 +3,5 @@
     public interface IMainDispatcher
     {
         Task ExecuteAsync(Action action);
-
     }
 }

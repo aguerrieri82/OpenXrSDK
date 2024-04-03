@@ -29,17 +29,17 @@ namespace XrEngine
         {
             base.GetState(container);
 
-            container.WriteRef(nameof(Geometry), Geometry);
-            container.WriteRefArray(nameof(Materials), _materials);
+            container.Write(nameof(Geometry), Geometry);
+            container.WriteArray(nameof(Materials), _materials);
         }
 
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
 
-            Geometry = container.ReadTypedRef<Geometry3D>(nameof(Geometry));
+            Geometry = container.Read<Geometry3D>(nameof(Geometry));
 
-            container.ReadRefArray(nameof(Materials), _materials, _materials.Add, a => _materials.Remove(a));
+            container.ReadArray(nameof(Materials), _materials, _materials.Add, a => _materials.Remove(a));
         }
 
         public override T? Feature<T>() where T : class
@@ -72,8 +72,11 @@ namespace XrEngine
         {
             if (e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset)
             {
-                foreach (var item in e.OldItems!.Cast<Material>())
-                    item.Detach();
+                if (e.OldItems != null)
+                {
+                    foreach (var item in e.OldItems!.Cast<Material>())
+                        item.Detach();
+                }
             }
 
             if (e.NewItems != null)
@@ -86,6 +89,11 @@ namespace XrEngine
             }
 
             NotifyChanged(ObjectChangeType.Render);
+        }
+
+        public void NotifyLoaded()
+        {
+
         }
 
         public Geometry3D? Geometry

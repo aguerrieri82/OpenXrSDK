@@ -86,6 +86,7 @@ namespace XrEngine.OpenGL
             _gl.Enable(EnableCap.CullFace);
             _gl.Disable(EnableCap.DepthTest);
             _gl.FrontFace(FrontFaceDirection.Ccw);
+            _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
         }
 
 

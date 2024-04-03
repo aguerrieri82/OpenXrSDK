@@ -1,7 +1,7 @@
 ﻿
 namespace XrEngine
 {
-    public interface IComponent : IStateManager, IObjectId
+    public interface IComponent : IStateObject
     {
         void Attach(IComponentHost host);
 

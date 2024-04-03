@@ -66,5 +66,7 @@ namespace XrEngine.OpenGL
             return target;
         }
 
+        public GlBaseFrameBuffer FrameBuffer => _frameBuffer;
+
     }
 }

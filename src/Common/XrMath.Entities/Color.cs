@@ -69,16 +69,7 @@ namespace XrMath
             return new Color(rf, gf, bf, af);
         }
 
-        public string ToHex()
-        {
-            static string ToHex(float value)
-            {
-                var iVal = (int)Math.Max(0, Math.Min(255, value * 255));
-                return iVal.ToString("X").PadLeft(2, '0');
-            }
 
-            return $"#{ToHex(R)}{ToHex(G)}{ToHex(B)}{ToHex(A)}";
-        }
 
         public override string ToString()
         {

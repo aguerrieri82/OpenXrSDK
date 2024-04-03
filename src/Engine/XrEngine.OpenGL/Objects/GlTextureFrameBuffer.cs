@@ -2,6 +2,7 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using static XrEngine.KtxReader;
 #endif
 
 
@@ -17,6 +18,35 @@ namespace XrEngine.OpenGL
             Depth = depth;
 
             Create();
+        }
+
+
+        public unsafe TextureData Read()
+        {
+            if (Color.InternalFormat != InternalFormat.Rgba8)
+                throw new NotSupportedException();
+
+            var data = new TextureData
+            {
+                Width = Color.Width,
+                Height = Color.Height,
+                Compression = TextureCompressionFormat.Uncompressed,
+                Face = 0,
+                MipLevel = 0,
+                Depth = 0,
+                Format = TextureFormat.Rgba32,
+                Data = new Memory<byte>(new byte[Color.Width * Color.Height * 4])
+            };
+
+            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, _handle);
+            _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
+
+            fixed (byte* pData = data.Data.Span)
+                _gl.ReadPixels(0,0, Color.Width, Color.Height, PixelFormat.Rgba, PixelType.UnsignedByte, pData);
+
+            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
+
+            return data;
         }
 
         protected void Create()

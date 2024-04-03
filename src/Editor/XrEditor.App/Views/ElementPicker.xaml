@@ -1,0 +1,20 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:app="clr-namespace:XrEditor"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate DataType="{x:Type local:ElementPicker}">
+        <StackPanel Orientation="Horizontal">
+
+            <Border VerticalAlignment="Center" Background="Wheat" Margin="0,0,8,0">
+                <app:SKBitmapView Width="50" Height="50" RenderOptions.BitmapScalingMode="HighQuality" SKSource="{Binding Image}" />
+            </Border>
+            <Border VerticalAlignment="Center" Padding="4" BorderThickness="1" BorderBrush="#aaa">
+                <TextBlock MinWidth="100" Text="{Binding Name}"/>
+            </Border>
+ 
+        </StackPanel>
+
+    </DataTemplate>
+
+</ResourceDictionary>

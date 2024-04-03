@@ -9,6 +9,10 @@
             Vertices = [];
             ActiveComponents = VertexComponent.Position | VertexComponent.Color3;
         }
+        public void NotifyLoaded()
+        {
+  
+        }
 
         public LineData[] Vertices { get; set; }
 
@@ -28,6 +32,8 @@
         LineData[] IVertexSource<LineData, uint>.Vertices => Vertices;
 
         IList<Material> IVertexSource.Materials => [Material];
+
+
 
         #endregion
     }

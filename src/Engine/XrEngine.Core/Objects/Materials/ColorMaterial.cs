@@ -45,8 +45,11 @@ namespace XrEngine
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
-            bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
-            bld.SetUniform("uColor", ctx => Color);
+            bld.ExecuteAction((ctx, up) =>
+            {
+                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
+                up.SetUniform("uColor", Color);
+            });
         }
 
         public float ShadowIntensity { get; set; }  
@@ -54,6 +57,7 @@ namespace XrEngine
         public bool IsShadowOnly { get; set; }
 
         public Color Color { get; set; }
+
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
     }

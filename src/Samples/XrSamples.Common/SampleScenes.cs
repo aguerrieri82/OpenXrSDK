@@ -12,6 +12,7 @@ using XrEngine.Gltf;
 using XrEngine.Materials;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
+using XrEngine.Services;
 using XrEngine.UI;
 using XrMath;
 
@@ -123,7 +124,6 @@ namespace XrSamples
             panel.WorldPosition = new Vector3(0, 1, 0);
 
             //panel.AddComponent(new FollowCamera() { Offset = new Vector3(0f, -0.0f, -1f) });
-
 
             return builder
                 .AddRightPointer()
@@ -285,7 +285,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
             assets.GetFsPath("Chess/ABeautifulGame.bin");
-            var mesh = (Group3D)GltfLoader.LoadFile(assets.GetFsPath("Chess/ABeautifulGame.gltf"), assets, GltfOptions);
+            var mesh = (Group3D)AssetLoader.Instance.Load(new Uri(assets.GetFsPath("Chess/ABeautifulGame.gltf")), typeof(Group3D), GltfOptions);
             mesh.Name = "mesh";
             mesh.BoundUpdateMode = UpdateMode.Automatic;
 
@@ -293,6 +293,7 @@ namespace XrSamples
             {
                 var rb = child.AddComponent<RigidBody>();
                 child.AddComponent<BoxCollider>();
+
 
                 if (child.Name!.Contains("board"))
                 {
@@ -311,7 +312,6 @@ namespace XrSamples
             mesh.Transform.Position = new Vector3(0, 1.5f, 0);
 
             scene.AddChild(mesh);
-
             scene.PerspectiveCamera().Target = mesh.Transform.Position;
 
             return builder

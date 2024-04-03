@@ -4,6 +4,11 @@
 		<RootNamespace>XrEditor</RootNamespace>
 	</PropertyGroup>
 
+
+	<ItemGroup>
+		<Content Include="Resources/**/*" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />

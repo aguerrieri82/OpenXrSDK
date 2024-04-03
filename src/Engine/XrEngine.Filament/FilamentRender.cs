@@ -9,7 +9,6 @@ namespace XrEngine.Filament
 {
     public class FilamentOptions
     {
-
         public FilamentOptions()
         {
             PostProcessing = false;
@@ -608,8 +607,15 @@ namespace XrEngine.Filament
             _viewport = viewport;
         }
 
+        public void SetRenderTarget(Texture2D texture)
+        {
+            throw new NotSupportedException();
+        }
+
         public FlBackend Driver => _driver;
 
         public Rect2I View => _viewport;
+
+        public IDispatcher Dispatcher => throw new NotSupportedException();
     }
 }

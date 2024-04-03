@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using System.IO;
+using XrEditor.Services;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.Services;
@@ -37,6 +38,8 @@ namespace XrEditor
             renderEngine = _renderSurface!.CreateRenderEngine();
 
             xrDriver = ((IXrGraphicProvider)_renderSurface).CreateXrDriver();
+
+            Context.Implement(new RenderPreviewCreator(renderEngine));
         }
 
         public XrApp CreateXrApp(IXrGraphicDriver xrDriver)

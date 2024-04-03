@@ -64,14 +64,62 @@ namespace XrEngine.OpenGL
         }
 
 
-        public static unsafe void Update(this GlTexture glTexture, Texture2D texture2D)
+        //TODO bind GlTexture with Texture2D object
+
+        public static unsafe GlTexture CreateGlTexture(this Texture2D value, GL gl, bool requireCompression)
+        {
+            //TODO !!WARN!! change this
+            requireCompression = false;
+
+            var glTexture = new GlTexture(gl);
+            glTexture.Update(value, requireCompression);
+            return glTexture;
+        }
+
+        public static unsafe void Update(this GlTexture glTexture, Texture2D texture2D, bool requireCompression)
         {
             glTexture.MinFilter = (TextureMinFilter)texture2D.MinFilter;
             glTexture.MagFilter = (TextureMagFilter)texture2D.MagFilter;
             glTexture.WrapS = (TextureWrapMode)texture2D.WrapS;
             glTexture.WrapT = (TextureWrapMode)texture2D.WrapT;
+            glTexture.SampleCount = texture2D.SampleCount;
+            if (texture2D.MaxLevels > 0)
+                glTexture.MaxLevel = texture2D.MaxLevels;
 
-            glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Format, texture2D.Compression, texture2D.Data);
+            if (texture2D.SampleCount > 1)
+                glTexture.Target = TextureTarget.Texture2DMultisample;
+
+            if (texture2D.Data != null)
+            {
+                var data = texture2D.Data;
+                var comp = texture2D.Compression;
+
+                if (requireCompression)
+                {
+                    if (data.Count == 1)
+                        data = EtcCompressor.Encode(data[0], 16);
+                    else
+                    {
+                        for (var i = 0; i < data.Count; i++)
+                        {
+                            var compData = EtcCompressor.Encode(data[i], 0);
+                            data[i] = compData[0];
+                        }
+                    }
+
+                    comp = TextureCompressionFormat.Etc2;
+                }
+
+                glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Format, comp, data);
+                texture2D.NotifyLoaded();
+            }
+            else
+            {
+                if (texture2D.Type == TextureType.Depth)
+                    glTexture.Attach(OpenGLRender.Current!.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment));
+                else
+                    glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Format, texture2D.Compression);
+            }
 
             glTexture.Version = texture2D.Version;  
         }
@@ -113,58 +161,5 @@ namespace XrEngine.OpenGL
         }
 
 
-        //TODO bind GlTexture with Texture2D object
-
-        public static unsafe GlTexture CreateGlTexture(this Texture2D value, GL gl, bool requireCompression)
-        {
-            //TODO !!WARN!! change this
-            requireCompression = false;
-
-            var texture = new GlTexture(gl)
-            {
-                MinFilter = (TextureMinFilter)value.MinFilter,
-                MagFilter = (TextureMagFilter)value.MagFilter,
-                WrapS = (TextureWrapMode)value.WrapS,
-                WrapT = (TextureWrapMode)value.WrapT,
-                Version = value.Version,
-            };
-
-
-            if (value is TextureCube)
-                texture.Target = TextureTarget.TextureCubeMap;
-
-            if (value.Data != null)
-            {
-                var data = value.Data;
-                var comp = value.Compression;
-
-                if (requireCompression)
-                {
-                    if (data.Count == 1)
-                        data = EtcCompressor.Encode(data[0], 16);
-                    else
-                    {
-                        for (var i = 0; i < data.Count; i++)
-                        {
-                            var compData = EtcCompressor.Encode(data[i], 0);
-                            data[i] = compData[0];
-                        }
-                    }
-
-                    comp = TextureCompressionFormat.Etc2;
-                }
-
-                texture.Update(value.Width, value.Height, data[0].Format, comp, data);
-            }
-            else
-            {
-                if (value.Type == TextureType.Depth)
-                    texture.Attach(OpenGLRender.Current!.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment));
-                else
-                    texture.Update(value.Width, value.Height, value.Format, value.Compression);
-            }
-
-            return texture;
-        }
     }
 }

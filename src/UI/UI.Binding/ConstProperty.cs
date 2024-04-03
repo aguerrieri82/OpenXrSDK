@@ -20,6 +20,5 @@
         public string Name { get; }
 
         public event EventHandler? Changed;
-
     }
 }

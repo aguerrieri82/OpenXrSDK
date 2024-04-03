@@ -10,7 +10,7 @@ namespace XrEngine
         ChildGenerated = 0x2
     }
 
-    public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateManager, IObjectId
+    public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject
     {
         protected Dictionary<string, object?>? _props;
         protected List<IComponent>? _components;
@@ -27,7 +27,6 @@ namespace XrEngine
 
         public virtual void GetState(IStateContainer container)
         {
-            EnsureId();
             container.Write(nameof(Id), _id.Value);
 
             if (_components != null)
@@ -80,6 +79,7 @@ namespace XrEngine
             if (component.Host != null)
                 component.Host.RemoveComponent(component);
 
+            component.EnsureId();
             component.Attach(this);
 
             if (_components == null)
@@ -144,11 +144,6 @@ namespace XrEngine
             return null;
         }
 
-        internal void EnsureId()
-        {
-            if (_id == 0)
-                _id = ObjectId.New();
-        }
 
         public virtual void Dispose()
         {
@@ -167,6 +162,12 @@ namespace XrEngine
             }
 
             GC.SuppressFinalize(this);
+        }
+
+        public void EnsureId()
+        {
+            if (_id.Value == 0)
+                _id = ObjectId.New();
         }
 
         public event Action<EngineObject, ObjectChange>? Changed;

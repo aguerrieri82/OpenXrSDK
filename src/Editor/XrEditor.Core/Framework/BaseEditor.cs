@@ -52,13 +52,19 @@ namespace XrEditor
 
         protected virtual TEdit BindToEditValue(TValue value)
         {
-            return (TEdit)Convert.ChangeType(value, typeof(TEdit))!;
+            if (value is IConvertible)
+                return (TEdit)Convert.ChangeType(value, typeof(TEdit))!;
+
+            return (TEdit)(object)value!;
         }
 
 
         protected virtual TValue EditValueToBind(TEdit value)
         {
-            return (TValue)Convert.ChangeType(value, typeof(TValue))!;
+            if (value is IConvertible)
+                return (TValue)Convert.ChangeType(value, typeof(TValue))!;
+
+            return (TValue)(object)value!;
         }
 
         protected virtual void OnEditValueChanged(TEdit newValue)

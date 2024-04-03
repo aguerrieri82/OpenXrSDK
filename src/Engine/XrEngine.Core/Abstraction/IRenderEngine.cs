@@ -8,10 +8,14 @@ namespace XrEngine
 
         void SetDefaultRenderTarget();
 
+        void SetRenderTarget(Texture2D texture);    
+
         void Suspend();
 
         void Resume();
 
         Texture2D? GetDepth();
+
+        IDispatcher Dispatcher { get; } 
     }
 }

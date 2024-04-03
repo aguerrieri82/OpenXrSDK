@@ -41,7 +41,7 @@
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
-            bld.SetUniform("uTexture0", (ctx) => Texture!, 0);
+            bld.SetUniform("uTexture", (ctx) => Texture!, 0);
         }
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;

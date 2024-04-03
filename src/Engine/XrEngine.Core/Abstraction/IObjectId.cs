@@ -8,6 +8,8 @@ namespace XrEngine
 {
     public interface IObjectId
     {
-        ObjectId Id { get; }    
+        ObjectId Id { get; }
+
+        void EnsureId();
     }
 }

@@ -6,7 +6,7 @@
     }
 
 
-    public interface ITextureReader
+    public interface ITextureLoader
     {
         IList<TextureData> Read(Stream stream, TextureReadOptions? options = null);
     }

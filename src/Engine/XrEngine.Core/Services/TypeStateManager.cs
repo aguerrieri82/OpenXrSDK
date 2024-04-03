@@ -11,10 +11,14 @@ namespace XrEngine
 {
     public class TypeStateManager
     {
+
+
         #region DefaultManager
 
-        public class DefaultManager : ITypeStateManager<IStateManager>
+        public class StateManager : ITypeStateManager<IStateManager>
         {
+            StateManager() { }
+
             public IStateManager Read(string key, Type objType, IStateContainer container)
             {
                 var obj = (IStateManager)Activator.CreateInstance(objType)!;
@@ -26,6 +30,8 @@ namespace XrEngine
             {
                 obj.GetState(container.Enter(key));
             }
+
+            public static readonly StateManager Instance = new();
         }
 
         #endregion DefaultManager
@@ -107,9 +113,11 @@ namespace XrEngine
 
         public class EngineObjectManager : ITypeStateManager<EngineObject?>
         {
+            EngineObjectManager() { }
+
             public EngineObject? Read(string key, Type objType, IStateContainer container)
             {
-                var objState = container.Enter(key);
+                var objState = container.Enter(key, true);
                 
                 if (objState == null)
                     return null;
@@ -120,13 +128,8 @@ namespace XrEngine
 
                     return AssetLoader.Instance.Load(assetUri, objType, null);
                 }
-                else
-                {
-                    var typeName = objState.ReadTypeName();
-                    var obj = (EngineObject)ObjectFactory.Instance.CreateObject(typeName!);
-                    obj.SetState(objState);
-                    return obj;
-                }
+
+                return (EngineObject)StateObjectManager.Instance.Read(key, objType, container);
             }
 
             public void Write(string key, EngineObject? obj, IStateContainer container)
@@ -137,16 +140,15 @@ namespace XrEngine
                 if (assetSrc != null)
                     objState.Write("$uri", assetSrc.AssetUri);
                 else
-                {
-                    objState.WriteTypeName(obj);
-                    obj.GetState(objState);
-                }
+                    StateObjectManager.Instance.Write(key, obj, container);
             }
+
+            public static readonly EngineObjectManager Instance = new();
         }
 
         #endregion
 
-        #region EngineObjectManager
+        #region ObjectIdManager
 
         public class ObjectIdManager : ITypeStateManager<ObjectId>
         {
@@ -163,6 +165,75 @@ namespace XrEngine
 
         #endregion
 
+        #region ObjectIdManager
+
+        public class ObjectManager : ITypeStateManager<object>
+        {
+            ObjectManager() { }
+
+            public bool CanHandle(Type type)
+            {
+                return type.IsClass && type.HasEmptyConstructor();
+            }
+
+            public object Read(string key, Type objType, IStateContainer container)
+            {
+                var obj = Activator.CreateInstance(objType)!;    
+                container.Enter(key).ReadObject(obj);
+                return obj;
+            }
+
+            public void Write(string key, object? obj, IStateContainer container)
+            {
+                container.Enter(key).WriteObject(obj);
+            }
+
+            public static readonly ObjectManager Instance = new();
+        }
+
+        #endregion
+
+        public class StateObjectManager : ITypeStateManager<IStateObject>
+        {
+            StateObjectManager() { }
+
+            public IStateObject Read(string key, Type objType, IStateContainer container)
+            {
+                var id = container.Read<ObjectId>(key);
+
+                var refTable = container.Context.RefTable;
+
+                if (!refTable.Resolved.TryGetValue(id, out var result))
+                {
+                    result = refTable.Container!.ReadTypedObject<IStateObject>(id.ToString());
+                    refTable.Resolved[id] = result;
+                }
+
+                return (IStateObject)result;
+            }
+
+            public void Write(string key, IStateObject value, IStateContainer container)
+            {
+                if (value != null)
+                {
+                    value.EnsureId();
+
+                    var refTable = container.Context.RefTable;
+                    var idKey = value.Id.ToString();
+
+                    if (!refTable.Container!.Contains(idKey))
+                        refTable.Container!.WriteTypedObject(idKey, value);
+
+                    container.Write(key, value.Id);
+                }
+                else
+                    container.Write(key, null);
+            }
+
+            public static readonly StateObjectManager Instance = new();
+        }
+
+
         List<ITypeStateManager> _types = [];
         
         public TypeStateManager()
@@ -171,9 +242,12 @@ namespace XrEngine
             Register(new ColorManager());
             Register(new Matrix4x4Manager());
             Register(new QuaternionManager());
-            Register(new EngineObjectManager());
-            Register(new DefaultManager());
             Register(new ObjectIdManager());
+
+            Register(EngineObjectManager.Instance); 
+            Register(StateObjectManager.Instance);
+            Register(StateManager.Instance);
+            Register(ObjectManager.Instance);
         }
 
         public ITypeStateManager? Get(Type type)
