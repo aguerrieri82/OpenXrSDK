@@ -9,13 +9,18 @@ namespace XrEditor
         private int _suspendUpdate;
         private IValueScale _scale;
 
+        public Vector3Editor()
+            : this(null, new ValueScale())
+        {
+        }
+
         public Vector3Editor(IProperty<Vector3> binding, float min, float max)
             : this(binding, new ValueScale() { ScaleMin = min, ScaleMax = max })
         {
 
         }
 
-        public Vector3Editor(IProperty<Vector3> binding, IValueScale scale)
+        public Vector3Editor(IProperty<Vector3>? binding, IValueScale scale)
         {
             _scale = scale;
 
@@ -25,28 +30,28 @@ namespace XrEditor
 
             Binding = binding;
 
-            X.EditValueChanged += (s, v) =>
+            X.ValueChanged += e =>
             {
-                if (_suspendUpdate > 0)
+                if (_suspendUpdate > 0 || Binding == null)
                     return;
                 var curValue = Binding.Value;
-                EditValue = new Vector3(v, curValue.Y, curValue.Z);
+                EditValue = new Vector3(X.EditValue, curValue.Y, curValue.Z);
             };
 
-            Y.EditValueChanged += (s, v) =>
+            Y.ValueChanged += e =>
             {
-                if (_suspendUpdate > 0)
+                if (_suspendUpdate > 0 || Binding == null)
                     return;
                 var curValue = Binding.Value;
-                EditValue = new Vector3(curValue.X, v, curValue.Z);
+                EditValue = new Vector3(curValue.X, Y.EditValue, curValue.Z);
             };
 
-            Z.EditValueChanged += (s, v) =>
+            Z.ValueChanged += e =>
             {
-                if (_suspendUpdate > 0)
+                if (_suspendUpdate > 0 || Binding == null)
                     return;
                 var curValue = Binding.Value;
-                EditValue = new Vector3(curValue.X, curValue.Y, v);
+                EditValue = new Vector3(curValue.X, curValue.Y, Z.EditValue);
             };
         }
 

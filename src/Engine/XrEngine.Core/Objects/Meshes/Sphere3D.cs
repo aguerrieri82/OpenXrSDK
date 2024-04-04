@@ -3,10 +3,9 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class Sphere3D : Geometry3D
+    public class Sphere3D : Geometry3D, IGeneratedContent
     {
         public Sphere3D()
-            : this(1f, 3)
         {
 
         }
@@ -14,21 +13,24 @@ namespace XrEngine
         public Sphere3D(float radius, uint levels)
         {
             Radius = radius;
-            Build(levels);
+            Levels = levels;
+            Build();
         }
 
         public override void GetState(IStateContainer container)
         {
             container.Write(nameof(Radius), Radius);
+            container.Write(nameof(Levels), Levels);
         }
 
         protected override void SetStateWork(IStateContainer container)
         {
             Radius = container.Read<float>(nameof(Radius));
-            Build(3);
+            Levels = container.Read<uint>(nameof(Levels));
+            Build();
         }
 
-        public void Build(uint levels)
+        public void Build()
         {
             float X = 0.525731112119133606f;
             float Z = 0.850650808352039932f;
@@ -96,7 +98,7 @@ namespace XrEngine
                 }
             }
 
-            while (indicesLevels.Count < levels)
+            while (indicesLevels.Count < Levels)
                 Subdivide();
 
             Indices = indicesLevels[^1].ToArray();
@@ -130,12 +132,14 @@ namespace XrEngine
             this.EnsureCCW();
 
 
-            ActiveComponents |= VertexComponent.Normal | VertexComponent.UV1;
+            ActiveComponents |= VertexComponent.Normal | VertexComponent.UV0;
         }
 
-        public float Radius;
+        public uint Levels { get; set; }
+
+        public float Radius { get; set; }
 
 
-        public static readonly Sphere3D Instance = new Sphere3D();
+        public static readonly Sphere3D Instance = new Sphere3D(1f, 3);
     }
 }

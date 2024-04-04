@@ -1,4 +1,5 @@
-﻿using Silk.NET.Core.Native;
+﻿using Newtonsoft.Json.Linq;
+using Silk.NET.Core.Native;
 using SkiaSharp;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace XrEditor
     {
         private INode? _activeNode;
         private IList<PropertiesGroupView>? _groups;
+        private SKBitmap? _nodePreview;
 
         public PropertiesEditor()
         {
@@ -26,15 +28,12 @@ namespace XrEditor
         {
             var obj = items.Select(a => a.Value).OfType<EngineObject>().FirstOrDefault();
 
-            ActiveNode = obj != null ? Context.Require<NodeFactory>().CreateNode(obj) : null;
+            ActiveNode = obj != null ? Context.Require<NodeManager>().CreateNode(obj) : null;
 
             if (ActiveNode is IItemPreview preview)
                 NodePreview = await preview.CreatePreviewAsync();
             else
                 NodePreview = null; 
-
-            OnPropertyChanged(nameof(NodePreview));
-            OnPropertyChanged(nameof(NodePreviewVisible));
         }
 
         public INode? ActiveNode
@@ -75,7 +74,18 @@ namespace XrEditor
             }
         }
 
-        public SKBitmap? NodePreview { get; set; }
+        public SKBitmap? NodePreview
+        {
+            get => _nodePreview;
+            set
+            {
+                if (_nodePreview == value)
+                    return;
+                _nodePreview = value;
+                OnPropertyChanged(nameof(NodePreview));
+                OnPropertyChanged(nameof(NodePreviewVisible));
+            }
+        }
 
         public bool NodePreviewVisible => NodePreview != null;
 
@@ -86,8 +96,7 @@ namespace XrEditor
 
             var result = new PropertiesGroupView();
 
-            var view = node as IItemView;
-            if (view != null)
+            if (node is IItemView view)
             {
                 if (node.Value is IComponent comp)
                     result.Header = new ComponentHeaderView(comp)
@@ -99,8 +108,11 @@ namespace XrEditor
                     result.Header = view.DisplayName;
             }
 
-            var props  = new List<PropertyView>();
+            var props = new List<PropertyView>();
+
             editorProps.EditorProperties(props);
+            if (editorProps.AutoGenerate)
+                PropertyView.CreateProperties(node.Value, node.Value.GetType(), props);
 
             var propsCats = props.GroupBy(a => a.Category);
 
@@ -110,15 +122,26 @@ namespace XrEditor
                     result.Properties = cat.ToArray();
                 else
                 {
-                    var catGrp = new PropertiesGroupView();
-                    catGrp.Header = cat.Key;
-                    catGrp.Properties = cat.ToArray();
+                    var catGrp = new PropertiesGroupView
+                    {
+                        Header = cat.Key,
+                        Properties = cat.ToArray()
+                    };
                     result.Groups ??= new List<PropertiesGroupView>();
                     result.Groups.Add(catGrp);
                 }
             }
 
+            foreach (var prop in  result.Properties)
+                prop.Editor!.ValueChanged += OnValueChanged;
+
             return result;
+        }
+
+        private async void OnValueChanged(IPropertyEditor obj)
+        {
+            if (ActiveNode is IItemPreview preview)
+                NodePreview = await preview.CreatePreviewAsync();
         }
 
         protected void UpdateProperties()

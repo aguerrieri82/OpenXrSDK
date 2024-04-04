@@ -27,10 +27,15 @@ namespace XrEngine
 
             _builder.AppendLine();
 
+            foreach (var v in mesh.Geometry.Vertices)
+                _builder.AppendFormat("vt {0} {1}\n", v.UV.X, v.UV.Y);
+
+            _builder.AppendLine();
+
             var curI = 0;
             while (curI < mesh.Geometry.Indices.Length)
             {
-                _builder.AppendFormat("f {0} {1} {2}\n",
+                _builder.AppendFormat("f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
                     mesh.Geometry.Indices[curI + 0] + 1,
                     mesh.Geometry.Indices[curI + 1] + 1,
                     mesh.Geometry.Indices[curI + 2] + 1);

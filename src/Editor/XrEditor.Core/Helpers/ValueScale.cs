@@ -9,6 +9,11 @@ namespace XrEditor
 {
     public class ValueScale : IValueScale
     {
+        public ValueScale() 
+        {
+            DecimalDigits = 3;
+        }
+
         public float ScaleMin { get; set; }
 
         public float ScaleMax { get; set; }
@@ -17,9 +22,11 @@ namespace XrEditor
 
         public float ScaleSmallStep { get; set; }
 
-        public string? Format(float scaleValue)
+        public int DecimalDigits { get; set; }
+
+        public virtual string? Format(float scaleValue)
         {
-            return scaleValue.ToString();
+            return Math.Round(scaleValue, DecimalDigits).ToString();
         }
 
         public virtual float ScaleToValue(float scaleValue)

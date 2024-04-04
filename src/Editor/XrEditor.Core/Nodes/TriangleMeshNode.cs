@@ -20,22 +20,9 @@ namespace XrEditor.Nodes
         {
             get
             {
-                var factory = Context.Require<NodeFactory>();
+                var factory = Context.Require<NodeManager>();
                 return _value.Materials.Select(a => factory.CreateNode(a));
             }
-        }
-
-        protected override void EditorProperties(Binder<TriangleMesh> binder, IList<PropertyView> curProps)
-        {
-            base.EditorProperties(binder, curProps);
-
-            curProps.Add(new PropertyView
-            {
-                Label = "Geometry",
-                Editor = new ElementPicker(binder
-                    .Prop(a => a.Geometry)
-                    .Convert(new CastConverter<Geometry3D?, EngineObject?>()))
-            });
         }
 
         public override IconView? Icon => new()

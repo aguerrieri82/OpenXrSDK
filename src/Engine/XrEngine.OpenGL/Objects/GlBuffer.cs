@@ -8,16 +8,13 @@ using Silk.NET.OpenGL;
 namespace XrEngine.OpenGL
 {
 
-    internal static class GlBufferConst
-    {
-        public static uint UsedSlots = 0;
-    }
+
 
     public class GlBuffer<T> : GlObject, IGlBuffer
     {
         protected readonly BufferTargetARB _target;
         protected uint _length;
-        protected uint _slot;
+
 
         public unsafe GlBuffer(GL gl, BufferTargetARB target)
              : base(gl)
@@ -101,12 +98,6 @@ namespace XrEngine.OpenGL
             _gl.BindBuffer(_target, 0);
         }
 
-        public void AssignSlot()
-        {
-            GlBufferConst.UsedSlots++;
-            _slot = GlBufferConst.UsedSlots;
-            _gl.BindBufferBase(_target, _slot, _handle);
-        }
 
         public override void Dispose()
         {
@@ -124,6 +115,5 @@ namespace XrEngine.OpenGL
 
         public uint Length => _length;
 
-        public uint Slot => _slot;
     }
 }

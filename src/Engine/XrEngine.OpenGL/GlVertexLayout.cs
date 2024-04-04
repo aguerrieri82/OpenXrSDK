@@ -8,6 +8,7 @@ using Silk.NET.OpenGL;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -76,6 +77,11 @@ namespace XrEngine.OpenGL
                 {
                     item.Type = VertexAttribPointerType.Float;
                     item.Count = 1;
+                }
+                else if (info.Type == typeof(Color))
+                {
+                    item.Type = VertexAttribPointerType.Float;
+                    item.Count = 4;
                 }
                 else
                     throw new NotImplementedException();

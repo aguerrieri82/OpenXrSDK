@@ -9,14 +9,14 @@ namespace XrEditor
     public class SelectionTool : PickTool
     {
         private SelectionManager _selection;
-        private NodeFactory _nodes;
+        private NodeManager _nodes;
         private INode[] _lastSelection = [];
 
         public SelectionTool()
         {
             _selection = Context.Require<SelectionManager>();
             _selection.Changed += OnSelectionChanged;
-            _nodes = Context.Require<NodeFactory>();
+            _nodes = Context.Require<NodeManager>();
         }
 
         private void OnSelectionChanged(IReadOnlyCollection<INode> items)

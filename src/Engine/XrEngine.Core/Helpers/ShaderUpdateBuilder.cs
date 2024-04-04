@@ -89,7 +89,7 @@ namespace XrEngine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void SetUniformBuffer<T>(string name, UpdateAction<T> value, bool isGlobal, bool optional = false)
+        public readonly void SetUniformBuffer<T>(string name, UpdateAction<T> value, int slot, bool isGlobal, bool optional = false)
         {
             Log(name, value);
 
@@ -110,7 +110,7 @@ namespace XrEngine
             _result.Actions!.Add((ctx, up) =>
             {
                 var buffer = ctx.BufferProvider!.GetBuffer<T>(name, isGlobal);
-                up.SetUniform(name, buffer, optional);
+                up.SetUniform(name, buffer, slot, optional);
             });
         }
 
@@ -161,12 +161,6 @@ namespace XrEngine
         }
 
         public readonly void SetUniform(string name, UpdateAction<int[]> value, bool optional = false)
-        {
-            Log(name, value);
-            Update(value, (up, v) => up.SetUniform(name, v, optional));
-        }
-
-        public readonly void SetUniform(string name, UpdateAction<IBuffer> value, bool optional = false)
         {
             Log(name, value);
             Update(value, (up, v) => up.SetUniform(name, v, optional));

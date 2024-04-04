@@ -20,17 +20,8 @@ namespace XrEditor.Nodes
 
                 if (node == null)
                 {
-                    if (obj is Group3D)
-                        nodeType = typeof(Group3DNode);
-
-                    else if (obj is ImageLight)
+                    if (obj is ImageLight)
                         nodeType = typeof(ImageLightNode);
-
-                    else if (obj is Light)
-                        nodeType = typeof(LightNode<>).MakeGenericType(obj.GetType());
-
-                    else if (obj is Camera)
-                        nodeType = typeof(CameraNode<>).MakeGenericType(obj.GetType());
 
                     else if (obj is TriangleMesh)
                         nodeType = typeof(TriangleMeshNode);
@@ -43,15 +34,26 @@ namespace XrEditor.Nodes
 
                     else if (obj is Texture2D)
                         nodeType = typeof(Texture2DNode);
-                    
+
+                    else if (obj is Light)
+                        nodeType = typeof(LightNode<>).MakeGenericType(obj.GetType());
+
+                    else if (obj is Camera)
+                        nodeType = typeof(CameraNode<>).MakeGenericType(obj.GetType());
+              
                     else if (obj is Material)
                         nodeType = typeof(MaterialNode<>).MakeGenericType(obj.GetType());
+
+                    else if (obj is Group3D)
+                        nodeType = typeof(Group3DNode<>).MakeGenericType(obj.GetType());
+
+                    else if (obj is Object3D)
+                        nodeType = typeof(Object3DNode<>).MakeGenericType(obj.GetType());
 
                     else
                         nodeType = typeof(EngineObjectNode<>).MakeGenericType(obj.GetType());
 
                     node = (INode)Activator.CreateInstance(nodeType, obj)!;
-
                 }
 
                 if (node != null)

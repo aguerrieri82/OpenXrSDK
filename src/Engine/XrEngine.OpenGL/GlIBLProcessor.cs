@@ -45,7 +45,6 @@ namespace XrEngine.OpenGL
             _inputTexture = LoadHdr(panoramaHdr);
 
             _hams = new GlBuffer<Vector4>(_gl, BufferTargetARB.UniformBuffer);
-            _hams.AssignSlot();
             _hams.Update(GenerateHammersley((int)SampleCount).Select(a => new Vector4(a.X, a.Y, 0, 0)).ToArray().AsSpan());
 
             _fooVa = _gl.GenVertexArray();

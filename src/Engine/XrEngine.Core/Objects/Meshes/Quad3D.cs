@@ -3,10 +3,9 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class Quad3D : Geometry3D
+    public class Quad3D : Geometry3D, IGeneratedContent
     {
         public Quad3D()
-            : this(new Size2(1, 1))
         {
         }
 
@@ -51,6 +50,6 @@ namespace XrEngine
 
         public Size2 Size { get; set; }
 
-        public static readonly Quad3D Instance = new Quad3D();
+        public static readonly Quad3D Instance = new Quad3D(new Size2(1, 1));
     }
 }

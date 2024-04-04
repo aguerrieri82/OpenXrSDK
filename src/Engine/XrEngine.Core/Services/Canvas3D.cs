@@ -31,13 +31,13 @@ namespace XrEngine
             _data.Add(new LineData
             {
                 Pos = from.Transform(_curState.Transform),
-                Color = (Vector3)_curState.Color,
+                Color = _curState.Color,
                 Size = _curState.LineWidth
             });
             _data.Add(new LineData
             {
                 Pos = to.Transform(_curState.Transform),
-                Color = (Vector3)_curState.Color,
+                Color = _curState.Color,
                 Size = _curState.LineWidth
             });
         }

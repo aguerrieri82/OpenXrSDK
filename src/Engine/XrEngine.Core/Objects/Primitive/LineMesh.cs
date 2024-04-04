@@ -7,7 +7,7 @@
         {
             Material = new LineMaterial();
             Vertices = [];
-            ActiveComponents = VertexComponent.Position | VertexComponent.Color3;
+            ActiveComponents = VertexComponent.Position | VertexComponent.Color4;
         }
         public void NotifyLoaded()
         {

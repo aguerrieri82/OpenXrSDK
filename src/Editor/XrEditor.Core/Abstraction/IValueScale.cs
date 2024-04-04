@@ -21,5 +21,7 @@ namespace XrEditor
         float ScaleStep { get; }
         
         float ScaleSmallStep { get; }
+
+        int DecimalDigits { get; }
     }
 }

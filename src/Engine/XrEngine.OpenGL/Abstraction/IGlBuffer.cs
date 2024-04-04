@@ -14,12 +14,9 @@ namespace XrEngine.OpenGL
 
         void Unbind();
 
-        void AssignSlot();
-
         BufferTargetARB Target { get; }
 
         uint Handle { get; }
 
-        uint Slot { get; }
     }
 }

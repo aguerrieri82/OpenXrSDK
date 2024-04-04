@@ -11,13 +11,13 @@ namespace XrEditor
         protected SceneView? _sceneView;
         protected internal HashSet<NodeView> _selectedNodes = []; 
 
-        readonly NodeFactory _nodeFactory;
+        readonly NodeManager _nodeFactory;
         readonly SelectionManager _selection;
 
         public OutlinePanel()
         {
             Instance = this;
-            _nodeFactory = Context.Require<NodeFactory>();
+            _nodeFactory = Context.Require<NodeManager>();
             _selection = Context.Require<SelectionManager>();
             _selection.Changed += OnSelectionChanged;
         }

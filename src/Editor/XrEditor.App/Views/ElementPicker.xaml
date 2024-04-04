@@ -6,7 +6,7 @@
     <DataTemplate DataType="{x:Type local:ElementPicker}">
         <StackPanel Orientation="Horizontal">
 
-            <Border VerticalAlignment="Center" Background="Wheat" Margin="0,0,8,0">
+            <Border VerticalAlignment="Center"  BorderBrush="#aaa" BorderThickness="1" Margin="0,0,8,0">
                 <app:SKBitmapView Width="50" Height="50" RenderOptions.BitmapScalingMode="HighQuality" SKSource="{Binding Image}" />
             </Border>
             <Border VerticalAlignment="Center" Padding="4" BorderThickness="1" BorderBrush="#aaa">

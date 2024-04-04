@@ -3,7 +3,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class Capsule3D : Geometry3D
+    public class Capsule3D : Geometry3D, IGeneratedContent
     {
         public Capsule3D()
         {
@@ -13,26 +13,32 @@ namespace XrEngine
         {
             Radius = radius;
             Height = height;
-            Build(horizontal, vertical);
+            Horizontal = horizontal;
+            Vertical = vertical;
+            Build();
         }
 
         public override void GetState(IStateContainer container)
         {
             container.Write(nameof(Radius), Radius);
             container.Write(nameof(Height), Height);
+            container.Write(nameof(Horizontal), Horizontal);
+            container.Write(nameof(Vertical), Vertical);
         }
 
         protected override void SetStateWork(IStateContainer container)
         {
             Radius = container.Read<float>(nameof(Radius));
             Height = container.Read<float>(nameof(Height));
-            Build(7, 7);
+            Horizontal = container.Read<int>(nameof(Horizontal));
+            Vertical = container.Read<int>(nameof(Vertical));
+            Build();
         }
 
-        public void Build(int horizontal, int vertical)
+        public void Build()
         {
-            int vertexCount = (horizontal + 1) * (vertical + 1);
-            int indexCount = horizontal * vertical * 6;
+            int vertexCount = (Horizontal + 1) * (Vertical + 1);
+            int indexCount = Horizontal * Vertical * 6;
             float latRads = MathF.PI * 0.5f;
             float h = Height * 0.5f;
 
@@ -44,13 +50,13 @@ namespace XrEngine
 
             int index = 0;
 
-            for (int y = 0; y <= vertical; ++y)
+            for (int y = 0; y <= Vertical; ++y)
             {
-                float yf = (float)y / (float)vertical;
-                for (int x = 0; x <= horizontal; ++x)
+                float yf = (float)y / (float)Vertical;
+                for (int x = 0; x <= Horizontal; ++x)
                 {
-                    float xf = (float)x / (float)horizontal;
-                    index = y * (horizontal + 1) + x + vertexIndexOffset;
+                    float xf = (float)x / (float)Horizontal;
+                    index = y * (Horizontal + 1) + x + vertexIndexOffset;
                     verts[index].Pos.X = MathF.Cos(MathF.PI * 2 * xf) * Radius;
                     verts[index].Pos.Y = MathF.Sin(MathF.PI * 2 * xf) * Radius;
                     verts[index].Pos.Z = -h + yf * 2 * h;
@@ -61,16 +67,16 @@ namespace XrEngine
 
 
             index = triangleIndexOffset;
-            for (int y = 0; y < vertical; y++)
+            for (int y = 0; y < Vertical; y++)
             {
-                for (int x = 0; x < horizontal; x++)
+                for (int x = 0; x < Horizontal; x++)
                 {
-                    indices[index + 0] = y * (horizontal + 1) + x;
-                    indices[index + 1] = y * (horizontal + 1) + x + 1;
-                    indices[index + 2] = (y + 1) * (horizontal + 1) + x;
-                    indices[index + 3] = (y + 1) * (horizontal + 1) + x;
-                    indices[index + 4] = y * (horizontal + 1) + x + 1;
-                    indices[index + 5] = (y + 1) * (horizontal + 1) + x + 1;
+                    indices[index + 0] = y * (Horizontal + 1) + x;
+                    indices[index + 1] = y * (Horizontal + 1) + x + 1;
+                    indices[index + 2] = (y + 1) * (Horizontal + 1) + x;
+                    indices[index + 3] = (y + 1) * (Horizontal + 1) + x;
+                    indices[index + 4] = y * (Horizontal + 1) + x + 1;
+                    indices[index + 5] = (y + 1) * (Horizontal + 1) + x + 1;
                     index += 6;
                 }
             }
@@ -78,16 +84,16 @@ namespace XrEngine
             vertexIndexOffset += vertexCount;
             triangleIndexOffset += indexCount;
 
-            for (int y = 0; y <= vertical; y++)
+            for (int y = 0; y <= Vertical; y++)
             {
-                float yf = (float)y / (float)vertical;
+                float yf = (float)y / (float)Vertical;
                 float lat = MathF.PI - yf * latRads - 0.5f * MathF.PI;
                 float cosLat = MathF.Cos(lat);
-                for (int x = 0; x <= horizontal; x++)
+                for (int x = 0; x <= Horizontal; x++)
                 {
-                    float xf = (float)x / (float)horizontal;
+                    float xf = (float)x / (float)Horizontal;
                     float lon = (xf) * MathF.PI * 2;
-                    index = y * (horizontal + 1) + x + vertexIndexOffset;
+                    index = y * (Horizontal + 1) + x + vertexIndexOffset;
                     verts[index].Pos.X = Radius * MathF.Cos(lon) * cosLat;
                     verts[index].Pos.Y = Radius * MathF.Sin(lon) * cosLat;
                     verts[index].Pos.Z = h + (Radius * MathF.Sin(lat));
@@ -100,16 +106,16 @@ namespace XrEngine
             }
 
             index = triangleIndexOffset;
-            for (int x = 0; x < horizontal; x++)
+            for (int x = 0; x < Horizontal; x++)
             {
-                for (int y = 0; y < vertical; y++)
+                for (int y = 0; y < Vertical; y++)
                 {
-                    indices[index + 0] = vertexIndexOffset + y * (horizontal + 1) + x;
-                    indices[index + 2] = vertexIndexOffset + y * (horizontal + 1) + x + 1;
-                    indices[index + 1] = vertexIndexOffset + (y + 1) * (horizontal + 1) + x;
-                    indices[index + 3] = vertexIndexOffset + (y + 1) * (horizontal + 1) + x;
-                    indices[index + 5] = vertexIndexOffset + y * (horizontal + 1) + x + 1;
-                    indices[index + 4] = vertexIndexOffset + (y + 1) * (horizontal + 1) + x + 1;
+                    indices[index + 0] = vertexIndexOffset + y * (Horizontal + 1) + x;
+                    indices[index + 2] = vertexIndexOffset + y * (Horizontal + 1) + x + 1;
+                    indices[index + 1] = vertexIndexOffset + (y + 1) * (Horizontal + 1) + x;
+                    indices[index + 3] = vertexIndexOffset + (y + 1) * (Horizontal + 1) + x;
+                    indices[index + 5] = vertexIndexOffset + y * (Horizontal + 1) + x + 1;
+                    indices[index + 4] = vertexIndexOffset + (y + 1) * (Horizontal + 1) + x + 1;
                     index += 6;
                 }
             }
@@ -118,16 +124,16 @@ namespace XrEngine
             triangleIndexOffset += indexCount;
 
 
-            for (int y = 0; y <= vertical; y++)
+            for (int y = 0; y <= Vertical; y++)
             {
-                float yf = (float)y / (float)vertical;
+                float yf = (float)y / (float)Vertical;
                 float lat = MathF.PI - yf * latRads - 0.5f * MathF.PI;
                 float cosLat = MathF.Cos(lat);
-                for (int x = 0; x <= horizontal; x++)
+                for (int x = 0; x <= Horizontal; x++)
                 {
-                    float xf = (float)x / (float)horizontal;
+                    float xf = (float)x / (float)Horizontal;
                     float lon = xf * MathF.PI * 2;
-                    index = y * (horizontal + 1) + x + vertexIndexOffset;
+                    index = y * (Horizontal + 1) + x + vertexIndexOffset;
                     verts[index].Pos.X = Radius * MathF.Cos(lon) * cosLat;
                     verts[index].Pos.Y = Radius * MathF.Sin(lon) * cosLat;
                     verts[index].Pos.Z = -h + -(Radius * MathF.Sin(lat));
@@ -140,16 +146,16 @@ namespace XrEngine
             }
 
             index = triangleIndexOffset;
-            for (int x = 0; x < horizontal; x++)
+            for (int x = 0; x < Horizontal; x++)
             {
-                for (int y = 0; y < vertical; y++)
+                for (int y = 0; y < Vertical; y++)
                 {
-                    indices[index + 0] = vertexIndexOffset + y * (horizontal + 1) + x;
-                    indices[index + 1] = vertexIndexOffset + y * (horizontal + 1) + x + 1;
-                    indices[index + 2] = vertexIndexOffset + (y + 1) * (horizontal + 1) + x;
-                    indices[index + 3] = vertexIndexOffset + (y + 1) * (horizontal + 1) + x;
-                    indices[index + 4] = vertexIndexOffset + y * (horizontal + 1) + x + 1;
-                    indices[index + 5] = vertexIndexOffset + (y + 1) * (horizontal + 1) + x + 1;
+                    indices[index + 0] = vertexIndexOffset + y * (Horizontal + 1) + x;
+                    indices[index + 1] = vertexIndexOffset + y * (Horizontal + 1) + x + 1;
+                    indices[index + 2] = vertexIndexOffset + (y + 1) * (Horizontal + 1) + x;
+                    indices[index + 3] = vertexIndexOffset + (y + 1) * (Horizontal + 1) + x;
+                    indices[index + 4] = vertexIndexOffset + y * (Horizontal + 1) + x + 1;
+                    indices[index + 5] = vertexIndexOffset + (y + 1) * (Horizontal + 1) + x + 1;
                     index += 6;
                 }
             }
@@ -159,8 +165,12 @@ namespace XrEngine
             ActiveComponents |= VertexComponent.Normal;
         }
 
-        public float Radius;
+        public int Horizontal { get; set; }
 
-        public float Height;
+        public int Vertical { get; set; }
+
+        public float Radius { get; set; }
+
+        public float Height { get; set; }
     }
 }

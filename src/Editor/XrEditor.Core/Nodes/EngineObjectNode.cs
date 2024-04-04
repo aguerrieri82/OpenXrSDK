@@ -5,6 +5,8 @@ namespace XrEditor.Nodes
 {
     public class EngineObjectNode<T> : BaseNode<T>, IItemView, IEditorProperties where T : EngineObject
     {
+        protected bool _autoGenProps;
+
         public EngineObjectNode(T value)
             : base(value)
         {
@@ -21,7 +23,12 @@ namespace XrEditor.Nodes
 
         protected virtual void EditorProperties(Binder<T>  binder, IList<PropertyView> curProps)
         {
+        }
 
+        bool IEditorProperties.AutoGenerate
+        {
+            get => _autoGenProps;
+            set => _autoGenProps = value;
         }
 
         public virtual IconView? Icon => null;
