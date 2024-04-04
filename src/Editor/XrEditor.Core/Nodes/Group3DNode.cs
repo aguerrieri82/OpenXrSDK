@@ -3,9 +3,9 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class Group3DNode : Object3DNode<Group3D>
+    public class Group3DNode<T> : Object3DNode<T> where T : Group3D
     {
-        public Group3DNode(Group3D value)
+        public Group3DNode(T value)
             : base(value)
         {
 
@@ -15,7 +15,7 @@ namespace XrEditor.Nodes
         {
             get
             {
-                var factory = Context.Require<NodeFactory>();
+                var factory = Context.Require<NodeManager>();
                 return _value.Children.Select(a => factory.CreateNode(a));
             }
         }

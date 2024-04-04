@@ -13,6 +13,7 @@ namespace XrEditor.Nodes
             : base(value)
         {
             _components.Add(new Transform3DNode(value.Transform));
+            _autoGenProps = true;
         }
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
@@ -30,7 +31,7 @@ namespace XrEditor.Nodes
         {
             if (!_components.TryGetValue(value, out var node))
             {
-                node = Context.Require<NodeFactory>().CreateNode(value);
+                node = Context.Require<NodeManager>().CreateNode(value);
                 _components.Add(node);
             }
             return node;
@@ -46,6 +47,7 @@ namespace XrEditor.Nodes
                     yield return GetNode(component);
             }
         }
+
 
         public override string DisplayName => _value.Name ?? _value.GetType().Name;
 

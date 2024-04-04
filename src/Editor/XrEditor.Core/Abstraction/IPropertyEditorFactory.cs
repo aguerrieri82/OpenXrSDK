@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace XrEditor
 {
-    public interface IEditorProperties
+    public interface IPropertyEditorFactory
     {
-        void EditorProperties(IList<PropertyView> curProps);
+        bool CanHandle(Type type);
 
-        public bool AutoGenerate { get; set; }
+        IPropertyEditor CreateEditor(Type type);
     }
 }

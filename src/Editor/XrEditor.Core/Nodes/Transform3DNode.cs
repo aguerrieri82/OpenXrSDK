@@ -42,5 +42,6 @@ namespace XrEditor.Nodes
 
         public IconView? Icon => null;
 
+        bool IEditorProperties.AutoGenerate { get; set; }
     }
 }

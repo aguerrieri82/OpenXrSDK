@@ -12,7 +12,7 @@ namespace XrEditor
 
         public string? Format(float scaleValue)
         {
-            return $"{scaleValue} °";
+            return $"{Math.Round( scaleValue, DecimalDigits)} °";
         }
 
         public float ScaleToValue(float value)
@@ -24,6 +24,8 @@ namespace XrEditor
         {
             return value / MathF.PI * 180f;
         }
+
+        public int DecimalDigits => 1;
 
         public float ScaleMin => -180;
 

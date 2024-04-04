@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Text;
 using XrMath;
+using System.Collections.Generic;
 
 
 namespace XrEngine.OpenGL
@@ -19,7 +20,7 @@ namespace XrEngine.OpenGL
         protected readonly List<string> _extensions = [];
         protected readonly Func<string, string> _resolver;
         protected readonly Dictionary<string, int> _boundTextures = [];
-        protected readonly ushort[] _boundBuffers = new ushort[256];
+        protected readonly Dictionary<string, int> _boundBuffers = [];
 
         public GlBaseProgram(GL gl, Func<string, string> includeResolver) : base(gl)
         {
@@ -145,16 +146,18 @@ namespace XrEngine.OpenGL
         }
 
 
-        public void SetUniform(string name, IBuffer buffer, bool optional = false)
+        public void SetUniform(string name, IBuffer buffer, int slot = 0, bool optional = false)
         {
             var glBuffer = (IGlBuffer)buffer;
 
+            _gl.BindBufferBase(glBuffer.Target, (uint)slot, glBuffer.Handle);
+
             var index = (uint)LocateUniform(name, optional, true);
 
-            if (_boundBuffers[index] != glBuffer.Slot)
+            if (!_boundBuffers.TryGetValue(name, out var curSlot) || slot != curSlot)
             {
-                _gl.UniformBlockBinding(_handle, index, glBuffer.Slot);
-                _boundBuffers[index] = (ushort)glBuffer.Slot;
+                _gl.UniformBlockBinding(_handle, index, (uint)slot);
+                _boundBuffers[name] = slot;
             }
         }
 

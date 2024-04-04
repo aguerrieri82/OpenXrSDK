@@ -2,6 +2,7 @@
 using System.Numerics;
 using UI.Binding;
 using XrEngine.OpenGL;
+using static XrEngine.OpenGL.OpenGLRender;
 
 namespace XrEditor
 {
@@ -23,5 +24,18 @@ namespace XrEditor
 
 
         public T[] Values => Enum.GetValues<T>();
+    }
+
+    public struct EnumEditorFactory : IPropertyEditorFactory
+    {
+        public bool CanHandle(Type type)
+        {
+            return type.IsEnum;
+        }
+
+        public IPropertyEditor CreateEditor(Type type)
+        {
+            return (IPropertyEditor)Activator.CreateInstance(typeof(EnumEditor<>).MakeGenericType(type))!;
+        }
     }
 }

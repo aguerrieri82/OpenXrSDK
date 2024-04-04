@@ -1,6 +1,5 @@
 ﻿#pragma warning disable CS8618 
 
-using Newtonsoft.Json.Linq;
 using UI.Binding;
 
 namespace XrEditor
@@ -46,7 +45,6 @@ namespace XrEditor
                     _binding.Changed += OnBindValueChanged;
                     OnBindValueChanged(_binding.Value);
                 }
-
             }
         }
 
@@ -72,7 +70,7 @@ namespace XrEditor
             if (_binding != null)
                 _binding.Value = EditValueToBind(newValue);
 
-            EditValueChanged?.Invoke(this, newValue);
+            ValueChanged?.Invoke(this);
         }
 
         protected virtual void OnBindValueChanged(TValue newValue)
@@ -85,13 +83,21 @@ namespace XrEditor
             OnBindValueChanged(_binding!.Value);
         }
 
+        Type IPropertyEditor.ValueType => typeof(TValue);
+
         object IPropertyEditor.Value
         {
             get => EditValue!;
             set => EditValue = (TEdit)value;
         }
 
+        IProperty? IPropertyEditor.Binding
+        {
+            get => Binding;
+            set => Binding = (IProperty<TValue>?)value;
+        }
 
-        public EventHandler<TEdit>? EditValueChanged;
+
+        public event Action<IPropertyEditor>? ValueChanged;
     }
 }

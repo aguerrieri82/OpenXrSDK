@@ -11,7 +11,7 @@ namespace XrEditor.Helpers
     {
         public static INode GetNode(this object obj)
         {
-            return Context.Require<NodeFactory>().CreateNode(obj);
+            return Context.Require<NodeManager>().CreateNode(obj);
         }
     }
 }

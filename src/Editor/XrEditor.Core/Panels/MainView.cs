@@ -40,6 +40,8 @@ namespace XrEditor
 
             var surface = ((IRenderSurfaceProvider)XrPlatform.Current!).CreateRenderSurface(driver);
 
+            Context.Implement(surface);
+
             Outline = new OutlinePanel();
 
             PropertiesEditor = new PropertiesEditor();

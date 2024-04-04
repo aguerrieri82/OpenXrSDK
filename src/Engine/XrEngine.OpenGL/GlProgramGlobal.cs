@@ -49,7 +49,6 @@ namespace XrEngine.OpenGL
             if (!_buffers.TryGetValue(name, out var buffer))
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
-                buffer.AssignSlot();
                 _buffers[name] = buffer;
             }
             return buffer;

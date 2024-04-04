@@ -2,11 +2,11 @@
 
 namespace XrEditor.Services
 {
-    public class NodeFactory
+    public class NodeManager
     {
         readonly List<INodeHandler> _handlers = [];
 
-        public NodeFactory()
+        public NodeManager()
         {
             RegisterHandler(new EngineObjectNodeHandler());
         }

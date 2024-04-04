@@ -98,10 +98,7 @@ namespace XrEngine.OpenGL
 
         public OpenGLRender(GL gl, GlRenderOptions options)
             : this(gl, options, new GlState())
-        {
-   
-
-            
+        { 
         }
 
         protected OpenGLRender(GL gl, GlRenderOptions options, GlState state)
@@ -210,7 +207,7 @@ namespace XrEngine.OpenGL
                     vertexContent.Contents.Add(new DrawContent
                     {
                         Draw = () => vertexContent!.VertexHandler!.Draw(),
-                        ProgramInstance = material.GetResource(gl => new GlProgramInstance(_gl, material, shaderContent.ProgramGlobal!)),
+                        ProgramInstance = new GlProgramInstance(_gl, material, shaderContent.ProgramGlobal!),
                         DrawId = drawId++,
                         Object = obj3D
                     });

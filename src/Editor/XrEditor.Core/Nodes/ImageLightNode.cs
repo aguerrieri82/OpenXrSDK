@@ -12,6 +12,7 @@ namespace XrEditor.Nodes
     {
         public ImageLightNode(ImageLight value) : base(value)
         {
+            _autoGenProps = false;
         }
 
 

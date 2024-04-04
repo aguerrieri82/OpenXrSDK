@@ -11,7 +11,7 @@ namespace XrEngine.OpenGL
     {
         static readonly Dictionary<string, GlBaseProgram> _programs = [];
 
-        protected Dictionary<string, IGlBuffer> _buffers = [];
+
         protected ShaderUpdate? _update;
         protected readonly GL _gl;
         protected long _programVersion = -1;
@@ -75,12 +75,13 @@ namespace XrEngine.OpenGL
         {
             if (isGlobal)
                 return Global.GetBuffer<T>(name, true);
-
-            if (!_buffers.TryGetValue(name, out var buffer))
+            
+            var key = "Buffer" + name;
+            var buffer = Material.GetProp<GlBuffer<T>>(key);
+            if (buffer == null)
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
-                buffer.AssignSlot();
-                _buffers[name] = buffer;
+                Material.SetProp(key, buffer);
             }
             return buffer;
         }

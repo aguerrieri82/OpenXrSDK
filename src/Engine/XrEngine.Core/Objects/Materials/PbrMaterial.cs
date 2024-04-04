@@ -430,7 +430,7 @@ namespace XrEngine
                         ViewProjectionMatrix = ctx.Camera!.View * ctx.Camera.Projection,
                         Exposure = ctx.Camera.Exposure
                     };
-                }, true);
+                }, 0, true);
 
                 bld.SetUniformBuffer("Lights", (ctx) =>
                 {
@@ -491,7 +491,7 @@ namespace XrEngine
                         LightCount = (uint)lights.Count,
                         Lights = lights.ToArray()
                     };
-                }, true);
+                }, 1, true);
 
                 var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
 
@@ -514,7 +514,7 @@ namespace XrEngine
                            EnvRotation = Matrix3x3.Rotation(imgLight.Rotation),
                            MipCount = (int)imgLight.Textures.MipCount
                         };
-                    }, true);
+                    }, 2, true);
 
 
                     bld.ExecuteAction((ctx, up) =>
@@ -713,7 +713,7 @@ namespace XrEngine
             bld.SetUniform("uModelMatrix", (ctx) => ctx.Model!.WorldMatrix);
             bld.SetUniform("uNormalMatrix", (ctx) => Matrix4x4.Transpose(ctx.Model!.WorldMatrixInverse));
 
-            bld.SetUniformBuffer("Material", ctx => material, false);
+            bld.SetUniformBuffer("Material", ctx => material, 3, false);
 
             bld.AddFeature("ALPHAMODE_OPAQUE 0");
             bld.AddFeature("ALPHAMODE_MASK 1");

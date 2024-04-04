@@ -4,6 +4,7 @@ using System.Windows;
 using WPF_Icons;
 using XrEditor.Services;
 using XrEngine;
+using XrEngine.Gltf;
 using XrEngine.OpenXr;
 using XrEngine.Services;
 
@@ -32,10 +33,19 @@ namespace XrEditor
             XrPlatform.Current = new EditorPlatform();
 
             Context.Implement<PanelManager>();
-            Context.Implement<NodeFactory>();
+            Context.Implement<NodeManager>();
             Context.Implement<SelectionManager>();
+            Context.Implement<PropertyEditorManager>();
             Context.Implement<IMainDispatcher>(new MainDispatcher());
             Context.Implement(XrPlatform.Current);
+
+            
+
+            ObjWriter x = new ObjWriter();
+            x.Add(new TriangleMesh(Sphere3D.Instance));
+            File.WriteAllText("d:\\test.obj", x.Text());
+
+       
 
             ModuleManager.Instance.Init();
 

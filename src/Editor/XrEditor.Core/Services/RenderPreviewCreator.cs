@@ -78,6 +78,7 @@ namespace XrEditor.Services
 
         public SKBitmap CreateTexture(Texture2D texture)
         {
+  
             _textureMaterial.Texture = texture;
             _textureMaterial.NotifyChanged(ObjectChangeType.Render);
 
@@ -90,6 +91,7 @@ namespace XrEditor.Services
             _app.ActiveScene!.Clear();
             _app.ActiveScene!.AddChild(_mesh);
 
+
             return CreateImage();
         }
 
@@ -98,6 +100,7 @@ namespace XrEditor.Services
             _mesh.Geometry = geometry;
             _mesh.Materials.Clear();
             _mesh.Materials.Add(material);
+            _mesh.NotifyChanged(ObjectChangeType.Render);
 
             var diagonal = geometry.Bounds.Size.Length();
             var distance = diagonal / (2 * MathF.Tan((45f / 180f * MathF.PI) / 2));

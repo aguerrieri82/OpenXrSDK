@@ -1,6 +1,5 @@
 ﻿using CanvasUI;
 using SkiaSharp;
-using System.Numerics;
 using UI.Binding;
 using XrEditor.Services;
 using XrEngine;
@@ -14,15 +13,21 @@ namespace XrEditor
         protected SKBitmap? _image;
         protected readonly RenderPreviewCreator _previewCreator;
 
-        public ElementPicker(IProperty<EngineObject?> binding)
+        public ElementPicker()
         {
             _previewCreator = Context.Require<RenderPreviewCreator>();
+        }
+
+        public ElementPicker(IProperty<EngineObject?> binding)
+            : this()
+        {
+
             Binding = binding;
         }
 
         protected override async void OnEditValueChanged(EngineObject? newValue)
         {
-            _node = newValue == null ? null : Context.Require<NodeFactory>().CreateNode(newValue);
+            _node = newValue == null ? null : Context.Require<NodeManager>().CreateNode(newValue);
 
             if (_node is IItemView itemView)
                 Name = itemView.DisplayName;
@@ -50,7 +55,6 @@ namespace XrEditor
             }
         }
 
-
         public string? Name
         {
             get => _name;
@@ -67,6 +71,19 @@ namespace XrEditor
         public static ElementPicker Create<T>(IProperty<T?> binding) where T : EngineObject
         {
             return new ElementPicker(binding!.Convert(new CastConverter<T, EngineObject?>()));
+        }
+    }
+
+    public struct EngineObjectEditorFactory : IPropertyEditorFactory
+    {
+        public bool CanHandle(Type type)
+        {
+            return typeof(EngineObject).IsAssignableFrom(type);
+        }
+
+        public IPropertyEditor CreateEditor(Type type)
+        {
+            return new ElementPicker();
         }
     }
 }

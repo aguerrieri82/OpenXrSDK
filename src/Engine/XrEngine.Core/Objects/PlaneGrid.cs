@@ -1,8 +1,9 @@
 ﻿using System.Numerics;
+using XrMath;
 
 namespace XrEngine
 {
-    public class PlaneGrid : LineMesh
+    public class PlaneGrid : LineMesh, IGeneratedContent
     {
         public PlaneGrid()
         {
@@ -13,20 +14,18 @@ namespace XrEngine
             Size = size;
             Subs = subs;
             AxisSize = axisSize;
-            Create();
+            ColorA = new Color(0.7f, 0.7f, 0.7f, 1);
+            ColorB = new Color(0.1f, 0.1f, 0.1f, 1);
+            Build();
         }
 
-        public void Create()
+        public void Build()
         {
             var list = new List<LineData>();
 
             float subSize = Size / Subs;
 
-            var color1 = new Vector3(0.7f, 0.7f, 0.7f);
-
-            var color2 = new Vector3(0.1f, 0.1f, 0.1f);
-
-            void AddLine(Vector3 from, Vector3 to, Vector3 color, float size = 1f)
+            void AddLine(Vector3 from, Vector3 to, Color color, float size = 1f)
             {
                 list.Add(new LineData
                 {
@@ -51,7 +50,7 @@ namespace XrEngine
 
                 AddLine(new Vector3(-halfSize, 0, zVal),
                         new Vector3(halfSize, 0, zVal),
-                        zVal == 0 ? color2 : color1
+                        zVal == 0 ? ColorB : ColorA
                        );
 
             }
@@ -61,7 +60,7 @@ namespace XrEngine
 
                 AddLine(new Vector3(xVal, 0, -halfSize),
                         new Vector3(xVal, 0, halfSize),
-                        xVal == 0 ? color2 : color1
+                        xVal == 0 ? ColorB : ColorA
                        );
             }
 
@@ -71,15 +70,15 @@ namespace XrEngine
 
                 AddLine(new Vector3(0, yTop, 0),
                        new Vector3(AxisSize, yTop, 0),
-                       new Vector3(1, 0, 0)
+                       new Color(1, 0, 0, 1)
                 );
                 AddLine(new Vector3(0, yTop, 0),
                        new Vector3(0, AxisSize, 0),
-                       new Vector3(0, 1, 0)
+                       new Color(0, 1, 0, 1)
                 );
                 AddLine(new Vector3(0, yTop, 0),
                      new Vector3(0, yTop, AxisSize),
-                     new Vector3(0, 0, 1)
+                     new Color(0, 0, 1, 1)
                 );
             }
 
@@ -92,17 +91,21 @@ namespace XrEngine
         {
             base.SetStateWork(container);
             container.ReadObject<PlaneGrid>(this);
-            Create();
+            Build();
         }
 
         public override void GetState(IStateContainer container)
         {
-            base.GetState(container);  
+            base.GetState(container);
             container.WriteObject<PlaneGrid>(this);
         }
 
+        public Color ColorA { get; set; }
+
+        public Color ColorB { get; set; }
+
         public float Size { get; set; }
-            
+
         public float Subs { get; set; }
 
         public float AxisSize { get; set; }
