@@ -2,7 +2,6 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using static XrEngine.KtxReader;
 #endif
 
 
@@ -42,7 +41,7 @@ namespace XrEngine.OpenGL
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
 
             fixed (byte* pData = data.Data.Span)
-                _gl.ReadPixels(0,0, Color.Width, Color.Height, PixelFormat.Rgba, PixelType.UnsignedByte, pData);
+                _gl.ReadPixels(0, 0, Color.Width, Color.Height, PixelFormat.Rgba, PixelType.UnsignedByte, pData);
 
             _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
 

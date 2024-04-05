@@ -1,14 +1,14 @@
-﻿using Android.Content;
+﻿using Context2 = global::Android.Content.Context;
 
 namespace XrEngine.OpenXr.Android
 {
     public class AndroidAssetManager : IAssetManager
     {
-        readonly Context _context;
+        readonly Context2 _context;
         readonly string _basePath;
         readonly HashSet<string> _loadedFiles = [];
 
-        public AndroidAssetManager(Context context, string basePath)
+        public AndroidAssetManager(Context2 context, string basePath)
         {
             _context = context;
             _basePath = basePath;
@@ -23,7 +23,7 @@ namespace XrEngine.OpenXr.Android
 
             var cachePath = Path.Join(cacheBase, name);
             if (_loadedFiles.Contains(cachePath))
-                return cachePath;  
+                return cachePath;
             /*
             if (File.Exists(cachePath))
                 return cachePath;

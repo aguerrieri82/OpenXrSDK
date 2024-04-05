@@ -6,7 +6,7 @@ using System.Text;
 namespace XrEngine
 {
 
-    public class KtxReader : BaseTextureReader
+    public class KtxReader : BaseTextureLoader
     {
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         unsafe struct KtxHeader
@@ -79,6 +79,11 @@ namespace XrEngine
             }
 
             return ReadData(seekStream, header.pixelWidth, header.pixelHeight, header.numberOfMipmapLevels, header.numberOfFaces, comp, format);
+        }
+
+        protected override bool CanHandleExtension(string extension)
+        {
+            return extension == ".ktx";
         }
 
         public static readonly KtxReader Instance = new();

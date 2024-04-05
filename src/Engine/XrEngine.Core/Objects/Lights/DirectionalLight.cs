@@ -23,7 +23,7 @@ namespace XrEngine
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-            Direction = container.Read<Vector3>(nameof(Direction)); 
+            Direction = container.Read<Vector3>(nameof(Direction));
         }
 
         public Vector3 Direction { get; set; }

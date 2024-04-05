@@ -1,9 +1,4 @@
 ﻿using PhysX.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UI.Binding;
 using XrEngine.Physics;
 
@@ -13,6 +8,7 @@ namespace XrEditor.Nodes
     {
         public RigidBodyNode(RigidBody value) : base(value)
         {
+            _autoGenProps = false;
         }
 
 
@@ -30,9 +26,9 @@ namespace XrEditor.Nodes
             curProps.Add(new PropertyView
             {
                 Label = "Restitution",
-                Editor = new FloatEditor(binder.Prop(a => a.Material.Restitution),0, 1)
+                Editor = new FloatEditor(binder.Prop(a => a.Material.Restitution), 0, 1)
             });
-            
+
             curProps.Add(new PropertyView
             {
                 Label = "Static Friction",

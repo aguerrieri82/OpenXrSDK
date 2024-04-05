@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UI.Binding;
+﻿using UI.Binding;
 using XrEngine;
 
 namespace XrEditor.Nodes
 {
     public class ComponentNode<T> : BaseNode<T>, IEditorProperties, IItemView where T : IComponent
     {
+        protected bool _autoGenProps;
+
         public ComponentNode(T value) : base(value)
         {
+            _autoGenProps = true;
         }
 
         public void EditorProperties(IList<PropertyView> curProps)
@@ -30,6 +27,12 @@ namespace XrEditor.Nodes
 
         public IconView? Icon => null;
 
-        bool IEditorProperties.AutoGenerate { get; set; }
+
+        bool IEditorProperties.AutoGenerate
+        {
+            get => _autoGenProps;
+            set => _autoGenProps = value;
+        }
+
     }
 }

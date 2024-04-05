@@ -16,13 +16,13 @@
 
         public T Value
         {
-            get 
+            get
             {
                 _lastValue = _getter();
                 return _lastValue;
             }
 
-            set 
+            set
             {
                 if (Equals(value, Value))
                     return;

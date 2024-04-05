@@ -9,7 +9,7 @@ namespace XrEditor
 
         protected NodeView? _root;
         protected SceneView? _sceneView;
-        protected internal HashSet<NodeView> _selectedNodes = []; 
+        protected internal HashSet<NodeView> _selectedNodes = [];
 
         readonly NodeManager _nodeFactory;
         readonly SelectionManager _selection;
@@ -26,7 +26,7 @@ namespace XrEditor
         {
             foreach (var curSel in _selectedNodes.ToArray())
                 curSel.IsSelected = false;
-            
+
             foreach (var item in items)
             {
                 if (_nodeMap.TryGetValue(item, out var nodeView))
@@ -38,15 +38,15 @@ namespace XrEditor
         {
             if (value == null)
                 return null;
-            
+
             var node = _nodeFactory.CreateNode(value);
 
             if (!_nodeMap.TryGetValue(node, out var nodeView))
             {
                 nodeView = new NodeView(this, parent, node);
-                _nodeMap[node] = nodeView;  
+                _nodeMap[node] = nodeView;
             }
-            
+
             return nodeView;
         }
 

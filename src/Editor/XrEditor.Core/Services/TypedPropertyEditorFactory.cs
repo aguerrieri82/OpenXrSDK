@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEditor.Services
+﻿namespace XrEditor.Services
 {
     public struct TypedPropertyEditorFactory<T, TEditor> : IPropertyEditorFactory where TEditor : BaseEditor<T, T>, new()
     {

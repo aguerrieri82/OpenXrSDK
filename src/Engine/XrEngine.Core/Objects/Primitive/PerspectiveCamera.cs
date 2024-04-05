@@ -16,7 +16,6 @@ namespace XrEngine
 
         public PerspectiveCamera()
         {
-
         }
 
         public void SetFovCenter(float left, float right, float top, float bottom)

@@ -59,7 +59,7 @@ namespace XrEngine.Compression
 
         #endregion
 
-   
+
 
         static unsafe SKBitmap CreateImage(TextureData data, SKColorType type)
         {

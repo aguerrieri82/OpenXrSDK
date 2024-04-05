@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Linq;
 using SkiaSharp;
 using System.Diagnostics;
-using System.Globalization;
 using System.Numerics;
 using System.Text;
 using System.Web;
@@ -25,13 +24,13 @@ namespace XrEngine.Gltf
         public static readonly GltfLoaderOptions Default = new();
     }
 
-    public class GltfAssetLoader : IAssetLoader
+    public class GltfAssetLoader : IAssetHandler
     {
-        Dictionary<string, GltfAssetCache> _cache = [];
+        readonly Dictionary<string, GltfAssetCache> _cache = [];
 
         class GltfAssetCache
         {
-            public GltfLoader? Loader { get; set; }  
+            public GltfLoader? Loader { get; set; }
 
             public DateTime LastEditTime { get; set; }
         }
@@ -102,25 +101,25 @@ namespace XrEngine.Gltf
                         throw new NotSupportedException();
                 }
             }
-            
+
             return cache.Loader!.LoadScene();
         }
     }
 
-    public class GltfLoader 
+    public class GltfLoader
     {
         GltfLoaderOptions? _options;
         IAssetManager? _assetManager;
         glTFLoader.Schema.Gltf? _model;
-        Dictionary<glTFLoader.Schema.Material, PbrMaterial> _mats =  [];
-        Dictionary<glTFLoader.Schema.Image, TextureData> _images = [];
-        Dictionary<glTFLoader.Schema.Mesh, Object3D> _meshes = [];
-        Dictionary<int, byte[]> _buffers = [];
-        StringBuilder _log = new();
+        readonly Dictionary<glTFLoader.Schema.Material, PbrMaterial> _mats = [];
+        readonly Dictionary<glTFLoader.Schema.Image, TextureData> _images = [];
+        readonly Dictionary<glTFLoader.Schema.Mesh, Object3D> _meshes = [];
+        readonly Dictionary<int, byte[]> _buffers = [];
+        readonly StringBuilder _log = new();
         string? _basePath;
         string? _filePath;
 
-        static string[] supportedExt = { "KHR_draco_mesh_compression", "KHR_materials_pbrSpecularGlossiness" };
+        static readonly string[] supportedExt = { "KHR_draco_mesh_compression", "KHR_materials_pbrSpecularGlossiness" };
 
         struct KHR_draco_mesh_compression
         {
@@ -261,8 +260,8 @@ namespace XrEngine.Gltf
                 result.MagFilter = ScaleFilter.Linear;
             }
 
-            result.AddComponent(new AssetSource 
-            { 
+            result.AddComponent(new AssetSource
+            {
                 AssetUri = new Uri($"res://gltf/texture/{id}?src={_filePath}")
             });
 
@@ -530,7 +529,7 @@ namespace XrEngine.Gltf
                     }
                 }
 
-        
+
             }
             else
                 throw new NotSupportedException();

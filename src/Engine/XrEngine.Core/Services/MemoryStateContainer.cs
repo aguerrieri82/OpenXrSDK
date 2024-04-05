@@ -1,18 +1,12 @@
-﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine.Services
+﻿namespace XrEngine.Services
 {
     public class MemoryStateContainer : IStateContainer
     {
         public class StateContext : IStateContext
         {
             public RefTable RefTable { get; } = new();
+
+            public StateContextFlags Flags { get; set; }
         }
 
         private readonly Dictionary<string, object?> _state;
@@ -30,7 +24,7 @@ namespace XrEngine.Services
         MemoryStateContainer(StateContext ctx, Dictionary<string, object?> state)
         {
             _context = ctx;
-            _state = state; 
+            _state = state;
         }
 
         public IStateContainer Enter(string key, bool resolveRef = false)
@@ -38,7 +32,7 @@ namespace XrEngine.Services
             if (!_state.TryGetValue(key, out var value))
             {
                 value = new MemoryStateContainer(_context, []);
-                _state[key] = value;    
+                _state[key] = value;
             }
 
             if (resolveRef && IsRef(key))
@@ -80,7 +74,7 @@ namespace XrEngine.Services
 
         public bool Contains(string key)
         {
-            return _state.ContainsKey(key); 
+            return _state.ContainsKey(key);
         }
 
         public bool IsRef(string key)

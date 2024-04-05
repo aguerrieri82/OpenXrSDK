@@ -5,7 +5,7 @@ using System.Text;
 
 namespace XrEngine
 {
-    public class PkmReader : ITextureLoader
+    public class PkmReader : BaseTextureLoader
     {
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -24,7 +24,7 @@ namespace XrEngine
             return (ushort)(value >> 8 | ((value << 8) & 0xFF00));
         }
 
-        public unsafe IList<TextureData> Read(Stream stream, TextureReadOptions? options = null)
+        public override unsafe IList<TextureData> Read(Stream stream, TextureReadOptions? options = null)
         {
             using var seekStream = stream.EnsureSeek();
 
@@ -44,6 +44,11 @@ namespace XrEngine
             seekStream.Read(result.Data.Span);
 
             return [result];
+        }
+
+        protected override bool CanHandleExtension(string extension)
+        {
+            return extension == ".pkm";
         }
 
         public static readonly PkmReader Instance = new();

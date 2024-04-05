@@ -20,6 +20,9 @@ namespace XrEngine
             if ((Flags & EngineObjectFlags.ChildGenerated) == EngineObjectFlags.ChildGenerated)
                 return;
 
+            if ((container.Context.Flags & StateContextFlags.SelfOnly) != 0)
+                return;
+
             container.WriteArray(nameof(Children), _children);
         }
 
@@ -28,6 +31,9 @@ namespace XrEngine
             base.SetStateWork(container);
 
             if ((Flags & EngineObjectFlags.ChildGenerated) == EngineObjectFlags.ChildGenerated)
+                return;
+
+            if ((container.Context.Flags & StateContextFlags.SelfOnly) != 0)
                 return;
 
             container.ReadArray(nameof(Children), _children, a => AddChild(a), a => RemoveChild(a));

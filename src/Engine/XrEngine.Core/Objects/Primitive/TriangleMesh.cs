@@ -6,8 +6,8 @@ namespace XrEngine
 {
     public class TriangleMesh : Object3D, IVertexSource<VertexData, uint>, ILocalBounds
     {
-        readonly ObservableCollection<Material> _materials;
-        private Geometry3D? _geometry;
+        protected readonly ObservableCollection<Material> _materials;
+        protected Geometry3D? _geometry;
 
         public TriangleMesh()
         {

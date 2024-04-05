@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public abstract class BaseComponent<T> : IComponent<T>, IStateManager where T : EngineObject
     {

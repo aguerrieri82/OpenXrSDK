@@ -90,7 +90,7 @@ namespace CanvasUI
         {
             for (var i = _children.Count - 1; i >= 0; i--)
             {
-                var child = _children[i];   
+                var child = _children[i];
                 _children.RemoveAt(i);
                 child.Dispose();
             }

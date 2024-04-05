@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace XrEngine
 {
 
-    public class PvrTranscoder : BaseTextureReader
+    public class PvrTranscoder : BaseTextureLoader
     {
         const uint Version = 0x03525650;
 
@@ -17,7 +17,7 @@ namespace XrEngine
             ETC2_RGB_A1 = 24,
             RGBA8 = 0x0808080861626772,
             RGB8 = 0x0008080800626772,
-            RGBFloat32 =   0x0020202000626772,
+            RGBFloat32 = 0x0020202000626772,
             RGBAFloat32 = 0x2020202061626772,
             RGBAFloat16 = 0x1010101061626772
         }
@@ -31,7 +31,7 @@ namespace XrEngine
 
         public enum ChannelType : uint
         {
-            UnsignedByteNormalised  = 0,
+            UnsignedByteNormalised = 0,
             Float = 12
         }
 
@@ -71,7 +71,7 @@ namespace XrEngine
             header.Width = images[0].Width;
             header.Height = images[0].Height;
             header.NumSurfaces = 1;
-            header.NumFaces = images.Max(a=> a.Face) + 1;
+            header.NumFaces = images.Max(a => a.Face) + 1;
             header.Depth = 1;
             header.MIPMapCount = images.Max(a => a.MipLevel) + 1;
 
@@ -83,7 +83,7 @@ namespace XrEngine
                         header.PixelFormat = PixelFormat.ETC2_RGBA;
                     else
                         header.PixelFormat = PixelFormat.RGBA8;
-                        break;
+                    break;
                 case TextureFormat.Rgb24:
                     header.ColourSpace = ColourSpace.LinearRGB;
                     if (images[0].Compression == TextureCompressionFormat.Etc2)
@@ -182,8 +182,11 @@ namespace XrEngine
             }
 
             return ReadData(seekStream, header.Width, header.Height, header.MIPMapCount, header.NumFaces, comp, format);
+        }
 
-
+        protected override bool CanHandleExtension(string extension)
+        {
+            return extension == ".pvr";
         }
 
         public static readonly PvrTranscoder Instance = new();

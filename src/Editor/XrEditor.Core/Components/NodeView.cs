@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using XrEditor.Services;
+using XrEngine;
 
 namespace XrEditor
 {
@@ -16,7 +17,7 @@ namespace XrEditor
 
         internal NodeView(OutlinePanel host, NodeView? parent, INode node)
         {
-            _host = host;   
+            _host = host;
             _node = node;
             _parent = parent;
             _selection = Context.Require<SelectionManager>();
@@ -40,12 +41,12 @@ namespace XrEditor
             if (!_node.IsLeaf)
             {
                 foreach (var item in _node.Children)
-                    _children.Add(_host.CreateNodeView(item, this)!);    
+                    _children.Add(_host.CreateNodeView(item, this)!);
             }
 
             _isLoaded = true;
 
-            return Task.CompletedTask;  
+            return Task.CompletedTask;
         }
 
         public bool IsExpanded
@@ -58,7 +59,7 @@ namespace XrEditor
                 _isExpanded = value;
                 if (_isExpanded && !_isLoaded && !_node.IsLeaf)
                     _ = LoadChildrenAsync();
-                OnPropertyChanged(nameof(IsExpanded));  
+                OnPropertyChanged(nameof(IsExpanded));
             }
         }
 

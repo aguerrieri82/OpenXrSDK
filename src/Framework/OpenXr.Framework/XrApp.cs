@@ -840,7 +840,7 @@ namespace OpenXr.Framework
             var instance = (T)Activator.CreateInstance(typeof(T), this)!;
             if (_session.Handle != 0)
                 instance.Initialize(type);
-            
+
             _hands[type] = instance;
             return instance;
         }

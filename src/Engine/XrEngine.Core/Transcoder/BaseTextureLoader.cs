@@ -1,6 +1,8 @@
-﻿namespace XrEngine
+﻿using XrEngine.Transcoder;
+
+namespace XrEngine
 {
-    public abstract class BaseTextureReader : ITextureLoader
+    public abstract class BaseTextureLoader : BaseAssetLoader, ITextureLoader
     {
         protected struct AlignSize
         {
@@ -16,7 +18,7 @@
             using (var stream = File.OpenRead(fileName))
                 return Read(stream, options);
         }
-        
+
         public abstract IList<TextureData> Read(Stream stream, TextureReadOptions? options = null);
 
         protected static AlignSize GetFormatAlign(TextureCompressionFormat comp, TextureFormat format)
@@ -78,7 +80,7 @@
 
             for (var mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
-                for (var face = 0 ; face < faceCount; face++)
+                for (var face = 0; face < faceCount; face++)
                 {
                     var item = new TextureData
                     {
@@ -101,10 +103,22 @@
                     if (totRead != item.Data.Length)
                         break;
                 }
-             
+
             }
 
             return results;
         }
+
+        public override EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, object? options = null)
+        {
+            var fsPath = assetManager.GetFsPath(GetFilePath(uri));
+            using var file = File.OpenRead(fsPath);
+            var data = Read(file, (TextureReadOptions?)options);
+            var result = Texture2D.FromData(data);
+            result.AddComponent(new AssetSource { AssetUri = uri });
+            return result;
+        }
+
+
     }
 }

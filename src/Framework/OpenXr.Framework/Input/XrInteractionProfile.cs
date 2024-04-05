@@ -1,7 +1,4 @@
-﻿using System.Numerics;
-using XrMath;
-
-namespace OpenXr.Framework
+﻿namespace OpenXr.Framework
 {
     public class XrInteractionProfileHand<THand>
     {

@@ -4,9 +4,9 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class Object3DNode<T> : EngineObjectNode<T> where T: Object3D
+    public class Object3DNode<T> : EngineObjectNode<T> where T : Object3D
     {
-        NodeDictionary _components = [];
+        readonly NodeDictionary _components = [];
 
 
         public Object3DNode(T value)
@@ -41,8 +41,8 @@ namespace XrEditor.Nodes
         {
             get
             {
-                yield return _components[Value.Transform];  
-                
+                yield return _components[Value.Transform];
+
                 foreach (var component in _value.Components<IComponent>())
                     yield return GetNode(component);
             }

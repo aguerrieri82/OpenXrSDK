@@ -7,7 +7,10 @@
     <SolidColorBrush x:Key="Yellow">#FBC02D</SolidColorBrush>
     <SolidColorBrush x:Key="InputColor">#444</SolidColorBrush>
     <SolidColorBrush x:Key="InputTextColor">#eee</SolidColorBrush>
-    
+
+    <Style TargetType="Label">
+        <Setter Property="Foreground" Value="{StaticResource SurfaceTextColor}"/>
+    </Style>
     <Style TargetType="Window">
         <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
         <Setter Property="Foreground" Value="{StaticResource SurfaceTextColor}"/>

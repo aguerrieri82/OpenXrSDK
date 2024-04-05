@@ -22,16 +22,16 @@ namespace XrEngine.OpenGL.Oculus
     public class GlMultiViewRenderTarget : IGlRenderTarget, IMultiViewTarget, IShaderHandler
     {
         static GlMultiViewRenderTarget? _instance;
-        
+
         protected GlMultiViewFrameBuffer _frameBuffer;
         protected SceneMatrices _matrices = new SceneMatrices();
-        GL _gl;
+        readonly GL _gl;
 
 
         protected GlMultiViewRenderTarget(GL gl)
         {
             _frameBuffer = new GlMultiViewFrameBuffer(gl);
-            _gl = gl;   
+            _gl = gl;
 
         }
 
@@ -57,14 +57,14 @@ namespace XrEngine.OpenGL.Oculus
 
         public uint QueryTexture(FramebufferAttachment attachment)
         {
-            return _frameBuffer.QueryTexture(attachment);   
+            return _frameBuffer.QueryTexture(attachment);
         }
 
         public void Dispose()
         {
             _frameBuffer.Dispose();
         }
-     
+
         public void SetCameraTransforms(XrCameraTransform[] eyes)
         {
             Matrix4x4.Invert(eyes[0].Transform, out var view1);

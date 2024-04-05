@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 
 namespace UI.Binding
 {
@@ -22,7 +17,7 @@ namespace UI.Binding
 
     public static class ValueConverters
     {
-        static List<IValueConverter> _converters = [];
+        static readonly List<IValueConverter> _converters = [];
 
         static ValueConverters()
         {
@@ -40,7 +35,7 @@ namespace UI.Binding
             var result = _converters.OfType<IValueConverter<TSrc, TDst>>().FirstOrDefault();
             if (result == null)
                 throw new InvalidCastException();
-            return result;  
+            return result;
         }
     }
 }

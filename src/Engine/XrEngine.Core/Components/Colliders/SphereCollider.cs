@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-using System.Numerics;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {

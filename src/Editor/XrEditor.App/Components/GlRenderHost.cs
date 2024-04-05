@@ -181,7 +181,7 @@ namespace XrEditor
                 cColorBits = 24,
                 cAlphaBits = 8,
                 cDepthBits = 24,
-               
+
                 cStencilBits = 8
             };
 
@@ -201,7 +201,7 @@ namespace XrEditor
 
             TakeContext();
 
-           // EnableVSync(false);
+            // EnableVSync(false);
 
             var pointer = GetProcAddress("wglCreateContextAttribsARB");
             wglCreateContextAttribsARB = Marshal.GetDelegateForFunctionPointer<wglCreateContextAttribsARBPtr>(pointer);
@@ -213,10 +213,10 @@ namespace XrEditor
 
             attr[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
             attr[3] = 6;
-            
+
             attr[4] = WGL_CONTEXT_PROFILE_MASK_ARB;
             attr[5] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-           //attr[5] = WGL_CONTEXT_ES_PROFILE_BIT_EXT; ;
+            //attr[5] = WGL_CONTEXT_ES_PROFILE_BIT_EXT; ;
 
             attr[6] = 0;
 

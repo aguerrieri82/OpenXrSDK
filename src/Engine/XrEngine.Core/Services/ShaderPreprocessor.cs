@@ -257,7 +257,7 @@ namespace XrEngine
                         {
                             //throw new NotSupportedException();
                         }
-        
+
                     }
                 }
 

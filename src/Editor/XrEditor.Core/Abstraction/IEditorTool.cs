@@ -1,6 +1,4 @@
-﻿using XrEngine;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
 
     public interface IEditorTool

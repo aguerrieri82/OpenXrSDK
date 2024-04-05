@@ -6,7 +6,7 @@ using System.Text;
 namespace XrEngine
 {
 
-    public class Ktx2Reader : BaseTextureReader
+    public class Ktx2Reader : BaseTextureLoader
     {
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         unsafe struct KtxHeader
@@ -58,7 +58,7 @@ namespace XrEngine
             if (!magic.Contains("KTX 20"))
                 throw new NotSupportedException();
 
-            if (header.supercompressionScheme !=  CompressionScheme.None ||
+            if (header.supercompressionScheme != CompressionScheme.None ||
                 header.pixelDepth != 0 ||
                 header.layerCount != 0)
             {
@@ -90,6 +90,11 @@ namespace XrEngine
                 seekStream.Position = header.sgdByteOffset;
 
             return ReadData(seekStream, header.pixelWidth, header.pixelHeight, header.levelCount, header.faceCount, comp, format);
+        }
+
+        protected override bool CanHandleExtension(string extension)
+        {
+            return extension == ".ktx2";
         }
 
         public static readonly Ktx2Reader Instance = new();

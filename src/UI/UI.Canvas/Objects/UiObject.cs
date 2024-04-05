@@ -118,7 +118,7 @@ namespace CanvasUI
         public Binding Bind<TValue>(string propName, IProperty<TValue> other, BindingMode mode)
         {
             _bindings ??= [];
-            
+
             var result = new Binding(other, new UiPropertyInstance<TValue>(this, propName), mode);
             _bindings.Add(result);
             return result;
@@ -128,10 +128,10 @@ namespace CanvasUI
         {
             if (_bindings != null)
             {
-                foreach (var binding in _bindings)  
+                foreach (var binding in _bindings)
                     binding.Dispose();
             }
-            
+
             _bindings = null;
             _props.Clear();
 

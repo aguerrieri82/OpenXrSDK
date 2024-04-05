@@ -4,9 +4,8 @@
 		<RootNamespace>XrEditor</RootNamespace>
 	</PropertyGroup>
 
-
 	<ItemGroup>
-		<Content Include="Resources/**/*" CopyToOutputDirectory="PreserveNewest" />
+		<Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>

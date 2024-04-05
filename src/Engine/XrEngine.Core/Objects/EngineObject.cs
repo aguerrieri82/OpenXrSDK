@@ -1,6 +1,4 @@
-﻿using XrEngine;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     [Flags]
     public enum EngineObjectFlags
@@ -174,7 +172,7 @@ namespace XrEngine
 
         public long Version { get; set; }
 
-        public EngineObjectFlags Flags { get; set; }    
+        public EngineObjectFlags Flags { get; set; }
 
         public ObjectId Id => _id;
     }

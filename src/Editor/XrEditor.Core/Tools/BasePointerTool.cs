@@ -1,6 +1,4 @@
-﻿using Silk.NET.Vulkan;
-using System.Numerics;
-using XrEditor.Services;
+﻿using System.Numerics;
 using XrEngine;
 using XrEngine.Interaction;
 using XrMath;

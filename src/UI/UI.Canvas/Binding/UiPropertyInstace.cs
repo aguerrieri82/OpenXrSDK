@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UI.Binding;
+﻿using UI.Binding;
 
 namespace CanvasUI
 {
     public class UiPropertyInstance<T> : IProperty<T>, IDisposable
     {
-        UiObject _obj;
-        UiProperty<T> _prop;
+        readonly UiObject _obj;
+        readonly UiProperty<T> _prop;
 
         public UiPropertyInstance(UiObject obj, string name)
             : this(obj, (UiProperty<T>)UiObject.GetProperty(name, obj.GetType()))

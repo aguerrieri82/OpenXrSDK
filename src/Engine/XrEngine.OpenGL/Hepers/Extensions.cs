@@ -33,9 +33,9 @@ namespace XrEngine.OpenGL
 
             try
             {
-                for (var i = 0; i < targets.Length; i++) 
+                for (var i = 0; i < targets.Length; i++)
                 {
-                    var target = targets[i];    
+                    var target = targets[i];
                     gL.BindTexture(target, texId);
                     gL.GetInteger(bindings[i], out int curTexId);
                     gL.BindTexture(target, 0);
@@ -121,7 +121,7 @@ namespace XrEngine.OpenGL
                     glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Format, texture2D.Compression);
             }
 
-            glTexture.Version = texture2D.Version;  
+            glTexture.Version = texture2D.Version;
         }
 
         public static unsafe Texture TexIdToEngineTexture(this GL gl, uint texId, TextureFormat? readFormat = null)
@@ -139,7 +139,7 @@ namespace XrEngine.OpenGL
                 res = new Texture2D();
 
             res.Width = glTexture.Width;
-            res.Height= glTexture.Height;
+            res.Height = glTexture.Height;
             res.WrapT = (WrapMode)glTexture.WrapT;
             res.WrapS = (WrapMode)glTexture.WrapS;
             res.MagFilter = (ScaleFilter)glTexture.MagFilter;
@@ -151,7 +151,7 @@ namespace XrEngine.OpenGL
                     res.Format = TextureFormat.RgbFloat32;
                     break;
             }
-            
+
             res.SetProp(OpenGLRender.Props.GlResId, glTexture);
 
             if (readFormat != null)

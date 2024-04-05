@@ -5,8 +5,6 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics;
-using System.Linq.Expressions;
-using static XrEngine.KtxReader;
 
 namespace XrEngine.OpenGL
 {
@@ -55,9 +53,9 @@ namespace XrEngine.OpenGL
             Bind();
 
             bool isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
-            
+
             var levelTarget = Target == TextureTarget.TextureCubeMap ? TextureTarget.TextureCubeMapPositiveX : Target;
-        
+
             _gl.GetTexLevelParameter(levelTarget, 0, GetTextureParameter.TextureWidth, out int w);
             _width = (uint)w;
 
@@ -199,8 +197,8 @@ namespace XrEngine.OpenGL
 
                 TextureFormat.RgFloat32 => PixelFormat.RG,
 
-                TextureFormat.Rgb24 or 
-                TextureFormat.RgbFloat32 or 
+                TextureFormat.Rgb24 or
+                TextureFormat.RgbFloat32 or
                 TextureFormat.SRgb24 => PixelFormat.Rgb,
 
                 _ => throw new NotSupportedException(),
@@ -275,7 +273,7 @@ namespace XrEngine.OpenGL
                     _ => throw new NotSupportedException(format.ToString()),
                 };
             }
-            
+
             if (compression == TextureCompressionFormat.Etc1)
             {
                 return InternalFormat.Etc1Rgb8Oes;
@@ -315,11 +313,11 @@ namespace XrEngine.OpenGL
                     var realMax = (uint)MathF.Floor(MathF.Log2(width)) - 1;
                     if (MaxLevel > realMax)
                         MaxLevel = realMax;
-                }    
+                }
             }
 
             Update();
-    
+
             Bind();
 
             _internalFormat = GetInternalFormat(format, compression);
@@ -340,7 +338,7 @@ namespace XrEngine.OpenGL
                     }
                     else
                     {
-      
+
                         _gl.TexStorage2D(Target,
                                   MaxLevel + 1,
                                   (SizedInternalFormat)_internalFormat,
@@ -350,7 +348,7 @@ namespace XrEngine.OpenGL
 
                     _isAllocated = true;
                 }
-               
+
 
                 if (data != null)
                 {

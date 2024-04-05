@@ -45,7 +45,7 @@ namespace XrEngine.UI
                     continue;
 
                 var collision = _collider.CollideWith(status.Ray);
-                
+
                 //TODO infinite plane collision
 
                 if (collision != null)
@@ -143,8 +143,8 @@ namespace XrEngine.UI
             _parent?.RemoveChild(this);
         }
 
-        Vector3 IUiWindow.Position 
-        { 
+        Vector3 IUiWindow.Position
+        {
             get => WorldPosition;
             set => WorldPosition = value;
         }

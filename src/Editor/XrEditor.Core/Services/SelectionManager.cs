@@ -1,10 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
 
 namespace XrEditor.Services
 {
@@ -49,15 +43,15 @@ namespace XrEditor.Services
 
         public void Clear()
         {
-            _items.Clear(); 
+            _items.Clear();
         }
 
         public void Set(params INode[] items)
         {
             BeginUpdate();
-            
+
             _items.Clear();
-            foreach (var item in items) 
+            foreach (var item in items)
                 _items.Add(item);
 
             EndUpdate();
@@ -65,7 +59,7 @@ namespace XrEditor.Services
 
         public bool IsSelected(INode value)
         {
-           return _items.Contains(value);   
+            return _items.Contains(value);
         }
 
 

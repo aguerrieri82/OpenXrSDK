@@ -1,10 +1,4 @@
-﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 
 
@@ -22,9 +16,11 @@ namespace XrEngine.Services
                 Main = main;
             }
 
+            public StateContextFlags Flags { get; set; }
+
             public RefTable RefTable { get; }
 
-            public JsonObject Main { get;  }
+            public JsonObject Main { get; }
         }
 
         readonly JsonObject _state;
@@ -95,7 +91,7 @@ namespace XrEngine.Services
                 if (manager != null)
                 {
                     manager.Write(key, value, this);
-                    mustSerialize = false;   
+                    mustSerialize = false;
                 }
             }
 
@@ -118,13 +114,13 @@ namespace XrEngine.Services
 
         public readonly string AsJson()
         {
-            return _context.Main.ToJsonString(new JsonSerializerOptions { WriteIndented = true });   
+            return _context.Main.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
         }
 
         public readonly IStateContext Context => _context;
 
         public readonly int Count => _state.Count;
 
-        public readonly IEnumerable<string> Keys => _state.Select(a=> a.Key);
+        public readonly IEnumerable<string> Keys => _state.Select(a => a.Key);
     }
 }

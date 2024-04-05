@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using XrEngine;
 
 namespace XrSamples
 {
     public abstract class BaseAppSettings
     {
-        protected  string? _filePath;
+        protected string? _filePath;
 
         public abstract void Apply(Scene3D scene);
 

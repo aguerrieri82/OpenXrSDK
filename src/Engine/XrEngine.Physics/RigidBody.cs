@@ -2,7 +2,6 @@
 using PhysX.Framework;
 using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices.JavaScript;
 using XrMath;
 
 
@@ -184,7 +183,7 @@ namespace XrEngine.Physics
                 return;
                 throw new NotSupportedException("Not uniform scale is not supported");
             }
-               
+
 
             _material = _system.CreateOrGetMaterial(new PhysicsMaterialInfo
             {

@@ -1,5 +1,4 @@
 ﻿using PhysX.Framework;
-using System.Numerics;
 
 namespace XrEngine.Physics
 {
@@ -29,7 +28,7 @@ namespace XrEngine.Physics
 
         public float StepSizeSecs { get; set; }
 
-        public PhysicsOptions Options { get; set; } 
+        public PhysicsOptions Options { get; set; }
 
         public PhysicsSystem System => _system;
     }

@@ -3,7 +3,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <DataTemplate DataType="{x:Type local:Vector3Editor}">
-        <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
+        <StackPanel Margin="-22,0,0,0" Orientation="Horizontal">
             <DockPanel>
                 <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">X</Label>
                 <ContentControl VerticalAlignment="Center" Content="{Binding X}"/>

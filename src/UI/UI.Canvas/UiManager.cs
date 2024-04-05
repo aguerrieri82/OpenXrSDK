@@ -7,7 +7,7 @@ namespace CanvasUI
         private static UiElement? _activeFocus;
         private static UiElement? _hoverElement;
         private static readonly Dictionary<int, UiElement?> _pointerCaptures = [];
-        private static Dictionary<Type, Queue<UiEvent>> _eventPool = [];
+        private static readonly Dictionary<Type, Queue<UiEvent>> _eventPool = [];
 
 
         public static void SetPointerCapture(int pointerId, UiElement? element)
@@ -77,7 +77,7 @@ namespace CanvasUI
                 ev.Dispatch = UiEventDispatch.Bubble;
                 _activeFocus.DispatchEvent(ev);
             }
-           
+
             _activeFocus = element;
 
             if (_activeFocus != null)
@@ -95,12 +95,12 @@ namespace CanvasUI
             if (!_eventPool.TryGetValue(typeof(T), out var pool))
             {
                 pool = [];
-                _eventPool[typeof(T)] = pool;   
+                _eventPool[typeof(T)] = pool;
             }
 
             if (pool.Count == 0)
                 pool.Enqueue(new T());
-            
+
             var res = (T)pool.Dequeue();
             res.Timestamp = DateTime.Now.Ticks;
             return res;

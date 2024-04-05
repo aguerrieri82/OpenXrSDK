@@ -8,7 +8,7 @@ namespace XrEngine
         {
             Color = Color.White;
             Intensity = 1f;
-            CastShadows = true; 
+            CastShadows = true;
         }
 
         protected override void OnChanged(ObjectChange change)

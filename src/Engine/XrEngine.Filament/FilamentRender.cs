@@ -1,7 +1,4 @@
-﻿using SkiaSharp;
-using System;
-using System.Runtime.InteropServices;
-using XrEngine;
+﻿using System.Runtime.InteropServices;
 using XrMath;
 using static XrEngine.Filament.FilamentLib;
 
@@ -17,7 +14,7 @@ namespace XrEngine.Filament
             ShadowType = FlShadowType.PCF;
             HdrColorBuffer = FlQualityLevel.MEDIUM;
             SampleCount = 1;
-            UseSrgb = true; 
+            UseSrgb = true;
         }
 
         public IntPtr Context;
@@ -256,11 +253,11 @@ namespace XrEngine.Filament
 
                     result.Data.Format = mainData.Format switch
                     {
-                        TextureFormat.Rgba32 or 
+                        TextureFormat.Rgba32 or
                         TextureFormat.SRgba32 => FlPixelFormat.RGBA,
 
                         TextureFormat.RgbFloat32 => FlPixelFormat.RGB,
-                        
+
                         _ => throw new NotSupportedException(),
                     };
 
@@ -271,9 +268,9 @@ namespace XrEngine.Filament
                         TextureFormat.RgbaFloat16 or
                         TextureFormat.RgbaFloat32
                             => FlPixelType.FLOAT,
-                        
+
                         TextureFormat.Rgba32 or
-                        TextureFormat.SRgba32 
+                        TextureFormat.SRgba32
                             => FlPixelType.UBYTE,
 
                         _ => throw new NotSupportedException(),
@@ -343,7 +340,7 @@ namespace XrEngine.Filament
                         AddLight(_app, id, ref info);
                     });
                 }
-                else if (obj is ImageLight img && img.Textures?.Panorama != null)
+                else if (obj is ImageLight img && img.Panorama != null)
                 {
                     GetOrCreate(img, id =>
                     {
@@ -352,10 +349,10 @@ namespace XrEngine.Filament
                             Intensity = img.Intensity,
                             Rotation = img.Rotation,
                             ShowSkybox = false,
-                            Texture = AllocateTexture(img.Textures.Panorama)
+                            Texture = AllocateTexture(img.Panorama)
                         };
 
-            
+
                         AddImageLight(_app, ref info);
 
                         img.Changed += (s, e) =>
@@ -460,7 +457,7 @@ namespace XrEngine.Filament
                         var matId = GetOrCreate(mesh.Materials[0], matId =>
                         {
                             var mat = mesh.Materials[0];
-                            
+
                             MaterialInfo UpdateMatInfo()
                             {
                                 if (mat is PbrMaterial pbr)
@@ -528,7 +525,7 @@ namespace XrEngine.Filament
                             mat.Changed += (s, c) =>
                             {
                                 matInfo = UpdateMatInfo();
-                                UpdateMaterial(_app,mat.Id, ref matInfo);   
+                                UpdateMaterial(_app, mat.Id, ref matInfo);
                             };
                         });
 

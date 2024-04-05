@@ -1,12 +1,11 @@
 ﻿using OpenXr.Framework.Oculus;
 using System.Xml.Linq;
-using XrSamples;
+using XrEditor.Services;
 using XrEngine;
 using XrEngine.Interaction;
 using XrEngine.OpenXr;
 using XrMath;
-using XrEditor.Services;
-using XrEditor.Helpers;
+using XrSamples;
 
 
 namespace XrEditor
@@ -43,7 +42,7 @@ namespace XrEditor
             _pointer.ReleasePointer();
         }
 
-        public int PointerId => _pointer.PointerId;   
+        public int PointerId => _pointer.PointerId;
     }
 
     public class SceneView : BasePanel
@@ -322,6 +321,6 @@ namespace XrEditor
 
         public IEnumerable<Camera> CameraList => _scene?.Descendants<Camera>() ?? [];
 
-        public IEditorTool? ActiveTool { get;  set; }
+        public IEditorTool? ActiveTool { get; set; }
     }
 }

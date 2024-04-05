@@ -1,17 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CanvasUI
 {
     public class TextBlockLogger : ILogger
     {
-        TextBlock _textBlock;
-        int _maxLines;
-        List<string> _lines = [];  
+        readonly TextBlock _textBlock;
+        readonly int _maxLines;
+        readonly List<string> _lines = [];
 
         public TextBlockLogger(TextBlock block, int maxLines)
         {

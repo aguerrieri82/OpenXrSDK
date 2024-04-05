@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace UI.Binding
 {
     public class ReflectionProperty : IProperty
     {
-        PropertyInfo _property;
-        object _object;
+        readonly PropertyInfo _property;
+        readonly object _object;
 
         public ReflectionProperty(PropertyInfo property, object obj)
         {
@@ -46,10 +41,10 @@ namespace UI.Binding
         {
         }
 
-        T IProperty<T>.Value 
+        T IProperty<T>.Value
         {
             get => (T)Value!;
-            set => Value = value;   
+            set => Value = value;
         }
     }
 }

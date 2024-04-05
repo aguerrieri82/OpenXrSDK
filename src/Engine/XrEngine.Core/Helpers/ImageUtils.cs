@@ -61,7 +61,7 @@ namespace XrEngine
 
             canvas.Clear(new SKColor(1, 1, 1, 1));
 
-            using var paint  = new SKPaint();
+            using var paint = new SKPaint();
             paint.BlendMode = SKBlendMode.DstOver;
 
             canvas.DrawBitmap(src, 0, 0, paint);

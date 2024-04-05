@@ -102,6 +102,5 @@ namespace XrEngine
         public EngineApp? App => _app;
 
         public static Scene3D? Current { get; internal set; }
-
     }
 }

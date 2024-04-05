@@ -8,7 +8,7 @@ namespace XrEngine
 
         void SetDefaultRenderTarget();
 
-        void SetRenderTarget(Texture2D texture);    
+        void SetRenderTarget(Texture2D texture);
 
         void Suspend();
 
@@ -16,6 +16,6 @@ namespace XrEngine
 
         Texture2D? GetDepth();
 
-        IDispatcher Dispatcher { get; } 
+        IDispatcher Dispatcher { get; }
     }
 }
