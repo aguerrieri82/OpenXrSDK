@@ -1,4 +1,4 @@
-﻿namespace XrEditor.Services
+﻿namespace XrEngine
 {
 
     public class GlobalContext

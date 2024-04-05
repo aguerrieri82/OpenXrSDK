@@ -36,7 +36,7 @@
         {
             get
             {
-                _types ??= ComputeType(_value);   
+                _types ??= ComputeType(_value);
                 return _types;
             }
         }

@@ -1,6 +1,5 @@
 ﻿using OpenXr.Framework;
 using System.Numerics;
-using XrEngine;
 using XrEngine.Interaction;
 
 namespace XrEngine.OpenXr

@@ -1,9 +1,8 @@
-﻿using System.Numerics;
+﻿using Microsoft.Extensions.Logging;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.Extensions.Logging;
-using PhysX;
 using static PhysX.NativeMethods;
 
 
@@ -41,13 +40,13 @@ namespace PhysX.Framework
             Gravity = new Vector3(0, -9.81f, 0);
         }
 
-        public ILogger? Logger { get; set; }    
+        public ILogger? Logger { get; set; }
 
         public bool UseDebug { get; set; }
 
         public string? DebugHost { get; set; }
 
-        public int DebugPort { get; set; }  
+        public int DebugPort { get; set; }
 
         public float LengthTolerance { get; set; }
 

@@ -1,10 +1,5 @@
 ﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using XrEngine;
 using XrMath;
 
@@ -23,7 +18,7 @@ namespace XrEditor.Services
 
         public RenderPreviewCreator(IRenderEngine engine)
         {
-            _engine = engine;   
+            _engine = engine;
 
             _texture = new Texture2D()
             {
@@ -51,7 +46,7 @@ namespace XrEditor.Services
             _scene.ActiveCamera = camera;
 
             _light = new ImageLight();
-            _light.LoadPanorama("Resources/pisa.hdr");
+            _light.LoadPanorama("pisa.hdr");
             _light.Intensity = 2.5f;
             _light.Version = -100;
 
@@ -61,9 +56,9 @@ namespace XrEditor.Services
 
             _textureMaterial = new TextureMaterial() { UseDepth = false, WriteDepth = false, DoubleSided = false };
 
-            _wireframe = new WireframeMaterial() { Color = new Color(1,1,1,1), UseDepth = false, WriteDepth = false, DoubleSided = true };
+            _wireframe = new WireframeMaterial() { Color = new Color(1, 1, 1, 1), UseDepth = false, WriteDepth = false, DoubleSided = true };
             _mesh = new TriangleMesh();
-            _mesh.Materials.Add(_wireframe);    
+            _mesh.Materials.Add(_wireframe);
         }
 
         public SKBitmap CreateMaterial(Material material)
@@ -74,11 +69,11 @@ namespace XrEditor.Services
         public SKBitmap CreateGeometry(Geometry3D geometry)
         {
             return CreateMesh(geometry, _wireframe);
-        } 
+        }
 
         public SKBitmap CreateTexture(Texture2D texture)
         {
-  
+
             _textureMaterial.Texture = texture;
             _textureMaterial.NotifyChanged(ObjectChangeType.Render);
 
@@ -136,7 +131,7 @@ namespace XrEditor.Services
             fixed (byte* pData = data.Data.Span)
             fixed (byte* pDst = dst)
             {
-                NativeLib.ImageFlipY(new nint(pData), new nint(pDst), _texture.Width, _texture.Height, _texture.Width * 4);
+                XrNativeLib.ImageFlipY(new nint(pData), new nint(pDst), _texture.Width, _texture.Height, _texture.Width * 4);
                 image.SetPixels(new nint(pDst));
             }
 

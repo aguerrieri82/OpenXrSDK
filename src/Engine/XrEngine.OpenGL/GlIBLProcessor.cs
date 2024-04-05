@@ -54,8 +54,8 @@ namespace XrEngine.OpenGL
             if (MipLevelCount == 0 || MipLevelCount > maxMipLevels)
                 MipLevelCount = maxMipLevels;
 
-            _panToCubeProg = new GlSimpleProgram(_gl, 
-                shaderResolver("Ibl/fullscreen.vert"), 
+            _panToCubeProg = new GlSimpleProgram(_gl,
+                shaderResolver("Ibl/fullscreen.vert"),
                 shaderResolver("Ibl/panorama_to_cubemap.frag"),
                 shaderResolver);
 
@@ -78,7 +78,7 @@ namespace XrEngine.OpenGL
             _filterProg.SetUniform("uWidth", (float)Resolution);
             _filterProg.SetUniform("HammersleyBuffer", (IBuffer)_hams);
 
-  
+
             _gl.BindVertexArray(_fooVa);
             _gl.ColorMask(true, true, true, true);
             _gl.CullFace(TriangleFace.Back);

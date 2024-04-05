@@ -8,9 +8,10 @@ namespace XrEditor
 {
     public class SelectionTool : PickTool
     {
-        private SelectionManager _selection;
-        private NodeManager _nodes;
+        private readonly SelectionManager _selection;
+        private readonly NodeManager _nodes;
         private INode[] _lastSelection = [];
+        private Vector2 _downPos;
 
         public SelectionTool()
         {
@@ -26,7 +27,13 @@ namespace XrEditor
 
         protected override void OnPointerDown(Pointer2Event ev)
         {
-            if (ev.IsLeftDown)
+            _downPos = ev.Position;
+            base.OnPointerDown(ev);
+        }
+
+        protected override void OnPointerUp(Pointer2Event ev)
+        {
+            if (ev.IsLeftDown && _downPos == ev.Position)
             {
                 if (_currentPick == null)
                     _selection.Clear();
@@ -34,7 +41,7 @@ namespace XrEditor
                     _selection.Set(_nodes.CreateNode(_currentPick));
             }
 
-            base.OnPointerDown(ev);
+            base.OnPointerUp(ev);
         }
 
         public override void DrawGizmos(Canvas3D canvas)
@@ -43,7 +50,7 @@ namespace XrEditor
 
             canvas.State.Color = new Color(0, 1, 1, 1);
 
-            foreach (var item in _lastSelection.Select(a=> a.Value).OfType<Object3D>())
+            foreach (var item in _lastSelection.Select(a => a.Value).OfType<Object3D>())
             {
                 var local = item.Feature<ILocalBounds>();
 

@@ -1,15 +1,8 @@
-﻿using CanvasUI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public class ValueScale : IValueScale
     {
-        public ValueScale() 
+        public ValueScale()
         {
             DecimalDigits = 3;
         }

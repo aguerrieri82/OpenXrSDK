@@ -1,14 +1,9 @@
-﻿using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
-using PhysX;
-using static PhysX.NativeMethods;
+﻿using System.Runtime.CompilerServices;
 
 
 namespace PhysX.Framework
 {
-    
+
     public unsafe class PhysicsScene : PhysicsObject<PxScene>
     {
         public PhysicsScene(PxScene* scene, PhysicsSystem system)

@@ -316,7 +316,7 @@ namespace XrEngine.OpenXr
                         depth->NearZ = camera.Near;
                         depth->FarZ = camera.Far;
                     }
-      
+
                     app.RenderFrame(rect);
                 }
             }

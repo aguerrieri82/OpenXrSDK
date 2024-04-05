@@ -12,6 +12,6 @@
 
         public INode? Parent { get; }
 
-        public bool IsLeaf { get; } 
+        public bool IsLeaf { get; }
     }
 }

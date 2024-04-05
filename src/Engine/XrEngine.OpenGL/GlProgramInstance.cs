@@ -75,7 +75,7 @@ namespace XrEngine.OpenGL
         {
             if (isGlobal)
                 return Global.GetBuffer<T>(name, true);
-            
+
             var key = "Buffer" + name;
             var buffer = Material.GetProp<GlBuffer<T>>(key);
             if (buffer == null)

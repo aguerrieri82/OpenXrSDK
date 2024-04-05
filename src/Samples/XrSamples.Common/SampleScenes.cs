@@ -1,5 +1,4 @@
 ﻿using CanvasUI;
-using glTFLoader.Schema;
 using OpenXr.Framework.Oculus;
 using PhysX;
 using PhysX.Framework;
@@ -9,7 +8,6 @@ using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Compression;
 using XrEngine.Gltf;
-using XrEngine.Materials;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.Services;
@@ -78,7 +76,7 @@ namespace XrSamples
             var assets = XrPlatform.Current!.AssetManager;
 
             return builder
-      
+
             .ConfigureApp(e =>
             {
                 var scene = e.App.ActiveScene!;
@@ -96,20 +94,9 @@ namespace XrSamples
                     if (l != light)
                         l.IsVisible = false;
                 }
-                   
-                if (assetPath.Contains("__pisa"))
-                {
-                    light.Textures = new PbrMaterial.IBLTextures
-                    {
-                        MipCount = 10,
-                        Env = new TextureCube(PvrTranscoder.Instance.Read(assets.GetFsPath("Pisa/Env.pvr"))),
-                        GGXEnv = new TextureCube(PvrTranscoder.Instance.Read(assets.GetFsPath("Pisa/GGX.pvr"))),
-                        LambertianEnv = new TextureCube(PvrTranscoder.Instance.Read(assets.GetFsPath("Pisa/Lambertian.pvr"))),
-                        GGXLUT = new Texture2D(ImageReader.Instance.Read(assets.GetFsPath("Pisa/GGX.png"))),
-                    };
-                }
-                else
-                    light.LoadPanorama(assets.GetFsPath(assetPath));
+
+                light.LoadPanorama(assets.GetFsPath(assetPath));
+
             });
         }
 
@@ -263,7 +250,7 @@ namespace XrSamples
 
             //Setup camera
             scene.PerspectiveCamera().Target = racket.Transform.Position;
-          
+
             return builder
                    .UseApp(app)
                    .UseScene(true)
@@ -390,7 +377,7 @@ namespace XrSamples
 
             var mesh = (TriangleMesh)GltfLoader.LoadFile(assets.GetFsPath("IkeaBed.glb"), assets, GltfOptions);
             mesh.Name = "mesh";
-           // mesh.AddComponent<MeshCollider>();
+            // mesh.AddComponent<MeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
 
 

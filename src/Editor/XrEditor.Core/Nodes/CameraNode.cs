@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UI.Binding;
+﻿using UI.Binding;
 using XrEngine;
 
 namespace XrEditor.Nodes
@@ -36,7 +31,7 @@ namespace XrEditor.Nodes
             curProps.Add(new PropertyView
             {
                 Label = "Far",
-                Editor = new FloatEditor(binder.Prop(a => a.Far), new LogScale() {  ScaleMin = -3, ScaleMax = 3}),
+                Editor = new FloatEditor(binder.Prop(a => a.Far), new LogScale() { ScaleMin = -3, ScaleMax = 3 }),
             });
 
             curProps.Add(new PropertyView

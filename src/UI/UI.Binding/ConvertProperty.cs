@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace UI.Binding
+﻿namespace UI.Binding
 {
     public class ConvertProperty<TSrc, TDst> : IProperty<TDst>
     {
-        IValueConverter<TSrc, TDst> _converter;
-        IProperty<TSrc> _srcProp;
+        readonly IValueConverter<TSrc, TDst> _converter;
+        readonly IProperty<TSrc> _srcProp;
 
         public ConvertProperty(IProperty<TSrc> srcProp, IValueConverter<TSrc, TDst> converter)
         {

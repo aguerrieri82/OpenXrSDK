@@ -2,7 +2,6 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using static XrEngine.KtxReader;
 #endif
 
 

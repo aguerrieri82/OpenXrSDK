@@ -2,7 +2,6 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using Silk.NET.OpenGL.Extensions.ARB;
 #endif
 
 using System.Diagnostics;
@@ -98,7 +97,7 @@ namespace XrEngine.OpenGL
 
         public OpenGLRender(GL gl, GlRenderOptions options)
             : this(gl, options, new GlState())
-        { 
+        {
         }
 
         protected OpenGLRender(GL gl, GlRenderOptions options, GlState state)
@@ -169,6 +168,12 @@ namespace XrEngine.OpenGL
                 {
                     content.Lights.Add(light);
                     content.LightsVersion += light.Version;
+
+                    if (light is ImageLight)
+                    {
+
+                    }
+
                     continue;
                 }
 
@@ -307,7 +312,7 @@ namespace XrEngine.OpenGL
                 else
                 {
                     _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
-                    _gl.CullFace(TriangleFace.Back); 
+                    _gl.CullFace(TriangleFace.Back);
                 }
                 _glState.Wireframe = isWireframe;
             }
@@ -343,7 +348,7 @@ namespace XrEngine.OpenGL
 
             int skipCount = 0;
 
-            foreach (var shader in content.ShaderContents.OrderBy(a=> a.Key.Priority))
+            foreach (var shader in content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
                 var progGlobal = shader.Value!.ProgramGlobal;
 
@@ -570,7 +575,7 @@ namespace XrEngine.OpenGL
             if ((options.Mode & IBLProcessMode.Charlie) == IBLProcessMode.Charlie)
             {
                 processor.ApplyFilter(GlIBLProcessor.Distribution.Charlie, out envId, out lutId);
-                
+
                 result.CharlieEnv = (TextureCube)_gl.TexIdToEngineTexture(envId);
                 result.CharlieLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId);
 
@@ -588,11 +593,11 @@ namespace XrEngine.OpenGL
             if ((options.Mode & IBLProcessMode.GGX) == IBLProcessMode.GGX)
             {
                 processor.ApplyFilter(GlIBLProcessor.Distribution.GGX, out envId, out lutId);
-      
+
                 result.GGXEnv = (TextureCube)_gl.TexIdToEngineTexture(envId);
                 result.GGXLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId);
             }
-         
+
             return result;
         }
 
@@ -607,7 +612,7 @@ namespace XrEngine.OpenGL
         {
             if (_target is not GlTextureRenderTarget texTarget)
                 throw new NotSupportedException();
-            
+
             if (texTarget.FrameBuffer is not GlTextureFrameBuffer texFb)
                 throw new NotSupportedException();
 

@@ -1,12 +1,13 @@
-﻿using Android.Content;
+﻿using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
-using OpenXr.Framework;
+using Context2 = global::Android.Content.Context;
+
 
 namespace XrEngine.OpenXr.Android
 {
     public static class XrEngineAppBuilderExtension
     {
-        public static XrEngineAppBuilder AddWebBrowser(this XrEngineAppBuilder builder, Context context, string objName) =>
+        public static XrEngineAppBuilder AddWebBrowser(this XrEngineAppBuilder builder, Context2 context, string objName) =>
 
             builder.UseRightController().
                     ConfigureApp(e =>

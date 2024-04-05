@@ -40,18 +40,18 @@ namespace XrSamples
             TextBlock? text = null;
 
             builder
-           .BeginColumn(s=> s.RowGap(4))
+           .BeginColumn(s => s.RowGap(4))
                .AddText(label)
-               .BeginRow(s=> s.AlignItems(UiAlignment.Center).ColGap(8))
+               .BeginRow(s => s.AlignItems(UiAlignment.Center).ColGap(8))
 
                   .AddText(b => b.Text(binding.Value.ToString())
                                  .Set(e => text = e)
-                                 .Style(s=> s
+                                 .Style(s => s
                                         .Width(3, Unit.Em)
                                         .Overflow(UiOverflow.Hidden)
                                         .Padding(4)
                                         .Border(1, "#777")))
-                  .AddSlider(b => b.Style(s=> s.FlexGrow(1)).Set(s => 
+                  .AddSlider(b => b.Style(s => s.FlexGrow(1)).Set(s =>
                   {
                       s.Min = scale.ToScale(min);
                       s.Max = scale.ToScale(max);

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
-    public interface IAssetLoader
+    public interface IAssetHandler
     {
         bool CanHandle(Uri uri, out Type resType);
 

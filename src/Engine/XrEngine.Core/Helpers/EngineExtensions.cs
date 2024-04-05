@@ -1,8 +1,7 @@
-﻿using System.Buffers.Text;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Reflection;
 using System.Runtime.CompilerServices;
+using XrEngine.Services;
 using XrMath;
 
 namespace XrEngine
@@ -146,8 +145,8 @@ namespace XrEngine
             group.BeginUpdate();
             try
             {
-                for (var i = group.Children.Count - 1; i>= 0; i--)  
-                    group.RemoveChild(group.Children[i]);   
+                for (var i = group.Children.Count - 1; i >= 0; i--)
+                    group.RemoveChild(group.Children[i]);
             }
             finally
             {
@@ -729,6 +728,12 @@ namespace XrEngine
         {
             target.ForeachSafe(a => a.Update(ctx));
         }
+
+        public static T Load<T>(this AssetLoader self, string filePath, object? options = null) where T : EngineObject
+        {
+            return (T)self.Load(new Uri(filePath, UriKind.RelativeOrAbsolute), typeof(T), options);
+        }
+
 
         #endregion
 

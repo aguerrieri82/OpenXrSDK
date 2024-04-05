@@ -1,7 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Numerics;
-using UI.Binding;
-using XrEngine.OpenGL;
+﻿using UI.Binding;
 
 namespace XrEditor
 {
@@ -17,7 +14,7 @@ namespace XrEditor
         public FloatEditor(IProperty<float> binding, IValueScale scale)
         {
             _scale = scale;
-            Binding = binding;  
+            Binding = binding;
         }
 
         public FloatEditor(IProperty<float> binding, float min, float max, float step = 1f)

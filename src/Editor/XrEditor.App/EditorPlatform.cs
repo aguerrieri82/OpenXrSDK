@@ -17,7 +17,7 @@ namespace XrEditor
         public EditorPlatform()
         {
             AssetManager = new LocalAssetManager("Assets");
-            AssetLoader.Instance.AssetManager = AssetManager;   
+            AssetLoader.Instance.AssetManager = AssetManager;
             Logger = NullLogger.Instance;
         }
 

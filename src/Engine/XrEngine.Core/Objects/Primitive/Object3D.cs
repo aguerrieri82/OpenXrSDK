@@ -161,7 +161,7 @@ namespace XrEngine
 
         protected override void SetStateWork(IStateContainer container)
         {
-            base.SetStateWork(container);  
+            base.SetStateWork(container);
 
             Name = container.Read<string?>(nameof(Name));
             Tag = container.Read<string?>(nameof(Tag));

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine.Materials
 {
@@ -54,7 +48,7 @@ namespace XrEngine.Materials
 
             if (LinearOutput)
                 bld.AddFeature("LINEAR_OUTPUT");
-            
+
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("u_GGXEnvSampler", Texture!, 0);
@@ -77,8 +71,8 @@ namespace XrEngine.Materials
 
         public float Exposure { get; set; }
 
-        public float Rotation { get; set; } 
+        public float Rotation { get; set; }
 
-        public bool LinearOutput { get; set; }  
+        public bool LinearOutput { get; set; }
     }
 }

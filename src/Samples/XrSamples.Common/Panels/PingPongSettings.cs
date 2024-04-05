@@ -18,8 +18,8 @@ namespace XrSamples
 
     public class PingPongSettings : BaseAppSettings
     {
-        static Material matShow = PbrMaterial.CreateDefault("#fff");
-        static Material matHide = new ColorMaterial(Color.Transparent);
+        static readonly Material matShow = PbrMaterial.CreateDefault("#fff");
+        static readonly Material matHide = new ColorMaterial(Color.Transparent);
 
         public PingPongSettings()
         {
@@ -65,7 +65,7 @@ namespace XrSamples
 
             body.LengthToleranceScale = settings.LengthToleranceScale;
             body.EnableCCD = settings.EnableCCD;
-            body.ContactReportThreshold = settings.ContactReportThreshold; 
+            body.ContactReportThreshold = settings.ContactReportThreshold;
 
             var curMat = body.Material;
             curMat.Restitution = settings.Restitution;
@@ -155,7 +155,7 @@ namespace XrSamples
 
                     (generator.Material as PbrMaterial)!.MetallicRoughness!.RoughnessFactor = obj!.BallMaterial!.Roughness;
                     (generator.Material as PbrMaterial)!.MetallicRoughness!.MetallicFactor = obj!.BallMaterial!.Metallic;
-                     generator.Material.NotifyChanged(ObjectChangeType.Render);
+                    generator.Material.NotifyChanged(ObjectChangeType.Render);
 
                 }
                 if (property.Name!.Contains("Exposure"))
@@ -175,7 +175,7 @@ namespace XrSamples
             TextBlock? logger = null;
 
             UiBuilder.From(this).Name("main").AsColumn()
-                .Style(s => 
+                .Style(s =>
                     s.Padding(16)
                     .RowGap(16)
                     .Color("#F5F5F5")
@@ -213,14 +213,14 @@ namespace XrSamples
             .EndChild()
             .BeginRow(s => s.ColGap(16))
                 .AddText(bld => bld
-                    .Style(s=> s
+                    .Style(s => s
                         .Padding(16)
                         .FlexBasis(2)
                         .FlexGrow(1)
                         .LineSize(20)
                         .AlignSelf(UiAlignment.Stretch)
-                        .Border(1,"#0f0"))
-                    .Set(a=> logger = a))
+                        .Border(1, "#0f0"))
+                    .Set(a => logger = a))
                 .BeginColumn(s => s.FlexBasis(1).RowGap(16))
                     .AddInputRange("Metallic", 0f, 1f, binder.Prop(a => a.BallMaterial.Metallic))
                     .AddInputRange("Roughness", 0f, 1f, binder.Prop(a => a.BallMaterial.Roughness))

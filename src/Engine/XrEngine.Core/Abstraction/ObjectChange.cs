@@ -11,15 +11,17 @@
         SceneAdd = Parent | 0x10,
         Geometry = 0x20,
         Components = 0x40,
-        SceneRemove = Parent | 0x80
+        SceneRemove = Parent | 0x80,
+        Property = 0x100
     }
 
     public readonly struct ObjectChange
     {
-        public ObjectChange(ObjectChangeType type, EngineObject? target = null)
+        public ObjectChange(ObjectChangeType type, EngineObject? target = null, IList<string>? properties = null)
         {
             Type = type;
             Target = target;
+            Properties = properties;
         }
 
         public bool IsAny(params ObjectChangeType[] types)
@@ -40,5 +42,7 @@
         public readonly ObjectChangeType Type;
 
         public readonly EngineObject? Target;
+
+        public readonly IList<string>? Properties;
     }
 }

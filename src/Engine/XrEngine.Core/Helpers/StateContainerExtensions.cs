@@ -1,9 +1,4 @@
-﻿using System.Buffers.Text;
-using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using XrMath;
+﻿using System.Reflection;
 
 namespace XrEngine
 {
@@ -139,16 +134,16 @@ namespace XrEngine
             if (typeName == null)
                 throw new InvalidOperationException("Type name not found");
 
-            var obj = (T)ObjectFactory.Instance.CreateObject(typeName!);
+            var obj = (T)ObjectManager.Instance.CreateObject(typeName!);
             obj.SetState(objState);
-            
+
             if (obj is IObjectId objId)
                 container.Context.RefTable.Resolved[objId.Id] = obj;
 
             return obj;
         }
 
-        public static T Read<T>(this IStateContainer container, string key) 
+        public static T Read<T>(this IStateContainer container, string key)
         {
             return (T)container.Read(key, typeof(T))!;
         }

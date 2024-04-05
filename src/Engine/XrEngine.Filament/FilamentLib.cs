@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using XrMath;
 
 namespace XrEngine.Filament

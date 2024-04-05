@@ -277,10 +277,10 @@ namespace CanvasUI
 
             DrawBox(canvas);
 
-            
+
             if (ActualStyle.OverflowX.Value == UiOverflow.Hidden && ActualStyle.OverflowY.Value == UiOverflow.Hidden)
                 canvas.ClipRect(_contentRect.ToSKRect());
-            
+
 
             DrawWork(canvas);
 
@@ -340,7 +340,7 @@ namespace CanvasUI
         public override void Dispose()
         {
             if (_parent != null)
-                _parent.RemoveChild(this);  
+                _parent.RemoveChild(this);
 
             foreach (var child in VisualChildren)
             {

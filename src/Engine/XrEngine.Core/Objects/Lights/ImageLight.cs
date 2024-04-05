@@ -1,54 +1,36 @@
 ﻿
+using XrEngine.Services;
+
 namespace XrEngine
 {
     public class ImageLight : Light
     {
-        string? _hdrFileName;
-        TextureData? _hdrData;
+        bool _panoramaDirty;
 
         public ImageLight()
         {
             Intensity = 3;
+            Textures = new PbrMaterial.IBLTextures();
         }
 
         public void LoadPanorama(string hdrFileName)
         {
-            if (_hdrFileName == hdrFileName)
-                return;
-
-            using (var stream = File.OpenRead(hdrFileName))
-            {
-                var ext = Path.GetExtension(hdrFileName);
-                
-                TextureData data;
-
-                if (ext.ToLower() == ".hdr")
-                    data = HdrReader.Instance.Read(stream)[0];
-                else if (ext.ToLower() == ".pvr")
-                    data = PvrTranscoder.Instance.Read(stream)[0];
-                else
-                    data = ImageReader.Instance.Read(stream, new TextureReadOptions { Format = TextureFormat.RgbaFloat32 })[0];
-
-                _hdrData = data;
-            }
-
-            _hdrFileName = hdrFileName;
-
-
+            Panorama = AssetLoader.Instance.Load<Texture2D>(hdrFileName, new TextureReadOptions { Format = TextureFormat.RgbaFloat32 });
+            _panoramaDirty = true;
         }
 
         public override void Update(RenderContext ctx)
         {
-            if (_hdrData != null)
+            if (_panoramaDirty && Panorama?.Data != null)
             {
-                LoadPanorama(_hdrData);
+                LoadPanorama();
                 NotifyChanged(ObjectChangeType.Render);
-                _hdrData = null;
             }
+
             base.Update(ctx);
         }
 
-        public void LoadPanorama(TextureData data)
+        public void LoadPanorama()
         {
             var processor = _scene?.App?.Renderer as IIBLPanoramaProcessor;
 
@@ -59,30 +41,31 @@ namespace XrEngine
                 options.Resolution = 256;
                 options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
 
-                Textures = processor.ProcessPanoramaIBL(data, options);
-            }
-            else
-                Textures = new PbrMaterial.IBLTextures();
+                Textures = processor.ProcessPanoramaIBL(Panorama!.Data![0], options);
 
-            Textures.Panorama = new Texture2D([data]);
+                _panoramaDirty = false;
+            }
         }
 
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
             container.Write(nameof(Rotation), Rotation);
-            container.Write("HdrFileName", _hdrFileName);
+            container.Write("Panorama", Panorama);
+
         }
 
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
             Rotation = container.Read<float>(nameof(Rotation));
-            if (container.Contains("HdrFileName"))
-                LoadPanorama(container.Read<string>("HdrFileName"));
+            Panorama = container.Read<Texture2D>("Panorama");
+            _panoramaDirty = true;
         }
 
-        public PbrMaterial.IBLTextures? Textures { get; set; }
+        public PbrMaterial.IBLTextures Textures { get; set; }
+
+        public Texture2D? Panorama { get; set; }
 
         public float Rotation { get; internal set; }
     }

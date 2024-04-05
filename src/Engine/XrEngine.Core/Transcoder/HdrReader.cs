@@ -1,21 +1,12 @@
 ﻿#pragma warning disable CS0649
 
-using SharpEXR;
-using SkiaSharp;
 using System.Diagnostics;
-using System.Formats.Tar;
 using System.Globalization;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics;
-using System.Security.Cryptography;
 using System.Text;
-using XrMath;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace XrEngine
 {
-    public class HdrReader : BaseTextureReader
+    public class HdrReader : BaseTextureLoader
     {
 
         HdrReader()
@@ -32,7 +23,7 @@ namespace XrEngine
                 buffer.Length = 0;
                 while ((c = stream.ReadByte()) != '\n')
                     buffer.Append((char)c);
-                return buffer.ToString();   
+                return buffer.ToString();
             }
 
             var line = ReadLine();
@@ -44,18 +35,18 @@ namespace XrEngine
             int width = 0;
             int height = 0;
 
-            while (( line = ReadLine()) != "")
+            while ((line = ReadLine()) != "")
             {
                 if (line.StartsWith("FORMAT="))
                     format = line.Substring(7).Trim();
                 if (line.StartsWith("EXPOSURE="))
                     exposure = float.Parse(line.Substring(9).Trim(), CultureInfo.InvariantCulture);
             }
-            
-            line= ReadLine();
-            
+
+            line = ReadLine();
+
             var parts = line.Split(' ');
-            
+
             bool flipY = false;
 
             for (var i = 0; i < parts.Length; i += 2)
@@ -181,7 +172,12 @@ namespace XrEngine
                     Width =  (uint)width,
                 }];
             }
-    
+
+        }
+
+        protected override bool CanHandleExtension(string extension)
+        {
+            return extension == ".hdr";
         }
 
         public static readonly HdrReader Instance = new();

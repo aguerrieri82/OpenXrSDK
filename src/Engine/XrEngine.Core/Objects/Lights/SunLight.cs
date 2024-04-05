@@ -22,7 +22,7 @@
         }
 
         public float HaloSize { get; set; }
-        
+
         public float HaloFallOff { get; set; }
 
         public float SunRadius { get; set; }

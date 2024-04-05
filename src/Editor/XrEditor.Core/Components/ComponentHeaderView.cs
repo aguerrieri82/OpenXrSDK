@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine;
+﻿using XrEngine;
 
 namespace XrEditor
 {
     public class ComponentHeaderView : BaseView
     {
-        IComponent _component;
+        readonly IComponent _component;
 
         public ComponentHeaderView(IComponent component)
         {
-            _component = component; 
+            _component = component;
         }
 
         public bool IsEnabled
@@ -21,8 +16,8 @@ namespace XrEditor
             get => _component.IsEnabled;
             set
             {
-                _component .IsEnabled = value;  
-                OnPropertyChanged(nameof(IsEnabled));   
+                _component.IsEnabled = value;
+                OnPropertyChanged(nameof(IsEnabled));
             }
         }
 

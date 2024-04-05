@@ -134,7 +134,7 @@ namespace XrEngine.OpenGL.Oculus
                         0,
                         _sampleCount,
                         0, 2);
-                
+
                 _gl.CheckError();
 
                 FramebufferTextureMultisampleMultiviewOVR(
@@ -152,7 +152,7 @@ namespace XrEngine.OpenGL.Oculus
             {
                 if (FramebufferTextureMultiviewOVR == null)
                     throw new Exception("glFramebufferTextureMultiviewOVR not supported");
-                
+
                 FramebufferTextureMultiviewOVR!(
                     FramebufferTarget.DrawFramebuffer,
                     FramebufferAttachment.ColorAttachment0,

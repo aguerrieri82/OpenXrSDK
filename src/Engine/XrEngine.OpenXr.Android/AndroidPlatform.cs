@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using Android.Content;
 using OpenXr.Framework.Android;
 using OpenXr.Framework.Vulkan;
 using OpenXr.Framework;
@@ -13,16 +12,16 @@ using XrEngine.OpenGL;
 using OpenXr.Framework.Oculus;
 using Microsoft.Extensions.Logging;
 using XrEngine.Services;
-
+using Context2 = global::Android.Content.Context;
 
 namespace XrEngine.OpenXr.Android
 {
     public class AndroidPlatform : IXrEnginePlatform
     {
-        readonly Context _context;
+        readonly Context2 _context;
         VulkanDevice? _vkDevice;
 
-        public AndroidPlatform(Context context)
+        public AndroidPlatform(Context2 context)
         {
             PbrMaterial.LinearOutput = false;
 

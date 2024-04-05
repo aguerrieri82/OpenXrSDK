@@ -1,5 +1,4 @@
 ﻿using OpenXr.Framework;
-using XrMath;
 
 namespace XrEngine.OpenXr
 {
@@ -16,7 +15,7 @@ namespace XrEngine.OpenXr
         {
             Input = input;
             Handlers = handlers;
-            Vibrate = vibrate;  
+            Vibrate = vibrate;
         }
 
         protected override ObjectGrab IsGrabbing()

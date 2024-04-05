@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace XrEngine
 {
-    public class DdsReader : BaseTextureReader
+    public class DdsReader : BaseTextureLoader
     {
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         struct DDS_FILE
@@ -67,6 +67,11 @@ namespace XrEngine
 
 
             return ReadData(memStream, (uint)file.header.dwWidth, (uint)file.header.dwHeight, (uint)file.header.dwMipMapCount, 1, comp, format);
+        }
+
+        protected override bool CanHandleExtension(string extension)
+        {
+            return extension == ".dds";
         }
 
         public static readonly DdsReader Instance = new();

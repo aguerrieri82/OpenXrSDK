@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using XrEngine.Services;
 using XrMath;
 
@@ -11,7 +6,6 @@ namespace XrEngine
 {
     public class TypeStateManager
     {
-
 
         #region DefaultManager
 
@@ -43,7 +37,7 @@ namespace XrEngine
             public Vector3 Read(string key, Type objType, IStateContainer container)
             {
                 var parts = container.Read<float[]>(key);
-                return new Vector3(parts[0], parts[1], parts[2]);   
+                return new Vector3(parts[0], parts[1], parts[2]);
             }
 
             public void Write(string key, Vector3 obj, IStateContainer container)
@@ -82,7 +76,7 @@ namespace XrEngine
                     return *(Matrix4x4*)pArray;
             }
 
-            public  void Write(string key, Matrix4x4 obj, IStateContainer container)
+            public void Write(string key, Matrix4x4 obj, IStateContainer container)
             {
                 var floats = new Span<float>(&obj, 16);
                 container.Write(key, floats.ToArray());
@@ -118,7 +112,7 @@ namespace XrEngine
             public EngineObject? Read(string key, Type objType, IStateContainer container)
             {
                 var objState = container.Enter(key, true);
-                
+
                 if (objState == null)
                     return null;
 
@@ -178,7 +172,7 @@ namespace XrEngine
 
             public object Read(string key, Type objType, IStateContainer container)
             {
-                var obj = Activator.CreateInstance(objType)!;    
+                var obj = Activator.CreateInstance(objType)!;
                 container.Enter(key).ReadObject(obj);
                 return obj;
             }
@@ -234,8 +228,8 @@ namespace XrEngine
         }
 
 
-        List<ITypeStateManager> _types = [];
-        
+        readonly List<ITypeStateManager> _types = [];
+
         public TypeStateManager()
         {
             Register(new Vector3Manager());
@@ -244,7 +238,7 @@ namespace XrEngine
             Register(new QuaternionManager());
             Register(new ObjectIdManager());
 
-            Register(EngineObjectManager.Instance); 
+            Register(EngineObjectManager.Instance);
             Register(StateObjectManager.Instance);
             Register(StateManager.Instance);
             Register(ObjectManager.Instance);

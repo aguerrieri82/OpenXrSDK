@@ -40,7 +40,7 @@ namespace XrEditor.Nodes
 
                     else if (obj is Camera)
                         nodeType = typeof(CameraNode<>).MakeGenericType(obj.GetType());
-              
+
                     else if (obj is Material)
                         nodeType = typeof(MaterialNode<>).MakeGenericType(obj.GetType());
 
@@ -65,7 +65,7 @@ namespace XrEditor.Nodes
             if (value is IComponent comp)
             {
                 if (value is RigidBody)
-                    nodeType = typeof(RigidBodyNode);   
+                    nodeType = typeof(RigidBodyNode);
                 else
                     nodeType = typeof(ComponentNode<>).MakeGenericType(comp.GetType());
 

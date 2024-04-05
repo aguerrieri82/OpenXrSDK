@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace UI.Binding
+﻿namespace UI.Binding
 {
     public interface IValueConverter
     {
@@ -17,7 +11,7 @@ namespace UI.Binding
 
     public interface IValueConverter<TSrc, TDst> : IValueConverter
     {
-        TSrc ConvertFrom(TDst value);   
+        TSrc ConvertFrom(TDst value);
 
         TDst ConvertTo(TSrc value);
 
@@ -25,7 +19,7 @@ namespace UI.Binding
                 typeof(TSrc).IsAssignableFrom(srcType) &&
                 typeof(TDst).IsAssignableFrom(dstType);
 
-        object ? IValueConverter.ConvertFrom(object? value) => ConvertFrom((TDst)value!);
+        object? IValueConverter.ConvertFrom(object? value) => ConvertFrom((TDst)value!);
 
         object? IValueConverter.ConvertTo(object? value) => ConvertTo((TSrc)value!);
     }

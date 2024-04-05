@@ -1,8 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Numerics;
-using UI.Binding;
-using XrEngine.OpenGL;
-using static XrEngine.OpenGL.OpenGLRender;
+﻿using UI.Binding;
 
 namespace XrEditor
 {
@@ -11,7 +7,7 @@ namespace XrEditor
 
     }
 
-    public class EnumEditor<T> : BaseEditor<T, T>, IEnumEditor where T: struct, Enum
+    public class EnumEditor<T> : BaseEditor<T, T>, IEnumEditor where T : struct, Enum
     {
         public EnumEditor()
         {

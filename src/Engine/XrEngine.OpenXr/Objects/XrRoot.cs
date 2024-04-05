@@ -103,7 +103,7 @@ namespace XrEngine.OpenXr
                     model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
                     model.Name = "Controller";
 
-    
+
                     group.AddChild(model);
                 }
 

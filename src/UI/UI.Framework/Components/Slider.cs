@@ -83,8 +83,8 @@ namespace CanvasUI
         {
             var relX = (windowPos.X - _clientRect.X) / _clientRect.Width;
 
-            var value = Min + relX * MathF.Abs(Max - Min); 
-            
+            var value = Min + relX * MathF.Abs(Max - Min);
+
             if (Step != 0)
                 value = MathF.Round(value / Step) * Step;
 

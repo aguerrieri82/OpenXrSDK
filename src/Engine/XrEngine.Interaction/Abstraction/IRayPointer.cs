@@ -17,8 +17,8 @@ namespace XrEngine.Interaction
 
         void CapturePointer();
 
-        void ReleasePointer();  
+        void ReleasePointer();
 
-        int PointerId { get; } 
+        int PointerId { get; }
     }
 }

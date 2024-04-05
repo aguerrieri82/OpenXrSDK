@@ -1,14 +1,12 @@
-﻿using System.Drawing;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace XrEngine
 {
     public class Cube3D : Geometry3D, IGeneratedContent
     {
         public Cube3D()
-            : this(new Vector3(1f,1f,1f))
+            : this(new Vector3(1f, 1f, 1f))
         {
-
         }
 
         public Cube3D(Vector3 size)

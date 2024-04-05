@@ -115,10 +115,11 @@ namespace XrSamples
 
             rigidBody.Contact += (me, other, otherIndex, data) =>
             {
-          
+
                 var meIndex = otherIndex == 0 ? 1 : 0;
-                
-                var maxDv = data.Select(a => {
+
+                var maxDv = data.Select(a =>
+                {
                     var me = a.GetItem(meIndex);
                     return (me.PostVelocity.Linear - me.PreVelocity.Linear).Length();
                 }).Max();
@@ -128,7 +129,7 @@ namespace XrSamples
                 var maxImpulse = data.Where(a => a.Points != null).SelectMany(a => a.Points!.Select(b => b.Impulse.Length())).Max();
 
                 XrPlatform.Current!.Logger.LogInformation("COLL: '{a}' '{b}' - Imp: {imp} - dv: {dv} - sep: {sep}", me.Name, other.Name, Math.Round(maxImpulse, 4), Math.Round(maxDv, 4), Math.Round(minSep, 4));
-                
+
                 lastContact = other;
             };
 

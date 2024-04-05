@@ -5,7 +5,7 @@
 
         protected Texture() { }
 
-        protected Texture(IList<TextureData> data) 
+        protected Texture(IList<TextureData> data)
         {
             Data = data;
             Width = data[0].Width;

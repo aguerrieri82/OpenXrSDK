@@ -32,7 +32,6 @@ namespace XrEngine
             container.Write(nameof(ActiveComponents), ActiveComponents);
         }
 
-
         public void ApplyTransform(Matrix4x4 matrix)
         {
             Matrix4x4.Invert(matrix, out var inverse);

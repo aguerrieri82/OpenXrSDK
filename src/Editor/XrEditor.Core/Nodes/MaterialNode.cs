@@ -1,9 +1,4 @@
 ﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UI.Binding;
 using XrEditor.Services;
 using XrEngine;
@@ -17,7 +12,7 @@ namespace XrEditor.Nodes
         {
         }
 
-  
+
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
             binder.PropertyChanged += (_, _, _, _) => _value.NotifyChanged(ObjectChangeType.Render);

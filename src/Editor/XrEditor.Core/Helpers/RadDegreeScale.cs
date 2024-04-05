@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public class RadDegreeScale : IValueScale
     {
@@ -12,7 +6,7 @@ namespace XrEditor
 
         public string? Format(float scaleValue)
         {
-            return $"{Math.Round( scaleValue, DecimalDigits)} °";
+            return $"{Math.Round(scaleValue, DecimalDigits)} °";
         }
 
         public float ScaleToValue(float value)

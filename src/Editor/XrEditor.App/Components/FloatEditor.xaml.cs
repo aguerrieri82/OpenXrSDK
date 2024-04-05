@@ -1,18 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace XrEditor.Components
 {
@@ -26,7 +15,7 @@ namespace XrEditor.Components
 
         public static readonly DependencyProperty MinProperty =
             DependencyProperty.Register("Min", typeof(float), typeof(FloatEditor), new PropertyMetadata(0f));
-        
+
         public static readonly DependencyProperty MaxProperty =
             DependencyProperty.Register("Max", typeof(float), typeof(FloatEditor), new PropertyMetadata(1f));
 
@@ -35,10 +24,10 @@ namespace XrEditor.Components
 
         public static readonly DependencyProperty SmallStepProperty =
             DependencyProperty.Register("SmallStep", typeof(float), typeof(FloatEditor), new PropertyMetadata(0.01f));
-       
+
         public static readonly DependencyProperty FormatProperty =
             DependencyProperty.Register("Format", typeof(Func<float, string>), typeof(FloatEditor), new PropertyMetadata(null, OnFormatChanged));
-        
+
         public static readonly DependencyProperty ParseProperty =
             DependencyProperty.Register("Parse", typeof(Func<string?, float>), typeof(FloatEditor), new PropertyMetadata(null));
 
@@ -172,7 +161,7 @@ namespace XrEditor.Components
             set { SetValue(SmallStepProperty, value); }
         }
 
-        public Func<float,string>? Format
+        public Func<float, string>? Format
         {
             get { return (Func<float, string>)GetValue(FormatProperty); }
             set { SetValue(FormatProperty, value); }

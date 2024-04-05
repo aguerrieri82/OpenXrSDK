@@ -9,9 +9,10 @@
             Vertices = [];
             ActiveComponents = VertexComponent.Position | VertexComponent.Color4;
         }
+
         public void NotifyLoaded()
         {
-  
+
         }
 
         public LineData[] Vertices { get; set; }

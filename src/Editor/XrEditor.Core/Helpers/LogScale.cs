@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public class LogScale : ValueScale
     {
@@ -12,7 +6,7 @@ namespace XrEditor
         {
             ScaleMin = ValueToScale(0.001f);
             ScaleMax = ValueToScale(1000f);
-            ScaleStep = 0.01f; 
+            ScaleStep = 0.01f;
             ScaleSmallStep = 0.01f;
 
         }

@@ -14,9 +14,9 @@
 
         int Count { get; }
 
-        bool Contains(string key);  
+        bool Contains(string key);
 
-        IEnumerable<string> Keys { get; }  
+        IEnumerable<string> Keys { get; }
 
         IStateContext Context { get; }
     }

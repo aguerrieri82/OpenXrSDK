@@ -3,7 +3,6 @@ using XrMath;
 
 namespace XrEngine
 {
-
     public abstract class Camera : Object3D
     {
         private Matrix4x4 _projInverse;

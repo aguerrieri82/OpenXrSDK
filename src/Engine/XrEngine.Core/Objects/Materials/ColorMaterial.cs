@@ -52,7 +52,7 @@ namespace XrEngine
             });
         }
 
-        public float ShadowIntensity { get; set; }  
+        public float ShadowIntensity { get; set; }
 
         public bool IsShadowOnly { get; set; }
 

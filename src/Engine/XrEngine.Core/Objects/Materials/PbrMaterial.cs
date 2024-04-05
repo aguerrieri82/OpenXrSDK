@@ -1,9 +1,5 @@
-﻿using System;
-using System.Buffers;
-using System.Numerics;
-using System.Runtime.CompilerServices;
+﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using XrEngine.Materials;
 using XrMath;
 
 namespace XrEngine
@@ -91,9 +87,6 @@ namespace XrEngine
         {
             public void Dispose()
             {
-                Panorama?.Dispose();
-                Panorama = null;
-
                 LambertianEnv?.Dispose();
                 LambertianEnv = null;
 
@@ -112,8 +105,6 @@ namespace XrEngine
                 Env?.Dispose();
                 Env = null;
             }
-
-            public Texture2D? Panorama;
 
             public TextureCube? LambertianEnv;
 
@@ -172,7 +163,7 @@ namespace XrEngine
 
                 var bytes = stream.ToArray();
                 Marshal.Copy(bytes, 0, _buffer.Data, bytes.Length);
-         
+
                 return _buffer;
             }
         }
@@ -481,7 +472,7 @@ namespace XrEngine
                                 OuterConeCos = MathF.Cos(spot.OuterConeAngle)
                             });
                         }
-                
+
                     }
 
                     ctx.CurrentBuffer!.Version = ctx.LightsVersion;
@@ -508,11 +499,11 @@ namespace XrEngine
 
                         ctx.CurrentBuffer!.Version = imgLight.Version;
 
-                        return (IBLUniforms?) new IBLUniforms
+                        return (IBLUniforms?)new IBLUniforms
                         {
-                           EnvIntensity = imgLight.Intensity,
-                           EnvRotation = Matrix3x3.Rotation(imgLight.Rotation),
-                           MipCount = (int)imgLight.Textures.MipCount
+                            EnvIntensity = imgLight.Intensity,
+                            EnvRotation = Matrix3x3.Rotation(imgLight.Rotation),
+                            MipCount = (int)imgLight.Textures.MipCount
                         };
                     }, 2, true);
 
@@ -529,15 +520,15 @@ namespace XrEngine
 
                         if (imgLight.Textures.GGXEnv != null)
                             up.SetUniform("uGGXEnvSampler", imgLight.Textures.GGXEnv, 7);
-                        
+
                         if (imgLight.Textures.GGXLUT != null)
                             up.SetUniform("uGGXLUT", imgLight.Textures.GGXLUT, 8);
-                        
+
                         if (imgLight.Textures.CharlieLUT != null)
                             up.SetUniform("uCharlieLUT", imgLight.Textures.CharlieLUT, 9);
 
                         if (imgLight.Textures.CharlieEnv != null)
-                            up.SetUniform("uCharlieEnvSampler", imgLight.Textures.CharlieEnv, 10);                        
+                            up.SetUniform("uCharlieEnvSampler", imgLight.Textures.CharlieEnv, 10);
                     });
 
                 }

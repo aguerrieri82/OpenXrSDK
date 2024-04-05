@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 namespace XrEngine
 {
-    public class ObjectFactory
+    public class ObjectManager
     {
-        Dictionary<string, Type> _typeMap = [];
+        readonly Dictionary<string, Type> _typeMap = [];
+
+        public ObjectManager() { }
 
         public object CreateObject(string typeName)
         {
@@ -41,6 +38,6 @@ namespace XrEngine
             return type;
         }
 
-        public static readonly ObjectFactory Instance = new();
+        public static readonly ObjectManager Instance = new();
     }
 }

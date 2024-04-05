@@ -1,5 +1,4 @@
-﻿using CanvasUI;
-using System.Numerics;
+﻿using System.Numerics;
 using UI.Binding;
 
 namespace XrEditor
@@ -24,7 +23,7 @@ namespace XrEditor
         {
             _scale = scale;
 
-            X = new FloatEditor() { Scale = _scale }; 
+            X = new FloatEditor() { Scale = _scale };
             Y = new FloatEditor() { Scale = _scale };
             Z = new FloatEditor() { Scale = _scale };
 

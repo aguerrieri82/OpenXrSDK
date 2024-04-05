@@ -1,8 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-
-using System.Numerics;
-using UI.Binding;
-using XrEngine.OpenGL;
+﻿using UI.Binding;
 using XrMath;
 
 namespace XrEditor

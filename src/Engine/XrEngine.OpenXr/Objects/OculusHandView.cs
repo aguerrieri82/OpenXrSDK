@@ -2,7 +2,6 @@
 using OpenXr.Framework.Oculus;
 using PhysX.Framework;
 using Silk.NET.OpenXR;
-using System.Diagnostics;
 using System.Numerics;
 using XrEngine.Physics;
 using XrMath;
@@ -129,7 +128,7 @@ namespace XrEngine.OpenXr
 
         public bool CreateRigidBody { get; set; }
 
-        public HandEXT HandType { get; set; }   
+        public HandEXT HandType { get; set; }
 
         public XrHandInputMesh HandInput => _input ?? throw new ArgumentNullException();
     }

@@ -1,13 +1,13 @@
 ﻿#pragma warning disable CS0649
 
 using SkiaSharp;
-using System.Runtime.InteropServices;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace XrEngine
 {
-    public class ImageReader : BaseTextureReader
+    public class ImageReader : BaseTextureLoader
     {
+        static readonly string[] Extensions = [".png", ".jpg", ".bmp", ".tif"];
+
         ImageReader()
         {
         }
@@ -33,6 +33,11 @@ namespace XrEngine
             image.Dispose();
 
             return [data];
+        }
+
+        protected override bool CanHandleExtension(string extension)
+        {
+            return Extensions.Contains(extension);
         }
 
         public static readonly ImageReader Instance = new();

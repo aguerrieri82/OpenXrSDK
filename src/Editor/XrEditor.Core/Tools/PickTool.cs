@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using XrEngine;
+﻿using XrEngine;
 using XrEngine.Interaction;
 using XrMath;
 
@@ -10,7 +9,7 @@ namespace XrEditor
         protected Object3D? _currentPick;
         protected Color? _oldColor;
         protected Collision? _lastCollision;
-        protected object _lock = new object();
+        protected object _lock = new();
         protected RayPointerStatus _lastRay;
 
         public override void NotifySceneChanged()
@@ -103,7 +102,7 @@ namespace XrEditor
 
         public virtual void DrawGizmos(Canvas3D canvas)
         {
-            
+
         }
 
         public void CapturePointer()

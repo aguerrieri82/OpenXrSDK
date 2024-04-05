@@ -32,9 +32,9 @@ namespace XrEditor
             get => _binding;
             set
             {
-                if (_binding == value) 
+                if (_binding == value)
                     return;
-                
+
                 if (_binding != null)
                     _binding.Changed -= OnBindValueChanged;
 

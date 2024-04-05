@@ -34,7 +34,7 @@ namespace XrEngine
     {
         public Camera? Camera;
 
-        public Shader? Shader;  
+        public Shader? Shader;
 
         public IEnumerable<Light>? Lights;
 

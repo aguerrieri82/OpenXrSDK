@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public enum IBLProcessMode
     {
-        None =0,
+        None = 0,
         Lambertian = 0x1,
         GGX = 0x2,
         Charlie = 0x4,

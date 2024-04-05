@@ -58,7 +58,7 @@ namespace XrEngine.OpenGL
             if (_refCount <= 0 && _handle != 0)
             {
                 _gl.DeleteShader(_handle);
-                
+
                 var cache = _shaders.First(a => a.Value == this);
                 _shaders.Remove(cache.Key);
 

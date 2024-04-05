@@ -58,7 +58,7 @@ namespace XrEngine
 
     public class Texture2D : Texture
     {
-  
+
         public static Texture2D FromPvrImage(Stream stream)
         {
             var data = PvrTranscoder.Instance.Read(stream);
@@ -106,7 +106,7 @@ namespace XrEngine
 
         public Texture2D() { }
 
-        public Texture2D(IList<TextureData> data) 
+        public Texture2D(IList<TextureData> data)
             : base(data)
         {
             Height = data[0].Height;
@@ -115,7 +115,7 @@ namespace XrEngine
         }
 
         public uint Height { get; set; }
-        
+
         public WrapMode WrapT { get; set; }
 
         public TextureType Type { get; set; }

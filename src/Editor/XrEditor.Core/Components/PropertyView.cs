@@ -1,9 +1,6 @@
-﻿using System.ComponentModel;
-using System.Numerics;
-using System.Reflection;
+﻿using System.Reflection;
 using UI.Binding;
-using XrEditor.Services;
-using XrMath;
+using XrEngine;
 
 namespace XrEditor
 {
@@ -34,10 +31,10 @@ namespace XrEditor
                 var propView = new PropertyView
                 {
                     Label = prop.Name,
-                    Editor = editor,    
+                    Editor = editor,
                 };
-    
-                properties.Add(propView);   
+
+                properties.Add(propView);
             }
         }
 

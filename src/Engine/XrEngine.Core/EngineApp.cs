@@ -28,6 +28,13 @@ namespace XrEngine
         public int Fps { get; protected set; }
     }
 
+    public enum PlayState
+    {
+        Stop,
+        Pause,
+        Start
+    }
+
     public class EngineApp
     {
         protected readonly HashSet<Scene3D> _scenes = [];
@@ -35,9 +42,8 @@ namespace XrEngine
         protected float _startTime;
         protected Scene3D? _activeScene;
         protected EngineAppStats _stats;
-        protected bool _isStarted;
+        protected PlayState _playState;
         protected readonly HashSet<IObjectChangeListener> _changeListeners = [];
-
 
         public EngineApp()
         {
@@ -68,16 +74,30 @@ namespace XrEngine
 
         public void Start()
         {
-            if (_isStarted)
+            if (_playState == PlayState.Start)
                 return;
-            _context.StartTime = new TimeSpan(DateTime.Now.Ticks);
-            _context.Frame = 0;
+            if (_playState == PlayState.Stop)
+            {
+                _context.StartTime = new TimeSpan(DateTime.Now.Ticks);
+                _context.Frame = 0;
+            }
+            _playState = PlayState.Start;
+        }
+
+        public void Pause()
+        {
+            if (_playState != PlayState.Start)
+                return;
+
+            _playState = PlayState.Pause;
         }
 
         public void Stop()
         {
-            if (!_isStarted)
+            if (_playState == PlayState.Stop)
                 return;
+
+            _playState = PlayState.Stop;
         }
 
         public void RenderFrame(Rect2I view, bool flush = true)
@@ -87,12 +107,15 @@ namespace XrEngine
 
             _context.Frame++;
 
-            var oldTime = _context.Time;
+            if (_playState == PlayState.Start)
+            {
+                var oldTime = _context.Time;
 
-            _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
-            _context.DeltaTime = _context.Time - oldTime;
+                _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
+                _context.DeltaTime = _context.Time - oldTime;
 
-            _activeScene.Update(_context);
+                _activeScene.Update(_context);
+            }
 
             _stats.BeginFrame();
 

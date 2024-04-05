@@ -1,11 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using Silk.NET.Core.Native;
-using SkiaSharp;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Numerics;
-using System.Text.RegularExpressions;
-using UI.Binding;
+﻿using SkiaSharp;
 using XrEditor.Services;
 using XrEngine;
 
@@ -33,7 +26,7 @@ namespace XrEditor
             if (ActiveNode is IItemPreview preview)
                 NodePreview = await preview.CreatePreviewAsync();
             else
-                NodePreview = null; 
+                NodePreview = null;
         }
 
         public INode? ActiveNode
@@ -132,7 +125,7 @@ namespace XrEditor
                 }
             }
 
-            foreach (var prop in  result.Properties)
+            foreach (var prop in result.Properties)
                 prop.Editor!.ValueChanged += OnValueChanged;
 
             return result;
@@ -156,7 +149,7 @@ namespace XrEditor
                     mainGrp.Header = _activeNode.Types.First();
                     result.Add(mainGrp);
                 }
-      
+
 
                 foreach (var compo in _activeNode.Components)
                 {
