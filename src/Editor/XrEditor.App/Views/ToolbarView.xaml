@@ -1,0 +1,20 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:i="clr-namespace:WPF_Icons;assembly=WPF-Icons"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate DataType="{x:Type local:ToolbarView}">
+       
+        <ToolBar ItemsSource="{Binding Items}">
+            <ToolBar.Resources>
+                <ResourceDictionary>
+                    <DataTemplate DataType="{x:Type local:ActionView}">
+                        <Button Command="{Binding Execute}" Content="{Binding Icon}"/>
+                    </DataTemplate>
+                </ResourceDictionary>
+            </ToolBar.Resources>
+        </ToolBar>
+
+    </DataTemplate>
+   
+</ResourceDictionary>

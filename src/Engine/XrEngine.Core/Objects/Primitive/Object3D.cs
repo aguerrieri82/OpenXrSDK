@@ -62,6 +62,12 @@ namespace XrEngine
 
         }
 
+        public override void Reset(bool onlySelf = false)
+        {
+            _creationTime = -1;
+            base.Reset(onlySelf);
+        }
+
         public override void Update(RenderContext ctx)
         {
             if (_creationTime == -1)

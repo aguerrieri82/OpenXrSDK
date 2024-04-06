@@ -5,7 +5,6 @@ namespace XrEngine
 {
     public class ImageLight : Light
     {
-        bool _panoramaDirty;
 
         public ImageLight()
         {
@@ -16,43 +15,17 @@ namespace XrEngine
         public void LoadPanorama(string hdrFileName)
         {
             Panorama = AssetLoader.Instance.Load<Texture2D>(hdrFileName, new TextureReadOptions { Format = TextureFormat.RgbaFloat32 });
-            _panoramaDirty = true;
+            Panorama.Version = DateTime.Now.Ticks;
+
+            NotifyChanged(ObjectChangeType.Render);
         }
 
-        public override void Update(RenderContext ctx)
-        {
-            if (_panoramaDirty && Panorama?.Data != null)
-            {
-                LoadPanorama();
-                NotifyChanged(ObjectChangeType.Render);
-            }
-
-            base.Update(ctx);
-        }
-
-        public void LoadPanorama()
-        {
-            var processor = _scene?.App?.Renderer as IIBLPanoramaProcessor;
-
-            if (processor != null)
-            {
-                var options = PanoramaProcessorOptions.Default();
-                options.SampleCount = 1024;
-                options.Resolution = 256;
-                options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
-
-                Textures = processor.ProcessPanoramaIBL(Panorama!.Data![0], options);
-
-                _panoramaDirty = false;
-            }
-        }
 
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
             container.Write(nameof(Rotation), Rotation);
             container.Write("Panorama", Panorama);
-
         }
 
         protected override void SetStateWork(IStateContainer container)
@@ -60,7 +33,8 @@ namespace XrEngine
             base.SetStateWork(container);
             Rotation = container.Read<float>(nameof(Rotation));
             Panorama = container.Read<Texture2D>("Panorama");
-            _panoramaDirty = true;
+            if (Panorama != null)
+                Panorama.Version = DateTime.Now.Ticks;
         }
 
         public PbrMaterial.IBLTextures Textures { get; set; }

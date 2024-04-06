@@ -12,6 +12,12 @@
             _startTime = -1;
         }
 
+        public virtual void Reset(bool onlySelf = false)
+        {
+            _startTime = -1;
+            _lastUpdateTime = 0;
+        }
+
         protected virtual void Start(RenderContext ctx)
         {
 

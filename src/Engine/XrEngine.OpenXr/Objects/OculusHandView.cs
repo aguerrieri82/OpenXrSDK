@@ -45,7 +45,7 @@ namespace XrEngine.OpenXr
 
         public override T? Feature<T>() where T : class
         {
-            if (typeof(T).IsAssignableFrom(_input!.GetType()))
+            if (_input != null && typeof(T).IsAssignableFrom(_input!.GetType()))
                 return (T)(object)_input;
             return base.Feature<T>();
         }

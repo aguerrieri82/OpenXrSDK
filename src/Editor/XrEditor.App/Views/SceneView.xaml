@@ -6,12 +6,28 @@
     <DataTemplate DataType="{x:Type local:SceneView}">
         
         <DockPanel>
-            <ToolBar DockPanel.Dock="Top">
-                <ToggleButton IsChecked="{Binding IsXrActive, Mode=TwoWay}" ToolTip="View in AR">
-                    <i:Icon Size="24" Color="#666" Kind="icon_visibility"/>
-                </ToggleButton>
-                <Label Content="{Binding Stats.Fps}"/>
-            </ToolBar>
+            <ToolBarTray Orientation="Horizontal"  DockPanel.Dock="Top">
+
+                <ToolBar>
+                    <ToggleButton IsChecked="{Binding IsXrActive, Mode=TwoWay}" ToolTip="View in AR">
+                        <i:Icon Size="24" Color="#666" Kind="icon_visibility"/>
+                    </ToggleButton>
+                    <Label Content="{Binding Stats.Fps}"/>
+   
+                </ToolBar>
+                <ToolBar ItemsSource="{Binding ToolbarView.Items}">
+                    <ToolBar.Resources>
+                        <ResourceDictionary>
+                            <DataTemplate DataType="{x:Type local:IconView}">
+                                <i:Icon Filled="True" Size="16" Color="#666" Kind="{Binding Name}"/>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:ActionView}">
+                                <Button Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" Command="{Binding Execute}" Content="{Binding Icon}"/>
+                            </DataTemplate>
+                        </ResourceDictionary>
+                    </ToolBar.Resources>
+                </ToolBar>
+            </ToolBarTray>
 
             <ContentPresenter  Content="{Binding RenderSurface}"/>
         </DockPanel>

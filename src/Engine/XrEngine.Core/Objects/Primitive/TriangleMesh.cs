@@ -36,9 +36,7 @@ namespace XrEngine
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-
-            Geometry = container.Read<Geometry3D>(nameof(Geometry));
-
+            Geometry = container.ReadObject(nameof(Geometry), Geometry);
             container.ReadArray(nameof(Materials), _materials, _materials.Add, a => _materials.Remove(a));
         }
 

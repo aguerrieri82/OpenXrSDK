@@ -8,6 +8,16 @@
     <SolidColorBrush x:Key="InputColor">#444</SolidColorBrush>
     <SolidColorBrush x:Key="InputTextColor">#eee</SolidColorBrush>
 
+
+    <Style TargetType="ToolBarTray">
+        <Setter Property="Background" Value="#111"/>
+    </Style>
+
+    <Style TargetType="ToolBar">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+
     <Style TargetType="Label">
         <Setter Property="Foreground" Value="{StaticResource SurfaceTextColor}"/>
     </Style>

@@ -47,6 +47,16 @@ namespace XrEngine
                 child.InvalidateWorld();
         }
 
+        public override void Reset(bool onlySelf = false)
+        {
+            base.Reset(onlySelf);
+            if (!onlySelf)
+            {
+                foreach (var child in _children)
+                    child.Reset();
+            }
+        }
+
         public override void Update(RenderContext ctx)
         {
             UpdateSelf(ctx);

@@ -132,7 +132,10 @@ namespace XrEngine
                 var objState = container.Enter(key);
 
                 if (assetSrc != null)
+                {
                     objState.Write("$uri", assetSrc.AssetUri);
+                    objState.Write("Id", obj.Id);
+                }
                 else
                     StateObjectManager.Instance.Write(key, obj, container);
             }
@@ -159,9 +162,9 @@ namespace XrEngine
 
         #endregion
 
-        #region ObjectIdManager
+        #region ObjectManager
 
-        public class ObjectManager : ITypeStateManager<object>
+        public class ObjectManager : ITypeStateManager<object?>
         {
             ObjectManager() { }
 
@@ -170,16 +173,20 @@ namespace XrEngine
                 return type.IsClass && type.HasEmptyConstructor();
             }
 
-            public object Read(string key, Type objType, IStateContainer container)
+            public object? Read(string key, Type objType, IStateContainer container)
             {
-                var obj = Activator.CreateInstance(objType)!;
-                container.Enter(key).ReadObject(obj);
+                var keyContainer = container.Enter(key);
+                if (keyContainer == null)
+                    return null;
+                var obj = Activator.CreateInstance(objType)!; 
+                keyContainer?.ReadObject(obj, objType);
                 return obj;
             }
 
             public void Write(string key, object? obj, IStateContainer container)
             {
-                container.Enter(key).WriteObject(obj);
+                if (obj != null)
+                    container.Enter(key).WriteObject(obj, obj.GetType());
             }
 
             public static readonly ObjectManager Instance = new();

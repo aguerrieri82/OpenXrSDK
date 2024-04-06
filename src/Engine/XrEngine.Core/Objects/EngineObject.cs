@@ -168,6 +168,15 @@
                 _id = ObjectId.New();
         }
 
+        public virtual void Reset(bool onlySelf = false)
+        {
+            if (_components != null)
+            {
+                foreach (var item in _components.OfType<IRenderUpdate>())
+                    item.Reset();
+            }
+        }
+
         public event Action<EngineObject, ObjectChange>? Changed;
 
         public long Version { get; set; }
