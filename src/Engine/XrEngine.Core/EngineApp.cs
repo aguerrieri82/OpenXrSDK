@@ -98,6 +98,7 @@ namespace XrEngine
                 return;
 
             _playState = PlayState.Stop;
+            _activeScene?.Reset();
         }
 
         public void RenderFrame(Rect2I view, bool flush = true)
@@ -128,6 +129,8 @@ namespace XrEngine
                 _stats.EndFrame();
             }
         }
+
+        public PlayState PlayState => _playState;
 
         public ICollection<IObjectChangeListener> ChangeListeners => _changeListeners;
 

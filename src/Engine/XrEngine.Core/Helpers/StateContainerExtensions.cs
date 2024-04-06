@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Reflection.Metadata;
 
 namespace XrEngine
 {
@@ -10,7 +11,7 @@ namespace XrEngine
 
 
 
-        public static void WriteArray<T>(this IStateContainer container, string key, IList<T> items) where T : class, IStateManager
+        public static void WriteArray<T>(this IStateContainer container, string key, IList<T> items) where T : class, IStateObject
         {
             var arrayState = container.Enter(key);
             for (var i = 0; i < items.Count; i++)
@@ -21,7 +22,7 @@ namespace XrEngine
             }
         }
 
-        public static void ReadArray<T>(this IStateContainer container, string key, IList<T> curItems, Action<T> addItem, Action<T> removeItem) where T : class, IObjectId, IStateManager
+        public static void ReadArray<T>(this IStateContainer container, string key, IList<T> curItems, Action<T> addItem, Action<T> removeItem) where T : class, IStateObject
         {
             HashSet<T> foundItems = [];
 
@@ -38,11 +39,16 @@ namespace XrEngine
                     var curItem = curItems!.FirstOrDefault(a => a.Id == itemId);
 
                     if (curItem == null)
+                    {
                         curItem = arrayState.Read<T>(childKey);
+                        addItem(curItem!);
+                    }
                     else
+                    {
                         curItem.SetState(itemState);
-
-                    addItem(curItem!);
+                        container.Context.RefTable.Resolved[curItem.Id] = curItem;  
+                    }
+        
 
                     foundItems.Add(curItem!);
                 }
@@ -94,20 +100,41 @@ namespace XrEngine
             }
         }
 
-
-        public static void WriteObject<T>(this IStateContainer container, T obj)
+        public static void WriteObject<T>(this IStateContainer container, object obj)
         {
-            foreach (var prop in typeof(T).GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+            container.WriteObject(obj, typeof(T));
+        }
+
+        public static void WriteObject(this IStateContainer container, object obj, Type objType)
+        {
+            foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
                 if (prop.CanWrite && prop.CanRead)
                     container.Write(prop.Name, prop.GetValue(obj));
             }
-
         }
 
         public static void ReadObject<T>(this IStateContainer container, T obj)
         {
             ReadObject(container, obj!, typeof(T));
+        }
+
+        public static T? ReadObject<T>(this IStateContainer container, string key, T? curObj) where T : class, IStateObject
+        {
+            if (curObj != null)
+            {
+                var itemState = container.Enter(key, true);
+                if (itemState == null)
+                    return null;
+                var itemId = itemState.Read<uint>("Id");
+                if (curObj.Id == itemId)
+                {
+                    if (!itemState.Contains("$uri"))
+                        curObj.SetState(itemState);
+                    return curObj;
+                }
+            }
+            return container.Read<T>(key);
         }
 
         public static void ReadObject(this IStateContainer container, object obj, Type objType)

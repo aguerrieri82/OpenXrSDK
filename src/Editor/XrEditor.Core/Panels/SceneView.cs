@@ -4,6 +4,7 @@ using XrEditor.Services;
 using XrEngine;
 using XrEngine.Interaction;
 using XrEngine.OpenXr;
+using XrEngine.Services;
 using XrMath;
 using XrSamples;
 
@@ -61,12 +62,21 @@ namespace XrEditor
         protected SceneXrState _xrState;
         protected IRenderEngine? _render;
         protected XrEngineApp? _engine;
+        protected ToolbarView _toolbar;
+        protected MemoryStateContainer? _sceneState;
+        private ActionView _playButton;
+        private ActionView _pauseButton;
+        private ActionView _stopButton;
 
         public SceneView(IRenderSurface renderSurface)
         {
             _renderSurface = renderSurface;
             _renderSurface.SizeChanged += OnSizeChanged;
             _renderSurface.Ready += OnSurfaceReady;
+            _toolbar = new ToolbarView();
+            _playButton = _toolbar.AddButton("icon_play_arrow", () => StartApp());
+            _pauseButton = _toolbar.AddButton("icon_pause", () => PauseApp());
+            _stopButton = _toolbar.AddButton("icon_stop", () => StopApp());
         }
 
         protected void CreateApp()
@@ -220,6 +230,36 @@ namespace XrEditor
                 persp.SetFov(45, _view.Width, _view.Height);
         }
 
+        public void StartApp()
+        {
+            if (_scene == null || _engine?.App == null || _engine.App.PlayState == PlayState.Start)
+                return;
+            _sceneState = new MemoryStateContainer();
+            _scene.GetState(_sceneState);
+            _engine!.App.Start();
+        }
+
+        public void PauseApp()
+        {
+            if (_engine?.App == null)
+                return;
+            _engine.App.Pause();
+        }
+
+        public void StopApp()
+        {
+            if (_engine?.App == null || _engine.App.PlayState == PlayState.Stop)
+                return;
+
+            _engine!.App.Stop();
+
+            if (_sceneState != null)
+            {
+                _scene!.SetState(_sceneState);
+                _sceneState = null;
+            }
+        }
+
         protected void Start()
         {
             if (_isStarted)
@@ -309,6 +349,8 @@ namespace XrEditor
             return tool;
         }
 
+
+        public ToolbarView ToolbarView => _toolbar;
 
 
         public event Action<Scene3D?>? SceneChanged;

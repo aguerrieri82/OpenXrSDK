@@ -17,9 +17,11 @@ namespace XrEngine.OpenGL
     {
         public IList<Light>? Lights;
 
-        public long LightsVersion;
+        public long ImageLightVersion = -1;
 
-        public long SceneVersion;
+        public long LightsVersion = -1;
+
+        public long SceneVersion = -1;
 
         public Scene3D? Scene;
 
@@ -156,26 +158,36 @@ namespace XrEngine.OpenGL
             content.Lights = new List<Light>();
             content.Scene = scene;
             content.SceneVersion = scene.Version;
-            content.LightsVersion = 0;
+            content.LightsVersion = -1;
 
             content.ShaderContents.Clear();
 
             var drawId = 0;
 
+            foreach (var light in scene.VisibleDescendants<Light>())
+            {
+                content.Lights.Add(light);
+                content.LightsVersion += light.Version;
+
+                if (light is ImageLight imgLight)
+                {
+                    if (imgLight.Panorama?.Data != null && imgLight.Panorama.Version != content.ImageLightVersion)
+                    {
+                        var options = PanoramaProcessorOptions.Default();
+                        options.SampleCount = 1024;
+                        options.Resolution = 256;
+                        options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
+                        imgLight.Textures = ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
+
+                        content.ImageLightVersion = imgLight.Panorama.Version;
+                    }
+                }
+            }
+
             foreach (var obj3D in scene.VisibleDescendants<Object3D>())
             {
                 if (obj3D is Light light)
-                {
-                    content.Lights.Add(light);
-                    content.LightsVersion += light.Version;
-
-                    if (light is ImageLight)
-                    {
-
-                    }
-
                     continue;
-                }
 
                 if (!obj3D.Feature<IVertexSource>(out var vrtSrc))
                     continue;
