@@ -272,7 +272,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
             assets.GetFsPath("Chess/ABeautifulGame.bin");
-            var mesh = (Group3D)AssetLoader.Instance.Load(new Uri(assets.GetFsPath("Chess/ABeautifulGame.gltf")), typeof(Group3D), GltfOptions);
+            var mesh = (Group3D)AssetLoader.Instance.Load(new Uri(assets.GetFsPath("Chess/ABeautifulGame.gltf")), typeof(Group3D), null, GltfOptions);
             mesh.Name = "mesh";
             mesh.BoundUpdateMode = UpdateMode.Automatic;
 
@@ -280,7 +280,6 @@ namespace XrSamples
             {
                 var rb = child.AddComponent<RigidBody>();
                 child.AddComponent<BoxCollider>();
-
 
                 if (child.Name!.Contains("board"))
                 {

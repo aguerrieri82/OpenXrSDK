@@ -45,13 +45,13 @@
         }
 
 
-        public object? Read(string key, Type type)
+        public object? Read(string key, object? curObj, Type type)
         {
             var value = _state[key];
 
             var manager = TypeStateManager.Instance.Get(type);
             if (manager != null)
-                return manager.Read(key, type, this);
+                return manager.Read(key, curObj, type, this);
 
             return value;
         }

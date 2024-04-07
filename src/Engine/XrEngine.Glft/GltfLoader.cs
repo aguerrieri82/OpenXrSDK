@@ -9,7 +9,7 @@ using XrMath;
 
 namespace XrEngine.Gltf
 {
-    public class GltfLoaderOptions
+    public class GltfLoaderOptions : IAssetLoaderOptions
     {
         public GltfLoaderOptions()
         {
@@ -59,7 +59,7 @@ namespace XrEngine.Gltf
             return false;
         }
 
-        public EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, object? options = null)
+        public EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
             var query = HttpUtility.ParseQueryString(uri.Query);
             string src;
@@ -91,12 +91,12 @@ namespace XrEngine.Gltf
                 {
                     case "texture":
                         var texId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        return cache.Loader!.CreateTexture(cache.Loader.Model!.Textures[texId], texId);
+                        return cache.Loader!.CreateTexture(cache.Loader.Model!.Textures[texId], texId, (Texture2D?)destObj ?? new());
                     case "mesh":
                         var meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
                         var pIndex = int.Parse(uri.Segments[3].TrimEnd('/'));
                         var mesh = cache.Loader!.Model!.Meshes[meshId];
-                        return cache.Loader!.ProcessPrimitive(mesh.Primitives[pIndex]);
+                        return cache.Loader!.ProcessPrimitive(mesh.Primitives[pIndex], (Geometry3D?)destObj ?? new());
                     default:
                         throw new NotSupportedException();
                 }
@@ -223,7 +223,7 @@ namespace XrEngine.Gltf
             return result;
         }
 
-        public Texture2D CreateTexture(glTFLoader.Schema.Texture texture, int id)
+        public Texture2D CreateTexture(glTFLoader.Schema.Texture texture, int id, Texture2D? result = null)
         {
             var imageInfo = _model!.Images[texture.Source!.Value];
 
@@ -231,7 +231,11 @@ namespace XrEngine.Gltf
 
             CheckExtensions(texture.Extensions);
 
-            var result = Texture2D.FromData([data]);
+            if (result == null)
+                result = Texture2D.FromData([data]);
+            else
+                result.LoadData([data]);
+
             result.Name = texture.Name ?? (imageInfo.Name ?? "");
 
             bool hasMinFilter = false;
@@ -403,11 +407,9 @@ namespace XrEngine.Gltf
 
         }
 
-        public Geometry3D ProcessPrimitive(glTFLoader.Schema.MeshPrimitive primitive)
+        public Geometry3D ProcessPrimitive(glTFLoader.Schema.MeshPrimitive primitive, Geometry3D result)
         {
             var draco = TryLoadExtension<KHR_draco_mesh_compression>(primitive.Extensions);
-
-            var geo = new Geometry3D();
 
             if (primitive.Mode == glTFLoader.Schema.MeshPrimitive.ModeEnum.TRIANGLES)
             {
@@ -420,8 +422,8 @@ namespace XrEngine.Gltf
 
                     try
                     {
-                        geo.Indices = DracoDecoder.ReadIndices(mesh);
-                        geo.Vertices = new VertexData[mesh.VerticesSize];
+                        result.Indices = DracoDecoder.ReadIndices(mesh);
+                        result.Vertices = new VertexData[mesh.VerticesSize];
 
                         foreach (var attr in draco.Value.Attributes)
                         {
@@ -429,24 +431,24 @@ namespace XrEngine.Gltf
                             {
                                 case "POSITION":
                                     var vValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
-                                    geo.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
-                                    geo.ActiveComponents |= VertexComponent.Position;
+                                    result.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
+                                    result.ActiveComponents |= VertexComponent.Position;
                                     vertexCount = vValues.Length;
                                     break;
                                 case "NORMAL":
                                     var nValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
-                                    geo.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
-                                    geo.ActiveComponents |= VertexComponent.Normal;
+                                    result.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
+                                    result.ActiveComponents |= VertexComponent.Normal;
                                     break;
                                 case "TANGENT":
                                     var tValues = DracoDecoder.ReadAttribute<Quaternion>(mesh, attr.Value);
-                                    geo.SetVertexData((ref VertexData a, Quaternion b) => a.Tangent = b, tValues);
-                                    geo.ActiveComponents |= VertexComponent.Tangent;
+                                    result.SetVertexData((ref VertexData a, Quaternion b) => a.Tangent = b, tValues);
+                                    result.ActiveComponents |= VertexComponent.Tangent;
                                     break;
                                 case "TEXCOORD_0":
                                     var uValues = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
-                                    geo.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
-                                    geo.ActiveComponents |= VertexComponent.UV0;
+                                    result.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
+                                    result.ActiveComponents |= VertexComponent.UV0;
                                     break;
                                 default:
                                     _log.AppendLine($"{attr.Key} data not supported");
@@ -474,30 +476,30 @@ namespace XrEngine.Gltf
                         {
                             case "POSITION":
                                 var vValues = ConvertBuffer<Vector3>(buffer, view, acc);
-                                geo.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
-                                geo.ActiveComponents |= VertexComponent.Position;
+                                result.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
+                                result.ActiveComponents |= VertexComponent.Position;
                                 vertexCount = vValues.Length;
                                 Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC3);
                                 Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "NORMAL":
                                 var nValues = ConvertBuffer<Vector3>(buffer, view, acc);
-                                geo.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
-                                geo.ActiveComponents |= VertexComponent.Normal;
+                                result.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
+                                result.ActiveComponents |= VertexComponent.Normal;
                                 Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC3);
                                 Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TANGENT":
                                 var tValues = ConvertBuffer<Quaternion>(buffer, view, acc);
-                                geo.SetVertexData((ref VertexData a, Quaternion b) => a.Tangent = b, tValues);
-                                geo.ActiveComponents |= VertexComponent.Tangent;
+                                result.SetVertexData((ref VertexData a, Quaternion b) => a.Tangent = b, tValues);
+                                result.ActiveComponents |= VertexComponent.Tangent;
                                 Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC4);
                                 Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_0":
                                 var uValues = ConvertBuffer<Vector2>(buffer, view, acc);
-                                geo.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
-                                geo.ActiveComponents |= VertexComponent.UV0;
+                                result.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
+                                result.ActiveComponents |= VertexComponent.UV0;
                                 Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC2);
                                 Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
                                 break;
@@ -519,11 +521,11 @@ namespace XrEngine.Gltf
                         var buffer = LoadBuffer(view.Buffer);
 
                         if (acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
-                            geo.Indices = ConvertBuffer<ushort>(buffer, view, acc)
+                            result.Indices = ConvertBuffer<ushort>(buffer, view, acc)
                                 .Select(a => (uint)a)
                                 .ToArray();
                         else if (acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_INT)
-                            geo.Indices = ConvertBuffer<uint>(buffer, view, acc);
+                            result.Indices = ConvertBuffer<uint>(buffer, view, acc);
                         else
                             throw new NotSupportedException();
                     }
@@ -534,14 +536,14 @@ namespace XrEngine.Gltf
             else
                 throw new NotSupportedException();
 
-            if (((geo.ActiveComponents & VertexComponent.Normal) != 0) &&
-                ((geo.ActiveComponents & VertexComponent.UV0) != 0) &&
-                ((geo.ActiveComponents & VertexComponent.Tangent) == 0))
+            if (((result.ActiveComponents & VertexComponent.Normal) != 0) &&
+                ((result.ActiveComponents & VertexComponent.UV0) != 0) &&
+                ((result.ActiveComponents & VertexComponent.Tangent) == 0))
             {
                 //geo.ComputeTangents();
             }
 
-            return geo;
+            return result;
         }
 
         protected Object3D ProcessMesh(glTFLoader.Schema.Mesh gltMesh, int id)
@@ -562,7 +564,7 @@ namespace XrEngine.Gltf
 
                 CheckExtensions(primitive.Extensions);
 
-                curMesh.Geometry = ProcessPrimitive(primitive);
+                curMesh.Geometry = ProcessPrimitive(primitive, new Geometry3D());
 
                 curMesh.Geometry.AddComponent(new AssetSource
                 {

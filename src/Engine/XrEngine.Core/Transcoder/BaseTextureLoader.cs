@@ -109,12 +109,19 @@ namespace XrEngine
             return results;
         }
 
-        public override EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, object? options = null)
+        public override EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
             var fsPath = assetManager.GetFsPath(GetFilePath(uri));
             using var file = File.OpenRead(fsPath);
             var data = Read(file, (TextureReadOptions?)options);
-            var result = Texture2D.FromData(data);
+
+            var result = (Texture2D?)destObj;
+
+            if (result == null)
+                result = Texture2D.FromData(data);
+            else
+                result.LoadData(data);
+
             result.AddComponent(new AssetSource { AssetUri = uri });
             return result;
         }

@@ -69,14 +69,14 @@ namespace XrEngine.Services
             return new JsonStateContainer(_context, result);
         }
 
-        public readonly object? Read(string key, Type type)
+        public readonly object? Read(string key, object? curObj, Type type)
         {
             if (_state[key] == null)
                 return null;
 
             var manager = TypeStateManager.Instance.Get(type);
             if (manager != null)
-                return manager.Read(key, type, this);
+                return manager.Read(key, curObj, type, this);
 
             return _state[key].Deserialize(type)!;
         }

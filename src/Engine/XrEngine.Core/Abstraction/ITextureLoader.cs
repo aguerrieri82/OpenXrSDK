@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    public class TextureReadOptions
+    public class TextureReadOptions : IAssetLoaderOptions
     {
         public TextureFormat? Format { get; set; }
     }

@@ -12,10 +12,53 @@
         Geometry = 0x20,
         Components = 0x40,
         SceneRemove = Parent | 0x80,
-        Property = 0x100
+        Property = 0x100,
+        ChildAdd = 0x200,
+        ChildRemove = 0x400
     }
 
-    public readonly struct ObjectChange
+    public struct ObjectChangeSet
+    {
+        public ObjectChangeSet()
+        {
+        }
+
+        public void Add(ObjectChange change)
+        {
+            Changes ??= [];
+
+            var curChangeIndex = Changes.FindIndex(a=> a.Target == change.Target);
+
+            if (curChangeIndex != -1)
+            {
+                var curChange = Changes[curChangeIndex];
+                curChange.Type |= change.Type;
+
+                if (change.Properties != null)
+                {
+                    curChange.Properties ??= new List<string>();
+                    foreach (var prop in change.Properties)
+                    {
+                        if (!curChange.Properties.Contains(prop))
+                            curChange.Properties.Add(prop);
+                    }
+                }
+
+                Changes[curChangeIndex] = curChange;
+            }
+            else
+                Changes.Add(change);
+        }
+
+        public void Clear()
+        {
+            Changes?.Clear();    
+        }
+
+        public List<ObjectChange> Changes;
+    }
+
+    public  struct ObjectChange
     {
         public ObjectChange(ObjectChangeType type, EngineObject? target = null, IList<string>? properties = null)
         {
@@ -39,10 +82,10 @@
         }
 
 
-        public readonly ObjectChangeType Type;
+        public ObjectChangeType Type;
 
-        public readonly EngineObject? Target;
+        public EngineObject? Target;
 
-        public readonly IList<string>? Properties;
+        public IList<string>? Properties;
     }
 }

@@ -9,7 +9,6 @@ namespace XrEditor
         protected Object3D? _currentPick;
         protected Color? _oldColor;
         protected Collision? _lastCollision;
-        protected object _lock = new();
         protected RayPointerStatus _lastRay;
 
         public override void NotifySceneChanged()
@@ -26,6 +25,8 @@ namespace XrEditor
             _lastRay.IsActive = false;
             return result;
         }
+
+        protected IDispatcher EngineDispatcher => _sceneView.Scene.App.Renderer.Dispatcher;
 
         protected void UpdateRay(Pointer2Event ev)
         {
@@ -46,17 +47,17 @@ namespace XrEditor
             base.OnPointerUp(ev);
         }
 
-        protected override void OnPointerMove(Pointer2Event ev)
+        protected override async void OnPointerMove(Pointer2Event ev)
         {
             if (_sceneView?.Scene == null)
                 return;
 
             UpdateRay(ev);
 
-            lock (_lock)
-                _lastCollision = _sceneView.Scene.RayCollisions(_lastRay.Ray)
-                               .OrderBy(a => a.Distance)
-                               .FirstOrDefault();
+            _lastCollision = (await EngineDispatcher.ExecuteAsync(() => _sceneView.Scene.RayCollisions(_lastRay.Ray)))
+                           .OrderBy(a => a.Distance)
+                           .FirstOrDefault();
+
 
             var newPick = _lastCollision?.Object;
 

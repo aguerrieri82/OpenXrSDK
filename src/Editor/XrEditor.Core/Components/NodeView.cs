@@ -4,7 +4,7 @@ using XrEngine;
 
 namespace XrEditor
 {
-    public class NodeView : BaseView
+    public class NodeView : BaseView, IDisposable
     {
         protected ObservableCollection<object> _children = [];
         protected bool _isExpanded;
@@ -27,6 +27,31 @@ namespace XrEditor
 
             if (_selection.IsSelected(node))
                 _isSelected = true;
+
+            if (_node is IDynamicNode dynamicNode)
+            {
+                dynamicNode.ChildAdded += OnChildAdded;
+                dynamicNode.ChildRemoved += OnChildRemoved;
+            }
+        }
+
+        protected void OnChildRemoved(INode sender, INode child)
+        {
+            Context.Require<IMainDispatcher>().ExecuteAsync(() =>
+            {
+                var childView = _children.OfType<NodeView>().FirstOrDefault(a => a.Node == child);
+                if (childView != null)
+                    _children.Remove(childView);
+            });
+        }
+
+        protected void OnChildAdded(INode sender, INode child)
+        {
+            Context.Require<IMainDispatcher>().ExecuteAsync(() =>
+            {
+                var childView = _host.CreateNodeView(child, this);
+                _children.Add(childView!);
+            });
         }
 
         public void Refresh()
@@ -47,6 +72,16 @@ namespace XrEditor
             _isLoaded = true;
 
             return Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            if (_node is IDynamicNode dynamicNode)
+            {
+                dynamicNode.ChildAdded -= OnChildAdded;
+                dynamicNode.ChildRemoved -= OnChildRemoved;
+            }
+            GC.SuppressFinalize(this);
         }
 
         public bool IsExpanded

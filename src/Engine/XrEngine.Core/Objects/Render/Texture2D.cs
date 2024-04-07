@@ -109,9 +109,13 @@ namespace XrEngine
         public Texture2D(IList<TextureData> data)
             : base(data)
         {
+        }
+
+        public override void LoadData(IList<TextureData> data)
+        {
+            base.LoadData(data);
             Height = data[0].Height;
             WrapT = WrapMode.ClampToEdge;
-
         }
 
         public uint Height { get; set; }
