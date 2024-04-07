@@ -13,8 +13,9 @@
         protected Dictionary<string, object?>? _props;
         protected List<IComponent>? _components;
         protected ObjectId _id;
-        protected ObjectChange? _lastChange;
+        protected ObjectChangeSet _lastChanges;
         protected int _updateCount;
+
 
         public void SetState(IStateContainer container)
         {
@@ -47,10 +48,11 @@
         {
             _updateCount--;
 
-            if (_updateCount != 0 && _lastChange != null)
+            if (_updateCount == 0 && _lastChanges.Changes != null)
             {
-                NotifyChanged(_lastChange.Value);
-                _lastChange = null;
+                foreach (var change in _lastChanges.Changes)
+                    NotifyChanged(change);
+                _lastChanges.Clear();
             }
         }
 
@@ -106,7 +108,7 @@
         {
             if (_updateCount > 0)
             {
-                _lastChange = change;
+                _lastChanges.Add(change);
                 return;
             }
 

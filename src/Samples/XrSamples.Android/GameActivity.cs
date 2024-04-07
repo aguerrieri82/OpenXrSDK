@@ -48,8 +48,8 @@ namespace XrSamples.Android
                    //.UseFilamentVulkan()
                    //.UseStereo()
                    .UseMultiView()
-                   .SetRenderQuality(1, 4)
-                   .CreatePingPong()
+                   .SetRenderQuality(1, 1)
+                   .CreateChess()
                    .RemovePlaneGrid()
                    .AddWebBrowser(this, "display");
         }

@@ -20,6 +20,6 @@
             return false;
         }
 
-        public abstract EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, object? options = null);
+        public abstract EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, EngineObject? destObj, IAssetLoaderOptions? options = null);
     }
 }

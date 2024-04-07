@@ -17,13 +17,13 @@
             Register(PvrTranscoder.Instance);
         }
 
-        public EngineObject Load(Uri uri, Type resType, object? options = null)
+        public EngineObject Load(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
             var loader = _loaders.FirstOrDefault(a => a.CanHandle(uri, out resType));
             if (loader == null)
                 throw new NotSupportedException();
 
-            return loader.LoadAsset(uri, resType, AssetManager!, options);
+            return loader.LoadAsset(uri, resType, AssetManager!, destObj, options);
         }
 
         public void Register(IAssetHandler assetLoader)

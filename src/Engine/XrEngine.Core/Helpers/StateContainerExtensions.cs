@@ -9,8 +9,6 @@ namespace XrEngine
     {
         #region STATE
 
-
-
         public static void WriteArray<T>(this IStateContainer container, string key, IList<T> items) where T : class, IStateObject
         {
             var arrayState = container.Enter(key);
@@ -48,7 +46,6 @@ namespace XrEngine
                         curItem.SetState(itemState);
                         container.Context.RefTable.Resolved[curItem.Id] = curItem;  
                     }
-        
 
                     foundItems.Add(curItem!);
                 }
@@ -128,14 +125,12 @@ namespace XrEngine
                     return null;
                 var itemId = itemState.Read<uint>("Id");
                 if (curObj.Id == itemId)
-                {
-                    if (!itemState.Contains("$uri"))
-                        curObj.SetState(itemState);
-                    return curObj;
-                }
+                    return container.Read(key, curObj);
+
             }
             return container.Read<T>(key);
         }
+
 
         public static void ReadObject(this IStateContainer container, object obj, Type objType)
         {
@@ -145,7 +140,6 @@ namespace XrEngine
                     prop.SetValue(obj, container.Read(prop.Name, prop.PropertyType));
             }
         }
-
 
         public static void WriteTypedObject(this IStateContainer container, string key, IStateManager value)
         {
@@ -159,7 +153,7 @@ namespace XrEngine
             var objState = container.Enter(key);
             var typeName = objState.ReadTypeName();
             if (typeName == null)
-                throw new InvalidOperationException("Type name not found");
+                throw new InvalidOperationException($"Type name '{typeName}' not found");
 
             var obj = (T)ObjectManager.Instance.CreateObject(typeName!);
             obj.SetState(objState);
@@ -169,6 +163,18 @@ namespace XrEngine
 
             return obj;
         }
+
+        public static object? Read(this IStateContainer container, string key, Type type)
+        {
+            return container.Read(key, null, type);
+        }
+
+
+        public static T Read<T>(this IStateContainer container, string key, T? curObj) where T: class
+        {
+            return (T)container.Read(key, curObj, typeof(T))!;
+        }
+
 
         public static T Read<T>(this IStateContainer container, string key)
         {

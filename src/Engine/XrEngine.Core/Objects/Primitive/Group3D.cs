@@ -82,6 +82,8 @@ namespace XrEngine
 
             _children.Add(child);
 
+            NotifyChanged(new ObjectChange(ObjectChangeType.ChildAdd, child));
+
             InvalidateBounds();
 
             return child;
@@ -127,6 +129,8 @@ namespace XrEngine
             _children.Remove(child);
 
             child.SetParent(null, preserveTransform);
+
+            NotifyChanged(new ObjectChange(ObjectChangeType.ChildRemove, child));
 
             InvalidateBounds();
         }

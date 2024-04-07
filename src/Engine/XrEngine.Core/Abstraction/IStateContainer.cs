@@ -10,7 +10,8 @@
 
         void Write(string key, object? value);
 
-        object? Read(string key, Type type);
+
+        object? Read(string key, object? curObject, Type type);
 
         int Count { get; }
 

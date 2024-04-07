@@ -4,7 +4,7 @@ namespace XrEngine.OpenXr
 {
     public class XrInputStateManager : ITypeStateManager<IXrInput>
     {
-        public IXrInput Read(string key, Type objType, IStateContainer container)
+        public IXrInput Read(string key, IXrInput? curObj, Type objType, IStateContainer container)
         {
             var name = container.Read<string>(key);
             return XrApp.Current!.Inputs[name];

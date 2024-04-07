@@ -13,9 +13,9 @@ namespace XrEngine
         {
             StateManager() { }
 
-            public IStateManager Read(string key, Type objType, IStateContainer container)
+            public IStateManager Read(string key, IStateManager? destObj, Type objType, IStateContainer container)
             {
-                var obj = (IStateManager)Activator.CreateInstance(objType)!;
+                var obj = destObj ?? (IStateManager)Activator.CreateInstance(objType)!;
                 obj.SetState(container.Enter(key));
                 return obj;
             }
@@ -34,7 +34,7 @@ namespace XrEngine
 
         public class Vector3Manager : ITypeStateManager<Vector3>
         {
-            public Vector3 Read(string key, Type objType, IStateContainer container)
+            public Vector3 Read(string key, Vector3 destObj, Type objType, IStateContainer container)
             {
                 var parts = container.Read<float[]>(key);
                 return new Vector3(parts[0], parts[1], parts[2]);
@@ -52,7 +52,7 @@ namespace XrEngine
 
         public class ColorManager : ITypeStateManager<Color>
         {
-            public Color Read(string key, Type objType, IStateContainer container)
+            public Color Read(string key, Color curObj, Type objType, IStateContainer container)
             {
                 return Color.Parse(container.Read<string>(key));
             }
@@ -69,7 +69,7 @@ namespace XrEngine
 
         public unsafe class Matrix4x4Manager : ITypeStateManager<Matrix4x4>
         {
-            public Matrix4x4 Read(string key, Type objType, IStateContainer container)
+            public Matrix4x4 Read(string key, Matrix4x4 curObj, Type objType, IStateContainer container)
             {
                 var array = container.Read<float[]>(key);
                 fixed (float* pArray = array)
@@ -89,7 +89,7 @@ namespace XrEngine
 
         public class QuaternionManager : ITypeStateManager<Quaternion>
         {
-            public Quaternion Read(string key, Type objType, IStateContainer container)
+            public Quaternion Read(string key, Quaternion curObj, Type objType, IStateContainer container)
             {
                 var parts = container.Read<float[]>(key);
                 return new Quaternion(parts[0], parts[1], parts[2], parts[3]);
@@ -109,7 +109,7 @@ namespace XrEngine
         {
             EngineObjectManager() { }
 
-            public EngineObject? Read(string key, Type objType, IStateContainer container)
+            public EngineObject? Read(string key, EngineObject? destObj, Type objType, IStateContainer container)
             {
                 var objState = container.Enter(key, true);
 
@@ -120,10 +120,10 @@ namespace XrEngine
                 {
                     var assetUri = objState.Read<Uri>("$uri");
 
-                    return AssetLoader.Instance.Load(assetUri, objType, null);
+                    return AssetLoader.Instance.Load(assetUri, objType, destObj);
                 }
 
-                return (EngineObject)StateObjectManager.Instance.Read(key, objType, container);
+                return (EngineObject)StateObjectManager.Instance.Read(key, destObj, objType, container);
             }
 
             public void Write(string key, EngineObject? obj, IStateContainer container)
@@ -149,7 +149,7 @@ namespace XrEngine
 
         public class ObjectIdManager : ITypeStateManager<ObjectId>
         {
-            public ObjectId Read(string key, Type objType, IStateContainer container)
+            public ObjectId Read(string key, ObjectId destObj, Type objType, IStateContainer container)
             {
                 return new ObjectId() { Value = container.Read<uint>(key) };
             }
@@ -173,12 +173,12 @@ namespace XrEngine
                 return type.IsClass && type.HasEmptyConstructor();
             }
 
-            public object? Read(string key, Type objType, IStateContainer container)
+            public object? Read(string key, object? destObj, Type objType, IStateContainer container)
             {
                 var keyContainer = container.Enter(key);
                 if (keyContainer == null)
                     return null;
-                var obj = Activator.CreateInstance(objType)!; 
+                var obj = destObj ?? Activator.CreateInstance(objType)!;
                 keyContainer?.ReadObject(obj, objType);
                 return obj;
             }
@@ -198,7 +198,7 @@ namespace XrEngine
         {
             StateObjectManager() { }
 
-            public IStateObject Read(string key, Type objType, IStateContainer container)
+            public IStateObject Read(string key, IStateObject? destObj, Type objType, IStateContainer container)
             {
                 var id = container.Read<ObjectId>(key);
 

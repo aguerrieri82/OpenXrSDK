@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace XrEngine
 {
     public abstract class Texture : EngineObject, IDisposable
     {
@@ -6,6 +8,11 @@
         protected Texture() { }
 
         protected Texture(IList<TextureData> data)
+        {
+            LoadData(data);
+        }
+
+        public virtual void LoadData(IList<TextureData> data)
         {
             Data = data;
             Width = data[0].Width;

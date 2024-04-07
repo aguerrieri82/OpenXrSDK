@@ -70,6 +70,7 @@ namespace XrEngine.OpenGL
             public uint? ActiveProgram;
             public bool? Wireframe;
             public AlphaMode? Alpha;
+            public Rect2I? LastView;
         }
 
         protected GL _gl;
@@ -78,11 +79,10 @@ namespace XrEngine.OpenGL
         protected GlRenderOptions _options;
         protected GlDefaultRenderTarget _defaultTarget;
         protected UpdateShaderContext _updateCtx;
-        protected GlSimpleProgram? _writeStencil;
-        protected ShaderUpdate? _writeStencilUpdate;
         protected Dictionary<uint, Texture2D> _depthCache = [];
-        protected Rect2I _lastView;
+
         protected GlState _glState;
+        private DrawBufferMode[] _drawAttachment0;
         protected GRContext? _grContext;
         protected QueueDispatcher _dispatcher;
 
@@ -116,6 +116,8 @@ namespace XrEngine.OpenGL
             _updateCtx.RenderEngine = this;
 
             _dispatcher = new QueueDispatcher();
+
+            _drawAttachment0 = [DrawBufferMode.ColorAttachment0];
 
             ConfigureCaps();
         }
@@ -180,6 +182,7 @@ namespace XrEngine.OpenGL
                         imgLight.Textures = ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
 
                         content.ImageLightVersion = imgLight.Panorama.Version;
+                        ResetState();
                     }
                 }
             }
@@ -235,6 +238,13 @@ namespace XrEngine.OpenGL
             //_content.ShaderContentsOrder.AddRange(_content.ShaderContents);
 
             return content;
+        }
+
+        protected void ResetState()
+        {
+            _glState = new GlState();
+
+            GL.DrawBuffers(_drawAttachment0.AsSpan());
         }
 
         public void EnableDebug()
@@ -316,6 +326,8 @@ namespace XrEngine.OpenGL
                 _glState.Alpha = material.Alpha;
             }
 
+#if !GLES
+
             bool isWireframe = material is WireframeMaterial;
             if (isWireframe != _glState.Wireframe)
             {
@@ -328,6 +340,7 @@ namespace XrEngine.OpenGL
                 }
                 _glState.Wireframe = isWireframe;
             }
+#endif
         }
 
         public void Render(Scene3D scene, Camera camera, Rect2I view, bool flush)
@@ -338,21 +351,23 @@ namespace XrEngine.OpenGL
 
         public void Render(Scene3D scene, Camera camera, Rect2I view, IGlRenderTarget target)
         {
+            if (!_contents.TryGetValue(scene, out var content) || content.SceneVersion != scene.Version)
+                content = BuildContent(scene);
+
             target.Begin();
 
-            if (!_lastView.Equals(view))
+            if (_glState.LastView == null || !_glState.Equals(view))
             {
                 _gl.Viewport(view.X, view.Y, view.Width, view.Height);
 
-                _lastView = view;
+                _glState.LastView = view;
             }
 
             Clear(camera.BackgroundColor);
 
             var targetHandler = target as IShaderHandler;
 
-            if (!_contents.TryGetValue(scene, out var content) || content.SceneVersion != scene.Version)
-                content = BuildContent(scene);
+
 
             _updateCtx.Camera = camera;
             _updateCtx.Lights = content.Lights;
@@ -478,8 +493,7 @@ namespace XrEngine.OpenGL
 
         public void EndDrawSurface()
         {
-            _glState = new GlState();
-            _lastView.Width = 0;
+            ResetState();
 
             _gl.BindVertexArray(0);
             _gl.UseProgram(0);

@@ -1,5 +1,6 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.Android;
+using XrEngine.Services;
 
 
 namespace XrEngine.OpenXr.Android
@@ -12,6 +13,7 @@ namespace XrEngine.OpenXr.Android
 
         protected override XrApp CreateApp()
         {
+            ModuleManager.Instance.Init();
 
             var builder = new XrEngineAppBuilder()
                    .UsePlatform(new AndroidPlatform(this));
@@ -19,6 +21,8 @@ namespace XrEngine.OpenXr.Android
             Build(builder);
 
             _engine = builder.Build();
+            
+            _engine.App.Start();
 
             return _engine.XrApp;
         }

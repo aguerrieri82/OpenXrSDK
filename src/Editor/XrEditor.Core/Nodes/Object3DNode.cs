@@ -8,12 +8,17 @@ namespace XrEditor.Nodes
     {
         readonly NodeDictionary _components = [];
 
-
         public Object3DNode(T value)
             : base(value)
         {
             _components.Add(new Transform3DNode(value.Transform));
             _autoGenProps = true;
+            value.Changed += OnElementChanged;
+        }
+
+        protected virtual void OnElementChanged(EngineObject element, ObjectChange change)
+        {
+
         }
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
@@ -47,6 +52,7 @@ namespace XrEditor.Nodes
                     yield return GetNode(component);
             }
         }
+
 
 
         public override string DisplayName => _value.Name ?? _value.GetType().Name;
