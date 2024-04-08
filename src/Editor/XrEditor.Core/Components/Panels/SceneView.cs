@@ -102,21 +102,11 @@ namespace XrEditor
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
 
-            /*
-            var json = new JsonStateContainer();
-            _engine.App.ActiveScene.GetState(json);
-
-            var newScene = new Scene3D();
-            newScene.SetState(json);
-            var str = json.AsJson();
-            File.WriteAllText("d:\\test.json", str);
-            Scene = newScene;
-            _engine.App.OpenScene(newScene);
-            */
-
             Scene = _engine.App.ActiveScene!;
 
             Context.Require<SelectionManager>().Set(Scene.GetNode());
+
+            UpdateControls();
         }
 
         protected void OnSizeChanged(object? sender, EventArgs e)
@@ -130,6 +120,13 @@ namespace XrEditor
             AddTool(new OrbitTool());
             UpdateSize();
             Start();
+        }
+
+        protected void UpdateControls()
+        {
+            _playButton.IsActive = _engine!.App.PlayState == PlayState.Start;
+            _stopButton.IsActive = _engine!.App.PlayState == PlayState.Stop;
+            _pauseButton.IsActive = _engine!.App.PlayState == PlayState.Pause;
         }
 
         public Task StartXr() => _dispatcher.ExecuteAsync(() =>
@@ -241,9 +238,15 @@ namespace XrEditor
             if (_scene == null || _engine?.App == null || _engine.App.PlayState == PlayState.Start)
                 return;
 
-            _sceneState = new MemoryStateContainer();
-            _scene.GetState(_sceneState);
+            if (_engine.App.PlayState == PlayState.Pause)
+            {
+                _sceneState = new MemoryStateContainer();
+                _scene.GetState(_sceneState);
+            }
+
             _engine!.App.Start();
+
+            UpdateControls();
         });
         
         public Task PauseApp() => _dispatcher.ExecuteAsync(() =>
@@ -251,6 +254,7 @@ namespace XrEditor
             if (_engine?.App == null)
                 return;
             _engine!.App.Pause();
+            UpdateControls();
         });
 
         public Task StopApp() => _dispatcher.ExecuteAsync(() =>
@@ -264,6 +268,7 @@ namespace XrEditor
                 _scene!.SetState(_sceneState);
                 _sceneState = null;
             }
+            UpdateControls();
         });
         
 

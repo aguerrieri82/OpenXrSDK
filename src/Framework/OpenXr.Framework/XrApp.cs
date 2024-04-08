@@ -203,6 +203,29 @@ namespace OpenXr.Framework
             _state = XrAppState.Started;
         }
 
+        protected void DestroyInstance()
+        {
+            foreach (var haptic in _haptics)
+                haptic.Value.Destroy();
+
+            foreach (var input in _inputs)
+                input.Value.Destroy();
+
+            /*
+            foreach (var hand in _hands)
+                hand.Value.Destroy();
+            */
+
+            if (_instance.Handle != 0)
+            {
+                CheckResult(_xr!.DestroyInstance(Instance), "DestroyInstance");
+                _instance.Handle = 0;
+            }
+
+            _systemId = 0;
+            _actionSet.Handle = 0;
+        }
+
         public virtual void Stop()
         {
             _isValid = false;
@@ -222,6 +245,8 @@ namespace OpenXr.Framework
                 CheckResult(_xr!.DestroySession(Session), "DestroySession");
                 _session.Handle = 0;
             }
+
+            //DestroyInstance();
 
             _state = XrAppState.Stopped;
             _lastSessionState = SessionState.Unknown;
@@ -971,7 +996,6 @@ namespace OpenXr.Framework
 
         protected internal Action CreateAction(string name, string localizedName, ActionType type, params ulong[] paths)
         {
-
             var info = new ActionCreateInfo
             {
                 Type = StructureType.ActionCreateInfo,

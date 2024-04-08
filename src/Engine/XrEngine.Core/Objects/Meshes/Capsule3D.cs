@@ -24,6 +24,7 @@ namespace XrEngine
             container.Write(nameof(Height), Height);
             container.Write(nameof(Horizontal), Horizontal);
             container.Write(nameof(Vertical), Vertical);
+            container.Write(nameof(Id), Id);
         }
 
         protected override void SetStateWork(IStateContainer container)

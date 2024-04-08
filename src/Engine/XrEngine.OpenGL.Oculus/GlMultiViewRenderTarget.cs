@@ -21,28 +21,17 @@ namespace XrEngine.OpenGL.Oculus
 
     public class GlMultiViewRenderTarget : IGlRenderTarget, IMultiViewTarget, IShaderHandler
     {
-        static GlMultiViewRenderTarget? _instance;
 
         protected GlMultiViewFrameBuffer _frameBuffer;
         protected SceneMatrices _matrices = new SceneMatrices();
         readonly GL _gl;
 
 
-        protected GlMultiViewRenderTarget(GL gl)
+        public GlMultiViewRenderTarget(GL gl)
         {
             _frameBuffer = new GlMultiViewFrameBuffer(gl);
             _gl = gl;
 
-        }
-
-        public static GlMultiViewRenderTarget Attach(GL gl, uint colorTex, uint depthTex, uint sampleCount)
-        {
-            if (_instance == null)
-                _instance = new GlMultiViewRenderTarget(gl);
-
-            _instance.FrameBuffer.Configure(colorTex, depthTex, sampleCount);
-
-            return _instance;
         }
 
         public void Begin()
