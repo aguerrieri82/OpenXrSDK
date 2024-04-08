@@ -16,7 +16,7 @@ namespace XrEditor.Nodes
             curProps.Add(new PropertyView
             {
                 Label = "Scale",
-                Editor = new Vector3Editor(binder.Prop(a => a.Scale), new ValueScale { ScaleMin = 0.001f, ScaleMax = 10, ScaleStep = 0.1f, ScaleSmallStep = 0.1f })
+                Editor = new Vector3Editor(binder.Prop(a => a.Scale), new ValueScale { ScaleMin = 0.001f, ScaleMax = 10, ScaleStep = 0.1f, ScaleSmallStep = 0.1f }) { LockedVisible = true }
             });
 
             curProps.Add(new PropertyView
@@ -28,7 +28,7 @@ namespace XrEditor.Nodes
             curProps.Add(new PropertyView
             {
                 Label = "Rotation",
-                Editor = new Vector3Editor(binder.Prop(a => a.Rotation), RadDegreeScale.Instance)
+                Editor = new Vector3Editor(binder.Prop(a => a.Rotation), RadDegreeScale.Instance) 
             });
         }
 

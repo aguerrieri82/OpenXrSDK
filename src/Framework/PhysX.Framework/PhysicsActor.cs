@@ -73,15 +73,18 @@ namespace PhysX.Framework
 
         public override void Dispose()
         {
-            foreach (var shape in GetShapes())
-                RemoveShape(shape);
-
-            _system.DeleteObject(this);
-
-            if (_handle != null)
+            if (!_system.IsDisposed)
             {
-                _handle->ReleaseMut();
-                _handle = null;
+                foreach (var shape in GetShapes())
+                    RemoveShape(shape);
+
+                _system.DeleteObject(this);
+
+                if (_handle != null)
+                {
+                    _handle->ReleaseMut();
+                    _handle = null;
+                }
             }
 
             GC.SuppressFinalize(this);

@@ -59,7 +59,7 @@ namespace PhysX.Framework
     {
         const uint VersionNumber = (5 << 24) + (1 << 16) + (3 << 8);
 
-        protected PxFoundation* _foundation;
+        protected static PxFoundation* _foundation;
         protected PxPvd* _pvd;
         protected PxTolerancesScale _tolerancesScale;
         protected PxPhysics* _physics;
@@ -77,6 +77,7 @@ namespace PhysX.Framework
         protected ContactModifyCallback _contactModify;
 
         protected float _lastDeltaTime;
+        protected bool _isDisposed;
 
         public PhysicsSystem()
         {
@@ -405,7 +406,9 @@ namespace PhysX.Framework
 
         public void Create(PhysicsOptions options)
         {
-            _foundation = physx_create_foundation();
+            if (_foundation == null)
+                _foundation = physx_create_foundation();
+
             _logger = options.Logger;
 
             if (options.DebugHost != null && options.UseDebug)
@@ -467,10 +470,37 @@ namespace PhysX.Framework
             }
         }
 
+
         public void Dispose()
         {
+            if (_scene != null)
+            {
+                _scene.Dispose();
+                _scene = null;
+            }
+
+            if (_physics != null)
+            {
+                _physics->ReleaseMut();
+                _physics = null;
+            }
+
+            if (_dispatcher != null)
+            {
+                _dispatcher->ReleaseMut();
+                _dispatcher = null;
+            }
+
+            if (_pvd != null)
+            {
+                _pvd->ReleaseMut();
+                _pvd = null;
+            }
+
             _contactModify.Dispose();
             _eventCallbacks.Dispose();
+
+            _isDisposed = true;
 
             GC.SuppressFinalize(this);
         }
@@ -505,5 +535,6 @@ namespace PhysX.Framework
 
         public static PhysicsSystem? Current { get; internal set; }
 
+        public bool IsDisposed => _isDisposed;
     }
 }
