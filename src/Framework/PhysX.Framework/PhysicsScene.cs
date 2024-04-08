@@ -35,9 +35,12 @@ namespace PhysX.Framework
 
         public override void Dispose()
         {
-            throw new NotImplementedException();
+            if (_handle != null)
+            {
+                _handle->ReleaseMut();
+                _handle = null;
+            }
         }
-
 
         public PxSceneFlags Flags
         {

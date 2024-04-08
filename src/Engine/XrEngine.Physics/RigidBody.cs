@@ -165,6 +165,25 @@ namespace XrEngine.Physics
             return shape;
         }
 
+        protected void Destroy()
+        {
+            if (_system == null)
+                return;
+
+            if (_actor != null)
+            {
+                _actor.Dispose();
+                _actor = null;
+            }
+
+            if (_material != null)
+            {
+                _material.Release();
+                _material = null;
+            }
+
+        }
+
         protected void Create(RenderContext ctx)
         {
             Debug.Assert(_host?.Scene != null);
@@ -179,17 +198,13 @@ namespace XrEngine.Physics
             Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
 
             if (!scale.IsSameValue(10e-5f))
-            {
-                return;
                 throw new NotSupportedException("Not uniform scale is not supported");
-            }
-
 
             _material = _system.CreateOrGetMaterial(new PhysicsMaterialInfo
             {
-                DynamicFriction = 1f,
-                StaticFriction = 1f,
-                Restitution = 0.5f
+                DynamicFriction = Material.DynamicFriction,
+                StaticFriction = Material.StaticFriction,
+                Restitution = Material.Restitution,
             });
 
             var shapes = new List<PhysicsShape>();
@@ -244,8 +259,59 @@ namespace XrEngine.Physics
             }
         }
 
+        protected void UpdatePhysics()
+        {
+            if (_actor == null || _system == null || _host == null) 
+                return;
+
+            Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
+            
+            _actor.SetScale(scale.X);
+
+            _actor.Name = _host.Name ?? string.Empty;
+            
+            _material?.Release();
+
+            _material = _system.CreateOrGetMaterial(new PhysicsMaterialInfo
+            {
+                DynamicFriction = Material.DynamicFriction,
+                StaticFriction = Material.StaticFriction,
+                Restitution = Material.Restitution,
+            });
+
+            foreach (var shape in _actor.GetShapes())
+            {
+                shape.SetMaterials([_material]);
+                shape.ContactOffset = ContactOffset;
+            }
+
+
+            if (Type != PhysicsActorType.Static)
+            {
+                DynamicActor.ContactReportThreshold = ContactReportThreshold;
+                DynamicActor.UpdateMassAndInertia(Density, Vector3.Zero);
+            }
+
+            if (Type == PhysicsActorType.Dynamic)
+            {
+                if (EnableCCD)
+                    DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableCcd;
+                else
+                    DynamicActor.RigidBodyFlags &= ~PxRigidBodyFlags.EnableCcd;
+            }
+
+            else if (Type == PhysicsActorType.Kinematic)
+            {
+                if (EnableCCD)
+                    DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableSpeculativeCcd;
+                else
+                    DynamicActor.RigidBodyFlags &= ~PxRigidBodyFlags.EnableSpeculativeCcd;
+            }
+        }
+
         protected override void Start(RenderContext ctx)
         {
+            Destroy();
             Create(ctx);
         }
 
@@ -298,21 +364,7 @@ namespace XrEngine.Physics
 
         public unsafe void Dispose()
         {
-            if (_system != null)
-            {
-                if (_actor != null)
-                {
-                    _actor.Dispose();
-                    _actor = null;
-                }
-
-                if (_material != null)
-                {
-                    _material.Release();
-                    _material = null;
-                }
-            }
-
+            Destroy();
             GC.SuppressFinalize(this);
         }
 

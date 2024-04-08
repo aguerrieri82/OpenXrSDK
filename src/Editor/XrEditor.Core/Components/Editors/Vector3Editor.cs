@@ -7,6 +7,7 @@ namespace XrEditor
     {
         private int _suspendUpdate;
         private IValueScale _scale;
+        private bool _isLocked;
 
         public Vector3Editor()
             : this(null, new ValueScale())
@@ -34,7 +35,10 @@ namespace XrEditor
                 if (_suspendUpdate > 0 || Binding == null)
                     return;
                 var curValue = Binding.Value;
-                EditValue = new Vector3(X.EditValue, curValue.Y, curValue.Z);
+                if (_isLocked)
+                    EditValue = new Vector3(X.EditValue, X.EditValue, X.EditValue);
+                else
+                    EditValue = new Vector3(X.EditValue, curValue.Y, curValue.Z);
             };
 
             Y.ValueChanged += e =>
@@ -42,7 +46,10 @@ namespace XrEditor
                 if (_suspendUpdate > 0 || Binding == null)
                     return;
                 var curValue = Binding.Value;
-                EditValue = new Vector3(curValue.X, Y.EditValue, curValue.Z);
+                if (_isLocked)
+                    EditValue = new Vector3(Y.EditValue, Y.EditValue, Y.EditValue);
+                else
+                    EditValue = new Vector3(curValue.X, Y.EditValue, curValue.Z);
             };
 
             Z.ValueChanged += e =>
@@ -50,7 +57,10 @@ namespace XrEditor
                 if (_suspendUpdate > 0 || Binding == null)
                     return;
                 var curValue = Binding.Value;
-                EditValue = new Vector3(curValue.X, curValue.Y, Z.EditValue);
+                if (_isLocked)
+                    EditValue = new Vector3(Z.EditValue, Z.EditValue, Z.EditValue);
+                else
+                    EditValue = new Vector3(curValue.X, curValue.Y, Z.EditValue);
             };
         }
 
@@ -81,6 +91,20 @@ namespace XrEditor
                 X.Scale = value;
                 Y.Scale = value;
                 Z.Scale = value;
+            }
+        }
+
+        public bool LockedVisible { get; set; }
+
+        public bool IsLocked
+        {
+            get => _isLocked;
+            set
+            {
+                if (value == _isLocked)
+                    return;
+                _isLocked = value;
+                OnPropertyChanged(nameof(IsLocked));
             }
         }
 

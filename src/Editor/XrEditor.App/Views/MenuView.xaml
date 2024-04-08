@@ -1,0 +1,33 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:i="clr-namespace:WPF_Icons;assembly=WPF-Icons"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style x:Key="MenuView" TargetType="ContextMenu">
+
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+               <Style TargetType="MenuItem">
+                    <Setter Property="Header" Value="{Binding DisplayName}"/>
+                    <Setter Property="Command" Value="{Binding Execute}"/>
+                    <Setter Property="IsEnabled" Value="{Binding IsEnabled}"/>
+                    <Setter Property="Icon">
+                        <Setter.Value>
+                            <i:Icon Size="16" VerticalAlignment="Center" HorizontalAlignment="Center" Color="#666" Kind="{Binding Icon}" />
+                        </Setter.Value>
+                    </Setter>
+               </Style>
+            </Setter.Value>
+        </Setter>
+        <Style.Resources>
+            <ResourceDictionary>
+                <DataTemplate DataType="{x:Type local:IconView}">
+                    <i:Icon Filled="True" Size="16" Color="#666" Kind="{Binding Name}"/>
+                </DataTemplate>
+
+            </ResourceDictionary>
+        </Style.Resources>
+    </Style>
+
+   
+</ResourceDictionary>

@@ -21,6 +21,9 @@
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal">
+                        <StackPanel.ContextMenu>
+                            <ContextMenu Style="{DynamicResource MenuView}" ItemsSource="{Binding Menu.Items}"/>
+                        </StackPanel.ContextMenu>
                         <ContentPresenter HorizontalAlignment="Left" Width="22" Content="{Binding Icon}"/>
                         <TextBlock Foreground="{DynamicResource SurfaceTextColor}" VerticalAlignment="Center" Text="{Binding DisplayName}"/>
                     </StackPanel>

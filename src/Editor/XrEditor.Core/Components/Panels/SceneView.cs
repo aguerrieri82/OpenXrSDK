@@ -49,12 +49,12 @@ namespace XrEditor
     public class SceneView : BasePanel
     {
         protected readonly IRenderSurface _renderSurface;
+        protected readonly QueueDispatcher _dispatcher;
 
         protected Camera? _camera;
         protected Scene3D? _scene;
         protected Thread? _renderThread;
         protected bool _isStarted;
-        protected bool _isXrActive;
         protected Rect2I _view = new();
         protected XrHandInputMesh? _rHand;
         protected XrOculusTouchController? _inputs;
@@ -67,6 +67,8 @@ namespace XrEditor
         private ActionView _playButton;
         private ActionView _pauseButton;
         private ActionView _stopButton;
+        private ActionView _xrButton;
+        private TextView _fpsLabel;
 
         public SceneView(IRenderSurface renderSurface)
         {
@@ -74,9 +76,21 @@ namespace XrEditor
             _renderSurface.SizeChanged += OnSizeChanged;
             _renderSurface.Ready += OnSurfaceReady;
             _toolbar = new ToolbarView();
+            _xrButton = _toolbar.AddToggle("icon_visibility", value =>
+            {
+                if (value)
+                    StartXr();
+                else
+                    StopXr();
+            });
+
+            _fpsLabel = _toolbar.AddText(string.Empty);
+            _toolbar.AddDivider();
+            _dispatcher = new QueueDispatcher();
             _playButton = _toolbar.AddButton("icon_play_arrow", () => StartApp());
             _pauseButton = _toolbar.AddButton("icon_pause", () => PauseApp());
             _stopButton = _toolbar.AddButton("icon_stop", () => StopApp());
+
         }
 
         protected void CreateApp()
@@ -118,7 +132,7 @@ namespace XrEditor
             Start();
         }
 
-        public void StartXr()
+        public Task StartXr() => _dispatcher.ExecuteAsync(() =>
         {
             try
             {
@@ -133,17 +147,15 @@ namespace XrEditor
             }
             catch (Exception ex)
             {
-                IsXrActive = false;
+                _xrButton.IsActive = false;
                 _ui.NotifyMessage(ex.Message, MessageType.Error);
             }
             finally
             {
             }
+        });
 
-            OnPropertyChanged(nameof(IsXrActive));
-        }
-
-        public void StopXr()
+        public Task StopXr() => _dispatcher.ExecuteAsync(() =>
         {
             try
             {
@@ -160,7 +172,7 @@ namespace XrEditor
             {
 
             }
-        }
+        });
 
         protected void RenderLoop()
         {
@@ -172,20 +184,14 @@ namespace XrEditor
 
             while (_isStarted)
             {
+                _fpsLabel.Text = _engine!.App.Stats.Fps.ToString();
+
+                _dispatcher.ProcessQueue();
+
                 if (_scene?.App == null)
                     Thread.Sleep(50);
                 else
                 {
-                    if (_isXrActive && !_engine.XrApp.IsStarted && _xrState != SceneXrState.StartRequested)
-                    {
-                        StartXr();
-                    }
-
-                    if (!_isXrActive && _engine.XrApp.IsStarted && _xrState != SceneXrState.StopRequested)
-                    {
-                        StopXr();
-                    }
-
                     if (_engine.XrApp.IsStarted)
                     {
                         try
@@ -230,35 +236,36 @@ namespace XrEditor
                 persp.SetFov(45, _view.Width, _view.Height);
         }
 
-        public void StartApp()
+        public Task StartApp() => _dispatcher.ExecuteAsync(() =>
         {
             if (_scene == null || _engine?.App == null || _engine.App.PlayState == PlayState.Start)
                 return;
+
             _sceneState = new MemoryStateContainer();
             _scene.GetState(_sceneState);
             _engine!.App.Start();
-        }
-
-        public void PauseApp()
+        });
+        
+        public Task PauseApp() => _dispatcher.ExecuteAsync(() =>
         {
             if (_engine?.App == null)
                 return;
-            _engine.App.Pause();
-        }
+            _engine!.App.Pause();
+        });
 
-        public void StopApp()
+        public Task StopApp() => _dispatcher.ExecuteAsync(() =>
         {
             if (_engine?.App == null || _engine.App.PlayState == PlayState.Stop)
                 return;
 
             _engine!.App.Stop();
-
             if (_sceneState != null)
             {
                 _scene!.SetState(_sceneState);
                 _sceneState = null;
             }
-        }
+        });
+        
 
         protected void Start()
         {
@@ -323,20 +330,6 @@ namespace XrEditor
                     return;
                 _camera = value;
                 OnPropertyChanged(nameof(Camera));
-            }
-        }
-
-        public bool IsXrActive
-        {
-            get => _isXrActive;
-            set
-            {
-                if (value == _isXrActive)
-                    return;
-
-                _isXrActive = value;
-
-                OnPropertyChanged(nameof(IsXrActive));
             }
         }
 

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace XrEditor
 {
-    public class ToolbarView : BaseActionsView
+    public class MenuView : BaseActionsView
     {
 
     }

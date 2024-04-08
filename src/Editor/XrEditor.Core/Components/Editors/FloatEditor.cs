@@ -66,6 +66,12 @@ namespace XrEditor
             }
         }
 
+        protected override void OnEditValueChanged(float newValue)
+        {
+            OnPropertyChanged(nameof(ScaleValue));  
+            base.OnEditValueChanged(newValue);
+        }
+
 
         public Func<float, string?> ScaleFormat => _scale.Format;
     }

@@ -61,7 +61,9 @@ namespace PhysX.Framework
 
         public override void Dispose()
         {
-            _system.DeleteObject(this);
+            if (!_system.IsDisposed)
+                _system.DeleteObject(this);
+
             GC.SuppressFinalize(this);
         }
 

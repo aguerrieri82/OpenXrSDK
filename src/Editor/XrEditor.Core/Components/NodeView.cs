@@ -13,6 +13,7 @@ namespace XrEditor
         protected readonly NodeView? _parent;
         protected bool _isLoaded;
         protected bool _isSelected;
+        protected MenuView _menu;
         protected readonly SelectionManager _selection;
 
         internal NodeView(OutlinePanel host, NodeView? parent, INode node)
@@ -20,6 +21,7 @@ namespace XrEditor
             _host = host;
             _node = node;
             _parent = parent;
+            _menu = new MenuView();
             _selection = Context.Require<SelectionManager>();
 
             if (!node.IsLeaf)
@@ -32,6 +34,12 @@ namespace XrEditor
             {
                 dynamicNode.ChildAdded += OnChildAdded;
                 dynamicNode.ChildRemoved += OnChildRemoved;
+            }
+
+            if (!_node.IsLeaf)
+            {
+                _menu.AddButton("icon_refresh", Refresh, "Refresh");
+                _menu.AddDivider();
             }
         }
 
@@ -56,7 +64,7 @@ namespace XrEditor
 
         public void Refresh()
         {
-
+            LoadChildrenAsync();
         }
 
         protected Task LoadChildrenAsync()
@@ -146,6 +154,8 @@ namespace XrEditor
                 return _node.Value?.ToString() ?? "";
             }
         }
+
+        public MenuView Menu => _menu;
 
         public NodeView? Parent => _parent;
 

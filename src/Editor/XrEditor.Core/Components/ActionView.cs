@@ -13,6 +13,7 @@ namespace XrEditor
         private bool _isActive;
         private bool _isEnabled;
         private IconView? _icon;
+        private string? _displayName;
 
         public ActionView()
         {
@@ -21,11 +22,23 @@ namespace XrEditor
 
         public ActionView(Action action)
         {
-            Execute = new Command(action);
+            ExecuteCommand = new Command(action);
             _isEnabled = true;   
         }
 
-        public ICommand? Execute { get; set; }
+        public Command? ExecuteCommand { get; set; }
+
+        public string? DisplayName
+        {
+            get => _displayName;
+            set
+            {
+                if (_displayName == value)
+                    return;
+                _displayName = value;
+                OnPropertyChanged(nameof(DisplayName));
+            }
+        }
 
         public IconView? Icon
         {
