@@ -14,9 +14,6 @@ namespace XrEngine.OpenGL
         {
         }
 
-
-
-
         public virtual void BindDraw()
         {
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _handle);

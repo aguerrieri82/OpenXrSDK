@@ -82,10 +82,10 @@ namespace XrEngine.OpenGL
         protected Dictionary<uint, Texture2D> _depthCache = [];
 
         protected GlState _glState;
-        private DrawBufferMode[] _drawAttachment0;
+        protected DrawBufferMode[] _drawAttachment0;
         protected GRContext? _grContext;
         protected QueueDispatcher _dispatcher;
-
+        protected GlTextureRenderTarget? _texRenderTarget = null;
 
         public static class Props
         {
@@ -630,8 +630,8 @@ namespace XrEngine.OpenGL
         public void SetRenderTarget(Texture2D texture)
         {
             var glTexture = texture.GetResource(tex => tex.CreateGlTexture(_gl, false));
-
-            SetRenderTarget(GlTextureRenderTarget.Attach(_gl, glTexture.Handle, 0, 1));
+            _texRenderTarget ??= new GlTextureRenderTarget(_gl);
+            _texRenderTarget.FrameBuffer.Configure(glTexture, null);
         }
 
         public TextureData ReadFrame()

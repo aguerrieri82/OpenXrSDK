@@ -39,6 +39,14 @@ namespace XrEngine.OpenGL
             Attach(handle, target);
         }
 
+        public GlTexture(GL gl, uint width, uint height, TextureFormat format, uint sampleCount = 1, TextureTarget target = 0)
+                : base(gl)
+        {
+            SampleCount = sampleCount;
+            Target = target;    
+            Update(width, height, format);
+        }
+
         protected void Create()
         {
             _handle = _gl.GenTexture();

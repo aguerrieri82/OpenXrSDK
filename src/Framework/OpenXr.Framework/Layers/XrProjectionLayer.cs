@@ -59,6 +59,9 @@ namespace OpenXr.Framework
 
                 _swapchains = null;
             }
+
+            _header->Space.Handle = 0;
+
         }
 
         public override void Create()
@@ -151,7 +154,6 @@ namespace OpenXr.Framework
                     {
                         projView.SubImage.ImageArrayIndex = 0;
                     }
-
                 }
             }
 

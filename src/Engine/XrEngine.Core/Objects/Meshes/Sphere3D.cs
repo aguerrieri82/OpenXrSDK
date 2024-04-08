@@ -20,6 +20,7 @@ namespace XrEngine
         {
             container.Write(nameof(Radius), Radius);
             container.Write(nameof(Levels), Levels);
+            container.Write(nameof(Id), Id);
         }
 
         protected override void SetStateWork(IStateContainer container)

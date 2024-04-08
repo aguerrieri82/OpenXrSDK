@@ -65,7 +65,7 @@ namespace OpenXr.Framework
             return data;
         }
 
-        protected void Destroy()
+        public void Destroy()
         {
             _app.CheckResult(_app._handTracking!.DestroyHandTracker(_tracker), "DestroyHandTracker");
             _tracker.Handle = 0;

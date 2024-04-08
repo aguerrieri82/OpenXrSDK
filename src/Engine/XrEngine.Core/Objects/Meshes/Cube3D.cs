@@ -68,6 +68,7 @@ namespace XrEngine
         public override void GetState(IStateContainer container)
         {
             container.Write(nameof(Size), Size);
+            container.Write(nameof(Id), Id);
         }
 
         protected override void SetStateWork(IStateContainer container)

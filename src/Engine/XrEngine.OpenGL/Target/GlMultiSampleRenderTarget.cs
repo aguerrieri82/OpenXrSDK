@@ -11,22 +11,20 @@ namespace XrEngine.OpenGL
     [Obsolete]
     public class GlMultiSampleRenderTarget : IGlRenderTarget
     {
-        static readonly Dictionary<uint, GlMultiSampleRenderTarget> _targets = [];
-
         private readonly GlTextureFrameBuffer _destFrameBuffer;
         private readonly GlTextureFrameBuffer _renderFrameBuffer;
         private readonly GL _gl;
 
-        GlMultiSampleRenderTarget(GL gl, uint destColorTex, uint destDepthTex, uint sampleCount)
+        public GlMultiSampleRenderTarget(GL gl, uint destColorTex, uint destDepthTex, uint sampleCount)
         {
-            _destFrameBuffer = new GlTextureFrameBuffer(gl, new GlTexture(gl, destColorTex), new GlTexture(gl, destDepthTex));
+            _destFrameBuffer = new GlTextureFrameBuffer(gl, destColorTex, destDepthTex);
 
-            var msColorTex = gl.GenTexture();
+            var msColorTex = new GlTexture(gl);
             gl.BindTexture(TextureTarget.Texture2DMultisample, msColorTex);
             gl.TexStorage2DMultisample(
                 TextureTarget.Texture2DMultisample,
                 sampleCount,
-                (SizedInternalFormat)_destFrameBuffer.Color.InternalFormat,
+                (SizedInternalFormat)_destFrameBuffer.Color!.InternalFormat,
                 _destFrameBuffer.Color.Width,
                 _destFrameBuffer.Color.Height,
                 true);
@@ -59,21 +57,9 @@ namespace XrEngine.OpenGL
             _renderFrameBuffer.Unbind();
         }
 
-        public static GlMultiSampleRenderTarget Attach(GL gl, uint destColorTex, uint destDepthTex, uint sampleCount)
-        {
-            if (!_targets.TryGetValue(destColorTex, out var target))
-            {
-                target = new GlMultiSampleRenderTarget(gl, destColorTex, destDepthTex, sampleCount);
-                _targets[destColorTex] = target;
-            }
-
-            return target;
-        }
 
         public void Dispose()
         {
-            _targets.Remove(_destFrameBuffer.Color.Handle);
-
             _destFrameBuffer.Dispose();
             _renderFrameBuffer.Dispose();
 

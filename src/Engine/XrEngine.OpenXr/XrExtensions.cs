@@ -208,21 +208,24 @@ namespace XrEngine.OpenXr
         {
             GlRenderTargetFactory factory;
 
+            GlTextureRenderTarget? texTarget = null;
+            GlMultiViewRenderTarget? mvTexTarget = null;
+
             if (xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
-                factory = (gl, colorTex, depthTex) => GlMultiViewRenderTarget.Attach(gl, colorTex, depthTex, xrApp.RenderOptions.SampleCount);
+                factory = (gl, colorTex, depthTex) =>
+                {
+                    mvTexTarget ??= new GlMultiViewRenderTarget(gl);
+                    mvTexTarget.FrameBuffer.Configure(colorTex, depthTex, xrApp.RenderOptions.SampleCount);
+                    return mvTexTarget;
+                };
             else
             {
-                if (xrApp.RenderOptions.SampleCount == 1)
-                    factory = (gl, colorTex, depthTex) => GlTextureRenderTarget.Attach(gl, colorTex, depthTex, xrApp.RenderOptions.SampleCount);
-                else
-                    factory = (gl, colorTex, depthTex) =>
-                    {
-                        var target = gl.GetTextureTarget(colorTex);
-                        if (target == TextureTarget.Texture2DMultisample)
-                            return GlTextureRenderTarget.Attach(gl, colorTex, depthTex, xrApp.RenderOptions.SampleCount);
-                        else
-                            return GlMultiSampleRenderTarget.Attach(gl, colorTex, depthTex, xrApp.RenderOptions.SampleCount);
-                    };
+                factory = (gl, colorTex, depthTex) =>
+                {
+                    texTarget ??= new GlTextureRenderTarget(gl);
+                    texTarget.FrameBuffer.Configure(colorTex, depthTex, xrApp.RenderOptions.SampleCount);
+                    return texTarget;
+                };
             }
 
             return xrApp.BindEngineAppGL(app, factory);

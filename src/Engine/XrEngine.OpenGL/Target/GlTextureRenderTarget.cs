@@ -4,32 +4,23 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-
-
 namespace XrEngine.OpenGL
 {
     public class GlTextureRenderTarget : IGlRenderTarget
     {
-        protected static readonly Dictionary<uint, GlTextureRenderTarget> _targets = [];
-
-        protected readonly GlBaseFrameBuffer _frameBuffer;
+        protected readonly GlTextureFrameBuffer _frameBuffer;
         protected readonly GL _gl;
-        protected readonly uint _colorTex;
-        protected readonly uint _depthTex;
-        protected readonly uint _sampleCount;
 
-        protected GlTextureRenderTarget(GL gl, uint colorTex, uint depthTex, uint sampleCount)
+        public GlTextureRenderTarget(GL gl)
         {
             _gl = gl;
-            _colorTex = colorTex;
-            _depthTex = depthTex;
-            _sampleCount = sampleCount;
-            _frameBuffer = CreateFrameBuffer(colorTex, depthTex, sampleCount);
+            _frameBuffer = new GlTextureFrameBuffer(_gl);
         }
 
-        protected virtual GlBaseFrameBuffer CreateFrameBuffer(uint colorTex, uint depthTex, uint sampleCount)
+        public GlTextureRenderTarget(GL gl, uint colorTex, uint depthTex, uint sampleCount)
+            : this(gl)
         {
-            return new GlTextureFrameBuffer(_gl, new GlTexture(_gl, colorTex), new GlTexture(_gl, depthTex));
+            _frameBuffer.Configure(colorTex, depthTex, sampleCount);    
         }
 
         public void Begin()
@@ -44,7 +35,6 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
-            _targets.Remove(_colorTex);
             _frameBuffer.Dispose();
 
             GC.SuppressFinalize(this);
@@ -55,18 +45,7 @@ namespace XrEngine.OpenGL
             return _frameBuffer.QueryTexture(attachment);
         }
 
-        public static GlTextureRenderTarget Attach(GL gl, uint colorTex, uint depthTex, uint sampleCount)
-        {
-            if (!_targets.TryGetValue(colorTex, out var target))
-            {
-                target = new GlTextureRenderTarget(gl, colorTex, depthTex, sampleCount);
-                _targets[colorTex] = target;
-            }
-
-            return target;
-        }
-
-        public GlBaseFrameBuffer FrameBuffer => _frameBuffer;
+        public GlTextureFrameBuffer FrameBuffer => _frameBuffer;
 
     }
 }

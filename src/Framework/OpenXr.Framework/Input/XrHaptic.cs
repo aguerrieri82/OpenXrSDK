@@ -18,6 +18,21 @@ namespace OpenXr.Framework
             _name = name;
         }
 
+        public void Destroy()
+        {
+            if (_action.Handle != 0)
+            {
+                _app.CheckResult(_app.Xr.DestroyAction(_action), "DestroyAction");
+                _action.Handle = 0;
+            }
+        }
+
+        public void Dispose()
+        {
+            Destroy();
+            GC.SuppressFinalize(this);  
+        }
+
         public virtual ActionSuggestedBinding Initialize()
         {
             var result = new ActionSuggestedBinding
