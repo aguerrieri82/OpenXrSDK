@@ -6,6 +6,8 @@ namespace XrEditor
 {
     public class NodeView : BaseView, IDisposable
     {
+        static readonly MenuView _menu = new();
+
         protected ObservableCollection<object> _children = [];
         protected bool _isExpanded;
         protected readonly OutlinePanel _host;
@@ -13,15 +15,16 @@ namespace XrEditor
         protected readonly NodeView? _parent;
         protected bool _isLoaded;
         protected bool _isSelected;
-        protected MenuView _menu;
+
         protected readonly SelectionManager _selection;
 
         internal NodeView(OutlinePanel host, NodeView? parent, INode node)
         {
+
             _host = host;
             _node = node;
             _parent = parent;
-            _menu = new MenuView();
+
             _selection = Context.Require<SelectionManager>();
 
             if (!node.IsLeaf)
@@ -35,11 +38,24 @@ namespace XrEditor
                 dynamicNode.ChildAdded += OnChildAdded;
                 dynamicNode.ChildRemoved += OnChildRemoved;
             }
+        }
+
+        public void UpdateMenu()
+        {
+            _menu.Items.Clear();
 
             if (!_node.IsLeaf)
             {
                 _menu.AddButton("icon_refresh", Refresh, "Refresh");
                 _menu.AddDivider();
+            }
+
+            if (_node is IItemActions itemActions)
+            {
+                var result = new List<ActionView>();
+                itemActions.Actions(result);
+                foreach (var item in result)
+                    _menu.Items.Add(item);
             }
         }
 

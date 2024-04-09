@@ -3,7 +3,7 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class EngineObjectNode<T> : BaseNode<T>, IItemView, IEditorProperties where T : EngineObject
+    public class EngineObjectNode<T> : BaseNode<T>, IItemView, IItemActions, IEditorProperties where T : EngineObject
     {
         protected bool _autoGenProps;
 
@@ -23,6 +23,11 @@ namespace XrEditor.Nodes
 
         protected virtual void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
+        }
+
+        public virtual void Actions(IList<ActionView> result)
+        {
+
         }
 
         bool IEditorProperties.AutoGenerate
