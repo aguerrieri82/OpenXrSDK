@@ -632,6 +632,7 @@ namespace XrEngine.OpenGL
             var glTexture = texture.GetResource(tex => tex.CreateGlTexture(_gl, false));
             _texRenderTarget ??= new GlTextureRenderTarget(_gl);
             _texRenderTarget.FrameBuffer.Configure(glTexture, null);
+            _target = _texRenderTarget;
         }
 
         public TextureData ReadFrame()

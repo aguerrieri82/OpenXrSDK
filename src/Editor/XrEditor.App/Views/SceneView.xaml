@@ -1,5 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:app="clr-namespace:XrEditor"
                     xmlns:i="clr-namespace:WPF_Icons;assembly=WPF-Icons"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
@@ -9,8 +10,7 @@
             <ToolBarTray Orientation="Horizontal"  DockPanel.Dock="Top">
                 <ToolBar Style="{DynamicResource ToolBarView}" ItemsSource="{Binding ToolbarView.Items}"/>
             </ToolBarTray>
-
-            <ContentPresenter  Content="{Binding RenderSurface}"/>
+            <ContentPresenter Content="{Binding RenderSurface}"/>
         </DockPanel>
 
     </DataTemplate>

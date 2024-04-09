@@ -16,6 +16,21 @@ namespace XrEditor.Nodes
             value.Changed += OnElementChanged;
         }
 
+
+        public override void Actions(IList<ActionView> result)
+        {
+            if (_value.Parent != null)
+            {
+                result.Add(new ActionView(() => _value.Parent.RemoveChild(_value))
+                {
+                    Icon = new IconView { Name = "icon_delete" },
+                    DisplayName = "Remove"
+                });
+            }
+
+            base.Actions(result);
+        }
+
         protected virtual void OnElementChanged(EngineObject element, ObjectChange change)
         {
 

@@ -4,7 +4,7 @@
                     xmlns:app="clr-namespace:XrEditor"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <app:VisibilityToBool x:Key="VisibilityToBool"/>
+    <app:BoolToVisibility x:Key="BoolToVisibility"/>
 
     <DataTemplate DataType="{x:Type local:PropertiesEditor}">
         <ScrollViewer Padding="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
@@ -20,7 +20,7 @@
                     <TextBox VerticalAlignment="Bottom"  DockPanel.Dock="Top" Text="{Binding NodeName, Mode=TwoWay}"/>
                 </DockPanel>
 
-                <app:SKBitmapView Visibility="{Binding NodePreviewVisible, Converter={StaticResource VisibilityToBool}}" Width="100" Height="100" RenderOptions.BitmapScalingMode="HighQuality" SKSource="{Binding NodePreview}" />
+                <app:SKBitmapView Visibility="{Binding NodePreviewVisible, Converter={StaticResource BoolToVisibility}}" Width="100" Height="100" RenderOptions.BitmapScalingMode="HighQuality" SKSource="{Binding NodePreview}" />
 
                 <ItemsControl ItemsSource="{Binding Groups}">
                 </ItemsControl>

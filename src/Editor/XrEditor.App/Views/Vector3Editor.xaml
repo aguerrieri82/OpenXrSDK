@@ -10,19 +10,21 @@
             <StackPanel.Resources>
                 <app:BoolToVisibility x:Key="BoolToVisibility"/>
             </StackPanel.Resources>
-            <DockPanel>
-                <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">X</Label>
-                <ContentControl VerticalAlignment="Center" Content="{Binding X}"/>
-            </DockPanel>
-            <DockPanel>
-                <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">Y</Label>
-                <ContentControl VerticalAlignment="Center" Content="{Binding Y}"/>
-            </DockPanel>
-            <DockPanel>
-                <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">Z</Label>
-                <ContentControl  VerticalAlignment="Center"  Content="{Binding Z}"/>
-            </DockPanel>
-            <ToggleButton Margin="8,0,0,0" Background="Transparent" BorderThickness="0" Visibility="{Binding LockedVisible, Converter={StaticResource BoolToVisibility}}" IsChecked="{Binding IsLocked}" >
+            <StackPanel Orientation="Vertical">
+                <DockPanel>
+                    <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">X</Label>
+                    <ContentControl VerticalAlignment="Center" Content="{Binding X}"/>
+                </DockPanel>
+                <DockPanel>
+                    <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">Y</Label>
+                    <ContentControl VerticalAlignment="Center" Content="{Binding Y}"/>
+                </DockPanel>
+                <DockPanel>
+                    <Label VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0,0,5,0">Z</Label>
+                    <ContentControl  VerticalAlignment="Center"  Content="{Binding Z}"/>
+                </DockPanel>
+            </StackPanel>
+            <ToggleButton   Margin="8,0,0,0" VerticalAlignment="Center" Background="Transparent" BorderThickness="0" Visibility="{Binding LockedVisible, Converter={StaticResource BoolToVisibility}}" IsChecked="{Binding IsLocked}" >
                 <i:Icon Size="16" Color="#999" Kind="icon_lock"/>
             </ToggleButton>
 

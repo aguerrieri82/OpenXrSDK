@@ -12,7 +12,6 @@
 	  <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
 	  <PackageReference Include="WPF-Icons" Version="2.0.0" />
 	</ItemGroup>
-	
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Engine\XrEngine.Interaction\XrEngine.Interaction.csproj" />

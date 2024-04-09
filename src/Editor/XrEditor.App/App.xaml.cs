@@ -7,23 +7,9 @@ using XrEngine.Services;
 
 namespace XrEditor
 {
-    public class App : Application
+    public partial class App : Application
     {
         public App()
-        {
-            var res = (ResourceDictionary)LoadComponent(new Uri("/XrEditor.App;component/Resources.xaml", UriKind.Relative));
-            Resources = res;
-        }
-
-        protected override void OnExit(ExitEventArgs e)
-        {
-            _ = Context.Require<PanelManager>().CloseAllAsync();
-
-            base.OnExit(e);
-        }
-
-        [STAThread]
-        public static void Main()
         {
             Gpu.EnableNvAPi();
 
@@ -38,16 +24,24 @@ namespace XrEditor
 
             ModuleManager.Instance.Init();
 
-            var app = new App();
-
-            var window = new Window
+            MainWindow = new Window
             {
                 Title = "Xr Editor",
                 Content = new MainView(GraphicDriver.OpenGL)
             };
+        }
 
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            MainWindow.Show();  
+            base.OnStartup(e);
+        }
 
-            app.Run(window);
+        protected override void OnExit(ExitEventArgs e)
+        {
+            _ = Context.Require<PanelManager>().CloseAllAsync();
+
+            base.OnExit(e);
         }
     }
 }
