@@ -102,11 +102,12 @@ namespace XrEditor
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
 
-            Scene = _engine.App.ActiveScene!;
-
-            Context.Require<SelectionManager>().Set(Scene.GetNode());
-
-            UpdateControls();
+            _main.ExecuteAsync(() =>
+            {
+                Scene = _engine.App.ActiveScene!;
+                Context.Require<SelectionManager>().Set(Scene.GetNode());
+                UpdateControls();
+            });
         }
 
         protected void OnSizeChanged(object? sender, EventArgs e)
@@ -218,10 +219,13 @@ namespace XrEditor
 
         protected virtual void OnSceneChanged()
         {
-            foreach (var tool in _tools)
-                tool.NotifySceneChanged();
+            _main.ExecuteAsync(() =>
+            {
+                foreach (var tool in _tools)
+                    tool.NotifySceneChanged();
 
-            SceneChanged?.Invoke(_scene);
+                SceneChanged?.Invoke(_scene);
+            });
         }
 
         protected void UpdateSize()
@@ -238,7 +242,7 @@ namespace XrEditor
             if (_scene == null || _engine?.App == null || _engine.App.PlayState == PlayState.Start)
                 return;
 
-            if (_engine.App.PlayState == PlayState.Pause)
+            if (_engine.App.PlayState != PlayState.Pause)
             {
                 _sceneState = new MemoryStateContainer();
                 _scene.GetState(_sceneState);

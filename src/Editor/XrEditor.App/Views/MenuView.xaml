@@ -7,7 +7,7 @@
     <app:MenuTemplateSelector x:Key="MenuTemplateSelector" />
     
 
-    <Style x:Key="MenuView" TargetType="ContextMenu" >
+    <Style x:Key="MenuView" BasedOn="{StaticResource ContextMenuStyle}" TargetType="ContextMenu" >
         <Setter Property="ItemContainerTemplateSelector" Value="{StaticResource MenuTemplateSelector}"/>
         <Setter Property="UsesItemContainerTemplate" Value="True"/>
         <Setter Property="Background" Value="#555"/>

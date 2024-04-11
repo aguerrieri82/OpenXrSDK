@@ -8,7 +8,7 @@
         
         <DockPanel>
             <ToolBarTray Orientation="Horizontal"  DockPanel.Dock="Top">
-                <ToolBar Style="{DynamicResource ToolBarView}" ItemsSource="{Binding ToolbarView.Items}"/>
+                <ToolBar Style="{StaticResource ToolBarView}" ItemsSource="{Binding ToolbarView.Items}"/>
             </ToolBarTray>
             <ContentPresenter Content="{Binding RenderSurface}"/>
         </DockPanel>

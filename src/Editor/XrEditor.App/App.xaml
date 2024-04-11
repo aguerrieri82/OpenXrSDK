@@ -8,7 +8,12 @@
                 <ResourceDictionary Source="/Utils.xaml"/>
                 <ResourceDictionary Source="/Theme/MenuItem.xaml"/>
                 <ResourceDictionary Source="/Theme/ToolBar.xaml"/>
+                <ResourceDictionary Source="/Theme/ContextMenu.xaml"/>
                 <ResourceDictionary Source="/Theme.xaml"/>
+                <ResourceDictionary Source="/Views/ListTreeView.xaml"/>
+                <ResourceDictionary Source="/Views/IconTextView.xaml"/>
+                <ResourceDictionary Source="/Views/ToolBarView.xaml"/>
+                <ResourceDictionary Source="/Views/MenuView.xaml"/>
                 <ResourceDictionary Source="/Views/PropertiesEditor.xaml"/>
                 <ResourceDictionary Source="/Views/SceneView.xaml"/>
                 <ResourceDictionary Source="/Views/FloatEditor.xaml"/>
@@ -22,8 +27,7 @@
                 <ResourceDictionary Source="/Views/ComponentHeaderView.xaml"/>
                 <ResourceDictionary Source="/Views/EnumEditor.xaml"/>
                 <ResourceDictionary Source="/Views/ElementPicker.xaml"/>
-                <ResourceDictionary Source="/Views/ToolBarView.xaml"/>
-                <ResourceDictionary Source="/Views/MenuView.xaml"/>
+
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

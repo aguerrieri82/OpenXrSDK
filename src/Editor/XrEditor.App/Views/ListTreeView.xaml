@@ -1,0 +1,54 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:app="clr-namespace:XrEditor"
+                    xmlns:ic="clr-namespace:WPF_Icons;assembly=WPF-Icons"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <app:DoubleToThicknessLeft x:Key="DoubleToThicknessLeft"/>
+    
+    <DataTemplate DataType="{x:Type local:ListTreeView}">
+        <ListView Background="Transparent" ItemsSource="{Binding Items}" SelectionMode="Extended" >
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsVisible}" Value="False">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>         
+            </ListView.ItemContainerStyle>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Border Padding="{Binding Margin, Converter={StaticResource DoubleToThicknessLeft}}">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource IconButton}" x:Name="collapseButton" Command="{Binding ToggleCommand}">
+                                <ic:Icon x:Name="collapseIcon" Filled="True" Color="#666" Size="12" Kind="icon_arrow_drop_down">
+                                    <ic:Icon.RenderTransform>
+                                        <RotateTransform CenterX="6" CenterY="6" Angle="-90" />
+                                    </ic:Icon.RenderTransform>
+                                </ic:Icon>
+                            </Button>
+                            <ContentPresenter Content="{Binding Header}"/>
+                        </StackPanel>
+        
+                    </Border>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                            <Setter TargetName="collapseIcon" Property="RenderTransform">
+                                <Setter.Value>
+                                    <RotateTransform CenterX="6" CenterY="6" Angle="0" />
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsLeaf}" Value="True">
+                            <Setter TargetName="collapseButton" Property="Visibility" Value="Hidden"/>
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </DataTemplate>
+
+
+</ResourceDictionary>
