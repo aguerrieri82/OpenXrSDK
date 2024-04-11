@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using XrEngine;
 
 namespace XrEditor.Services
 {
@@ -7,10 +8,12 @@ namespace XrEditor.Services
         protected ObservableCollection<INode> _items = [];
         protected bool _isChanged;
         protected int _update;
+        protected readonly IMainDispatcher _main;
 
         public SelectionManager()
         {
             _items.CollectionChanged += OnChanged;
+            _main = Context.Require<IMainDispatcher>();
         }
 
         protected virtual void NotifyChanged()
@@ -41,12 +44,12 @@ namespace XrEditor.Services
                 NotifyChanged();
         }
 
-        public void Clear()
+        public void Clear() => _main.ExecuteAsync(() =>
         {
             _items.Clear();
-        }
+        });
 
-        public void Set(params INode[] items)
+        public void Set(params INode[] items) => _main.ExecuteAsync(() =>
         {
             BeginUpdate();
 
@@ -55,7 +58,7 @@ namespace XrEditor.Services
                 _items.Add(item);
 
             EndUpdate();
-        }
+        });
 
         public bool IsSelected(INode value)
         {

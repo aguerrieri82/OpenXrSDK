@@ -5,12 +5,11 @@ namespace XrEditor
 {
     public class OutlinePanel : BasePanel
     {
-        static protected Dictionary<INode, NodeView> _nodeMap = [];
+        static protected Dictionary<INode, ListTreeNodeView> _listNodeMap = [];
 
         protected NodeView? _root;
         protected SceneView? _sceneView;
-        protected internal HashSet<NodeView> _selectedNodes = [];
-
+        private ListTreeView _treeView;
         readonly NodeManager _nodeFactory;
         readonly SelectionManager _selection;
 
@@ -20,48 +19,58 @@ namespace XrEditor
             _nodeFactory = Context.Require<NodeManager>();
             _selection = Context.Require<SelectionManager>();
             _selection.Changed += OnSelectionChanged;
+            _treeView = new ListTreeView();     
         }
 
-        private void OnSelectionChanged(IReadOnlyCollection<INode> items)
+        private void OnSelectionChanged(ListTreeNodeView obj)
         {
-            foreach (var curSel in _selectedNodes.ToArray())
-                curSel.IsSelected = false;
+            var node = ((NodeView)obj.Header!).Node;
 
-            foreach (var item in items)
+            bool curSelected = _selection.IsSelected(node);
+
+            if (!obj.IsSelected && curSelected)
+                _selection.Items.Remove(node);
+
+            else if (obj.IsSelected && !curSelected)
+                _selection.Items.Add(node);
+        }
+
+        private void OnSelectionChanged(IReadOnlyCollection<INode> newSelection)
+        {
+            foreach (var curSel in _treeView.SelectedItems.ToArray())
             {
-                if (_nodeMap.TryGetValue(item, out var nodeView))
-                    nodeView.IsSelected = true;
+                var node = ((NodeView)curSel.Header!).Node;
+                if (!newSelection.Contains(node))
+                    curSel.IsSelected = false;
+            }
+
+            foreach (var item in newSelection)
+            {
+                if (_listNodeMap.TryGetValue(item, out var listNode))
+                    listNode.IsSelected = true;
             }
         }
 
-        protected internal NodeView? CreateNodeView(object? value, NodeView? parent)
+        protected internal ListTreeNodeView? CreateNode(object? value, ListTreeNodeView? parent)
         {
             if (value == null)
                 return null;
 
             var node = _nodeFactory.CreateNode(value);
 
-            if (!_nodeMap.TryGetValue(node, out var nodeView))
+            if (!_listNodeMap.TryGetValue(node, out var listNode))
             {
-                nodeView = new NodeView(this, parent, node);
-                _nodeMap[node] = nodeView;
+                listNode =  new ListTreeNodeView(_treeView, parent);
+                listNode.SelectionChanged += OnSelectionChanged;
+                listNode.Header = new NodeView(listNode, this, node);
+                listNode.IsSelected = _selection.IsSelected(node);
+
+                _listNodeMap[node] = listNode;
             }
 
-            return nodeView;
+            return listNode;
         }
 
-        public NodeView? Root
-        {
-            get => _root;
-            set
-            {
-                if (_root == value)
-                    return;
-                _root = value;
-                OnPropertyChanged(nameof(Root));
-                OnPropertyChanged(nameof(RootChildren));
-            }
-        }
 
         protected override async Task LoadAsync()
         {
@@ -80,11 +89,14 @@ namespace XrEditor
 
         protected void LoadScene()
         {
-            Root = CreateNodeView(_sceneView?.Scene, null);
+            var root = CreateNode(_sceneView?.Scene, null);
+            _treeView.Items.Clear();
+            if (root != null)
+                _treeView.Items.Add(root!);
         }
 
         public static OutlinePanel? Instance { get; internal set; }
 
-        public NodeView[] RootChildren => _root != null ? [_root] : [];
+        public ListTreeView TreeView => _treeView;
     }
 }

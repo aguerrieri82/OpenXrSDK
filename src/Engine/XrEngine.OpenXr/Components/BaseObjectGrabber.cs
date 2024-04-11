@@ -30,6 +30,7 @@ namespace XrEngine.OpenXr
             _grabView = new TriangleMesh(Cube3D.Instance, PbrMaterial.CreateDefault(new Color(0, 1, 1, 1)));
             _grabView.Transform.SetScale(0.005f);
             _grabView.Flags |= EngineObjectFlags.Generated;
+            _grabView.Name = "Grab View";
         }
 
         protected override void Start(RenderContext ctx)

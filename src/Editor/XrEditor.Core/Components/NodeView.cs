@@ -1,43 +1,30 @@
-﻿using System.Collections.ObjectModel;
-using XrEditor.Services;
+﻿using XrEditor.Services;
 using XrEngine;
 
 namespace XrEditor
 {
-    public class NodeView : BaseView, IDisposable
+    public class NodeView : IDisposable
     {
         static readonly MenuView _menu = new();
-
-        protected ObservableCollection<object> _children = [];
-        protected bool _isExpanded;
-        protected readonly OutlinePanel _host;
         protected readonly INode _node;
-        protected readonly NodeView? _parent;
-        protected bool _isLoaded;
-        protected bool _isSelected;
+        protected OutlinePanel _panel;
+        protected ListTreeNodeView _host;
 
-        protected readonly SelectionManager _selection;
-
-        internal NodeView(OutlinePanel host, NodeView? parent, INode node)
+        internal NodeView(ListTreeNodeView host, OutlinePanel panel, INode node)
         {
-
             _host = host;
             _node = node;
-            _parent = parent;
+            _panel = panel;
 
-            _selection = Context.Require<SelectionManager>();
-
-            if (!node.IsLeaf)
-                _children.Add("Loading...");
-
-            if (_selection.IsSelected(node))
-                _isSelected = true;
 
             if (_node is IDynamicNode dynamicNode)
             {
                 dynamicNode.ChildAdded += OnChildAdded;
                 dynamicNode.ChildRemoved += OnChildRemoved;
             }
+
+            _host.IsLeaf = _node.IsLeaf;
+            _host.LoadChildren += OnLoadChildren;
         }
 
         public void UpdateMenu()
@@ -46,7 +33,7 @@ namespace XrEditor
 
             if (!_node.IsLeaf)
             {
-                _menu.AddButton("icon_refresh", Refresh, "Refresh");
+                _menu.AddButton("icon_refresh", _host.Refresh, "Refresh");
                 _menu.AddDivider();
             }
 
@@ -63,9 +50,8 @@ namespace XrEditor
         {
             Context.Require<IMainDispatcher>().ExecuteAsync(() =>
             {
-                var childView = _children.OfType<NodeView>().FirstOrDefault(a => a.Node == child);
-                if (childView != null)
-                    _children.Remove(childView);
+                var childView = _host.Children!.FirstOrDefault(a => ((NodeView)a.Header!).Node == child);
+                childView?.Remove();
             });
         }
 
@@ -73,30 +59,21 @@ namespace XrEditor
         {
             Context.Require<IMainDispatcher>().ExecuteAsync(() =>
             {
-                var childView = _host.CreateNodeView(child, this);
-                _children.Add(childView!);
+                var childView = _panel.CreateNode(child, _host);
+                _host.AddChild(childView!);
             });
         }
 
-        public void Refresh()
+
+        protected void OnLoadChildren(ListTreeNodeView nodeView, IList<ListTreeNodeView> result)
         {
-            LoadChildrenAsync();
+            if (_node.IsLeaf)
+                return;
+
+            foreach (var item in _node.Children)
+                result.Add(_panel.CreateNode(item, _host)!);
         }
 
-        protected Task LoadChildrenAsync()
-        {
-            _children.Clear();
-
-            if (!_node.IsLeaf)
-            {
-                foreach (var item in _node.Children)
-                    _children.Add(_host.CreateNodeView(item, this)!);
-            }
-
-            _isLoaded = true;
-
-            return Task.CompletedTask;
-        }
 
         public void Dispose()
         {
@@ -108,46 +85,6 @@ namespace XrEditor
             GC.SuppressFinalize(this);
         }
 
-        public bool IsExpanded
-        {
-            get => _isExpanded;
-            set
-            {
-                if (_isExpanded == value)
-                    return;
-                _isExpanded = value;
-                if (_isExpanded && !_isLoaded && !_node.IsLeaf)
-                    _ = LoadChildrenAsync();
-                OnPropertyChanged(nameof(IsExpanded));
-            }
-        }
-
-        public bool IsSelected
-        {
-            get => _isSelected;
-            set
-            {
-                if (_isSelected == value)
-                    return;
-
-                _isSelected = value;
-
-                bool curSelected = _selection.IsSelected(_node);
-
-                if (!_isSelected && curSelected)
-                    _selection.Items.Remove(_node);
-
-                else if (_isSelected && !curSelected)
-                    _selection.Items.Add(_node);
-
-                if (_isSelected)
-                    _host?._selectedNodes.Add(this);
-                else
-                    _host?._selectedNodes.Remove(this);
-
-                OnPropertyChanged(nameof(IsSelected));
-            }
-        }
 
         public IconView? Icon
         {
@@ -173,11 +110,7 @@ namespace XrEditor
 
         public MenuView Menu => _menu;
 
-        public NodeView? Parent => _parent;
-
         public INode Node => _node;
-
-        public ObservableCollection<object> Children => _children;
     }
 
 }
