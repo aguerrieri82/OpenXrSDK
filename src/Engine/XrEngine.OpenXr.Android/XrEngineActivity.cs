@@ -21,7 +21,7 @@ namespace XrEngine.OpenXr.Android
             Build(builder);
 
             _engine = builder.Build();
-            
+
             _engine.App.Start();
 
             return _engine.XrApp;

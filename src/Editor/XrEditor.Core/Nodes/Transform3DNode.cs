@@ -28,7 +28,7 @@ namespace XrEditor.Nodes
             curProps.Add(new PropertyView
             {
                 Label = "Rotation",
-                Editor = new Vector3Editor(binder.Prop(a => a.Rotation), RadDegreeScale.Instance) 
+                Editor = new Vector3Editor(binder.Prop(a => a.Rotation), RadDegreeScale.Instance)
             });
         }
 

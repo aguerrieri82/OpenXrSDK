@@ -251,7 +251,7 @@ namespace XrEngine.OpenXr
             else
                 renderer = (OpenGLRender)app.Renderer;
 
- 
+
             void RenderView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader*[] colorImages, SwapchainImageBaseHeader*[]? depthImages, XrRenderMode mode, long predTime)
             {
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;

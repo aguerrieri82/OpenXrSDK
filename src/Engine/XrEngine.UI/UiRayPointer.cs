@@ -3,7 +3,7 @@ using XrEngine.Interaction;
 
 namespace XrEngine.UI
 {
-    public struct UiRayPointer : IUiPointer
+    public readonly struct UiRayPointer : IUiPointer
     {
         readonly IRayPointer _pointer;
 

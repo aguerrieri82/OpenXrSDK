@@ -140,6 +140,6 @@ namespace XrEngine
         public float Radius { get; set; }
 
 
-        public static readonly Sphere3D Instance = new Sphere3D(1f, 3);
+        public static readonly Sphere3D Instance = new(1f, 3);
     }
 }

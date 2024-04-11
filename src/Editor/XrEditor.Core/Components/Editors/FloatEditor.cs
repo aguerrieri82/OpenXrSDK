@@ -68,7 +68,7 @@ namespace XrEditor
 
         protected override void OnEditValueChanged(float newValue)
         {
-            OnPropertyChanged(nameof(ScaleValue));  
+            OnPropertyChanged(nameof(ScaleValue));
             base.OnEditValueChanged(newValue);
         }
 

@@ -33,6 +33,6 @@ namespace XrEngine
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
-        public static readonly DepthOnlyMaterial Instance = new DepthOnlyMaterial();
+        public static readonly DepthOnlyMaterial Instance = new();
     }
 }

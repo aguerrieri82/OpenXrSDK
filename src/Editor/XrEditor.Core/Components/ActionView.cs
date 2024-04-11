@@ -1,12 +1,4 @@
-﻿using CanvasUI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public class ActionView : BaseView, IToolbarItem
     {
@@ -23,7 +15,7 @@ namespace XrEditor
         public ActionView(Action action)
         {
             ExecuteCommand = new Command(action);
-            _isEnabled = true;   
+            _isEnabled = true;
         }
 
         public Command? ExecuteCommand { get; set; }
@@ -69,10 +61,10 @@ namespace XrEditor
             get => _isActive;
             set
             {
-                if (_isActive == value) 
+                if (_isActive == value)
                     return;
                 _isActive = value;
-                OnPropertyChanged(nameof(IsActive));    
+                OnPropertyChanged(nameof(IsActive));
             }
         }
     }

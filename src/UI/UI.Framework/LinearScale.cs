@@ -14,6 +14,6 @@
             return value;
         }
 
-        public static readonly LinearScale Instance = new LinearScale();
+        public static readonly LinearScale Instance = new();
     }
 }

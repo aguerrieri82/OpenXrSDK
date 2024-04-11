@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 
 namespace XrEditor
@@ -14,7 +9,7 @@ namespace XrEditor
         {
             if (item is ActionDivider)
                 return (DataTemplate)parentItemsControl.FindResource("ActionDivider");
-            
+
             if (item is ActionView)
                 return (DataTemplate)parentItemsControl.FindResource("ActionView");
 

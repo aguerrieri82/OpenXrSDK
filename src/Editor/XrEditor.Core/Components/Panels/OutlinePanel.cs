@@ -9,7 +9,7 @@ namespace XrEditor
 
         protected NodeView? _root;
         protected SceneView? _sceneView;
-        private ListTreeView _treeView;
+        private readonly ListTreeView _treeView;
         readonly NodeManager _nodeFactory;
         readonly SelectionManager _selection;
 
@@ -19,7 +19,7 @@ namespace XrEditor
             _nodeFactory = Context.Require<NodeManager>();
             _selection = Context.Require<SelectionManager>();
             _selection.Changed += OnSelectionChanged;
-            _treeView = new ListTreeView();     
+            _treeView = new ListTreeView();
         }
 
         private void OnSelectionChanged(ListTreeNodeView obj)
@@ -60,7 +60,7 @@ namespace XrEditor
 
             if (!_listNodeMap.TryGetValue(node, out var listNode))
             {
-                listNode =  new ListTreeNodeView(_treeView, parent);
+                listNode = new ListTreeNodeView(_treeView, parent);
                 listNode.SelectionChanged += OnSelectionChanged;
                 listNode.Header = new NodeView(listNode, this, node);
                 listNode.IsSelected = _selection.IsSelected(node);

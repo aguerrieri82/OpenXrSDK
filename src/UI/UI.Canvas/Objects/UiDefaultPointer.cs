@@ -1,6 +1,6 @@
 ﻿namespace CanvasUI
 {
-    public struct UiDefaultPointer : IUiPointer
+    public readonly struct UiDefaultPointer : IUiPointer
     {
         public UiDefaultPointer(int id)
         {

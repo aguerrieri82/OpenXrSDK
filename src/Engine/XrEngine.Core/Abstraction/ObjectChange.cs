@@ -27,7 +27,7 @@
         {
             Changes ??= [];
 
-            var curChangeIndex = Changes.FindIndex(a=> a.Target == change.Target);
+            var curChangeIndex = Changes.FindIndex(a => a.Target == change.Target);
 
             if (curChangeIndex != -1)
             {
@@ -52,13 +52,13 @@
 
         public void Clear()
         {
-            Changes?.Clear();    
+            Changes?.Clear();
         }
 
         public List<ObjectChange> Changes;
     }
 
-    public  struct ObjectChange
+    public struct ObjectChange
     {
         public ObjectChange(ObjectChangeType type, EngineObject? target = null, IList<string>? properties = null)
         {

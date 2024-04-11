@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Reflection.Metadata;
 
 namespace XrEngine
 {
@@ -44,7 +43,7 @@ namespace XrEngine
                     else
                     {
                         curItem.SetState(itemState);
-                        container.Context.RefTable.Resolved[curItem.Id] = curItem;  
+                        container.Context.RefTable.Resolved[curItem.Id] = curItem;
                     }
 
                     foundItems.Add(curItem!);
@@ -170,7 +169,7 @@ namespace XrEngine
         }
 
 
-        public static T Read<T>(this IStateContainer container, string key, T? curObj) where T: class
+        public static T Read<T>(this IStateContainer container, string key, T? curObj) where T : class
         {
             return (T)container.Read(key, curObj, typeof(T))!;
         }

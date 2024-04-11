@@ -41,6 +41,6 @@ namespace XrEngine
             return true;
         }
 
-        public static readonly StandardVertexShaderHandler Instance = new StandardVertexShaderHandler();
+        public static readonly StandardVertexShaderHandler Instance = new();
     }
 }

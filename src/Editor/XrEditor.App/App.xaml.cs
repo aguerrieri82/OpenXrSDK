@@ -33,7 +33,7 @@ namespace XrEditor
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            MainWindow.Show();  
+            MainWindow.Show();
             base.OnStartup(e);
         }
 

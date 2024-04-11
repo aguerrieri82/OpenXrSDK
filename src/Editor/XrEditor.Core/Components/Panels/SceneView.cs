@@ -64,11 +64,11 @@ namespace XrEditor
         protected XrEngineApp? _engine;
         protected ToolbarView _toolbar;
         protected MemoryStateContainer? _sceneState;
-        private ActionView _playButton;
-        private ActionView _pauseButton;
-        private ActionView _stopButton;
-        private ActionView _xrButton;
-        private TextView _fpsLabel;
+        private readonly ActionView _playButton;
+        private readonly ActionView _pauseButton;
+        private readonly ActionView _stopButton;
+        private readonly ActionView _xrButton;
+        private readonly TextView _fpsLabel;
 
         public SceneView(IRenderSurface renderSurface)
         {
@@ -252,7 +252,7 @@ namespace XrEditor
 
             UpdateControls();
         });
-        
+
         public Task PauseApp() => _dispatcher.ExecuteAsync(() =>
         {
             if (_engine?.App == null)
@@ -274,7 +274,7 @@ namespace XrEditor
             }
             UpdateControls();
         });
-        
+
 
         protected void Start()
         {

@@ -51,6 +51,6 @@ namespace XrEngine
 
         public Size2 Size { get; set; }
 
-        public static readonly Quad3D Instance = new Quad3D(new Size2(1, 1));
+        public static readonly Quad3D Instance = new(new Size2(1, 1));
     }
 }

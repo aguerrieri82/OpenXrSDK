@@ -348,6 +348,6 @@ namespace CanvasUI
             return result;
         }
 
-        public static readonly FlexLayoutManager Instance = new FlexLayoutManager();
+        public static readonly FlexLayoutManager Instance = new();
     }
 }

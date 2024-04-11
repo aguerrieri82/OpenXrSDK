@@ -71,7 +71,7 @@ namespace XrEngine
         {
             var padding = GetFormatAlign(comp, format);
 
-            uint Align(uint value, uint align)
+            static uint Align(uint value, uint align)
             {
                 return (uint)MathF.Ceiling(value / (float)align) * align;
             }

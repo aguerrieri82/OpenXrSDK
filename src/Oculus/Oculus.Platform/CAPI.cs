@@ -25,7 +25,7 @@ namespace Oculus.Platform
         public const string DLL_NAME = "ovrplatformloader";
 #endif
 
-        private static readonly UTF8Encoding nativeStringEncoding = new UTF8Encoding(false);
+        private static readonly UTF8Encoding nativeStringEncoding = new(false);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct ovrKeyValuePair

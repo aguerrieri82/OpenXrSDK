@@ -15,6 +15,6 @@
         }
 
 
-        public static readonly LogScale Instance = new LogScale();
+        public static readonly LogScale Instance = new();
     }
 }

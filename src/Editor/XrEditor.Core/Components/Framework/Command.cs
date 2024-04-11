@@ -21,7 +21,7 @@ namespace XrEditor
                 action();
                 return Task.CompletedTask;
             };
-           
+
             _isEnabled = true;
         }
 
