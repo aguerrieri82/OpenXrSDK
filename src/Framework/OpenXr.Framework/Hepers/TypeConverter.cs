@@ -64,7 +64,7 @@ namespace OpenXr.Framework
         }
     }
 
-    public unsafe ref struct Converter<TIn> where TIn : unmanaged
+    public readonly unsafe ref struct Converter<TIn> where TIn : unmanaged
     {
         readonly ref TIn _value;
 
@@ -83,7 +83,7 @@ namespace OpenXr.Framework
         }
     }
 
-    public unsafe ref struct ArrayConverter<TIn> where TIn : unmanaged
+    public readonly unsafe ref struct ArrayConverter<TIn> where TIn : unmanaged
     {
         readonly TIn[] _value;
 

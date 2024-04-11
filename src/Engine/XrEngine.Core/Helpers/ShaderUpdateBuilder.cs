@@ -53,7 +53,7 @@ namespace XrEngine
         public uint InstanceId;
     }
 
-    public struct ShaderUpdateBuilder : IFeatureList
+    public readonly struct ShaderUpdateBuilder : IFeatureList
     {
         private readonly ShaderUpdate _result;
 

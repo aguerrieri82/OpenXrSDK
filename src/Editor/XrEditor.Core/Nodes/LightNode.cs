@@ -7,7 +7,7 @@ namespace XrEditor.Nodes
     {
         public LightNode(T value) : base(value)
         {
-           
+
         }
 
         public override bool IsLeaf => true;

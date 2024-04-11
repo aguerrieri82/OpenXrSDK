@@ -9,7 +9,7 @@ namespace XrMath
         public Quaternion Orientation;
 
 
-        public static readonly Pose3 Identity = new Pose3
+        public static readonly Pose3 Identity = new()
         {
             Orientation = Quaternion.Identity
         };

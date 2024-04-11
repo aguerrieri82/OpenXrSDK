@@ -2,8 +2,8 @@
 {
     public class IconTextView : BaseView
     {
-        public IconView? Icon { get; set; } 
+        public IconView? Icon { get; set; }
 
-        public string? Text { get; set; }   
+        public string? Text { get; set; }
     }
 }

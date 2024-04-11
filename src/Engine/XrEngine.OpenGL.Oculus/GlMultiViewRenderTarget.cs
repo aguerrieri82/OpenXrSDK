@@ -23,7 +23,7 @@ namespace XrEngine.OpenGL.Oculus
     {
 
         protected GlMultiViewFrameBuffer _frameBuffer;
-        protected SceneMatrices _matrices = new SceneMatrices();
+        protected SceneMatrices _matrices = new();
         readonly GL _gl;
 
 

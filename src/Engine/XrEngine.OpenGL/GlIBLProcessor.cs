@@ -85,9 +85,9 @@ namespace XrEngine.OpenGL
             _gl.Enable(EnableCap.CullFace);
             _gl.Disable(EnableCap.DepthTest);
             _gl.FrontFace(FrontFaceDirection.Ccw);
-            #if !GLES
+#if !GLES
             _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
-            #endif
+#endif
         }
 
 
@@ -193,8 +193,7 @@ namespace XrEngine.OpenGL
 
         public unsafe Vector2[] GenerateHammersley(int sampleCount)
         {
-
-            float radicalInverse_VdC(uint bits)
+            static float radicalInverse_VdC(uint bits)
             {
                 bits = (bits << 16) | (bits >> 16);
                 bits = ((bits & 0x55555555) << 1) | ((bits & 0xAAAAAAAA) >> 1);

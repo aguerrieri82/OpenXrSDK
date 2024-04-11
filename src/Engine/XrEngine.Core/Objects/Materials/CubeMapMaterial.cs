@@ -4,7 +4,7 @@ namespace XrEngine.Materials
 {
     public class CubeMapMaterial : ShaderMaterial
     {
-        static readonly Shader SHADER = new Shader
+        static readonly Shader SHADER = new()
         {
             FragmentSourceName = "pbr/cubemap.frag",
             VertexSourceName = "pbr/cubemap.vert",

@@ -43,7 +43,7 @@ namespace XrEngine.OpenGL
                 : base(gl)
         {
             SampleCount = sampleCount;
-            Target = target;    
+            Target = target;
             Update(width, height, format);
         }
 

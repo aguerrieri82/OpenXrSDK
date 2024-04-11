@@ -41,8 +41,8 @@ namespace XrSamples
 
             unsafe void ProcessMesh(Silk.NET.Assimp.Mesh* mesh, Silk.NET.Assimp.Scene* scene)
             {
-                List<VertexData> vertices = new List<VertexData>();
-                List<uint> indices = new List<uint>();
+                List<VertexData> vertices = new();
+                List<uint> indices = new();
 
                 for (uint i = 0; i < mesh->MNumVertices; i++)
                 {

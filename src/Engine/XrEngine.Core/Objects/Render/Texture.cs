@@ -1,6 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public abstract class Texture : EngineObject, IDisposable
     {

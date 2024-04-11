@@ -20,7 +20,7 @@ namespace XrEngine.OpenGL
         public GlTextureRenderTarget(GL gl, uint colorTex, uint depthTex, uint sampleCount)
             : this(gl)
         {
-            _frameBuffer.Configure(colorTex, depthTex, sampleCount);    
+            _frameBuffer.Configure(colorTex, depthTex, sampleCount);
         }
 
         public void Begin()

@@ -261,15 +261,15 @@ namespace XrEngine.Physics
 
         protected void UpdatePhysics()
         {
-            if (_actor == null || _system == null || _host == null) 
+            if (_actor == null || _system == null || _host == null)
                 return;
 
             Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
-            
+
             _actor.SetScale(scale.X);
 
             _actor.Name = _host.Name ?? string.Empty;
-            
+
             _material?.Release();
 
             _material = _system.CreateOrGetMaterial(new PhysicsMaterialInfo

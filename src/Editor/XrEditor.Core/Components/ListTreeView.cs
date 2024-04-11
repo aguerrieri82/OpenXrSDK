@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 
@@ -22,7 +20,7 @@ namespace XrEditor
 
         public ListTreeNodeView(ListTreeView host, ListTreeNodeView? parent)
         {
-            _host = host;   
+            _host = host;
             _parent = parent;
             _childInsertIndex = -1;
             ToggleCommand = new Command(Toggle);
@@ -139,10 +137,10 @@ namespace XrEditor
                     foreach (var child in node._children)
                     {
                         foreach (var innerChild in Visit(child))
-                            yield return innerChild;    
+                            yield return innerChild;
                     }
                 }
-        
+
             }
 
             return Visit(this);

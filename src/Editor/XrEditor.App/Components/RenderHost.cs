@@ -65,7 +65,7 @@ namespace XrEditor
 
         public IntPtr OnMessage(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            Pointer2Event ev = new Pointer2Event();
+            Pointer2Event ev = new();
 
             switch (msg)
             {

@@ -39,7 +39,7 @@ namespace XrEngine.Physics
         public void Dispose()
         {
             Destroy();
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         public float StepSizeSecs { get; set; }

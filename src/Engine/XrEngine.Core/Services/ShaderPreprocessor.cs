@@ -389,7 +389,7 @@ namespace XrEngine
 
             }
 
-            Regex regex = new Regex(@"^\s*(?:\r?\n|\r)(?:\s*(?:\r?\n|\r))*", RegexOptions.Multiline);
+            Regex regex = new(@"^\s*(?:\r?\n|\r)(?:\s*(?:\r?\n|\r))*", RegexOptions.Multiline);
             var text = regex.Replace(result.ToString(), Environment.NewLine);
 
             return text;

@@ -30,7 +30,7 @@ namespace OpenXr.Framework
         public void Dispose()
         {
             Destroy();
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         public virtual ActionSuggestedBinding Initialize()

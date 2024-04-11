@@ -80,7 +80,7 @@ namespace XrMath
             float m22 = zAxis.Z;
 
             float num8 = (m00 + m11) + m22;
-            Quaternion quaternion = new Quaternion();
+            Quaternion quaternion = new();
             if (num8 > 0f)
             {
                 float num = MathF.Sqrt(num8 + 1f);

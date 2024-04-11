@@ -1,5 +1,4 @@
-﻿using XrEditor.Services;
-using XrEngine;
+﻿using XrEngine;
 
 namespace XrEditor
 {

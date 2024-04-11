@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
 
 namespace XrEditor
 {
-    public class BaseActionsView : BaseView 
+    public class BaseActionsView : BaseView
     {
 
         public ActionView AddToggle(string iconName, Action<bool>? onChanged = null)
         {
             var action = new ActionView();
-            
+
             action.ExecuteCommand = new Command(() =>
             {
                 action.IsActive = !action.IsActive;
