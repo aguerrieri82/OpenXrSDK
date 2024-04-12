@@ -14,11 +14,18 @@ namespace XrEditor.Nodes
 
         public override string DisplayName => _value.Name ?? base.DisplayName;
 
-        public async Task<SKBitmap> CreatePreviewAsync()
+        public async Task<SKBitmap?> CreatePreviewAsync()
         {
-            var preview = Context.Require<RenderPreviewCreator>();
+            try
+            {
+                var preview = Context.Require<RenderPreviewCreator>();
 
-            return await preview.Engine.Dispatcher.ExecuteAsync(() => preview.CreateTexture(_value));
+                return await preview.Engine.Dispatcher.ExecuteAsync(() => preview.CreateTexture(_value));
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

@@ -356,8 +356,10 @@ namespace XrEngine
 
             public Color BaseColorFactor { get; set; }
 
+            [Range(0f, 1f, 0.01f)]
             public float MetallicFactor { get; set; }
 
+            [Range(0f, 1f, 0.01f)]
             public float RoughnessFactor { get; set; }
 
             public Texture2D? BaseColorTexture { get; set; }
@@ -745,10 +747,14 @@ namespace XrEngine
 
         public int NormalUVSet { get; set; }
 
+
+        [Range(0f, 1f, 0.01f)]
         public float NormalScale { get; set; }
 
         public Texture2D? OcclusionTexture { get; set; }
 
+
+        [Range(0f, 1f, 0.01f)]
         public float OcclusionStrength { get; set; }
 
         public int OcclusionUVSet { get; set; }
@@ -757,6 +763,8 @@ namespace XrEngine
 
         public Vector3 EmissiveFactor { get; set; }
 
+
+        [Range(0f, 1f, 0.01f)]
         public float AlphaCutoff { get; set; }
 
         public MaterialType Type { get; set; }

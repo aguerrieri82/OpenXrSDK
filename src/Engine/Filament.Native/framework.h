@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
+#include <bitset>
 
 #define BACKEND_OPENGL_LEVEL_GLES31
 

@@ -91,7 +91,8 @@ namespace XrEditor
 
         }
 
-        public bool IsActive => _isActive;
+        protected IDispatcher AppDispatcher => _sceneView?.Scene?.App?.Dispatcher ?? throw new NullReferenceException();
 
+        public bool IsActive => _isActive;
     }
 }

@@ -43,6 +43,7 @@ namespace XrEngine
         protected Scene3D? _activeScene;
         protected EngineAppStats _stats;
         protected PlayState _playState;
+        protected QueueDispatcher _dispatcher;
         protected readonly HashSet<IObjectChangeListener> _changeListeners = [];
 
         public EngineApp()
@@ -50,6 +51,7 @@ namespace XrEngine
             _stats = new EngineAppStats();
             _context = new RenderContext();
             _changeListeners.Add(ShaderMeshLayerBuilder.Instance);
+            _dispatcher = new QueueDispatcher();    
             Current = this;
         }
 
@@ -122,13 +124,19 @@ namespace XrEngine
 
             try
             {
+                _activeScene.DrawGizmos();
+
                 Renderer.Render(_activeScene, _activeScene.ActiveCamera, view, flush);
+
+                _dispatcher.ProcessQueue();
             }
             finally
             {
                 _stats.EndFrame();
             }
         }
+
+        public IDispatcher Dispatcher => _dispatcher;
 
         public PlayState PlayState => _playState;
 

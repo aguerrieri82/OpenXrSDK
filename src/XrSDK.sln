@@ -127,7 +127,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UI.Canvas", "UI\UI.Canvas\U
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UI.Framework", "UI\UI.Framework\UI.Framework.csproj", "{9C6ED744-1023-4DD9-B3F8-61EBD565DB10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI.Binding", "UI\UI.Binding\UI.Binding.csproj", "{AC81C2CA-7870-466A-BEF4-D4F6F9B3B731}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UI.Binding", "UI\UI.Binding\UI.Binding.csproj", "{AC81C2CA-7870-466A-BEF4-D4F6F9B3B731}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

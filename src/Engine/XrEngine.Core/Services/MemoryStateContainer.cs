@@ -37,7 +37,7 @@
 
             if (resolveRef && IsRef(key))
             {
-                var id = (uint)_state[key]!;
+                var id = (Guid)_state[key]!;
                 return _context.RefTable.Container!.Enter(id.ToString());
             }
 
@@ -79,7 +79,7 @@
 
         public bool IsRef(string key)
         {
-            return _state[key] is uint;
+            return _state[key] is Guid;
         }
 
         public int Count => _state.Count;

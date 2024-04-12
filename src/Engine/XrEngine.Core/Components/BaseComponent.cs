@@ -14,7 +14,7 @@
 
         public void EnsureId()
         {
-            if (_id.Value == 0)
+            if (_id.Value == Guid.Empty)
                 _id = ObjectId.New();
         }
 
@@ -46,9 +46,6 @@
 
         public virtual void GetState(IStateContainer container)
         {
-            if (_id.Value == 0)
-                _id = ObjectId.New();
-
             container.Write(nameof(Id), _id.Value);
             container.Write(nameof(IsEnabled), IsEnabled);
         }
@@ -60,7 +57,7 @@
 
         protected virtual void SetStateWork(IStateContainer container)
         {
-            _id.Value = container.Read<uint>(nameof(Id));
+            _id.Value = container.Read<Guid>(nameof(Id));
             IsEnabled = container.Read<bool>(nameof(IsEnabled));
         }
 

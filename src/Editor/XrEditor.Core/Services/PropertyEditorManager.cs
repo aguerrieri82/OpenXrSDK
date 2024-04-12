@@ -11,18 +11,18 @@ namespace XrEditor
 
         public PropertyEditorManager()
         {
-            Register(new TypedPropertyEditorFactory<float, FloatEditor>());
             Register(new TypedPropertyEditorFactory<Vector3, Vector3Editor>());
             Register(new TypedPropertyEditorFactory<Color, ColorEditor>());
             Register(new TypedPropertyEditorFactory<bool, BoolEditor>());
+            Register(new FloatEditorFactory());
             Register(new EnumEditorFactory());
             Register(new EngineObjectEditorFactory());
         }
 
-        public IPropertyEditor? CreateEditor(Type type)
+        public IPropertyEditor? CreateEditor(Type type, IEnumerable<Attribute> attributes)
         {
             var factory = _factories.FirstOrDefault(a => a.CanHandle(type));
-            return factory?.CreateEditor(type);
+            return factory?.CreateEditor(type, attributes);
         }
 
         public void Register(IPropertyEditorFactory factory)

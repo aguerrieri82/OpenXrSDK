@@ -48,6 +48,6 @@ namespace XrEngine.OpenXr
 
         public XrInput<bool>? RightButton { get; set; }
 
-        public int PointerId => (int)_host!.Id.Value;
+        public int PointerId => _host!.Id.Value.GetHashCode();
     }
 }

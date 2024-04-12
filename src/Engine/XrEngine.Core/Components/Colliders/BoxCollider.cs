@@ -5,8 +5,14 @@ namespace XrEngine
 {
     public class BoxCollider : Behavior<Object3D>, ICollider3D
     {
+        protected bool _isInit;
 
         protected override void Start(RenderContext ctx)
+        {
+
+        }
+
+        protected void Init()
         {
             if (Size.Length() == 0)
             {
@@ -19,11 +25,14 @@ namespace XrEngine
                     Center = local.LocalBounds.Center;
                 }
             }
-
+            _isInit = true;
         }
 
         public Collision? CollideWith(Ray3 ray)
         {
+            if (!_isInit)
+                Init();
+
             var localRay = ray.Transform(_host!.WorldMatrixInverse);
             var bounds = new Bounds3
             {

@@ -7,7 +7,7 @@
             return typeof(T) == type;
         }
 
-        public readonly IPropertyEditor CreateEditor(Type type)
+        public readonly IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
         {
             return new TEditor();
         }

@@ -57,9 +57,34 @@ namespace XrEngine
             obj.SetProp("IsManipulating", value);
         }
 
-        public static IEnumerable<Group3D> Ancestors(this Object3D obj)
+        public static IEnumerable<Object3D> DescendantsOrSelf(this Object3D self)
         {
-            var curItem = obj.Parent;
+            yield return self;
+
+            if (self is Group3D group)
+            {
+                foreach (var child in group.Children)
+                {
+                    foreach (var descendent in child.DescendantsOrSelf())
+                        yield return descendent;
+                }
+            }
+
+        }
+
+
+        public static IEnumerable<T> DescendantsOrSelfComponents<T>(this Object3D self)
+        {
+            foreach (var obj in self.DescendantsOrSelf())
+            {
+                foreach (var comp in obj.Components<IComponent>().OfType<T>())
+                    yield return comp;
+            }
+        }
+
+        public static IEnumerable<Group3D> Ancestors(this Object3D self)
+        {
+            var curItem = self.Parent;
 
             while (curItem != null)
             {
@@ -68,17 +93,29 @@ namespace XrEngine
             }
         }
 
-        public static T? FindAncestor<T>(this Object3D obj) where T : Group3D
+        public static T? FindAncestor<T>(this Object3D self) where T : Group3D
         {
-            return obj.Ancestors().OfType<T>().FirstOrDefault();
+            return self.Ancestors().OfType<T>().FirstOrDefault();
         }
 
-        public static bool Feature<T>(this Object3D obj, [NotNullWhen(true)] out T? result) where T : class
+        public static bool Feature<T>(this Object3D self, [NotNullWhen(true)] out T? result) where T : class
         {
-            result = obj.Feature<T>();
+            result = self.Feature<T>();
             return result != null;
         }
 
+        public static T? FeatureDeep<T>(this Object3D self) where T : class
+        {
+            var result = self.Feature<T>();
+
+            if (result != null)
+                return result;
+
+            if (self is Group3D group)
+                return group.DescendantsWithFeature<T>().FirstOrDefault().Feature;
+
+            return null;
+        }
 
         #endregion
 
@@ -140,42 +177,30 @@ namespace XrEngine
 
         #region GROUP
 
-        public static void Clear(this Group3D group)
+        public static void Clear(this Group3D self)
         {
-            group.BeginUpdate();
+            self.BeginUpdate();
             try
             {
-                for (var i = group.Children.Count - 1; i >= 0; i--)
-                    group.RemoveChild(group.Children[i]);
+                for (var i = self.Children.Count - 1; i >= 0; i--)
+                    self.RemoveChild(self.Children[i]);
             }
             finally
             {
-                group.EndUpdate();
+                self.EndUpdate();
             }
         }
 
-        public static T AddChild<T>(this Group3D group) where T : Object3D, new()
+        public static T AddChild<T>(this Group3D self) where T : Object3D, new()
         {
-            return group.AddChild(new T());
+            return self.AddChild(new T());
         }
 
-        public static T? FindByName<T>(this Group3D group, string name) where T : Object3D
+        public static T? FindByName<T>(this Group3D self, string name) where T : Object3D
         {
-            return group.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
+            return self.Descendants<T>().Where(a => a.Name == name).FirstOrDefault();
         }
 
-        public static T? FindFeature<T>(this Object3D obj) where T : class
-        {
-            var result = obj.Feature<T>();
-
-            if (result != null)
-                return result;
-
-            if (obj is Group3D group)
-                return group.DescendantsWithFeature<T>().FirstOrDefault().Feature;
-
-            return null;
-        }
 
         public static IEnumerable<ObjectFeature<T>> DescendantsWithFeature<T>(this Group3D group) where T : class
         {
@@ -200,6 +225,8 @@ namespace XrEngine
         {
             return target.Descendants<Object3D>();
         }
+
+ 
 
         public static IEnumerable<T> Descendants<T>(this Group3D target) where T : Object3D
         {

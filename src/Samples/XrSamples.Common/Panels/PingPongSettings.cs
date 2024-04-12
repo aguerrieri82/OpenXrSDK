@@ -84,9 +84,9 @@ namespace XrSamples
 
         public override void Apply(Scene3D scene)
         {
-            var system = scene.FindFeature<PhysicsManager>()!.System;
+            var system = scene.FeatureDeep<PhysicsManager>()!.System;
             var racket = scene.FindByName<Object3D>("Racket");
-            var generator = scene.FindFeature<BallGenerator>()!;
+            var generator = scene.FeatureDeep<BallGenerator>()!;
             var mesh = scene.FindByName<TriangleMesh>("global-mesh");
 
             if (mesh != null)
@@ -151,7 +151,7 @@ namespace XrSamples
             {
                 if (property.Name!.Contains("BallMaterial"))
                 {
-                    var generator = scene.FindFeature<BallGenerator>()!;
+                    var generator = scene.FeatureDeep<BallGenerator>()!;
 
                     (generator.Material as PbrMaterial)!.MetallicRoughness!.RoughnessFactor = obj!.BallMaterial!.Roughness;
                     (generator.Material as PbrMaterial)!.MetallicRoughness!.MetallicFactor = obj!.BallMaterial!.Metallic;

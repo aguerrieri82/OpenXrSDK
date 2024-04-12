@@ -11,7 +11,6 @@ using XrSamples;
 
 namespace XrEditor
 {
-
     public enum SceneXrState
     {
         None,
@@ -49,7 +48,7 @@ namespace XrEditor
     public class SceneView : BasePanel
     {
         protected readonly IRenderSurface _renderSurface;
-        protected readonly QueueDispatcher _dispatcher;
+
 
         protected Camera? _camera;
         protected Scene3D? _scene;
@@ -86,17 +85,15 @@ namespace XrEditor
 
             _fpsLabel = _toolbar.AddText(string.Empty);
             _toolbar.AddDivider();
-            _dispatcher = new QueueDispatcher();
             _playButton = _toolbar.AddButton("icon_play_arrow", () => StartApp());
             _pauseButton = _toolbar.AddButton("icon_pause", () => PauseApp());
             _stopButton = _toolbar.AddButton("icon_stop", () => StopApp());
-
         }
 
         protected void CreateApp()
         {
             _engine = new XrEngineAppBuilder()
-              .SetRenderQuality(1, 4) ///samples > 1 cause Filament to fuck up
+              .SetRenderQuality(1, 1) ///samples > 1 cause Filament to fuck up
               .CreateChess()
               .Build();
 
@@ -130,7 +127,7 @@ namespace XrEditor
             _pauseButton.IsActive = _engine!.App.PlayState == PlayState.Pause;
         }
 
-        public Task StartXr() => _dispatcher.ExecuteAsync(() =>
+        public Task StartXr() => Dispatcher.ExecuteAsync(() =>
         {
             try
             {
@@ -153,7 +150,7 @@ namespace XrEditor
             }
         });
 
-        public Task StopXr() => _dispatcher.ExecuteAsync(() =>
+        public Task StopXr() => Dispatcher.ExecuteAsync(() =>
         {
             try
             {
@@ -183,8 +180,6 @@ namespace XrEditor
             while (_isStarted)
             {
                 _fpsLabel.Text = _engine!.App.Stats.Fps.ToString();
-
-                _dispatcher.ProcessQueue();
 
                 if (_scene?.App == null)
                     Thread.Sleep(50);
@@ -237,7 +232,7 @@ namespace XrEditor
                 persp.SetFov(45, _view.Width, _view.Height);
         }
 
-        public Task StartApp() => _dispatcher.ExecuteAsync(() =>
+        public Task StartApp() => Dispatcher.ExecuteAsync(() =>
         {
             if (_scene == null || _engine?.App == null || _engine.App.PlayState == PlayState.Start)
                 return;
@@ -253,7 +248,7 @@ namespace XrEditor
             UpdateControls();
         });
 
-        public Task PauseApp() => _dispatcher.ExecuteAsync(() =>
+        public Task PauseApp() => Dispatcher.ExecuteAsync(() =>
         {
             if (_engine?.App == null)
                 return;
@@ -261,7 +256,7 @@ namespace XrEditor
             UpdateControls();
         });
 
-        public Task StopApp() => _dispatcher.ExecuteAsync(() =>
+        public Task StopApp() => Dispatcher.ExecuteAsync(() =>
         {
             if (_engine?.App == null || _engine.App.PlayState == PlayState.Stop)
                 return;
@@ -351,6 +346,7 @@ namespace XrEditor
             return tool;
         }
 
+        public IDispatcher Dispatcher => _engine!.App.Dispatcher;
 
         public ToolbarView ToolbarView => _toolbar;
 

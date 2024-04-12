@@ -88,7 +88,7 @@ namespace XrEditor
             if (node is not IEditorProperties editorProps)
                 return null;
 
-            var result = new PropertiesGroupView();
+            var result = new PropertiesGroupView(PropertiesGroupType.Main);
 
             if (node is IItemView view)
             {
@@ -116,7 +116,7 @@ namespace XrEditor
                     result.Properties = cat.ToArray();
                 else
                 {
-                    var catGrp = new PropertiesGroupView
+                    var catGrp = new PropertiesGroupView(PropertiesGroupType.Inner)
                     {
                         Header = cat.Key,
                         Properties = cat.ToArray()

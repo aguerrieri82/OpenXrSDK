@@ -34,7 +34,7 @@
 
         protected virtual void SetStateWork(IStateContainer container)
         {
-            _id.Value = container.Read<uint>(nameof(Id));
+            _id.Value = container.Read<Guid>(nameof(Id));
             _components ??= [];
             container.ReadArray(nameof(Components), _components, a => AddComponent(a), RemoveComponent);
         }
@@ -166,7 +166,7 @@
 
         public void EnsureId()
         {
-            if (_id.Value == 0)
+            if (_id.Value == Guid.Empty)
                 _id = ObjectId.New();
         }
 
