@@ -19,10 +19,19 @@ namespace XrEditor
                 if (!prop.CanWrite || !prop.CanRead)
                     continue;
 
-                var editor = Context.Require<PropertyEditorManager>().CreateEditor(prop.PropertyType);
+                var editor = Context.Require<PropertyEditorManager>().CreateEditor(prop.PropertyType, prop.GetCustomAttributes());
 
                 if (editor == null)
+                {
+                    if (prop.PropertyType.IsClass)
+                    {
+                        var value = prop.GetValue(obj);
+                        if (value != null)
+                            CreateProperties(value, value.GetType(), properties);
+                    }
+
                     continue;
+                }
 
                 var bindType = typeof(ReflectionProperty<>).MakeGenericType(editor.ValueType);
 

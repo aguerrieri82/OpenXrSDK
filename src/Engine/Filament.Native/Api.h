@@ -7,6 +7,8 @@ extern "C" {
 
 	EXPORT VIEWID APIENTRY AddView(FilamentApp* app, const ViewOptions& options);
 
+	EXPORT void APIENTRY UpdateView(FilamentApp* app, VIEWID viewId, const ViewOptions& options);
+
 	EXPORT RTID APIENTRY AddRenderTarget(FilamentApp* app, const RenderTargetOptions& options);
 
 	EXPORT void APIENTRY Render(FilamentApp* app, const ::RenderTarget options[], uint32_t count, bool wait);

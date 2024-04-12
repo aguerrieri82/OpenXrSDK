@@ -81,13 +81,6 @@ namespace XrEngine
             if (_scene == null && _parent != null)
                 _scene = this.FindAncestor<Scene3D>();
 
-            //TODO can we made in update?
-            if (_components != null)
-            {
-                foreach (var component in _components.OfType<IDrawGizmos>())
-                    component.DrawGizmos(_scene!.Gizmos);
-            }
-
             base.Update(ctx);
         }
 

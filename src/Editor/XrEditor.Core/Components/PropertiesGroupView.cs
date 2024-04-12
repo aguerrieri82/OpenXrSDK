@@ -2,6 +2,12 @@
 
 namespace XrEditor
 {
+    public enum PropertiesGroupType
+    {
+        Main,
+        Inner
+    }
+
     public class PropertiesGroupView : BaseView
     {
         private bool _isCollapsed;
@@ -9,9 +15,10 @@ namespace XrEditor
         private IList<PropertyView> _properties = [];
         private IList<PropertiesGroupView> _groups = [];
 
-        public PropertiesGroupView()
+        public PropertiesGroupView(PropertiesGroupType groupType)
         {
             ToggleCollapseCommand = new Command(() => IsCollapsed = !IsCollapsed);
+            GroupType = groupType;
         }
 
         public object? Header
@@ -63,6 +70,7 @@ namespace XrEditor
             }
         }
 
+        public PropertiesGroupType GroupType { get; }
 
         public ICommand ToggleCollapseCommand { get; }
     }

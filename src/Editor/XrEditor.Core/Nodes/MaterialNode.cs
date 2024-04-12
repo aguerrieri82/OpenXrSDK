@@ -10,45 +10,14 @@ namespace XrEditor.Nodes
     {
         public MaterialNode(T value) : base(value)
         {
+            _autoGenProps = true;   
         }
 
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
-            binder.PropertyChanged += (_, _, _, _) => _value.NotifyChanged(ObjectChangeType.Render);
-
-            curProps.Add(new PropertyView
-            {
-                Label = "Use Depth",
-                Editor = new BoolEditor(binder.Prop(a => a.UseDepth))
-            });
-
-
-            curProps.Add(new PropertyView
-            {
-                Label = "Write Depth",
-                Editor = new BoolEditor(binder.Prop(a => a.WriteDepth))
-            });
-
-            curProps.Add(new PropertyView
-            {
-                Label = "Double Sided",
-                Editor = new BoolEditor(binder.Prop(a => a.DoubleSided))
-            });
-
-            curProps.Add(new PropertyView
-            {
-                Label = "Write Color",
-                Editor = new BoolEditor(binder.Prop(a => a.WriteColor))
-            });
-
-            curProps.Add(new PropertyView
-            {
-                Label = "Alpha",
-                Editor = new EnumEditor<AlphaMode>(binder.Prop(a => a.Alpha))
-            });
-
             base.EditorProperties(binder, curProps);
+            PropertyView.CreateProperties(_value, typeof(Material), curProps);
         }
 
         public async Task<SKBitmap> CreatePreviewAsync()

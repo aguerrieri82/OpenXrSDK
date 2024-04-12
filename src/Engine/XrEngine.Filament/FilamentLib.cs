@@ -276,8 +276,8 @@ namespace XrEngine.Filament
 
         public struct MeshInfo
         {
-            public uint GeometryId;
-            public uint MaterialId;
+            public Guid GeometryId;
+            public Guid MaterialId;
             [MarshalAs(UnmanagedType.U1)]
             public bool Culling;
             [MarshalAs(UnmanagedType.U1)]
@@ -416,36 +416,39 @@ namespace XrEngine.Filament
         public static extern uint AddView(IntPtr app, ref ViewOptions options);
 
         [DllImport("filament-native")]
+        public static extern void UpdateView(IntPtr app, uint viewId, ref ViewOptions options);
+
+        [DllImport("filament-native")]
         public static extern int AddRenderTarget(IntPtr app, ref RenderTargetOptions options);
 
         [DllImport("filament-native")]
         public static extern void Render(IntPtr app, RenderTarget* targets, uint count, bool wait);
 
         [DllImport("filament-native")]
-        public static extern void AddLight(IntPtr app, uint id, ref LightInfo info);
+        public static extern void AddLight(IntPtr app, Guid id, ref LightInfo info);
 
         [DllImport("filament-native")]
-        public static extern void AddGeometry(IntPtr app, uint id, ref GeometryInfo info);
+        public static extern void AddGeometry(IntPtr app, Guid id, ref GeometryInfo info);
 
         [DllImport("filament-native")]
-        public static extern void AddMesh(IntPtr app, uint id, ref MeshInfo info);
+        public static extern void AddMesh(IntPtr app, Guid id, ref MeshInfo info);
 
         [DllImport("filament-native")]
-        public static extern void AddGroup(IntPtr app, uint id);
+        public static extern void AddGroup(IntPtr app, Guid id);
 
         [DllImport("filament-native")]
-        public static extern void SetWorldMatrix(IntPtr app, uint meshId, ref Matrix4x4 matrix);
+        public static extern void SetWorldMatrix(IntPtr app, Guid meshId, ref Matrix4x4 matrix);
 
         [DllImport("filament-native")]
-        public static extern void SetObjTransform(IntPtr app, uint id, Matrix4x4 matrix);
+        public static extern void SetObjTransform(IntPtr app, Guid id, Matrix4x4 matrix);
 
         [DllImport("filament-native")]
-        public static extern void SetObjParent(IntPtr app, uint id, uint parentId);
+        public static extern void SetObjParent(IntPtr app, Guid id, Guid parentId);
 
         [DllImport("filament-native")]
-        public static extern void AddMaterial(IntPtr app, uint id, ref MaterialInfo material);
+        public static extern void AddMaterial(IntPtr app, Guid id, ref MaterialInfo material);
         [DllImport("filament-native")]
-        public static extern void UpdateMaterial(IntPtr app, uint id, ref MaterialInfo material);
+        public static extern void UpdateMaterial(IntPtr app, Guid id, ref MaterialInfo material);
 
         [DllImport("filament-native")]
         public static extern bool GetGraphicContext(IntPtr app, out GraphicContextInfo info);
@@ -454,7 +457,7 @@ namespace XrEngine.Filament
         public static extern void ReleaseContext(IntPtr app, ReleaseContextMode mode);
 
         [DllImport("filament-native")]
-        public static extern void SetObjVisible(IntPtr app, uint id, bool visible);
+        public static extern void SetObjVisible(IntPtr app, Guid id, bool visible);
 
         [DllImport("filament-native")]
         public static extern void AddImageLight(IntPtr app, ref ImageLightInfo info);

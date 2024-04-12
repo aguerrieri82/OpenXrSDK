@@ -151,7 +151,7 @@ namespace XrEngine
         {
             public ObjectId Read(string key, ObjectId destObj, Type objType, IStateContainer container)
             {
-                return new ObjectId() { Value = container.Read<uint>(key) };
+                return new ObjectId() { Value = container.Read<Guid>(key) };
             }
 
             public void Write(string key, ObjectId obj, IStateContainer container)

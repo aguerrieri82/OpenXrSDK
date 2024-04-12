@@ -5,7 +5,14 @@ typedef float Matrix4x4[16];
 
 typedef int32_t RTID;
 typedef uint32_t VIEWID;
-typedef uint32_t OBJID;
+typedef std::bitset<128> OBJID;
+
+template <>
+struct std::less<OBJID>
+{
+	bool operator()(const OBJID& a, const OBJID& b) const { return (memcmp(&a, &b, 16) < 0); }
+};
+
 
 enum class ReleaseContextMode {
 	NotRelease = 0,

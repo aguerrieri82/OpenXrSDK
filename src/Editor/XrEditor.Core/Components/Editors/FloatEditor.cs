@@ -1,4 +1,5 @@
 ﻿using UI.Binding;
+using XrEngine;
 
 namespace XrEditor
 {
@@ -74,5 +75,30 @@ namespace XrEditor
 
 
         public Func<float, string?> ScaleFormat => _scale.Format;
+    }
+
+    public class FloatEditorFactory : IPropertyEditorFactory
+    {
+        public bool CanHandle(Type type)
+        {
+            return type == typeof(float);   
+        }
+
+        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
+        {
+            var range = attributes.OfType<RangeAttribute>().FirstOrDefault();
+            var result = new FloatEditor();
+            if (range != null)
+            {
+                result.Scale = new ValueScale()
+                {
+                    ScaleMin = range.Min,
+                    ScaleMax = range.Max,
+                    ScaleStep = range.Step,
+                    ScaleSmallStep = range.Step
+                };
+            }
+            return result;
+        }
     }
 }

@@ -26,7 +26,7 @@ namespace XrEditor
             return result;
         }
 
-        protected IDispatcher EngineDispatcher => _sceneView.Scene.App.Renderer.Dispatcher;
+
 
         protected void UpdateRay(Pointer2Event ev)
         {
@@ -54,7 +54,7 @@ namespace XrEditor
 
             UpdateRay(ev);
 
-            _lastCollision = (await EngineDispatcher.ExecuteAsync(() => _sceneView.Scene.RayCollisions(_lastRay.Ray)))
+            _lastCollision = (await AppDispatcher.ExecuteAsync(() => _sceneView.Scene.RayCollisions(_lastRay.Ray)))
                            .OrderBy(a => a.Distance)
                            .FirstOrDefault();
 

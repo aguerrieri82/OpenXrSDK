@@ -29,7 +29,7 @@ namespace XrEditor
             return type.IsEnum;
         }
 
-        public IPropertyEditor CreateEditor(Type type)
+        public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
         {
             return (IPropertyEditor)Activator.CreateInstance(typeof(EnumEditor<>).MakeGenericType(type))!;
         }

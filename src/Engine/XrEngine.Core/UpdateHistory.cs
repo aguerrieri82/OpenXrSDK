@@ -39,11 +39,22 @@
         protected int _index;
         protected List<UpdateAction> _actions = [];
         protected Scene3D _scene;
+        private int _suspend;
 
         public UpdateHistory(Scene3D scene)
         {
             _scene = scene;
             _scene.ChangeListeners.Add(this);
+        }
+
+        public void Suspend()
+        {
+            _suspend++;
+        }
+
+        public void Resume()
+        {
+            _suspend--;
         }
 
         public void Add(UpdateAction action)
@@ -58,6 +69,9 @@
 
         public void NotifyChanged(Object3D object3D, ObjectChange change)
         {
+            if (_suspend > 0)
+                return;
+
             if (change.IsAny(ObjectChangeType.SceneAdd))
                 Add(new SceneAddAction
                 {

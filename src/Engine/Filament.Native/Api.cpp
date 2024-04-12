@@ -126,6 +126,25 @@ FilamentApp* Initialize(const InitializeOptions& options) {
 VIEWID AddView(FilamentApp* app, const ViewOptions& options)
 {
 	auto view = app->engine->createView();
+	
+	view->setScene(app->scene);
+	view->setCamera(app->camera);
+	view->setVisibleLayers(0xFF, 0xFF);
+	view->setVisibleLayers(INVISIBLE_LAYER, 0);
+
+	app->views.push_back({ view, options.viewport });
+
+	auto viewId = (VIEWID)(app->views.size() - 1);
+
+	UpdateView(app, viewId, options);
+
+	return viewId;
+}
+
+void UpdateView(FilamentApp* app, VIEWID viewId, const ViewOptions& options) 
+{
+
+	auto view = app->views[viewId].view;
 
 	MultiSampleAntiAliasingOptions msaa;
 	msaa.enabled = options.sampleCount > 1;
@@ -133,51 +152,39 @@ VIEWID AddView(FilamentApp* app, const ViewOptions& options)
 
 	View::SoftShadowOptions softOpt;
 
-
 	view->setBlendMode(options.blendMode);
 	view->setAntiAliasing(options.antiAliasing);
 	view->setFrustumCullingEnabled(options.frustumCullingEnabled);
 	view->setPostProcessingEnabled(options.postProcessingEnabled);
 	view->setRenderQuality(options.renderQuality);
-	//view->setMultiSampleAntiAliasingOptions(msaa);
+	view->setMultiSampleAntiAliasingOptions(msaa);
 	view->setScreenSpaceRefractionEnabled(options.screenSpaceRefractionEnabled);
 	view->setShadowingEnabled(options.shadowingEnabled);
 	view->setShadowType(options.shadowType);
 	view->setStencilBufferEnabled(options.stencilBufferEnabled);
-	view->setSampleCount(options.sampleCount);
-
-	view->setVisibleLayers(0xFF, 0xFF);
-	view->setVisibleLayers(INVISIBLE_LAYER, 0);
-
 
 	if (app->isStereo) {
 		View::StereoscopicOptions stereoOpt;
 		stereoOpt.enabled = true;
-
 		view->setStereoscopicOptions(stereoOpt);
 	}
 
 	if (options.viewport.width != 0 && options.viewport.height != 0)
 		view->setViewport(filament::Viewport(options.viewport.x, options.viewport.y, options.viewport.width, options.viewport.height));
 
-	view->setScene(app->scene);
-	view->setCamera(app->camera);
-
 	if (options.renderTargetId != -1)
 		view->setRenderTarget(app->renderTargets[options.renderTargetId]);
-
-	app->views.push_back({ view, options.viewport });
-
-	return (VIEWID)(app->views.size() - 1);
 }
 
 RTID AddRenderTarget(FilamentApp* app, const RenderTargetOptions& options)
 {
+	auto sampler = options.depth > 1 ? Texture::Sampler::SAMPLER_2D_ARRAY : Texture::Sampler::SAMPLER_2D;
+
 	auto baseColorFactor = Texture::Builder()
 		.width(options.width)
 		.height(options.height)
 		.levels(1)
-		.sampler(options.depth > 1 ? Texture::Sampler::SAMPLER_2D_ARRAY : Texture::Sampler::SAMPLER_2D)
+		.sampler(sampler)
 		.depth(options.depth)
 		.usage(filament::Texture::Usage::COLOR_ATTACHMENT | filament::Texture::Usage::SAMPLEABLE)
 		.format(options.format)
@@ -190,7 +197,7 @@ RTID AddRenderTarget(FilamentApp* app, const RenderTargetOptions& options)
 		.width(options.width)
 		.height(options.height)
 		.levels(1)
-		.sampler(options.depth > 1 ? Texture::Sampler::SAMPLER_2D_ARRAY : Texture::Sampler::SAMPLER_2D)
+		.sampler(sampler)
 		.depth(options.depth)
 		.usage(filament::Texture::Usage::DEPTH_ATTACHMENT)
 		.format(filament::Texture::InternalFormat::DEPTH24)
@@ -231,13 +238,9 @@ void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bo
 	Renderer::ClearOptions opt;
 	opt.clear = true;
 	opt.clearColor = { 0, 0, 0, 0 };
-
 	app->renderer->setClearOptions(opt);
 
 	app->renderer->beginFrame(app->swapChain);
-
-
-
 
 	bool hasMainView = false;
 
@@ -291,7 +294,7 @@ void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bo
 		plat->skipSwap = !hasMainView;
 #endif
 
-	//app->renderer->endFrame(hasMainView);
+	app->renderer->endFrame(hasMainView);
 	if (wait)
 		app->engine->flushAndWait();
 }
@@ -1128,9 +1131,7 @@ void UpdateMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info)
 			instance->setParameter("aoStrength", info.aoStrength);
 			instance->setParameter("aoMap", CreateTexture(app, info.aoMap), sampler);
 		}
-
 	}
-
 }
 
 void AddImageLight(FilamentApp* app, const ImageLightInfo& info) {
@@ -1177,7 +1178,7 @@ void UpdateImageLight(FilamentApp* app, const ImageLightInfo& info) {
 	auto rotMat = mat3f::rotation(info.rotation, vec3<float>(0.0f, 1.0f, 0.0f));
 
 	app->indirectLight->setRotation(rotMat);
-	app->indirectLight->setIntensity(info.intensity);
+	app->indirectLight->setIntensity(info.intensity * 10000);
 	app->scene->setSkybox(info.showSkybox ? app->skybox : nullptr);
 }
 

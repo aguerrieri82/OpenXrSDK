@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using XrMath;
 using static XrEngine.Filament.FilamentLib;
 
@@ -14,7 +15,7 @@ namespace XrEngine.Filament
             ShadowType = FlShadowType.PCF;
             HdrColorBuffer = FlQualityLevel.MEDIUM;
             SampleCount = 1;
-            UseSrgb = true;
+            UseSrgb = false;
         }
 
         public IntPtr Context;
@@ -40,7 +41,7 @@ namespace XrEngine.Filament
 
             public long Version;
 
-            public Dictionary<EngineObject, uint>? Objects;
+            public Dictionary<EngineObject, Guid>? Objects;
         }
 
         protected class RenderTargetBind
@@ -207,10 +208,10 @@ namespace XrEngine.Filament
             ReleaseContext(_app, ReleaseContextMode.ReleaseOnExecute);
         }
 
-        protected uint GetOrCreate<T>(T obj, Action<uint> factory) where T : EngineObject
-        {
 
-            if (!_content!.Objects!.ContainsKey(obj))
+        protected Guid GetOrCreate<T>(T obj, Action<Guid> factory) where T : EngineObject
+        {
+            if (!_content!.Objects!.TryGetValue(obj, out var curId))
             {
                 factory(obj.Id);
                 _content!.Objects[obj] = obj.Id;
@@ -287,6 +288,270 @@ namespace XrEngine.Filament
             return result;
         }
 
+        protected void Create(Guid id, SunLight sun)
+        {
+            var info = new LightInfo
+            {
+                Type = FlLightType.Sun,
+                Direction = sun.Direction,
+                Intensity = sun.Intensity,
+                Color = sun.Color,
+                Sun = new FilamentLib.SunLight
+                {
+                    HaloSize = sun.HaloSize,
+                    AngularRadius = sun.SunRadius,
+                    HaloFalloff = sun.HaloFallOff,
+                },
+                CastShadows = sun.CastShadows,
+            };
+            AddLight(_app, id, ref info);
+        }
+
+        protected void Create(Guid id, DirectionalLight dir)
+        {
+            var info = new LightInfo
+            {
+                Type = FlLightType.Directional,
+                Direction = dir.Direction,
+                Intensity = dir.Intensity,
+                Color = dir.Color,
+                CastShadows = dir.CastShadows,
+            };
+            AddLight(_app, id, ref info);
+        }
+
+        protected void Create(Guid id, ImageLight img)
+        {
+            var info = new ImageLightInfo
+            {
+                Intensity = img.Intensity,
+                Rotation = img.Rotation,
+                ShowSkybox = true,
+                Texture = AllocateTexture(img.Panorama)
+            };
+
+
+            AddImageLight(_app, ref info);
+
+            img.Changed += (s, e) =>
+            {
+                info = new ImageLightInfo
+                {
+                    Intensity = img.Intensity,
+                    Rotation = img.Rotation,
+                    ShowSkybox = true,
+                };
+                UpdateImageLight(_app, ref info);
+            };
+        }
+
+        protected void Create(Guid id, Group3D group)
+        {
+            AddGroup(_app, id);
+            if (group.Parent is not Scene3D)
+                SetObjParent(_app, id, group.Parent!.Id);
+        }
+
+        protected unsafe void Create(Guid id, Geometry3D geo)
+        {
+            var attributes = new List<VertexAttribute>();
+
+            if ((geo.ActiveComponents & VertexComponent.Position) != 0)
+                attributes.Add(new VertexAttribute
+                {
+                    Offset = 0,
+                    Size = 12,
+                    Type = VertexAttributeType.Position
+                });
+
+
+            if ((geo.ActiveComponents & VertexComponent.Normal) != 0)
+                attributes.Add(new VertexAttribute
+                {
+                    Offset = 12,
+                    Size = 12,
+                    Type = VertexAttributeType.Normal
+                });
+
+            if ((geo.ActiveComponents & VertexComponent.UV0) != 0)
+                attributes.Add(new VertexAttribute
+                {
+                    Offset = 24,
+                    Size = 8,
+                    Type = VertexAttributeType.UV0
+                });
+
+
+            if ((geo.ActiveComponents & VertexComponent.Tangent) != 0)
+                attributes.Add(new VertexAttribute
+                {
+                    Offset = 32,
+                    Size = 16,
+                    Type = VertexAttributeType.Tangent
+                });
+
+            var attributesArray = attributes.ToArray();
+
+            fixed (VertexAttribute* pAttr = attributesArray)
+            {
+                var layout = new VertexLayout
+                {
+                    SizeByte = (uint)Marshal.SizeOf<VertexData>(),
+                    AttributeCount = (uint)attributes.Count,
+                    Attributes = pAttr
+                };
+
+                fixed (uint* pIndex = geo.Indices)
+                fixed (VertexData* pVert = geo.Vertices)
+                {
+                    var geoInfo = new GeometryInfo
+                    {
+                        layout = layout,
+                        Bounds = geo.Bounds,
+                        Vertices = (byte*)pVert,
+                        VerticesCount = geo.Vertices!.Length,
+                        Indices = pIndex,
+                        IndicesCount = pIndex == null ? 0 : geo.Indices!.Length
+                    };
+
+                    AddGeometry(_app, id, ref geoInfo);
+                }
+            }
+        }
+
+        protected void Create(Guid id, Material mat)
+        {
+   
+            MaterialInfo UpdateMatInfo()
+            {
+                if (mat is PbrMaterial pbr)
+                {
+                    return new MaterialInfo
+                    {
+                        NormalMap = AllocateTexture(pbr.NormalTexture),
+                        Color = pbr.MetallicRoughness?.BaseColorFactor ?? Color.White,
+                        BaseColorMap = AllocateTexture(pbr.MetallicRoughness?.BaseColorTexture),
+                        MetallicRoughnessMap = AllocateTexture(pbr.MetallicRoughness?.MetallicRoughnessTexture),
+                        AoMap = AllocateTexture(pbr.OcclusionTexture),
+                        MetallicFactor = pbr.MetallicRoughness?.MetallicFactor ?? 1,
+                        RoughnessFactor = pbr.MetallicRoughness?.RoughnessFactor ?? 1,
+                        NormalScale = pbr.NormalScale,
+                        AoStrength = pbr.OcclusionStrength,
+                        Blending = pbr.Alpha switch
+                        {
+                            AlphaMode.Opaque => FlBlendingMode.OPAQUE,
+                            AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
+                            AlphaMode.Mask => FlBlendingMode.MASKED,
+                            _ => throw new NotSupportedException()
+                        },
+                        EmissiveFactor = pbr.EmissiveFactor,
+                        EmissiveMap = AllocateTexture(pbr.EmissiveTexture),
+                        EmissiveStrength = 1,
+                        MultiBounceAO = true,
+                        SpecularAntiAliasing = true,
+                        ScreenSpaceReflection = true,
+                        AlphaCutoff = pbr.AlphaCutoff,
+                        DoubleSided = pbr.DoubleSided,
+                        SpecularAO = FlSpecularAO.Simple,
+                        Reflectance = 0.5f,
+                        IsLit = true,
+                        WriteDepth = pbr.WriteDepth,
+                        WriteColor = pbr.WriteColor,
+                        UseDepth = pbr.UseDepth
+                    };
+                }
+
+                if (mat is ColorMaterial color)
+                {
+                    var matColor = color.Color;
+                    if (color.IsShadowOnly)
+                        matColor.A = color.ShadowIntensity;
+
+                    return new MaterialInfo
+                    {
+                        Color = matColor,
+                        Blending = color.IsShadowOnly || matColor.A < 1.0f ? FlBlendingMode.TRANSPARENT : FlBlendingMode.OPAQUE,
+                        DoubleSided = color.DoubleSided,
+                        IsLit = false,
+                        WriteDepth = color.WriteDepth,
+                        WriteColor = color.WriteColor,
+                        UseDepth = color.UseDepth,
+                        IsShadowOnly = color.IsShadowOnly
+                    };
+                }
+
+                throw new NotSupportedException();
+            }
+
+            var matInfo = UpdateMatInfo();
+            AddMaterial(_app, mat.Id, ref matInfo);
+
+            mat.Changed += (s, c) =>
+            {
+                matInfo = UpdateMatInfo();
+                UpdateMaterial(_app, mat.Id, ref matInfo);
+            };
+        }
+
+        protected void Create(Guid id, TriangleMesh mesh)
+        {
+            var geoId = GetOrCreate(mesh.Geometry!, geoId => Create(geoId, mesh.Geometry!));
+
+            var matId = GetOrCreate(mesh.Materials[0], matId => Create(matId, mesh.Materials[0]));
+
+            var meshInfo = new MeshInfo
+            {
+                Culling = true,
+                Fog = false,
+                GeometryId = geoId,
+                MaterialId = matId,
+                ReceiveShadows = true,
+            };
+
+            if (mesh.Materials[0] is PbrMaterial pbr)
+                meshInfo.CastShadows = pbr.CastShadows;
+
+            AddMesh(_app, id, ref meshInfo);
+
+            if (mesh.Parent is not Scene3D)
+                SetObjParent(_app, id, mesh.Parent!.Id);
+        }
+
+        protected void Create(Guid id, Object3D obj)
+        {
+            if (obj is SunLight sun)
+            {
+                Create(id, sun);
+            }
+            else if (obj is DirectionalLight dir)
+            {
+                Create(id, dir);
+            }
+            else if (obj is ImageLight img && img.Panorama != null)
+            {
+                Create(id, img);
+            }
+            else if (obj is Group3D group)
+            {
+                Create(id, group);
+            }
+            else if (obj is Object3DInstance instance)
+            {
+                if (instance.Reference == null)
+                    return;
+                GetOrCreate(instance, id => Create(obj.Id, instance.Reference));
+            }
+            else if (obj is TriangleMesh mesh)
+            {
+                if (mesh.Materials.Count == 0 || mesh.Geometry == null || (
+                    mesh.Materials[0] is not PbrMaterial && mesh.Materials[0] is not ColorMaterial))
+                    return;
+
+                Create(id, mesh);
+            }
+        }
+
+
         protected unsafe void BuildContent(Scene3D scene)
         {
             if (_content == null)
@@ -303,250 +568,7 @@ namespace XrEngine.Filament
             {
                 if (!obj.IsVisible)
                     continue;
-
-                if (obj is SunLight sun)
-                {
-                    GetOrCreate(sun, id =>
-                    {
-                        var info = new LightInfo
-                        {
-                            Type = FlLightType.Sun,
-                            Direction = sun.Direction,
-                            Intensity = sun.Intensity,
-                            Color = sun.Color,
-                            Sun = new FilamentLib.SunLight
-                            {
-                                HaloSize = sun.HaloSize,
-                                AngularRadius = sun.SunRadius,
-                                HaloFalloff = sun.HaloFallOff,
-                            },
-                            CastShadows = sun.CastShadows,
-                        };
-                        AddLight(_app, id, ref info);
-                    });
-                }
-                else if (obj is DirectionalLight dir)
-                {
-                    GetOrCreate(dir, id =>
-                    {
-                        var info = new LightInfo
-                        {
-                            Type = FlLightType.Directional,
-                            Direction = dir.Direction,
-                            Intensity = dir.Intensity,
-                            Color = dir.Color,
-                            CastShadows = dir.CastShadows,
-                        };
-                        AddLight(_app, id, ref info);
-                    });
-                }
-                else if (obj is ImageLight img && img.Panorama != null)
-                {
-                    GetOrCreate(img, id =>
-                    {
-                        var info = new ImageLightInfo
-                        {
-                            Intensity = img.Intensity,
-                            Rotation = img.Rotation,
-                            ShowSkybox = false,
-                            Texture = AllocateTexture(img.Panorama)
-                        };
-
-
-                        AddImageLight(_app, ref info);
-
-                        img.Changed += (s, e) =>
-                        {
-                            info = new ImageLightInfo
-                            {
-                                Intensity = img.Intensity,
-                                Rotation = img.Rotation,
-                                ShowSkybox = true,
-                            };
-                            UpdateImageLight(_app, ref info);
-                        };
-                    });
-                }
-                else if (obj is Group3D group)
-                {
-                    GetOrCreate(group, groupId =>
-                    {
-                        AddGroup(_app, groupId);
-                        if (group.Parent is not Scene3D)
-                            SetObjParent(_app, groupId, group.Parent!.Id);
-                    });
-                }
-                else if (obj is TriangleMesh mesh)
-                {
-                    if (mesh.Materials.Count == 0 || mesh.Geometry == null || (
-                        mesh.Materials[0] is not PbrMaterial && mesh.Materials[0] is not ColorMaterial))
-                        continue;
-
-                    GetOrCreate(mesh, meshId =>
-                    {
-                        var geoId = GetOrCreate(mesh.Geometry!, geoId =>
-                        {
-                            var geo = mesh.Geometry;
-
-                            var attributes = new List<VertexAttribute>();
-
-                            if ((geo.ActiveComponents & VertexComponent.Position) != 0)
-                                attributes.Add(new VertexAttribute
-                                {
-                                    Offset = 0,
-                                    Size = 12,
-                                    Type = VertexAttributeType.Position
-                                });
-
-
-                            if ((geo.ActiveComponents & VertexComponent.Normal) != 0)
-                                attributes.Add(new VertexAttribute
-                                {
-                                    Offset = 12,
-                                    Size = 12,
-                                    Type = VertexAttributeType.Normal
-                                });
-
-                            if ((geo.ActiveComponents & VertexComponent.UV0) != 0)
-                                attributes.Add(new VertexAttribute
-                                {
-                                    Offset = 24,
-                                    Size = 8,
-                                    Type = VertexAttributeType.UV0
-                                });
-
-
-                            if ((geo.ActiveComponents & VertexComponent.Tangent) != 0)
-                                attributes.Add(new VertexAttribute
-                                {
-                                    Offset = 32,
-                                    Size = 16,
-                                    Type = VertexAttributeType.Tangent
-                                });
-
-                            var attributesArray = attributes.ToArray();
-
-                            fixed (VertexAttribute* pAttr = attributesArray)
-                            {
-                                var layout = new VertexLayout
-                                {
-                                    SizeByte = (uint)Marshal.SizeOf<VertexData>(),
-                                    AttributeCount = (uint)attributes.Count,
-                                    Attributes = pAttr
-                                };
-
-                                fixed (uint* pIndex = geo.Indices)
-                                fixed (VertexData* pVert = geo.Vertices)
-                                {
-                                    var geoInfo = new GeometryInfo
-                                    {
-                                        layout = layout,
-                                        Bounds = geo.Bounds,
-                                        Vertices = (byte*)pVert,
-                                        VerticesCount = geo.Vertices!.Length,
-                                        Indices = pIndex,
-                                        IndicesCount = pIndex == null ? 0 : geo.Indices!.Length
-                                    };
-
-                                    AddGeometry(_app, geoId, ref geoInfo);
-                                }
-                            }
-                        });
-
-
-                        var matId = GetOrCreate(mesh.Materials[0], matId =>
-                        {
-                            var mat = mesh.Materials[0];
-
-                            MaterialInfo UpdateMatInfo()
-                            {
-                                if (mat is PbrMaterial pbr)
-                                {
-                                    return new MaterialInfo
-                                    {
-                                        NormalMap = AllocateTexture(pbr.NormalTexture),
-                                        Color = pbr.MetallicRoughness?.BaseColorFactor ?? Color.White,
-                                        BaseColorMap = AllocateTexture(pbr.MetallicRoughness?.BaseColorTexture),
-                                        MetallicRoughnessMap = AllocateTexture(pbr.MetallicRoughness?.MetallicRoughnessTexture),
-                                        AoMap = AllocateTexture(pbr.OcclusionTexture),
-                                        MetallicFactor = pbr.MetallicRoughness?.MetallicFactor ?? 1,
-                                        RoughnessFactor = pbr.MetallicRoughness?.RoughnessFactor ?? 1,
-                                        NormalScale = pbr.NormalScale,
-                                        AoStrength = pbr.OcclusionStrength,
-                                        Blending = pbr.Alpha switch
-                                        {
-                                            AlphaMode.Opaque => FlBlendingMode.OPAQUE,
-                                            AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
-                                            AlphaMode.Mask => FlBlendingMode.MASKED,
-                                            _ => throw new NotSupportedException()
-                                        },
-                                        EmissiveFactor = pbr.EmissiveFactor,
-                                        EmissiveMap = AllocateTexture(pbr.EmissiveTexture),
-                                        EmissiveStrength = 1,
-                                        MultiBounceAO = true,
-                                        SpecularAntiAliasing = true,
-                                        ScreenSpaceReflection = true,
-                                        AlphaCutoff = pbr.AlphaCutoff,
-                                        DoubleSided = pbr.DoubleSided,
-                                        SpecularAO = FlSpecularAO.Simple,
-                                        Reflectance = 0.5f,
-                                        IsLit = true,
-                                        WriteDepth = pbr.WriteDepth,
-                                        WriteColor = pbr.WriteColor,
-                                        UseDepth = pbr.UseDepth
-                                    };
-                                }
-
-                                if (mat is ColorMaterial color)
-                                {
-                                    var matColor = color.Color;
-                                    if (color.IsShadowOnly)
-                                        matColor.A = color.ShadowIntensity;
-
-                                    return new MaterialInfo
-                                    {
-                                        Color = matColor,
-                                        Blending = color.IsShadowOnly || matColor.A < 1.0f ? FlBlendingMode.TRANSPARENT : FlBlendingMode.OPAQUE,
-                                        DoubleSided = color.DoubleSided,
-                                        IsLit = false,
-                                        WriteDepth = color.WriteDepth,
-                                        WriteColor = color.WriteColor,
-                                        UseDepth = color.UseDepth,
-                                        IsShadowOnly = color.IsShadowOnly
-                                    };
-                                }
-
-                                throw new NotSupportedException();
-                            }
-
-                            var matInfo = UpdateMatInfo();
-                            AddMaterial(_app, mat.Id, ref matInfo);
-
-                            mat.Changed += (s, c) =>
-                            {
-                                matInfo = UpdateMatInfo();
-                                UpdateMaterial(_app, mat.Id, ref matInfo);
-                            };
-                        });
-
-                        var meshInfo = new MeshInfo
-                        {
-                            Culling = true,
-                            Fog = false,
-                            GeometryId = geoId,
-                            MaterialId = matId,
-                            ReceiveShadows = true,
-                        };
-
-                        if (mesh.Materials[0] is PbrMaterial pbr)
-                            meshInfo.CastShadows = pbr.CastShadows;
-
-                        AddMesh(_app, meshId, ref meshInfo);
-
-                        if (mesh.Parent is not Scene3D)
-                            SetObjParent(_app, meshId, mesh.Parent!.Id);
-                    });
-                }
+                GetOrCreate(obj, id => Create(id, obj));
             }
         }
 
@@ -593,7 +615,7 @@ namespace XrEngine.Filament
             render[0].ViewId = _activeRenderTarget.ViewId;
             render[0].Viewport = viewport;
 
-            foreach (var mesh in _content!.Objects!.Where(a => a.Key is TriangleMesh))
+            foreach (var mesh in _content!.Objects!.Where(a => a.Key is TriangleMesh || a.Key is Object3DInstance))
             {
                 SetObjVisible(_app, mesh.Value, ((Object3D)mesh.Key).IsVisible);
                 SetObjTransform(_app, mesh.Value, ((Object3D)mesh.Key).WorldMatrix);

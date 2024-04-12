@@ -4,18 +4,16 @@ namespace XrEngine
 {
     public struct ObjectId : IEquatable<ObjectId>
     {
-        static uint _lastId = 1;
-
 
         public static ObjectId New()
         {
-            return new ObjectId() { Value = _lastId++ };
+            return new ObjectId() { Value = Guid.NewGuid() };
         }
 
 
         public override readonly int GetHashCode()
         {
-            return (int)Value;
+            return Value.GetHashCode();
         }
 
         public readonly bool Equals(ObjectId other)
@@ -30,7 +28,7 @@ namespace XrEngine
             return false;
         }
 
-        public static implicit operator uint(ObjectId obj)
+        public static implicit operator Guid(ObjectId obj)
         {
             return obj.Value;
         }
@@ -51,6 +49,6 @@ namespace XrEngine
             return left.Value != right.Value;
         }
 
-        public uint Value;
+        public Guid Value;
     }
 }

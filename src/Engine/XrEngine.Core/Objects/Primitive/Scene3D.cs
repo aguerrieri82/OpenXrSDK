@@ -25,12 +25,14 @@ namespace XrEngine
             this.AddLayer<TypeLayer<Object3D>>();
         }
 
-        public override void Update(RenderContext ctx)
+        public void DrawGizmos()
         {
             _gizmos.Clear();
-            base.Update(ctx);
+            foreach (var draw in this.DescendantsOrSelfComponents<IDrawGizmos>())
+                draw.DrawGizmos(_gizmos);
             _gizmos.Flush();
         }
+
 
         internal void Attach(EngineApp app)
         {

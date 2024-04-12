@@ -4,6 +4,6 @@
     {
         bool CanHandle(Type type);
 
-        IPropertyEditor CreateEditor(Type type);
+        IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes);
     }
 }
