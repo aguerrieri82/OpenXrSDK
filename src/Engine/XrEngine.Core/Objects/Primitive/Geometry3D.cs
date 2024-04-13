@@ -73,10 +73,11 @@ namespace XrEngine
             Version++;
         }
 
-        public void Clear()
+        public void FreeBuffers()
         {
+            UpdateBounds();
             Indices = [];
-
+            Vertices = [];
         }
 
         public void Rebuild()

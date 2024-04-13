@@ -47,6 +47,7 @@ namespace XrEngine
 
         public static SKBitmap ChangeColorSpace(SKBitmap src, SKColorType dest)
         {
+
             //do always for  SKAlphaType.Unpremul
             /*
             if (src.ColorType == dest)
@@ -67,8 +68,6 @@ namespace XrEngine
             canvas.DrawBitmap(src, 0, 0, paint);
 
             src.Dispose();
-
-
 
             return newBitmap;
         }

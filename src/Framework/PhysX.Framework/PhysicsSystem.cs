@@ -66,8 +66,6 @@ namespace PhysX.Framework
         protected PxDefaultCpuDispatcher* _dispatcher;
         protected PhysicsScene? _scene;
 
-        protected ILogger? _logger;
-
         protected uint _actorIds;
         protected Dictionary<uint, PhysicsActor> _actors = [];
         protected Dictionary<nint, object> _objects = [];
@@ -409,8 +407,6 @@ namespace PhysX.Framework
             if (_foundation == null)
                 _foundation = physx_create_foundation();
 
-            _logger = options.Logger;
-
             if (options.DebugHost != null && options.UseDebug)
             {
                 _pvd = _foundation->PhysPxCreatePvd();
@@ -418,7 +414,10 @@ namespace PhysX.Framework
                 fixed (byte* bytePointer = Encoding.UTF8.GetBytes(options.DebugHost))
                 {
                     var transport = phys_PxDefaultPvdSocketTransportCreate(bytePointer, options.DebugPort, 10000);
-                    _pvd->ConnectMut(transport, PxPvdInstrumentationFlags.All);
+                    Task.Run(() =>
+                    {
+                        _pvd->ConnectMut(transport, PxPvdInstrumentationFlags.All);
+                    }); 
                 }
             }
             else
@@ -469,7 +468,6 @@ namespace PhysX.Framework
                 curTime += stepSizeSecs;
             }
         }
-
 
         public void Dispose()
         {

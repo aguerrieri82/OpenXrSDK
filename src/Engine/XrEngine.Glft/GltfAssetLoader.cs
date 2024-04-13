@@ -58,8 +58,12 @@ namespace XrEngine.Gltf
                     Loader = new GltfLoader()
                 };
                 cache.Loader.LoadModel(src, assetManager, (GltfLoaderOptions?)options);
-                _cache[fsSrc] = cache;
+
+                if (UseCache)
+                    _cache[fsSrc] = cache;
             }
+
+            EngineObject result;
 
             if (uri.Scheme == "res")
             {
@@ -69,18 +73,26 @@ namespace XrEngine.Gltf
                 {
                     case "texture":
                         var texId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        return cache.Loader!.ProcessTexture(cache.Loader.Model!.Textures[texId], texId, (Texture2D?)destObj ?? new());
+                        result = cache.Loader!.ProcessTexture(cache.Loader.Model!.Textures[texId], texId, (Texture2D?)destObj ?? new());
+                        break;
                     case "geo":
                         var meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
                         var pIndex = int.Parse(uri.Segments[3].TrimEnd('/'));
                         var mesh = cache.Loader!.Model!.Meshes[meshId];
-                        return cache.Loader!.ProcessPrimitive(mesh.Primitives[pIndex], (Geometry3D?)destObj ?? new());
+                        result = cache.Loader!.ProcessPrimitive(mesh.Primitives[pIndex], (Geometry3D?)destObj ?? new());
+                        break;
                     default:
                         throw new NotSupportedException();
                 }
             }
 
-            return cache.Loader!.LoadScene();
+            result = cache.Loader!.LoadScene();
+
+            cache.Loader!.ExecuteLoadTasks();
+
+            return result;
         }
+
+        public bool UseCache { get; set; }  
     }
 }

@@ -13,8 +13,6 @@
 
 		<AndroidNativeLibrary Include="..\Draco.Native\libs\arm64-v8a\libdraco-native.so" Abi="arm64-v8a" />
 		
-		
-
 	</ItemGroup>
 
 	

@@ -8,12 +8,12 @@ namespace XrEngine
 {
     public static class Log
     {
-        public static void Info(object source, string message, params object[] args)
+        public static void Info(object source, string message, params object?[] args)
         {
            Logger.LogMessage(string.Format(message, args), LogLevel.Info);
         }
 
-        public static void Debug(object source, string message, params object[] args)
+        public static void Debug(object source, string message, params object?[] args)
         {
             Logger.LogMessage(string.Format(message, args), LogLevel.Debug);
         }

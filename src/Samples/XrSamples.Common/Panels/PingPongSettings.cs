@@ -114,9 +114,8 @@ namespace XrSamples
             if (_filePath != null)
             {
                 Save();
-                XrPlatform.Current!.Logger.LogInformation("Settings SAVED");
+                Log.Info(this, "Settings SAVED");
             }
-
         }
 
         public MaterialSettings BallMaterial { get; set; }
@@ -233,7 +232,7 @@ namespace XrSamples
                 .AddButton("Apply", () => settings.Apply(scene), s => s.Padding(8, 16).BackgroundColor("#1565C0"))
             .EndChild();
 
-            XrPlatform.Current!.Logger = new TextBlockLogger(logger!, 25);
+            //XrPlatform.Current!.Logger = new TextBlockLogger(logger!, 25);
         }
 
     }

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+﻿
 using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
@@ -18,7 +18,6 @@ namespace XrEditor
         {
             AssetManager = new LocalAssetManager("Assets");
             AssetLoader.Instance.AssetManager = AssetManager;
-            Logger = NullLogger.Instance;
         }
 
         public IRenderSurface CreateRenderSurface(GraphicDriver driver)
@@ -52,8 +51,6 @@ namespace XrEditor
         public IRenderSurface RenderSurface => _renderSurface!;
 
         public IAssetManager AssetManager { get; }
-
-        public ILogger Logger { get; set; }
 
         public string PersistentPath => Path.GetFullPath("Data");
     }

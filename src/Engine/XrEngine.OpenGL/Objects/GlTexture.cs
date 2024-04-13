@@ -113,7 +113,6 @@ namespace XrEngine.OpenGL
         {
             var result = new List<TextureData>();
 
-
             void ReadTarget(TextureTarget target, uint mipLevel, uint face = 0)
             {
 
@@ -348,7 +347,7 @@ namespace XrEngine.OpenGL
                     }
                     else
                     {
-
+      
                         _gl.TexStorage2D(Target,
                                   MaxLevel + 1,
                                   (SizedInternalFormat)_internalFormat,

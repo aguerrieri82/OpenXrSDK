@@ -182,7 +182,7 @@ namespace XrEngine.OpenGL
                         options.Resolution = 256;
                         options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
                         imgLight.Textures = ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
-
+                        imgLight.Panorama.NotifyLoaded();
                         content.ImageLightVersion = imgLight.Panorama.Version;
                         ResetState();
                     }
@@ -241,7 +241,7 @@ namespace XrEngine.OpenGL
             //_content.ShaderContentsOrder.Clear();
             //_content.ShaderContentsOrder.AddRange(_content.ShaderContents);
 
-            Log.Info(this, "Content Build");
+            Log.Debug(this, "Content Build");
 
             return content;
         }

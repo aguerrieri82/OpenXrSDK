@@ -4,49 +4,48 @@
                      xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <Style x:Key="Rotate90" TargetType="FrameworkElement">
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <RotateTransform CenterX="6" CenterY="6" Angle="-90" />
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <DataTemplate x:Key="InnerGroupHeader" DataType="local:PropertiesGroupView">
-        <Border Padding="0,4,0,4" Margin="0,0,0,8">
+        <Border Padding="0,4,0,4" Margin="6,0,0,8">
             <StackPanel Orientation="Horizontal">
                 <Button VerticalAlignment="Center" Command="{Binding ToggleCollapseCommand}" Margin="0,0,5,0" Style="{StaticResource IconButton}" >
-                    <ic:Icon x:Name="collapseIcon" Filled="True" Color="#666" Size="12" Kind="icon_arrow_drop_down">
-                        <ic:Icon.RenderTransform>
-                            <RotateTransform CenterX="6" CenterY="6" />
-                        </ic:Icon.RenderTransform>
-                    </ic:Icon>
+                    <ic:Icon x:Name="collapseIcon" Filled="True" Color="#666" Size="12" Kind="icon_arrow_drop_down"/>
                 </Button>
                 <ContentControl VerticalAlignment="Center" FontWeight="Bold" Content="{Binding Header}"/>
             </StackPanel>
         </Border>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsCollapsed}" Value="True">
+                <Setter TargetName="collapseIcon" Property="Style" Value="{StaticResource Rotate90}"/>
+            </DataTrigger>
+        </DataTemplate.Triggers>
     </DataTemplate>
 
     <DataTemplate x:Key="MainGroupHeader" DataType="local:PropertiesGroupView">
         <Border BorderThickness="0,1,0,1" Padding="4" BorderBrush="#222" Background="#444">
             <DockPanel>
                 <Button Command="{Binding ToggleCollapseCommand}" Margin="0,0,5,0" Style="{StaticResource IconButton}" DockPanel.Dock="Left">
-                    <ic:Icon x:Name="collapseIcon" Filled="True" Color="#666" Size="12" Kind="icon_arrow_drop_down">
-                        <ic:Icon.RenderTransform>
-                            <RotateTransform CenterX="6" CenterY="6" />
-                        </ic:Icon.RenderTransform>
-                    </ic:Icon>
+                    <ic:Icon x:Name="collapseIcon" Filled="True" Color="#666" Size="12" Kind="icon_arrow_drop_down"/>
                 </Button>
                 <ContentPresenter Content="{Binding Header}"/>
             </DockPanel>
         </Border>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsCollapsed}" Value="True">
+                <Setter TargetName="collapseIcon" Property="Style" Value="{StaticResource Rotate90}"/>
+            </DataTrigger>
+        </DataTemplate.Triggers>
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type local:PropertiesGroupView}">
-        <StackPanel x:Name="groupView" Orientation="Vertical">
-
-            <i:Interaction.Triggers>
-                <i:DataTrigger Binding="{Binding IsCollapsed}" Comparison="Equal" Value="True">
-                    <i:GoToStateAction TargetObject="{Binding groupView}" StateName="Collapsed"/>
-                </i:DataTrigger>
-                <i:DataTrigger Binding="{Binding IsCollapsed}" Comparison="Equal" Value="False">
-                    <i:GoToStateAction TargetObject="{Binding groupView}" StateName="Normal"/>
-                </i:DataTrigger>
-            </i:Interaction.Triggers>
-
+        <StackPanel Orientation="Vertical">
             <ContentPresenter x:Name="header"/>
 
             <StackPanel x:Name="content" Orientation="Vertical">
@@ -61,40 +60,12 @@
                 </Border>
                 <ItemsControl ItemsSource="{Binding Groups}"/>
             </StackPanel>
-
-
-            <VisualStateManager.VisualStateGroups>
-                <VisualStateGroup x:Name="Main">
-                    <VisualState x:Name="Normal"/>
-                    <VisualState x:Name="Collapsed">
-                        <Storyboard>
-                            <DoubleAnimation
-                              Storyboard.TargetName="collapseIcon"
-                              Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
-                               To="-90" Duration="0:0:0.200" />
-                            <DoubleAnimation
-                              Storyboard.TargetName="content"
-                              Storyboard.TargetProperty="Opacity"
-                              From="1.0" To="0" Duration="0:0:0.200" />
-                            <DoubleAnimation
-                               Storyboard.TargetName="content"
-                               Storyboard.TargetProperty="(FrameworkElement.Height)"
-                               From="100" To="0" Duration="0:0:0.200" />
-                            <ObjectAnimationUsingKeyFrames 
-                               Storyboard.TargetName="content"
-                               Storyboard.TargetProperty="Visibility"
-                              Duration="0:0:0.200" >
-                                <DiscreteObjectKeyFrame Value="{x:Static Visibility.Hidden}"/>
-                            </ObjectAnimationUsingKeyFrames>
-                        </Storyboard>
-                    </VisualState>
-                </VisualStateGroup>
-            </VisualStateManager.VisualStateGroups>
-
-
         </StackPanel>
 
         <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsCollapsed}" Value="True">
+                <Setter TargetName="content" Property="Visibility" Value="Collapsed"/>
+            </DataTrigger>
             <DataTrigger Binding="{Binding GroupType}" Value="Main">
                 <Setter TargetName="header" Property="ContentTemplate" Value="{StaticResource MainGroupHeader}"/>
                 <Setter TargetName="header" Property="Content" Value="{Binding}"/>

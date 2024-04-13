@@ -8,6 +8,11 @@ namespace XrEngine
         {
         }
 
+        public void Initialize()
+        {
+
+        }
+
         public Collision? CollideWith(Ray3 ray)
         {
             //TODO implement
@@ -25,7 +30,6 @@ namespace XrEngine
             base.GetState(container);
             container.Write(nameof(Radius), Radius);
         }
-
 
         public float Radius { get; set; }
     }

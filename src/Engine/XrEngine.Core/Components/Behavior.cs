@@ -35,6 +35,7 @@
 
             if (_startTime == -1)
             {
+                Log.Debug(this, "Starting component {0}", GetType().Name); 
                 Start(ctx);
                 _startTime = ctx.Time;
                 Started?.Invoke(this, EventArgs.Empty);
