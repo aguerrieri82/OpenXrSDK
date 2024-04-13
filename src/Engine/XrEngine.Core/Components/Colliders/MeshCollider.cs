@@ -19,7 +19,7 @@ namespace XrEngine
             _geometry = geometry;
         }
 
-        protected override void Start(RenderContext ctx)
+        public void Initialize()
         {
             if (_geometry == null)
             {
@@ -52,6 +52,8 @@ namespace XrEngine
 
         public Collision? CollideWith(Ray3 ray)
         {
+            Initialize();
+
             if (_geometry == null)
                 return null;
 

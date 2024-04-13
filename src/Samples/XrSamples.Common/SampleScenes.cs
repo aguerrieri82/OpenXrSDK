@@ -252,7 +252,7 @@ namespace XrSamples
 
             return builder
                    .UseApp(app)
-                   .UseScene(true)
+                   .UseSceneModel(true)
                    .ConfigureSampleApp()
                    .UseEnvironmentHDR("Envs/lightroom_14b.hdr", false)
                    .UsePhysics(new PhysicsOptions

@@ -16,6 +16,12 @@ namespace XrEngine.OpenXr
             Flags |= EngineObjectFlags.ChildGenerated;
 
             Name = "XrRoot";
+
+            RightController = AddController("/user/hand/right/input/aim/pose", "Right Hand", "Models/MetaQuestTouchPlus_Right.glb");
+
+            LeftController = AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/MetaQuestTouchPlus_Left.glb");
+
+            Head = AddHead();
         }
 
         protected override void Start(RenderContext ctx)
@@ -24,12 +30,6 @@ namespace XrEngine.OpenXr
                 throw new InvalidOperationException();
 
             _xrApp = XrApp.Current;
-
-            RightController = AddController("/user/hand/right/input/aim/pose", "Right Hand", "Models/MetaQuestTouchPlus_Right.glb");
-
-            LeftController = AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/MetaQuestTouchPlus_Left.glb");
-
-            Head = AddHead();
 
             base.Start(ctx);
         }
@@ -64,56 +64,51 @@ namespace XrEngine.OpenXr
 
         protected Group3D AddController(string path, string name, string modelFileName)
         {
-            var input = _xrApp!.Inputs.Values.FirstOrDefault(a => a.Path == path);
-
             var group = new Group3D
             {
                 Name = name
             };
 
-            if (input != null)
+            Object3D? model = null;
+
+            group.AddBehavior((_, ctx) =>
             {
-                Object3D? model = null;
+                var input = _xrApp?.Inputs.Values.FirstOrDefault(a => a.Path == path);
 
-                group.AddBehavior((_, ctx) =>
+                if (input == null)
+                    return;
+
+                if (input.IsChanged && input.IsActive)
                 {
-                    input = _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path)!;
-
-                    if (input.IsChanged && input.IsActive)
-                    {
-                        var pose = (Pose3)input.Value;
-                        group.Transform.Position = pose.Position;
-                        group.Transform.Orientation = pose.Orientation;
-                    }
-
-                    if (model != null)
-                        model.IsVisible = input.IsActive;
-                });
-
-
-                var assets = XrPlatform.Current!.AssetManager!;
-
-                var fullPath = assets.GetFsPath(modelFileName);
-
-                if (File.Exists(fullPath))
-                {
-                    model = GltfLoader.LoadFile(fullPath, assets);
-                    model.Transform.SetMatrix(Matrix4x4.Identity);
-                    model.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
-                    model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
-                    model.Name = "Controller";
-
-
-                    group.AddChild(model);
+                    var pose = (Pose3)input.Value;
+                    group.Transform.Position = pose.Position;
+                    group.Transform.Orientation = pose.Orientation;
                 }
 
-                AddChild(group);
+                if (model != null)
+                    model.IsVisible = input.IsActive;
+            });
+
+
+            var assets = XrPlatform.Current!.AssetManager!;
+
+            var fullPath = assets.GetFsPath(modelFileName);
+
+            if (File.Exists(fullPath))
+            {
+                model = GltfLoader.LoadFile(fullPath, assets);
+                model.Transform.SetMatrix(Matrix4x4.Identity);
+                model.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
+                model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
+                model.Name = "Controller";
+
+                group.AddChild(model);
             }
+
+            AddChild(group);
 
             return group;
         }
-
-
 
         public Group3D? Head { get; protected set; }
 

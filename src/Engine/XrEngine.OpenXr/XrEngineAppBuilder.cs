@@ -11,9 +11,9 @@ namespace XrEngine.OpenXr
     {
         readonly XrEngineAppOptions _options = new();
         readonly List<Action<XrEngineApp>> _configurations = [];
-        EngineApp? _app;
         readonly List<Action<IXrActionBuilder>> _inputs = [];
         Type? _inputProfile;
+        EngineApp? _app;
         IXrEnginePlatform? _platform;
 
         public XrEngineAppBuilder()
@@ -32,10 +32,6 @@ namespace XrEngine.OpenXr
             return this;
         }
 
-        public XrEngineAppBuilder UsePlatform<T>() where T : IXrEnginePlatform, new()
-        {
-            return UsePlatform(new T());
-        }
 
         public XrEngineAppBuilder ConfigureApp(Action<XrEngineApp> configure)
         {
@@ -43,18 +39,6 @@ namespace XrEngine.OpenXr
             return this;
         }
 
-        public XrEngineAppBuilder Configure(Action<XrEngineAppBuilder> configure)
-        {
-            configure(this);
-            return this;
-        }
-
-        public XrEngineAppBuilder SetRenderQuality(float resolutionScale, uint sampleCount)
-        {
-            _options.ResolutionScale = resolutionScale;
-            _options.SampleCount = sampleCount;
-            return this;
-        }
 
         public XrEngineAppBuilder UseInputs<TProfile>(Action<XrActionsBuilder<TProfile>> builder) where TProfile : new()
         {
@@ -68,10 +52,6 @@ namespace XrEngine.OpenXr
             return this;
         }
 
-        public XrEngineAppBuilder UseInputs<TProfile>() where TProfile : new()
-        {
-            return UseInputs<TProfile>(a => a.AddAll());
-        }
 
         public XrEngineAppBuilder UseApp(EngineApp app)
         {
@@ -79,136 +59,6 @@ namespace XrEngine.OpenXr
             return this;
         }
 
-        public XrEngineAppBuilder UseOpenGL()
-        {
-            _options.Driver = GraphicDriver.OpenGL;
-            return this;
-        }
-
-        public XrEngineAppBuilder UseMultiView()
-        {
-            _options.RenderMode = XrRenderMode.MultiView;
-            return this;
-        }
-
-        public XrEngineAppBuilder UseStereo()
-        {
-            _options.RenderMode = XrRenderMode.Stereo;
-            return this;
-        }
-
-        public XrEngineAppBuilder UseFilamentOpenGL()
-        {
-            _options.Driver = GraphicDriver.FilamentOpenGL;
-            return this;
-        }
-
-        public XrEngineAppBuilder UseFilamentVulkan()
-        {
-            _options.Driver = GraphicDriver.FilamentVulkan;
-            return this;
-        }
-
-        public XrEngineAppBuilder AddPassthrough() => ConfigureApp(e =>
-        {
-            e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer());
-        });
-
-        public XrEngineAppBuilder UseLeftController()
-        {
-            UseInputs<XrOculusTouchController>(bld =>
-
-            bld.AddAction(a => a.Left!.AimPose)
-                .AddAction(a => a.Left!.GripPose)
-                .AddAction(a => a.Left!.SqueezeClick)
-                .AddAction(a => a.Left!.SqueezeValue)
-                .AddAction(a => a.Left!.Button!.XClick)
-                .AddAction(a => a.Left!.Button!.YClick)
-                .AddAction(a => a.Left!.TriggerClick)
-                .AddAction(a => a.Left!.TriggerValue));
-
-            return this;
-        }
-
-        public XrEngineAppBuilder AddRightPointer() => ConfigureApp(e =>
-        {
-            var inputs = e.Inputs as XrOculusTouchController;
-
-            e.App.ActiveScene!.AddComponent(new XrInputPointer
-            {
-                PoseInput = inputs!.Right!.AimPose,
-                RightButton = inputs!.Right!.SqueezeClick!,
-                LeftButton = inputs!.Right!.TriggerClick!,
-            });
-        });
-
-        public XrEngineAppBuilder UseRightController()
-        {
-            UseInputs<XrOculusTouchController>(bld => bld
-                .AddAction(a => a.Right!.AimPose)
-                .AddAction(a => a.Right!.GripPose)
-                .AddAction(a => a.Right!.SqueezeValue)
-                .AddAction(a => a.Right!.SqueezeClick)
-                .AddAction(a => a.Right!.Button!.AClick)
-                .AddAction(a => a.Right!.Button!.BClick)
-                .AddAction(a => a.Right!.TriggerClick)
-                .AddAction(a => a.Right!.TriggerValue));
-
-
-
-            return this;
-        }
-
-        public XrEngineAppBuilder UseRayCollider() => ConfigureApp(e =>
-        {
-            var inputs = e.GetInputs<XrOculusTouchController>();
-
-            var rayCol = e.App!.ActiveScene!.AddComponent(new RayCollider() { InputName = "RightAimPose" });
-        });
-
-
-        public XrEngineAppBuilder UseHands() => ConfigureApp(e =>
-        {
-            e.App.ActiveScene!.AddChild(new OculusHandView() { HandType = HandEXT.RightExt });
-            e.App.ActiveScene!.AddChild(new OculusHandView() { HandType = HandEXT.LeftExt });
-        });
-
-        public XrEngineAppBuilder UseGrabbers() => UseLeftController().
-                                                   UseRightController().
-                                                   ConfigureApp(e =>
-        {
-            var inputs = e.GetInputs<XrOculusTouchController>();
-
-            e.App!.ActiveScene!.AddComponent(new InputObjectGrabber(
-                inputs.Right!.GripPose!,
-                null,
-                inputs.Right!.SqueezeValue!,
-                inputs.Right!.TriggerValue!));
-
-            e.App!.ActiveScene!.AddComponent(new InputObjectGrabber(
-                inputs.Left!.GripPose!,
-                null,
-                inputs.Left!.SqueezeValue!,
-                inputs.Left!.TriggerValue!));
-
-            foreach (var hand in e.App.ActiveScene.Descendants<OculusHandView>())
-                hand.AddComponent(new HandObjectGrabber());
-        });
-
-        public XrEngineAppBuilder UseScene(bool arMode) => ConfigureApp(e =>
-        {
-            var model = new OculusSceneModel();
-            if (arMode)
-                model.Material = new ColorMaterial { Color = Color.Transparent, ShadowIntensity = 0.7f, IsShadowOnly = true };
-
-            e.App.ActiveScene!.AddChild(model);
-
-        });
-
-        public XrEngineAppBuilder UsePhysics(PhysicsOptions options) => ConfigureApp(e =>
-        {
-            e.App.ActiveScene!.AddComponent(new PhysicsManager() { Options = options });
-        });
 
         public XrEngineApp Build()
         {
@@ -252,5 +102,7 @@ namespace XrEngine.OpenXr
 
             return engine;
         }
+
+        public XrEngineAppOptions Options => _options;
     }
 }

@@ -1,12 +1,13 @@
 ﻿
 using Newtonsoft.Json.Linq;
 using SkiaSharp;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using XrMath;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using static XrEngine.Ktx2Reader;
 
 namespace XrEngine.Gltf
 {
@@ -17,13 +18,13 @@ namespace XrEngine.Gltf
         IAssetManager? _assetManager;
         glTFLoader.Schema.Gltf? _model;
         readonly Dictionary<glTFLoader.Schema.Material, PbrMaterial> _mats = [];
-        readonly Dictionary<glTFLoader.Schema.Image, TextureData> _images = [];
+        readonly ConcurrentDictionary<glTFLoader.Schema.Image, TextureData> _images = [];
         readonly Dictionary<glTFLoader.Schema.Mesh, Object3D> _meshes = [];
+        readonly List<Action> _tasks = [];
         readonly Dictionary<int, byte[]> _buffers = [];
         readonly StringBuilder _log = new();
         string? _basePath;
         string? _filePath;
-
         static readonly string[] supportedExt = { "KHR_draco_mesh_compression", "KHR_materials_pbrSpecularGlossiness" };
 
         struct KHR_draco_mesh_compression
@@ -103,18 +104,17 @@ namespace XrEngine.Gltf
             else
                 throw new NotSupportedException();
 
+            //Debug.Assert(image.ColorSpace.IsSrgb && useSrgb);
 
             Log.Info(this, "Loading texture {0} ({1} bytes)", img.Name, data.Length);
 
             using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
 
-            //Debug.Assert(image.ColorSpace.IsSrgb && useSrgb);
-
             result = new TextureData
             {
+                Data = image.GetPixelSpan().ToArray(),
                 Width = (uint)image.Width,
                 Height = (uint)image.Height,
-                Data = image.GetPixelSpan().ToArray(),
                 Format = image.ColorType switch
                 {
                     SKColorType.Srgba8888 => TextureFormat.SRgba32,
@@ -132,16 +132,17 @@ namespace XrEngine.Gltf
 
         public Texture2D ProcessTexture(glTFLoader.Schema.Texture texture, int id, Texture2D? result = null)
         {
-            var imageInfo = _model!.Images[texture.Source!.Value];
-
-            var data = LoadImage(imageInfo);
-
             CheckExtensions(texture.Extensions);
 
-            if (result == null)
-                result = Texture2D.FromData([data]);
-            else
+            var imageInfo = _model!.Images[texture.Source!.Value];
+
+            result ??= new Texture2D();
+
+            _tasks.Add(() =>
+            {
+                var data = LoadImage(imageInfo);
                 result.LoadData([data]);
+            });
 
             result.Flags |= EngineObjectFlags.Readonly;
 
@@ -474,14 +475,17 @@ namespace XrEngine.Gltf
                 Debug.Assert(primitive.Targets == null);
                 CheckExtensions(primitive.Extensions);
 
-                curMesh.Geometry = ProcessPrimitive(primitive, new Geometry3D());
-
-                Log.Info(this, "Loading geometry {0} ({1} bytes)", gltMesh.Name, curMesh.Geometry.Vertices.Length * Marshal.SizeOf<VertexData>());
-
-                curMesh.Geometry.AddComponent(new AssetSource
+                _tasks.Add(() =>
                 {
-                    AssetUri = new Uri($"res://gltf/geo/{id}/{pIndex}?src={_filePath}")
+                    curMesh.Geometry = ProcessPrimitive(primitive, new Geometry3D());
+                    curMesh.Geometry.AddComponent(new AssetSource
+                    {
+                        AssetUri = new Uri($"res://gltf/geo/{id}/{pIndex}?src={_filePath}")
+                    }); 
+                    
+                    Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name, curMesh.Geometry.Vertices.Length * Marshal.SizeOf<VertexData>());
                 });
+
 
                 if (primitive.Material != null)
                 {
@@ -602,7 +606,9 @@ namespace XrEngine.Gltf
         public Object3D Load(string filePath, IAssetManager assetManager, GltfLoaderOptions options)
         {
             LoadModel(filePath, assetManager, options);
-            return LoadScene();
+            var result = LoadScene();
+            ExecuteLoadTasks();
+            return result;
         }
 
         public Object3D LoadScene()
@@ -627,6 +633,11 @@ namespace XrEngine.Gltf
             return curRoot;
         }
 
+        public void ExecuteLoadTasks()
+        {
+            Parallel.ForEach(_tasks, a => a());
+            _tasks.Clear();
+        }
 
         public static Object3D LoadFile(string filePath, IAssetManager assetManager)
         {

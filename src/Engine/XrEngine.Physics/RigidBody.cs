@@ -101,6 +101,8 @@ namespace XrEngine.Physics
                 if (!collider.IsEnabled)
                     return null;
 
+                collider.Initialize();
+
                 var host = (collider.Host as Object3D)!;
 
                 var geo = host.Feature<Geometry3D>();

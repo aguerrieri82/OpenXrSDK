@@ -24,5 +24,7 @@ namespace XrEngine
     public interface ICollider3D : IComponent
     {
         Collision? CollideWith(Ray3 ray);
+
+        void Initialize();
     }
 }

@@ -12,7 +12,7 @@ namespace XrEngine
 
         }
 
-        protected void Init()
+        public void Initialize()
         {
             if (Size.Length() == 0)
             {
@@ -31,7 +31,7 @@ namespace XrEngine
         public Collision? CollideWith(Ray3 ray)
         {
             if (!_isInit)
-                Init();
+                Initialize();
 
             var localRay = ray.Transform(_host!.WorldMatrixInverse);
             var bounds = new Bounds3

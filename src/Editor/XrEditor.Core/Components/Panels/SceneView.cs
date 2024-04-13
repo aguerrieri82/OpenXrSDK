@@ -1,4 +1,6 @@
-﻿using OpenXr.Framework.Oculus;
+﻿
+using OpenXr.Framework.Oculus;
+using SkiaSharp;
 using System.Xml.Linq;
 using XrEditor.Services;
 using XrEngine;
@@ -104,7 +106,7 @@ namespace XrEditor
                 Scene = _engine.App.ActiveScene!;
                 Context.Require<SelectionManager>().Set(Scene.GetNode());
                 UpdateControls();
-            });
+            });       
         }
 
         protected void OnSizeChanged(object? sender, EventArgs e)
@@ -239,8 +241,10 @@ namespace XrEditor
 
             if (_engine.App.PlayState != PlayState.Pause)
             {
+                Log.Info(this, "Saving state...");
                 _sceneState = new MemoryStateContainer();
                 _scene.GetState(_sceneState);
+                Log.Debug(this, "State saved");
             }
 
             _engine!.App.Start();

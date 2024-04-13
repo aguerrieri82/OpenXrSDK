@@ -88,7 +88,7 @@ namespace XrSamples
 
                 if (deltaSpeed.Length() > 50)
                 {
-                    XrPlatform.Current!.Logger.LogInformation("SPEED: {dv}", Math.Round(deltaSpeed.Length(), 2));
+                    Log.Info(this, "SPEED: {dv}", Math.Round(deltaSpeed.Length(), 2));
 
 
                     if (lastContact?.Name == "Racket")
@@ -128,7 +128,7 @@ namespace XrSamples
 
                 var maxImpulse = data.Where(a => a.Points != null).SelectMany(a => a.Points!.Select(b => b.Impulse.Length())).Max();
 
-                XrPlatform.Current!.Logger.LogInformation("COLL: '{a}' '{b}' - Imp: {imp} - dv: {dv} - sep: {sep}", me.Name, other.Name, Math.Round(maxImpulse, 4), Math.Round(maxDv, 4), Math.Round(minSep, 4));
+                Log.Info(this, "COLL: '{a}' '{b}' - Imp: {imp} - dv: {dv} - sep: {sep}", me.Name, other.Name, Math.Round(maxImpulse, 4), Math.Round(maxDv, 4), Math.Round(minSep, 4));
 
                 lastContact = other;
             };

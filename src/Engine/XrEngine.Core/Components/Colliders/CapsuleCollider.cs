@@ -15,6 +15,10 @@ namespace XrEngine
 
     public class CapsuleCollider : Behavior<Object3D>, ICollider3D
     {
+        public void Initialize()
+        {
+
+        }
 
         public Collision? CollideWith(Ray3 ray)
         {
