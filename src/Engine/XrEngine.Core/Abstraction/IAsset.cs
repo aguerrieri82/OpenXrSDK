@@ -1,6 +1,8 @@
 ﻿namespace XrEngine
 {
-    public interface IObjectFactory
+
+    public interface IAsset
     {
+
     }
 }

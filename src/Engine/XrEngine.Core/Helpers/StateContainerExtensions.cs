@@ -136,7 +136,7 @@ namespace XrEngine
             foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
                 if (prop.CanWrite && prop.CanRead && container.Contains(prop.Name))
-                    prop.SetValue(obj, container.Read(prop.Name, prop.PropertyType));
+                    prop.SetValue(obj, container.Read(prop.Name, prop.GetValue(obj), prop.PropertyType));
             }
         }
 
@@ -168,16 +168,24 @@ namespace XrEngine
             return container.Read(key, null, type);
         }
 
-
         public static T Read<T>(this IStateContainer container, string key, T? curObj) where T : class
         {
             return (T)container.Read(key, curObj, typeof(T))!;
         }
 
-
         public static T Read<T>(this IStateContainer container, string key)
         {
             return (T)container.Read(key, typeof(T))!;
+        }
+
+        public static bool Is(this IStateContext self, StateContextFlags flag)
+        {
+            return (self.Flags & flag) == flag;
+        }
+
+        public static bool Is(this IStateContainer self, StateContextFlags flag)
+        {
+            return self.Context.Is(flag);
         }
 
         #endregion

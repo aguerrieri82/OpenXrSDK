@@ -15,17 +15,8 @@
 
 	<ItemGroup>
 		<Content Include="..\XrEngine.Native\bin\x64\Debug\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-
     </ItemGroup>
 
-	<ItemGroup>
-	  <None Remove="Shaders\clear.frag" />
-	  <None Remove="Shaders\Ibl\filter_cubemap.frag" />
-	  <None Remove="Shaders\Ibl\fullscreen.vert" />
-	  <None Remove="Shaders\Ibl\ibl_shared.frag" />
-	  <None Remove="Shaders\Ibl\panorama_to_cubemap.frag" />
-	</ItemGroup>
-	
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
 	  <ProjectReference Include="..\MeshOptimizer\MeshOptimizer.csproj" />

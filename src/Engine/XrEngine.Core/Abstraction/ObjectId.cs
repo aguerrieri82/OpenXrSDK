@@ -38,7 +38,6 @@ namespace XrEngine
             return Value.ToString();
         }
 
-
         public static bool operator ==(ObjectId left, ObjectId right)
         {
             return left.Value == right.Value;

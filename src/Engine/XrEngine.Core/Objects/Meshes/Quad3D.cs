@@ -7,23 +7,13 @@ namespace XrEngine
     {
         public Quad3D()
         {
+            Flags |= EngineObjectFlags.Readonly;
         }
 
         public Quad3D(Size2 size)
+            : this()
         {
             Size = size;
-            Build();
-        }
-
-        public override void GetState(IStateContainer container)
-        {
-            container.Write(nameof(Size), Size);
-            container.Write(nameof(Id), Id);
-        }
-
-        protected override void SetStateWork(IStateContainer container)
-        {
-            Size = container.Read<Size2>(nameof(Size));
             Build();
         }
 
@@ -51,6 +41,6 @@ namespace XrEngine
 
         public Size2 Size { get; set; }
 
-        public static readonly Quad3D Instance = new(new Size2(1, 1));
+        public static readonly Quad3D Default = new(new Size2(1, 1));
     }
 }

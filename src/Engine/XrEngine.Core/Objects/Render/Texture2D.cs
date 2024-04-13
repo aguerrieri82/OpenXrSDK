@@ -58,13 +58,6 @@ namespace XrEngine
 
     public class Texture2D : Texture
     {
-
-        public static Texture2D FromPvrImage(Stream stream)
-        {
-            var data = PvrTranscoder.Instance.Read(stream);
-            return FromData(data);
-        }
-
         public static Texture2D FromImage(string fileName)
         {
             using var stream = File.OpenRead(fileName);

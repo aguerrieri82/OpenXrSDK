@@ -63,7 +63,7 @@ namespace XrEditor.Services
 
         public SKBitmap CreateMaterial(Material material)
         {
-            return CreateMesh(Sphere3D.Instance, material);
+            return CreateMesh(Sphere3D.Default, material);
         }
 
         public SKBitmap CreateGeometry(Geometry3D geometry)
@@ -79,7 +79,7 @@ namespace XrEditor.Services
 
             _mesh.Materials.Clear();
             _mesh.Materials.Add(_textureMaterial);
-            _mesh.Geometry = Quad3D.Instance;
+            _mesh.Geometry = Quad3D.Default;
 
             _scene.PerspectiveCamera().LookAt(new Vector3(0, 0, 1.3f), Vector3.Zero, Vector3.UnitY);
 

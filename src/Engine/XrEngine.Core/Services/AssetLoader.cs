@@ -4,17 +4,9 @@
     {
         readonly List<IAssetHandler> _loaders = [];
 
-
         AssetLoader()
         {
-            Register(DdsReader.Instance);
-            Register(ExrReader.Instance);
-            Register(HdrReader.Instance);
-            Register(ImageReader.Instance);
-            Register(Ktx2Reader.Instance);
-            Register(KtxReader.Instance);
-            Register(PkmReader.Instance);
-            Register(PvrTranscoder.Instance);
+
         }
 
         public EngineObject Load(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)

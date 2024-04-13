@@ -23,7 +23,7 @@
 
         public void NotifyLoaded()
         {
-
+            Data = null;
         }
 
         public IList<TextureData>? Data { get; set; }

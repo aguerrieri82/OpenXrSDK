@@ -5,7 +5,8 @@
     {
         None = 0,
         Generated = 0x1,
-        ChildGenerated = 0x2
+        ChildGenerated = 0x2,
+        Readonly = 0x4, 
     }
 
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject

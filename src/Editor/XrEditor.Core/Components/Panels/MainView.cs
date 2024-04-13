@@ -46,6 +46,8 @@ namespace XrEditor
             PropertiesEditor = new PropertiesEditor();
 
             SceneView = new SceneView(surface);
+
+            Log = new LogPanel();
         }
 
         public void NotifyMessage(string message, MessageType type, int showTimeMs = 2000)
@@ -75,6 +77,8 @@ namespace XrEditor
         public SceneView SceneView { get; }
 
         public OutlinePanel Outline { get; }
+
+        public LogPanel Log { get; }
 
         public PropertiesEditor PropertiesEditor { get; }
     }

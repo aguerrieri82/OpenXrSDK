@@ -3,7 +3,7 @@
 <Project>
 
 	<PropertyGroup>
-		<CoreVersion>net8.0</CoreVersion>
+		<CoreVersion>net9.0</CoreVersion>
 		<TargetFrameworks>$(CoreVersion)</TargetFrameworks>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageVersion>0.0.1</PackageVersion>

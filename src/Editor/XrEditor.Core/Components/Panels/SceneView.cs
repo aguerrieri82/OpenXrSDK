@@ -350,7 +350,6 @@ namespace XrEditor
 
         public ToolbarView ToolbarView => _toolbar;
 
-
         public event Action<Scene3D?>? SceneChanged;
 
         public IReadOnlyList<IEditorTool> Tools => _tools;

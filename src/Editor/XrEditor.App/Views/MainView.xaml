@@ -28,11 +28,18 @@
         </Border>
     </DataTemplate>
     
+    
     <DataTemplate DataType="{x:Type local:MainView}">
         <DockPanel>
-            <ContentPresenter Width="250px" DockPanel.Dock="Left" Content="{Binding Outline}"/>
+
             <ContentPresenter MinWidth="320px" DockPanel.Dock="Right" Content="{Binding PropertiesEditor}"/>
             <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Messages}"/>
+            <TabControl  Height="200" DockPanel.Dock="Bottom">
+                <TabItem  Header="Log">
+                    <ContentPresenter Content="{Binding Log}"/>
+                </TabItem>
+            </TabControl>
+            <ContentPresenter Width="250px" DockPanel.Dock="Left" Content="{Binding Outline}"/>
             <ContentPresenter Content="{Binding SceneView}"/>
         </DockPanel>
     </DataTemplate>

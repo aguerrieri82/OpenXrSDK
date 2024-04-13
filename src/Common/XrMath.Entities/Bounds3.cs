@@ -26,5 +26,7 @@ namespace XrMath
         public readonly Vector3 Size => Max - Min;
 
         public readonly Vector3 Center => (Max + Min) / 2;
+
+        public static Bounds3 Zero { get; } = new();    
     }
 }

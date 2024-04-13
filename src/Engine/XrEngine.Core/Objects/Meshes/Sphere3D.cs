@@ -7,26 +7,14 @@ namespace XrEngine
     {
         public Sphere3D()
         {
+            Flags |= EngineObjectFlags.Readonly;
         }
 
         public Sphere3D(float radius, uint levels)
+            : this()
         {
             Radius = radius;
             Levels = levels;
-            Build();
-        }
-
-        public override void GetState(IStateContainer container)
-        {
-            container.Write(nameof(Radius), Radius);
-            container.Write(nameof(Levels), Levels);
-            container.Write(nameof(Id), Id);
-        }
-
-        protected override void SetStateWork(IStateContainer container)
-        {
-            Radius = container.Read<float>(nameof(Radius));
-            Levels = container.Read<uint>(nameof(Levels));
             Build();
         }
 
@@ -140,6 +128,6 @@ namespace XrEngine
         public float Radius { get; set; }
 
 
-        public static readonly Sphere3D Instance = new(1f, 3);
+        public static readonly Sphere3D Default = new(1f, 3);
     }
 }

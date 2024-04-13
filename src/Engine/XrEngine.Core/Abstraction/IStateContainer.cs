@@ -1,7 +1,5 @@
 ﻿namespace XrEngine
 {
-
-
     public interface IStateContainer
     {
         IStateContainer Enter(string key, bool resolveRef = false);
@@ -9,7 +7,6 @@
         bool IsRef(string key);
 
         void Write(string key, object? value);
-
 
         object? Read(string key, object? curObject, Type type);
 

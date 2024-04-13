@@ -86,6 +86,8 @@ namespace XrEngine.OpenGL
 
         public override void Update()
         {
+            //Log.Debug(this, "Update vertex array '{0}'", _source);
+
             _vertices.Update(_source.Vertices, _source.Indices);
 
             Version = _source.Object.Version;

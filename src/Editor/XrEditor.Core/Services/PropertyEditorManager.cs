@@ -2,7 +2,7 @@
 using XrEditor.Services;
 using XrMath;
 
-namespace XrEditor
+namespace XrEditor.Services
 {
     public class PropertyEditorManager
     {
