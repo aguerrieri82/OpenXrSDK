@@ -2,15 +2,16 @@
 {
     public class RefTable
     {
-        public readonly Dictionary<ObjectId, object> Resolved = [];
+        public Dictionary<ObjectId, object> Resolved { get; } = [];
 
-        public IStateContainer? Container;
+        public IStateContainer? Container { get; set; }
     }
 
     public enum StateContextFlags
     {
         None,
-        SelfOnly = 0x1
+        SelfOnly = 0x1,
+        Store = 0x2
     }
 
     public interface IStateContext

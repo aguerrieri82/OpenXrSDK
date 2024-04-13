@@ -68,6 +68,8 @@ namespace XrEngine
 
             src.Dispose();
 
+
+
             return newBitmap;
         }
 

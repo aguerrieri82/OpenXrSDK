@@ -37,7 +37,7 @@ namespace XrEngine.OpenXr
                             Vertices = meshObj.Geometry.ExtractPositions()
                         };
 
-                        var test = Cube3D.Instance;
+                        var test = Cube3D.Default;
 
                         triMesh.Indices = test.Indices!;
                         triMesh.Vertices = test.Vertices.Select(a => a.Pos).ToArray()!;

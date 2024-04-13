@@ -36,7 +36,7 @@ namespace XrEngine
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-            Geometry = container.ReadObject(nameof(Geometry), Geometry);
+            Geometry = container.Read(nameof(Geometry), Geometry);
             container.ReadArray(nameof(Materials), _materials, _materials.Add, a => _materials.Remove(a));
         }
 
@@ -73,7 +73,7 @@ namespace XrEngine
                 if (e.OldItems != null)
                 {
                     foreach (var item in e.OldItems!.Cast<Material>())
-                        item.Detach();
+                        item.Detach(this);
                 }
             }
 
@@ -91,7 +91,7 @@ namespace XrEngine
 
         public void NotifyLoaded()
         {
-
+            _geometry?.Clear();
         }
 
         public Geometry3D? Geometry
@@ -101,15 +101,25 @@ namespace XrEngine
             {
                 if (_geometry == value)
                     return;
+                
+                if (_geometry != null)
+                    _geometry.Detach(this);
+                
                 _geometry = value;
-                _geometry?.EnsureId();
+
+                if (_geometry != null)
+                {
+                    _geometry.EnsureId();
+                    _geometry.Attach(this);
+                }
+ 
                 NotifyChanged(ObjectChangeType.Geometry);
             }
         }
 
         public IList<Material> Materials => _materials;
 
-        public Bounds3 LocalBounds => _geometry!.Bounds;
+        public Bounds3 LocalBounds => _geometry?.Bounds ?? Bounds3.Zero;
 
         public UpdateMode BoundUpdateMode { get; set; }
 
@@ -125,7 +135,7 @@ namespace XrEngine
 
         VertexData[] IVertexSource<VertexData, uint>.Vertices => _geometry?.Vertices ?? [];
 
-        IList<Material> IVertexSource.Materials => _materials;
+        IReadOnlyList<Material> IVertexSource.Materials => _materials;
 
         #endregion
     }

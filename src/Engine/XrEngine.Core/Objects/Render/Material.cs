@@ -8,9 +8,9 @@
     }
 
 
-    public abstract class Material : EngineObject
+    public abstract class Material : EngineObject, IHosted
     {
-        protected Object3D? _host;
+        readonly HashSet<EngineObject> _hosts = [];
 
         public Material()
         {
@@ -18,20 +18,21 @@
             Version = 0;
         }
 
-        //TODO same material multiple objects, wrong
-        public void Attach(Object3D host)
+        public void Attach(EngineObject host)
         {
-            _host = host;
+            _hosts.Add(host);
         }
 
-        public void Detach()
+        public void Detach(EngineObject host)
         {
-            _host = null;
+            _hosts.Remove(host);
         }
 
         protected override void OnChanged(ObjectChange change)
         {
-            _host?.NotifyChanged(new ObjectChange(ObjectChangeType.Render, this));
+            foreach (var host in _hosts)
+                host.NotifyChanged(new ObjectChange(ObjectChangeType.Render, this));
+
             Version++;
             base.OnChanged(change);
         }
@@ -47,6 +48,8 @@
             base.GetState(container);
             container.WriteObject<Material>(this);
         }
+
+        public IReadOnlySet<EngineObject> Hosts => _hosts;
 
         public bool WriteDepth { get; set; }
 

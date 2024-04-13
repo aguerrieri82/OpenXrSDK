@@ -30,7 +30,7 @@ namespace XrEngine.UI
             _size = new Size2(1, 0.56f);
             _sizeDirty = true;
 
-            Geometry = Quad3D.Instance;
+            Geometry = Quad3D.Default;
 
             Mode = CanvasViewMode.Texture;
         }

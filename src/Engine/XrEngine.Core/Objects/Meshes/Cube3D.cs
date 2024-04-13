@@ -5,12 +5,14 @@ namespace XrEngine
     public class Cube3D : Geometry3D, IGeneratedContent
     {
         public Cube3D()
-            : this(new Vector3(1f, 1f, 1f))
         {
+            Flags |= EngineObjectFlags.Readonly;
         }
 
         public Cube3D(Vector3 size)
+            : this()
         {
+
             Size = size;
             Build();
         }
@@ -65,21 +67,9 @@ namespace XrEngine
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0;
         }
 
-        public override void GetState(IStateContainer container)
-        {
-            container.Write(nameof(Size), Size);
-            container.Write(nameof(Id), Id);
-        }
-
-        protected override void SetStateWork(IStateContainer container)
-        {
-            Size = container.Read<Vector3>(nameof(Size));
-            Build();
-        }
-
         public Vector3 Size { get; set; }
 
 
-        public static readonly Cube3D Instance = new();
+        public static readonly Cube3D Default = new(new Vector3(1, 1, 1));
     }
 }

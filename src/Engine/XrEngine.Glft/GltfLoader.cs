@@ -3,108 +3,13 @@ using Newtonsoft.Json.Linq;
 using SkiaSharp;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
-using System.Web;
 using XrMath;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace XrEngine.Gltf
 {
-    public class GltfLoaderOptions : IAssetLoaderOptions
-    {
-        public GltfLoaderOptions()
-        {
-            ConvertColorTextureSRgb = true;
-        }
-
-
-        public bool ConvertColorTextureSRgb { get; set; }
-
-        public TextureFormat TextureFormat { get; set; }
-
-        public static readonly GltfLoaderOptions Default = new();
-    }
-
-    public class GltfAssetLoader : IAssetHandler
-    {
-        readonly Dictionary<string, GltfAssetCache> _cache = [];
-
-        class GltfAssetCache
-        {
-            public GltfLoader? Loader { get; set; }
-
-            public DateTime LastEditTime { get; set; }
-        }
-
-        public bool CanHandle(Uri uri, out Type resType)
-        {
-            if (uri.Scheme == "res" && uri.Host == "gltf")
-            {
-                var seg = uri.Segments.FirstOrDefault();
-                if (seg == "/texture")
-                {
-                    resType = typeof(Texture2D);
-                    return true;
-                }
-            }
-
-            var ext = Path.GetExtension(uri.ToString());
-            if (ext == ".glb" || ext == ".gltf")
-            {
-                resType = typeof(Object3D);
-                return true;
-            }
-
-            resType = typeof(object);
-
-            return false;
-        }
-
-        public EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, EngineObject? destObj, IAssetLoaderOptions? options = null)
-        {
-            var query = HttpUtility.ParseQueryString(uri.Query);
-            string src;
-
-            if (uri.Scheme == "res")
-                src = query["src"]!;
-            else
-                src = uri.LocalPath;
-
-            var fsSrc = assetManager.GetFsPath(src);
-            var lastEditTime = File.GetLastWriteTime(fsSrc);
-
-            if (!_cache.TryGetValue(fsSrc, out var cache) || lastEditTime > cache.LastEditTime)
-            {
-                cache = new GltfAssetCache
-                {
-                    LastEditTime = lastEditTime,
-                    Loader = new GltfLoader()
-                };
-                cache.Loader.LoadModel(src, assetManager, (GltfLoaderOptions?)options);
-                _cache[fsSrc] = cache;
-            }
-
-            if (uri.Scheme == "res")
-            {
-                var seg = uri.Segments[1].TrimEnd('/');
-
-                switch (seg)
-                {
-                    case "texture":
-                        var texId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        return cache.Loader!.CreateTexture(cache.Loader.Model!.Textures[texId], texId, (Texture2D?)destObj ?? new());
-                    case "mesh":
-                        var meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        var pIndex = int.Parse(uri.Segments[3].TrimEnd('/'));
-                        var mesh = cache.Loader!.Model!.Meshes[meshId];
-                        return cache.Loader!.ProcessPrimitive(mesh.Primitives[pIndex], (Geometry3D?)destObj ?? new());
-                    default:
-                        throw new NotSupportedException();
-                }
-            }
-
-            return cache.Loader!.LoadScene();
-        }
-    }
 
     public class GltfLoader
     {
@@ -139,7 +44,6 @@ namespace XrEngine.Gltf
             public glTFLoader.Schema.TextureInfo? diffuseTexture;
 
             public glTFLoader.Schema.TextureInfo? specularGlossinessTexture;
-
         }
 
         public GltfLoader()
@@ -199,6 +103,9 @@ namespace XrEngine.Gltf
             else
                 throw new NotSupportedException();
 
+
+            Log.Info(this, "Loading texture {0} ({1} bytes)", img.Name, data.Length);
+
             using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
 
             //Debug.Assert(image.ColorSpace.IsSrgb && useSrgb);
@@ -223,7 +130,7 @@ namespace XrEngine.Gltf
             return result;
         }
 
-        public Texture2D CreateTexture(glTFLoader.Schema.Texture texture, int id, Texture2D? result = null)
+        public Texture2D ProcessTexture(glTFLoader.Schema.Texture texture, int id, Texture2D? result = null)
         {
             var imageInfo = _model!.Images[texture.Source!.Value];
 
@@ -235,6 +142,8 @@ namespace XrEngine.Gltf
                 result = Texture2D.FromData([data]);
             else
                 result.LoadData([data]);
+
+            result.Flags |= EngineObjectFlags.Readonly;
 
             result.Name = texture.Name ?? (imageInfo.Name ?? "");
 
@@ -276,21 +185,21 @@ namespace XrEngine.Gltf
         {
             CheckExtensions(info.Extensions);
 
-            return CreateTexture(_model!.Textures[info.Index], info.Index);
+            return ProcessTexture(_model!.Textures[info.Index], info.Index);
         }
 
         protected Texture2D DecodeTextureNormal(glTFLoader.Schema.MaterialNormalTextureInfo info)
         {
             CheckExtensions(info.Extensions);
 
-            return CreateTexture(_model!.Textures[info.Index], info.Index);
+            return ProcessTexture(_model!.Textures[info.Index], info.Index);
         }
 
         protected Texture2D DecodeTextureBase(glTFLoader.Schema.TextureInfo info, bool useSRgb = false)
         {
             CheckExtensions(info.Extensions);
 
-            return CreateTexture(_model!.Textures[info.Index], info.Index);
+            return ProcessTexture(_model!.Textures[info.Index], info.Index);
         }
 
         protected PbrMaterial ProcessMaterial(glTFLoader.Schema.Material gltMat)
@@ -409,6 +318,8 @@ namespace XrEngine.Gltf
 
         public Geometry3D ProcessPrimitive(glTFLoader.Schema.MeshPrimitive primitive, Geometry3D result)
         {
+            result.Flags |= EngineObjectFlags.Readonly;
+
             var draco = TryLoadExtension<KHR_draco_mesh_compression>(primitive.Extensions);
 
             if (primitive.Mode == glTFLoader.Schema.MeshPrimitive.ModeEnum.TRIANGLES)
@@ -561,20 +472,21 @@ namespace XrEngine.Gltf
                 var curMesh = new TriangleMesh();
 
                 Debug.Assert(primitive.Targets == null);
-
                 CheckExtensions(primitive.Extensions);
 
                 curMesh.Geometry = ProcessPrimitive(primitive, new Geometry3D());
 
+                Log.Info(this, "Loading geometry {0} ({1} bytes)", gltMesh.Name, curMesh.Geometry.Vertices.Length * Marshal.SizeOf<VertexData>());
+
                 curMesh.Geometry.AddComponent(new AssetSource
                 {
-                    AssetUri = new Uri($"res://gltf/mesh/{id}/{pIndex}?src={_filePath}")
+                    AssetUri = new Uri($"res://gltf/geo/{id}/{pIndex}?src={_filePath}")
                 });
 
                 if (primitive.Material != null)
                 {
-                    var glftMat = _model!.Materials[primitive.Material.Value];
-                    curMesh.Materials.Add(ProcessMaterial(glftMat));
+                    var gltfMat = _model!.Materials[primitive.Material.Value];
+                    curMesh.Materials.Add(ProcessMaterial(gltfMat));
                 }
 
                 if (group == null)
@@ -667,19 +579,21 @@ namespace XrEngine.Gltf
             return scene;
         }
 
-        public void LoadModel(string filePath, IAssetManager assetManager, GltfLoaderOptions? options)
+        public void Unload()
         {
             _buffers.Clear();
             _log.Clear();
             _images.Clear();
             _mats.Clear();
             _meshes.Clear();
+        }
 
+        public void LoadModel(string filePath, IAssetManager assetManager, GltfLoaderOptions? options)
+        {
             _options = options;
             _assetManager = assetManager;
             _basePath = Path.GetDirectoryName(filePath)!;
             _filePath = filePath;
-
 
             _model = glTFLoader.Interface.LoadModel(assetManager.GetFsPath(filePath));
         }
@@ -688,7 +602,6 @@ namespace XrEngine.Gltf
         public Object3D Load(string filePath, IAssetManager assetManager, GltfLoaderOptions options)
         {
             LoadModel(filePath, assetManager, options);
-
             return LoadScene();
         }
 
@@ -708,6 +621,8 @@ namespace XrEngine.Gltf
                 else
                     break;
             }
+
+            Log.Info(this, "GLFT scene loaded '{0}'", _filePath!);
 
             return curRoot;
         }

@@ -7,34 +7,20 @@ namespace XrEngine
     {
         public Capsule3D()
         {
+            Flags |= EngineObjectFlags.Readonly;
         }
 
         public Capsule3D(float radius, float height, int horizontal = 7, int vertical = 7)
+            : this()
         {
             Radius = radius;
             Height = height;
             Horizontal = horizontal;
             Vertical = vertical;
+
             Build();
         }
 
-        public override void GetState(IStateContainer container)
-        {
-            container.Write(nameof(Radius), Radius);
-            container.Write(nameof(Height), Height);
-            container.Write(nameof(Horizontal), Horizontal);
-            container.Write(nameof(Vertical), Vertical);
-            container.Write(nameof(Id), Id);
-        }
-
-        protected override void SetStateWork(IStateContainer container)
-        {
-            Radius = container.Read<float>(nameof(Radius));
-            Height = container.Read<float>(nameof(Height));
-            Horizontal = container.Read<int>(nameof(Horizontal));
-            Vertical = container.Read<int>(nameof(Vertical));
-            Build();
-        }
 
         public void Build()
         {

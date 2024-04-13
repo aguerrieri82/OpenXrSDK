@@ -32,7 +32,7 @@
 
         LineData[] IVertexSource<LineData, uint>.Vertices => Vertices;
 
-        IList<Material> IVertexSource.Materials => [Material];
+        IReadOnlyList<Material> IVertexSource.Materials => [Material];
 
 
 

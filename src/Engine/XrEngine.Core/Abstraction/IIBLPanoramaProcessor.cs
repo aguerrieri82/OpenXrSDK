@@ -25,17 +25,17 @@
             };
         }
 
-        public Func<string, string>? ShaderResolver;
+        public Func<string, string>? ShaderResolver { get; set; }
 
-        public uint Resolution;
+        public uint Resolution { get; set; }
 
-        public uint SampleCount;
+        public uint SampleCount { get; set; }
 
-        public float LodBias;
+        public float LodBias { get; set; }
 
-        public uint MipLevelCount;
+        public uint MipLevelCount { get; set; }
 
-        public IBLProcessMode Mode;
+        public IBLProcessMode Mode { get; set; }
     }
 
     public interface IIBLPanoramaProcessor

@@ -151,6 +151,8 @@ namespace XrEngine.OpenGL
 
         protected GlobalContent BuildContent(Scene3D scene)
         {
+            Log.Info(this, "Building content...");
+        
             if (!_contents.TryGetValue(scene, out var content))
             {
                 content = new GlobalContent();
@@ -187,6 +189,7 @@ namespace XrEngine.OpenGL
                 }
             }
 
+
             foreach (var obj3D in scene.VisibleDescendants<Object3D>())
             {
                 if (obj3D is Light light)
@@ -194,6 +197,7 @@ namespace XrEngine.OpenGL
 
                 if (!obj3D.Feature<IVertexSource>(out var vrtSrc))
                     continue;
+
 
                 foreach (var material in vrtSrc.Materials.OfType<ShaderMaterial>())
                 {
@@ -236,6 +240,8 @@ namespace XrEngine.OpenGL
 
             //_content.ShaderContentsOrder.Clear();
             //_content.ShaderContentsOrder.AddRange(_content.ShaderContents);
+
+            Log.Info(this, "Content Build");
 
             return content;
         }
@@ -327,7 +333,6 @@ namespace XrEngine.OpenGL
             }
 
 #if !GLES
-
             bool isWireframe = material is WireframeMaterial;
             if (isWireframe != _glState.Wireframe)
             {
@@ -366,8 +371,6 @@ namespace XrEngine.OpenGL
             Clear(camera.BackgroundColor);
 
             var targetHandler = target as IShaderHandler;
-
-
 
             _updateCtx.Camera = camera;
             _updateCtx.Lights = content.Lights;

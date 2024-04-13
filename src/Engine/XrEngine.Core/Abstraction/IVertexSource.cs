@@ -10,7 +10,7 @@
     {
         DrawPrimitive Primitive { get; }
 
-        IList<Material> Materials { get; }
+        IReadOnlyList<Material> Materials { get; }
 
         VertexComponent ActiveComponents { get; }
 

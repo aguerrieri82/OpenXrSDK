@@ -292,6 +292,8 @@ namespace XrEngine.OpenGL
 
         public unsafe void Update(uint width, uint height, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null)
         {
+            Log.Debug(this, "Update texture '{0}'", _handle);
+
             _width = width;
             _height = height;
 

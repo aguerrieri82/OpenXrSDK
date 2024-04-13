@@ -55,7 +55,7 @@
             Changes?.Clear();
         }
 
-        public List<ObjectChange> Changes;
+        public List<ObjectChange>? Changes;
     }
 
     public struct ObjectChange

@@ -7,7 +7,6 @@
         public TextureCube(IList<TextureData> data)
             : base(data)
         {
-
         }
     }
 }

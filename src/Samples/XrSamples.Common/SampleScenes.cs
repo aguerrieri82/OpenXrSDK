@@ -95,7 +95,7 @@ namespace XrSamples
                         l.IsVisible = false;
                 }
 
-                light.LoadPanorama(assets.GetFsPath(assetPath));
+                light.LoadPanorama(assetPath);
             });
         }
 
@@ -158,7 +158,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var display = new TriangleMesh(Quad3D.Instance);
+            var display = new TriangleMesh(Quad3D.Default);
             //display.Materials.Add(new StandardMaterial { Color = Color.White, DoubleSided = false, WriteDepth = false });
 
             display.Name = "display";
@@ -426,7 +426,7 @@ namespace XrSamples
         {
             var app = CreateBaseScene();
 
-            var cube = new TriangleMesh(Cube3D.Instance, PbrMaterial.CreateDefault(new Color(1f, 0, 0, 1)))
+            var cube = new TriangleMesh(Cube3D.Default, PbrMaterial.CreateDefault(new Color(1f, 0, 0, 1)))
             {
                 Name = "mesh"
             };
@@ -469,7 +469,7 @@ namespace XrSamples
                     var x = MathF.Sin(rad) * 1;
                     var z = MathF.Cos(rad) * 1;
 
-                    var cube = new TriangleMesh(Cube3D.Instance, red);
+                    var cube = new TriangleMesh(Cube3D.Default, red);
                     cube.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
                     cube.Transform.Position = new Vector3(x, y + 0.1f, z);
 

@@ -111,6 +111,8 @@ namespace XrEngine
 
         public override EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
+            Log.Info(this, "Begin load texture '{0}'", uri);
+
             var fsPath = assetManager.GetFsPath(GetFilePath(uri));
             using var file = File.OpenRead(fsPath);
             var data = Read(file, (TextureReadOptions?)options);
@@ -123,6 +125,9 @@ namespace XrEngine
                 result.LoadData(data);
 
             result.AddComponent(new AssetSource { AssetUri = uri });
+
+            Log.Debug(this, "Texture loaded");
+
             return result;
         }
 

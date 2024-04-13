@@ -69,7 +69,6 @@ namespace XrEngine
                         yield return descendent;
                 }
             }
-
         }
 
 
@@ -115,6 +114,11 @@ namespace XrEngine
                 return group.DescendantsWithFeature<T>().FirstOrDefault().Feature;
 
             return null;
+        }
+
+        public static bool Is(this EngineObject self, EngineObjectFlags flags)
+        {
+            return (self.Flags & flags) == flags;
         }
 
         #endregion

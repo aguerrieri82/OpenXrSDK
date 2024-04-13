@@ -27,7 +27,8 @@
                 <ResourceDictionary Source="/Views/ComponentHeaderView.xaml"/>
                 <ResourceDictionary Source="/Views/EnumEditor.xaml"/>
                 <ResourceDictionary Source="/Views/ElementPicker.xaml"/>
-
+                <ResourceDictionary Source="/Views/LogPanel.xaml"/>
+                
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

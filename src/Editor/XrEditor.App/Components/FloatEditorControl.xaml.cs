@@ -5,44 +5,41 @@ using System.Windows.Input;
 
 namespace XrEditor.Components
 {
-    /// <summary>
-    /// Interaction logic for FloatEditor.xaml
-    /// </summary>
-    public partial class FloatEditor : UserControl, INotifyPropertyChanged
+    public partial class FloatEditorControl : UserControl, INotifyPropertyChanged
     {
         public static readonly DependencyProperty ValueProperty =
-            DependencyProperty.Register("Value", typeof(float), typeof(FloatEditor), new PropertyMetadata(0f, OnValueChanged));
+            DependencyProperty.Register("Value", typeof(float), typeof(FloatEditorControl), new PropertyMetadata(0f, OnValueChanged));
 
         public static readonly DependencyProperty MinProperty =
-            DependencyProperty.Register("Min", typeof(float), typeof(FloatEditor), new PropertyMetadata(0f));
+            DependencyProperty.Register("Min", typeof(float), typeof(FloatEditorControl), new PropertyMetadata(0f));
 
         public static readonly DependencyProperty MaxProperty =
-            DependencyProperty.Register("Max", typeof(float), typeof(FloatEditor), new PropertyMetadata(1f));
+            DependencyProperty.Register("Max", typeof(float), typeof(FloatEditorControl), new PropertyMetadata(1f));
 
         public static readonly DependencyProperty StepProperty =
-            DependencyProperty.Register("Step", typeof(float), typeof(FloatEditor), new PropertyMetadata(1f));
+            DependencyProperty.Register("Step", typeof(float), typeof(FloatEditorControl), new PropertyMetadata(1f));
 
         public static readonly DependencyProperty SmallStepProperty =
-            DependencyProperty.Register("SmallStep", typeof(float), typeof(FloatEditor), new PropertyMetadata(0.01f));
+            DependencyProperty.Register("SmallStep", typeof(float), typeof(FloatEditorControl), new PropertyMetadata(0.01f));
 
         public static readonly DependencyProperty FormatProperty =
-            DependencyProperty.Register("Format", typeof(Func<float, string>), typeof(FloatEditor), new PropertyMetadata(null, OnFormatChanged));
+            DependencyProperty.Register("Format", typeof(Func<float, string>), typeof(FloatEditorControl), new PropertyMetadata(null, OnFormatChanged));
 
         public static readonly DependencyProperty ParseProperty =
-            DependencyProperty.Register("Parse", typeof(Func<string?, float>), typeof(FloatEditor), new PropertyMetadata(null));
+            DependencyProperty.Register("Parse", typeof(Func<string?, float>), typeof(FloatEditorControl), new PropertyMetadata(null));
 
         public static readonly DependencyProperty TextValueProperty =
-          DependencyProperty.Register("TextValue", typeof(string), typeof(FloatEditor), new PropertyMetadata(""));
+          DependencyProperty.Register("TextValue", typeof(string), typeof(FloatEditorControl), new PropertyMetadata(""));
 
 
         static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            ((FloatEditor)d).OnValueChanged();
+            ((FloatEditorControl)d).OnValueChanged();
         }
 
         static void OnFormatChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            ((FloatEditor)d).OnFormatChanged();
+            ((FloatEditorControl)d).OnFormatChanged();
         }
 
         bool _editMode;
@@ -50,7 +47,7 @@ namespace XrEditor.Components
         private float _downValue;
         private bool _isMoving;
 
-        public FloatEditor()
+        public FloatEditorControl()
         {
             InitializeComponent();
             UpdateControls();

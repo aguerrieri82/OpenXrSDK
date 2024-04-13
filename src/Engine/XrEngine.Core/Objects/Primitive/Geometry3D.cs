@@ -1,12 +1,14 @@
 ﻿using System.Numerics;
+using XrEngine;
 using XrMath;
 
 namespace XrEngine
 {
-    public class Geometry3D : EngineObject
+    public class Geometry3D : EngineObject, IHosted
     {
         protected bool _boundsDirty;
         protected Bounds3 _bounds;
+        protected HashSet<EngineObject> _hosts = [];
 
         public Geometry3D()
         {
@@ -16,20 +18,44 @@ namespace XrEngine
             Vertices = [];
         }
 
+        public void Attach(EngineObject host)
+        {
+            _hosts.Add(host);
+        }
+
+        public void Detach(EngineObject host)
+        {
+            _hosts.Remove(host);
+        }
+
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-            Indices = container.ReadBuffer<uint>(nameof(Indices));
-            Vertices = container.ReadBuffer<VertexData>(nameof(Vertices));
-            ActiveComponents = container.Read<VertexComponent>(nameof(ActiveComponents));
+
+            if (this is IGeneratedContent gen)
+            {
+                container.ReadObject(this, GetType());
+                gen.Build();
+            } 
+            else
+            {
+                Indices = container.ReadBuffer<uint>(nameof(Indices));
+                Vertices = container.ReadBuffer<VertexData>(nameof(Vertices));
+                ActiveComponents = container.Read<VertexComponent>(nameof(ActiveComponents));
+            }
         }
 
         public unsafe override void GetState(IStateContainer container)
         {
             base.GetState(container);
-            container.WriteBuffer(nameof(Indices), Indices);
-            container.WriteBuffer(nameof(Vertices), Vertices);
-            container.Write(nameof(ActiveComponents), ActiveComponents);
+            if (this is IGeneratedContent gen)
+                container.WriteObject(this, GetType());
+            else
+            {
+                container.WriteBuffer(nameof(Indices), Indices);
+                container.WriteBuffer(nameof(Vertices), Vertices);
+                container.Write(nameof(ActiveComponents), ActiveComponents);
+            }
         }
 
         public void ApplyTransform(Matrix4x4 matrix)
@@ -45,6 +71,12 @@ namespace XrEngine
             }
 
             Version++;
+        }
+
+        public void Clear()
+        {
+            Indices = [];
+
         }
 
         public void Rebuild()
@@ -79,6 +111,7 @@ namespace XrEngine
             }
         }
 
+        public IReadOnlySet<EngineObject> Hosts => _hosts;
 
         public VertexComponent ActiveComponents { get; set; }
 
