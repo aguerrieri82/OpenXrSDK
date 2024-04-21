@@ -10,6 +10,7 @@ layout(std140) uniform Camera {
     mat4 ViewProjectionMatrix;
     vec3 Position;
     float Exposure;
+    float FarPlane;
 } uCamera;
  
 layout (location = 0) in vec3 a_position;
@@ -179,4 +180,7 @@ void main()
 #endif
 
     gl_Position = getViewProj() * pos;
+    #ifdef ZLOG_F
+        gl_Position.z = log(ZLOG_F*gl_Position.z + 1.0) / log(ZLOG_F*uCamera.FarPlane + 1.0) * gl_Position.w;
+    #endif
 }

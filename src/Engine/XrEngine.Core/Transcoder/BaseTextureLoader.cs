@@ -13,13 +13,13 @@ namespace XrEngine
             public uint BitPerPixel;
         }
 
-        public IList<TextureData> Read(string fileName, TextureReadOptions? options = null)
+        public IList<TextureData> Read(string fileName, TextureLoadOptions? options = null)
         {
             using (var stream = File.OpenRead(fileName))
-                return Read(stream, options);
+                return LoadTexture(stream, options);
         }
 
-        public abstract IList<TextureData> Read(Stream stream, TextureReadOptions? options = null);
+        public abstract IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null);
 
         protected static AlignSize GetFormatAlign(TextureCompressionFormat comp, TextureFormat format)
         {
@@ -109,13 +109,13 @@ namespace XrEngine
             return results;
         }
 
-        public override EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, EngineObject? destObj, IAssetLoaderOptions? options = null)
+        public override EngineObject LoadAsset(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
             Log.Info(this, "Begin load texture '{0}'", uri);
 
-            var fsPath = assetManager.GetFsPath(GetFilePath(uri));
+            var fsPath = GetFilePath(uri);
             using var file = File.OpenRead(fsPath);
-            var data = Read(file, (TextureReadOptions?)options);
+            var data = LoadTexture(file, (TextureLoadOptions?)options);
 
             var result = (Texture2D?)destObj;
 
@@ -124,13 +124,20 @@ namespace XrEngine
             else
                 result.LoadData(data);
 
-            result.AddComponent(new AssetSource { AssetUri = uri });
+            result.AddComponent(new AssetSource { Asset = new TextureAsset(this, uri, (TextureLoadOptions?)options) });
 
             Log.Debug(this, "Texture loaded");
 
             return result;
         }
 
+        protected override bool CanHandleExtension(string extension, out Type resType)
+        {
+            resType = typeof(Texture2D);
+            return CanHandleExtension(extension);
+        }
+
+        protected abstract bool CanHandleExtension(string extension);
 
     }
 }

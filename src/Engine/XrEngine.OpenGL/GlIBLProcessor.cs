@@ -321,6 +321,8 @@ namespace XrEngine.OpenGL
             _gl.UseProgram(0);
             _gl.BindTexture(TextureTarget.Texture2D, 0);
             _gl.BindTexture(TextureTarget.TextureCubeMap, 0);
+
+            GC.SuppressFinalize(this);  
         }
 
         public uint OutCubeMapId => _cubeMapId;

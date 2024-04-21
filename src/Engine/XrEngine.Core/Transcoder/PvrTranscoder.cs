@@ -64,7 +64,7 @@ namespace XrEngine
         {
         }
 
-        public unsafe void Write(Stream stream, IList<TextureData> images)
+        public unsafe void SaveTexture(Stream stream, IList<TextureData> images)
         {
             var header = new PvrHeader();
             header.Version = Version;
@@ -121,7 +121,7 @@ namespace XrEngine
         }
 
 
-        public override unsafe IList<TextureData> Read(Stream stream, TextureReadOptions? options = null)
+        public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
             using var seekStream = stream.EnsureSeek();
 

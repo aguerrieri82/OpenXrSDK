@@ -104,20 +104,20 @@ namespace XrSamples
 
         public static void LoadModel(string path)
         {
-            GltfLoader.LoadFile(path, new LocalAssetManager("Assets"));
+            GltfLoader.LoadFile(path);
         }
 
         public static void CompressTexture(string path)
         {
             var data = EtcCompressor.Encode(path, 16);
-            PvrTranscoder.Instance.Write(File.OpenWrite("d:\\test.pvr"), data);
+            PvrTranscoder.Instance.SaveTexture(File.OpenWrite("d:\\test.pvr"), data);
         }
 
         public unsafe static void LoadTexture()
         {
             var reader = PvrTranscoder.Instance; ;
             using var stream = File.OpenRead(@"d:\TestScreen.pvr");
-            reader.Read(stream);
+            reader.LoadTexture(stream);
         }
 
         public static Task OvrLibTask(ILogger logger)

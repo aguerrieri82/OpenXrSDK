@@ -17,6 +17,8 @@ namespace XrEngine.OpenGL.Oculus
         public Matrix4x4 ViewProj1;
 
         public Matrix4x4 ViewProj2;
+
+        public float FarPlane;
     }
 
     public class GlMultiViewRenderTarget : IGlRenderTarget, IMultiViewTarget, IShaderHandler
@@ -31,7 +33,6 @@ namespace XrEngine.OpenGL.Oculus
         {
             _frameBuffer = new GlMultiViewFrameBuffer(gl);
             _gl = gl;
-
         }
 
         public void Begin()
@@ -54,13 +55,14 @@ namespace XrEngine.OpenGL.Oculus
             _frameBuffer.Dispose();
         }
 
-        public void SetCameraTransforms(XrCameraTransform[] eyes)
+        public void SetCameraTransforms(XrCameraTransform[] eyes, float farPlane)
         {
             Matrix4x4.Invert(eyes[0].Transform, out var view1);
             Matrix4x4.Invert(eyes[1].Transform, out var view2);
 
             _matrices.ViewProj1 = view1 * eyes[0].Projection;
             _matrices.ViewProj2 = view2 * eyes[1].Projection;
+            _matrices.FarPlane = farPlane;
         }
 
         public void UpdateShader(ShaderUpdateBuilder bld)

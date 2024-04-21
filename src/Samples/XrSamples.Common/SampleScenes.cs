@@ -73,7 +73,6 @@ namespace XrSamples
 
         public static XrEngineAppBuilder UseEnvironmentHDR(this XrEngineAppBuilder builder, string assetPath, bool showEnv = false)
         {
-            var assets = XrPlatform.Current!.AssetManager;
 
             return builder
 
@@ -152,7 +151,6 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateDisplay(this XrEngineAppBuilder builder)
         {
-            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 
@@ -173,18 +171,22 @@ namespace XrSamples
                           .ConfigureSampleApp();
         }
 
+        public static string GetAssetPath(string name)
+        {
+            return Context.Require<IAssetStore>().GetPath(name);    
+        }
+
         public static XrEngineAppBuilder CreatePingPong(this XrEngineAppBuilder builder)
         {
             var settings = new PingPongSettings();
             settings.Load(Path.Join(XrPlatform.Current!.PersistentPath, "settings.json"));
 
-            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
-            var racket = (Group3D)GltfLoader.LoadFile(assets.GetFsPath("Paddle.glb"), assets, GltfOptions);
+            var racket = (Group3D)GltfLoader.LoadFile(GetAssetPath("Paddle.glb"), GltfOptions);
             racket.Name = "Racket";
 
             //Reposition
@@ -205,7 +207,7 @@ namespace XrSamples
             //Audio
             var audio = scene.Component<AudioSystem>();
             var sound = new DynamicSound();
-            sound.AddBuffers(audio.Device.Al, XrPlatform.Current.AssetManager, "BallSounds");
+            sound.AddBuffers(audio.Device.Al, Context.Require<IAssetStore>(), "BallSounds");
 
             //Grabber
             racket.AddComponent<BoundsGrabbable>();
@@ -265,13 +267,14 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateChess(this XrEngineAppBuilder builder)
         {
-            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
-            assets.GetFsPath("Chess/ABeautifulGame.bin");
-            var mesh = (Group3D)AssetLoader.Instance.Load(new Uri(assets.GetFsPath("Chess/ABeautifulGame.gltf")), typeof(Group3D), null, GltfOptions);
+            
+            GetAssetPath("Chess/ABeautifulGame.bin");
+
+            var mesh = (Group3D)AssetLoader.Instance.Load(new Uri("res://asset/Chess/ABeautifulGame.gltf"), typeof(Group3D), null, GltfOptions);
             mesh.Name = "mesh";
             mesh.BoundUpdateMode = UpdateMode.Automatic;
 
@@ -302,21 +305,20 @@ namespace XrSamples
             return builder
                     .UseApp(app)
                     .ConfigureSampleApp()
-                    .UseEnvironmentHDR("Envs/pisa.hdr", false)
+                    .UseEnvironmentHDR("res://asset/Envs/pisa.hdr", false)
                     .UsePhysics(new PhysicsOptions());
         }
 
         public static XrEngineAppBuilder CreateSponza(this XrEngineAppBuilder builder)
         {
-            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
-            assets.GetFsPath("Sponza/Sponza.bin");
+            GetAssetPath("Sponza/Sponza.bin");
 
-            var mesh = (Group3D)GltfLoader.LoadFile(assets.GetFsPath("Sponza/Sponza.gltf"), assets, GltfOptions);
+            var mesh = (Group3D)GltfLoader.LoadFile(GetAssetPath("Sponza/Sponza.gltf"), GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.01f);
 
@@ -329,13 +331,12 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateController(this XrEngineAppBuilder builder)
         {
-            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
-            var mesh = (Object3D)GltfLoader.LoadFile(assets.GetFsPath("Models/MetaQuestTouchPlus_Right.glb"), assets, GltfOptions);
+            var mesh = GltfLoader.LoadFile(GetAssetPath("Models/MetaQuestTouchPlus_Right.glb"), GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetPositionY(1);
             mesh.AddComponent<BoundsGrabbable>();
@@ -367,13 +368,12 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateBed(this XrEngineAppBuilder builder)
         {
-            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
-            var mesh = (TriangleMesh)GltfLoader.LoadFile(assets.GetFsPath("IkeaBed.glb"), assets, GltfOptions);
+            var mesh = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
             mesh.Name = "mesh";
             // mesh.AddComponent<MeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
@@ -401,13 +401,12 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateHelmet(this XrEngineAppBuilder builder)
         {
-            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
-            var mesh = (Object3D)GltfLoader.LoadFile(assets.GetFsPath("Helmet/DamagedHelmet.gltf"), assets, GltfOptions);
+            var mesh = (Object3D)GltfLoader.LoadFile(GetAssetPath("Helmet/DamagedHelmet.gltf"), GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.4f);
             mesh.Transform.SetPositionY(1);
@@ -445,7 +444,6 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateAnimatedCubes(this XrEngineAppBuilder builder)
         {
-            var assets = XrPlatform.Current!.AssetManager;
 
             var app = CreateBaseScene();
 
@@ -453,7 +451,7 @@ namespace XrSamples
 
             var red = new BasicMaterial() { Color = new Color(1, 0, 0) };
 
-            var data = EtcCompressor.Encode(assets.GetFsPath("TestScreen.png"), 16);
+            var data = EtcCompressor.Encode(GetAssetPath("TestScreen.png"), 16);
 
             var text = new TextureMaterial(Texture2D.FromData(data))
             {

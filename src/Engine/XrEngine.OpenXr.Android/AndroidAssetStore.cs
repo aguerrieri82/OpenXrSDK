@@ -2,19 +2,19 @@
 
 namespace XrEngine.OpenXr.Android
 {
-    public class AndroidAssetManager : IAssetManager
+    public class AndroidAssetStore : IAssetStore
     {
         readonly Context2 _context;
         readonly string _basePath;
         readonly HashSet<string> _loadedFiles = [];
 
-        public AndroidAssetManager(Context2 context, string basePath)
+        public AndroidAssetStore(Context2 context, string basePath)
         {
             _context = context;
             _basePath = basePath;
         }
 
-        public string GetFsPath(string name)
+        public string GetPath(string name)
         {
             var cacheBase = Path.Join(_context.CacheDir!.Path, _basePath);
 
@@ -48,7 +48,7 @@ namespace XrEngine.OpenXr.Android
 
         public Stream Open(string name)
         {
-            return File.OpenRead(GetFsPath(name));
+            return File.OpenRead(GetPath(name));
         }
     }
 }

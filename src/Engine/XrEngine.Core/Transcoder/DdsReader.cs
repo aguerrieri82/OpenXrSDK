@@ -49,7 +49,7 @@ namespace XrEngine
         {
         }
 
-        public override unsafe IList<TextureData> Read(Stream stream, TextureReadOptions? options = null)
+        public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
             using var memStream = stream.EnsureSeek();
 

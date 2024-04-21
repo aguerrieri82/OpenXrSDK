@@ -46,7 +46,7 @@ namespace XrEditor.Services
             _scene.ActiveCamera = camera;
 
             _light = new ImageLight();
-            _light.LoadPanorama("pisa.hdr");
+            _light.LoadPanorama("res://asset/pisa.hdr");
             _light.Intensity = 2.5f;
             _light.Version = -100;
 

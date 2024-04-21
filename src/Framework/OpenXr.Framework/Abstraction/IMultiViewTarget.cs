@@ -3,6 +3,6 @@
 
     public interface IMultiViewTarget
     {
-        void SetCameraTransforms(XrCameraTransform[] eyes);
+        void SetCameraTransforms(XrCameraTransform[] eyes, float farPlane);
     }
 }

@@ -9,7 +9,7 @@ namespace XrEngine.Gltf
     {
         public void Load()
         {
-            AssetLoader.Instance.Register(new GltfAssetLoader());
+            AssetLoader.Instance.Register(GltfAssetLoader.Instance);
         }
     }
 }

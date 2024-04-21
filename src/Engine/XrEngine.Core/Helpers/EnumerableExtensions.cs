@@ -15,7 +15,7 @@
                     }
                     catch (Exception ex)
                     {
-
+                        Log.Error(action, ex);
                     }
                     curI++;
                 }
@@ -30,7 +30,7 @@
                     }
                     catch (Exception ex)
                     {
-
+                        Log.Error(action, ex);
                     }
                 }
             }

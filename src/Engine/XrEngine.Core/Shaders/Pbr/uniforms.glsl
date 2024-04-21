@@ -116,6 +116,7 @@ layout(std140) uniform Camera {
     mat4 ViewProjectionMatrix;
     vec3 Position;
     float Exposure;
+    float FarPlane;
 } uCamera;
 
 

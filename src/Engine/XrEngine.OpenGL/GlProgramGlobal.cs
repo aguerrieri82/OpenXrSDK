@@ -29,7 +29,6 @@ namespace XrEngine.OpenGL
 
                 var globalProp = MaterialType.GetField("GlobalHandler", BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy);
 
-
                 if (globalProp != null)
                     ((IShaderHandler)globalProp.GetValue(null)!).UpdateShader(globalBuilder);
 

@@ -19,6 +19,13 @@ namespace XrEngine
             if (objState.Contains("$uri"))
             {
                 var assetUri = objState.Read<Uri>("$uri");
+                if (destObj != null)
+                {
+                    var curAsset = destObj.Component<AssetSource>();
+                    if (curAsset != null && curAsset.Asset?.Source == assetUri)
+                        return destObj;
+                }
+
                 return AssetLoader.Instance.Load(assetUri, objType, destObj);
             }
 
@@ -44,7 +51,7 @@ namespace XrEngine
             var assetSrc = obj!.Components<AssetSource>().FirstOrDefault();
             if (assetSrc != null)
             {
-                objState.Write("$uri", assetSrc.AssetUri);
+                objState.Write("$uri", assetSrc.Asset!.Source);
                 objState.Write("Id", obj.Id);
             }
             else

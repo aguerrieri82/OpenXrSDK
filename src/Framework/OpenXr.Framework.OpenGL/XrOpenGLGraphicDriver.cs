@@ -14,7 +14,7 @@ namespace OpenXr.Framework.OpenGL
         protected XrDynamicType _swapChainType;
 
         protected GLEnum[] _validFormats = [
-           //GLEnum.Srgb8Alpha8,
+           GLEnum.Srgb8Alpha8,
            GLEnum.Rgba8];
 
 

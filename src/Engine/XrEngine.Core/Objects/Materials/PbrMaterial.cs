@@ -77,6 +77,7 @@ namespace XrEngine
             public Matrix4x4 ViewProjectionMatrix;
             public Vector3 Position;
             public float Exposure;
+            public float FarPlane;
         }
 
         #endregion
@@ -421,7 +422,8 @@ namespace XrEngine
                         ProjectionMatrix = ctx.Camera.Projection,
                         ViewMatrix = ctx.Camera.View,
                         ViewProjectionMatrix = ctx.Camera!.View * ctx.Camera.Projection,
-                        Exposure = ctx.Camera.Exposure
+                        Exposure = ctx.Camera.Exposure,
+                        FarPlane = ctx.Camera.Far
                     };
                 }, 0, true);
 
@@ -550,7 +552,7 @@ namespace XrEngine
 
         static PbrMaterial()
         {
-            LinearOutput = true;
+            LinearOutput = false;
             ToneMap = ToneMapType.TONEMAP_KHR_PBR_NEUTRAL;
 
             SHADER = new Shader

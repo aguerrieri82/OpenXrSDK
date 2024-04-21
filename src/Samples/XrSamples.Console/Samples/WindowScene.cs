@@ -25,16 +25,9 @@ namespace XrSamples
         {
             public ConsolePlatform()
             {
-                Logger = NullLogger.Instance;
-                AssetManager = new LocalAssetManager("Assets");
-                AssetLoader.Instance.AssetManager = AssetManager;
             }
 
             public string PersistentPath => Path.GetFullPath("Data");
-
-            public IAssetManager AssetManager { get; }
-
-            public ILogger Logger { get; set; }
 
             public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
             {
@@ -49,6 +42,9 @@ namespace XrSamples
 
         public static Task Run(IServiceProvider services, ILogger logger)
         {
+            Context.Implement<IAssetStore>(new LocalAssetStore("Assets"));
+            Context.Implement(logger);
+
             XrPlatform.Current = new ConsolePlatform();
 
             var builder = new XrEngineAppBuilder();

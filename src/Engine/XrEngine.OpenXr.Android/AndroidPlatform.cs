@@ -11,7 +11,6 @@ using XrEngine.Filament;
 using XrEngine.OpenGL;
 using OpenXr.Framework.Oculus;
 using Microsoft.Extensions.Logging;
-using XrEngine.Services;
 using Context2 = global::Android.Content.Context;
 
 namespace XrEngine.OpenXr.Android
@@ -24,17 +23,14 @@ namespace XrEngine.OpenXr.Android
         public AndroidPlatform(Context2 context)
         {
             PbrMaterial.LinearOutput = false;
-
-            AssetManager = new AndroidAssetManager(context, "Assets");
-            AssetLoader.Instance.AssetManager = AssetManager;
-            //  AssetManager = new LocalAssetManager(Path.Join(extPath, "Assets"));
-            Logger = new AndroidLogger("XrApp");
+            Context.Implement<IAssetStore>(new AndroidAssetStore(context, "Assets"));
+            Context.Implement<ILogger>(new AndroidLogger("XrApp"));
             _context = context;
         }
 
         public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
         {
-            return new XrApp(Logger,
+            return new XrApp(Context.Require<ILogger>(),
                 new OculusXrPlugin(),
                 xrDriver,
                 new AndroidXrPlugin(_context));
@@ -102,9 +98,6 @@ namespace XrEngine.OpenXr.Android
             }
         }
 
-        public ILogger Logger { get; set; }
-
-        public IAssetManager AssetManager { get; }
 
         public string PersistentPath => _context.GetExternalFilesDir(null)!.AbsolutePath;
     }

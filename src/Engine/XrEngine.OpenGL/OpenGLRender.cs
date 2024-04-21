@@ -572,6 +572,8 @@ namespace XrEngine.OpenGL
 
         public PbrMaterial.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
         {
+            Log.Info(this, "Processing IBL Panorama");
+
             using var processor = new GlIBLProcessor(_gl);
 
             processor.Resolution = options.Resolution;
@@ -626,6 +628,8 @@ namespace XrEngine.OpenGL
                 result.GGXEnv = (TextureCube)_gl.TexIdToEngineTexture(envId);
                 result.GGXLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId);
             }
+
+            Log.Debug(this, "Processing IBL Panorama OK");
 
             return result;
         }

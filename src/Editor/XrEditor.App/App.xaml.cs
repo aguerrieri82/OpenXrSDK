@@ -20,6 +20,7 @@ namespace XrEditor
             Context.Implement<SelectionManager>();
             Context.Implement<PropertyEditorManager>();
             Context.Implement<IMainDispatcher>(new MainDispatcher());
+            Context.Implement<IAssetStore>(new LocalAssetStore("Assets"));
             Context.Implement(XrPlatform.Current);
 
             ModuleManager.Instance.Init();

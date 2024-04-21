@@ -15,6 +15,7 @@ namespace XrEngine
                 up.SetUniform("uView", camera.View);
                 up.SetUniform("uProjection", camera.Projection);
                 up.SetUniform("uViewPos", camera.Transform.Position, true);
+                up.SetUniform("uFarPlane", camera.Far);
 
                 if (ctx.Shader!.IsLit && (!_lightVersions.TryGetValue(ctx.InstanceId, out var ver) || ctx.LightsVersion != ver))
                 {
