@@ -2,21 +2,21 @@
 
 namespace XrEngine
 {
-    public class LocalAssetManager : IAssetManager
+    public class LocalAssetStore : IAssetStore
     {
         readonly string _basePath;
 
-        public LocalAssetManager(string basePath)
+        public LocalAssetStore(string basePath)
         {
             _basePath = Path.GetFullPath(basePath);
         }
 
         public Stream Open(string name)
         {
-            return File.OpenRead(GetFsPath(name));
+            return File.OpenRead(GetPath(name));
         }
 
-        public string GetFsPath(string name)
+        public string GetPath(string name)
         {
             if (name.StartsWith(_basePath, StringComparison.OrdinalIgnoreCase))
                 return name;

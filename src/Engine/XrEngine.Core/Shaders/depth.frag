@@ -10,7 +10,7 @@ uniform float uFarPlane;
 uniform int uSamples;
 
 
-float LinearizeDepth(float depth)
+float linearizeDepth(float depth)
 {
     float z = depth * 2.0 - 1.0;
     return (2.0 * uNearPlane * uFarPlane) / (uFarPlane + uNearPlane - z * (uFarPlane - uNearPlane));
@@ -34,5 +34,5 @@ void main()
         depthValue = texture(uTexture0, fUv).r;
     }
 
-    FragColor = vec4(vec3(LinearizeDepth(depthValue) / uFarPlane), 1.0);
+    FragColor = vec4(vec3(linearizeDepth(depthValue) / uFarPlane), 1.0);
 }  

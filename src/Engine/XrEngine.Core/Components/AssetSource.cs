@@ -2,6 +2,6 @@
 {
     public class AssetSource : BaseComponent<EngineObject>
     {
-        public Uri? AssetUri { get; set; }
+        public IAsset? Asset { get; set; }
     }
 }

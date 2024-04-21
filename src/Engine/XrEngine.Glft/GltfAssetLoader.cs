@@ -2,7 +2,7 @@
 
 namespace XrEngine.Gltf
 {
-    public class GltfAssetLoader : IAssetHandler
+    public class GltfAssetLoader : IAssetLoader
     {
         readonly Dictionary<string, GltfAssetCache> _cache = [];
 
@@ -13,14 +13,39 @@ namespace XrEngine.Gltf
             public DateTime LastEditTime { get; set; }
         }
 
+
+        GltfAssetLoader() { }
+
+        protected string GetFilePath(Uri uri)
+        {
+            if (uri.Scheme == "res" && uri.Host == "asset")
+                return Context.Require<IAssetStore>().GetPath(uri.LocalPath);
+            return uri.IsAbsoluteUri ? uri.LocalPath : uri.ToString();
+        }
+
         public bool CanHandle(Uri uri, out Type resType)
         {
             if (uri.Scheme == "res" && uri.Host == "gltf")
             {
                 var seg = uri.Segments.FirstOrDefault();
-                if (seg == "/texture")
+                if (seg == "/tex")
                 {
                     resType = typeof(Texture2D);
+                    return true;
+                }
+                if (seg == "/geo")
+                {
+                    resType = typeof(Geometry3D);
+                    return true;
+                }
+                if (seg == "/mat")
+                {
+                    resType = typeof(PbrMaterial);
+                    return true;
+                }
+                if (seg == "/mesh")
+                {
+                    resType = typeof(Object3D);
                     return true;
                 }
             }
@@ -37,17 +62,16 @@ namespace XrEngine.Gltf
             return false;
         }
 
-        public EngineObject LoadAsset(Uri uri, Type resType, IAssetManager assetManager, EngineObject? destObj, IAssetLoaderOptions? options = null)
+        public EngineObject LoadAsset(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
             var query = HttpUtility.ParseQueryString(uri.Query);
-            string src;
+            string fsSrc;
 
-            if (uri.Scheme == "res")
-                src = query["src"]!;
+            if (uri.Host == "gltf")
+                fsSrc = query["src"]!;
             else
-                src = uri.LocalPath;
+                fsSrc = GetFilePath(uri);
 
-            var fsSrc = assetManager.GetFsPath(src);
             var lastEditTime = File.GetLastWriteTime(fsSrc);
 
             if (!_cache.TryGetValue(fsSrc, out var cache) || lastEditTime > cache.LastEditTime)
@@ -57,7 +81,7 @@ namespace XrEngine.Gltf
                     LastEditTime = lastEditTime,
                     Loader = new GltfLoader()
                 };
-                cache.Loader.LoadModel(src, assetManager, (GltfLoaderOptions?)options);
+                cache.Loader.LoadModel(fsSrc, (GltfLoaderOptions?)options);
 
                 if (UseCache)
                     _cache[fsSrc] = cache;
@@ -65,28 +89,38 @@ namespace XrEngine.Gltf
 
             EngineObject result;
 
-            if (uri.Scheme == "res")
+            if (uri.Host == "gltf")
             {
                 var seg = uri.Segments[1].TrimEnd('/');
 
+                int meshId;
+
                 switch (seg)
                 {
-                    case "texture":
+                    case "tex":
                         var texId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessTexture(cache.Loader.Model!.Textures[texId], texId, (Texture2D?)destObj ?? new());
+                        result = cache.Loader!.ProcessTexture(cache.Loader.Model!.Textures[texId], texId, (Texture2D?)destObj);
                         break;
                     case "geo":
-                        var meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
+                        meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
                         var pIndex = int.Parse(uri.Segments[3].TrimEnd('/'));
                         var mesh = cache.Loader!.Model!.Meshes[meshId];
-                        result = cache.Loader!.ProcessPrimitive(mesh.Primitives[pIndex], (Geometry3D?)destObj ?? new());
+                        result = cache.Loader!.ProcessPrimitive(mesh.Primitives[pIndex], (Geometry3D?)destObj);
+                        break;
+                    case "mat":
+                        var matId = int.Parse(uri.Segments[2].TrimEnd('/'));
+                        result = cache.Loader!.ProcessMaterial(cache.Loader!.Model!.Materials[matId], matId, (PbrMaterial?)destObj);
+                        break;
+                    case "mesh":
+                        meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
+                        result = cache.Loader!.ProcessMesh(cache.Loader!.Model!.Meshes[meshId], meshId, (TriangleMesh?)destObj);
                         break;
                     default:
                         throw new NotSupportedException();
                 }
             }
-
-            result = cache.Loader!.LoadScene();
+            else
+                result = cache.Loader!.LoadScene();
 
             cache.Loader!.ExecuteLoadTasks();
 
@@ -94,5 +128,8 @@ namespace XrEngine.Gltf
         }
 
         public bool UseCache { get; set; }  
+
+
+        public static readonly GltfAssetLoader Instance = new GltfAssetLoader();
     }
 }

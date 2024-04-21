@@ -18,6 +18,12 @@ namespace XrEngine
             Logger.LogMessage(string.Format(message, args), LogLevel.Debug);
         }
 
+        public static void Error(object source, Exception exception)
+        {
+            Logger.LogMessage(exception.ToString(), LogLevel.Error);
+        }
+
+
         public static IProgressLogger Logger => Context.Require<IProgressLogger>();
     }
 }

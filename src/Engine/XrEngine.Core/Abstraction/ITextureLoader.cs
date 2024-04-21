@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    public class TextureReadOptions : IAssetLoaderOptions
+    public class TextureLoadOptions : IAssetLoaderOptions
     {
         public TextureFormat? Format { get; set; }
     }
@@ -8,6 +8,6 @@
 
     public interface ITextureLoader
     {
-        IList<TextureData> Read(Stream stream, TextureReadOptions? options = null);
+        IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null);
     }
 }

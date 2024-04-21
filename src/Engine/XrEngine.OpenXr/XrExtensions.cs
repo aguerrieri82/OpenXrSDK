@@ -305,7 +305,7 @@ namespace XrEngine.OpenXr
                     for (var i = 0; i < transforms.Length; i++)
                         transforms[i] = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
 
-                    multiTarget.SetCameraTransforms(transforms);
+                    multiTarget.SetCameraTransforms(transforms, camera.Far);
 
                     renderer.SetRenderTarget(renderTarget);
 

@@ -20,7 +20,7 @@ namespace XrEditor.Nodes
             PropertyView.CreateProperties(_value, typeof(Material), curProps);
         }
 
-        public async Task<SKBitmap> CreatePreviewAsync()
+        public async Task<SKBitmap?> CreatePreviewAsync()
         {
             var preview = Context.Require<RenderPreviewCreator>();
 

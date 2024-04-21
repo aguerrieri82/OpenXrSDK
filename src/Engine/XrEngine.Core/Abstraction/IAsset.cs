@@ -5,11 +5,13 @@ namespace XrEngine
 
     public interface IAsset
     {
+        public EngineObject Load();
+
         public void Update(EngineObject destObj);
 
         public void Delete();
 
-        public void Rename(string rename);
+        public void Rename(string newName);
 
         public Type Type { get; }
 
@@ -17,6 +19,6 @@ namespace XrEngine
 
         public Uri Source { get; }
 
-        public object Options { get; }  
+        public IAssetLoaderOptions? Options { get; }  
     }
 }

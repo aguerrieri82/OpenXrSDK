@@ -4,6 +4,6 @@ namespace XrEditor
 {
     public interface IItemPreview
     {
-        Task<SKBitmap> CreatePreviewAsync();
+        Task<SKBitmap?> CreatePreviewAsync();
     }
 }

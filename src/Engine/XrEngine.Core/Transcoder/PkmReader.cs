@@ -24,7 +24,7 @@ namespace XrEngine
             return (ushort)(value >> 8 | ((value << 8) & 0xFF00));
         }
 
-        public override unsafe IList<TextureData> Read(Stream stream, TextureReadOptions? options = null)
+        public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
             using var seekStream = stream.EnsureSeek();
 

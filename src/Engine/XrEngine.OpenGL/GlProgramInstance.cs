@@ -56,6 +56,8 @@ namespace XrEngine.OpenGL
                 foreach (var feature in Global.Update!.Features!)
                     program.AddFeature(feature);
 
+                program.AddFeature("ZLOG_F 0.01");
+
                 program.Build();
 
                 _programs[_update.FeaturesHash!] = program;

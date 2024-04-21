@@ -16,6 +16,7 @@ namespace XrEngine
             ActiveComponents = VertexComponent.Position;
             Indices = [];
             Vertices = [];
+
         }
 
         public void Attach(EngineObject host)

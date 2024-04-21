@@ -46,6 +46,6 @@ namespace XrEngine.Physics
 
         public PhysicsOptions Options { get; set; }
 
-        public PhysicsSystem System => _system;
+        public PhysicsSystem System => _system ?? throw new NullReferenceException();
     }
 }

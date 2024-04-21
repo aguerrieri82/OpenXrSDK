@@ -14,7 +14,7 @@ namespace XrEngine
 
         public void LoadPanorama(string hdrFileName)
         {
-            Panorama = AssetLoader.Instance.Load<Texture2D>(hdrFileName, new TextureReadOptions { Format = TextureFormat.RgbaFloat32 });
+            Panorama = AssetLoader.Instance.Load<Texture2D>(hdrFileName, new TextureLoadOptions { Format = TextureFormat.RgbaFloat32 });
             Panorama.Version = DateTime.Now.Ticks;
 
             NotifyChanged(ObjectChangeType.Render);
@@ -32,7 +32,7 @@ namespace XrEngine
         {
             base.SetStateWork(container);
             Rotation = container.Read<float>(nameof(Rotation));
-            Panorama = container.Read<Texture2D>("Panorama");
+            Panorama = container.Read("Panorama", Panorama);
             if (Panorama != null)
                 Panorama.Version = DateTime.Now.Ticks;
         }

@@ -30,7 +30,7 @@ namespace XrEngine.OpenGL
             var vSource = PatchShader(_vSource, ShaderType.VertexShader);
             var fSource = PatchShader(_fSource, ShaderType.FragmentShader);
 
-            vSource = ShaderPreprocessor.ParseShader(vSource);
+            //vSource = ShaderPreprocessor.ParseShader(vSource);
 
             Vertex = GlShader.GetOrCreate(_gl, ShaderType.VertexShader, vSource);
             Fragment = GlShader.GetOrCreate(_gl, ShaderType.FragmentShader, fSource);

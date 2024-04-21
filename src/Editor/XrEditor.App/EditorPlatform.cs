@@ -6,7 +6,7 @@ using System.IO;
 using XrEditor.Services;
 using XrEngine;
 using XrEngine.OpenXr;
-using XrEngine.Services;
+
 
 namespace XrEditor
 {
@@ -16,8 +16,6 @@ namespace XrEditor
 
         public EditorPlatform()
         {
-            AssetManager = new LocalAssetManager("Assets");
-            AssetLoader.Instance.AssetManager = AssetManager;
         }
 
         public IRenderSurface CreateRenderSurface(GraphicDriver driver)
@@ -49,8 +47,6 @@ namespace XrEditor
         }
 
         public IRenderSurface RenderSurface => _renderSurface!;
-
-        public IAssetManager AssetManager { get; }
 
         public string PersistentPath => Path.GetFullPath("Data");
     }

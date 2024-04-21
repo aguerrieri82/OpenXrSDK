@@ -2,28 +2,29 @@
 {
     public class AssetLoader
     {
-        readonly List<IAssetHandler> _loaders = [];
+        readonly List<IAssetLoader> _loaders = [];
 
         AssetLoader()
         {
-
         }
+
+        public IAssetLoader GetLoader(Uri uri)
+        {
+            var loader = _loaders.FirstOrDefault(a => a.CanHandle(uri, out var resType));
+            if (loader == null)
+                throw new NotSupportedException();
+            return loader;
+        }  
 
         public EngineObject Load(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
-            var loader = _loaders.FirstOrDefault(a => a.CanHandle(uri, out resType));
-            if (loader == null)
-                throw new NotSupportedException();
-
-            return loader.LoadAsset(uri, resType, AssetManager!, destObj, options);
+            return GetLoader(uri).LoadAsset(uri, resType, destObj, options);
         }
 
-        public void Register(IAssetHandler assetLoader)
+        public void Register(IAssetLoader assetLoader)
         {
             _loaders.Add(assetLoader);
         }
-
-        public IAssetManager? AssetManager { get; set; }
 
 
         public static readonly AssetLoader Instance = new();

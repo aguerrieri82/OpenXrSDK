@@ -25,14 +25,14 @@ _ = host.RunAsync();
 
 Gpu.EnableNvAPi();
 
-var data2 = PvrTranscoder.Instance.Read(File.OpenRead("d:\\real-pvr.pvr"));
+var data2 = PvrTranscoder.Instance.LoadTexture(File.OpenRead("d:\\real-pvr.pvr"));
 
 string fileName = "D:\\Development\\Library\\glTF-Sample-Viewer\\assets\\environments\\pisa.hdr";
 
-var data = HdrReader.Instance.Read(File.OpenRead(fileName));
+var data = HdrReader.Instance.LoadTexture(File.OpenRead(fileName));
 
 using (var stream = File.OpenWrite("d:\\test.pvr"))
-    PvrTranscoder.Instance.Write(stream, data);
+    PvrTranscoder.Instance.SaveTexture(stream, data);
 
 
 var logger = host.Services.GetRequiredService<ILogger<object>>();
