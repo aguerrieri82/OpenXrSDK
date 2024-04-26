@@ -21,6 +21,7 @@ namespace XrEngine
             if (outFormat != null)
                 image = ImageUtils.ChangeColorSpace(image, ImageUtils.GetFormat(outFormat.Value));
 
+
             var data = new TextureData
             {
                 Compression = TextureCompressionFormat.Uncompressed,

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using XrMath;
 
 namespace CanvasUI
@@ -269,6 +270,7 @@ namespace CanvasUI
 
                     var align = child.Align ?? lp.AlignItems;
 
+
                     var childRect = new Rect2
                     {
                         X = curPos.X,
@@ -278,7 +280,7 @@ namespace CanvasUI
                     };
 
                     if (align == UiAlignment.Stretch)
-                        childRect.Height = rowSize.Height;
+                        childRect.Height = finalRect.Height; //rowSize.Height;
 
                     else if (align == UiAlignment.End)
                         childRect.Y += rowSize.Height - childSize.Height;

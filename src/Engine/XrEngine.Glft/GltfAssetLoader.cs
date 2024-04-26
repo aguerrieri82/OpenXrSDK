@@ -79,7 +79,7 @@ namespace XrEngine.Gltf
                 cache = new GltfAssetCache
                 {
                     LastEditTime = lastEditTime,
-                    Loader = new GltfLoader()
+                    Loader = new GltfLoader(a => Context.Require<IAssetStore>().GetPath(a))
                 };
                 cache.Loader.LoadModel(fsSrc, (GltfLoaderOptions?)options);
 
@@ -120,9 +120,24 @@ namespace XrEngine.Gltf
                 }
             }
             else
+            {
                 result = cache.Loader!.LoadScene();
 
+                result.AddComponent(new AssetSource
+                {
+                    Asset = new BaseAsset<GltfLoaderOptions, GltfAssetLoader>(
+                            GltfAssetLoader.Instance,
+                            Path.GetFileName(uri.ToString())!,
+                            typeof(Group3D),
+                            uri,
+                            (GltfLoaderOptions?)options)
+                });
+            }
+
             cache.Loader!.ExecuteLoadTasks();
+
+            if (!UseCache)
+                cache.Loader.Unload();
 
             return result;
         }

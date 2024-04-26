@@ -265,6 +265,8 @@ namespace XrEngine.OpenGL
 
                     TextureFormat.RgFloat32 => InternalFormat.RG32f,
 
+                    TextureFormat.Rgb24 => InternalFormat.Rgb8,
+
                     _ => throw new NotSupportedException(),
                 };
             }
@@ -292,6 +294,9 @@ namespace XrEngine.OpenGL
         public unsafe void Update(uint width, uint height, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null)
         {
             Log.Debug(this, "Update texture '{0}'", _handle);
+
+            if (_width != width || _height != height)
+                _isAllocated = false;
 
             _width = width;
             _height = height;

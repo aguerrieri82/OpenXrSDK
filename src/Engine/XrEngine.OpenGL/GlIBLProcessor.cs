@@ -55,7 +55,7 @@ namespace XrEngine.OpenGL
                 MipLevelCount = maxMipLevels;
 
             _panToCubeProg = new GlSimpleProgram(_gl,
-                shaderResolver("Ibl/fullscreen.vert"),
+                shaderResolver("Utils/fullscreen.vert"),
                 shaderResolver("Ibl/panorama_to_cubemap.frag"),
                 shaderResolver);
 
@@ -64,7 +64,7 @@ namespace XrEngine.OpenGL
             _panToCubeProg.Build();
 
             _filterProg = new GlSimpleProgram(_gl,
-                shaderResolver("Ibl/fullscreen.vert"),
+                shaderResolver("Utils/fullscreen.vert"),
                 shaderResolver("Ibl/filter_cubemap.frag"),
                 shaderResolver);
 

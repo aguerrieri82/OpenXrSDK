@@ -273,6 +273,7 @@ namespace XrEngine.OpenXr
 
                         camera.Projection = transform.Projection;
                         camera.WorldMatrix = transform.Transform;
+                        camera.ActiveEye = i;
 
                         var depth = (CompositionLayerDepthInfoKHR*)views[0].Next;
                         if (depth != null)

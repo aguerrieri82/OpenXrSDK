@@ -93,6 +93,7 @@ namespace XrEngine.OpenGL
 
                 if (result == -1 && !optional) //TODO uncomment
                 {
+                    Log.Warn(this, "Uniform {0} not found", name);
                     //Debug.WriteLine($"--- WARN --- {name} NOT FOUND");
                     //throw new Exception($"{name} uniform not found on shader.");
                 }
@@ -132,6 +133,11 @@ namespace XrEngine.OpenGL
         public void SetUniform(string name, float value, bool optional = false)
         {
             _gl.Uniform1(LocateUniform(name, optional), value);
+        }
+
+        public void SetUniform(string name, Vector2 value, bool optional = false)
+        {
+            _gl.Uniform2(LocateUniform(name, optional), value.X, value.Y);
         }
 
         public void SetUniform(string name, Vector3 value, bool optional = false)

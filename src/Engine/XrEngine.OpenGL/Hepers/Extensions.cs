@@ -78,6 +78,9 @@ namespace XrEngine.OpenGL
 
         public static unsafe void Update(this GlTexture glTexture, Texture2D texture2D, bool requireCompression)
         {
+            if (texture2D is TextureCube)
+                glTexture.Target = TextureTarget.TextureCubeMap;
+
             glTexture.MinFilter = (TextureMinFilter)texture2D.MinFilter;
             glTexture.MagFilter = (TextureMagFilter)texture2D.MagFilter;
             glTexture.WrapS = (TextureWrapMode)texture2D.WrapS;

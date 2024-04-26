@@ -26,6 +26,10 @@ namespace OpenXr.Framework
 
             foreach (var space in anchors)
             {
+                var supported = xrOculus.EnumerateSpaceSupportedComponentsFB(space.Space);
+
+
+
                 var item = new XrAnchor();
                 item.Id = space.Uuid.ToGuid();
                 try
@@ -44,11 +48,15 @@ namespace OpenXr.Framework
                         item.Bounds2D = bounds.Convert().To<Rect2>();
                     }
 
-                    if ((filter.Components & XrAnchorComponent.Pose) != 0)
+                    if ((filter.Components & XrAnchorComponent.Pose) != 0 &&
+                        supported.Contains(SpaceComponentTypeFB.LocatableFB))
                     {
+                        if (!xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.LocatableFB))
+                            await xrOculus.SetSpaceComponentStatusAsync(space.Space, SpaceComponentTypeFB.LocatableFB, true);
+
                         try
                         {
-                            var local = xrOculus.App.LocateSpace(xrOculus.App.Stage, space.Space, 1);
+                            var local = xrOculus.App.LocateSpace(space.Space, xrOculus.App.Stage, 1);
                             item.Pose = local.Pose;
                         }
                         catch (Exception ex)

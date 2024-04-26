@@ -5,6 +5,7 @@ using System.Xml.Linq;
 using XrEditor.Services;
 using XrEngine;
 using XrEngine.Interaction;
+using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrEngine.Services;
 using XrMath;
@@ -96,7 +97,7 @@ namespace XrEditor
         {
             _engine = new XrEngineAppBuilder()
               .SetRenderQuality(1, 1) ///samples > 1 cause Filament to fuck up
-              .CreateChess()
+              .CreatePortal()
               .Build();
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
@@ -178,6 +179,20 @@ namespace XrEditor
             _render = _engine!.App.Renderer!;
 
             _renderSurface.TakeContext();
+
+            /*
+
+            var proc = new GlFishProcessor((_render as OpenGLRender)!.GL, ColorMaterial.SHADER.Resolver!);
+
+            var inData = ImageReader.Instance.Read("Assets/Fish/cam_left.jpg").First();
+            var outData = new TextureData();
+            proc.Process(inData, outData);
+            
+            using var img = ImageUtils.ToBitmap(outData, false);
+            using var outFile = File.OpenWrite("d:\\cam_left_pan.jpg");
+            img.Encode(outFile, SKEncodedImageFormat.Jpeg, 100);
+            outFile.Dispose();
+        */
 
             while (_isStarted)
             {

@@ -1,6 +1,4 @@
-﻿
-using glTFLoader.Schema;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using SkiaSharp;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -23,6 +21,7 @@ namespace XrEngine.Gltf
         readonly List<Action> _tasks = [];
         readonly ConcurrentDictionary<int, byte[]> _buffers = [];
         readonly StringBuilder _log = new();
+        readonly Func<string, string> _resourceResolver;
         string? _basePath;
         string? _filePath;
         static readonly string[] supportedExt = { "KHR_draco_mesh_compression", "KHR_materials_pbrSpecularGlossiness" };
@@ -48,9 +47,16 @@ namespace XrEngine.Gltf
         }
 
         public GltfLoader()
+            : this(a=> a)
         {
 
         }
+
+        public GltfLoader(Func<string, string> resourceResolver)
+        {
+            _resourceResolver = resourceResolver;
+        }
+
 
         protected byte[] LoadBuffer(int index)
         {
@@ -93,7 +99,7 @@ namespace XrEngine.Gltf
                 }
                 else if (img.Uri != null)
                 {
-                    data = File.OpenRead(Path.Join(_basePath!, img.Uri))
+                    data = File.OpenRead(_resourceResolver(Path.Join(_basePath!, img.Uri)))
                         .ToMemory()
                         .ToArray();
                 }
@@ -627,6 +633,7 @@ namespace XrEngine.Gltf
             }
 
             Log.Info(this, "GLFT scene loaded '{0}'", _filePath!);
+
 
             return curRoot;
         }

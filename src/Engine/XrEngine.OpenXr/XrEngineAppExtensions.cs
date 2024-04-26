@@ -95,9 +95,11 @@ namespace XrEngine.OpenXr
         });
 
 
-        public static XrEngineAppBuilder UseSceneModel(this XrEngineAppBuilder self, bool arMode) => self.ConfigureApp(e =>
+        public static XrEngineAppBuilder UseSceneModel(this XrEngineAppBuilder self, bool arMode, bool addPhysics = true) => self.ConfigureApp(e =>
         {
             var model = new OculusSceneModel();
+            model.AddPhysics = addPhysics;
+
             if (arMode)
                 model.Material = new ColorMaterial { Color = Color.Transparent, ShadowIntensity = 0.7f, IsShadowOnly = true };
 

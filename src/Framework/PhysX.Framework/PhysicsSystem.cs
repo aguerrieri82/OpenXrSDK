@@ -52,6 +52,10 @@ namespace PhysX.Framework
 
         public float SpeedTolerance { get; set; }
 
+        public bool EnableCCD { get; set; }
+
+        public bool EnablePCM { get; set; }
+
         public Vector3 Gravity { get; set; }
     }
 

@@ -4,7 +4,7 @@ namespace XrEngine
 {
     public class ColorMaterial : ShaderMaterial, IColorSource
     {
-        static readonly Shader SHADER;
+        public static readonly Shader SHADER;
 
         static ColorMaterial()
         {

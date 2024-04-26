@@ -17,5 +17,14 @@
 		<Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Remove="Assets\Fish\cam_left.jpg" />
+	  <None Remove="Assets\Fish\cam_left_pan.jpg" />
+	  <None Remove="Assets\Fish\cam_right.jpg" />
+	  <None Remove="Assets\Fish\cam_right_pan.jpg" />
+	  <None Remove="Assets\Fish\cube_orig.jpg" />
+	  <None Remove="Assets\Fish\cube_pan.jpg" />
+	</ItemGroup>
+
 
 </Project>

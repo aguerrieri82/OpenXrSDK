@@ -58,6 +58,10 @@ namespace XrEngine
                 {
                     result.BitPerPixel = 64;
                 }
+                else if (format == TextureFormat.Rgb24)
+                {
+                    result.BitPerPixel = 24;
+                }
                 else
                     throw new NotSupportedException();
             }
@@ -117,12 +121,11 @@ namespace XrEngine
             using var file = File.OpenRead(fsPath);
             var data = LoadTexture(file, (TextureLoadOptions?)options);
 
-            var result = (Texture2D?)destObj;
+            var result = (Texture?)destObj;
 
-            if (result == null)
-                result = Texture2D.FromData(data);
-            else
-                result.LoadData(data);
+            result ??= (Texture)Activator.CreateInstance(resType)!;
+         
+            result.LoadData(data);
 
             result.AddComponent(new AssetSource { Asset = new TextureAsset(this, uri, (TextureLoadOptions?)options) });
 

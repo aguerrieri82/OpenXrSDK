@@ -15,11 +15,14 @@ namespace XrEngine.OpenXr
         protected bool _isSceneLoading;
         protected XrApp? _app;
 
+
         public OculusSceneModel()
         {
             Material = PbrMaterial.CreateDefault(Color.White);
 
             Name = "SceneModel";
+
+            AddPhysics = true;
         }
 
         public override void Update(RenderContext ctx)
@@ -79,16 +82,20 @@ namespace XrEngine.OpenXr
 
                 mesh.AddComponent(new MeshCollider());
 
-                var rigidBody = mesh.AddComponent<RigidBody>();
-
-                rigidBody.Type = PhysicsActorType.Static;
-                rigidBody.ContactOffset = 0.2f;
-                rigidBody.Material = new PhysicsMaterialInfo
+                if (AddPhysics)
                 {
-                    DynamicFriction = 1,
-                    StaticFriction = 1,
-                    Restitution = 0.7f
-                };
+                    var rigidBody = mesh.AddComponent<RigidBody>();
+
+                    rigidBody.Type = PhysicsActorType.Static;
+                    rigidBody.ContactOffset = 0.2f;
+                    rigidBody.Material = new PhysicsMaterialInfo
+                    {
+                        DynamicFriction = 1,
+                        StaticFriction = 1,
+                        Restitution = 0.7f
+                    };
+                }
+
 
                 AddChild(mesh);
 
@@ -106,6 +113,8 @@ namespace XrEngine.OpenXr
                 _isSceneLoading = false;
             }
         }
+
+        public bool AddPhysics { get; set; }
 
         public Material Material { get; set; }
     }

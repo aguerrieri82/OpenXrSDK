@@ -1,6 +1,15 @@
 #include "ibl_shared.frag";
 
+
 uniform sampler2D uPanorama;
+
+
+vec2 dirToUV(vec3 dir)
+{
+    return vec2(
+            0.5f + 0.5f * atan(dir.z, dir.x) / UX3D_MATH_PI,
+            1.f - acos(dir.y) / UX3D_MATH_PI);
+}
 
 void main() 
 {

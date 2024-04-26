@@ -289,7 +289,7 @@ namespace XrEngine.OpenGL
         {
             _gl.FrontFace(FrontFaceDirection.Ccw);
             _gl.CullFace(TriangleFace.Back);
-            _gl.Enable(EnableCap.FramebufferSrgb);
+            EnableFeature(EnableCap.FramebufferSrgb, _options.UseSRGB);
             _gl.Enable(EnableCap.Dither);
             _gl.Enable(EnableCap.Multisample);
             _gl.Disable(EnableCap.ScissorTest);
@@ -528,6 +528,8 @@ namespace XrEngine.OpenGL
                 return new GlTexture(_gl, (uint)handle);
             });
 
+            glTexture.Update(texture, false);
+
 
             if (_grContext == null)
             {
@@ -650,7 +652,7 @@ namespace XrEngine.OpenGL
             if (texTarget.FrameBuffer is not GlTextureFrameBuffer texFb)
                 throw new NotSupportedException();
 
-            return texFb.Read();
+            return texFb.ReadColor();
         }
 
         public GL GL => _gl;

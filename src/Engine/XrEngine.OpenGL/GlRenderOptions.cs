@@ -15,6 +15,8 @@
             ShaderVersion = "310 es";
         }
 
+        public bool UseSRGB { get; set; }
+
         public string? ShaderVersion { get; set; }
 
         public ShaderPrecision FloatPrecision { get; set; }
