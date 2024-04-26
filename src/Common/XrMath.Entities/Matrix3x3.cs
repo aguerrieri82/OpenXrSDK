@@ -2,6 +2,26 @@
 {
     public struct Matrix3x3
     {
+        public Matrix3x3()
+        {
+
+        }
+        public Matrix3x3(params float[] values)
+        {
+            M00 = values[0];
+            M01 = values[1];
+            M02 = values[2];
+            
+            M10 = values[3];
+            M11 = values[4];
+            M12 = values[5]; 
+
+            M20 = values[6];
+            M21 = values[7];
+            M22 = values[8];
+
+        }
+
         public static Matrix3x3 Rotation(float angleRad)
         {
             float cosTheta = MathF.Cos(angleRad);

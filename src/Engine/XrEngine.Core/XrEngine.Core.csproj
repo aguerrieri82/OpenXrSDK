@@ -18,6 +18,13 @@
     </ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Shaders\fish_reflection.frag" />
+	  <None Remove="Shaders\fish_reflection_sphere.frag" />
+	  <None Remove="Shaders\rect_mask.frag" />
+	  <None Remove="Shaders\Utils\fish_to_panorama.frag" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
 	  <ProjectReference Include="..\MeshOptimizer\MeshOptimizer.csproj" />
 	  <ProjectReference Include="..\XrEngine.Native\XrEngine.Native.vcxproj" />

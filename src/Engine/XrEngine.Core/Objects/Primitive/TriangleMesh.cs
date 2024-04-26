@@ -91,8 +91,9 @@ namespace XrEngine
 
         public void NotifyLoaded()
         {
+            /*
             if (_geometry!.Is(EngineObjectFlags.Readonly))
-                _geometry!.FreeBuffers();
+                _geometry!.FreeBuffers();*/
         }
 
         public Geometry3D? Geometry

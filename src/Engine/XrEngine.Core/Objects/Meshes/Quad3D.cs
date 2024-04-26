@@ -39,6 +39,12 @@ namespace XrEngine
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0;
         }
 
+        public void FlipYUV()
+        {
+            for (var i = 0; i < _vertices.Length; i++)
+                _vertices[i].UV.Y = _vertices[i].UV.Y == 0 ? 1 : 0;
+        }
+
         public Size2 Size { get; set; }
 
         public static readonly Quad3D Default = new(new Size2(1, 1));

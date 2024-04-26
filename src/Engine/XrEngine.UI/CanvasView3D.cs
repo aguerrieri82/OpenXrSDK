@@ -27,11 +27,13 @@ namespace XrEngine.UI
         public CanvasView3D()
         {
             _dpi = 72;
-            _size = new Size2(1, 0.56f);
+            _size = new Size2(1, 1);
             _sizeDirty = true;
 
-            Geometry = Quad3D.Default;
+            var quad = new Quad3D(new Size2(1, 1));
+            quad.FlipYUV();
 
+            Geometry = quad;
             Mode = CanvasViewMode.Texture;
         }
 
@@ -147,7 +149,7 @@ namespace XrEngine.UI
                     Format = TextureFormat.Rgba32,
                     WrapS = WrapMode.ClampToEdge,
                     WrapT = WrapMode.ClampToEdge,
-                    MinFilter = ScaleFilter.LinearMipmapLinear,
+                    MinFilter = ScaleFilter.Linear,
                     MagFilter = ScaleFilter.Linear,
                 };
 

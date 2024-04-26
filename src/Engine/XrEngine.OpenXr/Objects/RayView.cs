@@ -11,7 +11,7 @@ namespace XrEngine.OpenXr
 
         public RayView()
         {
-            Geometry = new Cube3D();
+            Geometry = new Cube3D(Vector3.One);
             Materials.Add(new ColorMaterial(Color.White));
             Length = 4f;
             Size = 0.005f;

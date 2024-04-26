@@ -49,12 +49,6 @@ vec3 uvToXYZ(int face, vec2 uv)
         return vec3(    -uv.x,  +uv.y,     -1.f);}
 }
 
-vec2 dirToUV(vec3 dir)
-{
-    return vec2(
-            0.5f + 0.5f * atan(dir.z, dir.x) / UX3D_MATH_PI,
-            1.f - acos(dir.y) / UX3D_MATH_PI);
-}
 
 float saturate(float v)
 {

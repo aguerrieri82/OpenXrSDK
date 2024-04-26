@@ -63,5 +63,7 @@ namespace XrEngine
         }
 
         public CameraEye[]? Eyes { get; set; }
+
+        public int ActiveEye { get; set; }
     }
 }

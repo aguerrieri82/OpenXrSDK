@@ -45,6 +45,33 @@ namespace XrEngine
             return format;
         }
 
+        public static unsafe SKBitmap ToBitmap(TextureData data, bool flipY)
+        {
+            if (data.Format != TextureFormat.Rgba32)
+                throw new NotSupportedException();  
+
+            var image = new SKBitmap((int)data.Width, (int)data.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+
+            if (flipY)
+            {
+                var dst = new byte[data.Height * data.Width * 4];
+
+                fixed (byte* pData = data.Data.Span)
+                fixed (byte* pDst = dst)
+                {
+                    XrNativeLib.ImageFlipY(new nint(pData), new nint(pDst), data.Width, data.Height, data.Width * 4);
+                    image.SetPixels(new nint(pDst));
+                }
+            }
+            else
+            {
+                fixed (byte* pData = data.Data.Span)
+                    image.SetPixels(new nint(pData));
+            }
+
+            return image;
+        }
+
         public static SKBitmap ChangeColorSpace(SKBitmap src, SKColorType dest)
         {
 

@@ -306,6 +306,34 @@ namespace XrMath
             return res;
         }
 
+        public static Matrix3x3 ToMatrix(this Quaternion quaternion)
+        {
+            // Extract individual components of the quaternion
+            float x = quaternion.X;
+            float y = quaternion.Y;
+            float z = quaternion.Z;
+            float w = quaternion.W;
+
+            // Calculate matrix elements
+            float xx = x * x;
+            float xy = x * y;
+            float xz = x * z;
+            float xw = x * w;
+
+            float yy = y * y;
+            float yz = y * z;
+            float yw = y * w;
+
+            float zz = z * z;
+            float zw = z * w;
+
+            // Construct the rotation matrix
+            return new Matrix3x3(
+                1 - 2 * (yy + zz), 2 * (xy - zw), 2 * (xz + yw),
+                2 * (xy + zw), 1 - 2 * (xx + zz), 2 * (yz - xw),
+                2 * (xz - yw), 2 * (yz + xw), 1 - 2 * (xx + yy)
+            );
+        }
 
         #endregion
 
@@ -332,6 +360,8 @@ namespace XrMath
 
             return $"#{ToHex(color.A)}{ToHex(color.R)}{ToHex(color.G)}{ToHex(color.B)}";
         }
+
+
 
         #endregion
 

@@ -49,7 +49,7 @@ namespace XrSamples.Android
                    //.UseStereo()
                    .UseMultiView()
                    .SetRenderQuality(1, 4)
-                   .CreateChess()
+                   .CreatePingPong()
                    .RemovePlaneGrid()
                    .AddWebBrowser(this, "display");
         }

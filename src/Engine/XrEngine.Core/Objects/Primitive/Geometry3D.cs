@@ -9,13 +9,15 @@ namespace XrEngine
         protected bool _boundsDirty;
         protected Bounds3 _bounds;
         protected HashSet<EngineObject> _hosts = [];
+        protected VertexData[] _vertices;
+        protected uint[] _indices;
 
         public Geometry3D()
         {
             _boundsDirty = true;
             ActiveComponents = VertexComponent.Position;
-            Indices = [];
-            Vertices = [];
+            _indices = [];
+            _vertices = [];
 
         }
 
@@ -117,8 +119,16 @@ namespace XrEngine
 
         public VertexComponent ActiveComponents { get; set; }
 
-        public uint[] Indices { get; set; }
+        public uint[] Indices
+        {
+            get => _indices;
+            set => _indices = value;
+        }
 
-        public VertexData[] Vertices { get; set; }
+        public VertexData[] Vertices
+        {
+            get => _vertices;
+            set => _vertices = value;
+        }
     }
 }

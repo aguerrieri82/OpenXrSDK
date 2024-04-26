@@ -404,6 +404,6 @@ namespace XrEngine.Physics
 
         public PhysicsActor Actor => _actor ?? throw new ArgumentNullException();
 
-
+        public bool IsCreated => _actor != null;
     }
 }

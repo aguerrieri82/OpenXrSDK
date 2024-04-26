@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using OpenXr.Framework;
+﻿using OpenXr.Framework;
 using PhysX.Framework;
 using System.Numerics;
 using XrEngine;
@@ -88,7 +87,7 @@ namespace XrSamples
 
                 if (deltaSpeed.Length() > 50)
                 {
-                    Log.Info(this, "SPEED: {dv}", Math.Round(deltaSpeed.Length(), 2));
+                    Log.Info(this, "SPEED: {0}", Math.Round(deltaSpeed.Length(), 2));
 
 
                     if (lastContact?.Name == "Racket")
@@ -128,7 +127,7 @@ namespace XrSamples
 
                 var maxImpulse = data.Where(a => a.Points != null).SelectMany(a => a.Points!.Select(b => b.Impulse.Length())).Max();
 
-                Log.Info(this, "COLL: '{a}' '{b}' - Imp: {imp} - dv: {dv} - sep: {sep}", me.Name, other.Name, Math.Round(maxImpulse, 4), Math.Round(maxDv, 4), Math.Round(minSep, 4));
+                Log.Info(this, "COLL: '{0}' '{1}' - Imp: {2} - dv: {3} - sep: {4}", me.Name, other.Name, Math.Round(maxImpulse, 4), Math.Round(maxDv, 4), Math.Round(minSep, 4));
 
                 lastContact = other;
             };

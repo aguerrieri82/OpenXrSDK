@@ -1,9 +1,12 @@
 ﻿using CanvasUI;
+using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using PhysX;
 using PhysX.Framework;
+using Silk.NET.OpenXR;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Compression;
@@ -13,6 +16,7 @@ using XrEngine.Physics;
 using XrEngine.Services;
 using XrEngine.UI;
 using XrMath;
+
 
 
 namespace XrSamples
@@ -102,7 +106,7 @@ namespace XrSamples
         {
             var panel = new Window3D();
 
-            panel.Size = new Size2(0.8f, 0.6f);
+            panel.Size = new Size2(0.8f, 0.5f);
             panel.DpiScale = 1.6f;
 
             panel.Content = uiRoot;
@@ -128,8 +132,6 @@ namespace XrSamples
                             panel.Transform.Orientation = panel.Scene!.ActiveCamera!.Transform.Orientation;
                         }
                     });
-
-
                 });
         }
 
@@ -144,7 +146,7 @@ namespace XrSamples
                    .UseLeftController()
                    .UseRightController()
                    .UseInputs<XrOculusTouchController>(a => a.AddAction(b => b.Right!.Haptic))
-                   //.AddPassthrough()
+                   .AddPassthrough()
                    .UseRayCollider()
                    .UseGrabbers();
         }
@@ -163,11 +165,26 @@ namespace XrSamples
 
             display.Transform.Scale = new Vector3(1.924f, 1.08f, 0.01f);
 
+
+
+
             display.AddComponent<MeshCollider>();
 
             scene.AddChild(display);
 
             return builder.UseApp(app)
+                          .ConfigureApp(e =>
+                          {
+                              display.AddBehavior((_, _) =>
+                              {
+                                  var click = ((XrOculusTouchController)e.Inputs!).Right!.Button!.AClick!;
+                                  if (click.IsChanged && click.Value)
+                                  {
+                                      display.WorldPosition = scene.ActiveCamera!.WorldPosition + scene.ActiveCamera.Forward * 0.5f;
+                                      display.Transform.Orientation = scene.ActiveCamera!.Transform.Orientation;
+                                  }
+                              });
+                          })
                           .ConfigureSampleApp();
         }
 
@@ -180,7 +197,6 @@ namespace XrSamples
         {
             var settings = new PingPongSettings();
             settings.Load(Path.Join(XrPlatform.Current!.PersistentPath, "settings.json"));
-
 
             var app = CreateBaseScene();
 
@@ -219,18 +235,8 @@ namespace XrSamples
             //Rigid body
             var rigidBody = racket.AddComponent<RigidBody>();
             rigidBody.Type = PhysicsActorType.Kinematic;
-            //rigidBody.Tolerance = 1; //1cm
-            rigidBody.EnableCCD = settings.Racket.EnableCCD;
-            rigidBody.LengthToleranceScale = settings.Racket.LengthToleranceScale;
-            rigidBody.ContactOffset = settings.Racket.ContactOffset;
-            rigidBody.ContactReportThreshold = settings.Racket.ContactReportThreshold;
+            rigidBody.Material = new PhysicsMaterialInfo();
 
-            rigidBody.Material = new PhysicsMaterialInfo
-            {
-                Restitution = settings.Racket.Restitution,
-                DynamicFriction = 0.7f,
-                StaticFriction = 0.7f
-            };
 
             //Ball generator
             var bg = scene!.AddComponent(new BallGenerator(sound, 5f));
@@ -256,12 +262,13 @@ namespace XrSamples
                    .UseApp(app)
                    .UseSceneModel(true)
                    .ConfigureSampleApp()
-                   .UseEnvironmentHDR("Envs/lightroom_14b.hdr", false)
+                   .UseEnvironmentHDR("res://asset/Envs/lightroom_14b.hdr", false)
                    .UsePhysics(new PhysicsOptions
                    {
-                       LengthTolerance = settings.LengthToleranceScale,
+
                    })
-                   .AddPanel(new PingPongSettingsPanel(settings, scene));
+                   .AddPanel(new PingPongSettingsPanel(settings, scene))
+                   .ConfigureApp(app => settings.Apply(app.App.ActiveScene!));
 
         }
 
@@ -327,7 +334,92 @@ namespace XrSamples
             return builder
                 .UseApp(app)
                 .ConfigureSampleApp();
+             
         }
+
+        public static XrEngineAppBuilder CreatePortal(this XrEngineAppBuilder builder)
+        {
+
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var options = new TextureLoadOptions() { Format = TextureFormat.SRgba32 };
+
+            var left = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cam_left.jpg", options);
+            var right = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cam_right.jpg", options);
+            var cube = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cube_orig.jpg", options);
+
+            var mesh = new TriangleMesh(new Quad3D(new Size2(1,1)), new FishReflectionSphereMaterial(left, right)
+            {
+                Radius = 3,
+                Center = new Vector3(0, 1.5f, 0)
+            });
+
+            mesh.Name = "mesh";
+
+            scene.AddChild(mesh);
+
+            return builder
+                .UseApp(app)
+                .ConfigureSampleApp()
+                .ConfigureApp(e =>
+                {
+                    var oculus = e.XrApp.Plugin<OculusXrPlugin>();
+                    var isLoading = false;
+                    DateTime lastUpdate = new DateTime();
+                    mesh.AddBehavior(async (_, _) =>
+                    {
+                        if (!e.XrApp.IsStarted || isLoading || ((DateTime.Now - lastUpdate).TotalSeconds < 1000))
+                            return;
+
+                        isLoading = true;
+                        try
+                        {
+                            var anchors = await e.XrApp.Plugin<OculusXrPlugin>().GetAnchorsAsync(new XrAnchorFilter
+                            {
+                                Components = XrAnchorComponent.All
+                            });
+
+                            var window = anchors.FirstOrDefault(a => a.Labels != null && a.Labels.Contains("WINDOW_FRAME"));
+
+                            if (window != null)
+                            {
+
+                                if (window.Pose != null)
+                                {
+                                    var pos = window.Pose.Value.Position;
+
+                                    pos.X += 0.16f;
+                                    pos.Z += 0.05f;
+                                    pos.Y -= 0.05f;
+
+                                    mesh.Transform.Position = pos;
+                                    mesh.Transform.Orientation = window.Pose.Value.Orientation;
+
+                                    var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
+                                    mat.Center = new Vector3(mesh.Transform.Position.X, 1.5f, mesh.Transform.Position.Z);
+                                }
+
+                                if (window.Bounds2D != null)
+                                {
+                                    mesh.Transform.Scale = new Vector3(window.Bounds2D.Value.Width, window.Bounds2D.Value.Height, 0.01f);
+                                }
+                            }
+
+                        }
+                        finally
+                        {
+                            isLoading = false;
+                            lastUpdate = DateTime.Now;
+                        }
+
+                    });
+
+
+                });
+        }
+
 
         public static XrEngineAppBuilder CreateController(this XrEngineAppBuilder builder)
         {

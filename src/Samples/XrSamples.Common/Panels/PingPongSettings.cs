@@ -54,7 +54,7 @@ namespace XrSamples
             Terrain.EnableCCD = true;
             Terrain.ContactReportThreshold = 1;
 
-            Exposure = 0f;
+            Exposure = 0.5f;
             LightIntensity = 1f;
         }
 
@@ -66,28 +66,38 @@ namespace XrSamples
             body.LengthToleranceScale = settings.LengthToleranceScale;
             body.EnableCCD = settings.EnableCCD;
             body.ContactReportThreshold = settings.ContactReportThreshold;
+            body.ContactOffset = settings.ContactOffset;    
 
             var curMat = body.Material;
             curMat.Restitution = settings.Restitution;
             body.Material = curMat;
 
-            if (body.Type != PhysX.Framework.PhysicsActorType.Static)
-                body.DynamicActor.ContactReportThreshold = settings.ContactReportThreshold;
-
-            foreach (var shape in body.Actor.GetShapes())
+            if (body.IsCreated)
             {
-                var mat = shape.GetMaterials()[0];
-                mat.Restitution = settings.Restitution;
-                shape.ContactOffset = settings.ContactOffset;
+                if (body.Type != PhysX.Framework.PhysicsActorType.Static)
+                    body.DynamicActor.ContactReportThreshold = settings.ContactReportThreshold;
+
+                foreach (var shape in body.Actor.GetShapes())
+                {
+                    var mat = shape.GetMaterials()[0];
+                    mat.Restitution = settings.Restitution;
+                    shape.ContactOffset = settings.ContactOffset;
+                }
             }
+       
         }
 
         public override void Apply(Scene3D scene)
         {
-            var system = scene.FeatureDeep<PhysicsManager>()!.System;
+            var pyManager = scene.FeatureDeep<PhysicsManager>()!;
+            var system = pyManager.System;
             var racket = scene.FindByName<Object3D>("Racket");
             var generator = scene.FeatureDeep<BallGenerator>()!;
             var mesh = scene.FindByName<TriangleMesh>("global-mesh");
+
+            pyManager.Options.LengthTolerance = LengthToleranceScale;
+            pyManager.Options.EnablePCM = EnablePCM;
+            pyManager.Options.EnableCCD = EnableCCD;
 
             if (mesh != null)
             {
@@ -108,8 +118,23 @@ namespace XrSamples
             foreach (var ball in generator.Balls)
                 Apply(ball, Ball);
 
-            system.Scene.SetFlag(PxSceneFlag.EnablePcm, EnablePCM);
-            system.Scene.SetFlag(PxSceneFlag.EnableCcd, EnableCCD);
+
+
+            if (system != null)
+            {
+                system.Scene.SetFlag(PxSceneFlag.EnablePcm, EnablePCM);
+                system.Scene.SetFlag(PxSceneFlag.EnableCcd, EnableCCD);
+            }
+
+            scene.PerspectiveCamera().Exposure = Exposure;
+
+            var light = scene.Descendants<ImageLight>().FirstOrDefault();
+            if (light != null)
+            {
+                light.Intensity = LightIntensity;
+                light.NotifyChanged(ObjectChangeType.Render);
+            }
+
 
             if (_filePath != null)
             {
@@ -210,7 +235,7 @@ namespace XrSamples
                     .AddInput("Show Terrain", new CheckBox(), binder.Prop(a => a.ShowTerrain))
                 .EndChild()
             .EndChild()
-            .BeginRow(s => s.ColGap(16))
+            .BeginRow(s => s.ColGap(16).FlexGrow(1))
                 .AddText(bld => bld
                     .Style(s => s
                         .Padding(16)
