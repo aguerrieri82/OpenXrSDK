@@ -10,7 +10,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="SharpEXR" Version="1.0.0.19" />
-		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.1.8" />
+		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.4.1" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -20,6 +20,7 @@
 	<ItemGroup>
 	  <None Remove="Shaders\fish_reflection.frag" />
 	  <None Remove="Shaders\fish_reflection_sphere.frag" />
+	  <None Remove="Shaders\hp_reflection_sphere.frag" />
 	  <None Remove="Shaders\rect_mask.frag" />
 	  <None Remove="Shaders\Utils\fish_to_panorama.frag" />
 	</ItemGroup>

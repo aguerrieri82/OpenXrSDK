@@ -11,5 +11,11 @@
 	  <ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
 	  <ProjectReference Include="..\XrWebLink\XrWebLink.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0-preview.7.24405.7" />
+	  <PackageReference Update="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0-preview.7.24405.7" />
+	  <PackageReference Update="Microsoft.Extensions.Logging" Version="9.0.0-preview.7.24405.7" />
+	</ItemGroup>
 	
 </Project>

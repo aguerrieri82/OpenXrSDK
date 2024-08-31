@@ -47,9 +47,9 @@ namespace XrSamples.Android
             builder.UseOpenGL()
                    //.UseFilamentVulkan()
                    //.UseStereo()
-                   .UseMultiView()
+                   //.UseMultiView()
                    .SetRenderQuality(1, 4)
-                   .CreatePingPong()
+                   .CreatePortal()
                    .RemovePlaneGrid()
                    .AddWebBrowser(this, "display");
         }
