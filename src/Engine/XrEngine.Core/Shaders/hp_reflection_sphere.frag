@@ -8,7 +8,7 @@ uniform float uRadius;
 uniform mat3 uRotation;
 uniform vec2 uTexCenter;
 uniform vec2 uTexRadius;
-uniform float uFov;
+uniform float uShift;
 
 out vec4 FragColor;
 
@@ -39,19 +39,22 @@ bool raySphereIntersect(vec3 rayOrigin, vec3 rayDirection, vec3 sphereCenter, fl
     
     intersectionPoint = uRotation * intersectionPoint;
 
-    float lat = acos(intersectionPoint.z / sphereRadius);
-    float lng = atan(-intersectionPoint.y, -intersectionPoint.x);
+    float inc = acos(intersectionPoint.y / sphereRadius);
+    float azm = atan(intersectionPoint.z, intersectionPoint.x);
 
-    polarCoordinates = vec2(lat, lng);
+    polarCoordinates = vec2(azm + (azm < 0.0 ? PI : 0.0), (PI / 2.0) - inc);
+
     return true;
 }
 
 vec2 sampleFish(vec2 polar, float fov)
 {
-    float r = clamp(polar.x / fov, -0.5, 0.5); 
 	vec2 result;
-	result.x = uTexCenter.x + r * cos(polar.y) * uTexRadius.x;
-	result.y = uTexCenter.y + r * sin(polar.y) * uTexRadius.y;
+	result.x = uTexCenter.x + ((polar.x + PI / 2.0) / PI) * uTexRadius.x;  //-PI +PI
+	result.y = uTexCenter.y + (polar.y / PI) * uTexRadius.y; //0-PI
+
+    result.y = 1.0 - result.y;
+    result.x = 1.0 - result.x;
     return result;
 }
 
@@ -64,7 +67,13 @@ void main()
 
     if (raySphereIntersect(uViewPos, viewDir, uCenter, uRadius, polar))
     {
-    	vec2 pfish = sampleFish(polar, uFov);
-	    FragColor = vec4(texture(uTexture, pfish).rgb, 1.0);
+    	vec2 pfish = sampleFish(polar, PI);    
+
+        if (polar.y > uShift - 0.01 && polar.y < uShift + 0.01)
+            FragColor = vec4(polar.y, polar.x, 0.0, 1.0);
+        else
+            FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+
+        FragColor = vec4(texture(uTexture, pfish).rgb, 1.0);
     }
 }

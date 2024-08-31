@@ -3,6 +3,13 @@ using XrMath;
 
 namespace XrEngine
 {
+    public enum FishReflectionMode
+    {
+        Mono,
+        Stereo,
+        Eye
+    }
+
     public class FishReflectionSphereMaterial : ShaderMaterial
     {
         protected Quaternion _lastRotation;
@@ -26,11 +33,19 @@ namespace XrEngine
             DoubleSided = true;
         }
 
+        public FishReflectionSphereMaterial(Texture2D main, FishReflectionMode mode)
+    : this()
+        {
+            LeftMainTexture = main;
+            Mode = mode;
+        }
+
         public FishReflectionSphereMaterial(Texture2D left, Texture2D right)
             : this()
         {
-            LeftTexture = left;
+            LeftMainTexture = left;
             RightTexture = right;
+            Mode = FishReflectionMode.Eye;
         }
 
         public override void GetState(IStateContainer container)
@@ -63,22 +78,44 @@ namespace XrEngine
                     up.SetUniform("uRotation", newQuat.ToMatrix());
                 }
 
-                if (camera.ActiveEye == 0 || RightTexture == null)
-                    up.SetUniform("uTexture", LeftTexture!, 0);
-                else
+                if (Mode == FishReflectionMode.Eye && camera.ActiveEye == 1)
                     up.SetUniform("uTexture", RightTexture!, 0);
+                else
+                    up.SetUniform("uTexture", LeftMainTexture!, 0);
+
+                if (Mode == FishReflectionMode.Stereo)
+                {
+                    if (camera.ActiveEye == 0)
+                        up.SetUniform("uTexCenter", new Vector2(0.25f, 0.5f));
+                    else
+                        up.SetUniform("uTexCenter", new Vector2(0.75f, 0.5f));
+
+                    up.SetUniform("uTexRadius", new Vector2(0.5f, 1.0f));
+                }
+                else
+                {
+                    up.SetUniform("uTexRadius", new Vector2(1f, 1f));
+                    up.SetUniform("uTexCenter", new Vector2(0.5f, 0.5f));
+                }
+
+                up.SetUniform("uFov", Fov);
             });
 
         }
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
-        public Texture2D? LeftTexture { get; set; }
+        public FishReflectionMode Mode  { get; set; }
+
+        public Texture2D? LeftMainTexture { get; set; }
 
         public Texture2D? RightTexture { get; set; }
 
         public float Radius { get; set; }
 
         public Vector3 Center { get; set; }
+
+        [Range(0, 6.28f, 0.01f)]
+        public float Fov { get; set; }
     }
 }

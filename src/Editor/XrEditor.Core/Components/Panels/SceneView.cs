@@ -97,7 +97,7 @@ namespace XrEditor
         {
             _engine = new XrEngineAppBuilder()
               .SetRenderQuality(1, 1) ///samples > 1 cause Filament to fuck up
-              .CreatePortal()
+              .CreatePortalVideo()
               .Build();
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));

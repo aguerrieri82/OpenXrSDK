@@ -174,7 +174,7 @@ namespace XrEngine.OpenGL
 
             var texture = value.GetResource(a => tex2d.CreateGlTexture(_gl, OpenGLRender.Current!.Options.RequireTextureCompression));
 
-            if (tex2d.Version != texture.Version)
+            if (tex2d.Version != texture.Version && tex2d.Width > 0 && tex2d.Height > 0)
                 texture.Update(tex2d, false);
 
             texture.Bind();

@@ -1,4 +1,5 @@
 ﻿using CanvasUI;
+using FFmpeg.AutoGen;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using PhysX;
@@ -15,6 +16,7 @@ using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.Services;
 using XrEngine.UI;
+using XrEngine.Video;
 using XrMath;
 
 
@@ -339,6 +341,8 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreatePortal(this XrEngineAppBuilder builder)
         {
+            var settings = new PortalSettings();
+            settings.Load(Path.Join(XrPlatform.Current!.PersistentPath, "portal_settings.json"));
 
             var app = CreateBaseScene();
 
@@ -352,7 +356,7 @@ namespace XrSamples
 
             var mesh = new TriangleMesh(new Quad3D(new Size2(1,1)), new FishReflectionSphereMaterial(left, right)
             {
-                Radius = 3,
+                Radius = 6,
                 Center = new Vector3(0, 1.5f, 0)
             });
 
@@ -363,6 +367,7 @@ namespace XrSamples
             return builder
                 .UseApp(app)
                 .ConfigureSampleApp()
+                .AddPanel(new PortalSettingsPanel(settings, scene))
                 .ConfigureApp(e =>
                 {
                     var oculus = e.XrApp.Plugin<OculusXrPlugin>();
@@ -385,7 +390,6 @@ namespace XrSamples
 
                             if (window != null)
                             {
-
                                 if (window.Pose != null)
                                 {
                                     var pos = window.Pose.Value.Position;
@@ -415,10 +419,104 @@ namespace XrSamples
                         }
 
                     });
-
-
                 });
         }
+
+        public static XrEngineAppBuilder CreatePortalVideo(this XrEngineAppBuilder builder)
+        {
+            var settings = new PortalSettings();
+            settings.Load(Path.Join(XrPlatform.Current!.PersistentPath, "portal_settings.json"));
+
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var videoTex = new Texture2D
+            {
+                Format = TextureFormat.RgbaFloat16,
+                WrapT = WrapMode.ClampToEdge,
+                WrapS = WrapMode.ClampToEdge,
+                MagFilter = ScaleFilter.Linear,
+                MinFilter = ScaleFilter.Linear,
+            };
+
+            ffmpeg.RootPath = "D:\\Development\\Library\\ffmpeg-full-win64\\bin\\";
+
+            var mesh = new TriangleMesh(new Quad3D(new Size2(1, 1)), new FishReflectionSphereMaterial(videoTex, FishReflectionMode.Stereo)
+            {
+                Radius = 6f,
+                Center = new Vector3(0,0, 0)
+            });
+            
+            mesh.AddComponent(new VideoTexturePlayer()
+            {
+                Texture = videoTex,
+                SrcFileName = Context.Require<IAssetStore>().GetPath("Fish/Recording.mp4")
+            });
+
+            mesh.Name = "mesh";
+
+            scene.AddChild(mesh);
+
+            return builder
+                .UseApp(app)
+                .ConfigureSampleApp()
+                .AddPanel(new PortalSettingsPanel(settings, scene))
+                .ConfigureApp(e =>
+                {
+                    var oculus = e.XrApp.Plugin<OculusXrPlugin>();
+                    var isLoading = false;
+                    DateTime lastUpdate = new DateTime();
+
+                    mesh.AddBehavior(async (_, _) =>
+                    {
+                        if (!e.XrApp.IsStarted || isLoading || ((DateTime.Now - lastUpdate).TotalSeconds < 1000))
+                            return;
+
+                        isLoading = true;
+                        try
+                        {
+                            var anchors = await e.XrApp.Plugin<OculusXrPlugin>().GetAnchorsAsync(new XrAnchorFilter
+                            {
+                                Components = XrAnchorComponent.All
+                            });
+
+                            var window = anchors.FirstOrDefault(a => a.Labels != null && a.Labels.Contains("WINDOW_FRAME"));
+
+                            if (window != null && false)
+                            {
+                                if (window.Pose != null)
+                                {
+                                    var pos = window.Pose.Value.Position;
+
+                                    pos.X += 0.16f;
+                                    pos.Z += 0.05f;
+                                    pos.Y -= 0.05f;
+
+                                    mesh.Transform.Position = pos;
+                                    mesh.Transform.Orientation = window.Pose.Value.Orientation;
+
+                                    var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
+                                    mat.Center = new Vector3(mesh.Transform.Position.X, 1.5f, mesh.Transform.Position.Z);
+                                }
+
+                                if (window.Bounds2D != null)
+                                {
+                                    mesh.Transform.Scale = new Vector3(window.Bounds2D.Value.Width, window.Bounds2D.Value.Height, 0.01f);
+                                }
+                            }
+
+                        }
+                        finally
+                        {
+                            isLoading = false;
+                            lastUpdate = DateTime.Now;
+                        }
+
+                    });
+                });
+        }
+
 
 
         public static XrEngineAppBuilder CreateController(this XrEngineAppBuilder builder)
