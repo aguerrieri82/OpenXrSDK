@@ -84,7 +84,7 @@ namespace XrEngine
 
             for (uint j = 0; j < height; j++)
             {
-                stream.Read(rgbe);
+                stream.ReadExactly(rgbe);
 
                 var isNewRLE = (rgbe[0] == 2 && rgbe[1] == 2 && rgbe[2] == ((width >> 8) & 0xFF) && rgbe[3] == (width & 0xFF));
 
@@ -97,7 +97,7 @@ namespace XrEngine
                         int count;
                         while (ptr < ptr_end)
                         {
-                            stream.Read(buf2);
+                            stream.ReadExactly(buf2);
                             if (buf2[0] > 128)
                             {
                                 count = buf2[0] - 128;
@@ -130,7 +130,7 @@ namespace XrEngine
 
                     for (var i = 1; i < width; i++)
                     {
-                        stream.Read(rgbe);
+                        stream.ReadExactly(rgbe);
 
                         img[ipos++] = rgbe[0];
                         img[ipos++] = rgbe[1];
