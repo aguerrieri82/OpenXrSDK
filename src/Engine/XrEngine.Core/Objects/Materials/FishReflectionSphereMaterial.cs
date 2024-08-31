@@ -46,6 +46,7 @@ namespace XrEngine
             LeftMainTexture = left;
             RightTexture = right;
             Mode = FishReflectionMode.Eye;
+            Fov = MathF.PI;
         }
 
         public override void GetState(IStateContainer container)

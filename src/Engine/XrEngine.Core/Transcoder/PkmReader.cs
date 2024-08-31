@@ -41,7 +41,7 @@ namespace XrEngine
             result.Compression = TextureCompressionFormat.Etc2;
             result.Format = TextureFormat.SRgb24;
 
-            seekStream.Read(result.Data.Span);
+            seekStream.ReadExactly(result.Data.Span);
 
             return [result];
         }
