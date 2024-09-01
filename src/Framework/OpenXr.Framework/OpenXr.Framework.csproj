@@ -25,4 +25,10 @@
 		<AndroidNativeLibrary Include="runtimes/android-arm64/native/*" Abi="arm64-v8a" />
 	</ItemGroup>
 
+
+	<ItemGroup>
+	  <None Remove="runtimes\android-arm64\native\libopenxr_loader.so.1" />
+	  <None Remove="runtimes\win-x64\native\openxr_loader.dll" />
+	</ItemGroup>
+
 </Project>

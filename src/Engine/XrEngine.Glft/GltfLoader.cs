@@ -99,7 +99,8 @@ namespace XrEngine.Gltf
                 }
                 else if (img.Uri != null)
                 {
-                    data = File.OpenRead(_resourceResolver(Path.Join(_basePath!, img.Uri)))
+                    var imgPath = _resourceResolver(Path.Join(_basePath!, img.Uri));
+                    data = File.OpenRead(imgPath)
                         .ToMemory()
                         .ToArray();
                 }
@@ -110,7 +111,9 @@ namespace XrEngine.Gltf
 
                 Log.Info(this, "Loading texture {0} ({1} bytes)", img.Name, data.Length);
 
-                using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
+                //using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
+
+                using var image = SKBitmap.Decode(data);
 
                 return new TextureData
                 {
@@ -145,7 +148,7 @@ namespace XrEngine.Gltf
 
             result.Flags |= EngineObjectFlags.Readonly;
 
-            result.Name = texture.Name ?? (imageInfo.Name ?? "");
+            result.Name = texture.Name ?? (imageInfo.Name ?? imageInfo.Uri ?? "");
 
             bool hasMinFilter = false;
 
@@ -175,7 +178,7 @@ namespace XrEngine.Gltf
 
             result.AddComponent(new AssetSource
             {
-                Asset = CreateAsset<Texture2D>(texture.Name!, "tex", id)
+                Asset = CreateAsset<Texture2D>(result.Name!, "tex", id)
             });
 
             return result;
@@ -640,7 +643,7 @@ namespace XrEngine.Gltf
 
         public void ExecuteLoadTasks()
         {
-            Parallel.ForEach(_tasks, a => a());
+            Parallel.ForEach(_tasks, new ParallelOptions { MaxDegreeOfParallelism = 1 }, a => a());
             _tasks.Clear();
         }
 
@@ -661,7 +664,12 @@ namespace XrEngine.Gltf
 
         public static Object3D LoadFile(string filePath, GltfLoaderOptions options)
         {
-            var loader = new GltfLoader();
+            return LoadFile(filePath, options, a=> a);
+        }
+
+        public static Object3D LoadFile(string filePath, GltfLoaderOptions options, Func<string, string> resourceResolver)
+        {
+            var loader = new GltfLoader(resourceResolver);
             return loader.Load(filePath, options);
         }
 

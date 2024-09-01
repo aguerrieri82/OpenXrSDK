@@ -24,6 +24,7 @@ namespace XrEngine.OpenXr.Android
             var cachePath = Path.Join(cacheBase, name);
             if (_loadedFiles.Contains(cachePath))
                 return cachePath;
+
             /*
             if (File.Exists(cachePath))
                 return cachePath;
