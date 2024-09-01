@@ -1,13 +1,17 @@
 ﻿using OpenXr.Framework;
 using OpenXr.Framework.OpenGL;
 using Silk.NET.Core.Contexts;
-using Silk.NET.OpenGL;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using XrEngine;
 using XrEngine.OpenGL;
 
+#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
 
 
 namespace XrEditor

@@ -327,7 +327,7 @@ namespace XrSamples
 
             GetAssetPath("Sponza/Sponza.bin");
 
-            var mesh = (Group3D)GltfLoader.LoadFile(GetAssetPath("Sponza/Sponza.gltf"), GltfOptions);
+            var mesh = (Group3D)GltfLoader.LoadFile(GetAssetPath("Sponza/Sponza.gltf"), GltfOptions, GetAssetPath);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.01f);
 
@@ -583,7 +583,7 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                .UseEnvironmentHDR("Envs/lightroom_14b.hdr")
+                .UseEnvironmentHDR("res://asset/Envs/lightroom_14b.hdr")
                 .ConfigureSampleApp();
         }
 
@@ -596,17 +596,32 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var mesh = (Object3D)GltfLoader.LoadFile(GetAssetPath("Helmet/DamagedHelmet.gltf"), GltfOptions);
+            GetAssetPath("Helmet/DamagedHelmet.bin");
+
+            var mesh = GltfLoader.LoadFile(GetAssetPath("Helmet/DamagedHelmet.gltf"), GltfOptions, GetAssetPath);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.4f);
             mesh.Transform.SetPositionY(1);
             mesh.AddComponent<BoundsGrabbable>();
 
+            var x = new ObjWriter();
+            x.Add(mesh as TriangleMesh);
+            File.WriteAllText("d:\\test.obj", x.Text());
+             
+            var mat = (mesh as TriangleMesh).Materials[0] as PbrMaterial;
+
+            var text = mat.MetallicRoughness.BaseColorTexture;
+
+            (mesh as TriangleMesh).Materials[0] = new TextureMaterial(text);
+
+            var plane = new TriangleMesh(Quad3D.Default, mat);
+            scene.AddChild(plane);
+
             scene.AddChild(mesh);
 
             return builder
                 .UseApp(app)
-                .UseEnvironmentHDR("Envs/CameraEnv.jpg")
+                .UseEnvironmentHDR("res://asset/Envs/CameraEnv.jpg")
                 .ConfigureSampleApp();
         }
 
@@ -647,6 +662,9 @@ namespace XrSamples
             {
                 DoubleSided = true
             };
+
+            var panel = new TriangleMesh(Quad3D.Default, text);
+            scene.AddChild(panel);
 
             var cubes = new Group3D();
 

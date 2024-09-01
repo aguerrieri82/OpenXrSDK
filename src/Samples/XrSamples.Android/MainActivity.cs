@@ -34,6 +34,7 @@ namespace XrSamples.Android
         {
 
             WebView.SetWebContentsDebuggingEnabled(true);
+
             _webView = FindViewById<WebView>(Resource.Id.webView)!;
 
             _webView.Settings.JavaScriptEnabled = true;
