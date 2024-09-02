@@ -169,7 +169,6 @@ namespace XrSamples
 
 
 
-
             display.AddComponent<MeshCollider>();
 
             scene.AddChild(display);
@@ -353,12 +352,18 @@ namespace XrSamples
             var left = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cam_left.jpg", options);
             var right = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cam_right.jpg", options);
             var cube = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/cube_orig.jpg", options);
+            var stereo = AssetLoader.Instance.Load<Texture2D>("res://asset/Fish/stereo.jpg", options);
 
-            var mesh = new TriangleMesh(new Quad3D(new Size2(1,1)), new FishReflectionSphereMaterial(left, right)
+            var mat = new FishReflectionSphereMaterial(left, right)
             {
                 Radius = 6,
-                Center = new Vector3(0, 1.5f, 0)
-            });
+                Center = new Vector3(0, 1.5f, 0),
+                Border = 0.1f,
+                SurfaceSize = new Vector2(1.3f, 1.3f),
+                Alpha = AlphaMode.Blend,
+            };
+            
+            var mesh = new TriangleMesh(new Quad3D(new Size2(1,1)), mat);
 
             mesh.Name = "mesh";
 
@@ -367,7 +372,7 @@ namespace XrSamples
             return builder
                 .UseApp(app)
                 .ConfigureSampleApp()
-                .AddPanel(new PortalSettingsPanel(settings, scene))
+                //.AddPanel(new PortalSettingsPanel(settings, scene))
                 .ConfigureApp(e =>
                 {
                     var oculus = e.XrApp.Plugin<OculusXrPlugin>();
@@ -442,16 +447,25 @@ namespace XrSamples
 
             ffmpeg.RootPath = "D:\\Development\\Library\\ffmpeg-full-win64\\bin\\";
 
-            var mesh = new TriangleMesh(new Quad3D(new Size2(1, 1)), new FishReflectionSphereMaterial(videoTex, FishReflectionMode.Stereo)
+            var mat = new FishReflectionSphereMaterial(videoTex, FishReflectionMode.Stereo)
             {
-                Radius = 6f,
-                Center = new Vector3(0,0, 0)
-            });
-            
+                Radius = 10f,
+                Center = new Vector3(0, 0.68f, 0),
+                Border = 0.1f,
+                SurfaceSize = new Vector2(1.3f, 1.3f),
+                Alpha = AlphaMode.Blend
+            };
+
+            var mesh = new TriangleMesh(new Quad3D(new Size2(1, 1)), mat);
+            mesh.Transform.SetScale(1.3f);
+            mesh.Transform.SetPosition(1.26f, 1.18f, 0.84f);
+            mesh.Transform.Rotation = new Vector3(0, -MathF.PI / 2, 0);
+
+
             mesh.AddComponent(new VideoTexturePlayer()
             {
                 Texture = videoTex,
-                SrcFileName = Context.Require<IAssetStore>().GetPath("Fish/Recording.mp4")
+                SrcFileName = Context.Require<IAssetStore>().GetPath("Fish/20240308151616.mp4")
             });
 
             mesh.Name = "mesh";
@@ -568,11 +582,11 @@ namespace XrSamples
             // mesh.AddComponent<MeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
 
-
             foreach (var mat in mesh.Materials)
             {
                 if (mat is PbrMaterial pbr)
                 {
+                    //pbr.MetallicRoughness.BaseColorFactor = new Color(0.3f, 0.3f, 0.3f);
                     //pbr.MetallicRoughness.RoughnessFactor = 0.2f;
                     // pbr.MetallicRoughness.MetallicFactor = 0f;
                     //pbr.MetallicRoughness.MetallicRoughnessTexture = null;
@@ -583,6 +597,7 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
+                .UseSceneModel(false, false)
                 .UseEnvironmentHDR("res://asset/Envs/lightroom_14b.hdr")
                 .ConfigureSampleApp();
         }
@@ -604,24 +619,13 @@ namespace XrSamples
             mesh.Transform.SetPositionY(1);
             mesh.AddComponent<BoundsGrabbable>();
 
-            var x = new ObjWriter();
-            x.Add(mesh as TriangleMesh);
-            File.WriteAllText("d:\\test.obj", x.Text());
-             
-            var mat = (mesh as TriangleMesh).Materials[0] as PbrMaterial;
-
-            var text = mat.MetallicRoughness.BaseColorTexture;
-
-            (mesh as TriangleMesh).Materials[0] = new TextureMaterial(text);
-
-            var plane = new TriangleMesh(Quad3D.Default, mat);
-            scene.AddChild(plane);
 
             scene.AddChild(mesh);
 
             return builder
                 .UseApp(app)
-                .UseEnvironmentHDR("res://asset/Envs/CameraEnv.jpg")
+                //.UseEnvironmentHDR("res://asset/Envs/CameraEnv.jpg")
+                .UseEnvironmentHDR("res://asset/Envs/lightroom_14b.hdr")
                 .ConfigureSampleApp();
         }
 

@@ -45,12 +45,12 @@ namespace XrSamples.Android
         protected override void Build(XrEngineAppBuilder builder)
         {
             builder.UseOpenGL()
-                   //.UseFilamentVulkan()
+                   //.UseFilamentOpenGL()
                    //.UseStereo()
                    .UseMultiView()
                    .SetRenderQuality(1, 4)
-                   .CreateHelmet()
-                   .RemovePlaneGrid()
+                   .CreateDisplay()
+                   //.RemovePlaneGrid()
                    .AddWebBrowser(this, "display");
         }
     }

@@ -111,9 +111,7 @@ namespace XrEngine.Gltf
 
                 Log.Info(this, "Loading texture {0} ({1} bytes)", img.Name, data.Length);
 
-                //using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
-
-                using var image = SKBitmap.Decode(data);
+                using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
 
                 return new TextureData
                 {
@@ -132,7 +130,7 @@ namespace XrEngine.Gltf
             });
         }
 
-        public Texture2D ProcessTexture(glTFLoader.Schema.Texture texture, int id, Texture2D? result = null)
+        public Texture2D ProcessTexture(glTFLoader.Schema.Texture texture, int id, Texture2D? result = null, bool useSrgb = false)
         {
             CheckExtensions(texture.Extensions);
 
@@ -142,39 +140,40 @@ namespace XrEngine.Gltf
 
             _tasks.Add(() =>
             {
-                var data = ProcessImage(imageInfo);
+                var data = ProcessImage(imageInfo, useSrgb);
+
                 result.LoadData([data]);
+
+                bool hasMinFilter = false;
+
+                if (texture.Sampler != null)
+                {
+                    var sampler = _model!.Samplers[texture.Sampler.Value];
+                    CheckExtensions(sampler.Extensions);
+
+                    result.WrapS = (WrapMode)sampler.WrapS;
+                    result.WrapT = (WrapMode)sampler.WrapT;
+
+                    if (sampler.MagFilter != null)
+                        result.MagFilter = (ScaleFilter)sampler.MagFilter;
+
+                    if (sampler.MinFilter != null)
+                    {
+                        hasMinFilter = true;
+                        result.MinFilter = (ScaleFilter)sampler.MinFilter;
+                    }
+                }
+
+                if (!hasMinFilter)
+                {
+                    result.MinFilter = ScaleFilter.LinearMipmapLinear;
+                    result.MagFilter = ScaleFilter.Linear;
+                }
             });
 
             result.Flags |= EngineObjectFlags.Readonly;
 
             result.Name = texture.Name ?? (imageInfo.Name ?? imageInfo.Uri ?? "");
-
-            bool hasMinFilter = false;
-
-            if (texture.Sampler != null)
-            {
-                var sampler = _model!.Samplers[texture.Sampler.Value];
-                CheckExtensions(sampler.Extensions);
-
-                result.WrapS = (WrapMode)sampler.WrapS;
-                result.WrapT = (WrapMode)sampler.WrapT;
-
-                if (sampler.MagFilter != null)
-                    result.MagFilter = (ScaleFilter)sampler.MagFilter;
-
-                if (sampler.MinFilter != null)
-                {
-                    hasMinFilter = true;
-                    result.MinFilter = (ScaleFilter)sampler.MinFilter;
-                }
-            }
-
-            if (!hasMinFilter)
-            {
-                result.MinFilter = ScaleFilter.LinearMipmapLinear;
-                result.MagFilter = ScaleFilter.Linear;
-            }
 
             result.AddComponent(new AssetSource
             {
@@ -202,7 +201,7 @@ namespace XrEngine.Gltf
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTexture(_model!.Textures[info.Index], info.Index);
+            return ProcessTexture(_model!.Textures[info.Index], info.Index, null, true);
         }
 
         public PbrMaterial ProcessMaterial(glTFLoader.Schema.Material gltMat, int id, PbrMaterial? result = null)

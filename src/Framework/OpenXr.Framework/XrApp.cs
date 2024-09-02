@@ -8,6 +8,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using XrMath;
 using Action = Silk.NET.OpenXR.Action;
 
 
@@ -780,6 +781,7 @@ namespace OpenXr.Framework
                 if (state.ShouldRender != 0)
                 {
                     var viewsState = LocateViews(space, frameTime);
+
 
                     var isPosValid = (viewsState.ViewStateFlags & ViewStateFlags.OrientationValidBit) != 0 &&
                                      (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;

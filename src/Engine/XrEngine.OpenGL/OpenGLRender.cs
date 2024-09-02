@@ -294,6 +294,7 @@ namespace XrEngine.OpenGL
             _gl.Enable(EnableCap.Multisample);
             _gl.Disable(EnableCap.ScissorTest);
             _gl.LineWidth(1);
+
         }
 
         protected void ConfigureCaps(ShaderMaterial material)
@@ -330,6 +331,7 @@ namespace XrEngine.OpenGL
             {
                 EnableFeature(EnableCap.Blend, material.Alpha != AlphaMode.Opaque);
                 _glState.Alpha = material.Alpha;
+                _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             }
 
 #if !GLES

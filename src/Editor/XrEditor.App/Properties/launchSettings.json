@@ -1,7 +1,8 @@
 {
   "profiles": {
     "Editor": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "nativeDebugging": true
     },
     "Native": {
       "commandName": "Project",
