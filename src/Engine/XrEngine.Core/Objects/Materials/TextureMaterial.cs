@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Numerics;
+
+namespace XrEngine
 {
     public class TextureMaterial : ShaderMaterial
     {
@@ -18,6 +20,7 @@
             : base()
         {
             _shader = SHADER;
+            Scale = new Vector2(1, 1);
         }
 
         public TextureMaterial(Texture2D texture)
@@ -41,11 +44,20 @@
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
-            bld.SetUniform("uTexture", (ctx) => Texture!, 0);
+            bld.ExecuteAction((a, v) =>
+            {
+                v.SetUniform("uTexture", Texture!, 0);
+                v.SetUniform("uOffset", Offset);
+                v.SetUniform("uScale", Scale);
+            });
         }
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
         public Texture2D? Texture { get; set; }
+
+        public Vector2 Offset { get; set; }
+
+        public Vector2 Scale { get; set; }
     }
 }

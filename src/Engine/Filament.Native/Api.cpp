@@ -281,9 +281,9 @@ void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bo
 				viewInfo.view->setRenderTarget(app->renderTargets[target.renderTargetId]);
 		}
 
-		if (target.renderTargetId != -1)
-			app->renderer->renderStandaloneView(viewInfo.view);
-		else
+		//if (target.renderTargetId != -1)
+		//	app->renderer->renderStandaloneView(viewInfo.view);
+		//else
 			app->renderer->render(viewInfo.view);
 
 	}

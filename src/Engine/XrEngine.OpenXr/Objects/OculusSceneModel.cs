@@ -80,7 +80,8 @@ namespace XrEngine.OpenXr
                 mesh.Transform.Position = location.Pose.Position;
                 mesh.Transform.Orientation = location.Pose.Orientation;
 
-                mesh.AddComponent(new MeshCollider());
+                //TODO restore collider
+                //mesh.AddComponent(new MeshCollider());
 
                 if (AddPhysics)
                 {

@@ -26,15 +26,17 @@ namespace XrEngine
                 IsLit = false
             };
         }
+
         public FishReflectionSphereMaterial()
             : base()
         {
             _shader = SHADER;
             DoubleSided = true;
+            Fov = MathF.PI;
         }
 
         public FishReflectionSphereMaterial(Texture2D main, FishReflectionMode mode)
-    : this()
+            : this()
         {
             LeftMainTexture = main;
             Mode = mode;
@@ -46,7 +48,6 @@ namespace XrEngine
             LeftMainTexture = left;
             RightTexture = right;
             Mode = FishReflectionMode.Eye;
-            Fov = MathF.PI;
         }
 
         public override void GetState(IStateContainer container)
@@ -79,6 +80,7 @@ namespace XrEngine
                     up.SetUniform("uRotation", newQuat.ToMatrix());
                 }
 
+  
                 if (Mode == FishReflectionMode.Eye && camera.ActiveEye == 1)
                     up.SetUniform("uTexture", RightTexture!, 0);
                 else
@@ -99,6 +101,8 @@ namespace XrEngine
                     up.SetUniform("uTexCenter", new Vector2(0.5f, 0.5f));
                 }
 
+                up.SetUniform("uBorder", Border);
+                up.SetUniform("uSurfaceSize", SurfaceSize);
                 up.SetUniform("uFov", Fov);
             });
 
@@ -112,11 +116,17 @@ namespace XrEngine
 
         public Texture2D? RightTexture { get; set; }
 
+        [Range(0, 10, 0.1f)]
         public float Radius { get; set; }
 
         public Vector3 Center { get; set; }
 
         [Range(0, 6.28f, 0.01f)]
         public float Fov { get; set; }
+
+        [Range(0, 10, 0.01f)]
+        public float Border { get; set; }
+
+        public Vector2 SurfaceSize { get; set; }
     }
 }

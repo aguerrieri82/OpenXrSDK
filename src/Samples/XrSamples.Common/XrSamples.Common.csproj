@@ -19,6 +19,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Assets\Fish\20240308151616.mp4" />
 	  <None Remove="Assets\Fish\cam_left.jpg" />
 	  <None Remove="Assets\Fish\cam_left_pan.jpg" />
 	  <None Remove="Assets\Fish\cam_right.jpg" />
@@ -26,6 +27,7 @@
 	  <None Remove="Assets\Fish\cube_orig.jpg" />
 	  <None Remove="Assets\Fish\cube_pan.jpg" />
 	  <None Remove="Assets\Fish\Recording.mp4" />
+	  <None Remove="Assets\Fish\stereo.jpg" />
 	</ItemGroup>
 
 
