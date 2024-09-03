@@ -40,8 +40,8 @@ namespace XrEngine.OpenGL
                 true);
 
             _renderFrameBuffer = new GlTextureFrameBuffer(gl,
-                new GlTexture(gl, msColorTex, sampleCount),
-                new GlTexture(gl, msDepthTex, sampleCount));
+                GlTexture.Attach(gl, msColorTex, sampleCount),
+                GlTexture.Attach(gl, msDepthTex, sampleCount));
 
             _gl = gl;
         }

@@ -356,8 +356,8 @@ namespace XrSamples
 
             var mat = new FishReflectionSphereMaterial(left, right)
             {
-                Radius = 6,
-                Center = new Vector3(0, 1.5f, 0),
+                SpherRadius = 6,
+                SphereCenter = new Vector3(0, 1.5f, 0),
                 Border = 0.1f,
                 SurfaceSize = new Vector2(1.3f, 1.3f),
                 Alpha = AlphaMode.Blend,
@@ -407,7 +407,7 @@ namespace XrSamples
                                     mesh.Transform.Orientation = window.Pose.Value.Orientation;
 
                                     var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
-                                    mat.Center = new Vector3(mesh.Transform.Position.X, 1.5f, mesh.Transform.Position.Z);
+                                    mat.SphereCenter = new Vector3(mesh.Transform.Position.X, 1.5f, mesh.Transform.Position.Z);
                                 }
 
                                 if (window.Bounds2D != null)
@@ -438,25 +438,25 @@ namespace XrSamples
 
             var videoTex = new Texture2D
             {
-                Format = TextureFormat.RgbaFloat16,
+                Format = TextureFormat.Rgb24,
                 WrapT = WrapMode.ClampToEdge,
                 WrapS = WrapMode.ClampToEdge,
                 MagFilter = ScaleFilter.Linear,
                 MinFilter = ScaleFilter.Linear,
             };
 
-            ffmpeg.RootPath = "D:\\Development\\Library\\ffmpeg-full-win64\\bin\\";
 
             var mat = new FishReflectionSphereMaterial(videoTex, FishReflectionMode.Stereo)
             {
-                Radius = 10f,
-                Center = new Vector3(0, 0.68f, 0),
+                SpherRadius = 10f,
+                SphereCenter = new Vector3(0, 0.68f, 0),
                 Border = 0.1f,
                 SurfaceSize = new Vector2(1.3f, 1.3f),
                 Alpha = AlphaMode.Blend
             };
 
             var mesh = new TriangleMesh(new Quad3D(new Size2(1, 1)), mat);
+
             mesh.Transform.SetScale(1.3f);
             mesh.Transform.SetPosition(1.26f, 1.18f, 0.84f);
             mesh.Transform.Rotation = new Vector3(0, -MathF.PI / 2, 0);
@@ -465,7 +465,7 @@ namespace XrSamples
             mesh.AddComponent(new VideoTexturePlayer()
             {
                 Texture = videoTex,
-                SrcFileName = Context.Require<IAssetStore>().GetPath("Fish/20240308151616.mp4")
+                SrcFileName = GetAssetPath("Fish/20240308151616.mp4")
             });
 
             mesh.Name = "mesh";
@@ -497,7 +497,7 @@ namespace XrSamples
 
                             var window = anchors.FirstOrDefault(a => a.Labels != null && a.Labels.Contains("WINDOW_FRAME"));
 
-                            if (window != null && false)
+                            if (window != null)
                             {
                                 if (window.Pose != null)
                                 {
@@ -511,7 +511,7 @@ namespace XrSamples
                                     mesh.Transform.Orientation = window.Pose.Value.Orientation;
 
                                     var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
-                                    mat.Center = new Vector3(mesh.Transform.Position.X, 1.5f, mesh.Transform.Position.Z);
+                                    mat.SphereCenter = new Vector3(mesh.Transform.Position.X, 1.5f, mesh.Transform.Position.Z);
                                 }
 
                                 if (window.Bounds2D != null)

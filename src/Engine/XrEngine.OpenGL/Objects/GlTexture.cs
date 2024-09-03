@@ -10,14 +10,15 @@ namespace XrEngine.OpenGL
 {
     public class GlTexture : GlObject
     {
+        static Dictionary<uint, GlTexture> _attached = [];
+
+
         protected uint _width;
         protected uint _height;
         protected bool _isCompressed;
         protected InternalFormat _internalFormat;
         protected bool _isAllocated;
-
         protected static uint _texReadFbId = 0;
-
 
         public GlTexture(GL gl)
             : base(gl)
@@ -54,6 +55,8 @@ namespace XrEngine.OpenGL
 
         public unsafe void Attach(uint handle, TextureTarget target = 0)
         {
+            _attached[handle] = this;
+
             _handle = handle;
 
             Target = target != 0 ? target : _gl.GetTextureTarget(handle);
@@ -455,10 +458,20 @@ namespace XrEngine.OpenGL
             if (_handle != 0)
             {
                 _gl.DeleteTexture(_handle);
+                _attached.Remove(_handle);
                 _handle = 0;
             }
+
             GC.SuppressFinalize(this);
         }
+
+        public static GlTexture Attach(GL gl, uint handle, uint sampleCount = 1)
+        {
+            if (!_attached.TryGetValue(handle, out var texture))
+                texture = new GlTexture(gl, handle, sampleCount);
+            return texture;
+        }
+
 
         public long Version { get; set; }
 

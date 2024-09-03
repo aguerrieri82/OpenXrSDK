@@ -27,7 +27,7 @@ namespace XrSamples
         {
             var mesh = scene.FindByName<TriangleMesh>("mesh")!;
             var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
-            mat.Radius = Radius;    
+            mat.SpherRadius = Radius;    
 
             if (_filePath != null)
             {

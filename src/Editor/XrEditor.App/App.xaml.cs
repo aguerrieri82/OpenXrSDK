@@ -4,6 +4,7 @@ using XrEditor.Services;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.Services;
+using XrEngine.Video;
 
 namespace XrEditor
 {
@@ -22,6 +23,7 @@ namespace XrEditor
             Context.Implement<IMainDispatcher>(new MainDispatcher());
             Context.Implement<IAssetStore>(new LocalAssetStore("Assets"));
             Context.Implement(XrPlatform.Current);
+            Context.Implement<IVideoDecoder>(() => new FFmpegVideoDecoder());
 
             ModuleManager.Instance.Init();
 

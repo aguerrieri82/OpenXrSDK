@@ -1,23 +1,33 @@
-﻿in vec3 fPos;
+﻿
+in vec3 fPos;
 in vec3 fNormal;
 in vec2 fUv;
 
-uniform sampler2D uTexture;
-uniform vec3 uCenter;
-uniform vec3 uViewPos;
-uniform float uRadius;
+#ifdef EXTERNAL
+    uniform samplerExternalOES uTexture;
+#else
+    uniform sampler2D uTexture;
+#endif
+
+uniform vec3  uSphereCenter;
+uniform float uSphereRadius;
+
 uniform mat3 uRotation;
-uniform vec2 uTexCenter;
+uniform vec3 uViewPos;
+
+uniform vec2 uTexCenter[2];
 uniform vec2 uTexRadius;
 uniform float uFov;
 
 uniform vec2 uSurfaceSize;
 uniform float uBorder;
 
+uniform uint uActiveEye;
+uint activeEye;
+
 out vec4 FragColor;
 
 const float PI = 3.14159265358979323846;
-
 
 
 bool raySphereIntersect(vec3 rayOrigin, vec3 rayDirection, vec3 sphereCenter, float sphereRadius, out vec2 polarCoordinates) 
@@ -57,17 +67,22 @@ vec2 sampleFish(vec2 polar, float fov)
 	vec2 result;
 	result.x = r * cos(polar.y);
 	result.y = r * sin(polar.y);
-    return uTexCenter + result * uTexRadius;
+    return uTexCenter[activeEye] + result * uTexRadius;
 }
 
 void main()
 {
+    #ifdef MULTI_VIEW
+        activeEye = gl_ViewID_OVR;
+    #else
+        activeEye = uActiveEye;
+    #endif
 
 	vec3 viewDir = normalize(uViewPos - fPos);
 
     vec2 polar;
 
-    if (raySphereIntersect(uViewPos, viewDir, uCenter, uRadius, polar))
+    if (raySphereIntersect(uViewPos, viewDir, uSphereCenter, uSphereRadius, polar))
     {
     	vec2 pfish = sampleFish(polar, uFov);
 	    FragColor = vec4(texture(uTexture, pfish).rgb, 1.0);
