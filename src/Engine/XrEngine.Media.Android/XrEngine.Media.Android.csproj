@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+
+	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
+		<SupportedOSPlatformVersion>$(AndroidPlatform)</SupportedOSPlatformVersion>
+	</PropertyGroup>
+
+
+	<ItemGroup>
+	  <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+	  <ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
+	</ItemGroup>
+	
+</Project>

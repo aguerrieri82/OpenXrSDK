@@ -2,7 +2,7 @@
 
   <PropertyGroup>
 	  <TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
-	  <SupportedOSPlatformVersion>29</SupportedOSPlatformVersion>
+	  <SupportedOSPlatformVersion>$(AndroidPlatform)</SupportedOSPlatformVersion>
   </PropertyGroup>
 
   <ItemGroup>

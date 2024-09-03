@@ -23,7 +23,7 @@ namespace XrEngine
                 FragmentSourceName = "fish_reflection_sphere.frag",
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
-                IsLit = false
+                IsLit = false,
             };
         }
 
@@ -40,6 +40,7 @@ namespace XrEngine
         {
             LeftMainTexture = main;
             Mode = mode;
+            Initilize();
         }
 
         public FishReflectionSphereMaterial(Texture2D left, Texture2D right)
@@ -48,6 +49,23 @@ namespace XrEngine
             LeftMainTexture = left;
             RightTexture = right;
             Mode = FishReflectionMode.Eye;
+            Initilize();
+        }
+
+        protected void Initilize()
+        {
+ 
+            if (Mode == FishReflectionMode.Stereo)
+            {
+                TextureRadius = new Vector2(0.5f, 1.0f);
+                TextureCenter = [new Vector2(0.25f, 0.5f), new Vector2(0.75f, 0.5f)];
+            }
+            else
+            {
+                TextureRadius = new Vector2(1f, 1f);
+                TextureCenter = [new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f)];
+            }
+
         }
 
         public override void GetState(IStateContainer container)
@@ -63,15 +81,26 @@ namespace XrEngine
         }
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
-        {
+        { 
+            if (OperatingSystem.IsAndroid())
+            {
+                bld.AddExtension("GL_OES_EGL_image_external_essl3");
+                bld.AddFeature("EXTERNAL");
+
+                if (LeftMainTexture != null)
+                    LeftMainTexture.Type = TextureType.External;
+                
+                if (RightTexture != null)
+                    RightTexture.Type = TextureType.External;
+            }
+     
             bld.ExecuteAction((ctx, up) =>
             {
-
                 var camera = ((PerspectiveCamera)ctx.Camera!);
 
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-                up.SetUniform("uCenter", Center);
-                up.SetUniform("uRadius", Radius);
+                up.SetUniform("uSphereCenter", SphereCenter);
+                up.SetUniform("uSphereRadius", SpherRadius);
 
                 if (_lastRotation != ctx.Model!.Transform.Orientation)
                 {
@@ -79,33 +108,22 @@ namespace XrEngine
                     var newQuat = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI) * _lastRotation;
                     up.SetUniform("uRotation", newQuat.ToMatrix());
                 }
-
-  
+                
+               
                 if (Mode == FishReflectionMode.Eye && camera.ActiveEye == 1)
                     up.SetUniform("uTexture", RightTexture!, 0);
                 else
                     up.SetUniform("uTexture", LeftMainTexture!, 0);
+    
 
-                if (Mode == FishReflectionMode.Stereo)
-                {
-                    if (camera.ActiveEye == 0)
-                        up.SetUniform("uTexCenter", new Vector2(0.25f, 0.5f));
-                    else
-                        up.SetUniform("uTexCenter", new Vector2(0.75f, 0.5f));
-
-                    up.SetUniform("uTexRadius", new Vector2(0.5f, 1.0f));
-                }
-                else
-                {
-                    up.SetUniform("uTexRadius", new Vector2(1f, 1f));
-                    up.SetUniform("uTexCenter", new Vector2(0.5f, 0.5f));
-                }
-
+                up.SetUniform("uActiveEye", (uint)camera.ActiveEye);
+                up.SetUniform("uTexCenter", TextureCenter);
+                up.SetUniform("uTexRadius", TextureRadius);
                 up.SetUniform("uBorder", Border);
                 up.SetUniform("uSurfaceSize", SurfaceSize);
                 up.SetUniform("uFov", Fov);
             });
-
+          
         }
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
@@ -116,10 +134,11 @@ namespace XrEngine
 
         public Texture2D? RightTexture { get; set; }
 
-        [Range(0, 10, 0.1f)]
-        public float Radius { get; set; }
 
-        public Vector3 Center { get; set; }
+        [Range(0, 10, 0.1f)]
+        public float SpherRadius { get; set; }
+
+        public Vector3 SphereCenter { get; set; }
 
         [Range(0, 6.28f, 0.01f)]
         public float Fov { get; set; }
@@ -128,5 +147,10 @@ namespace XrEngine
         public float Border { get; set; }
 
         public Vector2 SurfaceSize { get; set; }
+
+        public Vector2 TextureRadius { get; set; }
+
+        public Vector2[] TextureCenter { get;  set; }
+
     }
 }

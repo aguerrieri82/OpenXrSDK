@@ -466,7 +466,7 @@ namespace XrEngine.OpenGL
 
             if (!_depthCache.TryGetValue(depthId.Value, out var texture))
             {
-                var glTexture = new GlTexture(_gl, depthId.Value);
+                var glTexture = GlTexture.Attach(_gl, depthId.Value);
                 glTexture.Bind();
                 _gl.TexParameter(glTexture.Target, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 glTexture.Unbind();
@@ -527,7 +527,7 @@ namespace XrEngine.OpenGL
                 if (handle == 0)
                     return texture.CreateGlTexture(_gl, _options.RequireTextureCompression);
 
-                return new GlTexture(_gl, (uint)handle);
+                return GlTexture.Attach(_gl, (uint)handle);
             });
 
             glTexture.Update(texture, false);

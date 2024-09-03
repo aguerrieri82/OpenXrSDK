@@ -15,6 +15,7 @@
 		<NoWarn>$(NoWarn);CS8500</NoWarn>
 		<Configurations>Debug;DebugGL;Release;ReleaseGL</Configurations>
 		<OpenGL>ES</OpenGL>
+		<AndroidPlatform>29</AndroidPlatform>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'DebugGL' OR '$(Configuration)' == 'ReleaseGL'">

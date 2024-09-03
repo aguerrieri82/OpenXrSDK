@@ -3,7 +3,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
-		<SupportedOSPlatformVersion>29</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion>$(AndroidPlatform)</SupportedOSPlatformVersion>
 		<OutputType>Exe</OutputType>
 		<ApplicationId>net.eusoft.oculus</ApplicationId>
 		<ApplicationVersion>1</ApplicationVersion>
@@ -46,6 +46,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Media.Android\XrEngine.Media.Android.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenXr.Android\XrEngine.OpenXr.Android.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
 		<ProjectReference Include="..\XrSamples.Common\XrSamples.Common.csproj" />

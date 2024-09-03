@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Text;
 using XrMath;
+using System.Diagnostics;
 
 
 namespace XrEngine.OpenGL
@@ -94,7 +95,7 @@ namespace XrEngine.OpenGL
                 if (result == -1 && !optional) //TODO uncomment
                 {
                     Log.Warn(this, "Uniform {0} not found", name);
-                    //Debug.WriteLine($"--- WARN --- {name} NOT FOUND");
+                    Debug.WriteLine($"--- WARN --- {name} NOT FOUND");
                     //throw new Exception($"{name} uniform not found on shader.");
                 }
 
@@ -133,6 +134,13 @@ namespace XrEngine.OpenGL
         public void SetUniform(string name, float value, bool optional = false)
         {
             _gl.Uniform1(LocateUniform(name, optional), value);
+        }
+
+        public unsafe void SetUniform(string name, Vector2[] value, bool optional = false)
+        {
+            fixed (Vector2* data = value)
+                _gl.Uniform2(LocateUniform(name, optional), (uint)value.Length, (float*)data);
+
         }
 
         public void SetUniform(string name, Vector2 value, bool optional = false)

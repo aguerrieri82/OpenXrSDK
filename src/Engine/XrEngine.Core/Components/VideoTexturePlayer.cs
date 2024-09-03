@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XrEngine.Video
+namespace XrEngine
 {
     public class VideoTexturePlayer : Behavior<Object3D>
     {
-        protected VideoDecoder? _decoder;
+        protected IVideoDecoder? _decoder;
         protected TextureData _data;
         protected double _lastFrameTime;
 
@@ -23,8 +23,10 @@ namespace XrEngine.Video
                 return;
 
             _decoder?.Dispose();
-            _decoder = new VideoDecoder();
+            _decoder = Context.RequireInstance<IVideoDecoder>();
+            _decoder.OutTexture = Texture;
             _decoder.Open(SrcFileName);
+
         }
 
         protected override void Update(RenderContext ctx)
@@ -36,10 +38,13 @@ namespace XrEngine.Video
             {
                 if (_decoder!.TryDecodeNextFrame(_data))
                 {
-                    Texture.Data = [_data];
-                    Texture.Width = _data.Width;
-                    Texture.Height = _data.Height;
-                    Texture.Version++;
+                    if (_data.Data.Length > 0)
+                    {
+                        Texture.Data = [_data];
+                        Texture.Width = _data.Width;
+                        Texture.Height = _data.Height;
+                        Texture.Version++;
+                    }
                     _lastFrameTime = ctx.Time;
                 }
             }

@@ -52,7 +52,8 @@ namespace XrEngine
     public enum TextureType
     {
         Normal,
-        Depth
+        Depth,
+        External
     }
 
 
@@ -120,5 +121,6 @@ namespace XrEngine
         public uint SampleCount { get; set; }
 
         public uint MaxLevels { get; set; }
+
     }
 }

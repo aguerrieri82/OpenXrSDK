@@ -81,11 +81,15 @@ namespace XrEngine.OpenGL
             if (texture2D is TextureCube)
                 glTexture.Target = TextureTarget.TextureCubeMap;
 
+            else if (texture2D.Type == TextureType.External)
+                glTexture.Target = (TextureTarget)0x8D65;
+
             glTexture.MinFilter = (TextureMinFilter)texture2D.MinFilter;
             glTexture.MagFilter = (TextureMagFilter)texture2D.MagFilter;
             glTexture.WrapS = (TextureWrapMode)texture2D.WrapS;
             glTexture.WrapT = (TextureWrapMode)texture2D.WrapT;
             glTexture.SampleCount = texture2D.SampleCount;
+
             if (texture2D.MaxLevels > 0)
                 glTexture.MaxLevel = texture2D.MaxLevels;
 
@@ -129,7 +133,7 @@ namespace XrEngine.OpenGL
 
         public static unsafe Texture TexIdToEngineTexture(this GL gl, uint texId, TextureFormat? readFormat = null)
         {
-            return new GlTexture(gl, texId).ToEngineTexture(readFormat);
+            return GlTexture.Attach(gl, texId).ToEngineTexture(readFormat);
         }
 
         public static unsafe Texture ToEngineTexture(this GlTexture glTexture, TextureFormat? readFormat = null)

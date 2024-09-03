@@ -1,15 +1,16 @@
 ﻿using FFmpeg.AutoGen;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+
 using System.Linq;
 using System.Runtime.InteropServices;
+using XrMath;
 using static FFmpeg.AutoGen.ffmpeg;
 
 
 namespace XrEngine.Video
 {
-    public unsafe class VideoDecoder : IDisposable  
+    public unsafe class FFmpegVideoDecoder : IVideoDecoder  
     {
 
         private AVFormatContext* _pFormatContext = null;
@@ -20,9 +21,9 @@ namespace XrEngine.Video
         private AVFrame* _pFrame = null;
         private SwsContext* _swsContext;
 
-        public VideoDecoder()
+        public FFmpegVideoDecoder()
         {
-
+            ffmpeg.RootPath = "D:\\Development\\Library\\ffmpeg-full-win64\\bin\\";
         }
 
         static unsafe string av_strerror(int error)
@@ -41,7 +42,12 @@ namespace XrEngine.Video
             return result;
         }
 
-        public unsafe void Open(string filename, AVHWDeviceType deviceType = AVHWDeviceType.AV_HWDEVICE_TYPE_NONE)
+        public void Open(string filename)
+        {
+            Open(filename, AVHWDeviceType.AV_HWDEVICE_TYPE_NONE);
+        }
+
+        public unsafe void Open(string filename, AVHWDeviceType deviceType)
         {
 
             _pFormatContext = avformat_alloc_context();
@@ -62,7 +68,7 @@ namespace XrEngine.Video
             CheckResult(avcodec_open2(_pCodecContext, codec, null), "");
 
             CodecName = avcodec_get_name(codec->id);
-            FrameSize = new Size(_pCodecContext->width, _pCodecContext->height);
+            FrameSize = new Size2I((uint)_pCodecContext->width, (uint)_pCodecContext->height);
             PixelFormat = _pCodecContext->pix_fmt;
             FrameRate = _pCodecContext->framerate.num / (double)_pCodecContext->framerate.den;
 
@@ -169,9 +175,10 @@ namespace XrEngine.Video
 
         public double FrameRate { get; private set; }
 
-        public Size FrameSize { get; private set; }
+        public Size2I FrameSize { get; private set; }
 
         public AVPixelFormat PixelFormat { get; private set; }
 
+        public Texture2D? OutTexture { get; set; }
     }
 }

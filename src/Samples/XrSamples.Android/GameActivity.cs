@@ -3,6 +3,8 @@ using Android.Content.PM;
 using Android.Webkit;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
+using XrEngine;
+using XrEngine.Media.Android;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
 
@@ -44,12 +46,14 @@ namespace XrSamples.Android
 
         protected override void Build(XrEngineAppBuilder builder)
         {
+            XrEngine.Context.Implement<IVideoDecoder>(() => new AndroidVideoDecoder());
+
             builder.UseOpenGL()
                    //.UseFilamentOpenGL()
                    //.UseStereo()
                    .UseMultiView()
                    .SetRenderQuality(1, 4)
-                   .CreateDisplay()
+                   .CreatePortalVideo()
                    //.RemovePlaneGrid()
                    .AddWebBrowser(this, "display");
         }
