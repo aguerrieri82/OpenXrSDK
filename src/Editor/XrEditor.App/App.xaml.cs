@@ -23,7 +23,8 @@ namespace XrEditor
             Context.Implement<IMainDispatcher>(new MainDispatcher());
             Context.Implement<IAssetStore>(new LocalAssetStore("Assets"));
             Context.Implement(XrPlatform.Current);
-            Context.Implement<IVideoDecoder>(() => new FFmpegVideoDecoder());
+            Context.Implement<IVideoReader>(() => new FFmpegVideoReader());
+            Context.Implement<IVideoCodec>(() => new FFmpegCodec());
 
             ModuleManager.Instance.Init();
 

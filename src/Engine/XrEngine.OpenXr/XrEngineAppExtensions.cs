@@ -101,7 +101,7 @@ namespace XrEngine.OpenXr
             model.AddPhysics = addPhysics;
 
             if (arMode)
-                model.Material = new ColorMaterial { Color = Color.Transparent, ShadowIntensity = 0.7f, IsShadowOnly = true };
+                model.Material = new ColorMaterial { Color = new Color(1,1,1), ShadowIntensity = 0.7f, IsShadowOnly = true };
 
             e.App.ActiveScene!.AddChild(model);
         });

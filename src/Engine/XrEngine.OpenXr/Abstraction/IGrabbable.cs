@@ -9,5 +9,7 @@ namespace XrEngine.OpenXr
         void Grab();
 
         void Release();
+
+        void OnMove();
     }
 }

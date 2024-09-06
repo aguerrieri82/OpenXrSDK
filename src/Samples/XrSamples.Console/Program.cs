@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using XrEngine;
+using XrSamples;
 
 
 
@@ -25,21 +26,9 @@ _ = host.RunAsync();
 
 Gpu.EnableNvAPi();
 
-var data2 = PvrTranscoder.Instance.LoadTexture(File.OpenRead("d:\\real-pvr.pvr"));
 
-string fileName = "D:\\Development\\Library\\glTF-Sample-Viewer\\assets\\environments\\pisa.hdr";
-
-var data = HdrReader.Instance.LoadTexture(File.OpenRead(fileName));
-
-using (var stream = File.OpenWrite("d:\\test.pvr"))
-    PvrTranscoder.Instance.SaveTexture(stream, data);
-
-
-var logger = host.Services.GetRequiredService<ILogger<object>>();
-
-//await WebLinkApp.Run(host.Services, logger);
 //await Tasks.OvrLibTask(logger);
-//await XrSceneApp.Run(host.Services, logger);
+await XrSceneApp.Run(host.Services);
 //await SceneAnchors.Run(host.Services, logger);
 //await Physics.Run(host.Services, logger);
 

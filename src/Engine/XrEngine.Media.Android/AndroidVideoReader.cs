@@ -10,13 +10,15 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using XrEngine.OpenGL;
+using XrEngine.Video;
 using XrMath;
+using static Android.Graphics.ImageDecoder;
 using static Java.Util.Base64;
 
 
 namespace XrEngine.Media.Android
 {
-    public class AndroidVideoDecoder : IVideoDecoder
+    public class AndroidVideoReader : IVideoReader
     {
         private MediaCodec? _decoder;
         private MediaExtractor? _mediaExtractor;
@@ -28,12 +30,12 @@ namespace XrEngine.Media.Android
         private MediaFormat? _inputFormat;
         private SurfaceTexture? _surfaceTex;
 
-        public AndroidVideoDecoder()
+        public AndroidVideoReader()
         {
             _timeout = 1000000;
         }
 
-        public void Dispose()
+        public void Close()
         {
             if (_decoder != null)
             {
@@ -57,11 +59,21 @@ namespace XrEngine.Media.Android
             }
         }
 
-        public void Open(string filename)
+        public void Dispose()
         {
+            Close();
+            GC.SuppressFinalize(this);  
+        }
+
+        public void Open(Uri source)
+        {
+            if (!source.IsFile)
+                throw new NotSupportedException();
+
             _eos = false;
             _mediaExtractor = new MediaExtractor();
-            _mediaExtractor.SetDataSource(filename);
+            _mediaExtractor.SetDataSource(source.LocalPath);
+
             var tracks = _mediaExtractor.TrackCount;
            
             string? mimeType = null;
