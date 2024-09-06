@@ -7,6 +7,7 @@ using XrEngine;
 using XrEngine.Media.Android;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
+using XrEngine.Video;
 
 namespace XrSamples.Android
 {
@@ -46,14 +47,15 @@ namespace XrSamples.Android
 
         protected override void Build(XrEngineAppBuilder builder)
         {
-            XrEngine.Context.Implement<IVideoDecoder>(() => new AndroidVideoReader());
+            XrEngine.Context.Implement<IVideoReader>(() => new AndroidVideoReader());
+            XrEngine.Context.Implement<IVideoCodec>(() => new AndroidVideoCodec());
 
             builder.UseOpenGL()
                    //.UseFilamentOpenGL()
                    //.UseStereo()
                    .UseMultiView()
                    .SetRenderQuality(1, 4)
-                   .CreateCucina()
+                   .CreatePortalVideo()
                    .RemovePlaneGrid();
                    //.AddWebBrowser(this, "display");
         }

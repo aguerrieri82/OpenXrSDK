@@ -23,7 +23,7 @@ namespace XrEngine.Video
         public FFmpegCodec()
         {
             ffmpeg.RootPath = "D:\\Development\\Library\\ffmpeg-full-win64\\bin\\";
-            DeviceType = AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2;
+            DeviceType = AVHWDeviceType.AV_HWDEVICE_TYPE_NONE;
         }
 
         static unsafe string av_strerror(int error)
@@ -89,7 +89,7 @@ namespace XrEngine.Video
 
             var codecId = mimeType switch
             {
-                "video/h264" => AVCodecID.AV_CODEC_ID_H264,
+                "video/avc" => AVCodecID.AV_CODEC_ID_H264,
                 _ => throw new NotSupportedException()
             };
 
@@ -204,8 +204,10 @@ namespace XrEngine.Video
             return true;
         }
 
-
         public AVHWDeviceType DeviceType { get; set; }
 
+        public Texture2D? OutTexture { get; set; }
+
+        public VideoCodecCaps Caps => VideoCodecCaps.DecodeTexture;
     }
 }

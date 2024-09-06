@@ -84,6 +84,7 @@ namespace XrEngine.OpenGL
             else if (texture2D.Type == TextureType.External)
                 glTexture.Target = (TextureTarget)0x8D65;
 
+
             glTexture.MinFilter = (TextureMinFilter)texture2D.MinFilter;
             glTexture.MagFilter = (TextureMagFilter)texture2D.MagFilter;
             glTexture.WrapS = (TextureWrapMode)texture2D.WrapS;

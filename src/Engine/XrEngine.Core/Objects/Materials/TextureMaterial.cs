@@ -43,6 +43,12 @@ namespace XrEngine
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
+            if (Texture?.Type == TextureType.External)
+            {
+                bld.AddExtension("GL_OES_EGL_image_external_essl3");
+                bld.AddFeature("EXTERNAL");
+            }
+
             bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
             bld.ExecuteAction((a, v) =>
             {

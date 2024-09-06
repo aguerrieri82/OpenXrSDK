@@ -39,10 +39,9 @@ namespace XrEngine.Video
                     if (_data.Data.Length > 0)
                     {
                         Texture.Data = [_data];
-                        Texture.Width = _data.Width;
-                        Texture.Height = _data.Height;
                         Texture.Version++;
                     }
+
                     _lastFrameTime = ctx.Time;
                 }
             }

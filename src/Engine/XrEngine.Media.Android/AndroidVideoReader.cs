@@ -12,8 +12,7 @@ using System.Threading.Tasks;
 using XrEngine.OpenGL;
 using XrEngine.Video;
 using XrMath;
-using static Android.Graphics.ImageDecoder;
-using static Java.Util.Base64;
+
 
 
 namespace XrEngine.Media.Android
@@ -166,17 +165,6 @@ namespace XrEngine.Media.Android
 
             if (outBufferIndex > 0)
             {
-                /*
-                var outBuffer = _decoder.GetOutputBuffer(outBufferIndex);
-
-                var outFormat = _decoder.GetOutputFormat(outBufferIndex);
-
-                var colorFormat = outFormat.GetInteger(MediaFormat.KeyColorFormat);
-
-                var stride = outFormat.GetInteger(MediaFormat.KeyStride);
-                */
-                
-          
                 _decoder.ReleaseOutputBuffer(outBufferIndex, true);
 
                 if (_surfaceTex != null)
