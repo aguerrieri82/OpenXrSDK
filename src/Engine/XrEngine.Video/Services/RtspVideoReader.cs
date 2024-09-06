@@ -21,7 +21,7 @@ namespace XrEngine.Video
         private Thread? _readThread;
         private ConcurrentQueue<byte[]> _readBuffer;
         private IVideoCodec? _videoCodec;
-        private string _streamName;
+        private string? _streamName;
         private int _frameCount;
         private DateTime _frameCountStart;
         private FrameBuffer _dstBuffer;
@@ -34,6 +34,8 @@ namespace XrEngine.Video
 
         public void Open(Uri uri)
         {
+            _readBuffer.Clear();
+
             _client = new RtspClient();
             _client.Connect(uri.Host, uri.Port);
 
@@ -57,6 +59,13 @@ namespace XrEngine.Video
                 var format = new VideoFormat();
                 new SpsDecoder().Decode(_videoStream.Data[0], ref format);
                 FrameSize = new Size2I((uint)format.Width, (uint)format.Height);
+                foreach (var data in _videoStream.Data)
+                {
+                    var newData = new byte[data.Length + 3];
+                    newData[2] = 1;
+                    Buffer.BlockCopy(data, 0, newData, 3, data.Length);
+                    _readBuffer.Enqueue(newData);   
+                }
             }
 
             _session = _client.Setup(_videoStream, UdpPort);
@@ -66,8 +75,12 @@ namespace XrEngine.Video
 
             if (_videoStream.Format == "H264")
             {
+
+
                 _videoCodec = Context.RequireInstance<IVideoCodec>();
-                _videoCodec.Open(VideoCodecMode.Decode, "video/h264", new VideoFormat
+                _videoCodec.OutTexture = OutTexture;
+
+                _videoCodec.Open(VideoCodecMode.Decode, "video/avc", new VideoFormat
                 {
                     Width = (int)FrameSize.Width,
                     Height = (int)FrameSize.Height,
@@ -122,7 +135,6 @@ namespace XrEngine.Video
 
             var srcBuffer = new FrameBuffer() { ByteArray = buffer };
 
-
             try
             {
                 if (_videoCodec.Convert(srcBuffer, ref _dstBuffer))
@@ -130,7 +142,9 @@ namespace XrEngine.Video
                     data.Width = FrameSize.Width;
                     data.Height = FrameSize.Height;
                     data.Format = TextureFormat.Rgba32;
-                    data.Data = new Memory<byte>(_dstBuffer.ByteArray);
+
+                    if ((_videoCodec.Caps & VideoCodecCaps.DecodeTexture) == 0)
+                        data.Data = new Memory<byte>(_dstBuffer.ByteArray);
 
                     _frameCount++;
 
@@ -157,7 +171,7 @@ namespace XrEngine.Video
         {
             if (_client != null)
             {
-                if (_session != null && _videoStream != null)
+                if (_session != null && _streamName != null)
                 {
                     _client.TearDown(_streamName, _session);
                     _videoStream = null;

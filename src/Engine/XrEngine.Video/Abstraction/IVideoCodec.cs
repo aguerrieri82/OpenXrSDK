@@ -13,10 +13,22 @@ namespace XrEngine.Video
         Decode  
     }
 
+    [Flags]
+    public enum VideoCodecCaps
+    {
+        None = 0,
+        DecodeTexture = 0x1
+    }
+
+
     public interface IVideoCodec :IDisposable
     {
         void Open(VideoCodecMode mode, string mimeType, VideoFormat outFormat);
 
-        bool Convert(FrameBuffer src, ref FrameBuffer dst); 
+        bool Convert(FrameBuffer src, ref FrameBuffer dst);
+
+        Texture2D? OutTexture { get; set; }
+
+        VideoCodecCaps Caps { get; }    
     }
 }

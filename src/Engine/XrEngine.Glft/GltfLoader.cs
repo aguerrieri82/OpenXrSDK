@@ -656,7 +656,7 @@ namespace XrEngine.Gltf
 
         public void ExecuteLoadTasks()
         {
-            Parallel.ForEach(_tasks, new ParallelOptions { MaxDegreeOfParallelism = 6 }, a => a());
+            Parallel.ForEach(_tasks, new ParallelOptions { MaxDegreeOfParallelism = 1 }, a => a());
             _tasks.Clear();
         }
 

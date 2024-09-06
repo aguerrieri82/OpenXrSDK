@@ -445,6 +445,8 @@ namespace XrSamples
                 MinFilter = ScaleFilter.Linear,
             };
 
+            if (OperatingSystem.IsAndroid())
+                videoTex.Type = TextureType.External;
 
             var mat = new FishReflectionSphereMaterial(videoTex, FishReflectionMode.Stereo)
             {
@@ -460,16 +462,17 @@ namespace XrSamples
             var mesh = new TriangleMesh(new Quad3D(new Size2(1, 1)), mat2);
 
             mesh.Transform.SetScale(1.3f);
-            mesh.Transform.SetPosition(1.26f, 1.18f, 0.84f);
-            mesh.Transform.Rotation = new Vector3(0, -MathF.PI / 2, 0);
+            //mesh.Transform.SetPosition(1.26f, 1.18f, 0.84f);
+            mesh.Transform.SetPosition(0, 2f, 0);
+            //mesh.Transform.Rotation = new Vector3(0, -MathF.PI / 2, 0);
 
            
             mesh.AddComponent(new VideoTexturePlayer()
             {
                 Texture = videoTex,
                 //Source = new Uri( GetAssetPath("Fish/20240308151616.mp4"))
-                Source = new Uri("rtsp://admin:123@192.168.1.60:8554/live"),
-                //Source = new Uri("rtsp://192.168.1.97:554/onvif1"),
+                //Source = new Uri("rtsp://admin:123@192.168.1.60:8554/live"),
+                Source = new Uri("rtsp://192.168.1.97:554/onvif1"),
                 Reader = new RtspVideoReader()
             });
 
@@ -486,6 +489,8 @@ namespace XrSamples
                     var oculus = e.XrApp.Plugin<OculusXrPlugin>();
                     var isLoading = false;
                     DateTime lastUpdate = new DateTime();
+
+                    return;
 
                     mesh.AddBehavior(async (_, _) =>
                     {

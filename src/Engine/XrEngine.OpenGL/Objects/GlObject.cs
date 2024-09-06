@@ -25,5 +25,7 @@ namespace XrEngine.OpenGL
         {
             return obj._handle;
         }
+
+        public GL GL => _gl;
     }
 }
