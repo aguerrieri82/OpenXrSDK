@@ -22,13 +22,18 @@ namespace XrEngine.OpenXr
             return false;
         }
 
-        public void Grab()
+        public virtual void Grab()
         {
 
         }
 
-        public void Release()
+        public virtual void Release()
         {
+        }
+
+        public virtual void OnMove()
+        {
+
         }
     }
 }

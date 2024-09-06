@@ -1,13 +1,15 @@
 ﻿
 using XrMath;
 
-namespace XrEngine
+namespace XrEngine.Video
 {
-    public interface IVideoDecoder : IDisposable
+    public interface IVideoReader : IDisposable
     {
-        void Open(string filename);
+        void Open(Uri source);
 
         bool TryDecodeNextFrame(TextureData data);
+
+        void Close();
 
         double FrameRate { get; }
 

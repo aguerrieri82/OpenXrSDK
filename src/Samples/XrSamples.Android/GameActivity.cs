@@ -46,16 +46,16 @@ namespace XrSamples.Android
 
         protected override void Build(XrEngineAppBuilder builder)
         {
-            XrEngine.Context.Implement<IVideoDecoder>(() => new AndroidVideoDecoder());
+            XrEngine.Context.Implement<IVideoDecoder>(() => new AndroidVideoReader());
 
             builder.UseOpenGL()
                    //.UseFilamentOpenGL()
                    //.UseStereo()
                    .UseMultiView()
                    .SetRenderQuality(1, 4)
-                   .CreatePortalVideo()
-                   //.RemovePlaneGrid()
-                   .AddWebBrowser(this, "display");
+                   .CreateCucina()
+                   .RemovePlaneGrid();
+                   //.AddWebBrowser(this, "display");
         }
     }
 }

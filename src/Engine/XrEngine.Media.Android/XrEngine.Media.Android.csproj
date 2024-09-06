@@ -8,8 +8,9 @@
 
 
 	<ItemGroup>
-	  <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+
 	  <ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
+	  <ProjectReference Include="..\XrEngine.Video\XrEngine.Video.csproj" />
 	</ItemGroup>
 	
 </Project>

@@ -1,47 +1,35 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
-using OpenXr.Framework.OpenGL;
 using XrEngine;
 using XrEngine.OpenXr;
 
 namespace XrSamples
 {
+
     public static class XrSceneApp
     {
         private static XrOculusTouchController? _inputs;
-        private static EngineApp? _game;
+        private static XrEngineApp? _game;
 
-        public static Task Run(IServiceProvider services, ILogger logger)
+        public static Task Run(IServiceProvider services)
         {
-            var viewManager = new ViewManager();
-            viewManager.Initialize();
+            Context.Implement<IAssetStore>(new LocalAssetStore("Assets"));
+            Context.Implement<IProgressLogger>(new NullProgressLogger());
 
+            var builder = new XrEngineAppBuilder();
+            _game = builder
+                .UseOpenGL()
+                .UsePlatform<ConsolePlatform>()
+                .CreateSponza()
+                .Build();
 
-            using var xrApp = new XrApp(logger,
-                    new XrOpenGLGraphicDriver(viewManager.View),
-                    new OculusXrPlugin());
-
-            xrApp.RenderOptions.SampleCount = 1;
-
-            _inputs = xrApp.WithInteractionProfile<XrOculusTouchController>(bld => bld
-               .AddAction(a => a.Right!.Button!.AClick)
-               .AddAction(a => a.Right!.GripPose)
-               .AddAction(a => a.Right!.AimPose)
-               .AddAction(a => a.Right!.TriggerClick));
-
-            _game = new EngineApp(); //TODO Fix this
-            //_game = SampleScenes.CreateDefaultScene();
-
-            _game.ActiveScene!.AddComponent(new RayCollider() { InputName = "RightAimPose" });
-
-            xrApp.BindEngineAppGL(_game);
-
-            xrApp.Start(XrAppStartMode.Render);
+            _game.XrApp.Start(XrAppStartMode.Render);
 
             while (true)
             {
-                xrApp.RenderFrame(xrApp.Stage);
+                _game.XrApp.RenderFrame(_game.XrApp.Stage);
 
                 if (Console.KeyAvailable)
                 {
@@ -51,7 +39,7 @@ namespace XrSamples
                 }
             }
 
-            xrApp.Stop();
+            _game.XrApp.Stop();
 
             return Task.CompletedTask;
         }

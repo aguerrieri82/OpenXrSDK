@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XrEngine
+namespace XrEngine.Video
 {
     public class VideoTexturePlayer : Behavior<Object3D>
     {
-        protected IVideoDecoder? _decoder;
+
         protected TextureData _data;
         protected double _lastFrameTime;
 
@@ -19,14 +19,12 @@ namespace XrEngine
 
         protected override void Start(RenderContext ctx)
         {
-            if (SrcFileName == null)
+            if (Source == null)
                 return;
-
-            _decoder?.Dispose();
-            _decoder = Context.RequireInstance<IVideoDecoder>();
-            _decoder.OutTexture = Texture;
-            _decoder.Open(SrcFileName);
-
+     
+            Reader ??= Context.RequireInstance<IVideoReader>();
+            Reader.OutTexture = Texture;
+            Reader.Open(Source);
         }
 
         protected override void Update(RenderContext ctx)
@@ -34,9 +32,9 @@ namespace XrEngine
             if (Texture == null)
                 return;
 
-            if (_lastFrameTime == 0 || (ctx.Time - _lastFrameTime) >= 1.0 / _decoder!.FrameRate)
+            if (_lastFrameTime == 0 || Reader!.FrameRate == 0 || (ctx.Time - _lastFrameTime) >= 1.0 / Reader!.FrameRate)
             {
-                if (_decoder!.TryDecodeNextFrame(_data))
+                if (Reader!.TryDecodeNextFrame(_data))
                 {
                     if (_data.Data.Length > 0)
                     {
@@ -50,8 +48,16 @@ namespace XrEngine
             }
         }
 
+        public override void Reset(bool onlySelf = false)
+        {
+            Reader?.Close();
 
-        public string? SrcFileName { get; set; } 
+            base.Reset(onlySelf);
+        }
+
+        public IVideoReader? Reader { get; set; }
+
+        public Uri? Source { get; set; } 
 
         public Texture2D? Texture { get; set; }
     }

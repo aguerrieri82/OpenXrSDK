@@ -1,5 +1,4 @@
 ﻿using CanvasUI;
-using FFmpeg.AutoGen;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using PhysX;
@@ -18,6 +17,7 @@ using XrEngine.Services;
 using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
+using XrSamples.Components;
 
 
 
@@ -455,17 +455,22 @@ namespace XrSamples
                 Alpha = AlphaMode.Blend
             };
 
-            var mesh = new TriangleMesh(new Quad3D(new Size2(1, 1)), mat);
+            var mat2 = new TextureMaterial(videoTex);
+
+            var mesh = new TriangleMesh(new Quad3D(new Size2(1, 1)), mat2);
 
             mesh.Transform.SetScale(1.3f);
             mesh.Transform.SetPosition(1.26f, 1.18f, 0.84f);
             mesh.Transform.Rotation = new Vector3(0, -MathF.PI / 2, 0);
 
-
+           
             mesh.AddComponent(new VideoTexturePlayer()
             {
                 Texture = videoTex,
-                SrcFileName = GetAssetPath("Fish/20240308151616.mp4")
+                //Source = new Uri( GetAssetPath("Fish/20240308151616.mp4"))
+                Source = new Uri("rtsp://admin:123@192.168.1.60:8554/live"),
+                //Source = new Uri("rtsp://192.168.1.97:554/onvif1"),
+                Reader = new RtspVideoReader()
             });
 
             mesh.Name = "mesh";
@@ -577,21 +582,11 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var mesh = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
+            var mesh = (Object3D)GltfLoader.LoadFile(GetAssetPath("IkeBed.glb"), GltfOptions);
             mesh.Name = "mesh";
             // mesh.AddComponent<MeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
 
-            foreach (var mat in mesh.Materials)
-            {
-                if (mat is PbrMaterial pbr)
-                {
-                    //pbr.MetallicRoughness.BaseColorFactor = new Color(0.3f, 0.3f, 0.3f);
-                    //pbr.MetallicRoughness.RoughnessFactor = 0.2f;
-                    // pbr.MetallicRoughness.MetallicFactor = 0f;
-                    //pbr.MetallicRoughness.MetallicRoughnessTexture = null;
-                }
-            }
 
             scene.AddChild(mesh);
 
@@ -599,6 +594,65 @@ namespace XrSamples
                 .UseApp(app)
                 .UseSceneModel(false, false)
                 .UseEnvironmentHDR("res://asset/Envs/lightroom_14b.hdr")
+                .ConfigureSampleApp();
+        }
+
+        public static XrEngineAppBuilder CreateCucina(this XrEngineAppBuilder builder)
+        {
+
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var mesh = (Group3D)GltfLoader.LoadFile(GetAssetPath("cucina.glb"), GltfOptions);
+            mesh.Name = "mesh";
+            mesh.Transform.SetScale(0.04f);
+            mesh.Transform.Position = new Vector3(-mesh.WorldBounds.Center.X, 0, -mesh.WorldBounds.Center.Z);
+
+
+            var blank = new PbrMaterial
+            {
+                MetallicRoughness = new PbrMaterial.MetallicRoughnessData
+                {
+                    BaseColorFactor = new Color(1, 1, 1)
+                }
+            };
+
+            foreach (var item in mesh.DescendantsOrSelf().OfType<TriangleMesh>())
+            {
+                //item.AddComponent<BoxCollider>();
+
+                for (var i = 0; i < item.Materials.Count; i++)
+                {
+                    var material = (PbrMaterial)item.Materials[i];
+                    if (material.MetallicRoughness == null && material.SpecularGlossiness == null)
+                        item.Materials[i] = blank;
+                }
+
+            }
+
+            string[] wallNames = ["Obj_3dSolid_912", "Obj_3dSolid_909", "Obj_3dSolid_910", "Obj_3dSolid_911", "Obj_3dSolid_419"];
+            var group = new Group3D()
+            {
+                Name = "walls",
+                IsVisible = false
+            };
+
+            foreach (var item in wallNames)
+            {
+                var obj = mesh.DescendantsOrSelf().Where(a=> a.Name == item).First();
+                group.AddChild(obj.Parent!);
+            }
+
+            mesh.AddChild(group);
+            mesh.AddComponent<ConstraintGrabbable>();
+
+            scene.AddChild(mesh);
+             
+            return builder
+                .UseApp(app)
+                .UseEnvironmentHDR("res://asset/Envs/lightroom_14b.hdr")
+                .UseSceneModel(true, false)
                 .ConfigureSampleApp();
         }
 

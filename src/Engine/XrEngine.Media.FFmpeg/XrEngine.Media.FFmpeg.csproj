@@ -9,7 +9,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+
+    <ProjectReference Include="..\XrEngine.Video\XrEngine.Video.csproj" />
   </ItemGroup>
 
 </Project>

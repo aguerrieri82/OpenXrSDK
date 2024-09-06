@@ -10,7 +10,7 @@ using static FFmpeg.AutoGen.ffmpeg;
 
 namespace XrEngine.Video
 {
-    public unsafe class FFmpegVideoDecoder : IVideoDecoder  
+    public unsafe class FFmpegVideoReader : IVideoReader  
     {
 
         private AVFormatContext* _pFormatContext = null;
@@ -21,7 +21,7 @@ namespace XrEngine.Video
         private AVFrame* _pFrame = null;
         private SwsContext* _swsContext;
 
-        public FFmpegVideoDecoder()
+        public FFmpegVideoReader()
         {
             ffmpeg.RootPath = "D:\\Development\\Library\\ffmpeg-full-win64\\bin\\";
         }
@@ -42,9 +42,12 @@ namespace XrEngine.Video
             return result;
         }
 
-        public void Open(string filename)
+        public void Open(Uri source)
         {
-            Open(filename, AVHWDeviceType.AV_HWDEVICE_TYPE_NONE);
+            if (!source.IsFile)
+                throw new NotSupportedException();
+
+            Open(source.LocalPath, AVHWDeviceType.AV_HWDEVICE_TYPE_NONE);
         }
 
         public unsafe void Open(string filename, AVHWDeviceType deviceType)
@@ -154,7 +157,7 @@ namespace XrEngine.Video
             return true;
         }
 
-        public void Dispose()
+        public void Close()
         {
             var pFrame = _pFrame;
             av_frame_free(&pFrame);
@@ -168,6 +171,11 @@ namespace XrEngine.Video
             var pFormatContext = _pFormatContext;
             avformat_close_input(&pFormatContext);
 
+        }
+
+        public void Dispose()
+        {
+            Close();
             GC.SuppressFinalize(this);
         }
 

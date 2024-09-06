@@ -79,6 +79,8 @@ namespace XrEngine.OpenXr
         {
             _grabObject!.WorldPosition = grabPoint.Position;
             _grabObject!.Transform.Orientation = MathUtils.QuatAdd(_startOrientation, MathUtils.QuatDiff(grabPoint.Orientation, _startInputOrientation));
+
+            _grabbable!.OnMove();
         }
 
         protected virtual void StopGrabbing()

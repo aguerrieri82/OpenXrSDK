@@ -140,7 +140,11 @@ namespace XrEngine.Gltf
 
             _tasks.Add(() =>
             {
+                Log.Info(this, "Loading image {0}", imageInfo.Uri);
+
                 var data = ProcessImage(imageInfo, useSrgb);
+
+                Log.Info(this, "Loading image {0} end", imageInfo.Uri);
 
                 result.LoadData([data]);
 
@@ -561,18 +565,28 @@ namespace XrEngine.Gltf
                     ProcessNode(_model!.Nodes[childNode], nodeGrp);
             }
 
+
+
             nodeObj!.Name = node.Name;
 
-            if (node.Rotation != null)
-                nodeObj.Transform.Orientation = new Quaternion(node.Rotation[0], node.Rotation[1], node.Rotation[2], node.Rotation[3]);
+            if (node.Matrix != null)
+                nodeObj.Transform.Matrix = MathUtils.CreateMatrix(node.Matrix);
+            else
+            {
+                if (node.Rotation != null)
+                    nodeObj.Transform.Orientation = new Quaternion(node.Rotation[0], node.Rotation[1], node.Rotation[2], node.Rotation[3]);
 
-            if (node.Scale != null)
-                nodeObj.Transform.Scale = MathUtils.ToVector3(node.Scale);
+                if (node.Scale != null)
+                    nodeObj.Transform.Scale = MathUtils.ToVector3(node.Scale);
 
-            if (node.Translation != null)
-                nodeObj.Transform.Position = MathUtils.ToVector3(node.Translation);
+                if (node.Translation != null)
+                    nodeObj.Transform.Position = MathUtils.ToVector3(node.Translation);
+            }
 
             nodeObj.Transform.Update();
+
+            if (nodeGrp != null && nodeGrp.Children.Count == 1 && nodeGrp.WorldMatrix.IsIdentity)
+                nodeObj = nodeGrp.Children[0];  
 
             //obj.Transform.SetMatrix(MathUtils.CreateMatrix(node.Matrix));
 
@@ -642,7 +656,7 @@ namespace XrEngine.Gltf
 
         public void ExecuteLoadTasks()
         {
-            Parallel.ForEach(_tasks, new ParallelOptions { MaxDegreeOfParallelism = 1 }, a => a());
+            Parallel.ForEach(_tasks, new ParallelOptions { MaxDegreeOfParallelism = 6 }, a => a());
             _tasks.Clear();
         }
 
