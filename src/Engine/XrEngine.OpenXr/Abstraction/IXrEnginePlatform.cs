@@ -9,7 +9,8 @@ namespace XrEngine.OpenXr
 
         void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver);
 
-
         public string PersistentPath { get; }
+
+        public string Name { get; } 
     }
 }

@@ -9,6 +9,7 @@
     uniform SceneMatrices
     {
         uniform mat4 viewProj[NUM_VIEWS];
+        uniform vec3 position[NUM_VIEWS];
         float farPlane;
     } uMatrices;
 

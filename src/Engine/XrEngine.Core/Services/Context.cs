@@ -35,11 +35,20 @@
 
         public void Implement(Type type, object instance)
         {
-            _services.Add(new ServiceInfo
+            var info = _services.FirstOrDefault(a => a.Type == type);
+
+            if (info != null)
+                info.Instance = instance;
+            else
             {
-                Type = type,
-                Instance = instance
-            });
+                _services.Add(new ServiceInfo
+                {
+                    Type = type,
+                    Instance = instance
+                });
+            }
+
+          
         }
 
         public void Implement(Type type, Func<object> factory)

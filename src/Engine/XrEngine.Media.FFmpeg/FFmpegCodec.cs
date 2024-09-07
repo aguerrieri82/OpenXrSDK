@@ -208,6 +208,6 @@ namespace XrEngine.Video
 
         public Texture2D? OutTexture { get; set; }
 
-        public VideoCodecCaps Caps => VideoCodecCaps.DecodeTexture;
+        public VideoCodecCaps Caps => VideoCodecCaps.None;
     }
 }

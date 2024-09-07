@@ -25,6 +25,7 @@ namespace XrEngine.Video
         private int _frameCount;
         private DateTime _frameCountStart;
         private FrameBuffer _dstBuffer;
+        private DateTime _lastPingTime;
 
         public RtspVideoReader()
         {
@@ -75,8 +76,6 @@ namespace XrEngine.Video
 
             if (_videoStream.Format == "H264")
             {
-
-
                 _videoCodec = Context.RequireInstance<IVideoCodec>();
                 _videoCodec.OutTexture = OutTexture;
 
@@ -87,14 +86,8 @@ namespace XrEngine.Video
                     ImageFormat = ImageFormat.Rgb32
                 });
 
-                _h264Stream = new RtpH264Client(UdpPort);
+                _h264Stream = new RtpH264Client(_session.ClientPort);
                 _h264Stream.Open();
-
-                _readThread = new Thread(ReadLoop);
-                _readThread.Name = "Rtsp Video Read Loop";
-                _readThread.Start();
-
-                _dstBuffer = FrameBuffer.Allocate((int)(FrameSize.Width * FrameSize.Height * 4));
             }
             else
                 throw new NotSupportedException();
@@ -102,14 +95,27 @@ namespace XrEngine.Video
             if (!_client.Play(_streamName, _session!))
                 throw new InvalidOperationException();
 
+            _dstBuffer = FrameBuffer.Allocate((int)(FrameSize.Width * FrameSize.Height * 4));
+
+            _readThread = new Thread(ReadLoop);
+            _readThread.Name = "Rtsp Video Read Loop";
+
+            _readThread.Start();
         }
 
         protected void ReadLoop()
         {
-            while (_h264Stream != null)
+
+            while (_h264Stream != null && _session != null)
             {
                 try
                 {
+                    if ((DateTime.Now - _lastPingTime).TotalSeconds > _session.SessionTimeout.TotalSeconds * 0.5)
+                    {
+                        _client?.GetParameter(_streamName!, _session);
+                        _lastPingTime = DateTime.Now;   
+                    }
+
                     var nalData = _h264Stream?.ReadNalUnit();
 
                     if (nalData != null)
@@ -119,9 +125,9 @@ namespace XrEngine.Video
                     }
 
                 }
-                catch
+                catch (Exception ex) 
                 {
-
+                    Log.Error(this, ex);    
                 }
             }
         }

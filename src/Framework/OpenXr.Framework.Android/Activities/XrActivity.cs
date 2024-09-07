@@ -1,16 +1,31 @@
-﻿using Android.Content.PM;
+﻿using Android.Content;
+using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
+
 
 namespace OpenXr.Framework.Android
 {
     public abstract class XrActivity : Activity
     {
+        const int STORAGE_REQUEST = 100;
+        const int PERMISSIONS_REQUEST = 100;
+
+        [Flags]
+        enum LoadStep
+        {
+            None,
+            AskStorage,
+            AskPermissions,
+            Done,
+        }
+
         private Thread? _loopThread;
         private XrApp? _xrApp;
         private bool _isExited;
         private readonly Handler _handler;
         protected string[] _permissions;
+        private LoadStep _loadStep;
 
         public XrActivity()
         {
@@ -26,8 +41,7 @@ namespace OpenXr.Framework.Android
         {
             base.OnCreate(savedInstanceState);
 
-
-            CheckPermissionsAndRun();
+            NextLoadStep();
         }
 
         protected abstract XrApp CreateApp();
@@ -71,9 +85,8 @@ namespace OpenXr.Framework.Android
 
         }
 
-        private void CheckPermissionsAndRun()
+        private void CheckPermissions()
         {
-
             var toAsk = new List<string>();
 
             foreach (var permission in _permissions)
@@ -81,17 +94,59 @@ namespace OpenXr.Framework.Android
                     toAsk.Add(permission);
 
             if (toAsk.Count > 0)
-                RequestPermissions([.. toAsk], 1);
+                RequestPermissions([.. toAsk], PERMISSIONS_REQUEST);
             else
+                NextLoadStep();
+        }
+
+        private void CheckStorage()
+        {
+            if (!global::Android.OS.Environment.IsExternalStorageManager)
+            {
+                var intent = new Intent(global::Android.Provider.Settings.ActionManageAppAllFilesAccessPermission!,
+               global::Android.Net.Uri.Parse("package:" + Application.Context.PackageName));
+
+                StartActivityForResult(intent, STORAGE_REQUEST);
+            }
+            else
+                NextLoadStep();
+        }
+
+        private void NextLoadStep()
+        {
+            if (_loadStep == LoadStep.None)
+            {
+                _loadStep = LoadStep.AskPermissions;
+                CheckPermissions();
+            }
+            else if (_loadStep == LoadStep.AskPermissions)
+            {
+                _loadStep = LoadStep.AskStorage;
+                CheckStorage();
+            }
+            else if (_loadStep == LoadStep.AskStorage)
+            {
+                _loadStep = LoadStep.Done;
                 RunAppThread();
+            }
+
         }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)
         {
-            if (requestCode == 1 && grantResults.All(a => a == Permission.Granted))
-                RunAppThread();
+            if (requestCode == PERMISSIONS_REQUEST && grantResults.All(a => a == Permission.Granted))
+                NextLoadStep();
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+
+        protected override void OnActivityResult(int requestCode, [GeneratedEnum] Result resultCode, Intent? data)
+        {
+            if (requestCode == STORAGE_REQUEST)
+            {
+                NextLoadStep();
+            }
+            base.OnActivityResult(requestCode, resultCode, data);
         }
     }
 }

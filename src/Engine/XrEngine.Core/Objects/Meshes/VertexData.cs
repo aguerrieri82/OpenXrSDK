@@ -71,7 +71,10 @@ namespace XrEngine
         [ShaderRef(2, "a_texcoord_0", VertexComponent.UV0)]
         public Vector2 UV;
 
-        [ShaderRef(3, "a_tangent", VertexComponent.Tangent)]
+        [ShaderRef(3, "a_texcoord_1", VertexComponent.UV1)]
+        public Vector2 UV1;
+
+        [ShaderRef(4, "a_tangent", VertexComponent.Tangent)]
         public Quaternion Tangent;
     }
 }

@@ -5,9 +5,11 @@ using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using XrEngine;
 using XrEngine.Media.Android;
+using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
 using XrEngine.Video;
+
 
 namespace XrSamples.Android
 {
@@ -32,6 +34,10 @@ namespace XrSamples.Android
 
         protected override void OnAppStarted(XrApp app)
         {
+
+            if (_engine?.App.Renderer is OpenGLRender openGL)
+                openGL.EnableDebug();
+
             // app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
 
             _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayer>().FirstOrDefault();
@@ -47,6 +53,9 @@ namespace XrSamples.Android
 
         protected override void Build(XrEngineAppBuilder builder)
         {
+            var ext = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
+            XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(ext, "Assets")));
+
             XrEngine.Context.Implement<IVideoReader>(() => new AndroidVideoReader());
             XrEngine.Context.Implement<IVideoCodec>(() => new AndroidVideoCodec());
 
@@ -55,7 +64,7 @@ namespace XrSamples.Android
                    //.UseStereo()
                    .UseMultiView()
                    .SetRenderQuality(1, 4)
-                   .CreatePortalVideo()
+                   .CreateBed()
                    .RemovePlaneGrid();
                    //.AddWebBrowser(this, "display");
         }

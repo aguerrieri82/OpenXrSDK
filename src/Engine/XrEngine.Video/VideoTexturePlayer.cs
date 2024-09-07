@@ -11,6 +11,7 @@ namespace XrEngine.Video
 
         protected TextureData _data;
         protected double _lastFrameTime;
+        protected bool _isInit;
 
         public VideoTexturePlayer()
         {
@@ -21,15 +22,26 @@ namespace XrEngine.Video
         {
             if (Source == null)
                 return;
-     
-            Reader ??= Context.RequireInstance<IVideoReader>();
-            Reader.OutTexture = Texture;
-            Reader.Open(Source);
+
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    Reader ??= Context.RequireInstance<IVideoReader>();
+                    Reader.OutTexture = Texture;
+                    Reader.Open(Source);
+                    _isInit = true;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(this, ex);
+                }
+            });
         }
 
         protected override void Update(RenderContext ctx)
         {
-            if (Texture == null)
+            if (Texture == null || !_isInit)
                 return;
 
             if (_lastFrameTime == 0 || Reader!.FrameRate == 0 || (ctx.Time - _lastFrameTime) >= 1.0 / Reader!.FrameRate)
@@ -39,6 +51,8 @@ namespace XrEngine.Video
                     if (_data.Data.Length > 0)
                     {
                         Texture.Data = [_data];
+                        Texture.Width = _data.Width;
+                        Texture.Height = _data.Height;
                         Texture.Version++;
                     }
 

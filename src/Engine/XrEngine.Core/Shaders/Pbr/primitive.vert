@@ -12,9 +12,12 @@ layout(std140) uniform Camera {
     float Exposure;
     float FarPlane;
 } uCamera;
+
+
  
 layout (location = 0) in vec3 a_position;
 out vec3 v_Position;
+out vec3 v_CameraPos;
 
 #ifdef HAS_NORMAL_VEC3
 layout (location = 1) in vec3 a_normal;
@@ -22,7 +25,7 @@ layout (location = 1) in vec3 a_normal;
 
 #ifdef HAS_NORMAL_VEC3
 #ifdef HAS_TANGENT_VEC4
-layout (location = 3) in vec4 a_tangent;
+layout (location = 4) in vec4 a_tangent;
 out mat3 v_TBN;
 #else
 out vec3 v_Normal;
@@ -34,7 +37,7 @@ layout (location = 2) in vec2 a_texcoord_0;
 #endif
 
 #ifdef HAS_TEXCOORD_1_VEC2
-in vec2 a_texcoord_1;
+layout (location = 3) in vec2 a_texcoord_1;
 #endif
 
 out vec2 v_texcoord_0;
@@ -59,9 +62,11 @@ out vec4 v_Color;
 
     layout(num_views=NUM_VIEWS) in;
 
-    uniform SceneMatrices
+    layout(std140) uniform SceneMatrices
     {
         uniform mat4 viewProj[NUM_VIEWS];
+        uniform vec4 position[NUM_VIEWS];
+        float farPlane;
     } uMatrices;
 
     mat4 getViewProj() 
@@ -69,10 +74,20 @@ out vec4 v_Color;
        return uMatrices.viewProj[VIEW_ID];
     }
 
+    vec3 getCameraPos() 
+    {
+       return uMatrices.position[VIEW_ID].xyz;
+    }
+
 #else
     mat4 getViewProj() 
     {
        return uCamera.ViewProjectionMatrix;
+    }
+
+    vec3 getCameraPos() 
+    {
+       return uCamera.Position;
     }
 #endif
 
@@ -178,6 +193,8 @@ void main()
     v_Color = clamp(v_Color + getTargetColor0(gl_VertexID), 0.0f, 1.0f);
 #endif
 #endif
+
+    v_CameraPos = getCameraPos();
 
     gl_Position = getViewProj() * pos;
     #ifdef ZLOG_F
