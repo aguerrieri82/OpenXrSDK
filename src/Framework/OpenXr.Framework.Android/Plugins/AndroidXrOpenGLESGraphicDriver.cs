@@ -12,6 +12,7 @@ namespace OpenXr.Framework.Android
         protected KhrOpenglEsEnable? _openGlEs;
 
         protected GLEnum[] _validFormats = [
+           //GLEnum.Rgba16f,
            GLEnum.Srgb8Alpha8,
            GLEnum.Rgba8,
         ];

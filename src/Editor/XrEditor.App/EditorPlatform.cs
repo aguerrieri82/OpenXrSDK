@@ -49,5 +49,7 @@ namespace XrEditor
         public IRenderSurface RenderSurface => _renderSurface!;
 
         public string PersistentPath => Path.GetFullPath("Data");
+
+        public string Name => "Editor";
     }
 }

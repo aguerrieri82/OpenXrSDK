@@ -215,6 +215,7 @@ namespace XrEngine.OpenGL
 
         public void SetUniform(string name, Vector2I value, bool optional = false)
         {
+         
             _gl.Uniform2(LocateUniform(name, optional), value.X, value.Y);
         }
 

@@ -30,6 +30,8 @@ namespace XrSamples
             ConvertColorTextureSRgb = true,
         };
 
+
+
         static EngineApp CreateBaseScene()
         {
             var app = new EngineApp();
@@ -104,6 +106,39 @@ namespace XrSamples
             });
         }
 
+        public static XrEngineAppBuilder UseEnvironmentPisaHDR(this XrEngineAppBuilder builder)
+        {
+
+            return builder
+
+            .ConfigureApp(e =>
+            {
+                var scene = e.App.ActiveScene!;
+
+                //scene.PerspectiveCamera().Exposure = 0.5f;
+
+                var light = scene.AddChild<ImageLight>();
+                light.Intensity = 1f;
+
+                light.Textures = new PbrMaterial.IBLTextures
+                {
+                    GGXLUT = AssetLoader.Instance.Load<Texture2D>("res://asset/Envs/Pisa/GGX.png"),
+                    GGXEnv = AssetLoader.Instance.Load<TextureCube>("res://asset/Envs/Pisa/GGX.pvr"),
+                    LambertianEnv = AssetLoader.Instance.Load<TextureCube>("res://asset/Envs/Pisa/Lambertian.pvr"),
+                    Env = AssetLoader.Instance.Load<TextureCube>("res://asset/Envs/Pisa/Env.pvr"),
+                };
+
+                light.Textures.MipCount = light.Textures.GGXEnv.Data!.Max(a => a.MipLevel);
+
+                foreach (var l in scene.Descendants<Light>())
+                {
+                    if (l != light)
+                        l.IsVisible = false;
+                }
+            });
+        }
+
+
         public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot)
         {
             var panel = new Window3D();
@@ -144,13 +179,17 @@ namespace XrSamples
 
         static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder)
         {
-            return builder.UseHands()
+            builder.UseHands()
                    .UseLeftController()
                    .UseRightController()
                    .UseInputs<XrOculusTouchController>(a => a.AddAction(b => b.Right!.Haptic))
-                   .AddPassthrough()
+
                    .UseRayCollider()
                    .UseGrabbers();
+
+            if (!IsEditor)
+                builder.AddPassthrough();
+            return builder;
         }
 
         public static XrEngineAppBuilder CreateDisplay(this XrEngineAppBuilder builder)
@@ -471,8 +510,8 @@ namespace XrSamples
             {
                 Texture = videoTex,
                 //Source = new Uri( GetAssetPath("Fish/20240308151616.mp4"))
-                //Source = new Uri("rtsp://admin:123@192.168.1.60:8554/live"),
-                Source = new Uri("rtsp://192.168.1.97:554/onvif1"),
+                Source = new Uri("rtsp://admin:123@192.168.1.60:8554/live"),
+                //Source = new Uri("rtsp://192.168.1.97:554/onvif1"),
                 Reader = new RtspVideoReader()
             });
 
@@ -587,7 +626,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var mesh = (Object3D)GltfLoader.LoadFile(GetAssetPath("IkeBed.glb"), GltfOptions);
+            var mesh = (Object3D)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
             mesh.Name = "mesh";
             // mesh.AddComponent<MeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
@@ -597,8 +636,8 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                .UseSceneModel(false, false)
-                .UseEnvironmentHDR("res://asset/Envs/lightroom_14b.hdr")
+                //.UseSceneModel(false, false)
+                .UseEnvironmentHDR("res://asset/Envs/CameraEnv.jpg")
                 .ConfigureSampleApp();
         }
 
@@ -609,7 +648,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var mesh = (Group3D)GltfLoader.LoadFile(GetAssetPath("cucina.glb"), GltfOptions);
+            var mesh = GltfLoader.LoadFile(GetAssetPath("cucina.glb"), GltfOptions);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.04f);
             mesh.Transform.Position = new Vector3(-mesh.WorldBounds.Center.X, 0, -mesh.WorldBounds.Center.Z);
@@ -623,15 +662,19 @@ namespace XrSamples
                 }
             };
 
+
             foreach (var item in mesh.DescendantsOrSelf().OfType<TriangleMesh>())
             {
-                //item.AddComponent<BoxCollider>();
+                if (IsEditor)
+                    item.AddComponent<BoxCollider>();
 
                 for (var i = 0; i < item.Materials.Count; i++)
                 {
                     var material = (PbrMaterial)item.Materials[i];
                     if (material.MetallicRoughness == null && material.SpecularGlossiness == null)
                         item.Materials[i] = blank;
+
+                    item.Materials[i].DoubleSided = true;
                 }
 
             }
@@ -645,24 +688,44 @@ namespace XrSamples
 
             foreach (var item in wallNames)
             {
-                var obj = mesh.DescendantsOrSelf().Where(a=> a.Name == item).First();
-                group.AddChild(obj.Parent!);
+                var obj = mesh.DescendantsOrSelf().Where(a=> a.Name == item).FirstOrDefault();
+                if (obj != null)
+                    group.AddChild(obj.Parent!);
             }
 
-            mesh.AddChild(group);
+            if (mesh is Group3D meshGrp)
+                meshGrp.AddChild(group);
             mesh.AddComponent<ConstraintGrabbable>();
 
             scene.AddChild(mesh);
              
             return builder
                 .UseApp(app)
-                .UseEnvironmentHDR("res://asset/Envs/lightroom_14b.hdr")
-                .UseSceneModel(true, false)
+                //.UseEnvironmentPisaHDR()
+                .UseEnvironmentHDR("res://asset/Envs/neutral.hdr", true)
+                //.UseSceneModel(true, false)
                 .ConfigureSampleApp();
         }
 
 
+        public static XrEngineAppBuilder CreateWood(this XrEngineAppBuilder builder)
+        {
 
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var mesh = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("Cube\\untitled.gltf"), GltfOptions);
+
+            var mesh2 = new TriangleMesh(Cube3D.Default, mesh.Materials[0]);
+            
+            scene.AddChild(mesh);
+
+            return builder
+                .UseApp(app)
+                .UseEnvironmentHDR("res://asset/Envs/neutral.hdr")
+                .ConfigureSampleApp();
+        }
         public static XrEngineAppBuilder CreateHelmet(this XrEngineAppBuilder builder)
         {
 
@@ -761,5 +824,7 @@ namespace XrSamples
                 .UseApp(app)
                 .ConfigureSampleApp();
         }
+
+        public static bool IsEditor => Context.Require<IXrEnginePlatform>().Name == "Editor";
     }
 }

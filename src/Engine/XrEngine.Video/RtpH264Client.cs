@@ -15,44 +15,54 @@ namespace XrEngine.Video
     public class RtpH264Client
     {
         protected UdpClient? _client;
-        protected int _port;
+        protected int _clientPort;
+
         protected IPEndPoint? _endPoint;
-        private bool _ppsRec;
-        private bool _spsRec;
+        protected bool _ppsRec;
+        protected bool _spsRec;
+        protected MemoryStream ?_readStream;
         protected int _lastSeqNumber;
         protected bool _isFormatReceived;
+        protected DateTime _lastReportTime;
 
-        public RtpH264Client(int port)
+        public RtpH264Client(int clientPort)
         {
-            _port = port;
+            _clientPort = clientPort;
+
             Timeout = TimeSpan.FromSeconds(0);
         }
 
         public void Open()
         {
-            _client = new UdpClient(_port);
+            _client = new UdpClient(_clientPort);
             _client.Client.ReceiveTimeout = (int)Timeout.TotalMilliseconds;
-            _endPoint = new IPEndPoint(IPAddress.Any, _port);
+            _endPoint = new IPEndPoint(IPAddress.Any, _clientPort);
             _ppsRec = false;
             _spsRec = false;
+            _readStream = new MemoryStream();   
         }
 
         public void Close()
         {
             _client?.Dispose();
             _client = null;
+            _readStream?.Dispose();
+            _readStream = null;
         }
 
         public byte[]? ReadNalUnit()
         {
-            if (_client == null)
+            if (_client == null || _readStream == null)
                 throw new InvalidOperationException();
 
-            var stream = new MemoryStream();
+            _readStream.SetLength(0);
+
             bool isStarted = false;
+            byte[] packet;
+
             while (true)
             {
-                var packet = _client.Receive(ref _endPoint);
+                packet = _client.Receive(ref _endPoint);
 
                 int version = GetRTPHeaderValue(packet, 0, 1);
                 int padding = GetRTPHeaderValue(packet, 2, 2);
@@ -92,13 +102,13 @@ namespace XrEngine.Video
                             return null;
                         isStarted = true;
                         var nalHeader = (packet[12] & 0xE0) | (packet[13] & 0x1F);
-                        stream.WriteByte(0);
-                        stream.WriteByte(0);
-                        stream.WriteByte(1);
-                        stream.WriteByte((byte)nalHeader);
+                        _readStream.WriteByte(0);
+                        _readStream.WriteByte(0);
+                        _readStream.WriteByte(1);
+                        _readStream.WriteByte((byte)nalHeader);
                     }
-                    
-                    stream.Write(packet, 14, packet.Length - 14);
+
+                    _readStream.Write(packet, 14, packet.Length - 14);
 
                     if (end_bit != 0)
                     {
@@ -112,9 +122,8 @@ namespace XrEngine.Video
                   
                     if (fragment_type == 7)
                     {
-                        /*
                         if (_spsRec)
-                            return null;*/
+                            return null;
                         var frameData = new Byte[packet.Length - 12];
                         Buffer.BlockCopy(packet, 12, frameData, 0, packet.Length - 12);
                         SpsDecoder decoder = new SpsDecoder();
@@ -125,16 +134,16 @@ namespace XrEngine.Video
                     }
 
                     if (fragment_type == 8)
-                    {   /*
+                    {   
                         if (_ppsRec)
-                            return null;*/
+                            return null;
                         _ppsRec = true;
                     }
 
-                    stream.WriteByte(0);
-                    stream.WriteByte(0);
-                    stream.WriteByte(1);
-                    stream.Write(packet, 12, packet.Length - 12);
+                    _readStream.WriteByte(0);
+                    _readStream.WriteByte(0);
+                    _readStream.WriteByte(1);
+                    _readStream.Write(packet, 12, packet.Length - 12);
                     break;
                 }
                 else if (fragment_type == 24)
@@ -145,7 +154,33 @@ namespace XrEngine.Video
                 if (marker == 1)
                     break;
             }
-            var result = stream.ToArray();
+            /*
+            if ((DateTime.Now - _lastReportTime).TotalSeconds > 5)
+            {
+                byte[] ctrlPacket = new byte[8];
+                // version | padding | RC
+                //  0  1        2      3  4  5  6 7 
+                ctrlPacket[0] = 0x80;
+
+                //receiver report
+                ctrlPacket[1] = 201;
+
+                //len. (8 / 4)) - 1
+                ctrlPacket[2] = 0x00; // Length MSB
+                ctrlPacket[3] = 0x01; // Length LSB
+
+                ctrlPacket[4] = packet[8];
+                ctrlPacket[5] = packet[9];
+                ctrlPacket[6] = packet[10];
+                ctrlPacket[7] = packet[11];
+
+                _client.Send(ctrlPacket, new IPEndPoint(_endPoint.Address, _serverPort));
+
+                _lastReportTime = DateTime.Now; 
+            }
+            */
+
+            var result = _readStream.ToArray();
 
             return result;
 

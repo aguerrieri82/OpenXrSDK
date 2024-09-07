@@ -70,8 +70,8 @@ namespace VirtualCamera.IPCamera
         int _seqNum;
         string? _username;
         string? _password;
-        private string _authHash1;
-        private Dictionary<string, string> _authParams;
+        private string? _authHash1;
+        private Dictionary<string, string>? _authParams;
 
         public RtspClient()
         {
@@ -151,11 +151,36 @@ namespace VirtualCamera.IPCamera
             return null;
         }
 
+        public Dictionary<string, string>? GetParameter(string streamName, RtspSession session, params string[] parameters)
+        {
+            var header = new Dictionary<string, string>();
+            header["Session"] = session.SessionId!;
+            header["Content-Type"] = "text/parameters";
+
+            Send("GET_PARAMETER", streamName, header, string.Join("\r\n", parameters));
+
+            var response = ReadResponse();
+
+            if (response?.Content != null && response.Code == 200 && parameters.Length > 0)
+            {
+                var lines = response.Content.Split(':');
+                var result = new Dictionary<string, string>();
+                foreach (var line in lines)
+                {
+                    var index = line.IndexOf(':');
+                    result[line.Substring(0, index)] = line.Substring(index + 1);   
+                }
+                return result;
+            }
+
+            return null;
+        }
+
         public bool Play(string streamName, RtspSession session)
         {
             var header = new Dictionary<string, string>();
             header["Session"] = session.SessionId!;
-            header["Range"] = "npt=0-";
+            header["Range"] = "npt=0.000-";
             Send("PLAY", streamName, header);
             var response = ReadResponse();
             if (response == null)
@@ -197,6 +222,9 @@ namespace VirtualCamera.IPCamera
         {
             return Convert.ToHexStringLower(MD5.HashData(Encoding.ASCII.GetBytes(input)));
         }
+
+
+
 
 
         public IList<RtspStream> Describe(string streamName)
@@ -348,13 +376,13 @@ namespace VirtualCamera.IPCamera
 
         protected string CreateAuthDigest(string verb)
         {
-            var hash2 = HashMD5($"{verb}:{_authParams["uri"]}");
+            var hash2 = HashMD5($"{verb}:{_authParams!["uri"]}");
             var response = HashMD5($"{_authHash1}:{_authParams["nonce"]}:{hash2}");
 
             return $"username=\"{_authParams["username"]}\", realm=\"{_authParams["realm"]}\", nonce=\"{_authParams["nonce"]}\", uri=\"{_authParams["uri"]}\", response=\"{response}\"";
         }
 
-        protected void Send(string verb, string path, Dictionary<string, string>? header = null)
+        protected void Send(string verb, string path, Dictionary<string, string>? header = null, string? body = null)
         {
             Debug.Assert(_writer != null);
 
@@ -370,7 +398,14 @@ namespace VirtualCamera.IPCamera
             if (_authParams != null)
                 _writer.Write($"Authorization: Digest {CreateAuthDigest(verb)}\r\n");
 
+            if (!string.IsNullOrEmpty(body))
+                _writer.Write($"Content-Length: {body.Length}\r\n");
+
             _writer.Write("\r\n");
+
+            if (!string.IsNullOrEmpty(body))
+                _writer.Write(body);
+
             _writer.Flush();
         }
 

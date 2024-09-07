@@ -13,8 +13,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<RunAOTCompilation>False</RunAOTCompilation>
-		<PublishTrimmed>False</PublishTrimmed>
+		<RunAOTCompilation>True</RunAOTCompilation>
+		<PublishTrimmed>True</PublishTrimmed>
 		<EnableLLVM>False</EnableLLVM>
 		<Optimize>True</Optimize>
 		<EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
@@ -26,10 +26,6 @@
 	</PropertyGroup>
 
 
-	<ItemGroup>
-		<AndroidAsset Include="../XrSamples.Common/Assets/**/*" Link="Assets/%(RecursiveDir)/%(Filename)%(Extension)" />
-		<AndroidAsset Include="../../Framework/OpenXr.Framework.Oculus/Models/**/*" Link="Assets/Models/%(RecursiveDir)/%(Filename)%(Extension)" />
-	</ItemGroup>
 
 
 	<ItemGroup>

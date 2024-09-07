@@ -19,6 +19,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Assets\Cube\untitled.bin" />
+	  <None Remove="Assets\Cube\untitled.gltf" />
+	  <None Remove="Assets\Cube\Walnut_D.jpg" />
+	  <None Remove="Assets\Cube\WoodSRB-1.png" />
+	  <None Remove="Assets\Cube\WoodSRB.jpg" />
+	  <None Remove="Assets\Cube\WoodSRB.png" />
 	  <None Remove="Assets\Fish\20240308151616.mp4" />
 	  <None Remove="Assets\Fish\cam_left.jpg" />
 	  <None Remove="Assets\Fish\cam_left_pan.jpg" />

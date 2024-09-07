@@ -33,6 +33,8 @@ precision highp float;
 
 out vec4 g_finalColor;
 
+
+
 void main()
 {
     vec4 baseColor = getBaseColor();
@@ -42,7 +44,9 @@ void main()
     baseColor.a = 1.0;
 #endif
 
-    vec3 v = normalize(uCamera.Position - v_Position);
+
+    
+    vec3 v = normalize(v_CameraPos - v_Position);
     NormalInfo normalInfo = getNormalInfo(v);
     vec3 n = normalInfo.n;
     vec3 t = normalInfo.t;
@@ -483,4 +487,6 @@ vec3 specularTexture = vec3(1.0);
     g_finalColor.rgb = vec3(direction, 0.0);
 #endif
 #endif
+
+
 }

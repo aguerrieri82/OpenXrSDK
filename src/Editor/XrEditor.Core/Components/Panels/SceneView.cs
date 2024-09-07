@@ -96,8 +96,9 @@ namespace XrEditor
         protected void CreateApp()
         {
             _engine = new XrEngineAppBuilder()
-              .SetRenderQuality(1, 1) ///samples > 1 cause Filament to fuck up
-              .CreatePortalVideo()
+              .UseMultiView()
+              .SetRenderQuality(1, 4) ///samples > 1 cause Filament to fuck up
+              .CreateCucina()
               .Build();
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
@@ -215,8 +216,8 @@ namespace XrEditor
 
                         if (_renderSurface.SupportsDualRender)
                         {
-                            _render.SetDefaultRenderTarget();
-                            _render.Render(_scene!, _camera!, _view, false);
+                            //_render.SetDefaultRenderTarget();
+                            //_render.Render(_scene!, _camera!, _view, false);
                         }
                     }
                     else

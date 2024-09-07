@@ -374,6 +374,11 @@ namespace XrEngine.Gltf
                                     result.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
                                     result.ActiveComponents |= VertexComponent.UV0;
                                     break;
+                                case "TEXCOORD_1":
+                                    var uValues1 = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
+                                    result.SetVertexData((ref VertexData a, Vector2 b) => a.UV1 = b, uValues1);
+                                    result.ActiveComponents |= VertexComponent.UV1;
+                                    break;
                                 default:
                                     _log.AppendLine($"{attr.Key} data not supported");
                                     break;
@@ -427,6 +432,13 @@ namespace XrEngine.Gltf
                                 Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC2);
                                 Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
                                 break;
+                            case "TEXCOORD_1":
+                                var uValues1 = ConvertBuffer<Vector2>(buffer, view, acc);
+                                result.SetVertexData((ref VertexData a, Vector2 b) => a.UV1 = b, uValues1);
+                                result.ActiveComponents |= VertexComponent.UV1;
+                                Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC2);
+                                Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
+                                break;
                             default:
                                 _log.AppendLine($"{attr.Key} data not supported");
                                 break;
@@ -475,6 +487,8 @@ namespace XrEngine.Gltf
             if (result == null && _meshes.TryGetValue(gltMesh, out result))
                 return new Object3DInstance() { Reference = result };
 
+      
+
             CheckExtensions(gltMesh.Extensions);
 
             var group = gltMesh.Primitives.Length > 1 ? new Group3D() : null;
@@ -495,6 +509,7 @@ namespace XrEngine.Gltf
                         Asset = CreateAsset<Geometry3D>(gltMesh.Name, "geo", id, pIndex)
                     });
 
+                 
                     Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name, curMesh.Geometry.Vertices.Length * Marshal.SizeOf<VertexData>());
                 });
 
@@ -503,6 +518,12 @@ namespace XrEngine.Gltf
                 {
                     var gltfMat = _model!.Materials[primitive.Material.Value];
                     curMesh.Materials.Add(ProcessMaterial(gltfMat, primitive.Material.Value));
+
+                    if (gltMesh.Name == "Obj_PolyFaceMesh_51")
+                    {
+                        //Debugger.Break();
+                    }
+
                 }
 
                 if (group == null)

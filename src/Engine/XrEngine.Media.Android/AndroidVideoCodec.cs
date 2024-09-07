@@ -3,9 +3,9 @@ using Android.Media;
 using Android.Opengl;
 using Android.OS;
 using Android.Views;
-using Silk.NET.OpenGLES;
 using SkiaSharp;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -23,19 +23,28 @@ namespace XrEngine.Media.Android
 
     public class AndroidVideoCodec : IVideoCodec
     {
+        struct ConvertData
+        {
+            public FrameBuffer Src;
+            public FrameBuffer Dst; 
+        }
+
         private MediaCodec? _codec;
         private VideoFormat _outFormat;
         private string? _mimeType;
         private bool _isCodecInit;
         private SurfaceTexture? _surfaceTex;
         private long _timeout;
+        private int _isConverting;
+        private ConcurrentQueue<ConvertData> _convertQueue = new ConcurrentQueue<ConvertData>();    
 
         public AndroidVideoCodec()
         {
             _timeout = 1000000;
+            IsAsync = true; 
         }
 
-        public bool Convert(FrameBuffer src, ref FrameBuffer dst)
+        protected bool ConvertWork(FrameBuffer src, ref FrameBuffer dst)
         {
             if (_codec == null)
                 return false;
@@ -86,10 +95,8 @@ namespace XrEngine.Media.Android
             {
                 _codec.ReleaseOutputBuffer(outBufferIndex, true);
 
-                if (_surfaceTex != null)
-                {
+                if (_surfaceTex != null && !IsAsync)
                     _surfaceTex.UpdateTexImage();
-                }
 
                 return true;
             }
@@ -116,10 +123,51 @@ namespace XrEngine.Media.Android
 
             _outFormat = outFormat;
             _mimeType = mimeType;
+            _convertQueue.Clear();
+            _isConverting = 0;
+        }
+
+        public bool Convert(FrameBuffer src, ref FrameBuffer dst)
+        {
+            if (IsAsync)
+            {
+                _convertQueue.Enqueue(new ConvertData { Dst = dst, Src = src });
+
+                lock (this)
+                {
+                    if (_isConverting > 0)
+                        return false;
+                }
+
+                _ = Task.Run(() =>
+                {
+                    lock (this)
+                        _isConverting++;
+                    try
+                    {
+                        while (_convertQueue.TryDequeue(out var data))
+                            ConvertWork(data.Src, ref data.Dst);
+                    }
+                    finally
+                    {
+                        lock (this)
+                            _isConverting--;
+                    }
+
+                });
+
+                _surfaceTex?.UpdateTexImage();
+
+                return true;
+            }
+            
+            return ConvertWork(src, ref dst);   
         }
 
         public Texture2D? OutTexture { get; set; }
 
         public VideoCodecCaps Caps => VideoCodecCaps.DecodeTexture;
+
+        public bool IsAsync { get; set; }
     }
 }
