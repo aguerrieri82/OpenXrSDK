@@ -54,7 +54,7 @@ namespace XrEngine
 
         protected void Initilize()
         {
- 
+
             if (Mode == FishReflectionMode.Stereo)
             {
                 TextureRadius = new Vector2(0.5f, 1.0f);
@@ -81,7 +81,7 @@ namespace XrEngine
         }
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
-        { 
+        {
             if (OperatingSystem.IsAndroid())
             {
                 bld.AddExtension("GL_OES_EGL_image_external_essl3");
@@ -89,11 +89,11 @@ namespace XrEngine
 
                 if (LeftMainTexture != null)
                     LeftMainTexture.Type = TextureType.External;
-                
+
                 if (RightTexture != null)
                     RightTexture.Type = TextureType.External;
             }
-     
+
             bld.ExecuteAction((ctx, up) =>
             {
                 var camera = ((PerspectiveCamera)ctx.Camera!);
@@ -108,13 +108,13 @@ namespace XrEngine
                     var newQuat = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI) * _lastRotation;
                     up.SetUniform("uRotation", newQuat.ToMatrix());
                 }
-                
-               
+
+
                 if (Mode == FishReflectionMode.Eye && camera.ActiveEye == 1)
                     up.SetUniform("uTexture", RightTexture!, 0);
                 else
                     up.SetUniform("uTexture", LeftMainTexture!, 0);
-    
+
 
                 up.SetUniform("uActiveEye", (uint)camera.ActiveEye);
                 up.SetUniform("uTexCenter", TextureCenter);
@@ -123,12 +123,12 @@ namespace XrEngine
                 up.SetUniform("uSurfaceSize", SurfaceSize);
                 up.SetUniform("uFov", Fov);
             });
-          
+
         }
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
-        public FishReflectionMode Mode  { get; set; }
+        public FishReflectionMode Mode { get; set; }
 
         public Texture2D? LeftMainTexture { get; set; }
 
@@ -150,7 +150,7 @@ namespace XrEngine
 
         public Vector2 TextureRadius { get; set; }
 
-        public Vector2[] TextureCenter { get;  set; }
+        public Vector2[] TextureCenter { get; set; }
 
     }
 }

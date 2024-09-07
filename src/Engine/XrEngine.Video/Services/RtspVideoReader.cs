@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VirtualCamera.IPCamera;
 using XrEngine.Video.Abstraction;
 using XrMath;
 
 namespace XrEngine.Video
 {
-    public class RtspVideoReader : IVideoReader 
+    public class RtspVideoReader : IVideoReader
     {
         RtspClient? _client;
         private RtspSession? _session;
@@ -30,7 +25,7 @@ namespace XrEngine.Video
         public RtspVideoReader()
         {
             UdpPort = 1400;
-            _readBuffer = new ConcurrentQueue<byte[]>();    
+            _readBuffer = new ConcurrentQueue<byte[]>();
         }
 
         public void Open(Uri uri)
@@ -49,7 +44,7 @@ namespace XrEngine.Video
             }
 
             var streams = _client.Describe(_streamName);
-        
+
             _videoStream = streams.FirstOrDefault(a => a.Type == RtspStreamType.Video);
 
             if (_videoStream == null)
@@ -65,7 +60,7 @@ namespace XrEngine.Video
                     var newData = new byte[data.Length + 3];
                     newData[2] = 1;
                     Buffer.BlockCopy(data, 0, newData, 3, data.Length);
-                    _readBuffer.Enqueue(newData);   
+                    _readBuffer.Enqueue(newData);
                 }
             }
 
@@ -113,7 +108,7 @@ namespace XrEngine.Video
                     if ((DateTime.Now - _lastPingTime).TotalSeconds > _session.SessionTimeout.TotalSeconds * 0.5)
                     {
                         _client?.GetParameter(_streamName!, _session);
-                        _lastPingTime = DateTime.Now;   
+                        _lastPingTime = DateTime.Now;
                     }
 
                     var nalData = _h264Stream?.ReadNalUnit();
@@ -125,16 +120,16 @@ namespace XrEngine.Video
                     }
 
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
-                    Log.Error(this, ex);    
+                    Log.Error(this, ex);
                 }
             }
         }
 
         public bool TryDecodeNextFrame(TextureData data)
         {
-            Debug.Assert(_videoCodec != null);  
+            Debug.Assert(_videoCodec != null);
 
             if (_readBuffer == null || !_readBuffer.TryDequeue(out var buffer))
                 return false;
@@ -217,7 +212,7 @@ namespace XrEngine.Video
 
         public double FrameRate => 0;
 
-        public Size2I FrameSize {get; protected set;}
+        public Size2I FrameSize { get; protected set; }
 
         public Texture2D? OutTexture { get; set; }
     }

@@ -1,14 +1,6 @@
 ﻿using Android.Graphics;
 using Android.Media;
 using Android.Views;
-using Java.Nio;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using XrEngine.OpenGL;
 using XrEngine.Video;
 using XrMath;
@@ -61,7 +53,7 @@ namespace XrEngine.Media.Android
         public void Dispose()
         {
             Close();
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         public void Open(Uri source)
@@ -74,7 +66,7 @@ namespace XrEngine.Media.Android
             _mediaExtractor.SetDataSource(source.LocalPath);
 
             var tracks = _mediaExtractor.TrackCount;
-           
+
             string? mimeType = null;
 
             for (int i = 0; i < tracks; ++i)
@@ -92,13 +84,13 @@ namespace XrEngine.Media.Android
                     _frameRate = _inputFormat.GetInteger(MediaFormat.KeyFrameRate);
 
                     _mediaExtractor.SelectTrack(i);
-                    
+
                     _inputFormat.SetInteger(MediaFormat.KeyCaptureRate, (int)_frameRate);
                     _inputFormat.SetInteger(MediaFormat.KeyPushBlankBuffersOnStop, 1);
 
                     break;
                 }
- 
+
             }
 
             if (_inputFormat == null)
@@ -128,7 +120,7 @@ namespace XrEngine.Media.Android
                         _surfaceTex = new SurfaceTexture((int)glText.Handle);
 
                         surface = new Surface(_surfaceTex);
-                    } 
+                    }
                 }
 
                 _decoder.Configure(_inputFormat, surface, null, MediaCodecConfigFlags.None);
@@ -145,7 +137,7 @@ namespace XrEngine.Media.Android
                 return false;
 
             var inputBuffer = _decoder.GetInputBuffer(inBufferIndex);
-            
+
             var sampleSize = _mediaExtractor.ReadSampleData(inputBuffer!, 0);
 
             if (sampleSize > 0)
@@ -156,7 +148,7 @@ namespace XrEngine.Media.Android
             else
             {
                 _decoder.QueueInputBuffer(inBufferIndex, 0, 0, 0, MediaCodecBufferFlags.EndOfStream);
-                _eos = true;    
+                _eos = true;
             }
 
             var bufferInfo = new MediaCodec.BufferInfo();

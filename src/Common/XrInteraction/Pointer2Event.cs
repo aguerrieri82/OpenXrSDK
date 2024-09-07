@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace XrEngine.Interaction
+namespace XrInteraction
 {
     [Flags]
     public enum Pointer2Button

@@ -4,12 +4,12 @@ using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public class RayCollider : Behavior<Scene3D>
+    public class XrRayCollider : Behavior<Scene3D>
     {
         protected XrPoseInput? _input;
         protected readonly RayView _rayView;
 
-        public RayCollider()
+        public XrRayCollider()
         {
             _rayView = new RayView();
         }

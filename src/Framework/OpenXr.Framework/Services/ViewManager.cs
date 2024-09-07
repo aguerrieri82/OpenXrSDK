@@ -27,7 +27,7 @@ namespace OpenXr.Framework
         protected void CreateWindow()
         {
             var options = WindowOptions.Default;
-            options.IsVisible = true;
+            options.IsVisible = false;
             _view = Window.Create(options);
         }
 

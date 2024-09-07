@@ -12,6 +12,7 @@
 		<ProjectReference Include="..\..\Engine\XrEngine.Physics\XrEngine.Physics.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.UI\XrEngine.UI.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Video\XrEngine.Video.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Browser.Win\XrEngine.Browser.Win.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

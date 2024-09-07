@@ -1,16 +1,10 @@
 ﻿using CanvasUI;
-using Microsoft.Extensions.Logging;
-using PhysX;
 using UI.Binding;
 using XrEngine;
-using XrEngine.OpenXr;
-using XrEngine.Physics;
 using XrMath;
 
 namespace XrSamples
 {
-
-
     public class PortalSettings : BaseAppSettings
     {
         static readonly Material matShow = PbrMaterial.CreateDefault("#fff");
@@ -21,13 +15,11 @@ namespace XrSamples
             Radius = 3;
         }
 
-
-
         public override void Apply(Scene3D scene)
         {
             var mesh = scene.FindByName<TriangleMesh>("mesh")!;
             var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
-            mat.SpherRadius = Radius;    
+            mat.SpherRadius = Radius;
 
             if (_filePath != null)
             {
@@ -53,15 +45,15 @@ namespace XrSamples
             binder.PropertyChanged += Binder_PropertyChanged;
 
             UiBuilder.From(this).Name("main").AsColumn()
-                .Style(s =>
-                    s.Padding(16)
-                    .RowGap(16)
-                    .Color("#F5F5F5")
-                    .BackgroundColor("#050505AF"))
+            .Style(s =>
+                s.Padding(16)
+                .RowGap(16)
+                .Color("#F5F5F5")
+                .BackgroundColor("#050505AF")
+             )
             .BeginRow(s => s.ColGap(16))
-                 .AddInputRange("Contact Distance", 1f, 20f, binder.Prop(a => a.Radius))
+                .AddInputRange("Sphere Radius", 1f, 20f, binder.Prop(a => a.Radius))
             .EndChild();
-
         }
 
     }

@@ -24,7 +24,7 @@ namespace XrEditor
 
                 if (editor == null)
                 {
-                    if (prop.PropertyType.IsClass)
+                    if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
                     {
                         var value = prop.GetValue(obj);
                         if (value != null)

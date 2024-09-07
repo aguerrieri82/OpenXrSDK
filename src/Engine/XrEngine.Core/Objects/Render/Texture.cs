@@ -10,6 +10,11 @@
             LoadData(data);
         }
 
+        public void LoadData(TextureData data)
+        {
+            LoadData([data]);
+        }
+
         public virtual void LoadData(IList<TextureData> data)
         {
             Data = data;
@@ -19,6 +24,8 @@
             MagFilter = ScaleFilter.Linear;
             MinFilter = data.Count > 1 ? ScaleFilter.LinearMipmapLinear : ScaleFilter.Linear;
             WrapS = WrapMode.ClampToEdge;
+
+            Version++;
         }
 
         public void NotifyLoaded()

@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XrMath.Entities\XrMath.Entities.csproj" />
+  </ItemGroup>
+
+</Project>

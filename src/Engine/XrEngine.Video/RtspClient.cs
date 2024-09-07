@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
+﻿using System.Diagnostics;
 using System.Net.Sockets;
-using System.Net.WebSockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace VirtualCamera.IPCamera
 {
@@ -82,8 +74,8 @@ namespace VirtualCamera.IPCamera
         {
             _client = new TcpClient();
             _client.Connect(address, port);
-            _client.ReceiveTimeout = (int)Timeout.TotalMilliseconds; 
-            _client.SendTimeout = (int)Timeout.TotalMilliseconds; 
+            _client.ReceiveTimeout = (int)Timeout.TotalMilliseconds;
+            _client.SendTimeout = (int)Timeout.TotalMilliseconds;
             _reader = new StreamReader(_client.GetStream());
             _writer = new StreamWriter(_client.GetStream());
             _seqNum = 0;
@@ -168,7 +160,7 @@ namespace VirtualCamera.IPCamera
                 foreach (var line in lines)
                 {
                     var index = line.IndexOf(':');
-                    result[line.Substring(0, index)] = line.Substring(index + 1);   
+                    result[line.Substring(0, index)] = line.Substring(index + 1);
                 }
                 return result;
             }
@@ -263,7 +255,7 @@ namespace VirtualCamera.IPCamera
                         }
                         else if (attrName == "rtpmap")
                         {
-                            Debug.Assert(curStream != null);    
+                            Debug.Assert(curStream != null);
 
                             var idIndex = attrValue.IndexOf(' ');
                             var id = int.Parse(attrValue.Substring(0, idIndex));
@@ -332,7 +324,7 @@ namespace VirtualCamera.IPCamera
 
         protected RtspResponse? ReadResponse()
         {
-            Debug.Assert(_reader != null);  
+            Debug.Assert(_reader != null);
 
             var code = _reader.ReadLine();
             if (code == null)
@@ -367,7 +359,7 @@ namespace VirtualCamera.IPCamera
             {
                 var intLen = int.Parse(contentLen);
                 var chars = new char[intLen];
-               _reader.ReadBlock(chars, 0, chars.Length);
+                _reader.ReadBlock(chars, 0, chars.Length);
                 result.Content = new string(chars);
             }
 
@@ -394,7 +386,7 @@ namespace VirtualCamera.IPCamera
                 foreach (var item in header)
                     _writer.Write($"{item.Key}: {item.Value}\r\n");
             }
-            
+
             if (_authParams != null)
                 _writer.Write($"Authorization: Digest {CreateAuthDigest(verb)}\r\n");
 

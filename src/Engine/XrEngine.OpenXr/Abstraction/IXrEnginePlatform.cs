@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using OpenXr.Framework;
+﻿using OpenXr.Framework;
 
 namespace XrEngine.OpenXr
 {
@@ -11,6 +10,6 @@ namespace XrEngine.OpenXr
 
         public string PersistentPath { get; }
 
-        public string Name { get; } 
+        public string Name { get; }
     }
 }

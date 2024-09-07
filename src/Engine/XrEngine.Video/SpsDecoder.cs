@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine.Video.Abstraction;
+﻿using XrEngine.Video.Abstraction;
 
 namespace XrEngine.Video
 {
@@ -78,7 +73,7 @@ namespace XrEngine.Video
                 int frame_cropping_flag = getU(1);
                 if (frame_cropping_flag == 1)
                 {
-                    int frame_crop_left_offset  = uev();
+                    int frame_crop_left_offset = uev();
                     int frame_crop_right_offset = uev();
                     int frame_crop_top_offset = uev();
                     int frame_crop_bottom_offset = uev();
@@ -107,7 +102,7 @@ namespace XrEngine.Video
             result--;
             if (signed)
                 result = (result + 1) / 2 * (result % 2 == 0 ? -1 : 1);
-           
+
             return result;
         }
 

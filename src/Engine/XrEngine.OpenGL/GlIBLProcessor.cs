@@ -169,7 +169,7 @@ namespace XrEngine.OpenGL
             var roughness = (mipLevel) / (MipLevelCount - 1f);
 
             _filterProg!.SetUniform("uRoughness", (float)roughness);
-            _filterProg.SetUniform("uCurrentMipLevel", (int)mipLevel);
+            _filterProg.SetUniform("uCurrentMipLevel", mipLevel);
 
 
             BindFrameBufferCube(envTexId, mipLevel);
@@ -200,7 +200,7 @@ namespace XrEngine.OpenGL
                 bits = ((bits & 0x33333333) << 2) | ((bits & 0xCCCCCCCC) >> 2);
                 bits = ((bits & 0x0F0F0F0F) << 4) | ((bits & 0xF0F0F0F0) >> 4);
                 bits = ((bits & 0x00FF00FF) << 8) | ((bits & 0xFF00FF00) >> 8);
-                return ((float)bits) * 2.3283064365386963e-10f; // / 0x100000000
+                return bits * 2.3283064365386963e-10f; // / 0x100000000
             }
 
 
@@ -322,7 +322,7 @@ namespace XrEngine.OpenGL
             _gl.BindTexture(TextureTarget.Texture2D, 0);
             _gl.BindTexture(TextureTarget.TextureCubeMap, 0);
 
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         public uint OutCubeMapId => _cubeMapId;

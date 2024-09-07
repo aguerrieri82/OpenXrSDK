@@ -78,6 +78,8 @@ namespace XrEngine.OpenGL
 
         public static unsafe void Update(this GlTexture glTexture, Texture2D texture2D, bool requireCompression)
         {
+            glTexture.EnableDebug = (texture2D.Flags & EngineObjectFlags.EnableDebug) != 0;
+            
             if (texture2D is TextureCube)
                 glTexture.Target = TextureTarget.TextureCubeMap;
 

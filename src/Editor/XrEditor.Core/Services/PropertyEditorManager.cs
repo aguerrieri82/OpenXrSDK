@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using XrEditor.Services;
 using XrMath;
 
 namespace XrEditor.Services
@@ -14,6 +13,7 @@ namespace XrEditor.Services
             Register(new TypedPropertyEditorFactory<Vector3, Vector3Editor>());
             Register(new TypedPropertyEditorFactory<Color, ColorEditor>());
             Register(new TypedPropertyEditorFactory<bool, BoolEditor>());
+            Register(new TypedPropertyEditorFactory<string, TextEditor>());
             Register(new FloatEditorFactory());
             Register(new EnumEditorFactory());
             Register(new EngineObjectEditorFactory());

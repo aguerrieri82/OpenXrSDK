@@ -299,7 +299,8 @@ namespace XrEngine.OpenGL
             if (width == 0 || height == 0)
                 return;
 
-            Log.Debug(this, "Update texture '{0}'", _handle);
+            if (EnableDebug)
+                Log.Debug(this, "Update texture '{0}'", _handle);
 
             if (_width != width || _height != height)
                 _isAllocated = false;
@@ -358,7 +359,7 @@ namespace XrEngine.OpenGL
                     }
                     else
                     {
-      
+
                         _gl.TexStorage2D(Target,
                                   MaxLevel + 1,
                                   (SizedInternalFormat)_internalFormat,

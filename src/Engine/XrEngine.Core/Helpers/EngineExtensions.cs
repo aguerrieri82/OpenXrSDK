@@ -230,7 +230,7 @@ namespace XrEngine
             return target.Descendants<Object3D>();
         }
 
- 
+
 
         public static IEnumerable<T> Descendants<T>(this Group3D target) where T : Object3D
         {

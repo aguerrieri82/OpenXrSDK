@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using XrEngine;
 using XrMath;
 
 namespace XrEngine
@@ -39,7 +38,7 @@ namespace XrEngine
             {
                 container.ReadObject(this, GetType());
                 gen.Build();
-            } 
+            }
             else
             {
                 Indices = container.ReadBuffer<uint>(nameof(Indices));

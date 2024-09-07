@@ -30,7 +30,7 @@
             }
 
             if (bld.Context.Model != null)
-                bld.SetUniform("uModel", (ctx) => 
+                bld.SetUniform("uModel", (ctx) =>
                     ctx.Model!.WorldMatrix);
         }
     }

@@ -178,10 +178,10 @@ namespace XrEngine.Compression
                         MipMap = false,
                         Format = Format.Pvr,
                         Codec = Type.Etc2_RGBA,
-                        Test = (int)0x11223344
+                        Test = 0x11223344
                     };
 
-                    var outData = Encode((uint)curImage.Width, (uint)curImage.Height, (byte*)pData, ref options, out var outSize);
+                    var outData = Encode((uint)curImage.Width, (uint)curImage.Height, pData, ref options, out var outSize);
                     var outDataSpan = new Span<byte>(outData + 52, (int)outSize - 52);
 
                     texData.Data = outDataSpan.ToArray();

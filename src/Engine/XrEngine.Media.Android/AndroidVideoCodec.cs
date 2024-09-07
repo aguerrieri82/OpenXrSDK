@@ -1,21 +1,10 @@
 ﻿using Android.Graphics;
 using Android.Media;
-using Android.Opengl;
-using Android.OS;
 using Android.Views;
-using SkiaSharp;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using XrEngine.OpenGL;
 using XrEngine.Video;
 using XrEngine.Video.Abstraction;
-using static Android.Icu.Text.TimeZoneFormat;
 
 
 namespace XrEngine.Media.Android
@@ -26,7 +15,7 @@ namespace XrEngine.Media.Android
         struct ConvertData
         {
             public FrameBuffer Src;
-            public FrameBuffer Dst; 
+            public FrameBuffer Dst;
         }
 
         private MediaCodec? _codec;
@@ -36,12 +25,12 @@ namespace XrEngine.Media.Android
         private SurfaceTexture? _surfaceTex;
         private long _timeout;
         private int _isConverting;
-        private ConcurrentQueue<ConvertData> _convertQueue = new ConcurrentQueue<ConvertData>();    
+        private ConcurrentQueue<ConvertData> _convertQueue = new ConcurrentQueue<ConvertData>();
 
         public AndroidVideoCodec()
         {
             _timeout = 1000000;
-            IsAsync = true; 
+            IsAsync = true;
         }
 
         protected bool ConvertWork(FrameBuffer src, ref FrameBuffer dst)
@@ -160,8 +149,8 @@ namespace XrEngine.Media.Android
 
                 return true;
             }
-            
-            return ConvertWork(src, ref dst);   
+
+            return ConvertWork(src, ref dst);
         }
 
         public Texture2D? OutTexture { get; set; }

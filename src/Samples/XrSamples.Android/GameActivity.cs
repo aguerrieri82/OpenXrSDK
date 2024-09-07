@@ -60,13 +60,14 @@ namespace XrSamples.Android
             XrEngine.Context.Implement<IVideoCodec>(() => new AndroidVideoCodec());
 
             builder.UseOpenGL()
+                    .UseFilamentOpenGL()
                    //.UseFilamentOpenGL()
                    //.UseStereo()
                    .UseMultiView()
                    .SetRenderQuality(1, 4)
                    .CreateBed()
                    .RemovePlaneGrid();
-                   //.AddWebBrowser(this, "display");
+            //.AddWebBrowser(this, "display");
         }
     }
 }

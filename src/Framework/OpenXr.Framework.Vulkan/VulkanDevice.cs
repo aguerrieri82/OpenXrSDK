@@ -341,7 +341,7 @@ namespace OpenXr.Framework.Vulkan
             createInfo.MessageType = DebugUtilsMessageTypeFlagsEXT.GeneralBitExt |
                                      DebugUtilsMessageTypeFlagsEXT.PerformanceBitExt |
                                      DebugUtilsMessageTypeFlagsEXT.ValidationBitExt;
-            createInfo.PfnUserCallback = (DebugUtilsMessengerCallbackFunctionEXT)DebugCallback;
+            createInfo.PfnUserCallback = new DebugUtilsMessengerCallbackFunctionEXT(DebugCallback);
         }
 
         private void SetupDebugMessenger()

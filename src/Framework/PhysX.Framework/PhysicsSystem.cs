@@ -421,7 +421,7 @@ namespace PhysX.Framework
                     Task.Run(() =>
                     {
                         _pvd->ConnectMut(transport, PxPvdInstrumentationFlags.All);
-                    }); 
+                    });
                 }
             }
             else

@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>XrSamples</RootNamespace>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 	</PropertyGroup>
 
 
@@ -13,6 +14,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0-preview.7.24405.7" />
 		<PackageReference Include="Silk.NET.Assimp" Version="2.21.0" />
+		<PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.21.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -31,6 +33,8 @@
 		<ProjectReference Include="..\XrSamples.Common\XrSamples.Common.csproj" />
 		<ProjectReference Include="..\..\WebLink\XrWebLink.Client\XrWebLink.Client.csproj" />
 	</ItemGroup>
+
+
 
 	<ItemGroup>
 		<None Update="appsettings.json">

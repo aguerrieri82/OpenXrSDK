@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine;
+﻿using XrEngine;
 using XrEngine.OpenXr;
 
 namespace XrSamples.Components
@@ -12,7 +7,7 @@ namespace XrSamples.Components
     {
         public override void OnMove()
         {
-            _host!.Transform.SetPositionY(_host.Transform.LocalPivot.Y *  _host.Transform.Scale.Y);
+            _host!.Transform.SetPositionY(_host.Transform.LocalPivot.Y * _host.Transform.Scale.Y);
 
             var rot = _host!.Transform.Rotation;
             rot.X = 0;

@@ -17,6 +17,9 @@ namespace XrSamples
         {
             _viewManager = new ViewManager();
             _viewManager.Initialize();
+
+            Context.Implement<IProgressLogger>(new NullProgressLogger());
+            Context.Implement<IAssetStore>(new LocalAssetStore("Assets"));
         }
 
         public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
@@ -34,5 +37,6 @@ namespace XrSamples
 
         public string PersistentPath => throw new NotImplementedException();
 
+        public string Name => "Console";
     }
 }

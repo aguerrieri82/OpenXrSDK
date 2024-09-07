@@ -10,7 +10,7 @@ namespace XrEditor.Nodes
     {
         public MaterialNode(T value) : base(value)
         {
-            _autoGenProps = true;   
+            _autoGenProps = true;
         }
 
 

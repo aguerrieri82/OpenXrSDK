@@ -81,7 +81,7 @@ namespace XrEditor
     {
         public bool CanHandle(Type type)
         {
-            return type == typeof(float);   
+            return type == typeof(float);
         }
 
         public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)

@@ -1,15 +1,13 @@
 ﻿
 using OpenXr.Framework.Oculus;
-using SkiaSharp;
 using System.Xml.Linq;
 using XrEditor.Services;
 using XrEngine;
-using XrEngine.Interaction;
-using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrEngine.Services;
+using XrInteraction;
 using XrMath;
-using XrSamples;
+
 
 
 namespace XrEditor
@@ -95,11 +93,7 @@ namespace XrEditor
 
         protected void CreateApp()
         {
-            _engine = new XrEngineAppBuilder()
-              .UseMultiView()
-              .SetRenderQuality(1, 4) ///samples > 1 cause Filament to fuck up
-              .CreateCucina()
-              .Build();
+            _engine = EditorDebug.CreateApp();
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
 
@@ -108,7 +102,7 @@ namespace XrEditor
                 Scene = _engine.App.ActiveScene!;
                 Context.Require<SelectionManager>().Set(Scene.GetNode());
                 UpdateControls();
-            });       
+            });
         }
 
         protected void OnSizeChanged(object? sender, EventArgs e)

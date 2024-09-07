@@ -1,6 +1,4 @@
-﻿using System;
-using System.Numerics;
-using XrMath;
+﻿using System.Numerics;
 
 namespace XrEngine
 {
@@ -65,7 +63,7 @@ namespace XrEngine
             }
 
             _indices = indices.ToArray();
-            _vertices = vertices.ToArray(); 
+            _vertices = vertices.ToArray();
 
             ActiveComponents |= VertexComponent.Normal | VertexComponent.UV0;
         }

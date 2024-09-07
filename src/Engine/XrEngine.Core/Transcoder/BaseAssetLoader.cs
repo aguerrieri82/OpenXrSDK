@@ -6,7 +6,7 @@
 
         protected string GetFilePath(Uri uri)
         {
-            if (uri.Scheme == "res" &&  uri.Host == "asset")
+            if (uri.Scheme == "res" && uri.Host == "asset")
                 return Context.Require<IAssetStore>().GetPath(uri.LocalPath);
             return uri.IsAbsoluteUri ? uri.LocalPath : uri.ToString();
         }

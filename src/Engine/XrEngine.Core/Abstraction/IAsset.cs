@@ -1,6 +1,4 @@
-﻿using SkiaSharp;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
 
     public interface IAsset
@@ -19,6 +17,6 @@ namespace XrEngine
 
         public Uri Source { get; }
 
-        public IAssetLoaderOptions? Options { get; }  
+        public IAssetLoaderOptions? Options { get; }
     }
 }

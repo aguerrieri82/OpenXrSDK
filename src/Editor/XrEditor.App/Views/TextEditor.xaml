@@ -1,0 +1,9 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate DataType="{x:Type local:TextEditor}">
+        <TextBox MinWidth="150" HorizontalAlignment="Stretch" Text="{Binding EditValue, Mode=TwoWay}"/>
+    </DataTemplate>
+
+</ResourceDictionary>

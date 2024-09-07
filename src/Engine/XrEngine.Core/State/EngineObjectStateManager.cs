@@ -36,7 +36,7 @@ namespace XrEngine
         {
             if (obj == null)
                 return;
-            
+
             obj.EnsureId();
 
             if (obj.Is(EngineObjectFlags.Readonly) && !container.Is(StateContextFlags.Store))

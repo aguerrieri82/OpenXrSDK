@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine.Video.Abstraction;
+﻿using XrEngine.Video.Abstraction;
 
 namespace XrEngine.Video
 {
     public enum VideoCodecMode
     {
         Encode,
-        Decode  
+        Decode
     }
 
     [Flags]
@@ -21,7 +16,7 @@ namespace XrEngine.Video
     }
 
 
-    public interface IVideoCodec :IDisposable
+    public interface IVideoCodec : IDisposable
     {
         void Open(VideoCodecMode mode, string mimeType, VideoFormat outFormat);
 
@@ -29,6 +24,6 @@ namespace XrEngine.Video
 
         Texture2D? OutTexture { get; set; }
 
-        VideoCodecCaps Caps { get; }    
+        VideoCodecCaps Caps { get; }
     }
 }

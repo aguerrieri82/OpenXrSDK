@@ -6,7 +6,8 @@
         None = 0,
         Generated = 0x1,
         ChildGenerated = 0x2,
-        Readonly = 0x4, 
+        Readonly = 0x4,
+        EnableDebug = 0x8
     }
 
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject
@@ -17,6 +18,10 @@
         protected ObjectChangeSet _lastChanges;
         protected int _updateCount;
 
+        public EngineObject()
+        {
+            Flags = EngineObjectFlags.EnableDebug;
+        }
 
         public void SetState(IStateContainer container)
         {

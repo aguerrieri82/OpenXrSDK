@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine.Services;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
-    public class BaseAsset<TOptions, TLoader> : IAsset 
+    public class BaseAsset<TOptions, TLoader> : IAsset
         where TOptions : IAssetLoaderOptions
-        where TLoader : IAssetLoader    
+        where TLoader : IAssetLoader
     {
         protected string _name;
         protected Type _type;
@@ -21,9 +14,9 @@ namespace XrEngine
 
         public BaseAsset(TLoader loader, string name, Type type, Uri source, TOptions? options)
         {
-            _loader = loader;   
+            _loader = loader;
             _name = name;
-            _type = type;   
+            _type = type;
             _source = source;
             _options = options;
         }

@@ -42,7 +42,7 @@ namespace XrEngine.Gltf
         {
             var buffer = new uint[data.IndicesSize];
             fixed (uint* pBuf = buffer)
-                ReadIndices((IntPtr)data.Mesh, pBuf, (int)data.IndicesSize);
+                ReadIndices(data.Mesh, pBuf, (int)data.IndicesSize);
             return buffer;
         }
 
@@ -50,7 +50,7 @@ namespace XrEngine.Gltf
         {
             var buffer = new T[data.VerticesSize];
             fixed (T* pBuf = buffer)
-                ReadAttribute((IntPtr)data.Mesh, index, pBuf, sizeof(T), (int)data.VerticesSize);
+                ReadAttribute(data.Mesh, index, pBuf, sizeof(T), (int)data.VerticesSize);
             return buffer;
         }
 

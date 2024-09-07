@@ -9,7 +9,7 @@ namespace XrEngine.OpenXr
 {
     public static class XrEngineAppExtensions
     {
-        
+
         public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
         {
             e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer());
@@ -63,7 +63,7 @@ namespace XrEngine.OpenXr
         {
             var inputs = e.GetInputs<XrOculusTouchController>();
 
-            var rayCol = e.App!.ActiveScene!.AddComponent(new RayCollider() { InputName = "RightAimPose" });
+            var rayCol = e.App!.ActiveScene!.AddComponent(new XrRayCollider() { InputName = "RightAimPose" });
         });
 
         public static XrEngineAppBuilder UseHands(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
@@ -101,7 +101,7 @@ namespace XrEngine.OpenXr
             model.AddPhysics = addPhysics;
 
             if (arMode)
-                model.Material = new ColorMaterial { Color = new Color(1,1,1), ShadowIntensity = 0.7f, IsShadowOnly = true };
+                model.Material = new ColorMaterial { Color = new Color(1, 1, 1), ShadowIntensity = 0.7f, IsShadowOnly = true };
 
             e.App.ActiveScene!.AddChild(model);
         });

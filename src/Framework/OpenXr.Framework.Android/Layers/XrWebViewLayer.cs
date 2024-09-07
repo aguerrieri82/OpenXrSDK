@@ -5,6 +5,7 @@ using Android.Views;
 using Android.Webkit;
 using Silk.NET.OpenXR;
 using System.Numerics;
+using XrInteraction;
 
 namespace OpenXr.Framework.Android
 {

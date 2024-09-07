@@ -26,7 +26,7 @@ namespace XrEngine
             _stats = new EngineAppStats();
             _context = new RenderContext();
             _changeListeners.Add(ShaderMeshLayerBuilder.Instance);
-            _dispatcher = new QueueDispatcher();    
+            _dispatcher = new QueueDispatcher();
             Current = this;
         }
 
