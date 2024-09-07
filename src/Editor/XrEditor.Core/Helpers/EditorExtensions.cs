@@ -9,5 +9,12 @@ namespace XrEditor
         {
             return Context.Require<NodeManager>().CreateNode(obj);
         }
+
+        public static T SetParent<T>(this T nodes, INode? parent) where T : IEnumerable<INode>
+        {
+            foreach (var node in nodes.OfType<IEditableNode>())
+                node.SetParent(parent);
+            return nodes;
+        }
     }
 }

@@ -5,6 +5,7 @@ using PhysX;
 using PhysX.Framework;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Xml.Schema;
 using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Browser.Win;
@@ -152,6 +153,7 @@ namespace XrSamples
 
             return builder
                 .AddRightPointer()
+                .UseClickMoveFront(panel, 0.5f)
                 .ConfigureApp(e =>
                 {
                     e.App.ActiveScene!.AddChild(panel);
@@ -159,15 +161,6 @@ namespace XrSamples
                     if (RuntimeInformation.RuntimeIdentifier.StartsWith("android"))
                         panel.CreateOverlay(e.XrApp);
 
-                    e.App.ActiveScene.AddBehavior((_, _) =>
-                    {
-                        var click = ((XrOculusTouchController)e.Inputs!).Right!.Button!.AClick!;
-                        if (click.IsChanged && click.Value)
-                        {
-                            panel.WorldPosition = panel.Scene!.ActiveCamera!.WorldPosition + panel.Scene.ActiveCamera.Forward * 0.5f;
-                            panel.Transform.Orientation = panel.Scene!.ActiveCamera!.Transform.Orientation;
-                        }
-                    });
                 });
         }
 
@@ -208,7 +201,7 @@ namespace XrSamples
             display.AddComponent<SurfaceController>();
             display.AddComponent(new WebBrowserView
             {
-                ZoomLevel = -1,
+                ZoomLevel = 0,
                 Source = "www.youtube.com",
             });
 
@@ -217,21 +210,27 @@ namespace XrSamples
             return builder.UseApp(app)
               .ConfigureSampleApp()
               .AddRightPointer()
-              .ConfigureApp(e =>
-              {
-                  var inputs = e.GetInputs<XrOculusTouchController>();
+              .UseClickMoveFront(display, 0.5f);
 
-                  display.AddBehavior((_, _) =>
-                  {
-                      var click = inputs.Right!.Button!.AClick!;
-                      if (click.IsChanged && click.Value)
-                      {
-                          display.WorldPosition = scene.ActiveCamera!.WorldPosition + scene.ActiveCamera.Forward * 0.5f;
-                          display.Transform.Orientation = scene.ActiveCamera!.Transform.Orientation;
-                      }
-                  });
-              });
+        }
 
+        public static XrEngineAppBuilder UseClickMoveFront(this XrEngineAppBuilder builder, Object3D obj, float distance)
+        {
+            return builder.ConfigureApp(e =>
+            {
+                var inputs = e.GetInputs<XrOculusTouchController>();
+                var scene = obj.Scene!;
+
+                obj.AddBehavior((_, _) =>
+                {
+                    var click = inputs.Right!.Button!.AClick!;
+                    if (click.IsChanged && click.Value)
+                    {
+                        obj.WorldPosition = scene.ActiveCamera!.WorldPosition + scene.ActiveCamera.Forward * distance;
+                        obj.Transform.Orientation = scene.ActiveCamera!.Transform.Orientation;
+                    }
+                });
+            });
         }
 
         public static XrEngineAppBuilder CreateDisplay(this XrEngineAppBuilder builder)
@@ -253,18 +252,7 @@ namespace XrSamples
             scene.AddChild(display);
 
             return builder.UseApp(app)
-                          .ConfigureApp(e =>
-                          {
-                              display.AddBehavior((_, _) =>
-                              {
-                                  var click = ((XrOculusTouchController)e.Inputs!).Right!.Button!.AClick!;
-                                  if (click.IsChanged && click.Value)
-                                  {
-                                      display.WorldPosition = scene.ActiveCamera!.WorldPosition + scene.ActiveCamera.Forward * 0.5f;
-                                      display.Transform.Orientation = scene.ActiveCamera!.Transform.Orientation;
-                                  }
-                              });
-                          })
+                          .UseClickMoveFront(display, 0.5f)
                           .ConfigureSampleApp();
         }
 

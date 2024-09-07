@@ -16,7 +16,6 @@ namespace XrEditor.Nodes
             value.Changed += OnElementChanged;
         }
 
-
         public override void Actions(IList<ActionView> result)
         {
             if (_value.Parent != null)
@@ -67,8 +66,6 @@ namespace XrEditor.Nodes
                     yield return GetNode(component);
             }
         }
-
-
 
         public override string DisplayName => _value.Name ?? _value.GetType().Name;
 

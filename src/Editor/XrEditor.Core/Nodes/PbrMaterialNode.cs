@@ -8,7 +8,5 @@ namespace XrEditor.Nodes
         public PbrMaterialNode(PbrMaterial value) : base(value)
         {
         }
-
-
     }
 }

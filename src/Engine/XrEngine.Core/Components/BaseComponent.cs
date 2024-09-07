@@ -9,7 +9,6 @@
         public BaseComponent()
         {
             _isEnabled = true;
-
         }
 
         public void EnsureId()

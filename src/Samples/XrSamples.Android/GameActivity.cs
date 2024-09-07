@@ -66,8 +66,8 @@ namespace XrSamples.Android
                    .UseMultiView()
                    .SetRenderQuality(1, 4)
                    .CreateBed()
-                   .RemovePlaneGrid();
-            //.AddWebBrowser(this, "display");
+                   .RemovePlaneGrid()
+            .AddWebBrowser(this, "display");
         }
     }
 }

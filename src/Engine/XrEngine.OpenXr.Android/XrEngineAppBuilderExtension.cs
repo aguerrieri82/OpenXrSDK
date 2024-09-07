@@ -17,16 +17,23 @@ namespace XrEngine.OpenXr.Android
             if (display == null)
                 return;
 
-            var inputs = e.GetInputs<XrOculusTouchController>();
-
             if (display != null)
             {
-                var controller = new SurfaceController(
-                    inputs.Right!.TriggerClick!,
-                    inputs.Right!.SqueezeClick!,
-                    inputs.Right!.Haptic!);
+                var inputs = e.Inputs as XrOculusTouchController;
 
-                display.AddComponent(controller);
+                var xrInput = display.Scene!.Components<XrInputPointer>().FirstOrDefault();
+
+                if (xrInput == null)
+                {
+                    display.Scene!.AddComponent(new XrInputPointer
+                    {
+                        PoseInput = inputs!.Right!.AimPose,
+                        RightButton = inputs!.Right!.SqueezeClick!,
+                        LeftButton = inputs!.Right!.TriggerClick!,
+                    });
+                }
+
+                var controller = display.AddComponent<SurfaceController>();
 
                 e.XrApp.Layers.AddWebView(context, display.BindToQuad(), controller);
             }

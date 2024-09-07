@@ -7,7 +7,7 @@
     <app:DoubleToThicknessLeft x:Key="DoubleToThicknessLeft"/>
     
     <DataTemplate DataType="{x:Type local:ListTreeView}">
-        <ListView BorderThickness="0" Background="Transparent" ItemsSource="{Binding Items}" SelectionMode="Extended" >
+        <ListView VirtualizingStackPanel.IsVirtualizing="False" BorderThickness="0" Background="Transparent" ItemsSource="{Binding Items}" SelectionMode="Extended" >
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
@@ -20,7 +20,7 @@
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Border Padding="{Binding Margin, Converter={StaticResource DoubleToThicknessLeft}}">
+                    <Border app:EditorExt.Container="{Binding}"  Padding="{Binding Margin, Converter={StaticResource DoubleToThicknessLeft}}">
                         <StackPanel Orientation="Horizontal">
                             <Button Style="{StaticResource IconButton}" x:Name="collapseButton" Command="{Binding ToggleCommand}">
                                 <ic:Icon x:Name="collapseIcon" Filled="True" Color="#666" Size="12" Kind="icon_arrow_drop_down">

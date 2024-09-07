@@ -4,8 +4,8 @@ namespace UI.Binding
 {
     public class ReflectionProperty : IProperty
     {
-        readonly PropertyInfo _property;
-        readonly object _object;
+        protected readonly PropertyInfo _property;
+        protected readonly object _object;
 
         public ReflectionProperty(PropertyInfo property, object obj)
         {
@@ -18,13 +18,18 @@ namespace UI.Binding
             get => _property.GetValue(_object, null);
             set
             {
-                if (Equals(value, _object))
+                if (Equals(value, Value))
                     return;
 
                 _property.SetValue(_object, value);
 
-                Changed?.Invoke(this, EventArgs.Empty);
+                OnChanged();
             }
+        }
+
+        protected virtual void OnChanged()
+        {
+            Changed?.Invoke(this, EventArgs.Empty);
         }
 
         public Type Type => _property.PropertyType;

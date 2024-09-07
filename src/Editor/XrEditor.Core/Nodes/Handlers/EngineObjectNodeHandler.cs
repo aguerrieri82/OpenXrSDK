@@ -54,6 +54,9 @@ namespace XrEditor.Nodes
                         nodeType = typeof(EngineObjectNode<>).MakeGenericType(obj.GetType());
 
                     node = (INode)Activator.CreateInstance(nodeType, obj)!;
+
+                    if (obj is Object3D obj3d && obj3d.Parent != null)
+                        ((IEditableNode)node).SetParent(CreateNode(obj3d.Parent));
                 }
 
                 if (node != null)

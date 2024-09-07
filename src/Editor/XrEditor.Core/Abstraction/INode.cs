@@ -14,4 +14,9 @@
 
         public bool IsLeaf { get; }
     }
+
+    public interface IEditableNode : INode
+    {
+        void SetParent(INode? parent);  
+    }
 }

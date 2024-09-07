@@ -105,6 +105,9 @@ namespace XrEngine
         {
             foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
+                var saveState = prop.GetCustomAttribute<SaveStateAttribute>();
+                if (saveState != null && !saveState.IsSave)
+                    continue;
                 if (prop.CanWrite && prop.CanRead)
                     container.Write(prop.Name, prop.GetValue(obj));
             }
@@ -135,6 +138,10 @@ namespace XrEngine
         {
             foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
+                var saveState = prop.GetCustomAttribute<SaveStateAttribute>();
+                if (saveState != null && !saveState.IsSave)
+                    continue;
+
                 if (prop.CanWrite && prop.CanRead && container.Contains(prop.Name))
                     prop.SetValue(obj, container.Read(prop.Name, prop.GetValue(obj), prop.PropertyType));
             }

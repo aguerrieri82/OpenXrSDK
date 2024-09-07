@@ -10,13 +10,15 @@ namespace XrEditor
 {
     public static class EditorDebug
     {
-        public static GraphicDriver Driver = GraphicDriver.OpenGL;
+        public static readonly GraphicDriver Driver = GraphicDriver.OpenGL;
+
+        public static readonly bool AutoStartApp = true;
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
               //.UseMultiView()
               //.UseStereo()
               .SetRenderQuality(1, 4) ///samples > 1 cause Filament to fuck up
-              .CreateChromeBrowser()
+              .CreateCucina()
               .Build();
     }
 }

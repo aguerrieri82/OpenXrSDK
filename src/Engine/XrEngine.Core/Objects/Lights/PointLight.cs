@@ -10,6 +10,8 @@ namespace XrEngine
             Range = 10;
         }
 
+
+
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);

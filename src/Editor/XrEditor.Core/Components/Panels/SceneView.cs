@@ -102,6 +102,8 @@ namespace XrEditor
                 Scene = _engine.App.ActiveScene!;
                 Context.Require<SelectionManager>().Set(Scene.GetNode());
                 UpdateControls();
+                if (EditorDebug.AutoStartApp)
+                    StartApp();
             });
         }
 

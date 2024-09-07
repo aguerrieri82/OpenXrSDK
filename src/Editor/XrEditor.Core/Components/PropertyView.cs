@@ -5,6 +5,7 @@ using XrEngine;
 
 namespace XrEditor
 {
+
     public class PropertyView : BaseView
     {
 
@@ -34,7 +35,7 @@ namespace XrEditor
                     continue;
                 }
 
-                var bindType = typeof(ReflectionProperty<>).MakeGenericType(editor.ValueType);
+                var bindType = typeof(NotifyReflectionProperty<>).MakeGenericType(editor.ValueType);
 
                 editor.Binding = (IProperty)Activator.CreateInstance(bindType, prop, obj)!;
 
