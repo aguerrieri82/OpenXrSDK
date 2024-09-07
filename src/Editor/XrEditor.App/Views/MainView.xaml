@@ -27,11 +27,10 @@
             </StackPanel>
         </Border>
     </DataTemplate>
-    
-    
-    <DataTemplate DataType="{x:Type local:MainView}">
-        <DockPanel>
 
+
+    <DataTemplate DataType="{x:Type local:MainView}">
+        <DockPanel Background="{StaticResource SurfaceColor}">
             <ContentPresenter MinWidth="320px" DockPanel.Dock="Right" Content="{Binding PropertiesEditor}"/>
             <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Messages}"/>
             <TabControl  Height="200" DockPanel.Dock="Bottom">

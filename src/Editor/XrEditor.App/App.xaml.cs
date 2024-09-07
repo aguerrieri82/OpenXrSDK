@@ -31,8 +31,10 @@ namespace XrEditor
             MainWindow = new Window
             {
                 Title = "Xr Editor",
-                Content = new MainView(EditorDebug.Driver)
+                Content = new MainView(EditorDebug.Driver),
             };
+
+            MainWindow.SetResourceReference(FrameworkElement.StyleProperty, typeof(Window));
         }
 
         protected override void OnStartup(StartupEventArgs e)

@@ -124,6 +124,7 @@
         protected virtual void OnChanged(ObjectChange change)
         {
             Changed?.Invoke(this, change);
+
         }
 
         public void SetProp(string name, object? value)

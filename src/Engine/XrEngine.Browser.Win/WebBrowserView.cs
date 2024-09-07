@@ -1,6 +1,6 @@
 ﻿using CefSharp;
 using XrInteraction;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace XrEngine.Browser.Win
 {
@@ -52,7 +52,7 @@ namespace XrEngine.Browser.Win
             if (texture == null)
                 return;
 
-            texture.Flags = EngineObjectFlags.None;
+            texture.SetFlag(EngineObjectFlags.EnableDebug, false);
 
             var time = _browser.FrameBufferTime;
 

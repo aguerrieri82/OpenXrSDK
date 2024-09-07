@@ -9,6 +9,10 @@
     <SolidColorBrush x:Key="InputTextColor">#eee</SolidColorBrush>
     <SolidColorBrush x:Key="ToolbarBackground">#111</SolidColorBrush>
 
+    <Style TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource SurfaceTextColor}"/>
+    </Style>
+    
     <Style TargetType="ToolBarTray">
         <Setter Property="Background" Value="#111"/>
     </Style>
@@ -16,10 +20,7 @@
     <Style TargetType="Label">
         <Setter Property="Foreground" Value="{StaticResource SurfaceTextColor}"/>
     </Style>
-    <Style TargetType="Window">
-        <Setter Property="Background" Value="{StaticResource SurfaceColor}"/>
-        <Setter Property="Foreground" Value="{StaticResource SurfaceTextColor}"/>
-    </Style>
+
     <Style TargetType="Button" x:Key="IconButton">
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Background" Value="Transparent"/>

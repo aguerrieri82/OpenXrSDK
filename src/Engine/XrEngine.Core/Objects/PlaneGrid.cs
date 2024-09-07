@@ -100,6 +100,13 @@ namespace XrEngine
             container.WriteObject<PlaneGrid>(this);
         }
 
+        protected override void OnChanged(ObjectChange change)
+        {
+            if (change.Properties != null)
+                Build();
+            base.OnChanged(change);
+        }
+
         public Color ColorA { get; set; }
 
         public Color ColorB { get; set; }

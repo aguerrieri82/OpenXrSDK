@@ -1,4 +1,5 @@
-﻿using XrEditor.Services;
+﻿using Silk.NET.Vulkan;
+using XrEditor.Services;
 using XrEngine;
 
 namespace XrEditor
@@ -7,11 +8,10 @@ namespace XrEditor
     {
         static protected Dictionary<INode, ListTreeNodeView> _listNodeMap = [];
 
-        protected NodeView? _root;
         protected SceneView? _sceneView;
-        private readonly ListTreeView _treeView;
-        readonly NodeManager _nodeFactory;
-        readonly SelectionManager _selection;
+        protected readonly ListTreeView _treeView;
+        protected readonly NodeManager _nodeFactory;
+        protected readonly SelectionManager _selection;
 
         public OutlinePanel()
         {
@@ -20,6 +20,42 @@ namespace XrEditor
             _selection = Context.Require<SelectionManager>();
             _selection.Changed += OnSelectionChanged;
             _treeView = new ListTreeView();
+        }
+
+        public void ExpandNode(INode target)
+        {
+            var nodeList = new List<INode>();
+            var curNode = target;
+            while (curNode != null)
+            {
+                nodeList.Insert(0, curNode);
+                curNode = curNode.Parent;
+            }
+
+            var lastNode = nodeList[^1];
+
+            foreach (var node in nodeList)
+            {
+                if (!_listNodeMap.TryGetValue(node, out var listNode))
+                    continue;
+
+                if (node != lastNode)
+                {
+                    if (!listNode.IsExpanded)
+                    {
+                        listNode.Refresh();
+                        listNode.IsExpanded = true;
+                    }
+                }
+                else
+                {
+                    if (listNode.UIElement == null)
+                        listNode.ScrollOnCreate = true;
+                    else
+                        listNode.UIElement?.ScrollToView();
+                }
+            }
+
         }
 
         private void OnSelectionChanged(ListTreeNodeView obj)
@@ -49,6 +85,9 @@ namespace XrEditor
                 if (_listNodeMap.TryGetValue(item, out var listNode))
                     listNode.IsSelected = true;
             }
+
+            if (newSelection.Count == 1)
+                ExpandNode(newSelection.First());
         }
 
         protected internal ListTreeNodeView? CreateNode(object? value, ListTreeNodeView? parent)

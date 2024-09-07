@@ -19,11 +19,5 @@
 	  <ProjectReference Include="..\XrEditor.Core\XrEditor.Core.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Page Update="Views\ListTreeView.xaml">
-	    <SubType>Designer</SubType>
-	  </Page>
-	</ItemGroup>
-
 
 </Project>

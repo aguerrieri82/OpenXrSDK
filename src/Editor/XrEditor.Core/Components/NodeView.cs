@@ -15,7 +15,6 @@ namespace XrEditor
             _node = node;
             _panel = panel;
 
-
             if (_node is IDynamicNode dynamicNode)
             {
                 dynamicNode.ChildAdded += OnChildAdded;

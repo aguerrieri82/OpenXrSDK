@@ -1,6 +1,6 @@
 ﻿namespace XrEditor.Nodes
 {
-    public abstract class BaseNode<T> : INode where T : notnull
+    public abstract class BaseNode<T> : IEditableNode where T : notnull
     {
         protected INode? _parent;
         protected T _value;
@@ -24,6 +24,11 @@
             }
 
             return [.. result];
+        }
+
+        public void SetParent(INode? parent)
+        {
+            _parent = parent;
         }
 
         public virtual bool IsLeaf => false;

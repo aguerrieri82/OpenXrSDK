@@ -1,10 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using XrEditor.Abstraction;
 
 
 namespace XrEditor
 {
-    public class ListTreeNodeView : BaseView
+    public class ListTreeNodeView : BaseView, IEditorUIElementContainer
     {
         protected ListTreeNodeView? _parent;
         protected ListTreeView _host;
@@ -16,7 +17,8 @@ namespace XrEditor
         protected bool _isExpanded;
         protected object? _header;
         protected bool _isSelected;
-        private bool _isLeaf;
+        protected bool _isLeaf;
+        private IEditorUIElement _uiElement;
 
         public ListTreeNodeView(ListTreeView host, ListTreeNodeView? parent)
         {
@@ -232,6 +234,19 @@ namespace XrEditor
                 OnPropertyChanged(nameof(IsLeaf));
             }
         }
+
+        public IEditorUIElement UIElement
+        {
+            get => _uiElement;
+            set
+            {
+                _uiElement = value;
+                if (ScrollOnCreate)
+                    _uiElement.ScrollToView();
+            }
+        }
+
+        public bool ScrollOnCreate { get; set; }
 
         public event Action<ListTreeNodeView, IList<ListTreeNodeView>>? LoadChildren;
 

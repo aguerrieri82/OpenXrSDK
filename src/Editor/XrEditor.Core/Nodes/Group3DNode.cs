@@ -13,10 +13,14 @@ namespace XrEditor.Nodes
 
         protected override void OnElementChanged(EngineObject element, ObjectChange change)
         {
+            var node = Context.Require<NodeManager>().CreateNode(change.Target!);
+ 
             if ((change.Type & ObjectChangeType.ChildAdd) == ObjectChangeType.ChildAdd)
-                ChildAdded?.Invoke(this, Context.Require<NodeManager>().CreateNode(change.Target!));
+                ChildAdded?.Invoke(this, node);
+            
             if ((change.Type & ObjectChangeType.ChildRemove) == ObjectChangeType.ChildRemove)
-                ChildRemoved?.Invoke(this, Context.Require<NodeManager>().CreateNode(change.Target!));
+                ChildRemoved?.Invoke(this, node);
+
             base.OnElementChanged(element, change);
         }
 
@@ -25,7 +29,7 @@ namespace XrEditor.Nodes
             get
             {
                 var factory = Context.Require<NodeManager>();
-                return _value.Children.Select(a => factory.CreateNode(a));
+                return _value.Children.Select(a => factory.CreateNode(a)).SetParent(this);
             }
         }
 

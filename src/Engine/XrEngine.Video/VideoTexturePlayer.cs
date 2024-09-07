@@ -23,6 +23,7 @@
                 {
                     Reader ??= Context.RequireInstance<IVideoReader>();
                     Reader.OutTexture = Texture;
+                    Texture?.SetFlag(EngineObjectFlags.EnableDebug, false);
                     Reader.Open(Source);
                     _isInit = true;
                 }

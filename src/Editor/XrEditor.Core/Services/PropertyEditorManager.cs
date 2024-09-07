@@ -13,7 +13,8 @@ namespace XrEditor.Services
             Register(new TypedPropertyEditorFactory<Vector3, Vector3Editor>());
             Register(new TypedPropertyEditorFactory<Color, ColorEditor>());
             Register(new TypedPropertyEditorFactory<bool, BoolEditor>());
-            Register(new TypedPropertyEditorFactory<string, TextEditor>());
+            Register(new TypedPropertyEditorFactory<string, TextEditor<string>>());
+            Register(new TextEditorFactory<Uri>(a => new Uri(a)));
             Register(new FloatEditorFactory());
             Register(new EnumEditorFactory());
             Register(new EngineObjectEditorFactory());

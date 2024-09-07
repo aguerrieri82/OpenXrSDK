@@ -13,7 +13,7 @@ namespace XrEngine
 
         protected override void OnChanged(ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.Render))
+            if (change.IsAny(ObjectChangeType.Render, ObjectChangeType.Property))
                 Version++;
             base.OnChanged(change);
         }

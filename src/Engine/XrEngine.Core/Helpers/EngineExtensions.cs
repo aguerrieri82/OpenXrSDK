@@ -18,6 +18,14 @@ namespace XrEngine
     {
         #region EngineObject
 
+        public static void SetFlag(this EngineObject obj, EngineObjectFlags flag, bool isSet) 
+        {
+            if (isSet)
+                obj.Flags |= flag;
+            else
+                obj.Flags &= ~flag;
+        }
+
         public static Behavior<T> AddBehavior<T>(this T obj, Action<T, RenderContext> action) where T : EngineObject
         {
             var result = new LambdaBehavior<T>(action);
