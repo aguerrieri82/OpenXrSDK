@@ -1,6 +1,6 @@
 ﻿using XrMath;
 
-namespace XrEngine.Interaction
+namespace XrInteraction
 {
     public struct RayPointerStatus
     {

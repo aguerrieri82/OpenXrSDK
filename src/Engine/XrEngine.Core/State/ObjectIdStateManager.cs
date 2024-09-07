@@ -11,7 +11,7 @@
 
         public void Write(string key, ObjectId obj, IStateContainer container)
         {
-            if (obj.Value == Guid.Empty) 
+            if (obj.Value == Guid.Empty)
                 return;
             container.Write(key, obj.Value);
         }

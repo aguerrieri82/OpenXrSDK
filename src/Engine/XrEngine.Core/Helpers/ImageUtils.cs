@@ -48,7 +48,7 @@ namespace XrEngine
         public static unsafe SKBitmap ToBitmap(TextureData data, bool flipY)
         {
             if (data.Format != TextureFormat.Rgba32)
-                throw new NotSupportedException();  
+                throw new NotSupportedException();
 
             var image = new SKBitmap((int)data.Width, (int)data.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
 

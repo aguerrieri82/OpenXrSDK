@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine.Video
+﻿namespace XrEngine.Video
 {
     public class VideoTexturePlayer : Behavior<Object3D>
     {
@@ -15,7 +9,7 @@ namespace XrEngine.Video
 
         public VideoTexturePlayer()
         {
-            _data = new TextureData();  
+            _data = new TextureData();
         }
 
         protected override void Start(RenderContext ctx)
@@ -70,7 +64,7 @@ namespace XrEngine.Video
 
         public IVideoReader? Reader { get; set; }
 
-        public Uri? Source { get; set; } 
+        public Uri? Source { get; set; }
 
         public Texture2D? Texture { get; set; }
     }

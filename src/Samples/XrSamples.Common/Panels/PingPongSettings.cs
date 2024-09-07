@@ -1,9 +1,7 @@
 ﻿using CanvasUI;
-using Microsoft.Extensions.Logging;
 using PhysX;
 using UI.Binding;
 using XrEngine;
-using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrMath;
 
@@ -66,7 +64,7 @@ namespace XrSamples
             body.LengthToleranceScale = settings.LengthToleranceScale;
             body.EnableCCD = settings.EnableCCD;
             body.ContactReportThreshold = settings.ContactReportThreshold;
-            body.ContactOffset = settings.ContactOffset;    
+            body.ContactOffset = settings.ContactOffset;
 
             var curMat = body.Material;
             curMat.Restitution = settings.Restitution;
@@ -84,7 +82,7 @@ namespace XrSamples
                     shape.ContactOffset = settings.ContactOffset;
                 }
             }
-       
+
         }
 
         public override void Apply(Scene3D scene)

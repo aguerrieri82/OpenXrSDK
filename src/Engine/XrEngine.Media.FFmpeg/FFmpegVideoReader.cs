@@ -1,8 +1,4 @@
 ﻿using FFmpeg.AutoGen;
-using System;
-using System.Collections.Generic;
-
-using System.Linq;
 using System.Runtime.InteropServices;
 using XrMath;
 using static FFmpeg.AutoGen.ffmpeg;
@@ -10,7 +6,7 @@ using static FFmpeg.AutoGen.ffmpeg;
 
 namespace XrEngine.Video
 {
-    public unsafe class FFmpegVideoReader : IVideoReader  
+    public unsafe class FFmpegVideoReader : IVideoReader
     {
 
         private AVFormatContext* _pFormatContext = null;
@@ -37,7 +33,7 @@ namespace XrEngine.Video
 
         static int CheckResult(int result, string msg)
         {
-            if (result < 0) 
+            if (result < 0)
                 throw new ApplicationException(av_strerror(result));
             return result;
         }
@@ -88,7 +84,7 @@ namespace XrEngine.Video
         {
             if (!TryDecodeNextFrame(out var frame))
                 return false;
-            
+
             data.Width = (uint)_pCodecContext->width;
             data.Height = (uint)_pCodecContext->height;
             data.Format = TextureFormat.Rgba32;

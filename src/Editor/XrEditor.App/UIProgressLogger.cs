@@ -15,7 +15,7 @@ namespace XrEditor
 
         public UIProgressLogger()
         {
-   
+
         }
 
         public void Init(RichTextBox textBox, ProgressBar progressBar)

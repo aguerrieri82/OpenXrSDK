@@ -1,4 +1,4 @@
-﻿namespace XrEngine.Interaction
+﻿namespace XrInteraction
 {
 
     public delegate void PointerEventDelegate(Pointer2Event ev);

@@ -1,6 +1,4 @@
-﻿using System.Net.NetworkInformation;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public partial class TypeStateManager
     {

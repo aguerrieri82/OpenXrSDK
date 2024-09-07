@@ -152,7 +152,7 @@ namespace XrEngine.OpenGL
         protected GlobalContent BuildContent(Scene3D scene)
         {
             Log.Info(this, "Building content...");
-        
+
             if (!_contents.TryGetValue(scene, out var content))
             {
                 content = new GlobalContent();

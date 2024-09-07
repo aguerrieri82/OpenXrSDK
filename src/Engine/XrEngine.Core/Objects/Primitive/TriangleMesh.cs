@@ -103,10 +103,10 @@ namespace XrEngine
             {
                 if (_geometry == value)
                     return;
-                
+
                 if (_geometry != null)
                     _geometry.Detach(this);
-                
+
                 _geometry = value;
 
                 if (_geometry != null)
@@ -114,7 +114,7 @@ namespace XrEngine
                     _geometry.EnsureId();
                     _geometry.Attach(this);
                 }
- 
+
                 NotifyChanged(ObjectChangeType.Geometry);
             }
         }

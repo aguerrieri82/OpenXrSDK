@@ -124,7 +124,7 @@ namespace XrEngine
             var result = (Texture?)destObj;
 
             result ??= (Texture)Activator.CreateInstance(resType)!;
-         
+
             result.LoadData(data);
 
             result.AddComponent(new AssetSource { Asset = new TextureAsset(this, uri, (TextureLoadOptions?)options) });

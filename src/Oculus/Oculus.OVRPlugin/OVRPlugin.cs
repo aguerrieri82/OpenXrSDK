@@ -726,27 +726,27 @@ public static partial class OVRPlugin
 
     private enum OverlayFlag
     {
-        None = unchecked((int)0x00000000),
-        OnTop = unchecked((int)0x00000001),
-        HeadLocked = unchecked((int)0x00000002),
-        NoDepth = unchecked((int)0x00000004),
-        ExpensiveSuperSample = unchecked((int)0x00000008),
-        EfficientSuperSample = unchecked((int)0x00000010),
-        EfficientSharpen = unchecked((int)0x00000020),
-        BicubicFiltering = unchecked((int)0x00000040),
-        ExpensiveSharpen = unchecked((int)0x00000080),
-        SecureContent = unchecked((int)0x00000100),
+        None = unchecked(0x00000000),
+        OnTop = unchecked(0x00000001),
+        HeadLocked = unchecked(0x00000002),
+        NoDepth = unchecked(0x00000004),
+        ExpensiveSuperSample = unchecked(0x00000008),
+        EfficientSuperSample = unchecked(0x00000010),
+        EfficientSharpen = unchecked(0x00000020),
+        BicubicFiltering = unchecked(0x00000040),
+        ExpensiveSharpen = unchecked(0x00000080),
+        SecureContent = unchecked(0x00000100),
 
         // Using the 5-8 bits for shapes, total 16 potential shapes can be supported 0x000000[0]0 ->  0x000000[F]0
-        ShapeFlag_Quad = unchecked((int)OverlayShape.Quad << OverlayShapeFlagShift),
-        ShapeFlag_Cylinder = unchecked((int)OverlayShape.Cylinder << OverlayShapeFlagShift),
-        ShapeFlag_Cubemap = unchecked((int)OverlayShape.Cubemap << OverlayShapeFlagShift),
-        ShapeFlag_OffcenterCubemap = unchecked((int)OverlayShape.OffcenterCubemap << OverlayShapeFlagShift),
-        ShapeFlagRangeMask = unchecked((int)0xF << OverlayShapeFlagShift),
+        ShapeFlag_Quad = unchecked(OverlayShape.Quad << OverlayShapeFlagShift),
+        ShapeFlag_Cylinder = unchecked(OverlayShape.Cylinder << OverlayShapeFlagShift),
+        ShapeFlag_Cubemap = unchecked(OverlayShape.Cubemap << OverlayShapeFlagShift),
+        ShapeFlag_OffcenterCubemap = unchecked(OverlayShape.OffcenterCubemap << OverlayShapeFlagShift),
+        ShapeFlagRangeMask = unchecked(0xF << OverlayShapeFlagShift),
 
-        Hidden = unchecked((int)0x000000200),
+        Hidden = unchecked(0x000000200),
 
-        AutoFiltering = unchecked((int)0x00000400),
+        AutoFiltering = unchecked(0x00000400),
     }
 
     [StructLayout(LayoutKind.Sequential)]

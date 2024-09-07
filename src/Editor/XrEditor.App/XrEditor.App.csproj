@@ -6,6 +6,7 @@
 		<TargetFrameworks>$(CoreVersion)-windows</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<XamlDebuggingInformation>True</XamlDebuggingInformation>
+		<RuntimeIdentifier>win-$(Platform)</RuntimeIdentifier>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -14,7 +15,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Engine\XrEngine.Interaction\XrEngine.Interaction.csproj" />
 	  <ProjectReference Include="..\..\Engine\XrEngine.Media.FFmpeg\XrEngine.Media.FFmpeg.csproj" />
 	  <ProjectReference Include="..\XrEditor.Core\XrEditor.Core.csproj" />
 	</ItemGroup>

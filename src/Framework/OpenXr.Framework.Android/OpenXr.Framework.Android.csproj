@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
     <ProjectReference Include="..\OpenXr.Framework\OpenXr.Framework.csproj" />
   </ItemGroup>
 

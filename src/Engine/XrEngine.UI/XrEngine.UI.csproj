@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\UI\UI.Framework\UI.Framework.csproj" />
-    <ProjectReference Include="..\XrEngine.Interaction\XrEngine.Interaction.csproj" />
+    <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
   </ItemGroup>
 
 </Project>

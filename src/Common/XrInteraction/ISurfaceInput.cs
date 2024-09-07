@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 
-namespace OpenXr.Framework
-{
+namespace XrInteraction
+{ 
     public struct InputButton
     {
         public bool IsDown;
@@ -11,7 +11,6 @@ namespace OpenXr.Framework
 
     public interface ISurfaceInput
     {
-
         bool IsPointerValid { get; }
 
         public Vector2 Pointer { get; }

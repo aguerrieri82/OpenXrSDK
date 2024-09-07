@@ -1,5 +1,4 @@
 ﻿using FFmpeg.AutoGen;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using XrEngine.Video.Abstraction;
 using static FFmpeg.AutoGen.ffmpeg;
@@ -120,7 +119,7 @@ namespace XrEngine.Video
 
 
             _swsContext = sws_getContext(
-                _outFormat.Width, _outFormat.Height, (AVPixelFormat)outPixeFormat,
+                _outFormat.Width, _outFormat.Height, outPixeFormat,
                 _outFormat.Width, _outFormat.Height, AVPixelFormat.AV_PIX_FMT_RGBA,
                 SWS_BILINEAR, null, null, null);
 

@@ -14,6 +14,7 @@ namespace XrEngine.OpenGL
         protected GlObject(GL gl)
         {
             _gl = gl;
+            EnableDebug = true;
         }
 
         public abstract void Dispose();
@@ -27,5 +28,7 @@ namespace XrEngine.OpenGL
         }
 
         public GL GL => _gl;
+
+        public bool EnableDebug { get; set; }  
     }
 }

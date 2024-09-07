@@ -142,7 +142,7 @@ namespace XrEngine.Gltf
             return result;
         }
 
-        public bool UseCache { get; set; }  
+        public bool UseCache { get; set; }
 
 
         public static readonly GltfAssetLoader Instance = new GltfAssetLoader();

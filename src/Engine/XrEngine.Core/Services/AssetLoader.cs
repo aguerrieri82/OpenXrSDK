@@ -14,7 +14,7 @@
             if (loader == null)
                 throw new NotSupportedException();
             return loader;
-        }  
+        }
 
         public EngineObject Load(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {

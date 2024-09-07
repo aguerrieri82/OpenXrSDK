@@ -12,7 +12,6 @@ using System.Numerics;
 using XrMath;
 using XrEngine.OpenXr;
 using OpenXr.Framework;
-using Microsoft.Extensions.Logging.Abstractions;
 using XrEngine.Services;
 
 
@@ -21,35 +20,17 @@ namespace XrSamples
 {
     public static class WindowSceneApp
     {
-        class ConsolePlatform : IXrEnginePlatform
+        public static Task Run(IServiceProvider services)
         {
-            public ConsolePlatform()
-            {
-            }
-
-            public string PersistentPath => Path.GetFullPath("Data");
-
-            public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
-            {
-                throw new NotSupportedException();
-            }
-
-            public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
-            {
-                throw new NotSupportedException();
-            }
-        }
-
-        public static Task Run(IServiceProvider services, ILogger logger)
-        {
-            Context.Implement<IAssetStore>(new LocalAssetStore("Assets"));
-            Context.Implement(logger);
-
-            XrPlatform.Current = new ConsolePlatform();
+            ModuleManager.Instance.Init();
 
             var builder = new XrEngineAppBuilder();
 
-            var app = builder.CreateChess().Build().App;
+            var app = builder
+                .UsePlatform<ConsolePlatform>()
+                .CreateChromeBrowser()
+                .Build()
+                .App;
 
             var view = Window.Create(WindowOptions.Default);
             view.ShouldSwapAutomatically = true;
@@ -68,8 +49,6 @@ namespace XrSamples
             view.Load += () =>
             {
                 UpdateSize();
-
-                camera!.LookAt(new Vector3(0f, 2f, 2f), Vector3.Zero, new Vector3(0, 1, 0));
 
 #if GLES
                 var gl = view.CreateOpenGLES();
@@ -100,9 +79,6 @@ namespace XrSamples
             return Task.CompletedTask;
         }
 
-        private static void View_Resize(Silk.NET.Maths.Vector2D<int> obj)
-        {
-            throw new NotImplementedException();
-        }
+     
     }
 }

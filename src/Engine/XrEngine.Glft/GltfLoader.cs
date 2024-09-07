@@ -47,7 +47,7 @@ namespace XrEngine.Gltf
         }
 
         public GltfLoader()
-            : this(a=> a)
+            : this(a => a)
         {
 
         }
@@ -388,7 +388,7 @@ namespace XrEngine.Gltf
                     }
                     finally
                     {
-                        DracoDecoder.DisposeMesh((IntPtr)mesh.Mesh);
+                        DracoDecoder.DisposeMesh(mesh.Mesh);
                     }
                 }
                 else
@@ -487,7 +487,7 @@ namespace XrEngine.Gltf
             if (result == null && _meshes.TryGetValue(gltMesh, out result))
                 return new Object3DInstance() { Reference = result };
 
-      
+
 
             CheckExtensions(gltMesh.Extensions);
 
@@ -509,7 +509,7 @@ namespace XrEngine.Gltf
                         Asset = CreateAsset<Geometry3D>(gltMesh.Name, "geo", id, pIndex)
                     });
 
-                 
+
                     Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name, curMesh.Geometry.Vertices.Length * Marshal.SizeOf<VertexData>());
                 });
 
@@ -607,7 +607,7 @@ namespace XrEngine.Gltf
             nodeObj.Transform.Update();
 
             if (nodeGrp != null && nodeGrp.Children.Count == 1 && nodeGrp.WorldMatrix.IsIdentity)
-                nodeObj = nodeGrp.Children[0];  
+                nodeObj = nodeGrp.Children[0];
 
             //obj.Transform.SetMatrix(MathUtils.CreateMatrix(node.Matrix));
 
@@ -698,7 +698,7 @@ namespace XrEngine.Gltf
 
         public static Object3D LoadFile(string filePath, GltfLoaderOptions options)
         {
-            return LoadFile(filePath, options, a=> a);
+            return LoadFile(filePath, options, a => a);
         }
 
         public static Object3D LoadFile(string filePath, GltfLoaderOptions options, Func<string, string> resourceResolver)

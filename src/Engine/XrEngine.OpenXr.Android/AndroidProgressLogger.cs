@@ -8,7 +8,7 @@ namespace XrEngine.OpenXr
 
         public AndroidProgressLogger(string tag = "XrApp")
         {
-            _tag = tag; 
+            _tag = tag;
         }
 
         public void BeginTask(string? message = null)

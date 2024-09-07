@@ -3,12 +3,11 @@ using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using PhysX;
 using PhysX.Framework;
-using Silk.NET.OpenXR;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using XrEngine;
 using XrEngine.Audio;
+using XrEngine.Browser.Win;
 using XrEngine.Compression;
 using XrEngine.Gltf;
 using XrEngine.OpenXr;
@@ -192,6 +191,49 @@ namespace XrSamples
             return builder;
         }
 
+        public static XrEngineAppBuilder CreateChromeBrowser(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var display = new TriangleMesh(Quad3D.Default)
+            {
+                Name = "display"
+            };
+
+            display.Transform.Scale = new Vector3(1.6f, 1.2f, 0.01f);
+
+            display.AddComponent<MeshCollider>();
+            display.AddComponent<SurfaceController>();
+            display.AddComponent(new WebBrowserView
+            {
+                ZoomLevel = -1,
+                Source = "www.youtube.com",
+            });
+
+            scene.AddChild(display);
+
+            return builder.UseApp(app)
+              .ConfigureSampleApp()
+              .AddRightPointer()
+              .ConfigureApp(e =>
+              {
+                  var inputs = e.GetInputs<XrOculusTouchController>();
+
+                  display.AddBehavior((_, _) =>
+                  {
+                      var click = inputs.Right!.Button!.AClick!;
+                      if (click.IsChanged && click.Value)
+                      {
+                          display.WorldPosition = scene.ActiveCamera!.WorldPosition + scene.ActiveCamera.Forward * 0.5f;
+                          display.Transform.Orientation = scene.ActiveCamera!.Transform.Orientation;
+                      }
+                  });
+              });
+
+        }
+
         public static XrEngineAppBuilder CreateDisplay(this XrEngineAppBuilder builder)
         {
 
@@ -205,8 +247,6 @@ namespace XrSamples
             display.Name = "display";
 
             display.Transform.Scale = new Vector3(1.924f, 1.08f, 0.01f);
-
-
 
             display.AddComponent<MeshCollider>();
 
@@ -230,7 +270,7 @@ namespace XrSamples
 
         public static string GetAssetPath(string name)
         {
-            return Context.Require<IAssetStore>().GetPath(name);    
+            return Context.Require<IAssetStore>().GetPath(name);
         }
 
         public static XrEngineAppBuilder CreatePingPong(this XrEngineAppBuilder builder)
@@ -318,7 +358,7 @@ namespace XrSamples
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
-            
+
             GetAssetPath("Chess/ABeautifulGame.bin");
 
             var mesh = (Group3D)AssetLoader.Instance.Load(new Uri("res://asset/Chess/ABeautifulGame.gltf"), typeof(Group3D), null, GltfOptions);
@@ -374,7 +414,7 @@ namespace XrSamples
             return builder
                 .UseApp(app)
                 .ConfigureSampleApp();
-             
+
         }
 
         public static XrEngineAppBuilder CreatePortal(this XrEngineAppBuilder builder)
@@ -401,8 +441,8 @@ namespace XrSamples
                 SurfaceSize = new Vector2(1.3f, 1.3f),
                 Alpha = AlphaMode.Blend,
             };
-            
-            var mesh = new TriangleMesh(new Quad3D(new Size2(1,1)), mat);
+
+            var mesh = new TriangleMesh(new Quad3D(new Size2(1, 1)), mat);
 
             mesh.Name = "mesh";
 
@@ -505,7 +545,7 @@ namespace XrSamples
             mesh.Transform.SetPosition(0, 2f, 0);
             //mesh.Transform.Rotation = new Vector3(0, -MathF.PI / 2, 0);
 
-           
+
             mesh.AddComponent(new VideoTexturePlayer()
             {
                 Texture = videoTex,
@@ -626,7 +666,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var mesh = (Object3D)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
+            var mesh = GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
             mesh.Name = "mesh";
             // mesh.AddComponent<MeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
@@ -688,7 +728,7 @@ namespace XrSamples
 
             foreach (var item in wallNames)
             {
-                var obj = mesh.DescendantsOrSelf().Where(a=> a.Name == item).FirstOrDefault();
+                var obj = mesh.DescendantsOrSelf().Where(a => a.Name == item).FirstOrDefault();
                 if (obj != null)
                     group.AddChild(obj.Parent!);
             }
@@ -698,7 +738,7 @@ namespace XrSamples
             mesh.AddComponent<ConstraintGrabbable>();
 
             scene.AddChild(mesh);
-             
+
             return builder
                 .UseApp(app)
                 //.UseEnvironmentPisaHDR()
@@ -718,7 +758,7 @@ namespace XrSamples
             var mesh = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("Cube\\untitled.gltf"), GltfOptions);
 
             var mesh2 = new TriangleMesh(Cube3D.Default, mesh.Materials[0]);
-            
+
             scene.AddChild(mesh);
 
             return builder

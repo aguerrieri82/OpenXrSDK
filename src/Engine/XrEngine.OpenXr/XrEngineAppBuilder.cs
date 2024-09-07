@@ -1,9 +1,4 @@
 ﻿using OpenXr.Framework;
-using OpenXr.Framework.Oculus;
-using PhysX.Framework;
-using Silk.NET.OpenXR;
-using XrEngine.Physics;
-using XrMath;
 
 namespace XrEngine.OpenXr
 {

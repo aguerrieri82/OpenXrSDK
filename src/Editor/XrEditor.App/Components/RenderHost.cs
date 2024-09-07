@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using System.Windows.Media;
 using XrEngine;
-using XrEngine.Interaction;
+using XrInteraction;
 
 
 namespace XrEditor

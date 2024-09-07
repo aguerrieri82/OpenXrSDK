@@ -1,5 +1,5 @@
 ﻿using CanvasUI;
-using XrEngine.Interaction;
+using XrInteraction;
 
 namespace XrEngine.UI
 {

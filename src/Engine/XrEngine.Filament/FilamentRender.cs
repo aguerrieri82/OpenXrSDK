@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using XrMath;
 using static XrEngine.Filament.FilamentLib;
 
@@ -423,7 +422,7 @@ namespace XrEngine.Filament
 
         protected void Create(Guid id, Material mat)
         {
-   
+
             MaterialInfo UpdateMatInfo()
             {
                 if (mat is PbrMaterial pbr)

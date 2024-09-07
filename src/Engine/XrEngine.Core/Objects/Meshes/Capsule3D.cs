@@ -39,10 +39,10 @@ namespace XrEngine
 
             for (int y = 0; y <= Vertical; ++y)
             {
-                float yf = (float)y / (float)Vertical;
+                float yf = y / (float)Vertical;
                 for (int x = 0; x <= Horizontal; ++x)
                 {
-                    float xf = (float)x / (float)Horizontal;
+                    float xf = x / (float)Horizontal;
                     index = y * (Horizontal + 1) + x + vertexIndexOffset;
                     verts[index].Pos.X = MathF.Cos(MathF.PI * 2 * xf) * Radius;
                     verts[index].Pos.Y = MathF.Sin(MathF.PI * 2 * xf) * Radius;
@@ -73,12 +73,12 @@ namespace XrEngine
 
             for (int y = 0; y <= Vertical; y++)
             {
-                float yf = (float)y / (float)Vertical;
+                float yf = y / (float)Vertical;
                 float lat = MathF.PI - yf * latRads - 0.5f * MathF.PI;
                 float cosLat = MathF.Cos(lat);
                 for (int x = 0; x <= Horizontal; x++)
                 {
-                    float xf = (float)x / (float)Horizontal;
+                    float xf = x / (float)Horizontal;
                     float lon = (xf) * MathF.PI * 2;
                     index = y * (Horizontal + 1) + x + vertexIndexOffset;
                     verts[index].Pos.X = Radius * MathF.Cos(lon) * cosLat;
@@ -113,12 +113,12 @@ namespace XrEngine
 
             for (int y = 0; y <= Vertical; y++)
             {
-                float yf = (float)y / (float)Vertical;
+                float yf = y / (float)Vertical;
                 float lat = MathF.PI - yf * latRads - 0.5f * MathF.PI;
                 float cosLat = MathF.Cos(lat);
                 for (int x = 0; x <= Horizontal; x++)
                 {
-                    float xf = (float)x / (float)Horizontal;
+                    float xf = x / (float)Horizontal;
                     float lon = xf * MathF.PI * 2;
                     index = y * (Horizontal + 1) + x + vertexIndexOffset;
                     verts[index].Pos.X = Radius * MathF.Cos(lon) * cosLat;

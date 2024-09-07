@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine.Services;
+﻿using XrEngine.Services;
 
 namespace XrEngine
 {
@@ -11,8 +6,8 @@ namespace XrEngine
     {
         public TextureAsset(BaseTextureLoader loader, string filePath, TextureLoadOptions? options)
             : base(loader, Path.GetFileName(filePath), typeof(Texture2D), new Uri(filePath), options)
-        { 
- 
+        {
+
         }
 
         public TextureAsset(BaseTextureLoader loader, Uri uri, TextureLoadOptions? options)

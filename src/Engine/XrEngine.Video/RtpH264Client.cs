@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using XrEngine.Video.Abstraction;
-using static XrEngine.Ktx2Reader;
 
 namespace XrEngine.Video
 {
@@ -20,7 +13,7 @@ namespace XrEngine.Video
         protected IPEndPoint? _endPoint;
         protected bool _ppsRec;
         protected bool _spsRec;
-        protected MemoryStream ?_readStream;
+        protected MemoryStream? _readStream;
         protected int _lastSeqNumber;
         protected bool _isFormatReceived;
         protected DateTime _lastReportTime;
@@ -39,7 +32,7 @@ namespace XrEngine.Video
             _endPoint = new IPEndPoint(IPAddress.Any, _clientPort);
             _ppsRec = false;
             _spsRec = false;
-            _readStream = new MemoryStream();   
+            _readStream = new MemoryStream();
         }
 
         public void Close()
@@ -85,7 +78,7 @@ namespace XrEngine.Video
                     Debug.WriteLine("-----------Skipped");
                     return null;
                 }
-          
+
                 int fragment_type = packet[12] & 0x1F;
 
                 if (fragment_type == 28)
@@ -119,7 +112,7 @@ namespace XrEngine.Video
                 }
                 else if (fragment_type >= 1 && fragment_type <= 23)
                 {
-                  
+
                     if (fragment_type == 7)
                     {
                         if (_spsRec)
@@ -134,7 +127,7 @@ namespace XrEngine.Video
                     }
 
                     if (fragment_type == 8)
-                    {   
+                    {
                         if (_ppsRec)
                             return null;
                         _ppsRec = true;

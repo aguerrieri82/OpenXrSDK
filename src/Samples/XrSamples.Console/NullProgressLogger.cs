@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine;
+﻿using XrEngine;
 
 namespace XrSamples
 {
@@ -26,7 +21,7 @@ namespace XrSamples
 
         public void LogProgress(double current, double total, string? message = null, bool retain = false)
         {
- 
+
         }
     }
 }

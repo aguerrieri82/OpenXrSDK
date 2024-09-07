@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class RangeAttribute : Attribute
@@ -13,7 +7,7 @@ namespace XrEngine
         {
             Min = min;
             Max = max;
-            Step = step;    
+            Step = step;
         }
 
         public float Min { get; set; }
