@@ -37,10 +37,6 @@
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../third-party/meshoptimizer/libs/arm64-v8a/*" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <None Remove="Resources\layout\activity_select.xml" />
-	</ItemGroup>
-
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />

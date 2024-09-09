@@ -15,10 +15,11 @@ namespace OpenXr.Framework.Android
         protected XrAndroidSurfaceQuadLayer(GetQuadDelegate getQuad)
             : base(getQuad)
         {
+
         }
 
         public XrAndroidSurfaceQuadLayer(Extent2Di size, GetQuadDelegate getQuad)
-            : base(getQuad)
+            : this(getQuad)
         {
             _size = size;
         }
@@ -74,7 +75,7 @@ namespace OpenXr.Framework.Android
             _header->SubImage.ImageArrayIndex = 0;
             _header->SubImage.ImageRect.Extent = _size;
             _header->EyeVisibility = EyeVisibility.Both;
-            _header->LayerFlags = CompositionLayerFlags.None;
+            _header->LayerFlags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
         }
 
         public Surface? Surface => _surface;

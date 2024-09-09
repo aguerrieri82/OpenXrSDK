@@ -212,7 +212,6 @@ namespace XrSamples
                    .UseLeftController()
                    .UseRightController()
                    .UseInputs<XrOculusTouchController>(a => a.AddAction(b => b.Right!.Haptic))
-
                    .UseRayCollider()
                    .UseGrabbers();
 

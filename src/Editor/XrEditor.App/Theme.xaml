@@ -31,16 +31,6 @@
         <Setter Property="Padding" Value="4"/>
         <Setter Property="Foreground" Value="{StaticResource InputTextColor}"/>
     </Style>
-    <Style TargetType="ComboBox">
-        <Setter Property="Background" Value="{StaticResource InputColor}"/>
-        <Setter Property="BorderThickness" Value="0"/>
+              <SolidColorBrush x:Key="ComboBox.Static.Background" Color="Yellow"/>
 
-        <Setter Property="ItemContainerStyle">
-            <Setter.Value>
-                <Style TargetType="ComboBoxItem">
-
-                </Style>
-            </Setter.Value>
-        </Setter>
-    </Style>
 </ResourceDictionary>

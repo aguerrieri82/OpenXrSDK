@@ -19,7 +19,6 @@ namespace XrEngine.OpenXr
         public float ResolutionScale { get; set; }
 
         public uint SampleCount { get; set; }
-
     }
 
     public class XrEngineApp
@@ -47,8 +46,6 @@ namespace XrEngine.OpenXr
             _xrApp.RenderOptions.SampleCount = _options.SampleCount;
             _xrApp.RenderOptions.RenderMode = _options.RenderMode;
             _xrApp.RenderOptions.ResolutionScale = _options.ResolutionScale;
-
-
         }
 
         public T GetInputs<T>()

@@ -5,11 +5,9 @@ using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using System.Text.Json;
 using XrEngine;
-using XrEngine.Media.Android;
 using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
-using XrEngine.Video;
 
 
 namespace XrSamples.Android.Activities
