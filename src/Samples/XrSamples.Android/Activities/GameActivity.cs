@@ -3,6 +3,7 @@ using Android.Content.PM;
 using Android.Webkit;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
+using System.Text.Json;
 using XrEngine;
 using XrEngine.Media.Android;
 using XrEngine.OpenGL;
@@ -11,7 +12,7 @@ using XrEngine.OpenXr.Android;
 using XrEngine.Video;
 
 
-namespace XrSamples.Android
+namespace XrSamples.Android.Activities
 {
 
     [IntentFilter([
@@ -22,7 +23,7 @@ namespace XrSamples.Android
     Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen",
     LaunchMode = LaunchMode.SingleTask,
     Exported = true,
-    MainLauncher = true,
+    MainLauncher = false,
     HardwareAccelerated = true,
     ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.Orientation,
     ScreenOrientation = ScreenOrientation.Landscape)]
@@ -31,10 +32,27 @@ namespace XrSamples.Android
     {
         private WebView? _webView;
         private XrWebViewLayer? _webViewLayer;
+        private GameSettings? _settings;
+
+        protected override void OnLoad()
+        {
+            var settingsJson = Intent?.GetStringExtra("Settings");
+
+            if (settingsJson == null)
+            {
+                var intent = new Intent(this, typeof(SelectActivity));
+                StartActivity(intent);
+                Finish();
+                return;
+            }
+
+            _settings = JsonSerializer.Deserialize<GameSettings>(settingsJson);
+            
+            base.OnLoad();
+        }
 
         protected override void OnAppStarted(XrApp app)
         {
-
             if (_engine?.App.Renderer is OpenGLRender openGL)
                 openGL.EnableDebug();
 
@@ -53,21 +71,25 @@ namespace XrSamples.Android
 
         protected override void Build(XrEngineAppBuilder builder)
         {
-            var ext = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
-            XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(ext, "Assets")));
 
-            XrEngine.Context.Implement<IVideoReader>(() => new AndroidVideoReader());
-            XrEngine.Context.Implement<IVideoCodec>(() => new AndroidVideoCodec());
+            var external = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
+            XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(external, "Assets")));
 
-            builder.UseOpenGL()
-                    .UseFilamentOpenGL()
-                   //.UseFilamentOpenGL()
-                   //.UseStereo()
-                   .UseMultiView()
-                   .SetRenderQuality(1, 4)
-                   .CreateBed()
-                   .RemovePlaneGrid()
-            .AddWebBrowser(this, "display");
+            builder.Options.Driver = _settings.Driver;
+
+            if (_settings.Driver == GraphicDriver.OpenGL)
+                builder.UseMultiView();
+
+            builder.SetRenderQuality(1, (uint)_settings.Msaa);
+
+            builder.RemovePlaneGrid()
+                   .AddWebBrowser(this, "display");
+
+            SampleScenes.DefaultHDR = _settings.Hdri;
+
+            var manager = XrEngine.Context.Require<SampleManager>();
+            var sample = manager.GetSample(_settings.SampleName!);
+            sample.Build(builder);
         }
     }
 }

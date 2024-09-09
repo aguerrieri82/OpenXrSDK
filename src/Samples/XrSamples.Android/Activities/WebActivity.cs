@@ -2,7 +2,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Webkit;
 
-namespace XrSamples.Android
+namespace XrSamples.Android.Activities
 {
 
     [Activity(
@@ -12,9 +12,9 @@ namespace XrSamples.Android
         LaunchMode = LaunchMode.SingleTask,
         MainLauncher = false)]
 
-    public class MainActivity : Activity
+    public class WebActivity : Activity
     {
-        const string TAG = nameof(MainActivity);
+        const string TAG = nameof(WebActivity);
 
         private WebView? _webView;
 
@@ -22,9 +22,10 @@ namespace XrSamples.Android
         {
             base.OnCreate(savedInstanceState);
 
-            SetContentView(Resource.Layout.activity_main);
 
-            FindViewById<Button>(Resource.Id.getRooom)!.Click += (_, _) => _ = Task.Run(StartApp);
+            SetContentView(_Microsoft.Android.Resource.Designer.ResourceConstant.Layout.activity_web);
+
+            FindViewById<Button>(_Microsoft.Android.Resource.Designer.ResourceConstant.Id.getRooom)!.Click += (_, _) => _ = Task.Run(StartApp);
 
             ConfigureWebView();
         }
@@ -35,7 +36,7 @@ namespace XrSamples.Android
 
             WebView.SetWebContentsDebuggingEnabled(true);
 
-            _webView = FindViewById<WebView>(Resource.Id.webView)!;
+            _webView = FindViewById<WebView>(_Microsoft.Android.Resource.Designer.ResourceConstant.Id.webView)!;
 
             _webView.Settings.JavaScriptEnabled = true;
             _webView.Settings.AllowContentAccess = true;

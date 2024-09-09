@@ -1,6 +1,6 @@
 ﻿using CanvasUI;
 using XrMath;
-
+using CheckBox = CanvasUI.CheckBox;
 
 namespace XrSamples
 {

@@ -162,16 +162,15 @@ namespace XrEngine.OpenGL
             content.Lights = new List<Light>();
             content.Scene = scene;
             content.SceneVersion = scene.Version;
-            content.LightsVersion = -1;
-
             content.ShaderContents.Clear();
+            content.LightsVersion++;
 
             var drawId = 0;
 
             foreach (var light in scene.VisibleDescendants<Light>())
             {
                 content.Lights.Add(light);
-                content.LightsVersion += light.Version;
+ 
 
                 if (light is ImageLight imgLight)
                 {

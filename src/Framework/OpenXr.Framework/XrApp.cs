@@ -247,7 +247,7 @@ namespace OpenXr.Framework
                 _session.Handle = 0;
             }
 
-            //DestroyInstance();
+            DestroyInstance();
 
             _state = XrAppState.Stopped;
             _lastSessionState = SessionState.Unknown;

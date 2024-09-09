@@ -80,8 +80,11 @@ namespace XrEngine.OpenXr
                 mesh.Transform.Position = location.Pose.Position;
                 mesh.Transform.Orientation = location.Pose.Orientation;
 
+                if (Material is ColorMaterial color && color.Color.A == 0)
+                    mesh.IsVisible = false;
+
                 //TODO restore collider
-                //mesh.AddComponent(new MeshCollider());
+                mesh.AddComponent(new MeshCollider());
 
                 if (AddPhysics)
                 {

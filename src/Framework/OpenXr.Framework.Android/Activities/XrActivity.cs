@@ -40,7 +40,11 @@ namespace OpenXr.Framework.Android
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+            OnLoad();
+        }
 
+        protected virtual void OnLoad()
+        {
             NextLoadStep();
         }
 
@@ -112,7 +116,7 @@ namespace OpenXr.Framework.Android
                 NextLoadStep();
         }
 
-        private void NextLoadStep()
+        protected virtual void NextLoadStep()
         {
             if (_loadStep == LoadStep.None)
             {
@@ -134,7 +138,7 @@ namespace OpenXr.Framework.Android
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)
         {
-            if (requestCode == PERMISSIONS_REQUEST && grantResults.All(a => a == Permission.Granted))
+            /*if (requestCode == PERMISSIONS_REQUEST && grantResults.All(a => a == Permission.Granted))*/
                 NextLoadStep();
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);

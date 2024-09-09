@@ -64,11 +64,12 @@ namespace XrEditor
         protected XrEngineApp? _engine;
         protected ToolbarView _toolbar;
         protected MemoryStateContainer? _sceneState;
-        private readonly ActionView _playButton;
-        private readonly ActionView _pauseButton;
-        private readonly ActionView _stopButton;
-        private readonly ActionView _xrButton;
-        private readonly TextView _fpsLabel;
+        protected readonly QueueDispatcher _renderDispatcher;
+        protected readonly ActionView _playButton;
+        protected readonly ActionView _pauseButton;
+        protected readonly ActionView _stopButton;
+        protected readonly ActionView _xrButton;
+        protected readonly TextView _fpsLabel;
 
         public SceneView(IRenderSurface renderSurface)
         {
@@ -76,6 +77,7 @@ namespace XrEditor
             _renderSurface.SizeChanged += OnSizeChanged;
             _renderSurface.Ready += OnSurfaceReady;
             _toolbar = new ToolbarView();
+            _renderDispatcher = new QueueDispatcher();
             _xrButton = _toolbar.AddToggle("icon_visibility", value =>
             {
                 if (value)
@@ -212,8 +214,8 @@ namespace XrEditor
 
                         if (_renderSurface.SupportsDualRender)
                         {
-                            //_render.SetDefaultRenderTarget();
-                            //_render.Render(_scene!, _camera!, _view, false);
+                            _render.SetDefaultRenderTarget();
+                            _render.Render(_scene!, _camera!, _view, false);
                         }
                     }
                     else
@@ -223,6 +225,8 @@ namespace XrEditor
 
                     OnPropertyChanged(nameof(Stats));
                 }
+
+                _renderDispatcher.ProcessQueue();
             }
         }
 
@@ -362,7 +366,7 @@ namespace XrEditor
             return tool;
         }
 
-        public IDispatcher Dispatcher => _engine!.App.Dispatcher;
+        public IDispatcher Dispatcher => _renderDispatcher;
 
         public ToolbarView ToolbarView => _toolbar;
 

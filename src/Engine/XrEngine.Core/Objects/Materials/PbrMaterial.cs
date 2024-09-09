@@ -325,16 +325,18 @@ namespace XrEngine
 
                     _buffer.Size = newSize;
                     _buffer.Data = MemoryManager.Allocate(_buffer.Size, this);
-
-                    ((int*)_buffer.Data)[0] = Lights.Length;
-
-                    fixed (LightUniforms* pArray = Lights)
-                    {
-                        var srcSpan = new Span<LightUniforms>(pArray, Lights.Length);
-                        var dstSpan = new Span<LightUniforms>((LightUniforms*)(_buffer.Data + 16), Lights.Length);
-                        srcSpan.CopyTo(dstSpan);
-                    }
                 }
+                
+                ((int*)_buffer.Data)[0] = Lights.Length;
+                
+                fixed (LightUniforms* pArray = Lights)
+                {
+                    var srcSpan = new Span<LightUniforms>(pArray, Lights.Length);
+                    var dstSpan = new Span<LightUniforms>((LightUniforms*)(_buffer.Data + 16), Lights.Length);
+                    srcSpan.CopyTo(dstSpan);
+                }
+
+                Log.Debug(this, "Update light buffer");
 
                 return _buffer;
             }
@@ -478,6 +480,8 @@ namespace XrEngine
                         }
 
                     }
+
+                    Log.Debug(this, "Build light uniforms");
 
                     ctx.CurrentBuffer!.Version = ctx.LightsVersion;
 

@@ -7,10 +7,13 @@
 		<UseWPF>true</UseWPF>
 		<XamlDebuggingInformation>True</XamlDebuggingInformation>
 		<RuntimeIdentifier>win-$(Platform)</RuntimeIdentifier>
+		<UseOpenGL>true</UseOpenGL>
+		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
 	</PropertyGroup>
 
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122" />
+	  <PackageReference Include="System.Private.Uri" Version="4.3.2" />
 	  <PackageReference Include="WPF-Icons" Version="2.0.0" />
 	</ItemGroup>
 
