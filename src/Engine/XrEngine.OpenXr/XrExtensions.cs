@@ -56,7 +56,7 @@ namespace XrEngine.OpenXr
                     Pose = new Pose3
                     {
                         Orientation = mesh.Transform.Orientation,
-                        Position = mesh.Transform.Position
+                        Position = mesh.WorldPosition
                     }
                 };
 

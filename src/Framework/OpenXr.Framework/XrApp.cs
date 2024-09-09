@@ -1210,11 +1210,9 @@ namespace OpenXr.Framework
 
         public bool PoolEvents()
         {
-            Debug.Assert(_xr != null);
-
             var buffer = new EventDataBuffer();
 
-            while (true)
+            while (_xr != null)
             {
                 buffer.Type = StructureType.EventDataBuffer;
 
@@ -1248,6 +1246,8 @@ namespace OpenXr.Framework
                 }
 
             }
+
+            return true;
         }
 
         #endregion

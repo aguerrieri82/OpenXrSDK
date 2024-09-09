@@ -196,11 +196,11 @@ namespace XrEngine
 
         public Vector3 WorldPosition
         {
-            get => _parent != null ?
+            get => _parent != null && !_parent.WorldMatrix.IsIdentity ?
                     _transform.Position.Transform(_parent.WorldMatrix) : _transform.Position;
             set
             {
-                _transform.Position = _parent != null ?
+                _transform.Position = _parent != null && !_parent.WorldMatrix.IsIdentity ?
                     value.Transform(_parent.WorldMatrixInverse) : value;
             }
         }

@@ -124,7 +124,6 @@ namespace XrEngine
 
         public void SetMatrix(Matrix4x4 matrix)
         {
-
             Matrix4x4.Decompose(matrix, out _scale, out _orientation, out _position);
 
             _rotation = _orientation.ToEuler();

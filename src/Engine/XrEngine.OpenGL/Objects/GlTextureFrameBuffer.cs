@@ -62,8 +62,9 @@ namespace XrEngine.OpenGL
 
         public void Configure(uint colorTex, uint depthTex, uint sampleCount)
         {
-            var color = GlTexture.Attach(_gl, colorTex, sampleCount);
-            var depth = depthTex == 0 ? null : GlTexture.Attach(_gl, depthTex, sampleCount);
+            var target = sampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D;
+            var color = GlTexture.Attach(_gl, colorTex, sampleCount, target);
+            var depth = depthTex == 0 ? null : GlTexture.Attach(_gl, depthTex, sampleCount, target);
             Configure(color, depth);
         }
 

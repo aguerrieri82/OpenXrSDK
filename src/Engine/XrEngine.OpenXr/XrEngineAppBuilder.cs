@@ -71,8 +71,6 @@ namespace XrEngine.OpenXr
 
             foreach (var config in _configurations)
             {
-                config(engine);
-
                 if (_inputProfile != null && actionBuilder == null)
                 {
                     var builderType = typeof(XrActionsBuilder<>).MakeGenericType(_inputProfile);
@@ -81,6 +79,8 @@ namespace XrEngine.OpenXr
 
                     engine.Inputs = actionBuilder.Result;
                 }
+
+                config(engine);
 
                 while (_inputs.Count > 0)
                 {

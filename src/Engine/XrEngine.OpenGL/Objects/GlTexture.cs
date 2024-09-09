@@ -466,10 +466,10 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public static GlTexture Attach(GL gl, uint handle, uint sampleCount = 1)
+        public static GlTexture Attach(GL gl, uint handle, uint sampleCount = 1, TextureTarget target = 0)
         {
             if (!_attached.TryGetValue(handle, out var texture))
-                texture = new GlTexture(gl, handle, sampleCount);
+                texture = new GlTexture(gl, handle, sampleCount, target);
             return texture;
         }
 
