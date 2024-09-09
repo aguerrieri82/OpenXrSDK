@@ -9,6 +9,8 @@ namespace XrEditor
         {
             if (item is IEnumEditor)
                 return (DataTemplate)Application.Current.FindResource("EnumEditor");
+            if (item is ITextEditor)
+                return (DataTemplate)Application.Current.FindResource("TextEditor");
             return base.SelectTemplate(item, container);
         }
     }

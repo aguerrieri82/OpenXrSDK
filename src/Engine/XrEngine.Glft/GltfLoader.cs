@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using glTFLoader.Schema;
+using Newtonsoft.Json.Linq;
 using SkiaSharp;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -166,6 +167,11 @@ namespace XrEngine.Gltf
                         hasMinFilter = true;
                         result.MinFilter = (ScaleFilter)sampler.MinFilter;
                     }
+                }
+                else
+                {
+                    result.WrapS = WrapMode.Repeat;
+                    result.WrapT = WrapMode.Repeat;
                 }
 
                 if (!hasMinFilter)
@@ -351,6 +357,8 @@ namespace XrEngine.Gltf
 
                         foreach (var attr in draco.Value.Attributes)
                         {
+                            var acc = _model!.Accessors[attr.Value];
+
                             switch (attr.Key)
                             {
                                 case "POSITION":
@@ -365,6 +373,8 @@ namespace XrEngine.Gltf
                                     result.ActiveComponents |= VertexComponent.Normal;
                                     break;
                                 case "TANGENT":
+                                    if (_options != null && _options.DisableTangents)
+                                        break;
                                     var tValues = DracoDecoder.ReadAttribute<Quaternion>(mesh, attr.Value);
                                     result.SetVertexData((ref VertexData a, Quaternion b) => a.Tangent = b, tValues);
                                     result.ActiveComponents |= VertexComponent.Tangent;
@@ -419,6 +429,8 @@ namespace XrEngine.Gltf
                                 Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TANGENT":
+                                if (_options != null && _options.DisableTangents)
+                                    break;
                                 var tValues = ConvertBuffer<Quaternion>(buffer, view, acc);
                                 result.SetVertexData((ref VertexData a, Quaternion b) => a.Tangent = b, tValues);
                                 result.ActiveComponents |= VertexComponent.Tangent;
@@ -509,6 +521,10 @@ namespace XrEngine.Gltf
                         Asset = CreateAsset<Geometry3D>(gltMesh.Name, "geo", id, pIndex)
                     });
 
+                    if (gltMesh.Name == "Floor")
+                    {
+                        //Debugger.Break();
+                    }
 
                     Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name, curMesh.Geometry.Vertices.Length * Marshal.SizeOf<VertexData>());
                 });
@@ -519,7 +535,7 @@ namespace XrEngine.Gltf
                     var gltfMat = _model!.Materials[primitive.Material.Value];
                     curMesh.Materials.Add(ProcessMaterial(gltfMat, primitive.Material.Value));
 
-                    if (gltMesh.Name == "Obj_PolyFaceMesh_51")
+                    if (gltMesh.Name == "Floor")
                     {
                         //Debugger.Break();
                     }
@@ -590,9 +606,18 @@ namespace XrEngine.Gltf
 
             nodeObj!.Name = node.Name;
 
+            bool transformSet = false;
             if (node.Matrix != null)
-                nodeObj.Transform.Matrix = MathUtils.CreateMatrix(node.Matrix);
-            else
+            {
+                var matrix = MathUtils.CreateMatrix(node.Matrix);
+                if (!matrix.IsIdentity)
+                {
+                    nodeObj.Transform.Matrix = matrix;
+                    transformSet = true;
+                }
+            }
+
+            if (!transformSet)
             {
                 if (node.Rotation != null)
                     nodeObj.Transform.Orientation = new Quaternion(node.Rotation[0], node.Rotation[1], node.Rotation[2], node.Rotation[3]);
@@ -677,7 +702,7 @@ namespace XrEngine.Gltf
 
         public void ExecuteLoadTasks()
         {
-            Parallel.ForEach(_tasks, new ParallelOptions { MaxDegreeOfParallelism = 1 }, a => a());
+            Parallel.ForEach(_tasks, new ParallelOptions { MaxDegreeOfParallelism = 5 }, a => a());
             _tasks.Clear();
         }
 

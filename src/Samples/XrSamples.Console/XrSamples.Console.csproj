@@ -4,6 +4,8 @@
 		<OutputType>Exe</OutputType>
 		<RootNamespace>XrSamples</RootNamespace>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<UseOpenGL>true</UseOpenGL>
+		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
 	</PropertyGroup>
 
 

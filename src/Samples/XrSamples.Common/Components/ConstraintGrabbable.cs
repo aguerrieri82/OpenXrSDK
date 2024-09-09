@@ -14,8 +14,6 @@ namespace XrSamples.Components
             rot.Z = 0;
             _host.Transform.Rotation = rot;
 
-
-
             base.OnMove();
         }
     }

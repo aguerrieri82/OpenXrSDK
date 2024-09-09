@@ -13,23 +13,39 @@
 		<Platforms>AnyCPU;ARM64;x64</Platforms>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<NoWarn>$(NoWarn);CS8500</NoWarn>
-		<Configurations>Debug;DebugGL;Release;ReleaseGL</Configurations>
-		<OpenGL>ES</OpenGL>
-		<AndroidPlatform>29</AndroidPlatform>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)' == 'DebugGL' OR '$(Configuration)' == 'ReleaseGL'">
+		<Configurations>Debug;Release</Configurations>
 		<OpenGL></OpenGL>
+		<AndroidPlatform>30</AndroidPlatform>
+		<IsAndroid>false</IsAndroid>
+		<NativeFolder>$(Configuration)</NativeFolder>
+		<UseOpenGL>false</UseOpenGL>
+		<NativePlatform>x64</NativePlatform>
 	</PropertyGroup>
 
-
-	<PropertyGroup  Condition="'$(Configuration)' == 'DebugGL'">
-		<DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+	<PropertyGroup Condition="'$(UseOpenGL)' == 'true'">
+		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
 	</PropertyGroup>
-			   
+	
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug' OR '$(Configuration)' == 'Release'">
+		<OpenGL>ES</OpenGL>
+		<IsAndroid>true</IsAndroid>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
 		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)' == 'DebugGL'">
+		<DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+		<NativeFolder>Debug</NativeFolder>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'ReleaseGL'">
+		<NativeFolder>Release</NativeFolder>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'IsAndroid' == 'true'">
+		<DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
+	</PropertyGroup>
 
 </Project>

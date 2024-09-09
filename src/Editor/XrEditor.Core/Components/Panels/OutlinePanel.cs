@@ -41,11 +41,7 @@ namespace XrEditor
 
                 if (node != lastNode)
                 {
-                    if (!listNode.IsExpanded)
-                    {
-                        listNode.Refresh();
-                        listNode.IsExpanded = true;
-                    }
+                    listNode.IsExpanded = true;
                 }
                 else
                 {
@@ -106,6 +102,13 @@ namespace XrEditor
 
                 _listNodeMap[node] = listNode;
             }
+            else
+            {
+                listNode.Parent = parent;
+                if (listNode.IsExpanded)
+                    listNode.Unload();
+            }
+
 
             return listNode;
         }

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+
+	<!-- ScrollView for vertical scrolling -->
+	<ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			>
+
+			<TextView
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="MSI samples"/>
+
+			<Spinner
+			   android:id="@+id/msaa"
+			   android:layout_width="match_parent"
+			   android:layout_height="wrap_content" />
+
+			<TextView
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="Render Engine"/>
+
+			<Spinner
+			   android:id="@+id/engine"
+			   android:layout_width="match_parent"
+			   android:layout_height="wrap_content" />
+
+			<TextView
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="HDRI"/>
+
+			<Spinner
+			   android:id="@+id/hdri"
+			   android:layout_width="match_parent"
+			   android:layout_height="wrap_content" />
+
+			<TextView
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="Select a sample"/>
+
+			<ListView
+				  android:id="@+id/listView"
+				  android:layout_width="match_parent"
+				  android:layout_height="400px"
+				  android:choiceMode="singleChoice" />
+		</LinearLayout>
+	</ScrollView>
+</RelativeLayout>

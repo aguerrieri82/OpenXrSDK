@@ -13,12 +13,12 @@ namespace XrEngine
     public class EngineApp
     {
         protected readonly HashSet<Scene3D> _scenes = [];
-        protected RenderContext _context;
+        protected readonly RenderContext _context;
         protected float _startTime;
         protected Scene3D? _activeScene;
-        protected EngineAppStats _stats;
+        protected readonly EngineAppStats _stats;
         protected PlayState _playState;
-        protected QueueDispatcher _dispatcher;
+        protected readonly QueueDispatcher _dispatcher;
         protected readonly HashSet<IObjectChangeListener> _changeListeners = [];
 
         public EngineApp()

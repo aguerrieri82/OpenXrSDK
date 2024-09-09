@@ -5,10 +5,8 @@ using PhysX;
 using PhysX.Framework;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Xml.Schema;
 using XrEngine;
 using XrEngine.Audio;
-using XrEngine.Browser.Win;
 using XrEngine.Compression;
 using XrEngine.Gltf;
 using XrEngine.OpenXr;
@@ -18,6 +16,10 @@ using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
+
+#if !ANDROID
+using XrEngine.Browser.Win;
+#endif
 
 
 
@@ -30,6 +32,10 @@ namespace XrSamples
             ConvertColorTextureSRgb = true,
         };
 
+        static string GetAssetPath(string name)
+        {
+            return Context.Require<IAssetStore>().GetPath(name);
+        }
 
 
         static EngineApp CreateBaseScene()
@@ -106,6 +112,13 @@ namespace XrSamples
             });
         }
 
+        public static XrEngineAppBuilder UseDefaultHDR(this XrEngineAppBuilder builder)
+        {
+            if (DefaultHDR == null)
+                DefaultHDR = "res://asset/Envs/pisa.hdr";
+            return builder.UseEnvironmentHDR(DefaultHDR, DefaultShowHDR);
+        }
+
         public static XrEngineAppBuilder UseEnvironmentPisaHDR(this XrEngineAppBuilder builder)
         {
 
@@ -138,6 +151,30 @@ namespace XrSamples
             });
         }
 
+        public static XrEngineAppBuilder UseClickMoveFront(this XrEngineAppBuilder builder, Object3D obj, float distance = 0.5f)
+        {
+            return builder.ConfigureApp(e =>
+            {
+                var inputs = e.GetInputs<XrOculusTouchController>();
+
+
+                obj.AddBehavior((_, _) =>
+                {
+                    var click = inputs.Right!.Button!.AClick!;
+                    if (click.IsChanged && click.Value)
+                    {
+                        var scene = obj.Scene!;
+                        obj.WorldPosition = scene.ActiveCamera!.WorldPosition + scene.ActiveCamera.Forward * distance;
+                        obj.Transform.Orientation = scene.ActiveCamera!.Transform.Orientation;
+                    }
+                });
+            });
+        }
+
+        public static XrEngineAppBuilder RemovePlaneGrid(this XrEngineAppBuilder builder) => builder.ConfigureApp(e =>
+        {
+            e.App.ActiveScene!.Descendants<PlaneGrid>().First().IsVisible = false;
+        });
 
         public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot)
         {
@@ -186,6 +223,7 @@ namespace XrSamples
 
         public static XrEngineAppBuilder CreateChromeBrowser(this XrEngineAppBuilder builder)
         {
+#if !ANDROID
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
@@ -211,28 +249,15 @@ namespace XrSamples
               .ConfigureSampleApp()
               .AddRightPointer()
               .UseClickMoveFront(display, 0.5f);
+#else
+            return builder;
+#endif
 
         }
 
-        public static XrEngineAppBuilder UseClickMoveFront(this XrEngineAppBuilder builder, Object3D obj, float distance)
-        {
-            return builder.ConfigureApp(e =>
-            {
-                var inputs = e.GetInputs<XrOculusTouchController>();
-                var scene = obj.Scene!;
 
-                obj.AddBehavior((_, _) =>
-                {
-                    var click = inputs.Right!.Button!.AClick!;
-                    if (click.IsChanged && click.Value)
-                    {
-                        obj.WorldPosition = scene.ActiveCamera!.WorldPosition + scene.ActiveCamera.Forward * distance;
-                        obj.Transform.Orientation = scene.ActiveCamera!.Transform.Orientation;
-                    }
-                });
-            });
-        }
 
+        [Sample("Display")]
         public static XrEngineAppBuilder CreateDisplay(this XrEngineAppBuilder builder)
         {
 
@@ -256,11 +281,8 @@ namespace XrSamples
                           .ConfigureSampleApp();
         }
 
-        public static string GetAssetPath(string name)
-        {
-            return Context.Require<IAssetStore>().GetPath(name);
-        }
 
+        [Sample("Ping Pong")]
         public static XrEngineAppBuilder CreatePingPong(this XrEngineAppBuilder builder)
         {
             var settings = new PingPongSettings();
@@ -328,9 +350,9 @@ namespace XrSamples
 
             return builder
                    .UseApp(app)
-                   .UseSceneModel(true)
+                   .UseSceneModel(true, true)
                    .ConfigureSampleApp()
-                   .UseEnvironmentHDR("res://asset/Envs/lightroom_14b.hdr", false)
+                   .UseDefaultHDR()
                    .UsePhysics(new PhysicsOptions
                    {
 
@@ -340,6 +362,7 @@ namespace XrSamples
 
         }
 
+        [Sample("Chess")]
         public static XrEngineAppBuilder CreateChess(this XrEngineAppBuilder builder)
         {
 
@@ -380,10 +403,11 @@ namespace XrSamples
             return builder
                     .UseApp(app)
                     .ConfigureSampleApp()
-                    .UseEnvironmentHDR("res://asset/Envs/pisa.hdr", false)
+                    .UseDefaultHDR()
                     .UsePhysics(new PhysicsOptions());
         }
 
+        [Sample("Sponza")]
         public static XrEngineAppBuilder CreateSponza(this XrEngineAppBuilder builder)
         {
 
@@ -405,6 +429,7 @@ namespace XrSamples
 
         }
 
+        [Sample("Portal")]
         public static XrEngineAppBuilder CreatePortal(this XrEngineAppBuilder builder)
         {
             var settings = new PortalSettings();
@@ -440,6 +465,7 @@ namespace XrSamples
                 .UseApp(app)
                 .ConfigureSampleApp()
                 //.AddPanel(new PortalSettingsPanel(settings, scene))
+                .UseClickMoveFront(mesh)
                 .ConfigureApp(e =>
                 {
                     var oculus = e.XrApp.Plugin<OculusXrPlugin>();
@@ -494,6 +520,7 @@ namespace XrSamples
                 });
         }
 
+        [Sample("Portal Video")]
         public static XrEngineAppBuilder CreatePortalVideo(this XrEngineAppBuilder builder)
         {
             var settings = new PortalSettings();
@@ -538,8 +565,8 @@ namespace XrSamples
             {
                 Texture = videoTex,
                 //Source = new Uri( GetAssetPath("Fish/20240308151616.mp4"))
-                Source = new Uri("rtsp://admin:123@192.168.1.60:8554/live"),
-                //Source = new Uri("rtsp://192.168.1.97:554/onvif1"),
+                //Source = new Uri("rtsp://admin:123@192.168.1.60:8554/live"),
+                Source = new Uri("rtsp://192.168.1.97:554/onvif1"),
                 Reader = new RtspVideoReader()
             });
 
@@ -550,7 +577,8 @@ namespace XrSamples
             return builder
                 .UseApp(app)
                 .ConfigureSampleApp()
-                .AddPanel(new PortalSettingsPanel(settings, scene))
+                .UseClickMoveFront(mesh)
+                //.AddPanel(new PortalSettingsPanel(settings, scene))
                 .ConfigureApp(e =>
                 {
                     var oculus = e.XrApp.Plugin<OculusXrPlugin>();
@@ -642,11 +670,12 @@ namespace XrSamples
             scene.PerspectiveCamera().Transform.Position = new Vector3(0.2f, 1.4f, 0.2f);
             return builder
                 .UseApp(app)
-                .UseEnvironmentHDR("Envs/lightroom_14b.hdr")
+                .UseDefaultHDR()
                 .ConfigureSampleApp();
         }
 
 
+        [Sample("Bed")]
         public static XrEngineAppBuilder CreateBed(this XrEngineAppBuilder builder)
         {
 
@@ -665,10 +694,11 @@ namespace XrSamples
             return builder
                 .UseApp(app)
                 //.UseSceneModel(false, false)
-                .UseEnvironmentHDR("res://asset/Envs/CameraEnv.jpg")
+                .UseDefaultHDR()
                 .ConfigureSampleApp();
         }
 
+        [Sample("Cucina")]
         public static XrEngineAppBuilder CreateCucina(this XrEngineAppBuilder builder)
         {
 
@@ -702,7 +732,30 @@ namespace XrSamples
                     if (material.MetallicRoughness == null && material.SpecularGlossiness == null)
                         item.Materials[i] = blank;
 
-                    item.Materials[i].DoubleSided = true;
+                    material.DoubleSided = true;
+
+                    if (material.Name == "wfnhfaq_Stucco_Facade")
+                    {
+                        material.MetallicRoughness.BaseColorFactor = new Color(1.6f, 1.6f, 1.6f, 1);
+                    }
+
+                    if (material.Name == "shkaaafc_Brushed_Aluminum")
+                    {
+                        material.MetallicRoughness!.BaseColorFactor = new Color(0.35f, 0.3f, 0.3f, 1);
+                        material.MetallicRoughness.RoughnessFactor = 1;
+                    }
+                   /*
+                    
+                    if (material.MetallicRoughness?.MetallicRoughnessTexture != null)
+                    {
+                        material.MetallicRoughness.MetallicFactor = 1;
+                        material.MetallicRoughness.RoughnessFactor = 1;
+                    }
+          
+                    if (material.NormalTexture != null)
+                        material.NormalScale = 1;
+
+                    */
                 }
 
             }
@@ -711,7 +764,7 @@ namespace XrSamples
             var group = new Group3D()
             {
                 Name = "walls",
-                IsVisible = false
+                IsVisible = true
             };
 
             foreach (var item in wallNames)
@@ -729,31 +782,18 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                //.UseEnvironmentPisaHDR()
-                .UseEnvironmentHDR("res://asset/Envs/neutral.hdr", true)
+                .UseDefaultHDR()
                 //.UseSceneModel(true, false)
+                .RemovePlaneGrid()
+                .ConfigureApp(cfg =>
+                {
+                    scene.FindByName<Light>("point-light-1")!.IsVisible = true;
+                })
                 .ConfigureSampleApp();
         }
 
 
-        public static XrEngineAppBuilder CreateWood(this XrEngineAppBuilder builder)
-        {
-
-            var app = CreateBaseScene();
-
-            var scene = app.ActiveScene!;
-
-            var mesh = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("Cube\\untitled.gltf"), GltfOptions);
-
-            var mesh2 = new TriangleMesh(Cube3D.Default, mesh.Materials[0]);
-
-            scene.AddChild(mesh);
-
-            return builder
-                .UseApp(app)
-                .UseEnvironmentHDR("res://asset/Envs/neutral.hdr")
-                .ConfigureSampleApp();
-        }
+        [Sample("Helmet")]
         public static XrEngineAppBuilder CreateHelmet(this XrEngineAppBuilder builder)
         {
 
@@ -773,13 +813,13 @@ namespace XrSamples
             scene.AddChild(mesh);
 
             return builder
-                .UseApp(app)
-                //.UseEnvironmentHDR("res://asset/Envs/CameraEnv.jpg")
-                .UseEnvironmentHDR("res://asset/Envs/lightroom_14b.hdr")
+                .UseApp(app) 
+                .UseDefaultHDR()
                 .ConfigureSampleApp();
         }
 
 
+        [Sample("Cube")]
         public static XrEngineAppBuilder CreateCube(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
@@ -800,6 +840,7 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
+        [Sample("Animated Cubes")]
 
         public static XrEngineAppBuilder CreateAnimatedCubes(this XrEngineAppBuilder builder)
         {
@@ -854,5 +895,9 @@ namespace XrSamples
         }
 
         public static bool IsEditor => Context.Require<IXrEnginePlatform>().Name == "Editor";
+
+        public static string? DefaultHDR { get; set; }
+
+        public static bool DefaultShowHDR { get; set; }
     }
 }

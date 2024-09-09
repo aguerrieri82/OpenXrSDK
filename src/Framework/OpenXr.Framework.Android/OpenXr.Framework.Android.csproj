@@ -1,19 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
-	  <SupportedOSPlatformVersion>$(AndroidPlatform)</SupportedOSPlatformVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
+		<SupportedOSPlatformVersion>$(AndroidPlatform)</SupportedOSPlatformVersion>
+		<UseOpenGL>true</UseOpenGL>
+		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Silk.NET.OpenGLES" Version="2.21.0" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Android" Version="3.0.0-preview.1.8" />
-    <PackageReference Include="System.Text.Json" Version="9.0.0-preview.7.24405.7" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Silk.NET.OpenGLES" Version="2.21.0" />
+		<PackageReference Include="SkiaSharp.NativeAssets.Android" Version="3.0.0-preview.4.1" />
+		<PackageReference Include="System.Text.Json" Version="9.0.0-preview.7.24405.7" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
-    <ProjectReference Include="..\OpenXr.Framework\OpenXr.Framework.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
+		<ProjectReference Include="..\OpenXr.Framework\OpenXr.Framework.csproj" />
+	</ItemGroup>
 
 </Project>

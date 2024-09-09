@@ -28,6 +28,13 @@
             Version++;
         }
 
+        protected override void OnChanged(ObjectChange change)
+        {
+            if (change.IsAny(ObjectChangeType.Property))
+                Version++;
+            base.OnChanged(change);
+        }
+
         public void NotifyLoaded()
         {
             Data = null;

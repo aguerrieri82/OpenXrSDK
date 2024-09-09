@@ -1,4 +1,5 @@
 ﻿using SkiaSharp;
+using UI.Binding;
 using XrEditor.Services;
 using XrEngine;
 
@@ -12,7 +13,13 @@ namespace XrEditor.Nodes
 
         }
 
-        public override string DisplayName => _value.Name ?? base.DisplayName;
+        protected override void EditorProperties(Binder<Texture2D> binder, IList<PropertyView> curProps)
+        {
+
+            base.EditorProperties(binder, curProps);
+            PropertyView.CreateProperties(_value, typeof(Texture), curProps);
+            PropertyView.CreateProperties(_value, typeof(Texture2D), curProps);
+        }
 
         public async Task<SKBitmap?> CreatePreviewAsync()
         {
@@ -27,5 +34,8 @@ namespace XrEditor.Nodes
                 return null;
             }
         }
+
+        public override string DisplayName => _value.Name ?? base.DisplayName;
+
     }
 }

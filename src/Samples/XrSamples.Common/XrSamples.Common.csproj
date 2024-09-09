@@ -2,6 +2,14 @@
 
 	<PropertyGroup>
 		<RootNamespace>XrSamples</RootNamespace>
+		<UseOpenGL>true</UseOpenGL>
+		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
+
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug' OR '$(Configuration)' == 'Release'">
+		<IsAndroid>true</IsAndroid>
+		<DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -12,30 +20,12 @@
 		<ProjectReference Include="..\..\Engine\XrEngine.Physics\XrEngine.Physics.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.UI\XrEngine.UI.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Video\XrEngine.Video.csproj" />
-		<ProjectReference Include="..\..\Engine\XrEngine.Browser.Win\XrEngine.Browser.Win.csproj" />
+
 	</ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup Condition="'$(IsAndroid)' != 'true'">
+		<ProjectReference Include="..\..\Engine\XrEngine.Browser.Win\XrEngine.Browser.Win.csproj" />
 		<Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="Assets\Cube\untitled.bin" />
-	  <None Remove="Assets\Cube\untitled.gltf" />
-	  <None Remove="Assets\Cube\Walnut_D.jpg" />
-	  <None Remove="Assets\Cube\WoodSRB-1.png" />
-	  <None Remove="Assets\Cube\WoodSRB.jpg" />
-	  <None Remove="Assets\Cube\WoodSRB.png" />
-	  <None Remove="Assets\Fish\20240308151616.mp4" />
-	  <None Remove="Assets\Fish\cam_left.jpg" />
-	  <None Remove="Assets\Fish\cam_left_pan.jpg" />
-	  <None Remove="Assets\Fish\cam_right.jpg" />
-	  <None Remove="Assets\Fish\cam_right_pan.jpg" />
-	  <None Remove="Assets\Fish\cube_orig.jpg" />
-	  <None Remove="Assets\Fish\cube_pan.jpg" />
-	  <None Remove="Assets\Fish\Recording.mp4" />
-	  <None Remove="Assets\Fish\stereo.jpg" />
-	</ItemGroup>
-
-
+	
 </Project>

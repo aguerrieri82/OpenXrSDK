@@ -118,6 +118,8 @@
                 return;
             }
 
+            change.Target ??= this;
+
             OnChanged(change);
         }
 

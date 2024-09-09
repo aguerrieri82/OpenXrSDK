@@ -2,6 +2,8 @@
 
 	<PropertyGroup>
 		<RootNamespace>XrEngine</RootNamespace>
+		<NativeFolder>Release</NativeFolder>
+		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -10,12 +12,16 @@
 
 	<ItemGroup>
 		<PackageReference Include="SharpEXR" Version="1.0.0.19" />
-		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.1.8" />
+		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.4.1" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="..\XrEngine.Native\bin\x64\Debug\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-		<Content Include="..\XrEngine.Native\bin\x64\Debug\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+		<Content Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
+		<Content Include="..\XrEngine.Native\libs\arm64-v8a\libxrengine-native.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
+	</ItemGroup>
+	
+	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -13,8 +13,12 @@ namespace XrEngine
 
         protected override void OnChanged(ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.Render, ObjectChangeType.Property))
+            if (change.IsAny(ObjectChangeType.Property, ObjectChangeType.Transform))
+                change.Type |= ObjectChangeType.Render;
+
+            if (change.IsAny(ObjectChangeType.Render))
                 Version++;
+           
             base.OnChanged(change);
         }
 
@@ -34,6 +38,7 @@ namespace XrEngine
 
         public Color Color { get; set; }
 
+        [Range(0, 10, 0.1f)]
         public float Intensity { get; set; }
     }
 }

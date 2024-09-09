@@ -18,7 +18,7 @@ namespace XrEditor
         protected object? _header;
         protected bool _isSelected;
         protected bool _isLeaf;
-        private IEditorUIElement _uiElement;
+        private IEditorUIElement? _uiElement;
 
         public ListTreeNodeView(ListTreeView host, ListTreeNodeView? parent)
         {
@@ -26,6 +26,13 @@ namespace XrEditor
             _parent = parent;
             _childInsertIndex = -1;
             ToggleCommand = new Command(Toggle);
+        }
+
+        public void Unload()
+        {
+            IsExpanded = false;
+            _childrenLoaded = false;
+            _children = [];
         }
 
         public void AddChild(ListTreeNodeView child)
@@ -235,7 +242,7 @@ namespace XrEditor
             }
         }
 
-        public IEditorUIElement UIElement
+        public IEditorUIElement? UIElement
         {
             get => _uiElement;
             set
@@ -259,7 +266,11 @@ namespace XrEditor
 
         public IReadOnlyList<ListTreeNodeView> Children => _children ?? [];
 
-        public ListTreeNodeView? Parent => _parent;
+        public ListTreeNodeView? Parent
+        {
+            get => _parent;
+            internal set => _parent = value;
+        }
 
         public int Level => _level;
 
