@@ -1,6 +1,7 @@
 ﻿using Android.Content;
 using Android.Graphics;
 using Android.OS;
+using Android.Util;
 using Android.Views;
 using Android.Webkit;
 using Silk.NET.OpenXR;
@@ -34,6 +35,13 @@ namespace OpenXr.Framework.Android
             public WebClient(XrWebViewLayer layer)
             {
                 _layer = layer;
+            }
+
+            public override WebResourceResponse? ShouldInterceptRequest(WebView? view, IWebResourceRequest? request)
+            {
+                if (_layer.ShouldInterceptRequest != null)
+                    return _layer.ShouldInterceptRequest(request!);
+                return base.ShouldInterceptRequest(view, request);
             }
 
             public override bool ShouldOverrideUrlLoading(WebView? view, string? url)
@@ -134,8 +142,8 @@ namespace OpenXr.Framework.Android
         {
             var quad = getQuad();
 
-            _size.Width = (int)(quad.Size.X * 1000);
-            _size.Height = (int)(quad.Size.Y * 1000);
+            _size.Width = (int)(quad.Size.X * 1700);
+            _size.Height = (int)(quad.Size.Y * 1700);
 
             _mainThread = new HandlerXrThread(new Handler(Looper.MainLooper!));
             _context = context;
@@ -151,10 +159,10 @@ namespace OpenXr.Framework.Android
 
         protected virtual internal void Draw(Action<Canvas> action)
         {
+
+    
             if (_surface == null)
                 return;
-
-            //_surfaceLock.Wait();
 
             var newCanvas = _surface.LockHardwareCanvas();
             try
@@ -176,9 +184,9 @@ namespace OpenXr.Framework.Android
             {
                 if (newCanvas != null)
                     _surface.UnlockCanvasAndPost(newCanvas);
-
-                // _surfaceLock.Release();
             }
+
+
         }
 
         protected override bool Update(ref CompositionLayerQuad layer, ref Silk.NET.OpenXR.View[] views, long predTime)
@@ -209,9 +217,6 @@ namespace OpenXr.Framework.Android
             _webView.Settings.SetSupportMultipleWindows(false);
             _webView.Settings.SetNeedInitialFocus(false);
             _webView.Settings.UserAgentString = "Mozilla/5.0 (Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.0.0 Safari/537.36";
-            //_webView.Settings.OffscreenPreRaster = true;
-            //_webView.Settings.SetSupportZoom(true);
-
 
             if (_context is Activity activity)
             {
@@ -227,6 +232,9 @@ namespace OpenXr.Framework.Android
             _webView.SetInitialScale((int)(1.8f / density * 100));
         }
 
+        public HandlerXrThread MainThread => _mainThread;
+
+        public Func<IWebResourceRequest, WebResourceResponse?>? ShouldInterceptRequest { get; set; } 
 
         public WebView? WebView => _webView;
     }

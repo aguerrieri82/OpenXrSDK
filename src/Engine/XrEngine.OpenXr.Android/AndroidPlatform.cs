@@ -102,5 +102,7 @@ namespace XrEngine.OpenXr.Android
         public string Name => "Android";
 
         public string PersistentPath => _context.GetExternalFilesDir(null)!.AbsolutePath;
+
+        public string CachePath => _context.CacheDir!.AbsolutePath;
     }
 }

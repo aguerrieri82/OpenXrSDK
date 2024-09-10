@@ -602,8 +602,6 @@ namespace XrEngine.Gltf
                     ProcessNode(_model!.Nodes[childNode], nodeGrp);
             }
 
-
-
             nodeObj!.Name = node.Name;
 
             bool transformSet = false;

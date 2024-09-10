@@ -1,10 +1,11 @@
 ﻿using CefSharp;
 using XrEngine.UI.Web;
 using XrInteraction;
+using XrMath;
 
 namespace XrEngine.Browser.Win
 {
-    public class WebBrowserView : Behavior<TriangleMesh>
+    public class ChromeWebBrowserView : Behavior<TriangleMesh>
     {
         protected bool _isInit;
         protected ChromeWebBrowser _browser;
@@ -12,11 +13,10 @@ namespace XrEngine.Browser.Win
         protected ISurfaceInput? _input;
         protected string? _source;
 
-        public WebBrowserView()
+        public ChromeWebBrowserView()
         {
             _browser = new ChromeWebBrowser();
-            _browser.Size = new XrMath.Size2I(1600, 1200);
-
+            Size = new Size2I(1600, 1200);
         }
 
         protected override void Start(RenderContext ctx)
@@ -25,8 +25,10 @@ namespace XrEngine.Browser.Win
             {
                 _ = Task.Run(async () =>
                 {
-                    _browser.RequestHandler = RequestHandler;
-                    await _browser.CreateAsync(_source ?? "about:blank");
+                    if (RequestHandler != null)
+                        _browser.RequestHandler = RequestHandler;
+
+                    await _browser.CreateAsync(_source);
                     _isInit = true;
                     Log.Info(this, "Browser ready");
                 });
@@ -96,6 +98,13 @@ namespace XrEngine.Browser.Win
         {
             get => _browser.ZoomLevel;
             set => _browser.ZoomLevel = value;
+        }
+
+
+        public Size2I Size
+        {
+            get => _browser.Size;
+            set => _browser.Size = value;
         }
 
         public string? Source

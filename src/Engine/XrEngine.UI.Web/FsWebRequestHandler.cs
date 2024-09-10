@@ -32,13 +32,7 @@ namespace XrEngine.UI.Web
                 fullPath = Path.Join(_basePath, "index.html");
 
             var ext = Path.GetExtension(fullPath).ToLower();
-            var mimeType = ext switch
-            {
-                ".js" => "application/javascript",
-                ".html" => "text/html",
-                ".css" => "text/css",
-                _ => "application/octect-stream"
-            };
+            var mimeType = MimeMapper.GetMimeType(ext); 
 
             var data = File.ReadAllBytes(fullPath);
 

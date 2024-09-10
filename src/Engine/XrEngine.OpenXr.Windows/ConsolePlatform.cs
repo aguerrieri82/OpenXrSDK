@@ -10,10 +10,18 @@ namespace XrEngine.OpenXr.Windows
 {
     public class ConsolePlatform : IXrEnginePlatform
     {
-        ViewManager _viewManager;
+        readonly ViewManager _viewManager;
+        readonly string _basePath;
 
         public ConsolePlatform()
+            : this(".")
         {
+
+        }
+        public ConsolePlatform(string basePath)
+        {
+            _basePath = basePath;
+
             _viewManager = new ViewManager();
             _viewManager.Initialize();
 
@@ -34,7 +42,9 @@ namespace XrEngine.OpenXr.Windows
                      new OculusXrPlugin());
         }
 
-        public string PersistentPath => throw new NotImplementedException();
+        public string PersistentPath => Path.Combine(_basePath, "Data");
+
+        public string CachePath => Path.Combine(_basePath, "Cache");
 
         public string Name => "Console";
     }

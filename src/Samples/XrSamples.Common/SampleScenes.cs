@@ -236,7 +236,7 @@ namespace XrSamples
 
             display.AddComponent<MeshCollider>();
             display.AddComponent<SurfaceController>();
-            display.AddComponent(new WebBrowserView
+            display.AddComponent(new ChromeWebBrowserView
             {
                 ZoomLevel = 0,
                 Source = "www.youtube.com",
