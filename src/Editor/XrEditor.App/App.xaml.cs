@@ -21,8 +21,7 @@ namespace XrEditor
             Context.Implement<SelectionManager>();
             Context.Implement<PropertyEditorManager>();
             Context.Implement<IMainDispatcher>(new MainDispatcher());
-            Context.Implement<IAssetStore>(new LocalAssetStore("Assets"));
-            Context.Implement(XrPlatform.Current);
+            Context.Implement<IAssetStore>(new LocalAssetStore("Assets"));;
             Context.Implement<IVideoReader>(() => new FFmpegVideoReader());
             Context.Implement<IVideoCodec>(() => new FFmpegCodec());
 

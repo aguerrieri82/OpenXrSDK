@@ -28,12 +28,13 @@ namespace XrEngine.UI.Web
             public object? Result { get; set; }
         }
 
-        private readonly IWebBrowser _webBrowser;
-        private readonly Dictionary<string, MappedMethod> _methods;
+        readonly IWebBrowser _webBrowser;
+        readonly Dictionary<string, MappedMethod> _methods;
 
         static readonly JsonSerializerOptions _jsonOptions = new()
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true
         };
 
         public WebBrowserBridge(IWebBrowser webBrowser)
@@ -71,16 +72,25 @@ namespace XrEngine.UI.Web
                         foreach (var param in mapped.Info!.GetParameters())
                         {
                             if (args.ContainsKey(param.Name!))
-                                parsedArgs.Add(args[param.Name!].Deserialize(param.ParameterType));
+                                parsedArgs.Add(args[param.Name!].Deserialize(param.ParameterType, _jsonOptions));
                             else
                                 parsedArgs.Add(param.DefaultValue);
                         }
                     }
 
-                    dynamic? result = mapped.Info!.Invoke(mapped.Instance, [.. parsedArgs]);
+                    object? result = mapped.Info!.Invoke(mapped.Instance, [.. parsedArgs]);
                     
                     if (result is Task task)
-                        result = await result;
+                    {
+                        if (task.GetType().GetGenericArguments()[0].Name == "VoidTaskResult")
+                        {
+                            await task;
+                            result = null;
+                        }
+                        else
+                            result = await (dynamic)result;
+                    }
+
 
                     msg.Result = result;
                     msg.Type = "response";
@@ -94,7 +104,6 @@ namespace XrEngine.UI.Web
 
                 await _webBrowser.PostMessageAsync(JsonSerializer.Serialize(msg, _jsonOptions));
             }
-
         }
 
         public void Register<T>() where T : new()

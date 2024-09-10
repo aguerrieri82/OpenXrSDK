@@ -24,7 +24,6 @@ namespace XrEngine.OpenXr
         {
             _platform = platform;
             XrPlatform.Current = _platform;
-            Context.Implement(platform);
             return this;
         }
 

@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<NativeFolder>Release</NativeFolder>
+		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
 	</PropertyGroup>
 
 	<ItemGroup>

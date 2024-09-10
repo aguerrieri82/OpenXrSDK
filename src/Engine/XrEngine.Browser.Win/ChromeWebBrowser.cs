@@ -14,10 +14,10 @@ namespace XrEngine.Browser.Win
         protected IRequestContext? _requestContext;
         protected IBrowserHost? _host;
         protected byte[]? _buffer;
-        private DateTime _bufferTime;
-        private float _zoomLevel;
+        protected DateTime _bufferTime;
+        protected float _zoomLevel;
+        protected string? _startUrl;
 
-    
         public ChromeWebBrowser()
         {
             FrameRate = 30;
@@ -25,6 +25,7 @@ namespace XrEngine.Browser.Win
             ZoomLevel = 1;
             Size = new Size2I(800, 600);
             DpiScale = 1;
+            _startUrl = "about:blank";
         }
 
         public async Task CreateAsync(string? startUrl = null)
@@ -47,7 +48,7 @@ namespace XrEngine.Browser.Win
 
             _requestContext = new RequestContext(requestContextSettings);
 
-            _browser = new ChromiumWebBrowser(startUrl, browserSettings, _requestContext);
+            _browser = new ChromiumWebBrowser(startUrl ?? _startUrl, browserSettings, _requestContext);
             _browser.Paint += OnPaint;
             _browser.FrameLoadStart += OnFrameLoad;
             _browser.JavascriptMessageReceived += OnMessage;
@@ -158,9 +159,13 @@ namespace XrEngine.Browser.Win
         public async Task NavigateAsync(string uri)
         {
             if (_browser == null)
+            {
+                _startUrl = uri;    
                 return;
-
+            }
+      
             Log.Info(this, "Navigate {0}", uri);
+
             await _browser.LoadUrlAsync(uri);
         }
 

@@ -50,6 +50,10 @@ namespace XrEditor
 
         public string PersistentPath => Path.GetFullPath("Data");
 
+        public string CachePath => Path.GetFullPath("Cache");
+
         public string Name => "Editor";
+
+
     }
 }
