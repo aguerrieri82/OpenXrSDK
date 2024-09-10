@@ -2,12 +2,13 @@
 using CefSharp.Enums;
 using CefSharp.OffScreen;
 using System.Numerics;
-using System.Threading.Tasks.Dataflow;
+using System.Text.Json;
+using XrEngine.UI.Web;
 using XrMath;
 
 namespace XrEngine.Browser.Win
 {
-    public class ChromeWebBrowser : IDisposable
+    public class ChromeWebBrowser : IDisposable, UI.Web.IWebBrowser
     {
         protected ChromiumWebBrowser? _browser;
         protected IRequestContext? _requestContext;
@@ -16,6 +17,7 @@ namespace XrEngine.Browser.Win
         private DateTime _bufferTime;
         private float _zoomLevel;
 
+    
         public ChromeWebBrowser()
         {
             FrameRate = 30;
@@ -25,7 +27,7 @@ namespace XrEngine.Browser.Win
             DpiScale = 1;
         }
 
-        public async Task CreateAsync(string startUrl = "about:blank")
+        public async Task CreateAsync(string? startUrl = null)
         {
             await InitAsync();
 
@@ -36,30 +38,33 @@ namespace XrEngine.Browser.Win
                 LocalStorage = CefState.Enabled,
                 Databases = CefState.Enabled,
                 WindowlessFrameRate = FrameRate,
-  
             };
 
             var requestContextSettings = new RequestContextSettings
             {
                 CachePath = Path.GetFullPath(CachePath),
-                
             };
 
             _requestContext = new RequestContext(requestContextSettings);
 
             _browser = new ChromiumWebBrowser(startUrl, browserSettings, _requestContext);
-          
             _browser.Paint += OnPaint;
             _browser.FrameLoadStart += OnFrameLoad;
+            _browser.JavascriptMessageReceived += OnMessage;
 
             Log.Info(this, "Wait for page load");
 
             await _browser.WaitForInitialLoadAsync();
 
             _host = _browser.GetBrowserHost();
+            _host.ShowDevTools();
 
             await UpdateAsync();
+        }
 
+        private void OnMessage(object? sender, JavascriptMessageReceivedEventArgs e)
+        {
+            MessageReceived?.Invoke(this, new MessageReceivedArgs(e.Message.ToString()!));
         }
 
         public void UpdatePointer(int id, Vector2 pos, TouchEventType eventType, CefEventFlags flags = CefEventFlags.None)
@@ -106,9 +111,23 @@ namespace XrEngine.Browser.Win
                 CachePath = CachePath,
                 Locale = "it",
                 WindowlessRenderingEnabled = true,
+                BackgroundColor = 0xFFFFFF
             };
 
             settings.EnableAudio();
+
+            if (RequestHandler != null)
+            {
+                settings.RegisterScheme(new CefCustomScheme()
+                {
+                    IsCorsEnabled = true,
+                    IsFetchEnabled = true,
+                    SchemeName = RequestHandler.Scheme,
+                    IsSecure = true,
+                    SchemeHandlerFactory = new ChromeSchemeHandlerFactory(RequestHandler)
+                });
+            }
+
             settings.CefCommandLineArgs.Add("enable-media-stream", "1");
             settings.CefCommandLineArgs["autoplay-policy"] = "no-user-gesture-required";
 
@@ -117,9 +136,6 @@ namespace XrEngine.Browser.Win
             var success = await Cef.InitializeAsync(settings);
             if (!success)
                 throw new Exception();
-
-
-
         }
 
 
@@ -148,6 +164,13 @@ namespace XrEngine.Browser.Win
             await _browser.LoadUrlAsync(uri);
         }
 
+        public async Task PostMessageAsync(string message)
+        {
+            await _browser.EvaluateScriptAsync("postMessage(" + JsonSerializer.Serialize(message) + ")");
+        }
+
+        public IWebRequestHandler? RequestHandler { get; set; }
+
         public byte[]? FrameBuffer => _buffer;
 
         public DateTime FrameBufferTime => _bufferTime;
@@ -167,6 +190,8 @@ namespace XrEngine.Browser.Win
                 _browser?.SetZoomLevel(_zoomLevel);
             }
         }
+        
+        public event EventHandler<MessageReceivedArgs>? MessageReceived;
 
         public string CachePath { get; set; }
 

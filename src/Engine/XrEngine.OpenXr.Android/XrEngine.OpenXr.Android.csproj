@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
     <ProjectReference Include="..\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
+    <ProjectReference Include="..\XrEngine.UI.Web\XrEngine.UI.Web.csproj" />
   </ItemGroup>
 
 </Project>

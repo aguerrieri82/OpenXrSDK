@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+    <ProjectReference Include="..\XrEngine.UI.Web\XrEngine.UI.Web.csproj" />
   </ItemGroup>
 
 
