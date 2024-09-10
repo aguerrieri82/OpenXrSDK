@@ -1,6 +1,6 @@
 ﻿using CefSharp;
+using XrEngine.UI.Web;
 using XrInteraction;
-
 
 namespace XrEngine.Browser.Win
 {
@@ -16,6 +16,7 @@ namespace XrEngine.Browser.Win
         {
             _browser = new ChromeWebBrowser();
             _browser.Size = new XrMath.Size2I(1600, 1200);
+
         }
 
         protected override void Start(RenderContext ctx)
@@ -24,19 +25,18 @@ namespace XrEngine.Browser.Win
             {
                 _ = Task.Run(async () =>
                 {
+                    _browser.RequestHandler = RequestHandler;
                     await _browser.CreateAsync(_source ?? "about:blank");
                     _isInit = true;
                     Log.Info(this, "Browser ready");
                 });
             }
 
-            if (_host!.Materials.Count == 0)
+            _host!.Materials.Clear();
+            _host.Materials.Add(new TextureMaterial()
             {
-                _host.Materials.Add(new TextureMaterial()
-                {
-                    Texture = new Texture2D()
-                });
-            }
+                Texture = new Texture2D()
+            });
 
             _input = _host!.DescendantsOrSelfComponents<ISurfaceInput>().First();
 
@@ -85,6 +85,10 @@ namespace XrEngine.Browser.Win
 
             base.Update(ctx);
         }
+
+        public ChromeWebBrowser Browser => _browser;
+
+        public IWebRequestHandler? RequestHandler { get; set; }  
 
 
         [Range(-10, 10, 0.1f)]

@@ -28,6 +28,7 @@ namespace XrEngine
             _changeListeners.Add(ShaderMeshLayerBuilder.Instance);
             _dispatcher = new QueueDispatcher();
             Current = this;
+            Context.Implement(this);
         }
 
         public void AddScene(Scene3D scene)

@@ -37,7 +37,6 @@ namespace XrEngine.OpenXr.Android
 
                 e.XrApp.Layers.AddWebView(context, display.BindToQuad(), controller);
             }
-
         });
     }
 }

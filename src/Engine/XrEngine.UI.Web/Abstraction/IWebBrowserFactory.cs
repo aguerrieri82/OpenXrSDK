@@ -4,12 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XrEngine
+namespace XrEngine.UI.Web
 {
-    public interface IWebBrowser
-    {
-
-    }
 
     public interface IWebBrowserFactory
     {
