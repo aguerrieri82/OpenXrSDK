@@ -30,6 +30,8 @@ namespace OpenXr.Framework.Android
 
         class WebClient : WebViewClient
         {
+            const string TAG = "WebClient Browser";
+
             readonly XrWebViewLayer _layer;
 
             public WebClient(XrWebViewLayer layer)
