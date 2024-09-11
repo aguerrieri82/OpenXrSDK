@@ -18,13 +18,15 @@ namespace XrEngine.OpenGL
 
         public abstract void Update();
 
-        public abstract void Draw();
+        public abstract void Draw(DrawPrimitive? forcePrimitive = null);
 
         public abstract void Dispose();
 
         public abstract GlVertexLayout Layout { get; }
 
         public abstract bool NeedUpdate { get; }
+
+        public abstract IVertexSource Source { get; }
 
         public long Version { get; protected set; }
 
@@ -59,14 +61,20 @@ namespace XrEngine.OpenGL
             _source = source;
             _vertices = new GlVertexArray<TVert, TInd>(gl, _source.Vertices, _source.Indices, layout);
 
-            _primitive = _source.Primitive switch
+            _primitive = GlPrimitive(_source.Primitive);
+
+            Version = -1;
+        }
+
+        static PrimitiveType GlPrimitive(DrawPrimitive drawPrimitive)
+        {
+            return drawPrimitive switch
             {
                 DrawPrimitive.Triangle => PrimitiveType.Triangles,
                 DrawPrimitive.Line => PrimitiveType.Lines,
+                DrawPrimitive.LineLoop => PrimitiveType.Patches,
                 _ => throw new NotSupportedException()
             };
-
-            Version = -1;
         }
 
         public override void Bind()
@@ -79,9 +87,9 @@ namespace XrEngine.OpenGL
             _vertices.Unbind();
         }
 
-        public override void Draw()
+        public override void Draw(DrawPrimitive? forcePrimitive = null)
         {
-            _vertices.Draw(_primitive);
+            _vertices.Draw(forcePrimitive != null ? GlPrimitive(forcePrimitive.Value) : _primitive);
         }
 
         public override void Update()
@@ -101,6 +109,8 @@ namespace XrEngine.OpenGL
 
             GC.SuppressFinalize(this);
         }
+
+        public override IVertexSource Source => _source;
 
         public override bool NeedUpdate => _source.Object.Version != Version || Version == -1;
 

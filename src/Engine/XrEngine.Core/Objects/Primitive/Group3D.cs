@@ -41,7 +41,7 @@ namespace XrEngine
 
         protected internal override void InvalidateWorld()
         {
-            _worldDirty = true;
+            base.InvalidateWorld();
 
             foreach (var child in _children)
                 child.InvalidateWorld();
@@ -50,6 +50,7 @@ namespace XrEngine
         public override void Reset(bool onlySelf = false)
         {
             base.Reset(onlySelf);
+
             if (!onlySelf)
             {
                 foreach (var child in _children)
@@ -89,6 +90,7 @@ namespace XrEngine
             return child;
         }
 
+        //TODO: optmize
         public override void UpdateBounds(bool force = false)
         {
             if (!_boundsDirty && !force)

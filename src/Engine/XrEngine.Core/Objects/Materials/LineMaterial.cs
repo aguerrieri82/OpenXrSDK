@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    public class LineMaterial : ShaderMaterial
+    public class LineMaterial : ShaderMaterial, ILineMaterial
     {
         static readonly Shader SHADER;
 
@@ -19,19 +19,23 @@
             : base()
         {
             _shader = SHADER;
+            LineWidth = 1;
         }
+
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             if (bld.Context.Camera != null)
             {
-                bld.SetUniform("uView", (ctx) => ctx.Camera!.View);
-                bld.SetUniform("uProjection", (ctx) => ctx.Camera!.Projection);
+                bld.SetUniform("uViewProj", (ctx) => ctx.Camera!.View * ctx.Camera!.Projection);
             }
 
             if (bld.Context.Model != null)
                 bld.SetUniform("uModel", (ctx) =>
                     ctx.Model!.WorldMatrix);
         }
+        public float LineWidth { get; set; }
+
+
     }
 }

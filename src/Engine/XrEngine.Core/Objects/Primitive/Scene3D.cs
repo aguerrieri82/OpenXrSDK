@@ -1,5 +1,7 @@
 ﻿
 
+using XrEngine.Layers;
+
 namespace XrEngine
 {
     public class Scene3D : Group3D, IObjectChangeListener
@@ -10,6 +12,7 @@ namespace XrEngine
         protected EngineApp? _app;
         protected UpdateHistory _history;
         protected Canvas3D _gizmos;
+        protected IDrawGizmos[]? _drawGizmos;
 
         public Scene3D()
         {
@@ -17,22 +20,39 @@ namespace XrEngine
             _history = new UpdateHistory(this);
             _scene = this;
             _gizmos = new Canvas3D();
-
-            AddChild(_gizmos.Content);
-
+            
             this.AddLayer<TypeLayer<Light>>();
             this.AddLayer<TypeLayer<Camera>>();
             this.AddLayer<TypeLayer<Object3D>>();
+            this.AddLayer<TypeLayer<Object3D>>();
+
+            this.AddLayer(new DetachedLayer() { Name = "Gizmos" }).Add(_gizmos.Content);
         }
 
         public void DrawGizmos()
         {
+            if (_drawGizmos == null || _drawGizmos.Length == 0)
+                return;
+
             _gizmos.Clear();
-            foreach (var draw in this.DescendantsOrSelfComponents<IDrawGizmos>())
+            
+            foreach (var draw in _drawGizmos)
                 draw.DrawGizmos(_gizmos);
+
             _gizmos.Flush();
         }
 
+        protected override void UpdateSelf(RenderContext ctx)
+        {
+            _layers.Layers.OfType<IRenderUpdate>().Update(ctx);
+
+            base.UpdateSelf(ctx);
+        }
+
+        protected void UpdateDrawGizmos()
+        {
+            _drawGizmos = this.DescendantsOrSelfComponents<IDrawGizmos>().ToArray();
+        }
 
         internal void Attach(EngineApp app)
         {
@@ -52,15 +72,17 @@ namespace XrEngine
             if (change.Type != ObjectChangeType.Transform)
             {
                 Version++;
+                
+                UpdateDrawGizmos();
 
                 ((IObjectChangeListener)_layers).NotifyChanged(object3D, change);
             }
 
+            foreach (var listener in _changeListener)
+                listener.NotifyChanged(object3D, change);
+
             if (_app != null)
             {
-                foreach (var listener in _changeListener)
-                    listener.NotifyChanged(object3D, change);
-
                 foreach (var listener in _app.ChangeListeners)
                     listener.NotifyChanged(object3D, change);
             }

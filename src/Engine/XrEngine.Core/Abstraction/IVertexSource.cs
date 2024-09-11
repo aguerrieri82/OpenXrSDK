@@ -3,7 +3,8 @@
     public enum DrawPrimitive
     {
         Triangle,
-        Line
+        Line,
+        LineLoop
     }
 
     public interface IVertexSource

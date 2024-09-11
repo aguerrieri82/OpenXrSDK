@@ -1,20 +1,22 @@
-﻿namespace XrEngine
+﻿using System;
+
+namespace XrEngine
 {
     public class LayerManager : IObjectChangeListener
     {
         readonly Scene3D _scene;
         readonly HashSet<string> _layersContent = [];
         readonly List<ILayer3D> _layers = [];
-
+        long _version;
         public LayerManager(Scene3D scene)
         {
             _scene = scene;
         }
 
-        public void Add(ILayer3D layer)
+        public T Add<T>(T layer) where T : ILayer3D
         {
             if (_layers.Contains(layer))
-                return;
+                return layer;
 
             _layers.Add(layer);
 
@@ -25,6 +27,10 @@
 
             foreach (var obj in _scene!.Descendants<Object3D>())
                 layer.NotifyChanged(obj, ObjectChangeType.SceneAdd);
+
+            _version++;
+
+            return layer;
         }
 
         public IEnumerable<T> OfType<T>() where T : ILayer3D
@@ -40,6 +46,8 @@
             _layers.Remove(layer);
 
             layer.Detach();
+
+            _version++;
         }
 
         void IObjectChangeListener.NotifyChanged(Object3D object3D, ObjectChange change)
@@ -67,5 +75,11 @@
         {
             return _layersContent.Contains(Hash(layer, obj));
         }
+
+        public Scene3D Scene => _scene;
+
+        public IReadOnlyList<ILayer3D> Layers => _layers;
+
+        public long Version => _version;
     }
 }
