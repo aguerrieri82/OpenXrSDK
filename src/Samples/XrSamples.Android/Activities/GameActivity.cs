@@ -49,7 +49,7 @@ namespace XrSamples.Android.Activities
             base.OnLoad();
         }
 
-        protected override void OnAppStarted(XrApp app)
+        protected override void OnXpAppStarted(XrApp app)
         {
             if (_engine?.App.Renderer is OpenGLRender openGL)
                 openGL.EnableDebug();
@@ -64,7 +64,7 @@ namespace XrSamples.Android.Activities
                 _webView.LoadUrl("https://www.youtube.com");
             }
 
-            base.OnAppStarted(app);
+            base.OnXpAppStarted(app);
         }
 
         protected override void Build(XrEngineAppBuilder builder)

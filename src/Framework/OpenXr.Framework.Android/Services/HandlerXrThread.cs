@@ -1,4 +1,5 @@
 ﻿using Android.OS;
+using Android.Util;
 
 
 namespace OpenXr.Framework.Android
@@ -15,6 +16,9 @@ namespace OpenXr.Framework.Android
 
         public Task<T> ExecuteAsync<T>(Func<T> action)
         {
+            if (Looper.MyLooper() == Looper.MainLooper)
+                return Task.FromResult(action());
+
             var source = new TaskCompletionSource<T>();
 
             _handler.Post(() =>
@@ -34,8 +38,11 @@ namespace OpenXr.Framework.Android
 
         public Task<T> ExecuteAsync<T>(Func<Task<T>> action)
         {
-            var source = new TaskCompletionSource<T>();
+            if (Looper.MyLooper() == Looper.MainLooper)
+                return action();
 
+            var source = new TaskCompletionSource<T>();
+           
             _handler.Post(() =>
             {
                 action().ContinueWith(t =>

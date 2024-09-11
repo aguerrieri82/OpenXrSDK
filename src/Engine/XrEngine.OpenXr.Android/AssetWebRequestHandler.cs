@@ -29,7 +29,8 @@ namespace XrEngine.OpenXr.Android
 
         public WebResponse? HandleRequest(WebRequest request)
         {
-  
+            Log.Info(this, "Browser Handle Request: {0}", request.Uri);
+
             var path = request.Uri!.LocalPath;
             if (path == "/")
                 path = "index.html";
@@ -40,15 +41,7 @@ namespace XrEngine.OpenXr.Android
             {
                 using var srcStream = _context.Assets!.Open(fullPath);
                 using var memStream = new MemoryStream();
-
-                var buf = new byte[64 * 1024];
-                while (true)
-                {
-                    var read = srcStream.Read(buf);
-                    if (read == 0)
-                        break;
-                    memStream.Write(buf, 0, read);  
-                }
+                srcStream.CopyTo(memStream);
 
                 var ext = Path.GetExtension(path).ToLower();
                 var mimeType = MimeMapper.GetMimeType(ext);
@@ -65,8 +58,12 @@ namespace XrEngine.OpenXr.Android
                     }
                 };
             }
-            catch
+            catch (Exception ex) 
             {
+                Log.Warn(this, "Browser Handle Request exception: {0}", request.Uri);
+
+                Log.Error(this, ex);
+
                 return new WebResponse
                 {
                     Code = 404

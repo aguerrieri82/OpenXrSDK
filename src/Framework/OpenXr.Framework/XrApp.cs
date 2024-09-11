@@ -585,6 +585,8 @@ namespace OpenXr.Framework
         {
             _lastSessionState = state;
 
+            _logger.LogInformation("Session state: {state}", state);
+
             switch (state)
             {
                 case SessionState.Ready:
@@ -601,7 +603,7 @@ namespace OpenXr.Framework
                     break;
             }
 
-            _logger.LogInformation("Session state: {state}", state);
+
         }
 
         #endregion
@@ -755,6 +757,7 @@ namespace OpenXr.Framework
 
             if (!_isValid)
             {
+                _logger.LogWarning("Invalid state, waiting...");
                 Thread.Sleep(100);
                 return false;
             }
