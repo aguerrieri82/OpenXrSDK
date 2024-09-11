@@ -11,5 +11,7 @@
         public bool IsLit { get; set; }
 
         public int Priority { get; set; }
+
+        public DrawPrimitive? ForcePrimitive { get; set; }  
     }
 }

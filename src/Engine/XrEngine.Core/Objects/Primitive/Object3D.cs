@@ -15,7 +15,7 @@ namespace XrEngine
 
         protected Transform3D _transform;
         protected Group3D? _parent;
-        protected Scene3D? _scene;
+        protected internal Scene3D? _scene;
         protected bool _isVisible;
 
         private double _creationTime;
@@ -97,7 +97,8 @@ namespace XrEngine
             if (change.IsAny(ObjectChangeType.Geometry))
                 InvalidateBounds();
 
-            _scene?.NotifyChanged(this, change);
+            if (_parent != null)
+                _scene?.NotifyChanged(this, change);
 
             base.OnChanged(change);
         }
@@ -112,6 +113,7 @@ namespace XrEngine
         {
             _worldDirty = true;
             _worldInverseDirty = true;
+            _boundsDirty = true;
         }
 
         protected internal void InvalidateBounds()
@@ -222,7 +224,6 @@ namespace XrEngine
         {
             get
             {
-
                 if (_boundsDirty)
                     UpdateBounds();
                 return _worldBounds;

@@ -70,7 +70,7 @@ namespace XrSamples
 
             var camera = new PerspectiveCamera
             {
-                Far = 50f,
+                Far = 30f,
                 Near = 0.01f,
                 BackgroundColor = new Color(0, 0, 0, 0),
                 Exposure = 1
@@ -684,9 +684,8 @@ namespace XrSamples
 
             var mesh = GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
             mesh.Name = "mesh";
-            // mesh.AddComponent<MeshCollider>();
+            mesh.AddComponent<MeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
-
 
             scene.AddChild(mesh);
 

@@ -3,9 +3,42 @@ using System.Runtime.CompilerServices;
 
 namespace XrMath
 {
+
     public static class MathExtensions
     {
+        #region PLANE
+        
+        public static bool IntersectLine(this Plane plane, Vector3 point1, Vector3 point2)
+        {
+            var distance1 = Plane.DotCoordinate(plane, point1);
+            var distance2 = Plane.DotCoordinate(plane, point2);
+
+            return distance1 * distance2 < 0;
+        }
+
+        #endregion
+
         #region BOUNDS
+
+        public static bool IntersectFrustum(this Bounds3 bounds, IEnumerable<Plane> planes)
+        {
+            foreach (var plane in planes)
+            {
+                if (plane.IntersectLine(bounds.Min, bounds.Max))
+                    return true;
+
+                Vector3 positiveVertex = new Vector3(
+                    (plane.Normal.X >= 0) ? bounds.Max.X : bounds.Min.X,
+                    (plane.Normal.Y >= 0) ? bounds.Max.Y : bounds.Min.Y,
+                    (plane.Normal.Z >= 0) ? bounds.Max.Z : bounds.Min.Z
+                );
+
+                if (Plane.DotCoordinate(plane, positiveVertex) < 0)
+                    return false;
+            }
+
+            return true;
+        }
 
         public static Bounds3 ComputeBounds(this IEnumerable<Vector3> points, Matrix4x4 matrix)
         {

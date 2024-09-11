@@ -12,5 +12,9 @@
         bool IsVisible { get; set; }
 
         ObjectId Id { get; }
+
+        long Version { get; }
+
+        string Name { get; set; }
     }
 }

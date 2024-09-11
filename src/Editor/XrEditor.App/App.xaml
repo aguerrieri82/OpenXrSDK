@@ -10,6 +10,7 @@
                 <ResourceDictionary Source="/Theme/MenuItem.xaml"/>
                 <ResourceDictionary Source="/Theme/ToolBar.xaml"/>
                 <ResourceDictionary Source="/Theme/ContextMenu.xaml"/>
+                <ResourceDictionary Source="/Theme/ComboBox.xaml"/>
                 <ResourceDictionary Source="/Views/ListTreeView.xaml"/>
                 <ResourceDictionary Source="/Views/IconTextView.xaml"/>
                 <ResourceDictionary Source="/Views/ToolBarView.xaml"/>

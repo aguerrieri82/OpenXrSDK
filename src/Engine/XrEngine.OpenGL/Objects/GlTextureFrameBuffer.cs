@@ -116,25 +116,15 @@ namespace XrEngine.OpenGL
 
         public void CopyTo(GlTextureFrameBuffer dest)
         {
+            DrawBufferMode[] drawBuffers = [DrawBufferMode.ColorAttachment0];
+
             _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, _handle);
-            /*
-            _gl.FramebufferTexture2D(
-                FramebufferTarget.ReadFramebuffer,
-                FramebufferAttachment.ColorAttachment0,
-                Color.Target,
-                Color, 0);
-             */
+
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
 
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, dest.Handle);
-            /*
-            _gl.FramebufferTexture2D(
-                 FramebufferTarget.DrawFramebuffer,
-                 FramebufferAttachment.ColorAttachment0,
-                 dest.Color.Target,
-                 dest.Color, 0);
-             */
-            _gl.DrawBuffers(1, DrawBufferMode.ColorAttachment0);
+
+            _gl.DrawBuffers(drawBuffers);
 
             _gl.BlitFramebuffer(0, 0, (int)Color!.Width, (int)Color.Height, 0, 0, (int)dest.Color!.Width, (int)dest.Color.Height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
         }

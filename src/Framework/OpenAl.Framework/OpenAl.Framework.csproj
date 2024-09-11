@@ -5,7 +5,7 @@
 		<PackageReference Include="Silk.NET.OpenAL" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.OpenAL.Extensions.Enumeration" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.OpenAL.Extensions.Soft" Version="2.21.0" />
-		<PackageReference Include="System.Text.Json" Version="9.0.0-preview.7.24405.7" />
+		<PackageReference Include="System.Text.Json" Version="9.0.0-rc.1.24431.7" />
 	</ItemGroup>
 
 </Project>

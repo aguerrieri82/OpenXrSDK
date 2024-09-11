@@ -9,6 +9,8 @@ using System.Text;
 using XrMath;
 using SkiaSharp;
 using System.Runtime.InteropServices;
+using XrEngine.Layers;
+using System.Reflection.Emit;
 
 
 namespace XrEngine.OpenGL
@@ -20,10 +22,6 @@ namespace XrEngine.OpenGL
         public long ImageLightVersion = -1;
 
         public long LightsVersion = -1;
-
-        public long SceneVersion = -1;
-
-        public Scene3D? Scene;
 
         public readonly Dictionary<Shader, ShaderContent> ShaderContents = [];
 
@@ -71,10 +69,10 @@ namespace XrEngine.OpenGL
             public bool? Wireframe;
             public AlphaMode? Alpha;
             public Rect2I? LastView;
+            public float? LineWidth;
         }
 
         protected GL _gl;
-        protected Dictionary<Scene3D, GlobalContent> _contents = [];
         protected IGlRenderTarget? _target;
         protected GlRenderOptions _options;
         protected GlDefaultRenderTarget _defaultTarget;
@@ -86,6 +84,9 @@ namespace XrEngine.OpenGL
         protected GRContext? _grContext;
         protected QueueDispatcher _dispatcher;
         protected GlTextureRenderTarget? _texRenderTarget = null;
+        protected IList<GlLayer> _layers = [];
+        protected Scene3D? _lastScene;
+        protected long _lastLayersVersion;
 
         public static class Props
         {
@@ -110,6 +111,7 @@ namespace XrEngine.OpenGL
             _gl = gl;
             _options = options;
             _defaultTarget = new GlDefaultRenderTarget(gl);
+            _lastLayersVersion = -1;
             _target = _defaultTarget;
 
             _updateCtx = new UpdateShaderContext();
@@ -149,110 +151,16 @@ namespace XrEngine.OpenGL
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
-        protected GlobalContent BuildContent(Scene3D scene)
-        {
-            Log.Info(this, "Building content...");
-
-            if (!_contents.TryGetValue(scene, out var content))
-            {
-                content = new GlobalContent();
-                _contents[scene] = content;
-            }
-
-            content.Lights = new List<Light>();
-            content.Scene = scene;
-            content.SceneVersion = scene.Version;
-            content.ShaderContents.Clear();
-            content.LightsVersion++;
-
-            var drawId = 0;
-
-            foreach (var light in scene.VisibleDescendants<Light>())
-            {
-                content.Lights.Add(light);
- 
-
-                if (light is ImageLight imgLight)
-                {
-                    if (imgLight.Panorama?.Data != null && imgLight.Panorama.Version != content.ImageLightVersion)
-                    {
-                        var options = PanoramaProcessorOptions.Default();
-                        options.SampleCount = 1024;
-                        options.Resolution = 256;
-                        options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
-                        imgLight.Textures = ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
-                        imgLight.Panorama.NotifyLoaded();
-                        content.ImageLightVersion = imgLight.Panorama.Version;
-                        ResetState();
-                    }
-                }
-            }
 
 
-            foreach (var obj3D in scene.VisibleDescendants<Object3D>())
-            {
-                if (obj3D is Light light)
-                    continue;
-
-                if (!obj3D.Feature<IVertexSource>(out var vrtSrc))
-                    continue;
-
-
-                foreach (var material in vrtSrc.Materials.OfType<ShaderMaterial>())
-                {
-                    if (material.Shader == null)
-                        continue;
-
-                    if (!content.ShaderContents.TryGetValue(material.Shader, out var shaderContent))
-                    {
-                        shaderContent = new ShaderContent
-                        {
-                            ProgramGlobal = material.Shader.GetResource(gl => new GlProgramGlobal(_gl, material.GetType()))
-                        };
-
-                        content.ShaderContents[material.Shader] = shaderContent;
-                    }
-
-                    if (!shaderContent.Contents.TryGetValue(vrtSrc.Object, out var vertexContent))
-                    {
-                        vertexContent = new VertexContent
-                        {
-                            VertexHandler = vrtSrc.Object.GetResource(a => GlVertexSourceHandle.Create(_gl, vrtSrc)),
-                            ActiveComponents = VertexComponent.None
-                        };
-
-                        foreach (var attr in vertexContent.VertexHandler.Layout!.Attributes!)
-                            vertexContent.ActiveComponents |= attr.Component;
-
-                        shaderContent.Contents[vrtSrc.Object] = vertexContent;
-                    }
-
-                    vertexContent.Contents.Add(new DrawContent
-                    {
-                        Draw = () => vertexContent!.VertexHandler!.Draw(),
-                        ProgramInstance = new GlProgramInstance(_gl, material, shaderContent.ProgramGlobal!),
-                        DrawId = drawId++,
-                        Object = obj3D
-                    });
-                }
-            }
-
-            //_content.ShaderContentsOrder.Clear();
-            //_content.ShaderContentsOrder.AddRange(_content.ShaderContents);
-
-            Log.Debug(this, "Content Build");
-
-            return content;
-        }
-
-        protected void ResetState()
+        protected internal void ResetState()
         {
             _glState = new GlState();
 
             GL.DrawBuffers(_drawAttachment0.AsSpan());
         }
 
-        public void EnableDebug()
+        public unsafe void EnableDebug()
         {
             _gl.DebugMessageCallback((source, type, id, sev, len, msg, param) =>
            {
@@ -271,7 +179,7 @@ namespace XrEngine.OpenGL
                    Debug.WriteLine($"------ OPENGL: {text}");
                    Debug.WriteLine($"\n\n\n");
                }
-           }, 0);
+           }, null);
 
             _gl.Enable(EnableCap.DebugOutput);
         }
@@ -292,22 +200,27 @@ namespace XrEngine.OpenGL
             _gl.Enable(EnableCap.Dither);
             _gl.Enable(EnableCap.Multisample);
             _gl.Disable(EnableCap.ScissorTest);
-            _gl.LineWidth(1);
-
         }
 
         protected void ConfigureCaps(ShaderMaterial material)
         {
+            if (_glState.UseDepth != material.UseDepth || _glState.WriteDepth != material.WriteDepth)
+                EnableFeature(EnableCap.DepthTest, material.UseDepth || material.WriteDepth);
+
+            if (_glState.UseDepth != material.UseDepth)
+            {
+                if (!material.UseDepth)
+                    _gl.DepthFunc(DepthFunction.Always);
+                else
+                    _gl.DepthFunc(DepthFunction.Less);
+
+                _glState.UseDepth = material.UseDepth;
+            }
+
             if (_glState.WriteDepth != material.WriteDepth)
             {
                 _gl.DepthMask(material.WriteDepth);
                 _glState.WriteDepth = material.WriteDepth;
-            }
-
-            if (_glState.UseDepth != material.UseDepth)
-            {
-                EnableFeature(EnableCap.DepthTest, material.UseDepth);
-                _glState.UseDepth = material.UseDepth;
             }
 
             if (_glState.DoubleSided != material.DoubleSided)
@@ -347,6 +260,15 @@ namespace XrEngine.OpenGL
                 _glState.Wireframe = isWireframe;
             }
 #endif
+
+            if (material is ILineMaterial line)
+            {
+                if (line.LineWidth != _glState.LineWidth)
+                {
+                    _gl.LineWidth(line.LineWidth);
+                    _glState.LineWidth = line.LineWidth;
+                }
+            }
         }
 
         public void Render(Scene3D scene, Camera camera, Rect2I view, bool flush)
@@ -355,10 +277,25 @@ namespace XrEngine.OpenGL
                 Render(scene, camera, view, _target);
         }
 
+        protected void UpdateLayers(Scene3D scene)
+        {
+            if (_lastScene == scene && _lastLayersVersion == scene.Layers.Version)
+                return;
+
+            _layers.Clear();
+
+            _layers.Add(new GlLayer(this, scene));
+
+            foreach (var layer in scene.Layers.Layers.OfType<DetachedLayer>())
+                _layers.Add(new GlLayer(this, scene, layer));
+
+            _lastScene = scene;
+            _lastLayersVersion = scene.Layers.Version;
+        }
+
         public void Render(Scene3D scene, Camera camera, Rect2I view, IGlRenderTarget target)
         {
-            if (!_contents.TryGetValue(scene, out var content) || content.SceneVersion != scene.Version)
-                content = BuildContent(scene);
+            UpdateLayers(scene);
 
             target.Begin();
 
@@ -373,69 +310,87 @@ namespace XrEngine.OpenGL
 
             var targetHandler = target as IShaderHandler;
 
-            _updateCtx.Camera = camera;
-            _updateCtx.Lights = content.Lights;
-            _updateCtx.LightsVersion = content.LightsVersion;
-
             int skipCount = 0;
 
-            foreach (var shader in content.ShaderContents.OrderBy(a => a.Key.Priority))
+            var planes = camera.FrustumPlanes();
+
+            foreach (var layer in _layers)
             {
-                var progGlobal = shader.Value!.ProgramGlobal;
+                if (layer.NeedUpdate)
+                    layer.Update();
+            }
 
-                _updateCtx.Shader = shader.Key;
+            _updateCtx.Camera = camera;
+            _updateCtx.Lights = _layers[0].Content.Lights;
+            _updateCtx.LightsVersion = _layers[0].Content.LightsVersion;
 
-                progGlobal!.UpdateProgram(_updateCtx, _target as IShaderHandler);
+            for (var i = _layers.Count -1; i >= 0; i--)
+            {
+                var content = _layers[i].Content;
 
-                foreach (var vertex in shader.Value.Contents)
+                foreach (var shader in content.ShaderContents.OrderBy(a => a.Key.Priority))
                 {
-                    var vHandler = vertex.Value.VertexHandler!;
+                    var progGlobal = shader.Value!.ProgramGlobal;
 
-                    if (vertex.Key is TriangleMesh mesh)
+                    _updateCtx.Shader = shader.Key;
+
+                    progGlobal!.UpdateProgram(_updateCtx, _target as IShaderHandler);
+
+                    foreach (var vertex in shader.Value.Contents)
                     {
-                        if (!camera.CanSee(mesh.WorldBounds))
+                        var vHandler = vertex.Value.VertexHandler!;
+
+                        if (vHandler.Source is TriangleMesh mesh && _options.FrustumCulling)
                         {
-                            skipCount++;
-                            // continue;
-                        }
-                    }
-
-                    if (vHandler.NeedUpdate)
-                        vHandler.Update();
-
-                    _updateCtx.ActiveComponents = vertex.Value.ActiveComponents;
-
-                    vHandler.Bind();
-
-                    foreach (var draw in vertex.Value.Contents)
-                    {
-                        var progInst = draw.ProgramInstance!;
-
-                        _updateCtx.Model = draw.Object;
-
-                        progInst.UpdateProgram(_updateCtx);
-
-                        _updateCtx.InstanceId = progInst.Program!.Handle;
-
-                        bool updateGlobals = false;
-
-                        if (_glState.ActiveProgram != progInst.Program!.Handle)
-                        {
-                            progInst.Program!.Use();
-                            _glState.ActiveProgram = progInst.Program!.Handle;
-                            updateGlobals = true;
+                            if (!mesh.WorldBounds.IntersectFrustum(planes))
+                            {
+                                skipCount++;
+                                continue;
+                            }
                         }
 
-                        progInst.UpdateUniforms(_updateCtx, updateGlobals);
+                        if (vHandler.NeedUpdate)
+                            vHandler.Update();
 
-                        ConfigureCaps(draw.ProgramInstance!.Material!);
+                        _updateCtx.ActiveComponents = vertex.Value.ActiveComponents;
 
-                        draw.Draw!();
+                        vHandler.Bind();
+
+                        foreach (var draw in vertex.Value.Contents)
+                        {
+                            var progInst = draw.ProgramInstance!;
+
+                            if (!progInst.Material!.IsEnabled)
+                                continue;
+
+                            _updateCtx.Model = draw.Object;
+
+                            progInst.UpdateProgram(_updateCtx);
+
+                            _updateCtx.InstanceId = progInst.Program!.Handle;
+
+                            bool updateGlobals = false;
+
+                            if (_glState.ActiveProgram != progInst.Program!.Handle)
+                            {
+                                progInst.Program!.Use();
+                                _glState.ActiveProgram = progInst.Program!.Handle;
+                                updateGlobals = true;
+                            }
+
+                            progInst.UpdateUniforms(_updateCtx, updateGlobals);
+
+                            ConfigureCaps(draw.ProgramInstance!.Material!);
+
+                            draw.Draw!();
+                        }
+
+                        vHandler.Unbind();
                     }
-
-                    vHandler.Unbind();
                 }
             }
+
+           
 
             _glState.ActiveProgram = null;
 

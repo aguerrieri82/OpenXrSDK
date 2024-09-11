@@ -16,6 +16,7 @@
         {
             Alpha = AlphaMode.Opaque;
             Version = 0;
+            IsEnabled = true;
         }
 
         public void Attach(EngineObject host)
@@ -60,6 +61,8 @@
         public bool DoubleSided { get; set; }
 
         public AlphaMode Alpha { get; set; }
+
+        public bool IsEnabled { get; set; }
 
         public string? Name { get; set; }
     }

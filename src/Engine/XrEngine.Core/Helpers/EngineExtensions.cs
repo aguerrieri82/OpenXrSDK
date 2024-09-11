@@ -6,6 +6,8 @@ using XrMath;
 
 namespace XrEngine
 {
+
+
     public struct ObjectFeature<T> where T : notnull
     {
 
@@ -269,6 +271,41 @@ namespace XrEngine
         #region GEOMETRY
 
         public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, T value);
+
+        public static Geometry3D TransformToLine(this Geometry3D src)
+        {
+            var res = new Geometry3D();
+            if (src.Indices.Length > 0)
+            {
+                var srcI = 0;
+                var dstI = 0;
+                var newIndices = new uint[src.Indices.Length * 2];
+                var newSpan = newIndices.AsSpan();
+                var srcSpan = src.Indices.AsSpan();
+
+                while (srcI < src.Indices!.Length)
+                {
+                    newSpan[dstI + 0] = srcSpan[srcI + 0];
+                    newSpan[dstI + 1] = srcSpan[srcI + 1];
+                    newSpan[dstI + 2] = srcSpan[srcI + 1];
+                    newSpan[dstI + 3] = srcSpan[srcI + 2];
+                    newSpan[dstI + 4] = srcSpan[srcI + 2];
+                    newSpan[dstI + 5] = srcSpan[srcI + 0];
+                    srcI += 3;
+                    dstI += 6;
+                }
+
+                res.Vertices = src.Vertices;
+                res.Indices = newIndices;
+
+            }
+            else
+            {
+
+            }
+
+            return res;
+        }
 
         public static unsafe Vector3[] ExtractPositions(this Geometry3D geo, bool useIndex = false)
         {
@@ -578,6 +615,71 @@ namespace XrEngine
             return new Vector3(pos4.X, pos4.Y, pos4.Z);
         }
 
+
+        public static IList<Plane> FrustumPlanes(this Camera camera)
+        {
+            var viewProjectionMatrix = camera.View * camera.Projection;
+
+            var planes = new Plane[6];
+
+            // Left plane
+            planes[0] = new Plane(
+                viewProjectionMatrix.M14 + viewProjectionMatrix.M11,
+                viewProjectionMatrix.M24 + viewProjectionMatrix.M21,
+                viewProjectionMatrix.M34 + viewProjectionMatrix.M31,
+                viewProjectionMatrix.M44 + viewProjectionMatrix.M41
+            );
+
+            // Right plane
+            planes[1] = new Plane(
+                viewProjectionMatrix.M14 - viewProjectionMatrix.M11,
+                viewProjectionMatrix.M24 - viewProjectionMatrix.M21,
+                viewProjectionMatrix.M34 - viewProjectionMatrix.M31,
+                viewProjectionMatrix.M44 - viewProjectionMatrix.M41
+            );
+
+            // Top plane
+            planes[2] = new Plane(
+                viewProjectionMatrix.M14 - viewProjectionMatrix.M12,
+                viewProjectionMatrix.M24 - viewProjectionMatrix.M22,
+                viewProjectionMatrix.M34 - viewProjectionMatrix.M32,
+                viewProjectionMatrix.M44 - viewProjectionMatrix.M42
+            );
+
+            // Bottom plane
+            planes[3] = new Plane(
+                viewProjectionMatrix.M14 + viewProjectionMatrix.M12,
+                viewProjectionMatrix.M24 + viewProjectionMatrix.M22,
+                viewProjectionMatrix.M34 + viewProjectionMatrix.M32,
+                viewProjectionMatrix.M44 + viewProjectionMatrix.M42
+            );
+
+            // Near plane
+            planes[4] = new Plane(
+                viewProjectionMatrix.M13,
+                viewProjectionMatrix.M23,
+                viewProjectionMatrix.M33,
+                viewProjectionMatrix.M43
+            );
+
+            // Far plane
+            planes[5] = new Plane(
+                viewProjectionMatrix.M14 - viewProjectionMatrix.M13,
+                viewProjectionMatrix.M24 - viewProjectionMatrix.M23,
+                viewProjectionMatrix.M34 - viewProjectionMatrix.M33,
+                viewProjectionMatrix.M44 - viewProjectionMatrix.M43
+            );
+
+            // Normalize the planes
+            for (int i = 0; i < 6; i++)
+            {
+                planes[i] = Plane.Normalize(planes[i]);
+            }
+            return planes;  
+        }
+
+
+        /*
         public static IEnumerable<Line3> FrustumLines(this Camera camera)
         {
             var minZ = 0;
@@ -629,6 +731,7 @@ namespace XrEngine
 
             return false;
         }
+        */
 
         #endregion
 
@@ -765,7 +868,15 @@ namespace XrEngine
 
         public static void Update<T>(this IEnumerable<T> target, RenderContext ctx) where T : IRenderUpdate
         {
-            target.ForeachSafe(a => a.Update(ctx));
+            foreach (var item in target)
+                item.Update(ctx);
+
+            //target.ForeachSafe(a => a.Update(ctx));
+        }
+
+        public static void Reset<T>(this IEnumerable<T> target, bool onlySelf) where T : IRenderUpdate
+        {
+            //target.ForeachSafe(a => a.Reset(onlySelf));
         }
 
         public static T Load<T>(this AssetLoader self, string filePath, IAssetLoaderOptions? options = null) where T : EngineObject

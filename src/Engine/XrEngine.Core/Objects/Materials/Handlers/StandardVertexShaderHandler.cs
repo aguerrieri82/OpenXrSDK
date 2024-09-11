@@ -12,8 +12,7 @@ namespace XrEngine
             {
                 var camera = ctx.Camera!;
 
-                up.SetUniform("uView", camera.View);
-                up.SetUniform("uProjection", camera.Projection);
+                up.SetUniform("uViewProj", camera.View * camera.Projection);
                 up.SetUniform("uViewPos", camera.Transform.Position, true);
                 up.SetUniform("uFarPlane", camera.Far);
 

@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using XrEditor.Services;
 using XrEngine;
+using XrEngine.Layers;
 using XrInteraction;
 using XrMath;
 
@@ -12,17 +13,70 @@ namespace XrEditor
         private readonly NodeManager _nodes;
         private INode[] _lastSelection = [];
         private Vector2 _downPos;
+        private DetachedLayer? _selectionLayer;
+        private OutlineMaterial _selectionMat;
+
 
         public SelectionTool()
         {
             _selection = Context.Require<SelectionManager>();
             _selection.Changed += OnSelectionChanged;
             _nodes = Context.Require<NodeManager>();
+            _selectionMat = new OutlineMaterial(new Color(1, 1,0, 0.8f), 10);
+        }
+
+        public override void NotifySceneChanged()
+        {
+            if (_sceneView?.Scene == null)
+                return;
+
+            var layers = _sceneView.Scene.Layers;
+
+            _selectionLayer = layers.Layers
+                .OfType<DetachedLayer>()
+                .Where(a => a.Name == "Selection")
+                .FirstOrDefault();
+
+            _selectionLayer ??= layers.Add(new DetachedLayer() { Name = "Selection" });
+
+            base.NotifySceneChanged();
         }
 
         private void OnSelectionChanged(IReadOnlyCollection<INode> items)
         {
             _lastSelection = items.ToArray();
+
+            if (_selectionLayer != null)
+            {
+                _selectionLayer.BeginUpdate();
+                _selectionLayer.Clear();
+
+                foreach (var item in _lastSelection.Select(a=> a.Value).OfType<TriangleMesh>())
+                    _selectionLayer.Add(PrepareMeshOutline(item));
+
+                _selectionLayer.EndUpdate();
+            }
+        }
+
+        protected TriangleMesh PrepareMeshOutline(TriangleMesh mesh)
+        {
+            var outline = mesh.GetProp<TriangleMesh>("Outline");
+            if (outline == null)
+            {
+                outline = new TriangleMesh(mesh.Geometry!.TransformToLine());
+                outline.Materials.Add(_selectionMat);
+
+                mesh.SetProp("Outline", outline);
+
+                mesh.AddBehavior((_, _) =>
+                {
+                    outline.WorldMatrix = mesh.WorldMatrix;
+                });
+            }
+
+
+
+            return outline;
         }
 
         protected override void OnPointerDown(Pointer2Event ev)

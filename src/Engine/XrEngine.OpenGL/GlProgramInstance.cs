@@ -56,7 +56,8 @@ namespace XrEngine.OpenGL
                 foreach (var feature in Global.Update!.Features!)
                     program.AddFeature(feature);
 
-                //program.AddFeature("ZLOG_F 0.01");
+                //TODO not working
+                //program.AddFeature("ZLOG_F 0.001");
 
                 program.Build();
 

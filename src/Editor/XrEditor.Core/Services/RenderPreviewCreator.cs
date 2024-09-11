@@ -44,6 +44,7 @@ namespace XrEditor.Services
             camera.SetFov(45, _texture.Width, _texture.Height);
 
             _scene.ActiveCamera = camera;
+            _scene.Name = "Preview";
 
             _light = new ImageLight();
             _light.LoadPanorama("res://asset/pisa.hdr");
@@ -131,7 +132,7 @@ namespace XrEditor.Services
             fixed (byte* pData = data.Data.Span)
             fixed (byte* pDst = dst)
             {
-                XrNativeLib.ImageFlipY(new nint(pData), new nint(pDst), _texture.Width, _texture.Height, _texture.Width * 4);
+                EngineNativeLib.ImageFlipY(new nint(pData), new nint(pDst), _texture.Width, _texture.Height, _texture.Width * 4);
                 image.SetPixels(new nint(pDst));
             }
 

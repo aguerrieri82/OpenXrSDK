@@ -59,7 +59,7 @@ namespace XrEngine
                 fixed (byte* pData = data.Data.Span)
                 fixed (byte* pDst = dst)
                 {
-                    XrNativeLib.ImageFlipY(new nint(pData), new nint(pDst), data.Width, data.Height, data.Width * 4);
+                    EngineNativeLib.ImageFlipY(new nint(pData), new nint(pDst), data.Width, data.Height, data.Width * 4);
                     image.SetPixels(new nint(pDst));
                 }
             }
