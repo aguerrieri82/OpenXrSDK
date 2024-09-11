@@ -2,6 +2,8 @@
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
+using Android.Util;
+using Microsoft.Extensions.Logging;
 
 
 namespace OpenXr.Framework.Android
@@ -19,22 +21,22 @@ namespace OpenXr.Framework.Android
             AskPermissions,
             Done,
         }
-
         private Thread? _loopThread;
         private XrApp? _xrApp;
         private bool _isExited;
-        private readonly Handler _handler;
+        protected readonly HandlerXrThread _mainThread = new HandlerXrThread(new Handler(Looper.MainLooper!));
         protected string[] _permissions;
         private LoadStep _loadStep;
 
+
         public XrActivity()
         {
-            _handler = new Handler(Looper.MainLooper!);
-            _permissions = [
-                "com.oculus.permission.USE_SCENE",
+            _isExited = false;
+             _permissions = [
+               "com.oculus.permission.USE_SCENE",
                 "android.permission.WRITE_EXTERNAL_STORAGE",
                 "android.permission.READ_EXTERNAL_STORAGE"
-                ];
+               ];
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)
@@ -51,13 +53,15 @@ namespace OpenXr.Framework.Android
         protected abstract XrApp CreateApp();
 
 
-        protected virtual void OnAppStarted(XrApp app)
+        protected virtual void OnXpAppStarted(XrApp app)
         {
 
         }
 
         protected override void OnDestroy()
         {
+            Log.Warn("Life", $"Activity: DESTROY");
+
             _xrApp?.Dispose();
 
             _loopThread?.Join();
@@ -75,18 +79,32 @@ namespace OpenXr.Framework.Android
 
         void RunApp()
         {
-            _xrApp = CreateApp();
+            try
+            {
+                _xrApp = CreateApp();
 
-            _xrApp.Start();
+                _xrApp.Start();
 
-            _handler.Post(() => OnAppStarted(_xrApp));
+                _mainThread.ExecuteAsync(() => OnXpAppStarted(_xrApp)).Wait();
 
-            while (_xrApp.IsStarted)
-                _xrApp.RenderFrame(_xrApp.Stage);
-
-            _isExited = true;
-            System.Diagnostics.Debug.WriteLine("---Run App exit---");
-
+                while (_xrApp.IsStarted)
+                {
+                    try
+                    {
+                        _xrApp.RenderFrame(_xrApp.Stage);
+                    }
+                    catch (Exception ex)
+                    {
+                        _xrApp.Logger.LogError(ex.ToString());
+                        _xrApp.Stop();
+                    }
+                }
+            }
+            finally
+            {
+                _isExited = true;
+                _xrApp?.Logger.LogInformation("---Run App exit---");
+            }
         }
 
         private void CheckPermissions()
@@ -139,7 +157,7 @@ namespace OpenXr.Framework.Android
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)
         {
             /*if (requestCode == PERMISSIONS_REQUEST && grantResults.All(a => a == Permission.Granted))*/
-                NextLoadStep();
+            NextLoadStep();
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }

@@ -1,6 +1,8 @@
 ﻿using Android.Content;
+using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
+using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Android.Webkit;
@@ -30,7 +32,7 @@ namespace OpenXr.Framework.Android
 
         class WebClient : WebViewClient
         {
-            const string TAG = "WebClient Browser";
+            const string TAG = "WebClient";
 
             readonly XrWebViewLayer _layer;
 
@@ -41,6 +43,7 @@ namespace OpenXr.Framework.Android
 
             public override WebResourceResponse? ShouldInterceptRequest(WebView? view, IWebResourceRequest? request)
             {
+                Log.Debug(TAG, "ShouldInterceptRequest");
                 if (_layer.ShouldInterceptRequest != null)
                     return _layer.ShouldInterceptRequest(request!);
                 return base.ShouldInterceptRequest(view, request);
@@ -54,31 +57,36 @@ namespace OpenXr.Framework.Android
 
             public override void OnPageFinished(WebView? view, string? url)
             {
-                _layer.UpdateScale();
+                //_layer.UpdateScale();
                 base.OnPageFinished(view, url);
             }
         }
 
         class ChromeClient : WebChromeClient
         {
+            const string TAG = "ChromeClient Browser";
 
             public override void OnPermissionRequest(PermissionRequest? request)
             {
+                Log.Debug(TAG, "OnPermissionRequest");
                 base.OnPermissionRequest(request);
             }
 
             public override void OnReceivedTitle(WebView? view, string? title)
             {
+                Log.Debug(TAG, "OnReceivedTitle");
                 base.OnReceivedTitle(view, title);
             }
 
             public override void OnShowCustomView(global::Android.Views.View? view, ICustomViewCallback? callback)
             {
+                Log.Debug(TAG, "OnShowCustomView");
                 base.OnShowCustomView(view, callback);
             }
 
             public override void OnHideCustomView()
             {
+                Log.Debug(TAG, "OnHideCustomView");
                 base.OnHideCustomView();
             }
         }
@@ -139,19 +147,26 @@ namespace OpenXr.Framework.Android
         protected Vector2 _lastLayerSize;
         protected InputController _input;
 
+
         public XrWebViewLayer(Context context, GetQuadDelegate getQuad, ISurfaceInput surfaceInput)
             : base(getQuad)
         {
             var quad = getQuad();
 
-            _size.Width = (int)(quad.Size.X * 1700);
-            _size.Height = (int)(quad.Size.Y * 1700);
+            _size.Width = AlignToMultiple((int)(quad.Size.X * 1700), 32);
+            _size.Height = AlignToMultiple((int)(quad.Size.Y * 1700), 32);
 
             _mainThread = new HandlerXrThread(new Handler(Looper.MainLooper!));
             _context = context;
             _input = new InputController(surfaceInput, _mainThread);
 
             _ = _mainThread.ExecuteAsync(CreateWebView);
+        }
+
+        public static int AlignToMultiple(int number, int bitSize)
+        {
+            int mask = (1 << bitSize) - 1; // Create a mask with the bit size
+            return (number + mask) & ~mask; // Align the number to the nearest multiple
         }
 
         protected void ScheduleDraw(Action<Canvas> action)
@@ -161,11 +176,8 @@ namespace OpenXr.Framework.Android
 
         protected virtual internal void Draw(Action<Canvas> action)
         {
-
-    
             if (_surface == null)
                 return;
-
             var newCanvas = _surface.LockHardwareCanvas();
             try
             {
@@ -187,8 +199,6 @@ namespace OpenXr.Framework.Android
                 if (newCanvas != null)
                     _surface.UnlockCanvasAndPost(newCanvas);
             }
-
-
         }
 
         protected override bool Update(ref CompositionLayerQuad layer, ref Silk.NET.OpenXR.View[] views, long predTime)
