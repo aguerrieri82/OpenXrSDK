@@ -34,7 +34,7 @@ namespace PhysX.Framework
         {
             LengthTolerance = 1;
             SpeedTolerance = 4;
-            DebugHost = "localhost";
+            DebugHost = "192.168.1.89";
             DebugPort = 5425;
             UseDebug = true;
             Gravity = new Vector3(0, -9.81f, 0);

@@ -3,6 +3,8 @@ using Android.Content.PM;
 using Android.Webkit;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
+using OpenXr.Framework.Oculus;
+using Silk.NET.OpenXR;
 using System.Text.Json;
 using XrEngine;
 using XrEngine.OpenGL;
@@ -54,7 +56,7 @@ namespace XrSamples.Android.Activities
             if (_engine?.App.Renderer is OpenGLRender openGL)
                 openGL.EnableDebug();
 
-            // app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
+             app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
 
             _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayer>().FirstOrDefault();
 

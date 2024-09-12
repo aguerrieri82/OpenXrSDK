@@ -259,6 +259,8 @@ namespace XrEngine.Physics
                 if (Type == PhysicsActorType.Kinematic)
                     DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableSpeculativeCcd;
             }
+
+            Configure?.Invoke(this);
         }
 
         protected void UpdatePhysics()
@@ -383,6 +385,8 @@ namespace XrEngine.Physics
                 _contactEvent -= value;
             }
         }
+
+        public Action<RigidBody>? Configure { get; set; }
 
         public float ContactReportThreshold { get; set; }
 

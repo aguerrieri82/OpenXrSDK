@@ -766,6 +766,8 @@ namespace OpenXr.Framework
 
             var frameTime = state.PredictedDisplayTime;
 
+            FramePredictedDisplayTime = frameTime;
+
             TrySyncActions(space, frameTime);
 
             foreach (var hand in _hands)
@@ -1239,6 +1241,9 @@ namespace OpenXr.Framework
                         case StructureType.EventDataInstanceLossPending:
                             //TODO handle
                             break;
+                        case StructureType.EventDataReferenceSpaceChangePending:
+                            //TODO handle
+                            break;
                     }
 
                     PluginInvoke(p => p.HandleEvent(ref buffer));
@@ -1400,5 +1405,6 @@ namespace OpenXr.Framework
 
         public static XrApp? Current { get; internal set; }
 
+        public long FramePredictedDisplayTime { get; private set; }
     }
 }

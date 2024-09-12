@@ -13,5 +13,7 @@ namespace OpenXr.Framework
         public Pose3? Pose { get; set; }
 
         public Mesh? Mesh { get; set; }
+
+        public ulong Space { get; set; }
     }
 }

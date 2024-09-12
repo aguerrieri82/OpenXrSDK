@@ -69,7 +69,7 @@ namespace XrEngine
 
         public void NotifyChanged(Object3D object3D, ObjectChange change)
         {
-            if (change.Type != ObjectChangeType.Transform)
+            if (change.Type != ObjectChangeType.Transform && change.Target is not Material)
             {
                 Version++;
                 
