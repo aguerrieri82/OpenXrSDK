@@ -28,8 +28,6 @@ namespace OpenXr.Framework
             {
                 var supported = xrOculus.EnumerateSpaceSupportedComponentsFB(space.Space);
 
-
-
                 var item = new XrAnchor();
                 item.Id = space.Uuid.ToGuid();
                 try
@@ -58,6 +56,7 @@ namespace OpenXr.Framework
                         {
                             var local = xrOculus.App.LocateSpace(space.Space, xrOculus.App.Stage, 1);
                             item.Pose = local.Pose;
+                            item.Space = space.Space.Handle;
                         }
                         catch (Exception ex)
                         {

@@ -106,9 +106,7 @@ namespace OpenXr.Framework.Android
 
             public void Update(WebView webView)
             {
-                if (!_surfaceInput.IsPointerValid)
-                    return;
-
+   
                 var now = SystemClock.UptimeMillis();
 
                 MotionEventActions actions;
@@ -131,12 +129,16 @@ namespace OpenXr.Framework.Android
                     _lastPointerDown = _surfaceInput.MainButton.IsDown;
                 }
                 else
+                {
+                    if (!_surfaceInput.IsPointerValid)
+                        return;
                     actions = MotionEventActions.Move;
+                }
 
                 var pos = _surfaceInput.Pointer * new Vector2(webView.Width, webView.Height);
 
                 var ev = MotionEvent.Obtain(_lastDownTime, now, actions, pos.X, webView.Height - pos.Y, MetaKeyStates.None);
-
+                
                 webView.DispatchTouchEvent(ev);
             }
         }
