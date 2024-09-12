@@ -1,18 +1,23 @@
 ﻿using OpenXr.Framework;
+using OpenXr.Framework.Oculus;
+using Silk.NET.OpenXR;
 using System.Numerics;
 using XrEngine.Audio;
 using XrEngine.Gltf;
+using XrEngine.OpenXr.Components;
 using XrMath;
 
 namespace XrEngine.OpenXr
 {
     public class XrRoot : Group3D
     {
-        protected XrApp? _xrApp;
-
+        protected XrApp _xrApp;
+        private bool _isInit;
 
         public XrRoot()
         {
+            _xrApp = XrApp.Current ?? throw new InvalidOperationException();
+
             Flags |= EngineObjectFlags.ChildGenerated;
 
             Name = "XrRoot";
@@ -22,16 +27,62 @@ namespace XrEngine.OpenXr
             LeftController = AddController("/user/hand/left/input/aim/pose", "Left Hand", "Models/MetaQuestTouchPlus_Left.glb");
 
             Head = AddHead();
+
+            SceneRoot = AddSceneRoot();
         }
 
-        protected override void Start(RenderContext ctx)
+        public override void Update(RenderContext ctx)
         {
-            if (XrApp.Current == null)
-                throw new InvalidOperationException();
+            if (_xrApp.IsStarted && !_isInit)
+            {
+                var oculus = _xrApp.Plugin<OculusXrPlugin>();
 
-            _xrApp = XrApp.Current;
+                if (oculus != null)
+                {
+                    Task.Run(async () =>
+                    {
+                        var anchors = await oculus.GetAnchorsAsync(new XrAnchorFilter
+                        {
+                            Components = XrAnchorComponent.All
+                        });
 
-            base.Start(ctx);
+                        var floor = anchors.FirstOrDefault(a => a.Labels != null && a.Labels.Contains("FLOOR"));
+
+                        if (floor == null)
+                            return;
+
+                        _ = _scene!.App!.Dispatcher.ExecuteAsync(() =>
+                        {
+                            SceneRoot.AddComponent(new XrAnchorUpdate()
+                            {
+                                Space = new Space(floor.Space)
+                            });
+                        });
+                    });
+                };
+
+                Head?.AddComponent(new XrAnchorUpdate()
+                {
+                    Space = _xrApp.Head
+                });
+
+                _isInit = true;
+            }
+
+            base.Update(ctx);
+        }
+
+
+        protected Group3D AddSceneRoot()
+        {
+            var group = new Group3D()
+            {
+                Name = "SceneRoot"
+            };
+
+            AddChild(group);
+
+            return group;
         }
 
         protected Group3D AddHead()
@@ -40,20 +91,6 @@ namespace XrEngine.OpenXr
             {
                 Name = "Head"
             };
-
-            group.AddBehavior((_, ctx) =>
-            {
-                if (!_xrApp!.IsStarted)
-                    return;
-
-                var head = _xrApp.LocateSpace(_xrApp.Head, _xrApp.Stage, _xrApp.LastFrameTime);
-
-                if (head.IsValid)
-                {
-                    group.Transform.Position = head.Pose.Position;
-                    group.Transform.Orientation = head.Pose.Orientation;
-                }
-            });
 
             group.AddComponent<AudioReceiver>();
 
@@ -71,18 +108,21 @@ namespace XrEngine.OpenXr
 
             Object3D? model = null;
 
+            IXrInput? input = null;
+
             group.AddBehavior((_, ctx) =>
             {
-                var input = _xrApp?.Inputs.Values.FirstOrDefault(a => a.Path == path);
-
+                if (input == null)
+                    input = _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path);
+       
                 if (input == null)
                     return;
 
                 if (input.IsChanged && input.IsActive)
                 {
                     var pose = (Pose3)input.Value;
-                    group.Transform.Position = pose.Position;
-                    group.Transform.Orientation = pose.Orientation;
+                    group.WorldPosition = pose.Position;
+                    group.WorldOrientation = pose.Orientation;
                 }
 
                 if (model != null)
@@ -111,10 +151,12 @@ namespace XrEngine.OpenXr
             return group;
         }
 
-        public Group3D? Head { get; protected set; }
+        public Group3D? Head { get; }
 
-        public Group3D? RightController { get; protected set; }
+        public Group3D SceneRoot { get; }
 
-        public Group3D? LeftController { get; protected set; }
+        public Group3D? RightController { get;  }
+
+        public Group3D? LeftController { get;  }
     }
 }

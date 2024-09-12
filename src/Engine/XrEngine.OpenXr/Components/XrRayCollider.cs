@@ -37,8 +37,8 @@ namespace XrEngine.OpenXr
         {
             if (_input!.IsChanged && _input.IsActive)
             {
-                _rayView.Transform.Position = _input.Value.Position;
-                _rayView.Transform.Orientation = _input.Value.Orientation;
+                _rayView.WorldPosition = _input.Value.Position;
+                _rayView.WorldOrientation = _input.Value.Orientation;
 
                 var ray = new Ray3
                 {

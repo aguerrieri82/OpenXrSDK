@@ -123,7 +123,6 @@ namespace XrEngine.OpenXr
             return self;
         }
 
-
         public static XrEngineAppBuilder UsePlatform<T>(this XrEngineAppBuilder self) where T : IXrEnginePlatform, new()
         {
             return self.UsePlatform(new T());
@@ -165,5 +164,15 @@ namespace XrEngine.OpenXr
             self.Options.Driver = GraphicDriver.FilamentVulkan;
             return self;
         }
+
+        public static XrEngineAppBuilder AddXrRoot(this XrEngineAppBuilder self)
+        {
+            self.ConfigureApp(app =>
+            {
+                app.App.ActiveScene!.AddChild(new XrRoot());
+            });
+            return self;
+        }
+
     }
 }

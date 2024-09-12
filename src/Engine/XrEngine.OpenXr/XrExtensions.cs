@@ -55,7 +55,7 @@ namespace XrEngine.OpenXr
                     Size = new Vector2(mesh.Transform.Scale.X, mesh.Transform.Scale.Y),
                     Pose = new Pose3
                     {
-                        Orientation = mesh.Transform.Orientation,
+                        Orientation = mesh.WorldOrientation,
                         Position = mesh.WorldPosition
                     }
                 };
@@ -199,8 +199,6 @@ namespace XrEngine.OpenXr
 
             xrApp.Layers.AddProjection(RenderView);
 
-            app.ActiveScene!.AddChild(new XrRoot());
-
             return renderer;
         }
 
@@ -325,9 +323,6 @@ namespace XrEngine.OpenXr
             }
 
             xrApp.Layers.AddProjection(RenderView);
-
-            //TODO add optionlly xrroot
-            app.ActiveScene!.AddChild(new XrRoot());
 
             return renderer;
         }

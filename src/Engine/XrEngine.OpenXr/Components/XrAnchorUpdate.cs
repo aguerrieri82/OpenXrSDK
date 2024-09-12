@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace XrEngine.OpenXr.Components
 {
+    [Obsolete("Schedule anchor updates")]
     public class XrAnchorUpdate : Behavior<Object3D>
     {
         double _lastUpdateTime;
@@ -20,6 +21,7 @@ namespace XrEngine.OpenXr.Components
         protected override void Update(RenderContext ctx)
         {
             var xrApp = XrApp.Current;
+
             if (xrApp == null || !xrApp.IsStarted)
                 return;
 
@@ -29,15 +31,14 @@ namespace XrEngine.OpenXr.Components
             var loc = xrApp.LocateSpace(Space, xrApp.Stage, xrApp.FramePredictedDisplayTime);
             if (loc.IsValid)
             {
-                _host!.Transform.Position = loc.Pose.Position;
-                _host!.Transform.Orientation = loc.Pose.Orientation;
+                _host!.WorldPosition = loc.Pose.Position;
+                _host!.WorldOrientation = loc.Pose.Orientation;
             }
 
             _lastUpdateTime = ctx.Time;
 
             base.Update(ctx);
         }
-
 
         public TimeSpan UpdateInterval { get; set; }
 

@@ -47,13 +47,11 @@ namespace XrEngine.OpenXr
             return this;
         }
 
-
         public XrEngineAppBuilder UseApp(EngineApp app)
         {
             _app = app;
             return this;
         }
-
 
         public XrEngineApp Build()
         {

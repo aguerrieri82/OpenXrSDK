@@ -275,13 +275,15 @@ namespace OpenXr.Framework.Oculus
                 Enabled = (uint)(enabled ? 1 : 0),
             };
 
-            ulong requestId = 0;
+            ulong reqId = (ulong)new DateTime().Ticks;
 
-            _app!.CheckResult(_spatial!.SetSpaceComponentStatusFB(space, in info, ref requestId), "SetSpaceComponentStatusFB");
+            _app!.CheckResult(_spatial!.SetSpaceComponentStatusFB(space, in info, ref reqId), "SetSpaceComponentStatusFB");
 
-            return requestId;
+            return reqId;
         }
 
+        //TODO enqueu in some way becouse if is asked already the status is pending
+        [Obsolete("To Refactor")]
         public Task<Result> SetSpaceComponentStatusAsync(Space space, SpaceComponentTypeFB componentType, bool enabled)
         {
             var reqId = SetSpaceComponentStatusRequest(space, componentType, enabled);
@@ -317,12 +319,11 @@ namespace OpenXr.Framework.Oculus
 
             };
 
-            ulong requestId = 0;
+            ulong reqId = (ulong)new DateTime().Ticks;
 
+            _app!.CheckResult(_spatialQuery!.QuerySpacesFB(_app!.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref reqId), "QuerySpacesFB");
 
-            _app!.CheckResult(_spatialQuery!.QuerySpacesFB(_app!.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref requestId), "QuerySpacesFB");
-
-            return requestId;
+            return reqId;
         }
 
         protected unsafe SpaceQueryResultFB[] GetSpaceQueryResults(ulong reqId)

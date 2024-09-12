@@ -7,12 +7,12 @@ namespace XrEngine.OpenXr.Android
 {
     public static class XrEngineAppBuilderExtension
     {
-        public static XrEngineAppBuilder AddWebBrowser(this XrEngineAppBuilder builder, Context2 context, string objName) =>
+        public static XrEngineAppBuilder AddWebBrowser(this XrEngineAppBuilder builder, Context2 context, Func<EngineApp, TriangleMesh?> getDisplay) =>
 
             builder.UseRightController().
                     ConfigureApp(e =>
         {
-            var display = e.App.ActiveScene!.FindByName<TriangleMesh>(objName);
+            var display = getDisplay(e.App);
 
             if (display == null)
                 return;
@@ -21,7 +21,7 @@ namespace XrEngine.OpenXr.Android
             {
                 var inputs = e.Inputs as XrOculusTouchController;
 
-                var xrInput = display.Scene!.Components<XrInputPointer>().FirstOrDefault();
+                var xrInput = display.Scene?.Components<XrInputPointer>().FirstOrDefault();
 
                 if (xrInput == null)
                 {

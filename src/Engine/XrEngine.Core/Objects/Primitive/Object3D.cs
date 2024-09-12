@@ -185,6 +185,7 @@ namespace XrEngine
         public Vector3 Forward
         {
             get => new Vector3(0f, 0f, -1f).ToDirection(WorldMatrix);
+            //get => new Vector3(WorldMatrix.M13, WorldMatrix.M23, WorldMatrix.M33).Normalize();
             set
             {
                 Transform.Orientation = Forward.RotationTowards(value);
@@ -209,13 +210,14 @@ namespace XrEngine
 
         public Quaternion WorldOrientation
         {
-            get => Quaternion.CreateFromRotationMatrix(_worldMatrix);
+            get => _parent != null && !_parent.WorldMatrix.IsIdentity ?
+                _parent.WorldOrientation * _transform.Orientation :
+                _transform.Orientation;
             set
             {
-                _transform.Orientation = _parent != null ?
-                   Quaternion.Multiply(
-                       value,
-                       Quaternion.Inverse(Quaternion.CreateFromRotationMatrix(_parent.WorldMatrix))) : value;
+                _transform.Orientation = _parent != null && !_parent.WorldMatrix.IsIdentity ?
+                    Quaternion.Inverse(_parent.WorldOrientation) * value :
+                    value;
             }
         }
 
