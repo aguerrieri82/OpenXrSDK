@@ -1,4 +1,5 @@
-﻿using OpenXr.Framework.Oculus;
+﻿using Microsoft.Extensions.Logging;
+using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;
 using XrMath;
@@ -28,8 +29,12 @@ namespace OpenXr.Framework
             {
                 var supported = xrOculus.EnumerateSpaceSupportedComponentsFB(space.Space);
 
-                var item = new XrAnchor();
-                item.Id = space.Uuid.ToGuid();
+                var item = new XrAnchor
+                {
+                    Id = space.Uuid.ToGuid(),
+                    Space = space.Space.Handle
+                };
+
                 try
                 {
                     if ((filter.Components & XrAnchorComponent.Label) != 0 &&
@@ -49,18 +54,18 @@ namespace OpenXr.Framework
                     if ((filter.Components & XrAnchorComponent.Pose) != 0 &&
                         supported.Contains(SpaceComponentTypeFB.LocatableFB))
                     {
-                        if (!xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.LocatableFB))
-                            await xrOculus.SetSpaceComponentStatusAsync(space.Space, SpaceComponentTypeFB.LocatableFB, true);
-
                         try
                         {
+                            if (!xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.LocatableFB))
+                                await xrOculus.SetSpaceComponentStatusAsync(space.Space, SpaceComponentTypeFB.LocatableFB, true);
+
                             var local = xrOculus.App.LocateSpace(space.Space, xrOculus.App.Stage, 1);
                             item.Pose = local.Pose;
-                            item.Space = space.Space.Handle;
+       
                         }
                         catch (Exception ex)
                         {
-                            //_logger.LogError(ex, "LocateSpace {itemId}", item.Id);
+                            xrOculus.App.Logger?.LogError(ex, "LocateSpace {itemId}", item.Id);
                         }
                     }
 

@@ -71,11 +71,10 @@ namespace XrSamples.Android.Activities
 
         protected override void Build(XrEngineAppBuilder builder)
         {
-
             var external = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
             XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(external, "Assets")));
 
-            builder.Options.Driver = _settings.Driver;
+            builder.Options.Driver = _settings!.Driver;
 
             if (_settings.Driver == GraphicDriver.OpenGL)
                 builder.UseMultiView();
@@ -83,7 +82,7 @@ namespace XrSamples.Android.Activities
             builder.SetRenderQuality(1, (uint)_settings.Msaa);
 
             builder.RemovePlaneGrid()
-                   .AddWebBrowser(this, "display");
+                   .AddWebBrowser(this, app => app.ActiveScene?.FindByName<Object3D>("display"));
 
             SampleScenes.DefaultHDR = _settings.Hdri;
 

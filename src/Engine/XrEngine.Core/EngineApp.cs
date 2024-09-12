@@ -27,8 +27,12 @@ namespace XrEngine
             _context = new RenderContext();
             _changeListeners.Add(ShaderMeshLayerBuilder.Instance);
             _dispatcher = new QueueDispatcher();
-            Current = this;
-            Context.Implement(this);
+            //TODO set current by hand (more app in editor)
+            if (Current == null)
+            {
+                Current = this;
+                Context.Implement(this);
+            }
         }
 
         public void AddScene(Scene3D scene)
@@ -60,6 +64,8 @@ namespace XrEngine
                 _context.Frame = 0;
             }
             _playState = PlayState.Start;
+
+            OnStarted();
         }
 
         public void Pause()
@@ -110,6 +116,11 @@ namespace XrEngine
             {
                 _stats.EndFrame();
             }
+        }
+
+        protected virtual void OnStarted()
+        {
+
         }
 
         public IDispatcher Dispatcher => _dispatcher;

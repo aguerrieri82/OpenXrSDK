@@ -64,7 +64,7 @@ namespace XrEngine.OpenXr
                             },
                             new Vector3f(0.2f, 0.2f, 0.2f),
                             xrApp.Stage,
-                            xrApp.LastFrameTime);
+                            xrApp.FramePredictedDisplayTime);
 
                         _isInit = true;
                     }

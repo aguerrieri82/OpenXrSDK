@@ -3,6 +3,7 @@ using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using PhysX;
 using PhysX.Framework;
+using RoomDesigner.Game;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using XrEngine;
@@ -13,6 +14,7 @@ using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.Services;
 using XrEngine.UI;
+using XrEngine.UI.Web;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
@@ -208,7 +210,8 @@ namespace XrSamples
 
         static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder)
         {
-            builder.UseHands()
+            builder.AddXrRoot()
+                   .UseHands()
                    .UseLeftController()
                    .UseRightController()
                    .UseInputs<XrOculusTouchController>(a => a.AddAction(b => b.Right!.Haptic))
@@ -790,6 +793,32 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
+        public static XrEngineAppBuilder CreateRoomManager(this XrEngineAppBuilder builder)
+        {
+            builder.Configure(RoomDesignerApp.Build)
+            .ConfigureApp(app =>
+            {
+                app.App.ActiveScene!.AddChild(new PlaneGrid(6f, 12f, 2f));
+
+                var ui = (app.App as RoomDesignerApp)!.UiPanel;
+
+#if !ANDROID
+                var webView = new ChromeWebBrowserView
+                {
+                    Size = new XrMath.Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
+                    ZoomLevel = 0,
+                    RequestHandler = new FsWebRequestHandler("main", Context.Require<RoomDesignerApp>().Settings.UiBaseUri)
+                };
+
+                ui.AddComponent<SurfaceController>();
+                ui.AddComponent(webView);
+
+                Context.Require<RoomDesignerApp>().SetUIBrowser(webView.Browser);
+#endif
+            });
+
+            return builder;
+        }
 
         [Sample("Helmet")]
         public static XrEngineAppBuilder CreateHelmet(this XrEngineAppBuilder builder)

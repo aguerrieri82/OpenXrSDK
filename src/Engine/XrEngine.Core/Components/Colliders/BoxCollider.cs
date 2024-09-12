@@ -33,18 +33,38 @@ namespace XrEngine
             if (!_isInit)
                 Initialize();
 
+            /*
+            var wordBounds = bounds.Transform(_host!.WorldMatrix);
+
+            if (wordBounds.Intersects(ray.ToLine(10000), out var distance))
+            {
+                return new Collision()
+                {
+                    Distance = distance,
+                    LocalPoint = Vector3.Transform(ray.Origin + ray.Direction * distance, _host.WorldMatrixInverse),
+                    Object = _host,
+                };
+            }
+            */
+
             var localRay = ray.Transform(_host!.WorldMatrixInverse);
+            
             var bounds = new Bounds3
             {
                 Min = Center - Size / 2,
                 Max = Center + Size / 2
             };
+
             if (bounds.Intersects(localRay.ToLine(10000), out var distance))
             {
+                var localPoint = localRay.Origin + localRay.Direction * distance;
+                //var wordPoint = localPoint.Transform(_host!.WorldMatrixInverse);
+                //distance = (wordPoint - ray.Origin).Length();
+
                 return new Collision()
                 {
                     Distance = distance,
-                    LocalPoint = localRay.Origin + localRay.Direction * distance,
+                    LocalPoint = localPoint,
                     Object = _host,
                 };
             }
