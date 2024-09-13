@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using VirtualCamera.IPCamera;
 using XrEngine.Video.Abstraction;
@@ -14,23 +15,25 @@ namespace XrEngine.Video
         private RtpH264Client? _h264Stream;
 
         private Thread? _readThread;
-        private ConcurrentQueue<byte[]> _readBuffer;
         private IVideoCodec? _videoCodec;
         private string? _streamName;
         private int _frameCount;
         private DateTime _frameCountStart;
         private FrameBuffer _dstBuffer;
         private DateTime _lastPingTime;
+        private FileStream _out;
 
         public RtspVideoReader()
         {
             UdpPort = 1400;
-            _readBuffer = new ConcurrentQueue<byte[]>();
+
         }
 
         public void Open(Uri uri)
         {
-            _readBuffer.Clear();
+            //_out = new FileStream("d:\\out.h264", FileMode.Create, FileAccess.Write);   
+
+            Log.Debug(this, "Rtsp: Connect");
 
             _client = new RtspClient();
             _client.Connect(uri.Host, uri.Port);
@@ -43,6 +46,11 @@ namespace XrEngine.Video
                 _client.Authenticate(_streamName, parts[0], parts[1]);
             }
 
+            _streamName = uri.ToString();
+
+
+            Log.Debug(this, "Rtsp: Describe");
+
             var streams = _client.Describe(_streamName);
 
             _videoStream = streams.FirstOrDefault(a => a.Type == RtspStreamType.Video);
@@ -50,19 +58,8 @@ namespace XrEngine.Video
             if (_videoStream == null)
                 throw new InvalidOperationException();
 
-            if (_videoStream.Data != null && _videoStream.Data.Count > 0)
-            {
-                var format = new VideoFormat();
-                new SpsDecoder().Decode(_videoStream.Data[0], ref format);
-                FrameSize = new Size2I((uint)format.Width, (uint)format.Height);
-                foreach (var data in _videoStream.Data)
-                {
-                    var newData = new byte[data.Length + 3];
-                    newData[2] = 1;
-                    Buffer.BlockCopy(data, 0, newData, 3, data.Length);
-                    _readBuffer.Enqueue(newData);
-                }
-            }
+     
+            Log.Debug(this, "Rtsp: Setup");
 
             _session = _client.Setup(_videoStream, UdpPort);
 
@@ -71,15 +68,34 @@ namespace XrEngine.Video
 
             if (_videoStream.Format == "H264")
             {
+                var extraData = new MemoryStream();
+
+                if (_videoStream.Data != null && _videoStream.Data.Count > 0)
+                {
+                    var format = new VideoFormat();
+                    SpsDecoder.Decode(_videoStream.Data[0], ref format);
+                    FrameSize = new Size2I((uint)format.Width, (uint)format.Height);
+                    foreach (var item in _videoStream.Data)
+                    {
+                        extraData.Write(RtpH264Client.NAL_START);
+                        extraData.Write(item);
+                    }
+                }
+
                 _videoCodec = Context.RequireInstance<IVideoCodec>();
                 _videoCodec.OutTexture = OutTexture;
+
+                Log.Debug(this, "Rtsp: Open Codec");
 
                 _videoCodec.Open(VideoCodecMode.Decode, "video/avc", new VideoFormat
                 {
                     Width = (int)FrameSize.Width,
                     Height = (int)FrameSize.Height,
                     ImageFormat = ImageFormat.Rgb32
-                });
+                }, extraData.ToArray());
+
+
+                Log.Debug(this, "Rtsp: Open Client");
 
                 _h264Stream = new RtpH264Client(_session.ClientPort);
                 _h264Stream.Open();
@@ -91,61 +107,80 @@ namespace XrEngine.Video
                 throw new InvalidOperationException();
 
             _dstBuffer = FrameBuffer.Allocate((int)(FrameSize.Width * FrameSize.Height * 4));
-
-            _readThread = new Thread(ReadLoop);
-            _readThread.Name = "Rtsp Video Read Loop";
-
-            _readThread.Start();
         }
 
         protected void ReadLoop()
         {
+            Log.Debug(this, "Rtsp: Read Thread Started");
+
+            var timeout = _session!.SessionTimeout.TotalSeconds * 0.5;
+            if (timeout == 0)
+                timeout = 20;
+
+            /*
+            if (_videoStream?.Data != null)
+            {
+                foreach (var data in _videoStream.Data)
+                {
+                    var newData = new byte[data.Length + 4];
+                    newData[3] = 1;
+                    Buffer.BlockCopy(data, 0, newData, 4, data.Length);
+                    _videoCodec!.EnqueueBuffer(new FrameBuffer() { ByteArray = newData });
+                }
+            }
+            */
 
             while (_h264Stream != null && _session != null)
             {
                 try
                 {
-                    if ((DateTime.Now - _lastPingTime).TotalSeconds > _session.SessionTimeout.TotalSeconds * 0.5)
+                    if ((DateTime.Now - _lastPingTime).TotalSeconds > timeout)
                     {
+                        Log.Debug(this, "Rtsp: Ping");
                         _client?.GetParameter(_streamName!, _session);
                         _lastPingTime = DateTime.Now;
                     }
 
                     var nalData = _h264Stream?.ReadNalUnit();
-
                     if (nalData != null)
                     {
-                        lock (_readBuffer!)
-                            _readBuffer.Enqueue(nalData);
-                    }
+                        //_out.Write(nalData);    
+                        //_out.Flush();   
+                        var buffer = new FrameBuffer() { ByteArray = nalData };
+                        _videoCodec!.EnqueueBuffer(buffer);
+                        //_videoCodec!.DequeueBuffer(ref _dstBuffer);
 
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(this, ex);
+                    //Log.Error(this, ex);
                 }
             }
         }
 
         public bool TryDecodeNextFrame(TextureData data)
         {
+            if (_readThread == null)
+            {
+                _readThread = new Thread(ReadLoop);
+                _readThread.Name = "Rtsp Video Read Loop";
+                _readThread!.Start();
+            }
+
             Debug.Assert(_videoCodec != null);
-
-            if (_readBuffer == null || !_readBuffer.TryDequeue(out var buffer))
-                return false;
-
-            var srcBuffer = new FrameBuffer() { ByteArray = buffer };
 
             try
             {
-                if (_videoCodec.Convert(srcBuffer, ref _dstBuffer))
+                if (_videoCodec.DequeueBuffer(ref _dstBuffer))
                 {
-                    data.Width = FrameSize.Width;
-                    data.Height = FrameSize.Height;
-                    data.Format = TextureFormat.Rgba32;
-
                     if ((_videoCodec.Caps & VideoCodecCaps.DecodeTexture) == 0)
+                    {
+                        data.Width = FrameSize.Width;
+                        data.Height = FrameSize.Height;
+                        data.Format = TextureFormat.Rgba32;
                         data.Data = new Memory<byte>(_dstBuffer.ByteArray);
+                    }
 
                     _frameCount++;
 
@@ -162,7 +197,7 @@ namespace XrEngine.Video
             }
             catch (Exception ex)
             {
-                Log.Warn(this, "{0} ({1})", ex.Message, srcBuffer.ByteArray[3]);
+                Log.Warn(this, "{0})", ex.Message);
             }
 
             return false;

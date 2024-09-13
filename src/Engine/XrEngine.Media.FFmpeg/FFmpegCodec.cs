@@ -1,8 +1,26 @@
 ﻿using FFmpeg.AutoGen;
+using Silk.NET.Direct3D11;
+using Silk.NET.WGL.Extensions.NV;
+using Silk.NET.WGL;
 using System.Runtime.InteropServices;
 using XrEngine.Video.Abstraction;
 using static FFmpeg.AutoGen.ffmpeg;
+using XrEngine.OpenGL;
+using System.Xml.Linq;
 
+enum D3D11_BIND_FLAG
+{
+    D3D11_BIND_VERTEX_BUFFER = 0x1,
+    D3D11_BIND_INDEX_BUFFER = 0x2,
+    D3D11_BIND_CONSTANT_BUFFER = 0x4,
+    D3D11_BIND_SHADER_RESOURCE = 0x8,
+    D3D11_BIND_STREAM_OUTPUT = 0x10,
+    D3D11_BIND_RENDER_TARGET = 0x20,
+    D3D11_BIND_DEPTH_STENCIL = 0x40,
+    D3D11_BIND_UNORDERED_ACCESS = 0x80,
+    D3D11_BIND_DECODER = 0x200,
+    D3D11_BIND_VIDEO_ENCODER = 0x400
+};
 
 
 namespace XrEngine.Video
@@ -19,10 +37,17 @@ namespace XrEngine.Video
         private VideoFormat _outFormat;
         private SwsContext* _swsContext;
 
+        Silk.NET.Direct3D11.ID3D11Texture2D* _dxText = null;
+        private Texture2DDesc _dxTexDesc;
+        private nint _hDxDevice;
+        private nint _hDxObject;
+        private NVDXInterop _nvExt;
+        private bool _isLocked;
+
         public FFmpegCodec()
         {
             ffmpeg.RootPath = "D:\\Development\\Library\\ffmpeg-full-win64\\bin\\";
-            DeviceType = AVHWDeviceType.AV_HWDEVICE_TYPE_NONE;
+            DeviceType = AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA;
         }
 
         static unsafe string av_strerror(int error)
@@ -61,6 +86,7 @@ namespace XrEngine.Video
 
         private static AVPixelFormat GetHWPixelFormat(AVHWDeviceType hWDevice)
         {
+
             return hWDevice switch
             {
                 AVHWDeviceType.AV_HWDEVICE_TYPE_NONE => AVPixelFormat.AV_PIX_FMT_NONE,
@@ -78,7 +104,7 @@ namespace XrEngine.Video
             };
         }
 
-        public void Open(VideoCodecMode mode, string mimeType, VideoFormat outFormat)
+        public void Open(VideoCodecMode mode, string mimeType, VideoFormat outFormat, byte[]? extraData = null)
         {
             if (_pCodecContext != null)
             {
@@ -95,18 +121,27 @@ namespace XrEngine.Video
             var codec = mode == VideoCodecMode.Decode ? avcodec_find_decoder(codecId) : avcodec_find_encoder(codecId);
 
             _pCodecContext = avcodec_alloc_context3(codec);
-
-            AVPixelFormat outPixeFormat;
+  
+            _pCodecContext->width = outFormat.Width;
+            _pCodecContext->height = outFormat.Height;
+            if (extraData != null)
+            {
+                _pCodecContext->extradata_size = extraData.Length;
+                _pCodecContext->extradata = (byte*)av_malloc((ulong)_pCodecContext->extradata_size);
+                Marshal.Copy(extraData, 0, (IntPtr)(_pCodecContext->extradata), extraData.Length);
+            }   
+  
+            AVPixelFormat outPixelFormat;
 
             if (DeviceType != AVHWDeviceType.AV_HWDEVICE_TYPE_NONE)
             {
                 CheckResult(av_hwdevice_ctx_create(&_pCodecContext->hw_device_ctx, DeviceType, null, null, 0), "");
-                outPixeFormat = GetHWPixelFormat(DeviceType);
+                outPixelFormat = GetHWPixelFormat(DeviceType);
             }
             else
             {
                 var none = AVPixelFormat.AV_PIX_FMT_NONE;
-                outPixeFormat = avcodec_default_get_format(_pCodecContext, &none);
+                outPixelFormat = avcodec_default_get_format(_pCodecContext, &none);
             }
 
             CheckResult(avcodec_open2(_pCodecContext, codec, null), "");
@@ -117,9 +152,8 @@ namespace XrEngine.Video
 
             _outFormat = outFormat;
 
-
             _swsContext = sws_getContext(
-                _outFormat.Width, _outFormat.Height, outPixeFormat,
+                _outFormat.Width, _outFormat.Height, outPixelFormat,
                 _outFormat.Width, _outFormat.Height, AVPixelFormat.AV_PIX_FMT_RGBA,
                 SWS_BILINEAR, null, null, null);
 
@@ -128,14 +162,9 @@ namespace XrEngine.Video
                 throw new NotSupportedException();
         }
 
-        public bool Convert(FrameBuffer src, ref FrameBuffer dst)
+        public bool EnqueueBuffer(FrameBuffer src)
         {
-            int result;
-            var frame = _pFrame;
-
-            av_packet_unref(_pPacket);
-            av_frame_unref(_pFrame);
-            av_frame_unref(_pReceivedFrame);
+            _pPacket->pts = 0;
 
             fixed (byte* pSrc = src.ByteArray ?? _emptyArray)
             {
@@ -149,24 +178,95 @@ namespace XrEngine.Video
                     _pPacket->data = ((byte*)src.Pointer.ToPointer()) + src.Offset;
                     _pPacket->size = src.Size;
                 }
+                
+                /*
+                if (_pPacket->data[4] == 103 || _pPacket->data[4] == 104)
+                    return true;
+                */
 
                 try
                 {
-                    CheckResult(avcodec_send_packet(_pCodecContext, _pPacket), "");
+                    lock (this)
+                        avcodec_send_packet(_pCodecContext, _pPacket);
                 }
                 finally
                 {
                     av_packet_unref(_pPacket);
                 }
+            }
 
+            return true;
+        }
+
+        public bool DequeueBuffer(ref FrameBuffer dst)
+        {
+            int result;
+            var frame = _pFrame;
+
+            lock (this)
+            {
                 result = avcodec_receive_frame(_pCodecContext, _pFrame);
 
                 if (result != 0)
                     return false;
+
+                /*
+                AVBufferRef* hw_device_ctx_buffer = _pCodecContext->hw_device_ctx;
+                AVHWDeviceContext* hw_device_ctx = (AVHWDeviceContext*)hw_device_ctx_buffer->data;
+                AVD3D11VADeviceContext* hw_d3d11_dev_ctx = (AVD3D11VADeviceContext*)hw_device_ctx->hwctx;
+
+                Silk.NET.Direct3D11.ID3D11Texture2D* texture = (Silk.NET.Direct3D11.ID3D11Texture2D*)(void*)_pFrame->data[0];
+                var arrayIndex = (int)(nint)_pFrame->data[1];
+
+                if (_dxText == null)
+                {
+                    OpenGLRender.Current!.Dispatcher.ExecuteAsync(() =>
+                    {
+                        _dxTexDesc = new Texture2DDesc();
+
+                        texture->GetDesc(ref _dxTexDesc);
+
+                        _dxTexDesc.Format = Silk.NET.DXGI.Format.FormatR8G8B8A8Unorm;
+                        _dxTexDesc.BindFlags = (uint)(D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET);
+                        _dxTexDesc.ArraySize = 1;
+
+                        ((Silk.NET.Direct3D11.ID3D11Device*)hw_d3d11_dev_ctx->device)->CreateTexture2D(ref _dxTexDesc, null, ref _dxText);
+
+                        _nvExt = new NVDXInterop(OpenGLRender.Current.GL.Context);
+
+                        var glText = OutTexture!.GetProp<GlTexture>(OpenGLRender.Props.GlResId)!;
+
+                        _hDxDevice = _nvExt.DxopenDevice(hw_d3d11_dev_ctx->device);
+                        _hDxObject = _nvExt.DxregisterObject(_hDxDevice, _dxText, glText.Handle, (NV)0x0DE1, NV.AccessReadWriteNV);
+                    });
+
+                    return false;
+                }
+                else
+                {
+                    OpenGLRender.Current!.Dispatcher.ExecuteAsync(() =>
+                    {
+                        var pDxObject = _hDxObject;
+
+                        if (_isLocked)
+                            _nvExt.DxunlockObjects(_hDxDevice, 1, &pDxObject);
+
+                        _dxText->QueryInterface<ID3D11Resource>(out var dstTex);
+                        texture->QueryInterface<ID3D11Resource>(out var srcTex);
+
+                        var context = (Silk.NET.Direct3D11.ID3D11DeviceContext*)hw_d3d11_dev_ctx->device_context;
+
+                        context->CopySubresourceRegion(dstTex.Handle, 0, 0, 0, 0, srcTex.Handle, (uint)arrayIndex, null);
+
+                        _nvExt.DxlockObjects(_hDxDevice, 1, &pDxObject);
+                        _isLocked = true;
+
+                    });
+
+                    return true;
+                }
+                      */
             }
-
-            CheckResult(result, "");
-
 
             if (_pCodecContext->hw_device_ctx != null)
             {

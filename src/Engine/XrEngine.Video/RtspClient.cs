@@ -221,7 +221,11 @@ namespace VirtualCamera.IPCamera
 
         public IList<RtspStream> Describe(string streamName)
         {
-            Send("DESCRIBE", streamName);
+            var header = new Dictionary<string, string>();
+            header["Accept"] = "application/sdp";
+            header["User-Agent"] = "XrEngine";
+            Send("DESCRIBE", streamName, header);
+
             var response = ReadResponse();
 
             var result = new List<RtspStream>();

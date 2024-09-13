@@ -7,6 +7,8 @@ namespace XrEngine.Video
 {
     public class RtpH264Client
     {
+        public static readonly byte[] NAL_START = [0, 0, 0, 1];
+
         protected UdpClient? _client;
         protected int _clientPort;
 
@@ -14,6 +16,7 @@ namespace XrEngine.Video
         protected bool _ppsRec;
         protected bool _spsRec;
         protected MemoryStream? _readStream;
+        private BinaryWriter _file;
         protected int _lastSeqNumber;
         protected bool _isFormatReceived;
         protected DateTime _lastReportTime;
@@ -29,10 +32,12 @@ namespace XrEngine.Video
         {
             _client = new UdpClient(_clientPort);
             _client.Client.ReceiveTimeout = (int)Timeout.TotalMilliseconds;
+            _client.Client.ReceiveBufferSize = 1024 * 1024*10; 
             _endPoint = new IPEndPoint(IPAddress.Any, _clientPort);
             _ppsRec = false;
             _spsRec = false;
             _readStream = new MemoryStream();
+            //_file = new BinaryWriter(new FileStream("d:\\stream.raw", FileMode.Create, FileAccess.Write));
         }
 
         public void Close()
@@ -42,6 +47,63 @@ namespace XrEngine.Video
             _readStream?.Dispose();
             _readStream = null;
         }
+
+        private byte[] PrefixNALUnit(byte[] nalUnit)
+        {
+            // Prefix with 0x00 0x00 0x01
+            byte[] prefixedNALUnit = new byte[nalUnit.Length + 3];
+            prefixedNALUnit[0] = 0x00;
+            prefixedNALUnit[1] = 0x00;
+            prefixedNALUnit[2] = 0x01;
+            Array.Copy(nalUnit, 0, prefixedNALUnit, 3, nalUnit.Length);
+
+            return prefixedNALUnit;
+        }
+
+        private byte[]? DecodeNALUnit(byte[] rtpPacket)
+        {
+            // RTP header is typically 12 bytes
+            int rtpHeaderSize = 12;
+
+            if (rtpPacket.Length <= rtpHeaderSize)
+                return null;
+
+            byte[] payload = new byte[rtpPacket.Length - rtpHeaderSize];
+            Array.Copy(rtpPacket, rtpHeaderSize, payload, 0, payload.Length);
+
+            // First byte of payload is the NAL unit header
+            byte nalUnitHeader = payload[0];
+
+            // Check if it's a single NAL unit packet
+            if ((nalUnitHeader & 0x1F) != 28)  // If it's not an FU-A (Fragmented Unit)
+            {
+                return PrefixNALUnit(payload);
+            }
+            else
+            {
+                // Handle Fragmentation Units (FU-A)
+                byte fuHeader = payload[1];
+                byte nalType = (byte)(nalUnitHeader & 0xE0 | fuHeader & 0x1F);
+
+                // Start of fragmented NAL unit
+                if ((fuHeader & 0x80) != 0)
+                {
+                    // Start bit is set
+                    byte[] nalUnit = new byte[payload.Length - 2 + 1];
+                    nalUnit[0] = nalType;
+                    Array.Copy(payload, 2, nalUnit, 1, payload.Length - 2);
+                    return PrefixNALUnit(nalUnit);
+                }
+                else
+                {
+                    // Continuation or End of fragmented NAL unit
+                    byte[] nalUnit = new byte[payload.Length - 2];
+                    Array.Copy(payload, 2, nalUnit, 0, payload.Length - 2);
+                    return PrefixNALUnit(nalUnit);
+                }
+            }
+        }
+
 
         public byte[]? ReadNalUnit()
         {
@@ -56,6 +118,12 @@ namespace XrEngine.Video
             while (true)
             {
                 packet = _client.Receive(ref _endPoint);
+                /*
+                _file.Write(packet.Length);
+                _file.Write(packet);
+                _file.Flush();
+                */
+                //return DecodeNALUnit(packet);
 
                 int version = GetRTPHeaderValue(packet, 0, 1);
                 int padding = GetRTPHeaderValue(packet, 2, 2);
@@ -67,38 +135,61 @@ namespace XrEngine.Video
                 int timestamp = GetRTPHeaderValue(packet, 32, 63);
                 int ssrcId = GetRTPHeaderValue(packet, 64, 95);
 
+                //Log.Debug(this, $"Read:{sequenceNum} {timestamp}{(marker != 0 ? ", marker": "")}");
+
                 if (padding == 1)
                     throw new NotSupportedException();
 
                 bool isValidSeq = _lastSeqNumber == 0 || sequenceNum == _lastSeqNumber + 1;
+
+                if (_lastSeqNumber != 0 && _lastSeqNumber == sequenceNum)
+                {
+                    Log.Warn(this, "Same seq received");
+                    continue;
+                }
+                   
                 _lastSeqNumber = sequenceNum;
 
                 if (!isValidSeq)
                 {
-                    Debug.WriteLine("-----------Skipped");
-                    return null;
+                    Log.Warn(this, "-----------Skipped");
+                    //return null;
                 }
 
-                int fragment_type = packet[12] & 0x1F;
+                var nalUnitHeader = packet[12]; 
+
+                int fragment_type = nalUnitHeader & 0x1F;
 
                 if (fragment_type == 28)
                 {
-                    int start_bit = packet[13] & 0x80;
-                    int end_bit = packet[13] & 0x40;
+                    var fuHeader = packet[13];
+
+                    int start_bit = fuHeader & 0x80;
+                    int end_bit = fuHeader & 0x40;
 
                     if (start_bit == 0 && end_bit == 0 && !isStarted)
-                        return null;
+                    {
+                        Log.Warn(this, "Fragment without start");
+                        continue;
+                    }
+        
 
                     if (start_bit != 0)
                     {
                         if (isStarted)
-                            return null;
+                        {
+                            Log.Warn(this, "Fragment already started");
+                            break;
+                            _readStream.SetLength(0);
+                        }
+      
+
                         isStarted = true;
-                        var nalHeader = (packet[12] & 0xE0) | (packet[13] & 0x1F);
-                        _readStream.WriteByte(0);
-                        _readStream.WriteByte(0);
-                        _readStream.WriteByte(1);
-                        _readStream.WriteByte((byte)nalHeader);
+      
+                        var nalType = (nalUnitHeader & 0xE0) | (fuHeader & 0x1F);
+
+                        _readStream.Write(NAL_START);
+                        _readStream.WriteByte((byte)nalType);
                     }
 
                     _readStream.Write(packet, 14, packet.Length - 14);
@@ -106,40 +197,37 @@ namespace XrEngine.Video
                     if (end_bit != 0)
                     {
                         if (!isStarted)
+                        {
+                            Log.Warn(this, "Fragment not started");
                             return null;
+                        }
+                          
                         break;
                     }
                 }
                 else if (fragment_type >= 1 && fragment_type <= 23)
                 {
-
                     if (fragment_type == 7)
                     {
-                        if (_spsRec)
-                            return null;
-                        var frameData = new Byte[packet.Length - 12];
+                        var frameData = new byte[packet.Length - 12];
                         Buffer.BlockCopy(packet, 12, frameData, 0, packet.Length - 12);
-                        SpsDecoder decoder = new SpsDecoder();
-                        VideoFormat format = new VideoFormat();
-                        decoder.Decode(frameData, ref format);
+
+                        var format = new VideoFormat();
+                        SpsDecoder.Decode(frameData, ref format);
                         Format = format;
+                        
                         _spsRec = true;
                     }
 
                     if (fragment_type == 8)
                     {
-                        if (_ppsRec)
-                            return null;
                         _ppsRec = true;
                     }
-
-                    _readStream.WriteByte(0);
-                    _readStream.WriteByte(0);
-                    _readStream.WriteByte(1);
+                    _readStream.Write(NAL_START);
                     _readStream.Write(packet, 12, packet.Length - 12);
                     break;
                 }
-                else if (fragment_type == 24)
+                else 
                 {
                     throw new NotSupportedException();
                 }

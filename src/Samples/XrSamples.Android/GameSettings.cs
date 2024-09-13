@@ -9,12 +9,12 @@ namespace XrSamples
 {
     public class GameSettings
     {
-        public string? SampleName { get; set; } 
+        public string? SampleName { get; set; } = "Portal Video";
 
         public string? Hdri { get; set; }
 
-        public int Msaa { get; set; }   
+        public int Msaa { get; set; } = 1;
 
-        public GraphicDriver Driver  { get; set; }
-}
+        public GraphicDriver Driver  { get; set; } = GraphicDriver.OpenGL;
+    }
 }

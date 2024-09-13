@@ -28,6 +28,13 @@ namespace XrSamples.Android.Activities
         {
             base.OnCreate(savedInstanceState);
 
+            if (!string.IsNullOrWhiteSpace(_settings.SampleName) && savedInstanceState == null)
+            {
+                StartGame();
+                Finish();
+                return; 
+            }
+
             SetContentView(ResourceConstant.Layout.activity_select);
 
             var manager = XrEngine.Context.Require<SampleManager>();
@@ -78,13 +85,17 @@ namespace XrSamples.Android.Activities
             };
         }
 
-        private void OnSampleSelected(object? sender, AdapterView.ItemClickEventArgs e)
+        protected void StartGame()
         {
-            _settings.SampleName = (string)e.Parent.GetItemAtPosition(e.Position);
-
             var intent = new Intent(this, typeof(GameActivity));
             intent.PutExtra("Settings", JsonSerializer.Serialize(_settings));
             StartActivity(intent);
+        }
+
+        private void OnSampleSelected(object? sender, AdapterView.ItemClickEventArgs e)
+        {
+            _settings.SampleName = (string)e.Parent.GetItemAtPosition(e.Position);
+            StartGame();
         }
     }
 }

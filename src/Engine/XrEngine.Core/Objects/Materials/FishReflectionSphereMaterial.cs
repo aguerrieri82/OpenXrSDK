@@ -57,12 +57,12 @@ namespace XrEngine
 
             if (Mode == FishReflectionMode.Stereo)
             {
-                TextureRadius = new Vector2(0.5f, 1.0f);
+                TextureRadius = [new Vector2(0.5f, 1.0f), new Vector2(0.5f, 1.0f)];
                 TextureCenter = [new Vector2(0.25f, 0.5f), new Vector2(0.75f, 0.5f)];
             }
             else
             {
-                TextureRadius = new Vector2(1f, 1f);
+                TextureRadius = [new Vector2(1f, 1f), new Vector2(1f, 1f)];
                 TextureCenter = [new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f)];
             }
 
@@ -148,9 +148,9 @@ namespace XrEngine
 
         public Vector2 SurfaceSize { get; set; }
 
-        public Vector2 TextureRadius { get; set; }
-
         public Vector2[] TextureCenter { get; set; }
+
+        public Vector2[] TextureRadius { get; set; }
 
     }
 }

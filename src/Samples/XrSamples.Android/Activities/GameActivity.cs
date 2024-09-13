@@ -82,7 +82,7 @@ namespace XrSamples.Android.Activities
             builder.SetRenderQuality(1, (uint)_settings.Msaa);
 
             builder.RemovePlaneGrid()
-                   .AddWebBrowser(this, app => app.ActiveScene?.FindByName<Object3D>("display"));
+                   .AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
 
             SampleScenes.DefaultHDR = _settings.Hdri;
 

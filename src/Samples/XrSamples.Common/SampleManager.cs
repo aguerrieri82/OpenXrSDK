@@ -83,7 +83,7 @@ namespace XrSamples
 
         public AppSample GetSample(string name)
         {
-            return _samples.First(a=> a.Name == name);  
+            return List().First(a=> a.Name == name);  
         }
     }
 }

@@ -1,24 +1,78 @@
 ﻿
+using CefSharp.DevTools.IO;
 using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using OpenXr.Framework.OpenGL;
 using Silk.NET.Assimp;
+using Silk.NET.OpenXR;
+using System;
 using System.Globalization;
 using System.Numerics;
 using System.Text;
+using VirtualCamera.IPCamera;
 using XrEngine;
 using XrEngine.Compression;
 using XrEngine.Gltf;
+using XrEngine.Video.Abstraction;
+using XrEngine.Video;
+using XrMath;
 using static Oculus.XrPlugin.OculusXrPlugin;
 using static OVRPlugin;
 using File = System.IO.File;
+using XrEngine.OpenXr.Windows;
+using Microsoft.Extensions.DependencyInjection;
 
 
 namespace XrSamples
 {
-    public static class Tasks
+    public class Tasks
     {
         public static IServiceProvider? Services { get; set; }
+
+        public static void ReadRtsp()
+        {
+            Context.Implement<ILogger>(Services!.GetService<ILogger<Tasks>>()!);
+            Context.Implement<IProgressLogger>(new ProgressLogger());
+
+            Log.Debug("", "Rtsp: Connect");
+
+            var uri = new Uri("rtsp://192.168.1.89:554/videodevice");
+
+            var client = new RtspClient();
+            client.Connect(uri.Host, uri.Port);
+
+            var streamName = uri.ToString();
+
+            Log.Debug("", "Rtsp: Describe");
+
+            var streams = client.Describe(streamName);
+
+            var videoStream = streams.FirstOrDefault(a => a.Type == RtspStreamType.Video);
+            if (videoStream == null)
+                throw new InvalidOperationException();
+
+
+            Log.Debug("", "Rtsp: Setup");
+
+            var session = client.Setup(videoStream, 1100);
+
+            if (session == null)
+                throw new InvalidOperationException();
+
+
+            var h264Stream = new RtpH264Client(session.ClientPort);
+            h264Stream.Open();
+
+            if (!client.Play(streamName, session!))
+                throw new InvalidOperationException();
+            
+            while (true)
+            {
+                var res = h264Stream.ReadNalUnit();
+       
+            }
+
+        }
 
         public static unsafe void WriteMesh(string fileName)
         {

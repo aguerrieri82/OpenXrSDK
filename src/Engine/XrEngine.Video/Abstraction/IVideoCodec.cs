@@ -18,9 +18,11 @@ namespace XrEngine.Video
 
     public interface IVideoCodec : IDisposable
     {
-        void Open(VideoCodecMode mode, string mimeType, VideoFormat outFormat);
+        void Open(VideoCodecMode mode, string mimeType, VideoFormat outFormat, byte[]? extraData = null);
 
-        bool Convert(FrameBuffer src, ref FrameBuffer dst);
+        bool EnqueueBuffer(FrameBuffer src);
+
+        bool DequeueBuffer(ref FrameBuffer dst);
 
         Texture2D? OutTexture { get; set; }
 

@@ -22,7 +22,6 @@ namespace XrSamples.Android.Activities
         {
             base.OnCreate(savedInstanceState);
 
-
             SetContentView(_Microsoft.Android.Resource.Designer.ResourceConstant.Layout.activity_web);
 
             FindViewById<Button>(_Microsoft.Android.Resource.Designer.ResourceConstant.Id.getRooom)!.Click += (_, _) => _ = Task.Run(StartApp);
@@ -33,7 +32,6 @@ namespace XrSamples.Android.Activities
 
         void ConfigureWebView()
         {
-
             WebView.SetWebContentsDebuggingEnabled(true);
 
             _webView = FindViewById<WebView>(_Microsoft.Android.Resource.Designer.ResourceConstant.Id.webView)!;
