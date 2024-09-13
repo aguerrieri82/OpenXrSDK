@@ -7,19 +7,24 @@ namespace XrSamples
 {
     public class PortalSettings : BaseAppSettings
     {
-        static readonly Material matShow = PbrMaterial.CreateDefault("#fff");
-        static readonly Material matHide = new ColorMaterial(Color.Transparent);
 
         public PortalSettings()
         {
             Radius = 3;
+            Offset = 2;
+            SphereY = 1.65f;
+            Border = 0.1f;
         }
 
         public override void Apply(Scene3D scene)
         {
             var mesh = scene.FindByName<TriangleMesh>("mesh")!;
             var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
+
             mat.SpherRadius = Radius;
+            mat.Border = Border;    
+            mesh.SetProp("Offset", Offset);
+            mesh.SetProp("SphereY", SphereY);
 
             if (_filePath != null)
             {
@@ -29,6 +34,12 @@ namespace XrSamples
         }
 
         public float Radius { get; set; }
+
+        public float Offset { get; set; }
+
+        public float SphereY { get; set; }
+
+        public float Border { get; set; }
     }
 
     public class PortalSettingsPanel : UIRoot
@@ -51,8 +62,11 @@ namespace XrSamples
                 .Color("#F5F5F5")
                 .BackgroundColor("#050505AF")
              )
-            .BeginRow(s => s.ColGap(16))
+            .BeginColumn(s => s.RowGap(16))
                 .AddInputRange("Sphere Radius", 1f, 20f, binder.Prop(a => a.Radius))
+                .AddInputRange("Wall Offset", 0f, 3f, binder.Prop(a => a.Offset))
+                .AddInputRange("Sphere Y", 0f, 2f, binder.Prop(a => a.SphereY))
+                .AddInputRange("Border", 0f, 0.2f, binder.Prop(a => a.Border))
             .EndChild();
         }
 

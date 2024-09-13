@@ -2,19 +2,24 @@
 
 namespace XrEngine.Video
 {
-    public class SpsDecoder
+    public struct SpsDecoder
     {
-        static readonly int[] _extraProfiles = [100, 110, 122, 244, 44, 83, 118];
+        static readonly int[] EXTRA_PROFILES = [100, 110, 122, 244, 44, 83, 118];
 
         int _pos;
-        byte[]? _data;
+        readonly byte[] _data;
 
-        public void Decode(byte[] data, ref VideoFormat format)
+        public SpsDecoder(byte[] data)
+        {
+            _data = data;
+            _pos = 0;
+        }
+
+        void DecodeWork(ref VideoFormat format)
         {
             try
             {
-                _data = data;
-                _pos = 0;
+
                 int forbidden_zero_bit = getU(1);
                 int nal_ref_idc = getU(2);
                 int nal_unit_type = getU(5);
@@ -33,7 +38,7 @@ namespace XrEngine.Video
                 int level_idc = getU(8);
                 int seq_parameter_set_id = uev();
 
-                if (_extraProfiles.Contains(profile_idc))
+                if (EXTRA_PROFILES.Contains(profile_idc))
                 {
                     int chroma_format_idc = getU(1);
                     if (chroma_format_idc == 3)
@@ -132,6 +137,12 @@ namespace XrEngine.Video
             int idx = _pos >> 3;
             _pos++;
             return ((_data[idx] & mask) == 0) ? 0 : 1;
+        }
+
+        public static void Decode(byte[] data, ref VideoFormat format)
+        {
+            var decoder = new SpsDecoder(data);
+            decoder.DecodeWork(ref format);
         }
     }
 }

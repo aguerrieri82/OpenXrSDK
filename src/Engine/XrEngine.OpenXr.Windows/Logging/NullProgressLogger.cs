@@ -1,6 +1,4 @@
-﻿using XrEngine;
-
-namespace XrSamples
+﻿namespace XrEngine.OpenXr.Windows
 {
     public class NullProgressLogger : IProgressLogger
     {

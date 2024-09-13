@@ -16,7 +16,7 @@ uniform mat3 uRotation;
 uniform vec3 uViewPos;
 
 uniform vec2 uTexCenter[2];
-uniform vec2 uTexRadius;
+uniform vec2 uTexRadius[2];
 uniform float uFov;
 
 uniform vec2 uSurfaceSize;
@@ -67,7 +67,7 @@ vec2 sampleFish(vec2 polar, float fov)
 	vec2 result;
 	result.x = r * cos(polar.y);
 	result.y = r * sin(polar.y);
-    return uTexCenter[activeEye] + result * uTexRadius;
+    return uTexCenter[activeEye] + result * uTexRadius[activeEye];
 }
 
 void main()

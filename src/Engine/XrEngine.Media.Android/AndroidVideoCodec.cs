@@ -24,48 +24,58 @@ namespace XrEngine.Media.Android
         private bool _isCodecInit;
         private SurfaceTexture? _surfaceTex;
         private long _timeout;
-        private int _isConverting;
         private ConcurrentQueue<ConvertData> _convertQueue = new ConcurrentQueue<ConvertData>();
 
         public AndroidVideoCodec()
         {
-            _timeout = 1000000;
-            IsAsync = true;
+            _timeout = 60 * 1000;
         }
 
-        protected bool ConvertWork(FrameBuffer src, ref FrameBuffer dst)
+        protected bool EnsureCodecInit()
         {
             if (_codec == null)
                 return false;
 
-            if (!_isCodecInit)
+            if (_isCodecInit)
+                return true;
+
+            Surface? surface = null;
+
+            if (OutTexture != null)
             {
-                Surface? surface = null;
+                var glText = OutTexture!.GetProp<GlTexture>(OpenGLRender.Props.GlResId);
+                
+                if (glText == null)
+                    return false;
 
-                if (OutTexture != null)
-                {
-                    var glText = OutTexture!.GetProp<GlTexture>(OpenGLRender.Props.GlResId);
-                    if (glText != null)
-                    {
-                        _surfaceTex = new SurfaceTexture((int)glText.Handle);
-
-                        surface = new Surface(_surfaceTex);
-                    }
-                }
-
-                var inFormat = MediaFormat.CreateVideoFormat(_mimeType!, _outFormat.Width, _outFormat.Height);
-
-                _codec.Configure(inFormat, surface, null, MediaCodecConfigFlags.None);
-                _codec.Start();
-
-                _isCodecInit = true;
+                _surfaceTex = new SurfaceTexture((int)glText.Handle);
+                surface = new Surface(_surfaceTex);
             }
 
+            var inFormat = MediaFormat.CreateVideoFormat(_mimeType!, _outFormat.Width, _outFormat.Height);
 
-            var inBufferIndex = _codec.DequeueInputBuffer(_timeout);
+            _codec.Configure(inFormat, surface, null, MediaCodecConfigFlags.None);
+            _codec.Start();
+
+            _isCodecInit = true;
+
+            return true;
+
+        }
+
+        public bool EnqueueBuffer(FrameBuffer src)
+        {
+            if (!EnsureCodecInit())
+                return false;
+
+            var inBufferIndex = _codec!.DequeueInputBuffer(_timeout);
 
             if (inBufferIndex < 0)
+            {
+                Log.Warn(this, "EnqueueBuffer failed");
                 return false;
+            }
+        
 
             var inputBuffer = _codec.GetInputBuffer(inBufferIndex)!;
 
@@ -74,21 +84,34 @@ namespace XrEngine.Media.Android
             inputBuffer.Clear();
             inputBuffer.Put(src.ByteArray, src.Offset, size);
 
-            _codec.QueueInputBuffer(inBufferIndex, 0, size, 0, MediaCodecBufferFlags.None);
+            lock (this)
+                _codec.QueueInputBuffer(inBufferIndex, 0, size, 0, MediaCodecBufferFlags.None);
+
+            return true;
+        }
+
+        public bool DequeueBuffer(ref FrameBuffer dst)
+        {
+            if (!_isCodecInit)
+                return false;
 
             var bufferInfo = new MediaCodec.BufferInfo();
 
-            var outBufferIndex = _codec.DequeueOutputBuffer(bufferInfo, _timeout);
+            int outBufferIndex;
+
+            lock (this) 
+                outBufferIndex = _codec!.DequeueOutputBuffer(bufferInfo, 0);
 
             if (outBufferIndex > 0)
             {
                 _codec.ReleaseOutputBuffer(outBufferIndex, true);
 
-                if (_surfaceTex != null && !IsAsync)
-                    _surfaceTex.UpdateTexImage();
+                _surfaceTex?.UpdateTexImage();
 
                 return true;
             }
+
+            //Log.Warn(this, "DequeueBuffer failed");
 
             return false;
         }
@@ -104,7 +127,7 @@ namespace XrEngine.Media.Android
             }
         }
 
-        public void Open(VideoCodecMode mode, string mimeType, VideoFormat outFormat)
+        public void Open(VideoCodecMode mode, string mimeType, VideoFormat outFormat, byte[]? extraData = null)
         {
             _codec = mode == VideoCodecMode.Decode ?
                 MediaCodec.CreateDecoderByType(mimeType) :
@@ -113,50 +136,11 @@ namespace XrEngine.Media.Android
             _outFormat = outFormat;
             _mimeType = mimeType;
             _convertQueue.Clear();
-            _isConverting = 0;
-        }
 
-        public bool Convert(FrameBuffer src, ref FrameBuffer dst)
-        {
-            if (IsAsync)
-            {
-                _convertQueue.Enqueue(new ConvertData { Dst = dst, Src = src });
-
-                lock (this)
-                {
-                    if (_isConverting > 0)
-                        return false;
-                }
-
-                _ = Task.Run(() =>
-                {
-                    lock (this)
-                        _isConverting++;
-                    try
-                    {
-                        while (_convertQueue.TryDequeue(out var data))
-                            ConvertWork(data.Src, ref data.Dst);
-                    }
-                    finally
-                    {
-                        lock (this)
-                            _isConverting--;
-                    }
-
-                });
-
-                _surfaceTex?.UpdateTexImage();
-
-                return true;
-            }
-
-            return ConvertWork(src, ref dst);
         }
 
         public Texture2D? OutTexture { get; set; }
 
         public VideoCodecCaps Caps => VideoCodecCaps.DecodeTexture;
-
-        public bool IsAsync { get; set; }
     }
 }

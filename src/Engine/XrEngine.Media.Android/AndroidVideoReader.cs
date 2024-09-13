@@ -24,6 +24,7 @@ namespace XrEngine.Media.Android
         public AndroidVideoReader()
         {
             _timeout = 1000000;
+            IsLoop = true;
         }
 
         public void Close()
@@ -64,7 +65,7 @@ namespace XrEngine.Media.Android
             _eos = false;
             _mediaExtractor = new MediaExtractor();
             _mediaExtractor.SetDataSource(source.LocalPath);
-
+      
             var tracks = _mediaExtractor.TrackCount;
 
             string? mimeType = null;
@@ -115,12 +116,11 @@ namespace XrEngine.Media.Android
                 if (OutTexture != null)
                 {
                     var glText = OutTexture!.GetProp<GlTexture>(OpenGLRender.Props.GlResId);
-                    if (glText != null)
-                    {
-                        _surfaceTex = new SurfaceTexture((int)glText.Handle);
+                    if (glText == null)
+                        return false;
 
-                        surface = new Surface(_surfaceTex);
-                    }
+                    _surfaceTex = new SurfaceTexture((int)glText.Handle);
+                    surface = new Surface(_surfaceTex);
                 }
 
                 _decoder.Configure(_inputFormat, surface, null, MediaCodecConfigFlags.None);
@@ -147,6 +147,12 @@ namespace XrEngine.Media.Android
             }
             else
             {
+                if (IsLoop)
+                {
+                    _mediaExtractor.SeekTo(0, MediaExtractorSeekTo.None);
+                    return false;
+                }
+
                 _decoder.QueueInputBuffer(inBufferIndex, 0, 0, 0, MediaCodecBufferFlags.EndOfStream);
                 _eos = true;
             }
@@ -169,6 +175,8 @@ namespace XrEngine.Media.Android
 
             return false;
         }
+
+        public bool IsLoop { get; set; }
 
         public Texture2D? OutTexture { get; set; }
 

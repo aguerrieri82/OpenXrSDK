@@ -6,9 +6,13 @@
 
   <ItemGroup>
     <PackageReference Include="FFmpeg.AutoGen" Version="7.0.0" />
+    <PackageReference Include="Silk.NET.Direct3D11" Version="2.21.0" />
+    <PackageReference Include="Silk.NET.WGL.Extensions.NV" Version="2.21.0" />
   </ItemGroup>
 
   <ItemGroup>
+
+    <ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
 
     <ProjectReference Include="..\XrEngine.Video\XrEngine.Video.csproj" />
   </ItemGroup>

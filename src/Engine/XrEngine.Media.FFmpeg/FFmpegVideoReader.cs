@@ -48,7 +48,6 @@ namespace XrEngine.Video
 
         public unsafe void Open(string filename, AVHWDeviceType deviceType)
         {
-
             _pFormatContext = avformat_alloc_context();
             _receivedFrame = av_frame_alloc();
             var pFormatContext = _pFormatContext;

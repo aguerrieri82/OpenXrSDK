@@ -868,7 +868,7 @@ namespace XrEngine
 
         public static void Update<T>(this IEnumerable<T> target, RenderContext ctx) where T : IRenderUpdate
         {
-            foreach (var item in target)
+            foreach (var item in target.ToArray())
                 item.Update(ctx);
 
             //target.ForeachSafe(a => a.Update(ctx));
