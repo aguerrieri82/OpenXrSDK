@@ -105,18 +105,20 @@ namespace XrEngine.Services
             public byte[] Data { get; set; }
         }
 
+        const string DllName = "turbojpeg"; 
 
-        [DllImport("libjpeg-turbo")]
+
+        [DllImport(DllName)]
         public static extern IntPtr tjInitDecompress();
 
 
-        [DllImport("libjpeg-turbo")]
+        [DllImport(DllName)]
         public static  extern void tjDecompressHeader2(IntPtr jpegDecompressor, byte* data, int size, out int width, out int height, out int subSamp);
 
-        [DllImport("libjpeg-turbo")]
+        [DllImport(DllName)]
         public static extern void tjDecompress2(IntPtr jpegDecompressor, byte* data, int size, byte* outBuffer, int width, int pitch, int height, PixelFormat format, Flags flags);
 
-        [DllImport("libjpeg-turbo")]
+        [DllImport(DllName)]
         public static extern void tjDestroy(IntPtr jpegDecompressor);
 
 
