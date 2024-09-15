@@ -50,7 +50,10 @@ namespace XrEngine
 
         public long LightsVersion;
 
-        public uint InstanceId;
+        public uint ProgramInstanceId;
+
+        public IList<Plane>? FrustumPlanes;
+
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

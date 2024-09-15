@@ -14,22 +14,25 @@ using XrEngine.OpenXr;
 using OpenXr.Framework;
 using XrEngine.Services;
 using XrEngine.OpenXr.Windows;
+using Microsoft.Extensions.DependencyInjection;
 
 
 
 namespace XrSamples
 {
-    public static class WindowSceneApp
+    public class WindowSceneApp
     {
         public static Task Run(IServiceProvider services)
         {
             ModuleManager.Instance.Init();
 
+            Context.Implement<ILogger>(services.GetRequiredService<ILogger<WindowSceneApp>>()); 
+
             var builder = new XrEngineAppBuilder();
 
             var app = builder
                 .UsePlatform<ConsolePlatform>()
-                .CreateChromeBrowser()
+                .CreatePingPong()
                 .Build()
                 .App;
 

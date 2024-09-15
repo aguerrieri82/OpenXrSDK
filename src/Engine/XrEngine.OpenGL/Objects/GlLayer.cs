@@ -1,4 +1,4 @@
-﻿using Silk.NET.OpenGL;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,7 +80,7 @@ namespace XrEngine.OpenGL
                     {
                         shaderContent = new ShaderContent
                         {
-                            ProgramGlobal = material.Shader.GetResource(gl => new GlProgramGlobal(_render.GL, material.GetType()))
+                            ProgramGlobal = material.Shader.GetGlResource(gl => new GlProgramGlobal(_render.GL, material.GetType()))
                         };
 
                         _content.ShaderContents[material.Shader] = shaderContent;
@@ -90,7 +90,7 @@ namespace XrEngine.OpenGL
                     {
                         vertexContent = new VertexContent
                         {
-                            VertexHandler = vrtSrc.Object.GetResource(a => GlVertexSourceHandle.Create(_render.GL, vrtSrc)),
+                            VertexHandler = vrtSrc.Object.GetGlResource(a => GlVertexSourceHandle.Create(_render.GL, vrtSrc)),
                             ActiveComponents = VertexComponent.None
                         };
 

@@ -6,7 +6,10 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using XrEngine.Services;
 using XrMath;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace XrEngine.Gltf
@@ -112,22 +115,39 @@ namespace XrEngine.Gltf
 
                 Log.Info(this, "Loading texture {0} ({1} bytes)", img.Name, data.Length);
 
-                using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
-
-                return new TextureData
+                if (img.MimeType == glTFLoader.Schema.Image.MimeTypeEnum.image_jpeg)
                 {
-                    Data = image.GetPixelSpan().ToArray(),
-                    Width = (uint)image.Width,
-                    Height = (uint)image.Height,
-                    Format = image.ColorType switch
+                    var outImg = TurboJpeg.Decompress(data);
+
+                    return new TextureData
                     {
-                        SKColorType.Srgba8888 => TextureFormat.SRgba32,
-                        SKColorType.Bgra8888 => useSrgb ? TextureFormat.SBgra32 : TextureFormat.Bgra32,
-                        SKColorType.Rgba8888 => useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
-                        SKColorType.Gray8 => TextureFormat.Gray8,
-                        _ => throw new NotSupportedException()
-                    }
-                };
+                        Data = outImg.Data,
+                        Width = (uint)outImg.Width,
+                        Height = (uint)outImg.Height,
+                        Format = useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
+                    };
+                }
+       
+                else
+                {
+                    using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
+                    return new TextureData
+                    {
+                        Data = image.GetPixelSpan().ToArray(),
+                        Width = (uint)image.Width,
+                        Height = (uint)image.Height,
+                        Format = image.ColorType switch
+                        {
+                            SKColorType.Srgba8888 => TextureFormat.SRgba32,
+                            SKColorType.Bgra8888 => useSrgb ? TextureFormat.SBgra32 : TextureFormat.Bgra32,
+                            SKColorType.Rgba8888 => useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
+                            SKColorType.Gray8 => TextureFormat.Gray8,
+                            _ => throw new NotSupportedException()
+                        }
+                    };
+                }
+
+         
             });
         }
 

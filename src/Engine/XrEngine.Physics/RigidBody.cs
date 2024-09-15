@@ -16,6 +16,7 @@ namespace XrEngine.Physics
         private PhysicsMaterial? _material;
         private event RigidBodyContactEventHandler? _contactEvent;
 
+
         public RigidBody()
         {
             Type = PhysicsActorType.Dynamic;
@@ -71,15 +72,12 @@ namespace XrEngine.Physics
             _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, true);
         }
 
-        protected PhysicsShape? CreateShape(ICollider3D? collider)
+        protected PhysicsGeometry? CreateGeometry(ICollider3D? collider, ref Pose3 pose)
         {
             Debug.Assert(_system != null);
             Debug.Assert(_host != null);
 
-            PhysicsShape? shape = null;
-            PhysicsGeometry? pyGeo = null;
-            EngineObject? shapeHost = null;
-            Pose3 pose = Pose3.Identity;
+            PhysicsGeometry? result = null;
 
             if (collider == null)
             {
@@ -90,11 +88,10 @@ namespace XrEngine.Physics
 
                 local.BoundUpdateMode = UpdateMode.Automatic;
 
-                pyGeo = _system.CreateBox(local.LocalBounds.Size / 2);
+                result = _system.CreateBox(local.LocalBounds.Size / 2);
 
                 pose.Position = local.LocalBounds.Center;
 
-                shapeHost = _host;
             }
             else
             {
@@ -107,41 +104,51 @@ namespace XrEngine.Physics
 
                 var geo = host.Feature<Geometry3D>();
 
-                /*
-                if (geo != null)
-                    shape = geo.GetProp<PhysicsShape>("PhysicsShape");
-                */
-
-                if (shape == null)
+                if (collider is MeshCollider mc && mc.Geometry != null)
                 {
-                    if (collider is MeshCollider mc && mc.Geometry != null)
-                    {
-                        mc.Geometry.EnsureIndices();
+                    mc.Geometry.EnsureIndices();
 
-                        pyGeo = _system.CreateTriangleMesh(
-                            mc.Geometry.Indices,
-                            mc.Geometry.ExtractPositions(),
-                            Vector3.One, LengthToleranceScale
-                        );
-                    }
-                    else if (collider is CapsuleCollider cap)
-                    {
-                        pyGeo = _system.CreateCapsule(cap.Radius, cap.Height * 0.5f);
-                        pose.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI / 2);
-                    }
-                    else if (collider is SphereCollider sphere)
-                    {
-                        pyGeo = _system.CreateSphere(sphere.Radius);
-                    }
-                    else if (collider is BoxCollider box)
-                    {
-                        pyGeo = _system.CreateBox(box.Size / 2);
-                        pose.Position = box.Center;
-                    }
-
-                    shapeHost = geo;
+                    result = _system.CreateTriangleMesh(
+                        mc.Geometry.Indices,
+                        mc.Geometry.ExtractPositions(),
+                        Vector3.One, LengthToleranceScale
+                    );
+                    /*
+                    pyGeo = _system.CreateConvexMesh(
+                          mc.Geometry.Indices,
+                          mc.Geometry.ExtractPositions(),
+                          Vector3.One
+                      );
+                    */
+                }
+                else if (collider is CapsuleCollider cap)
+                {
+                    result = _system.CreateCapsule(cap.Radius, cap.Height * 0.5f);
+                    pose.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI / 2);
+                }
+                else if (collider is SphereCollider sphere)
+                {
+                    result = _system.CreateSphere(sphere.Radius);
+                }
+                else if (collider is BoxCollider box)
+                {
+                    result = _system.CreateBox(box.Size / 2);
+                    pose.Position = box.Center;
                 }
             }
+
+            return result;
+        }
+
+        protected PhysicsShape? CreateShape(ICollider3D? collider)
+        {
+            Debug.Assert(_system != null);
+            Debug.Assert(_host != null);
+
+            PhysicsShape? shape = null;;
+            Pose3 pose = Pose3.Identity;
+
+            PhysicsGeometry? pyGeo = CreateGeometry(collider, ref pose);
 
             if (pyGeo != null)
             {
@@ -157,14 +164,38 @@ namespace XrEngine.Physics
 
             if (shape != null)
             {
-                shapeHost?.SetProp("PhysicsShape", shape);
-
                 shape.Tag = collider;
-
                 shape.LocalPose = pose;
             }
 
             return shape;
+        }
+
+        public void UpdateShape()
+        {
+            Debug.Assert(_host != null);
+
+            if (_actor == null)
+                return;
+
+            foreach (var collider in _host.Components<ICollider3D>())
+            {
+                if (!collider.IsEnabled)
+                    continue;
+
+                Pose3 pose = Pose3.Identity;    
+
+                var shape = _actor!.GetShapes().FirstOrDefault(s => s.Tag == collider);  
+                if (shape != null)
+                {
+                    var geo = CreateGeometry(collider, ref pose);
+                    if (geo != null)
+                    {
+                        shape.Geometry = geo;
+                        shape.LocalPose = pose;
+                    }
+                }
+            }
         }
 
         protected void Destroy()
@@ -339,6 +370,8 @@ namespace XrEngine.Physics
                     if (DynamicActor.IsKinematic)
                         DynamicActor.IsKinematic = false;
                 }
+                else if (Type == PhysicsActorType.Static)
+                    _actor.GlobalPose = GetPose();
             }
             else
             {

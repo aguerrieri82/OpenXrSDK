@@ -8,19 +8,6 @@ using static FFmpeg.AutoGen.ffmpeg;
 using XrEngine.OpenGL;
 using System.Xml.Linq;
 
-enum D3D11_BIND_FLAG
-{
-    D3D11_BIND_VERTEX_BUFFER = 0x1,
-    D3D11_BIND_INDEX_BUFFER = 0x2,
-    D3D11_BIND_CONSTANT_BUFFER = 0x4,
-    D3D11_BIND_SHADER_RESOURCE = 0x8,
-    D3D11_BIND_STREAM_OUTPUT = 0x10,
-    D3D11_BIND_RENDER_TARGET = 0x20,
-    D3D11_BIND_DEPTH_STENCIL = 0x40,
-    D3D11_BIND_UNORDERED_ACCESS = 0x80,
-    D3D11_BIND_DECODER = 0x200,
-    D3D11_BIND_VIDEO_ENCODER = 0x400
-};
 
 
 namespace XrEngine.Video
@@ -37,12 +24,30 @@ namespace XrEngine.Video
         private VideoFormat _outFormat;
         private SwsContext* _swsContext;
 
+        /*
         Silk.NET.Direct3D11.ID3D11Texture2D* _dxText = null;
         private Texture2DDesc _dxTexDesc;
         private nint _hDxDevice;
         private nint _hDxObject;
         private NVDXInterop _nvExt;
         private bool _isLocked;
+
+        enum D3D11_BIND_FLAG
+        {
+            D3D11_BIND_VERTEX_BUFFER = 0x1,
+            D3D11_BIND_INDEX_BUFFER = 0x2,
+            D3D11_BIND_CONSTANT_BUFFER = 0x4,
+            D3D11_BIND_SHADER_RESOURCE = 0x8,
+            D3D11_BIND_STREAM_OUTPUT = 0x10,
+            D3D11_BIND_RENDER_TARGET = 0x20,
+            D3D11_BIND_DEPTH_STENCIL = 0x40,
+            D3D11_BIND_UNORDERED_ACCESS = 0x80,
+            D3D11_BIND_DECODER = 0x200,
+            D3D11_BIND_VIDEO_ENCODER = 0x400
+        };
+
+
+        */
 
         public FFmpegCodec()
         {
@@ -178,11 +183,7 @@ namespace XrEngine.Video
                     _pPacket->data = ((byte*)src.Pointer.ToPointer()) + src.Offset;
                     _pPacket->size = src.Size;
                 }
-                
-                /*
-                if (_pPacket->data[4] == 103 || _pPacket->data[4] == 104)
-                    return true;
-                */
+               
 
                 try
                 {
@@ -209,8 +210,8 @@ namespace XrEngine.Video
 
                 if (result != 0)
                     return false;
-
                 /*
+                
                 AVBufferRef* hw_device_ctx_buffer = _pCodecContext->hw_device_ctx;
                 AVHWDeviceContext* hw_device_ctx = (AVHWDeviceContext*)hw_device_ctx_buffer->data;
                 AVD3D11VADeviceContext* hw_d3d11_dev_ctx = (AVD3D11VADeviceContext*)hw_device_ctx->hwctx;
@@ -227,8 +228,9 @@ namespace XrEngine.Video
                         texture->GetDesc(ref _dxTexDesc);
 
                         _dxTexDesc.Format = Silk.NET.DXGI.Format.FormatR8G8B8A8Unorm;
-                        _dxTexDesc.BindFlags = (uint)(D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET);
+                        _dxTexDesc.BindFlags = (uint)(D3D11_BIND_FLAG.D3D11_BIND_DECODER);
                         _dxTexDesc.ArraySize = 1;
+                        _dxTexDesc.MiscFlags = 0;
 
                         ((Silk.NET.Direct3D11.ID3D11Device*)hw_d3d11_dev_ctx->device)->CreateTexture2D(ref _dxTexDesc, null, ref _dxText);
 

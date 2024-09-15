@@ -35,6 +35,22 @@ namespace XrEngine
             Projection = container.Read<Matrix4x4>(nameof(Projection));
         }
 
+        public Camera Clone()
+        {
+            var camera = (Camera)Activator.CreateInstance(GetType())!;
+            camera.CopyFrom(this);
+            return camera;
+        }
+
+        protected virtual void CopyFrom(Camera camera)
+        {
+            BackgroundColor = camera.BackgroundColor;
+            Near = camera.Near;
+            Far = camera.Far;
+            Exposure = camera.Exposure;
+            Projection = camera.Projection;
+            WorldMatrix = camera.WorldMatrix;   
+        }   
 
         public Color BackgroundColor { get; set; }
 
@@ -67,6 +83,9 @@ namespace XrEngine
         public Matrix4x4 ProjectionInverse => _projInverse;
 
         public Matrix4x4 ViewInverse => WorldMatrix;
+
+
+   
 
     }
 }

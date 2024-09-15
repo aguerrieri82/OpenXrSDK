@@ -53,6 +53,15 @@ namespace XrEngine.OpenGL
             return buffer;
         }
 
+        public void UpdateUniforms(UpdateShaderContext ctx, IUniformProvider uniformProvider)
+        {
+            if (Update == null)
+                return;
+
+            foreach (var action in Update.Actions!)
+                action(ctx, uniformProvider);
+        }
+
         public ShaderUpdate? Update { get; set; }
 
         public Type MaterialType { get; }

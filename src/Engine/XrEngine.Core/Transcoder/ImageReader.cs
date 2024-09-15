@@ -12,7 +12,6 @@ namespace XrEngine
         {
         }
 
-
         public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
             var image = SKBitmap.Decode(stream);

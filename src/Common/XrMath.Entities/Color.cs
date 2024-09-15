@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 
 namespace XrMath
 {
@@ -45,6 +46,15 @@ namespace XrMath
         {
             return Parse(color);
         }
+        public static bool operator ==(Color left, Color right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Color left, Color right)
+        {
+            return !(left == right);
+        }
 
         public static Color Parse(string colorString)
         {
@@ -54,7 +64,6 @@ namespace XrMath
             {
                 colorString = $"{colorString[0]}{colorString[0]}{colorString[1]}{colorString[1]}{colorString[2]}{colorString[2]}";
             }
-
 
             int r = Convert.ToInt32(colorString.Substring(0, 2), 16);
             int g = Convert.ToInt32(colorString.Substring(2, 2), 16);
@@ -69,12 +78,23 @@ namespace XrMath
             return new Color(rf, gf, bf, af);
         }
 
-
-
-        public override string ToString()
+        public readonly override string ToString()
         {
             return $"<{R},{G},{B},{A}>";
         }
+
+        public readonly override bool Equals([NotNullWhen(true)] object? obj)
+        {
+            if (obj is Color color)
+                return R == color.R && G == color.G && B == color.B && A == color.A;
+            return false;
+        }
+
+        public readonly override int GetHashCode()
+        {
+            return R.GetHashCode() ^ G.GetHashCode() ^ B.GetHashCode() ^ A.GetHashCode();
+        }
+
 
         public float R;
 
@@ -89,6 +109,7 @@ namespace XrMath
         public static Color White => new(1f, 1f, 1f);
 
         public static Color Transparent => new(0f, 0f, 0f, 0f);
+
 
     }
 }
