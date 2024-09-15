@@ -173,25 +173,11 @@ namespace XrEditor
 
         protected void RenderLoop()
         {
+            _renderSurface.TakeContext();
+
             CreateApp();
 
             _render = _engine!.App.Renderer!;
-
-            _renderSurface.TakeContext();
-
-            /*
-
-            var proc = new GlFishProcessor((_render as OpenGLRender)!.GL, ColorMaterial.SHADER.Resolver!);
-
-            var inData = ImageReader.Instance.Read("Assets/Fish/cam_left.jpg").First();
-            var outData = new TextureData();
-            proc.Process(inData, outData);
-            
-            using var img = ImageUtils.ToBitmap(outData, false);
-            using var outFile = File.OpenWrite("d:\\cam_left_pan.jpg");
-            img.Encode(outFile, SKEncodedImageFormat.Jpeg, 100);
-            outFile.Dispose();
-        */
 
             while (_isStarted)
             {

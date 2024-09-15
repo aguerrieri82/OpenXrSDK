@@ -19,7 +19,6 @@ namespace XrEngine.OpenGL
         public unsafe GlBuffer(GL gl, BufferTargetARB target)
              : base(gl)
         {
-            _gl = gl;
             _target = target;
             Version = -1;
             Create();

@@ -1,4 +1,6 @@
-﻿using OpenXr.Framework;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using XrEngine;
 using XrEngine.OpenXr;
@@ -16,12 +18,14 @@ namespace XrSamples
         public static Task Run(IServiceProvider services)
         {
             ModuleManager.Instance.Init();
+            
+            Context.Implement<ILogger>(services.GetRequiredService<ILogger<WindowSceneApp>>());
 
             var builder = new XrEngineAppBuilder();
             _game = builder
                 .UseOpenGL()
                 .UsePlatform<ConsolePlatform>()
-                .CreateChromeBrowser()
+                .CreateRoomManager()
                 .Build();
 
             _game.App.Start();

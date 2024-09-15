@@ -16,7 +16,7 @@ namespace XrEngine
                 up.SetUniform("uViewPos", camera.Transform.Position, true);
                 up.SetUniform("uFarPlane", camera.Far);
 
-                if (ctx.Shader!.IsLit && (!_lightVersions.TryGetValue(ctx.InstanceId, out var ver) || ctx.LightsVersion != ver))
+                if (ctx.Shader!.IsLit && (!_lightVersions.TryGetValue(ctx.ProgramInstanceId, out var ver) || ctx.LightsVersion != ver))
                 {
                     foreach (var light in bld.Context.Lights!)
                     {
@@ -31,7 +31,7 @@ namespace XrEngine
                         }
                     }
 
-                    _lightVersions[ctx.InstanceId] = ctx.LightsVersion;
+                    _lightVersions[ctx.ProgramInstanceId] = ctx.LightsVersion;
                 }
             });
         }

@@ -303,10 +303,9 @@ namespace XrEditor
             if (addr == 0)
             {
                 addr = wglGetProcAddress(proc);
-                /*
+
                 if (addr == 0)
                     throw new NotSupportedException(proc);
-                */
             }
 
             return addr;

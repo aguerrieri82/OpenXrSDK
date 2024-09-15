@@ -35,6 +35,7 @@
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../Engine/Draco.Native/libs/arm64-v8a/*" />
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../third-party/etcpak/libs/arm64-v8a/*" />
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../third-party/meshoptimizer/libs/arm64-v8a/*" />
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../libs/turbo-jpeg/android-arm64/*" />
 	</ItemGroup>
 
 

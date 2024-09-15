@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -32,7 +33,7 @@ namespace PhysX.Framework
     {
         public PhysicsOptions()
         {
-            LengthTolerance = 1;
+            LengthTolerance = 0.001f;
             SpeedTolerance = 4;
             DebugHost = "192.168.1.89";
             DebugPort = 5425;
@@ -176,7 +177,7 @@ namespace PhysX.Framework
             return new PhysicsGeometry((PxGeometry*)&geo);
         }
 
-        public PhysicsGeometry? CreateConvexMesh(uint[] indices, Vector3[] vertices, Vector3 scale)
+        public unsafe PhysicsGeometry? CreateConvexMesh(uint[] indices, Vector3[] vertices, Vector3 scale)
         {
             PxConvexMeshCookingResult result;
 
@@ -189,26 +190,19 @@ namespace PhysX.Framework
             desc.indices.stride = 4;
             desc.quantizedCount = 10;
             desc.vertexLimit = 200;
-            desc.polygonLimit = 10;
+            desc.polygonLimit = 50;
+
             desc.flags = PxConvexFlags.ComputeConvex | PxConvexFlags.DisableMeshValidation | PxConvexFlags.FastInertiaComputation;
 
             var curScale = _tolerancesScale;
 
             var param = curScale.CookingParamsNew();
-
+            
             /*
-            var allocator = phys_PxGetAllocatorCallback();
-            var outStream = allocator->DefaultMemoryOutputStreamNewAlloc();
-
-            param.PhysPxCookTriangleMesh(&desc, (PxOutputStream*)outStream, &result);
-
-            allocator->Delete();
-            outStream->Delete();
-            */
-
             var isValid = param.PhysPxValidateConvexMesh(&desc);
             if (!isValid)
                 return null;
+            */
 
             var mesh = param.PhysPxCreateConvexMesh(&desc, phys_PxGetStandaloneInsertionCallback(), &result);
 

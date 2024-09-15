@@ -62,6 +62,14 @@ namespace XrEngine
             Target = container.Read<Vector3>(nameof(Target));
         }
 
+        protected override void CopyFrom(Camera camera)
+        {
+            var perspectiveCamera = (PerspectiveCamera)camera;  
+            perspectiveCamera.Eyes = Eyes;
+            perspectiveCamera.ActiveEye = ActiveEye;
+            base.CopyFrom(camera);
+        }
+
         public CameraEye[]? Eyes { get; set; }
 
         public int ActiveEye { get; set; }

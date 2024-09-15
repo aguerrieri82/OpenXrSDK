@@ -9,18 +9,32 @@ using System.Text.RegularExpressions;
 using System.Text;
 using XrMath;
 using System.Diagnostics;
+using System.Collections;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 
 namespace XrEngine.OpenGL
 {
     public abstract partial class GlBaseProgram : GlObject, IUniformProvider, IFeatureList
     {
-        protected readonly Dictionary<string, int> _locations = [];
+        struct UniformData
+        {
+            public int Location;
+
+            public object LastValue;
+
+            public int BoundSlot;
+        }
+
         protected readonly List<string> _features = [];
         protected readonly List<string> _extensions = [];
         protected readonly Func<string, string> _resolver;
+        protected readonly Dictionary<string, object> _values = [];
+        protected readonly Dictionary<string, int> _locations = [];
         protected readonly Dictionary<string, int> _boundTextures = [];
         protected readonly Dictionary<string, int> _boundBuffers = [];
+
 
         public GlBaseProgram(GL gl, Func<string, string> includeResolver) : base(gl)
         {
@@ -109,52 +123,107 @@ namespace XrEngine.OpenGL
             _gl.LineWidth(size);
         }
 
+        protected bool IsChanged(string name, object value)
+        {
+            bool isChanged;
+
+            if (!_values.TryGetValue(name, out var lastValue))
+                isChanged = true;
+            else
+            {
+                if (lastValue is Array lastArray)
+                {
+                    var curArray = (Array)value;
+
+                    if (lastArray.Length != curArray.Length)
+                        return true;
+
+                    var elSize = Marshal.SizeOf(lastArray.GetType()!.GetElementType()!);
+                    var b1 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetArrayDataReference(lastArray), lastArray.Length * elSize);
+                    var b2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetArrayDataReference(curArray), curArray.Length * elSize);
+
+                    isChanged = !b1.SequenceEqual(b2);
+                }
+                else
+                    isChanged = !Equals(value, lastValue);
+            }
+
+            if (isChanged)
+                _values[name] = value;
+
+            return isChanged;
+        }
+
+        public void LoadTexture(Texture value, int slot = 0)
+        {
+            var tex2d = value as Texture2D ?? throw new NotSupportedException();
+
+            _gl.ActiveTexture(TextureUnit.Texture0 + slot);
+
+            var texture = value.GetGlResource(a => tex2d.CreateGlTexture(_gl, OpenGLRender.Current!.Options.RequireTextureCompression));
+
+            if (tex2d.Version != texture.Version && tex2d.Width > 0 && tex2d.Height > 0)
+                texture.Update(tex2d, false);
+
+            texture.Bind();
+
+        }
+
         public void SetUniform(string name, int value, bool optional = false)
         {
+            if (!IsChanged(name, value))
+                return;
             _gl.Uniform1(LocateUniform(name, optional), value);
         }
 
         public void SetUniform(string name, uint value, bool optional = false)
         {
+            if (!IsChanged(name, value))
+                return;
             _gl.Uniform1(LocateUniform(name, optional), value);
         }
 
         public unsafe void SetUniform(string name, Matrix4x4 value, bool optional = false)
         {
+            if (!IsChanged(name, value))
+                return;
             _gl.UniformMatrix4(LocateUniform(name, optional), 1, false, (float*)&value);
         }
 
 
         public unsafe void SetUniform(string name, Matrix3x3 value, bool optional = false)
         {
+            if (!IsChanged(name, value))
+                return;
             _gl.UniformMatrix3(LocateUniform(name, optional), 1, false, (float*)&value);
         }
 
 
         public void SetUniform(string name, float value, bool optional = false)
         {
+            if (!IsChanged(name, value))
+                return;
             _gl.Uniform1(LocateUniform(name, optional), value);
-        }
-
-        public unsafe void SetUniform(string name, Vector2[] value, bool optional = false)
-        {
-            fixed (Vector2* data = value)
-                _gl.Uniform2(LocateUniform(name, optional), (uint)value.Length, (float*)data);
-
         }
 
         public void SetUniform(string name, Vector2 value, bool optional = false)
         {
+            if (!IsChanged(name, value))
+                return;
             _gl.Uniform2(LocateUniform(name, optional), value.X, value.Y);
         }
 
         public void SetUniform(string name, Vector3 value, bool optional = false)
         {
+            if (!IsChanged(name, value))
+                return;
             _gl.Uniform3(LocateUniform(name, optional), value.X, value.Y, value.Z);
         }
 
         public void SetUniform(string name, Color value, bool optional = false)
         {
+            if (!IsChanged(name, value))
+                return;
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
@@ -174,20 +243,6 @@ namespace XrEngine.OpenGL
             }
         }
 
-        public void LoadTexture(Texture value, int slot = 0)
-        {
-            var tex2d = value as Texture2D ?? throw new NotSupportedException();
-
-            _gl.ActiveTexture(TextureUnit.Texture0 + slot);
-
-            var texture = value.GetResource(a => tex2d.CreateGlTexture(_gl, OpenGLRender.Current!.Options.RequireTextureCompression));
-
-            if (tex2d.Version != texture.Version && tex2d.Width > 0 && tex2d.Height > 0)
-                texture.Update(tex2d, false);
-
-            texture.Bind();
-        }
-
         public unsafe void SetUniform(string name, Texture value, int slot = 0, bool optional = false)
         {
             LoadTexture(value, slot);
@@ -199,23 +254,35 @@ namespace XrEngine.OpenGL
             }
         }
 
-
-
-        public void SetUniform(string name, float[] obj, bool optional = false)
+        public void SetUniform(string name, float[] value, bool optional = false)
         {
-            var span = obj.AsSpan();
+            if (!IsChanged(name, value))
+                return;
+            var span = value.AsSpan();
             _gl.Uniform1(LocateUniform(name, optional), span);
         }
 
-        public void SetUniform(string name, int[] obj, bool optional = false)
+        public unsafe void SetUniform(string name, Vector2[] value, bool optional = false)
         {
-            var span = obj.AsSpan();
+            if (!IsChanged(name, value))
+                return;
+   
+            fixed (Vector2* data = value)
+                _gl.Uniform2(LocateUniform(name, optional), (uint)value.Length, (float*)data);
+
+        }
+        public void SetUniform(string name, int[] value, bool optional = false)
+        {
+            if (!IsChanged(name, value))
+                return;
+            var span = value.AsSpan();
             _gl.Uniform1(LocateUniform(name, optional), span);
         }
 
         public void SetUniform(string name, Vector2I value, bool optional = false)
         {
-
+            if (!IsChanged(name, value))
+                return;
             _gl.Uniform2(LocateUniform(name, optional), value.X, value.Y);
         }
 
@@ -295,7 +362,5 @@ namespace XrEngine.OpenGL
 
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]
         protected static partial Regex IncludeRegex();
-
-
     }
 }

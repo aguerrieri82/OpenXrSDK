@@ -18,7 +18,7 @@ namespace XrEditor
               //.UseMultiView()
               //.UseStereo()
               .SetRenderQuality(1, 4) ///samples > 1 cause Filament to fuck up
-              .CreatePortalVideo()
+              .CreateCucina()
               .Build();
     }
 }

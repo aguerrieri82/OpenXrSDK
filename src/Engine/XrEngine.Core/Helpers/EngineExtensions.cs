@@ -47,6 +47,17 @@ namespace XrEngine
             return obj.Components<T>().Single();
         }
 
+        public static T GetOrCreateProp<T>(this EngineObject obj, string name, Func<T> create) 
+        {
+            var result = obj.GetProp<T?>(name);
+            if (result == null)
+            {
+                result = create();
+                obj.SetProp(name, result);
+            }
+            return result;
+        }
+
         #endregion
 
         #region OBJECT3D

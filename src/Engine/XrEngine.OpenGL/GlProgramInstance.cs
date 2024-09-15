@@ -94,10 +94,7 @@ namespace XrEngine.OpenGL
             ctx.BufferProvider = this;
 
             if (updateGlobals)
-            {
-                foreach (var action in Global.Update!.Actions!)
-                    action(ctx, Program!);
-            }
+                Global.UpdateUniforms(ctx, Program!);
 
             foreach (var action in _update!.Actions!)
                 action(ctx, Program!);
