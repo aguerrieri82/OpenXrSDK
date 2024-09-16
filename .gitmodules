@@ -6,7 +6,7 @@
 	url = https://github.com/madler/zlib
 [submodule "third-party/meshoptimizer"]
 	path = third-party/meshoptimizer
-	url = https://github.com/aguerrieri82/meshoptimizer
+	url = https://github.com/zeux/meshoptimizer
 [submodule "third-party/MagicPhysX"]
 	path = third-party/MagicPhysX
 	url = https://github.com/aguerrieri82/MagicPhysX
@@ -16,3 +16,6 @@
 [submodule "third-party/openal-soft"]
 	path = third-party/openal-soft
 	url = https://github.com/JogAmp/openal-soft/
+[submodule "third-party/libjpeg-turbo"]
+	path = third-party/libjpeg-turbo
+	url = https://github.com/libjpeg-turbo/libjpeg-turbo

@@ -43,7 +43,7 @@ xcopy %FILAMENT_PATH%\out\debug-win\filament\lib\x86_64 %OUT_PATH%\filament-wind
 
 cd %FILAMENT_PATH%
 
-bash -c ../android-build.sh
+bash -c ../build-filament-android.sh
 
 xcopy %FILAMENT_PATH%\out\android-release\filament\include %OUT_PATH%\filament-android\include /S /Y
 xcopy %FILAMENT_PATH%\out\android-release\filament\lib\arm64-v8a %OUT_PATH%\filament-android\lib\arm64-v8a /S /Y
