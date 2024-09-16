@@ -145,6 +145,12 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>..\..\..\libs\filament-windows\lib\x86_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <CustomBuildStep>
+      <Command>android-build.cmd</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>libs\arm64-v8a\*</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
@@ -164,6 +170,12 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>..\..\..\libs\filament-windows\lib\x86_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <CustomBuildStep>
+      <Command>android-build.cmd</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>libs\arm64-v8a\*</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -187,6 +199,12 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>..\..\..\libs\filament-windows\lib\x86_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <CustomBuildStep>
+      <Command>android-build.cmd</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>libs\arm64-v8a\*</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <ClCompile>
@@ -210,6 +228,12 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>..\..\..\libs\filament-windows\lib\x86_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <CustomBuildStep>
+      <Command>android-build.cmd</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>libs\arm64-v8a\*</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -229,6 +253,12 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>..\..\..\libs\filament-windows\lib\x86_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <CustomBuildStep>
+      <Command>android-build.cmd</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>libs\arm64-v8a\*</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -252,6 +282,12 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>..\..\..\libs\filament-windows\lib\x86_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <CustomBuildStep>
+      <Command>android-build.cmd</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>libs\arm64-v8a\*</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Config.h" />
