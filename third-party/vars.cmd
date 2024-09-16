@@ -5,4 +5,4 @@ SET ANDROID_PLATFORM=30
 SET ANDROID_STL=c++_static
 SET BUILD_TYPE=release
 SET INSTALL_PEFIX=install
-SET NASM_PATH="C:\msys64\usr\bin\nasm.exe"
+SET ASM_NASM=C:/msys64/usr/bin/nasm.exe

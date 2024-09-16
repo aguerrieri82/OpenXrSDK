@@ -74,13 +74,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EtcPack", "..\third-party\etcpak\EtcPack.vcxproj", "{151A0D98-7E72-4D78-8C7E-C2BBDBA4D75D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "#Third", "#Third", "{A0A6CD7F-C9B6-4BB4-9756-AF601CAD6732}"
-	ProjectSection(SolutionItems) = preProject
-		..\third-party\build-etcpak.cmd = ..\third-party\build-etcpak.cmd
-		..\third-party\build-MagicPhysX.cmd = ..\third-party\build-MagicPhysX.cmd
-		..\third-party\build-openal.cmd = ..\third-party\build-openal.cmd
-		..\third-party\build-turbo-jpeg.cmd = ..\third-party\build-turbo-jpeg.cmd
-		..\third-party\vars.cmd = ..\third-party\vars.cmd
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Filament.Native", "Engine\Filament.Native\Filament.Native.vcxproj", "{4FF56F83-7124-4975-B086-2F9C4FCC59E4}"
 EndProject
@@ -159,6 +152,18 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XrEngine.UI.Web", "Engine\XrEngine.UI.Web\XrEngine.UI.Web.csproj", "{F1FE651A-5990-497A-89B2-80E9E8871254}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoomDesigner.Entities", "..\..\RoomDesigner\src\RoomDesigner.Entities\RoomDesigner.Entities.csproj", "{26633B4D-A22D-4D41-83C9-75C5A44D4CB2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "#Build", "#Build", "{6E86180E-96AC-44AB-94CA-985652DDE378}"
+	ProjectSection(SolutionItems) = preProject
+		..\third-party\build-etcpak.cmd = ..\third-party\build-etcpak.cmd
+		..\third-party\build-filament-android.sh = ..\third-party\build-filament-android.sh
+		..\third-party\build-filament.cmd = ..\third-party\build-filament.cmd
+		..\third-party\build-MagicPhysX.cmd = ..\third-party\build-MagicPhysX.cmd
+		..\third-party\build-meshoptimizer.cmd = ..\third-party\build-meshoptimizer.cmd
+		..\third-party\build-openal.cmd = ..\third-party\build-openal.cmd
+		..\third-party\build-turbo-jpeg.cmd = ..\third-party\build-turbo-jpeg.cmd
+		..\third-party\vars.cmd = ..\third-party\vars.cmd
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

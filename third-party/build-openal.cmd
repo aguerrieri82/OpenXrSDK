@@ -13,6 +13,8 @@ cmake -G Ninja .. -DCMAKE_TOOLCHAIN_FILE=%NDK_HOME%\build\cmake\android.toolchai
 	 
 ninja install
 	 
+copy install\lib\libopenal.so ..\..\..\libs\openal\android-arm64
+	
 cd..
 md out-win
 cd out-win
@@ -24,3 +26,5 @@ cmake -G Ninja .. ^
     -DCMAKE_INSTALL_PREFIX=%INSTALL_PEFIX%
 	
 ninja install
+
+copy install\bin\OpenAL32.dll ..\..\..\libs\openal\win-x64

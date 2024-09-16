@@ -25,8 +25,8 @@ call "%VC_HOME%\Auxiliary\Build\vcvars64.bat"
  
 cmake -G Ninja .. ^
 	 -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
-	 -DCMAKE_INSTALL_PREFIX=%INSTALL_PEFIX% ^
-	 -DASM_NASM=%NASM_PATH%
+	 -DCMAKE_INSTALL_PREFIX=%INSTALL_PEFIX%
+
 ninja install
 
 copy install\bin\turbojpeg.dll  ..\..\..\libs\turbo-jpeg\win-x64\

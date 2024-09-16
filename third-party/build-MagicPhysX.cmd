@@ -13,7 +13,7 @@ cargo install cargo-ndk
 SET ANDROID_NDK_ROOT=%NDK_HOME%
 SET NDK_PROJECT_PATH=%CD%
 
-cargo ndk --platform 26 --target aarch64-linux-android build --release 
+cargo ndk --platform 29 --target arm64-v8a build --release 
 
 copy target\aarch64-linux-android\release\libphysxnative.so ..\..\..\..\libs\physxnative\android-arm64
 
