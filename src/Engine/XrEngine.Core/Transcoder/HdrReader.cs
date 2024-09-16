@@ -47,14 +47,14 @@ namespace XrEngine
 
             var parts = line.Split(' ');
 
-            bool flipY = false;
+            //bool flipY = false;
 
             for (var i = 0; i < parts.Length; i += 2)
             {
                 var value = int.Parse(parts[i + 1]);
                 if (parts[i] == "-Y")
                 {
-                    flipY = true;
+                    //flipY = true;
                     height = value;
                 }
 

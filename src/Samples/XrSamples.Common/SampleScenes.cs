@@ -772,7 +772,7 @@ namespace XrSamples
 
                     if (material.Name == "wfnhfaq_Stucco_Facade")
                     {
-                        material.MetallicRoughness.BaseColorFactor = new Color(1.6f, 1.6f, 1.6f, 1);
+                        material.MetallicRoughness!.BaseColorFactor = new Color(1.6f, 1.6f, 1.6f, 1);
                     }
 
                     if (material.Name == "shkaaafc_Brushed_Aluminum")
@@ -828,6 +828,7 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
+        [Sample("Room Manager")]
         public static XrEngineAppBuilder CreateRoomManager(this XrEngineAppBuilder builder)
         {
             builder.Configure(RoomDesignerApp.Build)
@@ -835,12 +836,12 @@ namespace XrSamples
             {
                 app.App.ActiveScene!.AddChild(new PlaneGrid(6f, 12f, 2f));
 
-                var ui = (app.App as RoomDesignerApp)!.UiPanel;
+                var ui = (app.App as RoomDesignerApp)!.UiPanel!;
 
 #if !ANDROID
                 var webView = new ChromeWebBrowserView
                 {
-                    Size = new XrMath.Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
+                    Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
                     ZoomLevel = 0,
                     RequestHandler = new FsWebRequestHandler("main", Context.Require<RoomDesignerApp>().Settings.UiBaseUri)
                 };

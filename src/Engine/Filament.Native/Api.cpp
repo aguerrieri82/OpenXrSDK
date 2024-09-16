@@ -76,7 +76,8 @@ FilamentApp* Initialize(const InitializeOptions& options) {
 
 		app->isStereo = true;
 	}
-
+	else
+		cfg.stereoscopicEyeCount = 1;
 
 	auto builder = Engine::Builder();
 
@@ -163,11 +164,9 @@ void UpdateView(FilamentApp* app, VIEWID viewId, const ViewOptions& options)
 	view->setShadowType(options.shadowType);
 	view->setStencilBufferEnabled(options.stencilBufferEnabled);
 
-	if (app->isStereo) {
-		View::StereoscopicOptions stereoOpt;
-		stereoOpt.enabled = true;
-		view->setStereoscopicOptions(stereoOpt);
-	}
+	View::StereoscopicOptions stereoOpt;
+	stereoOpt.enabled = true;
+	view->setStereoscopicOptions(stereoOpt);
 
 	if (options.viewport.width != 0 && options.viewport.height != 0)
 		view->setViewport(filament::Viewport(options.viewport.x, options.viewport.y, options.viewport.width, options.viewport.height));
@@ -1140,12 +1139,29 @@ void AddImageLight(FilamentApp* app, const ImageLightInfo& info) {
 	texture.internalFormat = Texture::InternalFormat::R11F_G11F_B10F;
 	texture.levels = 0xFF;
 
+	/*
+	if (info.texture.filePath != null) {
+		int w, h;
+		stbi_info(info.texture.filePath, &w, &h, nullptr);
+
+		int n;
+		const size_t size = w * h * sizeof(float3);
+		float3* const data = (float3*)stbi_loadf(info.texture.filePath, &w, &h, &n, 3);
+		texture.data.data = (uint8_t*)data;
+		texture.data.dataSize = size;
+		texture.data.format = Texture::Format::RGB;
+		texture.data.autoFree = true;
+	}
+	*/
+
 	auto equirectTxt = CreateTexture(app, texture);
 	
 	IBLPrefilterContext context(*app->engine);	
-	IBLPrefilterContext::EquirectangularToCubemap equirectangularToCubemap(context);
+	IBLPrefilterContext::EquirectangularToCubemap equirectangularToCubemap(context, { .mirror = false });
 	IBLPrefilterContext::SpecularFilter specularFilter(context);
 	IBLPrefilterContext::IrradianceFilter irradianceFilter(context);
+
+
 
 	app->skyboxTexture = equirectangularToCubemap(equirectTxt);
 
@@ -1158,7 +1174,7 @@ void AddImageLight(FilamentApp* app, const ImageLightInfo& info) {
 	app->indirectLight = IndirectLight::Builder()
 		.reflections(app->iblTexture)
 		.intensity(info.intensity * 10000)
-		.rotation(rotMat)
+		//.rotation(rotMat)
 		.build(*app->engine);
 
 	app->scene->setIndirectLight(app->indirectLight);
@@ -1167,7 +1183,6 @@ void AddImageLight(FilamentApp* app, const ImageLightInfo& info) {
 		.environment(app->skyboxTexture)
 		.showSun(true)
 		.build(*app->engine);
-
 
 	if (info.showSkybox)
 		app->scene->setSkybox(app->skybox);

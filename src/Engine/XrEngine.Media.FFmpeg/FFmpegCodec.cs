@@ -17,7 +17,6 @@ namespace XrEngine.Video
         static readonly byte[] _emptyArray = [];
 
         private AVFrame* _pReceivedFrame = null;
-        private int _streamIndex = 0;
         private AVCodecContext* _pCodecContext = null;
         private AVPacket* _pPacket = null;
         private AVFrame* _pFrame = null;

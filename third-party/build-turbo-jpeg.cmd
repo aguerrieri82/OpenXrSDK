@@ -14,7 +14,7 @@ cmake -G Ninja .. -DCMAKE_TOOLCHAIN_FILE=%NDK_HOME%\build\cmake\android.toolchai
 	 
 ninja install
 	 
-copy install\lib\libturbojpeg.so ..\..\..\libs\turbo-jpeg\android-arm64\
+copy install\lib\libturbojpeg.so ..\..\..\libs\turbo-jpeg\android-arm64\libturbojpeg-native.so
 
 cd..
 md out-win
@@ -29,4 +29,4 @@ cmake -G Ninja .. ^
 
 ninja install
 
-copy install\bin\turbojpeg.dll  ..\..\..\libs\turbo-jpeg\win-x64\
+copy install\bin\turbojpeg.dll  ..\..\..\libs\turbo-jpeg\win-x64\turbojpeg-native.dll

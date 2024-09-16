@@ -1,4 +1,6 @@
-﻿namespace OpenXr.Framework
+﻿using System;   
+
+namespace OpenXr.Framework
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true)]
     public class XrPathAttribute : Attribute

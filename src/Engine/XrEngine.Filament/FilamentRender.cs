@@ -325,7 +325,7 @@ namespace XrEngine.Filament
         {
             var info = new ImageLightInfo
             {
-                Intensity = img.Intensity,
+                Intensity = img.Intensity * 4,
                 Rotation = img.Rotation,
                 ShowSkybox = true,
                 Texture = AllocateTexture(img.Panorama)
@@ -338,7 +338,7 @@ namespace XrEngine.Filament
             {
                 info = new ImageLightInfo
                 {
-                    Intensity = img.Intensity,
+                    Intensity = img.Intensity * 4,
                     Rotation = img.Rotation,
                     ShowSkybox = true,
                 };
@@ -552,7 +552,6 @@ namespace XrEngine.Filament
             }
         }
 
-
         protected unsafe void BuildContent(Scene3D scene)
         {
             if (_content == null)
@@ -572,7 +571,6 @@ namespace XrEngine.Filament
                 GetOrCreate(obj, id => Create(id, obj));
             }
         }
-
 
         public unsafe void Render(Scene3D scene, Camera camera, Rect2I viewport, bool flush)
         {

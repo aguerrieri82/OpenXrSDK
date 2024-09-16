@@ -3,8 +3,6 @@
   <PropertyGroup>
 	  <TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
 	  <SupportedOSPlatformVersion>$(AndroidPlatform)</SupportedOSPlatformVersion>
-	  <UseOpenGL>true</UseOpenGL>
-	  <Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

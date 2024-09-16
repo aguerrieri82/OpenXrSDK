@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using TurboJpeg;
 using XrEngine.Services;
 using XrMath;
 using static System.Net.Mime.MediaTypeNames;
@@ -39,15 +40,15 @@ namespace XrEngine.Gltf
 
         struct KHR_materials_pbrSpecularGlossiness
         {
-            public float[] diffuseFactor;
+            public float[]? diffuseFactor;
 
-            public float[] specularFactor;
+            public float[]? specularFactor;
 
             public float glossinessFactor;
 
-            public glTFLoader.Schema.TextureInfo? diffuseTexture;
+            public TextureInfo? diffuseTexture;
 
-            public glTFLoader.Schema.TextureInfo? specularGlossinessTexture;
+            public TextureInfo? specularGlossinessTexture;
         }
 
         public GltfLoader()
@@ -117,7 +118,7 @@ namespace XrEngine.Gltf
 
                 if (img.MimeType == glTFLoader.Schema.Image.MimeTypeEnum.image_jpeg)
                 {
-                    var outImg = TurboJpeg.Decompress(data);
+                    var outImg = TurboJpegLib.Decompress(data);
 
                     return new TextureData
                     {
@@ -299,8 +300,8 @@ namespace XrEngine.Gltf
             {
                 result.SpecularGlossiness = new PbrMaterial.SpecularGlossinessData
                 {
-                    DiffuseFactor = new Color(specGloss.Value.diffuseFactor),
-                    SpecularFactor = new Color(specGloss.Value.specularFactor),
+                    DiffuseFactor = new Color(specGloss.Value.diffuseFactor!),
+                    SpecularFactor = new Color(specGloss.Value.specularFactor!),
                     GlossinessFactor = specGloss.Value.glossinessFactor
                 };
 

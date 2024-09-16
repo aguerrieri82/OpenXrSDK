@@ -10,16 +10,16 @@ namespace XrSamples
 {
     public class AppSample
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
-        public Func<XrEngineAppBuilder, XrEngineAppBuilder> Build { get; set; }
+        public Func<XrEngineAppBuilder, XrEngineAppBuilder>? Build { get; set; }
     }
 
     public class HDRInfo
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
-        public string Uri { get; set; }
+        public string? Uri { get; set; }
     }
 
     public class SampleManager

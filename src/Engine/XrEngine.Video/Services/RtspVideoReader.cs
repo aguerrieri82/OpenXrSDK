@@ -21,7 +21,7 @@ namespace XrEngine.Video
         private DateTime _frameCountStart;
         private FrameBuffer _dstBuffer;
         private DateTime _lastPingTime;
-        private FileStream _out;
+
 
         public RtspVideoReader()
         {

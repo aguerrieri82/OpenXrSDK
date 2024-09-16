@@ -88,7 +88,8 @@ namespace XrSamples.Android.Activities
 
             var manager = XrEngine.Context.Require<SampleManager>();
             var sample = manager.GetSample(_settings.SampleName!);
-            sample.Build(builder);
+            sample.Build!(builder);
+
         }
     }
 }

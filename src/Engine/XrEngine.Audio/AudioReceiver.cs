@@ -5,8 +5,6 @@ namespace XrEngine.Audio
 {
     public class AudioReceiver : Behavior<Object3D>
     {
-        static readonly AlSourcePool? _pool;
-
         private AlListener? _listener;
 
         protected override void Start(RenderContext ctx)

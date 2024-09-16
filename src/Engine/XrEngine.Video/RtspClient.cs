@@ -60,8 +60,6 @@ namespace VirtualCamera.IPCamera
         StreamReader? _reader;
         StreamWriter? _writer;
         int _seqNum;
-        string? _username;
-        string? _password;
         private string? _authHash1;
         private Dictionary<string, string>? _authParams;
 

@@ -18,14 +18,6 @@ namespace XrEngine.OpenGL
 {
     public abstract partial class GlBaseProgram : GlObject, IUniformProvider, IFeatureList
     {
-        struct UniformData
-        {
-            public int Location;
-
-            public object LastValue;
-
-            public int BoundSlot;
-        }
 
         protected readonly List<string> _features = [];
         protected readonly List<string> _extensions = [];
@@ -79,13 +71,13 @@ namespace XrEngine.OpenGL
 
         protected IEnumerable<string> GetUniformNames()
         {
-            uint i = 0;
-
-            _gl.GetProgram(_handle, ProgramPropertyARB.ActiveUniforms, out int count);
 
 #if GLES
             return [];
 #else
+            _gl.GetProgram(_handle, ProgramPropertyARB.ActiveUniforms, out int count);
+
+            uint i = 0;
 
             while (i < count)
             {

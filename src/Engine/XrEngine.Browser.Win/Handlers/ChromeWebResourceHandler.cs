@@ -33,7 +33,7 @@ namespace XrEngine.Browser.Win
             _bodyStream?.Dispose();
         }
 
-        public void GetResponseHeaders(IResponse response, out long responseLength, out string redirectUrl)
+        public void GetResponseHeaders(IResponse response, out long responseLength, out string? redirectUrl)
         {
             redirectUrl = null;
             responseLength = _response!.Body?.LongLength ?? 0;

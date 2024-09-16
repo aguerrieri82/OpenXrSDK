@@ -6,11 +6,11 @@
 		<CoreVersion>net9.0</CoreVersion>
 		<TargetFrameworks>$(CoreVersion)</TargetFrameworks>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageVersion>0.0.1</PackageVersion>
+		<PackageVersion>0.2.1</PackageVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Platforms>AnyCPU;ARM64;x64</Platforms>
+		<Platforms>AnyCPU;x64</Platforms>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<NoWarn>$(NoWarn);CS8500</NoWarn>
 		<Configurations>Debug;Release</Configurations>
@@ -18,34 +18,18 @@
 		<AndroidPlatform>30</AndroidPlatform>
 		<IsAndroid>false</IsAndroid>
 		<NativeFolder>$(Configuration)</NativeFolder>
-		<UseOpenGL>false</UseOpenGL>
 		<NativePlatform>x64</NativePlatform>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(UseOpenGL)' == 'true'">
-		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
-	</PropertyGroup>
 	
-	<PropertyGroup Condition="'$(Configuration)' == 'Debug' OR '$(Configuration)' == 'Release'">
+	<PropertyGroup Condition="'$(TargetFramework)' == '$(CoreVersion)-android'">
 		<OpenGL>ES</OpenGL>
 		<IsAndroid>true</IsAndroid>
+		<DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
 		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)' == 'DebugGL'">
-		<DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
-		<NativeFolder>Debug</NativeFolder>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)' == 'ReleaseGL'">
-		<NativeFolder>Release</NativeFolder>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'IsAndroid' == 'true'">
-		<DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
 	</PropertyGroup>
 
 </Project>

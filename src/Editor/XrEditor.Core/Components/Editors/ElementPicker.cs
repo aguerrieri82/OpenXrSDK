@@ -34,10 +34,17 @@ namespace XrEditor
             else
                 Name = string.Empty;
 
-            if (_node is IItemPreview preview)
-                Image = await preview.CreatePreviewAsync();
-            else
-                Image = null;
+            try
+            {
+                if (_node is IItemPreview preview)
+                    Image = await preview.CreatePreviewAsync();
+                else
+                    Image = null;
+            }
+            catch
+            {
+                Log.Warn(this, "Preview failed");
+            }
 
             base.OnEditValueChanged(newValue);
         }

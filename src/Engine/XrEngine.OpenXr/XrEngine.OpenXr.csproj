@@ -1,9 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<UseOpenGL>true</UseOpenGL>
-		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
+		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<Using Remove="Android.Widget" />
+		<Using Remove="Android.App" />
+		<Using Remove="Android" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
@@ -19,8 +24,6 @@
 		<ProjectReference Include="..\XrEngine.UI\XrEngine.UI.csproj" />
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
-		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
-	</PropertyGroup>
+
 
 </Project>

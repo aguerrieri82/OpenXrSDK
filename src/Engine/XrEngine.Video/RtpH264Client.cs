@@ -16,7 +16,6 @@ namespace XrEngine.Video
         protected bool _ppsRec;
         protected bool _spsRec;
         protected MemoryStream? _readStream;
-        private BinaryWriter _file;
         protected int _lastSeqNumber;
         protected bool _isFormatReceived;
         protected DateTime _lastReportTime;
@@ -179,10 +178,9 @@ namespace XrEngine.Video
                         if (isStarted)
                         {
                             Log.Warn(this, "Fragment already started");
-                            break;
                             _readStream.SetLength(0);
+                            break;
                         }
-      
 
                         isStarted = true;
       

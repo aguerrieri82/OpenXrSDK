@@ -45,7 +45,7 @@ namespace XrSamples.Android.Activities
 
             listView.Adapter = new ArrayAdapter<string>(this,
                 global::Android.Resource.Layout.SimpleListItemSingleChoice,
-                _samples.Select(a => a.Name).ToArray());
+                _samples.Select(a => a.Name!).ToArray());
 
             listView.ItemClick += OnSampleSelected;
 
@@ -57,7 +57,7 @@ namespace XrSamples.Android.Activities
 
             mssa.ItemSelected += (s, e) =>
             {
-                _settings.Msaa = (int)e.Parent.GetItemAtPosition(e.Position);
+                _settings.Msaa = (int)e.Parent!.GetItemAtPosition(e.Position)!;
             };
 
             var images = manager.GetHDRs().ToArray();
@@ -65,7 +65,7 @@ namespace XrSamples.Android.Activities
             var hdris = FindViewById<Spinner>(ResourceConstant.Id.hdri)!;
             hdris.Adapter = new ArrayAdapter<string>(this,
                 global::Android.Resource.Layout.SimpleSpinnerItem,
-                images.Select(a=> a.Name).ToArray());
+                images.Select(a=> a.Name!).ToArray());
 
             hdris.ItemSelected += (s, e) =>
             {
@@ -94,7 +94,7 @@ namespace XrSamples.Android.Activities
 
         private void OnSampleSelected(object? sender, AdapterView.ItemClickEventArgs e)
         {
-            _settings.SampleName = (string)e.Parent.GetItemAtPosition(e.Position);
+            _settings.SampleName = (string)e.Parent!.GetItemAtPosition(e.Position)!;
             StartGame();
         }
     }

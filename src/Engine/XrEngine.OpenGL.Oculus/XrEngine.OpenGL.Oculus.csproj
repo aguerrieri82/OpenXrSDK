@@ -1,18 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <UseOpenGL>true</UseOpenGL>
-	  <Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
+	  <TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
   </PropertyGroup>
-
-
-	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
-		<AssemblyName>XrEngine.OpenGLES.Oculus</AssemblyName>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(OpenGL)' == ''">
-		<AssemblyName>XrEngine.OpenGL.Oculus</AssemblyName>
-	</PropertyGroup>
 
 
 	<ItemGroup Condition="'$(OpenGL)' == 'ES'">
