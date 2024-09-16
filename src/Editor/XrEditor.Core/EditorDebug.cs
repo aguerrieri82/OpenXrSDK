@@ -10,7 +10,7 @@ namespace XrEditor
 {
     public static class EditorDebug
     {
-        public static readonly GraphicDriver Driver = GraphicDriver.OpenGL;
+        public static readonly GraphicDriver Driver = GraphicDriver.FilamentOpenGL;
 
         public static readonly bool AutoStartApp = true;
 
@@ -18,7 +18,7 @@ namespace XrEditor
               //.UseMultiView()
               //.UseStereo()
               .SetRenderQuality(1, 4) ///samples > 1 cause Filament to fuck up
-              .CreatePingPong()
+              .CreateBed()
               .Build();
     }
 }

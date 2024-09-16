@@ -74,4 +74,6 @@ LOCAL_STATIC_LIBRARIES := libfilament libutils libfilamat libfilabridge libbacke
 
 LOCAL_LDLIBS := -llog -lEGL -lGLESv3 
 
+LOCAL_LDFLAGS += $(ANDROID_LD_FLAGS)
+
 include $(BUILD_SHARED_LIBRARY)

@@ -16,6 +16,7 @@ namespace XrEngine.Layers
         public BaseLayer()
         {
             _id = ObjectId.New();
+            Name = GetType().Name;  
         }
 
         public void Attach(LayerManager manager)

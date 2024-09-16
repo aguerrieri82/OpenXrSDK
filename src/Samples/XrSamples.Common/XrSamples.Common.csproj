@@ -2,15 +2,12 @@
 
 	<PropertyGroup>
 		<RootNamespace>XrSamples</RootNamespace>
-		<UseOpenGL>true</UseOpenGL>
-		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
-
+		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'Debug' OR '$(Configuration)' == 'Release'">
-		<IsAndroid>true</IsAndroid>
-		<DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
-	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="System.Private.Uri" Version="4.3.2" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\..\RoomDesigner\src\RoomDesigner.Game\RoomDesigner.Game.csproj" />
@@ -24,9 +21,9 @@
 
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(IsAndroid)' != 'true'">
+	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<ProjectReference Include="..\..\Engine\XrEngine.Browser.Win\XrEngine.Browser.Win.csproj" />
 		<Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
-	
+
 </Project>

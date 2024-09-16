@@ -1,19 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-
+		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
+		<NativeFolder>Release</NativeFolder>
 	</PropertyGroup>
 	
-	<ItemGroup>
-		<Content Include="..\Filament.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-		<Content Include="..\Filament.Native\libs\arm64-v8a\libfilament-native.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
-	</ItemGroup>
-
-
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content Include="..\Filament.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
 		<Content Include="..\Filament.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+		<Content Include="..\Filament.Native\libs\arm64-v8a\*.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
 	</ItemGroup>
-
+	
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\Filament.Native\libs\arm64-v8a\*.so" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Filament.Native\Filament.Native.vcxproj" />

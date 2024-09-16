@@ -10,7 +10,7 @@ namespace XrEngine.Browser.Win
         {
             var headers = new Dictionary<string, string>();
             foreach (var key in request.Headers.AllKeys)
-                headers[key] = request.Headers[key].ToString();
+                headers[key!] = request.Headers[key!]!.ToString();
 
             return new WebRequest
             {

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -33,6 +34,7 @@ namespace XrEngine
             _shader = SHADER;
             DoubleSided = true;
             Fov = MathF.PI;
+            Initialize();
         }
 
         public FishReflectionSphereMaterial(Texture2D main, FishReflectionMode mode)
@@ -40,7 +42,7 @@ namespace XrEngine
         {
             LeftMainTexture = main;
             Mode = mode;
-            Initilize();
+
         }
 
         public FishReflectionSphereMaterial(Texture2D left, Texture2D right)
@@ -49,10 +51,11 @@ namespace XrEngine
             LeftMainTexture = left;
             RightTexture = right;
             Mode = FishReflectionMode.Eye;
-            Initilize();
+            Initialize();
         }
 
-        protected void Initilize()
+        [MemberNotNull(nameof(TextureCenter), nameof(TextureRadius))]   
+        protected void Initialize()
         {
 
             if (Mode == FishReflectionMode.Stereo)

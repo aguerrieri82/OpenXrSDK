@@ -1,19 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<NativeFolder>Release</NativeFolder>
-		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
+		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<Content Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-		<Content Include="..\Draco.Native\libs\arm64-v8a\libdraco-native.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
-	</ItemGroup>
-
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
 		<Content Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+		<Content Include="..\Draco.Native\libs\arm64-v8a\*.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\Draco.Native\libs\arm64-v8a\*.so" />
+	</ItemGroup>
+	
 	<ItemGroup>
 		<PackageReference Include="glTF2Loader" Version="1.1.4-alpha" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

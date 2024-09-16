@@ -13,13 +13,13 @@ namespace XrEditor
 
         public void Create(string basePath)
         {
-
+            _basePath = basePath;
         }
 
 
         public void Load(string basePath)
         {
-
+            _basePath = basePath;
         }
 
         public void Import(IAsset asset)

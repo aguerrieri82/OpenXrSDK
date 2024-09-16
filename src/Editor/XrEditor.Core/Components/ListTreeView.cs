@@ -249,7 +249,7 @@ namespace XrEditor
             {
                 _uiElement = value;
                 if (ScrollOnCreate)
-                    _uiElement.ScrollToView();
+                    _uiElement?.ScrollToView();
             }
         }
 

@@ -1,21 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<UseOpenGL>true</UseOpenGL>
-		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
+		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(OpenGL)' == 'ES'">
-		<AssemblyName>XrEngine.OpenGLES</AssemblyName>
-	</PropertyGroup>
-	
-	<PropertyGroup Condition="'$(OpenGL)' == ''">
-		<AssemblyName>XrEngine.OpenGL</AssemblyName>
-	</PropertyGroup>
-	
-	<PropertyGroup Condition="'$(Configuration)'=='DebugGL'">
-	  <DefineConstants>$(DefineConstants);DEBUG;</DefineConstants>
-	</PropertyGroup>
-		
 
 	<ItemGroup Condition="'$(OpenGL)' == 'ES'">
 		<PackageReference Include="Silk.NET.OpenGLES" Version="2.21.0" />

@@ -105,7 +105,7 @@ namespace Oculus.XrPlugin
         public static extern bool GetIsSupportedDevice();
 
         [DllImport("OculusXRPlugin", CharSet = CharSet.Unicode)]
-        public static extern bool LoadOVRPlugin(string ovrpPath);
+        public static extern bool LoadOVRPlugin(string? ovrpPath);
 
         [DllImport("OculusXRPlugin")]
         public static extern void UnloadOVRPlugin();

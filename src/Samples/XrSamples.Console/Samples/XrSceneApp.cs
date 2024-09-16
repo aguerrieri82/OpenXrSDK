@@ -12,7 +12,7 @@ namespace XrSamples
 
     public static class XrSceneApp
     {
-        private static XrOculusTouchController? _inputs;
+
         private static XrEngineApp? _game;
 
         public static Task Run(IServiceProvider services)

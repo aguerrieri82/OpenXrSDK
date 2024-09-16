@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 		<RootNamespace>XrEngine</RootNamespace>
 		<NativeFolder>Release</NativeFolder>
-		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -15,22 +15,24 @@
 		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.4.1" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Content Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-		<Content Include="..\XrEngine.Native\libs\arm64-v8a\libxrengine-native.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
-		<Content Include="..\..\..\libs\turbo-jpeg\win-x64\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-	</ItemGroup> 
 	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
+		<Content Include="..\XrEngine.Native\libs\arm64-v8a\libxrengine-native.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
 		<Content Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-		<Content Include="..\..\..\libs\turbo-jpeg\win-x64\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
 	</ItemGroup>
-
+	
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\XrEngine.Native\libs\arm64-v8a\*.so" />	
+	</ItemGroup>
+	
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
 	  <ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
 	  <ProjectReference Include="..\MeshOptimizer\MeshOptimizer.csproj" />
+	  <ProjectReference Include="..\TurboJpeg\TurboJpeg.csproj" />
 	  <ProjectReference Include="..\XrEngine.Native\XrEngine.Native.vcxproj" />
 	</ItemGroup>
+
 
 </Project>
