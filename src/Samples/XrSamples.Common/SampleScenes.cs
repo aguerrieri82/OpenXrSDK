@@ -119,7 +119,7 @@ namespace XrSamples
         public static XrEngineAppBuilder UseDefaultHDR(this XrEngineAppBuilder builder)
         {
             if (DefaultHDR == null)
-                DefaultHDR = "res://asset/Envs/pisa.hdr";
+                DefaultHDR = "res://asset/Envs/lightroom_14b.hdr";
             return builder.UseEnvironmentHDR(DefaultHDR, DefaultShowHDR);
         }
 

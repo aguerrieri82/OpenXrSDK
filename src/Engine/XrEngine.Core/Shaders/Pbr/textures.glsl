@@ -258,6 +258,31 @@ vec2 getIridescenceThicknessUV()
 #endif
 
 
+// Diffuse Transmission
+
+#ifdef MATERIAL_DIFFUSE_TRANSMISSION
+
+
+vec2 getDiffuseTransmissionUV()
+{
+    vec3 uv = vec3(uMaterial.DiffuseTransmissionUVSet < 1 ? v_texcoord_0 : v_texcoord_1, 1.0);
+#ifdef HAS_DIFFUSETRANSMISSION_UV_TRANSFORM
+    uv = uMaterial.DiffuseTransmissionUVTransform * uv;
+#endif
+    return uv.xy;
+}
+
+vec2 getDiffuseTransmissionColorUV()
+{
+    vec3 uv = vec3(uMaterial.DiffuseTransmissionColorUVSet < 1 ? v_texcoord_0 : v_texcoord_1, 1.0);
+#ifdef HAS_DIFFUSETRANSMISSIONCOLOR_UV_TRANSFORM
+    uv = uMaterial.DiffuseTransmissionColorUVTransform * uv;
+#endif
+    return uv.xy;
+}
+
+#endif
+
 // Anisotropy
 
 #ifdef MATERIAL_ANISOTROPY

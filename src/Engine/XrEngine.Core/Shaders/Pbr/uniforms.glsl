@@ -107,6 +107,14 @@ layout(std140) uniform Material {
     int AnisotropyUVSet;
     mat3 AnisotropyUVTransform;
 
+    //Transmission
+    int DiffuseTransmissionUVSet;
+    mat3 DiffuseTransmissionUVTransform;
+
+    int DiffuseTransmissionColorUVSet;
+    mat3 DiffuseTransmissionColorUVTransform;
+
+
 } uMaterial;
 
 
@@ -142,3 +150,6 @@ uniform sampler2D uThicknessSampler;
 uniform sampler2D uIridescenceSampler;
 uniform sampler2D uIridescenceThicknessSampler;
 uniform sampler2D uAnisotropySampler;
+uniform sampler2D u_DiffuseTransmissionSampler;
+uniform sampler2D u_DiffuseTransmissionColorSampler;
+

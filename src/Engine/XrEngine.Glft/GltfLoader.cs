@@ -509,7 +509,7 @@ namespace XrEngine.Gltf
                 ((result.ActiveComponents & VertexComponent.UV0) != 0) &&
                 ((result.ActiveComponents & VertexComponent.Tangent) == 0))
             {
-                //geo.ComputeTangents();
+                //result.ComputeTangents();
             }
 
             return result;
