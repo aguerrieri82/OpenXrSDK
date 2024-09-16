@@ -155,6 +155,7 @@
     </Link>
     <CustomBuildStep>
       <Command>android-build.cmd</Command>
+      <Outputs>libs\arm64-v8a\*</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -179,6 +180,7 @@
     </Link>
     <CustomBuildStep>
       <Command>android-build.cmd</Command>
+      <Outputs>libs\arm64-v8a\*</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -207,6 +209,7 @@
     </Link>
     <CustomBuildStep>
       <Command>android-build.cmd</Command>
+      <Outputs>libs\arm64-v8a\*</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -235,6 +238,7 @@
     </Link>
     <CustomBuildStep>
       <Command>android-build.cmd</Command>
+      <Outputs>libs\arm64-v8a\*</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -259,6 +263,7 @@
     </Link>
     <CustomBuildStep>
       <Command>android-build.cmd</Command>
+      <Outputs>libs\arm64-v8a\*</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -287,6 +292,7 @@
     </Link>
     <CustomBuildStep>
       <Command>android-build.cmd</Command>
+      <Outputs>libs\arm64-v8a\*</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
