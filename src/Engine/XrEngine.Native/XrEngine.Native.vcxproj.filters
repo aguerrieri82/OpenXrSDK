@@ -36,4 +36,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="android-build.cmd" />
+    <None Include="jni\Android.mk" />
+    <None Include="jni\Application.mk" />
+  </ItemGroup>
 </Project>

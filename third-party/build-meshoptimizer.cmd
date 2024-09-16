@@ -1,6 +1,6 @@
 call vars.cmd
 
-cd libjpeg-turbo
+cd meshoptimizer
 md out-android
 cd out-android
 
@@ -8,25 +8,26 @@ cmake -G Ninja .. -DCMAKE_TOOLCHAIN_FILE=%NDK_HOME%\build\cmake\android.toolchai
 	     -DANDROID_ABI=%ANDROID_ABI% ^
 	     -DANDROID_PLATFORM=%ANDROID_PLATFORM% ^
 	     -DANDROID_STL=%ANDROID_STL% ^
+		 -DMESHOPT_BUILD_SHARED_LIBS=ON ^
 		 -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
-		 -DCMAKE_INSTALL_PREFIX=%INSTALL_PEFIX% ^
-		 -DANDROID=1
+		 -DCMAKE_INSTALL_PREFIX=%INSTALL_PEFIX%
 	 
 ninja install
-	 
-copy install\lib\libturbojpeg.so ..\..\..\libs\turbo-jpeg\android-arm64\
 
+copy install\lib\libmeshoptimizer.so ..\..\..\libs\meshoptimizer\android-arm64
+	 
 cd..
 md out-win
 cd out-win
 
 call "%VC_HOME%\Auxiliary\Build\vcvars64.bat"
 
- 
 cmake -G Ninja .. ^
-	 -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
-	 -DCMAKE_INSTALL_PREFIX=%INSTALL_PEFIX%
-
+	-DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
+	-DMESHOPT_BUILD_SHARED_LIBS=ON ^
+    -DCMAKE_INSTALL_PREFIX=%INSTALL_PEFIX%
+	
 ninja install
 
-copy install\bin\turbojpeg.dll  ..\..\..\libs\turbo-jpeg\win-x64\
+
+copy install\bin\meshoptimizer.dll ..\..\..\libs\meshoptimizer\win-x64

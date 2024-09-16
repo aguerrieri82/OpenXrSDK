@@ -33,7 +33,7 @@ namespace PhysX.Framework
     {
         public PhysicsOptions()
         {
-            LengthTolerance = 0.001f;
+            LengthTolerance = 1f;
             SpeedTolerance = 4;
             DebugHost = "192.168.1.89";
             DebugPort = 5425;

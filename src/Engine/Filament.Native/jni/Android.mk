@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-FILAMENT_SDK :=  $(LOCAL_PATH)/../../../../third-party/filament-android
+FILAMENT_SDK :=  $(LOCAL_PATH)/../../../../libs/filament-android
 
 FILAMENT_LIBS :=  $(FILAMENT_SDK)/lib/arm64-v8a
 
