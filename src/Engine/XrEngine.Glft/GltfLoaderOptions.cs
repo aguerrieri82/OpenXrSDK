@@ -14,6 +14,7 @@
 
         public bool DisableTangents { get; set; }   
 
+
         public static readonly GltfLoaderOptions Default = new();
     }
 }

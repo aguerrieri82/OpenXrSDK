@@ -3,12 +3,14 @@ struct MaterialInfo
 {
     float ior;
     float perceptualRoughness;      // roughness value, as authored by the model creator (input to shader)
-    vec3 f0;                        // full reflectance color (n incidence angle)
+    vec3 f0_dielectric;
 
     float alphaRoughness;           // roughness mapped to a more linear change in the roughness (proposed by [2])
-    vec3 c_diff;
+
+    float fresnel_w;
 
     vec3 f90;                       // reflectance color at grazing angle
+    vec3 f90_dielectric;
     float metallic;
 
     vec3 baseColor;
@@ -36,10 +38,16 @@ struct MaterialInfo
     float iridescenceIor;
     float iridescenceThickness;
 
+    float diffuseTransmissionFactor;
+    vec3 diffuseTransmissionColorFactor;
+
     // KHR_materials_anisotropy
     vec3 anisotropicT;
     vec3 anisotropicB;
     float anisotropyStrength;
+
+    // KHR_materials_dispersion
+    float dispersion;
 };
 
 
@@ -83,7 +91,7 @@ NormalInfo getNormalInfo(vec3 v)
     b = cross(ng, t);
 #endif
 
-
+#ifndef NOT_TRIANGLE
     // For a back-facing surface, the tangential basis vectors are negated.
     if (gl_FrontFacing == false)
     {
@@ -91,6 +99,7 @@ NormalInfo getNormalInfo(vec3 v)
         b *= -1.0;
         ng *= -1.0;
     }
+#endif
 
     // Compute normals:
     NormalInfo info;
@@ -147,17 +156,16 @@ vec4 getBaseColor()
 #ifdef MATERIAL_SPECULARGLOSSINESS
 MaterialInfo getSpecularGlossinessInfo(MaterialInfo info)
 {
-    info.f0 = uMaterial.SpecularFactor;
+    info.f0_dielectric = uMaterial.SpecularFactor;
     info.perceptualRoughness = uMaterial.GlossinessFactor;
 
 #ifdef HAS_SPECULAR_GLOSSINESS_MAP
     vec4 sgSample = texture(uSpecularGlossinessSampler, getSpecularGlossinessUV());
     info.perceptualRoughness *= sgSample.a ; // glossiness to roughness
-    info.f0 *= sgSample.rgb; // specular
+    info.f0_dielectric *= sgSample.rgb; // specular
 #endif // ! HAS_SPECULAR_GLOSSINESS_MAP
 
     info.perceptualRoughness = 1.0 - info.perceptualRoughness; // 1 - glossiness
-    info.c_diff = info.baseColor.rgb * (1.0 - max(max(info.f0.r, info.f0.g), info.f0.b));
     return info;
 }
 #endif
@@ -177,9 +185,6 @@ MaterialInfo getMetallicRoughnessInfo(MaterialInfo info)
     info.metallic *= mrSample.b;
 #endif
 
-    // Achromatic f0 based on IOR.
-    info.c_diff = mix(info.baseColor.rgb,  vec3(0), info.metallic);
-    info.f0 = mix(info.f0, info.baseColor.rgb, info.metallic);
     return info;
 }
 #endif
@@ -216,10 +221,9 @@ MaterialInfo getSpecularInfo(MaterialInfo info)
     specularTexture.rgb = texture(uSpecularColorSampler, getSpecularColorUV()).rgb;
 #endif
 
-    vec3 dielectricSpecularF0 = min(info.f0 * uMaterial.KHR_materials_specular_specularColorFactor * specularTexture.rgb, vec3(1.0));
-    info.f0 = mix(dielectricSpecularF0, info.baseColor.rgb, info.metallic);
+    info.f0_dielectric = min(info.f0_dielectric * uMaterial.KHR_materials_specular_specularColorFactor * specularTexture.rgb, vec3(1.0));
     info.specularWeight = uMaterial.KHR_materials_specular_specularFactor * specularTexture.a;
-    info.c_diff = mix(info.baseColor.rgb, vec3(0), info.metallic);
+    info.f90_dielectric = vec3(info.specularWeight);
     return info;
 }
 #endif
@@ -234,10 +238,15 @@ MaterialInfo getTransmissionInfo(MaterialInfo info)
     vec4 transmissionSample = texture(uTransmissionSampler, getTransmissionUV());
     info.transmissionFactor *= transmissionSample.r;
 #endif
+
+#ifdef MATERIAL_DISPERSION
+    info.dispersion = uMaterial.Dispersion;
+#else
+    info.dispersion = 0.0;
+#endif
     return info;
 }
 #endif
-
 
 #ifdef MATERIAL_VOLUME
 MaterialInfo getVolumeInfo(MaterialInfo info)
@@ -268,8 +277,27 @@ MaterialInfo getIridescenceInfo(MaterialInfo info)
 
     #ifdef HAS_IRIDESCENCE_THICKNESS_MAP
         float thicknessSampled = texture(uIridescenceThicknessSampler, getIridescenceThicknessUV()).g;
-        float thickness = mix(uMaterial.IridescenceThicknessMinimum, uuMaterial.IridescenceThicknessMaximum, thicknessSampled);
+        float thickness = mix(uMaterial.IridescenceThicknessMinimum, uIridescenceThicknessMaximum, thicknessSampled);
         info.iridescenceThickness = thickness;
+    #endif
+
+    return info;
+}
+#endif
+
+
+#ifdef MATERIAL_DIFFUSE_TRANSMISSION
+MaterialInfo getDiffuseTransmissionInfo(MaterialInfo info)
+{
+    info.diffuseTransmissionFactor = uMaterial.DiffuseTransmissionFactor;
+    info.diffuseTransmissionColorFactor = uMaterial.DiffuseTransmissionColorFactor;
+
+    #ifdef HAS_DIFFUSE_TRANSMISSION_MAP
+        info.diffuseTransmissionFactor *= texture(uDiffuseTransmissionSampler, getDiffuseTransmissionUV()).a;
+    #endif
+
+    #ifdef HAS_DIFFUSE_TRANSMISSION_COLOR_MAP
+        info.diffuseTransmissionColorFactor *= texture(uDiffuseTransmissionColorSampler, getDiffuseTransmissionColorUV()).rgb;
     #endif
 
     return info;
@@ -305,7 +333,7 @@ MaterialInfo getClearCoatInfo(MaterialInfo info, NormalInfo normalInfo)
 #ifdef MATERIAL_IOR
 MaterialInfo getIorInfo(MaterialInfo info)
 {
-    info.f0 = vec3(pow(( uMaterial.Ior - 1.0) /  (uMaterial.Ior + 1.0), 2.0));
+    info.f0_dielectric = vec3(pow(( uMaterial.Ior - 1.0) /  (uMaterial.Ior + 1.0), 2.0));
     info.ior = uMaterial.Ior;
     return info;
 }

@@ -10,14 +10,14 @@ namespace XrEditor
 {
     public static class EditorDebug
     {
-        public static readonly GraphicDriver Driver = GraphicDriver.FilamentOpenGL;
+        public static readonly GraphicDriver Driver = GraphicDriver.OpenGL;
 
         public static readonly bool AutoStartApp = true;
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
               //.UseMultiView()
               //.UseStereo()
-              .SetRenderQuality(1, 4) ///samples > 1 cause Filament to fuck up
+              .SetRenderQuality(1, Driver == GraphicDriver.FilamentVulkan ? 1u : 4u) ///samples > 1 cause Filament to fuck up
               .CreateBed()
               .Build();
     }
