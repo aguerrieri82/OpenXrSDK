@@ -359,7 +359,7 @@ void main()
 
 #if ALPHAMODE == ALPHAMODE_MASK
     // Late discard to avoid sampling artifacts. See https://github.com/KhronosGroup/glTF-Sample-Viewer/issues/267
-    if (baseColor.a < uAlphaCutoff)
+    if (baseColor.a < uMaterial.AlphaCutoff)
     {
         discard;
     }

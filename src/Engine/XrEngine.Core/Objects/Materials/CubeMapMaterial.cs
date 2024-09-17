@@ -51,13 +51,13 @@ namespace XrEngine.Materials
 
             bld.ExecuteAction((ctx, up) =>
             {
-                up.SetUniform("u_GGXEnvSampler", Texture!, 0);
-                up.SetUniform("u_MipCount", MipCount);
-                up.SetUniform("u_EnvBlurNormalized", Blur);
-                up.SetUniform("u_EnvIntensity", Intensity);
-                up.SetUniform("u_ViewProjectionMatrix", ctx.Camera!.View * ctx.Camera.Projection);
-                up.SetUniform("u_Exposure", Exposure);
-                up.SetUniform("u_EnvRotation", Matrix3x3.Rotation(Rotation));
+                up.SetUniform("uGGXEnvSampler", Texture!, 0);
+                up.SetUniform("uMipCount", MipCount);
+                up.SetUniform("uEnvBlurNormalized", Blur);
+                up.SetUniform("uEnvIntensity", Intensity);
+                up.SetUniform("uViewProjectionMatrix", ctx.Camera!.View * ctx.Camera.Projection);
+                up.SetUniform("uExposure", Exposure);
+                up.SetUniform("uEnvRotation", Matrix3x3.CreateRotationY(Rotation));
             });
         }
 

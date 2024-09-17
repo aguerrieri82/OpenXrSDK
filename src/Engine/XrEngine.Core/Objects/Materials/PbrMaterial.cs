@@ -125,158 +125,200 @@ namespace XrEngine
 
         #region IBLUniforms
 
-        [StructLayout(LayoutKind.Sequential, Pack = 4)]
-        public unsafe struct IBLUniforms : IDynamicBuffer
+        [StructLayout(LayoutKind.Explicit)]
+        public unsafe struct IBLUniforms 
         {
-            static DynamicBuffer _buffer;
-
+            [FieldOffset(0)]
             public int MipCount;
-            public Matrix3x3 EnvRotation;
+
+            [FieldOffset(16)]
+            public Matrix3x3Aligned EnvRotation;
+
+            [FieldOffset(64)]
             public float EnvIntensity;
-
-            public unsafe DynamicBuffer GetBuffer()
-            {
-                if (_buffer.Data == 0)
-                {
-                    _buffer.Size = 80;
-                    _buffer.Data = MemoryManager.Allocate(_buffer.Size, this);
-                }
-
-                using var stream = new MemoryStream();
-                using var writer = new BinaryWriter(stream);
-
-                writer.Write(MipCount);
-                stream.Position += 12;
-                writer.Write(EnvRotation.M00);
-                writer.Write(EnvRotation.M01);
-                writer.Write(EnvRotation.M02);
-                stream.Position += 4;
-                writer.Write(EnvRotation.M10);
-                writer.Write(EnvRotation.M11);
-                writer.Write(EnvRotation.M12);
-                stream.Position += 4;
-                writer.Write(EnvRotation.M20);
-                writer.Write(EnvRotation.M21);
-                writer.Write(EnvRotation.M22);
-                stream.Position += 4;
-                writer.Write(EnvIntensity);
-                writer.Flush();
-
-                var bytes = stream.ToArray();
-                Marshal.Copy(bytes, 0, _buffer.Data, bytes.Length);
-
-                return _buffer;
-            }
         }
 
         #endregion
 
         #region MaterialUniforms
 
-        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        [StructLayout(LayoutKind.Explicit)]
         public struct MaterialUniforms
         {
-            public Vector4 BaseColorFactor;
-            public int BaseColorUVSet;
+            [FieldOffset(0)]
+            public Vector4 BaseColorFactor; 
 
+            [FieldOffset(16)]
+            public int BaseColorUVSet; 
+
+            [FieldOffset(20)]
             public float MetallicFactor;
-            public float RoughnessFactor;
-            public int MetallicRoughnessUVSet;
 
-            public float NormalScale;
-            public int NormalUVSet;
+            [FieldOffset(24)]
+            public float RoughnessFactor; 
 
-            public float OcclusionStrength;
-            public int OcclusionUVSet;
+            [FieldOffset(28)]
+            public int MetallicRoughnessUVSet; 
 
+            [FieldOffset(32)]
+            public float NormalScale; 
+
+            [FieldOffset(36)]
+            public int NormalUVSet; 
+
+            [FieldOffset(40)]
+            public float OcclusionStrength; 
+
+            [FieldOffset(44)]
+
+            public int OcclusionUVSet; 
+
+            [FieldOffset(48)]
             public float AlphaCutoff;
 
-            public Matrix3x3 NormalUVTransform;
-            public Matrix3x3 EmissiveUVTransform;
-            public Matrix3x3 OcclusionUVTransform;
-            public Matrix3x3 BaseColorUVTransform;
-            public Matrix3x3 MetallicRoughnessUVTransform;
+            [FieldOffset(64)]
+            public Matrix3x3Aligned NormalUVTransform;
+
+            [FieldOffset(112)]
+            public Matrix3x3Aligned EmissiveUVTransform;
+
+            [FieldOffset(160)]
+            public Matrix3x3Aligned OcclusionUVTransform; 
+            
+            [FieldOffset(208)]
+            public Matrix3x3Aligned BaseColorUVTransform; 
+
+            [FieldOffset(256)]
+            public Matrix3x3Aligned MetallicRoughnessUVTransform; 
+
+            // Sheen Material
+            [FieldOffset(304)]
+            public Vector3 SheenColorFactor;
+            [FieldOffset(316)] 
+            public int SheenColorUVSet;
+            [FieldOffset(320)]
+            public Matrix3x3Aligned SheenColorUVTransform;
+
+            [FieldOffset(368)]
+            public float SheenRoughnessFactor; 
+            [FieldOffset(372)]
+            public int SheenRoughnessUVSet; 
+            [FieldOffset(384)]
+            public Matrix3x3Aligned SheenRoughnessUVTransform; 
 
             //Specular Glossiness
+            [FieldOffset(432)]
             public Vector4 DiffuseFactor;
+            [FieldOffset(448)]
             public int DiffuseUVSet;
 
+            [FieldOffset(452)]
             public Vector3 SpecularFactor;
+            [FieldOffset(468)]
             public float GlossinessFactor;
+            [FieldOffset(372)]
             public int SpecularGlossinessUVSet;
 
-            public Matrix3x3 DiffuseUVTransform;
-            public Matrix3x3 SpecularGlossinessUVTransform;
+            [FieldOffset(500)]
+            public Matrix3x3Aligned DiffuseUVTransform;
+            [FieldOffset(500)]
+            public Matrix3x3Aligned SpecularGlossinessUVTransform;
 
             // Specular Dielectrics
+            [FieldOffset(500)]
             public Vector3 KHR_materials_specular_specularColorFactor;
+            [FieldOffset(500)]
             public float KHR_materials_specular_specularFactor;
 
             // Emissive
+            [FieldOffset(500)]
             public Vector3 EmissiveFactor;
+            [FieldOffset(500)]
             public float EmissiveStrength;
+            [FieldOffset(500)]
             public int EmissiveUVSet;
 
             // Clearcoat Material
+            [FieldOffset(500)]
             public float ClearcoatFactor;
+            [FieldOffset(500)]
             public int ClearcoatUVSet;
-            public Matrix3x3 ClearcoatUVTransform;
+            [FieldOffset(500)]
+            public Matrix3x3Aligned ClearcoatUVTransform;
 
+            [FieldOffset(500)]
             public float ClearcoatRoughnessFactor;
+            [FieldOffset(500)]
             public int ClearcoatRoughnessUVSet;
-            public Matrix3x3 ClearcoatRoughnessUVTransform;
+            [FieldOffset(500)]
+            public Matrix3x3Aligned ClearcoatRoughnessUVTransform;
 
+            [FieldOffset(500)]
             public float ClearcoatNormalScale;
+            [FieldOffset(500)]
             public int ClearcoatNormalUVSet;
-            public Matrix3x3 ClearcoatNormalUVTransform;
-
-            // Sheen Material
-            public Vector3 SheenColorFactor;
-            public int SheenColorUVSet;
-            public Matrix3x3 SheenColorUVTransform;
-
-            public float SheenRoughnessFactor;
-            public int SheenRoughnessUVSet;
-            public Matrix3x3 SheenRoughnessUVTransform;
-
+            [FieldOffset(500)]
+            public Matrix3x3Aligned ClearcoatNormalUVTransform;
 
             // Specular Material
+            [FieldOffset(500)]
             public int SpecularUVSet;
-            public Matrix3x3 SpecularUVTransform;
+            [FieldOffset(500)]
+            public Matrix3x3Aligned SpecularUVTransform;
 
+            [FieldOffset(500)]
             public int SpecularColorUVSet;
-            public Matrix3x3 SpecularColorUVTransform;
+            [FieldOffset(500)]
+            public Matrix3x3Aligned SpecularColorUVTransform;
 
             // Transmission Material
+            [FieldOffset(500)]
             public float TransmissionFactor;
+            [FieldOffset(500)]
             public int TransmissionUVSet;
-            public Matrix3x3 TransmissionUVTransform;
+            [FieldOffset(500)]
+            public Matrix3x3Aligned TransmissionUVTransform;
+            [FieldOffset(500)]
             public Vector2I TransmissionFramebufferSize;
 
             // Volume Material
+            [FieldOffset(500)]
             public Vector3 AttenuationColor;
+            [FieldOffset(500)]
             public float AttenuationDistance;
 
+            [FieldOffset(500)]
             public float ThicknessFactor;
+            [FieldOffset(500)]
             public int ThicknessUVSet;
-            public Matrix3x3 ThicknessUVTransform;
+            [FieldOffset(500)]
+            public Matrix3x3Aligned ThicknessUVTransform;
 
             // Iridescence
+            [FieldOffset(500)]
             public float IridescenceIor;
-
+            [FieldOffset(500)]
             public float IridescenceFactor;
+            [FieldOffset(500)]
             public int IridescenceUVSet;
+            [FieldOffset(500)]
             public Matrix3x3 IridescenceUVTransform;
-
+            [FieldOffset(500)]
             public float IridescenceThicknessMinimum;
+            [FieldOffset(500)]
             public float IridescenceThicknessMaximum;
+            [FieldOffset(500)]
             public int IridescenceThicknessUVSet;
-            public Matrix3x3 IridescenceThicknessUVTransform;
+            [FieldOffset(500)]
+            public Matrix3x3Aligned IridescenceThicknessUVTransform;
 
             // Anisotropy
+            [FieldOffset(500)]
             public Vector3 Anisotropy;
+            [FieldOffset(500)]
             public int AnisotropyUVSet;
-            public Matrix3x3 AnisotropyUVTransform;
+            [FieldOffset(500)]
+            public Matrix3x3Aligned AnisotropyUVTransform;
         }
 
         #endregion
@@ -404,6 +446,28 @@ namespace XrEngine
 
         #endregion
 
+        #region SheenData
+
+        public class SheenData
+        {
+            public SheenData()
+            {
+
+            }
+            
+            public Vector3 ColorFactor { get; set; }
+
+            public Texture2D? ColorTexture { get; set; }
+
+            public float RoughnessFactor { get; set; }
+
+            public Texture2D? RoughnessTexture { get; set; }
+            public int ColorTextureUVSet { get; set; }
+            public int RoughnessTextureUVSet { get; set; }
+        }
+
+        #endregion
+
         #region GlobalShaderHandler
 
         class GlobalShaderHandler : IShaderHandler
@@ -418,7 +482,7 @@ namespace XrEngine
 
                 bld.SetUniformBuffer("Camera", (ctx) =>
                 {
-                    return new CameraUniforms
+                    return (CameraUniforms?)new CameraUniforms
                     {
                         Position = ctx.Camera!.WorldPosition,
                         ProjectionMatrix = ctx.Camera.Projection,
@@ -510,7 +574,7 @@ namespace XrEngine
                         return (IBLUniforms?)new IBLUniforms
                         {
                             EnvIntensity = imgLight.Intensity,
-                            EnvRotation = Matrix3x3.Rotation(imgLight.Rotation),
+                            EnvRotation = Matrix3x3.CreateRotationY(imgLight.Rotation),
                             MipCount = (int)imgLight.Textures.MipCount
                         };
                     }, 2, true);
@@ -524,19 +588,19 @@ namespace XrEngine
                             return;
 
                         if (imgLight.Textures.LambertianEnv != null)
-                            up.SetUniform("uLambertianEnvSampler", imgLight.Textures.LambertianEnv, 6);
+                            up.SetUniform("uLambertianEnvSampler", imgLight.Textures.LambertianEnv, 10);
 
                         if (imgLight.Textures.GGXEnv != null)
-                            up.SetUniform("uGGXEnvSampler", imgLight.Textures.GGXEnv, 7);
+                            up.SetUniform("uGGXEnvSampler", imgLight.Textures.GGXEnv, 11);
 
                         if (imgLight.Textures.GGXLUT != null)
-                            up.SetUniform("uGGXLUT", imgLight.Textures.GGXLUT, 8);
+                            up.SetUniform("uGGXLUT", imgLight.Textures.GGXLUT, 12);
 
                         if (imgLight.Textures.CharlieLUT != null)
-                            up.SetUniform("uCharlieLUT", imgLight.Textures.CharlieLUT, 9);
+                            up.SetUniform("uCharlieLUT", imgLight.Textures.CharlieLUT, 13);
 
                         if (imgLight.Textures.CharlieEnv != null)
-                            up.SetUniform("uCharlieEnvSampler", imgLight.Textures.CharlieEnv, 10);
+                            up.SetUniform("uCharlieEnvSampler", imgLight.Textures.CharlieEnv, 14);
                     });
 
                 }
@@ -573,6 +637,7 @@ namespace XrEngine
             Shader = SHADER;
             Debug = DebugFlags.DEBUG_NONE;
             CastShadows = true;
+            UseSheen = true;
         }
 
         public static PbrMaterial CreateDefault(Color color)
@@ -615,6 +680,12 @@ namespace XrEngine
                 material.NormalScale = NormalScale;
                 material.NormalUVSet = NormalUVSet;
 
+                if (NormalTexture.Transform != null)
+                {
+                    bld.AddFeature("HAS_NORMAL_UV_TRANSFORM");
+                    material.NormalUVTransform = NormalTexture.Transform.Value;
+                }
+
                 bld.SetUniform("uNormalSampler", (ctx) => NormalTexture, 1);
             }
 
@@ -625,6 +696,12 @@ namespace XrEngine
                 material.OcclusionStrength = OcclusionStrength;
                 material.OcclusionUVSet = OcclusionUVSet;
 
+                if (OcclusionTexture.Transform != null && !OcclusionTexture.Transform.Value.IsIdentity)
+                {
+                    bld.AddFeature("HAS_OCCLUSION_UV_TRANSFORM");
+                    material.OcclusionUVTransform = OcclusionTexture.Transform.Value;
+                }
+
                 bld.SetUniform("uOcclusionSampler", (ctx) => OcclusionTexture, 2);
             }
 
@@ -634,6 +711,12 @@ namespace XrEngine
             {
                 bld.AddFeature("HAS_EMISSIVE_MAP 1");
                 bld.SetUniform("uEmissiveSampler", (ctx) => EmissiveTexture, 3);
+
+                if (EmissiveTexture.Transform != null && !EmissiveTexture.Transform.Value.IsIdentity)
+                {
+                    bld.AddFeature("HAS_EMISSIVE_UV_TRANSFORM");
+                    material.EmissiveUVTransform = EmissiveTexture.Transform.Value;
+                }
             }
 
             if (MetallicRoughness != null || Type == MaterialType.Metallic)
@@ -650,6 +733,12 @@ namespace XrEngine
 
                     material.BaseColorUVSet = MetallicRoughness.BaseColorUVSet;
                     bld.SetUniform("uBaseColorSampler", (ctx) => MetallicRoughness.BaseColorTexture, 4);
+
+                    if (MetallicRoughness.BaseColorTexture.Transform != null && !MetallicRoughness.BaseColorTexture.Transform.Value.IsIdentity)
+                    {
+                        bld.AddFeature("HAS_BASECOLOR_UV_TRANSFORM");
+                        material.BaseColorUVTransform = MetallicRoughness.BaseColorTexture.Transform.Value;
+                    }
                 }
 
                 if (MetallicRoughness?.MetallicRoughnessTexture != null)
@@ -659,6 +748,13 @@ namespace XrEngine
                     material.MetallicRoughnessUVSet = MetallicRoughness.MetallicRoughnessUVSet;
 
                     bld.SetUniform("uMetallicRoughnessSampler", (ctx) => MetallicRoughness.MetallicRoughnessTexture, 5);
+
+                    if (MetallicRoughness.MetallicRoughnessTexture.Transform != null && !MetallicRoughness.MetallicRoughnessTexture.Transform.Value.IsIdentity)
+                    {
+                        bld.AddFeature("HAS_METALLICROUGHNESS_UV_TRANSFORM 1");
+                        material.MetallicRoughnessUVTransform = MetallicRoughness.MetallicRoughnessTexture.Transform.Value;
+                    }
+                   
                 }
             }
 
@@ -691,6 +787,41 @@ namespace XrEngine
             else
                 bld.AddFeature("MATERIAL_UNLIT 1");
 
+            if (Sheen != null && UseSheen)
+            {
+                bld.AddFeature("MATERIAL_SHEEN 1");
+
+                material.SheenColorFactor = Sheen.ColorFactor;
+                material.SheenRoughnessFactor = Sheen.RoughnessFactor;
+
+                if (Sheen.ColorTexture != null)
+                {
+                    
+                    bld.AddFeature("HAS_SHEEN_COLOR_MAP 1");
+                    material.SheenColorUVSet = Sheen.ColorTextureUVSet;
+                    bld.SetUniform("uSheenColorSampler", (ctx) => Sheen.ColorTexture, 6);
+
+                    if (Sheen.ColorTexture.Transform != null && !Sheen.ColorTexture.Transform.Value.IsIdentity)
+                    {
+                        bld.AddFeature("HAS_SHEENCOLOR_UV_TRANSFORM 1");
+                        material.SheenColorUVTransform = Sheen.ColorTexture.Transform.Value;
+                    }
+                }
+                if (Sheen.RoughnessTexture != null)
+                {
+                    bld.AddFeature("HAS_SHEEN_ROUGHNESS_MAP 1");
+                    material.SheenRoughnessUVSet = Sheen.RoughnessTextureUVSet;
+                    bld.SetUniform("uSheenRoughnessSampler", (ctx) => Sheen.RoughnessTexture, 7);
+
+                    if (Sheen.RoughnessTexture.Transform != null && !Sheen.RoughnessTexture.Transform.Value.IsIdentity)
+                    {
+                        bld.AddFeature("HAS_SHEENROUGHNESS_UV_TRANSFORM 1");
+                        material.SheenRoughnessUVTransform = Sheen.RoughnessTexture.Transform.Value;
+                    }
+                }
+
+            }
+
             if (Alpha == AlphaMode.Mask)
             {
                 bld.AddFeature("ALPHAMODE ALPHAMODE_MASK");
@@ -712,7 +843,7 @@ namespace XrEngine
             bld.SetUniform("uModelMatrix", (ctx) => ctx.Model!.WorldMatrix);
             bld.SetUniform("uNormalMatrix", (ctx) => Matrix4x4.Transpose(ctx.Model!.WorldMatrixInverse));
 
-            bld.SetUniformBuffer("Material", ctx => material, 3, false);
+            bld.SetUniformBuffer("Material", ctx => (MaterialUniforms?)material, 3, false);
 
             bld.AddFeature("ALPHAMODE_OPAQUE 0");
             bld.AddFeature("ALPHAMODE_MASK 1");
@@ -749,6 +880,8 @@ namespace XrEngine
 
         public MetallicRoughnessData? MetallicRoughness { get; set; }
 
+        public SheenData? Sheen { get; set; }
+
         public Texture2D? NormalTexture { get; set; }
 
         public int NormalUVSet { get; set; }
@@ -780,10 +913,12 @@ namespace XrEngine
         public bool CastShadows { get; set; }
 
 
+        public bool UseSheen { get; set; }
+
         /*
         public bool HasClearcoat { get; set; }
 
-        public bool HasSheen { get; set; }
+
 
         public bool HasTransmission { get; set; }
 

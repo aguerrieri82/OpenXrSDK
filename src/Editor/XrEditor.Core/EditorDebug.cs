@@ -18,7 +18,7 @@ namespace XrEditor
               //.UseMultiView()
               //.UseStereo()
               .SetRenderQuality(1, Driver == GraphicDriver.FilamentVulkan ? 1u : 4u) ///samples > 1 cause Filament to fuck up
-              .CreateBed()
+              .CreateHelmet()
               .Build();
     }
 }

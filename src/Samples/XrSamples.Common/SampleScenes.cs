@@ -119,7 +119,7 @@ namespace XrSamples
         public static XrEngineAppBuilder UseDefaultHDR(this XrEngineAppBuilder builder)
         {
             if (DefaultHDR == null)
-                DefaultHDR = "res://asset/Envs/lightroom_14b.hdr";
+                DefaultHDR = "res://asset/Envs/footprint_court.hdr";
             return builder.UseEnvironmentHDR(DefaultHDR, DefaultShowHDR);
         }
 
@@ -177,7 +177,9 @@ namespace XrSamples
 
         public static XrEngineAppBuilder RemovePlaneGrid(this XrEngineAppBuilder builder) => builder.ConfigureApp(e =>
         {
-            e.App.ActiveScene!.Descendants<PlaneGrid>().First().IsVisible = false;
+            var grid = e.App.ActiveScene!.Descendants<PlaneGrid>().FirstOrDefault();
+            if (grid != null)
+                grid.IsVisible = false;
         });
 
         public static XrEngineAppBuilder AddPanel(this XrEngineAppBuilder builder, UIRoot uiRoot)
@@ -864,9 +866,9 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            GetAssetPath("Helmet/DamagedHelmet.bin");
+            GetAssetPath("Cloth/SheenCloth.bin");
 
-            var mesh = GltfLoader.LoadFile(GetAssetPath("Helmet/DamagedHelmet.gltf"), GltfOptions, GetAssetPath);
+            var mesh = GltfLoader.LoadFile(GetAssetPath("Cloth/SheenCloth.gltf"), GltfOptions, GetAssetPath);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.4f);
             mesh.Transform.SetPositionY(1);

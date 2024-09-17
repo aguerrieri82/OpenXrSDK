@@ -32,4 +32,5 @@
 		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
 	</PropertyGroup>
 
+	<Import Project="$(MSBuildThisFileDirectory)\..\Build\XrBuild\XrBuild.targets" />
 </Project>

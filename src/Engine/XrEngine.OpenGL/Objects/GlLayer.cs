@@ -47,7 +47,7 @@ namespace XrEngine.OpenGL
                             var options = PanoramaProcessorOptions.Default();
                             options.SampleCount = 1024;
                             options.Resolution = 256;
-                            options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
+                            options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian | IBLProcessMode.Charlie;
                             imgLight.Textures = _render.ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
                             imgLight.Panorama.NotifyLoaded();
                             _content.ImageLightVersion = imgLight.Panorama.Version;

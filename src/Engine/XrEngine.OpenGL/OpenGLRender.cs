@@ -186,10 +186,10 @@ namespace XrEngine.OpenGL
 
                    if (sev == GLEnum.DebugSeverityNotification)
                        return;
-
+                   /*
                    Debug.WriteLine($"\n\n\n");
                    Debug.WriteLine($"------ OPENGL: {text}");
-                   Debug.WriteLine($"\n\n\n");
+                   Debug.WriteLine($"\n\n\n");*/
                }
            }, null);
 

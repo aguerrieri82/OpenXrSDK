@@ -53,13 +53,13 @@ namespace XrEngine
 
                     if (image != null && textures != null && ctx.Camera != null)
                     {
-                        up.SetUniform("u_GGXEnvSampler", textures.Env!, 0);
-                        up.SetUniform("u_MipCount", (int)textures.MipCount);
-                        up.SetUniform("u_EnvBlurNormalized", Blur);
-                        up.SetUniform("u_EnvIntensity", image.Intensity);
-                        up.SetUniform("u_ViewProjectionMatrix", ctx.Camera.View * ctx.Camera.Projection);
-                        up.SetUniform("u_Exposure", ctx.Camera.Exposure);
-                        up.SetUniform("u_EnvRotation", Matrix3x3.Rotation(image.Rotation));
+                        up.SetUniform("uGGXEnvSampler", textures.Env!, 0);
+                        up.SetUniform("uMipCount", (int)textures.MipCount);
+                        up.SetUniform("uEnvBlurNormalized", Blur);
+                        up.SetUniform("uEnvIntensity", image.Intensity);
+                        up.SetUniform("uViewProjectionMatrix", ctx.Camera.View * ctx.Camera.Projection);
+                        up.SetUniform("uExposure", ctx.Camera.Exposure);
+                        up.SetUniform("uEnvRotation", Matrix3x3.CreateRotationY(image.Rotation));
                     }
                 });
             }

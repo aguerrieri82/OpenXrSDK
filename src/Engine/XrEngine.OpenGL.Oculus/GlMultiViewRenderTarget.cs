@@ -86,7 +86,7 @@ namespace XrEngine.OpenGL.Oculus
 
             bld.AddFeature("MULTI_VIEW");
 
-            bld.SetUniformBuffer("SceneMatrices", ctx => _matrices, 10, true);
+            bld.SetUniformBuffer("SceneMatrices", ctx => (SceneMatrices?)_matrices, 10, true);
         }
 
         public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)

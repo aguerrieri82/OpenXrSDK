@@ -22,6 +22,17 @@ layout(std140) uniform Material {
     mat3 BaseColorUVTransform;
     mat3 MetallicRoughnessUVTransform;
 
+    // Sheen Material
+
+    vec3 SheenColorFactor;
+    int SheenColorUVSet;
+    mat3 SheenColorUVTransform;
+
+    float SheenRoughnessFactor;
+    int SheenRoughnessUVSet;
+    mat3 SheenRoughnessUVTransform;
+
+
     //Specular Glossiness
 
     vec4 DiffuseFactor;
@@ -57,17 +68,6 @@ layout(std140) uniform Material {
     float ClearcoatNormalScale;
     int ClearcoatNormalUVSet;
     mat3 ClearcoatNormalUVTransform;
-
-    // Sheen Material
-
-    vec3 SheenColorFactor;
-    int SheenColorUVSet;
-    mat3 SheenColorUVTransform;
-
-    float SheenRoughnessFactor;
-    int SheenRoughnessUVSet;
-    mat3 SheenRoughnessUVTransform;
-
 
     // Specular Material
     int SpecularUVSet;
@@ -150,6 +150,6 @@ uniform sampler2D uThicknessSampler;
 uniform sampler2D uIridescenceSampler;
 uniform sampler2D uIridescenceThicknessSampler;
 uniform sampler2D uAnisotropySampler;
-uniform sampler2D u_DiffuseTransmissionSampler;
-uniform sampler2D u_DiffuseTransmissionColorSampler;
+uniform sampler2D uDiffuseTransmissionSampler;
+uniform sampler2D uDiffuseTransmissionColorSampler;
 

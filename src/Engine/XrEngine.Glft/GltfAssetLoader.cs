@@ -99,7 +99,8 @@ namespace XrEngine.Gltf
                 {
                     case "tex":
                         var texId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessTexture(cache.Loader.Model!.Textures[texId], texId, (Texture2D?)destObj);
+                        //TODO pass extensions
+                        result = cache.Loader!.ProcessTexture(cache.Loader.Model!.Textures[texId], texId, null, (Texture2D?)destObj);
                         break;
                     case "geo":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));

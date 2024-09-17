@@ -1,4 +1,5 @@
-﻿using XrEditor.Services;
+﻿using UI.Binding;
+using XrEditor.Services;
 using XrEngine;
 
 
@@ -28,6 +29,11 @@ namespace XrEditor.Nodes
                 if (_value.OcclusionTexture != null)
                     yield return factory.CreateNode(_value.OcclusionTexture);
             }
+        }
+
+        protected override void EditorProperties(Binder<PbrMaterial> binder, IList<PropertyView> curProps)
+        {
+            base.EditorProperties(binder, curProps);
         }
 
     }

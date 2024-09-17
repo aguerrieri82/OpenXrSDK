@@ -30,6 +30,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<NativeLibrary Include="runtimes/**/*" />
+	</ItemGroup>
+	
+	<ItemGroup>
 		<Content Include="runtimes/**/*" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 

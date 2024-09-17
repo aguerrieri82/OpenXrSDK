@@ -4,6 +4,10 @@
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<NativeLibrary Runtime="win-$(NativePlatform)" Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" />
+		<NativeLibrary Runtime="android-arm64" Include="..\Draco.Native\libs\arm64-v8a\*.so" />
+	</ItemGroup>
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<Content Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
 		<Content Include="..\Draco.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
@@ -13,7 +17,7 @@
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\Draco.Native\libs\arm64-v8a\*.so" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<PackageReference Include="glTF2Loader" Version="1.1.4-alpha" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
