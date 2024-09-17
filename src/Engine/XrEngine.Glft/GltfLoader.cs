@@ -3,9 +3,11 @@ using Newtonsoft.Json.Linq;
 using SkiaSharp;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Xml.Schema;
 using TurboJpeg;
 using XrEngine.Services;
 using XrMath;
@@ -29,7 +31,10 @@ namespace XrEngine.Gltf
         readonly Func<string, string> _resourceResolver;
         string? _basePath;
         string? _filePath;
-        static readonly string[] supportedExt = { "KHR_draco_mesh_compression", "KHR_materials_pbrSpecularGlossiness" };
+        static readonly string[] supportedExt = {
+            "KHR_texture_transform",
+            "KHR_draco_mesh_compression", 
+            "KHR_materials_pbrSpecularGlossiness" };
 
         struct KHR_draco_mesh_compression
         {
@@ -49,6 +54,29 @@ namespace XrEngine.Gltf
             public TextureInfo? diffuseTexture;
 
             public TextureInfo? specularGlossinessTexture;
+        }
+
+        struct KHR_texture_transform
+        {
+            public float[]? offset;
+
+            public float[]? scale;
+
+            public float rotation;
+
+            public int texCoord;
+        }
+
+
+        struct KHR_materials_sheen
+        {
+            public float[]? sheenColorFactor;
+
+            public glTFLoader.Schema.TextureInfo? sheenColorTexture;
+
+            public float sheenRoughnessFactor;
+
+            public glTFLoader.Schema.TextureInfo? sheenRoughnessTexture;
         }
 
         public GltfLoader()
@@ -152,8 +180,9 @@ namespace XrEngine.Gltf
             });
         }
 
-        public Texture2D ProcessTexture(glTFLoader.Schema.Texture texture, int id, Texture2D? result = null, bool useSrgb = false)
+        public Texture2D ProcessTexture(glTFLoader.Schema.Texture texture, int index, Dictionary<string, object>? extensions, Texture2D? result = null, bool useSrgb = false)
         {
+
             CheckExtensions(texture.Extensions);
 
             var imageInfo = _model!.Images[texture.Source!.Value];
@@ -200,6 +229,23 @@ namespace XrEngine.Gltf
                     result.MinFilter = ScaleFilter.LinearMipmapLinear;
                     result.MagFilter = ScaleFilter.Linear;
                 }
+
+                var transform = TryLoadExtension<KHR_texture_transform>(extensions);
+                if (transform != null)
+                {
+                    var mat = Matrix3x3.Identity;
+
+                    if (transform.Value.offset != null)
+                        mat *= Matrix3x3.CreateTranslation(transform.Value.offset[0], transform.Value.offset[1]);
+
+                    if (transform.Value.rotation != 0)
+                        mat *= Matrix3x3.CreateRotationZ(transform.Value.rotation);
+
+                    if (transform.Value.scale != null)
+                        mat *= Matrix3x3.CreateScale(transform.Value.scale[0], transform.Value.scale[1]);
+                   
+                    result.Transform = mat;
+                }
             });
 
             result.Flags |= EngineObjectFlags.Readonly;
@@ -208,7 +254,7 @@ namespace XrEngine.Gltf
 
             result.AddComponent(new AssetSource
             {
-                Asset = CreateAsset<Texture2D>(result.Name!, "tex", id)
+                Asset = CreateAsset<Texture2D>(result.Name!, "tex", index)
             });
 
             return result;
@@ -218,21 +264,21 @@ namespace XrEngine.Gltf
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTexture(_model!.Textures[info.Index], info.Index);
+            return ProcessTexture(_model!.Textures[info.Index], info.Index, info.Extensions);
         }
 
         protected Texture2D DecodeTextureNormal(glTFLoader.Schema.MaterialNormalTextureInfo info)
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTexture(_model!.Textures[info.Index], info.Index);
+            return ProcessTexture(_model!.Textures[info.Index], info.Index, info.Extensions);
         }
 
         protected Texture2D DecodeTextureBase(glTFLoader.Schema.TextureInfo info, bool useSRgb = false)
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTexture(_model!.Textures[info.Index], info.Index, null, true);
+            return ProcessTexture(_model!.Textures[info.Index], info.Index, info.Extensions, null, true);
         }
 
         public PbrMaterial ProcessMaterial(glTFLoader.Schema.Material gltMat, int id, PbrMaterial? result = null)
@@ -318,6 +364,28 @@ namespace XrEngine.Gltf
                 }
 
                 result.Type = PbrMaterial.MaterialType.Specular;
+            }
+
+            var sheen = TryLoadExtension<KHR_materials_sheen>(gltMat.Extensions);
+            if (sheen != null)
+            {
+                result.Sheen = new PbrMaterial.SheenData();
+                
+                if (sheen.Value.sheenColorFactor != null)
+                    result.Sheen.ColorFactor = MathUtils.ToVector3(sheen.Value.sheenColorFactor);
+                
+                result.Sheen.RoughnessFactor = sheen.Value.sheenRoughnessFactor;
+
+                if (sheen.Value.sheenColorTexture != null)
+                {
+                    result.Sheen.ColorTexture = DecodeTextureBase(sheen.Value.sheenColorTexture);
+                    result.Sheen.ColorTextureUVSet = sheen.Value.sheenColorTexture.TexCoord;
+                }
+                if (sheen.Value.sheenRoughnessTexture != null)
+                {
+                    result.Sheen.RoughnessTexture = DecodeTextureBase(sheen.Value.sheenRoughnessTexture);
+                    result.Sheen.RoughnessTextureUVSet = sheen.Value.sheenRoughnessTexture.TexCoord;
+                }
             }
 
             result.AddComponent(new AssetSource
@@ -721,7 +789,7 @@ namespace XrEngine.Gltf
 
         public void ExecuteLoadTasks()
         {
-            Parallel.ForEach(_tasks, new ParallelOptions { MaxDegreeOfParallelism = 5 }, a => a());
+            Parallel.ForEach(_tasks, new ParallelOptions { MaxDegreeOfParallelism = 1 }, a => a());
             _tasks.Clear();
         }
 

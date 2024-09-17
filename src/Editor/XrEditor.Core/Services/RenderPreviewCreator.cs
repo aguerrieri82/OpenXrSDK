@@ -62,17 +62,17 @@ namespace XrEditor.Services
             _mesh.Materials.Add(_wireframe);
         }
 
-        public SKBitmap CreateMaterial(Material material)
+        public SKBitmap? CreateMaterial(Material material)
         {
             return CreateMesh(Sphere3D.Default, material);
         }
 
-        public SKBitmap CreateGeometry(Geometry3D geometry)
+        public SKBitmap? CreateGeometry(Geometry3D geometry)
         {
             return CreateMesh(geometry, _wireframe);
         }
 
-        public SKBitmap CreateTexture(Texture2D texture)
+        public SKBitmap? CreateTexture(Texture2D texture)
         {
 
             _textureMaterial.Texture = texture;
@@ -91,7 +91,7 @@ namespace XrEditor.Services
             return CreateImage();
         }
 
-        protected SKBitmap CreateMesh(Geometry3D geometry, Material material)
+        protected SKBitmap? CreateMesh(Geometry3D geometry, Material material)
         {
             _mesh.Geometry = geometry;
             _mesh.Materials.Clear();
@@ -111,8 +111,11 @@ namespace XrEditor.Services
         }
 
 
-        protected unsafe SKBitmap CreateImage()
+        protected unsafe SKBitmap? CreateImage()
         {
+            //TODO preview causes problems, indagate
+            return null;
+
             _engine.SetRenderTarget(_texture);
 
             _app.RenderFrame(new Rect2I()

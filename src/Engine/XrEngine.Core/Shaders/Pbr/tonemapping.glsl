@@ -1,6 +1,3 @@
-uniform float u_Exposure;
-
-
 const float GAMMA = 2.2;
 const float INV_GAMMA = 1.0 / GAMMA;
 
@@ -109,7 +106,7 @@ vec3 toneMap_KhronosPbrNeutral( vec3 color )
 
 
 #ifdef UNIFORM_EXP
-uniform float u_Exposure;
+uniform float uExposure;
 #endif
 
 
@@ -117,7 +114,7 @@ vec3 toneMap(vec3 color)
 {
 
 #ifdef UNIFORM_EXP
-    color *= u_Exposure;
+    color *= uExposure;
 #else
     color *= uCamera.Exposure;
 #endif

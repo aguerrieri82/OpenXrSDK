@@ -321,9 +321,6 @@ vec3 filterColor(vec3 N)
         color /= uSampleCount;
     }
 
-    if(uRoughness > 0.5)
-        color = mix(color, vec3( luma(color)), pow(uRoughness, 2.0));
-
     return color.rgb ;
 }
 

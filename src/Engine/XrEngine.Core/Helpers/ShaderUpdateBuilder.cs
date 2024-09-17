@@ -92,7 +92,7 @@ namespace XrEngine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void SetUniformBuffer<T>(string name, UpdateAction<T> value, int slot, bool isGlobal, bool optional = false)
+        public readonly void SetUniformBuffer<T>(string name, UpdateAction<T?> value, int slot, bool isGlobal, bool optional = false) where T: struct
         {
             Log(name, value);
 

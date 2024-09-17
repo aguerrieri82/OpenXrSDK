@@ -2,13 +2,12 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using System.Runtime.InteropServices;
 #endif
 
 
 namespace XrEngine.OpenGL
 {
-
-
 
     public class GlBuffer<T> : GlObject, IGlBuffer
     {

@@ -1,10 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	  <TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
+	</PropertyGroup>
 
-
+	<ItemGroup>
+		<NativeLibrary Include="..\..\..\libs\turbo-jpeg\**\*" />
+	</ItemGroup>
+	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<Content Include="..\..\..\libs\turbo-jpeg\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
 		<Content Include="..\..\..\libs\turbo-jpeg\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />

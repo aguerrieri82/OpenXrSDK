@@ -370,7 +370,6 @@ Makefile
 
 
 #Build
-/build/
 /dist/
 
 #other

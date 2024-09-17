@@ -13,6 +13,10 @@
 	</ItemGroup>
 
 
+	<ItemGroup>
+		<NativeLibrary Include="..\..\..\libs\openal\**\*" />
+	</ItemGroup>
+	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<Content Include="..\..\..\libs\openal\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
 		<Content Include="..\..\..\libs\openal\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
@@ -22,5 +26,4 @@
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\..\..\libs\openal\android-arm64\*.so" />
 	</ItemGroup>
-
 </Project>

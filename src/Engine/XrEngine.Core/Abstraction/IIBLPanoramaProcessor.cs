@@ -20,7 +20,7 @@
                 SampleCount = 1024,
                 LodBias = 0f,
                 MipLevelCount = 10,
-                Mode = IBLProcessMode.Lambertian | IBLProcessMode.GGX | IBLProcessMode.Charlie,
+                Mode = IBLProcessMode.Lambertian | IBLProcessMode.GGX | IBLProcessMode.Charlie| IBLProcessMode.Sheen,
                 ShaderResolver = str => Embedded.GetString(str),
             };
         }

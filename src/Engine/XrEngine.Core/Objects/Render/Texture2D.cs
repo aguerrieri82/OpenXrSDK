@@ -1,4 +1,5 @@
 ﻿using SkiaSharp;
+using XrMath;
 
 namespace XrEngine
 {
@@ -121,6 +122,8 @@ namespace XrEngine
         public uint SampleCount { get; set; }
 
         public uint MaxLevels { get; set; }
+
+        public Matrix3x3? Transform { get; set; }
 
     }
 }

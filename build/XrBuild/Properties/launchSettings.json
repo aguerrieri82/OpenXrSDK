@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "msbuild": {
+      "commandName": "Executable",
+      "executablePath": "D:\\Development\\Personal\\Git\\XrSDK\\build\\XrBuild\\debug.cmd",
+      "workingDirectory": "D:\\Development\\Personal\\Git\\XrSDK\\src\\Samples\\XrSamples.Console",
+      "nativeDebugging": true
+    }
+  }
+}

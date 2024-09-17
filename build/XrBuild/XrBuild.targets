@@ -1,0 +1,53 @@
+<Project>
+
+	<UsingTask TaskName="ScanNativeLibrary" AssemblyFile="$(MSBuildThisFileDirectory)bin\Debug\net48\XrBuild.dll" />
+	
+	<UsingTask TaskName="CopyNativeLibrary" AssemblyFile="$(MSBuildThisFileDirectory)bin\Debug\net48\XrBuild.dll" />
+
+	
+	<PropertyGroup>
+		<IsBuildDueToProjectReference Condition="'$(IsBuildDueToProjectReference)' == ''">false</IsBuildDueToProjectReference>
+	</PropertyGroup>
+	
+
+	<Target 
+		AfterTargets="AssignProjectConfiguration" 
+		Name="SetIsBuildDueToProjectReferenceOnProjectReferences">
+		<ItemGroup>
+			<ProjectReferenceWithConfiguration>
+				<AdditionalProperties>%(ProjectReferenceWithConfiguration.AdditionalProperties);IsBuildDueToProjectReference=true</AdditionalProperties>
+			</ProjectReferenceWithConfiguration>
+		</ItemGroup>
+	</Target>
+
+	<Target
+		Name="ScanNativeLibrary"
+		BeforeTargets="PrepareForBuild"
+		Condition="@(NativeLibrary) != ''">
+		<ScanNativeLibrary
+			SourceFiles="@(NativeLibrary)">
+			<Output TaskParameter="NativeAndroid" ItemName="_AndroidNativeLibrary"/>
+			<Output TaskParameter="NativeAll" ItemName="Content"/>
+		</ScanNativeLibrary>
+
+		<ItemGroup>
+			<AndroidNativeLibrary Abi="%(_AndroidNativeLibrary.Abi)" Include="@(_AndroidNativeLibrary)" />
+		</ItemGroup>
+	</Target>
+
+	<Target 
+		Name="CopyNativeLibs" 
+		Condition="'$(IsBuildDueToProjectReference)' == 'false' AND '$(RuntimeIdentifier)' != ''"
+		AfterTargets="CopyFilesToOutputDirectory">
+
+		<CopyNativeLibrary
+			SourceFiles="@(_TransitiveItemsToCopyToOutputDirectory)"
+			RuntimeIdentifier="$(RuntimeIdentifier)">
+			<Output TaskParameter="Output" ItemName="ItemsToCopy"/>	
+		</CopyNativeLibrary>
+		
+		<Copy SourceFiles="@(ItemsToCopy)"
+			  DestinationFolder="$(ProjectDir)$(OutputPath)"/>
+	</Target>
+
+</Project>
