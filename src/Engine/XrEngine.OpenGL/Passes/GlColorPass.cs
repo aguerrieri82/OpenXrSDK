@@ -14,7 +14,7 @@ namespace XrEngine.OpenGL
         protected override bool BeginRender()
         {
             _renderer.RenderTarget!.Begin();
-            _renderer.State.SetView(_renderer.RenderView, true);
+            _renderer.State.SetView(_renderer.RenderView);
             _renderer.Clear(_renderer.UpdateContext.Camera!.BackgroundColor);
             return true;
         }
@@ -77,11 +77,13 @@ namespace XrEngine.OpenGL
 
                         progInst.UpdateProgram(updateContext);
 
+                        bool programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
+
                         updateContext.ProgramInstanceId = progInst.Program!.Handle;
 
-                        bool updateGlobals = _renderer.State.SetActiveProgram(progInst.Program!.Handle);
+                        _renderer.State.SetActiveProgram(progInst.Program!.Handle);
 
-                        progInst.UpdateUniforms(updateContext, updateGlobals);
+                        progInst.UpdateUniforms(updateContext, programChanged);
 
                         _renderer.ConfigureCaps(draw.ProgramInstance!.Material!);
 

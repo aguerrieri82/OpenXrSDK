@@ -448,12 +448,15 @@ namespace XrEngine.OpenGL
 
         public void Bind()
         {
-            _gl.BindTexture(Target, _handle);
+            OpenGLRender.Current!.State.BindTexture(Target, _handle);
+
         }
 
         public void Unbind()
         {
-            _gl.BindTexture(Target, 0);
+            OpenGLRender.Current!.State.BindTexture(Target, 0);
+
+            OpenGLRender.Current!.State.BindTexture(Target, 0);
         }
 
         public override void Dispose()

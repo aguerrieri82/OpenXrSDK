@@ -284,7 +284,7 @@ namespace XrSamples
                    .UseRayCollider()
                    .UseGrabbers();
 
-            if (!IsEditor)
+            //if (!IsEditor)
                 builder.AddPassthrough();
             return builder;
         }

@@ -4,6 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -56,9 +57,10 @@ namespace XrEngine.OpenGL
 
                 foreach (var ext in Global.Update!.Extensions!)
                     program.AddExtension(ext);
-
+                /*
                 foreach (var feature in Global.Update!.Features!)
                     program.AddFeature(feature);
+                */
 
                 //TODO not working
                 //program.AddFeature("ZLOG_F 0.001");

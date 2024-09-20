@@ -20,7 +20,7 @@ namespace XrEngine.OpenGL
             _destFrameBuffer = new GlTextureFrameBuffer(gl, destColorTex, destDepthTex);
 
             var msColorTex = new GlTexture(gl);
-            gl.BindTexture(TextureTarget.Texture2DMultisample, msColorTex);
+            OpenGLRender.Current!.State.BindTexture(TextureTarget.Texture2DMultisample, msColorTex);
             gl.TexStorage2DMultisample(
                 TextureTarget.Texture2DMultisample,
                 sampleCount,
@@ -30,7 +30,7 @@ namespace XrEngine.OpenGL
                 true);
 
             var msDepthTex = gl.GenTexture();
-            gl.BindTexture(TextureTarget.Texture2DMultisample, msDepthTex);
+            OpenGLRender.Current!.State.BindTexture(TextureTarget.Texture2DMultisample, msDepthTex);
             gl.TexStorage2DMultisample(
                 TextureTarget.Texture2DMultisample,
                 sampleCount,

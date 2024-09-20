@@ -4,6 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+
 using XrMath;
 
 namespace XrEngine.OpenGL
@@ -32,7 +33,11 @@ namespace XrEngine.OpenGL
             ActiveProgram = null;
             CullFace = null;
             ClearDepth = null;
-            ClearColor = null;  
+            ClearColor = null;
+            ActiveTexture = null;
+            TexturesSlots.Clear();
+            TexturesTargets.Clear();
+            Features.Clear();   
         }
 
         public void Restore()
@@ -56,7 +61,7 @@ namespace XrEngine.OpenGL
                 SetWriteColor(WriteColor.Value, true);
             
             if (ActiveProgram.HasValue)
-                _gl.UseProgram(ActiveProgram.Value);
+                SetActiveProgram(ActiveProgram.Value);
             
             if (Wireframe.HasValue)
                 SetWireframe(Wireframe.Value, true);
@@ -75,6 +80,19 @@ namespace XrEngine.OpenGL
 
             if (ClearColor.HasValue)
                 SetClearColor(ClearColor.Value, true);
+
+            foreach (var feature in Features)
+                EnableFeature(feature.Key, feature.Value, true);
+
+            foreach (var texture in TexturesTargets)
+                BindTexture(texture.Key, texture.Value, true);
+
+            //ActiveTexture
+
+            /*
+            foreach (var texture in Textures)
+                BindTexture(texture.Value, texture.Key, true);  
+            */
         }
 
         public void SetClearColor(Color color, bool force = false)
@@ -117,12 +135,50 @@ namespace XrEngine.OpenGL
             }
         }
 
+        public void BindTexture(TextureTarget target, uint texId, bool force = true)
+        {
+            if (!TexturesTargets.TryGetValue(target, out var value) || value != texId || force)
+            {
+                _gl.BindTexture(target, texId);
+
+                TexturesTargets[target] = texId;
+
+                if (ActiveTexture != null)
+                    TexturesSlots[ActiveTexture.Value] = texId;
+            }
+            return;
+        }
+
+        public void SetActiveTexture(uint texId, TextureTarget target, int slot, bool force = true)
+        {
+            if (TexturesSlots.TryGetValue(slot, out var id) && id == texId && !force)
+                return;
+
+            if (ActiveTexture != slot || force)
+            {
+                _gl.ActiveTexture(TextureUnit.Texture0 + slot);
+                ActiveTexture = slot;
+            }
+
+            BindTexture(target, texId, force);
+        }
+
+        public void SetActiveTexture(GlTexture glTex, int slot, bool force = false)
+        {
+            SetActiveTexture(glTex.Handle, glTex.Target, slot, force);   
+        }
+
         public void EnableFeature(EnableCap cap, bool value, bool force = false)
         {
+            if (Features.TryGetValue(cap, out var enabled) && enabled == value && !force)
+                return;
+
             if (value)
                 _gl.Enable(cap);
             else
                 _gl.Disable(cap);
+
+            Features[cap] = value;  
         }
 
         public void SetUseDepth(bool value, bool force = false)
@@ -237,5 +293,13 @@ namespace XrEngine.OpenGL
         public float? LineWidth;
 
         public Color? ClearColor;
+
+        public int? ActiveTexture;    
+
+        public readonly Dictionary<EnableCap, bool> Features = [];
+
+        public readonly Dictionary<int, uint> TexturesSlots = [];
+
+        public readonly Dictionary<TextureTarget, uint> TexturesTargets = [];
     }
 }

@@ -9,8 +9,6 @@ using System.Text.RegularExpressions;
 using System.Text;
 using XrMath;
 using System.Diagnostics;
-using System.Collections;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 
@@ -24,7 +22,6 @@ namespace XrEngine.OpenGL
         protected readonly Func<string, string> _resolver;
         protected readonly Dictionary<string, object> _values = [];
         protected readonly Dictionary<string, int> _locations = [];
-        protected readonly Dictionary<string, int> _boundTextures = [];
         protected readonly Dictionary<string, int> _boundBuffers = [];
 
 
@@ -57,14 +54,14 @@ namespace XrEngine.OpenGL
 
         public void Use()
         {
-            _gl.UseProgram(_handle);
+            OpenGLRender.Current!.State.SetActiveProgram(this);   
 
             GlDebug.Log($"UseProgram {_handle}");
         }
 
         public void Unbind()
         {
-            _gl.UseProgram(0);
+            OpenGLRender.Current!.State.SetActiveProgram(0);
 
             GlDebug.Log($"UseProgram NULL");
         }
@@ -150,12 +147,12 @@ namespace XrEngine.OpenGL
         {
             var tex2d = value as Texture2D ?? throw new NotSupportedException();
 
-            _gl.ActiveTexture(TextureUnit.Texture0 + slot);
-
             var glText = OpenGLRender.Current!.GetGlResource(tex2d);  
 
             if (tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0)
                 glText.Update(tex2d, false);
+
+            OpenGLRender.Current!.State.SetActiveTexture(glText, slot);
 
             glText.Bind();
 
@@ -239,11 +236,7 @@ namespace XrEngine.OpenGL
         {
             LoadTexture(value, slot);
 
-            if (!_boundTextures.TryGetValue(name, out var curSlot) || slot != curSlot)
-            {
-                SetUniform(name, slot, optional);
-                _boundTextures[name] = slot;
-            }
+            SetUniform(name, slot, optional);
         }
 
         public void SetUniform(string name, float[] value, bool optional = false)

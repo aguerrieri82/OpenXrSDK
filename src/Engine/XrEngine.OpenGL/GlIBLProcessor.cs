@@ -97,12 +97,10 @@ namespace XrEngine.OpenGL
             envTexId = CreateCubeMap(mipCount > 1);
             lutTexId = CreateLutTexture();
 
-            _gl.ActiveTexture(TextureUnit.Texture0);
-            _gl.BindTexture(TextureTarget.TextureCubeMap, _cubeMapId);
+            OpenGLRender.Current!.State.SetActiveTexture(_cubeMapId!, TextureTarget.TextureCubeMap, 0); 
 
             _filterProg!.Use();
             _filterProg.SetUniform("uDistribution", (int)distribution);
-
 
             for (var mipLevel = 0; mipLevel < mipCount; ++mipLevel)
             {
@@ -120,10 +118,9 @@ namespace XrEngine.OpenGL
 
             _gl.ClearColor(0, 0, 0, 1);
 
-            _gl.ActiveTexture(TextureUnit.Texture0);
-            _inputTexture!.Bind();
+            OpenGLRender.Current!.State.SetActiveTexture(_inputTexture!, 0); 
 
-            _gl.UseProgram(_panToCubeProg!.Handle);
+            OpenGLRender.Current!.State.SetActiveProgram(_panToCubeProg!.Handle);
 
             _panToCubeProg.SetUniform("uPanorama", 0);
 
@@ -133,7 +130,7 @@ namespace XrEngine.OpenGL
 
             _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
 
-            _gl.BindTexture(TextureTarget.TextureCubeMap, _cubeMapId);
+            OpenGLRender.Current!.State.BindTexture(TextureTarget.TextureCubeMap, _cubeMapId);
             _gl.GenerateMipmap(TextureTarget.TextureCubeMap);
         }
 
@@ -239,7 +236,7 @@ namespace XrEngine.OpenGL
         protected unsafe uint CreateLutTexture()
         {
             var targetTexture = _gl.GenTexture();
-            _gl.BindTexture(TextureTarget.Texture2D, targetTexture);
+            OpenGLRender.Current!.State.BindTexture(TextureTarget.Texture2D, targetTexture);
 
             _gl.TexStorage2D(
                 TextureTarget.Texture2D,
@@ -261,7 +258,7 @@ namespace XrEngine.OpenGL
         protected unsafe uint CreateCubeMap(bool withMipmaps)
         {
             var targetTexture = _gl.GenTexture();
-            _gl.BindTexture(TextureTarget.TextureCubeMap, targetTexture);
+            OpenGLRender.Current!.State.BindTexture(TextureTarget.TextureCubeMap, targetTexture);
 
 
             _gl.TexStorage2D(
@@ -317,9 +314,11 @@ namespace XrEngine.OpenGL
             _fooVa = 0;
 
             _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            _gl.UseProgram(0);
-            _gl.BindTexture(TextureTarget.Texture2D, 0);
-            _gl.BindTexture(TextureTarget.TextureCubeMap, 0);
+
+            OpenGLRender.Current!.State.BindTexture(TextureTarget.Texture2D, 0);
+            OpenGLRender.Current!.State.BindTexture(TextureTarget.TextureCubeMap, 0);
+
+            OpenGLRender.Current!.State.SetActiveProgram(0);
 
             GC.SuppressFinalize(this);
         }
