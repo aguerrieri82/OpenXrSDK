@@ -109,9 +109,7 @@ float calculateShadow(vec3 normal, vec3 lightDir)
 
     float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
 
-    float currentDepth = projCoords.z;
-
-    bias = 0.005;
+    float currentDepth = projCoords.z - bias;
 
     #ifdef SMOOTH_SHADOW_MAP
 
@@ -121,22 +119,21 @@ float calculateShadow(vec3 normal, vec3 lightDir)
     {
         for (float y = -1.0; y <= 1.0; ++y)
         {
-            float pcfDepth = texture(uShadowMap, projCoords.xy + (vec2(x, y) * texelSize)).r; 
-            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+            float pcfDepth = texture(uShadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
+            shadow += currentDepth > pcfDepth ? 1.0 : 0.0;        
         }    
     }
 
     shadow /= 9.0;
 
     #else
-    
+            
     float closestDepth = texture(uShadowMap, projCoords.xy).r; 
 
-    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;  
+    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;  
 
     #endif
-
-
+             
     return shadow;
 }  
 

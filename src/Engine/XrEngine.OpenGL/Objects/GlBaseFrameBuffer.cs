@@ -9,6 +9,9 @@ namespace XrEngine.OpenGL
 {
     public abstract class GlBaseFrameBuffer : GlObject
     {
+        protected static readonly DrawBufferMode[] DRAW_COLOR_0 = [DrawBufferMode.ColorAttachment0];
+        protected static readonly DrawBufferMode[] DRAW_NONE = [DrawBufferMode.None];
+
         public GlBaseFrameBuffer(GL gl)
             : base(gl)
         {

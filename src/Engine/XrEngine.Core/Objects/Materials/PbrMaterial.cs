@@ -213,112 +213,116 @@ namespace XrEngine
             [FieldOffset(448)]
             public int DiffuseUVSet;
 
-            [FieldOffset(452)]
+            [FieldOffset(464)]
             public Vector3 SpecularFactor;
-            [FieldOffset(468)]
+            [FieldOffset(476)]
             public float GlossinessFactor;
-            [FieldOffset(372)]
+            [FieldOffset(480)]
             public int SpecularGlossinessUVSet;
 
-            [FieldOffset(500)]
+            [FieldOffset(496)]
             public Matrix3x3Aligned DiffuseUVTransform;
-            [FieldOffset(500)]
+            [FieldOffset(544)]
             public Matrix3x3Aligned SpecularGlossinessUVTransform;
 
+            //Shadow
+            [FieldOffset(592)]
+            public Color ShadowColor;
+
             // Specular Dielectrics
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Vector3 KHR_materials_specular_specularColorFactor;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public float KHR_materials_specular_specularFactor;
 
             // Emissive
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Vector3 EmissiveFactor;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public float EmissiveStrength;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public int EmissiveUVSet;
 
             // Clearcoat Material
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public float ClearcoatFactor;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public int ClearcoatUVSet;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Matrix3x3Aligned ClearcoatUVTransform;
 
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public float ClearcoatRoughnessFactor;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public int ClearcoatRoughnessUVSet;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Matrix3x3Aligned ClearcoatRoughnessUVTransform;
 
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public float ClearcoatNormalScale;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public int ClearcoatNormalUVSet;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Matrix3x3Aligned ClearcoatNormalUVTransform;
 
             // Specular Material
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public int SpecularUVSet;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Matrix3x3Aligned SpecularUVTransform;
 
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public int SpecularColorUVSet;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Matrix3x3Aligned SpecularColorUVTransform;
 
             // Transmission Material
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public float TransmissionFactor;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public int TransmissionUVSet;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Matrix3x3Aligned TransmissionUVTransform;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Vector2I TransmissionFramebufferSize;
 
             // Volume Material
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Vector3 AttenuationColor;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public float AttenuationDistance;
 
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public float ThicknessFactor;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public int ThicknessUVSet;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Matrix3x3Aligned ThicknessUVTransform;
 
             // Iridescence
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public float IridescenceIor;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public float IridescenceFactor;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public int IridescenceUVSet;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Matrix3x3 IridescenceUVTransform;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public float IridescenceThicknessMinimum;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public float IridescenceThicknessMaximum;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public int IridescenceThicknessUVSet;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Matrix3x3Aligned IridescenceThicknessUVTransform;
 
             // Anisotropy
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Vector3 Anisotropy;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public int AnisotropyUVSet;
-            [FieldOffset(500)]
+            [FieldOffset(800)]
             public Matrix3x3Aligned AnisotropyUVTransform;
         }
 
@@ -575,7 +579,7 @@ namespace XrEngine
                 if (bld.Context.ShadowMap != null)
                 {
                     bld.AddFeature("USE_SHADOW_MAP");
-                   // bld.AddFeature("SMOOTH_SHADOW_MAP");
+                    bld.AddFeature("SMOOTH_SHADOW_MAP");
                     bld.ExecuteAction((ctx, up) =>
                     {
                         up.SetUniform("uShadowMap", ctx.ShadowMap!, 15);
@@ -650,6 +654,7 @@ namespace XrEngine
             Shader = SHADER;
             Debug = DebugFlags.DEBUG_NONE;
             UseSheen = true;
+            ShadowColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
         }
 
         public static PbrMaterial CreateDefault(Color color)
@@ -842,7 +847,15 @@ namespace XrEngine
             else if (Alpha == AlphaMode.Opaque)
                 bld.AddFeature("ALPHAMODE ALPHAMODE_OPAQUE");
             else
+            {
+                if (MetallicRoughness?.BaseColorFactor != null && 
+                    MetallicRoughness.BaseColorFactor.A == 0)
+                {
+                    bld.AddFeature("TRANSPARENT");
+                }
+
                 bld.AddFeature("ALPHAMODE ALPHAMODE_BLEND");
+            }
 
             if (LinearOutput)
                 bld.AddFeature("LINEAR_OUTPUT");
@@ -850,6 +863,12 @@ namespace XrEngine
             {
                 if (ToneMap != ToneMapType.TONEMAP_NONE)
                     bld.AddFeature(ToneMap.ToString());
+            }
+
+            if (ReceiveShadows)
+            {
+                bld.AddFeature("RECEIVE_SHADOWS");
+                material.ShadowColor = ShadowColor;
             }
 
             bld.SetUniform("uModelMatrix", (ctx) => ctx.Model!.WorldMatrix);
@@ -926,6 +945,8 @@ namespace XrEngine
 
         public bool UseSheen { get; set; }
 
+        public Color ShadowColor { get; set; }  
+
         /*
         public bool HasClearcoat { get; set; }
 
@@ -979,6 +1000,7 @@ namespace XrEngine
         public static bool LinearOutput { get; set; }
 
         public static ToneMapType ToneMap { get; set; }
+
 
     }
 }

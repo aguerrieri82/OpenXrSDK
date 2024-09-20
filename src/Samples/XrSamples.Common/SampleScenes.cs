@@ -22,14 +22,9 @@ using Silk.NET.Windowing;
 using static XrEngine.PbrMaterial;
 using XrEngine.OpenGL;
 
-
-
-
 #if !ANDROID
 using XrEngine.Browser.Win;
 #endif
-
-
 
 namespace XrSamples
 {
@@ -217,13 +212,15 @@ namespace XrSamples
             floor.Name = "Floor";
             floor.Materials.Add(new PbrMaterial
             {
+                Name = "FloorMaterial", 
                 ReceiveShadows = true,
-                Type = MaterialType.Metallic,
-                Alpha = AlphaMode.Opaque,
+                Type = MaterialType.Unlit,
+                Alpha = AlphaMode.Blend,
+   
                 AlphaCutoff = 0.5f,
                 MetallicRoughness = new PbrMaterial.MetallicRoughnessData
                 {
-                    BaseColorFactor = Color.White,
+                    BaseColorFactor = Color.Transparent,
                     RoughnessFactor = 1,
                     MetallicFactor = 0
                 }
@@ -238,6 +235,10 @@ namespace XrSamples
             depth.Name = "Depth";
             depth.AddBehavior((_, _) =>
             {
+                var pass = ((OpenGLRender)depth.Scene!.App!.Renderer!).Pass<GlShadowPass>();
+                if (pass == null)
+                    return;
+
                 if (mat.Texture == null)
                 {
                     mat.Texture = depth.Scene!.App!.Renderer!.GetDepth();
@@ -245,7 +246,7 @@ namespace XrSamples
                 }
                 if (mat.Camera == null)
                 {
-                    mat.Camera = ((OpenGLRender)depth.Scene!.App!.Renderer!).Pass<GlShadowPass>()!.LightCamera;
+                    mat.Camera = pass.LightCamera;
                     mat.Version++;
                 }
  

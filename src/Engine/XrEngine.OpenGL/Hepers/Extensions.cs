@@ -136,6 +136,9 @@ namespace XrEngine.OpenGL
 
         public static unsafe Texture ToEngineTexture(this GlTexture glTexture, TextureFormat? readFormat = null)
         {
+            if (glTexture.Source is Texture texture)
+                return texture;
+
             Texture2D res;
 
             if (glTexture.Target == TextureTarget.TextureCubeMap)
@@ -149,24 +152,23 @@ namespace XrEngine.OpenGL
             res.WrapS = (WrapMode)glTexture.WrapS;
             res.MagFilter = (ScaleFilter)glTexture.MagFilter;
             res.MinFilter = (ScaleFilter)glTexture.MinFilter;
-            res.BorderColor= glTexture.BorderColor; 
+            res.BorderColor= glTexture.BorderColor;
 
-            switch (glTexture.InternalFormat)
+            res.Format = glTexture.InternalFormat switch
             {
-                case InternalFormat.Rgb32f:
-                    res.Format = TextureFormat.RgbFloat32;
-                    break;
-                case InternalFormat.Rgba16f:
-                    res.Format = TextureFormat.RgbaFloat16;
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
+                InternalFormat.Rgb32f => TextureFormat.RgbFloat32,
+                InternalFormat.Rgba16f => TextureFormat.RgbaFloat16,
+                InternalFormat.Rgba => TextureFormat.Rgba32,
+                InternalFormat.Depth24Stencil8 => TextureFormat.Depth24Stencil8,
+                _ => throw new NotSupportedException(),
+            };
 
             res.SetProp(OpenGLRender.Props.GlResId, glTexture);
 
             if (readFormat != null)
                 res.Data = glTexture.Read(readFormat.Value);
+
+            glTexture.Source = res;
 
             return res;
         }

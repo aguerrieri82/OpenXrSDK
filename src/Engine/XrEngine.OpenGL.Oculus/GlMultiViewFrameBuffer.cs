@@ -119,7 +119,7 @@ namespace XrEngine.OpenGL.Oculus
 
             _gl.Enable(EnableCap.Multisample);
 
-            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _handle);
+            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _handle);
 
             if (_sampleCount > 1)
             {
@@ -128,7 +128,7 @@ namespace XrEngine.OpenGL.Oculus
 
 
                 FramebufferTextureMultisampleMultiviewOVR(
-                        FramebufferTarget.DrawFramebuffer,
+                        FramebufferTarget.Framebuffer,
                         FramebufferAttachment.DepthAttachment,
                         _depthTex,
                         0,
@@ -138,7 +138,7 @@ namespace XrEngine.OpenGL.Oculus
                 _gl.CheckError();
 
                 FramebufferTextureMultisampleMultiviewOVR(
-                    FramebufferTarget.DrawFramebuffer,
+                    FramebufferTarget.Framebuffer,
                     FramebufferAttachment.ColorAttachment0,
                     _colorTex,
                     0,
@@ -154,19 +154,22 @@ namespace XrEngine.OpenGL.Oculus
                     throw new Exception("glFramebufferTextureMultiviewOVR not supported");
 
                 FramebufferTextureMultiviewOVR!(
-                    FramebufferTarget.DrawFramebuffer,
+                    FramebufferTarget.Framebuffer,
                     FramebufferAttachment.ColorAttachment0,
                     _colorTex,
                     0, 0, 2);
 
                 FramebufferTextureMultiviewOVR(
-                    FramebufferTarget.DrawFramebuffer,
+                    FramebufferTarget.Framebuffer,
                     FramebufferAttachment.DepthAttachment,
                     _depthTex,
                     0, 0, 2);
             }
 
-            var status = _gl.CheckFramebufferStatus(FramebufferTarget.DrawFramebuffer);
+            _gl.DrawBuffers(DRAW_COLOR_0);
+            _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
+
+            var status = _gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
 
             if (status != GLEnum.FramebufferComplete)
             {
@@ -174,13 +177,14 @@ namespace XrEngine.OpenGL.Oculus
             }
 
 
-            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
+
 
         public override void Unbind()
         {
             var attach = new InvalidateFramebufferAttachment[] { InvalidateFramebufferAttachment.DepthAttachment };
-            _gl.InvalidateFramebuffer(FramebufferTarget.DrawFramebuffer, attach.AsSpan());
+            _gl.InvalidateFramebuffer(FramebufferTarget.Framebuffer, attach.AsSpan());
             base.Unbind();
         }
 

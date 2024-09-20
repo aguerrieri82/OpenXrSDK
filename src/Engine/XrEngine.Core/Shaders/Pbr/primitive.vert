@@ -20,7 +20,7 @@ out vec3 v_Position;
 out vec3 v_CameraPos;
 
 #ifdef USE_SHADOW_MAP
-uniform mat4 ulightSpaceMatrix;   
+uniform mat4 uLightSpaceMatrix;   
 out vec4 v_PosLightSpace;
 #endif
 
@@ -199,7 +199,7 @@ void main()
 #endif
 
 #ifdef USE_SHADOW_MAP
-    v_PosLightSpace = ulightSpaceMatrix * pos;
+    v_PosLightSpace = uLightSpaceMatrix * pos;
 #endif
 
     v_CameraPos = getCameraPos();

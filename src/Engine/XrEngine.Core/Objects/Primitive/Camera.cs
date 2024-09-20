@@ -14,7 +14,6 @@ namespace XrEngine
     {
         private Matrix4x4 _projInverse;
         private Matrix4x4 _proj;
-        protected Matrix4x4 _viewInverse;
         protected Vector3 _target;
 
 

@@ -1,6 +1,4 @@
-﻿
-
-using XrEngine.Layers;
+﻿using XrEngine.Layers;
 
 namespace XrEngine
 {
@@ -20,7 +18,8 @@ namespace XrEngine
             _history = new UpdateHistory(this);
             _scene = this;
             _gizmos = new Canvas3D();
-            
+            _changeListener.Add(_layers);
+
             this.AddLayer<TypeLayer<Light>>();
             this.AddLayer<TypeLayer<Camera>>();
             this.AddLayer<TypeLayer<Object3D>>();
@@ -77,8 +76,6 @@ namespace XrEngine
                 Version++;
                 
                 UpdateDrawGizmos();
-
-                ((IObjectChangeListener)_layers).NotifyChanged(object3D, change);
             }
 
             foreach (var listener in _changeListener)

@@ -44,6 +44,9 @@ layout(std140) uniform Material {
 
     mat3 DiffuseUVTransform;
     mat3 SpecularGlossinessUVTransform;
+    
+    //Shadow
+    vec4 ShadowColor;
 
     // Specular Dieletrics
     vec3 KHR_materials_specular_specularColorFactor;

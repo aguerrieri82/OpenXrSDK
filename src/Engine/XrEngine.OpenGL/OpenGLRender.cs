@@ -24,7 +24,7 @@ namespace XrEngine.OpenGL
         protected GlTextureRenderTarget? _texRenderTarget = null;
         protected Scene3D? _lastScene;
         protected long _lastLayersVersion;
-
+        protected GlLayer? _mainLayer;
         protected readonly GL _gl;
         protected readonly GlState _glState;
         protected readonly GlRenderOptions _options;
@@ -72,7 +72,8 @@ namespace XrEngine.OpenGL
 
             _drawAttachment0 = [DrawBufferMode.ColorAttachment0];
 
-            _renderPasses.Add(new GlShadowPass(this));      
+            if (_options.ShadowMap.Use)
+                _renderPasses.Add(new GlShadowPass(this));  
 
             if (_options.UseDepthPass)
                 _renderPasses.Add(new GlDepthPass(this)
@@ -155,20 +156,24 @@ namespace XrEngine.OpenGL
             return _renderPasses.OfType<T>().FirstOrDefault();
         }
 
-
         protected void UpdateLayers(Scene3D scene)
         {
             if (_lastScene != scene || _lastLayersVersion != scene.Layers.Version)
             {
                 _layers.Clear();
 
-                _layers.Add(new GlLayer(this, scene, GlLayerType.Main));
+                _mainLayer = new GlLayer(this, scene, GlLayerType.Main);
 
                 foreach (var layer in scene.Layers.Layers.OfType<DetachedLayer>())
                     _layers.Add(new GlLayer(this, scene, GlLayerType.Custom, layer));
 
-                var castShadowLayer = scene.Layers.Layers.OfType<CastShadowsLayer>().First();
-                _layers.Add(new GlLayer(this, scene, GlLayerType.CastShadow, castShadowLayer));
+                _layers.Add(_mainLayer);
+
+                if (_options.ShadowMap.Use)
+                {
+                    var castShadowLayer = scene.Layers.Layers.OfType<CastShadowsLayer>().First();
+                    _layers.Add(new GlLayer(this, scene, GlLayerType.CastShadow, castShadowLayer));
+                }
 
                 _lastScene = scene;
                 _lastLayersVersion = scene.Layers.Version;
@@ -191,7 +196,6 @@ namespace XrEngine.OpenGL
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
-
         public void Render(Scene3D scene, Camera camera, Rect2I view, bool flush)
         {
             if (_target != null)
@@ -205,12 +209,9 @@ namespace XrEngine.OpenGL
 
             UpdateLayers(scene);
 
-            var mainLayer = _layers[0];
-
-
             _updateCtx.Camera = camera.Clone();
-            _updateCtx.Lights = mainLayer.Content.Lights;
-            _updateCtx.LightsHash = mainLayer.Content.LightsHash;
+            _updateCtx.Lights = _mainLayer.Content.Lights;
+            _updateCtx.LightsHash = _mainLayer.Content.LightsHash;
             _updateCtx.FrustumPlanes = camera.FrustumPlanes();
 
             foreach (var pass in _renderPasses)
@@ -225,12 +226,17 @@ namespace XrEngine.OpenGL
             _dispatcher.ProcessQueue();
         }
 
-        public void SetRenderTarget(Texture2D texture)
+        public void SetRenderTarget(Texture2D? texture)
         {
-            var glTexture = texture.GetGlResource(tex => tex.CreateGlTexture(_gl, false));
-            _texRenderTarget ??= new GlTextureRenderTarget(_gl);
-            _texRenderTarget.FrameBuffer.Configure(glTexture, null);
-            _target = _texRenderTarget;
+            if (texture == null)
+                _target = _defaultTarget;
+            else
+            {
+                var glTexture = texture.GetGlResource(tex => tex.CreateGlTexture(_gl, false));
+                _texRenderTarget ??= new GlTextureRenderTarget(_gl);
+                _texRenderTarget.FrameBuffer.Configure(glTexture, null);
+                _target = _texRenderTarget;
+            }
         }
 
         public void SetRenderTarget(IGlRenderTarget? target)
@@ -238,10 +244,6 @@ namespace XrEngine.OpenGL
             _target = target ?? _defaultTarget;
         }
 
-        public void SetDefaultRenderTarget()
-        {
-            _target = _defaultTarget;
-        }
 
         #endregion
 

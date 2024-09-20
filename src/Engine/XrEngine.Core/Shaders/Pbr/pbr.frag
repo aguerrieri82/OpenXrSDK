@@ -369,10 +369,20 @@ void main()
     baseColor.a = 1.0;
 #endif
 
+float uShadow = 0.0;
+
 #ifdef USE_SHADOW_MAP
+#ifdef RECEIVE_SHADOWS
 
-color.rgb *= vec3(1.0 - calculateShadow(n, l) * 0.5);
+uShadow = calculateShadow(n, l);
 
+#ifdef TRANSPARENT
+    baseColor.a = uShadow * uMaterial.ShadowColor.a;
+#else
+    color.rgb *= vec3(1.0 - uShadow * uMaterial.ShadowColor.rgb);
+#endif
+
+#endif
 #endif
 
 #ifdef LINEAR_OUTPUT
