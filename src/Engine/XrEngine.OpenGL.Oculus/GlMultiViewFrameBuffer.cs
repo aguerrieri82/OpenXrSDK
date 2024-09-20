@@ -72,12 +72,12 @@ namespace XrEngine.OpenGL.Oculus
 
         protected void UpdateTextureInfo()
         {
-            OpenGLRender.Current!.State.BindTexture(_target, _colorTex);
+            GlState.Current!.BindTexture(_target, _colorTex);
             _gl.GetTexLevelParameter(_target, 0, GetTextureParameter.TextureWidth, out int w);
             _gl.GetTexLevelParameter(_target, 0, GetTextureParameter.TextureHeight, out int h);
             _width = (uint)w;
             _height = (uint)h;
-            OpenGLRender.Current!.State.BindTexture(_target, 0);
+            GlState.Current!.BindTexture(_target, 0);
         }
 
         protected void CreateDepth()
@@ -86,7 +86,7 @@ namespace XrEngine.OpenGL.Oculus
 
             _depthTex = _gl.GenTexture();
 
-            OpenGLRender.Current!.State.BindTexture(_target, _depthTex);
+            GlState.Current!.BindTexture(_target, _depthTex);
 
             _gl.TexStorage3D(
                    _target,
@@ -98,7 +98,7 @@ namespace XrEngine.OpenGL.Oculus
 
             _gl.CheckError();
 
-            OpenGLRender.Current!.State.BindTexture(_target, 0);
+            GlState.Current!.BindTexture(_target, 0);
         }
 
         public void Configure(uint colorTex, uint depthTex, uint sampleCount)

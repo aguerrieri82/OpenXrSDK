@@ -70,14 +70,20 @@ namespace XrEngine
 
         #region CameraUniforms
 
-        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        [StructLayout(LayoutKind.Explicit, Size = 224)]
         public struct CameraUniforms
         {
+            [FieldOffset(0)]
             public Matrix4x4 ViewMatrix;
+            [FieldOffset(64)]
             public Matrix4x4 ProjectionMatrix;
+            [FieldOffset(128)]
             public Matrix4x4 ViewProjectionMatrix;
+            [FieldOffset(192)]
             public Vector3 Position;
+            [FieldOffset(204)]
             public float Exposure;
+            [FieldOffset(208)]
             public float FarPlane;
         }
 
@@ -126,7 +132,7 @@ namespace XrEngine
 
         #region IBLUniforms
 
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Explicit, Size = 80)]
         public unsafe struct IBLUniforms 
         {
             [FieldOffset(0)]
@@ -143,7 +149,7 @@ namespace XrEngine
 
         #region MaterialUniforms
 
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Explicit, Size = 1440)]
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
@@ -579,7 +585,10 @@ namespace XrEngine
                 if (bld.Context.ShadowMap != null)
                 {
                     bld.AddFeature("USE_SHADOW_MAP");
+
                     bld.AddFeature("SMOOTH_SHADOW_MAP");
+                    // bld.AddFeature("USE_SHADOW_SAMPLER");
+
                     bld.ExecuteAction((ctx, up) =>
                     {
                         up.SetUniform("uShadowMap", ctx.ShadowMap!, 14);

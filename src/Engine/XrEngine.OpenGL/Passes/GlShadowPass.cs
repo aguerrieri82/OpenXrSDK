@@ -24,6 +24,9 @@ namespace XrEngine.OpenGL
         public GlShadowPass(OpenGLRender renderer)
             : base(renderer)
         {
+            
+            UseShadowSampler = false;
+
             _lightCamera = new OrtoCamera();
             _lightCamera.SetViewArea(-4, 4, -4, 4);
 
@@ -34,17 +37,27 @@ namespace XrEngine.OpenGL
                 WrapS = WrapMode.ClampToBorder,
                 Width = _renderer.Options.ShadowMap.Size,
                 Height = _renderer.Options.ShadowMap.Size,
-                Format = TextureFormat.Depth24Stencil8,
-                MinFilter = ScaleFilter.Linear,
-                MagFilter = ScaleFilter.Linear,
+                Format = TextureFormat.Depth24Float,
+                MinFilter = ScaleFilter.Nearest,
+                MagFilter = ScaleFilter.Nearest,
                 MaxLevels = 1
             };
         }
 
         protected override void Initialize()
         {
+            var glTex = _renderer.GetGlResource(_depthTexture);
+
             _frameBuffer = new GlTextureFrameBuffer(_renderer.GL);
-            _frameBuffer.Configure(null, _renderer.GetGlResource(_depthTexture));
+            _frameBuffer.Configure(null, glTex);
+
+            if (UseShadowSampler)
+            {
+                glTex.Bind();
+                _renderer.GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
+                _renderer.GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
+                glTex.Unbind();
+            }
 
             base.Initialize();
         }
@@ -125,5 +138,7 @@ namespace XrEngine.OpenGL
         public Texture2D? DepthTexture => _depthTexture;
 
         public Camera LightCamera => _lightCamera;
+
+        public bool UseShadowSampler { get; set; }
     }
 }

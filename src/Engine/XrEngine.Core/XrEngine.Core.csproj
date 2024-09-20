@@ -36,6 +36,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Shaders\Pbr\shadow.glsl" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
 	  <ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
 	  <ProjectReference Include="..\MeshOptimizer\MeshOptimizer.csproj" />

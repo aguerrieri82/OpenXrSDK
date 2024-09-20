@@ -16,6 +16,7 @@ namespace XrEngine.OpenGL
         public GlState(GL gl)
         {
             _gl = gl;
+            Current = this; 
         }
 
 
@@ -135,37 +136,42 @@ namespace XrEngine.OpenGL
             }
         }
 
-        public void BindTexture(TextureTarget target, uint texId, bool force = true)
+        public void BindTexture(TextureTarget target, uint texId, bool force = false)
         {
             if (!TexturesTargets.TryGetValue(target, out var value) || value != texId || force)
             {
                 _gl.BindTexture(target, texId);
 
                 TexturesTargets[target] = texId;
-
-                if (ActiveTexture != null)
-                    TexturesSlots[ActiveTexture.Value] = texId;
             }
+
+            if (ActiveTexture != null)
+                TexturesSlots[ActiveTexture.Value] = texId;
+
             return;
         }
 
-        public void SetActiveTexture(uint texId, TextureTarget target, int slot, bool force = true)
+        public void SetActiveTexture(uint texId, TextureTarget target, int slot, bool force = false)
         {
             if (TexturesSlots.TryGetValue(slot, out var id) && id == texId && !force)
                 return;
+
+            bool forceBind = force;
 
             if (ActiveTexture != slot || force)
             {
                 _gl.ActiveTexture(TextureUnit.Texture0 + slot);
                 ActiveTexture = slot;
+                forceBind = true;   
             }
 
-            BindTexture(target, texId, force);
+            BindTexture(target, texId, forceBind);
         }
 
         public void SetActiveTexture(GlTexture glTex, int slot, bool force = false)
         {
-            SetActiveTexture(glTex.Handle, glTex.Target, slot, force);   
+            SetActiveTexture(glTex.Handle, glTex.Target, slot, force);
+            glTex.Slot = slot;
         }
 
         public void EnableFeature(EnableCap cap, bool value, bool force = false)
@@ -301,5 +307,8 @@ namespace XrEngine.OpenGL
         public readonly Dictionary<int, uint> TexturesSlots = [];
 
         public readonly Dictionary<TextureTarget, uint> TexturesTargets = [];
+
+        [ThreadStatic]
+        public static GlState? Current;  
     }
 }

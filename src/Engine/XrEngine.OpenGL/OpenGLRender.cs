@@ -473,8 +473,9 @@ namespace XrEngine.OpenGL
 
         public GlRenderOptions Options => _options;
 
-        public static OpenGLRender? Current { get; internal set; }
-
         public static int SuspendErrors { get; set; }
+
+        [ThreadStatic]
+        public static OpenGLRender? Current;
     }
 }

@@ -74,18 +74,6 @@ namespace XrEngine.OpenGL
             Unbind();
         }
 
-        public override void Bind()
-        {
-            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _handle);
-            base.Bind();
-        }
-
-        public override void Unbind()
-        {
-            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-            base.Unbind();
-        }
-
         public void Configure(uint colorTex, uint depthTex, uint sampleCount)
         {
             var target = sampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D;
