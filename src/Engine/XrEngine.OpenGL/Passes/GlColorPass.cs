@@ -14,7 +14,7 @@ namespace XrEngine.OpenGL
         protected override bool BeginRender()
         {
             _renderer.RenderTarget!.Begin();
-            _renderer.State.SetView(_renderer.RenderView);
+            _renderer.State.SetView(_renderer.RenderView, true);
             _renderer.Clear(_renderer.UpdateContext.Camera!.BackgroundColor);
             return true;
         }

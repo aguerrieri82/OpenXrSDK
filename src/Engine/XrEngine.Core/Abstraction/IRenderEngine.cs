@@ -6,9 +6,7 @@ namespace XrEngine
     {
         void Render(Scene3D scene, Camera camera, Rect2I view, bool flush);
 
-        void SetDefaultRenderTarget();
-
-        void SetRenderTarget(Texture2D texture);
+        void SetRenderTarget(Texture2D? texture);
 
         void Suspend();
 

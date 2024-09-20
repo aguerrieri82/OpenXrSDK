@@ -24,7 +24,7 @@ namespace XrEngine
             : base()
         {
             _shader = SHADER;
-            UseDepth = false;
+            UseDepth = true;
             WriteDepth = false;
             Alpha = AlphaMode.Opaque;
         }
@@ -50,7 +50,7 @@ namespace XrEngine
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
-            bld.AddFeature("FORCE_Z 1.0");
+            //bld.AddFeature("FORCE_Z 1.0");
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);

@@ -23,8 +23,7 @@ namespace XrEngine.OpenGL
 
         protected virtual IEnumerable<GlLayer> SelectLayers()
         {
-            for (var i = _renderer.Layers.Count - 1; i >= 0; i--)
-                yield return _renderer.Layers[i];   
+           return _renderer.Layers.Where(a => a.Type != GlLayerType.CastShadow);  
         }
 
         public virtual void Render()
@@ -41,7 +40,7 @@ namespace XrEngine.OpenGL
             if (!BeginRender())
                 return;
             
-            foreach (var layer in SelectLayers()) 
+            foreach (var layer in SelectLayers())
                 RenderLayer(layer);
 
             EndRender();

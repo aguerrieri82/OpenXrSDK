@@ -38,7 +38,7 @@ namespace XrEngine.OpenGL
             if (Color != null)
             {
                 _gl.FramebufferTexture2D(
-                    FramebufferTarget.DrawFramebuffer,
+                    FramebufferTarget.Framebuffer,
                     FramebufferAttachment.ColorAttachment0,
                     Color.Target,
                     Color, 0);
@@ -47,7 +47,7 @@ namespace XrEngine.OpenGL
             if (Depth != null)
             {
                 _gl.FramebufferTexture2D(
-                    FramebufferTarget.DrawFramebuffer,
+                    FramebufferTarget.Framebuffer,
                     FramebufferAttachment.DepthAttachment,
                     Depth.Target,
                     Depth, 0);
@@ -55,11 +55,16 @@ namespace XrEngine.OpenGL
 
             if (Color == null)
             {
-                _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-                _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
+                _gl.DrawBuffers(DRAW_NONE);
+                _gl.ReadBuffer(ReadBufferMode.None);    
+            }
+            else
+            {
+                _gl.DrawBuffers(DRAW_COLOR_0);
+                _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
             }
 
-            var status = _gl.CheckFramebufferStatus(Color == null ? FramebufferTarget.Framebuffer : FramebufferTarget.DrawFramebuffer);
+            var status = _gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
 
             if (status != GLEnum.FramebufferComplete)
             {

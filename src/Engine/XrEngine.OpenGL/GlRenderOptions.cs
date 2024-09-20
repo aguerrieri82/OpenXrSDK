@@ -7,6 +7,15 @@
         High
     }
 
+    public class GlShadowMapOptions
+    {
+        public bool Use { get; set; }  
+
+        public uint Size { get; set; }
+
+        public bool Smooth { get; set; }   
+    }
+
     public class GlRenderOptions
     {
         public GlRenderOptions()
@@ -16,7 +25,13 @@
             FrustumCulling = true;
             UseOcclusionQuery = true;
             UseDepthPass = false;
-            UseSRGB = false; 
+            UseSRGB = false;
+            ShadowMap = new GlShadowMapOptions()
+            {
+                Use = false,
+                Size = 2048,
+                Smooth = true
+            };  
         }
 
         public bool UseSRGB { get; set; }
@@ -32,6 +47,8 @@
         public bool UseOcclusionQuery { get; set; }
 
         public bool UseDepthPass { get; set; }
+
+        public GlShadowMapOptions ShadowMap { get; }
 
         public static GlRenderOptions Default() => new();
 

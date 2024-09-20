@@ -3,7 +3,11 @@
 out vec4 FragColor;
 
 uniform sampler2D uTexture0;
+
+#ifdef SAMPLES
 uniform sampler2DMS uTexture0MS;
+#endif
+
 
 uniform float uNearPlane;
 uniform float uFarPlane;

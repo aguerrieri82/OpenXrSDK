@@ -16,7 +16,6 @@ namespace XrEditor
         private DetachedLayer? _selectionLayer;
         private OutlineMaterial _selectionMat;
 
-
         public SelectionTool()
         {
             _selection = Context.Require<SelectionManager>();
@@ -73,8 +72,6 @@ namespace XrEditor
                     outline.WorldMatrix = mesh.WorldMatrix;
                 });
             }
-
-
 
             return outline;
         }

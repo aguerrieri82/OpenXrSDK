@@ -30,14 +30,13 @@ namespace XrEngine.OpenGL
                 BorderColor = Color.White,
                 WrapT = WrapMode.ClampToBorder,
                 WrapS = WrapMode.ClampToBorder,
-                Width = 1024,
-                Height = 1024,
-                Format = TextureFormat.Depth24Float,
+                Width = _renderer.Options.ShadowMap.Size,
+                Height = _renderer.Options.ShadowMap.Size,
+                Format = TextureFormat.Depth24Stencil8,
                 MinFilter = ScaleFilter.Linear,
                 MagFilter = ScaleFilter.Linear,
-                MaxLevels = 0
+                MaxLevels = 1
             };
-
         }
 
         protected override void Initialize()
@@ -60,17 +59,12 @@ namespace XrEngine.OpenGL
 
         protected bool UpdateLight()
         {
-            var mainContent = _renderer.Layers[0].Content;
+            _lightHash = _renderer.UpdateContext.LightsHash!;
+            _light = _renderer.UpdateContext.Lights?
+                .OfType<DirectionalLight>()
+                .FirstOrDefault(a => a.CastShadows);
 
-            if (mainContent.LightsHash != _lightHash)
-            {
-                _lightHash = mainContent.LightsHash;  
-                _light = _renderer.Layers[0].Content.Lights!
-                    .OfType<DirectionalLight>()
-                    .FirstOrDefault(a => a.CastShadows);
-
-                IsEnabled = _light != null; 
-            }
+            IsEnabled = _light != null;
 
             return IsEnabled;
         }
@@ -80,13 +74,16 @@ namespace XrEngine.OpenGL
             if (!UpdateLight())
                 return false;
 
+            if (SelectLayers().All(a => a.Content.ShaderContents.Count == 0))
+                return false;
+
             _oldCamera = _renderer.UpdateContext.Camera;
 
             _frameBuffer!.Bind();
 
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetClearDepth(1.0f);
-            _renderer.State.SetView(new XrMath.Rect2I(0, 0, _depthTexture!.Width, _depthTexture.Height));
+            _renderer.State.SetView(new Rect2I(0, 0, _depthTexture!.Width, _depthTexture.Height));
             _renderer.State.SetCullFace(TriangleFace.Front);    
 
             _renderer.GL.Clear((uint)ClearBufferMask.DepthBufferBit);
