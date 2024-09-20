@@ -41,6 +41,7 @@ namespace XrEngine.OpenGL
             _content.Lights = [];
             _content.ShaderContents.Clear();
             _content.LightsHash = "";
+            _content.LayerVersion = Version;        
 
             var drawId = 0;
 
@@ -130,12 +131,12 @@ namespace XrEngine.OpenGL
 
         }
 
-        public bool NeedUpdate => _layer != null ?
-            _lastUpdateVersion != _layer.Version :
-            _lastUpdateVersion != _scene.Version;
+        public bool NeedUpdate => _lastUpdateVersion != Version;
 
         public GlLayerType Type => _type;   
 
         public RenderContent Content => _content;
+
+        public long Version => _layer != null ? _layer.Version : _scene.Version;    
     }
 }

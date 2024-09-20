@@ -68,7 +68,7 @@ namespace XrEngine
             Exposure = camera.Exposure;
             Projection = camera.Projection;
             WorldMatrix = camera.WorldMatrix;
-            Target = camera.Target;
+            _target = camera.Target;
             Eyes = camera.Eyes;
             ActiveEye = camera.ActiveEye;
         }

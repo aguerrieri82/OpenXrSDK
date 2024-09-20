@@ -14,9 +14,11 @@ namespace XrEngine.OpenGL
     {
         private GlTextureFrameBuffer? _frameBuffer;
         private readonly Texture2D _depthTexture;
-        private string _lightHash = "";
+        private string _allLightsHash = "";
         private DirectionalLight? _light;
         private Camera? _oldCamera;
+        private long _lightVersion = -1;
+        private long _layerVersion = -1;
         private readonly OrtoCamera _lightCamera;
 
         public GlShadowPass(OpenGLRender renderer)
@@ -59,12 +61,16 @@ namespace XrEngine.OpenGL
 
         protected bool UpdateLight()
         {
-            _lightHash = _renderer.UpdateContext.LightsHash!;
-            _light = _renderer.UpdateContext.Lights?
-                .OfType<DirectionalLight>()
-                .FirstOrDefault(a => a.CastShadows);
+            if (_allLightsHash != _renderer.UpdateContext.LightsHash)
+            {
+                _allLightsHash = _renderer.UpdateContext.LightsHash!;
 
-            IsEnabled = _light != null;
+                _light = _renderer.UpdateContext.Lights?
+                    .OfType<DirectionalLight>()
+                    .FirstOrDefault(a => a.CastShadows);
+
+                IsEnabled = _light != null;
+            }
 
             return IsEnabled;
         }
@@ -74,8 +80,18 @@ namespace XrEngine.OpenGL
             if (!UpdateLight())
                 return false;
 
-            if (SelectLayers().All(a => a.Content.ShaderContents.Count == 0))
+            var shadowLayer = SelectLayers().First();
+
+            if (shadowLayer.Content.ShaderContents.Count == 0)
                 return false;
+
+            if (_light!.Version == _lightVersion && shadowLayer.Version == _layerVersion)
+                return false;
+
+            Log.Debug(this, "Rendering shadow map for light '{0}'...", _light!.Name);      
+
+            _layerVersion = shadowLayer.Version;
+            _lightVersion = _light.Version; 
 
             _oldCamera = _renderer.UpdateContext.Camera;
 
