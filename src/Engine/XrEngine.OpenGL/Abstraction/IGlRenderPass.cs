@@ -8,7 +8,7 @@ namespace XrEngine.OpenGL
 {
     public interface IGlRenderPass
     {
-        void RenderContent(GlobalContent content);
+        void Render();
 
         bool IsEnabled { get; set; }
     }

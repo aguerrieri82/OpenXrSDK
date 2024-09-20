@@ -17,25 +17,47 @@ namespace XrEngine.OpenGL
             IsEnabled = true;
         }
 
-        public virtual void Initialize()
+        protected virtual void Initialize()
         {
-        }   
+        }
 
-        public void RenderContent(GlobalContent content)
+        protected virtual IEnumerable<GlLayer> SelectLayers()
+        {
+            for (var i = _renderer.Layers.Count - 1; i >= 0; i--)
+                yield return _renderer.Layers[i];   
+        }
+
+        public virtual void Render()
         {
             if (!IsEnabled)
                 return;
-
+            
             if (!_isInit)
             {
                 Initialize();
-                _isInit = true; 
+                _isInit = true;
             }
 
-            RenderContentWork(content); 
+            if (!BeginRender())
+                return;
+            
+            foreach (var layer in SelectLayers()) 
+                RenderLayer(layer);
+
+            EndRender();
         }
 
-        protected abstract void RenderContentWork(GlobalContent content);
+        protected virtual bool BeginRender()
+        {
+            return true;
+        }
+
+        protected virtual void EndRender()
+        {
+
+        }
+
+        protected abstract void RenderLayer(GlLayer layer);
 
         public bool IsEnabled { get; set; }
     }

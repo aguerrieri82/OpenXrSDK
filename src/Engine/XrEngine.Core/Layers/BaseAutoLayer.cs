@@ -7,6 +7,26 @@ namespace XrEngine
     public abstract class BaseAutoLayer<T> : BaseLayer<T> where T : ILayer3DItem
     {
 
+        protected void Rebuild()
+        {
+            while (_content.Count > 0)
+                Remove(_content.First());   
+
+            foreach (var obj in _manager!.Scene!.Descendants().OfType<T>())
+            {
+                if (obj is T tObj && BelongsToLayer(tObj))
+                    Add(tObj);
+            }   
+        }
+
+        protected override void OnEnabledChanged()
+        {
+            if (IsEnabled)
+                Rebuild();
+            base.OnEnabledChanged();
+        }
+
+
         protected virtual bool AffectChange(ObjectChange change)
         {
             return true;
@@ -14,6 +34,9 @@ namespace XrEngine
 
         public override void NotifyChanged(Object3D obj, ObjectChange change)
         {
+            if (!IsEnabled)
+                return;
+
             if (obj is T tObj && AffectChange(change))
             {
                 if (BelongsToLayer(tObj))

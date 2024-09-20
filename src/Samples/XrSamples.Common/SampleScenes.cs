@@ -19,6 +19,10 @@ using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
 using Silk.NET.Windowing;
+using static XrEngine.PbrMaterial;
+using XrEngine.OpenGL;
+
+
 
 
 #if !ANDROID
@@ -206,6 +210,63 @@ namespace XrSamples
 
                 });
         }
+
+        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder)
+        {
+            var floor = new TriangleMesh(new Cube3D(new Vector3(10, 0.01f, 10)));
+            floor.Name = "Floor";
+            floor.Materials.Add(new PbrMaterial
+            {
+                ReceiveShadows = true,
+                Type = MaterialType.Metallic,
+                Alpha = AlphaMode.Opaque,
+                AlphaCutoff = 0.5f,
+                MetallicRoughness = new PbrMaterial.MetallicRoughnessData
+                {
+                    BaseColorFactor = Color.White,
+                    RoughnessFactor = 1,
+                    MetallicFactor = 0
+                }
+            });
+
+
+            floor.Transform.SetPositionY(-0.01f / 2.0f);
+
+            var mat = new DepthViewMaterial();
+            var depth = new TriangleMesh(Quad3D.Default, mat);
+
+            depth.Name = "Depth";
+            depth.AddBehavior((_, _) =>
+            {
+                if (mat.Texture == null)
+                {
+                    mat.Texture = depth.Scene!.App!.Renderer!.GetDepth();
+                    mat.Version++;
+                }
+                if (mat.Camera == null)
+                {
+                    mat.Camera = ((OpenGLRender)depth.Scene!.App!.Renderer!).Pass<GlShadowPass>()!.LightCamera;
+                    mat.Version++;
+                }
+ 
+            });
+
+            builder.ConfigureApp(e =>
+            {
+                e.App.ActiveScene!.AddChild(floor);
+                e.App.ActiveScene!.AddChild(depth);
+
+                var light = e.App.ActiveScene!.Descendants<DirectionalLight>().FirstOrDefault();
+                if (light != null)
+                {
+                    light.CastShadows = true;
+                    light.IsVisible = true;
+                }
+            });
+
+            return builder;
+        }
+
 
         public static XrEngineAppBuilder AddPanel<T>(this XrEngineAppBuilder builder) where T : UIRoot, new()
         {
@@ -655,7 +716,7 @@ namespace XrSamples
 
                             var walls = anchors.Where(a => a.Labels != null && a.Labels.Contains("WALL_FACE")).ToArray();
                             window = walls[2];
-                            
+
                             if (window.Bounds2D != null)
                             {
                                 mesh.Transform.Scale = new Vector3(window.Bounds2D.Value.Width, window.Bounds2D.Value.Height, 0.01f);
@@ -717,15 +778,17 @@ namespace XrSamples
         [Sample("Bed")]
         public static XrEngineAppBuilder CreateBed(this XrEngineAppBuilder builder)
         {
-
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
 
             var mesh = GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
-            mesh.Name = "mesh";
+            mesh.Name = "Bed";
             mesh.AddComponent<MeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
+
+            foreach (var material in ((TriangleMesh)mesh).Materials!)
+                material.CastShadows = true;
 
             scene.AddChild(mesh);
 
@@ -733,6 +796,7 @@ namespace XrSamples
                 .UseApp(app)
                 //.UseSceneModel(false, false)
                 .UseDefaultHDR()
+                .AddFloorShadow()
                 .ConfigureSampleApp();
         }
 
@@ -782,18 +846,18 @@ namespace XrSamples
                         material.MetallicRoughness!.BaseColorFactor = new Color(0.35f, 0.3f, 0.3f, 1);
                         material.MetallicRoughness.RoughnessFactor = 1;
                     }
-                   /*
-                    
-                    if (material.MetallicRoughness?.MetallicRoughnessTexture != null)
-                    {
-                        material.MetallicRoughness.MetallicFactor = 1;
-                        material.MetallicRoughness.RoughnessFactor = 1;
-                    }
-          
-                    if (material.NormalTexture != null)
-                        material.NormalScale = 1;
+                    /*
 
-                    */
+                     if (material.MetallicRoughness?.MetallicRoughnessTexture != null)
+                     {
+                         material.MetallicRoughness.MetallicFactor = 1;
+                         material.MetallicRoughness.RoughnessFactor = 1;
+                     }
+
+                     if (material.NormalTexture != null)
+                         material.NormalScale = 1;
+
+                     */
                 }
 
             }
@@ -878,7 +942,7 @@ namespace XrSamples
             scene.AddChild(mesh);
 
             return builder
-                .UseApp(app) 
+                .UseApp(app)
                 .UseDefaultHDR()
                 .ConfigureSampleApp();
         }

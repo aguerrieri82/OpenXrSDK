@@ -40,7 +40,8 @@ namespace XrEngine
     public enum WrapMode
     {
         ClampToEdge = 33071,
-        Repeat = 10497
+        Repeat = 10497,
+        ClampToBorder = 33069,  
     }
 
     public enum ScaleFilter
@@ -125,5 +126,6 @@ namespace XrEngine
 
         public Matrix3x3? Transform { get; set; }
 
+        public Color BorderColor { get; set; }
     }
 }

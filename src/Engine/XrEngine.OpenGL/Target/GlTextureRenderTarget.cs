@@ -25,7 +25,7 @@ namespace XrEngine.OpenGL
 
         public void Begin()
         {
-            _frameBuffer.BindDraw();
+            _frameBuffer.Bind();
         }
 
         public void End()

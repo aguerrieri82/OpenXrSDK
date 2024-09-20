@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 
@@ -474,11 +475,22 @@ namespace XrEngine
         {
             public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)
             {
-                return lastUpdate.LightsVersion != ctx.LightsVersion;
+                return lastUpdate.LightsHash != ctx.LightsHash;
             }
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
+                var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
+
+                var hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
+            
+                if (hasPunctual)
+                    bld.AddFeature("USE_PUNCTUAL");
+
+                if (imgLight != null)
+                    bld.AddFeature("USE_IBL");
+
+                bld.AddFeature("MAX_LIGHTS " + LightListUniforms.Max);
 
                 bld.SetUniformBuffer("Camera", (ctx) =>
                 {
@@ -493,83 +505,95 @@ namespace XrEngine
                     };
                 }, 0, true);
 
-                bld.SetUniformBuffer("Lights", (ctx) =>
+                if (hasPunctual)
                 {
-                    if (ctx.CurrentBuffer!.Version != -1 && ctx.CurrentBuffer!.Version == ctx.LightsVersion)
-                        return null;
-
-                    var lights = new List<LightUniforms>();
-
-                    foreach (var light in bld.Context.Lights!)
+                    bld.SetUniformBuffer("Lights", (ctx) =>
                     {
-                        if (light is PointLight point)
-                        {
-                            lights.Add(new LightUniforms
-                            {
-                                Type = LightUniforms.Point,
-                                Color = (Vector3)point.Color,
-                                Position = point.WorldPosition,
-                                Intensity = point.Intensity * 10,
-                                InnerConeCos = 0,
-                                OuterConeCos = MathF.Cos(MathF.PI / 4f),
-                                Range = point.Range,
-                            });
-                        }
-                        else if (light is DirectionalLight directional)
-                        {
-                            lights.Add(new LightUniforms
-                            {
-                                Type = LightUniforms.Directional,
-                                Color = (Vector3)directional.Color,
-                                Direction = directional.Direction,
-                                Intensity = directional.Intensity,
-                                InnerConeCos = 1,
-                                OuterConeCos = MathF.Cos(MathF.PI / 4f),
-                                Range = -1
+                        var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
 
-                            });
-                        }
-                        else if (light is SpotLight spot)
-                        {
-                            lights.Add(new LightUniforms
-                            {
-                                Type = LightUniforms.Spot,
-                                Color = (Vector3)spot.Color,
-                                Position = spot.WorldPosition,
-                                Intensity = spot.Intensity,
-                                Range = spot.Range,
-                                InnerConeCos = MathF.Cos(spot.InnerConeAngle),
-                                OuterConeCos = MathF.Cos(spot.OuterConeAngle)
-                            });
-                        }
-
-                    }
-
-                    Log.Debug(this, "Build light uniforms");
-
-                    ctx.CurrentBuffer!.Version = ctx.LightsVersion;
-
-                    return (LightListUniforms?)new LightListUniforms
-                    {
-                        LightCount = (uint)lights.Count,
-                        Lights = lights.ToArray()
-                    };
-                }, 1, true);
-
-                var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
-
-                if (imgLight?.Textures != null)
-                {
-                    bld.AddFeature("USE_IBL");
-
-                    bld.SetUniformBuffer("Ibl", (ctx) =>
-                    {
-                        var imgLight = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
-
-                        if (imgLight?.Textures == null || (ctx.CurrentBuffer!.Version != -1 && ctx.CurrentBuffer!.Version == imgLight.Version))
+                        if (ctx.CurrentBuffer!.Hash == hash)
                             return null;
 
-                        ctx.CurrentBuffer!.Version = imgLight.Version;
+                        ctx.CurrentBuffer!.Hash = hash;
+
+                        Log.Debug(this, "Build light uniforms");
+
+                        var lights = new List<LightUniforms>();
+
+                        foreach (var light in bld.Context.Lights!)
+                        {
+                            if (light is PointLight point)
+                            {
+                                lights.Add(new LightUniforms
+                                {
+                                    Type = LightUniforms.Point,
+                                    Color = (Vector3)point.Color,
+                                    Position = point.WorldPosition,
+                                    Intensity = point.Intensity * 10,
+                                    InnerConeCos = 0,
+                                    OuterConeCos = MathF.Cos(MathF.PI / 4f),
+                                    Range = point.Range,
+                                });
+                            }
+                            else if (light is DirectionalLight directional)
+                            {
+                                lights.Add(new LightUniforms
+                                {
+                                    Type = LightUniforms.Directional,
+                                    Color = (Vector3)directional.Color,
+                                    Direction = directional.Direction,
+                                    Intensity = directional.Intensity,
+                                    InnerConeCos = 1,
+                                    OuterConeCos = MathF.Cos(MathF.PI / 4f),
+                                    Range = -1
+
+                                });
+                            }
+                            else if (light is SpotLight spot)
+                            {
+                                lights.Add(new LightUniforms
+                                {
+                                    Type = LightUniforms.Spot,
+                                    Color = (Vector3)spot.Color,
+                                    Position = spot.WorldPosition,
+                                    Intensity = spot.Intensity,
+                                    Range = spot.Range,
+                                    InnerConeCos = MathF.Cos(spot.InnerConeAngle),
+                                    OuterConeCos = MathF.Cos(spot.OuterConeAngle)
+                                });
+                            }
+                        }
+
+                        return (LightListUniforms?)new LightListUniforms
+                        {
+                            LightCount = (uint)lights.Count,
+                            Lights = lights.ToArray()
+                        };
+                    }, 1, true);
+                }
+
+                if (bld.Context.ShadowMap != null)
+                {
+                    bld.AddFeature("USE_SHADOW_MAP");
+                   // bld.AddFeature("SMOOTH_SHADOW_MAP");
+                    bld.ExecuteAction((ctx, up) =>
+                    {
+                        up.SetUniform("uShadowMap", ctx.ShadowMap!, 15);
+                        up.SetUniform("uLightSpaceMatrix", ctx.ShadowLightCamera!.View * ctx.ShadowLightCamera.Projection);
+                    });
+                }
+
+
+                if (imgLight != null)
+                {
+                    bld.SetUniformBuffer("Ibl", (ctx) =>
+                    {
+                        var curHash = imgLight.Version.ToString();
+
+                        if (ctx.CurrentBuffer!.Hash == curHash)
+                            return null;
+
+                        ctx.CurrentBuffer!.Hash = imgLight.Version.ToString();
 
                         return (IBLUniforms?)new IBLUniforms
                         {
@@ -582,33 +606,22 @@ namespace XrEngine
 
                     bld.ExecuteAction((ctx, up) =>
                     {
-                        var imgLight = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
-
-                        if (imgLight?.Textures == null)
-                            return;
-
-                        if (imgLight.Textures.LambertianEnv != null)
+                        if (imgLight.Textures?.LambertianEnv != null)
                             up.SetUniform("uLambertianEnvSampler", imgLight.Textures.LambertianEnv, 10);
 
-                        if (imgLight.Textures.GGXEnv != null)
+                        if (imgLight.Textures?.GGXEnv != null)
                             up.SetUniform("uGGXEnvSampler", imgLight.Textures.GGXEnv, 11);
 
-                        if (imgLight.Textures.GGXLUT != null)
+                        if (imgLight.Textures?.GGXLUT != null)
                             up.SetUniform("uGGXLUT", imgLight.Textures.GGXLUT, 12);
 
-                        if (imgLight.Textures.CharlieLUT != null)
+                        if (imgLight.Textures?.CharlieLUT != null)
                             up.SetUniform("uCharlieLUT", imgLight.Textures.CharlieLUT, 13);
 
-                        if (imgLight.Textures.CharlieEnv != null)
+                        if (imgLight.Textures?.CharlieEnv != null)
                             up.SetUniform("uCharlieEnvSampler", imgLight.Textures.CharlieEnv, 14);
                     });
-
                 }
-
-                if (bld.Context.Lights!.Any())
-                    bld.AddFeature("USE_PUNCTUAL");
-
-                bld.AddFeature("MAX_LIGHTS " + LightListUniforms.Max);
             }
         }
 
@@ -636,7 +649,6 @@ namespace XrEngine
         {
             Shader = SHADER;
             Debug = DebugFlags.DEBUG_NONE;
-            CastShadows = true;
             UseSheen = true;
         }
 
@@ -910,8 +922,7 @@ namespace XrEngine
 
         public DebugFlags Debug { get; set; }
 
-        public bool CastShadows { get; set; }
-
+        public bool ReceiveShadows { get; set; }
 
         public bool UseSheen { get; set; }
 

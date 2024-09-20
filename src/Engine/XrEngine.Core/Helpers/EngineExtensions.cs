@@ -603,6 +603,28 @@ namespace XrEngine
 
         #region CAMERA
 
+        public static void CreateViewFromDirection(this Camera self, Vector3 directionVector, Vector3 upVector)
+        {
+            var lookDirection = Vector3.Normalize(-directionVector);
+
+            var right = Vector3.Normalize(Vector3.Cross(upVector, lookDirection));
+
+            var cameraUp = Vector3.Cross(lookDirection, right);
+
+            var cameraPosition = new Vector3(0, 5, 0);
+
+            self.View = new Matrix4x4(
+                right.X, cameraUp.X, lookDirection.X, 0,
+                right.Y, cameraUp.Y, lookDirection.Y, 0,
+                right.Z, cameraUp.Z, lookDirection.Z, 0,
+                -Vector3.Dot(right, cameraPosition),
+                -Vector3.Dot(cameraUp, cameraPosition),
+                -Vector3.Dot(lookDirection, cameraPosition),
+                1
+            );
+        }
+
+
         public static IEnumerable<Vector3> Project(this Camera camera, IEnumerable<Vector3> worldPoints)
         {
             var viewProj = camera.View * camera.Projection;

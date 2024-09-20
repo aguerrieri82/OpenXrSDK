@@ -45,7 +45,7 @@ namespace XrEngine.OpenGL.Oculus
 
         public void Begin()
         {
-            _frameBuffer.BindDraw();
+            _frameBuffer.Bind();
         }
 
         public void End()

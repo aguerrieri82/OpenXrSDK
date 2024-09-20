@@ -152,12 +152,12 @@ namespace XrEngine.OpenGL
 
             _gl.ActiveTexture(TextureUnit.Texture0 + slot);
 
-            var texture = value.GetGlResource(a => tex2d.CreateGlTexture(_gl, OpenGLRender.Current!.Options.RequireTextureCompression));
+            var glText = OpenGLRender.Current!.GetGlResource(tex2d);  
 
-            if (tex2d.Version != texture.Version && tex2d.Width > 0 && tex2d.Height > 0)
-                texture.Update(tex2d, false);
+            if (tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0)
+                glText.Update(tex2d, false);
 
-            texture.Bind();
+            glText.Bind();
 
         }
 

@@ -2,9 +2,9 @@
 {
     public abstract class Behavior<T> : BaseComponent<T>, IBehavior, IComponent<T> where T : EngineObject
     {
-        private double _startTime;
-        private double _lastUpdateTime;
-        private double _deltaTime;
+        protected double _startTime;
+        protected double _lastUpdateTime;
+        protected double _deltaTime;
 
         public Behavior()
         {
@@ -47,6 +47,8 @@
                 _lastUpdateTime = ctx.Time;
             }
         }
+
+        protected bool IsStarted => _startTime != -1;
 
         public event EventHandler? Started;
 

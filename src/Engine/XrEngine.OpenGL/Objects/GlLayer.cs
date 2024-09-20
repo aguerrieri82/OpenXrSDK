@@ -7,21 +7,30 @@ using System.Threading.Tasks;
 
 namespace XrEngine.OpenGL
 {
+    public enum GlLayerType
+    {
+        Main,
+        CastShadow,
+        Custom
+    }   
+
     public class GlLayer
     {
         readonly OpenGLRender _render;
-        readonly GlobalContent _content;
+        readonly RenderContent _content;
         private readonly Scene3D _scene;
         private readonly ILayer3D? _layer;
+        private readonly GlLayerType _type;
         private long _lastUpdateVersion;
 
-        public GlLayer(OpenGLRender render, Scene3D scene, ILayer3D? layer = null)
+        public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? layer = null)
         {
             _render = render;
-            _content = new GlobalContent();
+            _content = new RenderContent();
             _scene = scene;
             _lastUpdateVersion = -1;
             _layer = layer;
+            _type = type;
         }
 
 
@@ -31,15 +40,16 @@ namespace XrEngine.OpenGL
 
             _content.Lights = [];
             _content.ShaderContents.Clear();
-            _content.LightsVersion++;
+            _content.LightsHash = "";
 
             var drawId = 0;
 
-            if (IsMain)
+            if (_type == GlLayerType.Main)
             {
                 foreach (var light in _scene.VisibleDescendants<Light>())
                 {
                     _content.Lights.Add(light);
+
                     if (light is ImageLight imgLight)
                     {
                         if (imgLight.Panorama?.Data != null && imgLight.Panorama.Version != _content.ImageLightVersion)
@@ -54,6 +64,8 @@ namespace XrEngine.OpenGL
                             _render.ResetState();
                         }
                     }
+
+                    _content.LightsHash += light.GetType().Name + "|";
                 }
             }
 
@@ -61,7 +73,6 @@ namespace XrEngine.OpenGL
             var objects = _layer != null ?
                 _layer.Content.OfType<Object3D>().Where(a => a.IsVisible) :
                 _scene.VisibleDescendants<Object3D>();
-
 
             foreach (var obj3D in objects)
             {
@@ -123,8 +134,8 @@ namespace XrEngine.OpenGL
             _lastUpdateVersion != _layer.Version :
             _lastUpdateVersion != _scene.Version;
 
+        public GlLayerType Type => _type;   
 
-        public bool IsMain => _layer == null;
-        public GlobalContent Content => _content;
+        public RenderContent Content => _content;
     }
 }
