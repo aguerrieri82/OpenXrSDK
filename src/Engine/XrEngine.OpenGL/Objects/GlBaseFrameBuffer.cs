@@ -14,14 +14,14 @@ namespace XrEngine.OpenGL
         {
         }
 
-        public virtual void BindDraw()
+        public virtual void Bind()
         {
-            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, _handle);
+            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _handle);
         }
 
         public virtual void Unbind()
         {
-            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
 
         public abstract uint QueryTexture(FramebufferAttachment attachment);

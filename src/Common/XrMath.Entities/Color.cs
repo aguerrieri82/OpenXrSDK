@@ -95,6 +95,11 @@ namespace XrMath
             return R.GetHashCode() ^ G.GetHashCode() ^ B.GetHashCode() ^ A.GetHashCode();
         }
 
+        public float[] ToArray()
+        {
+            return [R, G, B, A];
+        }   
+
 
         public float R;
 

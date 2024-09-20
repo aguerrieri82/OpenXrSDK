@@ -4,7 +4,7 @@
     {
         void Update(object value);
 
-        long Version { get; set; }
+        string Hash { get; set; }
     }
 
 }

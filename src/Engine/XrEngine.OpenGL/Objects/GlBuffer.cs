@@ -19,7 +19,7 @@ namespace XrEngine.OpenGL
              : base(gl)
         {
             _target = target;
-            Version = -1;
+            Hash = "";
             Create();
         }
 
@@ -107,7 +107,7 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public long Version { get; set; }
+        public string Hash { get; set; }
 
         public BufferTargetARB Target => _target;
 

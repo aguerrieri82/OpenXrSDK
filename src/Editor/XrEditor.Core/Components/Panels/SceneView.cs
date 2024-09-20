@@ -200,7 +200,7 @@ namespace XrEditor
 
                         if (_renderSurface.SupportsDualRender)
                         {
-                            _render.SetDefaultRenderTarget();
+                            _render.SetRenderTarget(null);
                             _render.Render(_scene!, _camera!, _view, false);
                         }
                     }

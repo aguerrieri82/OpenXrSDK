@@ -4,6 +4,7 @@ const float M_PI = 3.141592653589793;
 in vec3 v_Position;
 in vec3 v_CameraPos;
 
+
 #ifdef HAS_NORMAL_VEC3
 #ifdef HAS_TANGENT_VEC4
 in mat3 v_TBN;
@@ -91,3 +92,52 @@ vec3 rgb_mix(vec3 base, vec3 layer, vec3 rgb_alpha)
     return (1.0 - rgb_alpha_max) * base + rgb_alpha * layer;
 }
 
+#ifdef USE_SHADOW_MAP
+
+in vec4 v_PosLightSpace;
+
+uniform sampler2D uShadowMap;
+
+float calculateShadow(vec3 normal, vec3 lightDir)
+{
+    vec3 projCoords = v_PosLightSpace.xyz / v_PosLightSpace.w;
+
+    projCoords = projCoords * 0.5 + 0.5;
+
+    if (projCoords.z > 1.0)
+        return 0.0;
+
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
+
+    float currentDepth = projCoords.z;
+
+    bias = 0.005;
+
+    #ifdef SMOOTH_SHADOW_MAP
+
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / vec2(textureSize(uShadowMap, 0));
+    for (float x = -1.0; x <= 1.0; ++x)
+    {
+        for (float y = -1.0; y <= 1.0; ++y)
+        {
+            float pcfDepth = texture(uShadowMap, projCoords.xy + (vec2(x, y) * texelSize)).r; 
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+        }    
+    }
+
+    shadow /= 9.0;
+
+    #else
+    
+    float closestDepth = texture(uShadowMap, projCoords.xy).r; 
+
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;  
+
+    #endif
+
+
+    return shadow;
+}  
+
+#endif

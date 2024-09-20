@@ -11,12 +11,25 @@ namespace XrEngine.OpenGL
             WriteDepth = true;  
         }
 
+        protected override bool BeginRender()
+        {
+            _renderer.RenderTarget!.Begin();
+            _renderer.State.SetView(_renderer.RenderView);
+            _renderer.Clear(_renderer.UpdateContext.Camera!.BackgroundColor);
+            return true;
+        }
 
-        protected override void RenderContentWork(GlobalContent content)
+        protected override void EndRender()
+        {
+            _renderer.State.SetActiveProgram(0);
+            _renderer.RenderTarget!.End();
+        }
+
+        protected override void RenderLayer(GlLayer layer)
         {
             var updateContext = _renderer.UpdateContext; 
 
-            foreach (var shader in content.ShaderContents.OrderBy(a => a.Key.Priority))
+            foreach (var shader in layer.Content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
                 var progGlobal = shader.Value!.ProgramGlobal;
 
@@ -66,24 +79,13 @@ namespace XrEngine.OpenGL
 
                         updateContext.ProgramInstanceId = progInst.Program!.Handle;
 
-                        bool updateGlobals = false;
-
-                        if (_renderer.State.ActiveProgram != progInst.Program!.Handle)
-                        {
-                            progInst.Program!.Use();
-                            _renderer.State.ActiveProgram = progInst.Program!.Handle;
-                            updateGlobals = true;
-                        }
+                        bool updateGlobals = _renderer.State.SetActiveProgram(progInst.Program!.Handle);
 
                         progInst.UpdateUniforms(updateContext, updateGlobals);
 
                         _renderer.ConfigureCaps(draw.ProgramInstance!.Material!);
 
-                        if (!WriteDepth)
-                        {
-                            _renderer.GL.DepthMask(false);
-                            _renderer.State.WriteDepth = false;
-                        }
+                        _renderer.State.SetWriteDepth(WriteDepth);
 
                         draw.Draw!();
                     }

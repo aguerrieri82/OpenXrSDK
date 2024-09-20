@@ -19,7 +19,7 @@ namespace XrEngine.OpenGL
         public GlShader(GL gl)
             : base(gl)
         {
-            Source = string.Empty;
+            ShaderSource = string.Empty;
             _refCount++;
         }
 
@@ -33,7 +33,7 @@ namespace XrEngine.OpenGL
         {
             _handle = _gl.CreateShader(type);
 
-            Source = source;
+            ShaderSource = source;
             Type = type;
 
             Update();
@@ -41,7 +41,7 @@ namespace XrEngine.OpenGL
 
         public void Update()
         {
-            _gl.ShaderSource(_handle, Source);
+            _gl.ShaderSource(_handle, ShaderSource);
 
             _gl.CompileShader(_handle);
 
@@ -85,6 +85,6 @@ namespace XrEngine.OpenGL
 
         public ShaderType Type { get; set; }
 
-        public string Source { get; set; }
+        public string ShaderSource { get; set; }
     }
 }

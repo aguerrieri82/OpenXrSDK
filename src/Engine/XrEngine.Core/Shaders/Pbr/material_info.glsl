@@ -48,6 +48,8 @@ struct MaterialInfo
 
     // KHR_materials_dispersion
     float dispersion;
+
+    float shadow;
 };
 
 
@@ -365,3 +367,4 @@ float albedoSheenScalingLUT(float NdotV, float sheenRoughnessFactor)
 {
     return texture(uSheenELUT, vec2(NdotV, sheenRoughnessFactor)).r;
 }
+

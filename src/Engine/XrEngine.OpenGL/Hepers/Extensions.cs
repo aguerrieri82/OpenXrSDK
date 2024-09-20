@@ -85,6 +85,7 @@ namespace XrEngine.OpenGL
             glTexture.WrapS = (TextureWrapMode)texture2D.WrapS;
             glTexture.WrapT = (TextureWrapMode)texture2D.WrapT;
             glTexture.SampleCount = texture2D.SampleCount;
+            glTexture.BorderColor = texture2D.BorderColor;
 
             if (texture2D.MaxLevels > 0)
                 glTexture.MaxLevel = texture2D.MaxLevels;
@@ -125,6 +126,7 @@ namespace XrEngine.OpenGL
             }
 
             glTexture.Version = texture2D.Version;
+            glTexture.Source = texture2D;   
         }
 
         public static unsafe Texture TexIdToEngineTexture(this GL gl, uint texId, TextureFormat? readFormat = null)
@@ -147,12 +149,18 @@ namespace XrEngine.OpenGL
             res.WrapS = (WrapMode)glTexture.WrapS;
             res.MagFilter = (ScaleFilter)glTexture.MagFilter;
             res.MinFilter = (ScaleFilter)glTexture.MinFilter;
+            res.BorderColor= glTexture.BorderColor; 
 
             switch (glTexture.InternalFormat)
             {
                 case InternalFormat.Rgb32f:
                     res.Format = TextureFormat.RgbFloat32;
                     break;
+                case InternalFormat.Rgba16f:
+                    res.Format = TextureFormat.RgbaFloat16;
+                    break;
+                default:
+                    throw new NotSupportedException();
             }
 
             res.SetProp(OpenGLRender.Props.GlResId, glTexture);
@@ -162,7 +170,5 @@ namespace XrEngine.OpenGL
 
             return res;
         }
-
-
     }
 }

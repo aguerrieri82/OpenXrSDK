@@ -26,24 +26,33 @@
         {
             bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
 
-            var depth = bld.Context.RenderEngine?.GetDepth();
-
-            if (depth != null)
+            if (Texture != null)
             {
-                if (depth.SampleCount <= 1)
-                    bld.SetUniform("uTexture0", ctx => depth, 0);
-                else
-                    bld.SetUniform("uTexture0MS", ctx => depth, 0);
-
-                bld.SetUniform("uSamples", ctx => depth.SampleCount);
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    if (Texture.SampleCount <= 1)
+                        up.SetUniform("uTexture0", Texture, 0);
+                    else
+                    {
+                        up.SetUniform("uTexture0MS", Texture, 0);
+                        bld.AddFeature("SAMPLES " + Texture.SampleCount);
+                    }
+                });
             }
 
-            if (bld.Context.Camera != null)
+            if (Camera != null)
             {
-                bld.SetUniform("uNearPlane", ctx => ctx.Camera!.Near);
-                bld.SetUniform("uFarPlane", ctx => ctx.Camera!.Far);
+                bld.SetUniform("uNearPlane", ctx => Camera.Near);
+                bld.SetUniform("uFarPlane", ctx => Camera.Far);
+
+                if (Camera is PerspectiveCamera)
+                    bld.AddFeature("LINEARIZE");
             }
         }
+
+        public Texture2D? Texture { get; set; }
+
+        public Camera? Camera { get; set; }
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 

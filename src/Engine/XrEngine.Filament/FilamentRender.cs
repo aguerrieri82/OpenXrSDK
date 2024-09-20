@@ -630,6 +630,11 @@ namespace XrEngine.Filament
             throw new NotSupportedException();
         }
 
+        public Texture2D? GetShadowMap()
+        {
+            throw new NotImplementedException();
+        }
+
         public FlBackend Driver => _driver;
 
         public Rect2I View => _viewport;

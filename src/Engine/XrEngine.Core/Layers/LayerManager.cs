@@ -52,7 +52,7 @@ namespace XrEngine
 
         void IObjectChangeListener.NotifyChanged(Object3D object3D, ObjectChange change)
         {
-            foreach (var layer in _layers)
+            foreach (var layer in _layers.Where(a=> a.IsEnabled))
                 layer.NotifyChanged(object3D, change);
         }
 

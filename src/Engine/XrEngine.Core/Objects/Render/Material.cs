@@ -60,6 +60,8 @@
 
         public bool DoubleSided { get; set; }
 
+        public bool CastShadows { get; set; }
+
         public AlphaMode Alpha { get; set; }
 
         public bool IsEnabled { get; set; }

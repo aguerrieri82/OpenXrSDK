@@ -12,18 +12,18 @@ namespace XrEngine.Layers
         protected readonly HashSet<T> _content = [];
         protected LayerManager? _manager;
         protected long _version;
+        private bool _isEnabled;
 
         public BaseLayer()
         {
             _id = ObjectId.New();
-            Name = GetType().Name;  
+            _isEnabled = true;
+            Name = GetType().Name; 
         }
 
         public void Attach(LayerManager manager)
         {
             _manager = manager;
-
-
         }
 
         public virtual void Detach()
@@ -34,6 +34,21 @@ namespace XrEngine.Layers
         public virtual void NotifyChanged(Object3D object3D, ObjectChange change)
         {
 
+        }
+
+        protected virtual void OnEnabledChanged()
+        {
+        }
+        public bool IsEnabled
+        {
+            get => _isEnabled;
+            set
+            {
+                if (_isEnabled == value)
+                    return;
+                _isEnabled = value;
+                OnEnabledChanged();
+            }
         }
 
         public bool IsVisible { get; set; }

@@ -1,0 +1,49 @@
+﻿namespace XrEngine.OpenGL
+{
+    public class ShaderContent
+    {
+        public IShaderHandler? GlobalHandler;
+
+        public GlProgramGlobal? ProgramGlobal;
+
+        public readonly Dictionary<EngineObject, VertexContent> Contents = [];
+    }
+
+    public class VertexContent
+    {
+        public GlVertexSourceHandle? VertexHandler;
+
+        public VertexComponent ActiveComponents;
+
+        public readonly List<DrawContent> Contents = [];
+    }
+
+    public class DrawContent
+    {
+        public Object3D? Object;
+
+        public Action? Draw;
+
+        public int DrawId;
+
+        public GlProgramInstance? ProgramInstance;
+
+        public GlQuery? Query;
+
+        public bool IsHidden;
+    }
+
+
+    public class RenderContent
+    {
+        public IList<Light>? Lights;
+
+        public long ImageLightVersion = -1;
+
+        public string LightsHash = "";
+
+        public readonly Dictionary<Shader, ShaderContent> ShaderContents = [];
+
+        public readonly List<KeyValuePair<Shader, ShaderContent>> ShaderContentsOrder = [];
+    }
+}

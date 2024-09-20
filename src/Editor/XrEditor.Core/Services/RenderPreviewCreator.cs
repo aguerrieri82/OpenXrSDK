@@ -126,7 +126,7 @@ namespace XrEditor.Services
 
             var data = ((IFrameReader)_app.Renderer!).ReadFrame();
 
-            _engine.SetDefaultRenderTarget();
+            _engine.SetRenderTarget(null);
 
             var image = new SKBitmap((int)_texture.Width, (int)_texture.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
 

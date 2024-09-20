@@ -3,6 +3,7 @@
 
 uniform mat4 uModelMatrix;
 uniform mat4 uNormalMatrix;
+ 
 
 layout(std140) uniform Camera {
     mat4 ViewMatrix;
@@ -13,11 +14,15 @@ layout(std140) uniform Camera {
     float FarPlane;
 } uCamera;
 
-
  
 layout (location = 0) in vec3 a_position;
 out vec3 v_Position;
 out vec3 v_CameraPos;
+
+#ifdef USE_SHADOW_MAP
+uniform mat4 ulightSpaceMatrix;   
+out vec4 v_PosLightSpace;
+#endif
 
 #ifdef HAS_NORMAL_VEC3
 layout (location = 1) in vec3 a_normal;
@@ -52,7 +57,6 @@ out vec3 v_Color;
 in vec4 a_color_0;
 out vec4 v_Color;
 #endif
-
 
 
 #ifdef MULTI_VIEW
@@ -180,18 +184,22 @@ void main()
 #endif
 
 
-#if defined(HAS_COLOR_0_VEC3) 
+#ifdef HAS_COLOR_0_VEC3
     v_Color = a_color_0;
 #if defined(USE_MORPHING)
     v_Color = clamp(v_Color + getTargetColor0(gl_VertexID).xyz, 0.0f, 1.0f);
 #endif
 #endif
 
-#if defined(HAS_COLOR_0_VEC4) 
+#ifdef HAS_COLOR_0_VEC4
     v_Color = a_color_0;
-#if defined(USE_MORPHING)
+#ifdef USE_MORPHING
     v_Color = clamp(v_Color + getTargetColor0(gl_VertexID), 0.0f, 1.0f);
 #endif
+#endif
+
+#ifdef USE_SHADOW_MAP
+    v_PosLightSpace = ulightSpaceMatrix * pos;
 #endif
 
     v_CameraPos = getCameraPos();

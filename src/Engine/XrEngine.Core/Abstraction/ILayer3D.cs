@@ -16,5 +16,7 @@
         long Version { get; }
 
         string Name { get; set; }
+
+        public bool IsEnabled { get; set; } 
     }
 }

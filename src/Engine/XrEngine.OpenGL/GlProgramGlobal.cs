@@ -12,6 +12,7 @@ namespace XrEngine.OpenGL
     {
         protected readonly Dictionary<string, IGlBuffer> _buffers = [];
         protected readonly GL _gl;
+        protected List<IShaderHandler> _handlers = [];
 
         public GlProgramGlobal(GL gl, Type materialType)
         {
@@ -25,19 +26,32 @@ namespace XrEngine.OpenGL
 
             if (Update == null)
             {
-                var globalBuilder = new ShaderUpdateBuilder(ctx);
+                _handlers = [];
 
                 var globalProp = MaterialType.GetField("GlobalHandler", BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy);
 
                 if (globalProp != null)
-                    ((IShaderHandler)globalProp.GetValue(null)!).UpdateShader(globalBuilder);
+                    _handlers.Add((IShaderHandler)globalProp.GetValue(null)!);
 
-                foreach (var handler in globalHandlers)
-                    handler?.UpdateShader(globalBuilder);
-
-                Update = globalBuilder.Result;
+                foreach (var handler in globalHandlers.Where(a=> a != null))
+                    _handlers.Add(handler!);
             }
 
+            var needUpdate = Update == null || _handlers.Any(a => a.NeedUpdateShader(ctx, Update));
+
+            if (needUpdate)
+            {
+                var globalBuilder = new ShaderUpdateBuilder(ctx);
+
+                foreach (var handler in _handlers)
+                    if (Update == null || handler.NeedUpdateShader(ctx, Update))
+                        handler.UpdateShader(globalBuilder);
+
+                Update = globalBuilder.Result;
+                Update.LightsHash = ctx.LightsHash;
+
+                Version++;
+            }
 
             foreach (var action in Update!.BufferUpdates!)
                 action(ctx);
@@ -65,5 +79,7 @@ namespace XrEngine.OpenGL
         public ShaderUpdate? Update { get; set; }
 
         public Type MaterialType { get; }
+
+        public int Version { get; private set; }
     }
 }

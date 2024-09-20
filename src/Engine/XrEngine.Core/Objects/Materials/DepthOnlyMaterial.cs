@@ -10,7 +10,7 @@ namespace XrEngine
         {
             SHADER = new Shader
             {
-                FragmentSourceName = "color.frag",
+                FragmentSourceName = "empty.frag",
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = false

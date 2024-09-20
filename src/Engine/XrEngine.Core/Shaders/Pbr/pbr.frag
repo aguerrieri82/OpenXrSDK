@@ -47,6 +47,7 @@ void main()
     vec3 n = normalInfo.n;
     vec3 t = normalInfo.t;
     vec3 b = normalInfo.b;
+    vec3 l;
 
     float NdotV = clampedDot(n, v);
     float TdotV = clampedDot(t, v);
@@ -234,11 +235,14 @@ void main()
     vec3 f_metal_brdf = vec3(0.0);
 
 #ifdef USE_PUNCTUAL
+
+
     for (int i = 0; i < uLights.count; ++i)
     {
         Light light = uLights.values[i];
 
         vec3 pointToLight;
+
         if (light.type != LightType_Directional)
         {
             pointToLight = light.position - v_Position;
@@ -249,7 +253,7 @@ void main()
         }
 
         // BSTF
-        vec3 l = normalize(pointToLight);   // Direction from surface point to light
+        l = normalize(pointToLight);   // Direction from surface point to light
         vec3 h = normalize(l + v);          // Direction of the vector between l and v, called halfway vector
         float NdotL = clampedDot(n, l);
         float NdotV = clampedDot(n, v);
@@ -345,7 +349,6 @@ void main()
     f_emissive *= texture(uEmissiveSampler, getEmissiveUV()).rgb;
 #endif
 
-
 #ifdef MATERIAL_UNLIT
     color = baseColor.rgb;
 #elif defined(NOT_TRIANGLE) && !defined(HAS_NORMAL_VEC3)
@@ -364,6 +367,12 @@ void main()
         discard;
     }
     baseColor.a = 1.0;
+#endif
+
+#ifdef USE_SHADOW_MAP
+
+color.rgb *= vec3(1.0 - calculateShadow(n, l) * 0.5);
+
 #endif
 
 #ifdef LINEAR_OUTPUT

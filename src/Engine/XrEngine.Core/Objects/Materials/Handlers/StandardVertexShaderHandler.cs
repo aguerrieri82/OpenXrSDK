@@ -4,7 +4,7 @@ namespace XrEngine
 {
     public class StandardVertexShaderHandler : IShaderHandler
     {
-        readonly Dictionary<uint, long> _lightVersions = [];
+        readonly Dictionary<uint, string> _lightHashes = [];
 
         public void UpdateShader(ShaderUpdateBuilder bld)
         {
@@ -16,7 +16,7 @@ namespace XrEngine
                 up.SetUniform("uViewPos", camera.Transform.Position, true);
                 up.SetUniform("uFarPlane", camera.Far);
 
-                if (ctx.Shader!.IsLit && (!_lightVersions.TryGetValue(ctx.ProgramInstanceId, out var ver) || ctx.LightsVersion != ver))
+                if (ctx.Shader!.IsLit && (!_lightHashes.TryGetValue(ctx.ProgramInstanceId, out var hash) || ctx.LightsHash != hash))
                 {
                     foreach (var light in bld.Context.Lights!)
                     {
@@ -31,7 +31,7 @@ namespace XrEngine
                         }
                     }
 
-                    _lightVersions[ctx.ProgramInstanceId] = ctx.LightsVersion;
+                    _lightHashes[ctx.ProgramInstanceId] = ctx.LightsHash!;
                 }
             });
         }

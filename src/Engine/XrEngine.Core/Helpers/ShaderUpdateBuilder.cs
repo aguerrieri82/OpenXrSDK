@@ -24,7 +24,7 @@ namespace XrEngine
 
         public long MaterialVersion;
 
-        public long LightsVersion;
+        public string? LightsHash;
 
         public string? FeaturesHash;
 
@@ -48,12 +48,15 @@ namespace XrEngine
 
         public IBuffer? CurrentBuffer;
 
-        public long LightsVersion;
+        public string? LightsHash;
 
         public uint ProgramInstanceId;
 
         public IList<Plane>? FrustumPlanes;
 
+        public Texture2D? ShadowMap;
+
+        public Camera? ShadowLightCamera;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

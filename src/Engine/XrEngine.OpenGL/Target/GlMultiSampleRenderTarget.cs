@@ -48,7 +48,7 @@ namespace XrEngine.OpenGL
 
         public void Begin()
         {
-            _renderFrameBuffer.BindDraw();
+            _renderFrameBuffer.Bind();
         }
 
         public void End()

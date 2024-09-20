@@ -16,6 +16,8 @@ namespace XrEngine
 
         Texture2D? GetDepth();
 
+        Texture2D? GetShadowMap();  
+
         IDispatcher Dispatcher { get; }
     }
 }

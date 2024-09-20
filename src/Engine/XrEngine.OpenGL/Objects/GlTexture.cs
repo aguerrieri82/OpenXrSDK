@@ -5,6 +5,7 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics;
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -38,14 +39,6 @@ namespace XrEngine.OpenGL
         {
             SampleCount = sampleCount;
             Attach(handle, target);
-        }
-
-        public GlTexture(GL gl, uint width, uint height, TextureFormat format, uint sampleCount = 1, TextureTarget target = 0)
-                : base(gl)
-        {
-            SampleCount = sampleCount;
-            Target = target;
-            Update(width, height, format);
         }
 
         protected void Create()
@@ -101,6 +94,10 @@ namespace XrEngine.OpenGL
 
                 _gl.GetTexParameter(Target, GetTextureParameter.TextureMagFilter, out int mag);
                 MagFilter = (TextureMagFilter)mag;
+
+                var color = new float[4];
+                _gl.GetTexParameter(Target, GetTextureParameter.TextureBorderColor, color);
+                BorderColor = new Color(color);
             }
 
             _gl.GetTexParameter(Target, GetTextureParameter.TextureBaseLevelSgis, out int bl);
@@ -118,7 +115,6 @@ namespace XrEngine.OpenGL
 
             void ReadTarget(TextureTarget target, uint mipLevel, uint face = 0)
             {
-
                 _gl.FramebufferTexture2D(
                      FramebufferTarget.ReadFramebuffer,
                      FramebufferAttachment.ColorAttachment0,
@@ -337,9 +333,9 @@ namespace XrEngine.OpenGL
                 }
             }
 
-            Update();
-
             Bind();
+
+            UpdateWork();
 
             _internalFormat = GetInternalFormat(format, compression);
 
@@ -425,6 +421,13 @@ namespace XrEngine.OpenGL
         {
             Bind();
 
+            UpdateWork();
+
+            Unbind();
+        }
+
+        protected void UpdateWork()
+        {
             bool isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
 
             if (!isMultiSample)
@@ -433,6 +436,7 @@ namespace XrEngine.OpenGL
                 _gl.TexParameter(Target, TextureParameterName.TextureWrapT, (int)WrapT);
                 _gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)MinFilter);
                 _gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
+                _gl.TexParameter(Target, TextureParameterName.TextureBorderColor, BorderColor.ToArray());
             }
 
             if (!IsDepth)
@@ -440,8 +444,6 @@ namespace XrEngine.OpenGL
                 _gl.TexParameter(Target, TextureParameterName.TextureBaseLevel, BaseLevel);
                 _gl.TexParameter(Target, TextureParameterName.TextureMaxLevel, MaxLevel);
             }
-
-            Unbind();
         }
 
         public void Bind()
@@ -483,6 +485,8 @@ namespace XrEngine.OpenGL
         public TextureMinFilter MinFilter { get; set; }
 
         public TextureMagFilter MagFilter { get; set; }
+
+        public Color BorderColor { get; set; }
 
         public uint SampleCount { get; set; }
 

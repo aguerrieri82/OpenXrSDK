@@ -14,7 +14,8 @@ namespace XrEngine.OpenGL
 
         protected ShaderUpdate? _update;
         protected readonly GL _gl;
-        protected long _programVersion = -1;
+        protected long _materialVersion = -1;
+        protected long _globalVersion = -1;
 
         public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global)
         {
@@ -25,13 +26,16 @@ namespace XrEngine.OpenGL
 
         public void UpdateProgram(UpdateShaderContext ctx)
         {
-            if (Program != null && _programVersion == Material!.Version)
+            if (Program != null && _materialVersion == Material!.Version && _globalVersion == Global.Version)
                 return;
 
             ctx.BufferProvider = this;
 
             var localBuilder = new ShaderUpdateBuilder(ctx);
             Material!.UpdateShader(localBuilder);
+
+            foreach (var feature in Global.Update!.Features!)
+                localBuilder.AddFeature(feature);
 
             localBuilder.ComputeHash(Material.GetType().FullName!);
 
@@ -71,7 +75,8 @@ namespace XrEngine.OpenGL
 
             Program = program;
 
-            _programVersion = Material.Version;
+            _materialVersion = Material.Version;
+            _globalVersion = Global.Version;
         }
 
         public IBuffer GetBuffer<T>(string name, bool isGlobal)
