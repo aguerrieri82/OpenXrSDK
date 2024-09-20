@@ -448,15 +448,12 @@ namespace XrEngine.OpenGL
 
         public void Bind()
         {
-            OpenGLRender.Current!.State.BindTexture(Target, _handle);
-
+            GlState.Current!.SetActiveTexture(this, Slot);   
         }
 
         public void Unbind()
         {
-            OpenGLRender.Current!.State.BindTexture(Target, 0);
-
-            OpenGLRender.Current!.State.BindTexture(Target, 0);
+            GlState.Current!.BindTexture(Target, 0);
         }
 
         public override void Dispose()
@@ -497,6 +494,8 @@ namespace XrEngine.OpenGL
 
         public uint MaxLevel { get; set; }
 
+        public int Slot { get; set; }
+
         public TextureTarget Target { get; set; }
 
         public InternalFormat InternalFormat => _internalFormat;
@@ -508,5 +507,7 @@ namespace XrEngine.OpenGL
         public uint Height => _height;
 
         public bool IsDepth => _internalFormat >= InternalFormat.DepthComponent16 && _internalFormat <= InternalFormat.DepthComponent32Sgix;
+
+
     }
 }

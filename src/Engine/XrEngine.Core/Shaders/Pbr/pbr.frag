@@ -24,6 +24,7 @@ precision highp float;
 #include <punctual.glsl>
 #include <ibl.glsl>
 #include <material_info.glsl>
+#include <shadow.glsl>
 
 #ifdef MATERIAL_IRIDESCENCE
 #include <iridescence.glsl>

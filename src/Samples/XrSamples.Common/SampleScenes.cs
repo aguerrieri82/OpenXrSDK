@@ -206,7 +206,7 @@ namespace XrSamples
                 });
         }
 
-        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder)
+        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder,bool showDepth)
         {
             var floor = new TriangleMesh(new Cube3D(new Vector3(10, 0.01f, 10)));
             floor.Name = "Floor";
@@ -216,9 +216,9 @@ namespace XrSamples
                 ReceiveShadows = true,
                 Type = MaterialType.Unlit,
                 Alpha = AlphaMode.Blend,
-   
                 AlphaCutoff = 0.5f,
-                MetallicRoughness = new PbrMaterial.MetallicRoughnessData
+                ShadowColor = new Color(0.0f, 0.0f, 0.0f, 0.7f),
+                MetallicRoughness = new MetallicRoughnessData
                 {
                     BaseColorFactor = Color.Transparent,
                     RoughnessFactor = 1,
@@ -230,32 +230,40 @@ namespace XrSamples
             floor.Transform.SetPositionY(-0.01f / 2.0f);
 
             var mat = new DepthViewMaterial();
-            var depth = new TriangleMesh(Quad3D.Default, mat);
 
-            depth.Name = "Depth";
-            depth.AddBehavior((_, _) =>
+            TriangleMesh? depth = null;
+            if (showDepth)
             {
-                var pass = ((OpenGLRender)depth.Scene!.App!.Renderer!).Pass<GlShadowPass>();
-                if (pass == null)
-                    return;
+                depth = new TriangleMesh(Quad3D.Default, mat);
+                depth.Transform.SetPositionY(1);
 
-                if (mat.Texture == null)
+                depth.Name = "Depth";
+                depth.AddBehavior((_, _) =>
                 {
-                    mat.Texture = depth.Scene!.App!.Renderer!.GetDepth();
-                    mat.Version++;
-                }
-                if (mat.Camera == null)
-                {
-                    mat.Camera = pass.LightCamera;
-                    mat.Version++;
-                }
- 
-            });
+                    var pass = ((OpenGLRender)depth.Scene!.App!.Renderer!).Pass<GlShadowPass>();
+                    if (pass == null)
+                        return;
+
+                    if (mat.Texture == null)
+                    {
+                        mat.Texture = pass.DepthTexture;
+                        mat.Version++;
+                    }
+                    if (mat.Camera == null)
+                    {
+                        mat.Camera = pass.LightCamera;
+                        mat.Version++;
+                    }
+
+                });
+            }
+           
 
             builder.ConfigureApp(e =>
             {
                 e.App.ActiveScene!.AddChild(floor);
-                e.App.ActiveScene!.AddChild(depth);
+                if (depth != null)  
+                    e.App.ActiveScene!.AddChild(depth);
 
                 var light = e.App.ActiveScene!.Descendants<DirectionalLight>().FirstOrDefault();
                 if (light != null)
@@ -797,7 +805,7 @@ namespace XrSamples
                 .UseApp(app)
                 //.UseSceneModel(false, false)
                 .UseDefaultHDR()
-                .AddFloorShadow()
+                .AddFloorShadow(true)
                 .ConfigureSampleApp();
         }
 

@@ -75,10 +75,10 @@ namespace XrSamples.Android.Activities
             XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(external, "Assets")));
 
             builder.Options.Driver = _settings!.Driver;
-
+            /*
             if (_settings.Driver == GraphicDriver.OpenGL)
                 builder.UseMultiView();
-
+            */
             builder.SetRenderQuality(1, (uint)_settings.Msaa);
 
             builder.RemovePlaneGrid()

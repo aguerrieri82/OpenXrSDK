@@ -43,10 +43,14 @@ namespace XrEngine.OpenGL
 
             _programInstance.UpdateProgram(updateContext);
 
+            bool programChanged = updateContext.ProgramInstanceId != _programInstance.Program!.Handle;
+
             updateContext.ProgramInstanceId = _programInstance.Program!.Handle;
 
-            if (_renderer.State.SetActiveProgram(_programInstance.Program!.Handle))
-                _programInstance.Global.UpdateUniforms(updateContext, _programInstance.Program!);
+            _renderer.State.SetActiveProgram(_programInstance.Program!.Handle);
+
+            if (programChanged)
+                _programInstance.Global.UpdateUniforms(updateContext, _programInstance.Program);
 
             _renderer.ConfigureCaps(_programInstance.Material);
 

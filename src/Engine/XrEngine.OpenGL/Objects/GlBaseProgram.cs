@@ -54,14 +54,14 @@ namespace XrEngine.OpenGL
 
         public void Use()
         {
-            OpenGLRender.Current!.State.SetActiveProgram(this);   
+            GlState.Current!.SetActiveProgram(this);   
 
             GlDebug.Log($"UseProgram {_handle}");
         }
 
         public void Unbind()
         {
-            OpenGLRender.Current!.State.SetActiveProgram(0);
+            GlState.Current!.SetActiveProgram(0);
 
             GlDebug.Log($"UseProgram NULL");
         }
@@ -147,12 +147,13 @@ namespace XrEngine.OpenGL
         {
             var tex2d = value as Texture2D ?? throw new NotSupportedException();
 
-            var glText = OpenGLRender.Current!.GetGlResource(tex2d);  
+            var glText = OpenGLRender.Current!.GetGlResource(tex2d);
+
+            GlState.Current!.SetActiveTexture(glText, slot);
 
             if (tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0)
                 glText.Update(tex2d, false);
 
-            OpenGLRender.Current!.State.SetActiveTexture(glText, slot);
 
             glText.Bind();
 
