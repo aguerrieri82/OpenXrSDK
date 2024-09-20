@@ -38,6 +38,8 @@
     {
         public IList<Light>? Lights;
 
+        public long LayerVersion;
+
         public long ImageLightVersion = -1;
 
         public string LightsHash = "";

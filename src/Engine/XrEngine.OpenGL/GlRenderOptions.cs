@@ -28,7 +28,7 @@
             UseSRGB = false;
             ShadowMap = new GlShadowMapOptions()
             {
-                Use = false,
+                Use = true,
                 Size = 2048,
                 Smooth = true
             };  

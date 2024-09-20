@@ -92,7 +92,7 @@ vec3 rgb_mix(vec3 base, vec3 layer, vec3 rgb_alpha)
     return (1.0 - rgb_alpha_max) * base + rgb_alpha * layer;
 }
 
-#ifdef USE_SHADOW_MAP
+#ifdef USE_SHADOW_MAP 
 
 in vec4 v_PosLightSpace;
 
@@ -138,3 +138,6 @@ float calculateShadow(vec3 normal, vec3 lightDir)
 }  
 
 #endif
+
+//End
+
