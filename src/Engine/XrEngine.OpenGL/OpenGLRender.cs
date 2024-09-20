@@ -25,6 +25,7 @@ namespace XrEngine.OpenGL
         protected Scene3D? _lastScene;
         protected long _lastLayersVersion;
         protected GlLayer? _mainLayer;
+        private int _maxTextureUnits;
         protected readonly GL _gl;
         protected readonly GlState _glState;
         protected readonly GlRenderOptions _options;
@@ -82,6 +83,8 @@ namespace XrEngine.OpenGL
                 });
 
             _renderPasses.Add(new GlColorPass(this));
+
+            _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
 
             ConfigureCaps();
         }
@@ -210,7 +213,7 @@ namespace XrEngine.OpenGL
             UpdateLayers(scene);
 
             _updateCtx.Camera = camera.Clone();
-            _updateCtx.Lights = _mainLayer.Content.Lights;
+            _updateCtx.Lights = _mainLayer!.Content.Lights;
             _updateCtx.LightsHash = _mainLayer.Content.LightsHash;
             _updateCtx.FrustumPlanes = camera.FrustumPlanes();
 
@@ -260,11 +263,14 @@ namespace XrEngine.OpenGL
         {
             ResetState();
 
-            _gl.BindVertexArray(0);
-            _gl.UseProgram(0);
+ 
+            _glState.SetActiveProgram(0);
+            _glState.EnableFeature(EnableCap.Blend, false);
+            _glState.EnableFeature(EnableCap.ProgramPointSize, false);
+            _glState.BindTexture(TextureTarget.Texture2D, 0);
 
-            _gl.Disable(EnableCap.Blend);
-            _gl.ActiveTexture(TextureUnit.Texture0);
+            _gl.BindVertexArray(0);
+       
             _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
             _gl.BindSampler(0, 0);
 
@@ -274,8 +280,6 @@ namespace XrEngine.OpenGL
 
             _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
             _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-
-            _gl.Disable(EnableCap.ProgramPointSize);
 
             ConfigureCaps();
         }

@@ -37,6 +37,10 @@ namespace XrEngine.OpenGL
 
             Create(Vertex, Fragment);
 
+            _values.Clear();
+            _locations.Clear();
+            _boundBuffers.Clear();
+
             Log.Debug(this, "Program built");
         }
 
