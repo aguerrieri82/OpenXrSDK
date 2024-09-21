@@ -53,9 +53,7 @@ namespace XrEditor
                 _startWorld = camera.WorldMatrix;
                 _startTarget = camera.Target;
 
-                var targetZ = Vector4.Transform(new Vector4(camera.Target, 1), camera.View * camera.Projection);
-
-                _planeZ = targetZ.Z / targetZ.W;
+                _planeZ = camera.Project(camera.Target).Z;
                 _startPoint = ToWorld(ev, _planeZ);
                 _sceneView.RenderSurface.CapturePointer();
                 _sceneView.ActiveTool = this;

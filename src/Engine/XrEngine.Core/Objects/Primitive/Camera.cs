@@ -12,10 +12,12 @@ namespace XrEngine
 
     public abstract class Camera : Object3D
     {
-        private Matrix4x4 _projInverse;
-        private Matrix4x4 _proj;
+        protected Matrix4x4 _projInverse;
+        protected Matrix4x4 _proj;
+        protected Matrix4x4 _viewProj;
+        protected Matrix4x4 _viewProjInverse;
         protected Vector3 _target;
-
+        protected bool _viewProjDirty = true;
 
         public Camera()
         {
@@ -29,7 +31,6 @@ namespace XrEngine
             View = Matrix4x4.CreateLookAt(position, target, up);
             _target = target;
         }
-
 
         public override void GetState(IStateContainer container)
         {
@@ -90,6 +91,7 @@ namespace XrEngine
             {
                 Matrix4x4.Invert(value, out var inverse);
                 WorldMatrix = inverse;
+                _viewProjDirty = true;
             }
         }
 
@@ -100,7 +102,42 @@ namespace XrEngine
             {
                 _proj = value;
                 Matrix4x4.Invert(_proj, out _projInverse);
+                _viewProjDirty = true;
             }
+        }
+
+        public Matrix4x4 ViewProjection
+        {
+            get
+            {
+                if (_viewProjDirty)
+                    UpdateViewProjection();
+                return _viewProj;
+            }
+        }   
+
+        public Matrix4x4 ViewProjectionInverse
+        {
+            get
+            {
+                if (_viewProjDirty)
+                    UpdateViewProjection();
+                return _viewProjInverse;
+            }
+        }
+
+        protected void UpdateViewProjection()
+        {
+            _viewProj = View * Projection;
+            Matrix4x4.Invert(_viewProj, out _viewProjInverse);
+            _viewProjDirty = false;
+        }
+
+        protected override void OnChanged(ObjectChange change)
+        {
+            if (change.IsAny(ObjectChangeType.Transform))
+                _viewProjDirty = true;
+            base.OnChanged(change);
         }
 
         public Matrix4x4 ProjectionInverse => _projInverse;

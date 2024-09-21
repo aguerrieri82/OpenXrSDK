@@ -1,8 +1,6 @@
 
 #ifdef USE_SHADOW_MAP 
 
-in vec4 v_PosLightSpace;
-
 #ifdef USE_SHADOW_SAMPLER
 
 uniform sampler2DShadow uShadowMap;
@@ -14,9 +12,9 @@ uniform sampler2D uShadowMap;
 #endif
 
 
-float calculateShadow(vec3 normal, vec3 lightDir)
+float calculateShadow(vec4 postLightSpace, vec3 normal, vec3 lightDir)
 {
-    vec3 projCoords = v_PosLightSpace.xyz / v_PosLightSpace.w;
+    vec3 projCoords = postLightSpace.xyz / postLightSpace.w;
 
     projCoords = projCoords * 0.5 + 0.5;
 

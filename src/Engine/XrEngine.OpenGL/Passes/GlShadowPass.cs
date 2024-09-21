@@ -125,8 +125,6 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender()
         {
-            _renderer.UpdateContext.ShadowLightCamera = _lightCamera;
-            _renderer.UpdateContext.ShadowMap = _depthTexture;
             _renderer.UpdateContext.Camera = _oldCamera;
             _renderer.State.SetCullFace(TriangleFace.Back);
 
@@ -134,6 +132,8 @@ namespace XrEngine.OpenGL
 
             base.EndRender();
         }
+
+        public DirectionalLight? Light => _light;
 
         public Texture2D? DepthTexture => _depthTexture;
 

@@ -57,7 +57,7 @@ namespace XrEngine
                         up.SetUniform("uMipCount", (int)textures.MipCount);
                         up.SetUniform("uEnvBlurNormalized", Blur);
                         up.SetUniform("uEnvIntensity", image.Intensity);
-                        up.SetUniform("uViewProjectionMatrix", ctx.Camera.View * ctx.Camera.Projection);
+                        up.SetUniform("uViewProjectionMatrix", ctx.Camera.ViewProjection);
                         up.SetUniform("uExposure", ctx.Camera.Exposure);
                         up.SetUniform("uEnvRotation", Matrix3x3.CreateRotationY(image.Rotation));
                     }

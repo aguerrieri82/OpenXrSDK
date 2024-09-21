@@ -509,7 +509,7 @@ namespace XrEngine
                         Position = ctx.Camera!.WorldPosition,
                         ProjectionMatrix = ctx.Camera.Projection,
                         ViewMatrix = ctx.Camera.View,
-                        ViewProjectionMatrix = ctx.Camera!.View * ctx.Camera.Projection,
+                        ViewProjectionMatrix = ctx.Camera!.ViewProjection,
                         Exposure = ctx.Camera.Exposure,
                         FarPlane = ctx.Camera.Far
                     };
@@ -582,18 +582,25 @@ namespace XrEngine
                     }, 1, true);
                 }
 
-                if (bld.Context.ShadowMap != null)
+                if (bld.Context.ShadowMapProvider != null)
                 {
-                    bld.AddFeature("USE_SHADOW_MAP");
+                    var mode = bld.Context.ShadowMapProvider.Options.Mode;
 
-                    bld.AddFeature("SMOOTH_SHADOW_MAP");
-                    // bld.AddFeature("USE_SHADOW_SAMPLER");
-
-                    bld.ExecuteAction((ctx, up) =>
+                    if (mode != ShadowMapMode.None)
                     {
-                        up.SetUniform("uShadowMap", ctx.ShadowMap!, 14);
-                        up.SetUniform("uLightSpaceMatrix", ctx.ShadowLightCamera!.View * ctx.ShadowLightCamera.Projection);
-                    });
+                        bld.AddFeature("USE_SHADOW_MAP");
+
+                        if (mode == ShadowMapMode.HardSmooth)
+                            bld.AddFeature("SMOOTH_SHADOW_MAP");
+
+                        // bld.AddFeature("USE_SHADOW_SAMPLER");
+
+                        bld.ExecuteAction((ctx, up) =>
+                        {
+                            up.SetUniform("uShadowMap", ctx.ShadowMapProvider!.ShadowMap!, 14);
+                            up.SetUniform("uLightSpaceMatrix", ctx.ShadowMapProvider!.LightCamera!.ViewProjection);
+                        });
+                    }
                 }
 
 

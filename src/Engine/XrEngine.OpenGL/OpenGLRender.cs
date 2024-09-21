@@ -9,28 +9,29 @@ using XrMath;
 using SkiaSharp;
 using System.Runtime.InteropServices;
 using XrEngine.Layers;
+using System.Collections.ObjectModel;
 
 namespace XrEngine.OpenGL
 {
-    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader
+    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, IShadowMapProvider
     {
-
+        protected Scene3D? _lastScene;
 
         protected IGlRenderTarget? _target;
         protected Rect2I _view;
         protected UpdateShaderContext _updateCtx;
-        protected DrawBufferMode[] _drawAttachment0;
+        protected GlLayer? _mainLayer;
         protected GRContext? _grContext;
         protected GlTextureRenderTarget? _texRenderTarget = null;
-        protected Scene3D? _lastScene;
+
         protected long _lastLayersVersion;
-        protected GlLayer? _mainLayer;
-        private int _maxTextureUnits;
+
+        protected readonly int _maxTextureUnits;
         protected readonly GL _gl;
         protected readonly GlState _glState;
         protected readonly GlRenderOptions _options;
-        protected readonly List<GlLayer> _layers = [];
         protected readonly QueueDispatcher _dispatcher;
+        protected readonly List<GlLayer> _layers = [];
         protected readonly IList<IGlRenderPass> _renderPasses = [];
         protected readonly GlDefaultRenderTarget _defaultTarget;
 
@@ -66,21 +67,25 @@ namespace XrEngine.OpenGL
 
             _updateCtx = new UpdateShaderContext
             {
-                RenderEngine = this
+                RenderEngine = this,
+                ShadowMapProvider = this    
             };
 
             _dispatcher = new QueueDispatcher();
 
-            _drawAttachment0 = [DrawBufferMode.ColorAttachment0];
-
-            if (_options.ShadowMap.Use)
-                _renderPasses.Add(new GlShadowPass(this));  
+            if (_options.ShadowMap.Mode != ShadowMapMode.None)
+            {
+                _shadowPass = new GlShadowPass(this);
+                _renderPasses.Add(_shadowPass);
+            }
 
             if (_options.UseDepthPass)
+            {
                 _renderPasses.Add(new GlDepthPass(this)
                 {
                     UseOcclusion = _options.UseOcclusionQuery
                 });
+            }
 
             _renderPasses.Add(new GlColorPass(this));
 
@@ -97,7 +102,7 @@ namespace XrEngine.OpenGL
         {
             _glState.Reset();
 
-            GL.DrawBuffers(_drawAttachment0.AsSpan());
+            GL.DrawBuffers(GlState.DRAW_COLOR_0);
         }
 
         public unsafe void EnableDebug()
@@ -172,7 +177,7 @@ namespace XrEngine.OpenGL
 
                 _layers.Add(_mainLayer);
 
-                if (_options.ShadowMap.Use)
+                if (_options.ShadowMap.Mode != ShadowMapMode.None)
                 {
                     var castShadowLayer = scene.Layers.Layers.OfType<CastShadowsLayer>().First();
                     _layers.Add(new GlLayer(this, scene, GlLayerType.CastShadow, castShadowLayer));
@@ -195,7 +200,6 @@ namespace XrEngine.OpenGL
             _glState.SetWriteDepth(true);
             _glState.SetClearDepth(1.0f);
             _glState.SetClearColor(color);
-
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
@@ -212,10 +216,11 @@ namespace XrEngine.OpenGL
 
             UpdateLayers(scene);
 
-            _updateCtx.Camera = camera.Clone();
+            _updateCtx.Camera = camera;
             _updateCtx.Lights = _mainLayer!.Content.Lights;
             _updateCtx.LightsHash = _mainLayer.Content.LightsHash;
             _updateCtx.FrustumPlanes = camera.FrustumPlanes();
+
 
             foreach (var pass in _renderPasses)
             {
@@ -250,7 +255,7 @@ namespace XrEngine.OpenGL
 
         #endregion
 
-        #region SURFACE PROVIDER    
+        #region ISurfaceProvider
 
         public void BeginDrawSurface()
         {
@@ -328,7 +333,7 @@ namespace XrEngine.OpenGL
 
         #endregion
 
-        #region IBL
+        #region IIBLPanoramaProcessor
 
         public PbrMaterial.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
         {
@@ -394,6 +399,18 @@ namespace XrEngine.OpenGL
 
         #endregion
 
+        #region IShadowMapProvider
+
+        Texture2D? IShadowMapProvider.ShadowMap => _shadowPass?.DepthTexture;
+
+        Camera? IShadowMapProvider.LightCamera => _shadowPass?.LightCamera;
+
+        DirectionalLight? IShadowMapProvider.Light => _shadowPass?.Light;
+
+        ShadowMapOptions IShadowMapProvider.Options => _options.ShadowMap;  
+
+        #endregion
+
         #region IO
 
         public TextureData ReadFrame()
@@ -409,8 +426,9 @@ namespace XrEngine.OpenGL
 
         public Texture2D? GetShadowMap()
         {
-            return _updateCtx?.ShadowMap;
+            return _shadowPass?.DepthTexture;   
         }
+
         public Texture2D? GetDepth()
         {
             var depthId = _target?.QueryTexture(FramebufferAttachment.DepthAttachment);
@@ -475,7 +493,9 @@ namespace XrEngine.OpenGL
 
         public static int SuspendErrors { get; set; }
 
+     
         [ThreadStatic]
         public static OpenGLRender? Current;
+        private GlShadowPass _shadowPass;
     }
 }

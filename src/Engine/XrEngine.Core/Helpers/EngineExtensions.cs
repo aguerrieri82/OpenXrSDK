@@ -624,34 +624,54 @@ namespace XrEngine
             );
         }
 
+        public static Vector3 Project(this Camera camera, Vector3 worldPoint)
+        {
+
+            return worldPoint.Project(camera.ViewProjection);   
+        }
 
         public static IEnumerable<Vector3> Project(this Camera camera, IEnumerable<Vector3> worldPoints)
         {
-            var viewProj = camera.View * camera.Projection;
+            var viewProj = camera.ViewProjection;
 
             foreach (var vertex in worldPoints)
-            {
-                var vec4 = new Vector4(vertex.X, vertex.Y, vertex.Z, 1);
-                var vTrans = Vector4.Transform(vec4, viewProj);
-
-                vTrans /= vTrans.W;
-
-                yield return new Vector3(vTrans.X, -vTrans.Y, vTrans.Z);
-            }
+                yield return vertex.Project(viewProj);
         }
 
-        public static Vector3 Unproject(this Camera camere, Vector3 viewPoint)
+        public static Vector3 Unproject(this Camera camera, Vector3 viewPoint)
         {
-            var dirEye = Vector4.Transform(new Vector4(viewPoint, 1.0f), camere.ProjectionInverse);
-            dirEye /= dirEye.W;
-            var pos4 = Vector4.Transform(dirEye, camere.WorldMatrix);
-            return new Vector3(pos4.X, pos4.Y, pos4.Z);
+            var viewProjInv = camera.ViewProjectionInverse;
+            return viewPoint.Project(viewProjInv);    
         }
 
+        public static IEnumerable<Vector3> Unproject(this Camera camera, IEnumerable<Vector3> viewPoint)
+        {
+            var viewProjInv = camera.ViewProjectionInverse;
+            foreach (var vertex in viewPoint)
+                yield return vertex.Project(viewProjInv);
+        }
+
+        public static Vector3[] FrustumPoints(this Camera camera)
+        {
+            var viewProjInv = camera.ViewProjectionInverse;
+
+            Vector3[] corners = new Vector3[8];
+
+            corners[0] = new Vector3(-1, -1, 0).Project(viewProjInv);
+            corners[1] = new Vector3(1, -1, 0).Project(viewProjInv);
+            corners[2] = new Vector3(-1, 1, 0).Project(viewProjInv);
+            corners[3] = new Vector3(1, 1, 0).Project(viewProjInv);
+            corners[4] = new Vector3(-1, -1, 1).Project(viewProjInv);
+            corners[6] = new Vector3(-1, 1, 1).Project(viewProjInv);
+            corners[7] = new Vector3(1, 1, 1).Project(viewProjInv);
+
+            return corners;
+
+        }
 
         public static IList<Plane> FrustumPlanes(this Camera camera)
         {
-            var viewProjectionMatrix = camera.View * camera.Projection;
+            var viewProjectionMatrix = camera.ViewProjection;
 
             var planes = new Plane[6];
 

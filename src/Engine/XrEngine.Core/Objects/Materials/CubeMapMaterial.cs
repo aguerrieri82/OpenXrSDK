@@ -55,7 +55,7 @@ namespace XrEngine.Materials
                 up.SetUniform("uMipCount", MipCount);
                 up.SetUniform("uEnvBlurNormalized", Blur);
                 up.SetUniform("uEnvIntensity", Intensity);
-                up.SetUniform("uViewProjectionMatrix", ctx.Camera!.View * ctx.Camera.Projection);
+                up.SetUniform("uViewProjectionMatrix", ctx.Camera!.ViewProjection);
                 up.SetUniform("uExposure", Exposure);
                 up.SetUniform("uEnvRotation", Matrix3x3.CreateRotationY(Rotation));
             });

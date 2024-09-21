@@ -7,14 +7,7 @@
         High
     }
 
-    public class GlShadowMapOptions
-    {
-        public bool Use { get; set; }  
 
-        public uint Size { get; set; }
-
-        public bool Smooth { get; set; }   
-    }
 
     public class GlRenderOptions
     {
@@ -26,11 +19,10 @@
             UseOcclusionQuery = true;
             UseDepthPass = false;
             UseSRGB = false;
-            ShadowMap = new GlShadowMapOptions()
+            ShadowMap = new ShadowMapOptions()
             {
-                Use = true,
+                Mode = ShadowMapMode.HardSmooth,
                 Size = 2048,
-                Smooth = true
             };  
         }
 
@@ -48,7 +40,7 @@
 
         public bool UseDepthPass { get; set; }
 
-        public GlShadowMapOptions ShadowMap { get; }
+        public ShadowMapOptions ShadowMap { get; }
 
         public static GlRenderOptions Default() => new();
 

@@ -375,7 +375,7 @@ float uShadow = 0.0;
 #ifdef USE_SHADOW_MAP
 #ifdef RECEIVE_SHADOWS
 
-uShadow = calculateShadow(n, l);
+uShadow = calculateShadow(v_PosLightSpace, n, l);
 
 #ifdef TRANSPARENT
     baseColor.a = uShadow * uMaterial.ShadowColor.a;
