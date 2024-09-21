@@ -21,6 +21,8 @@ using XrSamples.Components;
 using Silk.NET.Windowing;
 using static XrEngine.PbrMaterial;
 using XrEngine.OpenGL;
+using XrEngine.Objects;
+
 
 #if !ANDROID
 using XrEngine.Browser.Win;
@@ -210,20 +212,11 @@ namespace XrSamples
         {
             var floor = new TriangleMesh(new Cube3D(new Vector3(10, 0.01f, 10)));
             floor.Name = "Floor";
-            floor.Materials.Add(new PbrMaterial
+            floor.Materials.Add(new ShadowOnlyMaterial
             {
                 Name = "FloorMaterial", 
-                ReceiveShadows = true,
-                Type = MaterialType.Unlit,
                 Alpha = AlphaMode.Blend,
-                AlphaCutoff = 0.5f,
-                ShadowColor = new Color(0.0f, 0.0f, 0.0f, 0.7f),
-                MetallicRoughness = new MetallicRoughnessData
-                {
-                    BaseColorFactor = Color.Transparent,
-                    RoughnessFactor = 1,
-                    MetallicFactor = 0
-                }
+                ShadowColor = new Color(1.0f, 0.0f, 0.0f, 0.7f)
             });
 
 

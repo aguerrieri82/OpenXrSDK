@@ -37,6 +37,7 @@
 
 	<ItemGroup>
 	  <None Remove="Shaders\Pbr\shadow.glsl" />
+	  <None Remove="Shaders\shadow_only.frag" />
 	</ItemGroup>
 
 	<ItemGroup>

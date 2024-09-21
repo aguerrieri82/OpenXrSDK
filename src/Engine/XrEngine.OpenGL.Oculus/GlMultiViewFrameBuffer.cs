@@ -166,7 +166,7 @@ namespace XrEngine.OpenGL.Oculus
                     0, 0, 2);
             }
 
-            _gl.DrawBuffers(DRAW_COLOR_0);
+            _gl.DrawBuffers(GlState.DRAW_COLOR_0);
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
 
             var status = _gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);

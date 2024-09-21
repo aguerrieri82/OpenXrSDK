@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace XrMath
@@ -12,6 +13,9 @@ namespace XrMath
         {
             var distance1 = Plane.DotCoordinate(plane, point1);
             var distance2 = Plane.DotCoordinate(plane, point2);
+
+            Vector3 x;
+            
 
             return distance1 * distance2 < 0;
         }
@@ -252,6 +256,13 @@ namespace XrMath
             return Quaternion.Normalize(result);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 Project(this Vector3 self, Matrix4x4 matrix)
+        {
+            var worldPoint = Vector4.Transform(new Vector4(self, 1), matrix);
+            return new Vector3(worldPoint.X, worldPoint.Y, worldPoint.Z) / worldPoint.W;
+        }
+
         #endregion
 
         #region RAY 
@@ -264,8 +275,6 @@ namespace XrMath
                 To = ray.Origin + ray.Direction * len,
             };
         }
-
-
 
         public static Vector3? Intersects(this Ray3 ray, Triangle3 triangle, out float distance, float epsilon = 1e-6f)
         {

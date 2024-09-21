@@ -27,7 +27,7 @@
         {
             if (bld.Context.Camera != null)
             {
-                bld.SetUniform("uViewProj", (ctx) => ctx.Camera!.View * ctx.Camera!.Projection);
+                bld.SetUniform("uViewProj", (ctx) => ctx.Camera!.ViewProjection);
             }
 
             if (bld.Context.Model != null)

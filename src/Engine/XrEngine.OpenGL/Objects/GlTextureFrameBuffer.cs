@@ -55,12 +55,12 @@ namespace XrEngine.OpenGL
 
             if (Color == null)
             {
-                _gl.DrawBuffers(DRAW_NONE);
+                _gl.DrawBuffers(GlState.DRAW_NONE);
                 _gl.ReadBuffer(ReadBufferMode.None);    
             }
             else
             {
-                _gl.DrawBuffers(DRAW_COLOR_0);
+                _gl.DrawBuffers(GlState.DRAW_COLOR_0);
                 _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
             }
 

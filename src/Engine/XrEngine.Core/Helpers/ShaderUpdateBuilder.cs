@@ -54,9 +54,7 @@ namespace XrEngine
 
         public IList<Plane>? FrustumPlanes;
 
-        public Texture2D? ShadowMap;
-
-        public Camera? ShadowLightCamera;
+        public IShadowMapProvider? ShadowMapProvider;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

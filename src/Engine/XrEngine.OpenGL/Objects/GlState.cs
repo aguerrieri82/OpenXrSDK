@@ -309,6 +309,12 @@ namespace XrEngine.OpenGL
         public readonly Dictionary<TextureTarget, uint> TexturesTargets = [];
 
         [ThreadStatic]
-        public static GlState? Current;  
+        public static GlState? Current;
+
+
+        public static readonly DrawBufferMode[] DRAW_COLOR_0 = [DrawBufferMode.ColorAttachment0];
+
+        public static readonly DrawBufferMode[] DRAW_NONE = [DrawBufferMode.None];
+
     }
 }

@@ -12,9 +12,16 @@ namespace XrEngine
             {
                 var camera = ctx.Camera!;
 
-                up.SetUniform("uViewProj", camera.View * camera.Projection);
-                up.SetUniform("uViewPos", camera.Transform.Position, true);
+                up.SetUniform("uViewProj", camera.ViewProjection);
+                up.SetUniform("uViewPos", camera.WorldPosition, true);
                 up.SetUniform("uFarPlane", camera.Far);
+
+                if (ctx.ShadowMapProvider != null && ctx.ShadowMapProvider.Options.Mode != ShadowMapMode.None)
+                {
+                    up.SetUniform("uShadowMap", ctx.ShadowMapProvider.ShadowMap!, 14);
+                    up.SetUniform("uLightSpaceMatrix", ctx.ShadowMapProvider.LightCamera!.ViewProjection);
+                    up.SetUniform("uLightDirection", ctx.ShadowMapProvider.Light!.Direction);
+                }
 
                 if (ctx.Shader!.IsLit && (!_lightHashes.TryGetValue(ctx.ProgramInstanceId, out var hash) || ctx.LightsHash != hash))
                 {

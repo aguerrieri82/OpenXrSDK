@@ -11,7 +11,7 @@ namespace XrEngine.Physics
         {
             Options = new PhysicsOptions();
             StepSizeSecs = 1f / 40f;
-            IsMultiThread = true;   
+            IsMultiThread = false;
         }
 
         protected override void Start(RenderContext ctx)
@@ -27,7 +27,11 @@ namespace XrEngine.Physics
                 _simulateThread = new Thread(SimulateLoop);
                 _simulateThread.Start();
             }
+        }
 
+        public override void Reset(bool onlySelf = false)
+        {
+            base.Reset(onlySelf);
         }
 
         protected void Destroy()
@@ -44,9 +48,12 @@ namespace XrEngine.Physics
             var lastStepTime = _lastUpdateTime;
             while (IsStarted)
             {
-               var delta = _lastUpdateTime - lastStepTime;
+                var delta = _lastUpdateTime - lastStepTime;
                 if (delta > 0)
+                {
                     _system?.Simulate((float)delta, StepSizeSecs);
+                    lastStepTime = _lastUpdateTime;
+                }
                 else
                     Thread.Sleep(1);
             }
@@ -56,6 +63,8 @@ namespace XrEngine.Physics
         {
             if (!IsMultiThread)
                 _system?.Simulate((float)DeltaTime, StepSizeSecs);
+            else
+                _lastUpdateTime = ctx.Time;
 
             base.Update(ctx);
         }
