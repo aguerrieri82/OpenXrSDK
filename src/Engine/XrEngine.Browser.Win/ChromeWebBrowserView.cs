@@ -100,7 +100,6 @@ namespace XrEngine.Browser.Win
             set => _browser.ZoomLevel = value;
         }
 
-
         public Size2I Size
         {
             get => _browser.Size;

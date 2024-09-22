@@ -370,17 +370,16 @@ void main()
     baseColor.a = 1.0;
 #endif
 
-float uShadow = 0.0;
-
 #ifdef USE_SHADOW_MAP
+
 #ifdef RECEIVE_SHADOWS
 
-uShadow = calculateShadow(v_PosLightSpace, n, l);
+float shadow = calculateShadow(v_PosLightSpace, n, l);
 
 #ifdef TRANSPARENT
-    baseColor.a = uShadow * uMaterial.ShadowColor.a;
+    baseColor.a = shadow * uMaterial.ShadowColor.a;
 #else
-    color.rgb *= vec3(1.0 - uShadow * uMaterial.ShadowColor.rgb);
+    color.rgb *= vec3(1.0 - shadow * uMaterial.ShadowColor.rgb);
 #endif
 
 #endif

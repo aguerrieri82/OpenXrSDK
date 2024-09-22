@@ -27,16 +27,14 @@ namespace XrEngine
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
+  
             bld.ExecuteAction((ctx, up) =>
             {
-                if (ctx.Model != null)
-                    up.SetUniform("uModel", ctx.Model.WorldMatrix);
+                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uColor", Color.Transparent);
             });
         }
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
-
-        public static readonly DepthOnlyMaterial Instance = new();
     }
 }

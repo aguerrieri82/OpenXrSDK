@@ -43,16 +43,22 @@
             else
             {
                 _deltaTime = _lastUpdateTime == 0 ? 0 : ctx.Time - _lastUpdateTime;
-                Update(ctx);
+                
+                EngineApp.Current!.Stats.Update(this, () => Update(ctx));
+                
                 _lastUpdateTime = ctx.Time;
             }
         }
 
         protected bool IsStarted => _startTime != -1;
 
+        protected double DeltaTime => _deltaTime;
+
+        
         public event EventHandler? Started;
 
-        protected double DeltaTime => _deltaTime;
+        public IUpdateGroup? UpdateGroup { get; set; }  
+
     }
 
     public class LambdaBehavior<T> : Behavior<T> where T : EngineObject

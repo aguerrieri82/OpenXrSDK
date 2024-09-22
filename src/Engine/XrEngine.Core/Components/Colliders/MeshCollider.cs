@@ -62,6 +62,9 @@ namespace XrEngine
 
             var localRay = ray.Transform(_host!.WorldMatrixInverse);
 
+            if (!_geometry.Bounds.Intersects(localRay.ToLine(1000f), out _))
+                return null;    
+
             var span = _triangles.AsSpan();
 
             Collision? collision = null;

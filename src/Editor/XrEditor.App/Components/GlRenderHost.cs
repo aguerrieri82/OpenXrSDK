@@ -251,12 +251,16 @@ namespace XrEditor
 
         public override IRenderEngine CreateRenderEngine()
         {
-            var render = new OpenGLRender(_gl!, new GlRenderOptions
+            var options = new GlRenderOptions
             {
                 FloatPrecision = ShaderPrecision.High,
                 ShaderVersion = "300 es",
                 RequireTextureCompression = false
-            });
+            };
+
+            options.Outline.Use = true;
+
+            var render = new OpenGLRender(_gl!, options);
 
             TakeContext();
 

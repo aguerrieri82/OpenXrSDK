@@ -14,14 +14,13 @@ namespace XrEditor
         private INode[] _lastSelection = [];
         private Vector2 _downPos;
         private DetachedLayer? _selectionLayer;
-        private OutlineMaterial _selectionMat;
+        private TriangleMesh[]? _lastOutline;
 
         public SelectionTool()
         {
             _selection = Context.Require<SelectionManager>();
             _selection.Changed += OnSelectionChanged;
             _nodes = Context.Require<NodeManager>();
-            _selectionMat = new OutlineMaterial(new Color(1, 1,0, 0.8f), 10);
         }
 
         public override void NotifySceneChanged()
@@ -41,6 +40,15 @@ namespace XrEditor
             base.NotifySceneChanged();
         }
 
+        private void EnableStencil(IEnumerable<TriangleMesh> items, bool enable)
+        {
+            foreach (var item in items)
+            {
+                foreach (var material in item.Materials)
+                    material.WriteStencil = enable ? 1 : null;
+            }
+        }
+
         private void OnSelectionChanged(IReadOnlyCollection<INode> items)
         {
             _lastSelection = items.ToArray();
@@ -50,31 +58,23 @@ namespace XrEditor
                 _selectionLayer.BeginUpdate();
                 _selectionLayer.Clear();
 
-                foreach (var item in _lastSelection.Select(a=> a.Value).OfType<TriangleMesh>())
-                    _selectionLayer.Add(PrepareMeshOutline(item));
+                var outlineMeshes = _lastSelection
+                    .Select(a => a.Value)
+                    .OfType<Object3D>()
+                    .SelectMany(a => a.DescendantsOrSelf())
+                    .OfType<TriangleMesh>();
+
+                if (_lastOutline != null)
+                    EnableStencil(_lastOutline, false);
+                
+                _lastOutline = outlineMeshes.ToArray();
+
+                EnableStencil(_lastOutline, true);
 
                 _selectionLayer.EndUpdate();
             }
         }
 
-        protected TriangleMesh PrepareMeshOutline(TriangleMesh mesh)
-        {
-            var outline = mesh.GetProp<TriangleMesh>("Outline");
-            if (outline == null)
-            {
-                outline = new TriangleMesh(mesh.Geometry!.TransformToLine());
-                outline.Materials.Add(_selectionMat);
-
-                mesh.SetProp("Outline", outline);
-
-                mesh.AddBehavior((_, _) =>
-                {
-                    outline.WorldMatrix = mesh.WorldMatrix;
-                });
-            }
-
-            return outline;
-        }
 
         protected override void OnPointerDown(Pointer2Event ev)
         {

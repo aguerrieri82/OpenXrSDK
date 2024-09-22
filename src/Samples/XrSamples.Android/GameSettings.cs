@@ -9,7 +9,7 @@ namespace XrSamples
 {
     public class GameSettings
     {
-        public string? SampleName { get; set; }
+        public string? SampleName { get; set; } = "Bed";
 
         public string? Hdri { get; set; }
 

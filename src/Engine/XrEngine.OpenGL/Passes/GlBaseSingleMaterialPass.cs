@@ -5,7 +5,7 @@ namespace XrEngine.OpenGL
 {
     public abstract class GlBaseSingleMaterialPass : GlBaseRenderPass
     {
-        private GlProgramInstance? _programInstance;
+        protected GlProgramInstance? _programInstance;
 
         public GlBaseSingleMaterialPass(OpenGLRender renderer)
             : base(renderer)
@@ -16,11 +16,7 @@ namespace XrEngine.OpenGL
 
         protected override void Initialize()
         {
-            var material = CreateMaterial();    
-
-            var global = material.Shader!.GetGlResource(gl => new GlProgramGlobal(_renderer.GL, material.GetType()));
-
-            _programInstance = new GlProgramInstance(_renderer.GL, material, global);
+            _programInstance = CreateProgram(CreateMaterial());
         }
 
 
@@ -31,29 +27,7 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender()
         {
-            Debug.Assert(_programInstance != null);
-
-            var gl = _renderer.GL;
-
-            var updateContext = _renderer.UpdateContext;
-
-            updateContext.Shader = _programInstance.Material.Shader;
-
-            _programInstance.Global!.UpdateProgram(updateContext, _renderer.RenderTarget as IShaderHandler);
-
-            _programInstance.UpdateProgram(updateContext);
-
-            bool programChanged = updateContext.ProgramInstanceId != _programInstance.Program!.Handle;
-
-            updateContext.ProgramInstanceId = _programInstance.Program!.Handle;
-
-            _renderer.State.SetActiveProgram(_programInstance.Program!.Handle);
-
-            if (programChanged)
-                _programInstance.Global.UpdateUniforms(updateContext, _programInstance.Program);
-
-            _renderer.ConfigureCaps(_programInstance.Material);
-
+            UseProgram(_programInstance!, false);  
             return true;    
         }
 

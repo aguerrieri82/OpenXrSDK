@@ -19,6 +19,10 @@
        #ifdef ZLOG_F
             gl_Position.z = log(ZLOG_F*gl_Position.z + 1.0) / log(ZLOG_F*uMatrices.farPlane + 1.0) * gl_Position.w;
        #endif
+
+       #ifdef FORCE_Z
+           gl_Position.z = FORCE_Z * gl_Position.w;
+       #endif
     }
 
 #else

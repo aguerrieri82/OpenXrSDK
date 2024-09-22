@@ -288,7 +288,7 @@ namespace XrEditor
 
             _renderThread = new Thread(RenderLoop)
             {
-                Name = "Render Thread"
+                Name = "XrEngine Render Thread"
             };
 
             _renderThread.Start();

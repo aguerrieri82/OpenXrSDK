@@ -16,6 +16,11 @@ namespace XrEditor
 
         public static void CreateProperties(object obj, Type objType, IList<PropertyView> properties)
         {
+            CreateProperties(obj, objType, null, properties);   
+        }
+
+        public static void CreateProperties(object obj, Type objType, object? host, IList<PropertyView> properties)
+        {
             foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
                 if (!prop.CanWrite || !prop.CanRead)
@@ -29,7 +34,7 @@ namespace XrEditor
                     {
                         var value = prop.GetValue(obj);
                         if (value != null)
-                            CreateProperties(value, value.GetType(), properties);
+                            CreateProperties(value, value.GetType(), host ?? obj, properties);
                     }
 
                     continue;
@@ -37,11 +42,12 @@ namespace XrEditor
 
                 var bindType = typeof(NotifyReflectionProperty<>).MakeGenericType(editor.ValueType);
 
-                editor.Binding = (IProperty)Activator.CreateInstance(bindType, prop, obj)!;
+                editor.Binding = (IProperty)Activator.CreateInstance(bindType, prop, obj, host)!;
 
                 var propView = new PropertyView
                 {
                     Label = prop.Name,
+                    Category = host != null ? obj.GetType().Name : null,    
                     Editor = editor,
                 };
 

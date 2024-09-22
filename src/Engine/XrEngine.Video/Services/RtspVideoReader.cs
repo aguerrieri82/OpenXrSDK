@@ -164,7 +164,7 @@ namespace XrEngine.Video
             if (_readThread == null)
             {
                 _readThread = new Thread(ReadLoop);
-                _readThread.Name = "Rtsp Video Read Loop";
+                _readThread.Name = "XrEngine Rtsp Video Read";
                 _readThread!.Start();
             }
 

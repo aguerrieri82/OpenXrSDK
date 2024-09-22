@@ -44,6 +44,11 @@ namespace XrEngine.OpenGL
             };
         }
 
+        protected override IGlRenderTarget? GetRenderTarget()
+        {
+            return null;
+        }
+
         protected override void Initialize()
         {
             var glTex = _renderer.GetGlResource(_depthTexture);

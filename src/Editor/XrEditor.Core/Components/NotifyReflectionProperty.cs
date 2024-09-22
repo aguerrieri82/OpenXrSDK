@@ -6,16 +6,19 @@ namespace XrEditor
 {
     public class NotifyReflectionProperty<T> : ReflectionProperty<T>
     {
-        public NotifyReflectionProperty(PropertyInfo property, object obj) 
+        object? _host;
+
+        public NotifyReflectionProperty(PropertyInfo property, object obj, object? host = null) 
             : base(property, obj)
         {
+            _host = host ?? obj;
         }
 
         protected override void OnChanged()
         {
             base.OnChanged();
 
-            if (_object is EngineObject obj)
+            if (_host is EngineObject obj)
                 obj.NotifyChanged(new ObjectChange
                 {
                     Type = ObjectChangeType.Property,

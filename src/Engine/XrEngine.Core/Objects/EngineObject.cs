@@ -7,7 +7,9 @@
         Generated = 0x1,
         ChildGenerated = 0x2,
         Readonly = 0x4,
-        EnableDebug = 0x8
+        EnableDebug = 0x8,
+        DisableNotifyChangedScene = 0x10,
+        NotifyChangedScene= 0x20
     }
 
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject
@@ -21,6 +23,7 @@
         public EngineObject()
         {
             Flags = EngineObjectFlags.EnableDebug;
+            IsNotifyChange = true;
         }
 
         public void SetState(IStateContainer container)
@@ -112,6 +115,9 @@
 
         public void NotifyChanged(ObjectChange change)
         {
+            if (!IsNotifyChange)
+                return;
+
             if (_updateCount > 0)
             {
                 _lastChanges.Add(change);
@@ -187,6 +193,8 @@
                     item.Reset();
             }
         }
+
+        public bool IsNotifyChange { get; set; }
 
         public event Action<EngineObject, ObjectChange>? Changed;
 

@@ -36,9 +36,13 @@ namespace XrEngine.OpenGL
                 for (var i = 0; i < targets.Length; i++)
                 {
                     var target = targets[i];
-                    gL.BindTexture(target, texId);
+                    
+                    GlState.Current!.SetActiveTexture(texId, target, 0);
+                    
                     gL.GetInteger(bindings[i], out int curTexId);
-                    gL.BindTexture(target, 0);
+                    
+                    GlState.Current!.BindTexture(target, 0);
+
                     if (curTexId == texId)
                         return target;
                 }
@@ -86,9 +90,10 @@ namespace XrEngine.OpenGL
             glTexture.WrapT = (TextureWrapMode)texture2D.WrapT;
             glTexture.SampleCount = texture2D.SampleCount;
             glTexture.BorderColor = texture2D.BorderColor;
+            glTexture.IsMutable = texture2D.IsMutable;
 
             if (texture2D.MaxLevels > 0)
-                glTexture.MaxLevel = texture2D.MaxLevels;
+                glTexture.MaxLevel = texture2D.MaxLevels - 1;
 
             if (texture2D.SampleCount > 1)
                 glTexture.Target = TextureTarget.Texture2DMultisample;

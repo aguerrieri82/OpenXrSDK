@@ -5,6 +5,7 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics;
+using System.Reflection.Emit;
 using XrMath;
 
 namespace XrEngine.OpenGL
@@ -44,6 +45,7 @@ namespace XrEngine.OpenGL
         protected void Create()
         {
             _handle = _gl.GenTexture();
+            _attached[_handle] = this;
         }
 
         public unsafe void Attach(uint handle, TextureTarget target = 0)
@@ -341,7 +343,7 @@ namespace XrEngine.OpenGL
 
             if (compression == TextureCompressionFormat.Uncompressed)
             {
-                if (!_isAllocated)
+                if (!_isAllocated && !IsMutable)
                 {
                     if (SampleCount > 1 && Target == TextureTarget.Texture2DMultisample)
                     {
@@ -355,12 +357,12 @@ namespace XrEngine.OpenGL
                     }
                     else
                     {
-
                         _gl.TexStorage2D(Target,
-                                  MaxLevel + 1,
-                                  (SizedInternalFormat)_internalFormat,
-                                  width,
-                                  height);
+                               MaxLevel + 1,
+                               (SizedInternalFormat)_internalFormat,
+                               width,
+                               height);
+
                     }
 
                     _isAllocated = true;
@@ -376,16 +378,33 @@ namespace XrEngine.OpenGL
                         var realTarget = Target == TextureTarget.TextureCubeMap ?
                                              TextureTarget.TextureCubeMapPositiveX + (int)level.Face : Target;
 
-                        _gl.TexSubImage2D(
-                            realTarget,
-                            (int)level.MipLevel,
-                            0,
-                            0,
-                            level.Width,
-                            level.Height,
-                            pixelFormat,
-                            pixelType,
-                            (ReadOnlySpan<byte>)level.Data.Span);
+                        if (level.Data.Length == 0)
+                        {
+                            _gl.TexSubImage2D(
+                                realTarget,
+                                (int)level.MipLevel,
+                                0,
+                                0,
+                                level.Width,
+                                level.Height,
+                                pixelFormat,
+                                pixelType,
+                                null);
+                        }
+                        else
+                        {
+                            _gl.TexSubImage2D(
+                                realTarget,
+                                (int)level.MipLevel,
+                                0,
+                                0,
+                                level.Width,
+                                level.Height,
+                                pixelFormat,
+                                pixelType,
+                                (ReadOnlySpan<byte>)level.Data.Span);
+                        }
+
                     }
                 }
             }
@@ -495,6 +514,8 @@ namespace XrEngine.OpenGL
         public uint MaxLevel { get; set; }
 
         public int Slot { get; set; }
+
+        public bool IsMutable { get; set; }
 
         public TextureTarget Target { get; set; }
 

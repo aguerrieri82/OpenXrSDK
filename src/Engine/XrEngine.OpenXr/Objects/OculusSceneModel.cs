@@ -20,6 +20,8 @@ namespace XrEngine.OpenXr
         {
             Material = PbrMaterial.CreateDefault(Color.White);
 
+            Flags |= EngineObjectFlags.DisableNotifyChangedScene;    
+
             Name = "SceneModel";
 
             AddPhysics = true;
@@ -83,7 +85,6 @@ namespace XrEngine.OpenXr
                 if (Material is ColorMaterial color && color.Color.A == 0)
                     mesh.IsVisible = false;
 
-                //TODO restore collider
                 mesh.AddComponent(new MeshCollider());
 
                 if (AddPhysics)

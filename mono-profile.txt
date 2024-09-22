@@ -1,0 +1,10 @@
+adb shell
+setprop debug.mono.profile log:calls,output
+run-as net.eusoft.oculus
+cd files/.__override__/arm64-v8a/
+find . -name "*.mlpd"
+
+
+setprop debug.mono.env "MONO_ENV_OPTIONS=--trace all"
+
+//-profile=log:calls,output=/sdcard/output.mlpd --trace=all

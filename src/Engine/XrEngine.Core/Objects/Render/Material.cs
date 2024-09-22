@@ -7,6 +7,17 @@
         Blend
     }
 
+    public enum StencilFunction
+    {
+        Never = 0x0200,          // GL_NEVER
+        Less = 0x0201,           // GL_LESS
+        Equal = 0x0202,          // GL_EQUAL
+        LEqual = 0x0203,         // GL_LEQUAL
+        Greater = 0x0204,        // GL_GREATER
+        NotEqual = 0x0205,       // GL_NOTEQUAL
+        GEqual = 0x0206,         // GL_GEQUAL
+        Always = 0x0207          // GL_ALWAYS
+    }
 
     public abstract class Material : EngineObject, IHosted
     {
@@ -17,6 +28,7 @@
             Alpha = AlphaMode.Opaque;
             Version = 0;
             IsEnabled = true;
+            StencilFunction = StencilFunction.Always;
         }
 
         public void Attach(EngineObject host)
@@ -61,6 +73,12 @@
         public bool DoubleSided { get; set; }
 
         public bool CastShadows { get; set; }
+
+        public byte? WriteStencil { get; set; }
+
+        public byte? CompareStencil { get; set; }
+
+        public StencilFunction StencilFunction { get; set; }
 
         public AlphaMode Alpha { get; set; }
 

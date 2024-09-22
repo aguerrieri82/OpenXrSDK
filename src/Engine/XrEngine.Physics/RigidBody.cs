@@ -11,6 +11,7 @@ namespace XrEngine.Physics
 
     public class RigidBody : Behavior<Object3D>, IDisposable
     {
+        private PhysicsManager? _manager;
         private PhysicsSystem? _system;
         private PhysicsActor? _actor;
         private PhysicsMaterial? _material;
@@ -45,8 +46,7 @@ namespace XrEngine.Physics
         {
             Debug.Assert(_host != null);
 
-            _host.WorldPosition = pose.Position;
-            _host.WorldOrientation = pose.Orientation;
+            _host.SetGlobalPoseIfChanged(pose);
         }
 
         protected Pose3 GetPose()
@@ -221,9 +221,9 @@ namespace XrEngine.Physics
         {
             Debug.Assert(_host?.Scene != null);
 
-            var manager = _host.Scene.Components<PhysicsManager>().FirstOrDefault();
+            _manager = _host.Scene.Components<PhysicsManager>().FirstOrDefault();
 
-            _system = manager?.System;
+            _system = _manager?.System;
 
             if (_system == null)
                 throw new NotSupportedException("Add PhysicsManager to the scene");
@@ -362,29 +362,33 @@ namespace XrEngine.Physics
 
             Debug.Assert(_host != null);
 
-            if (!_host.IsManipulating())
+            _manager!.Execute(() =>
             {
-                if (Type == PhysicsActorType.Dynamic)
+                if (!_host.IsManipulating())
                 {
-                    SetPose(_actor.GlobalPose);
-                    if (DynamicActor.IsKinematic)
-                        DynamicActor.IsKinematic = false;
-                }
-                else if (Type == PhysicsActorType.Static)
-                    _actor.GlobalPose = GetPose();
-            }
-            else
-            {
-                if (Type != PhysicsActorType.Static)
-                {
-                    if (Type == PhysicsActorType.Dynamic && !DynamicActor.IsKinematic)
-                        DynamicActor.IsKinematic = true;
-
-                    DynamicActor.KinematicTarget = GetPose();
+                    if (Type == PhysicsActorType.Dynamic)
+                    {
+                        SetPose(_actor.GlobalPose);
+                        if (DynamicActor.IsKinematic)
+                            DynamicActor.IsKinematic = false;
+                    }
+                    else if (Type == PhysicsActorType.Static)
+                        _actor.GlobalPose = GetPose();
                 }
                 else
-                    _actor.GlobalPose = GetPose();
-            }
+                {
+                    if (Type != PhysicsActorType.Static)
+                    {
+                        if (Type == PhysicsActorType.Dynamic && !DynamicActor.IsKinematic)
+                            DynamicActor.IsKinematic = true;
+
+                        DynamicActor.KinematicTarget = GetPose();
+                    }
+                    else
+                        _actor.GlobalPose = GetPose();
+                }
+            });
+
         }
 
         public override void GetState(IStateContainer container)

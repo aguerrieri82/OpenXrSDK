@@ -59,6 +59,7 @@
 
         public void Add(UpdateAction action)
         {
+
             while (_actions.Count > _index)
                 _actions.RemoveAt(_actions.Count - 1);
 

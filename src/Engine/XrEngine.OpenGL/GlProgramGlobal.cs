@@ -44,11 +44,11 @@ namespace XrEngine.OpenGL
                 var globalBuilder = new ShaderUpdateBuilder(ctx);
 
                 foreach (var handler in _handlers)
-                    if (Update == null || handler.NeedUpdateShader(ctx, Update))
-                        handler.UpdateShader(globalBuilder);
+                    handler.UpdateShader(globalBuilder);
 
                 Update = globalBuilder.Result;
                 Update.LightsHash = ctx.LightsHash;
+                Update.ShaderHandlers = globalHandlers;
 
                 Version++;
             }

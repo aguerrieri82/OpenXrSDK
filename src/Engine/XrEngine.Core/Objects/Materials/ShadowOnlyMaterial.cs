@@ -26,6 +26,8 @@ namespace XrEngine.Objects
             : base()
         {
             _shader = SHADER;
+            Alpha = AlphaMode.Blend;
+            ShadowColor = new Color(0, 0, 0, 0.7f);
         }
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
