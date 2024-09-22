@@ -215,8 +215,6 @@ namespace XrSamples
             floor.Materials.Add(new ShadowOnlyMaterial
             {
                 Name = "FloorMaterial", 
-                Alpha = AlphaMode.Blend,
-                ShadowColor = new Color(1.0f, 0.0f, 0.0f, 0.7f)
             });
 
 
@@ -932,9 +930,9 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            GetAssetPath("Cloth/SheenCloth.bin");
+            GetAssetPath("Helmet/DamagedHelmet.bin");
 
-            var mesh = GltfLoader.LoadFile(GetAssetPath("Cloth/SheenCloth.gltf"), GltfOptions, GetAssetPath);
+            var mesh = GltfLoader.LoadFile(GetAssetPath("Helmet/DamagedHelmet.gltf"), GltfOptions, GetAssetPath);
             mesh.Name = "mesh";
             mesh.Transform.SetScale(0.4f);
             mesh.Transform.SetPositionY(1);

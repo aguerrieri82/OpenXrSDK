@@ -17,6 +17,10 @@ namespace XrEngine
         public static string GetString(Assembly ctx, string resName)
         {
             resName = resName.Replace('/', '.');
+            
+            if (!resName.StartsWith('/'))
+                resName = "." + resName;
+
             var fullName = ctx.GetManifestResourceNames().Single(a => a.Contains(resName, StringComparison.CurrentCultureIgnoreCase));
 
             using var stream = ctx.GetManifestResourceStream(fullName);

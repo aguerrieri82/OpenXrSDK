@@ -4,6 +4,9 @@ const float M_PI = 3.141592653589793;
 in vec3 v_Position;
 in vec3 v_CameraPos;
 
+#ifdef USE_SHADOW_MAP
+in vec4 v_PosLightSpace;
+#endif
 
 #ifdef HAS_NORMAL_VEC3
 #ifdef HAS_TANGENT_VEC4

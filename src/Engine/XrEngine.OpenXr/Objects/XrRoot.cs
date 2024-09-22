@@ -18,7 +18,7 @@ namespace XrEngine.OpenXr
         {
             _xrApp = XrApp.Current ?? throw new InvalidOperationException();
 
-            Flags |= EngineObjectFlags.ChildGenerated;
+            Flags |= EngineObjectFlags.ChildGenerated | EngineObjectFlags.DisableNotifyChangedScene;
 
             Name = "XrRoot";
 
@@ -103,7 +103,7 @@ namespace XrEngine.OpenXr
         {
             var group = new Group3D
             {
-                Name = name
+                Name = name,
             };
 
             Object3D? model = null;

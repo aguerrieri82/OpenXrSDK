@@ -1,6 +1,7 @@
 ﻿using Android.Runtime;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,7 +25,9 @@ namespace XrSamples
             XrEngine.Context.Implement<SampleManager>();
             XrEngine.Context.Implement<IVideoReader>(() => new AndroidVideoReader());
             XrEngine.Context.Implement<IVideoCodec>(() => new AndroidVideoCodec());
- 
+
+            var envTest = Environment.GetEnvironmentVariable("MONO_ENV_OPTIONS");
+            Debug.WriteLine(envTest);
 
         }
     }

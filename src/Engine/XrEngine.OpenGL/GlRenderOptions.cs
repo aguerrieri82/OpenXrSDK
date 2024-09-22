@@ -1,4 +1,6 @@
-﻿namespace XrEngine.OpenGL
+﻿using XrMath;
+
+namespace XrEngine.OpenGL
 {
     public enum ShaderPrecision
     {
@@ -7,6 +9,16 @@
         High
     }
 
+    public class GlOutlineOptions
+    {
+        public bool Use { get; set; }
+
+        public byte ActiveOutlineStencil { get; set; }
+
+        public Color Color { get; set; }
+
+        public float Size { get; set; }
+    }
 
 
     public class GlRenderOptions
@@ -23,7 +35,15 @@
             {
                 Mode = ShadowMapMode.HardSmooth,
                 Size = 2048,
-            };  
+            };
+
+            Outline = new GlOutlineOptions()
+            {
+                Use = false,
+                Color = new Color(1, 1, 0, 0.7f),
+                Size = 2,
+                ActiveOutlineStencil = 1
+            };
         }
 
         public bool UseSRGB { get; set; }
@@ -41,6 +61,8 @@
         public bool UseDepthPass { get; set; }
 
         public ShadowMapOptions ShadowMap { get; }
+
+        public GlOutlineOptions Outline { get; }
 
         public static GlRenderOptions Default() => new();
 

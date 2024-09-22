@@ -1,4 +1,6 @@
 ﻿using PhysX.Framework;
+using System.Collections.Concurrent;
+using XrEngine.Services;
 
 namespace XrEngine.Physics
 {
@@ -6,6 +8,7 @@ namespace XrEngine.Physics
     {
         protected PhysicsSystem? _system;
         protected Thread? _simulateThread;
+        protected ConcurrentQueue<Action> _queue = [];
 
         public PhysicsManager()
         {
@@ -17,7 +20,6 @@ namespace XrEngine.Physics
         protected override void Start(RenderContext ctx)
         {
             Destroy();
-
             _system = new PhysicsSystem();
             _system.Create(Options);
             _system.CreateScene(Options.Gravity);
@@ -25,14 +27,24 @@ namespace XrEngine.Physics
             if (IsMultiThread)
             {
                 _simulateThread = new Thread(SimulateLoop);
+                _simulateThread.Name = "XrEngine PhysicsSimulate";   
                 _simulateThread.Start();
             }
         }
 
         public override void Reset(bool onlySelf = false)
         {
+            _queue.Clear();
             base.Reset(onlySelf);
         }
+
+        public void Execute(Action action)
+        {
+            if (IsMultiThread)
+                _queue.Enqueue(action);
+            else
+                action(); 
+        }   
 
         protected void Destroy()
         {
@@ -46,13 +58,21 @@ namespace XrEngine.Physics
         void SimulateLoop()
         {
             var lastStepTime = _lastUpdateTime;
+
             while (IsStarted)
-            {
-                var delta = _lastUpdateTime - lastStepTime;
+            {              
+                var curTime = _lastUpdateTime;  
+
+                var delta = curTime - lastStepTime;
+
                 if (delta > 0)
                 {
+                    while (_queue.TryDequeue(out var action))
+                        action();
+
                     _system?.Simulate((float)delta, StepSizeSecs);
-                    lastStepTime = _lastUpdateTime;
+
+                    lastStepTime = curTime;
                 }
                 else
                     Thread.Sleep(1);
@@ -62,7 +82,9 @@ namespace XrEngine.Physics
         protected override void Update(RenderContext ctx)
         {
             if (!IsMultiThread)
+            {
                 _system?.Simulate((float)DeltaTime, StepSizeSecs);
+            }
             else
                 _lastUpdateTime = ctx.Time;
 

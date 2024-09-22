@@ -1,8 +1,11 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;  
 #else
 using Silk.NET.OpenGL;
+using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;    
 #endif
+
 
 
 using XrMath;
@@ -12,6 +15,7 @@ namespace XrEngine.OpenGL
     public class GlState
     {
         private GL _gl;
+        private bool _stencilDirty;
 
         public GlState(GL gl)
         {
@@ -35,7 +39,11 @@ namespace XrEngine.OpenGL
             CullFace = null;
             ClearDepth = null;
             ClearColor = null;
+            ClearStencil = null;
             ActiveTexture = null;
+            WriteStencil = null;
+            StencilFunc = null;
+            StencilRef = null;
             TexturesSlots.Clear();
             TexturesTargets.Clear();
             Features.Clear();   
@@ -79,6 +87,9 @@ namespace XrEngine.OpenGL
             if (ClearDepth.HasValue)
                 SetClearDepth(ClearDepth.Value, true);
 
+            if (ClearStencil.HasValue)
+                SetClearStencil(ClearStencil.Value, true);
+
             if (ClearColor.HasValue)
                 SetClearColor(ClearColor.Value, true);
 
@@ -87,6 +98,15 @@ namespace XrEngine.OpenGL
 
             foreach (var texture in TexturesTargets)
                 BindTexture(texture.Key, texture.Value, true);
+
+            if (WriteStencil.HasValue)
+                SetWriteStencil(WriteStencil.Value, true);
+
+            if (StencilRef.HasValue)
+                SetStencilRef(StencilRef.Value, true);
+
+            if (StencilFunc.HasValue)
+                SetStencilFunc(StencilFunc.Value, true);
 
             //ActiveTexture
 
@@ -102,6 +122,15 @@ namespace XrEngine.OpenGL
             {
                 _gl.ClearColor(color.R, color.G, color.B, color.A);
                 ClearColor = color;
+            }
+        }
+
+        public void SetClearStencil(byte value, bool force = false)
+        {
+            if (ClearStencil != value || force)
+            {
+                _gl.ClearStencil(value);
+                ClearStencil = value;
             }
         }
 
@@ -144,6 +173,20 @@ namespace XrEngine.OpenGL
 
                 TexturesTargets[target] = texId;
             }
+            else
+            {
+                /*
+                int curBound = 0;
+
+                if (target == TextureTarget.Texture2D)
+                    _gl.GetInteger(GetPName.TextureBinding2D, out curBound);
+
+                if (target == TextureTarget.TextureCubeMap)
+                    _gl.GetInteger(GetPName.TextureBindingCubeMap, out curBound);
+
+                Debug.Assert(curBound == texId);
+                */
+            }
 
             if (ActiveTexture != null)
                 TexturesSlots[ActiveTexture.Value] = texId;
@@ -153,9 +196,6 @@ namespace XrEngine.OpenGL
 
         public void SetActiveTexture(uint texId, TextureTarget target, int slot, bool force = false)
         {
-            if (TexturesSlots.TryGetValue(slot, out var id) && id == texId && !force)
-                return;
-
             bool forceBind = force;
 
             if (ActiveTexture != slot || force)
@@ -259,6 +299,65 @@ namespace XrEngine.OpenGL
             }
         }
 
+        public void SetWriteStencil(byte? value, bool force = false)
+        {
+            if (WriteStencil != value || force)
+            {
+                WriteStencil = value;
+                _stencilDirty = true;
+
+            }
+        }
+
+        public void SetStencilRef(byte? value, bool force = false)
+        {
+            if (StencilRef != value || force)
+            {
+                StencilRef = value;
+                _stencilDirty = true;
+        
+            }
+        }
+
+        public void SetStencilFunc(GlStencilFunction value, bool force = false)
+        {
+            if (value != StencilFunc || force)
+            {
+                StencilFunc = value;
+                _stencilDirty = true;
+
+            }
+        }
+
+        public void UpdateStencil()
+        {
+            if (!_stencilDirty)
+                return;
+            
+            _stencilDirty = false;
+
+            if ((StencilFunc == null || StencilRef == null) && WriteStencil == null)
+            {
+                EnableFeature(EnableCap.StencilTest, false);
+            }
+            else
+            {
+                EnableFeature(EnableCap.StencilTest, true);
+
+                if (StencilFunc == null || StencilRef == null)
+                {
+                    _gl.StencilOp(StencilOp.Keep, StencilOp.Replace, StencilOp.Replace);
+                    _gl.StencilFunc(GLEnum.Always, WriteStencil!.Value, 0xFF);
+                }
+                else
+                {
+                    _gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
+                    _gl.StencilFunc((GLEnum)StencilFunc.Value, StencilRef.Value, 0xFF);
+                }
+            }
+        }
+
+
         public void SetWireframe(bool value, bool force = false)
         {
 #if !GLES
@@ -277,6 +376,10 @@ namespace XrEngine.OpenGL
         }
 
         public float? ClearDepth;
+
+        public Color? ClearColor;
+
+        public byte? ClearStencil;
 
         public TriangleFace? CullFace;
 
@@ -298,9 +401,13 @@ namespace XrEngine.OpenGL
 
         public float? LineWidth;
 
-        public Color? ClearColor;
+        public int? ActiveTexture;
 
-        public int? ActiveTexture;    
+        public byte? WriteStencil;
+
+        public byte? StencilRef;
+
+        public GlStencilFunction? StencilFunc;
 
         public readonly Dictionary<EnableCap, bool> Features = [];
 
@@ -310,7 +417,6 @@ namespace XrEngine.OpenGL
 
         [ThreadStatic]
         public static GlState? Current;
-
 
         public static readonly DrawBufferMode[] DRAW_COLOR_0 = [DrawBufferMode.ColorAttachment0];
 

@@ -50,6 +50,26 @@ namespace XrEngine
 
             _worldInverseDirty = true;
             _worldDirty = false;
+
+            if (IsNotifyChangedScene())
+                _scene?.NotifyChanged(this, ObjectChangeType.Transform); 
+        }
+
+        bool IsNotifyChangedScene()
+        {
+            if ((Flags & EngineObjectFlags.NotifyChangedScene) != 0)
+                return false;
+
+            if ((Flags & EngineObjectFlags.DisableNotifyChangedScene) != 0)
+                return false;
+
+            if (this.Ancestors().Any(a => (a.Flags & EngineObjectFlags.DisableNotifyChangedScene) != 0))
+            {
+                Flags |= EngineObjectFlags.DisableNotifyChangedScene;
+                return false;
+            }
+
+            return true;
         }
 
         public virtual void UpdateBounds(bool force = false)
@@ -86,6 +106,7 @@ namespace XrEngine
 
         protected override void OnChanged(ObjectChange change)
         {
+
             if (change.IsAny(ObjectChangeType.Transform))
             {
                 InvalidateWorld();
@@ -97,7 +118,8 @@ namespace XrEngine
             if (change.IsAny(ObjectChangeType.Geometry))
                 InvalidateBounds();
 
-            if (_parent != null)
+            //Transform changes are notified when world matrix is updated
+            if (_parent != null && change.Type != ObjectChangeType.Transform) 
                 _scene?.NotifyChanged(this, change);
 
             base.OnChanged(change);
@@ -252,6 +274,7 @@ namespace XrEngine
             }
             set
             {
+ 
                 if (_parent == null || _parent.WorldMatrix.IsIdentity)
                     _transform.SetMatrix(value);
                 else

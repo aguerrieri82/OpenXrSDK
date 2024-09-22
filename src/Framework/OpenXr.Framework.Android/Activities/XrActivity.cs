@@ -74,6 +74,7 @@ namespace OpenXr.Framework.Android
         void RunAppThread()
         {
             _loopThread = new Thread(RunApp);
+            _loopThread.Name = "XrEngine Render Thread";
             _loopThread.Start();
         }
 

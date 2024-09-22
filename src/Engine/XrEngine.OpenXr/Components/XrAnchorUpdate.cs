@@ -30,10 +30,7 @@ namespace XrEngine.OpenXr.Components
 
             var loc = xrApp.LocateSpace(Space, xrApp.Stage, xrApp.FramePredictedDisplayTime);
             if (loc.IsValid)
-            {
-                _host!.WorldPosition = loc.Pose.Position;
-                _host!.WorldOrientation = loc.Pose.Orientation;
-            }
+                _host?.SetGlobalPoseIfChanged(loc.Pose);
 
             _lastUpdateTime = ctx.Time;
 

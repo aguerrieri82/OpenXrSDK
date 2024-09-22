@@ -39,6 +39,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "#Global", "#Global", "{BFA6
 		AspNetCoreMini.props = AspNetCoreMini.props
 		Directory.Build.props = Directory.Build.props
 		..\readme.md = ..\readme.md
+		..\ToDo.docx = ..\ToDo.docx
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XrWebLink.Entities", "WebLink\XrWebLink.Entities\XrWebLink.Entities.csproj", "{CE86F573-5553-4276-9098-F2827FB33236}"

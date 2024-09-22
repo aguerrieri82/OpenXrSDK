@@ -127,5 +127,7 @@ namespace XrEngine
         public Matrix3x3? Transform { get; set; }
 
         public Color BorderColor { get; set; }
+
+        public bool IsMutable { get; set; }
     }
 }

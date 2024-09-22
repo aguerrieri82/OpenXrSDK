@@ -17,7 +17,7 @@ namespace OpenXr.Framework
         {
             _renderQuad = renderQuad;
             _size = size;
-            Priority = 5;
+
         }
 
         public unsafe override void Create()

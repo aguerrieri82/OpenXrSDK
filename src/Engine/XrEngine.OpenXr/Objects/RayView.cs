@@ -11,6 +11,8 @@ namespace XrEngine.OpenXr
 
         public RayView()
         {
+            Flags |= EngineObjectFlags.DisableNotifyChangedScene;
+
             Geometry = new Cube3D(Vector3.One);
             Materials.Add(new ColorMaterial(Color.White));
             Length = 4f;

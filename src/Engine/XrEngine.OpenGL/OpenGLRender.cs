@@ -1,8 +1,11 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;  
 #else
 using Silk.NET.OpenGL;
+using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 #endif
+
 
 using System.Text;
 using XrMath;
@@ -89,6 +92,9 @@ namespace XrEngine.OpenGL
 
             _renderPasses.Add(new GlColorPass(this));
 
+            if (_options.Outline.Use)
+                _renderPasses.Add(new GlOutlinePass(this));
+
             _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
 
             ConfigureCaps();
@@ -144,12 +150,18 @@ namespace XrEngine.OpenGL
             if (_glState.UseDepth != material.UseDepth || _glState.WriteDepth != material.WriteDepth)
                 _glState.EnableFeature(EnableCap.DepthTest, material.UseDepth || material.WriteDepth);
 
-            _glState.SetWriteDepth(material.UseDepth);
+            _glState.SetUseDepth(material.UseDepth);
             _glState.SetWriteDepth(material.WriteDepth);
             _glState.SetDoubleSided(material.DoubleSided);
             _glState.SetWriteColor(material.WriteColor);
             _glState.SetAlphaMode(material.Alpha);
-            _glState.SetWireframe(material is WireframeMaterial);   
+            _glState.SetWireframe(material is WireframeMaterial);
+
+            _glState.SetStencilFunc((GlStencilFunction)material.StencilFunction);
+            _glState.SetWriteStencil(material.WriteStencil);
+            _glState.SetStencilRef(material.CompareStencil);
+
+            _glState.UpdateStencil();
 
             if (material is ILineMaterial line)
                 _glState.SetLineWidth(line.LineWidth);  
@@ -172,10 +184,10 @@ namespace XrEngine.OpenGL
 
                 _mainLayer = new GlLayer(this, scene, GlLayerType.Main);
 
+                _layers.Add(_mainLayer);
+
                 foreach (var layer in scene.Layers.Layers.OfType<DetachedLayer>())
                     _layers.Add(new GlLayer(this, scene, GlLayerType.Custom, layer));
-
-                _layers.Add(_mainLayer);
 
                 if (_options.ShadowMap.Mode != ShadowMapMode.None)
                 {
@@ -200,7 +212,8 @@ namespace XrEngine.OpenGL
             _glState.SetWriteDepth(true);
             _glState.SetClearDepth(1.0f);
             _glState.SetClearColor(color);
-            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            _glState.SetClearStencil(0);
+            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
         public void Render(Scene3D scene, Camera camera, Rect2I view, bool flush)
@@ -431,6 +444,7 @@ namespace XrEngine.OpenGL
 
         public Texture2D? GetDepth()
         {
+
             var depthId = _target?.QueryTexture(FramebufferAttachment.DepthAttachment);
 
             if (depthId == null || depthId == 0)

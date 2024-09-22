@@ -1,8 +1,9 @@
-﻿using XrMath;
+﻿using System.Numerics;
+using XrMath;
 
 namespace XrEngine
 {
-    public class OutlineMaterial : ShaderMaterial, IColorSource, ILineMaterial
+    public class OutlineMaterial : ShaderMaterial, IColorSource
     {
         public static readonly Shader SHADER;
 
@@ -10,10 +11,9 @@ namespace XrEngine
         {
             SHADER = new Shader
             {
-                FragmentSourceName = "color.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
-                ForcePrimitive = DrawPrimitive.Line,               
+                FragmentSourceName = "outline.frag",
+                VertexSourceName = "Utils/fullscreen.vert",
+                Resolver = str => Embedded.GetString(str),       
                 IsLit = false,
                 Priority = -1
             };
@@ -24,9 +24,11 @@ namespace XrEngine
             : base()
         {
             _shader = SHADER;
-            UseDepth = true;
+            UseDepth = false;
             WriteDepth = false;
-            Alpha = AlphaMode.Opaque;
+            Alpha = AlphaMode.Blend;
+            Color = new Color(1, 1, 0, 0.7f);
+            Size = 5;
         }
 
         public OutlineMaterial(Color color, float size)
@@ -50,10 +52,13 @@ namespace XrEngine
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
-            //bld.AddFeature("FORCE_Z 1.0");
             bld.ExecuteAction((ctx, up) =>
             {
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
+                var depthTex = ctx.RenderEngine!.GetDepth()!;
+
+                up.SetUniform("uTexSize", new Vector2(1.0f / depthTex.Width, 1.0f / depthTex.Height));
+                up.SetUniform("uDepth", depthTex, 10);
+                up.SetUniform("uSize", Size);
                 up.SetUniform("uColor", Color);
             });
         }
@@ -61,9 +66,5 @@ namespace XrEngine
         public float Size { get; set; }
 
         public Color Color { get; set; }
-
-        float ILineMaterial.LineWidth => Size;
-
-        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
     }
 }

@@ -28,6 +28,7 @@ namespace XrEngine.OpenXr
         {
             Vibrate = vibrate;
             _grabView = new TriangleMesh(Cube3D.Default, PbrMaterial.CreateDefault(new Color(0, 1, 1, 1)));
+            _grabView.Flags |= EngineObjectFlags.DisableNotifyChangedScene;
             _grabView.Transform.SetScale(0.005f);
             _grabView.Flags |= EngineObjectFlags.Generated;
             _grabView.Name = "Grab View";

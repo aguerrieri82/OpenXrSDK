@@ -28,6 +28,7 @@ namespace XrEngine
 
         public string? FeaturesHash;
 
+        public IShaderHandler?[]? ShaderHandlers;
     }
 
     public class UpdateShaderContext

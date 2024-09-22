@@ -92,7 +92,6 @@ namespace XrEngine
             }
         }
 
-
         public static IEnumerable<T> DescendantsOrSelfComponents<T>(this Object3D self)
         {
             foreach (var obj in self.DescendantsOrSelf())
@@ -140,6 +139,18 @@ namespace XrEngine
         public static bool Is(this EngineObject self, EngineObjectFlags flags)
         {
             return (self.Flags & flags) == flags;
+        }
+
+        public static void SetGlobalPoseIfChanged(this Object3D self, Pose3 pose, float epsilon = 0.0001f)
+        {
+            var deltaPos = (pose.Position - self.WorldPosition).Length();
+            var deltaOri = (pose.Orientation - self.WorldOrientation).Length();
+
+            if (deltaPos > epsilon)
+                self.WorldPosition = pose.Position;
+
+            if (deltaOri > epsilon)
+                self.WorldOrientation = pose.Orientation;
         }
 
         #endregion

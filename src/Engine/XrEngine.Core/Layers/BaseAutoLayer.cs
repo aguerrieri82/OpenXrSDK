@@ -44,6 +44,8 @@ namespace XrEngine
                 else
                     Remove(tObj);
             }
+
+            base.NotifyChanged(obj, change);    
         }
 
         protected bool Contains(T obj)

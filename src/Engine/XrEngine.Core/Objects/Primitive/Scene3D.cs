@@ -23,9 +23,7 @@ namespace XrEngine
             this.AddLayer<TypeLayer<Light>>();
             this.AddLayer<TypeLayer<Camera>>();
             this.AddLayer<TypeLayer<Object3D>>();
-            this.AddLayer<TypeLayer<Object3D>>();
             this.AddLayer<CastShadowsLayer>();
-
             this.AddLayer(new DetachedLayer() { Name = "Gizmos" }).Add(_gizmos.Content);
         }
 
@@ -69,6 +67,10 @@ namespace XrEngine
 
         public void NotifyChanged(Object3D object3D, ObjectChange change)
         {
+
+            if (change.Target == null)
+                change.Target = object3D;
+
             if (!change.IsAny(ObjectChangeType.Transform) &&
                 change.Target is not Material && 
                 (change.Target is not Light || !change.IsAny(ObjectChangeType.Render)))

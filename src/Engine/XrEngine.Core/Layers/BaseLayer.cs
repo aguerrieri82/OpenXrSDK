@@ -33,7 +33,14 @@ namespace XrEngine.Layers
 
         public virtual void NotifyChanged(Object3D object3D, ObjectChange change)
         {
-
+            if (object3D is Group3D group && change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.SceneRemove))
+            {
+                foreach (var child in group.Descendants().OfType<T>())
+                {
+                    if (child is Object3D child3D)
+                        NotifyChanged(child3D, change.Type);
+                }
+            }
         }
 
         protected virtual void OnEnabledChanged()

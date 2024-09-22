@@ -24,6 +24,7 @@ namespace XrEngine
             Near = 0.01f;
             Far = 10;
             Exposure = 1;
+            Flags |= EngineObjectFlags.DisableNotifyChangedScene;
         }
 
         public void LookAt(Vector3 position, Vector3 target, Vector3 up)

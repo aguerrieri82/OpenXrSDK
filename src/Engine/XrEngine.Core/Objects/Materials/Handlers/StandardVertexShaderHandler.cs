@@ -20,10 +20,11 @@ namespace XrEngine
                 {
                     up.SetUniform("uShadowMap", ctx.ShadowMapProvider.ShadowMap!, 14);
                     up.SetUniform("uLightSpaceMatrix", ctx.ShadowMapProvider.LightCamera!.ViewProjection);
-                    up.SetUniform("uLightDirection", ctx.ShadowMapProvider.Light!.Direction);
+                    if (ctx.ShadowMapProvider.Light != null)
+                        up.SetUniform("uLightDirection", ctx.ShadowMapProvider.Light!.Direction);
                 }
 
-                if (ctx.Shader!.IsLit && (!_lightHashes.TryGetValue(ctx.ProgramInstanceId, out var hash) || ctx.LightsHash != hash))
+                if (ctx.Shader!.IsLit)
                 {
                     foreach (var light in bld.Context.Lights!)
                     {

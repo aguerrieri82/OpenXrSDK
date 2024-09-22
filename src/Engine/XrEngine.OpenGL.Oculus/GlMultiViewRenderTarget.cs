@@ -91,7 +91,7 @@ namespace XrEngine.OpenGL.Oculus
 
         public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)
         {
-            return false;
+            return lastUpdate.ShaderHandlers == null || !lastUpdate.ShaderHandlers.Contains(this);
         }
 
         public GlMultiViewFrameBuffer FrameBuffer => _frameBuffer;

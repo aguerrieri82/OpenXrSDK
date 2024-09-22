@@ -153,10 +153,6 @@ namespace XrEngine.OpenGL
 
             if (tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0)
                 glText.Update(tex2d, false);
-
-
-            glText.Bind();
-
         }
 
         public void SetUniform(string name, int value, bool optional = false)
