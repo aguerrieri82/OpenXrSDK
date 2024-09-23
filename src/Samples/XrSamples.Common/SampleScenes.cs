@@ -229,6 +229,25 @@ namespace XrSamples
                 depth.Transform.SetPositionY(1);
 
                 depth.Name = "Depth";
+
+                depth.AddBehavior((_, _) =>
+                {
+                    var tex = depth.Scene!.App!.Renderer!.GetDepth();
+
+                    if (mat.Texture == null)
+                    {
+                        mat.Texture = tex;
+                        mat.Version++;
+                    }
+                    if (mat.Camera == null)
+                    {
+                        mat.Camera = depth.Scene!.ActiveCamera;
+                        mat.Version++;
+                    }
+
+                });
+
+                /*
                 depth.AddBehavior((_, _) =>
                 {
                     var pass = ((OpenGLRender)depth.Scene!.App!.Renderer!).Pass<GlShadowPass>();
@@ -247,6 +266,7 @@ namespace XrSamples
                     }
 
                 });
+                */
             }
            
 

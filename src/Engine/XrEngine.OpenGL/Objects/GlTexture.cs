@@ -5,12 +5,11 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics;
-using System.Reflection.Emit;
 using XrMath;
 
 namespace XrEngine.OpenGL
 {
-    public class GlTexture : GlObject
+    public class GlTexture : GlObject, IGlRenderAttachment
     {
         static Dictionary<uint, GlTexture> _attached = [];
 
@@ -161,7 +160,7 @@ namespace XrEngine.OpenGL
             if (_texReadFbId == 0)
                 _texReadFbId = _gl.GenFramebuffer();
 
-            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, _texReadFbId);
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _texReadFbId);
 
             if (endMipLevel == null)
                 endMipLevel = MaxLevel;
@@ -177,7 +176,7 @@ namespace XrEngine.OpenGL
                     ReadTarget(Target, mipLevel);
             }
 
-            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, 0);
 
             Unbind();
 
@@ -191,6 +190,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.Depth32Float or
                 TextureFormat.Depth24Float => PixelFormat.DepthComponent,
 
+                TextureFormat.Depth32Stencil8 or
                 TextureFormat.Depth24Stencil8 => PixelFormat.DepthStencil,
 
                 TextureFormat.SRgba32 or
@@ -224,6 +224,8 @@ namespace XrEngine.OpenGL
 
                 TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
 
+                TextureFormat.Depth32Stencil8 => PixelType.Float32UnsignedInt248Rev,
+
                 TextureFormat.Rgba32 or
                 TextureFormat.Bgra32 or
                 TextureFormat.Gray8 or
@@ -244,9 +246,10 @@ namespace XrEngine.OpenGL
             {
                 return format switch
                 {
-                    TextureFormat.Depth32Float => InternalFormat.DepthComponent32,
+                    TextureFormat.Depth32Float => InternalFormat.DepthComponent32f,
                     TextureFormat.Depth24Float => InternalFormat.DepthComponent24,
                     TextureFormat.Depth24Stencil8 => InternalFormat.Depth24Stencil8Oes,
+                    TextureFormat.Depth32Stencil8 => InternalFormat.Depth32fStencil8,
 
                     TextureFormat.SBgra32 or
                     TextureFormat.SRgba32 => InternalFormat.Srgb8Alpha8,
@@ -267,6 +270,7 @@ namespace XrEngine.OpenGL
                     TextureFormat.RgFloat32 => InternalFormat.RG32f,
 
                     TextureFormat.Rgb24 => InternalFormat.Rgb8,
+
 
                     _ => throw new NotSupportedException(),
                 };
@@ -290,6 +294,11 @@ namespace XrEngine.OpenGL
             }
 
             throw new NotSupportedException();
+        }
+
+        public void Update(params TextureData[] data)
+        {
+            Update(data[0].Width, data[0].Height, data[0].Format, data[0].Compression, data); 
         }
 
         public unsafe void Update(uint width, uint height, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null)
@@ -380,16 +389,33 @@ namespace XrEngine.OpenGL
 
                         if (level.Data.Length == 0)
                         {
-                            _gl.TexSubImage2D(
-                                realTarget,
-                                (int)level.MipLevel,
-                                0,
-                                0,
-                                level.Width,
-                                level.Height,
-                                pixelFormat,
-                                pixelType,
-                                null);
+                            if (data.Count == 1 && data[0].MipLevel == 0)
+                            {
+                                _gl.TexImage2D(
+                                    realTarget,
+                                    0,
+                                    _internalFormat,
+                                    level.Width,
+                                    level.Height,
+                                    0,
+                                    pixelFormat,
+                                    pixelType,
+                                    null);
+                            }
+                            else
+                            {
+                                _gl.TexSubImage2D(
+                                   realTarget,
+                                   (int)level.MipLevel,
+                                   0,
+                                   0,
+                                   level.Width,
+                                   level.Height,
+                                   pixelFormat,
+                                   pixelType,
+                                   null);
+                            }
+                   
                         }
                         else
                         {

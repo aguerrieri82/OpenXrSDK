@@ -291,20 +291,19 @@ namespace XrEngine.OpenGL
         {
             ResetState();
 
- 
-            _glState.SetActiveProgram(0);
-            _glState.EnableFeature(EnableCap.Blend, false);
-            _glState.EnableFeature(EnableCap.ProgramPointSize, false);
-            _glState.BindTexture(TextureTarget.Texture2D, 0);
+            _glState.SetActiveProgram(0, true);
+            _glState.EnableFeature(EnableCap.Blend, false, true);
+            _glState.EnableFeature(EnableCap.ProgramPointSize, false, true);
+            _glState.BindTexture(TextureTarget.Texture2D, 0, true);
 
             _gl.BindVertexArray(0);
        
             _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
             _gl.BindSampler(0, 0);
 
-            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
-            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-            _glState.BindFrameBuffer(0);
+            _glState.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, 0, true);
+            _glState.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0, true);
+            _glState.BindFrameBuffer(FramebufferTarget.Framebuffer, 0, true);
 
             _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
             _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);

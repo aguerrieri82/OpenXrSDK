@@ -137,7 +137,7 @@ namespace XrEngine.OpenGL
 
         protected void BindFrameBufferCube(uint cubeTexId, int mipLevel = 0)
         {
-            GlState.Current!.BindFrameBuffer(_frameBufferId);
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.Framebuffer, _frameBufferId);
 
             for (var i = 0; i < 6; ++i)
             {
@@ -313,8 +313,7 @@ namespace XrEngine.OpenGL
             _cubeMapId = 0;
             _fooVa = 0;
 
-            GlState.Current!.BindFrameBuffer(0);
-
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.Framebuffer, 0);
             GlState.Current!.BindTexture(TextureTarget.Texture2D, 0);
             GlState.Current!.BindTexture(TextureTarget.TextureCubeMap, 0);
 

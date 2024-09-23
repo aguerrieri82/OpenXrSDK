@@ -19,13 +19,14 @@ namespace XrEngine.OpenGL
 
         public abstract void Dispose();
 
-        public uint Handle => _handle;
-
 
         public static implicit operator uint(GlObject obj)
         {
             return obj._handle;
         }
+
+
+        public uint Handle => _handle;
 
         public GL GL => _gl;
 
