@@ -17,12 +17,6 @@ namespace XrEngine.OpenGL
             _frameBuffer = new GlTextureFrameBuffer(_gl);
         }
 
-        public GlTextureRenderTarget(GL gl, uint colorTex, uint depthTex, uint sampleCount)
-            : this(gl)
-        {
-            _frameBuffer.Configure(colorTex, depthTex, sampleCount);
-        }
-
         public void Begin()
         {
             _frameBuffer.Bind();
@@ -34,7 +28,7 @@ namespace XrEngine.OpenGL
             {
                 _frameBuffer.Bind();
                 var attach = new InvalidateFramebufferAttachment[] { InvalidateFramebufferAttachment.DepthStencilAttachment };
-                _gl.InvalidateFramebuffer(FramebufferTarget.Framebuffer, attach.AsSpan());
+                _gl.InvalidateFramebuffer(_frameBuffer.Target, attach.AsSpan());
             }
             _frameBuffer.Unbind();
         }

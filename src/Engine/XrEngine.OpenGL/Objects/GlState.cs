@@ -44,7 +44,7 @@ namespace XrEngine.OpenGL
             WriteStencil = null;
             StencilFunc = null;
             StencilRef = null;
-            FrameBuffer = null;
+            FrameBufferTargets.Clear();
             TexturesSlots.Clear();
             TexturesTargets.Clear();
             Features.Clear();   
@@ -100,6 +100,9 @@ namespace XrEngine.OpenGL
             foreach (var texture in TexturesTargets)
                 BindTexture(texture.Key, texture.Value, true);
 
+            foreach (var fb in FrameBufferTargets)
+                BindFrameBuffer(fb.Key, fb.Value, true);
+
             if (WriteStencil.HasValue)
                 SetWriteStencil(WriteStencil.Value, true);
 
@@ -109,8 +112,7 @@ namespace XrEngine.OpenGL
             if (StencilFunc.HasValue)
                 SetStencilFunc(StencilFunc.Value, true);
 
-            if (FrameBuffer.HasValue)
-                BindFrameBuffer(FrameBuffer.Value, true);
+ 
 
             //ActiveTexture
 
@@ -332,12 +334,12 @@ namespace XrEngine.OpenGL
             }
         }
 
-        public void BindFrameBuffer(uint value, bool force = false)
+        public void BindFrameBuffer(FramebufferTarget target, uint value, bool force = false)
         {
-            if (FrameBuffer != value || force)
+            if (!FrameBufferTargets.TryGetValue(target, out var cur)  || cur != value || force)
             {
-                FrameBuffer = value;
-                _gl.BindFramebuffer(FramebufferTarget.Framebuffer, value);
+                FrameBufferTargets[target] = value;
+                _gl.BindFramebuffer(target, value);
             }
         }
 
@@ -421,13 +423,14 @@ namespace XrEngine.OpenGL
 
         public GlStencilFunction? StencilFunc;
 
-        public uint? FrameBuffer;
 
         public readonly Dictionary<EnableCap, bool> Features = [];
 
         public readonly Dictionary<int, uint> TexturesSlots = [];
 
         public readonly Dictionary<TextureTarget, uint> TexturesTargets = [];
+
+        public readonly Dictionary<FramebufferTarget, uint> FrameBufferTargets = [];
 
         [ThreadStatic]
         public static GlState? Current;

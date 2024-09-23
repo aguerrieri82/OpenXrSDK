@@ -12,16 +12,17 @@ namespace XrEngine.OpenGL
         public GlBaseFrameBuffer(GL gl)
             : base(gl)
         {
+            Target = FramebufferTarget.Framebuffer;
         }
 
         public virtual void Bind()
         {
-            GlState.Current!.BindFrameBuffer(_handle);
+            GlState.Current!.BindFrameBuffer(Target, _handle);
         }
 
         public virtual void Unbind()
         {
-            GlState.Current!.BindFrameBuffer(0);
+            GlState.Current!.BindFrameBuffer(Target, 0);
         }
 
         public abstract GlTexture? QueryTexture(FramebufferAttachment attachment);
@@ -33,5 +34,7 @@ namespace XrEngine.OpenGL
             _handle = 0;
             GC.SuppressFinalize(this);
         }
+
+        public FramebufferTarget Target { get; set; }
     }
 }

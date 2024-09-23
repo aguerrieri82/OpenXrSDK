@@ -10,9 +10,11 @@ namespace XrEngine.OpenGL
 {
     public class GlTextureFrameBuffer : GlBaseFrameBuffer
     {
-        #if GLES
+        private uint _sampleCount;
+
+#if GLES
         ExtMultisampledRenderToTexture _extMs;  
-        #endif
+#endif
 
         public GlTextureFrameBuffer(GL gl)
            : base(gl)
@@ -20,6 +22,7 @@ namespace XrEngine.OpenGL
 #if GLES
             gl.TryGetExtension(out _extMs);
 #endif
+
             Create();
         }
 
@@ -30,27 +33,31 @@ namespace XrEngine.OpenGL
         }
 
 
-        public GlTextureFrameBuffer(GL gl, GlTexture? color, GlTexture? depth, uint sampleCount = 1)
+        public GlTextureFrameBuffer(GL gl, GlTexture? color, IGlRenderAttachment? depth, uint sampleCount = 1)
             : this(gl)
         {
             Configure(color, depth, sampleCount);
         }
 
-        public void Configure(GlTexture? color, GlTexture? depth, uint sampleCount)
+        public void Configure(GlTexture? color, IGlRenderAttachment? depth, uint sampleCount)
         {
+            _sampleCount = sampleCount; 
+
             Color = color;
             Depth = depth;
+
 
             Bind();
 
             if (Color != null)
             {
+
                 bool useMs = false;
                 if (sampleCount > 1)
                 {
 #if GLES
                     _extMs.FramebufferTexture2DMultisample(
-                        FramebufferTarget.Framebuffer,
+                        Target,
                         FramebufferAttachment.ColorAttachment0,
                         Color.Target,
                         Color, 0, sampleCount);
@@ -61,7 +68,7 @@ namespace XrEngine.OpenGL
                 if (!useMs)
                 {
                     _gl.FramebufferTexture2D(
-                        FramebufferTarget.Framebuffer,
+                        Target,
                         FramebufferAttachment.ColorAttachment0,
                         Color.Target,
                         Color, 0);
@@ -69,14 +76,14 @@ namespace XrEngine.OpenGL
 
             }
 
-            if (Depth != null)
+            if (Depth is GlTexture tex)
             {
                 FramebufferAttachment attachment;
 
-                if (Depth.InternalFormat == InternalFormat.Depth24Stencil8 ||
-                    Depth.InternalFormat == InternalFormat.Depth24Stencil8Oes ||
-                    Depth.InternalFormat == InternalFormat.Depth32fStencil8 ||
-                    Depth.InternalFormat == InternalFormat.Rgba)
+                if (tex.InternalFormat == InternalFormat.Depth24Stencil8 ||
+                    tex.InternalFormat == InternalFormat.Depth24Stencil8Oes ||
+                    tex.InternalFormat == InternalFormat.Depth32fStencil8 ||
+                    tex.InternalFormat == InternalFormat.Rgba)
                     attachment = FramebufferAttachment.DepthStencilAttachment;
                 else
                     attachment = FramebufferAttachment.DepthAttachment;
@@ -86,10 +93,10 @@ namespace XrEngine.OpenGL
                 {
 #if GLES
                     _extMs.FramebufferTexture2DMultisample(
-                        FramebufferTarget.Framebuffer,
+                        Target,
                         attachment,
-                        Depth.Target,
-                        Depth, 0, sampleCount);
+                        tex.Target,
+                        tex, 0, sampleCount);
                     useMs = true;   
 #endif
                 }
@@ -97,13 +104,22 @@ namespace XrEngine.OpenGL
                 if (!useMs)
                 {
                     _gl.FramebufferTexture2D(
-                            FramebufferTarget.Framebuffer,
+                            Target,
                             attachment,
-                            Depth.Target,
-                            Depth, 0);
+                            tex.Target,
+                            tex, 0);
                 }
             }
 
+            else if (Depth is GlRenderBuffer rb)
+            {
+                _gl.FramebufferRenderbuffer(Target,
+                         FramebufferAttachment.DepthStencilAttachment,
+                         rb.Target,
+                         rb.Handle);
+            }
+
+            /*
             if (Color == null)
             {
                 _gl.DrawBuffers(GlState.DRAW_NONE);
@@ -114,8 +130,9 @@ namespace XrEngine.OpenGL
                 _gl.DrawBuffers(GlState.DRAW_COLOR_0);
                 _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
             }
+            */
 
-            var status = _gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+            var status = _gl.CheckFramebufferStatus(Target);
 
             if (status != GLEnum.FramebufferComplete)
             {
@@ -129,15 +146,20 @@ namespace XrEngine.OpenGL
         {
             Bind();
 
-            var target = attachment == FramebufferAttachment.ColorAttachment0 ? Color!.Target : Depth!.Target;  
+            if (attachment == FramebufferAttachment.ColorAttachment0 || Depth is GlTexture)
+            {
+                var target = attachment == FramebufferAttachment.ColorAttachment0 ? Color!.Target : ((GlTexture)Depth!).Target;
 
-            _gl.FramebufferTexture2D(
-                    FramebufferTarget.Framebuffer,
-                    attachment,
-                    target,
-                    0, 0);
-            
-            var status = _gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+                _gl.FramebufferTexture2D(
+                        Target,
+                        attachment,
+                        target,
+                        0, 0);
+            }
+            else
+                throw new NotSupportedException();
+
+            var status = _gl.CheckFramebufferStatus(Target);
 
             if (status != GLEnum.FramebufferComplete)
             {
@@ -173,13 +195,13 @@ namespace XrEngine.OpenGL
             if (data.Data.Length != dataSize)
                 data.Data = new Memory<byte>(new byte[dataSize]);
 
-            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, _handle);
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _handle);
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
 
             fixed (byte* pData = data.Data.Span)
                 _gl.ReadPixels(0, 0, Color!.Width, Color.Height, PixelFormat.Rgba, PixelType.UnsignedByte, pData);
 
-            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, 0);
         }
 
         public unsafe TextureData ReadColor()
@@ -196,39 +218,43 @@ namespace XrEngine.OpenGL
             _handle = _gl.GenFramebuffer();
         }
 
-        public void CopyTo(GlTextureFrameBuffer dest)
+        public void CopyTo(GlTextureFrameBuffer dest, ClearBufferMask mask = ClearBufferMask.ColorBufferBit)
         {
-            DrawBufferMode[] drawBuffers = [DrawBufferMode.ColorAttachment0];
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _handle);
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, dest.Handle);
 
-            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, _handle);
+            if (mask == ClearBufferMask.ColorBufferBit)
+            {
+                _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
+                _gl.DrawBuffers(GlState.DRAW_COLOR_0);
+            }
 
-            _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
+            var srcTex = mask == ClearBufferMask.ColorBufferBit ? Color : Depth;
+            var dstTex = mask == ClearBufferMask.ColorBufferBit ? dest.Color : dest.Depth;
+       
+            _gl.BlitFramebuffer(0, 0, (int)srcTex!.Width, (int)srcTex.Height, 0, 0, (int)dstTex!.Width, (int)dstTex.Height, mask, BlitFramebufferFilter.Nearest);
 
-            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, dest.Handle);
-
-            _gl.DrawBuffers(drawBuffers);
-
-            _gl.BlitFramebuffer(0, 0, (int)Color!.Width, (int)Color.Height, 0, 0, (int)dest.Color!.Width, (int)dest.Color.Height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
-
-            _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
-
-            _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, 0);
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
         }
 
         public override GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
+            if (attachment == FramebufferAttachment.DepthAttachment && Depth is GlRenderBuffer)
+                return GlDepthUtils.GetDepthUsingFramebuffer(_gl, this);
+
             if (attachment == FramebufferAttachment.ColorAttachment0)
                 return Color;
 
             if (attachment == FramebufferAttachment.DepthAttachment)
-                return Depth;
+                return Depth as GlTexture;
 
             throw new NotSupportedException();
         }
 
-        public GlTexture? Color { get; set; }
 
-        public GlTexture? Depth { get; set; }
+        public GlTexture? Color { get; protected set; }
 
+        public IGlRenderAttachment? Depth { get; protected set; }
     }
 }

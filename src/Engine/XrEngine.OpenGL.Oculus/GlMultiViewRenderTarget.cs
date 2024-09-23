@@ -54,7 +54,7 @@ namespace XrEngine.OpenGL.Oculus
             {
                 _frameBuffer.Bind();
                 var attach = new InvalidateFramebufferAttachment[] { InvalidateFramebufferAttachment.DepthStencilAttachment };
-                _gl.InvalidateFramebuffer(FramebufferTarget.Framebuffer, attach.AsSpan());
+                _gl.InvalidateFramebuffer(_frameBuffer.Target, attach.AsSpan());
             }
 
             _frameBuffer.Unbind();

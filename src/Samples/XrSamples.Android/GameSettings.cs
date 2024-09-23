@@ -15,8 +15,19 @@ namespace XrSamples
 
         public int Msaa { get; set; } = 1;
 
-        public GraphicDriver Driver  { get; set; } = GraphicDriver.OpenGL;
+        public GraphicDriver Driver { get; set; } = GraphicDriver.OpenGL;
 
         public bool IsMultiView { get; set; } = true;
+
+        public static GameSettings Bed()
+        {
+            return new GameSettings
+            {
+                SampleName = "Bed",
+                Msaa = 2,
+                Driver = GraphicDriver.OpenGL,
+                IsMultiView = false
+            };
+        }
     }
 }

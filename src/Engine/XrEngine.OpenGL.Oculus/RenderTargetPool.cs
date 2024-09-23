@@ -76,8 +76,19 @@ namespace XrEngine.OpenGL.Oculus
                 else
                 {
                     var singleView = new GlTextureRenderTarget(_gl);
-                    depthTex = CreateDepth(color, 1);
-                    singleView.FrameBuffer.Configure(colorTex, depthTex, sampleCount);
+                    if (sampleCount > 0)
+                    {
+                        var renderBuf = new GlRenderBuffer(_gl); 
+                        var glColorTex = GlTexture.Attach(_gl, colorTex); 
+                        renderBuf.Update(glColorTex.Width, glColorTex.Height, sampleCount, InternalFormat.Depth32fStencil8);
+                        singleView.FrameBuffer.Configure(glColorTex, renderBuf, sampleCount);
+                    }
+                    else
+                    {
+                        depthTex = CreateDepth(color, 1);
+                        singleView.FrameBuffer.Configure(colorTex, depthTex, sampleCount);
+                    }
+        
                     target = singleView;
                 }
                 
