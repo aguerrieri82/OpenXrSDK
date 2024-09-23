@@ -19,18 +19,23 @@ namespace XrEngine.OpenGL
 
         public void Begin()
         {
-            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GlState.Current!.BindFrameBuffer(0);
         }
 
         public void Dispose()
         {
         }
 
-        public void End()
+        public void End(bool finalPass)
         {
         }
 
-        public uint QueryTexture(FramebufferAttachment attachment)
+        public void CommitDepth()
+        {
+  
+        }
+
+        public GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
             if (attachment == FramebufferAttachment.DepthAttachment)
             {
@@ -66,10 +71,10 @@ namespace XrEngine.OpenGL
                 _gl.CopyTexImage2D(glTex.Target, 0, InternalFormat.DepthComponent, 0, 0, _depthTexture.Width, _depthTexture.Height, 0);
                 glTex.Unbind();
 
-                return glTex.Handle;
+                return glTex;
             }
 
-            return 0;
+            return null;
         }
     }
 }

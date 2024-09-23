@@ -22,7 +22,7 @@ namespace XrEngine.OpenGL
         protected override void EndRender()
         {
             _renderer.State.SetActiveProgram(0);
-            _renderer.RenderTarget!.End();
+            _renderer.RenderTarget!.End(false);
         }
 
         protected override void RenderLayer(GlLayer layer)

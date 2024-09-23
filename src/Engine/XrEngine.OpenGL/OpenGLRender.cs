@@ -219,13 +219,15 @@ namespace XrEngine.OpenGL
         public void Render(Scene3D scene, Camera camera, Rect2I view, bool flush)
         {
             if (_target != null)
-                Render(scene, camera, view, _target);
+                Render(scene, camera, view, _target, flush);
         }
 
-        public void Render(Scene3D scene, Camera camera, Rect2I view, IGlRenderTarget target)
+        public void Render(Scene3D scene, Camera camera, Rect2I view, IGlRenderTarget target, bool flush)
         {
             _target = target;
             _view = view;
+
+            _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin Render {(target == null ? "Default" : target.GetType().Name)}");
 
             UpdateLayers(scene);
 
@@ -233,7 +235,6 @@ namespace XrEngine.OpenGL
             _updateCtx.Lights = _mainLayer!.Content.Lights;
             _updateCtx.LightsHash = _mainLayer.Content.LightsHash;
             _updateCtx.FrustumPlanes = camera.FrustumPlanes();
-
 
             foreach (var pass in _renderPasses)
             {
@@ -245,6 +246,15 @@ namespace XrEngine.OpenGL
             }
 
             _dispatcher.ProcessQueue();
+
+            _target.End(true);
+
+            if (flush)
+                _gl.Finish();
+
+            _gl.PopDebugGroup();
+
+
         }
 
         public void SetRenderTarget(Texture2D? texture)
@@ -294,7 +304,7 @@ namespace XrEngine.OpenGL
 
             _gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            _glState.BindFrameBuffer(0);
 
             _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
             _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
@@ -444,17 +454,23 @@ namespace XrEngine.OpenGL
 
         public Texture2D? GetDepth()
         {
+            var glDepth = _target?.QueryTexture(FramebufferAttachment.DepthAttachment);
 
-            var depthId = _target?.QueryTexture(FramebufferAttachment.DepthAttachment);
-
-            if (depthId == null || depthId == 0)
+            if (glDepth == null)
                 return null;
 
-            var glTexture = GlTexture.Attach(_gl, depthId.Value);
+            //TODO not always true need nearest
+            if (glDepth.MinFilter != TextureMinFilter.Nearest || glDepth.MagFilter != TextureMagFilter.Nearest)
+            {
+                glDepth.MinFilter = TextureMinFilter.Nearest;
+                glDepth.MagFilter = TextureMagFilter.Nearest;
+                glDepth.Bind();
+                _gl.TexParameter(glDepth.Target, TextureParameterName.TextureMinFilter, (int)GLEnum.Nearest);
+                _gl.TexParameter(glDepth.Target, TextureParameterName.TextureMagFilter, (int)GLEnum.Nearest);
+                glDepth.Unbind();
+            }
 
-            glTexture.Source ??= glTexture.ToEngineTexture();
-
-            return (Texture2D)glTexture.Source;
+            return (Texture2D)glDepth.ToEngineTexture();
         }
 
         #endregion

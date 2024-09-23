@@ -8,7 +8,7 @@
         {
             SHADER = new Shader
             {
-                FragmentSourceName = "depth.frag",
+                FragmentSourceName = "depth_view.frag",
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = false,

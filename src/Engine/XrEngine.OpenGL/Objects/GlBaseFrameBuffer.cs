@@ -16,15 +16,15 @@ namespace XrEngine.OpenGL
 
         public virtual void Bind()
         {
-            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _handle);
+            GlState.Current!.BindFrameBuffer(_handle);
         }
 
         public virtual void Unbind()
         {
-            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GlState.Current!.BindFrameBuffer(0);
         }
 
-        public abstract uint QueryTexture(FramebufferAttachment attachment);
+        public abstract GlTexture? QueryTexture(FramebufferAttachment attachment);
 
         public override void Dispose()
         {

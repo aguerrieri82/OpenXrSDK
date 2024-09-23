@@ -90,10 +90,15 @@ namespace XrEngine.OpenXr.Android
             {
                 var glDriver = new AndroidXrOpenGLESGraphicDriver();
 
-                renderEngine = new OpenGLRender(glDriver.GetApi<GL>(), new GlRenderOptions
+                var glOptions = new GlRenderOptions
                 {
                     RequireTextureCompression = true,
-                });
+                };
+
+                //TODO remove
+                glOptions.Outline.Use = true;  
+
+                renderEngine = new OpenGLRender(glDriver.GetApi<GL>(), glOptions);
 
                 xrDriver = glDriver;
             }

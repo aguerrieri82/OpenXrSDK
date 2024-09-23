@@ -44,6 +44,7 @@ namespace XrEngine.OpenGL
             WriteStencil = null;
             StencilFunc = null;
             StencilRef = null;
+            FrameBuffer = null;
             TexturesSlots.Clear();
             TexturesTargets.Clear();
             Features.Clear();   
@@ -107,6 +108,9 @@ namespace XrEngine.OpenGL
 
             if (StencilFunc.HasValue)
                 SetStencilFunc(StencilFunc.Value, true);
+
+            if (FrameBuffer.HasValue)
+                BindFrameBuffer(FrameBuffer.Value, true);
 
             //ActiveTexture
 
@@ -325,7 +329,15 @@ namespace XrEngine.OpenGL
             {
                 StencilFunc = value;
                 _stencilDirty = true;
+            }
+        }
 
+        public void BindFrameBuffer(uint value, bool force = false)
+        {
+            if (FrameBuffer != value || force)
+            {
+                FrameBuffer = value;
+                _gl.BindFramebuffer(FramebufferTarget.Framebuffer, value);
             }
         }
 
@@ -408,6 +420,8 @@ namespace XrEngine.OpenGL
         public byte? StencilRef;
 
         public GlStencilFunction? StencilFunc;
+
+        public uint? FrameBuffer;
 
         public readonly Dictionary<EnableCap, bool> Features = [];
 

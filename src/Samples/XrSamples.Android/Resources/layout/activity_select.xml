@@ -47,7 +47,11 @@
 			   android:id="@+id/hdri"
 			   android:layout_width="match_parent"
 			   android:layout_height="wrap_content" />
-
+			<CheckBox
+				android:id="@+id/multi_view"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="Multi View"/>
 			<TextView
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
