@@ -52,6 +52,14 @@ namespace XrEngine
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
+            var depthTex = bld.Context.RenderEngine!.GetDepth()!;
+
+            if (depthTex.SampleCount > 1)
+            {
+                bld.AddExtension("GL_OES_texture_storage_multisample_2d_array");
+                bld.AddFeature("MULTISAMPLE");
+            }
+    
             bld.ExecuteAction((ctx, up) =>
             {
                 var depthTex = ctx.RenderEngine!.GetDepth()!;

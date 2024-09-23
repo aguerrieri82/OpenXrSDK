@@ -48,12 +48,19 @@ namespace XrEngine.OpenGL.Oculus
             _frameBuffer.Bind();
         }
 
-        public void End()
+        public void End(bool finalPass)
         {
+            if (finalPass)
+            {
+                _frameBuffer.Bind();
+                var attach = new InvalidateFramebufferAttachment[] { InvalidateFramebufferAttachment.DepthStencilAttachment };
+                _gl.InvalidateFramebuffer(FramebufferTarget.Framebuffer, attach.AsSpan());
+            }
+
             _frameBuffer.Unbind();
         }
 
-        public uint QueryTexture(FramebufferAttachment attachment)
+        public GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
             return _frameBuffer.QueryTexture(attachment);
         }
@@ -92,6 +99,12 @@ namespace XrEngine.OpenGL.Oculus
         public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)
         {
             return lastUpdate.ShaderHandlers == null || !lastUpdate.ShaderHandlers.Contains(this);
+        }
+
+        public void CommitDepth()
+        {
+            _frameBuffer.Detach(FramebufferAttachment.DepthStencilAttachment);
+            _frameBuffer.Bind();
         }
 
         public GlMultiViewFrameBuffer FrameBuffer => _frameBuffer;

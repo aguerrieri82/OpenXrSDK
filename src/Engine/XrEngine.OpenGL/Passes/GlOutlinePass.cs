@@ -21,6 +21,17 @@ namespace XrEngine.OpenGL
 
         }
 
+        protected override bool BeginRender()
+        {
+            _renderer.RenderTarget!.Begin();
+            return base.BeginRender();
+        }
+
+        protected override void EndRender()
+        {
+            _renderer.RenderTarget!.End(false);
+            base.EndRender();
+        }
 
         protected override void Initialize()
         {
@@ -55,6 +66,8 @@ namespace XrEngine.OpenGL
             UseProgram(_clear!, true);
 
             _renderer.GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
+
+            _renderer.RenderTarget?.CommitDepth();
 
             UseProgram(_outline!, true);
 

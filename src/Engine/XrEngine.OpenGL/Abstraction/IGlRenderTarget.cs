@@ -10,8 +10,10 @@ namespace XrEngine.OpenGL
     {
         void Begin();
 
-        void End();
+        void End(bool finalPass);
 
-        uint QueryTexture(FramebufferAttachment attachment);
+        GlTexture? QueryTexture(FramebufferAttachment attachment);
+
+        void CommitDepth();
     }
 }

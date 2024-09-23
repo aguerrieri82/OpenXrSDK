@@ -51,12 +51,16 @@ namespace XrEngine.OpenGL
             _renderFrameBuffer.Bind();
         }
 
-        public void End()
+        public void End(bool finalPass)
         {
             _renderFrameBuffer.CopyTo(_destFrameBuffer);
             _renderFrameBuffer.Unbind();
         }
 
+        public void CommitDepth()
+        {
+
+        }
 
         public void Dispose()
         {
@@ -66,7 +70,7 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public uint QueryTexture(FramebufferAttachment attachment)
+        public GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
             return _renderFrameBuffer.QueryTexture(attachment);
         }

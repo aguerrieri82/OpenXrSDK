@@ -117,9 +117,9 @@ namespace XrEngine.OpenGL.Oculus
                 _depths[_colorTex] = _depthTex;
             }
 
-            _gl.Enable(EnableCap.Multisample);
+            GlState.Current!.EnableFeature(EnableCap.Multisample, true);
 
-            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _handle);
+            Bind();
 
             if (_sampleCount > 1)
             {
@@ -129,7 +129,7 @@ namespace XrEngine.OpenGL.Oculus
 
                 FramebufferTextureMultisampleMultiviewOVR(
                         FramebufferTarget.Framebuffer,
-                        FramebufferAttachment.DepthAttachment,
+                        FramebufferAttachment.DepthStencilAttachment,
                         _depthTex,
                         0,
                         _sampleCount,
@@ -161,7 +161,7 @@ namespace XrEngine.OpenGL.Oculus
 
                 FramebufferTextureMultiviewOVR(
                     FramebufferTarget.Framebuffer,
-                    FramebufferAttachment.DepthAttachment,
+                    FramebufferAttachment.DepthStencilAttachment,
                     _depthTex,
                     0, 0, 2);
             }
@@ -176,28 +176,65 @@ namespace XrEngine.OpenGL.Oculus
                 throw new Exception($"Frame buffer state invalid: {status}");
             }
 
-
-            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            Unbind();
         }
 
-
-        public override void Unbind()
+        public void Detach(FramebufferAttachment attachment)
         {
-            var attach = new InvalidateFramebufferAttachment[] { InvalidateFramebufferAttachment.DepthAttachment };
-            _gl.InvalidateFramebuffer(FramebufferTarget.Framebuffer, attach.AsSpan());
-            base.Unbind();
+            Bind();
+
+            if (_sampleCount > 1)
+            {
+                if (FramebufferTextureMultisampleMultiviewOVR == null)
+                    throw new Exception("glFramebufferTextureMultisampleMultiviewOVR not supported");
+
+                FramebufferTextureMultisampleMultiviewOVR(
+                    FramebufferTarget.Framebuffer,
+                    attachment,
+                    0,
+                    0,
+                    _sampleCount,
+                    0, 2);
+
+                _gl.CheckError();
+
+            }
+            else
+            {
+                if (FramebufferTextureMultiviewOVR == null)
+                    throw new Exception("glFramebufferTextureMultiviewOVR not supported");
+
+                FramebufferTextureMultiviewOVR(
+                    FramebufferTarget.Framebuffer,
+                    attachment,
+                    0,
+                    0, 0, 2);
+            }
+
+            var status = _gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+
+            if (status != GLEnum.FramebufferComplete)
+            {
+                throw new Exception($"Frame buffer state invalid: {status}");
+            }
+
+            Unbind();
         }
 
-        public override uint QueryTexture(FramebufferAttachment attachment)
+        public override GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
             if (attachment == FramebufferAttachment.ColorAttachment0)
-                return _colorTex;
+                return GlTexture.Attach(_gl, _colorTex, 0, _target);
 
             if (attachment == FramebufferAttachment.DepthAttachment)
-                return _depthTex;
+                return GlTexture.Attach(_gl, _depthTex, 0, _target);
 
             throw new NotSupportedException();
         }
+
+        public uint ColorTex => _colorTex;
+
+        public uint DepthTex => _depthTex;
 
     }
 }

@@ -9,12 +9,14 @@ namespace XrSamples
 {
     public class GameSettings
     {
-        public string? SampleName { get; set; } = "Bed";
+        public string? SampleName { get; set; }
 
         public string? Hdri { get; set; }
 
         public int Msaa { get; set; } = 1;
 
         public GraphicDriver Driver  { get; set; } = GraphicDriver.OpenGL;
+
+        public bool IsMultiView { get; set; } = true;
     }
 }

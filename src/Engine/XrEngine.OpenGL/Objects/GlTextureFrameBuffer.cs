@@ -46,9 +46,18 @@ namespace XrEngine.OpenGL
 
             if (Depth != null)
             {
+                FramebufferAttachment attachment;
+
+                if (Depth.InternalFormat == InternalFormat.Depth24Stencil8 ||
+                    Depth.InternalFormat == InternalFormat.Depth24Stencil8Oes ||
+                    Depth.InternalFormat == InternalFormat.Rgba)
+                    attachment = FramebufferAttachment.DepthStencilAttachment;
+                else
+                    attachment = FramebufferAttachment.DepthAttachment;
+
                 _gl.FramebufferTexture2D(
                     FramebufferTarget.Framebuffer,
-                    FramebufferAttachment.DepthAttachment,
+                    attachment,
                     Depth.Target,
                     Depth, 0);
             }
@@ -74,12 +83,34 @@ namespace XrEngine.OpenGL
             Unbind();
         }
 
+        public void Detach(FramebufferAttachment attachment)
+        {
+            Bind();
+
+            var target = attachment == FramebufferAttachment.ColorAttachment0 ? Color!.Target : Depth!.Target;  
+
+            _gl.FramebufferTexture2D(
+                    FramebufferTarget.Framebuffer,
+                    attachment,
+                    target,
+                    0, 0);
+            
+            var status = _gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+
+            if (status != GLEnum.FramebufferComplete)
+            {
+                throw new Exception($"Frame buffer state invalid: {status}");
+            }
+
+            Unbind();
+        }
+
         public void Configure(uint colorTex, uint depthTex, uint sampleCount)
         {
             var target = sampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D;
 
-            var color = colorTex == 0 ? null : GlTexture.Attach(_gl, colorTex, sampleCount, target);
-            var depth = depthTex == 0 ? null : GlTexture.Attach(_gl, depthTex, sampleCount, target);
+            var color = colorTex == 0 ? null : GlTexture.Attach(_gl, colorTex);
+            var depth = depthTex == 0 ? null : GlTexture.Attach(_gl, depthTex);
             
             Configure(color, depth);
         }
@@ -144,12 +175,13 @@ namespace XrEngine.OpenGL
             _gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
         }
 
-        public override uint QueryTexture(FramebufferAttachment attachment)
+        public override GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
             if (attachment == FramebufferAttachment.ColorAttachment0)
-                return Color!.Handle;
+                return Color;
+
             if (attachment == FramebufferAttachment.DepthAttachment)
-                return Depth?.Handle ?? 0;
+                return Depth;
 
             throw new NotSupportedException();
         }

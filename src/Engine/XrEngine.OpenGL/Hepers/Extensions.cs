@@ -157,7 +157,8 @@ namespace XrEngine.OpenGL
             res.WrapS = (WrapMode)glTexture.WrapS;
             res.MagFilter = (ScaleFilter)glTexture.MagFilter;
             res.MinFilter = (ScaleFilter)glTexture.MinFilter;
-            res.BorderColor= glTexture.BorderColor;
+            res.BorderColor = glTexture.BorderColor;
+            res.SampleCount = glTexture.SampleCount;
 
             res.Format = glTexture.InternalFormat switch
             {

@@ -28,8 +28,14 @@ namespace XrEngine.OpenGL
             _frameBuffer.Bind();
         }
 
-        public void End()
+        public void End(bool finalPass)
         {
+            if (finalPass && _frameBuffer.Depth != null)
+            {
+                _frameBuffer.Bind();
+                var attach = new InvalidateFramebufferAttachment[] { InvalidateFramebufferAttachment.DepthStencilAttachment };
+                _gl.InvalidateFramebuffer(FramebufferTarget.Framebuffer, attach.AsSpan());
+            }
             _frameBuffer.Unbind();
         }
 
@@ -40,9 +46,15 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public uint QueryTexture(FramebufferAttachment attachment)
+        public GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
             return _frameBuffer.QueryTexture(attachment);
+        }
+
+        public void CommitDepth()
+        {
+            _frameBuffer.Detach(FramebufferAttachment.DepthStencilAttachment);
+            _frameBuffer.Bind();
         }
 
         public GlTextureFrameBuffer FrameBuffer => _frameBuffer;

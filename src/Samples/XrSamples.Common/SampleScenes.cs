@@ -788,8 +788,11 @@ namespace XrSamples
             mesh.AddComponent<BoundsGrabbable>();
 
             foreach (var material in ((TriangleMesh)mesh).Materials!)
+            {
                 material.CastShadows = true;
-
+                material.WriteStencil = 1;
+            }
+               
             scene.AddChild(mesh);
 
             return builder

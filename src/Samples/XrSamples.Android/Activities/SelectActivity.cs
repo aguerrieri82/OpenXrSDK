@@ -37,6 +37,7 @@ namespace XrSamples.Android.Activities
 
             SetContentView(ResourceConstant.Layout.activity_select);
 
+            //Samples
             var manager = XrEngine.Context.Require<SampleManager>();
 
             _samples = manager.List();
@@ -49,7 +50,7 @@ namespace XrSamples.Android.Activities
 
             listView.ItemClick += OnSampleSelected;
 
-
+            //MSAA
             var mssa = FindViewById<Spinner>(ResourceConstant.Id.msaa)!;
             mssa.Adapter = new ArrayAdapter<int>(this, 
                 global::Android.Resource.Layout.SimpleSpinnerItem, 
@@ -60,18 +61,21 @@ namespace XrSamples.Android.Activities
                 _settings.Msaa = (int)e.Parent!.GetItemAtPosition(e.Position)!;
             };
 
+            //HDRI
             var images = manager.GetHDRs().ToArray();
 
             var hdris = FindViewById<Spinner>(ResourceConstant.Id.hdri)!;
             hdris.Adapter = new ArrayAdapter<string>(this,
                 global::Android.Resource.Layout.SimpleSpinnerItem,
                 images.Select(a=> a.Name!).ToArray());
+  
 
             hdris.ItemSelected += (s, e) =>
             {
                 _settings.Hdri = images[e.Position].Uri;
             };
 
+            //Engine
             GraphicDriver[] engines = [GraphicDriver.OpenGL, GraphicDriver.FilamentVulkan, GraphicDriver.FilamentOpenGL];
 
             var engine = FindViewById<Spinner>(ResourceConstant.Id.engine)!;
@@ -82,6 +86,15 @@ namespace XrSamples.Android.Activities
             engine.ItemSelected += (s, e) =>
             {
                 _settings.Driver = engines[e.Position];
+            };
+
+            //MultiView
+
+            var mw = FindViewById<CheckBox>(ResourceConstant.Id.multi_view)!;
+            mw.Checked = _settings.IsMultiView;
+            mw.CheckedChange += (s, e) =>
+            {
+                _settings.IsMultiView = e.IsChecked;
             };
         }
 
