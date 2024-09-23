@@ -10,6 +10,7 @@ namespace XrEngine
         Depth32Float,
         Depth24Float,
         Depth24Stencil8,
+        Depth32Stencil8,
 
         Rgb24,
         Rgba32,

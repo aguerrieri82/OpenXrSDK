@@ -689,14 +689,15 @@ namespace OpenXr.Framework
                 size.Width *= 2;
 
             var arraySize = (uint)(_renderOptions.RenderMode == XrRenderMode.MultiView ? 2 : 1);
-            var sampleCount = _renderOptions.RenderMode == XrRenderMode.MultiView ? 1 : _renderOptions.SampleCount;
+            
             var format = isDepth ? _renderOptions.DepthFormat : _renderOptions.ColorFormat;
-            var usage = (isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit) | SwapchainUsageFlags.SampledBit;
+            
+            var usage = (isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit);/* | SwapchainUsageFlags.SampledBit;*/
 
-            return CreateSwapChain(size, sampleCount, format, arraySize, usage);
+            return CreateSwapChain(size, format, arraySize, usage);
         }
 
-        protected internal Swapchain CreateSwapChain(Extent2Di size, uint sampleCount, long format, uint arraySize, SwapchainUsageFlags usage)
+        protected internal Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage)
         {
             var info = new SwapchainCreateInfo
             {
@@ -707,7 +708,7 @@ namespace OpenXr.Framework
                 ArraySize = arraySize,
                 MipCount = 1,
                 FaceCount = 1,
-                SampleCount = sampleCount,
+                SampleCount = 1,
                 UsageFlags = usage
             };
 

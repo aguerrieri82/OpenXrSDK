@@ -1,5 +1,6 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
+using Silk.NET.OpenGLES.Extensions.EXT;
 #else
 using Silk.NET.OpenGL;
 #endif
@@ -9,9 +10,16 @@ namespace XrEngine.OpenGL
 {
     public class GlTextureFrameBuffer : GlBaseFrameBuffer
     {
+        #if GLES
+        ExtMultisampledRenderToTexture _extMs;  
+        #endif
+
         public GlTextureFrameBuffer(GL gl)
            : base(gl)
         {
+#if GLES
+            gl.TryGetExtension(out _extMs);
+#endif
             Create();
         }
 
@@ -22,13 +30,13 @@ namespace XrEngine.OpenGL
         }
 
 
-        public GlTextureFrameBuffer(GL gl, GlTexture? color, GlTexture? depth)
+        public GlTextureFrameBuffer(GL gl, GlTexture? color, GlTexture? depth, uint sampleCount = 1)
             : this(gl)
         {
-            Configure(color, depth);
+            Configure(color, depth, sampleCount);
         }
 
-        public void Configure(GlTexture? color, GlTexture? depth)
+        public void Configure(GlTexture? color, GlTexture? depth, uint sampleCount)
         {
             Color = color;
             Depth = depth;
@@ -37,11 +45,28 @@ namespace XrEngine.OpenGL
 
             if (Color != null)
             {
-                _gl.FramebufferTexture2D(
-                    FramebufferTarget.Framebuffer,
-                    FramebufferAttachment.ColorAttachment0,
-                    Color.Target,
-                    Color, 0);
+                bool useMs = false;
+                if (sampleCount > 1)
+                {
+#if GLES
+                    _extMs.FramebufferTexture2DMultisample(
+                        FramebufferTarget.Framebuffer,
+                        FramebufferAttachment.ColorAttachment0,
+                        Color.Target,
+                        Color, 0, sampleCount);
+                    useMs = true;   
+#endif
+                }
+
+                if (!useMs)
+                {
+                    _gl.FramebufferTexture2D(
+                        FramebufferTarget.Framebuffer,
+                        FramebufferAttachment.ColorAttachment0,
+                        Color.Target,
+                        Color, 0);
+                }
+
             }
 
             if (Depth != null)
@@ -50,16 +75,33 @@ namespace XrEngine.OpenGL
 
                 if (Depth.InternalFormat == InternalFormat.Depth24Stencil8 ||
                     Depth.InternalFormat == InternalFormat.Depth24Stencil8Oes ||
+                    Depth.InternalFormat == InternalFormat.Depth32fStencil8 ||
                     Depth.InternalFormat == InternalFormat.Rgba)
                     attachment = FramebufferAttachment.DepthStencilAttachment;
                 else
                     attachment = FramebufferAttachment.DepthAttachment;
 
-                _gl.FramebufferTexture2D(
-                    FramebufferTarget.Framebuffer,
-                    attachment,
-                    Depth.Target,
-                    Depth, 0);
+                bool useMs = false;
+                if (sampleCount > 1)
+                {
+#if GLES
+                    _extMs.FramebufferTexture2DMultisample(
+                        FramebufferTarget.Framebuffer,
+                        attachment,
+                        Depth.Target,
+                        Depth, 0, sampleCount);
+                    useMs = true;   
+#endif
+                }
+
+                if (!useMs)
+                {
+                    _gl.FramebufferTexture2D(
+                            FramebufferTarget.Framebuffer,
+                            attachment,
+                            Depth.Target,
+                            Depth, 0);
+                }
             }
 
             if (Color == null)
@@ -107,12 +149,10 @@ namespace XrEngine.OpenGL
 
         public void Configure(uint colorTex, uint depthTex, uint sampleCount)
         {
-            var target = sampleCount > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D;
-
             var color = colorTex == 0 ? null : GlTexture.Attach(_gl, colorTex);
             var depth = depthTex == 0 ? null : GlTexture.Attach(_gl, depthTex);
             
-            Configure(color, depth);
+            Configure(color, depth, sampleCount);
         }
 
         public unsafe void ReadColor(TextureData data)

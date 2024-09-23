@@ -12,7 +12,7 @@ namespace OpenXr.Framework
     {
         protected readonly RenderViewDelegate? _renderView;
         protected XrSwapchainInfo[]? _swapchains;
-        protected bool _useDepthSWC = true;
+        protected bool _useDepthSWC = false;
 
         XrProjectionLayer()
         {
@@ -51,7 +51,9 @@ namespace OpenXr.Framework
                 foreach (var item in _swapchains)
                 {
                     _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.ColorSwapchain), "DestroySwapchain");
-                    _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.DepthSwapchain), "DestroySwapchain");
+
+                    if (item.DepthSwapchain.Handle != 0)
+                        _xrApp?.CheckResult(_xrApp.Xr.DestroySwapchain(item.DepthSwapchain), "DestroySwapchain");
 
                     item.ColorImages?.Dispose();
                     item.DepthImages?.Dispose();

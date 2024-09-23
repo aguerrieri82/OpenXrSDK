@@ -166,6 +166,8 @@ namespace XrEngine.OpenGL
                 InternalFormat.Rgba16f => TextureFormat.RgbaFloat16,
                 InternalFormat.Rgba => TextureFormat.Rgba32,
                 InternalFormat.Depth24Stencil8 => TextureFormat.Depth24Stencil8,
+                InternalFormat.DepthComponent24 => TextureFormat.Depth24Float,
+                InternalFormat.Depth32fStencil8 => TextureFormat.Depth32Stencil8,
                 _ => throw new NotSupportedException(),
             };
 

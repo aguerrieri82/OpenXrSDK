@@ -52,7 +52,7 @@ namespace OpenXr.Framework.Android
             var cast = viewInfo.SwapChainFormats!.Select(a => ((GLEnum)(int)a).ToString()).ToArray();
 
             result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
-            result.DepthFormat = (long)InternalFormat.Depth24Stencil8Oes;
+            result.DepthFormat = (long)InternalFormat.Depth32fStencil8;
         }
 
         public GraphicsBinding CreateBinding()
