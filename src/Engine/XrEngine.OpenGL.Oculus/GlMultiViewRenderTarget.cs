@@ -33,7 +33,7 @@ namespace XrEngine.OpenGL.Oculus
     {
 
         protected GlMultiViewFrameBuffer _frameBuffer;
-        protected SceneMatrices _matrices = new();
+        protected static SceneMatrices _matrices = new();
         readonly GL _gl;
 
 
@@ -103,7 +103,8 @@ namespace XrEngine.OpenGL.Oculus
 
         public void CommitDepth()
         {
-            _frameBuffer.Detach(FramebufferAttachment.DepthStencilAttachment);
+            _frameBuffer.Unbind();
+            _gl.Flush();
             _frameBuffer.Bind();
         }
 

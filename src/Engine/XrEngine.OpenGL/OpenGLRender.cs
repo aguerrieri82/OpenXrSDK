@@ -265,7 +265,7 @@ namespace XrEngine.OpenGL
             {
                 var glTexture = texture.GetGlResource(tex => tex.CreateGlTexture(_gl, false));
                 _texRenderTarget ??= new GlTextureRenderTarget(_gl);
-                _texRenderTarget.FrameBuffer.Configure(glTexture, null);
+                _texRenderTarget.FrameBuffer.Configure(glTexture, null, glTexture.SampleCount);
                 _target = _texRenderTarget;
             }
         }
@@ -460,6 +460,7 @@ namespace XrEngine.OpenGL
                 return null;
 
             //TODO not always true need nearest
+           
             if (glDepth.MinFilter != TextureMinFilter.Nearest || glDepth.MagFilter != TextureMagFilter.Nearest)
             {
                 glDepth.MinFilter = TextureMinFilter.Nearest;

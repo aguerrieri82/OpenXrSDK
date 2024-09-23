@@ -79,7 +79,7 @@ namespace XrSamples.Android.Activities
             if (_settings.Driver == GraphicDriver.OpenGL && _settings.IsMultiView)
                 builder.UseMultiView();
 
-            builder.SetRenderQuality(1, (uint)_settings.Msaa);
+            builder.SetRenderQuality(1f, (uint)_settings.Msaa);
 
             builder.RemovePlaneGrid()
                    .AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));

@@ -204,29 +204,11 @@ namespace XrEngine.OpenXr
 
         public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app)
         {
-            GlRenderTargetFactory factory;
+            var pool = new FrameBufferPool(OpenGLRender.Current!.GL,
+                           xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView);
 
-            GlTextureRenderTarget? texTarget = null;
-            GlMultiViewRenderTarget? mvTexTarget = null;
-
-            if (xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView)
-                factory = (gl, colorTex, depthTex) =>
-                {
-                    mvTexTarget ??= new GlMultiViewRenderTarget(gl);
-                    mvTexTarget.FrameBuffer.Configure(colorTex, depthTex, xrApp.RenderOptions.SampleCount);
-                    return mvTexTarget;
-                };
-            else
-            {
-                factory = (gl, colorTex, depthTex) =>
-                {
-                    texTarget ??= new GlTextureRenderTarget(gl);
-                    texTarget.FrameBuffer.Configure(colorTex, depthTex, xrApp.RenderOptions.SampleCount);
-                    return texTarget;
-                };
-            }
-
-            return xrApp.BindEngineAppGL(app, factory);
+            return xrApp.BindEngineAppGL(app, (gl, colorTex, depthTex) =>
+                pool.GetRenderTarget(colorTex, xrApp.RenderOptions.SampleCount));
         }
 
         public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app, GlRenderTargetFactory targetFactory)

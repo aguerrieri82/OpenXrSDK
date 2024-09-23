@@ -53,7 +53,8 @@ namespace XrEngine.OpenGL
 
         public void CommitDepth()
         {
-            _frameBuffer.Detach(FramebufferAttachment.DepthStencilAttachment);
+            _frameBuffer.Unbind();
+            _gl.Flush();
             _frameBuffer.Bind();
         }
 

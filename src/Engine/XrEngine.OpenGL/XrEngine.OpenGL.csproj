@@ -5,6 +5,7 @@
 
 	<ItemGroup Condition="'$(OpenGL)' == 'ES'">
 		<PackageReference Include="Silk.NET.OpenGLES" Version="2.21.0" />
+		<PackageReference Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.21.0" />
 	</ItemGroup>
 	
 	<ItemGroup Condition="'$(OpenGL)' == ''">

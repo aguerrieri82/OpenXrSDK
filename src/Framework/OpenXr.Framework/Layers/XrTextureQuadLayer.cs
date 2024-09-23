@@ -26,7 +26,7 @@ namespace OpenXr.Framework
 
             var extent = new Extent2Di((int)_size.Width, (int)_size.Height);
 
-            _swapchain = _xrApp!.CreateSwapChain(extent, 1, _xrApp.RenderOptions.ColorFormat, 1, SwapchainUsageFlags.SampledBit | SwapchainUsageFlags.ColorAttachmentBit);
+            _swapchain = _xrApp!.CreateSwapChain(extent, _xrApp.RenderOptions.ColorFormat, 1, SwapchainUsageFlags.SampledBit | SwapchainUsageFlags.ColorAttachmentBit);
 
             _images = _xrApp.EnumerateSwapchainImages(_swapchain);
 

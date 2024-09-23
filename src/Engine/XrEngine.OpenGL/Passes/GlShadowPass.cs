@@ -54,7 +54,7 @@ namespace XrEngine.OpenGL
             var glTex = _renderer.GetGlResource(_depthTexture);
 
             _frameBuffer = new GlTextureFrameBuffer(_renderer.GL);
-            _frameBuffer.Configure(null, glTex);
+            _frameBuffer.Configure(null, glTex, 1);
 
             if (UseShadowSampler)
             {
