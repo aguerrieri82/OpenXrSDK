@@ -14,6 +14,7 @@ namespace XrEditor
         private object? _header;
         private IList<PropertyView> _properties = [];
         private IList<PropertiesGroupView> _groups = [];
+        private IList<ActionView> _actions = [];    
 
         public PropertiesGroupView(PropertiesGroupType groupType)
         {
@@ -67,6 +68,18 @@ namespace XrEditor
                     return;
                 _groups = value;
                 OnPropertyChanged(nameof(Groups));
+            }
+        }
+
+        public IList<ActionView> Actions
+        {
+            get => _actions;
+            set
+            {
+                if (_actions == value)
+                    return;
+                _actions = value;
+                OnPropertyChanged(nameof(Actions));
             }
         }
 

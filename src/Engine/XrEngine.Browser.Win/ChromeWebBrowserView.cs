@@ -88,6 +88,12 @@ namespace XrEngine.Browser.Win
             base.Update(ctx);
         }
 
+        [Action]
+        public void ShowDevTools()
+        {
+            _browser.ShowDevTools();
+        }   
+
         public ChromeWebBrowser Browser => _browser;
 
         public IWebRequestHandler? RequestHandler { get; set; }  

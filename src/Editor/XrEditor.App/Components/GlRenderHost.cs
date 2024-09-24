@@ -258,7 +258,7 @@ namespace XrEditor
                 RequireTextureCompression = false
             };
 
-            options.Outline.Use = true;
+            options.Outline.Use = false;
 
             var render = new OpenGLRender(_gl!, options);
 

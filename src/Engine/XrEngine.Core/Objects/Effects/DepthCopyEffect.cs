@@ -29,16 +29,5 @@ namespace XrEngine
             WriteDepth = false;
         }
 
-        public override void GetState(IStateContainer container)
-        {
-            base.GetState(container);
-            container.WriteObject<DepthCopyEffect>(this);
-        }
-
-        protected override void SetStateWork(IStateContainer container)
-        {
-            base.SetStateWork(container);
-            container.ReadObject(this);
-        }
     }
 }

@@ -21,7 +21,7 @@ namespace XrEngine
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-            container.ReadObject<PointLight>(this);
+            container.ReadObject(this);
         }
 
         public float Range { get; set; }

@@ -128,6 +128,14 @@ namespace XrEditor
 
             foreach (var prop in result.Properties)
                 prop.Editor!.ValueChanged += OnValueChanged;
+           
+            var actions = new List<ActionView>();   
+            if (node is IEditorActions nodeActions)
+                nodeActions.EditorActions(actions);
+
+            ActionView.CreateActions(node.Value, actions);
+
+            result.Actions = actions;   
 
             return result;
         }
@@ -150,7 +158,6 @@ namespace XrEditor
                     mainGrp.Header = _activeNode.Types.First();
                     result.Add(mainGrp);
                 }
-
 
                 foreach (var compo in _activeNode.Components)
                 {

@@ -7,11 +7,9 @@
     <app:MenuTemplateSelector x:Key="MenuTemplateSelector" />
     
 
-    <Style x:Key="MenuView" BasedOn="{StaticResource ContextMenuStyle}" TargetType="ContextMenu" >
+    <Style x:Key="MenuView"  BasedOn="{StaticResource DarkMenu}" TargetType="ContextMenu" >
         <Setter Property="ItemContainerTemplateSelector" Value="{StaticResource MenuTemplateSelector}"/>
         <Setter Property="UsesItemContainerTemplate" Value="True"/>
-        <Setter Property="Background" Value="#555"/>
-        <Setter Property="Foreground" Value="{StaticResource SurfaceTextColor}"/>
 
         <Style.Resources>
 
@@ -22,7 +20,6 @@
             <DataTemplate DataType="local:ActionView" x:Key="ActionView">
                 <MenuItem Header="{Binding DisplayName}"
                           Command="{Binding ExecuteCommand}"
-                          Style="{StaticResource MenuItemStyle}"
                           IsEnabled="{Binding ExecuteCommand.IsEnabled}">
                 
                         <MenuItem.Icon>

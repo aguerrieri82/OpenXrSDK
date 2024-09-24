@@ -4,8 +4,8 @@
 
     <DataTemplate DataType="{x:Type local:ComponentHeaderView}">
         <StackPanel Orientation="Horizontal">
-            <CheckBox VerticalAlignment="Center" IsChecked="{Binding IsEnabled, Mode=TwoWay}"/>
-            <TextBox VerticalAlignment="Center" Text="{Binding Name}"/>
+            <CheckBox  VerticalAlignment="Center" IsChecked="{Binding IsEnabled, Mode=TwoWay}"/>
+            <TextBox Background="Transparent" Padding="4,4,4,4" BorderThickness="0" VerticalAlignment="Center" Text="{Binding Name}"/>
         </StackPanel>
 
     </DataTemplate>

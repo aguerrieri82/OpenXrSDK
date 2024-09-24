@@ -5,13 +5,13 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
 
-    <Style x:Key="ToolBarView" TargetType="ToolBar" BasedOn="{StaticResource ToolBarStyle}">
-        <Setter Property="Background" Value="{StaticResource ToolbarBackground}"/>
+    <Style x:Key="ToolBarView" TargetType="ToolBar" BasedOn="{StaticResource ToolBarDark}">
+
         <Style.Resources>
 
             <DataTemplate DataType="{x:Type local:ActionView}">
 
-                <Button Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" IsEnabled="{Binding ExecuteCommand.IsEnabled}" Command="{Binding ExecuteCommand}" >
+                <Button Width="26" Style="{StaticResource ToolBarButtonBaseStyle}" IsEnabled="{Binding ExecuteCommand.IsEnabled}" Command="{Binding ExecuteCommand}" >
                     <i:Icon x:Name="icon" Filled="True" Size="16" Color="#666" Kind="{Binding Icon.Name}"/>
                 </Button>
                 
