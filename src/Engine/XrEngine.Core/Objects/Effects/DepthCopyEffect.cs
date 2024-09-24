@@ -3,15 +3,15 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class DepthClearMaterial : ShaderMaterial
+    public class DepthCopyEffect : ShaderMaterial
     {
         public static readonly Shader SHADER;
 
-        static DepthClearMaterial()
+        static DepthCopyEffect()
         {
             SHADER = new Shader
             {
-                FragmentSourceName = "clear.frag",
+                FragmentSourceName = "copy_depth.frag",
                 VertexSourceName = "Utils/fullscreen.vert",
                 Resolver = str => Embedded.GetString(str),       
                 IsLit = false,
@@ -20,20 +20,19 @@ namespace XrEngine
         }
 
 
-        public DepthClearMaterial()
+        public DepthCopyEffect()
             : base()
         {
             _shader = SHADER;
             Alpha = AlphaMode.Opaque;
             UseDepth = false;
-            WriteDepth = true;
-            WriteColor = false; 
+            WriteDepth = false;
         }
 
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
-            container.WriteObject<DepthClearMaterial>(this);
+            container.WriteObject<DepthCopyEffect>(this);
         }
 
         protected override void SetStateWork(IStateContainer container)

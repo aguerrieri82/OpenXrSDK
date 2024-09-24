@@ -1,5 +1,11 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Numerics;
+using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Xml.Schema;
+using XrMath;
+using static PhysX.NativeMethodsGroupingExtensions;
+using static PhysX.NativeMethods;
 
 namespace PhysX.Framework
 {
@@ -23,6 +29,45 @@ namespace PhysX.Framework
             }
 
             GC.SuppressFinalize(this);
+        }
+
+        public unsafe RaycastHit[] Raycast(Ray3 ray, Pose3 pose, float maxDistance, PxHitFlags flags, uint maxHits)
+        {
+            var result = new PxGeomRaycastHit[maxHits];
+            uint count;
+
+            var transform = pose.ToPxTransform();
+
+            fixed (PxGeomRaycastHit* pResult = result)
+            {
+                count = PxGeometryQuery_raycast(
+                    (PxVec3*)&ray.Origin,
+                    (PxVec3*)&ray.Direction,
+                    this,
+                    &transform,
+                    maxDistance,
+                    flags, 
+                    maxHits,
+                    pResult, 
+                    0, 
+                    PxGeometryQueryFlags.SimdGuard, 
+                    null);
+            }
+
+            var newResults = new RaycastHit[count];
+
+            for (var i = 0; i < count; i++)
+            {
+                newResults[i] = new RaycastHit
+                {
+                    Normal = result[i].normal,
+                    Position = result[i].position,
+                    UV = new Vector2(result[i].u, result[i].v),
+                    Distance = result[i].distance
+                };
+            }
+
+            return newResults;
         }
 
         public ref PxConvexMeshGeometry ConvexMesh => ref Unsafe.AsRef<PxConvexMeshGeometry>(_holder->ConvexMesh());

@@ -46,7 +46,6 @@ namespace XrEngine.OpenGL
             StencilRef = null;
             FrameBufferTargets.Clear();
             TexturesSlots.Clear();
-            TexturesTargets.Clear();
             Features.Clear();   
         }
 
@@ -97,9 +96,6 @@ namespace XrEngine.OpenGL
             foreach (var feature in Features)
                 EnableFeature(feature.Key, feature.Value, true);
 
-            foreach (var texture in TexturesTargets)
-                BindTexture(texture.Key, texture.Value, true);
-
             foreach (var fb in FrameBufferTargets)
                 BindFrameBuffer(fb.Key, fb.Value, true);
 
@@ -111,15 +107,6 @@ namespace XrEngine.OpenGL
 
             if (StencilFunc.HasValue)
                 SetStencilFunc(StencilFunc.Value, true);
-
- 
-
-            //ActiveTexture
-
-            /*
-            foreach (var texture in Textures)
-                BindTexture(texture.Value, texture.Key, true);  
-            */
         }
 
         public void SetClearColor(Color color, bool force = false)
@@ -173,35 +160,23 @@ namespace XrEngine.OpenGL
 
         public void BindTexture(TextureTarget target, uint texId, bool force = false)
         {
-            if (!TexturesTargets.TryGetValue(target, out var value) || value != texId || force)
-            {
-                _gl.BindTexture(target, texId);
+            ActiveTexture ??= _gl.GetInteger(GetPName.ActiveTexture);
 
-                TexturesTargets[target] = texId;
-            }
-            else
-            {
-                /*
-                int curBound = 0;
+            if (TexturesSlots.TryGetValue(ActiveTexture.Value, out var value) && value == texId && !force)
+                return;
 
-                if (target == TextureTarget.Texture2D)
-                    _gl.GetInteger(GetPName.TextureBinding2D, out curBound);
+            _gl.BindTexture(target, texId);
 
-                if (target == TextureTarget.TextureCubeMap)
-                    _gl.GetInteger(GetPName.TextureBindingCubeMap, out curBound);
-
-                Debug.Assert(curBound == texId);
-                */
-            }
-
-            if (ActiveTexture != null)
-                TexturesSlots[ActiveTexture.Value] = texId;
+            TexturesSlots[ActiveTexture.Value] = texId;
 
             return;
         }
 
         public void SetActiveTexture(uint texId, TextureTarget target, int slot, bool force = false)
         {
+            if (TexturesSlots.TryGetValue(slot, out var value) && value == texId && !force)
+                return;
+
             bool forceBind = force;
 
             if (ActiveTexture != slot || force)
@@ -339,6 +314,15 @@ namespace XrEngine.OpenGL
             if (!FrameBufferTargets.TryGetValue(target, out var cur)  || cur != value || force)
             {
                 FrameBufferTargets[target] = value;
+                
+                if (target == FramebufferTarget.Framebuffer)
+                {
+                    FrameBufferTargets[FramebufferTarget.ReadFramebuffer] = value;
+                    FrameBufferTargets[FramebufferTarget.DrawFramebuffer] = value;
+                }
+                else if (FrameBufferTargets[FramebufferTarget.Framebuffer] != value)
+                    FrameBufferTargets[FramebufferTarget.Framebuffer] = 0;
+
                 _gl.BindFramebuffer(target, value);
             }
         }
@@ -427,8 +411,6 @@ namespace XrEngine.OpenGL
         public readonly Dictionary<EnableCap, bool> Features = [];
 
         public readonly Dictionary<int, uint> TexturesSlots = [];
-
-        public readonly Dictionary<TextureTarget, uint> TexturesTargets = [];
 
         public readonly Dictionary<FramebufferTarget, uint> FrameBufferTargets = [];
 

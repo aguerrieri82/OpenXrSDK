@@ -26,34 +26,23 @@ namespace XrEngine.OpenGL.Oculus
             _multiView = multiView;
         }
 
-        protected uint CreateDepth(GlTexture color, uint arraySize)
+        protected GlTexture CreateDepth(GlTexture color, uint arraySize)
         {
-            var depthTex = _gl.GenTexture();
-
-            GlState.Current!.BindTexture(color.Target, depthTex);
+            var depthTex = new GlTexture(_gl);
+            depthTex.MinFilter = TextureMinFilter.Nearest;
+            depthTex.MagFilter = TextureMagFilter.Nearest;
+            depthTex.MaxLevel = 0;
 
             if (arraySize == 1)
             {
-                _gl.TexStorage2D(
-                   color.Target,
-                   1,
-                   SizedInternalFormat.Depth32fStencil8,
-                   color.Width,
-                   color.Height);
+                depthTex.Target = TextureTarget.Texture2D;
+                depthTex.Update(color.Width, color.Height, 1, TextureFormat.Depth32Stencil8);
             }
             else
             {
-                _gl.TexStorage3D(
-                   color.Target,
-                   1,
-                   SizedInternalFormat.Depth32fStencil8,
-                   color.Width,
-                   color.Height,
-                   arraySize);
+                depthTex.Target = TextureTarget.Texture2DArray;
+                depthTex.Update(color.Width, color.Height, arraySize, TextureFormat.Depth32Stencil8);
             }
-
-
-            GlState.Current!.BindTexture(color.Target, 0);
 
             return depthTex;
         }
@@ -62,15 +51,15 @@ namespace XrEngine.OpenGL.Oculus
         {
             if (!_targets.TryGetValue(colorTex, out var target))
             {
-                var color = GlTexture.Attach(_gl, colorTex);   
+                var glColor = GlTexture.Attach(_gl, colorTex);
 
-                uint depthTex = 0;  
+                GlTexture glDepth;
 
                 if (_multiView)
                 {
                     var multiView = new GlMultiViewRenderTarget(_gl);
-                    depthTex = CreateDepth(color, 2);
-                    multiView.FrameBuffer.Configure(colorTex, depthTex, sampleCount);
+                    glDepth = CreateDepth(glColor, 2);
+                    multiView.FrameBuffer.Configure(glColor, glDepth, sampleCount);
                     target = multiView;
                 }
                 else
@@ -79,14 +68,13 @@ namespace XrEngine.OpenGL.Oculus
                     if (sampleCount > 0)
                     {
                         var renderBuf = new GlRenderBuffer(_gl); 
-                        var glColorTex = GlTexture.Attach(_gl, colorTex); 
-                        renderBuf.Update(glColorTex.Width, glColorTex.Height, sampleCount, InternalFormat.Depth32fStencil8);
-                        singleView.FrameBuffer.Configure(glColorTex, renderBuf, sampleCount);
+                        renderBuf.Update(glColor.Width, glColor.Height, sampleCount, InternalFormat.Depth32fStencil8);
+                        singleView.FrameBuffer.Configure(glColor, renderBuf, sampleCount);
                     }
                     else
                     {
-                        depthTex = CreateDepth(color, 1);
-                        singleView.FrameBuffer.Configure(colorTex, depthTex, sampleCount);
+                        glDepth = CreateDepth(glColor, 1);
+                        singleView.FrameBuffer.Configure(glColor, glDepth, sampleCount);
                     }
         
                     target = singleView;

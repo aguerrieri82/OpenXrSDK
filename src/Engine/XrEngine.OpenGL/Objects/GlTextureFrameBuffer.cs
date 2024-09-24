@@ -5,11 +5,24 @@ using Silk.NET.OpenGLES.Extensions.EXT;
 using Silk.NET.OpenGL;
 #endif
 
+using System.Runtime.InteropServices;
 
 namespace XrEngine.OpenGL
 {
-    public class GlTextureFrameBuffer : GlBaseFrameBuffer
+    public class GlTextureFrameBuffer : GlBaseFrameBuffer, IGlFrameBuffer
     {
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        delegate void FramebufferTextureMultiviewOVRDelegate(
+            FramebufferTarget target,
+            FramebufferAttachment attachment,
+            uint texture,
+            uint level,
+            uint baseViewIndex,
+            uint numViews);
+        
+        static FramebufferTextureMultiviewOVRDelegate? FramebufferTextureMultiviewOVR;
+
+
         private uint _sampleCount;
 
 #if GLES
@@ -24,6 +37,10 @@ namespace XrEngine.OpenGL
 #endif
 
             Create();
+
+            gl.Context.TryGetProcAddress("glFramebufferTextureMultiviewOVR", out var addr);
+            FramebufferTextureMultiviewOVR = Marshal.GetDelegateForFunctionPointer<FramebufferTextureMultiviewOVRDelegate>(addr);
+
         }
 
         public GlTextureFrameBuffer(GL gl, uint colorTex, uint depthTex, uint sampleCount = 1)
@@ -41,7 +58,7 @@ namespace XrEngine.OpenGL
 
         public void Configure(GlTexture? color, IGlRenderAttachment? depth, uint sampleCount)
         {
-            _sampleCount = sampleCount; 
+            _sampleCount = sampleCount;
 
             Color = color;
             Depth = depth;
@@ -103,44 +120,35 @@ namespace XrEngine.OpenGL
 
                 if (!useMs)
                 {
-                    _gl.FramebufferTexture2D(
+                    if (tex.Depth > 1)
+                        FramebufferTextureMultiviewOVR!(
                             Target,
                             attachment,
-                            tex.Target,
-                            tex, 0);
+                            tex,
+                            0, 0, tex.Depth);
+                    else
+                        _gl.FramebufferTexture2D(
+                                Target,
+                                attachment,
+                                tex.Target,
+                                tex, 0);
                 }
             }
 
             else if (Depth is GlRenderBuffer rb)
             {
+
                 _gl.FramebufferRenderbuffer(Target,
                          FramebufferAttachment.DepthStencilAttachment,
                          rb.Target,
                          rb.Handle);
             }
 
-            /*
-            if (Color == null)
-            {
-                _gl.DrawBuffers(GlState.DRAW_NONE);
-                _gl.ReadBuffer(ReadBufferMode.None);    
-            }
-            else
-            {
-                _gl.DrawBuffers(GlState.DRAW_COLOR_0);
-                _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
-            }
-            */
+            Check();
 
-            var status = _gl.CheckFramebufferStatus(Target);
-
-            if (status != GLEnum.FramebufferComplete)
-            {
-                throw new Exception($"Frame buffer state invalid: {status}");
-            }
-
-            Unbind();
+            //Unbind();
         }
+
 
         public void Detach(FramebufferAttachment attachment)
         {
@@ -166,7 +174,7 @@ namespace XrEngine.OpenGL
                 throw new Exception($"Frame buffer state invalid: {status}");
             }
 
-            Unbind();
+            //Unbind();
         }
 
         public void Configure(uint colorTex, uint depthTex, uint sampleCount)
@@ -225,8 +233,8 @@ namespace XrEngine.OpenGL
 
             if (mask == ClearBufferMask.ColorBufferBit)
             {
-                _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
-                _gl.DrawBuffers(GlState.DRAW_COLOR_0);
+                SetReadBuffer(ReadBufferMode.ColorAttachment0);
+                dest.SetDrawBuffers(DrawBufferMode.ColorAttachment0);
             }
 
             var srcTex = mask == ClearBufferMask.ColorBufferBit ? Color : Depth;
@@ -234,8 +242,8 @@ namespace XrEngine.OpenGL
        
             _gl.BlitFramebuffer(0, 0, (int)srcTex!.Width, (int)srcTex.Height, 0, 0, (int)dstTex!.Width, (int)dstTex.Height, mask, BlitFramebufferFilter.Nearest);
 
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, 0);
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
+            //GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, 0);
+            //GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
         }
 
         public override GlTexture? QueryTexture(FramebufferAttachment attachment)

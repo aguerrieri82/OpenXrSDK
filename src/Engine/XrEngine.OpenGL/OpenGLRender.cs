@@ -253,8 +253,6 @@ namespace XrEngine.OpenGL
                 _gl.Finish();
 
             _gl.PopDebugGroup();
-
-
         }
 
         public void SetRenderTarget(Texture2D? texture)

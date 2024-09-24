@@ -19,15 +19,22 @@ namespace XrSamples
 
         public bool IsMultiView { get; set; } = true;
 
+        public bool EnableOutline { get; set; } = true;
+
         public static GameSettings Bed()
         {
             return new GameSettings
             {
                 SampleName = "Bed",
-                Msaa = 2,
+                Msaa = 1,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = false
+                IsMultiView = true
             };
+        }
+
+        public static GameSettings Default()
+        {
+            return new GameSettings();
         }
     }
 }

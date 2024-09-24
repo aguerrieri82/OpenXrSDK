@@ -56,6 +56,8 @@ namespace XrEngine
         public IList<Plane>? FrustumPlanes;
 
         public IShadowMapProvider? ShadowMapProvider;
+
+        public Texture2D? DepthMap;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

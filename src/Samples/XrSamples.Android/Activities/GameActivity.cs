@@ -54,9 +54,12 @@ namespace XrSamples.Android.Activities
         protected override void OnXpAppStarted(XrApp app)
         {
             if (_engine?.App.Renderer is OpenGLRender openGL)
+            {
+                openGL.Pass<GlOutlinePass>()!.IsEnabled = _settings!.EnableOutline;
                 openGL.EnableDebug();
+            }
 
-             app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
+            app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
 
             _webViewLayer = _engine!.XrApp.Layers.List.OfType<XrWebViewLayer>().FirstOrDefault();
 

@@ -24,6 +24,8 @@ namespace XrEngine
 
         RgFloat32,
 
+        RFloat32,
+
         SRgb24,
         SBgra32,
         SRgba32,
@@ -130,5 +132,7 @@ namespace XrEngine
         public Color BorderColor { get; set; }
 
         public bool IsMutable { get; set; }
+
+        public uint Depth { get; set; }
     }
 }

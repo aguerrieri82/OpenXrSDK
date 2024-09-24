@@ -48,7 +48,6 @@ namespace PhysX.Framework
         }
 
 
-
         public PxPvdSceneClient* PvdClient => _handle->GetScenePvdClientMut();
 
         public ref PxScene Scene => ref Unsafe.AsRef<PxScene>(_handle);
