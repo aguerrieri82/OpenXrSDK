@@ -96,6 +96,14 @@ namespace XrSamples.Android.Activities
             {
                 _settings.IsMultiView = e.IsChecked;
             };
+
+            //Outline
+            var ol = FindViewById<CheckBox>(ResourceConstant.Id.outline)!;
+            ol.Checked = _settings.EnableOutline;
+            ol.CheckedChange += (s, e) =>
+            {
+                _settings.EnableOutline = e.IsChecked;
+            };
         }
 
         protected void StartGame()

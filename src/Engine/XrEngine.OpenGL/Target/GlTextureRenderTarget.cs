@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public class GlTextureRenderTarget : IGlRenderTarget
+    public class GlTextureRenderTarget : IGlRenderTarget, IGlFrameBufferProvider
     {
         protected readonly GlTextureFrameBuffer _frameBuffer;
         protected readonly GL _gl;
@@ -47,12 +47,12 @@ namespace XrEngine.OpenGL
 
         public void CommitDepth()
         {
-            _frameBuffer.Unbind();
             _gl.Flush();
-            _frameBuffer.Bind();
         }
 
         public GlTextureFrameBuffer FrameBuffer => _frameBuffer;
+
+        IGlFrameBuffer IGlFrameBufferProvider.FrameBuffer => _frameBuffer;
 
     }
 }

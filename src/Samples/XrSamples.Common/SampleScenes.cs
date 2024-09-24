@@ -804,7 +804,8 @@ namespace XrSamples
 
             var mesh = GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
             mesh.Name = "Bed";
-            mesh.AddComponent<MeshCollider>();
+            mesh.AddComponent<PyMeshCollider>();
+           //mesh.AddComponent<MeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
 
             foreach (var material in ((TriangleMesh)mesh).Materials!)
@@ -819,7 +820,8 @@ namespace XrSamples
                 .UseApp(app)
                 //.UseSceneModel(false, false)
                 .UseDefaultHDR()
-                .AddFloorShadow(true)
+                .AddFloorShadow(false)
+                .UsePhysics(new PhysicsOptions())
                 .ConfigureSampleApp();
         }
 

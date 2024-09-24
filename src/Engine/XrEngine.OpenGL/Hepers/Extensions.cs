@@ -119,7 +119,7 @@ namespace XrEngine.OpenGL
                     comp = TextureCompressionFormat.Etc2;
                 }
 
-                glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Format, comp, data);
+                glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Depth, texture2D.Format, comp, data);
                 texture2D.NotifyLoaded();
             }
             else
@@ -127,7 +127,7 @@ namespace XrEngine.OpenGL
                 if (texture2D.Type == TextureType.Depth)
                     glTexture.Attach(OpenGLRender.Current!.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment));
                 else
-                    glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Format, texture2D.Compression);
+                    glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Depth, texture2D.Format, texture2D.Compression);
             }
 
             glTexture.Version = texture2D.Version;
@@ -153,6 +153,7 @@ namespace XrEngine.OpenGL
 
             res.Width = glTexture.Width;
             res.Height = glTexture.Height;
+            res.Depth = glTexture.Depth;    
             res.WrapT = (WrapMode)glTexture.WrapT;
             res.WrapS = (WrapMode)glTexture.WrapS;
             res.MagFilter = (ScaleFilter)glTexture.MagFilter;

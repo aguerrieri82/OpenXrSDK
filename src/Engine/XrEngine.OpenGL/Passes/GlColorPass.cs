@@ -6,9 +6,9 @@ namespace XrEngine.OpenGL
     public class GlColorPass : GlBaseRenderPass
     {
         public GlColorPass(OpenGLRender renderer)
-            : base(renderer)    
+            : base(renderer)
         {
-            WriteDepth = true;  
+            WriteDepth = true;
         }
 
         protected override bool BeginRender()
@@ -21,13 +21,13 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender()
         {
-            _renderer.State.SetActiveProgram(0);
-            _renderer.RenderTarget!.End(false);
+            // _renderer.State.SetActiveProgram(0);
+            // _renderer.RenderTarget!.End(false);
         }
 
         protected override void RenderLayer(GlLayer layer)
         {
-            var updateContext = _renderer.UpdateContext; 
+            var updateContext = _renderer.UpdateContext;
 
             foreach (var shader in layer.Content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
@@ -97,6 +97,6 @@ namespace XrEngine.OpenGL
             }
         }
 
-        public bool WriteDepth { get; set; }    
+        public bool WriteDepth { get; set; }
     }
 }

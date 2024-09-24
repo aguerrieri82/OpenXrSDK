@@ -44,6 +44,10 @@ namespace XrEngine.OpenGL
                 Size = 2,
                 ActiveOutlineStencil = 1
             };
+            /*
+            PbrMaterial.LinearOutput = true;
+            PbrMaterial.ToneMap = PbrMaterial.ToneMapType.TONEMAP_KHR_PBR_NEUTRAL;
+            */
         }
 
         public bool UseSRGB { get; set; }

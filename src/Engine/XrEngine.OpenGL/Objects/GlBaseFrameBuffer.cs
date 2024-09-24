@@ -15,6 +15,34 @@ namespace XrEngine.OpenGL
             Target = FramebufferTarget.Framebuffer;
         }
 
+        public void Check()
+        {
+
+            var status = _gl.CheckFramebufferStatus(Target);
+
+            if (status != GLEnum.FramebufferComplete)
+            {
+                throw new Exception($"Frame buffer state invalid: {status}");
+            }
+        }
+
+        public void SetDrawBuffers(params DrawBufferMode[] modes)
+        {
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, _handle);
+
+            if (modes.Length == 0)
+                _gl.DrawBuffers(GlState.DRAW_NONE);
+            else
+                _gl.DrawBuffers(modes);
+        }
+
+        public void SetReadBuffer(ReadBufferMode mode)
+        {
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _handle);
+
+            _gl.ReadBuffer(mode);
+        }
+
         public virtual void Bind()
         {
             GlState.Current!.BindFrameBuffer(Target, _handle);

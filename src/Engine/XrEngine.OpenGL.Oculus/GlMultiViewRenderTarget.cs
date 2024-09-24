@@ -29,8 +29,10 @@ namespace XrEngine.OpenGL.Oculus
         public float FarPlane;
     }
 
-    public class GlMultiViewRenderTarget : IGlRenderTarget, IMultiViewTarget, IShaderHandler
+    public class GlMultiViewRenderTarget : IGlRenderTarget, IMultiViewTarget, IShaderHandler, IGlFrameBufferProvider
     {
+        static readonly InvalidateFramebufferAttachment[] DepthStencilAttachment = [InvalidateFramebufferAttachment.DepthStencilAttachment];
+
 
         protected GlMultiViewFrameBuffer _frameBuffer;
         protected static SceneMatrices _matrices = new();
@@ -50,11 +52,10 @@ namespace XrEngine.OpenGL.Oculus
 
         public void End(bool finalPass)
         {
-            if (finalPass)
+            if (finalPass && false)
             {
                 _frameBuffer.Bind();
-                var attach = new InvalidateFramebufferAttachment[] { InvalidateFramebufferAttachment.DepthStencilAttachment };
-                _gl.InvalidateFramebuffer(_frameBuffer.Target, attach.AsSpan());
+                _gl.InvalidateFramebuffer(_frameBuffer.Target, DepthStencilAttachment);
             }
 
             _frameBuffer.Unbind();
@@ -103,12 +104,11 @@ namespace XrEngine.OpenGL.Oculus
 
         public void CommitDepth()
         {
-            _frameBuffer.Unbind();
             _gl.Flush();
-            _frameBuffer.Bind();
         }
 
         public GlMultiViewFrameBuffer FrameBuffer => _frameBuffer;
 
+        IGlFrameBuffer IGlFrameBufferProvider.FrameBuffer => _frameBuffer;
     }
 }
