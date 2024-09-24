@@ -8,11 +8,11 @@
              x:Name="uc"
              d:DesignHeight="450" d:DesignWidth="800">
 
-    <DockPanel Background="{StaticResource InputColor}">
+    <DockPanel >
 
         <DockPanel.Resources>
             <Style TargetType="Button" x:Key="Arrow">
-                <Setter Property="Foreground" Value="{StaticResource InputTextColor}"/>
+
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="Width" Value="16"/>
@@ -21,32 +21,35 @@
         <Button VerticalAlignment="Center" Style="{StaticResource Arrow}"  Click="OnLeftClick" DockPanel.Dock="Left">❮</Button>
         <Button VerticalAlignment="Center" Style="{StaticResource Arrow}"  Click="OnRightClick" DockPanel.Dock="Right">❯</Button>
         <Grid VerticalAlignment="Center" >
-            <TextBlock 
+            <Border BorderBrush="{StaticResource TextBox.Static.Border}" BorderThickness="1">
+                <TextBlock 
                 x:Name="text"
                 MouseDown="OnTextMouseDown" 
                 MouseUp="OnTextMouseUp" 
                 MouseMove="OnTextMouseMove" 
-                Padding="0,4,0,0"
+                Padding="0,3,0,3"
                 TextAlignment="Center" 
-                Foreground="{StaticResource InputTextColor}"
+                Background="{StaticResource TextBox.Static.Background}"
                 Text="{Binding TextValue, ElementName=uc}">
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock">
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="TextDecorations" Value="Underline"/>
-                                <Setter Property="Cursor" Value="SizeWE"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="TextDecorations" Value="Underline"/>
+                                    <Setter Property="Cursor" Value="SizeWE"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Border>
+
 
             <TextBox 
                 x:Name="textBox" 
-                BorderThickness="0" 
+                BorderThickness="1" 
                 Background="#222"
-                Foreground="{StaticResource InputTextColor}"
+                Padding="0,3,0,3"
                 LostFocus="OnTextLostFocus" 
                 TextAlignment="Center" 
                 Text="{Binding Value, ElementName=uc}" />

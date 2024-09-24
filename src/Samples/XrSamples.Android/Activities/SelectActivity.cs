@@ -21,7 +21,7 @@ namespace XrSamples.Android.Activities
     {
         const string TAG = nameof(SelectActivity);
 
-        private readonly GameSettings _settings = GameSettings.Bed();
+        private readonly GameSettings _settings = GameSettings.Default();
         private IList<AppSample>? _samples;
 
         protected unsafe override void OnCreate(Bundle? savedInstanceState)

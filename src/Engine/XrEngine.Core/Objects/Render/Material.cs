@@ -9,14 +9,14 @@
 
     public enum StencilFunction
     {
-        Never = 0x0200,          // GL_NEVER
-        Less = 0x0201,           // GL_LESS
-        Equal = 0x0202,          // GL_EQUAL
-        LEqual = 0x0203,         // GL_LEQUAL
-        Greater = 0x0204,        // GL_GREATER
-        NotEqual = 0x0205,       // GL_NOTEQUAL
-        GEqual = 0x0206,         // GL_GEQUAL
-        Always = 0x0207          // GL_ALWAYS
+        Never = 0x0200,         
+        Less = 0x0201,          
+        Equal = 0x0202,          
+        LEqual = 0x0203,         
+        Greater = 0x0204,      
+        NotEqual = 0x0205,      
+        GEqual = 0x0206,      
+        Always = 0x0207        
     }
 
     public abstract class Material : EngineObject, IHosted

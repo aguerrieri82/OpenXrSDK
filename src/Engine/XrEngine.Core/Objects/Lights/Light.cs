@@ -31,7 +31,7 @@ namespace XrEngine
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-            container.ReadObject<Light>(this);
+            container.ReadObject(this);
         }
 
         public bool CastShadows { get; set; }

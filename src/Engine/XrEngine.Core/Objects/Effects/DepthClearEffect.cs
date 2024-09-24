@@ -30,16 +30,5 @@ namespace XrEngine
             WriteColor = false; 
         }
 
-        public override void GetState(IStateContainer container)
-        {
-            base.GetState(container);
-            container.WriteObject<DepthClearEffect>(this);
-        }
-
-        protected override void SetStateWork(IStateContainer container)
-        {
-            base.SetStateWork(container);
-            container.ReadObject(this);
-        }
     }
 }

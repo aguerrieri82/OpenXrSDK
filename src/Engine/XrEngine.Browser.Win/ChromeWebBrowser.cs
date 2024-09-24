@@ -58,7 +58,7 @@ namespace XrEngine.Browser.Win
             await _browser.WaitForInitialLoadAsync();
 
             _host = _browser.GetBrowserHost();
-            _host.ShowDevTools();
+
 
             await UpdateAsync();
         }
@@ -139,6 +139,10 @@ namespace XrEngine.Browser.Win
                 throw new Exception();
         }
 
+        public void ShowDevTools()
+        {
+            _browser?.ShowDevTools();
+        }   
 
         public void Dispose()
         {

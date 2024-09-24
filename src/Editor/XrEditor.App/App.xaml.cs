@@ -31,13 +31,13 @@ namespace XrEditor
             {
                 Title = "Xr Editor",
                 Content = new MainView(EditorDebug.Driver),
+     
             };
-
-            MainWindow.SetResourceReference(FrameworkElement.StyleProperty, typeof(Window));
         }
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            MainWindow.Style = this.Resources["CustomWindowStyle"] as Style;
             MainWindow.Show();
             base.OnStartup(e);
         }

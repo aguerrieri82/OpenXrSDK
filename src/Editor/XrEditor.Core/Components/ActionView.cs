@@ -1,4 +1,7 @@
-﻿namespace XrEditor
+﻿using System.Reflection;
+using XrEngine;
+
+namespace XrEditor
 {
     public class ActionView : BaseView, IToolbarItem
     {
@@ -16,6 +19,30 @@
         {
             ExecuteCommand = new Command(action);
             _isEnabled = true;
+        }
+
+        public static void CreateActions(object obj, IList<ActionView> actions)
+        {
+            CreateActions(obj, obj.GetType(), null, actions);
+        }
+
+        public static void CreateActions(object obj, Type objType, object? host, IList<ActionView> actions)
+        {
+            foreach (var method in objType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+            {
+
+                var action = method.GetCustomAttribute<ActionAttribute>();        
+                if (action == null)
+                    continue;   
+
+                var propView = new ActionView
+                {
+                    DisplayName = method.Name,
+                    ExecuteCommand = new Command(()=> method.Invoke(obj, null)),    
+                };
+
+                actions.Add(propView);
+            }
         }
 
         public Command? ExecuteCommand { get; set; }

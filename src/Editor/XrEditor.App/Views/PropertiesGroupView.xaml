@@ -60,6 +60,17 @@
                 </Border>
                 <ItemsControl ItemsSource="{Binding Groups}"/>
             </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <ItemsControl ItemsSource="{Binding Actions}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Padding="5,4,5,4" Command="{Binding ExecuteCommand}" Margin="0,0,0,8">
+                                <TextBlock Text="{Binding DisplayName}"/>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
         </StackPanel>
 
         <DataTemplate.Triggers>
