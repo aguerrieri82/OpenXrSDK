@@ -71,8 +71,8 @@ struct Vector3 {
 };
 
 struct Bounds3 {
-	Vector3 min;
 	Vector3 max;
+	Vector3 min;
 };
 
 struct InitializeOptions {

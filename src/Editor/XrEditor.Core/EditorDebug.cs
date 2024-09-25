@@ -9,7 +9,7 @@ using XrSamples;
 namespace XrEditor
 {
     public static class EditorDebug
-    {
+    {   
         public static readonly GraphicDriver Driver = GraphicDriver.FilamentVulkan;
 
         public static readonly bool AutoStartApp = true;

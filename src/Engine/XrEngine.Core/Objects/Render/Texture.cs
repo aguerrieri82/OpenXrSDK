@@ -2,7 +2,6 @@
 {
     public abstract class Texture : EngineObject, IDisposable
     {
-
         protected Texture() { }
 
         protected Texture(IList<TextureData> data)
@@ -24,12 +23,13 @@
             MagFilter = ScaleFilter.Linear;
             MinFilter = data.Count > 1 ? ScaleFilter.LinearMipmapLinear : ScaleFilter.Linear;
             WrapS = WrapMode.ClampToEdge;
-            NotifyChanged(ObjectChangeType.Property);
+
+            NotifyChanged(ObjectChangeType.Render);
         }
 
         protected override void OnChanged(ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.Property))
+            if (change.IsAny(ObjectChangeType.Property, ObjectChangeType.Render))
                 Version++;
             base.OnChanged(change);
         }

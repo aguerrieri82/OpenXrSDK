@@ -151,7 +151,7 @@ namespace XrEngine.Filament
             PCF,
             VSM,
             DPCF,
-            PCSS
+            PCSS,
         }
 
         public enum FlQualityLevel : byte

@@ -164,6 +164,7 @@ void UpdateView(FilamentApp* app, VIEWID viewId, const ViewOptions& options)
 	view->setShadowType(options.shadowType);
 	view->setStencilBufferEnabled(options.stencilBufferEnabled);
 
+
 	View::StereoscopicOptions stereoOpt;
 	stereoOpt.enabled = true;
 	view->setStereoscopicOptions(stereoOpt);
@@ -300,6 +301,9 @@ void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bo
 
 void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 {
+
+	auto& lcm = app->engine->getLightManager();
+
 	auto light = EntityManager::get().create();
 
 	LightManager::ShadowOptions shadowOptions;
@@ -318,13 +322,19 @@ void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 		.shadowOptions(shadowOptions)
 		.sunHaloSize(info.sun.haloSize)
 		.castShadows(info.castShadows)
-		//.position({ info.position.x, info.position.y, info.position.z })
-		//.falloff(info.falloffRadius)
-		//.castLight(info.castLight)
+		.position({ info.position.x, info.position.y, info.position.z })
+		.falloff(info.falloffRadius)
+		.castLight(info.castLight)
 		.build(*app->engine, light);
 
 	app->scene->addEntity(light);
 	app->entities[id] = light;
+
+	lcm.setShadowOptions(lcm.getInstance(light), {
+		.screenSpaceContactShadows = true
+	});
+
+	auto const& count = app->scene->getLightCount();
 }
 
 static void DeleteBuffer(void* buffer, size_t size, void* user) {
@@ -917,7 +927,6 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 
 	if (!info.isLit && info.isShadowOnly)
 		builder.shadowMultiplier(true);
-
 
 	builder.parameter("baseColor", MaterialBuilder::UniformType::FLOAT4);
 
