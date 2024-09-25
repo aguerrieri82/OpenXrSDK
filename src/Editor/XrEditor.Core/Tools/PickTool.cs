@@ -22,7 +22,8 @@ namespace XrEditor
         RayPointerStatus IRayPointer.GetPointerStatus()
         {
             var result = _lastRay;
-            _lastRay.IsActive = false;
+            //TODO need more handlers, i cannot deactivate
+            //_lastRay.IsActive = false;
             return result;
         }
 

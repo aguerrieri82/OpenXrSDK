@@ -38,6 +38,9 @@ namespace XrEngine.Browser.Win
             _host.Materials.Add(new TextureMaterial()
             {
                 Texture = new Texture2D()
+                {
+                    Name = "Browser"
+                }
             });
 
             _input = _host!.DescendantsOrSelfComponents<ISurfaceInput>().First();
@@ -82,7 +85,7 @@ namespace XrEngine.Browser.Win
                         _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Released, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
                 }
          
-                _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Moved);
+                _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Moved, _input.MainButton.IsDown ? CefEventFlags.LeftMouseButton | CefEventFlags.IsLeft : CefEventFlags.None);
             }
 
             base.Update(ctx);

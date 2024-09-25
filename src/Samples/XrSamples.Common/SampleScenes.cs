@@ -802,18 +802,20 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var mesh = GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
+            var mesh = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
             mesh.Name = "Bed";
             mesh.AddComponent<PyMeshCollider>();
            //mesh.AddComponent<MeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
 
-            foreach (var material in ((TriangleMesh)mesh).Materials!)
+            foreach (var material in mesh.Materials!)
             {
                 material.CastShadows = true;
                 material.WriteStencil = 1;
             }
-               
+
+
+
             scene.AddChild(mesh);
 
             return builder
@@ -923,6 +925,7 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateRoomManager(this XrEngineAppBuilder builder)
         {
             builder.Configure(RoomDesignerApp.Build)
+                .AddPassthrough()
             .ConfigureApp(app =>
             {
                 app.App.ActiveScene!.AddChild(new PlaneGrid(6f, 12f, 2f));

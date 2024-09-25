@@ -3,13 +3,19 @@
 	<PropertyGroup>
 		<RootNamespace>XrEditor</RootNamespace>
 		<OutputType>WinExe</OutputType>
+		<AssemblyName>XrEditor</AssemblyName>
 		<TargetFrameworks>$(CoreVersion)-windows</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<XamlDebuggingInformation>True</XamlDebuggingInformation>
 		<RuntimeIdentifier>win-$(Platform)</RuntimeIdentifier>
 		<UseOpenGL>true</UseOpenGL>
 		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
+		<ApplicationIcon>XrEditor.ico</ApplicationIcon>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Resource Include="XrEditor.ico" />
+	</ItemGroup>
 
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />

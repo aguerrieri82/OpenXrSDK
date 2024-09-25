@@ -327,7 +327,7 @@ namespace XrEngine.Filament
             {
                 Intensity = img.Intensity * 4,
                 Rotation = img.Rotation,
-                ShowSkybox = true,
+                ShowSkybox = false,
                 Texture = AllocateTexture(img.Panorama)
             };
 
@@ -340,7 +340,7 @@ namespace XrEngine.Filament
                 {
                     Intensity = img.Intensity * 4,
                     Rotation = img.Rotation,
-                    ShowSkybox = true,
+                    ShowSkybox = false,
                 };
                 UpdateImageLight(_app, ref info);
             };
@@ -458,7 +458,8 @@ namespace XrEngine.Filament
                         IsLit = true,
                         WriteDepth = pbr.WriteDepth,
                         WriteColor = pbr.WriteColor,
-                        UseDepth = pbr.UseDepth
+                        UseDepth = pbr.UseDepth,
+                        IsShadowOnly = pbr.ReceiveShadows && pbr.Alpha == AlphaMode.Blend && pbr.MetallicRoughness!.BaseColorFactor.A < 1
                     };
                 }
 
@@ -471,7 +472,7 @@ namespace XrEngine.Filament
                     return new MaterialInfo
                     {
                         Color = matColor,
-                        Blending = color.IsShadowOnly || matColor.A < 1.0f ? FlBlendingMode.TRANSPARENT : FlBlendingMode.OPAQUE,
+                        Blending = color.Alpha == AlphaMode.Opaque && color.IsShadowOnly ? FlBlendingMode.OPAQUE : FlBlendingMode.TRANSPARENT,
                         DoubleSided = color.DoubleSided,
                         IsLit = false,
                         WriteDepth = color.WriteDepth,

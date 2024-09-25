@@ -6,7 +6,7 @@ namespace XrEngine
 { 
     public class SurfaceController : Behavior<Object3D>, IRayTarget, ISurfaceInput
     {
-        double _pointerTime;
+        protected Dictionary<IRayPointer, RayPointerStatus> _pointerStatus = [];
         Vector2 _pointer;
         bool _pointerValid;
         InputButton _mainInBtn;
@@ -25,7 +25,7 @@ namespace XrEngine
                 .OfType<IRayPointer>()
                 .ToArray();
 
-            _collider = _host!.Component<ICollider3D>();
+            _collider = _host!.Feature<ICollider3D>();
 
             base.Start(ctx);
         }
@@ -43,11 +43,19 @@ namespace XrEngine
             if (Pointers == null)
                 return;
 
-            bool found = false; 
+            bool found = false;
+
+            _mainInBtn.IsChanged = false;
+            _backInBtn.IsChanged = false;
 
             foreach (var pointer in Pointers)
             {
                 var status = pointer.GetPointerStatus();
+
+                if (!_pointerStatus.TryGetValue(pointer, out var lastStatus))
+                    lastStatus = new RayPointerStatus();
+
+                _pointerStatus[pointer] = status;
 
                 if (!status.IsActive)
                     continue;
@@ -58,10 +66,10 @@ namespace XrEngine
                     NotifyCollision(ctx, collision);
                     found = true;
                 }
-      
 
                 var leftDown = (status.Buttons & Pointer2Button.Left) == Pointer2Button.Left;
-                if (leftDown != _mainInBtn.IsDown)
+                var wasLeftDown = (lastStatus.Buttons & Pointer2Button.Left) == Pointer2Button.Left;
+                if (leftDown != wasLeftDown)
                 {
                     _mainInBtn.IsChanged = true;
                     _mainInBtn.IsDown = leftDown;
@@ -70,18 +78,14 @@ namespace XrEngine
                     else
                         pointer.ReleasePointer();
                 }
-                else
-                    _mainInBtn.IsChanged = false;
 
                 var rightDown = (status.Buttons & Pointer2Button.Right) == Pointer2Button.Right;
-                if (rightDown != _backInBtn.IsDown)
+                var wasRightDown = (lastStatus.Buttons & Pointer2Button.Left) == Pointer2Button.Left;
+                if (rightDown != wasRightDown)
                 {
                     _backInBtn.IsChanged = true;
                     _backInBtn.IsDown = rightDown;
                 }
-                else
-                    _backInBtn.IsChanged = false;
-
             }
 
             if (!found)
@@ -90,7 +94,6 @@ namespace XrEngine
 
         public void NotifyCollision(RenderContext ctx, Collision collision)
         {
-            _pointerTime = ctx.Time;
             _pointer = new Vector2(collision.LocalPoint.X, collision.LocalPoint.Y) + new Vector2(0.5f, 0.5f);
             _pointerValid = true;
         }

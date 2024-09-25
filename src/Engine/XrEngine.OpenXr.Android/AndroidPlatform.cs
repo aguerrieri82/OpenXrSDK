@@ -95,9 +95,6 @@ namespace XrEngine.OpenXr.Android
                     RequireTextureCompression = true,
                 };
 
-                //TODO remove
-                glOptions.Outline.Use = true;  
-
                 renderEngine = new OpenGLRender(glDriver.GetApi<GL>(), glOptions);
 
                 xrDriver = glDriver;

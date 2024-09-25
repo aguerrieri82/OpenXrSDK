@@ -74,15 +74,24 @@ namespace XrEngine.Browser.Win
 
             var viewPos = pos * new Vector2(Size.Width, Size.Height);
 
-            _host!.SendTouchEvent(new CefSharp.Structs.TouchEvent
+            if (eventType == TouchEventType.Moved && flags == CefEventFlags.None)
             {
-                Id = id,
-                PointerType = PointerType.Mouse,
-                Modifiers = flags,
-                Type = eventType,
-                X = viewPos.X,
-                Y = viewPos.Y,
-            });
+                _host!.SendMouseMoveEvent((int)viewPos.X, (int)viewPos.Y, false, flags);
+            }
+            else
+            {
+                _host!.SendTouchEvent(new CefSharp.Structs.TouchEvent
+                {
+                    Id = id,
+                    PointerType = PointerType.Mouse,
+                    Modifiers = flags,
+                    Type = eventType,
+                    X = viewPos.X,
+                    Y = viewPos.Y,
+                });
+            }
+
+  
         }
 
         private void OnFrameLoad(object? sender, FrameLoadStartEventArgs e)

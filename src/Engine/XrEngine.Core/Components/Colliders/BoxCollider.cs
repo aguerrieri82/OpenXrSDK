@@ -58,13 +58,14 @@ namespace XrEngine
             if (bounds.Intersects(localRay.ToLine(10000), out var distance))
             {
                 var localPoint = localRay.Origin + localRay.Direction * distance;
-                //var wordPoint = localPoint.Transform(_host!.WorldMatrixInverse);
-                //distance = (wordPoint - ray.Origin).Length();
+                var wordPoint = localPoint.Transform(_host!.WorldMatrix);
+                var distance2 = (wordPoint - ray.Origin).Length();
 
                 return new Collision()
                 {
-                    Distance = distance,
+                    Distance = distance2,
                     LocalPoint = localPoint,
+                    Point = wordPoint,
                     Object = _host,
                 };
             }

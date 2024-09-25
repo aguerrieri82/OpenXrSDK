@@ -24,6 +24,9 @@ namespace XrEngine.Physics
 
         public Collision? CollideWith(Ray3 ray)
         {
+            if (_system == null)
+                return null;
+
             foreach (var item in _host!.DescendantsOrSelf())
             {
                 var geo = item.Feature<Geometry3D>();

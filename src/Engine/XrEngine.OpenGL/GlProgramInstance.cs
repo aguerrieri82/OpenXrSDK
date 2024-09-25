@@ -47,7 +47,18 @@ namespace XrEngine.OpenGL
                 var shader = Material.Shader!;
                 var resolver = shader.Resolver!;
 
-                program = new GlSimpleProgram(_gl, resolver(shader.VertexSourceName!), resolver(shader.FragmentSourceName!), resolver);
+                program = new GlSimpleProgram(_gl, 
+                    resolver(shader.VertexSourceName!), 
+                    resolver(shader.FragmentSourceName!), 
+                    shader.GeometrySourceName != null ? resolver(shader.GeometrySourceName!) : null, 
+                    resolver);
+
+                if (shader.GeometrySourceName != null)
+                {
+                    program.AddExtension("GL_EXT_geometry_shader");
+                    program.AddExtension("GL_OES_geometry_shader");
+                }
+
 
                 foreach (var ext in _update.Extensions!)
                     program.AddExtension(ext);

@@ -15,7 +15,7 @@
 
 		<Content Include="..\..\..\libs\meshoptimizer\win-x64\*.dll"
 				 CopyToOutputDirectory="PreserveNewest"
-				 Link="(Filename)%(Extension)"/>
+				 Link="%(Filename)%(Extension)"/>
 
 		<Content Include="..\..\..\libs\meshoptimizer\android-arm64\*.so"
 				 CopyToOutputDirectory="PreserveNewest"

@@ -43,6 +43,8 @@ namespace XrEngine.OpenGL
                     
                     GlState.Current!.BindTexture(target, 0);
 
+                    gL.CheckError();
+
                     if (curTexId == texId)
                         return target;
                 }

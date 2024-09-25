@@ -23,11 +23,12 @@ out vec2 fUv;
 
 void main()
 {
-    computePos();
-
     vec4 pos4 = vec4(a_position, 1.0);
+    vec4 pos = uModel * pos4;
+    fPos = vec3(pos);
+    
+    computePos(pos);
 
-    fPos = vec3(uModel * pos4);
     fNormal = mat3(transpose(inverse(uModel))) * a_normal;
     fUv = a_texcoord_0;
     #ifdef USE_SHADOW_MAP

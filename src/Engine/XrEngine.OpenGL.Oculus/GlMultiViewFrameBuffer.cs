@@ -155,6 +155,8 @@ namespace XrEngine.OpenGL.Oculus
                     attachment,
                     0,
                     0, 0, 2);
+
+                _gl.CheckError();
             }
 
             var status = _gl.CheckFramebufferStatus(Target);

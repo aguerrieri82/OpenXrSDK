@@ -9,6 +9,7 @@ using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 
 
 using XrMath;
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -191,6 +192,11 @@ namespace XrEngine.OpenGL
 
         public void SetActiveTexture(GlTexture glTex, int slot, bool force = false)
         {
+            if (slot == 0)
+            {
+                int x = 2;
+            }
+
             SetActiveTexture(glTex.Handle, glTex.Target, slot, force);
             glTex.Slot = slot;
         }
