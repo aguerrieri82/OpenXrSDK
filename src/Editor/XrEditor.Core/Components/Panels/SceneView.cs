@@ -93,13 +93,13 @@ namespace XrEditor
             _stopButton = _toolbar.AddButton("icon_stop", () => StopApp());
         }
 
-        protected void CreateApp()
+        protected async Task CreateAppAsync()
         {
             _engine = EditorDebug.CreateApp();
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
 
-            _main.ExecuteAsync(() =>
+            await _main.ExecuteAsync(() =>
             {
                 Scene = _engine.App.ActiveScene!;
                 Context.Require<SelectionManager>().Set(Scene.GetNode());
@@ -171,11 +171,11 @@ namespace XrEditor
             }
         });
 
-        protected void RenderLoop()
+        protected async void RenderLoop()
         {
             _renderSurface.TakeContext();
 
-            CreateApp();
+            CreateAppAsync().Wait();
 
             _render = _engine!.App.Renderer!;
 

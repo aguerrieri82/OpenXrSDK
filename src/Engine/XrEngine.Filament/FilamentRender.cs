@@ -67,6 +67,7 @@ namespace XrEngine.Filament
         protected Content? _content;
         protected FlBackend _driver;
         protected uint _renderTargetDepth;
+        protected QueueDispatcher _dispatcher = new();
 
         protected FilamentOptions _options;
 
@@ -210,6 +211,7 @@ namespace XrEngine.Filament
 
         protected Guid GetOrCreate<T>(T obj, Action<Guid> factory) where T : EngineObject
         {
+            obj.EnsureId();
             if (!_content!.Objects!.TryGetValue(obj, out var curId))
             {
                 factory(obj.Id);
@@ -235,9 +237,12 @@ namespace XrEngine.Filament
 
             if (texture != null)
             {
+                texture.EnsureId();
+
                 result.Width = texture.Width;
                 result.Height = texture.Height;
                 result.Levels = 100;
+                result.TextureId = texture.Id;
 
                 result.InternalFormat = texture.Format switch
                 {
@@ -246,6 +251,7 @@ namespace XrEngine.Filament
                     TextureFormat.RgbFloat32 => FlTextureInternalFormat.RGB32F,
                     TextureFormat.RgbaFloat32 => FlTextureInternalFormat.RGBA32F,
                     TextureFormat.RgbFloat16 => FlTextureInternalFormat.RGB16F,
+                    TextureFormat.Bgra32 => FlTextureInternalFormat.RGBA8,
                     _ => throw new NotSupportedException(),
                 };
                 if (texture.Data != null)
@@ -260,6 +266,8 @@ namespace XrEngine.Filament
                         TextureFormat.RgbFloat32 => FlPixelFormat.RGB,
                         TextureFormat.RgbaFloat32 => FlPixelFormat.RGBA,
 
+                        TextureFormat.Bgra32 => FlPixelFormat.RGBA,
+
                         _ => throw new NotSupportedException(),
                     };
 
@@ -272,6 +280,7 @@ namespace XrEngine.Filament
                             => FlPixelType.FLOAT,
 
                         TextureFormat.Rgba32 or
+                        TextureFormat.Bgra32 or
                         TextureFormat.SRgba32
                             => FlPixelType.UBYTE,
 
@@ -280,6 +289,7 @@ namespace XrEngine.Filament
                     result.Data.DataSize = (uint)mainData.Data!.Length;
                     result.Data.Data = MemoryManager.Allocate(mainData.Data.Length, this);
                     result.Data.AutoFree = true;
+    
 
                     var dstMem = new Span<byte>(result.Data.Data.ToPointer(), mainData.Data.Length);
                     mainData.Data.Span.CopyTo(dstMem);
@@ -482,6 +492,27 @@ namespace XrEngine.Filament
                     };
                 }
 
+                if (mat is TextureMaterial tex)
+                {
+                    return new MaterialInfo
+                    {
+                        Blending = tex.Alpha switch
+                        {
+                            AlphaMode.Opaque => FlBlendingMode.OPAQUE,
+                            AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
+                            AlphaMode.Mask => FlBlendingMode.MASKED,
+                            _ => throw new NotSupportedException()
+                        },
+                        BaseColorMap = AllocateTexture(tex.Texture),
+                        Color = Color.White,    
+                        DoubleSided = tex.DoubleSided,
+                        IsLit = false,
+                        WriteDepth = tex.WriteDepth,
+                        WriteColor = tex.WriteColor,
+                        UseDepth = tex.UseDepth,
+                    };
+                }
+
                 throw new NotSupportedException();
             }
 
@@ -493,6 +524,19 @@ namespace XrEngine.Filament
                 matInfo = UpdateMatInfo();
                 UpdateMaterial(_app, mat.Id, ref matInfo);
             };
+
+            if (mat is TextureMaterial tex)
+            {
+                tex.Texture!.Changed += (s, c) =>
+                {
+                    var texInfo = AllocateTexture(tex.Texture); 
+                    if (!UpdateTexture(_app, tex.Texture.Id, ref texInfo.Data))
+                    {
+                        matInfo = UpdateMatInfo();
+                        UpdateMaterial(_app, mat.Id, ref matInfo);
+                    }
+                };
+            }
         }
 
         protected void Create(Guid id, TriangleMesh mesh)
@@ -517,6 +561,15 @@ namespace XrEngine.Filament
 
             if (mesh.Parent is not Scene3D)
                 SetObjParent(_app, id, mesh.Parent!.Id);
+
+            mesh.Changed += (s, c) =>
+            {
+                if (c.IsAny(ObjectChangeType.Render) && mesh.Materials.Count > 0)
+                {
+                    var matId = GetOrCreate(mesh.Materials[0], matId => Create(matId, mesh.Materials[0]));
+                    SetMeshMaterial(_app, id, matId);
+                }
+            };
         }
 
         protected void Create(Guid id, Object3D obj)
@@ -575,6 +628,7 @@ namespace XrEngine.Filament
 
         public unsafe void Render(Scene3D scene, Camera camera, Rect2I viewport, bool flush)
         {
+    
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);
 
@@ -624,6 +678,9 @@ namespace XrEngine.Filament
             FilamentLib.Render(_app, render, 1, flush);
 
             _viewport = viewport;
+
+            _dispatcher.ProcessQueue();
+
         }
 
         public void SetRenderTarget(Texture2D texture)
@@ -640,6 +697,6 @@ namespace XrEngine.Filament
 
         public Rect2I View => _viewport;
 
-        public IDispatcher Dispatcher => throw new NotSupportedException();
+        public IDispatcher Dispatcher => _dispatcher;
     }
 }

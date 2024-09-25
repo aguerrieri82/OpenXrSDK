@@ -34,14 +34,19 @@ namespace XrEngine.Browser.Win
                 });
             }
 
-            _host!.Materials.Clear();
-            _host.Materials.Add(new TextureMaterial()
+            if (_host!.Materials.Count == 0 || _host.Materials[0] is not TextureMaterial)
             {
-                Texture = new Texture2D()
+                _host.Materials.Clear();
+                _host.Materials.Add(new TextureMaterial()
                 {
-                    Name = "Browser"
-                }
-            });
+                    Texture = new Texture2D()
+                    {
+                        Name = "Browser",
+                        Format = TextureFormat.Rgba32
+                    }
+                });
+            }
+
 
             _input = _host!.DescendantsOrSelfComponents<ISurfaceInput>().First();
 

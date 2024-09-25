@@ -305,8 +305,9 @@ void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 	LightManager::ShadowOptions shadowOptions;
 
 	shadowOptions.shadowFar = 10;
-	shadowOptions.shadowFarHint = 5;
-	shadowOptions.shadowNearHint = 0.05;
+	shadowOptions.shadowFarHint = 4;
+	shadowOptions.shadowNearHint = 0.10;
+
 
 	LightManager::Builder(info.type)
 		.color({ info.color.r ,info.color.g, info.color.b })
@@ -740,6 +741,13 @@ void AddGroup(FilamentApp* app, OBJID id) {
 	app->entities[id] = group;
 }
 
+void SetMeshMaterial(FilamentApp* app, const OBJID id, const OBJID matId) {
+	auto mat = app->materialsInst[matId];
+	auto& rm = app->engine->getRenderableManager();
+	auto& obj = app->entities[id];
+	rm.setMaterialInstanceAt(rm.getInstance(obj), 0, mat);	
+}
+
 
 void AddMesh(FilamentApp* app, OBJID id, const MeshInfo& info)
 {
@@ -761,6 +769,7 @@ void AddMesh(FilamentApp* app, OBJID id, const MeshInfo& info)
 	auto& tcm = app->engine->getTransformManager();
 	auto& rm = app->engine->getRenderableManager();
 	rm.setLayerMask(rm.getInstance(mesh), MAIN_LAYER, MAIN_LAYER);
+
 
 	//tcm.create(mesh);
 	app->scene->addEntity(mesh);
@@ -805,7 +814,38 @@ static Texture* CreateTexture(FilamentApp* app, const TextureInfo& info) {
 	if (info.levels > 1)
 		texture->generateMipmaps(*app->engine);
 
+	app->textures[info.textureId] = texture;
+	
 	return texture;
+}
+
+static Texture* GetOrCreateTexture(FilamentApp* app, const TextureInfo& info) {
+
+	if (app->textures.count(info.textureId) > 0) {
+		auto texture = app->textures[info.textureId];
+		if (info.data.dataSize > 0)
+			UpdateTexture(app, info.textureId, info.data);
+		return texture;
+	}
+	
+	return CreateTexture(app, info);
+}
+
+bool UpdateTexture(FilamentApp* app, OBJID textId, const ImageData& data) {
+
+	if (app->textures.count(textId) == 0)
+		return false;
+
+	Texture* texture = app->textures[textId];
+	Texture::PixelBufferDescriptor buffer(data.data, data.dataSize,
+		data.format, data.type, data.autoFree ? DeleteBuffer : nullptr, (void*)"TEX");
+
+	texture->setImage(*app->engine, 0, std::move(buffer));
+
+	if (texture->getLevels() > 1)
+		texture->generateMipmaps(*app->engine);
+
+	return true;
 }
 
 static void replaceAll(std::string& shader, const std::string& from, const std::string& to) {
@@ -908,7 +948,7 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
     )SHADER";
 
 
-	if (info.baseColorMap.data.data != nullptr) {
+	if (info.baseColorMap.textureId != (OBJID)0) {
 		shader += R"SHADER(
             material.baseColor *= texture(materialParams_baseColorMap, uv0);
         )SHADER";
@@ -998,7 +1038,7 @@ void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcep
 	if (info.normalMap.data.data != nullptr)
 		hash += "_nm";
 
-	if (info.baseColorMap.data.data != nullptr)
+	if (info.baseColorMap.textureId != 0)
 		hash += "_cm";
 
 	if (info.metallicRoughnessMap.data.data != nullptr)
@@ -1107,7 +1147,7 @@ void UpdateMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info)
 		instance->setMaskThreshold(info.alphaCutoff);
 
 	if (info.baseColorMap.data.data != nullptr)
-		instance->setParameter("baseColorMap", CreateTexture(app, info.baseColorMap), sampler);
+		instance->setParameter("baseColorMap", GetOrCreateTexture(app, info.baseColorMap), sampler);
 
 	if (info.isLit) {
 
@@ -1118,17 +1158,17 @@ void UpdateMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info)
 		instance->setParameter("emissiveFactor", float3(info.emissiveFactor.r, info.emissiveFactor.g, info.emissiveFactor.b));
 
 		if (info.normalMap.data.data != nullptr) {
-			instance->setParameter("normalMap", CreateTexture(app, info.normalMap), sampler);
+			instance->setParameter("normalMap", GetOrCreateTexture(app, info.normalMap), sampler);
 			instance->setParameter("normalScale", info.normalScale);
 		}
 
 
 		if (info.metallicRoughnessMap.data.data != nullptr)
-			instance->setParameter("metallicRoughnessMap", CreateTexture(app, info.metallicRoughnessMap), sampler);
+			instance->setParameter("metallicRoughnessMap", GetOrCreateTexture(app, info.metallicRoughnessMap), sampler);
 
 		if (info.aoMap.data.data != nullptr) {
 			instance->setParameter("aoStrength", info.aoStrength);
-			instance->setParameter("aoMap", CreateTexture(app, info.aoMap), sampler);
+			instance->setParameter("aoMap", GetOrCreateTexture(app, info.aoMap), sampler);
 		}
 	}
 }
