@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using XrMath;
 
 namespace XrEngine.Filament
@@ -330,6 +331,7 @@ namespace XrEngine.Filament
             public FlTextureInternalFormat InternalFormat;
             public uint Levels;
             public ImageData Data;
+            public Guid TextureId;  
         };
 
         public struct MaterialInfo
@@ -464,6 +466,13 @@ namespace XrEngine.Filament
 
         [DllImport("filament-native")]
         public static extern void UpdateImageLight(IntPtr app, ref ImageLightInfo info);
+
+        [DllImport("filament-native")]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool UpdateTexture(IntPtr app, Guid id, ref ImageData info);
+
+        [DllImport("filament-native")]
+        public static extern void SetMeshMaterial(IntPtr app, Guid id, Guid matId);
 
     }
 }

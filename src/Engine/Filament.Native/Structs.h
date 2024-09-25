@@ -13,7 +13,6 @@ struct std::less<OBJID>
 	bool operator()(const OBJID& a, const OBJID& b) const { return (memcmp(&a, &b, 16) < 0); }
 };
 
-
 enum class ReleaseContextMode {
 	NotRelease = 0,
 	ReleaseOnExecute = 1,
@@ -209,6 +208,7 @@ struct TextureInfo {
 	Texture::InternalFormat internalFormat;
 	uint32_t levels;
 	ImageData data;
+	OBJID textureId;	
 };
 
 
@@ -277,6 +277,7 @@ struct FilamentApp {
 	Camera* camera;
 	std::vector<RenderView> views;
 	std::vector<filament::RenderTarget*> renderTargets;
+	std::map<OBJID, Texture*> textures;	
 	std::map<OBJID, Entity> entities;
 	std::map<OBJID, Geometry> geometries;
 	std::map<OBJID, MaterialInstance*> materialsInst;

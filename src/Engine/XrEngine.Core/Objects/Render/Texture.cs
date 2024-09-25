@@ -24,8 +24,7 @@
             MagFilter = ScaleFilter.Linear;
             MinFilter = data.Count > 1 ? ScaleFilter.LinearMipmapLinear : ScaleFilter.Linear;
             WrapS = WrapMode.ClampToEdge;
-
-            Version++;
+            NotifyChanged(ObjectChangeType.Property);
         }
 
         protected override void OnChanged(ObjectChange change)

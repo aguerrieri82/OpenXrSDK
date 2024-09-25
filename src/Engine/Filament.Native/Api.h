@@ -39,5 +39,7 @@ extern "C" {
 
 	EXPORT void APIENTRY ReleaseContext(FilamentApp* app, ReleaseContextMode release);
 
+	EXPORT bool APIENTRY UpdateTexture(FilamentApp* app, OBJID textId, const ImageData& data);
 
+	EXPORT void APIENTRY SetMeshMaterial(FilamentApp* app, const OBJID id, const OBJID matId);
 }
