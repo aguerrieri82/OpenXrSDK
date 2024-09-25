@@ -13,9 +13,9 @@
         float farPlane;
     } uMatrices;
 
-    void computePos() 
+    void computePos(vec4 pos) 
     {
-       gl_Position = uMatrices.viewProj[VIEW_ID] * uModel * vec4(a_position, 1.0);
+       gl_Position = uMatrices.viewProj[VIEW_ID] * pos;
        #ifdef ZLOG_F
             gl_Position.z = log(ZLOG_F*gl_Position.z + 1.0) / log(ZLOG_F*uMatrices.farPlane + 1.0) * gl_Position.w;
        #endif
@@ -31,9 +31,9 @@
     uniform float uFarPlane;
     uniform vec3 uViewPos;
 
-    void computePos() 
+    void computePos(vec4 pos) 
     {
-       gl_Position = uViewProj * uModel * vec4(a_position, 1.0);
+       gl_Position = uViewProj * pos;
        #ifdef ZLOG_F
             gl_Position.z = log2(max(ZLOG_F, 1.0 + gl_Position.w)) / log2(uFarPlane + 1.0) * gl_Position.w;
        #endif

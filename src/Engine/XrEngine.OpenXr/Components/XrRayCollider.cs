@@ -7,6 +7,7 @@ namespace XrEngine.OpenXr
     public class XrRayCollider : Behavior<Scene3D>
     {
         protected XrPoseInput? _input;
+        private IRayTarget[] _sceneTargets;
         protected readonly RayView _rayView;
 
         public XrRayCollider()
@@ -31,6 +32,9 @@ namespace XrEngine.OpenXr
             _input = (XrPoseInput)XrApp.Current!.Inputs[InputName!];
 
             _host!.AddChild(_rayView);
+
+            _sceneTargets = _host!.Scene!.Components<IComponent>().OfType<IRayTarget>().ToArray();
+
         }
 
         protected override void Update(RenderContext ctx)
@@ -46,15 +50,26 @@ namespace XrEngine.OpenXr
                     Direction = _rayView.Forward,
                 };
 
-                var result = _host!.RayCollisions(ray).FirstOrDefault();
+                Collision? result = null;
+
+                var results = _host!.RayCollisions(ray).ToArray();
+                if (results.Length > 0)
+                {
+                    var minDistance = results.Min(a => a.Distance);
+                    result = results.Where(a => a.Distance == minDistance).FirstOrDefault();
+                }
                 if (result != null)
                 {
                     _rayView.UpdateColor(new Color(0, 1, 0));
 
                     _rayView.Length = result.Distance;
 
-                    var rayTarget = result.Object!.Components<IRayTarget>().FirstOrDefault();
+                    var rayTarget = result.Object!.Feature<IRayTarget>();
+                    
                     rayTarget?.NotifyCollision(ctx, result);
+
+                    foreach (var target in _sceneTargets)
+                        target.NotifyCollision(ctx, result);    
                 }
                 else
                 {

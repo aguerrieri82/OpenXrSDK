@@ -1,5 +1,7 @@
 ﻿using OpenXr.Framework;
 using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using XrEditor.Services;
 using XrEngine;
 using XrEngine.OpenXr;
@@ -38,6 +40,7 @@ namespace XrEditor
         protected override void OnStartup(StartupEventArgs e)
         {
             MainWindow.Style = this.Resources["CustomWindowStyle"] as Style;
+            MainWindow.Icon = BitmapFrame.Create(new Uri("pack://application:,,,/XrEditor.ico", UriKind.RelativeOrAbsolute));
             MainWindow.Show();
             base.OnStartup(e);
         }

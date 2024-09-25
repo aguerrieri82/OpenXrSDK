@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using SkiaSharp;
+using XrMath;
 
 namespace XrEngine
 {
@@ -91,6 +92,7 @@ namespace XrEngine
                 return;
 
             _context.Frame++;
+            _context.Scene = _activeScene;
 
             if (_playState == PlayState.Start)
             {
@@ -98,6 +100,7 @@ namespace XrEngine
 
                 _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
                 _context.DeltaTime = _context.Time - oldTime;
+    
 
                 _activeScene.Update(_context);
             }

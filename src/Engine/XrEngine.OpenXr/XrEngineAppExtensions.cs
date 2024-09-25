@@ -59,11 +59,11 @@ namespace XrEngine.OpenXr
         });
 
 
-        public static XrEngineAppBuilder UseRayCollider(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
+        public static XrEngineAppBuilder UseRayCollider(this XrEngineAppBuilder self, string inputName = "RightAimPose") => self.ConfigureApp(e =>
         {
             var inputs = e.GetInputs<XrOculusTouchController>();
 
-            var rayCol = e.App!.ActiveScene!.AddComponent(new XrRayCollider() { InputName = "RightAimPose" });
+            var rayCol = e.App!.ActiveScene!.AddComponent(new XrRayCollider() { InputName = inputName });
         });
 
         public static XrEngineAppBuilder UseHands(this XrEngineAppBuilder self) => self.ConfigureApp(e =>

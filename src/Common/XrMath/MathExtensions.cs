@@ -14,9 +14,6 @@ namespace XrMath
             var distance1 = Plane.DotCoordinate(plane, point1);
             var distance2 = Plane.DotCoordinate(plane, point2);
 
-            Vector3 x;
-            
-
             return distance1 * distance2 < 0;
         }
 
@@ -261,6 +258,24 @@ namespace XrMath
         {
             var worldPoint = Vector4.Transform(new Vector4(self, 1), matrix);
             return new Vector3(worldPoint.X, worldPoint.Y, worldPoint.Z) / worldPoint.W;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 Project(this Vector3 pos, Plane plane)
+        {
+            var distance = Plane.DotCoordinate(plane, pos);
+            return pos - distance * plane.Normal;
+        }
+
+        public static float SignedAngleWith(this Vector3 A, Vector3 B, Vector3 planeNormal)
+        {
+            A = Vector3.Normalize(A);
+            B = Vector3.Normalize(B);
+            var cross = Vector3.Cross(A, B);
+            var dot = Vector3.Dot(A, B);
+            var angle = MathF.Atan2(cross.Length(), dot);
+            var sign = MathF.Sign(Vector3.Dot(cross, planeNormal));
+            return angle * sign;
         }
 
         #endregion

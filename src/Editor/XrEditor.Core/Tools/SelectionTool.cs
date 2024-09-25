@@ -40,12 +40,31 @@ namespace XrEditor
             base.NotifySceneChanged();
         }
 
-        private void EnableStencil(IEnumerable<TriangleMesh> items, bool enable)
+        private void SetSelected(IEnumerable<TriangleMesh> items, bool selected)
         {
             foreach (var item in items)
             {
-                foreach (var material in item.Materials)
-                    material.WriteStencil = enable ? 1 : null;
+                var outline = item.Materials.OfType<OutlineMaterial>().FirstOrDefault();
+                if (outline == null)
+                {
+                    outline = new OutlineMaterial()
+                    {
+                        Color = new Color(1, 1, 0, 0.7f),
+                        CompareStencil = 1,
+                        StencilFunction = StencilFunction.NotEqual,
+                        Alpha = AlphaMode.Blend,
+                        Size = 5,
+                    };
+                    item.Materials.Add(outline);
+                }
+                outline.IsEnabled = selected;
+
+                foreach (var mat in item.Materials)
+                {
+                    if (mat is OutlineMaterial)
+                        continue;
+                    mat.WriteStencil = selected ? 1 : null;
+                }   
             }
         }
 
@@ -65,11 +84,11 @@ namespace XrEditor
                     .OfType<TriangleMesh>();
 
                 if (_lastOutline != null)
-                    EnableStencil(_lastOutline, false);
+                    SetSelected(_lastOutline, false);
                 
                 _lastOutline = outlineMeshes.ToArray();
 
-                EnableStencil(_lastOutline, true);
+                SetSelected(_lastOutline, true);
 
                 _selectionLayer.EndUpdate();
             }

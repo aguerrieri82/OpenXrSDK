@@ -57,16 +57,17 @@ namespace XrEngine
 
         bool IsNotifyChangedScene()
         {
-            if ((Flags & EngineObjectFlags.NotifyChangedScene) != 0)
-                return false;
+            var curItem = this;
 
-            if ((Flags & EngineObjectFlags.DisableNotifyChangedScene) != 0)
-                return false;
-
-            if (this.Ancestors().Any(a => (a.Flags & EngineObjectFlags.DisableNotifyChangedScene) != 0))
+            while (curItem != null)
             {
-                Flags |= EngineObjectFlags.DisableNotifyChangedScene;
-                return false;
+                if ((curItem.Flags & EngineObjectFlags.NotifyChangedScene) != 0)
+                    return true;
+
+                if ((curItem.Flags & EngineObjectFlags.DisableNotifyChangedScene) != 0)
+                    return false;
+            
+                curItem = curItem.Parent;
             }
 
             return true;

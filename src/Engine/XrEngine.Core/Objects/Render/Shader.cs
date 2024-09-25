@@ -6,6 +6,8 @@
 
         public string? FragmentSourceName { get; set; }
 
+        public string? GeometrySourceName { get; set; }
+
         public Func<string, string>? Resolver { get; set; }
 
         public bool IsLit { get; set; }

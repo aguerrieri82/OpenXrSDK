@@ -9,5 +9,7 @@
         public double Time { get; internal set; }
 
         public double DeltaTime { get; internal set; }
+
+        public Scene3D? Scene { get; internal set; }
     }
 }

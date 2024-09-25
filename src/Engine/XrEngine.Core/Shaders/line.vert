@@ -11,6 +11,6 @@ out vec4 fColor;
 
 void main()
 {
-    computePos();
+    computePos(uModel * vec4(a_position, 1.0));
     fColor = a_color_0;
 }

@@ -37,7 +37,7 @@ namespace XrEngine.OpenGL
             _handle = _gl.CreateProgram();
             GlDebug.Log($"CreateProgram {_handle}");
 
-            foreach (var shader in shaders)
+            foreach (var shader in shaders.Where(a=> a != 0))
                 _gl.AttachShader(_handle, shader);
 
             _gl.LinkProgram(_handle);
@@ -48,8 +48,9 @@ namespace XrEngine.OpenGL
                 throw new Exception(log);
             }
 
-            foreach (var shader in shaders)
+            foreach (var shader in shaders.Where(a => a != 0))
                 _gl.DetachShader(_handle, shader);
+
         }
 
         public void Use()
@@ -149,10 +150,13 @@ namespace XrEngine.OpenGL
 
             var glText = OpenGLRender.Current!.GetGlResource(tex2d);
 
-            GlState.Current!.SetActiveTexture(glText, slot);
+            bool isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
 
-            if (tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0)
+            GlState.Current!.SetActiveTexture(glText, slot, isUpdate);
+
+            if (isUpdate)
                 glText.Update(tex2d, false);
+
         }
 
         public void SetUniform(string name, int value, bool optional = false)

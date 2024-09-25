@@ -3,6 +3,7 @@ using OpenXr.Framework.Oculus;
 using PhysX.Framework;
 using Silk.NET.OpenXR;
 using System.Numerics;
+using XrEngine.OpenXr.Components;
 using XrEngine.Physics;
 using XrMath;
 
@@ -77,15 +78,15 @@ namespace XrEngine.OpenXr
 
                 var location = _app!.LocateSpace(meshAnchor.Space, _app.Stage, 1);
 
-                var mesh = new TriangleMesh(geo, Material);
-                mesh.Name = "global-mesh";
-                mesh.Transform.Position = location.Pose.Position;
-                mesh.Transform.Orientation = location.Pose.Orientation;
+                var mesh = new TriangleMesh(geo, Material)
+                {
+                    Name = "global-mesh"
+                };
 
-                if (Material is ColorMaterial color && color.Color.A == 0)
-                    mesh.IsVisible = false;
-
-                mesh.AddComponent(new MeshCollider());
+                mesh.AddComponent(new XrAnchorUpdate
+                {
+                    Space = meshAnchor.Space
+                });
 
                 if (AddPhysics)
                 {
@@ -99,8 +100,9 @@ namespace XrEngine.OpenXr
                         StaticFriction = 1,
                         Restitution = 0.7f
                     };
-                }
 
+                    mesh.AddComponent(new MeshCollider());
+                }
 
                 AddChild(mesh);
 

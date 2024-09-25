@@ -13,6 +13,7 @@ namespace XrEngine.OpenGL
     {
         readonly string _vSource;
         readonly string _fSource;
+        readonly string? _gSource;
 
         public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string> resolver)
             : base(gl, resolver)
@@ -20,6 +21,13 @@ namespace XrEngine.OpenGL
             _fSource = fSource;
             _vSource = vSource;
         }
+
+        public GlSimpleProgram(GL gl, string vSource, string fSource, string? gSource, Func<string, string> resolver)
+            : this(gl, vSource, fSource , resolver)
+        {
+            _gSource = gSource; 
+        }
+
 
         [MemberNotNull(nameof(Vertex))]
         [MemberNotNull(nameof(Fragment))]
@@ -29,13 +37,17 @@ namespace XrEngine.OpenGL
 
             var vSource = PatchShader(_vSource, ShaderType.VertexShader);
             var fSource = PatchShader(_fSource, ShaderType.FragmentShader);
+            var gSource = _gSource != null ? PatchShader(_gSource, ShaderType.GeometryShader) : null;
 
             //vSource = ShaderPreprocessor.ParseShader(vSource);
 
             Vertex = GlShader.GetOrCreate(_gl, ShaderType.VertexShader, vSource);
             Fragment = GlShader.GetOrCreate(_gl, ShaderType.FragmentShader, fSource);
+            
+            if (gSource != null)    
+                Geometry = GlShader.GetOrCreate(_gl, ShaderType.GeometryShader, gSource);
 
-            Create(Vertex, Fragment);
+            Create(Vertex, Fragment, Geometry?.Handle ?? 0);
 
             _values.Clear();
             _locations.Clear();
@@ -48,9 +60,11 @@ namespace XrEngine.OpenGL
         {
             Vertex?.Dispose();
             Fragment?.Dispose();
+            Geometry?.Dispose();    
 
             Vertex = null;
             Fragment = null;
+            Geometry = null;    
 
             base.Dispose();
         }
@@ -58,5 +72,7 @@ namespace XrEngine.OpenGL
         public GlShader? Vertex { get; set; }
 
         public GlShader? Fragment { get; set; }
+
+        public GlShader? Geometry { get; set; }
     }
 }

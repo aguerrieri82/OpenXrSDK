@@ -1,14 +1,5 @@
 precision highp float;
 
-
-#ifdef MULTI_VIEW
-
-    #define NUM_VIEWS 2
-    #define VIEW_ID gl_ViewID_OVR
-
-    layout(num_views=NUM_VIEWS) in;
-#endif
-
 out vec2 inUV;
 
 void main()
