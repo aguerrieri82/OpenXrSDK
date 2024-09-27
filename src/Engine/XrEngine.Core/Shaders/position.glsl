@@ -2,7 +2,6 @@
 #ifdef MULTI_VIEW
 
     #define NUM_VIEWS 2
-    #define VIEW_ID gl_ViewID_OVR
 
     layout(num_views=NUM_VIEWS) in;
 
@@ -13,34 +12,53 @@
         float farPlane;
     } uMatrices;
 
-    void computePos(vec4 pos) 
+    vec3 getViewPos() 
     {
-       gl_Position = uMatrices.viewProj[VIEW_ID] * pos;
-       #ifdef ZLOG_F
-            gl_Position.z = log(ZLOG_F*gl_Position.z + 1.0) / log(ZLOG_F*uMatrices.farPlane + 1.0) * gl_Position.w;
-       #endif
+       return uMatrices.position[gl_ViewID_OVR];   
+    }
 
-       #ifdef FORCE_Z
-           gl_Position.z = FORCE_Z * gl_Position.w;
-       #endif
+    mat4 getViewProj() 
+    {
+       return uMatrices.viewProj[gl_ViewID_OVR];   
+    }
+
+    float getFarPlane() 
+    {
+       return uMatrices.farPlane;
     }
 
 #else
 
     uniform mat4 uViewProj;
-    uniform float uFarPlane;
     uniform vec3 uViewPos;
+    uniform float uFarPlane;    
 
-    void computePos(vec4 pos) 
+    vec3 getViewPos() 
     {
-       gl_Position = uViewProj * pos;
-       #ifdef ZLOG_F
-            gl_Position.z = log2(max(ZLOG_F, 1.0 + gl_Position.w)) / log2(uFarPlane + 1.0) * gl_Position.w;
-       #endif
+       return uViewPos;   
+    }
 
-       #ifdef FORCE_Z
-           gl_Position.z = FORCE_Z * gl_Position.w;
-       #endif
+    mat4 getViewProj() 
+    {
+       return uViewProj;   
+    }
+
+    float getFarPlane() 
+    {
+       return uFarPlane;   
     }
 
 #endif
+
+void computePos(vec4 pos) 
+{
+    gl_Position = getViewProj() * pos;
+    
+    #ifdef ZLOG_F
+        gl_Position.z = log2(max(ZLOG_F, 1.0 + gl_Position.w)) / log2(getFarPlane() + 1.0) * gl_Position.w;
+    #endif
+
+    #ifdef FORCE_Z
+        gl_Position.z = FORCE_Z * gl_Position.w;
+    #endif
+}

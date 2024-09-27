@@ -49,12 +49,13 @@ namespace XrEngine
                 bld.AddFeature("EXTERNAL");
             }
 
-            bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
-            bld.ExecuteAction((a, v) =>
+            bld.ExecuteAction((ctx, up) =>
             {
-                v.SetUniform("uTexture", Texture!, 0);
-                v.SetUniform("uOffset", Offset);
-                v.SetUniform("uScale", Scale);
+                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
+                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
+                up.SetUniform("uTexture", Texture!, 0);
+                up.SetUniform("uOffset", Offset);
+                up.SetUniform("uScale", Scale);
             });
         }
 

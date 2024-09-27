@@ -55,6 +55,9 @@ namespace XrEngine.OpenXr
                 PoseInput = inputs!.Right!.AimPose,
                 RightButton = inputs!.Right!.SqueezeClick!,
                 LeftButton = inputs!.Right!.TriggerClick!,
+                AButton = inputs!.Right!.Button!.AClick!,
+                BButton = inputs!.Right!.Button!.BClick!,
+
             });
         });
 

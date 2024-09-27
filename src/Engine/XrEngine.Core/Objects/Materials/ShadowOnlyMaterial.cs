@@ -7,7 +7,7 @@ using XrMath;
 
 namespace XrEngine.Objects
 {
-    public class ShadowOnlyMaterial : ShaderMaterial
+    public class ShadowOnlyMaterial : ShaderMaterial, IShadowMaterial
     {
         static readonly Shader SHADER;
 
@@ -41,6 +41,7 @@ namespace XrEngine.Objects
 
             bld.ExecuteAction((ctx, up) =>
             {
+                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uShadowColor", ShadowColor);
                 up.SetUniform("uShadowMap", ctx.ShadowMapProvider!.ShadowMap!, 14);
@@ -49,6 +50,16 @@ namespace XrEngine.Objects
         }
 
         public Color ShadowColor { get; set; }
+
+        bool IShadowMaterial.ReceiveShadows
+        {
+            get => true;
+            set
+            {
+                if (!value)
+                    throw new NotSupportedException();
+            }
+        }
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
     }

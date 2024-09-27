@@ -142,7 +142,7 @@ namespace XrEngine
             return (self.Flags & flags) == flags;
         }
 
-        public static void SetGlobalPoseIfChanged(this Object3D self, Pose3 pose, float epsilon = 0.0001f)
+        public static void SetGlobalPoseIfChanged(this Object3D self, Pose3 pose, float epsilon = 0.001f)
         {
             var deltaPos = (pose.Position - self.WorldPosition).Length();
             var deltaOri = (pose.Orientation - self.WorldOrientation).Length();
@@ -214,13 +214,18 @@ namespace XrEngine
 
         #region GROUP
 
-        public static void Clear(this Group3D self)
+        public static void Clear(this Group3D self, bool dispose = false)
         {
             self.BeginUpdate();
             try
             {
                 for (var i = self.Children.Count - 1; i >= 0; i--)
-                    self.RemoveChild(self.Children[i]);
+                {
+                    if (dispose)
+                        self.Children[i].Dispose();
+                    else
+                        self.RemoveChild(self.Children[i]);
+                }
             }
             finally
             {
@@ -946,7 +951,7 @@ namespace XrEngine
 
         public static T Load<T>(this AssetLoader self, string filePath, IAssetLoaderOptions? options = null) where T : EngineObject
         {
-            return (T)self.Load(new Uri(filePath, UriKind.RelativeOrAbsolute), typeof(T), null, options);
+            return (T)self.Load(new Uri(filePath, UriKind.Absolute), typeof(T), null, options);
         }
 
 

@@ -33,7 +33,7 @@ namespace XrEngine
                 {
                     var itemState = arrayState.Enter(childKey, true);
                     var itemId = itemState.Read<Guid>("Id");
-                    var curItem = curItems!.FirstOrDefault(a => a.Id == itemId);
+                    var curItem = curItems!.FirstOrDefault(a => a.Id.Value == itemId);
 
                     if (curItem == null)
                     {
@@ -126,7 +126,7 @@ namespace XrEngine
                 if (itemState == null)
                     return null;
                 var itemId = itemState.Read<Guid>("Id");
-                if (curObj.Id == itemId)
+                if (curObj.Id.Value == itemId)
                     return container.Read(key, curObj);
 
             }

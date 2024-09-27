@@ -33,6 +33,11 @@ namespace XrEngine
             return obj.Value;
         }
 
+        public static implicit operator ObjectId(Guid obj)
+        {
+            return new ObjectId { Value = obj };
+        }
+
         public override readonly string ToString()
         {
             return Value.ToString();

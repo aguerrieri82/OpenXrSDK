@@ -47,8 +47,11 @@ namespace XrEngine
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
+            bld.AddFeature("PASS_VIEW");
+
             bld.ExecuteAction((ctx, up) =>
             {
+                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uColor", Color);
                 up.SetUniform("uSize", Size);

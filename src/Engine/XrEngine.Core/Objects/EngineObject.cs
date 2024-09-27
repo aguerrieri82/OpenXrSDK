@@ -202,6 +202,10 @@
 
         public EngineObjectFlags Flags { get; set; }
 
-        public ObjectId Id => _id;
+        public ObjectId Id
+        {
+            get => _id; 
+            set => _id = value; 
+        }
     }
 }

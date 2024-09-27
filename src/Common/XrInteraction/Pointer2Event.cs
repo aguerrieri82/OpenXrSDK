@@ -7,7 +7,13 @@ namespace XrInteraction
     {
         Left = 0x1,
         Middle = 0x2,
-        Right = 0x4
+        Right = 0x4,
+        Trigger = Left,
+        Squeeze = Right,
+        A = 0x8,
+        B = 0x10,
+        Y = 0x20,
+        C = 0x40,
     }
 
     public struct Pointer2Event

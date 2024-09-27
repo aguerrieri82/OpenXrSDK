@@ -7,6 +7,7 @@ in vec3 fPos[3];
 
 uniform mat4 uViewProj;
 uniform vec3 uViewPos;
+
 uniform float uSize; 
 uniform float uThreshold; 
 

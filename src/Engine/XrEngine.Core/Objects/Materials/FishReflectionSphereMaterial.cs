@@ -101,6 +101,7 @@ namespace XrEngine
             {
                 var camera = ((PerspectiveCamera)ctx.Camera!);
 
+                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uSphereCenter", SphereCenter);
                 up.SetUniform("uSphereRadius", SpherRadius);

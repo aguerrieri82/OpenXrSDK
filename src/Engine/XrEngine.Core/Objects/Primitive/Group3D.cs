@@ -137,6 +137,8 @@ namespace XrEngine
             InvalidateBounds();
         }
 
+
+
         public Bounds3 LocalBounds
         {
             get

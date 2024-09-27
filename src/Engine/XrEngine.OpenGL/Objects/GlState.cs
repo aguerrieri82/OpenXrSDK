@@ -268,11 +268,12 @@ namespace XrEngine.OpenGL
             }
         }
 
-        public void SetLineWidth(float value, bool force = false)
+        public void SetLineWidth(float value, bool force = true)
         {
             if (LineWidth != value || force)
             {
                 _gl.LineWidth(value);
+                EnableFeature(EnableCap.LineSmooth, true);
                 LineWidth = value;
             }
         }

@@ -43,6 +43,7 @@
         {
             bld.ExecuteAction((ctx, up) =>
             {
+                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
 
                 if (((PerspectiveCamera)ctx.Camera!).ActiveEye == 0)

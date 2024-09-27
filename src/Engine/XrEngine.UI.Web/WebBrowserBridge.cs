@@ -82,7 +82,9 @@ namespace XrEngine.UI.Web
                     
                     if (result is Task task)
                     {
-                        if (task.GetType().GetGenericArguments()[0].Name == "VoidTaskResult")
+                        var pName = task.GetType().GetGenericArguments()[0].Name;
+
+                        if (pName  == "VoidTaskResult" || pName == "Task")
                         {
                             await task;
                             result = null;

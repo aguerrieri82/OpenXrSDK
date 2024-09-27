@@ -154,8 +154,10 @@
       </AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>android-build.cmd</Command>
+      <Command>
+      </Command>
       <Outputs>libs\arm64-v8a\*</Outputs>
+      <Inputs>*.cpp</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -179,8 +181,10 @@
       </AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>android-build.cmd</Command>
+      <Command>
+      </Command>
       <Outputs>libs\arm64-v8a\*</Outputs>
+      <Inputs>*.cpp</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -208,8 +212,10 @@
       </AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>android-build.cmd</Command>
+      <Command>
+      </Command>
       <Outputs>libs\arm64-v8a\*</Outputs>
+      <Inputs>*.cpp</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -237,8 +243,10 @@
       </AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>android-build.cmd</Command>
+      <Command>
+      </Command>
       <Outputs>libs\arm64-v8a\*</Outputs>
+      <Inputs>*.cpp</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -262,8 +270,10 @@
       </AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>android-build.cmd</Command>
+      <Command>
+      </Command>
       <Outputs>libs\arm64-v8a\*</Outputs>
+      <Inputs>*.cpp</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -291,8 +301,10 @@
       </AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>android-build.cmd</Command>
+      <Command>
+      </Command>
       <Outputs>libs\arm64-v8a\*</Outputs>
+      <Inputs>*.cpp</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
