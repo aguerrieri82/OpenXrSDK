@@ -65,6 +65,15 @@ namespace OpenXr.Framework.Oculus
 
         #endregion
 
+        protected class ActiveQuery
+        {
+            public string? Hash { get; set; }
+
+            public object? Completion { get; set; }
+
+            public ulong ReqId { get; set; }
+        }
+
         protected FBScene? _scene;
         protected FBSpatialEntity? _spatial;
         protected FBSpatialEntityQuery? _spatialQuery;
@@ -77,8 +86,7 @@ namespace OpenXr.Framework.Oculus
         protected FBSwapchainUpdateState? _swapChainUpdate;
         protected FBHandTrackingMesh? _handMesh;
         protected FBSpatialEntityStorage? _spatialStorage;
-        protected readonly ConcurrentDictionary<ulong, TaskCompletionSource<SpaceQueryResultFB[]>> _spaceQueries = [];
-        protected readonly ConcurrentDictionary<ulong, TaskCompletionSource<Result>> _spaceCompStatus = [];
+        protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
 
         protected readonly OculusXrPluginOptions _options;
@@ -123,7 +131,6 @@ namespace OpenXr.Framework.Oculus
         {
             Debug.Assert(_app != null);
 
-
             _app.Xr.TryGetInstanceExtension<FBScene>(null, _app.Instance, out _scene);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntity>(null, _app.Instance, out _spatial);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityQuery>(null, _app.Instance, out _spatialQuery);
@@ -135,7 +142,7 @@ namespace OpenXr.Framework.Oculus
             _app.Xr.TryGetInstanceExtension<FBSwapchainUpdateState>(null, _app.Instance, out _swapChainUpdate);
             _app.Xr.TryGetInstanceExtension<FBHandTrackingMesh>(null, _app.Instance, out _handMesh);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityStorage>(null, _app.Instance, out _spatialStorage);
-
+           
             var func = new PfnVoidFunction();
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
             GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));
@@ -282,17 +289,42 @@ namespace OpenXr.Framework.Oculus
             return reqId;
         }
 
-        //TODO enqueu in some way becouse if is asked already the status is pending
-        [Obsolete("To Refactor")]
-        public Task<Result> SetSpaceComponentStatusAsync(Space space, SpaceComponentTypeFB componentType, bool enabled)
+        protected Task<T> SubmitQuery<T>(string hash, Func<ulong> action)
         {
-            var reqId = SetSpaceComponentStatusRequest(space, componentType, enabled);
+            lock (_queries)
+            {
+                if (!_queries.TryGetValue(hash, out var query))
+                {
+                    var reqId = action();
 
-            _spaceCompStatus[reqId] = new TaskCompletionSource<Result>();
+                    query = new ActiveQuery
+                    {
+                        ReqId = reqId,
+                        Completion = new TaskCompletionSource<T>(),
+                        Hash = hash
+                    };
 
-            return _spaceCompStatus[reqId].Task;
+                    _queries[hash] = query;
+                }
+                return ((TaskCompletionSource<T>)query.Completion!).Task;
+            }
         }
 
+        protected TaskCompletionSource<T>? QueryCompletion<T>(ulong reqId)
+        {
+            lock (_queries)
+            {
+                var query = _queries.Values.FirstOrDefault(a => a.ReqId == reqId);
+
+                if (query == null)
+                    return null;
+
+                _queries.Remove(query.Hash!);
+
+                return (TaskCompletionSource<T>?)query.Completion;
+            }
+
+        }
 
         public unsafe SpaceComponentTypeFB[] EnumerateSpaceSupportedComponentsFB(Space space)
         {
@@ -416,13 +448,17 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
+        public Task<Result> SetSpaceComponentStatusAsync(Space space, SpaceComponentTypeFB componentType, bool enabled)
+        {
+            var hash = $"{space.Handle}_{componentType}";
+
+            return SubmitQuery<Result>(hash, () =>
+                       SetSpaceComponentStatusRequest(space, componentType, enabled));
+        }
+
         public Task<SpaceQueryResultFB[]> QueryAllAnchorsAsync()
         {
-            var reqId = QueryAllAnchorsRequest();
-
-            _spaceQueries[reqId] = new TaskCompletionSource<SpaceQueryResultFB[]>();
-
-            return _spaceQueries[reqId].Task;
+            return SubmitQuery<SpaceQueryResultFB[]>("AllAnchors", QueryAllAnchorsRequest);
         }
 
         public override void HandleEvent(ref EventDataBuffer buffer)
@@ -433,35 +469,36 @@ namespace OpenXr.Framework.Oculus
             if (buffer.Type == StructureType.EventDataSpaceQueryCompleteFB)
             {
                 var data = buffer.Convert().To<EventDataSpaceQueryCompleteFB>();
-                if (_spaceQueries.TryRemove(data.RequestId, out var task))
-                    task.ScheduleCancel(TimeSpan.FromSeconds(5));
+
+                var query = QueryCompletion<Result>(data.RequestId);
+
+                query?.ScheduleCancel(TimeSpan.FromSeconds(5));
             }
 
 
             else if (buffer.Type == StructureType.EventDataSpaceSetStatusCompleteFB)
             {
                 var data = buffer.Convert().To<EventDataSpaceSetStatusCompleteFB>();
-                if (_spaceCompStatus.TryRemove(data.RequestId, out var task))
-                {
-                    task.SetResult(data.Result);
-                }
+
+                var query = QueryCompletion<Result>(data.RequestId);
+
+                query?.SetResult(data.Result);
             }
 
             else if (buffer.Type == StructureType.EventDataSpaceQueryResultsAvailableFB)
             {
                 var data = buffer.Convert().To<EventDataSpaceQueryResultsAvailableFB>();
 
-                if (_spaceQueries.TryRemove(data.RequestId, out var task))
+                var query = QueryCompletion<SpaceQueryResultFB[]>(data.RequestId);
+
+                try
                 {
-                    try
-                    {
-                        var result = GetSpaceQueryResults(data.RequestId);
-                        task.SetResult(result);
-                    }
-                    catch (Exception ex)
-                    {
-                        task.SetException(ex);
-                    }
+                    var result = GetSpaceQueryResults(data.RequestId);
+                    query?.SetResult(result);
+                }
+                catch (Exception ex)
+                {
+                    query?.SetException(ex);
                 }
             }
 

@@ -306,6 +306,9 @@ namespace XrEngine.OpenGL
             foreach (var feature in _features)
                 builder.Append("#define ").Append(feature).Append('\n');
 
+            if (shaderType == ShaderType.VertexShader)
+                builder.Append("#define V_SHADER\n");
+
             PatchShader(shaderType, builder);
 
             var incRe = IncludeRegex();
@@ -323,6 +326,7 @@ namespace XrEngine.OpenGL
                 source = string.Concat(
                     source.AsSpan(0, match.Index),
                     _resolver(incName),
+                    "\n",
                     source.AsSpan(match.Index + match.Length)
                 );
             }

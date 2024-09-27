@@ -287,9 +287,17 @@ namespace XrMath
             return new Line3()
             {
                 From = ray.Origin,
-                To = ray.Origin + ray.Direction * len,
+                To = ray.PointAt(len)
             };
         }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 PointAt(this Ray3 ray, float distance)
+        {
+            return ray.Origin + ray.Direction * distance;
+        }
+
 
         public static Vector3? Intersects(this Ray3 ray, Triangle3 triangle, out float distance, float epsilon = 1e-6f)
         {
@@ -326,6 +334,22 @@ namespace XrMath
             }
             else
                 return null;
+        }
+
+        public static bool Intersects(this Ray3 ray, Plane plane, out Vector3 intersectionPoint)
+        {
+            intersectionPoint = Vector3.Zero;
+            var denominator = Vector3.Dot(ray.Direction, plane.Normal);
+            if (Math.Abs(denominator) < 1e-6)
+                return false;
+            
+            var numerator = -Vector3.Dot(ray.Origin, plane.Normal) - plane.D;
+            var t = numerator / denominator;
+            if (t < 0)
+                return false;
+
+            intersectionPoint = ray.PointAt(t); 
+            return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

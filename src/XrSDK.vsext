@@ -1,0 +1,15 @@
+{
+  "id": "1301e7f6-87c5-42db-bf75-c5b072a4fc0b",
+  "version": "1.0",
+  "name": "My Visual Studio extensions",
+  "description": "A collection of my Visual Studio extensions",
+  "extensions": [
+   
+    {
+      "vsixId": "999396e8-1400-4b23-ae9e-17e823006a12",
+      "name": "GLSL language integration (for VS2022)",
+      "moreInfoUrl": "https://marketplace.visualstudio.com/items?itemName=DanielScherzer.GLSL2022",
+      "downloadUrl": "https://danielscherzer.gallery.vsassets.io:443/_apis/public/gallery/publisher/DanielScherzer/extension/GLSL2022/0.11.174/assetbyname/Microsoft.VisualStudio.Ide.Payload?redirect=true\u0026update=true"
+    }
+  ]
+}

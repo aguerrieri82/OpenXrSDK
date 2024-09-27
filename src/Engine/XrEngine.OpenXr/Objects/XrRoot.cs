@@ -55,7 +55,8 @@ namespace XrEngine.OpenXr
                         {
                             SceneRoot.AddComponent(new XrAnchorUpdate()
                             {
-                                Space = new Space(floor.Space)
+                                Space = new Space(floor.Space),
+                                LogChanges = true
                             });
                         });
                     });

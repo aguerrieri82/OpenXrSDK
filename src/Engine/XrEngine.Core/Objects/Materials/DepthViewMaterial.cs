@@ -25,6 +25,8 @@
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
+            bld.SetUniform("uNormalMatrix", (ctx) => ctx.Model!.NormalMatrix);
+
 
             if (Texture != null)
             {

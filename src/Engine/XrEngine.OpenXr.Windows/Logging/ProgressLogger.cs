@@ -34,6 +34,7 @@ namespace XrEngine.OpenXr.Windows
                 LogLevel.Info => MsLogLevel.Information,
                 LogLevel.Warning => MsLogLevel.Warning, 
                 LogLevel.Error => MsLogLevel.Error,
+                LogLevel.Debug => MsLogLevel.Debug,
                 _  => MsLogLevel.Information,
             };
 

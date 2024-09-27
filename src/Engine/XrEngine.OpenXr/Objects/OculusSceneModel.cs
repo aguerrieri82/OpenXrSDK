@@ -74,8 +74,11 @@ namespace XrEngine.OpenXr
 
                 var isLocatable = oculus.EnumerateSpaceSupportedComponentsFB(meshAnchor.Space).Contains(SpaceComponentTypeFB.LocatableFB);
                 if (isLocatable)
-                    await oculus.SetSpaceComponentStatusAsync(meshAnchor.Space, SpaceComponentTypeFB.LocatableFB, true);
-
+                {
+                    if (!oculus.GetSpaceComponentEnabled(meshAnchor.Space, SpaceComponentTypeFB.LocatableFB))
+                        await oculus.SetSpaceComponentStatusAsync(meshAnchor.Space, SpaceComponentTypeFB.LocatableFB, true);
+                }
+   
                 var location = _app!.LocateSpace(meshAnchor.Space, _app.Stage, 1);
 
                 var mesh = new TriangleMesh(geo, Material)
@@ -101,7 +104,7 @@ namespace XrEngine.OpenXr
                         Restitution = 0.7f
                     };
 
-                    mesh.AddComponent(new MeshCollider());
+                    mesh.AddComponent(new PyMeshCollider());
                 }
 
                 AddChild(mesh);

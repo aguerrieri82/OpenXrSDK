@@ -104,6 +104,34 @@ namespace XrEngine
             _boundsDirty = false;
         }
 
+        public unsafe void Serialize(Stream stream)
+        {
+            using var writer = new BinaryWriter(stream);
+
+            writer.Write("GEOM");
+            writer.Write((int)ActiveComponents);
+            writer.Write(Vertices.Length);
+            
+            fixed (VertexData* pVertex = &Vertices[0])
+                writer.Write(new Span<byte>(pVertex, Vertices.Length * sizeof(VertexData)));
+            
+            writer.Write(Indices.Length);
+
+            if (Indices.Length > 0)
+            {
+                fixed (uint* pIndex = &Indices[0])
+                    writer.Write(new Span<byte>(pIndex, Vertices.Length * sizeof(uint)));
+            }
+            writer.Flush();
+        }
+
+        public void ScaleUV(Vector2 scale)
+        {
+            for (int i = 0; i < _vertices.Length; i++)
+                _vertices[i].UV *= scale;
+            Version++;
+        }   
+
         public Bounds3 Bounds
         {
             get

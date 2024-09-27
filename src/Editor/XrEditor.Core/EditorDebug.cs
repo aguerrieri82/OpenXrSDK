@@ -10,7 +10,7 @@ namespace XrEditor
 {
     public static class EditorDebug
     {   
-        public static readonly GraphicDriver Driver = GraphicDriver.FilamentVulkan;
+        public static readonly GraphicDriver Driver = GraphicDriver.OpenGL;
 
         public static readonly bool AutoStartApp = true;
 

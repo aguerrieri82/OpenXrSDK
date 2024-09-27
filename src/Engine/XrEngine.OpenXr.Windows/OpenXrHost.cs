@@ -23,7 +23,7 @@ namespace XrEngine.OpenXr.Windows
                 .ConfigureLogging((ctx, logging) =>
                 {
                     logging.AddConfiguration(ctx.Configuration)
-                           .AddConsole();
+                           .AddOneLineConsole();
                 })
                 .ConfigureServices((ctx, services) =>
                 {

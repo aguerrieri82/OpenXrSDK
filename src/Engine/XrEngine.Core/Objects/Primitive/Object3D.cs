@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -8,10 +9,12 @@ namespace XrEngine
         protected Bounds3 _worldBounds;
         private Matrix4x4 _worldMatrixInverse;
         private Matrix4x4 _worldMatrix;
+        private Matrix4x4 _normalMatrix;
 
         protected bool _worldDirty;
         protected bool _worldInverseDirty;
         protected bool _boundsDirty;
+        protected bool _normalMatrixDirty;
 
         protected Transform3D _transform;
         protected Group3D? _parent;
@@ -49,6 +52,7 @@ namespace XrEngine
                 _worldMatrix = _transform.Matrix;
 
             _worldInverseDirty = true;
+            _normalMatrixDirty = true;  
             _worldDirty = false;
 
             if (IsNotifyChangedScene())
@@ -137,6 +141,7 @@ namespace XrEngine
             _worldDirty = true;
             _worldInverseDirty = true;
             _boundsDirty = true;
+            _normalMatrixDirty = true;
         }
 
         protected internal void InvalidateBounds()
@@ -147,9 +152,14 @@ namespace XrEngine
 
         protected void UpdateWorldInverse()
         {
-            UpdateWorldMatrix();
-            Matrix4x4.Invert(_worldMatrix, out _worldMatrixInverse);
+            Matrix4x4.Invert(WorldMatrix, out _worldMatrixInverse);
             _worldInverseDirty = false;
+        }
+
+        protected void UpdateNormalMatrix()
+        {
+            _normalMatrix = Matrix4x4.Transpose(WorldMatrixInverse);
+            _normalMatrixDirty = false;
         }
 
         internal void SetParent(Group3D? value, bool preserveTransform)
@@ -282,6 +292,17 @@ namespace XrEngine
                     _transform.SetMatrix(_parent.WorldMatrixInverse * value);
 
                 _worldInverseDirty = true;
+                _normalMatrixDirty = true;  
+            }
+        }
+
+        public Matrix4x4 NormalMatrix
+        {
+            get
+            {
+                if (_normalMatrixDirty)
+                    UpdateNormalMatrix();
+                return _normalMatrix;
             }
         }
 

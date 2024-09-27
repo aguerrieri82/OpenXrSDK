@@ -49,6 +49,7 @@ namespace XrEngine
 
             bld.ExecuteAction((ctx, up) =>
             {
+                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("material.ambient", (Vector3)Ambient);
                 up.SetUniform("material.diffuse", (Vector3)Color);

@@ -1,7 +1,9 @@
 ﻿using CanvasUI;
+using Microsoft.Extensions.Logging;
 using PhysX;
 using UI.Binding;
 using XrEngine;
+using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrMath;
 using CheckBox = CanvasUI.CheckBox;
@@ -256,7 +258,7 @@ namespace XrSamples
                 .AddButton("Apply", () => settings.Apply(scene), s => s.Padding(8, 16).BackgroundColor("#1565C0"))
             .EndChild();
 
-            //XrPlatform.Current!.Logger = new TextBlockLogger(logger!, 25);
+            Context.Implement<ILogger>(new TextBlockLogger(logger!, 25));
         }
 
     }

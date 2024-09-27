@@ -17,6 +17,12 @@ namespace XrEngine.OpenXr
             if (RightButton != null && RightButton.IsActive && RightButton.Value)
                 result.Buttons |= Pointer2Button.Right;
 
+            if (AButton != null && AButton.IsActive && AButton.Value)
+                result.Buttons |= Pointer2Button.A;
+
+            if (BButton != null && BButton.IsActive && BButton.Value)
+                result.Buttons |= Pointer2Button.B;
+
             if (PoseInput != null && PoseInput.IsActive)
             {
                 result.Ray = new Ray3
@@ -47,6 +53,10 @@ namespace XrEngine.OpenXr
         public XrInput<bool>? LeftButton { get; set; }
 
         public XrInput<bool>? RightButton { get; set; }
+
+        public XrInput<bool>? AButton { get; set; }
+
+        public XrInput<bool>? BButton { get; set; }
 
         public int PointerId => _host!.Id.Value.GetHashCode();
     }

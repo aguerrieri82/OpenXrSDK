@@ -146,7 +146,8 @@
       <AdditionalLibraryDirectories>..\..\..\libs\filament-windows\lib\x86_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>android-build.cmd</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>libs\arm64-v8a\*</Outputs>
@@ -171,7 +172,8 @@
       <AdditionalLibraryDirectories>..\..\..\libs\filament-windows\lib\x86_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>android-build.cmd</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>libs\arm64-v8a\*</Outputs>
@@ -200,7 +202,8 @@
       <AdditionalLibraryDirectories>..\..\..\libs\filament-windows\lib\x86_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>android-build.cmd</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>libs\arm64-v8a\*</Outputs>
@@ -229,7 +232,8 @@
       <AdditionalLibraryDirectories>..\..\..\libs\filament-windows\lib\x86_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>android-build.cmd</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>libs\arm64-v8a\*</Outputs>
@@ -254,7 +258,8 @@
       <AdditionalLibraryDirectories>..\..\..\libs\filament-windows\lib\x86_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>android-build.cmd</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>libs\arm64-v8a\*</Outputs>
@@ -283,7 +288,8 @@
       <AdditionalLibraryDirectories>..\..\..\libs\filament-windows\lib\x86_64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>android-build.cmd</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>libs\arm64-v8a\*</Outputs>

@@ -30,7 +30,17 @@ namespace XrEngine.OpenXr.Components
 
             var loc = xrApp.LocateSpace(Space, xrApp.Stage, xrApp.FramePredictedDisplayTime);
             if (loc.IsValid)
-                _host?.SetGlobalPoseIfChanged(loc.Pose);
+            {
+                if (LogChanges)
+                {
+                    var deltaPos = (loc.Pose.Position - _host!.WorldPosition).Length();
+                    var deltaOri = (loc.Pose.Orientation - _host!.WorldOrientation).Length();
+                    if (deltaPos > 0.005 || deltaOri > 0.005)
+                        Log.Debug(this, $"{_host.Name} DP: {deltaPos} - DO: {deltaOri}");
+                }
+                _host?.SetGlobalPoseIfChanged(loc.Pose,  0.005f);
+            }
+
 
             _lastUpdateTime = ctx.Time;
 
@@ -42,5 +52,7 @@ namespace XrEngine.OpenXr.Components
         public Guid AnchorId { get; set; }
 
         public Space Space { get; set; }
+
+        public bool LogChanges { get; set; }
     }
 }

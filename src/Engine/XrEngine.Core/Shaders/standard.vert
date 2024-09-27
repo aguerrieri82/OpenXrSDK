@@ -4,6 +4,7 @@ layout (location = 1) in vec3 a_normal;
 layout (location = 2) in vec2 a_texcoord_0;
 
 uniform mat4 uModel;
+uniform mat4 uNormalMatrix;
 
 #ifdef USE_SHADOW_MAP
 
@@ -18,6 +19,12 @@ out vec3 fNormal;
 out vec3 fPos;
 out vec2 fUv;
 
+#ifdef PASS_VIEW    
+
+out mat4 fViewProj;
+out vec3 fViewPos;
+
+#endif
 
 #include "position.glsl"
 
@@ -29,9 +36,15 @@ void main()
     
     computePos(pos);
 
-    fNormal = mat3(transpose(inverse(uModel))) * a_normal;
+    fNormal = mat3(uNormalMatrix) * a_normal;
     fUv = a_texcoord_0;
+
     #ifdef USE_SHADOW_MAP
         fPosLightSpace = uLightSpaceMatrix * pos4;
+    #endif
+
+    #ifdef PASS_VIEW
+        fViewProj = getViewProj();
+        fViewPos = getViewPos();    
     #endif
 }

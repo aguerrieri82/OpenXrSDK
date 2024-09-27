@@ -29,6 +29,8 @@ namespace XrEngine.Browser.Win
                         _browser.RequestHandler = RequestHandler;
 
                     await _browser.CreateAsync(_source);
+
+                    _browser.ShowDevTools();
                     _isInit = true;
                     Log.Info(this, "Browser ready");
                 });

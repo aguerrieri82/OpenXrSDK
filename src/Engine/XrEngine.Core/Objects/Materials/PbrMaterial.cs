@@ -5,7 +5,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class PbrMaterial : ShaderMaterial, IColorSource
+    public class PbrMaterial : ShaderMaterial, IColorSource, IShadowMaterial
     {
         #region ENUMS
 
@@ -888,7 +888,7 @@ public override void UpdateShader(ShaderUpdateBuilder bld)
  }
 
  bld.SetUniform("uModelMatrix", (ctx) => ctx.Model!.WorldMatrix);
- bld.SetUniform("uNormalMatrix", (ctx) => Matrix4x4.Transpose(ctx.Model!.WorldMatrixInverse));
+ bld.SetUniform("uNormalMatrix", (ctx) => ctx.Model!.NormalMatrix);
 
  bld.SetUniformBuffer("Material", ctx => (MaterialUniforms?)material, 3, false);
 
