@@ -63,13 +63,8 @@ namespace XrEngine.OpenGL
         }
 
 
-        //TODO bind GlTexture with Texture2D object
-
         public static unsafe GlTexture CreateGlTexture(this Texture2D value, GL gl, bool requireCompression)
         {
-            //TODO !!WARN!! change this
-            requireCompression = false;
-
             var glTexture = new GlTexture(gl);
             glTexture.Update(value, requireCompression);
             return glTexture;
@@ -104,9 +99,12 @@ namespace XrEngine.OpenGL
             {
                 var data = texture2D.Data;
                 var comp = texture2D.Compression;
+                var format = texture2D.Format;
 
                 if (requireCompression)
                 {
+                    EtcCompressor.CachePath ??= Path.Combine(Context.Require<IPlatform>().CachePath, "Textures");
+
                     if (data.Count == 1)
                         data = EtcCompressor.Encode(data[0], 16);
                     else
@@ -119,15 +117,16 @@ namespace XrEngine.OpenGL
                     }
 
                     comp = TextureCompressionFormat.Etc2;
+                    format = data[0].Format;
                 }
 
-                glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Depth, texture2D.Format, comp, data);
+                glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Depth, format, comp, data);
                 texture2D.NotifyLoaded();
             }
             else
             {
                 if (texture2D.Type == TextureType.Depth)
-                    glTexture.Attach(OpenGLRender.Current!.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment));
+                    glTexture.Attach(OpenGLRender.Current!.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment)!);
                 else
                     glTexture.Update(texture2D.Width, texture2D.Height, texture2D.Depth, texture2D.Format, texture2D.Compression);
             }

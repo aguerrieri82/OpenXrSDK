@@ -254,8 +254,6 @@ namespace XrEditor
             var options = new GlRenderOptions
             {
                 FloatPrecision = ShaderPrecision.High,
-                ShaderVersion = "300 es",
-                RequireTextureCompression = false
             };
 
             options.Outline.Use = false;

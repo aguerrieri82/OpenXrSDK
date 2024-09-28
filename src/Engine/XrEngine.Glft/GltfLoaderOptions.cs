@@ -5,7 +5,7 @@
         public GltfLoaderOptions()
         {
             ConvertColorTextureSRgb = true;
-            DisableTangents = true; 
+            DisableTangents = false; 
         }
 
         public bool ConvertColorTextureSRgb { get; set; }

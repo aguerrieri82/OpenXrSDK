@@ -314,7 +314,7 @@ namespace XrEngine.OpenGL
             var glTexture = texture.GetGlResource(a =>
             {
                 if (handle == 0)
-                    return texture.CreateGlTexture(_gl, _options.RequireTextureCompression);
+                    return texture.CreateGlTexture(_gl, false);
 
                 return GlTexture.Attach(_gl, (uint)handle);
             });

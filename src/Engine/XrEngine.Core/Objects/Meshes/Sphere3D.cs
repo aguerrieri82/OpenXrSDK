@@ -110,7 +110,7 @@ namespace XrEngine
                 {
                     Pos = vertices[i] * Radius,
                     Normal = normal,
-                    Tangent = tangSpace,
+                    //Tangent = tangSpace,
                     UV = new Vector2(
                         (spherical.Pol + MathF.PI) / (MathF.PI * 2),
                         spherical.Azm / (MathF.PI))

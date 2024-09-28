@@ -17,7 +17,7 @@ namespace XrEngine
 
         public Object3D? Object;
 
-        public Quaternion? Tangent;
+        public Vector4? Tangent;
     }
 
 

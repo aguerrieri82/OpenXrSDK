@@ -546,7 +546,7 @@ namespace XrEngine
                 vert.Tangent.X = txyz.X;
                 vert.Tangent.Y = txyz.Y;
                 vert.Tangent.Z = txyz.Z;
-                vert.Tangent.W = (Vector3.Dot(Vector3.Cross(n, t), tan2[a]) < 0.0F) ? -1.0F : 1.0F;
+                //vert.Tangent.W = (Vector3.Dot(Vector3.Cross(n, t), tan2[a]) < 0.0F) ? -1.0F : 1.0F;
             }
 
             geo.ActiveComponents |= VertexComponent.Tangent;

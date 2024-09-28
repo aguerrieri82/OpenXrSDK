@@ -30,7 +30,7 @@ namespace XrEngine
                 result.AlignX = 4;
                 result.AlignY = 4;
 
-                if (format == TextureFormat.Rgba32)
+                if (format == TextureFormat.Rgba32 || format == TextureFormat.SRgba32)
                     result.BitPerPixel = 8;
                 else
                     result.BitPerPixel = 4; ;
@@ -100,12 +100,9 @@ namespace XrEngine
 
                     item.Data = new byte[size];
 
-                    var totRead = stream.Read(item.Data.Span);
+                    stream.ReadExactly(item.Data.Span);
 
                     results.Add(item);
-
-                    if (totRead != item.Data.Length)
-                        break;
                 }
 
             }

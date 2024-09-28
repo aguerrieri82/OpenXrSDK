@@ -1,5 +1,9 @@
 ﻿using SkiaSharp;
+using System.Collections;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using XrEngine.Services;
 
 namespace XrEngine.Compression
 {
@@ -59,8 +63,6 @@ namespace XrEngine.Compression
 
         #endregion
 
-
-
         static unsafe SKBitmap CreateImage(TextureData data, SKColorType type)
         {
             var info = new SKImageInfo((int)data.Width, (int)data.Height, type);
@@ -81,9 +83,24 @@ namespace XrEngine.Compression
 
         public unsafe static IList<TextureData> Encode(TextureData data, int mipsLevels)
         {
+            string? cacheFile = null;   
+            if (CachePath != null)
+            {
+                var hash = BitConverter.ToString(MD5.HashData(data.Data.Span)).Replace("-", "");
+                cacheFile = Path.Combine(CachePath, hash + ".pvr");
+
+                if (File.Exists(cacheFile) )
+                {
+                    using var readStream = File.OpenRead(cacheFile);
+                    var cacheData = PvrTranscoder.Instance.LoadTexture(readStream);
+                    return cacheData;
+                }
+            }
+   
+
             var skType = ImageUtils.GetFormat(data.Format);
 
-            bool useSrgb = data.Format == TextureFormat.SRgba32 || data.Format == TextureFormat.SBgra32;
+            bool useSrgb = data.Format == TextureFormat.SRgba32 || data.Format == TextureFormat.SRgb24;
 
             using var image = CreateImage(data, skType);
 
@@ -97,6 +114,14 @@ namespace XrEngine.Compression
                     item.MipLevel = data.MipLevel;
                 item.Face = data.Face;
             }
+
+            if (cacheFile != null)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
+                using var writeStream = File.OpenWrite(cacheFile);
+                PvrTranscoder.Instance.SaveTexture(writeStream, result);
+            }
+
 
             return result;
         }
@@ -197,5 +222,8 @@ namespace XrEngine.Compression
 
             return result;
         }
+
+
+        public static string? CachePath { get; set; }
     }
 }

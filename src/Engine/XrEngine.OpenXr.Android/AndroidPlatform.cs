@@ -92,7 +92,7 @@ namespace XrEngine.OpenXr.Android
 
                 var glOptions = new GlRenderOptions
                 {
-                    RequireTextureCompression = true,
+                    //RequireTextureCompression = true,
                 };
 
                 renderEngine = new OpenGLRender(glDriver.GetApi<GL>(), glOptions);

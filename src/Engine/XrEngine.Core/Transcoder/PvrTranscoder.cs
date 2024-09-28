@@ -98,6 +98,13 @@ namespace XrEngine
                     else
                         header.PixelFormat = PixelFormat.RGB8;
                     break;
+                case TextureFormat.SRgba32:
+                    header.ColourSpace = ColourSpace.sRGB;
+                    if (images[0].Compression == TextureCompressionFormat.Etc2)
+                        header.PixelFormat = PixelFormat.ETC2_RGBA;
+                    else
+                        header.PixelFormat = PixelFormat.RGBA8; 
+                    break;
                 case TextureFormat.RgbFloat32:
                     header.ColourSpace = ColourSpace.LinearRGB;
                     header.PixelFormat = PixelFormat.RGBFloat32;
@@ -159,7 +166,10 @@ namespace XrEngine
                     break;
                 case PixelFormat.ETC2_RGBA:
                     comp = TextureCompressionFormat.Etc2;
-                    format = TextureFormat.Rgba32;
+                    if (header.ColourSpace == ColourSpace.sRGB)
+                        format = TextureFormat.SRgba32;
+                    else
+                        format = TextureFormat.Rgba32;
                     break;
                 case PixelFormat.ETC1:
                     comp = TextureCompressionFormat.Etc1;

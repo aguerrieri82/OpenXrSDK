@@ -25,12 +25,13 @@ namespace XrEngine.OpenGL
     {
         public GlRenderOptions()
         {
-            FloatPrecision = ShaderPrecision.High;
-            ShaderVersion = "310 es";
+            FloatPrecision = ShaderPrecision.Medium;
+            ShaderVersion = "320 es";
             FrustumCulling = true;
             UseOcclusionQuery = true;
             UseDepthPass = false;
             UseSRGB = false;
+            RequireTextureCompression = false;
             ShadowMap = new ShadowMapOptions()
             {
                 Mode = ShadowMapMode.HardSmooth,
