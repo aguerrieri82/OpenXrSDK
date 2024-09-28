@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public class ColorMaterial : ShaderMaterial, IColorSource, IShadowMaterial
+    public class ColorMaterial : ShaderMaterial, IColorSource
     {
         public static readonly Shader SHADER;
 
@@ -22,7 +22,7 @@ namespace XrEngine
             : base()
         {
             _shader = SHADER;
-            ShadowIntensity = 0.7f;
+            ShadowColor = new Color(0, 0, 0, 0.7f); 
         }
 
         public ColorMaterial(Color color)
@@ -53,17 +53,10 @@ namespace XrEngine
             });
         }
 
-        public float ShadowIntensity { get; set; }
-
-        public bool IsShadowOnly { get; set; }
+        public Color ShadowColor { get; set; }
 
         public Color Color { get; set; }
 
-        bool IShadowMaterial.ReceiveShadows
-        {
-            get => IsShadowOnly;
-            set => IsShadowOnly = value;    
-        }
 
         public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
     }

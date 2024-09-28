@@ -173,10 +173,15 @@ namespace XrEngine
             if (_scene == null && value != null)
                 changeType |= ObjectChangeType.SceneAdd;
 
+            var oldScene = _scene;
+
             _scene = _parent == null ? null : this.FindAncestor<Scene3D>();
 
             if (_scene == null)
+            {
                 changeType |= ObjectChangeType.SceneRemove;
+                oldScene?.NotifyChanged(this, changeType);
+            }
 
             if (preserveTransform)
                 WorldMatrix = curWorldMatrix;

@@ -6,5 +6,10 @@
         {
             return true;
         }
+
+        protected override bool AffectChange(ObjectChange change)
+        {
+            return change.IsAny(ObjectChangeType.SceneRemove, ObjectChangeType.SceneAdd);
+        }
     }
 }
