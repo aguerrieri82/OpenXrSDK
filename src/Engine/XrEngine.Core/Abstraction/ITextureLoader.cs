@@ -3,6 +3,8 @@
     public class TextureLoadOptions : IAssetLoaderOptions
     {
         public TextureFormat? Format { get; set; }
+
+        public string? MimeType { get; set; }
     }
 
 

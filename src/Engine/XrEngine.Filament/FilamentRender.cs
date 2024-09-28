@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using XrEngine.Objects;
 using XrMath;
 using static XrEngine.Filament.FilamentLib;
 
@@ -475,20 +476,30 @@ namespace XrEngine.Filament
 
                 if (mat is ColorMaterial color)
                 {
-                    var matColor = color.Color;
-                    if (color.IsShadowOnly)
-                        matColor.A = color.ShadowIntensity;
-
                     return new MaterialInfo
                     {
-                        Color = matColor,
-                        Blending = color.Alpha == AlphaMode.Opaque && color.IsShadowOnly ? FlBlendingMode.OPAQUE : FlBlendingMode.TRANSPARENT,
+                        Color = color.Color,
+                        Blending = color.Alpha == AlphaMode.Opaque ? FlBlendingMode.OPAQUE : FlBlendingMode.TRANSPARENT,
                         DoubleSided = color.DoubleSided,
                         IsLit = false,
                         WriteDepth = color.WriteDepth,
                         WriteColor = color.WriteColor,
                         UseDepth = color.UseDepth,
-                        IsShadowOnly = color.IsShadowOnly
+                    };
+                }
+
+                if (mat is ShadowOnlyMaterial shadow)
+                {
+                    return new MaterialInfo
+                    {
+                        Color = shadow.ShadowColor,
+                        Blending = FlBlendingMode.OPAQUE,
+                        DoubleSided = shadow.DoubleSided,
+                        IsLit = false,
+                        WriteDepth = shadow.WriteDepth,
+                        WriteColor = shadow.WriteColor,
+                        UseDepth = shadow.UseDepth,
+                        IsShadowOnly = true
                     };
                 }
 

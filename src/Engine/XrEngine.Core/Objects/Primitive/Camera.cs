@@ -21,7 +21,7 @@ namespace XrEngine
 
         public Camera()
         {
-            Near = 0.01f;
+            Near = 0.001f;
             Far = 10;
             Exposure = 1;
             Flags |= EngineObjectFlags.DisableNotifyChangedScene;

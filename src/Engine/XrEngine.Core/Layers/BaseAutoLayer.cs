@@ -39,10 +39,10 @@ namespace XrEngine
 
             if (obj is T tObj && AffectChange(change))
             {
-                if (BelongsToLayer(tObj))
-                    Add(tObj);
-                else
+                if (change.IsAny(ObjectChangeType.SceneRemove) || !BelongsToLayer(tObj))
                     Remove(tObj);
+                else
+                    Add(tObj);
             }
 
             base.NotifyChanged(obj, change);    

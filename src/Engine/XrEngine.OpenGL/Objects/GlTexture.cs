@@ -139,6 +139,7 @@ namespace XrEngine.OpenGL
 
                 var pixelSize = format switch
                 {
+                    TextureFormat.Rg88 => 16,
                     TextureFormat.Rgba32 => 32,
                     TextureFormat.Rgb24 => 24,
                     TextureFormat.SRgb24 => 24,
@@ -212,7 +213,8 @@ namespace XrEngine.OpenGL
 
                 TextureFormat.Gray8 => PixelFormat.Red,
 
-                TextureFormat.RgFloat32 => PixelFormat.RG,
+                TextureFormat.RgFloat32 or
+                TextureFormat.Rg88 => PixelFormat.RG,
 
                 TextureFormat.RFloat32 => PixelFormat.Red,
 
@@ -244,6 +246,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.Rgb24 or
                 TextureFormat.SRgb24 or
                 TextureFormat.SBgra32 or
+                TextureFormat.Rg88 or
                 TextureFormat.SRgba32 => PixelType.UnsignedByte,
 
                 _ => throw new NotSupportedException(),
@@ -285,6 +288,7 @@ namespace XrEngine.OpenGL
 
                     TextureFormat.Rgb24 => InternalFormat.Rgb8,
 
+                    TextureFormat.Rg88 => InternalFormat.RG8,
 
                     _ => throw new NotSupportedException(),
                 };

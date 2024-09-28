@@ -221,13 +221,11 @@ void main()
     color = f_sheen + color * albedoSheenScaling;
     color = mix(color, clearcoat_brdf, clearcoatFactor * clearcoatFresnel);
 
-#ifdef HAS_OCCLUSION_MAP
-    float ao = 1.0;
-    ao = texture(uOcclusionSampler,  getOcclusionUV()).r;
-    color = color * (1.0 + uMaterial.OcclusionStrength * (ao - 1.0)); 
-#endif
 
 #endif //end USE_IBL
+
+
+
 
     f_diffuse = vec3(0.0);
     f_specular_dielectric = vec3(0.0);
@@ -237,6 +235,7 @@ void main()
 
 #ifdef USE_PUNCTUAL
 
+    vec3 shadowLightDir;
 
     for (int i = 0; i < uLights.count; ++i)
     {
@@ -251,6 +250,8 @@ void main()
         else
         {
             pointToLight = -light.direction;
+
+            shadowLightDir = normalize(pointToLight);
         }
 
         // BSTF
@@ -350,6 +351,14 @@ void main()
     f_emissive *= texture(uEmissiveSampler, getEmissiveUV()).rgb;
 #endif
 
+#ifdef HAS_OCCLUSION_MAP
+    float ao = 1.0;
+    ao = texture(uOcclusionSampler,  getOcclusionUV()).r;
+    color = color * (1.0 + uMaterial.OcclusionStrength * (ao - 1.0)); 
+#endif
+
+
+
 #ifdef MATERIAL_UNLIT
     color = baseColor.rgb;
 #elif defined(NOT_TRIANGLE) && !defined(HAS_NORMAL_VEC3)
@@ -370,19 +379,17 @@ void main()
     baseColor.a = 1.0;
 #endif
 
-#ifdef USE_SHADOW_MAP
+#if defined(USE_SHADOW_MAP) && defined(RECEIVE_SHADOWS) && defined(USE_PUNCTUAL)
 
-#ifdef RECEIVE_SHADOWS
+    float shadow = calculateShadow(v_PosLightSpace, n, shadowLightDir);
 
-float shadow = calculateShadow(v_PosLightSpace, n, l);
+    #ifdef TRANSPARENT
+        color.rgb = shadow * uMaterial.ShadowColor.rgb;
+        baseColor.a = shadow * uMaterial.ShadowColor.a;
+    #else
+        color.rgb *= vec3(1.0 - shadow * uMaterial.ShadowColor.rgb);
+    #endif
 
-#ifdef TRANSPARENT
-    baseColor.a = shadow * uMaterial.ShadowColor.a;
-#else
-    color.rgb *= vec3(1.0 - shadow * uMaterial.ShadowColor.rgb);
-#endif
-
-#endif
 #endif
 
 #ifdef LINEAR_OUTPUT
@@ -432,7 +439,7 @@ float shadow = calculateShadow(v_PosLightSpace, n, l);
     g_finalColor.rgb = vec3(baseColor.a);
 #endif
 #if DEBUG == DEBUG_OCCLUSION && defined(HAS_OCCLUSION_MAP)
-    g_finalColor.rgb = vec3(ao);
+    g_finalColor.rgb = vec3((1.0 + uMaterial.OcclusionStrength * (ao - 1.0)));
 #endif
 #if DEBUG == DEBUG_EMISSIVE
     g_finalColor.rgb = linearTosRGB(f_emissive);

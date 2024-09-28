@@ -2,6 +2,7 @@
 using OpenXr.Framework.Oculus;
 using PhysX.Framework;
 using Silk.NET.OpenXR;
+using XrEngine.Objects;
 using XrEngine.Physics;
 using XrMath;
 
@@ -104,7 +105,7 @@ namespace XrEngine.OpenXr
             model.AddPhysics = addPhysics;
 
             if (arMode)
-                model.Material = new ColorMaterial { Color = Color.Transparent, Alpha = AlphaMode.Blend, ShadowIntensity = 0.7f, IsShadowOnly = true };
+                model.Material = new ShadowOnlyMaterial();
 
             e.App.ActiveScene!.AddChild(model);
         });

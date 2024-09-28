@@ -232,41 +232,20 @@ namespace XrSamples
 
                 depth.AddBehavior((_, _) =>
                 {
-                    var tex = depth.Scene!.App!.Renderer!.GetDepth();
-
+                    var sp = ((IShadowMapProvider)depth.Scene!.App!.Renderer!);
+          
                     if (mat.Texture == null)
                     {
-                        mat.Texture = tex;
+                        mat.Texture = sp.ShadowMap;
                         mat.Version++;
                     }
                     if (mat.Camera == null)
                     {
-                        mat.Camera = depth.Scene!.ActiveCamera;
+                        mat.Camera = sp.LightCamera;
                         mat.Version++;
                     }
 
                 });
-
-                /*
-                depth.AddBehavior((_, _) =>
-                {
-                    var pass = ((OpenGLRender)depth.Scene!.App!.Renderer!).Pass<GlShadowPass>();
-                    if (pass == null)
-                        return;
-
-                    if (mat.Texture == null)
-                    {
-                        mat.Texture = pass.DepthTexture;
-                        mat.Version++;
-                    }
-                    if (mat.Camera == null)
-                    {
-                        mat.Camera = pass.LightCamera;
-                        mat.Version++;
-                    }
-
-                });
-                */
             }
            
 
@@ -822,7 +801,7 @@ namespace XrSamples
                 .UseApp(app)
                 //.UseSceneModel(false, false)
                 .UseDefaultHDR()
-                .AddFloorShadow(false)
+                .AddFloorShadow(true)
                 .UsePhysics(new PhysicsOptions())
                 .ConfigureSampleApp();
         }

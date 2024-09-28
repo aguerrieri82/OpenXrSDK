@@ -1,6 +1,7 @@
 ﻿#pragma warning disable CS0649
 
 using SkiaSharp;
+using TurboJpeg;
 
 namespace XrEngine
 {
@@ -14,6 +15,21 @@ namespace XrEngine
 
         public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
+            if (options?.MimeType == "image/jpeg" && (options?.Format == null || options.Format == TextureFormat.Rgba32))
+            {
+                var buffer = new byte[stream.Length];
+                stream.ReadExactly(buffer);
+
+                var imgData = TurboJpegLib.Decompress(buffer);
+                return [new TextureData
+                {
+                    Width = (uint)imgData.Width,
+                    Height = (uint)imgData.Height,
+                    Format = TextureFormat.Rgba32,
+                    Data = imgData.Data
+                }];
+            }
+
             var image = SKBitmap.Decode(stream);
 
             var outFormat = options?.Format;
