@@ -91,12 +91,10 @@ namespace XrEngine.Filament
             _options = options;
             _renderTargetDepth = 1;
 
-
             /*
             if (options.EnableStereo && options.Driver == FlBackend.OpenGL)
                 _renderTargetDepth = 2;
             */
-
 
             _driver = options.Driver;
 
@@ -220,17 +218,6 @@ namespace XrEngine.Filament
             }
             return obj.Id;
         }
-
-        /*
-        internal void FreeTexture(TextureInfo info)
-        {
-            if (info.Data.Data != 0)
-            {
-                MemoryManager.Free(info.Data.Data);
-                info.Data.Data = 0;
-            }
-        }
-        */
 
         internal unsafe TextureInfo AllocateTexture(Texture2D? texture)
         {
@@ -694,14 +681,14 @@ namespace XrEngine.Filament
 
         }
 
-        public void SetRenderTarget(Texture2D texture)
+        public void SetRenderTarget(Texture2D? texture)
         {
             throw new NotSupportedException();
         }
 
         public Texture2D? GetShadowMap()
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public FlBackend Driver => _driver;

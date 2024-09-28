@@ -296,12 +296,13 @@ namespace XrEngine.OpenGL
 
             if (compression == TextureCompressionFormat.Etc2)
             {
+
                 return format switch
                 {
                     TextureFormat.Rgb24 => InternalFormat.CompressedRgb8Etc2,
-                    TextureFormat.Rgba32 => InternalFormat.CompressedRgba8Etc2Eac,
+                    TextureFormat.Rgba32 => InternalFormat.CompressedRgba8Etc2EacOes,
                     TextureFormat.SRgb24 => InternalFormat.CompressedSrgb8Etc2,
-                    TextureFormat.SRgba32 => InternalFormat.CompressedSrgb8Alpha8Etc2Eac,
+                    TextureFormat.SRgba32 => InternalFormat.CompressedSrgb8Alpha8Etc2EacOes,
                     _ => throw new NotSupportedException(format.ToString()),
                 };
             }

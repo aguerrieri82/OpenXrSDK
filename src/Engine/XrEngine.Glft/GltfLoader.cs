@@ -3,16 +3,12 @@ using Newtonsoft.Json.Linq;
 using SkiaSharp;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Globalization;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Xml.Schema;
 using TurboJpeg;
-using XrEngine.Services;
 using XrMath;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace XrEngine.Gltf
@@ -278,7 +274,7 @@ namespace XrEngine.Gltf
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTexture(_model!.Textures[info.Index], info.Index, info.Extensions, null, true);
+            return ProcessTexture(_model!.Textures[info.Index], info.Index, info.Extensions, null, useSRgb);
         }
 
         public PbrMaterial ProcessMaterial(glTFLoader.Schema.Material gltMat, int id, PbrMaterial? result = null)
@@ -464,8 +460,8 @@ namespace XrEngine.Gltf
                                 case "TANGENT":
                                     if (_options != null && _options.DisableTangents)
                                         break;
-                                    var tValues = DracoDecoder.ReadAttribute<Quaternion>(mesh, attr.Value);
-                                    result.SetVertexData((ref VertexData a, Quaternion b) => a.Tangent = b, tValues);
+                                    var tValues = DracoDecoder.ReadAttribute<Vector4>(mesh, attr.Value);
+                                    result.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
                                     result.ActiveComponents |= VertexComponent.Tangent;
                                     break;
                                 case "TEXCOORD_0":
@@ -520,8 +516,8 @@ namespace XrEngine.Gltf
                             case "TANGENT":
                                 if (_options != null && _options.DisableTangents)
                                     break;
-                                var tValues = ConvertBuffer<Quaternion>(buffer, view, acc);
-                                result.SetVertexData((ref VertexData a, Quaternion b) => a.Tangent = b, tValues);
+                                var tValues = ConvertBuffer<Vector4>(buffer, view, acc);
+                                result.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
                                 result.ActiveComponents |= VertexComponent.Tangent;
                                 Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC4);
                                 Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
@@ -747,7 +743,7 @@ namespace XrEngine.Gltf
             _meshes.Clear();
         }
 
-        public void LoadModel(string filePath, GltfLoaderOptions? options)
+        internal void LoadModel(string filePath, GltfLoaderOptions? options)
         {
             _options = options;
             _basePath = Path.GetDirectoryName(filePath)!;

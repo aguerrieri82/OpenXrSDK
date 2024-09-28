@@ -139,12 +139,14 @@ namespace XrEditor
 
                 canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + _lastCollision.Normal.Value.Transform(normalMatrix).Normalize());
 
+             
                 if (_lastCollision.Tangent != null)
                 {
                     canvas.State.Color = new Color(0, 1, 1, 1);
-                    var nq = Quaternion.Normalize(_lastCollision.Tangent.Value);
+                    var nq = Vector3.Normalize(new Vector3(_lastCollision.Tangent.Value.X, _lastCollision.Tangent.Value.Y, _lastCollision.Tangent.Value.Z));
                     canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + new Vector3(nq.X, nq.Y, nq.Z));
                 }
+              
             }
 
             canvas.Restore();
