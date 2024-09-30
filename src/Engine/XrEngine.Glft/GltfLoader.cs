@@ -1,6 +1,7 @@
 ﻿using glTFLoader.Schema;
 using Newtonsoft.Json.Linq;
 using SkiaSharp;
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
@@ -10,6 +11,8 @@ using System.Text;
 using TurboJpeg;
 using XrMath;
 
+#pragma warning disable CS0649
+
 
 namespace XrEngine.Gltf
 {
@@ -18,7 +21,7 @@ namespace XrEngine.Gltf
     {
         GltfLoaderOptions? _options;
         glTFLoader.Schema.Gltf? _model;
-        readonly Dictionary<glTFLoader.Schema.Material, PbrMaterial> _mats = [];
+        readonly Dictionary<glTFLoader.Schema.Material, ShaderMaterial> _mats = [];
         readonly ConcurrentDictionary<glTFLoader.Schema.Image, TextureData> _images = [];
         readonly Dictionary<glTFLoader.Schema.Mesh, Object3D> _meshes = [];
         readonly List<Action> _tasks = [];
@@ -279,8 +282,8 @@ namespace XrEngine.Gltf
 
         public PbrMaterial ProcessMaterial(glTFLoader.Schema.Material gltMat, int id, PbrMaterial? result = null)
         {
-            if (result == null && _mats.TryGetValue(gltMat, out result))
-                return result;
+            if (result == null && _mats.TryGetValue(gltMat, out var mat))
+                return (PbrMaterial)mat;
 
             result ??= new PbrMaterial();
 
@@ -387,6 +390,63 @@ namespace XrEngine.Gltf
             result.AddComponent(new AssetSource
             {
                 Asset = CreateAsset<PbrMaterial>(gltMat.Name!, "mat", id)
+            });
+
+
+            _mats[gltMat] = result;
+
+            return result;
+        }
+
+
+        public PbrV2Material ProcessMaterialV2(glTFLoader.Schema.Material gltMat, int id, PbrV2Material? result = null)
+        {
+            if (result == null && _mats.TryGetValue(gltMat, out var mat))
+                return (PbrV2Material)mat;
+
+            result ??= new PbrV2Material();
+
+            result.Name = gltMat.Name;
+            result.Alpha = gltMat.AlphaMode switch
+            {
+                glTFLoader.Schema.Material.AlphaModeEnum.OPAQUE => AlphaMode.Opaque,
+                glTFLoader.Schema.Material.AlphaModeEnum.MASK => AlphaMode.Mask,
+                glTFLoader.Schema.Material.AlphaModeEnum.BLEND => AlphaMode.Blend,
+                _ => throw new NotSupportedException()
+            };
+            result.DoubleSided = gltMat.DoubleSided;
+
+            if (gltMat.PbrMetallicRoughness != null)
+            {
+
+                if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
+                {
+                    result.ColorMap = DecodeTextureBase(gltMat.PbrMetallicRoughness.BaseColorTexture, _options!.ConvertColorTextureSRgb);
+                }
+
+                if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
+                {
+                    result.MetallicRoughnessMap = DecodeTextureBase(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture);
+                }
+
+
+            }
+
+            if (gltMat.NormalTexture != null)
+            {
+                result.NormalMap = DecodeTextureNormal(gltMat.NormalTexture);
+
+            }
+
+            if (gltMat.OcclusionTexture != null)
+            {
+   
+            }
+
+
+            result.AddComponent(new AssetSource
+            {
+                Asset = CreateAsset<PbrV2Material>(gltMat.Name!, "mat", id)
             });
 
 
@@ -573,7 +633,7 @@ namespace XrEngine.Gltf
                 ((result.ActiveComponents & VertexComponent.UV0) != 0) &&
                 ((result.ActiveComponents & VertexComponent.Tangent) == 0))
             {
-                //result.ComputeTangents();
+                result.ComputeTangents();
             }
 
             return result;
@@ -618,7 +678,7 @@ namespace XrEngine.Gltf
                 if (primitive.Material != null)
                 {
                     var gltfMat = _model!.Materials[primitive.Material.Value];
-                    curMesh.Materials.Add(ProcessMaterial(gltfMat, primitive.Material.Value));
+                    curMesh.Materials.Add(ProcessMaterialV2(gltfMat, primitive.Material.Value));
 
                     if (gltMesh.Name == "Floor")
                     {

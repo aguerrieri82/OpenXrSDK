@@ -36,23 +36,6 @@
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\XrEngine.Native\libs\arm64-v8a\*.so" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <EmbeddedResource Remove="Shaders\PbrV2\equirect2cube_cs.glsl" />
-	  <EmbeddedResource Remove="Shaders\PbrV2\irmap_cs.glsl" />
-	  <EmbeddedResource Remove="Shaders\PbrV2\pbr_fs.glsl" />
-	  <EmbeddedResource Remove="Shaders\PbrV2\pbr_vs.glsl" />
-	  <EmbeddedResource Remove="Shaders\PbrV2\skybox_fs.glsl" />
-	  <EmbeddedResource Remove="Shaders\PbrV2\skybox_vs.glsl" />
-	  <EmbeddedResource Remove="Shaders\PbrV2\spbrdf_cs.glsl" />
-	  <EmbeddedResource Remove="Shaders\PbrV2\spmap_cs.glsl" />
-	  <EmbeddedResource Remove="Shaders\PbrV2\tonemap_fs.glsl" />
-	  <EmbeddedResource Remove="Shaders\PbrV2\tonemap_vs.glsl" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="Shaders\copy_depth.frag" />
-	  <None Remove="Shaders\outline.geom" />
-	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
