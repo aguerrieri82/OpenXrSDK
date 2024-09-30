@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using SkiaSharp;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using XrEngine.Services;
@@ -487,43 +488,89 @@ namespace XrEngine
             }
         }
 
+        public static void OrthoNormalize(ref Vector3 normal, ref Vector3 tangent)
+        {
+            // Normalize the normal vector
+            normal = Vector3.Normalize(normal);
+
+            // Project the tangent onto the normal
+            Vector3 proj = normal * Vector3.Dot(tangent, normal);
+
+            // Subtract the projection from the tangent to make it orthogonal to the normal
+            tangent -= proj;
+
+            // Normalize the tangent vector
+            float tangentLength = tangent.Length();
+            if (tangentLength > 1e-6f) // Avoid division by zero
+            {
+                tangent /= tangentLength;
+            }
+            else
+            {
+                // If the tangent length is zero, set it to an arbitrary orthogonal vector
+                tangent = Vector3.Cross(normal, Vector3.UnitX);
+                if (tangent.LengthSquared() < 1e-6f)
+                {
+                    tangent = Vector3.Cross(normal, Vector3.UnitY);
+                }
+                tangent = Vector3.Normalize(tangent);
+            }
+        }
+
         public static void ComputeTangents(this Geometry3D geo)
         {
-            var tan1 = new Vector3[geo.Indices.Length];
-            var tan2 = new Vector3[geo.Indices.Length];
+            int vertexCount = geo.Vertices.Length;
+            int indexCount = geo.Indices.Length;
 
-            int i = 0;
-            while (i < geo.Indices!.Length)
+            // Arrays to accumulate the tangent and bitangent vectors
+            Vector3[] tan1 = new Vector3[vertexCount];
+            Vector3[] tan2 = new Vector3[vertexCount];
+
+            // Iterate over each triangle
+            for (int i = 0; i < indexCount; i += 3)
             {
-                var i1 = geo.Indices[i++];
-                var i2 = geo.Indices[i++];
-                var i3 = geo.Indices[i++];
+                uint i1 = geo.Indices[i];
+                uint i2 = geo.Indices[i + 1];
+                uint i3 = geo.Indices[i + 2];
 
-                var v1 = geo.Vertices[i1].Pos;
-                var v2 = geo.Vertices[i2].Pos;
-                var v3 = geo.Vertices[i3].Pos;
+                Vector3 v1 = geo.Vertices[i1].Pos;
+                Vector3 v2 = geo.Vertices[i2].Pos;
+                Vector3 v3 = geo.Vertices[i3].Pos;
 
-                var w1 = geo.Vertices[i1].UV;
-                var w2 = geo.Vertices[i2].UV;
-                var w3 = geo.Vertices[i3].UV;
-
+                Vector2 w1 = geo.Vertices[i1].UV;
+                Vector2 w2 = geo.Vertices[i2].UV;
+                Vector2 w3 = geo.Vertices[i3].UV;
 
                 float x1 = v2.X - v1.X;
-                float x2 = v3.X - v1.X;
                 float y1 = v2.Y - v1.Y;
-                float y2 = v3.Y - v1.Y;
                 float z1 = v2.Z - v1.Z;
+
+                float x2 = v3.X - v1.X;
+                float y2 = v3.Y - v1.Y;
                 float z2 = v3.Z - v1.Z;
 
                 float s1 = w2.X - w1.X;
-                float s2 = w3.X - w1.X;
                 float t1 = w2.Y - w1.Y;
+
+                float s2 = w3.X - w1.X;
                 float t2 = w3.Y - w1.Y;
 
-                float r = 1.0F / (s1 * t2 - s2 * t1);
-                var sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
-                var tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
+                float r = (s1 * t2 - s2 * t1);
+                float f = r == 0.0f ? 0.0f : 1.0f / r;
 
+                Vector3 sdir = new Vector3(
+                    (t2 * x1 - t1 * x2) * f,
+                    (t2 * y1 - t1 * y2) * f,
+                    (t2 * z1 - t1 * z2) * f
+                );
+
+                Vector3 tdir = new Vector3(
+                    (s1 * x2 - s2 * x1) * f,
+                    (s1 * y2 - s2 * y1) * f,
+                    (s1 * z2 - s2 * z1) * f
+                );
+
+                // Accumulate the tangent and bitangent vectors
                 tan1[i1] += sdir;
                 tan1[i2] += sdir;
                 tan1[i3] += sdir;
@@ -533,20 +580,21 @@ namespace XrEngine
                 tan2[i3] += tdir;
             }
 
-
-            for (int a = 0; a < geo.Indices.Length; a++)
+            // Orthogonalize and normalize the tangent vectors
+            for (int i = 0; i < vertexCount; ++i)
             {
-                ref var vert = ref geo.Vertices[geo.Indices[a]];
+                Vector3 n = geo.Vertices[i].Normal;
+                Vector3 t = tan1[i];
 
-                var n = vert.Normal;
-                var t = tan1[a];
+                // Gram-Schmidt orthogonalization
+                OrthoNormalize(ref n, ref t);
 
-                var txyz = Vector3.Normalize(t - n * Vector3.Dot(n, t));
+                // Calculate the handedness (w component)
+                Vector3 c = Vector3.Cross(n, t);
+                float w = (Vector3.Dot(c, tan2[i]) < 0.0f) ? -1.0f : 1.0f;
 
-                vert.Tangent.X = txyz.X;
-                vert.Tangent.Y = txyz.Y;
-                vert.Tangent.Z = txyz.Z;
-                //vert.Tangent.W = (Vector3.Dot(Vector3.Cross(n, t), tan2[a]) < 0.0F) ? -1.0F : 1.0F;
+                // Set the tangent with the calculated w component
+                geo.Vertices[i].Tangent = new Vector4(t.X, t.Y, t.Z, w);
             }
 
             geo.ActiveComponents |= VertexComponent.Tangent;

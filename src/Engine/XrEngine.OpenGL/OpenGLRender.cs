@@ -355,6 +355,7 @@ namespace XrEngine.OpenGL
 
         #region IIBLPanoramaProcessor
 
+        /*
         public PbrMaterial.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
         {
             Log.Info(this, "Processing IBL Panorama");
@@ -393,16 +394,6 @@ namespace XrEngine.OpenGL
                 result.CharlieEnv = (TextureCube)_gl.TexIdToEngineTexture(envId);
                 result.CharlieLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId);
 
-                /*
-                result.CharlieEnv = (TextureCube)_gl.TexIdToEngineTexture(envId, TextureFormat.RgbFloat);
-                result.CharlieLUT = (Texture2D)_gl.TexIdToEngineTexture(lutId, TextureFormat.SRgb24);
-
-                using (var out1 = File.OpenWrite("d:\\charlie.pvr"))
-                    PvrTranscoder.Instance.Write(out1, result.CharlieEnv.Data!);
-
-                using (var out1 = File.OpenWrite("d:\\charlie-lut.pvr"))
-                    PvrTranscoder.Instance.Write(out1, result.CharlieLUT.Data!);
-                */
             }
             if ((options.Mode & IBLProcessMode.GGX) == IBLProcessMode.GGX)
             {
@@ -416,6 +407,49 @@ namespace XrEngine.OpenGL
 
             return result;
         }
+        */
+
+        public PbrMaterial.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
+        {
+            Log.Info(this, "Processing IBL Panorama");
+
+            using var processor = new GlIBLProcessorV2(_gl);
+
+            processor.Resolution = options.Resolution;
+            processor.MipLevelCount = options.MipLevelCount;
+
+            processor.Initialize(data, options.ShaderResolver!);
+
+            processor.PanoramaToCubeMap();
+
+            var result = new PbrMaterial.IBLTextures
+            {
+                MipCount = processor.MipLevelCount
+            };
+
+            result.Env = (TextureCube)_gl.TexIdToEngineTexture(processor.OutCubeMapId);
+
+            if ((options.Mode & IBLProcessMode.Lambertian) == IBLProcessMode.Lambertian)
+            {
+                var texId = processor.ApplyFilter(GlIBLProcessorV2.Distribution.Irradiance);
+
+                result.LambertianEnv = (TextureCube)_gl.TexIdToEngineTexture(texId);
+            }
+    
+            if ((options.Mode & IBLProcessMode.GGX) == IBLProcessMode.GGX)
+            {
+                var ggx = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGX);
+                var ggxLut = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGXLut);
+
+                result.GGXEnv = (TextureCube)_gl.TexIdToEngineTexture(ggx);
+                result.GGXLUT = (Texture2D)_gl.TexIdToEngineTexture(ggxLut);
+            }
+
+            Log.Debug(this, "Processing IBL Panorama OK");
+
+            return result;
+        }
+
 
         #endregion
 

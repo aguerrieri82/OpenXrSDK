@@ -171,7 +171,7 @@ namespace XrEditor
             }
         });
 
-        protected async void RenderLoop()
+        protected void RenderLoop()
         {
             _renderSurface.TakeContext();
 

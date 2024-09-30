@@ -110,7 +110,7 @@ namespace XrEngine.Gltf
                         break;
                     case "mat":
                         var matId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessMaterial(cache.Loader!.Model!.Materials[matId], matId, (PbrMaterial?)destObj);
+                        result = cache.Loader!.ProcessMaterialV2(cache.Loader!.Model!.Materials[matId], matId, (PbrV2Material?)destObj);
                         break;
                     case "mesh":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
