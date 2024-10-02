@@ -36,6 +36,10 @@
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\XrEngine.Native\libs\arm64-v8a\*.so" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Remove="Shaders\PbrV2\uniforms.glsl" />
+	</ItemGroup>
+
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using SharpEXR.ColorSpace;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
@@ -7,7 +8,7 @@ namespace XrEngine
 {
     public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial
     {
-        [StructLayout(LayoutKind.Explicit, Size = 80)]  
+        [StructLayout(LayoutKind.Explicit, Size = 128)]  
         public struct CameraUniforms
         {
             [FieldOffset(0)]
@@ -17,6 +18,36 @@ namespace XrEngine
             [FieldOffset(64)]
 
             public Vector3 Position;
+
+            [FieldOffset(76)]
+            public float Exposure;
+
+            [FieldOffset(80)]
+            public Matrix4x4 LightSpaceMatrix;
+        }
+
+        [StructLayout(LayoutKind.Explicit, Size = 112)]
+        public struct MaterialUniforms
+        {
+            [FieldOffset(0)]
+
+            public Vector4 Color;
+
+            [FieldOffset(16)]
+            public float Metalness;
+
+            [FieldOffset(20)]
+            public float Roughness;
+
+            [FieldOffset(32)]
+            public Matrix3x3Aligned TexTransform;
+
+            [FieldOffset(80)]
+            public float OcclusionStrength;
+
+            [FieldOffset(96)]
+            public Color ShadowColor;
+
         }
 
 
@@ -73,6 +104,9 @@ namespace XrEngine
 
             [FieldOffset(48)]
             public Vector3 Color;
+
+            [FieldOffset(60)]
+            public float Range;
         }
 
         #region GlobalShaderHandler
@@ -96,22 +130,50 @@ namespace XrEngine
                 if (imgLight != null)
                     bld.AddFeature("USE_IBL");
 
+
+                if (bld.Context.ShadowMapProvider != null)
+                {
+                    var mode = bld.Context.ShadowMapProvider.Options.Mode;
+
+                    if (mode != ShadowMapMode.None)
+                    {
+                        bld.AddFeature("USE_SHADOW_MAP");
+
+                        if (mode == ShadowMapMode.HardSmooth)
+                            bld.AddFeature("SMOOTH_SHADOW_MAP");
+
+                        bld.ExecuteAction((ctx, up) =>
+                        {
+                            up.SetUniform("uShadowMap", ctx.ShadowMapProvider!.ShadowMap!, 14);
+                        });
+                    }
+                }
+
+
                 bld.AddFeature("MAX_LIGHTS " + LightListUniforms.Max);
 
                 bld.SetUniformBuffer("Camera", (ctx) =>
                 {
-                    return (CameraUniforms?)new CameraUniforms
+                    var result = new CameraUniforms
                     {
                         ViewProj = ctx.Camera!.ViewProjection,
                         Position = ctx.Camera!.WorldPosition,
+                        Exposure = ctx.Camera.Exposure,
                     };
+
+                    var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
+                    if (light != null)
+                        result.LightSpaceMatrix = light.Value;
+                    
+                    return (CameraUniforms?)result;
+
                 }, 0, true);
 
-                if (hasPunctual)
+                if (hasPunctual || true)
                 {
                     bld.SetUniformBuffer("Lights", (ctx) =>
                     {
-                        var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
+                        var hash = $"{bld.Context.Lights!.Sum(a => a.Version)}";
 
                         if (ctx.CurrentBuffer!.Hash == hash)
                             return null;
@@ -129,8 +191,9 @@ namespace XrEngine
                                 lights.Add(new LightUniforms
                                 {
                                     Type = 0,
-                                    Color = (Vector3)point.Color,
+                                    Color = ((Vector3)point.Color) * point.Intensity,
                                     Position = point.WorldPosition,
+                                    Range = point.Range
                                 });
                             }
                             else if (light is DirectionalLight directional)
@@ -138,7 +201,7 @@ namespace XrEngine
                                 lights.Add(new LightUniforms
                                 {
                                     Type = 1,
-                                    Color = (Vector3)directional.Color,
+                                    Color = ((Vector3)directional.Color) * directional.Intensity,
                                     Direction = Vector3.Normalize(directional.Direction)
 
                                 });
@@ -153,38 +216,19 @@ namespace XrEngine
                     }, 1, true);
                 }
 
-                if (bld.Context.ShadowMapProvider != null)
-                {
-                    var mode = bld.Context.ShadowMapProvider.Options.Mode;
-
-                    if (mode != ShadowMapMode.None)
-                    {
-                        bld.AddFeature("USE_SHADOW_MAP");
-
-                        if (mode == ShadowMapMode.HardSmooth)
-                            bld.AddFeature("SMOOTH_SHADOW_MAP");
-
-                        bld.ExecuteAction((ctx, up) =>
-                        {
-                            up.SetUniform("uShadowMap", ctx.ShadowMapProvider!.ShadowMap!, 14);
-                            up.SetUniform("uLightSpaceMatrix", ctx.ShadowMapProvider!.LightCamera!.ViewProjection);
-                        });
-                    }
-                }
-
 
                 if (imgLight != null)
                 {
 
                     bld.ExecuteAction((ctx, up) =>
                     {
+                        up.SetUniform("uSpecularTextureLevels", (float)imgLight.Textures.MipCount);
+
                         if (imgLight.Textures?.GGXEnv != null)
                             up.SetUniform("specularTexture", imgLight.Textures.GGXEnv, 4);
 
-
                         if (imgLight.Textures?.LambertianEnv != null)
                             up.SetUniform("irradianceTexture", imgLight.Textures.LambertianEnv, 5);
-
     
                         if (imgLight.Textures?.GGXLUT != null)
                             up.SetUniform("specularBRDF_LUT", imgLight.Textures.GGXLUT, 6);
@@ -211,28 +255,78 @@ namespace XrEngine
 
         public PbrV2Material()
         {
-            Shader = SHADER;    
+            Shader = SHADER;
+            Color = Color.White;
+            Roughness = 1.0f;
+            Metalness = 1.0f;
+            OcclusionStrength = 1.0f;
+            ToneMap = true;     
         }
 
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
+            var material = new MaterialUniforms
+            {
+                Color = Color,
+                Metalness = Metalness,
+                Roughness = Roughness,
+                ShadowColor = ShadowColor,
+                OcclusionStrength = OcclusionStrength,
+
+            };
+
+            if (ToneMap) 
+                bld.AddFeature("TONEMAP");
+
+            if (ReceiveShadows)
+                bld.AddFeature("RECEIVE_SHADOWS");
+
+            if (Color.A == 0)
+                bld.AddFeature("TRANSPARENT");    
+
+            bld.SetUniformBuffer("Material", ctx => (MaterialUniforms?)material, 2, false);
+
+            if (ColorMap != null)
+            {
+                bld.AddFeature("USE_ALBEDO_MAP");
+                bld.SetUniform("albedoTexture", ctx => ColorMap, 0);
+
+                if (ColorMap.Transform != null)
+                {
+                    bld.AddFeature("HAS_TEX_TRANSFORM");
+                    material.TexTransform = ColorMap.Transform.Value;
+                }
+            }
+
+            if (MetallicRoughnessMap != null)
+            {
+                bld.AddFeature("USE_METALROUGHNESS_MAP");
+                bld.SetUniform("metalroughnessTexture", ctx => MetallicRoughnessMap, 2);
+            }
+
+            if (NormalMap != null)
+            {
+                bld.AddFeature("USE_NORMAL_MAP");
+                bld.SetUniform("normalTexture", ctx => NormalMap, 1);
+            }
+
+            if (OcclusionMap != null)
+            {
+                bld.AddFeature("USE_OCCLUSION_MAP");
+                bld.SetUniform("occlusionTexture", ctx => OcclusionMap, 3);
+            }
+
             bld.ExecuteAction((ctx, up) =>
             {
-                if (ColorMap != null)
-                    up.SetUniform("albedoTexture", ColorMap, 0);
-                
-                if (NormalMap != null)
-                    up.SetUniform("normalTexture", NormalMap, 1);
-
-                if (MetallicRoughnessMap != null)
-                    up.SetUniform("metalroughnessTexture", MetallicRoughnessMap, 2);
-
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
             }); 
 
+
             base.UpdateShader(bld);
         }
+
+        public Texture2D? OcclusionMap { get; set; }
 
         public Texture2D? ColorMap { get; set; }
 
@@ -245,6 +339,18 @@ namespace XrEngine
         public Color ShadowColor { get; set; }
 
         public Color Color { get; set; }
+
+        [Range(0, 1, 0.01f)]    
+        public float Metalness { get; set; }
+
+        [Range(0, 1, 0.01f)]
+        public float Roughness { get; set; }
+
+
+        [Range(0, 1, 0.01f)]
+        public float OcclusionStrength { get; set; }
+
+        public bool ToneMap { get; set; }    
 
 
         public static readonly IShaderHandler GlobalHandler = new GlobalShaderHandler();

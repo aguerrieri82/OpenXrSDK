@@ -151,6 +151,7 @@ namespace XrEngine
 
         public float Far { get; set; }
 
+        [Range(0, 10, 0.1f)]
         public float Exposure { get; set; }
 
         public CameraEye[]? Eyes { get; set; }

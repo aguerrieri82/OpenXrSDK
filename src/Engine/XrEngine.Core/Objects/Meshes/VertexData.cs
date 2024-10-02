@@ -1,7 +1,9 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace XrEngine
 {
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct VertexData
     {
         public static VertexData[] FromPos(float[] data)

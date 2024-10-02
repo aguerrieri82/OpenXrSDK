@@ -6,26 +6,29 @@ using Silk.NET.OpenGL;
 
 using System.Numerics;
 using OpenXr.Framework;
+using System.Runtime.InteropServices;
 
 
 
 namespace XrEngine.OpenGL.Oculus
 {
 
+    [StructLayout(LayoutKind.Explicit,Size = 176)]     
     public struct SceneMatrices
     {
+        [FieldOffset(0)]
         public Matrix4x4 ViewProj1;
 
+        [FieldOffset(64)]
         public Matrix4x4 ViewProj2;
 
+        [FieldOffset(128)]
         public Vector3 Position1;
 
-        public float pad1;
-
+        [FieldOffset(144)]
         public Vector3 Position2;
 
-        public float pad2;
-
+        [FieldOffset(160)]
         public float FarPlane;
     }
 

@@ -440,7 +440,8 @@ namespace XrEngine.Gltf
 
             if (gltMat.OcclusionTexture != null)
             {
-   
+                result.OcclusionMap = DecodeTextureOcclusion(gltMat.OcclusionTexture);
+                result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
             }
 
 
@@ -644,8 +645,6 @@ namespace XrEngine.Gltf
             if (result == null && _meshes.TryGetValue(gltMesh, out result))
                 return new Object3DInstance() { Reference = result };
 
-
-
             CheckExtensions(gltMesh.Extensions);
 
             var group = gltMesh.Primitives.Length > 1 ? new Group3D() : null;
@@ -678,13 +677,10 @@ namespace XrEngine.Gltf
                 if (primitive.Material != null)
                 {
                     var gltfMat = _model!.Materials[primitive.Material.Value];
-                    curMesh.Materials.Add(ProcessMaterialV2(gltfMat, primitive.Material.Value));
-
-                    if (gltMesh.Name == "Floor")
-                    {
-                        //Debugger.Break();
-                    }
-
+                    if (_options!.UsePbrV2)
+                        curMesh.Materials.Add(ProcessMaterialV2(gltfMat, primitive.Material.Value));
+                    else
+                        curMesh.Materials.Add(ProcessMaterial(gltfMat, primitive.Material.Value));
                 }
 
                 if (group == null)

@@ -99,7 +99,7 @@ namespace XrSamples
             {
                 var scene = e.App.ActiveScene!;
 
-                scene.PerspectiveCamera().Exposure = 0.5f;
+                scene.PerspectiveCamera().Exposure = 1.0f;
 
                 var envView = scene.AddChild<EnvironmentView>();
                 envView.IsVisible = showEnv;
@@ -782,10 +782,15 @@ namespace XrSamples
             var scene = app.ActiveScene!;
 
             var mesh = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), GltfOptions);
-            mesh.Name = "Bed";
+            mesh.Name = "Bed 1";
             mesh.AddComponent<PyMeshCollider>();
-           //mesh.AddComponent<MeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
+
+            var mesh2 = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), new GltfLoaderOptions { UsePbrV2 = true });
+            mesh2.Name = "Bed 2";
+            mesh2.WorldPosition = new Vector3(3, 0, 0); 
+            mesh2.AddComponent<PyMeshCollider>();
+            mesh2.AddComponent<BoundsGrabbable>();
 
             foreach (var material in mesh.Materials!)
             {
@@ -796,6 +801,7 @@ namespace XrSamples
 
 
             scene.AddChild(mesh);
+            scene.AddChild(mesh2);
 
             return builder
                 .UseApp(app)
