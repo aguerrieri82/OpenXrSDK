@@ -16,7 +16,7 @@
 
 precision highp float;
 
-#include <uniforms.glsl>
+#include <Pbr/uniforms.glsl>
 #include <tonemapping.glsl>
 #include <textures.glsl>
 #include <functions.glsl>

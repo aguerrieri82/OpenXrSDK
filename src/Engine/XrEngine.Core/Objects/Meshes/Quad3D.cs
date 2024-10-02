@@ -35,8 +35,9 @@ namespace XrEngine
                 3,2,0,
             ];
 
-
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0;
+
+            this.ComputeTangents();
         }
 
         public void FlipYUV()

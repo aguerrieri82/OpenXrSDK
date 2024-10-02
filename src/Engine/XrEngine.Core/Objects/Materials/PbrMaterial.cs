@@ -705,6 +705,8 @@ namespace XrEngine
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             var material = new MaterialUniforms();
+            
+            bld.SetUniformBuffer("Material", ctx => (MaterialUniforms?)material, 3, false);
 
             if (NormalTexture != null)
             {

@@ -53,8 +53,6 @@ namespace XrEngine.OpenGL
                 shaderResolver("PbrV2/equirect2cube_cs.glsl"),
                 shaderResolver);
 
-            _panToCubeProg.AddExtension("GL_KHR_vulkan_glsl");
-
             _panToCubeProg.Build();
 
             void AddFilter(string shader, Distribution distribution)
@@ -121,8 +119,22 @@ namespace XrEngine.OpenGL
             {
                 if (distribution == Distribution.GGX)
                 {
-                    var r = mipLevel / ((float)mipCount - 1);
-                    program.SetUniform("roughness", mipLevel / ((float)mipCount - 1));
+                    if (mipLevel == 0)
+                    {
+                        _gl.CopyImageSubData(_cubeMapId, CopyImageSubDataTarget.TextureCubeMap, 0, 0, 0, 0,
+                                             texId, CopyImageSubDataTarget.TextureCubeMap, 0, 0, 0, 0,
+                                             Resolution, Resolution, 6);
+
+                        res = res >> 1;
+
+                        continue;
+                    }
+                    else
+                    {
+                        var r = mipLevel / ((float)mipCount - 1);
+                        program.SetUniform("roughness", mipLevel / ((float)mipCount - 1));
+                    }
+
                 }
 
                 var steps = (res + 31) / 32;

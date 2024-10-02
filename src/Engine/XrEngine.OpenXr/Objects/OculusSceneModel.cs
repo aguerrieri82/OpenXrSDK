@@ -72,6 +72,7 @@ namespace XrEngine.OpenXr
                 geo.Rebuild();
                 geo.ComputeNormals();
 
+
                 var isLocatable = oculus.EnumerateSpaceSupportedComponentsFB(meshAnchor.Space).Contains(SpaceComponentTypeFB.LocatableFB);
                 if (isLocatable)
                 {

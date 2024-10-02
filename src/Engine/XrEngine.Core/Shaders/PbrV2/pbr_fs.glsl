@@ -1,3 +1,5 @@
+#include "PbrV2/uniforms.glsl"
+#include "Pbr/shadow.glsl"
 
 // Physically Based Rendering
 // Copyright (c) 2017-2018 Michał Siejak
@@ -10,66 +12,32 @@
 const float PI = 3.141592;
 const float Epsilon = 0.00001;
 
-const int NumLights = 3;
-
 // Constant normal incidence Fresnel factor for all dielectrics.
 const vec3 Fdielectric = vec3(0.04);
 
-struct AnalyticalLight {
-	uint type;
-	vec3 position;	
-	vec3 direction;
-	vec3 radiance;
-};
 
 layout(location=0) in Vertex
 {
 	vec3 position;
 	vec2 texcoord;
 	mat3 tangentBasis;
+	vec4 posLightSpace;
+	vec3 cameraPos;
 } vin;
 
 layout(location=0) out vec4 color;
 
-#ifdef VULKAN
-layout(set=0, binding=1) uniform ShadingUniforms
-#else
-layout(std140, binding=1) uniform LightsUniforms
-#endif // VULKAN
-{
-	uint count;
-	AnalyticalLight lights[MAX_LIGHTS];
 
-} uLights;
+uniform float uSpecularTextureLevels;
 
-#ifdef VULKAN
-layout(set=0, binding=0) uniform Camera
-#else
-layout(std140, binding=0) uniform Camera
-#endif // VULKAN
-{
-	mat4 viewProj;
-	vec3 cameraPosition;	
-} uCamera;
-
-
-#ifdef VULKAN
-layout(set=1, binding=0) uniform sampler2D albedoTexture;
-layout(set=1, binding=1) uniform sampler2D normalTexture;
-layout(set=1, binding=2) uniform sampler2D metalnessTexture;
-layout(set=1, binding=3) uniform sampler2D roughnessTexture;
-layout(set=1, binding=4) uniform samplerCube specularTexture;
-layout(set=1, binding=5) uniform samplerCube irradianceTexture;
-layout(set=1, binding=6) uniform sampler2D specularBRDF_LUT;
-#else
 layout(binding=0) uniform sampler2D albedoTexture;
 layout(binding=1) uniform sampler2D normalTexture;
 layout(binding=2) uniform sampler2D metalroughnessTexture;
+layout(binding=3) uniform sampler2D occlusionTexture;
 
 layout(binding=4) uniform samplerCube specularTexture;
 layout(binding=5) uniform samplerCube irradianceTexture;
 layout(binding=6) uniform sampler2D specularBRDF_LUT;
-#endif // VULKAN
 
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2.
@@ -102,20 +70,54 @@ vec3 fresnelSchlick(vec3 F0, float cosTheta)
 	return F0 + (vec3(1.0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
+const float gamma     = 2.2;
+const float pureWhite = 1.0;
+
+vec3 toneMap(vec3 color)
+{
+
+	float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
+	float mappedLuminance = (luminance * (1.0 + luminance/(pureWhite*pureWhite))) / (1.0 + luminance);
+
+	// Scale color by ratio of average luminances.
+	vec3 mappedColor = (mappedLuminance / luminance) * color;
+
+	// Gamma correction.
+	return pow(mappedColor, vec3(1.0/gamma));
+}
+
 void main()
 {
+	vec3 shadowLightDir;
+
 	// Sample input textures to get shading model params.
-	vec3 albedo = texture(albedoTexture, vin.texcoord).rgb;
-	vec4 mr = texture(metalroughnessTexture, vin.texcoord);
-	float metalness = mr.b;
-	float roughness = mr.g;
+	#ifdef USE_ALBEDO_MAP
+		vec3 albedo = texture(albedoTexture, vin.texcoord).rgb * uMaterial.color.rgb;
+	#else
+		vec3 albedo = uMaterial.color.rgb;	
+	#endif
+
+	#ifdef USE_METALROUGHNESS_MAP
+
+		vec4 mr = texture(metalroughnessTexture, vin.texcoord);
+		float metalness = mr.b * uMaterial.metalness;
+		float roughness = mr.g * uMaterial.roughness;
+
+	#else
+		float metalness = uMaterial.metalness;
+		float roughness = uMaterial.roughness;
+	#endif
 
 	// Outgoing light direction (vector from world-space fragment position to the "eye").
-	vec3 Lo = normalize(uCamera.cameraPosition - vin.position);
+	vec3 Lo = normalize(vin.cameraPos - vin.position);
 
 	// Get current fragment's normal and transform to world space.
-	vec3 N = normalize(2.0 * texture(normalTexture, vin.texcoord).rgb - 1.0);
-	N = normalize(vin.tangentBasis * N);
+	#ifdef USE_NORMAL_MAP
+		vec3 N = normalize(2.0 * texture(normalTexture, vin.texcoord).rgb - 1.0);
+		N = normalize(vin.tangentBasis * N);
+	#else
+		vec3 N = vin.tangentBasis[2];
+	#endif
 	
 	// Angle between surface normal and outgoing light direction.
 	float cosLo = max(0.0, dot(N, Lo));
@@ -128,22 +130,38 @@ void main()
 
 	// Direct lighting calculation for analytical lights.
 	vec3 directLighting = vec3(0);
-	for(uint i=0u; i<uLights.count; ++i)
+	for(uint i = 0u; i < uLights.count; ++i)
 	{
 		vec3 Li;
+		float attenuation = 1.0; // Default attenuation
 
-		if (uLights.lights[i].type == 0u)
+		if(uLights.lights[i].type == 0u)
 		{
 			// Point light.
-			Li = normalize(uLights.lights[i].position - vin.position);
+			vec3 lightDir = uLights.lights[i].position - vin.position;
+			float distance = length(lightDir);
+			Li = normalize(lightDir);
+
+			// Check if the fragment is within the light's radius
+			if (distance > uLights.lights[i].radius)
+				continue;
+
+			// Attenuation coefficients (you can adjust these values)
+			float constant = 1.0;
+			float linear = 0.09;
+			float quadratic = 0.032;
+
+			// Calculate attenuation
+			attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
 		}
 		else
 		{
 			// Directional light.
 			Li = -uLights.lights[i].direction;
+			shadowLightDir = Li;
 		}
-			
-		vec3 Lradiance = uLights.lights[i].radiance;
+
+		vec3 Lradiance = uLights.lights[i].radiance * attenuation;
 
 		// Half-vector between Li and Lo.
 		vec3 Lh = normalize(Li + Lo);
@@ -165,8 +183,6 @@ void main()
 		vec3 kd = mix(vec3(1.0) - F, vec3(0.0), metalness);
 
 		// Lambert diffuse BRDF.
-		// We don't scale by 1/PI for lighting & material units to be more convenient.
-		// See: https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/
 		vec3 diffuseBRDF = kd * albedo;
 
 		// Cook-Torrance specular microfacet BRDF.
@@ -178,6 +194,8 @@ void main()
 
 	// Ambient lighting (IBL).
 	vec3 ambientLighting;
+
+	#ifdef USE_IBL
 	{
 		// Sample diffuse irradiance at normal direction.
 		vec3 irradiance = texture(irradianceTexture, N).rgb;
@@ -195,8 +213,8 @@ void main()
 		vec3 diffuseIBL = kd * albedo * irradiance;
 
 		// Sample pre-filtered specular reflection environment at correct mipmap level.
-		int specularTextureLevels = textureQueryLevels(specularTexture);
-		vec3 specularIrradiance = textureLod(specularTexture, Lr, roughness * float(specularTextureLevels)).rgb;
+		//int specularTextureLevels = textureQueryLevels(specularTexture);
+		vec3 specularIrradiance = textureLod(specularTexture, Lr, roughness * uSpecularTextureLevels).rgb;
 
 		// Split-sum approximation factors for Cook-Torrance specular BRDF.
 		vec2 specularBRDF = texture(specularBRDF_LUT, vec2(cosLo, roughness)).rg;
@@ -207,7 +225,35 @@ void main()
 		// Total ambient lighting contribution.
 		ambientLighting = diffuseIBL + specularIBL;
 	}
+	#endif
+
+	vec3 color3 = (directLighting + ambientLighting);
+	float a = uMaterial.color.a;	
+
+	#ifdef USE_OCCLUSION_MAP
+    float ao = texture(occlusionTexture, vin.texcoord).r;
+    color3 *= (1.0 + uMaterial.occlusionStrength * (ao - 1.0)); 
+	#endif
+
+	#if defined(USE_SHADOW_MAP) && defined(RECEIVE_SHADOWS) && defined(USE_PUNCTUAL)
+
+		float shadow = calculateShadow(vin.posLightSpace, N, shadowLightDir);
+
+		#ifdef TRANSPARENT
+			color3 = shadow * uMaterial.shadowColor.rgb;
+			a = shadow * uMaterial.shadowColor.a;
+		#else
+			color3 *= vec3(1.0 - shadow * uMaterial.shadowColor.rgb);
+		#endif
+
+	#endif
+	
+	#ifdef TONEMAP
+	color3 = toneMap(color3);
+	#endif
 
 	// Final fragment color.
-	color = vec4(directLighting + ambientLighting, 1.0);
+	color = vec4(color3 * uCamera.exposure, a) ;
+
+
 }

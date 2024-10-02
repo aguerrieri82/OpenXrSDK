@@ -1,3 +1,5 @@
+#include "PbrV2/uniforms.glsl"
+
 
 // Physically Based Rendering
 // Copyright (c) 2017-2018 Michał Siejak
@@ -10,11 +12,6 @@ layout(location=4) in vec4 tangent;
 //layout(location=3) in vec3 bitangent;
 layout(location=2) in vec2 texcoord;
 
-layout(std140, binding=0) uniform Camera
-{
-	mat4 viewProj;
-	vec3 cameraPosition;	
-} uCamera;
 
 uniform mat4 uModel;
 
@@ -23,28 +20,79 @@ layout(location=0) out Vertex
 	vec3 position;
 	vec2 texcoord;
 	mat3 tangentBasis;
+	vec4 posLightSpace;
+	vec3 cameraPos;
 } vout;
 
-vec3 computeBitangent(vec3 normal, vec4 tangent)
-{
-    vec3 T = tangent.xyz;
-    
-    float handedness = tangent.w;
 
-    vec3 bitangent = cross(normal, T) * handedness;
 
-    return bitangent;
-}
+#ifdef MULTI_VIEW
+
+    #define NUM_VIEWS 2
+
+    layout(num_views=NUM_VIEWS) in;
+
+    layout(std140) uniform SceneMatrices
+    {
+        uniform mat4 viewProj[NUM_VIEWS];
+        uniform vec3 position[NUM_VIEWS];
+        float farPlane;
+    } uMatrices;
+
+    vec3 getViewPos() 
+    {
+       return uMatrices.position[gl_ViewID_OVR];   
+    }
+
+    mat4 getViewProj() 
+    {
+       return uMatrices.viewProj[gl_ViewID_OVR];   
+    }
+
+#else
+
+    vec3 getViewPos() 
+    {
+       return uCamera.cameraPosition;   
+    }
+
+    mat4 getViewProj() 
+    {
+       return uCamera.viewProj;   
+    }
+
+#endif
 
 
 void main()
 {
 	vec4 pos = uModel * vec4(position, 1.0);
 
-	vout.position = vec3(pos);
+	vout.position = pos.xyz; // / pos.w;
+
 	vout.texcoord = texcoord;
 
-	vout.tangentBasis = mat3(uModel) * mat3(tangent, computeBitangent(normal, tangent), normal);
+	vout.cameraPos = getViewPos();
 
-	gl_Position = uCamera.viewProj * pos;
+	#ifdef HAS_TEX_TRANSFORM
+
+	vout.texcoord = (vec3(texcoord.xy, 1) * uMaterial.texTransform).xy;
+
+	#endif
+
+	#ifdef USE_SHADOW_MAP
+    
+	vout.posLightSpace = uCamera.lightSpaceMatrix * pos;
+
+	#endif
+
+	mat3 uModel3 = mat3(uModel);
+
+    vec3 N = normalize(uModel3 * normal);
+    vec3 T = normalize(uModel3 * tangent.xyz);
+	vec3 B = normalize(cross(T, N) * tangent.w);
+
+    vout.tangentBasis = mat3(T, B, N);
+
+	gl_Position = getViewProj() * pos;
 }

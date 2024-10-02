@@ -25,7 +25,7 @@ namespace XrEngine.OpenGL
     {
         public GlRenderOptions()
         {
-            FloatPrecision = ShaderPrecision.Medium;
+            FloatPrecision = ShaderPrecision.High;
             ShaderVersion = "320 es";
             FrustumCulling = true;
             UseOcclusionQuery = true;
