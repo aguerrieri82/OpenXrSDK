@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine.Layers
+﻿namespace XrEngine.Layers
 {
     public class DetachedLayer : BaseLayer<Object3D>, IRenderUpdate
     {
@@ -44,7 +38,7 @@ namespace XrEngine.Layers
             _content.Add(item);
             NotifyChanged();
         }
-        
+
         public void Remove(Object3D item)
         {
             if (item._scene == _manager!.Scene)

@@ -1,9 +1,6 @@
 ﻿using SkiaSharp;
-using System.Collections;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using XrEngine.Services;
 
 namespace XrEngine.Compression
 {
@@ -83,20 +80,20 @@ namespace XrEngine.Compression
 
         public unsafe static IList<TextureData> Encode(TextureData data, int mipsLevels)
         {
-            string? cacheFile = null;   
+            string? cacheFile = null;
             if (CachePath != null)
             {
                 var hash = BitConverter.ToString(MD5.HashData(data.Data.Span)).Replace("-", "");
                 cacheFile = Path.Combine(CachePath, hash + ".pvr");
 
-                if (File.Exists(cacheFile) )
+                if (File.Exists(cacheFile))
                 {
                     using var readStream = File.OpenRead(cacheFile);
                     var cacheData = PvrTranscoder.Instance.LoadTexture(readStream);
                     return cacheData;
                 }
             }
-   
+
 
             var skType = ImageUtils.GetFormat(data.Format);
 

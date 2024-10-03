@@ -1,10 +1,7 @@
 ﻿using System.Numerics;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Xml.Schema;
 using XrMath;
-using static PhysX.NativeMethodsGroupingExtensions;
 using static PhysX.NativeMethods;
 
 namespace PhysX.Framework
@@ -46,11 +43,11 @@ namespace PhysX.Framework
                     this,
                     &transform,
                     maxDistance,
-                    flags, 
+                    flags,
                     maxHits,
-                    pResult, 
-                    0, 
-                    PxGeometryQueryFlags.SimdGuard, 
+                    pResult,
+                    0,
+                    PxGeometryQueryFlags.SimdGuard,
                     null);
             }
 

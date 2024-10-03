@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace XrMath
@@ -8,7 +7,7 @@ namespace XrMath
     public static class MathExtensions
     {
         #region PLANE
-        
+
         public static bool IntersectLine(this Plane plane, Vector3 point1, Vector3 point2)
         {
             var distance1 = Plane.DotCoordinate(plane, point1);
@@ -342,13 +341,13 @@ namespace XrMath
             var denominator = Vector3.Dot(ray.Direction, plane.Normal);
             if (Math.Abs(denominator) < 1e-6)
                 return false;
-            
+
             var numerator = -Vector3.Dot(ray.Origin, plane.Normal) - plane.D;
             var t = numerator / denominator;
             if (t < 0)
                 return false;
 
-            intersectionPoint = ray.PointAt(t); 
+            intersectionPoint = ray.PointAt(t);
             return true;
         }
 

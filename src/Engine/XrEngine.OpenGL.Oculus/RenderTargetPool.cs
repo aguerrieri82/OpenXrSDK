@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-#if GLES
+﻿#if GLES
 
 using Silk.NET.OpenGLES;
 #else
@@ -16,9 +10,9 @@ namespace XrEngine.OpenGL.Oculus
 {
     public class FrameBufferPool
     {
-        private GL _gl;
-        private bool _multiView;
-        private Dictionary<uint, IGlRenderTarget> _targets = [];
+        private readonly GL _gl;
+        private readonly bool _multiView;
+        private readonly Dictionary<uint, IGlRenderTarget> _targets = [];
 
         public FrameBufferPool(GL gl, bool multiView)
         {
@@ -67,7 +61,7 @@ namespace XrEngine.OpenGL.Oculus
                     var singleView = new GlTextureRenderTarget(_gl);
                     if (sampleCount > 0)
                     {
-                        var renderBuf = new GlRenderBuffer(_gl); 
+                        var renderBuf = new GlRenderBuffer(_gl);
                         renderBuf.Update(glColor.Width, glColor.Height, sampleCount, InternalFormat.Depth32fStencil8);
                         singleView.FrameBuffer.Configure(glColor, renderBuf, sampleCount);
                     }
@@ -76,10 +70,10 @@ namespace XrEngine.OpenGL.Oculus
                         glDepth = CreateDepth(glColor, 1);
                         singleView.FrameBuffer.Configure(glColor, glDepth, sampleCount);
                     }
-        
+
                     target = singleView;
                 }
-                
+
                 _targets[colorTex] = target;
             }
 

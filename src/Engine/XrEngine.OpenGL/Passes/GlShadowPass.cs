@@ -24,7 +24,7 @@ namespace XrEngine.OpenGL
         public GlShadowPass(OpenGLRender renderer)
             : base(renderer)
         {
-            
+
             UseShadowSampler = false;
 
             _lightCamera = new OrtoCamera();
@@ -106,10 +106,10 @@ namespace XrEngine.OpenGL
             if (_light!.Version == _lightVersion && shadowLayer.Version == _layerVersion)
                 return false;
 
-            Log.Debug(this, "Rendering shadow map for light '{0}'...", _light!.Name);      
+            Log.Debug(this, "Rendering shadow map for light '{0}'...", _light!.Name);
 
             _layerVersion = shadowLayer.Version;
-            _lightVersion = _light.Version; 
+            _lightVersion = _light.Version;
 
             _oldCamera = _renderer.UpdateContext.Camera;
 
@@ -118,7 +118,7 @@ namespace XrEngine.OpenGL
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetClearDepth(1.0f);
             _renderer.State.SetView(new Rect2I(0, 0, _depthTexture!.Width, _depthTexture.Height));
-            _renderer.State.SetCullFace(TriangleFace.Front);    
+            _renderer.State.SetCullFace(TriangleFace.Front);
 
             _renderer.GL.Clear((uint)ClearBufferMask.DepthBufferBit);
 

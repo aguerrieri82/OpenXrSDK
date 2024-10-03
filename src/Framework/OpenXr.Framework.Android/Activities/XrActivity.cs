@@ -32,11 +32,11 @@ namespace OpenXr.Framework.Android
         public XrActivity()
         {
             _isExited = false;
-             _permissions = [
-               "com.oculus.permission.USE_SCENE",
+            _permissions = [
+              "com.oculus.permission.USE_SCENE",
                 "android.permission.WRITE_EXTERNAL_STORAGE",
                 "android.permission.READ_EXTERNAL_STORAGE"
-               ];
+              ];
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)

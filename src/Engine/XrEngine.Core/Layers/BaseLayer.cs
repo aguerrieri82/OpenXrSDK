@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine.Layers
+﻿namespace XrEngine.Layers
 {
     public abstract class BaseLayer<T> : ILayer3D where T : ILayer3DItem
     {
@@ -18,7 +12,7 @@ namespace XrEngine.Layers
         {
             _id = ObjectId.New();
             _isEnabled = true;
-            Name = GetType().Name; 
+            Name = GetType().Name;
         }
 
         public void Attach(LayerManager manager)

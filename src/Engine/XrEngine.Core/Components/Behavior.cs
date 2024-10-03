@@ -43,9 +43,9 @@
             else
             {
                 _deltaTime = _lastUpdateTime == 0 ? 0 : ctx.Time - _lastUpdateTime;
-                
+
                 EngineApp.Current!.Stats.Update(this, () => Update(ctx));
-                
+
                 _lastUpdateTime = ctx.Time;
             }
         }
@@ -54,10 +54,10 @@
 
         protected double DeltaTime => _deltaTime;
 
-        
+
         public event EventHandler? Started;
 
-        public IUpdateGroup? UpdateGroup { get; set; }  
+        public IUpdateGroup? UpdateGroup { get; set; }
 
     }
 

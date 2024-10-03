@@ -1,10 +1,8 @@
 ﻿using glTFLoader.Schema;
 using Newtonsoft.Json.Linq;
 using SkiaSharp;
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -33,7 +31,7 @@ namespace XrEngine.Gltf
         string? _filePath;
         static readonly string[] supportedExt = {
             "KHR_texture_transform",
-            "KHR_draco_mesh_compression", 
+            "KHR_draco_mesh_compression",
             "KHR_materials_pbrSpecularGlossiness" };
 
         struct KHR_draco_mesh_compression
@@ -156,7 +154,7 @@ namespace XrEngine.Gltf
                         Format = useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
                     };
                 }
-       
+
                 else
                 {
                     using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
@@ -176,7 +174,7 @@ namespace XrEngine.Gltf
                     };
                 }
 
-         
+
             });
         }
 
@@ -243,7 +241,7 @@ namespace XrEngine.Gltf
 
                     if (transform.Value.scale != null)
                         mat *= Matrix3x3.CreateScale(transform.Value.scale[0], transform.Value.scale[1]);
-                   
+
                     result.Transform = mat;
                 }
             });
@@ -370,10 +368,10 @@ namespace XrEngine.Gltf
             if (sheen != null)
             {
                 result.Sheen = new PbrV1Material.SheenData();
-                
+
                 if (sheen.Value.sheenColorFactor != null)
                     result.Sheen.ColorFactor = MathUtils.ToVector3(sheen.Value.sheenColorFactor);
-                
+
                 result.Sheen.RoughnessFactor = sheen.Value.sheenRoughnessFactor;
 
                 if (sheen.Value.sheenColorTexture != null)
@@ -415,9 +413,9 @@ namespace XrEngine.Gltf
                 glTFLoader.Schema.Material.AlphaModeEnum.BLEND => AlphaMode.Blend,
                 _ => throw new NotSupportedException()
             };
-            
+
             result.DoubleSided = gltMat.DoubleSided;
-            
+
             result.AlphaCutoff = gltMat.AlphaCutoff;
 
 

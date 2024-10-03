@@ -15,7 +15,7 @@ namespace XrEngine
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = true,
-                UpdateHandler = StandardVertexShaderHandler.Instance    
+                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
 

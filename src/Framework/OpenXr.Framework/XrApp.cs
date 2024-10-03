@@ -689,9 +689,9 @@ namespace OpenXr.Framework
                 size.Width *= 2;
 
             var arraySize = (uint)(_renderOptions.RenderMode == XrRenderMode.MultiView ? 2 : 1);
-            
+
             var format = isDepth ? _renderOptions.DepthFormat : _renderOptions.ColorFormat;
-            
+
             var usage = (isDepth ? SwapchainUsageFlags.DepthStencilAttachmentBit : SwapchainUsageFlags.ColorAttachmentBit);/* | SwapchainUsageFlags.SampledBit;*/
 
             return CreateSwapChain(size, format, arraySize, usage);

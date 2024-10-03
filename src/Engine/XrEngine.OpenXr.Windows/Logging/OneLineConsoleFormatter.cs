@@ -44,7 +44,7 @@ namespace XrEngine.OpenXr.Windows
 
         private static ConsoleColor GetLogLevelConsoleColors(LogLevel2 logLevel)
         {
-            
+
             return logLevel switch
             {
                 LogLevel2.Trace => ConsoleColor.Gray,

@@ -33,7 +33,7 @@ namespace XrEngine
                 return;
 
             _gizmos.Clear();
-            
+
             foreach (var draw in _drawGizmos)
                 draw.DrawGizmos(_gizmos);
 
@@ -72,11 +72,11 @@ namespace XrEngine
                 change.Target = object3D;
 
             if (!change.IsAny(ObjectChangeType.Transform) &&
-                change.Target is not Material && 
+                change.Target is not Material &&
                 (change.Target is not Light || !change.IsAny(ObjectChangeType.Render)))
             {
                 Version++;
-                
+
                 UpdateDrawGizmos();
             }
 

@@ -1,12 +1,7 @@
 ﻿using FFmpeg.AutoGen;
-using Silk.NET.Direct3D11;
-using Silk.NET.WGL.Extensions.NV;
-using Silk.NET.WGL;
 using System.Runtime.InteropServices;
 using XrEngine.Video.Abstraction;
 using static FFmpeg.AutoGen.ffmpeg;
-using XrEngine.OpenGL;
-using System.Xml.Linq;
 
 
 
@@ -125,7 +120,7 @@ namespace XrEngine.Video
             var codec = mode == VideoCodecMode.Decode ? avcodec_find_decoder(codecId) : avcodec_find_encoder(codecId);
 
             _pCodecContext = avcodec_alloc_context3(codec);
-  
+
             _pCodecContext->width = outFormat.Width;
             _pCodecContext->height = outFormat.Height;
             if (extraData != null)
@@ -133,8 +128,8 @@ namespace XrEngine.Video
                 _pCodecContext->extradata_size = extraData.Length;
                 _pCodecContext->extradata = (byte*)av_malloc((ulong)_pCodecContext->extradata_size);
                 Marshal.Copy(extraData, 0, (IntPtr)(_pCodecContext->extradata), extraData.Length);
-            }   
-  
+            }
+
             AVPixelFormat outPixelFormat;
 
             if (DeviceType != AVHWDeviceType.AV_HWDEVICE_TYPE_NONE)
@@ -182,7 +177,7 @@ namespace XrEngine.Video
                     _pPacket->data = ((byte*)src.Pointer.ToPointer()) + src.Offset;
                     _pPacket->size = src.Size;
                 }
-               
+
 
                 try
                 {

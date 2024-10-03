@@ -4,7 +4,7 @@ namespace XrEngine.OpenXr
 {
     internal class AndroidProgressLogger : IProgressLogger
     {
-        string _tag;
+        readonly string _tag;
 
         public AndroidProgressLogger(string tag = "XrApp")
         {

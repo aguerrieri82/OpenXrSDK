@@ -1,10 +1,5 @@
 ﻿using OpenXr.Framework;
 using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XrEngine.OpenXr.Components
 {
@@ -38,7 +33,7 @@ namespace XrEngine.OpenXr.Components
                     if (deltaPos > 0.005 || deltaOri > 0.005)
                         Log.Debug(this, $"{_host.Name} DP: {deltaPos} - DO: {deltaOri}");
                 }
-                _host?.SetGlobalPoseIfChanged(loc.Pose,  0.005f);
+                _host?.SetGlobalPoseIfChanged(loc.Pose, 0.005f);
             }
 
 

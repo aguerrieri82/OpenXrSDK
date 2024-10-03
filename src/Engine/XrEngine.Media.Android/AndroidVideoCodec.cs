@@ -23,8 +23,8 @@ namespace XrEngine.Media.Android
         private string? _mimeType;
         private bool _isCodecInit;
         private SurfaceTexture? _surfaceTex;
-        private long _timeout;
-        private ConcurrentQueue<ConvertData> _convertQueue = new ConcurrentQueue<ConvertData>();
+        private readonly long _timeout;
+        private readonly ConcurrentQueue<ConvertData> _convertQueue = new ConcurrentQueue<ConvertData>();
 
         public AndroidVideoCodec()
         {
@@ -44,7 +44,7 @@ namespace XrEngine.Media.Android
             if (OutTexture != null)
             {
                 var glText = OutTexture!.GetProp<GlTexture>(OpenGLRender.Props.GlResId);
-                
+
                 if (glText == null)
                     return false;
 
@@ -75,7 +75,7 @@ namespace XrEngine.Media.Android
                 Log.Warn(this, "EnqueueBuffer failed");
                 return false;
             }
-        
+
 
             var inputBuffer = _codec.GetInputBuffer(inBufferIndex)!;
 
@@ -99,7 +99,7 @@ namespace XrEngine.Media.Android
 
             int outBufferIndex;
 
-            lock (this) 
+            lock (this)
                 outBufferIndex = _codec!.DequeueOutputBuffer(bufferInfo, 0);
 
             if (outBufferIndex > 0)

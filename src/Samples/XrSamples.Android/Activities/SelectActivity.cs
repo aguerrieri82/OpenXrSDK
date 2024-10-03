@@ -1,9 +1,7 @@
+using _Microsoft.Android.Resource.Designer;
 using Android.Content;
 using Android.Content.PM;
-using Android.Webkit;
-using Android.Widget;
 using System.Text.Json;
-using _Microsoft.Android.Resource.Designer;
 using XrEngine.OpenXr;
 
 namespace XrSamples.Android.Activities
@@ -32,7 +30,7 @@ namespace XrSamples.Android.Activities
             {
                 StartGame();
                 Finish();
-                return; 
+                return;
             }
 
             SetContentView(ResourceConstant.Layout.activity_select);
@@ -52,8 +50,8 @@ namespace XrSamples.Android.Activities
 
             //MSAA
             var mssa = FindViewById<Spinner>(ResourceConstant.Id.msaa)!;
-            mssa.Adapter = new ArrayAdapter<int>(this, 
-                global::Android.Resource.Layout.SimpleSpinnerItem, 
+            mssa.Adapter = new ArrayAdapter<int>(this,
+                global::Android.Resource.Layout.SimpleSpinnerItem,
                 [1, 2, 4]);
 
             mssa.ItemSelected += (s, e) =>
@@ -67,8 +65,8 @@ namespace XrSamples.Android.Activities
             var hdris = FindViewById<Spinner>(ResourceConstant.Id.hdri)!;
             hdris.Adapter = new ArrayAdapter<string>(this,
                 global::Android.Resource.Layout.SimpleSpinnerItem,
-                images.Select(a=> a.Name!).ToArray());
-  
+                images.Select(a => a.Name!).ToArray());
+
 
             hdris.ItemSelected += (s, e) =>
             {

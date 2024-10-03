@@ -17,7 +17,7 @@ namespace XrEngine
         public static string GetString(Assembly ctx, string resName)
         {
             resName = resName.Replace('/', '.');
-            
+
             if (!resName.StartsWith('/'))
                 resName = "." + resName;
 

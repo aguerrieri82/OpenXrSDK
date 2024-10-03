@@ -31,14 +31,14 @@ namespace XrEditor
             foreach (var method in objType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
 
-                var action = method.GetCustomAttribute<ActionAttribute>();        
+                var action = method.GetCustomAttribute<ActionAttribute>();
                 if (action == null)
-                    continue;   
+                    continue;
 
                 var propView = new ActionView
                 {
                     DisplayName = method.Name,
-                    ExecuteCommand = new Command(()=> method.Invoke(obj, null)),    
+                    ExecuteCommand = new Command(() => method.Invoke(obj, null)),
                 };
 
                 actions.Add(propView);

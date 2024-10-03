@@ -1,14 +1,11 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using Microsoft.Build.Framework;
+﻿using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Task = Microsoft.Build.Utilities.Task;
 
 public class ScanNativeLibrary : Task
 {
     [Output]
-    public ITaskItem[]? NativeAndroid { get; set;  }
+    public ITaskItem[]? NativeAndroid { get; set; }
 
     [Output]
     public ITaskItem[]? NativeAll { get; set; }
@@ -27,7 +24,7 @@ public class ScanNativeLibrary : Task
             var fullPath = item.GetMetadata("FullPath");
             if (!File.Exists(fullPath))
             {
-                Log.LogWarning($"File does not exist: {fullPath}"); 
+                Log.LogWarning($"File does not exist: {fullPath}");
                 continue;
             }
 
@@ -38,7 +35,7 @@ public class ScanNativeLibrary : Task
             var runtimeId = item.GetMetadata("Runtime");
 
             if (string.IsNullOrWhiteSpace(runtimeId))
-                 runtimeId = parts.FirstOrDefault(a => a.StartsWith("win-") || a.StartsWith("android-"));
+                runtimeId = parts.FirstOrDefault(a => a.StartsWith("win-") || a.StartsWith("android-"));
 
             if (runtimeId != null)
             {

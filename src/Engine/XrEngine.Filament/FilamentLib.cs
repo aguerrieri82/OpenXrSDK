@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using XrMath;
 
 namespace XrEngine.Filament
@@ -331,7 +330,7 @@ namespace XrEngine.Filament
             public FlTextureInternalFormat InternalFormat;
             public uint Levels;
             public ImageData Data;
-            public Guid TextureId;  
+            public Guid TextureId;
         };
 
         public struct MaterialInfo

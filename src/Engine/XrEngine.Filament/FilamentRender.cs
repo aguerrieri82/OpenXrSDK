@@ -277,7 +277,7 @@ namespace XrEngine.Filament
                     result.Data.DataSize = (uint)mainData.Data!.Length;
                     result.Data.Data = MemoryManager.Allocate(mainData.Data.Length, this);
                     result.Data.AutoFree = true;
-    
+
 
                     var dstMem = new Span<byte>(result.Data.Data.ToPointer(), mainData.Data.Length);
                     mainData.Data.Span.CopyTo(dstMem);
@@ -502,7 +502,7 @@ namespace XrEngine.Filament
                             _ => throw new NotSupportedException()
                         },
                         BaseColorMap = AllocateTexture(tex.Texture),
-                        Color = Color.White,    
+                        Color = Color.White,
                         DoubleSided = tex.DoubleSided,
                         IsLit = false,
                         WriteDepth = tex.WriteDepth,
@@ -527,7 +527,7 @@ namespace XrEngine.Filament
             {
                 tex.Texture!.Changed += (s, c) =>
                 {
-                    var texInfo = AllocateTexture(tex.Texture); 
+                    var texInfo = AllocateTexture(tex.Texture);
                     if (!UpdateTexture(_app, tex.Texture.Id, ref texInfo.Data))
                     {
                         matInfo = UpdateMatInfo();
@@ -626,7 +626,7 @@ namespace XrEngine.Filament
 
         public unsafe void Render(Scene3D scene, Camera camera, Rect2I viewport, bool flush)
         {
-    
+
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);
 

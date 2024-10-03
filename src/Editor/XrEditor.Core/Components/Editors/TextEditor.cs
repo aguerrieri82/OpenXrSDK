@@ -17,7 +17,7 @@ namespace XrEditor
         public TextEditor(Func<string, TValue> parser, Func<TValue, string> formatter)
         {
             Parser = parser;
-            Formatter = formatter;  
+            Formatter = formatter;
         }
 
 
@@ -47,8 +47,8 @@ namespace XrEditor
 
     public struct TextEditorFactory<T> : IPropertyEditorFactory
     {
-        Func<string, T> _parser;
-        Func<T, string> _formatter;
+        readonly Func<string, T> _parser;
+        readonly Func<T, string> _formatter;
 
         public TextEditorFactory(Func<string, T> parser, Func<T, string>? formatter = null)
         {

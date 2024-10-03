@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine.OpenXr;
+﻿using XrEngine.OpenXr;
 using XrSamples;
 
 namespace XrEditor
 {
     public static class EditorDebug
-    {   
+    {
         public static readonly GraphicDriver Driver = GraphicDriver.OpenGL;
 
         public static readonly bool AutoStartApp = true;

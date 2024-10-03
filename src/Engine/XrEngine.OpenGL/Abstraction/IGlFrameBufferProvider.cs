@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine.OpenGL
+﻿namespace XrEngine.OpenGL
 {
     public interface IGlFrameBufferProvider
     {
-        IGlFrameBuffer FrameBuffer { get; } 
+        IGlFrameBuffer FrameBuffer { get; }
     }
 }

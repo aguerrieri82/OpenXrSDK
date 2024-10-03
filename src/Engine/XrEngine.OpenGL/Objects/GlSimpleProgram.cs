@@ -23,9 +23,9 @@ namespace XrEngine.OpenGL
         }
 
         public GlSimpleProgram(GL gl, string vSource, string fSource, string? gSource, Func<string, string> resolver)
-            : this(gl, vSource, fSource , resolver)
+            : this(gl, vSource, fSource, resolver)
         {
-            _gSource = gSource; 
+            _gSource = gSource;
         }
 
 
@@ -43,8 +43,8 @@ namespace XrEngine.OpenGL
 
             Vertex = GlShader.GetOrCreate(_gl, ShaderType.VertexShader, vSource);
             Fragment = GlShader.GetOrCreate(_gl, ShaderType.FragmentShader, fSource);
-            
-            if (gSource != null)    
+
+            if (gSource != null)
                 Geometry = GlShader.GetOrCreate(_gl, ShaderType.GeometryShader, gSource);
 
             Create(Vertex, Fragment, Geometry?.Handle ?? 0);
@@ -60,11 +60,11 @@ namespace XrEngine.OpenGL
         {
             Vertex?.Dispose();
             Fragment?.Dispose();
-            Geometry?.Dispose();    
+            Geometry?.Dispose();
 
             Vertex = null;
             Fragment = null;
-            Geometry = null;    
+            Geometry = null;
 
             base.Dispose();
         }

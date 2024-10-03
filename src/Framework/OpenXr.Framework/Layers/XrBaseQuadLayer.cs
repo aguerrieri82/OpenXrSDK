@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Silk.NET.OpenXR;
+﻿using Silk.NET.OpenXR;
 using XrMath;
 
 namespace OpenXr.Framework

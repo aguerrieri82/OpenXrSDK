@@ -111,10 +111,10 @@ namespace XrEngine
             writer.Write("GEOM");
             writer.Write((int)ActiveComponents);
             writer.Write(Vertices.Length);
-            
+
             fixed (VertexData* pVertex = &Vertices[0])
                 writer.Write(new Span<byte>(pVertex, Vertices.Length * sizeof(VertexData)));
-            
+
             writer.Write(Indices.Length);
 
             if (Indices.Length > 0)
@@ -130,7 +130,7 @@ namespace XrEngine
             for (int i = 0; i < _vertices.Length; i++)
                 _vertices[i].UV *= scale;
             Version++;
-        }   
+        }
 
         public Bounds3 Bounds
         {

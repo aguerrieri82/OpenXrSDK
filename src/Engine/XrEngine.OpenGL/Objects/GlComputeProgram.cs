@@ -14,7 +14,7 @@ namespace XrEngine.OpenGL
         readonly string _cSource;
 
 
-        public GlComputeProgram(GL gl, string cSource,Func<string, string> resolver)
+        public GlComputeProgram(GL gl, string cSource, Func<string, string> resolver)
             : base(gl, resolver)
         {
             _cSource = cSource;
@@ -30,7 +30,7 @@ namespace XrEngine.OpenGL
             var cSource = PatchShader(_cSource, ShaderType.ComputeShader);
 
             Computer = GlShader.GetOrCreate(_gl, ShaderType.ComputeShader, cSource);
-            
+
             Create(Computer);
 
             _values.Clear();

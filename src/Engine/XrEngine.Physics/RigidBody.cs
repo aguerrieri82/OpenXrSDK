@@ -145,7 +145,7 @@ namespace XrEngine.Physics
             Debug.Assert(_system != null);
             Debug.Assert(_host != null);
 
-            PhysicsShape? shape = null;;
+            PhysicsShape? shape = null; ;
             Pose3 pose = Pose3.Identity;
 
             PhysicsGeometry? pyGeo = CreateGeometry(collider, ref pose);
@@ -183,9 +183,9 @@ namespace XrEngine.Physics
                 if (!collider.IsEnabled)
                     continue;
 
-                Pose3 pose = Pose3.Identity;    
+                Pose3 pose = Pose3.Identity;
 
-                var shape = _actor!.GetShapes().FirstOrDefault(s => s.Tag == collider);  
+                var shape = _actor!.GetShapes().FirstOrDefault(s => s.Tag == collider);
                 if (shape != null)
                 {
                     var geo = CreateGeometry(collider, ref pose);

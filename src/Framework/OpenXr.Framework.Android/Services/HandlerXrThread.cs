@@ -1,5 +1,4 @@
 ﻿using Android.OS;
-using Android.Util;
 
 
 namespace OpenXr.Framework.Android
@@ -42,7 +41,7 @@ namespace OpenXr.Framework.Android
                 return action();
 
             var source = new TaskCompletionSource<T>();
-           
+
             _handler.Post(() =>
             {
                 action().ContinueWith(t =>

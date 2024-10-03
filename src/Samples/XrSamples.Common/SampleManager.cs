@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 using XrEngine.OpenXr;
 
 namespace XrSamples
@@ -60,7 +55,7 @@ namespace XrSamples
         {
             if (_samples == null)
             {
-                _samples = new List<AppSample>();   
+                _samples = new List<AppSample>();
                 foreach (var method in typeof(SampleScenes).GetMethods(BindingFlags.Static | BindingFlags.Public))
                 {
                     var sample = method.GetCustomAttribute<SampleAttribute>();
@@ -83,7 +78,7 @@ namespace XrSamples
 
         public AppSample GetSample(string name)
         {
-            return List().First(a=> a.Name == name);  
+            return List().First(a => a.Name == name);
         }
     }
 }

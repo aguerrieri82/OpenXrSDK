@@ -1,14 +1,13 @@
 ﻿using CanvasUI;
 using UI.Binding;
 using XrEngine;
-using XrEngine.OpenXr;
 using CheckBox = CanvasUI.CheckBox;
 
 namespace XrSamples
 {
     public static class Extension
     {
-  
+
 
         public static IUiBuilder<T> AddInput<T, TValue>(this IUiBuilder<T> builder, string label, IInputElement<TValue> input, IProperty<TValue> binding) where T : UiContainer
         {

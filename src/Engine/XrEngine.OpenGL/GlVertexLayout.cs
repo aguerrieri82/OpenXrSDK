@@ -103,7 +103,7 @@ namespace XrEngine.OpenGL
             }
 
             res.Size = (uint)Marshal.SizeOf<T>();
-            res.Attributes = attrbs.ToArray();  
+            res.Attributes = attrbs.ToArray();
 
             return res;
         }

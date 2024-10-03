@@ -3,11 +3,6 @@ using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XrEngine.OpenGL
 {
@@ -36,7 +31,7 @@ namespace XrEngine.OpenGL
         {
             _gl.GetQueryObject(_handle, QueryObjectParameterName.Result, out uint result);
             return result;
-        }   
+        }
 
         public override void Dispose()
         {

@@ -65,11 +65,11 @@ namespace XrEngine.OpenXr
                     _rayView.Length = result.Distance;
 
                     var rayTarget = result.Object!.Feature<IRayTarget>();
-                    
+
                     rayTarget?.NotifyCollision(ctx, result);
 
                     foreach (var target in _sceneTargets)
-                        target.NotifyCollision(ctx, result);    
+                        target.NotifyCollision(ctx, result);
                 }
                 else
                 {

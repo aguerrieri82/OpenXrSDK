@@ -36,11 +36,11 @@ namespace XrEngine.OpenGL
                 for (var i = 0; i < targets.Length; i++)
                 {
                     var target = targets[i];
-                    
+
                     GlState.Current!.SetActiveTexture(texId, target, 0);
-                    
+
                     gL.GetInteger(bindings[i], out int curTexId);
-                    
+
                     GlState.Current!.BindTexture(target, 0);
 
                     gL.CheckError();
@@ -62,7 +62,7 @@ namespace XrEngine.OpenGL
             return obj.GetOrCreateProp(OpenGLRender.Props.GlResId, () => factory(obj));
         }
 
-        public static unsafe GlTexture ToGlTexture(this Texture obj, bool? reqComp = null) 
+        public static unsafe GlTexture ToGlTexture(this Texture obj, bool? reqComp = null)
         {
             var renderer = OpenGLRender.Current!;
             var reqCompDef = renderer.Options.RequireTextureCompression;
@@ -70,7 +70,7 @@ namespace XrEngine.OpenGL
             return obj.GetGlResource(a =>
             {
                 if (obj is Texture2D texture2D)
-                    return texture2D.CreateGlTexture(renderer.GL, reqComp != null ? reqComp.Value : reqCompDef); 
+                    return texture2D.CreateGlTexture(renderer.GL, reqComp != null ? reqComp.Value : reqCompDef);
 
                 throw new NotSupportedException();
             });
@@ -86,7 +86,7 @@ namespace XrEngine.OpenGL
         public static unsafe void Update(this GlTexture glTexture, Texture2D texture2D, bool requireCompression)
         {
             glTexture.EnableDebug = (texture2D.Flags & EngineObjectFlags.EnableDebug) != 0;
-            
+
             if (texture2D is TextureCube)
                 glTexture.Target = TextureTarget.TextureCubeMap;
 
@@ -145,7 +145,7 @@ namespace XrEngine.OpenGL
             }
 
             glTexture.Version = texture2D.Version;
-            glTexture.Source = texture2D;   
+            glTexture.Source = texture2D;
         }
 
         public static unsafe Texture TexIdToEngineTexture(this GL gl, uint texId, TextureFormat? readFormat = null)
@@ -167,7 +167,7 @@ namespace XrEngine.OpenGL
 
             res.Width = glTexture.Width;
             res.Height = glTexture.Height;
-            res.Depth = glTexture.Depth;    
+            res.Depth = glTexture.Depth;
             res.WrapT = (WrapMode)glTexture.WrapT;
             res.WrapS = (WrapMode)glTexture.WrapS;
             res.MagFilter = (ScaleFilter)glTexture.MagFilter;

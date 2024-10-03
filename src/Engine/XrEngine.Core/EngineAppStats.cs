@@ -36,14 +36,14 @@
             var total = (DateTime.Now - start).TotalMilliseconds;
 
             var type = renderUpdate.GetType();
-           
+
             if (!_updateTimes.TryGetValue(type, out var time))
                 _updateTimes[type] = total;
             else
                 _updateTimes[type] += total;
         }
 
-  
+
         public int Fps { get; protected set; }
     }
 }

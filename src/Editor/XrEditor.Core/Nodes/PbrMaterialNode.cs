@@ -16,13 +16,13 @@ namespace XrEditor.Nodes
             get
             {
                 var factory = Context.Require<NodeManager>();
-                
+
                 if (_value.MetallicRoughness?.BaseColorTexture != null)
                     yield return factory.CreateNode(_value.MetallicRoughness.BaseColorTexture);
-                
+
                 if (_value.MetallicRoughness?.MetallicRoughnessTexture != null)
                     yield return factory.CreateNode(_value.MetallicRoughness.MetallicRoughnessTexture);
-                
+
                 if (_value.NormalTexture != null)
                     yield return factory.CreateNode(_value.NormalTexture);
 

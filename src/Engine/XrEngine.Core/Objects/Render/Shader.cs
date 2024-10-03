@@ -14,8 +14,8 @@
 
         public int Priority { get; set; }
 
-        public DrawPrimitive? ForcePrimitive { get; set; } 
-        
+        public DrawPrimitive? ForcePrimitive { get; set; }
+
         public IShaderHandler? UpdateHandler { get; set; }
     }
 }

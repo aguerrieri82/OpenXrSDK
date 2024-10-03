@@ -1,6 +1,5 @@
 ﻿using OpenXr.Framework;
 using System.Windows;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using XrEditor.Services;
 using XrEngine;
@@ -23,7 +22,7 @@ namespace XrEditor
             Context.Implement<SelectionManager>();
             Context.Implement<PropertyEditorManager>();
             Context.Implement<IMainDispatcher>(new MainDispatcher());
-            Context.Implement<IAssetStore>(new LocalAssetStore("Assets"));;
+            Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
             Context.Implement<IVideoReader>(() => new FFmpegVideoReader());
             Context.Implement<IVideoCodec>(() => new FFmpegCodec());
 
@@ -33,7 +32,7 @@ namespace XrEditor
             {
                 Title = "Xr Editor",
                 Content = new MainView(EditorDebug.Driver),
-     
+
             };
         }
 

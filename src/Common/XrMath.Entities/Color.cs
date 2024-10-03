@@ -98,7 +98,7 @@ namespace XrMath
         public float[] ToArray()
         {
             return [R, G, B, A];
-        }   
+        }
 
 
         public float R;

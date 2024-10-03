@@ -1,6 +1,6 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;  
+using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 #else
 using Silk.NET.OpenGL;
 using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
@@ -12,7 +12,6 @@ using XrMath;
 using SkiaSharp;
 using System.Runtime.InteropServices;
 using XrEngine.Layers;
-using System.Collections.ObjectModel;
 
 namespace XrEngine.OpenGL
 {
@@ -73,7 +72,7 @@ namespace XrEngine.OpenGL
             _updateCtx = new UpdateShaderContext
             {
                 RenderEngine = this,
-                ShadowMapProvider = this    
+                ShadowMapProvider = this
             };
 
             _dispatcher = new QueueDispatcher();
@@ -166,7 +165,7 @@ namespace XrEngine.OpenGL
             _glState.UpdateStencil();
 
             if (material is ILineMaterial line)
-                _glState.SetLineWidth(line.LineWidth);  
+                _glState.SetLineWidth(line.LineWidth);
         }
 
         #endregion
@@ -311,7 +310,7 @@ namespace XrEngine.OpenGL
             _glState.BindTexture(TextureTarget.Texture2D, 0, true);
 
             _gl.BindVertexArray(0);
-       
+
             _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
             _gl.BindSampler(0, 0);
 
@@ -456,7 +455,7 @@ namespace XrEngine.OpenGL
 
                 result.LambertianEnv = (TextureCube)_gl.TexIdToEngineTexture(texId);
             }
-    
+
             if ((options.Mode & IBLProcessMode.GGX) == IBLProcessMode.GGX)
             {
                 var ggx = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGX);
@@ -482,7 +481,7 @@ namespace XrEngine.OpenGL
 
         DirectionalLight? IShadowMapProvider.Light => _shadowPass?.Light;
 
-        ShadowMapOptions IShadowMapProvider.Options => _options.ShadowMap;  
+        ShadowMapOptions IShadowMapProvider.Options => _options.ShadowMap;
 
         #endregion
 
@@ -511,7 +510,7 @@ namespace XrEngine.OpenGL
 
         public Texture2D? GetShadowMap()
         {
-            return _shadowPass?.DepthTexture;   
+            return _shadowPass?.DepthTexture;
         }
 
         public Texture2D? GetDepth()
@@ -522,7 +521,7 @@ namespace XrEngine.OpenGL
                 return null;
 
             //TODO not always true need nearest
-           
+
             if (glDepth.MinFilter != TextureMinFilter.Nearest || glDepth.MagFilter != TextureMagFilter.Nearest)
             {
                 glDepth.MinFilter = TextureMinFilter.Nearest;
@@ -564,7 +563,7 @@ namespace XrEngine.OpenGL
 
         #endregion
 
-        public IReadOnlyList<GlLayer> Layers => _layers;    
+        public IReadOnlyList<GlLayer> Layers => _layers;
 
         public GL GL => _gl;
 
@@ -582,7 +581,7 @@ namespace XrEngine.OpenGL
 
         public static int SuspendErrors { get; set; }
 
-     
+
         [ThreadStatic]
         public static OpenGLRender? Current;
         private readonly Thread _thread;

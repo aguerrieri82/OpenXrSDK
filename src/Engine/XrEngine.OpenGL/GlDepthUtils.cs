@@ -14,7 +14,7 @@ namespace XrEngine.OpenGL
 {
     public static class GlDepthUtils
     {
-        static Dictionary<object, GlTexture> _depthTextures = [];
+        static readonly Dictionary<object, GlTexture> _depthTextures = [];
         static GlTextureFrameBuffer? _destFB;
         static GlTextureFrameBuffer? _srcFB;
 
@@ -22,7 +22,7 @@ namespace XrEngine.OpenGL
         {
             string key;
             if (width == 0 || height == 0)
-                key = "mutable"; 
+                key = "mutable";
             else
                 key = $"{width}x{height}x{arraySize}";
 
@@ -52,12 +52,12 @@ namespace XrEngine.OpenGL
                     BorderColor = new XrMath.Color(1, 1, 1, 1),
                     WrapS = TextureWrapMode.ClampToBorder,
                     WrapT = TextureWrapMode.ClampToBorder,
-                    Target = arraySize > 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D,    
+                    Target = arraySize > 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D,
                 };
 
                 tex.Update(arraySize, data);
 
-                _depthTextures[key] = tex;  
+                _depthTextures[key] = tex;
             }
 
             return tex;
@@ -80,9 +80,9 @@ namespace XrEngine.OpenGL
             }
 
             var depth = GetDepthTexture(gl, src.Depth!.Width, src.Depth.Height, arraySize, false);
-            
+
             _destFB.Bind();
-            
+
             _srcFB.Bind();
 
             for (var i = 0; i < arraySize; i++)
@@ -127,9 +127,9 @@ namespace XrEngine.OpenGL
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, src.Handle);
             GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, _destFB.Handle);
 
-            gl.BlitFramebuffer(0, 0, (int)src.Depth!.Width, (int)src.Depth.Height, 
+            gl.BlitFramebuffer(0, 0, (int)src.Depth!.Width, (int)src.Depth.Height,
                                 0, 0, (int)_destFB.Depth!.Width, (int)_destFB.Depth.Height,
-                                ClearBufferMask.DepthBufferBit,  BlitFramebufferFilter.Nearest);
+                                ClearBufferMask.DepthBufferBit, BlitFramebufferFilter.Nearest);
 
 
             src.Bind();
@@ -142,7 +142,7 @@ namespace XrEngine.OpenGL
             var depth = GetDepthTexture(gl, 0, 0, 1, true);
 
             depth.Bind();
-            
+
             gl.CopyTexImage2D(depth.Target, 0, InternalFormat.DepthComponent, 0, 0, depth.Width, depth.Height, 0);
 
             depth.Unbind();

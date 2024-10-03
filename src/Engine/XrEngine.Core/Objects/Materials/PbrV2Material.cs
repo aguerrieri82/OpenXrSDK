@@ -1,6 +1,4 @@
-﻿using SharpEXR.ColorSpace;
-using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 

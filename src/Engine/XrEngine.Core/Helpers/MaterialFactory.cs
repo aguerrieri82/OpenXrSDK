@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {
@@ -18,12 +13,12 @@ namespace XrEngine
             return result;
         }
 
-        public static T CreatePbr<T>() where T: IPbrMaterial, new()
+        public static T CreatePbr<T>() where T : IPbrMaterial, new()
         {
             return new T();
         }
 
 
-        public static Type DefaultPbr => typeof(PbrV2Material); 
+        public static Type DefaultPbr => typeof(PbrV2Material);
     }
 }

@@ -30,8 +30,8 @@ namespace XrEngine.OpenGL
 
         public GL GL => _gl;
 
-        public bool EnableDebug { get; set; }  
+        public bool EnableDebug { get; set; }
 
-        public object? Source { get; set; } 
+        public object? Source { get; set; }
     }
 }

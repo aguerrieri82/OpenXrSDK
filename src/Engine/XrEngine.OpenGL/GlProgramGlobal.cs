@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Reflection;
 
 namespace XrEngine.OpenGL
 {
@@ -32,7 +31,7 @@ namespace XrEngine.OpenGL
                 if (Shader.UpdateHandler != null)
                     _handlers.Add(Shader.UpdateHandler);
 
-                foreach (var handler in globalHandlers.Where(a=> a != null))
+                foreach (var handler in globalHandlers.Where(a => a != null))
                     _handlers.Add(handler!);
             }
 

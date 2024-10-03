@@ -14,10 +14,10 @@ namespace XrEditor.Nodes
         protected override void OnElementChanged(EngineObject element, ObjectChange change)
         {
             var node = Context.Require<NodeManager>().CreateNode(change.Target!);
- 
+
             if ((change.Type & ObjectChangeType.ChildAdd) == ObjectChangeType.ChildAdd)
                 ChildAdded?.Invoke(this, node);
-            
+
             if ((change.Type & ObjectChangeType.ChildRemove) == ObjectChangeType.ChildRemove)
                 ChildRemoved?.Invoke(this, node);
 

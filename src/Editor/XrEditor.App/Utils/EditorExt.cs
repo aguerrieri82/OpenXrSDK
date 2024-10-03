@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows;
-using System.Windows.Media;
+﻿using System.Windows;
 using XrEditor.Abstraction;
-using CefSharp.DevTools.DOMSnapshot;
 
 namespace XrEditor
 {
@@ -16,9 +8,9 @@ namespace XrEditor
 
         public static readonly DependencyProperty ControlProperty =
             DependencyProperty.RegisterAttached(
-                "Container",       
-                typeof(IEditorUIElementContainer),                    
-                typeof(EditorExt),            
+                "Container",
+                typeof(IEditorUIElementContainer),
+                typeof(EditorExt),
                 new PropertyMetadata(null, OnContainerChanged)); // Default value and callback
 
         public static void OnContainerChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

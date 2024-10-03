@@ -18,7 +18,7 @@ namespace XrEngine
 
             if (change.IsAny(ObjectChangeType.Render))
                 Version++;
-           
+
             base.OnChanged(change);
         }
 

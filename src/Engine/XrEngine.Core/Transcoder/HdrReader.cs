@@ -14,7 +14,7 @@ namespace XrEngine
         {
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]  
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public unsafe override IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
             var buffer = new StringBuilder(256);

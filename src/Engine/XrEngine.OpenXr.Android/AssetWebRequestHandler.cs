@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine.UI.Web;
+﻿using XrEngine.UI.Web;
 using Context2 = global::Android.Content.Context;
 
 namespace XrEngine.OpenXr.Android
@@ -58,7 +53,7 @@ namespace XrEngine.OpenXr.Android
                     }
                 };
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 Log.Warn(this, "Browser Handle Request exception: {0}", request.Uri);
 
@@ -69,7 +64,7 @@ namespace XrEngine.OpenXr.Android
                     Code = 404
                 };
             }
- 
+
         }
 
         public string Scheme => "ui";

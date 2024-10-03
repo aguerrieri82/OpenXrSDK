@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine.OpenGL
+﻿namespace XrEngine.OpenGL
 {
     public abstract class GlBaseRenderPass : IGlRenderPass
     {
@@ -23,14 +17,14 @@ namespace XrEngine.OpenGL
 
         protected virtual IEnumerable<GlLayer> SelectLayers()
         {
-           return _renderer.Layers.Where(a => a.Type != GlLayerType.CastShadow);  
+            return _renderer.Layers.Where(a => a.Type != GlLayerType.CastShadow);
         }
 
         public virtual void Render()
         {
             if (!IsEnabled)
                 return;
-            
+
             if (!_isInit)
             {
                 Initialize();
@@ -39,7 +33,7 @@ namespace XrEngine.OpenGL
 
             if (!BeginRender())
                 return;
-            
+
             foreach (var layer in SelectLayers())
                 RenderLayer(layer);
 
@@ -89,7 +83,7 @@ namespace XrEngine.OpenGL
             _renderer.ConfigureCaps(instance.Material);
 
             if (updateUniforms)
-                instance.UpdateUniforms(updateContext, false);   
+                instance.UpdateUniforms(updateContext, false);
         }
 
         protected abstract void RenderLayer(GlLayer layer);

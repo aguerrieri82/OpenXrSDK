@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Theme.WPF.Themes
+﻿namespace Theme.WPF.Themes
 {
     public enum ThemeType
     {

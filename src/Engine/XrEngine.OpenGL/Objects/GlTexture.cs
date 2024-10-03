@@ -11,7 +11,7 @@ namespace XrEngine.OpenGL
 {
     public class GlTexture : GlObject, IGlRenderAttachment
     {
-        static Dictionary<uint, GlTexture> _attached = [];
+        static readonly Dictionary<uint, GlTexture> _attached = [];
 
 
         protected uint _width;
@@ -139,7 +139,7 @@ namespace XrEngine.OpenGL
                 _gl.GetTexLevelParameter(target, (int)mipLevel, GetTextureParameter.TextureHeight, out int h);
                 */
 
-                GlState.Current!.SetView(new Rect2I(0, 0, (uint)w, (uint)h));
+                GlState.Current!.SetView(new Rect2I(0, 0, w, h));
 
                 var pixelSize = format switch
                 {
@@ -154,8 +154,8 @@ namespace XrEngine.OpenGL
 
                 var item = new TextureData
                 {
-                    Width = (uint)w,
-                    Height = (uint)h,
+                    Width = w,
+                    Height = h,
                     Format = format,
                     MipLevel = mipLevel,
                     Face = face
@@ -321,7 +321,7 @@ namespace XrEngine.OpenGL
 
         public void Update(uint arraySize, params TextureData[] data)
         {
-            Update(data[0].Width, data[0].Height, arraySize, data[0].Format, data[0].Compression, data); 
+            Update(data[0].Width, data[0].Height, arraySize, data[0].Format, data[0].Compression, data);
         }
 
         public unsafe void Update(uint width, uint height, uint depth, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null)
@@ -415,7 +415,7 @@ namespace XrEngine.OpenGL
 
                         }
                     }
-                    
+
 
                     _isAllocated = true;
                 }
@@ -459,7 +459,7 @@ namespace XrEngine.OpenGL
                                    pixelType,
                                    null);
                             }
-                   
+
                         }
                         else if (level.Data.Length > 0)
                         {
@@ -537,7 +537,7 @@ namespace XrEngine.OpenGL
 
         public void Bind()
         {
-            GlState.Current!.SetActiveTexture(this, Slot);   
+            GlState.Current!.SetActiveTexture(this, Slot);
         }
 
         public void Unbind()

@@ -14,7 +14,7 @@ namespace XrEditor
         private object? _header;
         private IList<PropertyView> _properties = [];
         private IList<PropertiesGroupView> _groups = [];
-        private IList<ActionView> _actions = [];    
+        private IList<ActionView> _actions = [];
 
         public PropertiesGroupView(PropertiesGroupType groupType)
         {

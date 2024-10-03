@@ -1,7 +1,4 @@
-﻿using System.Numerics;
-using XrMath;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class DepthClearEffect : ShaderMaterial
     {
@@ -13,7 +10,7 @@ namespace XrEngine
             {
                 FragmentSourceName = "clear.frag",
                 VertexSourceName = "Utils/fullscreen.vert",
-                Resolver = str => Embedded.GetString(str),       
+                Resolver = str => Embedded.GetString(str),
                 IsLit = false,
                 Priority = -1
             };
@@ -27,7 +24,7 @@ namespace XrEngine
             Alpha = AlphaMode.Opaque;
             UseDepth = false;
             WriteDepth = true;
-            WriteColor = false; 
+            WriteColor = false;
         }
 
     }

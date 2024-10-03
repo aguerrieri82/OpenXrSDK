@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public interface IUpdateGroup
     {
-        string Name { get;  }
+        string Name { get; }
 
         bool AutoExecute { get; }
     }

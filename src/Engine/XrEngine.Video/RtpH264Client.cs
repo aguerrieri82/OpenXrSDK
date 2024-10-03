@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using XrEngine.Video.Abstraction;
 
@@ -31,7 +30,7 @@ namespace XrEngine.Video
         {
             _client = new UdpClient(_clientPort);
             _client.Client.ReceiveTimeout = (int)Timeout.TotalMilliseconds;
-            _client.Client.ReceiveBufferSize = 1024 * 1024*10; 
+            _client.Client.ReceiveBufferSize = 1024 * 1024 * 10;
             _endPoint = new IPEndPoint(IPAddress.Any, _clientPort);
             _ppsRec = false;
             _spsRec = false;
@@ -146,7 +145,7 @@ namespace XrEngine.Video
                     Log.Warn(this, "Same seq received");
                     continue;
                 }
-                   
+
                 _lastSeqNumber = sequenceNum;
 
                 if (!isValidSeq)
@@ -155,7 +154,7 @@ namespace XrEngine.Video
                     //return null;
                 }
 
-                var nalUnitHeader = packet[12]; 
+                var nalUnitHeader = packet[12];
 
                 int fragment_type = nalUnitHeader & 0x1F;
 
@@ -171,7 +170,7 @@ namespace XrEngine.Video
                         Log.Warn(this, "Fragment without start");
                         continue;
                     }
-        
+
 
                     if (start_bit != 0)
                     {
@@ -183,7 +182,7 @@ namespace XrEngine.Video
                         }
 
                         isStarted = true;
-      
+
                         var nalType = (nalUnitHeader & 0xE0) | (fuHeader & 0x1F);
 
                         _readStream.Write(NAL_START);
@@ -199,7 +198,7 @@ namespace XrEngine.Video
                             Log.Warn(this, "Fragment not started");
                             return null;
                         }
-                          
+
                         break;
                     }
                 }
@@ -213,7 +212,7 @@ namespace XrEngine.Video
                         var format = new VideoFormat();
                         SpsDecoder.Decode(frameData, ref format);
                         Format = format;
-                        
+
                         _spsRec = true;
                     }
 
@@ -225,7 +224,7 @@ namespace XrEngine.Video
                     _readStream.Write(packet, 12, packet.Length - 12);
                     break;
                 }
-                else 
+                else
                 {
                     throw new NotSupportedException();
                 }

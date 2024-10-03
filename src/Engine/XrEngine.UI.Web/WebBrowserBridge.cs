@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reflection;
-using System.Text;
+﻿using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 
 namespace XrEngine.UI.Web
 {
@@ -79,12 +73,12 @@ namespace XrEngine.UI.Web
                     }
 
                     object? result = mapped.Info!.Invoke(mapped.Instance, [.. parsedArgs]);
-                    
+
                     if (result is Task task)
                     {
                         var pName = task.GetType().GetGenericArguments()[0].Name;
 
-                        if (pName  == "VoidTaskResult" || pName == "Task")
+                        if (pName == "VoidTaskResult" || pName == "Task")
                         {
                             await task;
                             result = null;
@@ -117,11 +111,11 @@ namespace XrEngine.UI.Web
         {
             foreach (var method in obj.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance))
             {
-                _methods[method.Name] = new MappedMethod 
-                { 
-                    Info = method, 
-                    Instance = obj 
-                };   
+                _methods[method.Name] = new MappedMethod
+                {
+                    Info = method,
+                    Instance = obj
+                };
             }
         }
     }

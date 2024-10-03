@@ -1,13 +1,10 @@
-﻿using System;
-using System.IO;
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
+﻿using Microsoft.Build.Framework;
 using Task = Microsoft.Build.Utilities.Task;
 
 public class CopyNativeLibrary : Task
 {
     [Output]
-    public ITaskItem[]? Output { get; set;  }
+    public ITaskItem[]? Output { get; set; }
 
     [Required]
     public ITaskItem[]? SourceFiles { get; set; }

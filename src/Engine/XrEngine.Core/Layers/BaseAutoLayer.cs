@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using XrEngine.Layers;
 
 namespace XrEngine
@@ -10,13 +9,13 @@ namespace XrEngine
         protected void Rebuild()
         {
             while (_content.Count > 0)
-                Remove(_content.First());   
+                Remove(_content.First());
 
             foreach (var obj in _manager!.Scene!.Descendants().OfType<T>())
             {
                 if (obj is T tObj && BelongsToLayer(tObj))
                     Add(tObj);
-            }   
+            }
         }
 
         protected override void OnEnabledChanged()
@@ -45,7 +44,7 @@ namespace XrEngine
                     Add(tObj);
             }
 
-            base.NotifyChanged(obj, change);    
+            base.NotifyChanged(obj, change);
         }
 
         protected bool Contains(T obj)

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using PhysX;
 using UI.Binding;
 using XrEngine;
-using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrMath;
 using CheckBox = CanvasUI.CheckBox;

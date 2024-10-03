@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -52,11 +51,11 @@ namespace XrEngine
                 _worldMatrix = _transform.Matrix;
 
             _worldInverseDirty = true;
-            _normalMatrixDirty = true;  
+            _normalMatrixDirty = true;
             _worldDirty = false;
 
             if (IsNotifyChangedScene())
-                _scene?.NotifyChanged(this, ObjectChangeType.Transform); 
+                _scene?.NotifyChanged(this, ObjectChangeType.Transform);
         }
 
         bool IsNotifyChangedScene()
@@ -70,7 +69,7 @@ namespace XrEngine
 
                 if ((curItem.Flags & EngineObjectFlags.DisableNotifyChangedScene) != 0)
                     return false;
-            
+
                 curItem = curItem.Parent;
             }
 
@@ -124,7 +123,7 @@ namespace XrEngine
                 InvalidateBounds();
 
             //Transform changes are notified when world matrix is updated
-            if (_parent != null && change.Type != ObjectChangeType.Transform) 
+            if (_parent != null && change.Type != ObjectChangeType.Transform)
                 _scene?.NotifyChanged(this, change);
 
             base.OnChanged(change);
@@ -290,14 +289,14 @@ namespace XrEngine
             }
             set
             {
- 
+
                 if (_parent == null || _parent.WorldMatrix.IsIdentity)
                     _transform.SetMatrix(value);
                 else
                     _transform.SetMatrix(_parent.WorldMatrixInverse * value);
 
                 _worldInverseDirty = true;
-                _normalMatrixDirty = true;  
+                _normalMatrixDirty = true;
             }
         }
 

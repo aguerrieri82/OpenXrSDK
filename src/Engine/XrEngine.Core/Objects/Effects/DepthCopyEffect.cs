@@ -1,7 +1,4 @@
-﻿using System.Numerics;
-using XrMath;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class DepthCopyEffect : ShaderMaterial
     {
@@ -13,7 +10,7 @@ namespace XrEngine
             {
                 FragmentSourceName = "copy_depth.frag",
                 VertexSourceName = "Utils/fullscreen.vert",
-                Resolver = str => Embedded.GetString(str),       
+                Resolver = str => Embedded.GetString(str),
                 IsLit = false,
                 Priority = -1
             };

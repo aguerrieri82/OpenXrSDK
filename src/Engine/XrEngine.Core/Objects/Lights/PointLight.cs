@@ -24,7 +24,7 @@ namespace XrEngine
             container.ReadObject(this);
         }
 
-        [Range(0, 100, 0.5f)]    
+        [Range(0, 100, 0.5f)]
         public float Range { get; set; }
 
         public Color Specular { get; set; }

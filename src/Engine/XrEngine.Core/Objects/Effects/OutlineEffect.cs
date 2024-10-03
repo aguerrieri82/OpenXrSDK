@@ -13,7 +13,7 @@ namespace XrEngine
             {
                 FragmentSourceName = "outline.frag",
                 VertexSourceName = "Utils/fullscreen.vert",
-                Resolver = str => Embedded.GetString(str),       
+                Resolver = str => Embedded.GetString(str),
                 IsLit = false,
                 Priority = -1
             };
@@ -35,7 +35,7 @@ namespace XrEngine
             : this()
         {
             Color = color;
-            Size = size;    
+            Size = size;
         }
 
         public override void GetState(IStateContainer container)
@@ -59,7 +59,7 @@ namespace XrEngine
                 bld.AddExtension("GL_OES_texture_storage_multisample_2d_array");
                 bld.AddFeature("MULTISAMPLE");
             }
-    
+
             bld.ExecuteAction((ctx, up) =>
             {
                 if (ctx.DepthMap == null)

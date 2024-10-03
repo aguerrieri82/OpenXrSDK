@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class LayerManager : IObjectChangeListener
     {
@@ -52,7 +50,7 @@ namespace XrEngine
 
         void IObjectChangeListener.NotifyChanged(Object3D object3D, ObjectChange change)
         {
-            foreach (var layer in _layers.Where(a=> a.IsEnabled))
+            foreach (var layer in _layers.Where(a => a.IsEnabled))
                 layer.NotifyChanged(object3D, change);
         }
 

@@ -115,7 +115,7 @@ namespace XrEngine.OpenXr
             {
                 if (input == null)
                     input = _xrApp.Inputs.Values.FirstOrDefault(a => a.Path == path);
-       
+
                 if (input == null)
                     return;
 
@@ -156,8 +156,8 @@ namespace XrEngine.OpenXr
 
         public Group3D SceneRoot { get; }
 
-        public Group3D? RightController { get;  }
+        public Group3D? RightController { get; }
 
-        public Group3D? LeftController { get;  }
+        public Group3D? LeftController { get; }
     }
 }

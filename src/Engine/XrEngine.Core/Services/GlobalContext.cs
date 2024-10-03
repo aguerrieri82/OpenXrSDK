@@ -18,16 +18,16 @@
         public object Require(Type type)
         {
             if (_cache.TryGetValue(type, out var value))
-                return value;   
+                return value;
 
             var info = _services.FirstOrDefault(a => type.IsAssignableFrom(a.Type));
-            
+
             if (info == null)
                 throw new NotSupportedException();
-            
+
             if (info.Instance == null)
                 info.Instance = info.Factory!();
-            
+
             _cache[type] = info.Instance;
 
             return info.Instance;

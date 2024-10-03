@@ -115,7 +115,7 @@ namespace XrEngine
                     UpdateViewProjection();
                 return _viewProj;
             }
-        }   
+        }
 
         public Matrix4x4 ViewProjectionInverse
         {

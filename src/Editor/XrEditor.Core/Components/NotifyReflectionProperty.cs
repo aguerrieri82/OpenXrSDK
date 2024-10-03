@@ -6,9 +6,9 @@ namespace XrEditor
 {
     public class NotifyReflectionProperty<T> : ReflectionProperty<T>
     {
-        object? _host;
+        readonly object? _host;
 
-        public NotifyReflectionProperty(PropertyInfo property, object obj, object? host = null) 
+        public NotifyReflectionProperty(PropertyInfo property, object obj, object? host = null)
             : base(property, obj)
         {
             _host = host ?? obj;

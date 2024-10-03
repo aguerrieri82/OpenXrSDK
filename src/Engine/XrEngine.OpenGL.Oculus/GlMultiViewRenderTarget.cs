@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 namespace XrEngine.OpenGL.Oculus
 {
 
-    [StructLayout(LayoutKind.Explicit,Size = 176)]     
+    [StructLayout(LayoutKind.Explicit, Size = 176)]
     public struct SceneMatrices
     {
         [FieldOffset(0)]
