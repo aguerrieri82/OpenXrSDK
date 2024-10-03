@@ -19,7 +19,7 @@ using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
 using Silk.NET.Windowing;
-using static XrEngine.PbrMaterial;
+using static XrEngine.PbrV1Material;
 using XrEngine.OpenGL;
 using XrEngine.Objects;
 
@@ -138,7 +138,7 @@ namespace XrSamples
                 var light = scene.AddChild<ImageLight>();
                 light.Intensity = 1f;
 
-                light.Textures = new PbrMaterial.IBLTextures
+                light.Textures = new PbrV1Material.IBLTextures
                 {
                     GGXLUT = AssetLoader.Instance.Load<Texture2D>("res://asset/Envs/Pisa/GGX.png"),
                     GGXEnv = AssetLoader.Instance.Load<TextureCube>("res://asset/Envs/Pisa/GGX.pvr"),
@@ -753,7 +753,7 @@ namespace XrSamples
             {
                 foreach (var mat in child.Materials)
                 {
-                    if (mat is PbrMaterial pbr && pbr.MetallicRoughness != null && pbr.MetallicRoughness.RoughnessFactor == 0.2f)
+                    if (mat is PbrV1Material pbr && pbr.MetallicRoughness != null && pbr.MetallicRoughness.RoughnessFactor == 0.2f)
                     {
                         //pbr.MetallicRoughness.RoughnessFactor = 0.2f;
                         // pbr.MetallicRoughness.MetallicFactor = 0f;
@@ -786,7 +786,8 @@ namespace XrSamples
             mesh.AddComponent<PyMeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
 
-            var mesh2 = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), new GltfLoaderOptions { UsePbrV2 = true });
+            var mesh2 = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), 
+                new GltfLoaderOptions { PbrType = typeof(PbrV1Material) });
             mesh2.Name = "Bed 2";
             mesh2.WorldPosition = new Vector3(3, 0, 0); 
             mesh2.AddComponent<PyMeshCollider>();
@@ -825,51 +826,57 @@ namespace XrSamples
             mesh.Transform.SetScale(0.04f);
             mesh.Transform.Position = new Vector3(-mesh.WorldBounds.Center.X, 0, -mesh.WorldBounds.Center.Z);
 
-
-            var blank = new PbrMaterial
-            {
-                MetallicRoughness = new PbrMaterial.MetallicRoughnessData
-                {
-                    BaseColorFactor = new Color(1, 1, 1)
-                }
-            };
-
+            var blank = (Material)MaterialFactory.CreatePbr(Color.White);
 
             foreach (var item in mesh.DescendantsOrSelf().OfType<TriangleMesh>())
             {
                 if (IsEditor)
                     item.AddComponent<BoxCollider>();
 
+                if (item.Name != "Obj_PolyFaceMesh_51")
+                    item.IsVisible = true;
+
+         
                 for (var i = 0; i < item.Materials.Count; i++)
                 {
-                    var material = (PbrMaterial)item.Materials[i];
-                    if (material.MetallicRoughness == null && material.SpecularGlossiness == null)
+                    var material = (IPbrMaterial)item.Materials[i];
+                    if (material.ColorMap == null)
                         item.Materials[i] = blank;
 
                     material.DoubleSided = true;
 
                     if (material.Name == "wfnhfaq_Stucco_Facade")
                     {
-                        material.MetallicRoughness!.BaseColorFactor = new Color(1.6f, 1.6f, 1.6f, 1);
+                        material.Color = new Color(1.6f, 1.6f, 1.6f, 1);
+                    }
+
+                    if (material.Name == "schcbgfp_Scratched_Polyvinylpyrrolidone_Plastic")
+                    {
+                        //material.Metalness = 0;
+                    }
+
+                    if (material.Name == "vigjfivg_Old_Plywood")
+                    {
+                        //material.Metalness = 0;
+                        //material.Roughness = 0.7f;
+                    }
+
+                    if (material.Name == "wjmkfbnl_Crema_Marfi_Marble")
+                    {
+                        // material.Metalness = 0;
                     }
 
                     if (material.Name == "shkaaafc_Brushed_Aluminum")
                     {
-                        material.MetallicRoughness!.BaseColorFactor = new Color(0.35f, 0.3f, 0.3f, 1);
-                        material.MetallicRoughness.RoughnessFactor = 1;
+                        material.Color = new Color(0.35f, 0.3f, 0.3f, 1);
+                        //material.Roughness = 1;
                     }
-                    /*
 
-                     if (material.MetallicRoughness?.MetallicRoughnessTexture != null)
-                     {
-                         material.MetallicRoughness.MetallicFactor = 1;
-                         material.MetallicRoughness.RoughnessFactor = 1;
-                     }
-
-                     if (material.NormalTexture != null)
-                         material.NormalScale = 1;
-
-                     */
+                    if (material.Name == "uk3kec1ew_Brown_Tiles")
+                    {
+                        //material.Roughness = 0.6f;
+                    }
+                    
                 }
 
             }
@@ -902,6 +909,7 @@ namespace XrSamples
                 .ConfigureApp(cfg =>
                 {
                     scene.FindByName<Light>("point-light-1")!.IsVisible = true;
+                    scene.FindByName<PointLight>("point-light-1")!.Range = 5f;
                 })
                 .ConfigureSampleApp();
         }
@@ -966,7 +974,7 @@ namespace XrSamples
         {
             var app = CreateBaseScene();
 
-            var cube = new TriangleMesh(Cube3D.Default, PbrMaterial.CreateDefault(new Color(1f, 0, 0, 1)))
+            var cube = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
             {
                 Name = "mesh"
             };

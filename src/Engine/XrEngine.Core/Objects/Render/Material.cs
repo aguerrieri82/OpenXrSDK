@@ -19,7 +19,7 @@
         Always = 0x0207        
     }
 
-    public abstract class Material : EngineObject, IHosted
+    public abstract class Material : EngineObject, IHosted, IMaterial
     {
         readonly HashSet<EngineObject> _hosts = [];
 

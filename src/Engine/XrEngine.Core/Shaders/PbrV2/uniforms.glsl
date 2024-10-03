@@ -28,5 +28,6 @@ layout(std140, binding=2) uniform Material
 	mat3 texTransform;
 	float occlusionStrength;
 	vec4 shadowColor;
+	float normalScale;
 } uMaterial;
 

@@ -33,11 +33,10 @@ namespace XrSamples
         {
             _sound = sound;
             _maxTtl = maxTtl;
-            var pbrMat = PbrMaterial.CreateDefault("#EF6C00");
-            pbrMat.MetallicRoughness!.RoughnessFactor = 0.45f;
-            pbrMat.MetallicRoughness!.MetallicFactor = 0.0f;
-            Material = pbrMat;
-            //Material = new StandardMaterial() { Color = new Color(1, 1, 0) };
+            var pbrMat = MaterialFactory.CreatePbr("#EF6C00");
+            pbrMat.Roughness = 0.45f;
+            pbrMat.Metalness = 0.0f;
+            Material = (Material)pbrMat;
         }
 
         protected TriangleMesh NewBall()

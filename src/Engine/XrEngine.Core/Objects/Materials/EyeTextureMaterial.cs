@@ -11,7 +11,8 @@
                 FragmentSourceName = "texture.frag",
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
-                IsLit = false
+                IsLit = false,
+                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
         public EyeTextureMaterial()
@@ -53,8 +54,6 @@
             });
 
         }
-
-        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
         public Texture2D? LeftTexture { get; set; }
 

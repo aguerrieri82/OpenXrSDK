@@ -6,9 +6,11 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial
+    public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial
     {
-        [StructLayout(LayoutKind.Explicit, Size = 128)]  
+        #region CameraUniforms
+
+        [StructLayout(LayoutKind.Explicit, Size = 128)]
         public struct CameraUniforms
         {
             [FieldOffset(0)]
@@ -26,7 +28,11 @@ namespace XrEngine
             public Matrix4x4 LightSpaceMatrix;
         }
 
-        [StructLayout(LayoutKind.Explicit, Size = 112)]
+        #endregion
+
+        #region MaterialUniforms
+
+        [StructLayout(LayoutKind.Explicit, Size = 128)]
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
@@ -48,8 +54,15 @@ namespace XrEngine
             [FieldOffset(96)]
             public Color ShadowColor;
 
+
+            [FieldOffset(112)]
+            public float NormalScale;
+
         }
 
+        #endregion
+
+        #region LightListUniforms
 
         [StructLayout(LayoutKind.Explicit)]
         public struct LightListUniforms : IDynamicBuffer
@@ -90,10 +103,14 @@ namespace XrEngine
             }
         }
 
+        #endregion
+
+        #region LightUniforms
+
         [StructLayout(LayoutKind.Explicit, Size = 64)]
         public struct LightUniforms
         {
-            [FieldOffset(0)]    
+            [FieldOffset(0)]
             public uint Type;
 
             [FieldOffset(16)]
@@ -108,6 +125,8 @@ namespace XrEngine
             [FieldOffset(60)]
             public float Range;
         }
+
+        #endregion  
 
         #region GlobalShaderHandler
 
@@ -164,7 +183,7 @@ namespace XrEngine
                     var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
                     if (light != null)
                         result.LightSpaceMatrix = light.Value;
-                    
+
                     return (CameraUniforms?)result;
 
                 }, 0, true);
@@ -229,7 +248,7 @@ namespace XrEngine
 
                         if (imgLight.Textures?.LambertianEnv != null)
                             up.SetUniform("irradianceTexture", imgLight.Textures.LambertianEnv, 5);
-    
+
                         if (imgLight.Textures?.GGXLUT != null)
                             up.SetUniform("specularBRDF_LUT", imgLight.Textures.GGXLUT, 6);
 
@@ -249,7 +268,8 @@ namespace XrEngine
                 FragmentSourceName = "PbrV2/pbr_fs.glsl",
                 VertexSourceName = "PbrV2/pbr_vs.glsl",
                 Resolver = str => Embedded.GetString(str),
-                IsLit = true
+                IsLit = true,
+                UpdateHandler = new GlobalShaderHandler()
             };
         }
 
@@ -260,7 +280,8 @@ namespace XrEngine
             Roughness = 1.0f;
             Metalness = 1.0f;
             OcclusionStrength = 1.0f;
-            ToneMap = true;     
+            NormalScale = 1;
+            ToneMap = true;
         }
 
 
@@ -273,17 +294,20 @@ namespace XrEngine
                 Roughness = Roughness,
                 ShadowColor = ShadowColor,
                 OcclusionStrength = OcclusionStrength,
-
+                NormalScale = NormalScale,
             };
 
-            if (ToneMap) 
+            if (ToneMap)
                 bld.AddFeature("TONEMAP");
 
             if (ReceiveShadows)
                 bld.AddFeature("RECEIVE_SHADOWS");
 
             if (Color.A == 0)
-                bld.AddFeature("TRANSPARENT");    
+                bld.AddFeature("TRANSPARENT");
+
+            if (DoubleSided)
+                bld.AddFeature("DOUBLE_SIDED");
 
             bld.SetUniformBuffer("Material", ctx => (MaterialUniforms?)material, 2, false);
 
@@ -320,8 +344,11 @@ namespace XrEngine
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-            }); 
+                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
+            });
 
+            if ((bld.Context.ActiveComponents & VertexComponent.Tangent) != 0)
+                bld.AddFeature("HAS_TANGENTS");
 
             base.UpdateShader(bld);
         }
@@ -335,12 +362,12 @@ namespace XrEngine
         public Texture2D? NormalMap { get; set; }
 
         public bool ReceiveShadows { get; set; }
-        
+
         public Color ShadowColor { get; set; }
 
         public Color Color { get; set; }
 
-        [Range(0, 1, 0.01f)]    
+        [Range(0, 1, 0.01f)]
         public float Metalness { get; set; }
 
         [Range(0, 1, 0.01f)]
@@ -350,9 +377,11 @@ namespace XrEngine
         [Range(0, 1, 0.01f)]
         public float OcclusionStrength { get; set; }
 
-        public bool ToneMap { get; set; }    
+        public bool ToneMap { get; set; }
 
+        //TODO: Implement AlphaCutoff   
+        public float AlphaCutoff { get; set; }
 
-        public static readonly IShaderHandler GlobalHandler = new GlobalShaderHandler();
+        public float NormalScale { get; set; }
     }
 }

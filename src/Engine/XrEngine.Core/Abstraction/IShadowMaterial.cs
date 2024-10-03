@@ -7,7 +7,7 @@ using XrMath;
 
 namespace XrEngine
 {
-    public interface IShadowMaterial
+    public interface IShadowMaterial : IMaterial
     {
         bool ReceiveShadows { get; set; }
 

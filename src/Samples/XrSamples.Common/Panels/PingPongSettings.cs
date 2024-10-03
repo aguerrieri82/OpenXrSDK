@@ -19,7 +19,7 @@ namespace XrSamples
 
     public class PingPongSettings : BaseAppSettings
     {
-        static readonly Material matShow = PbrMaterial.CreateDefault("#fff");
+        static readonly Material matShow = (Material)MaterialFactory.CreatePbr(Color.White);
         static readonly Material matHide = new ColorMaterial(Color.Transparent);
 
         public PingPongSettings()
@@ -178,8 +178,8 @@ namespace XrSamples
                 {
                     var generator = scene.FeatureDeep<BallGenerator>()!;
 
-                    (generator.Material as PbrMaterial)!.MetallicRoughness!.RoughnessFactor = obj!.BallMaterial!.Roughness;
-                    (generator.Material as PbrMaterial)!.MetallicRoughness!.MetallicFactor = obj!.BallMaterial!.Metallic;
+                    (generator.Material as PbrV1Material)!.MetallicRoughness!.RoughnessFactor = obj!.BallMaterial!.Roughness;
+                    (generator.Material as PbrV1Material)!.MetallicRoughness!.MetallicFactor = obj!.BallMaterial!.Metallic;
                     generator.Material.NotifyChanged(ObjectChangeType.Render);
 
                 }

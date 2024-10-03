@@ -63,7 +63,7 @@ namespace XrEngine.OpenGL
 
         protected GlProgramInstance CreateProgram(ShaderMaterial material)
         {
-            var global = material.Shader!.GetGlResource(gl => new GlProgramGlobal(_renderer.GL, material.GetType()));
+            var global = material.Shader!.GetGlResource(gl => new GlProgramGlobal(_renderer.GL, material.Shader!));
             return new GlProgramInstance(_renderer.GL, material, global);
         }
 

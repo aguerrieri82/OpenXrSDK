@@ -423,18 +423,18 @@ namespace XrEngine.Filament
 
             MaterialInfo UpdateMatInfo()
             {
-                if (mat is PbrMaterial pbr)
+                if (mat is IPbrMaterial pbr)
                 {
                     return new MaterialInfo
                     {
-                        NormalMap = AllocateTexture(pbr.NormalTexture),
-                        Color = pbr.MetallicRoughness?.BaseColorFactor ?? Color.White,
-                        BaseColorMap = AllocateTexture(pbr.MetallicRoughness?.BaseColorTexture),
-                        MetallicRoughnessMap = AllocateTexture(pbr.MetallicRoughness?.MetallicRoughnessTexture),
-                        AoMap = AllocateTexture(pbr.OcclusionTexture),
-                        MetallicFactor = pbr.MetallicRoughness?.MetallicFactor ?? 1,
-                        RoughnessFactor = pbr.MetallicRoughness?.RoughnessFactor ?? 1,
-                        NormalScale = pbr.NormalScale,
+                        NormalMap = AllocateTexture(pbr.NormalMap),
+                        Color = pbr.Color,
+                        BaseColorMap = AllocateTexture(pbr.ColorMap),
+                        MetallicRoughnessMap = AllocateTexture(pbr.MetallicRoughnessMap),
+                        AoMap = AllocateTexture(pbr.OcclusionMap),
+                        MetallicFactor = pbr.Metalness,
+                        RoughnessFactor = pbr.Roughness,
+                        NormalScale = 1.0f,
                         AoStrength = pbr.OcclusionStrength,
                         Blending = pbr.Alpha switch
                         {
@@ -443,9 +443,9 @@ namespace XrEngine.Filament
                             AlphaMode.Mask => FlBlendingMode.MASKED,
                             _ => throw new NotSupportedException()
                         },
-                        EmissiveFactor = pbr.EmissiveFactor,
-                        EmissiveMap = AllocateTexture(pbr.EmissiveTexture),
-                        EmissiveStrength = 1,
+                        //EmissiveFactor = pbr.EmissiveFactor,
+                        //EmissiveMap = AllocateTexture(pbr.EmissiveTexture),
+                        //EmissiveStrength = 1,
                         MultiBounceAO = true,
                         SpecularAntiAliasing = true,
                         ScreenSpaceReflection = true,
@@ -457,7 +457,7 @@ namespace XrEngine.Filament
                         WriteDepth = pbr.WriteDepth,
                         WriteColor = pbr.WriteColor,
                         UseDepth = pbr.UseDepth,
-                        IsShadowOnly = pbr.ReceiveShadows && pbr.Alpha == AlphaMode.Blend && pbr.MetallicRoughness!.BaseColorFactor.A < 1
+                        IsShadowOnly = pbr.ReceiveShadows && pbr.Alpha == AlphaMode.Blend && pbr.Color.A < 1
                     };
                 }
 
@@ -552,7 +552,7 @@ namespace XrEngine.Filament
                 ReceiveShadows = true,
             };
 
-            if (mesh.Materials[0] is PbrMaterial pbr)
+            if (mesh.Materials[0] is PbrV1Material pbr)
                 meshInfo.CastShadows = pbr.CastShadows;
 
             AddMesh(_app, id, ref meshInfo);
@@ -597,7 +597,7 @@ namespace XrEngine.Filament
             else if (obj is TriangleMesh mesh)
             {
                 if (mesh.Materials.Count == 0 || mesh.Geometry == null || (
-                    mesh.Materials[0] is not PbrMaterial && mesh.Materials[0] is not ColorMaterial))
+                    mesh.Materials[0] is not PbrV1Material && mesh.Materials[0] is not ColorMaterial))
                     return;
 
                 Create(id, mesh);

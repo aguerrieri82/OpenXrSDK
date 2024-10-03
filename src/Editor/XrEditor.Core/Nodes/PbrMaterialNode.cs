@@ -5,9 +5,9 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class PbrMaterialNode : MaterialNode<PbrMaterial>
+    public class PbrMaterialNode : MaterialNode<PbrV1Material>
     {
-        public PbrMaterialNode(PbrMaterial value) : base(value)
+        public PbrMaterialNode(PbrV1Material value) : base(value)
         {
         }
 
@@ -31,7 +31,7 @@ namespace XrEditor.Nodes
             }
         }
 
-        protected override void EditorProperties(Binder<PbrMaterial> binder, IList<PropertyView> curProps)
+        protected override void EditorProperties(Binder<PbrV1Material> binder, IList<PropertyView> curProps)
         {
             base.EditorProperties(binder, curProps);
         }

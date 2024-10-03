@@ -41,10 +41,10 @@ namespace XrEngine
             {
                 bld.AddFeature("UNIFORM_EXP");
 
-                if (PbrMaterial.LinearOutput)
+                if (PbrV1Material.LinearOutput)
                     bld.AddFeature("LINEAR_OUTPUT");
 
-                bld.AddFeature(PbrMaterial.ToneMap.ToString());
+                bld.AddFeature(PbrV1Material.ToneMap.ToString());
 
                 bld.ExecuteAction((ctx, up) =>
                 {

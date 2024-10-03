@@ -19,7 +19,7 @@ namespace XrEngine.OpenXr
 
         public OculusSceneModel()
         {
-            Material = PbrMaterial.CreateDefault(Color.White);
+            Material = (Material)MaterialFactory.CreatePbr(Color.White);
 
             Flags |= EngineObjectFlags.DisableNotifyChangedScene;    
 

@@ -2,7 +2,7 @@
 {
     public class ShaderContent
     {
-        public IShaderHandler? GlobalHandler;
+        //public IShaderHandler? GlobalHandler;
 
         public GlProgramGlobal? ProgramGlobal;
 

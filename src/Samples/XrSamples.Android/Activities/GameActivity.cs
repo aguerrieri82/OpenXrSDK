@@ -55,7 +55,9 @@ namespace XrSamples.Android.Activities
         {
             if (_engine?.App.Renderer is OpenGLRender openGL)
             {
-                openGL.Pass<GlOutlinePass>()!.IsEnabled = _settings!.EnableOutline;
+                var outline = openGL.Pass<GlOutlinePass>();
+                if (outline != null)
+                    outline.IsEnabled = _settings!.EnableOutline;
                 openGL.EnableDebug();
             }
 

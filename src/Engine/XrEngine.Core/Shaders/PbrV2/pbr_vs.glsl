@@ -14,6 +14,7 @@ layout(location=2) in vec2 texcoord;
 
 
 uniform mat4 uModel;
+uniform mat4 uNormalMatrix;
 
 layout(location=0) out Vertex
 {
@@ -86,13 +87,20 @@ void main()
 
 	#endif
 
-	mat3 uModel3 = mat3(uModel);
+    vec3 N = normalize(vec3(uNormalMatrix * vec4(normal, 0.0)));
 
-    vec3 N = normalize(uModel3 * normal);
-    vec3 T = normalize(uModel3 * tangent.xyz);
+    #ifdef HAS_TANGENTS
+
+    vec3 T = normalize(vec3(uModel * vec4(tangent.xyz, 0.0)));
 	vec3 B = normalize(cross(T, N) * tangent.w);
 
     vout.tangentBasis = mat3(T, B, N);
+
+    #else
+
+    vout.tangentBasis = mat3(N, N, N);
+
+    #endif
 
 	gl_Position = getViewProj() * pos;
 }

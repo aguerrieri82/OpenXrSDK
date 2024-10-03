@@ -15,7 +15,8 @@ namespace XrEngine
                 GeometrySourceName = "outline.geom",
                 Resolver = str => Embedded.GetString(str),
                 Priority = 1,
-                IsLit = false
+                IsLit = false,
+                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
 
@@ -70,6 +71,5 @@ namespace XrEngine
 
         float ILineMaterial.LineWidth => Size;
 
-        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
     }
 }
