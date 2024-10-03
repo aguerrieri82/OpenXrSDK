@@ -31,7 +31,7 @@ namespace XrEngine.OpenGL
 
         public void CommitDepth()
         {
-  
+
         }
 
         public GlTexture? QueryTexture(FramebufferAttachment attachment)

@@ -1,6 +1,4 @@
-﻿using XrMath;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public interface IPbrMaterial : IMaterial, IColorSource, IShadowMaterial
     {

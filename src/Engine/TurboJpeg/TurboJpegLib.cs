@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace TurboJpeg
 {
@@ -184,7 +179,7 @@ namespace TurboJpeg
             public byte[]? Data { get; set; }
         }
 
-        const string DllName = "turbojpeg-native"; 
+        const string DllName = "turbojpeg-native";
 
 
         [DllImport(DllName)]
@@ -192,7 +187,7 @@ namespace TurboJpeg
 
 
         [DllImport(DllName)]
-        public static  extern void tjDecompressHeader2(IntPtr handle, byte* jpegBuf, ulong jpegSize, out int width, out int height, out TJSAMP jpegSubsamp);
+        public static extern void tjDecompressHeader2(IntPtr handle, byte* jpegBuf, ulong jpegSize, out int width, out int height, out TJSAMP jpegSubsamp);
 
         [DllImport(DllName)]
         public static extern void tjDecompress2(IntPtr handle, byte* jpegBuf, ulong jpegSize, byte* dstBuf, int width, int pitch, int height, TJPF pixelFormat, TJFLAG flags);
@@ -204,7 +199,7 @@ namespace TurboJpeg
         public static ImageData Decompress(byte[] data)
         {
             var res = new ImageData();
-            
+
             var handler = tjInitDecompress();
 
             fixed (byte* pIn = data)
@@ -213,7 +208,7 @@ namespace TurboJpeg
                 res.Width = width;
                 res.Height = height;
                 res.Data = new byte[width * height * 4];
- 
+
                 fixed (byte* pOut = res.Data)
                 {
                     tjDecompress2(handler, pIn, (ulong)data.Length, pOut, width, 0, height, TJPF.TJPF_RGBA, TJFLAG.TJFLAG_FASTDCT);

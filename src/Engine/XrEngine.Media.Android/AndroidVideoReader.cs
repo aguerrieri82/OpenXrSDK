@@ -13,7 +13,7 @@ namespace XrEngine.Media.Android
     {
         private MediaCodec? _decoder;
         private MediaExtractor? _mediaExtractor;
-        private long _timeout;
+        private readonly long _timeout;
         private bool _eos;
         private double _frameRate;
         private Size2I _frameSize;
@@ -65,7 +65,7 @@ namespace XrEngine.Media.Android
             _eos = false;
             _mediaExtractor = new MediaExtractor();
             _mediaExtractor.SetDataSource(source.LocalPath);
-      
+
             var tracks = _mediaExtractor.TrackCount;
 
             string? mimeType = null;

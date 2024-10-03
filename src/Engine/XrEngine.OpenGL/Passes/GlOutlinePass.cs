@@ -15,7 +15,7 @@ namespace XrEngine.OpenGL
 
 
         public GlOutlinePass(OpenGLRender renderer)
-            : base(renderer)    
+            : base(renderer)
         {
         }
 
@@ -37,9 +37,9 @@ namespace XrEngine.OpenGL
             _outline = CreateProgram(new OutlineEffect()
             {
                 Color = options.Color,
-                Size = options.Size,    
+                Size = options.Size,
             });
-            
+
             _clear = CreateProgram(new DepthClearEffect()
             {
                 StencilFunction = StencilFunction.NotEqual,
@@ -67,7 +67,7 @@ namespace XrEngine.OpenGL
             _renderer.GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
 
             _renderer.RenderTarget?.CommitDepth();
-            
+
             _renderer.UpdateContext.DepthMap = _renderer.GetDepth();
 
             UseProgram(_outline!, true);

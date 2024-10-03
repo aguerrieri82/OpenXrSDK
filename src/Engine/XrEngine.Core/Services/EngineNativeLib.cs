@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace XrEngine
 {
@@ -16,7 +15,7 @@ namespace XrEngine
         {
             fixed (byte* srcPtr = &src.Span[0])
             fixed (byte* dstPtr = &dst.Span[0])
-                ImageCopyChannel((nint)srcPtr, (nint)dstPtr, width, height, rowSize, srcOfs, dstOfs, cSize); 
+                ImageCopyChannel((nint)srcPtr, (nint)dstPtr, width, height, rowSize, srcOfs, dstOfs, cSize);
         }
     }
 }

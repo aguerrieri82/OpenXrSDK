@@ -91,7 +91,7 @@ namespace XrEngine.Browser.Win
                 });
             }
 
-  
+
         }
 
         private void OnFrameLoad(object? sender, FrameLoadStartEventArgs e)
@@ -110,7 +110,7 @@ namespace XrEngine.Browser.Win
             fixed (byte* pDest = _buffer)
                 Buffer.MemoryCopy((void*)e.BufferHandle, pDest, bufSize, bufSize);
 
-           _bufferTime = DateTime.Now;
+            _bufferTime = DateTime.Now;
         }
 
         async Task InitAsync()
@@ -151,7 +151,7 @@ namespace XrEngine.Browser.Win
         public void ShowDevTools()
         {
             _browser?.ShowDevTools();
-        }   
+        }
 
         public void Dispose()
         {
@@ -173,10 +173,10 @@ namespace XrEngine.Browser.Win
         {
             if (_browser == null)
             {
-                _startUrl = uri;    
+                _startUrl = uri;
                 return;
             }
-      
+
             Log.Info(this, "Navigate {0}", uri);
 
             await _browser.LoadUrlAsync(uri);
@@ -208,7 +208,7 @@ namespace XrEngine.Browser.Win
                 _browser?.SetZoomLevel(_zoomLevel);
             }
         }
-        
+
         public event EventHandler<MessageReceivedArgs>? MessageReceived;
 
         public string CachePath { get; set; }

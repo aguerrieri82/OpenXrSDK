@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace XrMath
+﻿namespace XrMath
 {
     public struct Matrix3x3
     {
@@ -194,7 +192,7 @@ namespace XrMath
         {
             M11 = 1,
             M22 = 1,
-            M33 = 1 
+            M33 = 1
         };
 
 

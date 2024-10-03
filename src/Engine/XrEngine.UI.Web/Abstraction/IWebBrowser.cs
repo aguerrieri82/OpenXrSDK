@@ -13,6 +13,6 @@
 
         event EventHandler<MessageReceivedArgs> MessageReceived;
 
-        IWebRequestHandler? RequestHandler { get; set;  }
+        IWebRequestHandler? RequestHandler { get; set; }
     }
 }

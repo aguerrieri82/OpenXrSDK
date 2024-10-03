@@ -19,14 +19,14 @@ namespace XrEngine.OpenGL
             uint level,
             uint baseViewIndex,
             uint numViews);
-        
+
         static FramebufferTextureMultiviewOVRDelegate? FramebufferTextureMultiviewOVR;
 
 
         private uint _sampleCount;
 
 #if GLES
-        ExtMultisampledRenderToTexture _extMs;  
+        readonly ExtMultisampledRenderToTexture _extMs;
 #endif
 
         public GlTextureFrameBuffer(GL gl)
@@ -78,7 +78,7 @@ namespace XrEngine.OpenGL
                         FramebufferAttachment.ColorAttachment0,
                         Color.Target,
                         Color, 0, sampleCount);
-                    useMs = true;   
+                    useMs = true;
 #endif
                 }
 
@@ -114,7 +114,7 @@ namespace XrEngine.OpenGL
                         attachment,
                         tex.Target,
                         tex, 0, sampleCount);
-                    useMs = true;   
+                    useMs = true;
 #endif
                 }
 
@@ -181,7 +181,7 @@ namespace XrEngine.OpenGL
         {
             var color = colorTex == 0 ? null : GlTexture.Attach(_gl, colorTex);
             var depth = depthTex == 0 ? null : GlTexture.Attach(_gl, depthTex);
-            
+
             Configure(color, depth, sampleCount);
         }
 
@@ -239,7 +239,7 @@ namespace XrEngine.OpenGL
 
             var srcTex = mask == ClearBufferMask.ColorBufferBit ? Color : Depth;
             var dstTex = mask == ClearBufferMask.ColorBufferBit ? dest.Color : dest.Depth;
-       
+
             _gl.BlitFramebuffer(0, 0, (int)srcTex!.Width, (int)srcTex.Height, 0, 0, (int)dstTex!.Width, (int)dstTex.Height, mask, BlitFramebufferFilter.Nearest);
 
             //GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, 0);

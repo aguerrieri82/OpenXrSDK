@@ -61,7 +61,7 @@ namespace OpenXr.Framework
 
                             var local = xrOculus.App.LocateSpace(space.Space, xrOculus.App.Stage, 1);
                             item.Pose = local.Pose;
-       
+
                         }
                         catch (Exception ex)
                         {

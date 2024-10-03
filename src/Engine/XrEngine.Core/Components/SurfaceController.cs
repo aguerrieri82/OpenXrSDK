@@ -3,7 +3,7 @@ using XrEngine.Interaction;
 using XrInteraction;
 
 namespace XrEngine
-{ 
+{
     public class SurfaceController : Behavior<Object3D>, IRayTarget, ISurfaceInput
     {
         protected Dictionary<IRayPointer, RayPointerStatus> _pointerStatus = [];
@@ -39,7 +39,7 @@ namespace XrEngine
 
         protected void ProcessPointers(RenderContext ctx)
         {
-       
+
             if (Pointers == null)
                 return;
 

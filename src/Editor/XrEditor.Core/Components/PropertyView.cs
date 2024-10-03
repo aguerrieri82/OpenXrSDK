@@ -16,7 +16,7 @@ namespace XrEditor
 
         public static void CreateProperties(object obj, Type objType, IList<PropertyView> properties)
         {
-            CreateProperties(obj, objType, null, properties);   
+            CreateProperties(obj, objType, null, properties);
         }
 
         public static void CreateProperties(object obj, Type objType, object? host, IList<PropertyView> properties)
@@ -47,7 +47,7 @@ namespace XrEditor
                 var propView = new PropertyView
                 {
                     Label = prop.Name,
-                    Category = host != null ? obj.GetType().Name : null,    
+                    Category = host != null ? obj.GetType().Name : null,
                     Editor = editor,
                 };
 

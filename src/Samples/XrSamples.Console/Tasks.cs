@@ -1,11 +1,8 @@
-﻿
-using CefSharp.DevTools.IO;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using OpenXr.Framework.OpenGL;
 using Silk.NET.Assimp;
-using Silk.NET.OpenXR;
-using System;
 using System.Globalization;
 using System.Numerics;
 using System.Text;
@@ -13,14 +10,11 @@ using VirtualCamera.IPCamera;
 using XrEngine;
 using XrEngine.Compression;
 using XrEngine.Gltf;
-using XrEngine.Video.Abstraction;
+using XrEngine.OpenXr.Windows;
 using XrEngine.Video;
-using XrMath;
 using static Oculus.XrPlugin.OculusXrPlugin;
 using static OVRPlugin;
 using File = System.IO.File;
-using XrEngine.OpenXr.Windows;
-using Microsoft.Extensions.DependencyInjection;
 
 
 namespace XrSamples
@@ -65,11 +59,11 @@ namespace XrSamples
 
             if (!client.Play(streamName, session!))
                 throw new InvalidOperationException();
-            
+
             while (true)
             {
                 var res = h264Stream.ReadNalUnit();
-       
+
             }
 
         }

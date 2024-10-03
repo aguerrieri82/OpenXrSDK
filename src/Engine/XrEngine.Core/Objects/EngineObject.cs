@@ -9,7 +9,7 @@
         Readonly = 0x4,
         EnableDebug = 0x8,
         DisableNotifyChangedScene = 0x10,
-        NotifyChangedScene= 0x20
+        NotifyChangedScene = 0x20
     }
 
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject
@@ -204,8 +204,8 @@
 
         public ObjectId Id
         {
-            get => _id; 
-            set => _id = value; 
+            get => _id;
+            set => _id = value;
         }
     }
 }

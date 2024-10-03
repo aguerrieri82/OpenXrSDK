@@ -15,18 +15,18 @@ namespace XrEngine
         public ImageLight()
         {
             Intensity = 3;
-            UseCache = true;    
+            UseCache = true;
             Textures = new PbrV1Material.IBLTextures();
         }
 
-        protected bool LoadCacheTexture<T>(string fileName, Action<T> onLoad) where T : Texture 
+        protected bool LoadCacheTexture<T>(string fileName, Action<T> onLoad) where T : Texture
         {
             Debug.Assert(_cacheBasePath != null);
 
             var fullPath = Path.Combine(_cacheBasePath, fileName);
             if (!File.Exists(fullPath))
                 return false;
-            var texture = AssetLoader.Instance.Load<T>(fullPath);   
+            var texture = AssetLoader.Instance.Load<T>(fullPath);
             onLoad(texture);
             return true;
         }
@@ -36,10 +36,10 @@ namespace XrEngine
             if (texture == null || _cacheBasePath == null)
                 return false;
 
-            Directory.CreateDirectory(_cacheBasePath!); 
+            Directory.CreateDirectory(_cacheBasePath!);
 
             var fullPath = Path.Combine(_cacheBasePath, fileName);
-     
+
             var data = EngineApp.Current!.Renderer!.ReadTexture(texture, TextureFormat.Rgb24, 0, null);
             if (data == null)
                 return false;
@@ -63,9 +63,9 @@ namespace XrEngine
                     var localPath = new Uri(hdrUri).LocalPath;
                     hdrUri = Context.Require<IAssetStore>().GetPath(localPath);
                 }
- 
+
                 var info = new FileInfo(hdrUri);
-        
+
                 var baseName = $"{info.Name}_{info.Length}_{info.LastWriteTime:yyyyMMddhhmmss}";
 
                 _cacheBasePath = Path.Combine(Context.Require<IPlatform>().CachePath, "IBL", baseName);
@@ -83,7 +83,7 @@ namespace XrEngine
                 }
             }
 
-            Panorama = (Texture2D)loader.LoadAsset(uri, typeof(Texture2D), null, _loaderOptions);       
+            Panorama = (Texture2D)loader.LoadAsset(uri, typeof(Texture2D), null, _loaderOptions);
             Panorama.Version = DateTime.Now.Ticks;
 
             NotifyChanged(ObjectChangeType.Render);
@@ -123,6 +123,6 @@ namespace XrEngine
 
         public float Rotation { get; internal set; }
 
-        public bool UseCache { get; set; }  
+        public bool UseCache { get; set; }
     }
 }

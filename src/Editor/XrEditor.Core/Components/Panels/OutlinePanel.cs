@@ -1,5 +1,4 @@
-﻿using Silk.NET.Vulkan;
-using XrEditor.Services;
+﻿using XrEditor.Services;
 using XrEngine;
 
 namespace XrEditor

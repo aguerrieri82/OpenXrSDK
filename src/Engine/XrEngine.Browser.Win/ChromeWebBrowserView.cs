@@ -91,7 +91,7 @@ namespace XrEngine.Browser.Win
                     else
                         _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Released, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
                 }
-         
+
                 _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Moved, _input.MainButton.IsDown ? CefEventFlags.LeftMouseButton | CefEventFlags.IsLeft : CefEventFlags.None);
             }
 
@@ -102,11 +102,11 @@ namespace XrEngine.Browser.Win
         public void ShowDevTools()
         {
             _browser.ShowDevTools();
-        }   
+        }
 
         public ChromeWebBrowser Browser => _browser;
 
-        public IWebRequestHandler? RequestHandler { get; set; }  
+        public IWebRequestHandler? RequestHandler { get; set; }
 
 
         [Range(-10, 10, 0.1f)]

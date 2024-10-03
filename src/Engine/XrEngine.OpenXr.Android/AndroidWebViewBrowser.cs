@@ -2,11 +2,6 @@
 using Java.Interop;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XrEngine.UI.Web;
 
 namespace XrEngine.OpenXr.Android
@@ -14,24 +9,24 @@ namespace XrEngine.OpenXr.Android
     public class AndroidWebViewBrowser : IWebBrowser
     {
         private readonly XrWebViewLayer _webViewLayer;
-        private Interface _interface;
+        private readonly Interface _interface;
         private bool _isInit;
 
 
         class Interface : Java.Lang.Object
         {
-            AndroidWebViewBrowser _browser;
+            readonly AndroidWebViewBrowser _browser;
 
             public Interface(AndroidWebViewBrowser browser)
             {
-                _browser = browser; 
+                _browser = browser;
             }
 
             [JavascriptInterface]
             [Export("postMessage")]
             public void PostMessage(string data)
             {
-                _browser.MessageReceived?.Invoke(_browser, new MessageReceivedArgs(data));  
+                _browser.MessageReceived?.Invoke(_browser, new MessageReceivedArgs(data));
             }
         }
 
@@ -62,7 +57,7 @@ namespace XrEngine.OpenXr.Android
 
                 if (webResp.Headers == null || !webResp.Headers.TryGetValue("Content-Type", out var mimeType))
                     mimeType = null;
-      
+
                 Log.Debug(this, "Browser Response received: {0}, code: {2}, mime: {1}", webReq.Uri, mimeType, webResp.Code);
 
                 var result = new WebResourceResponse(
@@ -85,7 +80,7 @@ namespace XrEngine.OpenXr.Android
 
         public Task PostMessageAsync(string message)
         {
-            _=  _webViewLayer.MainThread.ExecuteAsync(() =>
+            _ = _webViewLayer.MainThread.ExecuteAsync(() =>
             {
                 _webViewLayer.WebView!.PostWebMessage(new WebMessage(message), global::Android.Net.Uri.Parse("*")!);
                 return true;

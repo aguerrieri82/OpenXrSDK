@@ -1,27 +1,26 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;  
+using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 #else
 using Silk.NET.OpenGL;
-using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;    
+using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 #endif
 
 
 
 using XrMath;
-using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
     public class GlState
     {
-        private GL _gl;
+        private readonly GL _gl;
         private bool _stencilDirty;
 
         public GlState(GL gl)
         {
             _gl = gl;
-            Current = this; 
+            Current = this;
         }
 
 
@@ -47,35 +46,35 @@ namespace XrEngine.OpenGL
             StencilRef = null;
             FrameBufferTargets.Clear();
             TexturesSlots.Clear();
-            Features.Clear();   
+            Features.Clear();
         }
 
         public void Restore()
         {
             if (ActiveProgram.HasValue)
                 SetActiveProgram(ActiveProgram.Value, true);
-            
+
             if (View.HasValue)
                 SetView(View.Value, true);
-            
+
             if (WriteDepth.HasValue)
                 SetWriteDepth(WriteDepth.Value, true);
 
             if (UseDepth.HasValue)
                 SetUseDepth(UseDepth.Value, true);
-            
+
             if (DoubleSided.HasValue)
                 SetDoubleSided(DoubleSided.Value, true);
-            
+
             if (WriteColor.HasValue)
                 SetWriteColor(WriteColor.Value, true);
-            
+
             if (ActiveProgram.HasValue)
                 SetActiveProgram(ActiveProgram.Value);
-            
+
             if (Wireframe.HasValue)
                 SetWireframe(Wireframe.Value, true);
-            
+
             if (Alpha.HasValue)
                 SetAlphaMode(Alpha.Value, true);
 
@@ -184,7 +183,7 @@ namespace XrEngine.OpenGL
             {
                 _gl.ActiveTexture(TextureUnit.Texture0 + slot);
                 ActiveTexture = slot;
-                forceBind = true;   
+                forceBind = true;
             }
 
             BindTexture(target, texId, forceBind);
@@ -206,7 +205,7 @@ namespace XrEngine.OpenGL
             else
                 _gl.Disable(cap);
 
-            Features[cap] = value;  
+            Features[cap] = value;
         }
 
         public void SetUseDepth(bool value, bool force = false)
@@ -311,10 +310,10 @@ namespace XrEngine.OpenGL
 
         public void BindFrameBuffer(FramebufferTarget target, uint value, bool force = false)
         {
-            if (!FrameBufferTargets.TryGetValue(target, out var cur)  || cur != value || force)
+            if (!FrameBufferTargets.TryGetValue(target, out var cur) || cur != value || force)
             {
                 FrameBufferTargets[target] = value;
-                
+
                 if (target == FramebufferTarget.Framebuffer)
                 {
                     FrameBufferTargets[FramebufferTarget.ReadFramebuffer] = value;
@@ -331,7 +330,7 @@ namespace XrEngine.OpenGL
         {
             if (!_stencilDirty)
                 return;
-            
+
             _stencilDirty = false;
 
             if ((StencilFunc == null || StencilRef == null) && WriteStencil == null)
@@ -382,19 +381,19 @@ namespace XrEngine.OpenGL
         public TriangleFace? CullFace;
 
         public bool? WriteDepth;
-        
+
         public bool? UseDepth;
-        
+
         public bool? DoubleSided;
-        
+
         public bool? WriteColor;
-        
+
         public uint? ActiveProgram;
-        
+
         public bool? Wireframe;
-        
+
         public AlphaMode? Alpha;
-        
+
         public Rect2I? View;
 
         public float? LineWidth;

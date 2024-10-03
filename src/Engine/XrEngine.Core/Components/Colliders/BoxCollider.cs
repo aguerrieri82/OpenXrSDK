@@ -48,7 +48,7 @@ namespace XrEngine
             */
 
             var localRay = ray.Transform(_host!.WorldMatrixInverse);
-            
+
             var bounds = new Bounds3
             {
                 Min = Center - Size / 2,

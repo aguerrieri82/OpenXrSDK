@@ -1,5 +1,4 @@
-﻿using SkiaSharp;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {
@@ -100,7 +99,7 @@ namespace XrEngine
 
                 _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
                 _context.DeltaTime = _context.Time - oldTime;
-    
+
 
                 _activeScene.Update(_context);
             }

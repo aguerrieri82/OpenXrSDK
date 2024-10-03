@@ -17,6 +17,6 @@
 
     public interface IEditableNode : INode
     {
-        void SetParent(INode? parent);  
+        void SetParent(INode? parent);
     }
 }

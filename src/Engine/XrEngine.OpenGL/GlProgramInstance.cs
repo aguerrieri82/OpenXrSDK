@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -47,10 +46,10 @@ namespace XrEngine.OpenGL
                 var shader = Material.Shader!;
                 var resolver = shader.Resolver!;
 
-                program = new GlSimpleProgram(_gl, 
-                    resolver(shader.VertexSourceName!), 
-                    resolver(shader.FragmentSourceName!), 
-                    shader.GeometrySourceName != null ? resolver(shader.GeometrySourceName!) : null, 
+                program = new GlSimpleProgram(_gl,
+                    resolver(shader.VertexSourceName!),
+                    resolver(shader.FragmentSourceName!),
+                    shader.GeometrySourceName != null ? resolver(shader.GeometrySourceName!) : null,
                     resolver);
 
                 if (shader.GeometrySourceName != null)

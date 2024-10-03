@@ -103,7 +103,7 @@ namespace XrEngine
                     if (images[0].Compression == TextureCompressionFormat.Etc2)
                         header.PixelFormat = PixelFormat.ETC2_RGBA;
                     else
-                        header.PixelFormat = PixelFormat.RGBA8; 
+                        header.PixelFormat = PixelFormat.RGBA8;
                     break;
                 case TextureFormat.RgbFloat32:
                     header.ColourSpace = ColourSpace.LinearRGB;

@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public enum ShadowMapMode
     {
         None,
         Hard,
-        HardSmooth,    
+        HardSmooth,
     }
 
     public class ShadowMapOptions
@@ -29,6 +23,6 @@ namespace XrEngine
 
         Camera? LightCamera { get; }
 
-        DirectionalLight? Light { get; }    
+        DirectionalLight? Light { get; }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Android.Content;
-using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using Silk.NET.OpenXR;
 using XrInteraction;

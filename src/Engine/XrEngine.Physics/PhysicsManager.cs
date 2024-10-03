@@ -1,6 +1,5 @@
 ﻿using PhysX.Framework;
 using System.Collections.Concurrent;
-using XrEngine.Services;
 
 namespace XrEngine.Physics
 {
@@ -27,7 +26,7 @@ namespace XrEngine.Physics
             if (IsMultiThread)
             {
                 _simulateThread = new Thread(SimulateLoop);
-                _simulateThread.Name = "XrEngine PhysicsSimulate";   
+                _simulateThread.Name = "XrEngine PhysicsSimulate";
                 _simulateThread.Start();
             }
         }
@@ -43,8 +42,8 @@ namespace XrEngine.Physics
             if (IsMultiThread)
                 _queue.Enqueue(action);
             else
-                action(); 
-        }   
+                action();
+        }
 
         protected void Destroy()
         {
@@ -60,8 +59,8 @@ namespace XrEngine.Physics
             var lastStepTime = _lastUpdateTime;
 
             while (IsStarted)
-            {              
-                var curTime = _lastUpdateTime;  
+            {
+                var curTime = _lastUpdateTime;
 
                 var delta = curTime - lastStepTime;
 

@@ -97,7 +97,7 @@ namespace XrEngine.OpenGL
             envTexId = CreateCubeMap(mipCount > 1);
             lutTexId = CreateLutTexture();
 
-            GlState.Current.SetActiveTexture(_cubeMapId!, TextureTarget.TextureCubeMap, 0); 
+            GlState.Current.SetActiveTexture(_cubeMapId!, TextureTarget.TextureCubeMap, 0);
 
             _filterProg!.Use();
             _filterProg.SetUniform("uDistribution", (int)distribution);

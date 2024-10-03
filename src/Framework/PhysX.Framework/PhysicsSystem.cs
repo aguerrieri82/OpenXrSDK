@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -197,7 +196,7 @@ namespace PhysX.Framework
             var curScale = _tolerancesScale;
 
             var param = curScale.CookingParamsNew();
-            
+
             /*
             var isValid = param.PhysPxValidateConvexMesh(&desc);
             if (!isValid)

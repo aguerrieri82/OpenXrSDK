@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -10,7 +9,7 @@ namespace XrEngine.OpenGL
         public GlBaseSingleMaterialPass(OpenGLRender renderer)
             : base(renderer)
         {
-        }   
+        }
 
         protected abstract ShaderMaterial CreateMaterial();
 
@@ -27,8 +26,8 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender()
         {
-            UseProgram(_programInstance!, false);  
-            return true;    
+            UseProgram(_programInstance!, false);
+            return true;
         }
 
 
@@ -69,8 +68,8 @@ namespace XrEngine.OpenGL
                         updateContext.Model = draw.Object;
 
                         _programInstance!.UpdateUniforms(updateContext, false);
-                        
-                        Draw(draw); 
+
+                        Draw(draw);
 
                     }
 
@@ -82,6 +81,6 @@ namespace XrEngine.OpenGL
         protected override void EndRender()
         {
             _renderer.State.SetActiveProgram(0);
-        }   
+        }
     }
 }

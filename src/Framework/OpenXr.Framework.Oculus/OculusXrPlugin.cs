@@ -3,7 +3,6 @@ using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -142,7 +141,7 @@ namespace OpenXr.Framework.Oculus
             _app.Xr.TryGetInstanceExtension<FBSwapchainUpdateState>(null, _app.Instance, out _swapChainUpdate);
             _app.Xr.TryGetInstanceExtension<FBHandTrackingMesh>(null, _app.Instance, out _handMesh);
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityStorage>(null, _app.Instance, out _spatialStorage);
-           
+
             var func = new PfnVoidFunction();
             _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
             GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));

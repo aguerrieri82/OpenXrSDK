@@ -21,7 +21,7 @@ namespace XrEngine.OpenXr
         {
             Material = (Material)MaterialFactory.CreatePbr(Color.White);
 
-            Flags |= EngineObjectFlags.DisableNotifyChangedScene;    
+            Flags |= EngineObjectFlags.DisableNotifyChangedScene;
 
             Name = "SceneModel";
 
@@ -79,7 +79,7 @@ namespace XrEngine.OpenXr
                     if (!oculus.GetSpaceComponentEnabled(meshAnchor.Space, SpaceComponentTypeFB.LocatableFB))
                         await oculus.SetSpaceComponentStatusAsync(meshAnchor.Space, SpaceComponentTypeFB.LocatableFB, true);
                 }
-   
+
                 var location = _app!.LocateSpace(meshAnchor.Space, _app.Stage, 1);
 
                 var mesh = new TriangleMesh(geo, Material)

@@ -47,7 +47,7 @@ namespace XrSamples.Android.Activities
             }
 
             _settings = JsonSerializer.Deserialize<GameSettings>(settingsJson);
-            
+
             base.OnLoad();
         }
 
@@ -80,7 +80,7 @@ namespace XrSamples.Android.Activities
             XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(external, "Assets")));
 
             builder.Options.Driver = _settings!.Driver;
-            
+
             if (_settings.Driver == GraphicDriver.OpenGL && _settings.IsMultiView)
                 builder.UseMultiView();
 

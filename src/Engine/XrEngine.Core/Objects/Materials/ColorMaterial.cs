@@ -23,7 +23,7 @@ namespace XrEngine
             : base()
         {
             _shader = SHADER;
-            ShadowColor = new Color(0, 0, 0, 0.7f); 
+            ShadowColor = new Color(0, 0, 0, 0.7f);
         }
 
         public ColorMaterial(Color color)

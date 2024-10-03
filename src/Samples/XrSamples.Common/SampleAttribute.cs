@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrSamples
+﻿namespace XrSamples
 {
     [AttributeUsage(AttributeTargets.Method)]
     public class SampleAttribute : Attribute

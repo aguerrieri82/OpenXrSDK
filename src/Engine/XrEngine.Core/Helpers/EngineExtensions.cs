@@ -1,5 +1,4 @@
-﻿using SkiaSharp;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using XrEngine.Services;
@@ -21,7 +20,7 @@ namespace XrEngine
     {
         #region EngineObject
 
-        public static void SetFlag(this EngineObject obj, EngineObjectFlags flag, bool isSet) 
+        public static void SetFlag(this EngineObject obj, EngineObjectFlags flag, bool isSet)
         {
             if (isSet)
                 obj.Flags |= flag;
@@ -48,7 +47,7 @@ namespace XrEngine
             return obj.Components<T>().Single();
         }
 
-        public static T GetOrCreateProp<T>(this EngineObject obj, string name, Func<T> create) 
+        public static T GetOrCreateProp<T>(this EngineObject obj, string name, Func<T> create)
         {
             var result = obj.GetProp<T?>(name);
             if (result == null)
@@ -692,7 +691,7 @@ namespace XrEngine
         public static Vector3 Project(this Camera camera, Vector3 worldPoint)
         {
 
-            return worldPoint.Project(camera.ViewProjection);   
+            return worldPoint.Project(camera.ViewProjection);
         }
 
         public static IEnumerable<Vector3> Project(this Camera camera, IEnumerable<Vector3> worldPoints)
@@ -706,7 +705,7 @@ namespace XrEngine
         public static Vector3 Unproject(this Camera camera, Vector3 viewPoint)
         {
             var viewProjInv = camera.ViewProjectionInverse;
-            return viewPoint.Project(viewProjInv);    
+            return viewPoint.Project(viewProjInv);
         }
 
         public static IEnumerable<Vector3> Unproject(this Camera camera, IEnumerable<Vector3> viewPoint)
@@ -793,7 +792,7 @@ namespace XrEngine
             {
                 planes[i] = Plane.Normalize(planes[i]);
             }
-            return planes;  
+            return planes;
         }
 
 

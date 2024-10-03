@@ -1,10 +1,5 @@
 ﻿using PhysX.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace XrEngine.Physics
@@ -54,9 +49,9 @@ namespace XrEngine.Physics
                 if (result.Length == 0)
                     continue;
 
-                var min = result.Min(a=> a.Distance);
+                var min = result.Min(a => a.Distance);
 
-                var minRes = result.FirstOrDefault(a => a.Distance == min); 
+                var minRes = result.FirstOrDefault(a => a.Distance == min);
 
                 return new Collision
                 {

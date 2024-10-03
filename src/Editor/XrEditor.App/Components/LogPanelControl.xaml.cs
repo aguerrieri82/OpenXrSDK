@@ -8,7 +8,7 @@ namespace XrEditor.Components
 {
     public partial class LogPanelControl : UserControl
     {
-        UIProgressLogger _logger;
+        readonly UIProgressLogger _logger;
 
         public LogPanelControl()
         {

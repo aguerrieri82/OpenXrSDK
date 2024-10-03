@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-
-namespace XrEngine.UI.Web
+﻿namespace XrEngine.UI.Web
 {
     public class FsWebRequestHandler : IWebRequestHandler
     {
         protected string? _host;
-        protected string? _basePath;   
-        
+        protected string? _basePath;
+
         public FsWebRequestHandler(string host, string basePath)
         {
             _host = host;
@@ -32,7 +24,7 @@ namespace XrEngine.UI.Web
                 fullPath = Path.Join(_basePath, "index.html");
 
             var ext = Path.GetExtension(fullPath).ToLower();
-            var mimeType = MimeMapper.GetMimeType(ext); 
+            var mimeType = MimeMapper.GetMimeType(ext);
 
             var data = File.ReadAllBytes(fullPath);
 

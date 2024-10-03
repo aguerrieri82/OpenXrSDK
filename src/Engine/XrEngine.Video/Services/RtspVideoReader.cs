@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using VirtualCamera.IPCamera;
 using XrEngine.Video.Abstraction;
 using XrMath;
@@ -58,7 +56,7 @@ namespace XrEngine.Video
             if (_videoStream == null)
                 throw new InvalidOperationException();
 
-     
+
             Log.Debug(this, "Rtsp: Setup");
 
             _session = _client.Setup(_videoStream, UdpPort);

@@ -55,7 +55,7 @@ namespace XrEngine
             Initialize();
         }
 
-        [MemberNotNull(nameof(TextureCenter), nameof(TextureRadius))]   
+        [MemberNotNull(nameof(TextureCenter), nameof(TextureRadius))]
         protected void Initialize()
         {
 

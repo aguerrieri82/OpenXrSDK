@@ -1,18 +1,11 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine.OpenGL
+﻿namespace XrEngine.OpenGL
 {
     public enum GlLayerType
     {
         Main,
         CastShadow,
         Custom
-    }   
+    }
 
     public class GlLayer
     {
@@ -36,12 +29,12 @@ namespace XrEngine.OpenGL
 
         public void Update()
         {
-            Log.Info(this, "Building content '{0}' ({1})...", _scene.Name ?? "",  _layer?.Name ?? "Main");
+            Log.Info(this, "Building content '{0}' ({1})...", _scene.Name ?? "", _layer?.Name ?? "Main");
 
             _content.Lights = [];
             _content.ShaderContents.Clear();
             _content.LightsHash = "";
-            _content.LayerVersion = Version;        
+            _content.LayerVersion = Version;
 
             var drawId = 0;
 
@@ -60,7 +53,7 @@ namespace XrEngine.OpenGL
                             options.SampleCount = 1024;
                             options.Resolution = 256;
                             options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
-                            
+
                             imgLight.Textures = _render.ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
                             imgLight.Panorama.NotifyLoaded();
                             imgLight.NotifyIBLCreated();
@@ -137,10 +130,10 @@ namespace XrEngine.OpenGL
 
         public bool NeedUpdate => _lastUpdateVersion != Version;
 
-        public GlLayerType Type => _type;   
+        public GlLayerType Type => _type;
 
         public RenderContent Content => _content;
 
-        public long Version => _layer != null ? _layer.Version : _scene.Version;    
+        public long Version => _layer != null ? _layer.Version : _scene.Version;
     }
 }

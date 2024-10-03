@@ -37,7 +37,7 @@ namespace XrEngine.OpenGL
             _handle = _gl.CreateProgram();
             GlDebug.Log($"CreateProgram {_handle}");
 
-            foreach (var shader in shaders.Where(a=> a != 0))
+            foreach (var shader in shaders.Where(a => a != 0))
                 _gl.AttachShader(_handle, shader);
 
             _gl.LinkProgram(_handle);
@@ -55,7 +55,7 @@ namespace XrEngine.OpenGL
 
         public void Use()
         {
-            GlState.Current!.SetActiveProgram(this);   
+            GlState.Current!.SetActiveProgram(this);
 
             GlDebug.Log($"UseProgram {_handle}");
         }
@@ -255,7 +255,7 @@ namespace XrEngine.OpenGL
         {
             if (!IsChanged(name, value))
                 return;
-   
+
             fixed (Vector2* data = value)
                 _gl.Uniform2(LocateUniform(name, optional), (uint)value.Length, (float*)data);
 

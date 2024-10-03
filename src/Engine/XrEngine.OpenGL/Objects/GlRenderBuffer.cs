@@ -9,12 +9,12 @@ namespace XrEngine.OpenGL
 {
     public class GlRenderBuffer : GlObject, IGlRenderAttachment
     {
-        static Dictionary<uint, GlRenderBuffer> _attached = [];
+        static readonly Dictionary<uint, GlRenderBuffer> _attached = [];
 
         protected uint _width;
         protected uint _height;
         protected uint _sampleCount;
-        protected InternalFormat _internalFormat;   
+        protected InternalFormat _internalFormat;
 
         public GlRenderBuffer(GL gl)
             : base(gl)
@@ -32,7 +32,7 @@ namespace XrEngine.OpenGL
         public void Update(uint width, uint height, uint sampleCount, InternalFormat internalFormat)
         {
             if (_width == width && _height == height && _sampleCount == sampleCount && _internalFormat == internalFormat)
-                return; 
+                return;
 
             Bind();
 

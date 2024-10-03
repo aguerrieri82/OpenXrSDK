@@ -31,7 +31,7 @@ namespace XrEngine.OpenGL
             _filterProg = [];
             EnvFormat = InternalFormat.Rgba16f;
             LutFormat = InternalFormat.Rgba16f;
-            Resolution = 512;   
+            Resolution = 512;
         }
 
 
@@ -66,7 +66,7 @@ namespace XrEngine.OpenGL
             AddFilter("PbrV2/spbrdf_cs.glsl", Distribution.GGXLut);
             AddFilter("PbrV2/spmap_cs.glsl", Distribution.GGX);
         }
-        
+
         public void PanoramaToCubeMap()
         {
             if (_cubeMapId == 0)
@@ -92,7 +92,7 @@ namespace XrEngine.OpenGL
 
         public uint ApplyFilter(Distribution distribution)
         {
-            var program = _filterProg![distribution];   
+            var program = _filterProg![distribution];
 
             GlState.Current!.SetActiveTexture(_inputTexture!, 0);
 
@@ -247,7 +247,7 @@ namespace XrEngine.OpenGL
             _panToCubeProg = null;
             _inputTexture = null;
             //_cubeMapId = 0;
-    ;
+            ;
 
             GlState.Current!.BindTexture(TextureTarget.Texture2D, 0);
             GlState.Current!.BindTexture(TextureTarget.TextureCubeMap, 0);

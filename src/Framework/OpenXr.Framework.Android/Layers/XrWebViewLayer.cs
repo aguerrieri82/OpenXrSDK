@@ -1,8 +1,6 @@
 ﻿using Android.Content;
-using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
-using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Android.Webkit;
@@ -106,7 +104,7 @@ namespace OpenXr.Framework.Android
 
             public void Update(WebView webView)
             {
-   
+
                 var now = SystemClock.UptimeMillis();
 
                 MotionEventActions actions;
@@ -138,7 +136,7 @@ namespace OpenXr.Framework.Android
                 var pos = _surfaceInput.Pointer * new Vector2(webView.Width, webView.Height);
 
                 var ev = MotionEvent.Obtain(_lastDownTime, now, actions, pos.X, webView.Height - pos.Y, MetaKeyStates.None);
-                
+
                 webView.DispatchTouchEvent(ev);
             }
         }
@@ -248,7 +246,7 @@ namespace OpenXr.Framework.Android
 
         public HandlerXrThread MainThread => _mainThread;
 
-        public Func<IWebResourceRequest, WebResourceResponse?>? ShouldInterceptRequest { get; set; } 
+        public Func<IWebResourceRequest, WebResourceResponse?>? ShouldInterceptRequest { get; set; }
 
         public WebView? WebView => _webView;
     }

@@ -12,7 +12,7 @@ namespace XrEngine
             R3 = new Vector4(source.M31, source.M32, source.M33, 0);
         }
 
-        public static implicit operator Matrix3x3Aligned(Matrix3x3 source) => new(source);  
+        public static implicit operator Matrix3x3Aligned(Matrix3x3 source) => new(source);
 
         public Vector4 R1;
         public Vector4 R2;

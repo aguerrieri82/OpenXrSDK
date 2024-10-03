@@ -10,6 +10,7 @@ using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Compression;
 using XrEngine.Gltf;
+using XrEngine.Objects;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.Services;
@@ -18,10 +19,14 @@ using XrEngine.UI.Web;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
+
+/* Unmerged change from project 'XrSamples.Common (net9.0-android)'
+Removed:
 using Silk.NET.Windowing;
 using static XrEngine.PbrV1Material;
 using XrEngine.OpenGL;
 using XrEngine.Objects;
+*/
 
 
 #if !ANDROID
@@ -208,13 +213,13 @@ namespace XrSamples
                 });
         }
 
-        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder,bool showDepth)
+        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder, bool showDepth)
         {
             var floor = new TriangleMesh(new Cube3D(new Vector3(10, 0.01f, 10)));
             floor.Name = "Floor";
             floor.Materials.Add(new ShadowOnlyMaterial
             {
-                Name = "FloorMaterial", 
+                Name = "FloorMaterial",
             });
 
 
@@ -233,7 +238,7 @@ namespace XrSamples
                 depth.AddBehavior((_, _) =>
                 {
                     var sp = ((IShadowMapProvider)depth.Scene!.App!.Renderer!);
-          
+
                     if (mat.Texture == null)
                     {
                         mat.Texture = sp.ShadowMap;
@@ -247,12 +252,12 @@ namespace XrSamples
 
                 });
             }
-           
+
 
             builder.ConfigureApp(e =>
             {
                 e.App.ActiveScene!.AddChild(floor);
-                if (depth != null)  
+                if (depth != null)
                     e.App.ActiveScene!.AddChild(depth);
 
                 var light = e.App.ActiveScene!.Descendants<DirectionalLight>().FirstOrDefault();
@@ -283,7 +288,7 @@ namespace XrSamples
                    .UseGrabbers();
 
             //if (!IsEditor)
-                builder.AddPassthrough();
+            builder.AddPassthrough();
             return builder;
         }
 
@@ -786,10 +791,10 @@ namespace XrSamples
             mesh.AddComponent<PyMeshCollider>();
             mesh.AddComponent<BoundsGrabbable>();
 
-            var mesh2 = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"), 
+            var mesh2 = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"),
                 new GltfLoaderOptions { PbrType = typeof(PbrV1Material) });
             mesh2.Name = "Bed 2";
-            mesh2.WorldPosition = new Vector3(3, 0, 0); 
+            mesh2.WorldPosition = new Vector3(3, 0, 0);
             mesh2.AddComponent<PyMeshCollider>();
             mesh2.AddComponent<BoundsGrabbable>();
 
@@ -836,7 +841,7 @@ namespace XrSamples
                 if (item.Name != "Obj_PolyFaceMesh_51")
                     item.IsVisible = true;
 
-         
+
                 for (var i = 0; i < item.Materials.Count; i++)
                 {
                     var material = (IPbrMaterial)item.Materials[i];
@@ -876,7 +881,7 @@ namespace XrSamples
                     {
                         //material.Roughness = 0.6f;
                     }
-                    
+
                 }
 
             }

@@ -29,7 +29,7 @@ namespace XrEngine.OpenXr.Windows
                         // Example: \x1B[1m
                         if (IsDigit(span[i + 2]))
                         {
-                            escapeCode = (int)(span[i + 2] - '0');
+                            escapeCode = span[i + 2] - '0';
                             if (startIndex != -1)
                             {
                                 _onParseWrite(message, startIndex, length, background, foreground);
@@ -47,7 +47,7 @@ namespace XrEngine.OpenXr.Windows
                         // Example: \x1B[40m
                         if (IsDigit(span[i + 2]) && IsDigit(span[i + 3]))
                         {
-                            escapeCode = (int)(span[i + 2] - '0') * 10 + (int)(span[i + 3] - '0');
+                            escapeCode = (span[i + 2] - '0') * 10 + (span[i + 3] - '0');
                             if (startIndex != -1)
                             {
                                 _onParseWrite(message, startIndex, length, background, foreground);

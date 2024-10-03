@@ -9,7 +9,7 @@
         public AssetSource(IAsset asset)
         {
             Asset = asset;
-        }   
+        }
 
         public IAsset? Asset { get; set; }
     }

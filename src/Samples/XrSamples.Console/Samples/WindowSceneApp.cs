@@ -8,10 +8,8 @@ using Microsoft.Extensions.Logging;
 using XrEngine;
 using XrEngine.OpenGL;
 using Silk.NET.Windowing;
-using System.Numerics;
 using XrMath;
 using XrEngine.OpenXr;
-using OpenXr.Framework;
 using XrEngine.Services;
 using XrEngine.OpenXr.Windows;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,7 +24,7 @@ namespace XrSamples
         {
             ModuleManager.Instance.Init();
 
-            Context.Implement<ILogger>(services.GetRequiredService<ILogger<WindowSceneApp>>()); 
+            Context.Implement<ILogger>(services.GetRequiredService<ILogger<WindowSceneApp>>());
 
             var builder = new XrEngineAppBuilder();
 
@@ -83,6 +81,6 @@ namespace XrSamples
             return Task.CompletedTask;
         }
 
-     
+
     }
 }

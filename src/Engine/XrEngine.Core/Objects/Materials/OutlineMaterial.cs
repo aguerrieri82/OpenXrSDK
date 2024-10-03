@@ -57,7 +57,7 @@ namespace XrEngine
                 up.SetUniform("uColor", Color);
                 up.SetUniform("uSize", Size);
                 up.SetUniform("uThreshold", Threshold);
-                
+
             });
         }
 

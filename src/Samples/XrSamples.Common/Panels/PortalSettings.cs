@@ -1,7 +1,6 @@
 ﻿using CanvasUI;
 using UI.Binding;
 using XrEngine;
-using XrMath;
 
 namespace XrSamples
 {
@@ -22,7 +21,7 @@ namespace XrSamples
             var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
 
             mat.SpherRadius = Radius;
-            mat.Border = Border;    
+            mat.Border = Border;
             mesh.SetProp("Offset", Offset);
             mesh.SetProp("SphereY", SphereY);
 
