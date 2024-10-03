@@ -40,7 +40,7 @@ namespace XrEngine
 
             var fullPath = Path.Combine(_cacheBasePath, fileName);
 
-            var data = EngineApp.Current!.Renderer!.ReadTexture(texture, TextureFormat.Rgb24, 0, null);
+            var data = EngineApp.Current!.Renderer!.ReadTexture(texture, texture.Format, 0, null);
             if (data == null)
                 return false;
 
@@ -100,7 +100,6 @@ namespace XrEngine
             }
         }
 
-
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
@@ -121,7 +120,8 @@ namespace XrEngine
 
         public Texture2D? Panorama { get; set; }
 
-        public float Rotation { get; internal set; }
+        [ValueType(ValueType.Radiant)]
+        public float Rotation { get; set; }
 
         public bool UseCache { get; set; }
     }

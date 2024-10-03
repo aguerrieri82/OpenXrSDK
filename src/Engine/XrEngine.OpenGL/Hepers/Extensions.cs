@@ -1,8 +1,5 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using System;
-
-
 #else
 using Silk.NET.OpenGL;
 #endif

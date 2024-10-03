@@ -8,7 +8,6 @@ namespace XrEngine.OpenGL
 {
     public interface IGlObject
     {
-
         public uint Handle { get; }
 
         public GL GL { get; }

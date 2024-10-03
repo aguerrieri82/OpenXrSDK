@@ -1,6 +1,6 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
-using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
+using GlStencilFunction = Silk.NET.OpenGLES.StencilFunction;
 #else
 using Silk.NET.OpenGL;
 using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;

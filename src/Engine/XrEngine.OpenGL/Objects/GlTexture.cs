@@ -149,6 +149,7 @@ namespace XrEngine.OpenGL
                     TextureFormat.SRgb24 => 24,
                     TextureFormat.RgbFloat32 => 32 * 3,
                     TextureFormat.RgbaFloat32 => 32 * 4,
+                    TextureFormat.RgbaFloat16 => 16 * 4,
                     _ => throw new NotSupportedException()
                 };
 
@@ -255,7 +256,6 @@ namespace XrEngine.OpenGL
 
                 _ => throw new NotSupportedException(),
             };
-
         }
 
         public static InternalFormat GetInternalFormat(TextureFormat format, TextureCompressionFormat compression)

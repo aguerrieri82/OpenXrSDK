@@ -2,12 +2,7 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using System.Net;
-using System.Net.Mail;
-using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 #endif
-
 
 
 namespace XrEngine.OpenGL
@@ -15,7 +10,7 @@ namespace XrEngine.OpenGL
     public static class GlDepthUtils
     {
         static readonly Dictionary<object, GlTexture> _depthTextures = [];
-        static GlTextureFrameBuffer? _destFB;
+        static GlTextureFrameBuffer? _dstFB;
         static GlTextureFrameBuffer? _srcFB;
 
         static GlTexture GetDepthTexture(GL gl, uint width, uint height, uint arraySize, bool mutable)
@@ -65,11 +60,11 @@ namespace XrEngine.OpenGL
 
         public static GlTexture GetDepthUsingFramebufferArray(GL gl, IGlFrameBuffer src, uint arraySize)
         {
-            if (_destFB == null)
+            if (_dstFB == null)
             {
-                _destFB = new GlTextureFrameBuffer(gl);
-                _destFB.Target = FramebufferTarget.DrawFramebuffer;
-                _destFB.SetDrawBuffers();
+                _dstFB = new GlTextureFrameBuffer(gl);
+                _dstFB.Target = FramebufferTarget.DrawFramebuffer;
+                _dstFB.SetDrawBuffers();
             }
 
             if (_srcFB == null)
@@ -81,7 +76,7 @@ namespace XrEngine.OpenGL
 
             var depth = GetDepthTexture(gl, src.Depth!.Width, src.Depth.Height, arraySize, false);
 
-            _destFB.Bind();
+            _dstFB.Bind();
 
             _srcFB.Bind();
 
@@ -99,7 +94,7 @@ namespace XrEngine.OpenGL
                     FramebufferAttachment.DepthAttachment,
                      depth.Handle, 0, i);
 
-                _destFB.Check();
+                _dstFB.Check();
 
                 gl.BlitFramebuffer(0, 0, (int)src.Depth!.Width, (int)src.Depth.Height,
                     0, 0, (int)depth.Width, (int)depth.Height,
@@ -113,22 +108,22 @@ namespace XrEngine.OpenGL
 
         public static GlTexture GetDepthUsingFramebuffer(GL gl, IGlFrameBuffer src)
         {
-            if (_destFB == null)
+            if (_dstFB == null)
             {
-                _destFB = new GlTextureFrameBuffer(gl);
-                _destFB.Target = FramebufferTarget.DrawFramebuffer;
-                _destFB.SetDrawBuffers();
+                _dstFB = new GlTextureFrameBuffer(gl);
+                _dstFB.Target = FramebufferTarget.DrawFramebuffer;
+                _dstFB.SetDrawBuffers();
             }
 
             var depth = GetDepthTexture(gl, src.Depth!.Width, src.Depth.Height, 1, false);
 
-            _destFB.Configure(null, depth, 1);
+            _dstFB.Configure(null, depth, 1);
 
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, src.Handle);
-            GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, _destFB.Handle);
+            GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, _dstFB.Handle);
 
             gl.BlitFramebuffer(0, 0, (int)src.Depth!.Width, (int)src.Depth.Height,
-                                0, 0, (int)_destFB.Depth!.Width, (int)_destFB.Depth.Height,
+                                0, 0, (int)_dstFB.Depth!.Width, (int)_dstFB.Depth.Height,
                                 ClearBufferMask.DepthBufferBit, BlitFramebufferFilter.Nearest);
 
 

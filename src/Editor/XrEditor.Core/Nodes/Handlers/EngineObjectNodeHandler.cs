@@ -20,10 +20,7 @@ namespace XrEditor.Nodes
 
                 if (node == null)
                 {
-                    if (obj is ImageLight)
-                        nodeType = typeof(ImageLightNode);
-
-                    else if (obj is TriangleMesh)
+                    if (obj is TriangleMesh)
                         nodeType = typeof(TriangleMeshNode);
 
                     else if (obj is PbrV1Material)
