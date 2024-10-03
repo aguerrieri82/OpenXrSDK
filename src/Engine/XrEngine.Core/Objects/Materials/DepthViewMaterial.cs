@@ -12,7 +12,8 @@
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = false,
-                Priority = 1
+                Priority = 1,
+                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
 
@@ -55,8 +56,6 @@
         public Texture2D? Texture { get; set; }
 
         public Camera? Camera { get; set; }
-
-        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
     }
 }

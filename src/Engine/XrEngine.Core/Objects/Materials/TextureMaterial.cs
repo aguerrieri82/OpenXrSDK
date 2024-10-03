@@ -13,7 +13,8 @@ namespace XrEngine
                 FragmentSourceName = "texture.frag",
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
-                IsLit = false
+                IsLit = false,
+                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
         public TextureMaterial()
@@ -58,8 +59,6 @@ namespace XrEngine
                 up.SetUniform("uScale", Scale);
             });
         }
-
-        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
         public Texture2D? Texture { get; set; }
 

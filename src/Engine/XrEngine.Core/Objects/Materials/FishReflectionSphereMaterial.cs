@@ -25,6 +25,7 @@ namespace XrEngine
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = false,
+                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
 
@@ -127,10 +128,7 @@ namespace XrEngine
                 up.SetUniform("uSurfaceSize", SurfaceSize);
                 up.SetUniform("uFov", Fov);
             });
-
         }
-
-        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
 
         public FishReflectionMode Mode { get; set; }
 

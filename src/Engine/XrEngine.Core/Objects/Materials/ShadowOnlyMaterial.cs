@@ -18,7 +18,8 @@ namespace XrEngine.Objects
                 FragmentSourceName = "shadow_only.frag",
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
-                IsLit = false
+                IsLit = false,
+                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
 
@@ -61,6 +62,5 @@ namespace XrEngine.Objects
             }
         }
 
-        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
     }
 }

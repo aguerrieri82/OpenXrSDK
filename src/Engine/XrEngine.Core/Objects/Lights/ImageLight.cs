@@ -9,7 +9,7 @@ namespace XrEngine
         public ImageLight()
         {
             Intensity = 3;
-            Textures = new PbrMaterial.IBLTextures();
+            Textures = new PbrV1Material.IBLTextures();
         }
 
         public void LoadPanorama(string hdrFileName)
@@ -37,7 +37,7 @@ namespace XrEngine
                 Panorama.Version = DateTime.Now.Ticks;
         }
 
-        public PbrMaterial.IBLTextures Textures { get; set; }
+        public PbrV1Material.IBLTextures Textures { get; set; }
 
         public Texture2D? Panorama { get; set; }
 

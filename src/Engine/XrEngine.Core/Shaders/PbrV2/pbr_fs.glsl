@@ -70,6 +70,12 @@ vec3 fresnelSchlick(vec3 F0, float cosTheta)
 	return F0 + (vec3(1.0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
+vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+
 const float gamma     = 2.2;
 const float pureWhite = 1.0;
 
@@ -112,18 +118,40 @@ void main()
 	vec3 Lo = normalize(vin.cameraPos - vin.position);
 
 	// Get current fragment's normal and transform to world space.
-	#ifdef USE_NORMAL_MAP
-		vec3 N = normalize(2.0 * texture(normalTexture, vin.texcoord).rgb - 1.0);
-		N = normalize(vin.tangentBasis * N);
+	#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
+
+		vec3 N = normalize(2.0 * texture(normalTexture, vin.texcoord).rgb - 1.0);	
+		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
+
+		mat3 TBN = vin.tangentBasis;
+
+		#ifdef DOUBLE_SIDED
+
+		if (!gl_FrontFacing) 
+		{
+			TBN[0] = -TBN[0]; // Flip tangent
+			TBN[1] = -TBN[1]; // Flip bitangent
+			TBN[2] = -TBN[2]; // Flip normal
+		}
+		
+		#endif
+
+		N = normalize(TBN * N);
+
 	#else
-		vec3 N = vin.tangentBasis[2];
+		vec3 N = normalize(vin.tangentBasis[2]);
+		#ifdef DOUBLE_SIDED
+		if (!gl_FrontFacing)
+			N = -N;
+		#endif
 	#endif
-	
+
+
 	// Angle between surface normal and outgoing light direction.
 	float cosLo = max(0.0, dot(N, Lo));
 		
 	// Specular reflection vector.
-	vec3 Lr = 2.0 * cosLo * N - Lo;
+	vec3 Lr = reflect(-Lo, N);
 
 	// Fresnel reflectance at normal incidence (for metals use albedo color).
 	vec3 F0 = mix(Fdielectric, albedo, metalness);
@@ -142,17 +170,9 @@ void main()
 			float distance = length(lightDir);
 			Li = normalize(lightDir);
 
-			// Check if the fragment is within the light's radius
-			if (distance > uLights.lights[i].radius)
-				continue;
-
-			// Attenuation coefficients (you can adjust these values)
-			float constant = 1.0;
-			float linear = 0.09;
-			float quadratic = 0.032;
-
-			// Calculate attenuation
-			attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
+			float range = uLights.lights[i].radius;
+		    float smoothFactor = clamp((range - distance) / range, 0.0, 1.0);
+			attenuation = smoothFactor * smoothFactor;
 		}
 		else
 		{
@@ -171,7 +191,8 @@ void main()
 		float cosLh = max(0.0, dot(N, Lh));
 
 		// Calculate Fresnel term for direct lighting. 
-		vec3 F  = fresnelSchlick(F0, max(0.0, dot(Lh, Lo)));
+		float cosTheta = clamp(dot(Lh, Lo), 0.0, 1.0);
+		vec3 F  = fresnelSchlickRoughness(F0, cosTheta, roughness);
 		// Calculate normal distribution for specular BRDF.
 		float D = ndfGGX(cosLh, roughness);
 		// Calculate geometric attenuation for specular BRDF.
@@ -232,7 +253,7 @@ void main()
 
 	#ifdef USE_OCCLUSION_MAP
     float ao = texture(occlusionTexture, vin.texcoord).r;
-    color3 *= (1.0 + uMaterial.occlusionStrength * (ao - 1.0)); 
+    color3 *= mix(1.0, ao, uMaterial.occlusionStrength);
 	#endif
 
 	#if defined(USE_SHADOW_MAP) && defined(RECEIVE_SHADOWS) && defined(USE_PUNCTUAL)

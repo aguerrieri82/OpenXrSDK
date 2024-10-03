@@ -13,7 +13,8 @@ namespace XrEngine
                 FragmentSourceName = "color.frag",
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
-                IsLit = false
+                IsLit = false,
+                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
 
@@ -56,8 +57,5 @@ namespace XrEngine
         public Color ShadowColor { get; set; }
 
         public Color Color { get; set; }
-
-
-        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
     }
 }

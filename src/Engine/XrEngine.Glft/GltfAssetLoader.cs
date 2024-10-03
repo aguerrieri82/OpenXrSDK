@@ -40,7 +40,7 @@ namespace XrEngine.Gltf
                 }
                 if (seg == "/mat")
                 {
-                    resType = typeof(PbrMaterial);
+                    resType = typeof(PbrV1Material);
                     return true;
                 }
                 if (seg == "/mesh")

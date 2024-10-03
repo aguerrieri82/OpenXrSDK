@@ -92,7 +92,7 @@ namespace XrEngine.OpenGL
                     {
                         shaderContent = new ShaderContent
                         {
-                            ProgramGlobal = material.Shader.GetGlResource(gl => new GlProgramGlobal(_render.GL, material.GetType()))
+                            ProgramGlobal = material.Shader.GetGlResource(gl => new GlProgramGlobal(_render.GL, material.Shader!))
                         };
 
                         _content.ShaderContents[material.Shader] = shaderContent;

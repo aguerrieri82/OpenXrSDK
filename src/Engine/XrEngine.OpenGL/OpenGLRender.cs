@@ -409,7 +409,7 @@ namespace XrEngine.OpenGL
         }
         */
 
-        public PbrMaterial.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
+        public PbrV1Material.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
         {
             Log.Info(this, "Processing IBL Panorama");
 
@@ -422,7 +422,7 @@ namespace XrEngine.OpenGL
 
             processor.PanoramaToCubeMap();
 
-            var result = new PbrMaterial.IBLTextures
+            var result = new PbrV1Material.IBLTextures
             {
                 MipCount = processor.MipLevelCount
             };

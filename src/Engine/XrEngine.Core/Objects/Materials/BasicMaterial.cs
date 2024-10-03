@@ -14,7 +14,8 @@ namespace XrEngine
                 FragmentSourceName = "basic.frag",
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
-                IsLit = true
+                IsLit = true,
+                UpdateHandler = StandardVertexShaderHandler.Instance    
             };
         }
 
@@ -59,7 +60,7 @@ namespace XrEngine
 
         }
 
-        public static readonly IShaderHandler GlobalHandler = StandardVertexShaderHandler.Instance;
+
 
         public Texture2D? DiffuseTexture { get; set; }
 

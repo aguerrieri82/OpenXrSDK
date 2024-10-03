@@ -14,9 +14,9 @@ namespace XrEngine.OpenGL
         protected readonly GL _gl;
         protected List<IShaderHandler> _handlers = [];
 
-        public GlProgramGlobal(GL gl, Type materialType)
+        public GlProgramGlobal(GL gl, Shader shader)
         {
-            MaterialType = materialType;
+            Shader = shader;
             _gl = gl;
         }
 
@@ -28,10 +28,8 @@ namespace XrEngine.OpenGL
             {
                 _handlers = [];
 
-                var globalProp = MaterialType.GetField("GlobalHandler", BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-
-                if (globalProp != null)
-                    _handlers.Add((IShaderHandler)globalProp.GetValue(null)!);
+                if (Shader.UpdateHandler != null)
+                    _handlers.Add(Shader.UpdateHandler);
 
                 foreach (var handler in globalHandlers.Where(a=> a != null))
                     _handlers.Add(handler!);
@@ -78,7 +76,7 @@ namespace XrEngine.OpenGL
 
         public ShaderUpdate? Update { get; set; }
 
-        public Type MaterialType { get; }
+        public Shader Shader { get; }
 
         public int Version { get; private set; }
     }
