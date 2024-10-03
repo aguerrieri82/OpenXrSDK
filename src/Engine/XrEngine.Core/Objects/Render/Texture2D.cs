@@ -116,6 +116,7 @@ namespace XrEngine
         {
             Height = data[0].Height;
             WrapT = WrapMode.ClampToEdge;
+            MipLevelCount = data.Max(a => a.MipLevel) + 1;
             base.LoadData(data);
         }
 
@@ -127,7 +128,7 @@ namespace XrEngine
 
         public uint SampleCount { get; set; }
 
-        public uint MaxLevels { get; set; }
+        public uint MipLevelCount { get; set; }
 
         public Matrix3x3? Transform { get; set; }
 

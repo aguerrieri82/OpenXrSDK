@@ -44,18 +44,6 @@ namespace XrEngine.OpenGL
 
             _gl.BufferData(_target, byteSpan, usage);
 
-            //TODO fence cause multisample multiview to not render
-            /*
-            if (wait && false)
-            {
-                var fence = _gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, SyncBehaviorFlags.None);
-                
-                _gl.WaitSync(fence, SyncBehaviorFlags.None, unchecked((ulong)-1));
-                
-                _gl.DeleteSync(fence);  
-            }
-            */
-
             _length = (uint)size;
 
             Unbind();

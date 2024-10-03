@@ -131,11 +131,15 @@ namespace XrEngine.OpenGL
                      target,
                      _handle, (int)mipLevel);
 
+                var w = Width >> (int)mipLevel;
+                var h = Height >> (int)mipLevel;
 
+                /*
                 _gl.GetTexLevelParameter(target, (int)mipLevel, GetTextureParameter.TextureWidth, out int w);
-                _gl.GetTexLevelParameter(target, (int)mipLevel, GetTextureParameter.TextureWidth, out int h);
+                _gl.GetTexLevelParameter(target, (int)mipLevel, GetTextureParameter.TextureHeight, out int h);
+                */
 
-                _gl.Viewport(0, 0, (uint)w, (uint)h);
+                GlState.Current!.SetView(new Rect2I(0, 0, (uint)w, (uint)h));
 
                 var pixelSize = format switch
                 {

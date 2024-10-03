@@ -100,9 +100,9 @@ namespace XrEngine.OpenGL.Oculus
             bld.SetUniformBuffer("SceneMatrices", ctx => (SceneMatrices?)_matrices, 10, true);
         }
 
-        public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)
+        public bool NeedUpdateShader(UpdateShaderContext ctx)
         {
-            return lastUpdate.ShaderHandlers == null || !lastUpdate.ShaderHandlers.Contains(this);
+            return ctx.LastUpdate?.ShaderHandlers == null || !ctx.LastUpdate.ShaderHandlers.Contains(this);
         }
 
         public void CommitDepth()

@@ -58,6 +58,8 @@ namespace XrEngine
         public IShadowMapProvider? ShadowMapProvider;
 
         public Texture2D? DepthMap;
+
+        public ShaderUpdate? LastUpdate;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

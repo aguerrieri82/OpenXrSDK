@@ -44,7 +44,7 @@ namespace XrEngine
             });
         }
 
-        public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)
+        public bool NeedUpdateShader(UpdateShaderContext ctx)
         {
             return true;
         }

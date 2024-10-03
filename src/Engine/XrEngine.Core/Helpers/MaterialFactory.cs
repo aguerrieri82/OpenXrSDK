@@ -13,6 +13,8 @@ namespace XrEngine
         {
             var result = CreatePbr<PbrV2Material>();
             result.Color = color;
+            result.Metalness = 0;
+            result.Roughness = 0.5f;
             return result;
         }
 

@@ -14,7 +14,9 @@ namespace XrEngine
 
         Texture2D? GetDepth();
 
-        Texture2D? GetShadowMap();  
+        Texture2D? GetShadowMap();
+
+        IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null);
 
         IDispatcher Dispatcher { get; }
     }

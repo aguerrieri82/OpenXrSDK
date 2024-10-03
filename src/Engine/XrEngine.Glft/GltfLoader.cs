@@ -415,7 +415,11 @@ namespace XrEngine.Gltf
                 glTFLoader.Schema.Material.AlphaModeEnum.BLEND => AlphaMode.Blend,
                 _ => throw new NotSupportedException()
             };
+            
             result.DoubleSided = gltMat.DoubleSided;
+            
+            result.AlphaCutoff = gltMat.AlphaCutoff;
+
 
             if (gltMat.PbrMetallicRoughness != null)
             {

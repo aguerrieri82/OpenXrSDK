@@ -148,7 +148,7 @@ namespace XrEngine.OpenGL
         {
             var tex2d = value as Texture2D ?? throw new NotSupportedException();
 
-            var glText = OpenGLRender.Current!.GetGlResource(tex2d);
+            var glText = tex2d.ToGlTexture();
 
             bool isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
 
@@ -224,11 +224,14 @@ namespace XrEngine.OpenGL
 
             _gl.BindBufferBase(glBuffer.Target, (uint)slot, glBuffer.Handle);
 
-            var index = (uint)LocateUniform(name, optional, true);
+            var index = LocateUniform(name, optional, true);
+
+            if (index == -1)
+                return;
 
             if (!_boundBuffers.TryGetValue(name, out var curSlot) || slot != curSlot)
             {
-                _gl.UniformBlockBinding(_handle, index, (uint)slot);
+                _gl.UniformBlockBinding(_handle, (uint)index, (uint)slot);
                 _boundBuffers[name] = slot;
             }
         }

@@ -40,7 +40,7 @@ namespace XrEngine.OpenGL
                 Format = TextureFormat.Depth24Float,
                 MinFilter = ScaleFilter.Nearest,
                 MagFilter = ScaleFilter.Nearest,
-                MaxLevels = 1
+                MipLevelCount = 1
             };
         }
 
@@ -51,7 +51,7 @@ namespace XrEngine.OpenGL
 
         protected override void Initialize()
         {
-            var glTex = _renderer.GetGlResource(_depthTexture);
+            var glTex = _depthTexture.ToGlTexture();
 
             _frameBuffer = new GlTextureFrameBuffer(_renderer.GL);
             _frameBuffer.Configure(null, glTex, 1);

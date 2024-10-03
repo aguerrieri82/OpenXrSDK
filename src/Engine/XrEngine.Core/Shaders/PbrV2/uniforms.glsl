@@ -14,7 +14,7 @@ layout(std140, binding=0) uniform Camera
 	mat4 lightSpaceMatrix;
 } uCamera;
 
-layout(std140, binding=1) uniform LightsUniforms
+layout(std140, binding=1) uniform Lights
 {
 	uint count;
 	Light lights[MAX_LIGHTS];
@@ -29,5 +29,6 @@ layout(std140, binding=2) uniform Material
 	float occlusionStrength;
 	vec4 shadowColor;
 	float normalScale;
+	float alphaCutoff;
 } uMaterial;
 

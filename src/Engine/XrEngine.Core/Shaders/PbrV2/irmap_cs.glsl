@@ -11,7 +11,7 @@ const float PI = 3.141592;
 const float TwoPI = 2.0 * PI;
 const float Epsilon = 0.00001;
 
-const uint NumSamples = 64u * 1024u;
+const uint NumSamples = SAMPLE_COUNT;
 const float InvNumSamples = 1.0 / float(NumSamples);
 
 #ifdef VULKAN

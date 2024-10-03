@@ -23,6 +23,7 @@ namespace XrEngine.OpenGL
         public void UpdateProgram(UpdateShaderContext ctx, params IShaderHandler?[] globalHandlers)
         {
             ctx.BufferProvider = this;
+            ctx.LastUpdate = Update;
 
             if (Update == null)
             {
@@ -35,7 +36,7 @@ namespace XrEngine.OpenGL
                     _handlers.Add(handler!);
             }
 
-            var needUpdate = Update == null || _handlers.Any(a => a.NeedUpdateShader(ctx, Update));
+            var needUpdate = Update == null || _handlers.Any(a => a.NeedUpdateShader(ctx));
 
             if (needUpdate)
             {

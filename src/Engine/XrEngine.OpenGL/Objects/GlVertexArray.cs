@@ -79,7 +79,6 @@ namespace XrEngine.OpenGL
 
         public void Update(TVertexType[] vertices, TIndexType[]? indices = null)
         {
-
             _vBuf.Update(vertices);
             _iBuf?.Update(indices);
         }
