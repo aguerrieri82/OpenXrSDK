@@ -1,5 +1,6 @@
 ﻿using UI.Binding;
 using XrEngine;
+using ValueType = XrEngine.ValueType;
 
 namespace XrEditor
 {
@@ -87,7 +88,11 @@ namespace XrEditor
         public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
         {
             var range = attributes.OfType<RangeAttribute>().FirstOrDefault();
+            
+            var valueType = attributes.OfType<ValueTypeAttribute>().FirstOrDefault()?.Type ?? ValueType.None;
+
             var result = new FloatEditor();
+
             if (range != null)
             {
                 result.Scale = new ValueScale()
@@ -98,6 +103,10 @@ namespace XrEditor
                     ScaleSmallStep = range.Step
                 };
             }
+
+            else if (valueType == ValueType.Radiant)
+                result.Scale = RadDegreeScale.Instance;
+
             return result;
         }
     }

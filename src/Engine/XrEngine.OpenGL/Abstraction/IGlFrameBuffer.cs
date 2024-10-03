@@ -8,7 +8,6 @@ namespace XrEngine.OpenGL
 {
     public interface IGlFrameBuffer : IGlObject
     {
-
         GlTexture? Color { get; }
 
         IGlRenderAttachment? Depth { get; }
@@ -20,7 +19,5 @@ namespace XrEngine.OpenGL
         void Check();
 
         void SetDrawBuffers(params DrawBufferMode[] modes);
-
-
     }
 }

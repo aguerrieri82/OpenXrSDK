@@ -21,35 +21,11 @@ namespace XrEditor.Nodes
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
             base.EditorProperties(binder, curProps);
+
             PropertyView.CreateProperties(_value, typeof(Light), curProps);
 
             if (Value is SunLight)
                 PropertyView.CreateProperties(_value, typeof(DirectionalLight), curProps);
-
-            /*
-         
-            binder.PropertyChanged += (_, _, _, _) => _value.NotifyChanged(ObjectChangeType.Render);
-
-            curProps.Add(new PropertyView
-            {
-                Label = "Intensity",
-                Editor = new FloatEditor(binder.Prop(a => a.Intensity), 0, 10, 0.1f)
-            });
-
-
-            curProps.Add(new PropertyView
-            {
-                Label = "Cast Shadows",
-                Editor = new BoolEditor(binder.Prop(a => a.CastShadows))
-            });
-
-            curProps.Add(new PropertyView
-            {
-                Label = "Color",
-                Editor = new ColorEditor(binder.Prop(a => a.Color))
-            });
-                */
-
         }
     }
 }

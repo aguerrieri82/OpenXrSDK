@@ -132,9 +132,13 @@ namespace XrEngine
 
         class GlobalShaderHandler : IShaderHandler
         {
+            long _iblVersion = -1;
+
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
-                return ctx.LastUpdate?.LightsHash != ctx.LightsHash;
+                var ibl = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
+                return ctx.LastUpdate?.LightsHash != ctx.LightsHash || 
+                       (ibl?.Version ?? -1) != _iblVersion;
             }
 
             public void UpdateShader(ShaderUpdateBuilder bld)
@@ -147,8 +151,10 @@ namespace XrEngine
                     bld.AddFeature("USE_PUNCTUAL");
 
                 if (imgLight != null)
+                {
+                    _iblVersion = imgLight.Version;
                     bld.AddFeature("USE_IBL");
-
+                }
 
                 if (bld.Context.ShadowMapProvider != null)
                 {
@@ -287,7 +293,7 @@ namespace XrEngine
             Metalness = 1.0f;
             OcclusionStrength = 1.0f;
             NormalScale = 1;
-            ToneMap = false;
+            ToneMap = true;
         }
 
 

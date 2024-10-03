@@ -62,7 +62,6 @@ namespace XrEngine.OpenGL
             _handle = handle;
 
             Target = target != 0 ? target : RenderbufferTarget.Renderbuffer;
-
         }
 
         public void Bind()

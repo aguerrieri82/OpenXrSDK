@@ -5,7 +5,6 @@ using Silk.NET.OpenGL;
 #endif
 
 
-
 namespace XrEngine.OpenGL
 {
     public abstract class GlVertexSourceHandle : IDisposable
@@ -43,7 +42,6 @@ namespace XrEngine.OpenGL
 
     public class GlVertexSourceHandler<TVert, TInd> : GlVertexSourceHandle where TVert : unmanaged where TInd : unmanaged
     {
-
         readonly GlVertexArray<TVert, TInd> _vertices;
         readonly PrimitiveType _primitive;
         readonly IVertexSource<TVert, TInd> _source;

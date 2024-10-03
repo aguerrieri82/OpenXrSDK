@@ -5,7 +5,6 @@ using Silk.NET.OpenGL;
 #endif
 
 
-
 namespace XrEngine.OpenGL
 {
     public interface IGlBuffer : IBuffer, IDisposable
@@ -17,6 +16,5 @@ namespace XrEngine.OpenGL
         BufferTargetARB Target { get; }
 
         uint Handle { get; }
-
     }
 }

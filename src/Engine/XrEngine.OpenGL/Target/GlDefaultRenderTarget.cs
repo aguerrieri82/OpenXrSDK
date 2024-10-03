@@ -23,6 +23,7 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);  
         }
 
         public void End(bool finalPass)

@@ -25,7 +25,6 @@ namespace XrEngine.OpenGL
             return obj._handle;
         }
 
-
         public uint Handle => _handle;
 
         public GL GL => _gl;

@@ -115,6 +115,11 @@ namespace XrEngine
                     header.PixelFormat = PixelFormat.RGBAFloat32;
                     header.ChannelType = ChannelType.Float;
                     break;
+                case TextureFormat.RgbaFloat16:
+                    header.ColourSpace = ColourSpace.LinearRGB;
+                    header.PixelFormat = PixelFormat.RGBAFloat16;
+                    header.ChannelType = ChannelType.Float;
+                    break;
                 default:
                     throw new NotSupportedException();
             }
