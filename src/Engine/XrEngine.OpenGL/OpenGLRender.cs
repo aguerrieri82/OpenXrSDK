@@ -19,7 +19,6 @@ namespace XrEngine.OpenGL
     public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, IShadowMapProvider
     {
         protected Scene3D? _lastScene;
-
         protected IGlRenderTarget? _target;
         protected Rect2I _view;
         protected UpdateShaderContext _updateCtx;
@@ -37,6 +36,7 @@ namespace XrEngine.OpenGL
         protected readonly List<GlLayer> _layers = [];
         protected readonly IList<IGlRenderPass> _renderPasses = [];
         protected readonly GlDefaultRenderTarget _defaultTarget;
+        protected readonly GlShadowPass? _shadowPass;
 
         public static class Props
         {
@@ -60,6 +60,8 @@ namespace XrEngine.OpenGL
         protected OpenGLRender(GL gl, GlRenderOptions options, GlState state)
         {
             Current = this;
+
+            _thread = Thread.CurrentThread;
 
             _glState = state;
             _gl = gl;
@@ -206,6 +208,12 @@ namespace XrEngine.OpenGL
             }
         }
 
+        protected void EnsureThread()
+        {
+            if (_thread != Thread.CurrentThread)
+                throw new InvalidOperationException("Invalid GL Thread");
+        }
+
         public void Clear(Color color)
         {
             _glState.SetWriteColor(true);
@@ -224,6 +232,8 @@ namespace XrEngine.OpenGL
 
         public void Render(Scene3D scene, Camera camera, Rect2I view, IGlRenderTarget target, bool flush)
         {
+            EnsureThread();
+
             _target = target;
             _view = view;
 
@@ -257,11 +267,13 @@ namespace XrEngine.OpenGL
 
         public void SetRenderTarget(Texture2D? texture)
         {
+            EnsureThread();
+
             if (texture == null)
                 _target = _defaultTarget;
             else
             {
-                var glTexture = texture.GetGlResource(tex => tex.CreateGlTexture(_gl, false));
+                var glTexture = texture.ToGlTexture(false);
                 _texRenderTarget ??= new GlTextureRenderTarget(_gl);
                 _texRenderTarget.FrameBuffer.Configure(glTexture, null, glTexture.SampleCount);
                 _target = _texRenderTarget;
@@ -280,6 +292,8 @@ namespace XrEngine.OpenGL
 
         public void BeginDrawSurface()
         {
+            EnsureThread();
+
             var fence = _gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, SyncBehaviorFlags.None);
             _gl.WaitSync(fence, SyncBehaviorFlags.None, unchecked((ulong)-1));
             _grContext!.ResetContext(GRGlBackendState.All);
@@ -287,6 +301,8 @@ namespace XrEngine.OpenGL
 
         public void EndDrawSurface()
         {
+            EnsureThread();
+
             ResetState();
 
             _glState.SetActiveProgram(0, true);
@@ -311,10 +327,12 @@ namespace XrEngine.OpenGL
 
         public SKSurface CreateSurface(Texture2D texture, nint handle = 0)
         {
+            EnsureThread();
+
             var glTexture = texture.GetGlResource(a =>
             {
                 if (handle == 0)
-                    return texture.CreateGlTexture(_gl, false);
+                    return texture.ToGlTexture(false);
 
                 return GlTexture.Attach(_gl, (uint)handle);
             });
@@ -411,12 +429,15 @@ namespace XrEngine.OpenGL
 
         public PbrV1Material.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
         {
+            EnsureThread();
+
             Log.Info(this, "Processing IBL Panorama");
 
             using var processor = new GlIBLProcessorV2(_gl);
 
             processor.Resolution = options.Resolution;
             processor.MipLevelCount = options.MipLevelCount;
+            processor.SampleCount = options.SampleCount;
 
             processor.Initialize(data, options.ShaderResolver!);
 
@@ -469,6 +490,8 @@ namespace XrEngine.OpenGL
 
         public TextureData ReadFrame()
         {
+            EnsureThread();
+
             if (_target is not GlTextureRenderTarget texTarget)
                 throw new NotSupportedException();
 
@@ -476,6 +499,14 @@ namespace XrEngine.OpenGL
                 throw new NotSupportedException();
 
             return texFb.ReadColor();
+        }
+
+        public IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null)
+        {
+            EnsureThread();
+
+            var glTex = texture.ToGlTexture();
+            return glTex.Read(format, startMipLevel, endMipLevel);
         }
 
         public Texture2D? GetShadowMap()
@@ -516,10 +547,6 @@ namespace XrEngine.OpenGL
             return allExt.Split(' ');
         }
 
-        public GlTexture GetGlResource(Texture2D texture)
-        {
-            return texture.GetGlResource(a => texture.CreateGlTexture(_gl, _options.RequireTextureCompression));
-        }
 
 
         public void Dispose()
@@ -558,6 +585,6 @@ namespace XrEngine.OpenGL
      
         [ThreadStatic]
         public static OpenGLRender? Current;
-        private GlShadowPass _shadowPass;
+        private readonly Thread _thread;
     }
 }

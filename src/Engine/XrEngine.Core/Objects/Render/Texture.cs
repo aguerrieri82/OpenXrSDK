@@ -23,7 +23,7 @@
             MagFilter = ScaleFilter.Linear;
             MinFilter = data.Count > 1 ? ScaleFilter.LinearMipmapLinear : ScaleFilter.Linear;
             WrapS = WrapMode.ClampToEdge;
-
+          
             NotifyChanged(ObjectChangeType.Render);
         }
 

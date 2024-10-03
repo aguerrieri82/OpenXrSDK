@@ -483,9 +483,9 @@ namespace XrEngine
 
         class GlobalShaderHandler : IShaderHandler
         {
-            public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)
+            public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
-                return lastUpdate.LightsHash != ctx.LightsHash;
+                return ctx.LastUpdate?.LightsHash != ctx.LightsHash;
             }
 
             public void UpdateShader(ShaderUpdateBuilder bld)

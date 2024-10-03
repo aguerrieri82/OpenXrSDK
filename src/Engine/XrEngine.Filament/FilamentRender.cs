@@ -691,6 +691,11 @@ namespace XrEngine.Filament
             throw new NotSupportedException();
         }
 
+        public IList<TextureData>? ReadTexture(Texture texture, TextureFormat format, uint startMipLevel = 0, uint? endMipLevel = null)
+        {
+            throw new NotSupportedException();
+        }
+
         public FlBackend Driver => _driver;
 
         public Rect2I View => _viewport;

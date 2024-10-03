@@ -288,7 +288,6 @@ namespace XrEngine.OpenGL
             {
                 WriteStencil = value;
                 _stencilDirty = true;
-
             }
         }
 
@@ -298,7 +297,6 @@ namespace XrEngine.OpenGL
             {
                 StencilRef = value;
                 _stencilDirty = true;
-        
             }
         }
 
@@ -322,7 +320,7 @@ namespace XrEngine.OpenGL
                     FrameBufferTargets[FramebufferTarget.ReadFramebuffer] = value;
                     FrameBufferTargets[FramebufferTarget.DrawFramebuffer] = value;
                 }
-                else if (FrameBufferTargets[FramebufferTarget.Framebuffer] != value)
+                else if (FrameBufferTargets.TryGetValue(FramebufferTarget.Framebuffer, out var curValue) && curValue == value)
                     FrameBufferTargets[FramebufferTarget.Framebuffer] = 0;
 
                 _gl.BindFramebuffer(target, value);

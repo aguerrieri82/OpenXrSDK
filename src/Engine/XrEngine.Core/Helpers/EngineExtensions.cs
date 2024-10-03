@@ -997,9 +997,9 @@ namespace XrEngine
             //target.ForeachSafe(a => a.Reset(onlySelf));
         }
 
-        public static T Load<T>(this AssetLoader self, string filePath, IAssetLoaderOptions? options = null) where T : EngineObject
+        public static T Load<T>(this AssetLoader self, string fileUri, IAssetLoaderOptions? options = null) where T : EngineObject
         {
-            return (T)self.Load(new Uri(filePath, UriKind.Absolute), typeof(T), null, options);
+            return (T)self.Load(new Uri(fileUri, UriKind.Absolute), typeof(T), null, options);
         }
 
 

@@ -4,7 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Numerics;
 
 
 namespace XrEngine.OpenGL
@@ -58,6 +57,7 @@ namespace XrEngine.OpenGL
             void AddFilter(string shader, Distribution distribution)
             {
                 var prog = new GlComputeProgram(_gl, shaderResolver(shader), shaderResolver);
+                prog.AddFeature($"SAMPLE_COUNT {SampleCount * (distribution == Distribution.Irradiance ? 64 : 1)}u");
                 prog.Build();
                 _filterProg[distribution] = prog;
             }
@@ -66,10 +66,7 @@ namespace XrEngine.OpenGL
             AddFilter("PbrV2/spbrdf_cs.glsl", Distribution.GGXLut);
             AddFilter("PbrV2/spmap_cs.glsl", Distribution.GGX);
         }
-
-
-
-
+        
         public void PanoramaToCubeMap()
         {
             if (_cubeMapId == 0)
@@ -233,9 +230,10 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
-
+            /*
             if (_cubeMapId != 0)
                 _gl.DeleteTexture(_cubeMapId);
+            */
 
             if (_frameBufferId != 0)
                 _gl.DeleteFramebuffer(_frameBufferId);
@@ -248,7 +246,7 @@ namespace XrEngine.OpenGL
 
             _panToCubeProg = null;
             _inputTexture = null;
-            _cubeMapId = 0;
+            //_cubeMapId = 0;
     ;
 
             GlState.Current!.BindTexture(TextureTarget.Texture2D, 0);
@@ -268,5 +266,7 @@ namespace XrEngine.OpenGL
         public uint Resolution { get; set; }
 
         public uint MipLevelCount { get; set; }
+
+        public uint SampleCount { get; set; }
     }
 }

@@ -110,7 +110,7 @@ namespace XrEngine
             return results;
         }
 
-        public override EngineObject LoadAsset(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
+        public override EngineObject LoadAsset(Uri uri, Type resType, EngineObject? dstObj, IAssetLoaderOptions? options = null)
         {
             Log.Info(this, "Begin load texture '{0}'", uri);
 
@@ -118,13 +118,13 @@ namespace XrEngine
             using var file = File.OpenRead(fsPath);
             var data = LoadTexture(file, (TextureLoadOptions?)options);
 
-            var result = (Texture?)destObj;
+            var result = (Texture?)dstObj;
 
             result ??= (Texture)Activator.CreateInstance(resType)!;
 
             result.LoadData(data);
 
-            result.AddComponent(new AssetSource { Asset = new TextureAsset(this, uri, (TextureLoadOptions?)options) });
+            result.AddComponent(new AssetSource(new TextureAsset(this, uri, (TextureLoadOptions?)options)));
 
             Log.Debug(this, "Texture loaded");
 

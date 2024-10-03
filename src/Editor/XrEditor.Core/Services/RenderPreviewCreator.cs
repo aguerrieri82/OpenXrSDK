@@ -25,7 +25,7 @@ namespace XrEditor.Services
                 Width = 200,
                 Height = 200,
                 SampleCount = 1,
-                MaxLevels = 1,
+                MipLevelCount = 1,
                 Format = TextureFormat.Rgba32,
                 WrapS = WrapMode.ClampToEdge,
                 WrapT = WrapMode.ClampToEdge,
@@ -74,6 +74,12 @@ namespace XrEditor.Services
 
         public SKBitmap? CreateTexture(Texture2D texture)
         {
+            if (texture.Width == 0 || texture.Height == 0)
+            {
+                var src = texture.Component<AssetSource>();
+                if (src?.Asset != null)
+                    src.Asset.Update(texture);
+            }
 
             _textureMaterial.Texture = texture;
             _textureMaterial.NotifyChanged(ObjectChangeType.Render);
@@ -86,7 +92,6 @@ namespace XrEditor.Services
 
             _app.ActiveScene!.Clear();
             _app.ActiveScene!.AddChild(_mesh);
-
 
             return CreateImage();
         }
@@ -113,9 +118,6 @@ namespace XrEditor.Services
 
         protected unsafe SKBitmap? CreateImage()
         {
-            //TODO preview causes problems, indagate
-            return null;
-
             _engine.SetRenderTarget(_texture);
 
             _app.RenderFrame(new Rect2I()

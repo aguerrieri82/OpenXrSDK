@@ -56,11 +56,15 @@ namespace XrEngine.OpenGL
                         if (imgLight.Panorama?.Data != null && imgLight.Panorama.Version != _content.ImageLightVersion)
                         {
                             var options = PanoramaProcessorOptions.Default();
+
                             options.SampleCount = 1024;
                             options.Resolution = 256;
-                            options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian | IBLProcessMode.Charlie;
+                            options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
+                            
                             imgLight.Textures = _render.ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
                             imgLight.Panorama.NotifyLoaded();
+                            imgLight.NotifyIBLCreated();
+
                             _content.ImageLightVersion = imgLight.Panorama.Version;
                             _render.ResetState();
                         }

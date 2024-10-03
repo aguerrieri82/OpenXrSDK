@@ -11,6 +11,9 @@
 
 const float PI = 3.141592;
 const float Epsilon = 0.00001;
+const float gamma      = 2.2;
+const float inv_gamma  = 1.0 / gamma;
+const float pureWhite  = 1.0;
 
 // Constant normal incidence Fresnel factor for all dielectrics.
 const vec3 Fdielectric = vec3(0.04);
@@ -28,8 +31,6 @@ layout(location=0) in Vertex
 layout(location=0) out vec4 color;
 
 
-uniform float uSpecularTextureLevels;
-
 layout(binding=0) uniform sampler2D albedoTexture;
 layout(binding=1) uniform sampler2D normalTexture;
 layout(binding=2) uniform sampler2D metalroughnessTexture;
@@ -38,6 +39,14 @@ layout(binding=3) uniform sampler2D occlusionTexture;
 layout(binding=4) uniform samplerCube specularTexture;
 layout(binding=5) uniform samplerCube irradianceTexture;
 layout(binding=6) uniform sampler2D specularBRDF_LUT;
+
+uniform float uSpecularTextureLevels;
+uniform float uIblIntensity;
+
+#ifdef USE_IBL_TRANSFORM
+uniform mat3 uIblTransform;
+#endif
+
 
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2.
@@ -76,9 +85,6 @@ vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
 }
 
 
-const float gamma     = 2.2;
-const float pureWhite = 1.0;
-
 vec3 toneMap(vec3 color)
 {
 
@@ -89,7 +95,7 @@ vec3 toneMap(vec3 color)
 	vec3 mappedColor = (mappedLuminance / luminance) * color;
 
 	// Gamma correction.
-	return pow(mappedColor, vec3(1.0/gamma));
+	return pow(mappedColor, vec3(inv_gamma));
 }
 
 void main()
@@ -98,10 +104,12 @@ void main()
 
 	// Sample input textures to get shading model params.
 	#ifdef USE_ALBEDO_MAP
-		vec3 albedo = texture(albedoTexture, vin.texcoord).rgb * uMaterial.color.rgb;
+		vec4 baseColor = texture(albedoTexture, vin.texcoord) * uMaterial.color;
 	#else
-		vec3 albedo = uMaterial.color.rgb;	
+		vec4 baseColor = uMaterial.color;	
 	#endif
+
+	vec3 albedo = baseColor.rgb;
 
 	#ifdef USE_METALROUGHNESS_MAP
 
@@ -193,8 +201,11 @@ void main()
 		// Calculate Fresnel term for direct lighting. 
 		float cosTheta = clamp(dot(Lh, Lo), 0.0, 1.0);
 		vec3 F  = fresnelSchlickRoughness(F0, cosTheta, roughness);
+
 		// Calculate normal distribution for specular BRDF.
+		
 		float D = ndfGGX(cosLh, roughness);
+		
 		// Calculate geometric attenuation for specular BRDF.
 		float G = gaSchlickGGX(cosLi, cosLo, roughness);
 
@@ -219,7 +230,13 @@ void main()
 	#ifdef USE_IBL
 	{
 		// Sample diffuse irradiance at normal direction.
-		vec3 irradiance = texture(irradianceTexture, N).rgb;
+
+		vec3 irradianceVec = N;
+		#ifdef USE_IBL_TRANSFORM
+			irradianceVec *= uIblTransform;
+		#endif
+
+		vec3 irradiance = texture(irradianceTexture, irradianceVec).rgb * uIblIntensity;
 
 		// Calculate Fresnel term for ambient lighting.
 		// Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
@@ -235,7 +252,11 @@ void main()
 
 		// Sample pre-filtered specular reflection environment at correct mipmap level.
 		//int specularTextureLevels = textureQueryLevels(specularTexture);
-		vec3 specularIrradiance = textureLod(specularTexture, Lr, roughness * uSpecularTextureLevels).rgb;
+		vec3 specularVec = Lr;
+		#ifdef USE_IBL_TRANSFORM
+			specularVec *= uIblTransform;
+		#endif
+		vec3 specularIrradiance = textureLod(specularTexture, specularVec, roughness * uSpecularTextureLevels).rgb * uIblIntensity;
 
 		// Split-sum approximation factors for Cook-Torrance specular BRDF.
 		vec2 specularBRDF = texture(specularBRDF_LUT, vec2(cosLo, roughness)).rg;
@@ -249,7 +270,7 @@ void main()
 	#endif
 
 	vec3 color3 = (directLighting + ambientLighting);
-	float a = uMaterial.color.a;	
+	float a = baseColor.a;	
 
 	#ifdef USE_OCCLUSION_MAP
     float ao = texture(occlusionTexture, vin.texcoord).r;
@@ -273,8 +294,16 @@ void main()
 	color3 = toneMap(color3);
 	#endif
 
+	#if ALPHA_MODE == 0
+		a = 1.0;
+	#endif
+
+	#if ALPHA_MODE == 1
+		a = a < uMaterial.alphaCutoff ? 0.0 : 1.0;	
+	#endif
+
 	// Final fragment color.
-	color = vec4(color3 * uCamera.exposure, a) ;
+	color = vec4(color3 * uCamera.exposure, a);
 
 
 }

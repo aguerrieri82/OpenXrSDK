@@ -6,6 +6,6 @@
     {
         void UpdateShader(ShaderUpdateBuilder bld);
 
-        bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate);
+        bool NeedUpdateShader(UpdateShaderContext ctx);
     }
 }

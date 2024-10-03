@@ -62,8 +62,21 @@ namespace XrEngine.OpenGL
             return obj.GetOrCreateProp(OpenGLRender.Props.GlResId, () => factory(obj));
         }
 
+        public static unsafe GlTexture ToGlTexture(this Texture obj, bool? reqComp = null) 
+        {
+            var renderer = OpenGLRender.Current!;
+            var reqCompDef = renderer.Options.RequireTextureCompression;
 
-        public static unsafe GlTexture CreateGlTexture(this Texture2D value, GL gl, bool requireCompression)
+            return obj.GetGlResource(a =>
+            {
+                if (obj is Texture2D texture2D)
+                    return texture2D.CreateGlTexture(renderer.GL, reqComp != null ? reqComp.Value : reqCompDef); 
+
+                throw new NotSupportedException();
+            });
+        }
+
+        static unsafe GlTexture CreateGlTexture(this Texture2D value, GL gl, bool requireCompression)
         {
             var glTexture = new GlTexture(gl);
             glTexture.Update(value, requireCompression);
@@ -89,8 +102,8 @@ namespace XrEngine.OpenGL
             glTexture.BorderColor = texture2D.BorderColor;
             glTexture.IsMutable = texture2D.IsMutable;
 
-            if (texture2D.MaxLevels > 0)
-                glTexture.MaxLevel = texture2D.MaxLevels - 1;
+            if (texture2D.MipLevelCount > 0)
+                glTexture.MaxLevel = texture2D.MipLevelCount - 1;
 
             if (texture2D.SampleCount > 1)
                 glTexture.Target = TextureTarget.Texture2DMultisample;

@@ -54,9 +54,11 @@ namespace XrEngine
             [FieldOffset(96)]
             public Color ShadowColor;
 
-
             [FieldOffset(112)]
             public float NormalScale;
+
+            [FieldOffset(116)]
+            public float AlphaCutoff;
 
         }
 
@@ -132,9 +134,9 @@ namespace XrEngine
 
         class GlobalShaderHandler : IShaderHandler
         {
-            public bool NeedUpdateShader(UpdateShaderContext ctx, ShaderUpdate lastUpdate)
+            public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
-                return lastUpdate.LightsHash != ctx.LightsHash;
+                return ctx.LastUpdate?.LightsHash != ctx.LightsHash;
             }
 
             public void UpdateShader(ShaderUpdateBuilder bld)
@@ -188,11 +190,11 @@ namespace XrEngine
 
                 }, 0, true);
 
-                if (hasPunctual || true)
+                if (hasPunctual)
                 {
                     bld.SetUniformBuffer("Lights", (ctx) =>
                     {
-                        var hash = $"{bld.Context.Lights!.Sum(a => a.Version)}";
+                        var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
 
                         if (ctx.CurrentBuffer!.Hash == hash)
                             return null;
@@ -238,10 +240,16 @@ namespace XrEngine
 
                 if (imgLight != null)
                 {
+                    if (imgLight.Rotation != 0)
+                        bld.AddFeature("USE_IBL_TRANSFORM");
 
                     bld.ExecuteAction((ctx, up) =>
                     {
                         up.SetUniform("uSpecularTextureLevels", (float)imgLight.Textures.MipCount);
+                        up.SetUniform("uIblIntensity", (float)imgLight.Intensity);
+
+                        if (imgLight.Rotation > 0)
+                            up.SetUniform("uIblTransform", Matrix3x3.CreateRotationY(imgLight.Rotation));
 
                         if (imgLight.Textures?.GGXEnv != null)
                             up.SetUniform("specularTexture", imgLight.Textures.GGXEnv, 4);
@@ -281,7 +289,7 @@ namespace XrEngine
             Metalness = 1.0f;
             OcclusionStrength = 1.0f;
             NormalScale = 1;
-            ToneMap = true;
+            ToneMap = false;
         }
 
 
@@ -295,6 +303,7 @@ namespace XrEngine
                 ShadowColor = ShadowColor,
                 OcclusionStrength = OcclusionStrength,
                 NormalScale = NormalScale,
+                AlphaCutoff = AlphaCutoff,
             };
 
             if (ToneMap)
@@ -308,6 +317,8 @@ namespace XrEngine
 
             if (DoubleSided)
                 bld.AddFeature("DOUBLE_SIDED");
+
+            bld.AddFeature($"ALPHA_MODE {(int)Alpha}");
 
             bld.SetUniformBuffer("Material", ctx => (MaterialUniforms?)material, 2, false);
 
