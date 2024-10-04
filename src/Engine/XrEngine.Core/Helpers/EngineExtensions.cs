@@ -420,9 +420,14 @@ namespace XrEngine
 
         public static void SmoothNormals(this Geometry3D geo)
         {
-            Dictionary<Vector3, List<int>> groups = [];
+            SmoothNormals(geo, 0, (uint)geo.Vertices.Length - 1);
+        }
 
-            for (var i = 0; i < geo.Vertices.Length; i++)
+        public static void SmoothNormals(this Geometry3D geo, uint startIndex, uint endIndex)
+        {
+            Dictionary<Vector3, List<uint>> groups = [];
+
+            for (var i = startIndex; i <= endIndex; i++)
             {
                 var v = geo.Vertices[i].Pos;
                 if (!groups.TryGetValue(v, out var list))

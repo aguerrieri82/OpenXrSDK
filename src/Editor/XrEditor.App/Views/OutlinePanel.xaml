@@ -11,7 +11,7 @@
             <ContentPresenter.Resources>
                 
                 <DataTemplate DataType="{x:Type local:IconView}">
-                    <i:Icon Kind="{Binding Name}" Size="18" Color="{Binding Color}"/>
+                    <i:Icon Kind="{Binding Name}" Filled="{Binding Filled}" Size="18" Color="{Binding Color}"/>
                 </DataTemplate>
                 
                 <DataTemplate DataType="{x:Type local:NodeView}">

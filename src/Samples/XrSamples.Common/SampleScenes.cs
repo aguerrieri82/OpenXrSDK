@@ -773,10 +773,21 @@ namespace XrSamples
                 material.WriteStencil = 1;
             }
 
-
+            var mesh3 = new TriangleMesh(new Arrow3D(), (Material)MaterialFactory.CreatePbr("#F00"));
+           
+            DirectionalLight? dirLight = null;
+            
+            mesh3.AddBehavior((_, _) =>
+            {
+                dirLight ??= mesh3.Scene!.Descendants<DirectionalLight>().FirstOrDefault();
+                if (dirLight == null)
+                    return;
+                mesh3.Forward = dirLight.Direction;
+            }); 
 
             scene.AddChild(mesh);
             scene.AddChild(mesh2);
+            scene.AddChild(mesh3);
 
             return builder
                 .UseApp(app)

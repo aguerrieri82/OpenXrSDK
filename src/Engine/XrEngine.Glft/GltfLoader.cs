@@ -670,11 +670,6 @@ namespace XrEngine.Gltf
                         Asset = CreateAsset<Geometry3D>(gltMesh.Name, "geo", id, pIndex)
                     });
 
-                    if (gltMesh.Name == "Floor")
-                    {
-                        //Debugger.Break();
-                    }
-
                     Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name, curMesh.Geometry.Vertices.Length * Marshal.SizeOf<VertexData>());
                 });
 
@@ -849,7 +844,7 @@ namespace XrEngine.Gltf
 
         public void ExecuteLoadTasks()
         {
-            Parallel.ForEach(_tasks, new ParallelOptions { MaxDegreeOfParallelism = 1 }, a => a());
+            Parallel.ForEach(_tasks, new ParallelOptions { MaxDegreeOfParallelism = 6 }, a => a());
             _tasks.Clear();
         }
 

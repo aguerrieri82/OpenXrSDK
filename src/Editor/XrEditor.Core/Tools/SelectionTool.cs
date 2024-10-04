@@ -139,7 +139,6 @@ namespace XrEditor
 
                 canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + _lastCollision.Normal.Value.Transform(normalMatrix).Normalize());
 
-
                 if (_lastCollision.Tangent != null)
                 {
                     canvas.State.Color = new Color(0, 1, 1, 1);

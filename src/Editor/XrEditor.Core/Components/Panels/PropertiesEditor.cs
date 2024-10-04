@@ -1,4 +1,5 @@
 ﻿using SkiaSharp;
+using UI.Binding;
 using XrEditor.Services;
 using XrEngine;
 
@@ -106,7 +107,7 @@ namespace XrEditor
 
             editorProps.EditorProperties(props);
             if (editorProps.AutoGenerate)
-                PropertyView.CreateProperties(node.Value, node.Value.GetType(), props);
+                PropertyView.CreateProperties(node.Value, node.Value.GetType(), props, node as INotifyPropertyChanged);
 
             var propsCats = props.GroupBy(a => a.Category);
 
