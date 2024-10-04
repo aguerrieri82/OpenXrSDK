@@ -14,12 +14,12 @@ namespace XrEditor
 
         }
 
-        public static void CreateProperties(object obj, Type objType, IList<PropertyView> properties)
+        public static void CreateProperties(object obj, Type objType, IList<PropertyView> properties, INotifyPropertyChanged? propertyChanged = null)
         {
-            CreateProperties(obj, objType, null, properties);
+            CreateProperties(obj, objType, null, properties, propertyChanged);
         }
 
-        public static void CreateProperties(object obj, Type objType, object? host, IList<PropertyView> properties)
+        public static void CreateProperties(object obj, Type objType, object? host, IList<PropertyView> properties, INotifyPropertyChanged? propertyChanged)
         {
             foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
@@ -34,7 +34,7 @@ namespace XrEditor
                     {
                         var value = prop.GetValue(obj);
                         if (value != null)
-                            CreateProperties(value, value.GetType(), host ?? obj, properties);
+                            CreateProperties(value, value.GetType(), host ?? obj, properties, propertyChanged);
                     }
 
                     continue;
@@ -43,6 +43,9 @@ namespace XrEditor
                 var bindType = typeof(NotifyReflectionProperty<>).MakeGenericType(editor.ValueType);
 
                 editor.Binding = (IProperty)Activator.CreateInstance(bindType, prop, obj, host)!;
+
+                if (propertyChanged != null)
+                    editor.Binding.Changed += (s, e) => propertyChanged.NotifyPropertyChanged(editor.Binding);
 
                 var propView = new PropertyView
                 {

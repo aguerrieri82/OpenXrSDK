@@ -14,7 +14,12 @@ namespace XrEditor.Nodes
             get
             {
                 var factory = Context.Require<NodeManager>();
-                return _value.Materials.Select(a => factory.CreateNode(a)).SetParent(this);
+
+                foreach (var material in _value.Materials)
+                    yield return factory.CreateNode(material);
+
+                if (_value.Geometry != null)
+                    yield return factory.CreateNode(_value.Geometry);   
             }
         }
 

@@ -202,6 +202,40 @@ namespace XrMath
 
         #region VECTOR3
 
+        public static Quaternion ToOrientation(this Vector3 direction)
+        {
+            // Normalize the direction vector
+            direction = Vector3.Normalize(direction);
+
+            // Get the forward vector (assuming Z forward, Y up in a typical 3D environment)
+            Vector3 forward = new Vector3(0, 0, 1);
+
+            // Calculate the dot product between forward and the direction
+            float dot = Vector3.Dot(forward, direction);
+
+            // If the dot is 1, it means they're the same, no rotation needed
+            if (MathF.Abs(dot - 1.0f) < 1e-6f)
+            {
+                return Quaternion.Identity; // No rotation
+            }
+
+            // If the dot is -1, it means they're in opposite directions
+            if (MathF.Abs(dot + 1.0f) < 1e-6f)
+            {
+                // Rotate 180 degrees around any axis perpendicular to the forward vector
+                return new Quaternion(0, 1, 0, 0); // This rotates around the Y-axis, for example
+            }
+
+            // Find the axis of rotation (cross product between forward and the direction)
+            Vector3 axis = Vector3.Normalize(Vector3.Cross(forward, direction));
+
+            // Calculate the angle between forward and the direction using arc cosine of the dot product
+            float angle = MathF.Acos(dot);
+
+            // Create a quaternion from the axis and angle
+            return Quaternion.CreateFromAxisAngle(axis, angle);
+        }
+
         public static float MinDistanceTo(this Vector3[] self, Vector3 point)
         {
             var result = float.PositiveInfinity;

@@ -230,10 +230,9 @@ namespace XrEngine
         public Vector3 Forward
         {
             get => new Vector3(0f, 0f, -1f).ToDirection(WorldMatrix);
-            //get => new Vector3(WorldMatrix.M13, WorldMatrix.M23, WorldMatrix.M33).Normalize();
             set
             {
-                Transform.Orientation = Forward.RotationTowards(value);
+                Transform.Orientation = -value.ToOrientation();
             }
         }
 

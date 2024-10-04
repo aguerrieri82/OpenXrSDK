@@ -119,6 +119,8 @@ namespace OpenXr.Framework.Android
                     if (_surfaceInput.MainButton.IsDown)
                     {
                         _lastDownTime = now;
+                        if (!_surfaceInput.IsPointerValid)
+                            return;
                         actions = MotionEventActions.Down;
                     }
                     else
