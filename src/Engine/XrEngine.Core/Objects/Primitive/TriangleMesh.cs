@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -8,6 +9,7 @@ namespace XrEngine
     {
         protected readonly ObservableCollection<Material> _materials;
         protected Geometry3D? _geometry;
+
 
         public TriangleMesh()
         {
@@ -51,10 +53,15 @@ namespace XrEngine
         public override void UpdateBounds(bool force = false)
         {
             if (Geometry != null)
+            {
                 _worldBounds = Geometry.Bounds.Transform(WorldMatrix);
+
+            }
+
 
             _boundsDirty = false;
         }
+
 
 
         public override void Update(RenderContext ctx)

@@ -31,7 +31,9 @@ namespace XrEngine.OpenXr.Windows
 
         public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
         {
-            renderEngine = new OpenGLRender(_viewManager.View.CreateOpenGL());
+            var glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
+
+            renderEngine = new OpenGLRender(_viewManager.View.CreateOpenGL(), glOptions);
             xrDriver = new XrOpenGLGraphicDriver(_viewManager.View);
         }
 

@@ -15,6 +15,23 @@ namespace XrEngine.OpenGL
             UseOcclusion = true;
         }
 
+        protected override bool BeginRender()
+        {
+            _renderer.RenderTarget!.Begin();
+            _renderer.State.SetView(_renderer.RenderView);
+
+            _renderer.State.SetWriteDepth(true);
+            _renderer.GL.Clear(ClearBufferMask.DepthBufferBit);
+            _renderer.GL.DepthFunc(DepthFunction.Less);
+            return base.BeginRender();
+
+        }
+
+        protected override void EndRender()
+        {
+
+        }
+
         protected override ShaderMaterial CreateMaterial()
         {
             return new ColorMaterial

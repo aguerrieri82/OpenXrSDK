@@ -95,12 +95,20 @@ namespace XrSamples.Android.Activities
                 _settings.IsMultiView = e.IsChecked;
             };
 
-            //Outline
-            var ol = FindViewById<CheckBox>(ResourceConstant.Id.outline)!;
-            ol.Checked = _settings.EnableOutline;
-            ol.CheckedChange += (s, e) =>
+            //Depth
+            var depth = FindViewById<CheckBox>(ResourceConstant.Id.depth)!;
+            depth.Checked = _settings.EnableDepthPass;
+            depth.CheckedChange += (s, e) =>
             {
-                _settings.EnableOutline = e.IsChecked;
+                _settings.EnableDepthPass = e.IsChecked;
+            };
+
+            //Pbr
+            var pbr = FindViewById<CheckBox>(ResourceConstant.Id.pbr2)!;
+            pbr.Checked = _settings.UsePbrV2;
+            pbr.CheckedChange += (s, e) =>
+            {
+                _settings.UsePbrV2 = e.IsChecked;
             };
         }
 

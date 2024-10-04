@@ -177,8 +177,8 @@ namespace XrSamples
                 {
                     var generator = scene.FeatureDeep<BallGenerator>()!;
 
-                    (generator.Material as PbrV1Material)!.MetallicRoughness!.RoughnessFactor = obj!.BallMaterial!.Roughness;
-                    (generator.Material as PbrV1Material)!.MetallicRoughness!.MetallicFactor = obj!.BallMaterial!.Metallic;
+                    (generator.Material as IPbrMaterial)!.Roughness= obj!.BallMaterial!.Roughness;
+                    (generator.Material as IPbrMaterial)!.Metalness = obj!.BallMaterial!.Metallic;
                     generator.Material.NotifyChanged(ObjectChangeType.Render);
 
                 }

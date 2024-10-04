@@ -165,7 +165,7 @@ namespace XrEditor
             return true;
         }
 
-        public abstract IRenderEngine CreateRenderEngine();
+        public abstract IRenderEngine CreateRenderEngine(object? driverOptions);
 
         public Vector2 Size
         {

@@ -129,38 +129,6 @@ namespace XrSamples
             return builder.UseEnvironmentHDR(DefaultHDR, DefaultShowHDR);
         }
 
-        public static XrEngineAppBuilder UseEnvironmentPisaHDR(this XrEngineAppBuilder builder)
-        {
-
-            return builder
-
-            .ConfigureApp(e =>
-            {
-                var scene = e.App.ActiveScene!;
-
-                //scene.PerspectiveCamera().Exposure = 0.5f;
-
-                var light = scene.AddChild<ImageLight>();
-                light.Intensity = 1f;
-
-                light.Textures = new PbrV1Material.IBLTextures
-                {
-                    GGXLUT = AssetLoader.Instance.Load<Texture2D>("res://asset/Envs/Pisa/GGX.png"),
-                    GGXEnv = AssetLoader.Instance.Load<TextureCube>("res://asset/Envs/Pisa/GGX.pvr"),
-                    LambertianEnv = AssetLoader.Instance.Load<TextureCube>("res://asset/Envs/Pisa/Lambertian.pvr"),
-                    Env = AssetLoader.Instance.Load<TextureCube>("res://asset/Envs/Pisa/Env.pvr"),
-                };
-
-                light.Textures.MipCount = light.Textures.GGXEnv.Data!.Max(a => a.MipLevel);
-
-                foreach (var l in scene.Descendants<Light>())
-                {
-                    if (l != light)
-                        l.IsVisible = false;
-                }
-            });
-        }
-
         public static XrEngineAppBuilder UseClickMoveFront(this XrEngineAppBuilder builder, Object3D obj, float distance = 0.5f)
         {
             return builder.ConfigureApp(e =>
@@ -758,7 +726,7 @@ namespace XrSamples
             {
                 foreach (var mat in child.Materials)
                 {
-                    if (mat is PbrV1Material pbr && pbr.MetallicRoughness != null && pbr.MetallicRoughness.RoughnessFactor == 0.2f)
+                    if (mat is IPbrMaterial pbr &&  pbr.Roughness == 0.2f)
                     {
                         //pbr.MetallicRoughness.RoughnessFactor = 0.2f;
                         // pbr.MetallicRoughness.MetallicFactor = 0f;
@@ -793,6 +761,7 @@ namespace XrSamples
 
             var mesh2 = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath("IkeaBed.glb"),
                 new GltfLoaderOptions { PbrType = typeof(PbrV1Material) });
+
             mesh2.Name = "Bed 2";
             mesh2.WorldPosition = new Vector3(3, 0, 0);
             mesh2.AddComponent<PyMeshCollider>();

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace XrMath
@@ -200,6 +201,19 @@ namespace XrMath
         #endregion
 
         #region VECTOR3
+
+        public static float MinDistanceTo(this Vector3[] self, Vector3 point)
+        {
+            var result = float.PositiveInfinity;
+
+            for (var i = 0; i < self.Length; i++)
+            {
+                var d = Vector3.Distance(point, self[i]);
+                result = MathF.Min(result, d);
+            }
+
+            return result;
+        }
 
         public static bool IsSameValue(this Vector3 value, float epsilon)
         {

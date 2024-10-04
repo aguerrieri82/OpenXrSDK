@@ -11,7 +11,7 @@ namespace XrEditor
 
         event EventHandler Ready;
 
-        IRenderEngine CreateRenderEngine();
+        IRenderEngine CreateRenderEngine(object? driverOptions);
 
         void ReleaseContext();
 

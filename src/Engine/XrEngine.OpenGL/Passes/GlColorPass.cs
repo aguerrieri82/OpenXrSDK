@@ -1,4 +1,9 @@
-﻿
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using XrMath;
 
 namespace XrEngine.OpenGL
@@ -15,7 +20,16 @@ namespace XrEngine.OpenGL
         {
             _renderer.RenderTarget!.Begin();
             _renderer.State.SetView(_renderer.RenderView);
-            _renderer.Clear(_renderer.UpdateContext.Camera!.BackgroundColor);
+
+            if (_renderer.Options.UseDepthPass)
+            {
+                _renderer.State.SetWriteColor(true);
+                _renderer.GL.Clear(ClearBufferMask.ColorBufferBit);
+                _renderer.GL.DepthFunc(DepthFunction.Lequal);
+            }
+            else
+                _renderer.Clear(_renderer.UpdateContext.Camera!.BackgroundColor);
+
             return true;
         }
 
@@ -27,7 +41,12 @@ namespace XrEngine.OpenGL
 
         protected override void RenderLayer(GlLayer layer)
         {
+
+            _renderer.GL.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin layer {layer.Type}");
+
             var updateContext = _renderer.UpdateContext;
+
+            var useDepthPass = _renderer.Options.UseDepthPass;  
 
             foreach (var shader in layer.Content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
@@ -39,6 +58,9 @@ namespace XrEngine.OpenGL
 
                 foreach (var vertex in shader.Value.Contents)
                 {
+                    if (useDepthPass && vertex.Value.Contents.All(a=> a.IsHidden || (a.Query != null && a.Query.GetResult() == 0)))
+                        continue;
+
                     var vHandler = vertex.Value.VertexHandler!;
 
                     if (vHandler.NeedUpdate)
@@ -59,13 +81,11 @@ namespace XrEngine.OpenGL
                             if (passed == 0)
                                 continue;
                         }
-                        else
+
+                        if (!useDepthPass && draw.Object is TriangleMesh mesh && _renderer.Options.FrustumCulling)
                         {
-                            if (draw.Object is TriangleMesh mesh && _renderer.Options.FrustumCulling)
-                            {
-                                if (!mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes!))
-                                    continue;
-                            }
+                            if (!mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes!))
+                                continue;
                         }
 
                         var progInst = draw.ProgramInstance!;
@@ -95,6 +115,8 @@ namespace XrEngine.OpenGL
                     vHandler.Unbind();
                 }
             }
+
+            _renderer.GL.PopDebugGroup();
         }
 
         public bool WriteDepth { get; set; }

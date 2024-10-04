@@ -4,17 +4,21 @@ namespace XrSamples
 {
     public class GameSettings
     {
+
         public string? SampleName { get; set; }
 
         public string? Hdri { get; set; }
 
-        public int Msaa { get; set; } = 1;
+        public int Msaa { get; set; } 
 
-        public GraphicDriver Driver { get; set; } = GraphicDriver.OpenGL;
+        public GraphicDriver Driver { get; set; } 
 
-        public bool IsMultiView { get; set; } = true;
+        public bool IsMultiView { get; set; }
+ 
+        public bool EnableDepthPass { get; set; }
 
-        public bool EnableOutline { get; set; } = false;
+        public bool UsePbrV2 { get; set; }
+
 
         public static GameSettings Bed()
         {
@@ -24,13 +28,20 @@ namespace XrSamples
                 Msaa = 1,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
-                EnableOutline = true
+                EnableDepthPass = false
             };
         }
 
         public static GameSettings Default()
         {
-            return new GameSettings();
+            return new GameSettings()
+            {
+                Msaa = 1,
+                Driver = GraphicDriver.OpenGL,
+                IsMultiView = true,
+                EnableDepthPass = false,
+                UsePbrV2 = true
+            };
         }
     }
 }

@@ -12,7 +12,7 @@ namespace XrEditor
         {
         }
 
-        public unsafe override IRenderEngine CreateRenderEngine()
+        public unsafe override IRenderEngine CreateRenderEngine(object? driverOptions)
         {
             _render = new FilamentRender(new FilamentOptions
             {

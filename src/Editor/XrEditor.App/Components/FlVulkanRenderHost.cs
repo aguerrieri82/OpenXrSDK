@@ -11,7 +11,7 @@ namespace XrEditor
         FilamentRender? _render;
         VulkanDevice? _device;
 
-        public unsafe override IRenderEngine CreateRenderEngine()
+        public unsafe override IRenderEngine CreateRenderEngine(object? driverOptions)
         {
             _device = new VulkanDevice();
 

@@ -243,10 +243,16 @@ namespace XrEngine.OpenGL
         {
             if (Alpha != value || force)
             {
-                EnableFeature(EnableCap.Blend, value != AlphaMode.Opaque);
                 Alpha = value;
-                _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-            }
+
+                EnableFeature(EnableCap.Blend, value != AlphaMode.Opaque);
+
+                if (value != AlphaMode.Opaque)
+                {
+                    _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+                    _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.Max);
+                }
+           }
         }
 
         public void SetWriteColor(bool value, bool force = false)

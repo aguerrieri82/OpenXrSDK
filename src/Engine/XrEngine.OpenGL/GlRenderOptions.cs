@@ -30,6 +30,7 @@ namespace XrEngine.OpenGL
             FrustumCulling = true;
             UseOcclusionQuery = true;
             UseDepthPass = false;
+            SortByCameraDistance = true;
             UseSRGB = false;
             RequireTextureCompression = false;
             ShadowMap = new ShadowMapOptions()
@@ -68,6 +69,8 @@ namespace XrEngine.OpenGL
         public ShadowMapOptions ShadowMap { get; }
 
         public GlOutlineOptions Outline { get; }
+
+        public bool SortByCameraDistance { get; set; }  
 
         public static GlRenderOptions Default() => new();
 

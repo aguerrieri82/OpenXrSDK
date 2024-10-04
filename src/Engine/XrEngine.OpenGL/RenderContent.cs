@@ -13,7 +13,10 @@
 
         public VertexComponent ActiveComponents;
 
+
         public readonly List<DrawContent> Contents = [];
+
+        public float AvgDistance;
     }
 
     public class DrawContent
@@ -29,6 +32,8 @@
         public GlQuery? Query;
 
         public bool IsHidden;
+
+        public float Distance;
     }
 
 

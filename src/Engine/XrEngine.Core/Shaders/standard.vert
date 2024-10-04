@@ -14,17 +14,9 @@ out vec4 fPosLightSpace;
 
 #endif
 
-
 out vec3 fNormal;
 out vec3 fPos;
 out vec2 fUv;
-
-#ifdef PASS_VIEW    
-
-out mat4 fViewProj;
-out vec3 fViewPos;
-
-#endif
 
 #include "position.glsl"
 
@@ -41,10 +33,5 @@ void main()
 
     #ifdef USE_SHADOW_MAP
         fPosLightSpace = uLightSpaceMatrix * pos4;
-    #endif
-
-    #ifdef PASS_VIEW
-        fViewProj = getViewProj();
-        fViewPos = getViewPos();    
     #endif
 }

@@ -40,6 +40,6 @@
 
     public interface IIBLPanoramaProcessor
     {
-        PbrV1Material.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options);
+        IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options);
     }
 }

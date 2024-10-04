@@ -1,9 +1,12 @@
-﻿namespace XrEngine.OpenGL
+﻿using System.Numerics;
+
+namespace XrEngine.OpenGL
 {
     public enum GlLayerType
     {
         Main,
         CastShadow,
+        Blend,
         Custom
     }
 
@@ -85,6 +88,10 @@
                     if (material.Shader == null)
                         continue;
 
+                    if ((material.Alpha == AlphaMode.Blend && Type != GlLayerType.Blend) ||
+                        (material.Alpha != AlphaMode.Blend && Type == GlLayerType.Blend))
+                        continue;
+
                     if (!_content.ShaderContents.TryGetValue(material.Shader, out var shaderContent))
                     {
                         shaderContent = new ShaderContent
@@ -125,6 +132,26 @@
             _lastUpdateVersion = _layer != null ? _layer.Version : _scene.Version;
 
             Log.Debug(this, "Content Build");
+
+        }
+
+        public void ComputeDistance(Camera camera)
+        {
+            var cameraPos = camera.WorldPosition;
+
+            foreach (var content in _content.ShaderContents.SelectMany(a => a.Value.Contents.Values))
+            {
+                var count = 0;
+                var sum = 0f;
+                foreach (var draw in content.Contents)
+                {
+                    draw.Distance = draw.Object!.DistanceTo(cameraPos);
+                    count++;
+                    sum += draw.Distance;   
+                }
+                content.AvgDistance = sum / count;
+            }
+
 
         }
 

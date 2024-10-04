@@ -16,7 +16,7 @@ namespace XrEngine
         {
             Intensity = 3;
             UseCache = true;
-            Textures = new PbrV1Material.IBLTextures();
+            Textures = new IBLTextures();
         }
 
         protected bool LoadCacheTexture<T>(string fileName, Action<T> onLoad) where T : Texture
@@ -116,7 +116,7 @@ namespace XrEngine
                 Panorama.Version = DateTime.Now.Ticks;
         }
 
-        public PbrV1Material.IBLTextures Textures { get; set; }
+        public IBLTextures Textures { get; set; }
 
         public Texture2D? Panorama { get; set; }
 

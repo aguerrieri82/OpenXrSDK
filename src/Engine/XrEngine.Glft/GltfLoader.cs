@@ -70,11 +70,11 @@ namespace XrEngine.Gltf
         {
             public float[]? sheenColorFactor;
 
-            public glTFLoader.Schema.TextureInfo? sheenColorTexture;
+            public TextureInfo? sheenColorTexture;
 
             public float sheenRoughnessFactor;
 
-            public glTFLoader.Schema.TextureInfo? sheenRoughnessTexture;
+            public TextureInfo? sheenRoughnessTexture;
         }
 
         public GltfLoader()
@@ -683,7 +683,9 @@ namespace XrEngine.Gltf
                 {
                     var gltfMat = _model!.Materials[primitive.Material.Value];
 
-                    if (_options!.PbrType == typeof(PbrV2Material))
+                    var pbrType = _options!.PbrType ?? MaterialFactory.DefaultPbr;
+
+                    if (pbrType == typeof(PbrV2Material))
                         curMesh.Materials.Add(ProcessMaterialV2(gltfMat, primitive.Material.Value));
                     else
                         curMesh.Materials.Add(ProcessMaterialV1(gltfMat, primitive.Material.Value));

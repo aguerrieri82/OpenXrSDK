@@ -21,6 +21,10 @@
 		<NativePlatform>x64</NativePlatform>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<DebugSymbols>true</DebugSymbols>
+		<DebugType>full</DebugType>
+	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(TargetFramework)' == '$(CoreVersion)-android'">
 		<OpenGL>ES</OpenGL>

@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using Silk.NET.OpenGL;
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -36,20 +37,28 @@ namespace XrEngine.OpenGL
 
             var updateContext = _renderer.UpdateContext;
 
+            if (_renderer.Options.SortByCameraDistance)
+                layer.ComputeDistance(updateContext.Camera!);
+
             foreach (var shader in layer.Content.ShaderContents)
             {
-                foreach (var vertex in shader.Value.Contents)
+                IEnumerable<VertexContent> vertices = shader.Value.Contents.Values;
+
+                if (_renderer.Options.SortByCameraDistance)
+                    vertices = vertices.OrderBy(a => a.AvgDistance); 
+
+                foreach (var vertex in vertices)
                 {
-                    var vHandler = vertex.Value.VertexHandler!;
+                    var vHandler = vertex.VertexHandler!;
 
                     if (vHandler.NeedUpdate)
                         vHandler.Update();
 
-                    updateContext.ActiveComponents = vertex.Value.ActiveComponents;
+                    updateContext.ActiveComponents = vertex.ActiveComponents;
 
                     vHandler.Bind();
 
-                    foreach (var draw in vertex.Value.Contents)
+                    foreach (var draw in vertex.Contents)
                     {
                         if (draw.Object is TriangleMesh mesh && _renderer.Options.FrustumCulling)
                         {
