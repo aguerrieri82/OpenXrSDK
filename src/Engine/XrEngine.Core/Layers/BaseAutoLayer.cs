@@ -36,6 +36,7 @@ namespace XrEngine
             if (!IsEnabled)
                 return;
 
+            
             if (obj is T tObj && AffectChange(change))
             {
                 if (change.IsAny(ObjectChangeType.SceneRemove) || !BelongsToLayer(tObj))

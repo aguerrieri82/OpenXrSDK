@@ -3,6 +3,7 @@ using OpenXr.Framework.Oculus;
 using PhysX.Framework;
 using Silk.NET.OpenXR;
 using XrEngine.Objects;
+using XrEngine.OpenGL;
 using XrEngine.Physics;
 
 namespace XrEngine.OpenXr
@@ -141,6 +142,14 @@ namespace XrEngine.OpenXr
         public static XrEngineAppBuilder UseOpenGL(this XrEngineAppBuilder self)
         {
             self.Options.Driver = GraphicDriver.OpenGL;
+            return self;
+        }
+
+        public static XrEngineAppBuilder UseOpenGL(this XrEngineAppBuilder self, Action<GlRenderOptions> options)
+        {
+            self.Options.Driver = GraphicDriver.OpenGL;
+            self.Options.DriverOptions = new GlRenderOptions();
+            options((GlRenderOptions)self.Options.DriverOptions);       
             return self;
         }
 

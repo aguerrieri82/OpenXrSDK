@@ -108,6 +108,12 @@ void main()
 	#else
 		vec4 baseColor = uMaterial.color;	
 	#endif
+	
+	//Mask
+	#if ALPHA_MODE == 1
+		if (baseColor.a < uMaterial.alphaCutoff)
+			discard;
+	#endif
 
 	vec3 albedo = baseColor.rgb;
 
@@ -270,7 +276,14 @@ void main()
 	#endif
 
 	vec3 color3 = (directLighting + ambientLighting);
-	float a = baseColor.a;	
+
+	//Opaque
+	#if ALPHA_MODE == 0
+		float a = 1.0;	
+	#else
+		float a = baseColor.a;	
+	#endif
+
 
 	#ifdef USE_OCCLUSION_MAP
     float ao = texture(occlusionTexture, vin.texcoord).r;
@@ -294,12 +307,9 @@ void main()
 	color3 = toneMap(color3);
 	#endif
 
-	#if ALPHA_MODE == 0
-		a = 1.0;
-	#endif
-
-	#if ALPHA_MODE == 1
-		a = a < uMaterial.alphaCutoff ? 0.0 : 1.0;	
+	//Blend
+	#if ALPHA_MODE == 2
+		a = max(uMaterial.alphaCutoff, a);
 	#endif
 
 	// Final fragment color.

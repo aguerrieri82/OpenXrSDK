@@ -6,7 +6,6 @@
         {
             ConvertColorTextureSRgb = true;
             DisableTangents = false;
-            PbrType = MaterialFactory.DefaultPbr;
         }
 
         public bool ConvertColorTextureSRgb { get; set; }
@@ -15,7 +14,7 @@
 
         public bool DisableTangents { get; set; }
 
-        public Type PbrType { get; set; }
+        public Type? PbrType { get; set; }
 
 
         public static readonly GltfLoaderOptions Default = new();

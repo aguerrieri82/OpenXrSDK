@@ -20,10 +20,8 @@ namespace XrEngine
             _gizmos = new Canvas3D();
             _changeListener.Add(_layers);
 
-            this.AddLayer<TypeLayer<Light>>();
-            this.AddLayer<TypeLayer<Camera>>();
-            this.AddLayer<TypeLayer<Object3D>>();
             this.AddLayer<CastShadowsLayer>();
+            this.AddLayer<BlendLayer>();
             this.AddLayer(new DetachedLayer() { Name = "Gizmos" }).Add(_gizmos.Content);
         }
 

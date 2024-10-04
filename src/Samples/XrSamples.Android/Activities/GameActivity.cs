@@ -54,12 +54,7 @@ namespace XrSamples.Android.Activities
         protected override void OnXpAppStarted(XrApp app)
         {
             if (_engine?.App.Renderer is OpenGLRender openGL)
-            {
-                var outline = openGL.Pass<GlOutlinePass>();
-                if (outline != null)
-                    outline.IsEnabled = _settings!.EnableOutline;
                 openGL.EnableDebug();
-            }
 
             app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
 
@@ -81,6 +76,12 @@ namespace XrSamples.Android.Activities
 
             builder.Options.Driver = _settings!.Driver;
 
+            if (_settings.Driver == GraphicDriver.OpenGL)
+                builder.UseOpenGL(opt =>
+                {
+                    opt.UseDepthPass = _settings.EnableDepthPass;
+                });
+
             if (_settings.Driver == GraphicDriver.OpenGL && _settings.IsMultiView)
                 builder.UseMultiView();
 
@@ -88,6 +89,11 @@ namespace XrSamples.Android.Activities
 
             builder.RemovePlaneGrid()
                    .AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
+
+            if (_settings.UsePbrV2)
+                MaterialFactory.DefaultPbr = typeof(PbrV2Material); 
+            else
+                MaterialFactory.DefaultPbr = typeof(PbrV1Material);
 
             SampleScenes.DefaultHDR = _settings.Hdri;
 

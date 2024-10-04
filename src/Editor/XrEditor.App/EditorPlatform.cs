@@ -32,7 +32,7 @@ namespace XrEditor
 
         public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
         {
-            renderEngine = _renderSurface!.CreateRenderEngine();
+            renderEngine = _renderSurface!.CreateRenderEngine(options.DriverOptions);
 
             xrDriver = ((IXrGraphicProvider)_renderSurface).CreateXrDriver();
 

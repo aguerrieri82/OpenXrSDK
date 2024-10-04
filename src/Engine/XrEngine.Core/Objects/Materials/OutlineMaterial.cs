@@ -48,7 +48,6 @@ namespace XrEngine
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
-            bld.AddFeature("PASS_VIEW");
 
             bld.ExecuteAction((ctx, up) =>
             {
@@ -57,7 +56,6 @@ namespace XrEngine
                 up.SetUniform("uColor", Color);
                 up.SetUniform("uSize", Size);
                 up.SetUniform("uThreshold", Threshold);
-
             });
         }
 

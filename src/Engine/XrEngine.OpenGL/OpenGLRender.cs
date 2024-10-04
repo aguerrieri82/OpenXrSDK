@@ -190,10 +190,15 @@ namespace XrEngine.OpenGL
                 foreach (var layer in scene.Layers.Layers.OfType<DetachedLayer>())
                     _layers.Add(new GlLayer(this, scene, GlLayerType.Custom, layer));
 
+                var blend = scene.Layers.OfType<BlendLayer>().FirstOrDefault();
+                if (blend != null)
+                    _layers.Add(new GlLayer(this, scene, GlLayerType.Blend, blend));
+
                 if (_options.ShadowMap.Mode != ShadowMapMode.None)
                 {
-                    var castShadowLayer = scene.Layers.Layers.OfType<CastShadowsLayer>().First();
-                    _layers.Add(new GlLayer(this, scene, GlLayerType.CastShadow, castShadowLayer));
+                    var castShadowLayer = scene.Layers.Layers.OfType<CastShadowsLayer>().FirstOrDefault();
+                    if (castShadowLayer != null)
+                        _layers.Add(new GlLayer(this, scene, GlLayerType.CastShadow, castShadowLayer));
                 }
 
                 _lastScene = scene;
@@ -258,6 +263,7 @@ namespace XrEngine.OpenGL
 
             _target.End(true);
 
+           
             if (flush)
                 _gl.Finish();
 
@@ -426,7 +432,7 @@ namespace XrEngine.OpenGL
         }
         */
 
-        public PbrV1Material.IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
+        public IBLTextures ProcessPanoramaIBL(TextureData data, PanoramaProcessorOptions options)
         {
             EnsureThread();
 
@@ -442,7 +448,7 @@ namespace XrEngine.OpenGL
 
             processor.PanoramaToCubeMap();
 
-            var result = new PbrV1Material.IBLTextures
+            var result = new IBLTextures
             {
                 MipCount = processor.MipLevelCount
             };

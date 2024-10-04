@@ -19,6 +19,8 @@ namespace XrEngine.OpenXr
         public float ResolutionScale { get; set; }
 
         public uint SampleCount { get; set; }
+
+        public object? DriverOptions { get; set; }  
     }
 
     public class XrEngineApp

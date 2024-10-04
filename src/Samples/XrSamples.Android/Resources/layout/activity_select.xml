@@ -54,10 +54,16 @@
 				android:text="Mutiview"/>
 
 			<CheckBox
-				android:id="@+id/outline"
+				android:id="@+id/depth"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
-				android:text="Outline"/>
+				android:text="Depth Pass"/>
+
+			<CheckBox
+				android:id="@+id/pbr2"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="Use PBR V2"/>
 
 			<TextView
 				android:layout_width="match_parent"

@@ -9,6 +9,8 @@ namespace XrEngine.OpenGL
     public class GlQuery : GlObject
     {
         private QueryTarget _target;
+        private bool _resultFetch;
+        private uint _lastResult;
 
         public unsafe GlQuery(GL gl)
             : base(gl)
@@ -19,6 +21,7 @@ namespace XrEngine.OpenGL
         public void Begin(QueryTarget target)
         {
             _target = target;
+            _resultFetch = false;
             _gl.BeginQuery(target, _handle);
         }
 
@@ -29,8 +32,12 @@ namespace XrEngine.OpenGL
 
         public uint GetResult()
         {
-            _gl.GetQueryObject(_handle, QueryObjectParameterName.Result, out uint result);
-            return result;
+            if (!_resultFetch)
+            {
+                _gl.GetQueryObject(_handle, QueryObjectParameterName.Result, out _lastResult);
+                _resultFetch = true;
+            }
+            return _lastResult;
         }
 
         public override void Dispose()

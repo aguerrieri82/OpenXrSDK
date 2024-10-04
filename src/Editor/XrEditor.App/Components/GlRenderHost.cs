@@ -249,16 +249,14 @@ namespace XrEditor
             return handle;
         }
 
-        public override IRenderEngine CreateRenderEngine()
+        public override IRenderEngine CreateRenderEngine(object? driverOptions)
         {
-            var options = new GlRenderOptions
-            {
-                FloatPrecision = ShaderPrecision.High,
-            };
+            var glOptions = driverOptions as GlRenderOptions ?? new GlRenderOptions();
 
-            options.Outline.Use = false;
+            glOptions.FloatPrecision = ShaderPrecision.High;  
+            glOptions.Outline.Use = false;
 
-            var render = new OpenGLRender(_gl!, options);
+            var render = new OpenGLRender(_gl!, glOptions);
 
             TakeContext();
 

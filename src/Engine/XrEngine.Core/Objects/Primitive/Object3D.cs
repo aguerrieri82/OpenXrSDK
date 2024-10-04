@@ -9,6 +9,7 @@ namespace XrEngine
         private Matrix4x4 _worldMatrixInverse;
         private Matrix4x4 _worldMatrix;
         private Matrix4x4 _normalMatrix;
+        protected Vector3[]? _worldPoints;
 
         protected bool _worldDirty;
         protected bool _worldInverseDirty;
@@ -135,6 +136,12 @@ namespace XrEngine
             base.Dispose();
         }
 
+        public float DistanceTo(Vector3 point)
+        {
+            _worldPoints ??= WorldBounds.Points.ToArray();
+            return _worldPoints.MinDistanceTo(point);
+        }
+
         protected internal virtual void InvalidateWorld()
         {
             _worldDirty = true;
@@ -147,6 +154,7 @@ namespace XrEngine
         {
             _parent?.InvalidateBounds();
             _boundsDirty = true;
+            _worldPoints = null;
         }
 
         protected void UpdateWorldInverse()
