@@ -16,6 +16,8 @@
 
         public Type? PbrType { get; set; }
 
+        public bool GeometryGpuOnly { get; set; }   
+
 
         public static readonly GltfLoaderOptions Default = new();
     }

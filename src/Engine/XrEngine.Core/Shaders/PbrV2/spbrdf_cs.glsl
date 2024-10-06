@@ -1,5 +1,5 @@
 
-precision mediump image2D;
+precision highp image2D;
 
 // Physically Based Rendering
 // Copyright (c) 2017-2018 Michał Siejak

@@ -7,6 +7,43 @@ namespace XrMath
 
     public static class MathExtensions
     {
+        #region Matrix4x4
+
+        public static bool DecomposeV2(this Matrix4x4 matrix, out Vector3 translation, out Quaternion rotation, out Vector3 scale)
+        {
+            // Extract the translation
+            translation = new Vector3(matrix.M41, matrix.M42, matrix.M43);
+
+            // Extract the scale
+            scale = new Vector3(
+                new Vector3(matrix.M11, matrix.M12, matrix.M13).Length(),
+                new Vector3(matrix.M21, matrix.M22, matrix.M23).Length(),
+                new Vector3(matrix.M31, matrix.M32, matrix.M33).Length()
+            );
+
+            // If any scale component is zero, return false
+            if (scale.X == 0.0f || scale.Y == 0.0f || scale.Z == 0.0f)
+            {
+                rotation = Quaternion.Identity;
+                return false;
+            }
+
+            // Normalize the rows of the matrix to remove the scale from the rotation
+            Matrix4x4 rotationMatrix = new Matrix4x4(
+                matrix.M11 / scale.X, matrix.M12 / scale.X, matrix.M13 / scale.X, 0.0f,
+                matrix.M21 / scale.Y, matrix.M22 / scale.Y, matrix.M23 / scale.Y, 0.0f,
+                matrix.M31 / scale.Z, matrix.M32 / scale.Z, matrix.M33 / scale.Z, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f
+            );
+
+            // Convert the 3x3 rotation matrix into a quaternion
+            rotation = Quaternion.CreateFromRotationMatrix(rotationMatrix);
+
+            return true;
+        }
+
+        #endregion
+
         #region PLANE
 
         public static bool IntersectLine(this Plane plane, Vector3 point1, Vector3 point2)
@@ -28,7 +65,7 @@ namespace XrMath
                 if (plane.IntersectLine(bounds.Min, bounds.Max))
                     return true;
 
-                Vector3 positiveVertex = new Vector3(
+                var positiveVertex = new Vector3(
                     (plane.Normal.X >= 0) ? bounds.Max.X : bounds.Min.X,
                     (plane.Normal.Y >= 0) ? bounds.Max.Y : bounds.Min.Y,
                     (plane.Normal.Z >= 0) ? bounds.Max.Z : bounds.Min.Z
@@ -41,21 +78,18 @@ namespace XrMath
             return true;
         }
 
+        public static Bounds3 ComputeBounds(this IEnumerable<Vector3> points)
+        {
+            var builder = new BoundsBuilder();
+            builder.Add(points);
+            return builder.Result;
+        }
+
         public static Bounds3 ComputeBounds(this IEnumerable<Vector3> points, Matrix4x4 matrix)
         {
-            var result = new Bounds3();
-
-            result.Min = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
-            result.Max = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-
-            foreach (var point in points)
-            {
-                var tPoint = point.Transform(matrix);
-                result.Min = Vector3.Min(result.Min, tPoint);
-                result.Max = Vector3.Max(result.Max, tPoint);
-            }
-
-            return result;
+            var builder = new BoundsBuilder();
+            builder.Add(points.Select(a => a.Transform(matrix)));
+            return builder.Result;
         }
 
         public static Bounds3 Transform(this Bounds3 bounds, Matrix4x4 matrix)
@@ -93,6 +127,33 @@ namespace XrMath
 
             return true;
         }
+
+        public static bool Intersects(this Bounds3 a, Bounds3 b, out Bounds3 result)
+        {
+            float intersectMinX = Math.Max(a.Min.X, b.Min.X);
+            float intersectMaxX = Math.Min(a.Max.X, b.Max.X);
+
+            float intersectMinY = Math.Max(a.Min.Y, b.Min.Y);
+            float intersectMaxY = Math.Min(a.Max.Y, b.Max.Y);
+
+            float intersectMinZ = Math.Max(a.Min.Z, b.Min.Z);
+            float intersectMaxZ = Math.Min(a.Max.Z, b.Max.Z);
+
+            if (intersectMinX > intersectMaxX || intersectMinY > intersectMaxY || intersectMinZ > intersectMaxZ)
+            {
+                result = new Bounds3();
+                return false;   
+            }
+
+            result = new Bounds3()
+            {
+                Min = new Vector3(intersectMinX, intersectMinY, intersectMinZ),
+                Max = new Vector3(intersectMaxX, intersectMaxY, intersectMaxZ)
+            };
+
+            return true;
+        }
+
 
         public static bool Intersects(this Bounds3 bounds, Line3 line, out float distance)
         {
@@ -427,10 +488,21 @@ namespace XrMath
         public static Vector3 ToEuler(this Quaternion q)
         {
             Vector3 res;
+
             q = Quaternion.Normalize(q);
+
+            float sinp = -2.0f * (q.X * q.Z - q.W * q.Y);
+            sinp = Math.Clamp(sinp, -1.0f, 1.0f);
+
             res.X = MathF.Atan2(2.0f * (q.Y * q.Z + q.W * q.X), q.W * q.W - q.X * q.X - q.Y * q.Y + q.Z * q.Z);
-            res.Y = MathF.Asin(-2.0f * (q.X * q.Z - q.W * q.Y));
+            res.Y = MathF.Asin(sinp); 
             res.Z = MathF.Atan2(2.0f * (q.X * q.Y + q.W * q.Z), q.W * q.W + q.X * q.X - q.Y * q.Y - q.Z * q.Z);
+
+            /*
+            if (float.IsNaN(res.X) || float.IsNaN(res.Y) || float.IsNaN(res.Z))
+                Debugger.Break();
+            */
+
             return res;
         }
 

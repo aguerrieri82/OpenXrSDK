@@ -130,6 +130,15 @@ namespace XrEngine
             });
         }
 
+        public override void Dispose()
+        {
+            LeftMainTexture?.Dispose();
+            RightTexture?.Dispose();
+            LeftMainTexture = null;
+            RightTexture = null;    
+            base.Dispose();
+        }
+
         public FishReflectionMode Mode { get; set; }
 
         public Texture2D? LeftMainTexture { get; set; }

@@ -5,9 +5,15 @@ namespace XrEngine
 {
     public struct CameraEye
     {
-        public Matrix4x4 Transform;
+        public Matrix4x4 ViewProj;
+
+        public Matrix4x4 View;
+
+        public Matrix4x4 World;
 
         public Matrix4x4 Projection;
+
+
     }
 
     public abstract class Camera : Object3D
@@ -157,7 +163,5 @@ namespace XrEngine
         public CameraEye[]? Eyes { get; set; }
 
         public int ActiveEye { get; set; }
-
-
     }
 }

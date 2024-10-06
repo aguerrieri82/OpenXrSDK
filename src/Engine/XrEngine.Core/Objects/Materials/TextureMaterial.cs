@@ -60,6 +60,13 @@ namespace XrEngine
             });
         }
 
+        public override void Dispose()
+        {
+            Texture?.Dispose();
+            Texture = null; 
+            base.Dispose();
+        }
+
         public Texture2D? Texture { get; set; }
 
         public Vector2 Offset { get; set; }

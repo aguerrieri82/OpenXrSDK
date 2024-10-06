@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Collections.Concurrent;
+
+namespace XrEngine
 {
     public class GlobalContext
     {
@@ -13,24 +15,22 @@
 
 
         readonly List<ServiceInfo> _services = [];
-        readonly Dictionary<Type, object> _cache = [];
+        readonly ConcurrentDictionary<Type, object> _cache = [];
 
         public object Require(Type type)
         {
-            if (_cache.TryGetValue(type, out var value))
-                return value;
+            return _cache.GetOrAdd(type, type =>
+            {
+                var info = _services.FirstOrDefault(a => type.IsAssignableFrom(a.Type));
 
-            var info = _services.FirstOrDefault(a => type.IsAssignableFrom(a.Type));
+                if (info == null)
+                    throw new NotSupportedException();
 
-            if (info == null)
-                throw new NotSupportedException();
+                if (info.Instance == null)
+                    info.Instance = info.Factory!();
 
-            if (info.Instance == null)
-                info.Instance = info.Factory!();
-
-            _cache[type] = info.Instance;
-
-            return info.Instance;
+                return info.Instance;
+            });
         }
 
         public object RequireInstance(Type type)

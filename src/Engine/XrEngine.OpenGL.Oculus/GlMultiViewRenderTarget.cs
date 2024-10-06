@@ -32,10 +32,9 @@ namespace XrEngine.OpenGL.Oculus
         public float FarPlane;
     }
 
-    public class GlMultiViewRenderTarget : IGlRenderTarget, IMultiViewTarget, IShaderHandler, IGlFrameBufferProvider
+    public class GlMultiViewRenderTarget : IGlRenderTarget, IShaderHandler, IGlFrameBufferProvider
     {
         static readonly InvalidateFramebufferAttachment[] DepthStencilAttachment = [InvalidateFramebufferAttachment.DepthStencilAttachment];
-
 
         protected GlMultiViewFrameBuffer _frameBuffer;
         protected static SceneMatrices _matrices = new();
@@ -48,9 +47,17 @@ namespace XrEngine.OpenGL.Oculus
             _gl = gl;
         }
 
-        public void Begin()
+        public void Begin(Camera camera)
         {
             _frameBuffer.Bind();
+
+            var eyes = camera.Eyes!;
+
+            _matrices.ViewProj1 = eyes[0].ViewProj;
+            _matrices.ViewProj2 = eyes[1].ViewProj;
+            _matrices.Position1 = eyes[0].World.Translation;
+            _matrices.Position2 = eyes[1].World.Translation;
+            _matrices.FarPlane = camera.Far;
         }
 
         public void End(bool finalPass)
@@ -72,23 +79,6 @@ namespace XrEngine.OpenGL.Oculus
         public void Dispose()
         {
             _frameBuffer.Dispose();
-        }
-
-        public void SetCameraTransforms(XrCameraTransform[] eyes, float farPlane)
-        {
-            var trans1 = new Transform3D();
-            var trans2 = new Transform3D();
-            trans1.SetMatrix(eyes[0].Transform);
-            trans2.SetMatrix(eyes[1].Transform);
-
-            Matrix4x4.Invert(eyes[0].Transform, out var view1);
-            Matrix4x4.Invert(eyes[1].Transform, out var view2);
-
-            _matrices.ViewProj1 = view1 * eyes[0].Projection;
-            _matrices.ViewProj2 = view2 * eyes[1].Projection;
-            _matrices.Position1 = trans1.Position;
-            _matrices.Position2 = trans2.Position;
-            _matrices.FarPlane = farPlane;
         }
 
         public void UpdateShader(ShaderUpdateBuilder bld)

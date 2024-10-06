@@ -116,6 +116,14 @@ namespace XrEngine
                 Panorama.Version = DateTime.Now.Ticks;
         }
 
+        public override void Dispose()
+        {
+            Textures.Dispose();
+            Panorama?.Dispose();
+            Panorama = null;    
+            base.Dispose();
+        }
+
         public IBLTextures Textures { get; set; }
 
         public Texture2D? Panorama { get; set; }

@@ -19,10 +19,10 @@ namespace XrEngine.OpenGL
         {
         }
 
-        protected override bool BeginRender()
+        protected override bool BeginRender(Camera camera)
         {
-            _renderer.RenderTarget!.Begin();
-            return base.BeginRender();
+            _renderer.RenderTarget!.Begin(camera);
+            return base.BeginRender(camera);
         }
 
         protected override void EndRender()

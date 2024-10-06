@@ -4,18 +4,13 @@
 
 // Converts equirectangular (lat-long) projection texture into a proper cubemap.
 
-precision mediump imageCube;
+precision highp imageCube;
 
 const float PI = 3.141592;
 const float TwoPI = 2.0 * PI;
 
-#ifdef VULKAN
-layout(set=0, binding=0) uniform sampler2D inputTexture;
-layout(set=0, binding=1, rgba16f) restrict writeonly uniform imageCube outputTexture;
-#else
 layout(binding=0) uniform sampler2D inputTexture;
 layout(binding=0, rgba16f)  restrict writeonly uniform imageCube outputTexture;
-#endif // VULKAN
 
 // Calculate normalized sampling direction vector based on current fragment coordinates (gl_GlobalInvocationID.xyz).
 // This is essentially "inverse-sampling": we reconstruct what the sampling vector would be if we wanted it to "hit"
@@ -44,11 +39,11 @@ void main(void)
 	vec3 v = getSamplingVector();
 
 	// Convert Cartesian direction vector to spherical coordinates.
-	float phi   = atan(v.z, v.x);
+	float phi   = atan(v.x, v.z);
 	float theta = acos(v.y);
 
 	// Sample equirectangular texture.
-	vec4 color = texture(inputTexture, vec2(phi/TwoPI, theta/PI));
+    vec4 color = texture(inputTexture, vec2((phi + PI) / TwoPI, theta / PI));
 
 	// Write out color to output cubemap.
 	imageStore(outputTexture, ivec3(gl_GlobalInvocationID), color);

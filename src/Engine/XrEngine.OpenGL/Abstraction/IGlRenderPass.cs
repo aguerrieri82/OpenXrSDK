@@ -2,7 +2,7 @@
 {
     public interface IGlRenderPass
     {
-        void Render();
+        void Render(Camera camera);
 
         bool IsEnabled { get; set; }
     }

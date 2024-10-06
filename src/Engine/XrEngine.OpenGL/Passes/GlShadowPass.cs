@@ -19,6 +19,9 @@ namespace XrEngine.OpenGL
         private Camera? _oldCamera;
         private long _lightVersion = -1;
         private long _layerVersion = -1;
+        private long _recLayerVersion = -1;
+        private long _updateFrame;
+
         private readonly OrtoCamera _lightCamera;
 
         public GlShadowPass(OpenGLRender renderer)
@@ -28,7 +31,7 @@ namespace XrEngine.OpenGL
             UseShadowSampler = false;
 
             _lightCamera = new OrtoCamera();
-            _lightCamera.SetViewArea(-4, 4, -4, 4);
+
 
             _depthTexture = new Texture2D
             {
@@ -93,23 +96,40 @@ namespace XrEngine.OpenGL
             return IsEnabled;
         }
 
-        protected override bool BeginRender()
+        public override void Render(Camera camera)
         {
-            if (!UpdateLight())
+            UpdateLight();
+
+            base.Render(camera);
+        }
+
+        protected override bool BeginRender(Camera camera)
+        {
+            var shadowRenderLayer = SelectLayers().First();
+            var scene = _renderer.UpdateContext.Camera!.Scene!;
+            var recLayer = scene.EnsureLayer<ReceiveShadowsLayer>();
+            var castLayer = scene.EnsureLayer<CastShadowsLayer>();
+            var frame = scene.App!.RenderContext.Frame;
+
+            if (_light == null || shadowRenderLayer.Content.ShaderContents.Count == 0 || !recLayer.Content.Any())
                 return false;
 
-            var shadowLayer = SelectLayers().First();
-
-            if (shadowLayer.Content.ShaderContents.Count == 0)
+            if (_updateFrame == frame)
                 return false;
 
-            if (_light!.Version == _lightVersion && shadowLayer.Version == _layerVersion)
+            /*
+            if (_light!.Version == _lightVersion && 
+                shadowLayer.Version == _layerVersion &&
+                recLayer.Version == _recLayerVersion)
                 return false;
 
             Log.Debug(this, "Rendering shadow map for light '{0}'...", _light!.Name);
+            */
 
-            _layerVersion = shadowLayer.Version;
+            _layerVersion = shadowRenderLayer.Version;
             _lightVersion = _light.Version;
+            _recLayerVersion = recLayer.Version;
+            _updateFrame = frame;
 
             _oldCamera = _renderer.UpdateContext.Camera;
 
@@ -123,9 +143,24 @@ namespace XrEngine.OpenGL
             _renderer.GL.Clear((uint)ClearBufferMask.DepthBufferBit);
 
             _lightCamera.CreateViewFromDirection(_light!.Direction, Vector3.UnitY);
+
+            var frustumPoints = _renderer.UpdateContext.Camera!.FrustumPoints();
+            var frustumLightBounds = frustumPoints.ComputeBounds(_lightCamera.View);
+            
+            var receiveBounds = castLayer.WorldBounds;
+            var receiveBoundsLight = receiveBounds.Points.ComputeBounds(_lightCamera.View); 
+
+            if (frustumLightBounds.Intersects(receiveBoundsLight, out var lightBounds))
+            {
+                _lightCamera.Far = -lightBounds.Min.Z;
+                _lightCamera.Near = 0.01f;
+                _lightCamera.SetViewArea(lightBounds.Min.X, lightBounds.Max.X, lightBounds.Min.Y, lightBounds.Max.Y); 
+            }
+
+
             _renderer.UpdateContext.Camera = _lightCamera;
 
-            return base.BeginRender();
+            return base.BeginRender(camera);
         }
 
         protected override void EndRender()

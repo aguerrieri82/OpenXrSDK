@@ -182,7 +182,7 @@ namespace XrEngine.OpenXr
                     {
                         var transform = XrCameraTransform.FromView(headViews[i], camera.Near, camera.Far);
 
-                        camera.Eyes[i].Transform = transform.Transform;
+                        camera.Eyes[i].World = transform.Transform;
                         camera.Eyes[i].Projection = transform.Projection;
 
                         var depth = (CompositionLayerDepthInfoKHR*)views[0].Next;
@@ -236,6 +236,18 @@ namespace XrEngine.OpenXr
             {
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 
+                if (camera.Eyes == null)
+                    camera.Eyes = new CameraEye[2];
+
+                for (var i = 0; i < views.Length; i++)
+                {
+                    var transform = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
+                    camera.Eyes[i].World = transform.Transform;
+                    camera.Eyes[i].Projection = transform.Projection;
+                    Matrix4x4.Invert(transform.Transform, out camera.Eyes[i].View);
+                    camera.Eyes[i].ViewProj = camera.Eyes[i].View * camera.Eyes[i].Projection;  
+                }
+
                 if (mode == XrRenderMode.SingleEye)
                 {
                     for (var i = 0; i < colorImages.Length; i++)
@@ -251,8 +263,8 @@ namespace XrEngine.OpenXr
 
                         var transform = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
 
-                        camera.Projection = transform.Projection;
-                        camera.WorldMatrix = transform.Transform;
+                        camera.Projection = camera.Eyes[i].Projection;
+                        camera.WorldMatrix = camera.Eyes[i].World;
                         camera.ActiveEye = i;
 
                         var depth = (CompositionLayerDepthInfoKHR*)views[0].Next;
@@ -278,20 +290,10 @@ namespace XrEngine.OpenXr
 
                     var renderTarget = targetFactory(renderer.GL, glColorImage, glDepthImage);
 
-                    if (renderTarget is not IMultiViewTarget multiTarget)
-                        throw new NotSupportedException("Render target don't support multi-view");
-
-                    var transforms = new XrCameraTransform[views.Length];
-
-                    for (var i = 0; i < transforms.Length; i++)
-                        transforms[i] = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
-
-                    multiTarget.SetCameraTransforms(transforms, camera.Far);
-
                     renderer.SetRenderTarget(renderTarget);
 
-                    camera.Projection = transforms[0].Projection;
-                    camera.WorldMatrix = transforms[0].Transform;
+                    camera.Projection = camera.Eyes[0].Projection;
+                    camera.WorldMatrix = camera.Eyes[0].World;
 
                     var depth = (CompositionLayerDepthInfoKHR*)views[0].Next;
                     if (depth != null)

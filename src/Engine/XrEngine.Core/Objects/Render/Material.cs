@@ -38,7 +38,14 @@
 
         public void Detach(EngineObject host)
         {
+            Detach(host, false);
+        }
+
+        public void Detach(EngineObject host, bool dispose)
+        {
             _hosts.Remove(host);
+            if (dispose && _hosts.Count == 0)
+                Dispose();
         }
 
         protected override void OnChanged(ObjectChange change)

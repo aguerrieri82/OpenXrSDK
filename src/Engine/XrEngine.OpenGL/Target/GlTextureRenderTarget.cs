@@ -17,7 +17,7 @@ namespace XrEngine.OpenGL
             _frameBuffer = new GlTextureFrameBuffer(_gl);
         }
 
-        public void Begin()
+        public void Begin(Camera camera)
         {
             _frameBuffer.Bind();
         }
