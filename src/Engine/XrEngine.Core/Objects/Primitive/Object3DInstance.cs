@@ -36,6 +36,12 @@ namespace XrEngine
             Reference = container.Read<Object3D>(nameof(Reference));
         }
 
+        public override void Dispose()
+        {
+            Reference = null;
+            base.Dispose();
+        }
+
         public Object3D? Reference { get; set; }
     }
 }

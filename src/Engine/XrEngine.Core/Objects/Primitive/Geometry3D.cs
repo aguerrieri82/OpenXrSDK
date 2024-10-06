@@ -27,7 +27,14 @@ namespace XrEngine
 
         public void Detach(EngineObject host)
         {
+            Detach(host, false);
+        }
+
+        public void Detach(EngineObject host, bool dispose)
+        {
             _hosts.Remove(host);
+            if (dispose && _hosts.Count == 0)
+                Dispose();
         }
 
         protected override void SetStateWork(IStateContainer container)
@@ -73,13 +80,6 @@ namespace XrEngine
             }
 
             Version++;
-        }
-
-        public void FreeBuffers()
-        {
-            UpdateBounds();
-            Indices = [];
-            Vertices = [];
         }
 
         public void Rebuild()
@@ -140,6 +140,18 @@ namespace XrEngine
                     UpdateBounds();
                 return _bounds;
             }
+        }
+
+        public void NotifyLoaded()
+        {
+            if (!this.Is(EngineObjectFlags.GpuOnly))
+                return;
+
+            if (_boundsDirty)
+                UpdateBounds();
+
+            _indices = [];
+            _vertices = []; 
         }
 
         public IReadOnlySet<EngineObject> Hosts => _hosts;

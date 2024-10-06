@@ -39,6 +39,12 @@
             Data = null;
         }
 
+        public override void Dispose()
+        {
+            Data = null;
+            base.Dispose();
+        }
+
         public IList<TextureData>? Data { get; set; }
 
         public uint Width { get; set; }

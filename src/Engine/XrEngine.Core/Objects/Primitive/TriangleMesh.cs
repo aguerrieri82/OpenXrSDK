@@ -53,16 +53,10 @@ namespace XrEngine
         public override void UpdateBounds(bool force = false)
         {
             if (Geometry != null)
-            {
                 _worldBounds = Geometry.Bounds.Transform(WorldMatrix);
-
-            }
-
 
             _boundsDirty = false;
         }
-
-
 
         public override void Update(RenderContext ctx)
         {
@@ -80,7 +74,7 @@ namespace XrEngine
                 if (e.OldItems != null)
                 {
                     foreach (var item in e.OldItems!.Cast<Material>())
-                        item.Detach(this);
+                        item.Detach(this, false);
                 }
             }
 
@@ -98,9 +92,8 @@ namespace XrEngine
 
         public void NotifyLoaded()
         {
-            /*
-            if (_geometry!.Is(EngineObjectFlags.Readonly))
-                _geometry!.FreeBuffers();*/
+            _geometry?.NotifyLoaded();
+     
         }
 
         public Geometry3D? Geometry
@@ -124,6 +117,19 @@ namespace XrEngine
 
                 NotifyChanged(ObjectChangeType.Geometry);
             }
+        }
+
+        public override void Dispose()
+        {
+            foreach (var material in Materials)
+                material.Detach(this, true);
+
+            Geometry?.Detach(this, true);
+
+            Geometry = null;
+            Materials.Clear();
+
+            base.Dispose();
         }
 
         public IList<Material> Materials => _materials;

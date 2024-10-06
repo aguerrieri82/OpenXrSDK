@@ -190,15 +190,14 @@ namespace XrEngine.OpenGL
                 foreach (var layer in scene.Layers.Layers.OfType<DetachedLayer>())
                     _layers.Add(new GlLayer(this, scene, GlLayerType.Custom, layer));
 
-                var blend = scene.Layers.OfType<BlendLayer>().FirstOrDefault();
-                if (blend != null)
-                    _layers.Add(new GlLayer(this, scene, GlLayerType.Blend, blend));
+                var blend = scene.EnsureLayer<BlendLayer>();
+                _layers.Add(new GlLayer(this, scene, GlLayerType.Blend, blend));
 
                 if (_options.ShadowMap.Mode != ShadowMapMode.None)
                 {
-                    var castShadowLayer = scene.Layers.Layers.OfType<CastShadowsLayer>().FirstOrDefault();
-                    if (castShadowLayer != null)
-                        _layers.Add(new GlLayer(this, scene, GlLayerType.CastShadow, castShadowLayer));
+                    var castShadowLayer = scene.EnsureLayer<CastShadowsLayer>();
+                    scene.EnsureLayer<ReceiveShadowsLayer>();   
+                    _layers.Add(new GlLayer(this, scene, GlLayerType.CastShadow, castShadowLayer));
                 }
 
                 _lastScene = scene;
@@ -254,7 +253,7 @@ namespace XrEngine.OpenGL
             {
                 _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin Pass {pass.GetType().Name}");
 
-                pass.Render();
+                pass.Render(camera);
 
                 _gl.PopDebugGroup();
             }

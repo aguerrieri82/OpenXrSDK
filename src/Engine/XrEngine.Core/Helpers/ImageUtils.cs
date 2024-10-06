@@ -33,6 +33,11 @@ namespace XrEngine
             }
         }
 
+        public static uint GetPixelSizeByte(TextureFormat format)
+        {
+            return GetPixelSizeByte(GetFormat(format)); 
+        }
+
         public static SKColorType GetFormat(TextureFormat format)
         {
             return FORMAT_MAP.First(a => a.Value == format).Key;

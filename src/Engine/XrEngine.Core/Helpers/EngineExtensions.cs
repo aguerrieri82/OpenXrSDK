@@ -158,6 +158,14 @@ namespace XrEngine
 
         #region SCENE
 
+        public static T EnsureLayer<T>(this Scene3D scene) where T: ILayer3D, new() 
+        {
+            var layer = scene.Layers.OfType<T>().FirstOrDefault();
+            layer ??= scene.AddLayer<T>();
+            return layer;
+        }
+
+
         public static PerspectiveCamera PerspectiveCamera(this Scene3D scene)
         {
             return ((PerspectiveCamera)scene.ActiveCamera!);
@@ -170,8 +178,7 @@ namespace XrEngine
 
         public static T AddLayer<T>(this Scene3D scene, T layer) where T : ILayer3D
         {
-            scene.Layers.Add(layer);
-            return layer;
+            scene.Layers.Add(layer);            return layer;
         }
 
         public static IEnumerable<Object3D> ObjectsWithComponent<TComp>(this Scene3D scene) where TComp : IComponent
@@ -340,20 +347,26 @@ namespace XrEngine
             if (!useIndex)
             {
                 var result = new Vector3[geo.Vertices.Length];
-                var dstSpan = result.AsSpan();
-                var srcSpan = geo.Vertices.AsSpan();
-                for (var i = 0; i < dstSpan.Length; i++)
-                    dstSpan[i] = srcSpan[i].Pos;
+                var len = result.Length;    
+                fixed (Vector3* pDst = result)
+                fixed (VertexData* pSrc = geo.Vertices)
+                {
+                    for (var i = 0; i < len; i++)
+                        pDst[i] = pSrc[i].Pos;
+                }
                 return result;
             }
             else
             {
                 var result = new Vector3[geo.Indices.Length];
-                var dstSpan = result.AsSpan();
-                var srcSpan = geo.Vertices.AsSpan();
-                var srcIdx = geo.Indices.AsSpan();
-                for (var i = 0; i < srcIdx.Length; i++)
-                    dstSpan[i] = srcSpan[(int)srcIdx[i]].Pos;
+                var len = result.Length;
+                fixed (Vector3* pDst = result)
+                fixed (VertexData* pSrc = geo.Vertices)
+                fixed (uint* pIdx = geo.Indices)
+                {
+                    for (var i = 0; i < len; i++)
+                        pDst[i] = pSrc[(int)pIdx[i]].Pos;
+                }
                 return result;
             }
         }
@@ -498,7 +511,7 @@ namespace XrEngine
             normal = Vector3.Normalize(normal);
 
             // Project the tangent onto the normal
-            Vector3 proj = normal * Vector3.Dot(tangent, normal);
+            var proj = normal * Vector3.Dot(tangent, normal);
 
             // Subtract the projection from the tangent to make it orthogonal to the normal
             tangent -= proj;
@@ -514,91 +527,95 @@ namespace XrEngine
                 // If the tangent length is zero, set it to an arbitrary orthogonal vector
                 tangent = Vector3.Cross(normal, Vector3.UnitX);
                 if (tangent.LengthSquared() < 1e-6f)
-                {
                     tangent = Vector3.Cross(normal, Vector3.UnitY);
-                }
                 tangent = Vector3.Normalize(tangent);
             }
         }
 
-        public static void ComputeTangents(this Geometry3D geo)
+        public static unsafe void ComputeTangents(this Geometry3D geo)
         {
             int vertexCount = geo.Vertices.Length;
             int indexCount = geo.Indices.Length;
 
             // Arrays to accumulate the tangent and bitangent vectors
-            Vector3[] tan1 = new Vector3[vertexCount];
-            Vector3[] tan2 = new Vector3[vertexCount];
+            var tan1 = new Vector3[vertexCount];
+            var tan2 = new Vector3[vertexCount];
 
-            // Iterate over each triangle
-            for (int i = 0; i < indexCount; i += 3)
+            fixed (Vector3* pTan1 = tan1)
+            fixed (Vector3* pTan2 = tan2)
+            fixed (uint* pIndex = geo.Indices)
+            fixed (VertexData* pVertex = geo.Vertices)
             {
-                uint i1 = geo.Indices[i];
-                uint i2 = geo.Indices[i + 1];
-                uint i3 = geo.Indices[i + 2];
+                // Iterate over each triangle
+                for (int i = 0; i < indexCount; i += 3)
+                {
+                    uint i1 = pIndex[i];
+                    uint i2 = pIndex[i + 1];
+                    uint i3 = pIndex[i + 2];
 
-                Vector3 v1 = geo.Vertices[i1].Pos;
-                Vector3 v2 = geo.Vertices[i2].Pos;
-                Vector3 v3 = geo.Vertices[i3].Pos;
+                    Vector3 v1 = pVertex[i1].Pos;
+                    Vector3 v2 = pVertex[i2].Pos;
+                    Vector3 v3 = pVertex[i3].Pos;
 
-                Vector2 w1 = geo.Vertices[i1].UV;
-                Vector2 w2 = geo.Vertices[i2].UV;
-                Vector2 w3 = geo.Vertices[i3].UV;
+                    Vector2 w1 = pVertex[i1].UV;
+                    Vector2 w2 = pVertex[i2].UV;
+                    Vector2 w3 = pVertex[i3].UV;
 
-                float x1 = v2.X - v1.X;
-                float y1 = v2.Y - v1.Y;
-                float z1 = v2.Z - v1.Z;
+                    float x1 = v2.X - v1.X;
+                    float y1 = v2.Y - v1.Y;
+                    float z1 = v2.Z - v1.Z;
 
-                float x2 = v3.X - v1.X;
-                float y2 = v3.Y - v1.Y;
-                float z2 = v3.Z - v1.Z;
+                    float x2 = v3.X - v1.X;
+                    float y2 = v3.Y - v1.Y;
+                    float z2 = v3.Z - v1.Z;
 
-                float s1 = w2.X - w1.X;
-                float t1 = w2.Y - w1.Y;
+                    float s1 = w2.X - w1.X;
+                    float t1 = w2.Y - w1.Y;
 
-                float s2 = w3.X - w1.X;
-                float t2 = w3.Y - w1.Y;
+                    float s2 = w3.X - w1.X;
+                    float t2 = w3.Y - w1.Y;
 
-                float r = (s1 * t2 - s2 * t1);
-                float f = r == 0.0f ? 0.0f : 1.0f / r;
+                    float r = (s1 * t2 - s2 * t1);
+                    float f = r == 0.0f ? 0.0f : 1.0f / r;
 
-                Vector3 sdir = new Vector3(
-                    (t2 * x1 - t1 * x2) * f,
-                    (t2 * y1 - t1 * y2) * f,
-                    (t2 * z1 - t1 * z2) * f
-                );
+                    Vector3 sdir = new Vector3(
+                        (t2 * x1 - t1 * x2) * f,
+                        (t2 * y1 - t1 * y2) * f,
+                        (t2 * z1 - t1 * z2) * f
+                    );
 
-                Vector3 tdir = new Vector3(
-                    (s1 * x2 - s2 * x1) * f,
-                    (s1 * y2 - s2 * y1) * f,
-                    (s1 * z2 - s2 * z1) * f
-                );
+                    Vector3 tdir = new Vector3(
+                        (s1 * x2 - s2 * x1) * f,
+                        (s1 * y2 - s2 * y1) * f,
+                        (s1 * z2 - s2 * z1) * f
+                    );
 
-                // Accumulate the tangent and bitangent vectors
-                tan1[i1] += sdir;
-                tan1[i2] += sdir;
-                tan1[i3] += sdir;
+                    // Accumulate the tangent and bitangent vectors
+                    pTan1[i1] += sdir;
+                    pTan1[i2] += sdir;
+                    pTan1[i3] += sdir;
 
-                tan2[i1] += tdir;
-                tan2[i2] += tdir;
-                tan2[i3] += tdir;
-            }
+                    pTan2[i1] += tdir;
+                    pTan2[i2] += tdir;
+                    pTan2[i3] += tdir;
+                }
 
-            // Orthogonalize and normalize the tangent vectors
-            for (int i = 0; i < vertexCount; ++i)
-            {
-                Vector3 n = geo.Vertices[i].Normal;
-                Vector3 t = tan1[i];
+                // Orthogonalize and normalize the tangent vectors
+                for (int i = 0; i < vertexCount; ++i)
+                {
+                    var n = pVertex[i].Normal;
+                    var t = pTan1[i];
 
-                // Gram-Schmidt orthogonalization
-                OrthoNormalize(ref n, ref t);
+                    // Gram-Schmidt orthogonalization
+                    OrthoNormalize(ref n, ref t);
 
-                // Calculate the handedness (w component)
-                Vector3 c = Vector3.Cross(n, t);
-                float w = (Vector3.Dot(c, tan2[i]) < 0.0f) ? -1.0f : 1.0f;
+                    // Calculate the handedness (w component)
+                    Vector3 c = Vector3.Cross(n, t);
+                    float w = (Vector3.Dot(c, pTan2[i]) < 0.0f) ? -1.0f : 1.0f;
 
-                // Set the tangent with the calculated w component
-                geo.Vertices[i].Tangent = new Vector4(t.X, t.Y, t.Z, w);
+                    // Set the tangent with the calculated w component
+                    pVertex[i].Tangent = new Vector4(t.X, t.Y, t.Z, w);
+                }
             }
 
             geo.ActiveComponents |= VertexComponent.Tangent;
@@ -722,17 +739,36 @@ namespace XrEngine
 
         public static Vector3[] FrustumPoints(this Camera camera)
         {
-            var viewProjInv = camera.ViewProjectionInverse;
+            var viewProjInvLeft = camera.ViewProjectionInverse;
 
-            Vector3[] corners = new Vector3[8];
+            var isStereo = camera.Eyes != null && camera.Eyes.Length > 1;
 
-            corners[0] = new Vector3(-1, -1, 0).Project(viewProjInv);
-            corners[1] = new Vector3(1, -1, 0).Project(viewProjInv);
-            corners[2] = new Vector3(-1, 1, 0).Project(viewProjInv);
-            corners[3] = new Vector3(1, 1, 0).Project(viewProjInv);
-            corners[4] = new Vector3(-1, -1, 1).Project(viewProjInv);
-            corners[6] = new Vector3(-1, 1, 1).Project(viewProjInv);
-            corners[7] = new Vector3(1, 1, 1).Project(viewProjInv);
+            Vector3[] corners = new Vector3[isStereo ? 16 : 8];
+
+            corners[0] = new Vector3(-1, -1, 0).Project(viewProjInvLeft);
+            corners[1] = new Vector3(1, -1, 0).Project(viewProjInvLeft);
+            corners[2] = new Vector3(-1, 1, 0).Project(viewProjInvLeft);
+            corners[3] = new Vector3(1, 1, 0).Project(viewProjInvLeft);
+
+            corners[4] = new Vector3(-1, -1, 1).Project(viewProjInvLeft);
+            corners[5] = new Vector3(1, -1, 1).Project(viewProjInvLeft);
+            corners[6] = new Vector3(-1, 1, 1).Project(viewProjInvLeft);
+            corners[7] = new Vector3(1, 1, 1).Project(viewProjInvLeft);
+
+            if (isStereo)
+            {
+                Matrix4x4.Invert(camera.Eyes![1].ViewProj, out var viewProjInvRight);
+
+                corners[8] = new Vector3(-1, -1, 0).Project(viewProjInvRight);
+                corners[9] = new Vector3(1, -1, 0).Project(viewProjInvRight);
+                corners[10] = new Vector3(-1, 1, 0).Project(viewProjInvRight);
+                corners[11] = new Vector3(1, 1, 0).Project(viewProjInvRight);
+
+                corners[12] = new Vector3(-1, -1, 1).Project(viewProjInvRight);
+                corners[13] = new Vector3(1, -1, 1).Project(viewProjInvRight);
+                corners[14] = new Vector3(-1, 1, 1).Project(viewProjInvRight);
+                corners[15] = new Vector3(1, 1, 1).Project(viewProjInvRight);
+            }
 
             return corners;
 
@@ -740,63 +776,65 @@ namespace XrEngine
 
         public static IList<Plane> FrustumPlanes(this Camera camera)
         {
-            var viewProjectionMatrix = camera.ViewProjection;
+            var viewProjLeft = camera.ViewProjection;
+            var viewProjRight = viewProjLeft;
+
+            if (camera.Eyes != null && camera.Eyes.Length > 1)
+                viewProjRight = camera.Eyes[1].ViewProj;
 
             var planes = new Plane[6];
 
             // Left plane
             planes[0] = new Plane(
-                viewProjectionMatrix.M14 + viewProjectionMatrix.M11,
-                viewProjectionMatrix.M24 + viewProjectionMatrix.M21,
-                viewProjectionMatrix.M34 + viewProjectionMatrix.M31,
-                viewProjectionMatrix.M44 + viewProjectionMatrix.M41
+                viewProjLeft.M14 + viewProjLeft.M11,
+                viewProjLeft.M24 + viewProjLeft.M21,
+                viewProjLeft.M34 + viewProjLeft.M31,
+                viewProjLeft.M44 + viewProjLeft.M41
             );
 
             // Right plane
             planes[1] = new Plane(
-                viewProjectionMatrix.M14 - viewProjectionMatrix.M11,
-                viewProjectionMatrix.M24 - viewProjectionMatrix.M21,
-                viewProjectionMatrix.M34 - viewProjectionMatrix.M31,
-                viewProjectionMatrix.M44 - viewProjectionMatrix.M41
+                viewProjRight.M14 - viewProjRight.M11,
+                viewProjRight.M24 - viewProjRight.M21,
+                viewProjRight.M34 - viewProjRight.M31,
+                viewProjRight.M44 - viewProjRight.M41
             );
 
             // Top plane
             planes[2] = new Plane(
-                viewProjectionMatrix.M14 - viewProjectionMatrix.M12,
-                viewProjectionMatrix.M24 - viewProjectionMatrix.M22,
-                viewProjectionMatrix.M34 - viewProjectionMatrix.M32,
-                viewProjectionMatrix.M44 - viewProjectionMatrix.M42
+                viewProjLeft.M14 - viewProjLeft.M12,
+                viewProjLeft.M24 - viewProjLeft.M22,
+                viewProjLeft.M34 - viewProjLeft.M32,
+                viewProjLeft.M44 - viewProjLeft.M42
             );
 
             // Bottom plane
             planes[3] = new Plane(
-                viewProjectionMatrix.M14 + viewProjectionMatrix.M12,
-                viewProjectionMatrix.M24 + viewProjectionMatrix.M22,
-                viewProjectionMatrix.M34 + viewProjectionMatrix.M32,
-                viewProjectionMatrix.M44 + viewProjectionMatrix.M42
+                viewProjLeft.M14 + viewProjLeft.M12,
+                viewProjLeft.M24 + viewProjLeft.M22,
+                viewProjLeft.M34 + viewProjLeft.M32,
+                viewProjLeft.M44 + viewProjLeft.M42
             );
 
             // Near plane
             planes[4] = new Plane(
-                viewProjectionMatrix.M13,
-                viewProjectionMatrix.M23,
-                viewProjectionMatrix.M33,
-                viewProjectionMatrix.M43
+                viewProjLeft.M13,
+                viewProjLeft.M23,
+                viewProjLeft.M33,
+                viewProjLeft.M43
             );
 
             // Far plane
             planes[5] = new Plane(
-                viewProjectionMatrix.M14 - viewProjectionMatrix.M13,
-                viewProjectionMatrix.M24 - viewProjectionMatrix.M23,
-                viewProjectionMatrix.M34 - viewProjectionMatrix.M33,
-                viewProjectionMatrix.M44 - viewProjectionMatrix.M43
+                viewProjLeft.M14 - viewProjLeft.M13,
+                viewProjLeft.M24 - viewProjLeft.M23,
+                viewProjLeft.M34 - viewProjLeft.M33,
+                viewProjLeft.M44 - viewProjLeft.M43
             );
 
-            // Normalize the planes
             for (int i = 0; i < 6; i++)
-            {
                 planes[i] = Plane.Normalize(planes[i]);
-            }
+
             return planes;
         }
 

@@ -1,5 +1,5 @@
 
-precision mediump imageCube;
+precision highp imageCube;
 
 // Physically Based Rendering
 // Copyright (c) 2017-2018 Michał Siejak

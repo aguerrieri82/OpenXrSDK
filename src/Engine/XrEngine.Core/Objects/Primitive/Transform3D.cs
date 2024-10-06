@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -84,6 +85,8 @@ namespace XrEngine
 
             set
             {
+                if (value.W == 0)
+                    value.W = 1;
                 _orientation = Quaternion.Normalize(value);
                 _rotation = _orientation.ToEuler();
                 NotifyChanged();
@@ -125,6 +128,15 @@ namespace XrEngine
         public void SetMatrix(Matrix4x4 matrix)
         {
             Matrix4x4.Decompose(matrix, out _scale, out _orientation, out _position);
+
+            /*
+            if (float.IsNaN(_position.X) || float.IsNaN(_position.Y) || float.IsNaN(_position.Z))
+                Debugger.Break();
+            if (float.IsNaN(_scale.X) || float.IsNaN(_scale.Y) || float.IsNaN(_scale.Z))
+                Debugger.Break();
+            if (float.IsNaN(_orientation.X) || float.IsNaN(_orientation.Y) || float.IsNaN(_orientation.Z) || float.IsNaN(_orientation.W))
+                Debugger.Break();
+            */
 
             _rotation = _orientation.ToEuler();
             _matrix = matrix;

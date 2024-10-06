@@ -647,13 +647,13 @@ namespace XrEngine.Filament
 
                 render[0].Camera.Eye1 = new CameraEyesInfo
                 {
-                    RelTransform = persp.Eyes[0].Transform,
+                    RelTransform = persp.Eyes[0].World,
                     Projection = persp.Eyes[0].Projection
                 };
 
                 render[0].Camera.Eye2 = new CameraEyesInfo
                 {
-                    RelTransform = persp.Eyes[1].Transform,
+                    RelTransform = persp.Eyes[1].World,
                     Projection = persp.Eyes[1].Projection
                 };
             }

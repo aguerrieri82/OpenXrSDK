@@ -55,6 +55,15 @@
 
         }
 
+        public override void Dispose()
+        {
+            LeftTexture?.Dispose();
+            RightTexture?.Dispose();    
+            LeftTexture = null;
+            RightTexture = null;    
+            base.Dispose();
+        }
+
         public Texture2D? LeftTexture { get; set; }
 
         public Texture2D? RightTexture { get; set; }

@@ -36,7 +36,7 @@ namespace XrEngine.OpenGL
             ShadowMap = new ShadowMapOptions()
             {
                 Mode = ShadowMapMode.HardSmooth,
-                Size = 2048,
+                Size = 2048 * 2,
             };
 
             Outline = new GlOutlineOptions()

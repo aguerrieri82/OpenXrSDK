@@ -15,15 +15,15 @@ namespace XrEngine.OpenGL
             UseOcclusion = true;
         }
 
-        protected override bool BeginRender()
+        protected override bool BeginRender(Camera camera)
         {
-            _renderer.RenderTarget!.Begin();
+            _renderer.RenderTarget!.Begin(camera);
             _renderer.State.SetView(_renderer.RenderView);
 
             _renderer.State.SetWriteDepth(true);
             _renderer.GL.Clear(ClearBufferMask.DepthBufferBit);
             _renderer.GL.DepthFunc(DepthFunction.Less);
-            return base.BeginRender();
+            return base.BeginRender(camera);
 
         }
 

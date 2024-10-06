@@ -30,7 +30,7 @@ namespace XrEngine.Browser.Win
 
                     await _browser.CreateAsync(_source);
 
-                    _browser.ShowDevTools();
+                    //_browser.ShowDevTools();
                     _isInit = true;
                     Log.Info(this, "Browser ready");
                 });

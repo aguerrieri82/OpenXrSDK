@@ -31,12 +31,9 @@ namespace XrEngine
             return true;
         }
 
-        public override void NotifyChanged(Object3D obj, ObjectChange change)
+        protected override void NotifyChangedWork(Object3D obj, ObjectChange change)
         {
-            if (!IsEnabled)
-                return;
 
-            
             if (obj is T tObj && AffectChange(change))
             {
                 if (change.IsAny(ObjectChangeType.SceneRemove) || !BelongsToLayer(tObj))
@@ -44,8 +41,6 @@ namespace XrEngine
                 else
                     Add(tObj);
             }
-
-            base.NotifyChanged(obj, change);
         }
 
         protected bool Contains(T obj)

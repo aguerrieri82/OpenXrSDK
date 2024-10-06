@@ -16,9 +16,10 @@ namespace XrEngine.OpenGL
             WriteDepth = true;
         }
 
-        protected override bool BeginRender()
+        protected override bool BeginRender(Camera camera)
         {
-            _renderer.RenderTarget!.Begin();
+
+            _renderer.RenderTarget!.Begin(camera);
             _renderer.State.SetView(_renderer.RenderView);
 
             if (_renderer.Options.UseDepthPass)

@@ -23,8 +23,7 @@
             foreach (var obj in layer.Content)
                 NotifyObjectAdded(layer, obj);
 
-            foreach (var obj in _scene!.Descendants<Object3D>())
-                layer.NotifyChanged(obj, ObjectChangeType.SceneAdd);
+            layer.NotifyChanged(_scene, ObjectChangeType.SceneAdd);
 
             _version++;
 

@@ -25,7 +25,7 @@ namespace XrEngine.OpenGL
             draw.Draw!();
         }
 
-        protected override bool BeginRender()
+        protected override bool BeginRender(Camera camera)
         {
             UseProgram(_programInstance!, false);
             return true;

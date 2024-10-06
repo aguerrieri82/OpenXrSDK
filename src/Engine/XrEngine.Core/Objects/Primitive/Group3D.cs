@@ -13,6 +13,15 @@ namespace XrEngine
             BoundUpdateMode = UpdateMode.Manual;
         }
 
+        public override void Dispose()
+        {
+            for (var i = _children.Count - 1; i >= 0; i--)
+                _children[i].Dispose();
+
+            base.Dispose();
+        }
+
+
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
@@ -96,13 +105,11 @@ namespace XrEngine
             if (!_boundsDirty && !force)
                 return;
 
-            var bounds = new Bounds3();
+            var builder = new BoundsBuilder();
 
             if (_children.Count > 0)
             {
-                bounds.Min = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
-                bounds.Max = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-
+      
                 foreach (var child in _children)
                 {
                     var childLocal = child.Feature<ILocalBounds>();
@@ -111,14 +118,13 @@ namespace XrEngine
                     {
                         var childLocalBounds = childLocal.LocalBounds.Transform(child.Transform.Matrix);
 
-                        bounds.Min = Vector3.Min(childLocalBounds.Min, bounds.Min);
-                        bounds.Max = Vector3.Max(childLocalBounds.Max, bounds.Max);
+                        builder.Add(childLocalBounds);  
                     }
                 }
             }
 
-            _localBounds = bounds;
-            _worldBounds = bounds.Transform(WorldMatrix);
+            _localBounds = builder.Result;
+            _worldBounds = _localBounds.Transform(WorldMatrix);
 
             base.UpdateBounds();
         }

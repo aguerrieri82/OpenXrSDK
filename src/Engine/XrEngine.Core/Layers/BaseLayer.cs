@@ -25,16 +25,26 @@
             _manager = null;
         }
 
-        public virtual void NotifyChanged(Object3D object3D, ObjectChange change)
+        public void NotifyChanged(Object3D object3D, ObjectChange change)
         {
+            if (!IsEnabled)
+                return;
+
             if (object3D is Group3D group && change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.SceneRemove))
             {
-                foreach (var child in group.Descendants().OfType<T>())
+                foreach (var child in group.DescendantsOrSelf().OfType<T>())
                 {
                     if (child is Object3D child3D)
-                        NotifyChanged(child3D, change.Type);
+                        NotifyChangedWork(child3D, change.Type);
                 }
             }
+            else
+                NotifyChangedWork(object3D, change);
+        }
+
+        protected virtual void NotifyChangedWork(Object3D object3D, ObjectChange change)
+        {
+
         }
 
         protected virtual void OnEnabledChanged()

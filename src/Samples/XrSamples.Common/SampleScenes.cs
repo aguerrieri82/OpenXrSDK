@@ -125,7 +125,7 @@ namespace XrSamples
         public static XrEngineAppBuilder UseDefaultHDR(this XrEngineAppBuilder builder)
         {
             if (DefaultHDR == null)
-                DefaultHDR = "res://asset/Envs/footprint_court.hdr";
+                DefaultHDR = "res://asset/Envs/CameraEnv.jpg";
             return builder.UseEnvironmentHDR(DefaultHDR, DefaultShowHDR);
         }
 
@@ -181,15 +181,14 @@ namespace XrSamples
                 });
         }
 
-        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder, bool showDepth)
+        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder, float size = 4, bool showDepth = false)
         {
-            var floor = new TriangleMesh(new Cube3D(new Vector3(10, 0.01f, 10)));
+            var floor = new TriangleMesh(new Cube3D(new Vector3(size, 0.01f, size)));
             floor.Name = "Floor";
             floor.Materials.Add(new ShadowOnlyMaterial
             {
                 Name = "FloorMaterial",
             });
-
 
             floor.Transform.SetPositionY(-0.01f / 2.0f);
 
@@ -793,7 +792,7 @@ namespace XrSamples
                 .UseApp(app)
                 //.UseSceneModel(false, false)
                 .UseDefaultHDR()
-                .AddFloorShadow(true)
+                .AddFloorShadow(4, true)
                 .UsePhysics(new PhysicsOptions())
                 .ConfigureSampleApp();
         }

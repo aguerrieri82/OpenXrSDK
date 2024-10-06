@@ -20,7 +20,7 @@
             return _renderer.Layers.Where(a => a.Type != GlLayerType.CastShadow);
         }
 
-        public virtual void Render()
+        public virtual void Render(Camera camera)
         {
             if (!IsEnabled)
                 return;
@@ -31,7 +31,7 @@
                 _isInit = true;
             }
 
-            if (!BeginRender())
+            if (!BeginRender(camera))
                 return;
 
             foreach (var layer in SelectLayers())
@@ -40,7 +40,7 @@
             EndRender();
         }
 
-        protected virtual bool BeginRender()
+        protected virtual bool BeginRender(Camera camera)
         {
             return true;
         }

@@ -46,7 +46,7 @@ namespace XrEngine.OpenGL
             _gl = gl;
         }
 
-        public void Begin()
+        public void Begin(Camera camera)
         {
             _renderFrameBuffer.Bind();
         }

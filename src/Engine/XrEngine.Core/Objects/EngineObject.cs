@@ -9,7 +9,8 @@
         Readonly = 0x4,
         EnableDebug = 0x8,
         DisableNotifyChangedScene = 0x10,
-        NotifyChangedScene = 0x20
+        NotifyChangedScene = 0x20,
+        GpuOnly = 0x40
     }
 
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject
