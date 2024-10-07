@@ -32,7 +32,6 @@ namespace XrEngine
             {
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-                up.SetUniform("uColor", Color.Transparent);
             });
         }
     }

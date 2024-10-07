@@ -72,6 +72,7 @@ namespace XrEngine.OpenGL
             _depth = (uint)depth;
 
 
+
             //NOTE: sometimes in level 0 sometimes 1, to investigate
             for (var level = 0; level < 2; level++)
             {
@@ -100,6 +101,9 @@ namespace XrEngine.OpenGL
 
                 _gl.GetTexParameter(Target, GetTextureParameter.TextureMagFilter, out int mag);
                 MagFilter = (TextureMagFilter)mag;
+
+                _gl.GetTexParameter(Target, (GLEnum)TextureParameterName.TextureMaxAnisotropy, out float asin);
+                MaxAnisotropy = asin;
 
                 var color = new float[4];
                 _gl.GetTexParameter(Target, GetTextureParameter.TextureBorderColor, color);
@@ -526,6 +530,7 @@ namespace XrEngine.OpenGL
                 _gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)MinFilter);
                 _gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
                 _gl.TexParameter(Target, TextureParameterName.TextureBorderColor, BorderColor.ToArray());
+                _gl.TexParameter(Target, TextureParameterName.TextureMaxAnisotropy, MaxAnisotropy);
             }
 
             if (!IsDepth)
@@ -582,6 +587,8 @@ namespace XrEngine.OpenGL
         public uint BaseLevel { get; set; }
 
         public uint MaxLevel { get; set; }
+
+        public float MaxAnisotropy { get; set; } 
 
         public int Slot { get; set; }
 

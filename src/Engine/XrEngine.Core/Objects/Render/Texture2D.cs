@@ -122,6 +122,8 @@ namespace XrEngine
 
         public uint Height { get; set; }
 
+        public float MaxAnisotropy { get; set; }
+
         public WrapMode WrapT { get; set; }
 
         public TextureType Type { get; set; }

@@ -12,8 +12,10 @@ namespace XrEngine.OpenGL
 {
     public class GlShadowPass : GlBaseSingleMaterialPass
     {
+
         private GlTextureFrameBuffer? _frameBuffer;
         private readonly Texture2D _depthTexture;
+        private readonly Texture2D _depthTextureCopy;
         private string _allLightsHash = "";
         private DirectionalLight? _light;
         private Camera? _oldCamera;
@@ -45,6 +47,21 @@ namespace XrEngine.OpenGL
                 MagFilter = ScaleFilter.Nearest,
                 MipLevelCount = 1
             };
+
+
+            _depthTextureCopy = new Texture2D
+            {
+                BorderColor = Color.White,
+                WrapT = WrapMode.ClampToBorder,
+                WrapS = WrapMode.ClampToBorder,
+                Width = _renderer.Options.ShadowMap.Size,
+                Height = _renderer.Options.ShadowMap.Size,
+                Format = TextureFormat.RFloat32,
+                MinFilter = ScaleFilter.Linear,
+                MagFilter = ScaleFilter.Linear,
+                MaxAnisotropy = 4,
+                MipLevelCount = 1
+            };
         }
 
         protected override IGlRenderTarget? GetRenderTarget()
@@ -54,17 +71,18 @@ namespace XrEngine.OpenGL
 
         protected override void Initialize()
         {
-            var glTex = _depthTexture.ToGlTexture();
+            var glDeptTex = _depthTexture.ToGlTexture();
+            var glColorTex = _depthTextureCopy.ToGlTexture();
 
             _frameBuffer = new GlTextureFrameBuffer(_renderer.GL);
-            _frameBuffer.Configure(null, glTex, 1);
+            _frameBuffer.Configure(glColorTex, glDeptTex, 1);
 
             if (UseShadowSampler)
             {
-                glTex.Bind();
+                glDeptTex.Bind();
                 _renderer.GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
                 _renderer.GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
-                glTex.Unbind();
+                glDeptTex.Unbind();
             }
 
             base.Initialize();
@@ -72,7 +90,7 @@ namespace XrEngine.OpenGL
 
         protected override ShaderMaterial CreateMaterial()
         {
-            return new DepthOnlyMaterial();
+            return new DepthCopyMaterial();
         }
 
         protected override IEnumerable<GlLayer> SelectLayers()
@@ -136,11 +154,13 @@ namespace XrEngine.OpenGL
             _frameBuffer!.Bind();
 
             _renderer.State.SetWriteDepth(true);
+            _renderer.State.SetWriteColor(true);
             _renderer.State.SetClearDepth(1.0f);
             _renderer.State.SetView(new Rect2I(0, 0, _depthTexture!.Width, _depthTexture.Height));
             _renderer.State.SetCullFace(TriangleFace.Front);
+            _renderer.State.SetClearColor(Color.White); 
 
-            _renderer.GL.Clear((uint)ClearBufferMask.DepthBufferBit);
+            _renderer.GL.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
             _lightCamera.CreateViewFromDirection(_light!.Direction, Vector3.UnitY);
 
@@ -168,6 +188,7 @@ namespace XrEngine.OpenGL
             _renderer.UpdateContext.Camera = _oldCamera;
             _renderer.State.SetCullFace(TriangleFace.Back);
 
+            _frameBuffer!.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
             _frameBuffer!.Unbind();
 
             base.EndRender();
@@ -175,7 +196,7 @@ namespace XrEngine.OpenGL
 
         public DirectionalLight? Light => _light;
 
-        public Texture2D? DepthTexture => _depthTexture;
+        public Texture2D? DepthTexture => _depthTextureCopy;
 
         public Camera LightCamera => _lightCamera;
 

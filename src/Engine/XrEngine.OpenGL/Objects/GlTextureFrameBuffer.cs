@@ -221,10 +221,16 @@ namespace XrEngine.OpenGL
             return data;
         }
 
+        public void Invalidate(params InvalidateFramebufferAttachment[] attachments)
+        {
+            _gl.InvalidateFramebuffer(Target, attachments.AsSpan());
+        }
+
         protected void Create()
         {
             _handle = _gl.GenFramebuffer();
         }
+
 
         public void CopyTo(GlTextureFrameBuffer dest, ClearBufferMask mask = ClearBufferMask.ColorBufferBit)
         {
