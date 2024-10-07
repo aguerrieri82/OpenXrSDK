@@ -6,6 +6,13 @@ namespace XrEngine.UI.Web
 {
     public class WebBrowserBridge
     {
+        class CallRequest
+        {
+            public Type? ResultType { get; set; }
+
+            public TaskCompletionSource<object?>? CompletionSource { get; set; }
+        }
+
         class MappedMethod
         {
             public MethodInfo? Info { get; set; }
@@ -13,17 +20,22 @@ namespace XrEngine.UI.Web
             public object? Instance { get; set; }
         }
 
-        class ResponseMessage
+        class SendMessage
         {
             public string? Type { get; set; }
 
             public string? ReqId { get; set; }
 
             public object? Result { get; set; }
+
+            public string? Method { get; set; } 
+
+            public object?[]? Args { get; set; } 
         }
 
         readonly IWebBrowser _webBrowser;
         readonly Dictionary<string, MappedMethod> _methods;
+        readonly Dictionary<string, CallRequest> _callRequests = [];
 
         static readonly JsonSerializerOptions _jsonOptions = new()
         {
@@ -38,6 +50,31 @@ namespace XrEngine.UI.Web
             _methods = [];
         }
 
+        public async Task<T> CallAsync<T>(string method, params object?[] args)
+        {
+            var msg = new SendMessage
+            {
+                Type = "call",
+                Args = args,
+                Method = method,
+                ReqId = Guid.NewGuid().ToString(),
+            };
+
+            var cs = new TaskCompletionSource<object?>();       
+
+            _callRequests[msg.ReqId] = new CallRequest
+            {
+                CompletionSource = cs,
+                ResultType = typeof(T)    
+            };  
+
+            await _webBrowser.PostMessageAsync(JsonSerializer.Serialize(msg, _jsonOptions));
+
+            var result = await cs.Task;
+
+            return (T)result!;  
+        }
+
         private async void OnMessageReceived(object? sender, MessageReceivedArgs e)
         {
             var jObj = JsonNode.Parse(e.Message)!;
@@ -46,7 +83,7 @@ namespace XrEngine.UI.Web
 
             if (type == "call")
             {
-                var msg = new ResponseMessage();
+                var msg = new SendMessage();
 
                 try
                 {
@@ -99,6 +136,32 @@ namespace XrEngine.UI.Web
                 }
 
                 await _webBrowser.PostMessageAsync(JsonSerializer.Serialize(msg, _jsonOptions));
+            }
+            else if (type == "response")
+            {
+                var reqId = (string)jObj["reqId"]!;
+                
+                var callRequest = _callRequests[reqId];
+
+                _callRequests.Remove(reqId);
+
+                var result = jObj["result"].Deserialize(callRequest.ResultType!, _jsonOptions);  
+
+                callRequest.CompletionSource!.SetResult(result); 
+            }
+
+            else if (type == "error")
+            {
+                var reqId = (string)jObj["reqId"]!;
+
+                var callRequest = _callRequests[reqId];
+
+                _callRequests.Remove(reqId);
+
+                var msg = (string?)jObj["result"];
+
+                callRequest.CompletionSource!.SetException(new InvalidOperationException(msg)); 
+
             }
         }
 

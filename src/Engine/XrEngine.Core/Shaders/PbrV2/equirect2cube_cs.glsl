@@ -40,6 +40,7 @@ void main(void)
 
 	// Convert Cartesian direction vector to spherical coordinates.
 	float phi   = atan(v.x, v.z);
+    
 	float theta = acos(v.y);
 
 	// Sample equirectangular texture.

@@ -27,8 +27,7 @@ namespace XrEngine.OpenGL
             if (finalPass && _frameBuffer.Depth != null)
             {
                 _frameBuffer.Bind();
-                var attach = new InvalidateFramebufferAttachment[] { InvalidateFramebufferAttachment.DepthStencilAttachment };
-                _gl.InvalidateFramebuffer(_frameBuffer.Target, attach.AsSpan());
+                _frameBuffer.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
             }
             _frameBuffer.Unbind();
         }

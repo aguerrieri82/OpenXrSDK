@@ -1,4 +1,4 @@
-﻿layout(location = 1) out float outDepth;
+﻿layout(location = 0) out float outDepth;
 
 void main()
 {    
