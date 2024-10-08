@@ -30,18 +30,11 @@ namespace XrEngine.Objects
         {
             var mode = bld.Context.ShadowMapProvider!.Options.Mode;
 
-            bld.AddFeature("USE_SHADOW_MAP");
-
-            if (mode == ShadowMapMode.HardSmooth)
-                bld.AddFeature("SMOOTH_SHADOW_MAP");
-
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uShadowColor", ShadowColor);
-                up.SetUniform("uShadowMap", ctx.ShadowMapProvider!.ShadowMap!, 14);
-                up.SetUniform("uLightSpaceMatrix", ctx.ShadowMapProvider!.LightCamera!.ViewProjection);
             });
         }
 

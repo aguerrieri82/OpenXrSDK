@@ -65,6 +65,8 @@ namespace XrEngine
              ];
 
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal | VertexComponent.UV0;
+
+            this.ComputeTangents();
         }
 
         public Vector3 Size { get; set; }

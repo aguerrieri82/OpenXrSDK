@@ -1,6 +1,5 @@
-﻿
+﻿in vec2 inUV;
 
-in vec2 inUV;
 out vec4 FragColor;
 
 uniform float uSize;

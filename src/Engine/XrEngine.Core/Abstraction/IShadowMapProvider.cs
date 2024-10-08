@@ -4,7 +4,8 @@
     {
         None,
         Hard,
-        HardSmooth,
+        PCF,
+        VSM 
     }
 
     public class ShadowMapOptions

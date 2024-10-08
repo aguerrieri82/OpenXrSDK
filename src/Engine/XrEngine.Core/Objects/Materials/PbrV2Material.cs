@@ -163,9 +163,7 @@ namespace XrEngine
                     if (mode != ShadowMapMode.None)
                     {
                         bld.AddFeature("USE_SHADOW_MAP");
-
-                        if (mode == ShadowMapMode.HardSmooth)
-                            bld.AddFeature("SMOOTH_SHADOW_MAP");
+                        bld.AddFeature("SHADOW_MAP_MODE " + (int)mode);
 
                         bld.ExecuteAction((ctx, up) =>
                         {

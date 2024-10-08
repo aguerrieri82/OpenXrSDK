@@ -21,7 +21,6 @@ namespace XrEngine
             : base()
         {
             _shader = SHADER;
-            Scale = new Vector2(1, 1);
         }
 
         public TextureMaterial(Texture2D texture)
@@ -55,8 +54,12 @@ namespace XrEngine
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uTexture", Texture!, 0);
-                up.SetUniform("uOffset", Offset);
-                up.SetUniform("uScale", Scale);
+
+                if (Texture?.Transform != null)
+                {
+                    bld.AddFeature("UV_TRANSFORM");
+                    up.SetUniform("uUvTransform", Texture.Transform.Value);
+                }
             });
         }
 
@@ -69,8 +72,6 @@ namespace XrEngine
 
         public Texture2D? Texture { get; set; }
 
-        public Vector2 Offset { get; set; }
 
-        public Vector2 Scale { get; set; }
     }
 }

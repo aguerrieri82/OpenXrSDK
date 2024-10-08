@@ -3,41 +3,60 @@ using Silk.NET.OpenXR;
 
 namespace XrEngine.OpenXr.Components
 {
-    [Obsolete("Schedule anchor updates")]
+
     public class XrAnchorUpdate : Behavior<Object3D>
     {
-        double _lastUpdateTime;
+        protected bool _isInit;
 
         protected override void Start(RenderContext ctx)
         {
+            OnEnabled();
             base.Start(ctx);
+        }
+
+        protected override void OnDisabled()
+        {
+            var xrApp = XrApp.Current;
+            xrApp?.SpacesTracker.Remove(Space);
+            _isInit = false;    
+
+            base.OnDisabled();
+        }
+
+        protected override void OnEnabled()
+        {
+            var xrApp = XrApp.Current;
+
+            base.OnEnabled();
         }
 
         protected override void Update(RenderContext ctx)
         {
             var xrApp = XrApp.Current;
-
-            if (xrApp == null || !xrApp.IsStarted)
+            
+            if (xrApp == null)
                 return;
 
-            if (ctx.Time - _lastUpdateTime < UpdateInterval.TotalSeconds)
-                return;
-
-            var loc = xrApp.LocateSpace(Space, xrApp.Stage, xrApp.FramePredictedDisplayTime);
-            if (loc.IsValid)
+            if (!_isInit)
             {
-                if (LogChanges)
-                {
-                    var deltaPos = (loc.Pose.Position - _host!.WorldPosition).Length();
-                    var deltaOri = (loc.Pose.Orientation - _host!.WorldOrientation).Length();
-                    if (deltaPos > 0.005 || deltaOri > 0.005)
-                        Log.Debug(this, $"{_host.Name} DP: {deltaPos} - DO: {deltaOri}");
-                }
-                _host?.SetGlobalPoseIfChanged(loc.Pose, 0.005f);
+                xrApp.SpacesTracker.Add(Space, UpdateInterval);
+                _isInit = true; 
             }
 
+            var loc = xrApp?.SpacesTracker.GetLastLocation(Space);
 
-            _lastUpdateTime = ctx.Time;
+            if (loc == null || !loc.IsValid)
+                return;
+            
+            _host?.SetGlobalPoseIfChanged(loc.Pose, 0.005f);
+
+            if (LogChanges)
+            {
+                var deltaPos = (loc.Pose.Position - _host!.WorldPosition).Length();
+                var deltaOri = (loc.Pose.Orientation - _host!.WorldOrientation).Length();
+                if (deltaPos > 0.005 || deltaOri > 0.005)
+                    Log.Debug(this, $"{_host.Name} DP: {deltaPos} - DO: {deltaOri}");
+            }
 
             base.Update(ctx);
         }

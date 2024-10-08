@@ -5,8 +5,6 @@ using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework
 {
-
-
     public abstract class XrInput<TValue> : IXrInput
     {
         protected bool _isChanged;
@@ -161,6 +159,7 @@ namespace OpenXr.Framework
         {
             var result = base.Initialize();
             _space = _app.CreateActionSpace(_action, _subPath);
+            _app.SpacesTracker.Add(_space, TimeSpan.Zero);
             return result;
         }
 
@@ -173,8 +172,9 @@ namespace OpenXr.Framework
             _isChanged = true;
             _lastChangeTime = DateTime.Now;
 
-            var spaceInfo = _app.LocateSpace(_space, refSpace, predictTime);
-            if (spaceInfo.IsValid)
+            var spaceInfo = _app.SpacesTracker.GetLastLocation(_space); 
+
+            if (spaceInfo != null && spaceInfo.IsValid)
                 _value = spaceInfo.Pose;
         }
 

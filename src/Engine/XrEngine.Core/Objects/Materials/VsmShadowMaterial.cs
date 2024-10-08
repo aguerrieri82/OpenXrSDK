@@ -2,15 +2,15 @@
 
 namespace XrEngine
 {
-    public class DepthCopyMaterial : ShaderMaterial
+    public class VsmShadowMaterial : ShaderMaterial
     {
         static readonly Shader SHADER;
 
-        static DepthCopyMaterial()
+        static VsmShadowMaterial()
         {
             SHADER = new Shader
             {
-                FragmentSourceName = "copy_depth.frag",
+                FragmentSourceName = "vsm_shadow_map.frag",
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = false,
@@ -18,7 +18,7 @@ namespace XrEngine
             };
         }
 
-        public DepthCopyMaterial()
+        public VsmShadowMaterial()
             : base()
         {
             _shader = SHADER;

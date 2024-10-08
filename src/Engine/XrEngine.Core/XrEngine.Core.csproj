@@ -38,6 +38,7 @@
 
 	<ItemGroup>
 	  <None Remove="Shaders\PbrV2\uniforms.glsl" />
+	  <None Remove="Shaders\vsm_shadow_map.frag" />
 	</ItemGroup>
 
 

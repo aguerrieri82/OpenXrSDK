@@ -188,6 +188,7 @@ namespace XrSamples
             floor.Materials.Add(new ShadowOnlyMaterial
             {
                 Name = "FloorMaterial",
+                ShadowColor = new Color(1f, 0.1f, 0.1f, 0.7f),   
             });
 
             floor.Transform.SetPositionY(-0.01f / 2.0f);
@@ -907,7 +908,7 @@ namespace XrSamples
             {
                 app.App.ActiveScene!.AddChild(new PlaneGrid(6f, 12f, 2f));
 
-                var ui = (app.App as RoomDesignerApp)!.UiPanel!;
+                var ui = (app.App.ActiveScene as RoomScene)!.UiPanel!;
 
 #if !ANDROID
                 var webView = new ChromeWebBrowserView

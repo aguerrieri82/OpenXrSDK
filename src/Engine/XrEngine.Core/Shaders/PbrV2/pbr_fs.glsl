@@ -1,5 +1,5 @@
 #include "PbrV2/uniforms.glsl"
-#include "Pbr/shadow.glsl"
+#include "shadow.glsl"
 
 // Physically Based Rendering
 // Copyright (c) 2017-2018 Michał Siejak
