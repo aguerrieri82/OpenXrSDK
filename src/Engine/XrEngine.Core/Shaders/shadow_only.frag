@@ -6,7 +6,7 @@ in vec3 fNormal;
 
 out vec4 FragColor;
 
-#include "pbr/shadow.glsl"	
+#include "shadow.glsl"	
 
 void main()
 {    

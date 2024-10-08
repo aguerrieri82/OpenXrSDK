@@ -80,8 +80,6 @@ namespace XrEngine.OpenXr
                         await oculus.SetSpaceComponentStatusAsync(meshAnchor.Space, SpaceComponentTypeFB.LocatableFB, true);
                 }
 
-                var location = _app!.LocateSpace(meshAnchor.Space, _app.Stage, 1);
-
                 var mesh = new TriangleMesh(geo, Material)
                 {
                     Name = "global-mesh"

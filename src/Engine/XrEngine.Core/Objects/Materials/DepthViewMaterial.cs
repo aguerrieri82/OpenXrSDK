@@ -28,28 +28,20 @@
             bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
             bld.SetUniform("uNormalMatrix", (ctx) => ctx.Model!.NormalMatrix);
 
-
             if (Texture != null)
             {
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    if (Texture.SampleCount <= 1)
-                        up.SetUniform("uTexture0", Texture, 0);
-                    else
-                    {
-                        up.SetUniform("uTexture0MS", Texture, 0);
-                        bld.AddFeature("SAMPLES " + Texture.SampleCount);
-                    }
+                    bld.AddFeature("SAMPLES " + Texture.SampleCount);
+                    up.SetUniform("uTexture", Texture, 0);
                 });
             }
 
-            if (Camera != null)
+            if (Camera is PerspectiveCamera)
             {
+                bld.AddFeature("LINEARIZE");
                 bld.SetUniform("uNearPlane", ctx => Camera.Near);
                 bld.SetUniform("uFarPlane", ctx => Camera.Far);
-
-                if (Camera is PerspectiveCamera)
-                    bld.AddFeature("LINEARIZE");
             }
         }
 

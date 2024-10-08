@@ -35,8 +35,8 @@ namespace XrEngine.OpenGL
             RequireTextureCompression = false;
             ShadowMap = new ShadowMapOptions()
             {
-                Mode = ShadowMapMode.HardSmooth,
-                Size = 2048 * 2,
+                Mode = ShadowMapMode.PCF,
+                Size = 2048,
             };
 
             Outline = new GlOutlineOptions()

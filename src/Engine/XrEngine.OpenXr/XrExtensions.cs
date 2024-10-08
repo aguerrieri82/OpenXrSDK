@@ -170,7 +170,7 @@ namespace XrEngine.OpenXr
                     camera.Eyes ??= new CameraEye[2];
 
                     //TODO improve head-rel views VS space-rel views xrApp.Stage is HARDCODED
-                    var headLoc = xrApp.LocateSpace(xrApp.Head, xrApp.Stage, predTime);
+                    var headLoc = xrApp.SpacesTracker.GetLastLocation(xrApp.Head);
 
                     xrApp!.LocateViews(xrApp.Head, predTime, headViews);
 

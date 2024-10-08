@@ -7,12 +7,15 @@ uniform mat4 uModel;
 uniform mat4 uNormalMatrix;
 
 #ifdef USE_SHADOW_MAP
-
-uniform mat4 uLightSpaceMatrix;
-
-out vec4 fPosLightSpace;
-
+    uniform mat4 uLightSpaceMatrix;
+    out vec4 fPosLightSpace;
 #endif
+
+    
+#ifdef UV_TRANSFORM
+    uniform mat3 uUvTransform;
+#endif
+
 
 out vec3 fNormal;
 out vec3 fPos;
@@ -22,8 +25,7 @@ out vec2 fUv;
 
 void main()
 {
-    vec4 pos4 = vec4(a_position, 1.0);
-    vec4 pos = uModel * pos4;
+    vec4 pos = uModel * vec4(a_position, 1.0);
     fPos = vec3(pos);
     
     computePos(pos);
@@ -31,7 +33,13 @@ void main()
     fNormal = mat3(uNormalMatrix) * a_normal;
     fUv = a_texcoord_0;
 
+    
+    #ifdef UV_TRANSFORM 
+	    fUv = (vec3(fUv, 1) * uUvTransform).xy;
+    #endif
+
+
     #ifdef USE_SHADOW_MAP
-        fPosLightSpace = uLightSpaceMatrix * pos4;
+        fPosLightSpace = uLightSpaceMatrix * pos;
     #endif
 }

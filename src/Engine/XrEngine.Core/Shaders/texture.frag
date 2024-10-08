@@ -6,13 +6,16 @@
     uniform sampler2D uTexture;
 #endif
 
-
-uniform vec2 uOffset;
-uniform vec2 uScale;
-
 out vec4 FragColor;
 
 void main()
 {
-    FragColor = texture(uTexture, fUv);
+    vec2 uv = fUv;
+
+    #ifdef USE_TRANSFORM
+
+     (vec3(texcoord.xy, 1) * uMaterial.texTransform).xy;
+    #endif
+
+    FragColor = texture(uTexture, uv);
 }

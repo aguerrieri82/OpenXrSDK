@@ -53,6 +53,7 @@ namespace OpenXr.Framework
         protected Space _head;
         protected Space _local;
         protected Space _stage;
+       
 
         protected ulong _systemId;
         protected XrViewInfo? _viewInfo;
@@ -69,6 +70,7 @@ namespace OpenXr.Framework
         protected readonly ILogger _logger;
         protected readonly XrLayerManager _layers;
         protected readonly XrRenderOptions _renderOptions;
+        protected readonly XrSpacesTracker _tracker;
 
         //TODO leave here or move?
         protected ExtPerformanceSettings? _perfSettings;
@@ -89,9 +91,11 @@ namespace OpenXr.Framework
             _lastSessionState = SessionState.Unknown;
             _layers = new XrLayerManager(this);
             _renderOptions = new XrRenderOptions();
+            _tracker = new XrSpacesTracker(this);
 
             _extensions.Add(ExtPerformanceSettings.ExtensionName);
             _extensions.Add(ExtHandTracking.ExtensionName);
+            _extensions.Add("XR_KHR_locate_spaces");
 
             Current = this;
         }
@@ -233,6 +237,8 @@ namespace OpenXr.Framework
             _state = XrAppState.Stopping;
 
             _logger.LogDebug("Stopping");
+
+            _tracker.Clear();
 
             DisposeSpace(ref _local);
             DisposeSpace(ref _head);
@@ -499,12 +505,49 @@ namespace OpenXr.Framework
             return state;
         }
 
+
         public XrSpaceLocation LocateSpace(Space space, Space baseSpace, long time = 0)
         {
             var result = new SpaceLocation();
             result.Type = StructureType.SpaceLocation;
             CheckResult(_xr!.LocateSpace(space, baseSpace, time, ref result), "LocateSpace");
             return result.ToXrLocation();
+        }
+
+        [Obsolete("Oculus throws access violation")]
+        public unsafe XrSpaceLocation[] LocateSpaces(Space[] spaces, Space baseSpace, long time = 0)
+        {
+            var locations = new SpaceLocationData[spaces.Length];   
+
+            fixed (Space* pSpaces = spaces)
+            fixed (SpaceLocationData* pLocations = locations)
+            {
+                var result = new SpaceLocations
+                {
+                    Type = StructureType.SpaceLocations,
+                    Locations = pLocations,
+                    Next = null,
+                    LocationCount = (uint)locations.Length
+                };
+
+                var info = new SpacesLocateInfo
+                {
+                    Type = StructureType.SpacesLocateInfo,
+                    BaseSpace = baseSpace,
+                    Spaces = pSpaces,
+                    SpaceCount = (uint)spaces.Length,
+                    Time = time,
+                    Next = null,
+                };
+
+                CheckResult(_xr!.LocateSpaces(_session, &info, &result), "LocateSpaces");
+            }
+
+            return locations.Select(a=> new XrSpaceLocation
+            {
+                Pose = a.Pose.ToPose3(),
+                Flags = a.LocationFlags
+            }).ToArray();
         }
 
         protected void DisposeSpace(ref Space space)
@@ -578,8 +621,11 @@ namespace OpenXr.Framework
 
             _stage = CreateReferenceSpace(ReferenceSpaceType.Stage);
 
+            _tracker.Add(_head, TimeSpan.Zero);
+
             return _session;
         }
+
         protected virtual void OnSessionChanged(SessionState state, long time)
         {
             _lastSessionState = state;
@@ -767,6 +813,8 @@ namespace OpenXr.Framework
             var frameTime = state.PredictedDisplayTime;
 
             FramePredictedDisplayTime = frameTime;
+
+            _tracker.Update(space, frameTime);  
 
             TrySyncActions(space, frameTime);
 
@@ -1390,6 +1438,10 @@ namespace OpenXr.Framework
         public SessionState SessionState => _lastSessionState;
 
         public ILogger Logger => _logger;
+
+
+        public XrSpacesTracker SpacesTracker => _tracker;
+
 
         public IReadOnlyDictionary<string, IXrInput> Inputs => _inputs;
 

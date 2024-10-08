@@ -7,6 +7,45 @@ namespace XrEngine
     {
         static readonly Shader SHADER;
 
+        #region GlobalHandler
+
+        class GlobalHandler : StandardVertexShaderHandler
+        {
+            string? _lightHash;
+
+            public override void UpdateShader(ShaderUpdateBuilder bld)
+            {
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    foreach (var light in bld.Context.Lights!)
+                    {
+                        if (light is AmbientLight ambient)
+                            up.SetUniform("light.ambient", (Vector3)ambient.Color * ambient.Intensity);
+
+                        else if (light is PointLight point)
+                        {
+                            up.SetUniform("light.diffuse", (Vector3)point.Color * point.Intensity);
+                            up.SetUniform("light.position", point.WorldPosition);
+                            up.SetUniform("light.specular", (Vector3)point.Specular);
+                        }
+                    }
+
+                    _lightHash = ctx.LightsHash!;
+                });
+
+                base.UpdateShader(bld);
+            }
+
+            public override bool NeedUpdateShader(UpdateShaderContext ctx)
+            {
+                if (_lightHash != ctx.LightsHash)
+                    return true;    
+                return base.NeedUpdateShader(ctx);
+            }
+        }
+
+        #endregion
+
         static BasicMaterial()
         {
             SHADER = new Shader
@@ -15,7 +54,7 @@ namespace XrEngine
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = true,
-                UpdateHandler = StandardVertexShaderHandler.Instance
+                UpdateHandler = new GlobalHandler()
             };
         }
 
@@ -41,11 +80,10 @@ namespace XrEngine
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
-
             if (DiffuseTexture != null)
             {
                 bld.AddFeature("TEXTURE");
-                bld.SetUniform("uTexture0", (ctx) => DiffuseTexture, 0);
+                bld.SetUniform("uTexture", (ctx) => DiffuseTexture, 0);
             }
 
             bld.ExecuteAction((ctx, up) =>
@@ -59,8 +97,6 @@ namespace XrEngine
             });
 
         }
-
-
 
         public Texture2D? DiffuseTexture { get; set; }
 

@@ -7,6 +7,7 @@ namespace XrEditor
 {
     public class SKBitmapView : System.Windows.Controls.Image
     {
+        static object _encodeLock = new object();   
 
         static void OnSKSourceChanged(object obj, DependencyPropertyChangedEventArgs e)
         {
@@ -19,7 +20,9 @@ namespace XrEditor
             {
                 var stream = new MemoryStream();
 
-                value.Encode(stream, SKEncodedImageFormat.Png, 100);
+                lock (_encodeLock)
+                    value.Encode(stream, SKEncodedImageFormat.Png, 100);
+
                 stream.Position = 0;
 
                 var bitmap = new BitmapImage();
