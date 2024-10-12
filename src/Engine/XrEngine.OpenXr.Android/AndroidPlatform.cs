@@ -18,6 +18,7 @@ namespace XrEngine.OpenXr.Android
     public class AndroidPlatform : IXrEnginePlatform
     {
         readonly Context2 _context;
+        private readonly DeviceInfo _info;
         VulkanDevice? _vkDevice;
 
         public AndroidPlatform(Context2 context)
@@ -27,6 +28,12 @@ namespace XrEngine.OpenXr.Android
             Context.Implement<ILogger>(new AndroidLogger("XrApp"));
             Context.Implement<IProgressLogger>(new AndroidProgressLogger());
             _context = context;
+
+            _info = new DeviceInfo
+            {
+                Id = global::Android.Provider.Settings.Secure.GetString(context.ContentResolver, global::Android.Provider.Settings.Secure.AndroidId),
+                Name = global::Android.OS.Build.Model,
+            };
         }
 
         public XrApp CreateXrApp(IXrGraphicDriver xrDriver)
@@ -103,5 +110,7 @@ namespace XrEngine.OpenXr.Android
         public string PersistentPath => _context.GetExternalFilesDir(null)!.AbsolutePath;
 
         public string CachePath => _context.CacheDir!.AbsolutePath;
+
+        public DeviceInfo Device => _info;
     }
 }

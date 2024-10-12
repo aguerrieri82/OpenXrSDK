@@ -142,6 +142,7 @@ namespace XrEngine
             return (self.Flags & flags) == flags;
         }
 
+
         public static void SetGlobalPoseIfChanged(this Object3D self, Pose3 pose, float epsilon = 0.001f)
         {
             var deltaPos = (pose.Position - self.WorldPosition).Length();

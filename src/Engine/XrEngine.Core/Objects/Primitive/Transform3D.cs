@@ -66,6 +66,8 @@ namespace XrEngine
             _isDirty = true;
 
             _host?.NotifyChanged(ObjectChangeType.Transform);
+
+            Version++;
         }
 
         public Vector3 Scale
@@ -177,5 +179,7 @@ namespace XrEngine
                 return ref _matrix;
             }
         }
+
+        public long Version { get; set; }
     }
 }

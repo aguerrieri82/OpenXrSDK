@@ -51,9 +51,9 @@
 	<Import Project="..\..\AspNetCoreMini.props" />
 
 	<ItemGroup>
-	  <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0-rc.1.24431.7" />
-	  <PackageReference Update="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0-rc.1.24431.7" />
-	  <PackageReference Update="Microsoft.Extensions.Logging" Version="9.0.0-rc.1.24431.7" />
+	  <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0-rc.2.24473.5" />
+	  <PackageReference Update="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0-rc.2.24473.5" />
+	  <PackageReference Update="Microsoft.Extensions.Logging" Version="9.0.0-rc.2.24473.5" />
 	</ItemGroup>
 
 </Project>
