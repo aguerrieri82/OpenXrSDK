@@ -97,6 +97,7 @@ namespace XrEngine.OpenXr.Android
             {
                 _webViewLayer.WebView!.AddJavascriptInterface(_interface, "bridge");
                 _webViewLayer.ShouldInterceptRequest = HandleResponse;
+            
             });
 
             _isInit = true;

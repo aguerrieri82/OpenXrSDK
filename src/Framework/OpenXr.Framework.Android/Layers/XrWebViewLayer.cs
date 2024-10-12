@@ -233,6 +233,7 @@ namespace OpenXr.Framework.Android
             _webView.Settings.UserAgentString = "Mozilla/5.0 (Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.0.0 Safari/537.36";
             _webView.Settings.CacheMode = CacheModes.CacheElseNetwork;
 
+
             if (_context is Activity activity)
             {
                 var layout = new ViewGroup.LayoutParams(_size.Width, _size.Height);

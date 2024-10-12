@@ -14,7 +14,7 @@
 		<PackageReference Include="Silk.NET.OpenXR.Extensions.META" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.OpenXR.Extensions.OCULUS" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.Vulkan.Extensions.EXT" Version="2.21.0" />
-		<PackageReference Include="System.Text.Json" Version="9.0.0-rc.1.24431.7" />
+		<PackageReference Include="System.Text.Json" Version="9.0.0-rc.2.24473.5" />
 	</ItemGroup>
 
 	<ItemGroup>

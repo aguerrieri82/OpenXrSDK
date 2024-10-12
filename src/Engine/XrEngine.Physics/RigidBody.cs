@@ -15,6 +15,8 @@ namespace XrEngine.Physics
         private PhysicsSystem? _system;
         private PhysicsActor? _actor;
         private PhysicsMaterial? _material;
+        private Pose3 _lastPose;
+
         private event RigidBodyContactEventHandler? _contactEvent;
 
 
@@ -348,6 +350,7 @@ namespace XrEngine.Physics
         {
             Destroy();
             Create(ctx);
+            _lastPose = GetPose();
         }
 
         private void OnActorContact(PhysicsActor other, int otherIndex, ContactPair[] data)
@@ -366,14 +369,25 @@ namespace XrEngine.Physics
             {
                 if (!_host.IsManipulating())
                 {
+                    var curPose = GetPose();
+
                     if (Type == PhysicsActorType.Dynamic)
                     {
-                        SetPose(_actor.GlobalPose);
-                        if (DynamicActor.IsKinematic)
-                            DynamicActor.IsKinematic = false;
+                        if (!curPose.IsSimilar(_lastPose))
+                        {
+                            _lastPose = GetPose();
+                            DynamicActor.GlobalPose = _lastPose;
+                        }
+                        else
+                        {
+                            _lastPose = _actor.GlobalPose;
+                            SetPose(_lastPose);
+                            if (DynamicActor.IsKinematic)
+                                DynamicActor.IsKinematic = false;
+                        }
                     }
                     else if (Type == PhysicsActorType.Static)
-                        _actor.GlobalPose = GetPose();
+                        _actor.GlobalPose = curPose;
                 }
                 else
                 {
@@ -382,7 +396,8 @@ namespace XrEngine.Physics
                         if (Type == PhysicsActorType.Dynamic && !DynamicActor.IsKinematic)
                             DynamicActor.IsKinematic = true;
 
-                        DynamicActor.KinematicTarget = GetPose();
+                        _lastPose = GetPose();
+                        DynamicActor.KinematicTarget = _lastPose;
                     }
                     else
                         _actor.GlobalPose = GetPose();

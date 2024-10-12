@@ -2,6 +2,7 @@
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;
+using System.Reflection.Emit;
 using XrMath;
 
 namespace OpenXr.Framework
@@ -19,29 +20,41 @@ namespace OpenXr.Framework
             return new Guid(new Span<byte>(uuid.Data, 16));
         }
 
+      
+
         public static async Task<List<XrAnchor>> GetAnchorsAsync(this OculusXrPlugin xrOculus, XrAnchorFilter filter)
         {
             var result = new List<XrAnchor>();
 
-            var anchors = await xrOculus.QueryAllAnchorsAsync();
+            var anchors = await xrOculus.QueryAllAnchorsAsync(filter.Ids?.ToArray());
 
             foreach (var space in anchors)
             {
+                var hasLabel = filter.Labels != null || (filter.Components & XrAnchorComponent.Label) != 0;
+
+                string[] labels = [];   
+
+                if (hasLabel)
+                {
+                    if (xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.SemanticLabelsFB))
+                        labels = xrOculus.GetSpaceSemanticLabels(space.Space);
+                }
+
+                if (filter.Labels != null && !labels.Any(filter.Labels.Contains))
+                    continue;
+
                 var supported = xrOculus.EnumerateSpaceSupportedComponentsFB(space.Space);
 
                 var item = new XrAnchor
                 {
                     Id = space.Uuid.ToGuid(),
-                    Space = space.Space.Handle
+                    Space = space.Space.Handle,
+                    Labels = labels,    
                 };
 
                 try
                 {
-                    if ((filter.Components & XrAnchorComponent.Label) != 0 &&
-                        xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.SemanticLabelsFB))
-                    {
-                        item.Labels = xrOculus.GetSpaceSemanticLabels(space.Space);
-                    }
+
 
 
                     if ((filter.Components & XrAnchorComponent.Bounds) != 0 &&

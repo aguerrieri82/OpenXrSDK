@@ -41,9 +41,14 @@ namespace XrEngine.OpenXr
                 {
                     Task.Run(async () =>
                     {
+             
+                        //var layout = oculus.GetSpaceRoomLayout(_xrApp.Stage);
+
                         var anchors = await oculus.GetAnchorsAsync(new XrAnchorFilter
                         {
-                            Components = XrAnchorComponent.All
+                            Components = XrAnchorComponent.All,
+                            //Ids = [layout.FloorUuid.ToGuid()],
+                            Labels = ["FLOOR"]
                         });
 
                         var floor = anchors.FirstOrDefault(a => a.Labels != null && a.Labels.Contains("FLOOR"));

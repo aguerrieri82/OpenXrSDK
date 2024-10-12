@@ -3,6 +3,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
+using System;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -338,23 +339,37 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
-        protected unsafe ulong QueryAllAnchorsRequest()
+        protected unsafe ulong QueryAllAnchorsRequest(Guid[]? ids)
         {
-            //SpaceUuidFilterInfoFB x;
+            var hasIds = ids != null && ids.Length > 0;
 
-            var query = new SpaceQueryInfoFB()
+            ids ??= new Guid[1];
+
+            fixed (Guid* uuids = &ids[0])
             {
-                Type = StructureType.SpaceQueryInfoFB,
-                QueryAction = SpaceQueryActionFB.LoadFB,
-                MaxResultCount = 100,
+                var filter = new SpaceUuidFilterInfoFB();   
 
-            };
+                if (hasIds)
+                {
+                    filter.Uuids = (UuidEXT*)uuids;
+                    filter.UuidCount = (uint)ids.Length;
+                    filter.Type = StructureType.SpaceUuidFilterInfoFB;
+                }
 
-            ulong reqId = (ulong)new DateTime().Ticks;
+                var query = new SpaceQueryInfoFB()
+                {
+                    Type = StructureType.SpaceQueryInfoFB,
+                    QueryAction = SpaceQueryActionFB.LoadFB,
+                    Filter = hasIds ? (SpaceFilterInfoBaseHeaderFB*)&filter : null,
+                    MaxResultCount = 100,
+                };
 
-            _app!.CheckResult(_spatialQuery!.QuerySpacesFB(_app!.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref reqId), "QuerySpacesFB");
+                ulong reqId = (ulong)new DateTime().Ticks;
 
-            return reqId;
+                _app!.CheckResult(_spatialQuery!.QuerySpacesFB(_app!.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref reqId), "QuerySpacesFB");
+
+                return reqId;
+            }
         }
 
         protected unsafe SpaceQueryResultFB[] GetSpaceQueryResults(ulong reqId)
@@ -455,9 +470,9 @@ namespace OpenXr.Framework.Oculus
                        SetSpaceComponentStatusRequest(space, componentType, enabled));
         }
 
-        public Task<SpaceQueryResultFB[]> QueryAllAnchorsAsync()
+        public Task<SpaceQueryResultFB[]> QueryAllAnchorsAsync(Guid[]? ids = null)
         {
-            return SubmitQuery<SpaceQueryResultFB[]>("AllAnchors", QueryAllAnchorsRequest);
+            return SubmitQuery<SpaceQueryResultFB[]>("AllAnchors", () => QueryAllAnchorsRequest(ids));
         }
 
         public override void HandleEvent(ref EventDataBuffer buffer)

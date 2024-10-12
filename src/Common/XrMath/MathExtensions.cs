@@ -178,7 +178,7 @@ namespace XrMath
 
         #region POSE
 
-        public static bool IsSimilar(this Pose3 value, Pose3 other, float epsilon)
+        public static bool IsSimilar(this Pose3 value, Pose3 other, float epsilon = 0.001f)
         {
             return value.Position.IsSimilar(other.Position, epsilon) &&
                    value.Orientation.IsSimilar(other.Orientation, epsilon);
