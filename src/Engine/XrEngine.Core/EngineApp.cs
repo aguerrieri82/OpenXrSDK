@@ -10,7 +10,7 @@ namespace XrEngine
         Start
     }
 
-    public class EngineApp
+    public class EngineApp : IAsyncDisposable
     {
         protected readonly HashSet<Scene3D> _scenes = [];
         protected readonly RenderContext _context;
@@ -18,6 +18,7 @@ namespace XrEngine
         protected Scene3D? _activeScene;
         protected readonly EngineAppStats _stats;
         protected PlayState _playState;
+        protected Thread? _renderThread;
         protected readonly QueueDispatcher _dispatcher;
         protected readonly HashSet<IObjectChangeListener> _changeListeners = [];
 
@@ -58,11 +59,13 @@ namespace XrEngine
         {
             if (_playState == PlayState.Start)
                 return;
+            
             if (_playState == PlayState.Stop)
             {
                 _context.StartTime = new TimeSpan(DateTime.Now.Ticks);
                 _context.Frame = 0;
             }
+
             _playState = PlayState.Start;
 
             OnStarted();
@@ -92,6 +95,7 @@ namespace XrEngine
 
             _context.Frame++;
             _context.Scene = _activeScene;
+            _renderThread = Thread.CurrentThread;
 
             if (_playState == PlayState.Start)
             {
@@ -99,7 +103,6 @@ namespace XrEngine
 
                 _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
                 _context.DeltaTime = _context.Time - oldTime;
-
 
                 _activeScene.Update(_context);
             }
@@ -125,6 +128,12 @@ namespace XrEngine
 
         }
 
+        public virtual ValueTask DisposeAsync()
+        {
+            GC.SuppressFinalize(this);
+            return ValueTask.CompletedTask;
+        }
+
         public RenderContext RenderContext => _context;
 
         public IDispatcher Dispatcher => _dispatcher;
@@ -138,6 +147,8 @@ namespace XrEngine
         public EngineAppStats Stats => _stats;
 
         public Scene3D? ActiveScene => _activeScene;
+
+        public Thread? RenderThread => _renderThread;
 
         public IRenderEngine? Renderer { get; set; }
 

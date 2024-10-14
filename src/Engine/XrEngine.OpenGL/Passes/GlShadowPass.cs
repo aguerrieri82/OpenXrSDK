@@ -155,24 +155,16 @@ namespace XrEngine.OpenGL
             var castLayer = scene.EnsureLayer<CastShadowsLayer>();
             var frame = scene.App!.RenderContext.Frame;
 
-            if (_light == null || shadowRenderLayer.Content.ShaderContents.Count == 0 || !recLayer.Content.Any())
+            if (shadowRenderLayer.Version == _layerVersion && (shadowRenderLayer.Content.ShaderContents.Count == 0 || !recLayer.Content.Any()))
+                return false;
+
+            if (_light == null)
                 return false;
 
             if (_updateFrame == frame)
                 return false;
 
-            /*
-            if (_light!.Version == _lightVersion && 
-                shadowLayer.Version == _layerVersion &&
-                recLayer.Version == _recLayerVersion)
-                return false;
-
-            Log.Debug(this, "Rendering shadow map for light '{0}'...", _light!.Name); 
-
-            _layerVersion = shadowRenderLayer.Version;
-            _lightVersion = _light.Version;
-            _recLayerVersion = recLayer.Version;
-             */
+            //Log.Debug(this, "Rendering shadow map for light '{0}'...", _light!.Name);
 
             _updateFrame = frame;
 
@@ -198,6 +190,7 @@ namespace XrEngine.OpenGL
 
             _oldCamera = _renderer.UpdateContext.Camera;
             _renderer.UpdateContext.Camera = _lightCamera;
+            _layerVersion = shadowRenderLayer.Version;  
 
             return base.BeginRender(camera);
         }

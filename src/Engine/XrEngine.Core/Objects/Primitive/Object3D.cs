@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -111,7 +112,6 @@ namespace XrEngine
 
         protected override void OnChanged(ObjectChange change)
         {
-
             if (change.IsAny(ObjectChangeType.Transform))
             {
                 InvalidateWorld();
@@ -129,6 +129,8 @@ namespace XrEngine
 
             base.OnChanged(change);
         }
+
+
 
         public override void Dispose()
         {
@@ -229,10 +231,10 @@ namespace XrEngine
 
         public Vector3 Forward
         {
-            get => new Vector3(0f, 0f, -1f).ToDirection(WorldMatrix);
+            get => -Vector3.UnitZ.ToDirection(WorldMatrix);
             set
             {
-                Transform.Orientation = -value.ToOrientation();
+                WorldOrientation = -value.ToOrientation();
             }
         }
 

@@ -101,7 +101,6 @@ namespace XrEditor
 
             await _main.ExecuteAsync(() =>
             {
-
                 Scene = _engine.App.ActiveScene!;
                 Context.Require<SelectionManager>().Set(Scene.GetNode());
                 UpdateControls();

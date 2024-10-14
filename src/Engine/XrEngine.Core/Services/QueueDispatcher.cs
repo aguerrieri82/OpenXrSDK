@@ -60,6 +60,7 @@ namespace XrEngine
                     try
                     {
                         var result = task.Action!();
+
                         task.Completion!.SetResult(result);
                     }
                     catch (Exception ex)

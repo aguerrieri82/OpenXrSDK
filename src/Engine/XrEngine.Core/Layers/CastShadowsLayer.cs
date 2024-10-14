@@ -4,7 +4,8 @@ namespace XrEngine
 {
     public class CastShadowsLayer : BaseAutoLayer<TriangleMesh>
     {
-        private Bounds3 _bounds;
+        protected Bounds3 _bounds;
+        protected long _contentVersion;
 
         protected override bool BelongsToLayer(TriangleMesh obj)
         {
@@ -19,10 +20,12 @@ namespace XrEngine
                 var builder = new BoundsBuilder();
                 builder.Add(_content.Select(a => a.WorldBounds));
                 _bounds = builder.Result;
-                _version++;
+                _contentVersion++;
             }
             return base.AffectChange(change);
         }
+
+        public long ContentVersion => _contentVersion;     
 
         public Bounds3 WorldBounds => _bounds;
     }

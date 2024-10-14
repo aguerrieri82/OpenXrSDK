@@ -55,7 +55,8 @@ namespace XrEditor
 
             UpdateRay(ev);
 
-            _lastCollision = (await AppDispatcher.ExecuteAsync(() => _sceneView.Scene.RayCollisions(_lastRay.Ray)))
+            _lastCollision = (await AppDispatcher.ExecuteAsync(() => 
+                                _sceneView.Scene.RayCollisions(_lastRay.Ray)).ConfigureAwait(true))
                            .OrderBy(a => a.Distance)
                            .FirstOrDefault();
 
