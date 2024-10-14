@@ -179,7 +179,8 @@ namespace XrEngine
 
         public static T AddLayer<T>(this Scene3D scene, T layer) where T : ILayer3D
         {
-            scene.Layers.Add(layer);            return layer;
+            scene.Layers.Add(layer);            
+            return layer;
         }
 
         public static IEnumerable<Object3D> ObjectsWithComponent<TComp>(this Scene3D scene) where TComp : IComponent
@@ -216,6 +217,24 @@ namespace XrEngine
                         yield return collision;
                 }
             }
+        }
+
+        public static Pose3 GetWorldPose(this Object3D obj)
+        {
+            return new Pose3
+            {
+                Orientation = obj.WorldOrientation,
+                Position = obj.WorldPosition
+            };
+        }
+
+        public static Pose3 GetLocalPose(this Object3D obj)
+        {
+            return new Pose3
+            {
+                Orientation = obj.Transform.Orientation,
+                Position = obj.Transform.Position
+            };
         }
 
         #endregion

@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Diagnostics;
+
+namespace XrEngine
 {
     [Flags]
     public enum EngineObjectFlags
@@ -132,6 +134,7 @@
 
         protected virtual void OnChanged(ObjectChange change)
         {
+
             Changed?.Invoke(this, change);
 
         }
@@ -194,6 +197,8 @@
                     item.Reset();
             }
         }
+
+        protected bool HasChangedHandlers => Changed != null;
 
         public bool IsNotifyChange { get; set; }
 

@@ -19,8 +19,7 @@ namespace XrEngine.OpenXr
             Size = 0.005f;
             Name = "RayView";
 
-            var matrix = Matrix4x4.CreateScale(0.5f, 0.5f, 0.5f) *
-                         Matrix4x4.CreateTranslation(0, 0, -0.5f);
+            var matrix = Matrix4x4.CreateTranslation(0, 0, -0.5f);
 
             Geometry!.ApplyTransform(matrix);
         }

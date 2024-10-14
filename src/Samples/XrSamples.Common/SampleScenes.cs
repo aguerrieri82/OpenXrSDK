@@ -15,10 +15,13 @@ using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.Services;
 using XrEngine.UI;
-using XrEngine.UI.Web;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
+using XrEngine.UI.Web;
+
+
+
 
 /* Unmerged change from project 'XrSamples.Common (net9.0-android)'
 Removed:
@@ -135,7 +138,6 @@ namespace XrSamples
             {
                 var inputs = e.GetInputs<XrOculusTouchController>();
 
-
                 obj.AddBehavior((_, _) =>
                 {
                     var click = inputs.Right!.Button!.AClick!;
@@ -143,7 +145,7 @@ namespace XrSamples
                     {
                         var scene = obj.Scene!;
                         obj.WorldPosition = scene.ActiveCamera!.WorldPosition + scene.ActiveCamera.Forward * distance;
-                        obj.Transform.Orientation = scene.ActiveCamera!.Transform.Orientation;
+                        obj.WorldOrientation = scene.ActiveCamera!.WorldOrientation;
                     }
                 });
             });
@@ -906,9 +908,12 @@ namespace XrSamples
                 .AddPassthrough()
             .ConfigureApp(app =>
             {
-                app.App.ActiveScene!.AddChild(new PlaneGrid(6f, 12f, 2f));
+                var scene = (RoomScene)app.App.ActiveScene!;
 
-                var ui = (app.App.ActiveScene as RoomScene)!.UiPanel!;
+                scene.AddComponent<DebugGizmos>();
+                scene.AddChild(new PlaneGrid(6f, 12f, 2f));
+
+                var ui = scene.UiPanel!;
 
 #if !ANDROID
                 var webView = new ChromeWebBrowserView

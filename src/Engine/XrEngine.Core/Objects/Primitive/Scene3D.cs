@@ -1,4 +1,5 @@
-﻿using XrEngine.Layers;
+﻿using System.Diagnostics;
+using XrEngine.Layers;
 
 namespace XrEngine
 {
@@ -10,7 +11,7 @@ namespace XrEngine
         protected EngineApp? _app;
         protected UpdateHistory _history;
         protected Canvas3D _gizmos;
-        protected IDrawGizmos[]? _drawGizmos;
+        protected readonly IList<IDrawGizmos> _drawGizmos =[];
 
         public Scene3D()
         {
@@ -25,7 +26,7 @@ namespace XrEngine
 
         public void DrawGizmos()
         {
-            if (_drawGizmos == null || _drawGizmos.Length == 0)
+            if (_drawGizmos == null || _drawGizmos.Count == 0)
                 return;
 
             _gizmos.Clear();
@@ -45,7 +46,16 @@ namespace XrEngine
 
         protected void UpdateDrawGizmos()
         {
-            _drawGizmos = this.DescendantsOrSelfComponents<IDrawGizmos>().ToArray();
+            _drawGizmos.Clear();
+
+            foreach (var obj in this.DescendantsOrSelf())
+            {
+                if (obj is IDrawGizmos draw)
+                    _drawGizmos.Add(draw);
+
+                foreach (var component in obj.Components<IComponent>().Where(a => a.IsEnabled).OfType<IDrawGizmos>())
+                    _drawGizmos.Add(component);
+            }
         }
 
         internal void Attach(EngineApp app)
@@ -63,6 +73,7 @@ namespace XrEngine
 
         public void NotifyChanged(Object3D object3D, ObjectChange change)
         {
+            //Debug.Assert(_app?.RenderThread == null || Thread.CurrentThread == _app.RenderThread);
 
             if (change.Target == null)
                 change.Target = object3D;

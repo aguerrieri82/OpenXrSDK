@@ -40,12 +40,13 @@ namespace XrEditor
             base.NotifySceneChanged();
         }
 
-        private void SetSelected(IEnumerable<TriangleMesh> items, bool selected)
+        private Task SetSelectedAsync(IEnumerable<TriangleMesh> items, bool selected) =>
+        _sceneView!.Dispatcher.ExecuteAsync(() =>
         {
             foreach (var item in items)
             {
                 var outline = item.Materials.OfType<OutlineMaterial>().FirstOrDefault();
-                if (outline == null)
+                if (outline == null && selected)
                 {
                     outline = new OutlineMaterial()
                     {
@@ -57,7 +58,9 @@ namespace XrEditor
                     };
                     item.Materials.Add(outline);
                 }
-                outline.IsEnabled = selected;
+
+                if (outline != null)
+                    outline.IsEnabled = selected;
 
                 foreach (var mat in item.Materials)
                 {
@@ -66,9 +69,9 @@ namespace XrEditor
                     mat.WriteStencil = selected ? 1 : null;
                 }
             }
-        }
-
-        private void OnSelectionChanged(IReadOnlyCollection<INode> items)
+        });
+    
+        private async void OnSelectionChanged(IReadOnlyCollection<INode> items)
         {
             _lastSelection = items.ToArray();
 
@@ -84,11 +87,11 @@ namespace XrEditor
                     .OfType<TriangleMesh>();
 
                 if (_lastOutline != null)
-                    SetSelected(_lastOutline, false);
+                    await SetSelectedAsync(_lastOutline, false);
 
                 _lastOutline = outlineMeshes.ToArray();
 
-                SetSelected(_lastOutline, true);
+                await SetSelectedAsync(_lastOutline, true);
 
                 _selectionLayer.EndUpdate();
             }
@@ -127,23 +130,30 @@ namespace XrEditor
                 if (local != null)
                 {
                     canvas.State.Transform = item.WorldMatrix;
-                    canvas.DrawBounds(local.LocalBounds);
+                    foreach (var face in local.LocalBounds.Faces())
+                        canvas.DrawQuad(face);
+
+                    //canvas.DrawBounds(local.LocalBounds);
                 }
             }
 
             if (_lastCollision?.Normal != null)
             {
                 canvas.State.Color = new Color(0, 1, 0, 1);
+                canvas.State.Transform = Matrix4x4.Identity;
 
-                var normalMatrix = Matrix4x4.Transpose(_lastCollision.Object!.WorldMatrixInverse);
+                var normal = (_lastCollision.Normal.Value.Transform(_lastCollision.Object!.NormalMatrix)).Normalize();
 
-                canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + _lastCollision.Normal.Value.Transform(normalMatrix).Normalize());
+                canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + normal * 0.5f);
 
                 if (_lastCollision.Tangent != null)
                 {
                     canvas.State.Color = new Color(0, 1, 1, 1);
-                    var nq = Vector3.Normalize(new Vector3(_lastCollision.Tangent.Value.X, _lastCollision.Tangent.Value.Y, _lastCollision.Tangent.Value.Z));
-                    canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + new Vector3(nq.X, nq.Y, nq.Z));
+                    var tangent = new Vector3(_lastCollision.Tangent.Value.X, _lastCollision.Tangent.Value.Y, _lastCollision.Tangent.Value.Z).Normalize();
+                    
+                    tangent = tangent.Transform(_lastCollision.Object!.NormalMatrix).Normalize();
+
+                    canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + tangent * 0.5f);
                 }
 
             }

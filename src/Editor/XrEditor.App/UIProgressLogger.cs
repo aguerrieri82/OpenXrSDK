@@ -15,7 +15,7 @@ namespace XrEditor
 
         public UIProgressLogger()
         {
-
+            MaxLines = 500;
         }
 
         public void Init(RichTextBox textBox, ProgressBar progressBar)
@@ -30,6 +30,11 @@ namespace XrEditor
         {
             if (_textBox == null)
                 return;
+
+            if (_textBox.Document.Blocks.Count > MaxLines)
+                _textBox.Document.Blocks.Clear();
+
+            //_textBox.Document.Blocks.Remove(_textBox.Document.Blocks.FirstBlock);
 
             while (_messages.TryDequeue(out var msg))
             {
@@ -60,8 +65,9 @@ namespace XrEditor
                     paragraph.Inlines.Add(new Run(string.Format(" ({0}ms)", (int)(msg.Date - _lastMessageTime.Value).TotalMilliseconds)) { Foreground = Brushes.Gray });
 
                 _textBox.Document.Blocks.Add(paragraph);
-                _lastMessageTime = msg.Date;
+                _lastMessageTime = msg.Date; 
             }
+
 
             _textBox.ScrollToEnd();
         }
@@ -79,5 +85,8 @@ namespace XrEditor
             if (current == 0 && total == 0)
                 _progressBar.Maximum = 1;
         }
+
+
+        public int MaxLines { get; set; }
     }
 }

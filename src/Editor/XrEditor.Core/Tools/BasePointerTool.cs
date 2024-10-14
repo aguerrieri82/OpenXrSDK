@@ -14,6 +14,8 @@ namespace XrEditor
         protected bool _isActive;
         protected readonly IMainDispatcher _main;
 
+
+
         public BasePointerTool()
         {
             _isActive = true;
@@ -26,7 +28,9 @@ namespace XrEditor
             _sceneView.RenderSurface.PointerDown += OnPointerDown;
             _sceneView.RenderSurface.PointerUp += OnPointerUp;
             _sceneView.RenderSurface.PointerMove += OnPointerMove;
-            _sceneView.RenderSurface.WheelMove += OnWheelMove; ;
+            _sceneView.RenderSurface.WheelMove += OnWheelMove;
+
+
         }
 
 

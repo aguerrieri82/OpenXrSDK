@@ -34,8 +34,6 @@
 
         IReadOnlyList<Material> IVertexSource.Materials => [Material];
 
-
-
         #endregion
     }
 }

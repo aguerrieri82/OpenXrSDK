@@ -44,6 +44,49 @@ namespace XrMath
 
         #endregion
 
+        #region QUOD3
+
+        public static Vector3 Normal(this Quad3 self)
+        {
+            return Vector3.Transform(Vector3.UnitZ, self.Pose.Orientation).Normalize();
+        }
+
+        public static Vector3 Tangent(this Quad3 self)
+        {
+            return Vector3.Transform(Vector3.UnitX, self.Pose.Orientation).Normalize();
+        }
+
+
+        public static Plane ToPlane(this Quad3 self)
+        {
+            var normal = self.Normal();
+            return new Plane(normal, -Vector3.Dot(normal, self.Pose.Position));
+        }
+
+        public static Vector3 PointAt(this Quad3 self, float x, float y)
+        {
+            return self.PointAt(new Vector2(x, y));
+        }
+
+
+        public static Vector3 PointAt(this Quad3 self, Vector2 point)
+        {
+            return self.Pose.Transform(new Vector3(point.X, point.Y, 0));
+        }
+
+        public static IEnumerable<Vector3> Corners(this Quad3 self)
+        {
+            var halfSize = self.Size / 2;
+
+            yield return self.PointAt(-halfSize.X, -halfSize.Y);
+            yield return self.PointAt(halfSize.X, -halfSize.Y);
+            yield return self.PointAt(halfSize.X, halfSize.Y);
+            yield return self.PointAt(-halfSize.X, halfSize.Y);
+
+        }
+
+        #endregion
+
         #region PLANE
 
         public static bool IntersectLine(this Plane plane, Vector3 point1, Vector3 point2)
@@ -57,6 +100,40 @@ namespace XrMath
         #endregion
 
         #region BOUNDS
+
+        public static IEnumerable<Quad3> Faces(this Bounds3 bounds)
+        {
+            var C1 = new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Min.Z);
+            var C2 = new Vector3(bounds.Max.X, bounds.Min.Y, bounds.Min.Z);
+            var C3 = new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Min.Z);
+            var C4 = new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Min.Z);
+            var C5 = new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Max.Z);
+            var C6 = new Vector3(bounds.Max.X, bounds.Min.Y, bounds.Max.Z);
+            var C7 = new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Max.Z);
+            var C8 = new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Max.Z);
+
+            var quads = new Quad3[6];
+
+            // Bottom face (XY plane at Min.Z)
+            quads[0] = MathUtils.QuadFromEdges(C4, C3, C2, C1);
+
+            // Top face (XY plane at Max.Z)
+            quads[1] = MathUtils.QuadFromEdges(C5, C6, C7, C8);
+
+            // Front face (XZ plane at Min.Y)
+            quads[2] = MathUtils.QuadFromEdges(C1, C2, C6, C5);
+
+            // Back face (XZ plane at Max.Y)
+            quads[3] = MathUtils.QuadFromEdges(C8, C7, C3, C4);
+
+            // Left face (YZ plane at Min.X)
+            quads[4] = MathUtils.QuadFromEdges(C8, C4, C1, C5);
+
+            // Right face (YZ plane at Max.X)
+            quads[5] = MathUtils.QuadFromEdges(C3, C7, C6, C2);
+
+            return quads;
+        }
 
         public static bool IntersectFrustum(this Bounds3 bounds, IEnumerable<Plane> planes)
         {
@@ -142,7 +219,7 @@ namespace XrMath
             if (intersectMinX > intersectMaxX || intersectMinY > intersectMaxY || intersectMinZ > intersectMaxZ)
             {
                 result = new Bounds3();
-                return false;   
+                return false;
             }
 
             result = new Bounds3()
@@ -212,7 +289,7 @@ namespace XrMath
         {
             return new Pose3
             {
-                Orientation = b.Orientation * a.Orientation,
+                Orientation = a.Orientation * b.Orientation,
                 Position = a.Transform(b.Position)
             };
         }
@@ -265,36 +342,7 @@ namespace XrMath
 
         public static Quaternion ToOrientation(this Vector3 direction)
         {
-            // Normalize the direction vector
-            direction = Vector3.Normalize(direction);
-
-            // Get the forward vector (assuming Z forward, Y up in a typical 3D environment)
-            Vector3 forward = new Vector3(0, 0, 1);
-
-            // Calculate the dot product between forward and the direction
-            float dot = Vector3.Dot(forward, direction);
-
-            // If the dot is 1, it means they're the same, no rotation needed
-            if (MathF.Abs(dot - 1.0f) < 1e-6f)
-            {
-                return Quaternion.Identity; // No rotation
-            }
-
-            // If the dot is -1, it means they're in opposite directions
-            if (MathF.Abs(dot + 1.0f) < 1e-6f)
-            {
-                // Rotate 180 degrees around any axis perpendicular to the forward vector
-                return new Quaternion(0, 1, 0, 0); // This rotates around the Y-axis, for example
-            }
-
-            // Find the axis of rotation (cross product between forward and the direction)
-            Vector3 axis = Vector3.Normalize(Vector3.Cross(forward, direction));
-
-            // Calculate the angle between forward and the direction using arc cosine of the dot product
-            float angle = MathF.Acos(dot);
-
-            // Create a quaternion from the axis and angle
-            return Quaternion.CreateFromAxisAngle(axis, angle);
+            return Vector3.UnitZ.RotationTowards(direction);
         }
 
         public static float MinDistanceTo(this Vector3[] self, Vector3 point)
@@ -348,17 +396,40 @@ namespace XrMath
             return (vector.Transform(matrix) - Vector3.Zero.Transform(matrix)).Normalize();
         }
 
-        public static Quaternion RotationTowards(this Vector3 from, Vector3 to)
+        public static Quaternion RotationTowards(this Vector3 from, Vector3 to, float epsilon = 1e-6f)
         {
-            Quaternion result;
+            // Normalize the input vectors
+            from = Vector3.Normalize(from);
+            to = Vector3.Normalize(to);
 
-            var axis = Vector3.Cross(from, to);
-            result.X = axis.X;
-            result.Y = axis.Y;
-            result.Z = axis.Z;
-            result.W = MathF.Sqrt((from.LengthSquared() * to.LengthSquared())) + Vector3.Dot(from, to);
+            // Compute the dot product to find the cosine of the angle between the vectors
+            var dot = Vector3.Dot(from, to);
 
-            return Quaternion.Normalize(result);
+            // Handle the case where the vectors are already aligned
+            if (MathF.Abs(dot - 1.0f) < epsilon)
+                return Quaternion.Identity; // No rotation needed
+
+            // Handle the case where the vectors are opposite (180-degree rotation)
+            if (MathF.Abs(dot + 1.0f) < epsilon)
+            {
+                // Find an orthogonal vector to use as the rotation axis
+                var orthogonalAxis = Vector3.Cross(from, Vector3.UnitX);
+                if (orthogonalAxis.LengthSquared() < epsilon)
+                    orthogonalAxis = Vector3.Cross(from, Vector3.UnitY); // Try a different axis if the first fails
+
+                orthogonalAxis = Vector3.Normalize(orthogonalAxis);
+                return Quaternion.CreateFromAxisAngle(orthogonalAxis, MathF.PI); // 180-degree rotation
+            }
+
+            // Compute the axis of rotation (cross product of from and to)
+            Vector3 rotationAxis = Vector3.Cross(from, to);
+            rotationAxis = Vector3.Normalize(rotationAxis);
+
+            // Compute the angle between the vectors (acos of the dot product)
+            float angle = MathF.Acos(dot);
+
+            // Create the quaternion representing the rotation
+            return Quaternion.CreateFromAxisAngle(rotationAxis, angle);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -495,13 +566,8 @@ namespace XrMath
             sinp = Math.Clamp(sinp, -1.0f, 1.0f);
 
             res.X = MathF.Atan2(2.0f * (q.Y * q.Z + q.W * q.X), q.W * q.W - q.X * q.X - q.Y * q.Y + q.Z * q.Z);
-            res.Y = MathF.Asin(sinp); 
+            res.Y = MathF.Asin(sinp);
             res.Z = MathF.Atan2(2.0f * (q.X * q.Y + q.W * q.Z), q.W * q.W + q.X * q.X - q.Y * q.Y - q.Z * q.Z);
-
-            /*
-            if (float.IsNaN(res.X) || float.IsNaN(res.Y) || float.IsNaN(res.Z))
-                Debugger.Break();
-            */
 
             return res;
         }

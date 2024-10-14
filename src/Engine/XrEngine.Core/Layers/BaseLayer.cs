@@ -6,6 +6,7 @@
         protected readonly HashSet<T> _content = [];
         protected LayerManager? _manager;
         protected long _version;
+
         private bool _isEnabled;
 
         public BaseLayer()

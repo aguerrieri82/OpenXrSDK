@@ -19,33 +19,35 @@ namespace XrEngine
 
         public void Build()
         {
+            var halfSize = Size / 2;
+
             Vertices = VertexData.FromPosNormalUV(
             [
                //X    Y      Z       Normals
-                Size.X, Size.Y, -Size.Z, -0f, 1f, -0f, 1f, 1f,
-                -Size.X, Size.Y, -Size.Z, -0f, 1f, -0f, 0f, 1f,
-                -Size.X, Size.Y, Size.Z, -0f, 1f, -0f, 0f, 0f,
-                Size.X, Size.Y, Size.Z, -0f, 1f, -0f, 1f, 0f,
-                Size.X, -Size.Y, Size.Z, -0f, -0f, 1f, 1f, 0f,
-                Size.X, Size.Y, Size.Z, -0f, -0f, 1f, 1f, 1f,
-                -Size.X, Size.Y, Size.Z, -0f, -0f, 1f, 0f, 1f,
-                -Size.X, -Size.Y, Size.Z, -0f, -0f, 1f, 0f, 0f,
-                -Size.X, -Size.Y, Size.Z, -1f, -0f, -0f, 0f, 0f,
-                -Size.X, Size.Y, Size.Z, -1f, -0f, -0f, 0f, 1f,
-                -Size.X, Size.Y, -Size.Z, -1f, -0f, -0f, 1f, 1f,
-                -Size.X, -Size.Y, -Size.Z, -1f, -0f, -0f, 1f, 0f,
-                -Size.X, -Size.Y, -Size.Z, -0f, -1f, -0f, 0f, 1f,
-                Size.X, -Size.Y, -Size.Z, -0f, -1f, -0f, 1f, 1f,
-                Size.X, -Size.Y, Size.Z, -0f, -1f, -0f, 1f, 0f,
-                -Size.X, -Size.Y, Size.Z, -0f, -1f, -0f, 0f, 0f,
-                Size.X, -Size.Y, -Size.Z, 1f, -0f, -0f, 1f, 0f,
-                Size.X, Size.Y, -Size.Z, 1f, -0f, -0f, 1f, 1f,
-                Size.X, Size.Y, Size.Z, 1f, -0f, -0f, 0f, 1f,
-                Size.X, -Size.Y, Size.Z, 1f, -0f, -0f, 0f, 0f,
-                -Size.X, -Size.Y, -Size.Z, -0f, -0f, -1f, 0f, 0f,
-                -Size.X, Size.Y, -Size.Z, -0f, -0f, -1f, 0f, 1f,
-                Size.X, Size.Y, -Size.Z, -0f, -0f, -1f, 1f, 1f,
-                Size.X, -Size.Y, -Size.Z, -0f, -0f, -1f, 1f, 0f,
+                halfSize.X, halfSize.Y, -halfSize.Z, -0f, 1f, -0f, 1f, 1f,
+                -halfSize.X, halfSize.Y, -halfSize.Z, -0f, 1f, -0f, 0f, 1f,
+                -halfSize.X, halfSize.Y, halfSize.Z, -0f, 1f, -0f, 0f, 0f,
+                halfSize.X, halfSize.Y, halfSize.Z, -0f, 1f, -0f, 1f, 0f,
+                halfSize.X, -halfSize.Y, halfSize.Z, -0f, -0f, 1f, 1f, 0f,
+                halfSize.X, halfSize.Y, halfSize.Z, -0f, -0f, 1f, 1f, 1f,
+                -halfSize.X, halfSize.Y, halfSize.Z, -0f, -0f, 1f, 0f, 1f,
+                -halfSize.X, -halfSize.Y, halfSize.Z, -0f, -0f, 1f, 0f, 0f,
+                -halfSize.X, -halfSize.Y, halfSize.Z, -1f, -0f, -0f, 0f, 0f,
+                -halfSize.X, halfSize.Y, halfSize.Z, -1f, -0f, -0f, 0f, 1f,
+                -halfSize.X, halfSize.Y, -halfSize.Z, -1f, -0f, -0f, 1f, 1f,
+                -halfSize.X, -halfSize.Y, -halfSize.Z, -1f, -0f, -0f, 1f, 0f,
+                -halfSize.X, -halfSize.Y, -halfSize.Z, -0f, -1f, -0f, 0f, 1f,
+                halfSize.X, -halfSize.Y, -halfSize.Z, -0f, -1f, -0f, 1f, 1f,
+                halfSize.X, -halfSize.Y, halfSize.Z, -0f, -1f, -0f, 1f, 0f,
+                -halfSize.X, -halfSize.Y, halfSize.Z, -0f, -1f, -0f, 0f, 0f,
+                halfSize.X, -halfSize.Y, -halfSize.Z, 1f, -0f, -0f, 1f, 0f,
+                halfSize.X, halfSize.Y, -halfSize.Z, 1f, -0f, -0f, 1f, 1f,
+                halfSize.X, halfSize.Y, halfSize.Z, 1f, -0f, -0f, 0f, 1f,
+                halfSize.X, -halfSize.Y, halfSize.Z, 1f, -0f, -0f, 0f, 0f,
+                -halfSize.X, -halfSize.Y, -halfSize.Z, -0f, -0f, -1f, 0f, 0f,
+                -halfSize.X, halfSize.Y, -halfSize.Z, -0f, -0f, -1f, 0f, 1f,
+                halfSize.X, halfSize.Y, -halfSize.Z, -0f, -0f, -1f, 1f, 1f,
+                halfSize.X, -halfSize.Y, -halfSize.Z, -0f, -0f, -1f, 1f, 0f,
              ]);
 
             Indices =

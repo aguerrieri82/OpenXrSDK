@@ -44,6 +44,7 @@ namespace XrEngine
 
         public void DrawBounds(Bounds3 bounds)
         {
+
             DrawLine(new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Min.Z),
                     new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Min.Z));
             DrawLine(new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Min.Z),
@@ -85,6 +86,45 @@ namespace XrEngine
                 DrawTriangle(triangle);
         }
 
+        public void DrawQuad(Quad3 quad, bool drawNormal = true)
+        {
+            var corners = quad.Corners().ToArray();
+
+            DrawLine(corners[0], corners[1]);
+            DrawLine(corners[1], corners[2]);
+            DrawLine(corners[2], corners[3]);
+            DrawLine(corners[3], corners[0]);
+
+            if (drawNormal)
+            {
+                DrawLine(quad.PointAt(0, 0), quad.PointAt(0, 0) + quad.Normal() * 0.5f);
+                DrawLine(quad.PointAt(0, 0), quad.PointAt(0, 0) + quad.Tangent() * 0.5f);
+            }
+
+        }
+
+        public void DrawPlane(Plane p, float width = 10, float height = 10, float span = 1)
+        {
+            Vector3 planeOrigin = -p.Normal * p.D;
+
+            Vector3 u = Vector3.Normalize(Vector3.Cross(p.Normal, new Vector3(1, 0, 0)));
+            Vector3 v = Vector3.Normalize(Vector3.Cross(p.Normal, u));
+
+            for (var x = -width /2; x <= width / 2; x += span)
+            {
+                var p1 = planeOrigin + x * u + -height/2 * v;
+                var p2 = planeOrigin + x * u + height / 2 * v;
+                DrawLine(p1, p2);
+            }
+
+            for (var y = -height / 2; y <= height / 2; y += span)
+            {
+                var p1 = planeOrigin + -width/2 * u + y * v;
+                var p2 = planeOrigin + width/2 * u + y * v;
+                DrawLine(p1, p2);
+            }
+        }
+
         public void Clear()
         {
             _data.Clear();
@@ -103,7 +143,7 @@ namespace XrEngine
         public void Flush()
         {
             _lineMesh.Vertices = _data.ToArray();
-            _lineMesh.IsVisible = _data.Count > 0;
+            //_lineMesh.IsVisible = _data.Count > 0;
             _lineMesh.Version++;
         }
 
