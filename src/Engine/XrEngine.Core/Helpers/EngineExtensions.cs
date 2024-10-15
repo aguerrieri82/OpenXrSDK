@@ -1,6 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics;
 using XrEngine.Services;
 using XrMath;
 
@@ -63,9 +65,15 @@ namespace XrEngine
         #region OBJECT3D
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 ToLocal(this Object3D self, Vector3 vector)
+        public static Vector3 ToLocal(this Object3D self, Vector3 worldPoint)
         {
-            return vector.Transform(self.WorldMatrixInverse);
+            return worldPoint.Transform(self.WorldMatrixInverse);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 ToWorld(this Object3D self, Vector3 localPoint)
+        {
+            return localPoint.Transform(self.WorldMatrix);
         }
 
         public static Pose3 GetWorldPose(this Object3D self)
@@ -554,7 +562,6 @@ namespace XrEngine
             }
         }
 
-
         public static unsafe void ComputeTangents(this Geometry3D self)
         {
             int vertexCount = self.Vertices.Length;
@@ -707,6 +714,36 @@ namespace XrEngine
                 i += 3;
             }
         }
+
+        public static void ComputeIndices(this Geometry3D self)
+        {
+
+            var hasesh = new Dictionary<Vector512<float>, uint>();
+            var newVertices = new List<VertexData>(self.Vertices.Length);  
+
+            static Vector512<float> Hash(VertexData vert)
+            {
+                return Vector512.Create(vert.Pos.X, vert.Pos.Y, vert.Pos.Z, vert.Normal.X, vert.Normal.Y, vert.Normal.Z, vert.UV.X, vert.UV.Y, 0, 0, 0, 0, 0, 0, 0, 0);
+            }       
+
+            foreach (var vert in self.Vertices)
+            {
+                var hash = Hash(vert);
+                if (!hasesh.ContainsKey(hash))
+                {
+                    hasesh[hash] = (uint)newVertices.Count;
+                    newVertices.Add(vert);
+                }
+                 
+            }
+
+            var indices = new uint[self.Vertices.Length];
+            for (var i = 0; i < indices.Length; i++)
+                indices[i] = hasesh[Hash(self.Vertices[i])];
+
+            self.Indices = indices;
+            self.Vertices = newVertices.ToArray(); 
+        }   
 
         #endregion
 

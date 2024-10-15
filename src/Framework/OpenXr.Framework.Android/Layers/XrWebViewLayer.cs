@@ -1,4 +1,5 @@
 ﻿using Android.Content;
+using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
 using Android.Util;
@@ -22,6 +23,7 @@ namespace OpenXr.Framework.Android
                 _layer = layer;
             }
 
+
             public override void Draw(Canvas canvas)
             {
                 _layer.ScheduleDraw(base.Draw);
@@ -30,7 +32,7 @@ namespace OpenXr.Framework.Android
 
         class WebClient : WebViewClient
         {
-            const string TAG = "WebClient";
+            const string TAG = nameof(WebClient);
 
             readonly XrWebViewLayer _layer;
 
@@ -49,20 +51,23 @@ namespace OpenXr.Framework.Android
 
             public override bool ShouldOverrideUrlLoading(WebView? view, string? url)
             {
-                view!.LoadUrl(url!);
-                return true;
+                Log.Debug(TAG, "ShouldOverrideUrlLoading");
+                //view!.LoadUrl(url!);
+                return false;
             }
 
             public override void OnPageFinished(WebView? view, string? url)
             {
+                Log.Debug(TAG, "OnPageFinished");
                 //_layer.UpdateScale();
                 base.OnPageFinished(view, url);
             }
+
         }
 
         class ChromeClient : WebChromeClient
         {
-            const string TAG = "ChromeClient Browser";
+            const string TAG = nameof(WebChromeClient);
 
             public override void OnPermissionRequest(PermissionRequest? request)
             {
@@ -86,6 +91,12 @@ namespace OpenXr.Framework.Android
             {
                 Log.Debug(TAG, "OnHideCustomView");
                 base.OnHideCustomView();
+            }
+
+            public override bool OnCreateWindow(WebView? view, bool isDialog, bool isUserGesture, Message? resultMsg)
+            {
+                Log.Debug(TAG, "OnCreateWindow");
+                return base.OnCreateWindow(view, isDialog, isUserGesture, resultMsg);
             }
         }
 
@@ -215,8 +226,28 @@ namespace OpenXr.Framework.Android
             return result;
         }
 
+        private string? GetWebViewVersion()
+        {
+            try
+            { 
+                var packageInfo = _context.PackageManager!.GetPackageInfo("com.google.android.webview", 0);
+                return packageInfo?.VersionName;
+            }
+            catch (Exception)
+            {
+                return "WebView not found";
+            }
+        }
+
+
         protected void CreateWebView()
         {
+            /*
+            var verName = GetWebViewVersion();
+
+            Log.Debug(nameof(XrWebViewLayer), verName ?? "");
+            */
+
             _webView = new WebView2(this);
             _webView.SetWebViewClient(new WebClient(this));
             _webView.SetWebChromeClient(new ChromeClient());
@@ -232,7 +263,7 @@ namespace OpenXr.Framework.Android
             _webView.Settings.SetNeedInitialFocus(false);
             _webView.Settings.UserAgentString = "Mozilla/5.0 (Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.0.0 Safari/537.36";
             _webView.Settings.CacheMode = CacheModes.CacheElseNetwork;
-
+            _webView.SetLayerType(LayerType.Hardware, null);
 
             if (_context is Activity activity)
             {

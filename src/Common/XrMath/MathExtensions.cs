@@ -56,7 +56,6 @@ namespace XrMath
             return Vector3.Transform(Vector3.UnitX, self.Pose.Orientation).Normalize();
         }
 
-
         public static Plane ToPlane(this Quad3 self)
         {
             var normal = self.Normal();
@@ -67,7 +66,6 @@ namespace XrMath
         {
             return self.PointAt(new Vector2(x, y));
         }
-
 
         public static Vector3 PointAt(this Quad3 self, Vector2 point)
         {
@@ -234,16 +232,16 @@ namespace XrMath
 
         public static bool Intersects(this Bounds3 bounds, Line3 line, out float distance)
         {
-            Vector3 dir = (line.To - line.From).Normalize(); // direction of the line
-            Vector3 tMin = (bounds.Min - line.From) / dir; // minimum t to hit the box
-            Vector3 tMax = (bounds.Max - line.From) / dir; // maximum t to hit the box
+            var dir = (line.To - line.From).Normalize(); // direction of the line
+            var tMin = (bounds.Min - line.From) / dir; // minimum t to hit the box
+            var tMax = (bounds.Max - line.From) / dir; // maximum t to hit the box
 
             // Ensure tMin <= tMax
-            Vector3 t1 = Vector3.Min(tMin, tMax);
-            Vector3 t2 = Vector3.Max(tMin, tMax);
+            var t1 = Vector3.Min(tMin, tMax);
+            var t2 = Vector3.Max(tMin, tMax);
 
-            float tNear = MathF.Max(MathF.Max(t1.X, t1.Y), t1.Z);
-            float tFar = MathF.Min(MathF.Min(t2.X, t2.Y), t2.Z);
+            var tNear = MathF.Max(MathF.Max(t1.X, t1.Y), t1.Z);
+            var tFar = MathF.Min(MathF.Min(t2.X, t2.Y), t2.Z);
 
             distance = tNear;
 
@@ -627,7 +625,37 @@ namespace XrMath
             return $"#{ToHex(color.A)}{ToHex(color.R)}{ToHex(color.G)}{ToHex(color.B)}";
         }
 
+        #endregion
 
+        #region LINE2
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 Direction(this Line3 self)
+        {
+            return (self.To - self.From).Normalize();
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Length(this Line3 self)
+        {
+            return Vector3.Distance(self.From, self.To);    
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 PointAt(this Line3 self, float distance)
+        {
+            return self.From + self.Direction() * distance; 
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 PointAtOffset(this Line3 self, float t)
+        {
+            return self.From + self.Direction() * (t * self.Length());
+        }
 
         #endregion
 
@@ -647,8 +675,6 @@ namespace XrMath
 
             return offset < 0;
         }
-
-
 
         #endregion
     }

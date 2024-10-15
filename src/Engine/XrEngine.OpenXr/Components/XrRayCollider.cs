@@ -1,6 +1,5 @@
 ﻿using OpenXr.Framework;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using XrEngine.Interaction;
 using XrMath;
 
@@ -11,10 +10,14 @@ namespace XrEngine.OpenXr
         protected XrPoseInput? _input;
         protected IRayTarget[] _sceneTargets = [];
         protected readonly RayView _rayView;
+        protected readonly HitTargetView _hitView;
 
         public XrRayCollider()
         {
             _rayView = new RayView();
+            _hitView = new HitTargetView();
+
+            ShowHit = true; 
         }
 
         public override void GetState(IStateContainer container)
@@ -37,6 +40,7 @@ namespace XrEngine.OpenXr
             _input = (XrPoseInput?)XrApp.Current?.Inputs[InputName];
 
             _host.AddChild(_rayView);
+            _host.AddChild(_hitView);
 
             _sceneTargets = _host.Scene.Components<IComponent>().OfType<IRayTarget>().ToArray();
         }
@@ -77,9 +81,21 @@ namespace XrEngine.OpenXr
 
                     foreach (var target in _sceneTargets)
                         target.NotifyCollision(ctx, result);
+
+                    if (ShowHit)
+                    {
+                        _hitView.WorldPosition = result.Point;
+
+                        if (result.Normal != null)
+                            _hitView.Forward = result.Normal.Value.ToDirection(result.Object!.WorldMatrix);
+
+                        _hitView.IsVisible = true;
+
+                    }
                 }
                 else
                 {
+                    _hitView.IsVisible = false;
                     _rayView.Length = 3;
                     _rayView.UpdateColor(new Color(1, 1, 1));
                 }
@@ -88,6 +104,10 @@ namespace XrEngine.OpenXr
 
         public string? InputName { get; set; }
 
+        public bool ShowHit { get; set; }
+
         public RayView RayView => _rayView;
+
+
     }
 }

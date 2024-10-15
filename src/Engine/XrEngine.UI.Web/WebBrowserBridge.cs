@@ -77,6 +77,9 @@ namespace XrEngine.UI.Web
 
         private async void OnMessageReceived(object? sender, MessageReceivedArgs e)
         {
+            if (e.Message == "#ref")
+                return;
+
             var jObj = JsonNode.Parse(e.Message)!;
 
             var type = (string?)jObj["type"];

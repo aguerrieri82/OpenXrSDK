@@ -2,44 +2,46 @@
 using Java.Interop;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
+using System.Diagnostics.CodeAnalysis;
 using XrEngine.UI.Web;
 
 namespace XrEngine.OpenXr.Android
 {
+
+    public class BrowserInterface : Java.Lang.Object
+    {
+        readonly AndroidWebViewBrowser _browser;
+
+        public BrowserInterface(AndroidWebViewBrowser browser)
+        {
+            _browser = browser;
+            PostMessage("#ref");
+        }
+
+        [JavascriptInterface]
+        [Export("postMessage")]
+        public void PostMessage(string data)
+        {
+            _browser.OnMessageReceived(new MessageReceivedArgs(data));
+        }
+    }
+
     public class AndroidWebViewBrowser : IWebBrowser
     {
         private readonly XrWebViewLayer _webViewLayer;
-        private readonly Interface _interface;
+        private readonly BrowserInterface _interface;
         private bool _isInit;
-
-
-        class Interface : Java.Lang.Object
-        {
-            readonly AndroidWebViewBrowser _browser;
-
-            public Interface(AndroidWebViewBrowser browser)
-            {
-                _browser = browser;
-            }
-
-            [JavascriptInterface]
-            [Export("postMessage")]
-            public void PostMessage(string data)
-            {
-                _browser.MessageReceived?.Invoke(_browser, new MessageReceivedArgs(data));
-            }
-        }
 
         public AndroidWebViewBrowser(XrWebViewLayer webViewLayer)
         {
-            _interface = new Interface(this);
+            _interface = new BrowserInterface(this);
             _webViewLayer = webViewLayer;
         }
         public WebResourceResponse? HandleResponse(IWebResourceRequest req)
         {
             try
             {
-                Log.Info(this, "Browser Request: {0}", req.Url);
+                Log.Info(this, "Request: {0}", req.Url);
 
                 if (RequestHandler == null)
                     return null;
@@ -58,7 +60,7 @@ namespace XrEngine.OpenXr.Android
                 if (webResp.Headers == null || !webResp.Headers.TryGetValue("Content-Type", out var mimeType))
                     mimeType = null;
 
-                Log.Debug(this, "Browser Response received: {0}, code: {2}, mime: {1}", webReq.Uri, mimeType, webResp.Code);
+                Log.Debug(this, "Response received: {0}, code: {2}, mime: {1}", webReq.Uri, mimeType, webResp.Code);
 
                 var result = new WebResourceResponse(
                     mimeType,
@@ -72,7 +74,7 @@ namespace XrEngine.OpenXr.Android
             }
             catch (Exception ex)
             {
-                Log.Warn(this, "Browser Handler error: {0}", req.Url);
+                Log.Warn(this, "Handler error: {0}", req.Url);
                 Log.Error(this, ex);
                 return null;
             }
@@ -97,7 +99,6 @@ namespace XrEngine.OpenXr.Android
             {
                 _webViewLayer.WebView!.AddJavascriptInterface(_interface, "bridge");
                 _webViewLayer.ShouldInterceptRequest = HandleResponse;
-            
             });
 
             _isInit = true;
@@ -111,12 +112,19 @@ namespace XrEngine.OpenXr.Android
             if (!_isInit)
                 await InitAsync();
 
-            Log.Info(this, "Browser NavigateAsync {0}", uri);
-
-            await _webViewLayer.MainThread.ExecuteAsync(() =>
+            _ = _webViewLayer.MainThread.ExecuteAsync(() =>
             {
+                Log.Info(this, "NavigateAsync {0}", uri);
+
                 _webViewLayer.WebView.LoadUrl(uri);
+
+                Log.Debug(this, "Navigate END");
             });
+        }
+
+        internal void OnMessageReceived(MessageReceivedArgs e)
+        {
+            MessageReceived?.Invoke(this, e);
         }
 
         public event EventHandler<MessageReceivedArgs>? MessageReceived;
