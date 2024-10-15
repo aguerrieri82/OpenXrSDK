@@ -4,10 +4,8 @@ namespace XrEngine.OpenXr
 {
     public class InputObjectGrabber : BaseObjectGrabber<Scene3D>
     {
-
         public InputObjectGrabber()
         {
-
         }
 
         public InputObjectGrabber(XrPoseInput input, XrHaptic? vibrate, params XrFloatInput[] handlers)
@@ -46,7 +44,7 @@ namespace XrEngine.OpenXr
             base.SetStateWork(container);
 
             Input = container.Read<XrPoseInput>(nameof(Input));
-            Handlers = new List<XrFloatInput>();
+            Handlers = [];
 
             if (container.Contains(nameof(Handlers)))
             {

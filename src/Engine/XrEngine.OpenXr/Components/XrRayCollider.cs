@@ -1,4 +1,6 @@
 ﻿using OpenXr.Framework;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using XrEngine.Interaction;
 using XrMath;
 
@@ -7,7 +9,7 @@ namespace XrEngine.OpenXr
     public class XrRayCollider : Behavior<Scene3D>
     {
         protected XrPoseInput? _input;
-        private IRayTarget[] _sceneTargets;
+        protected IRayTarget[] _sceneTargets = [];
         protected readonly RayView _rayView;
 
         public XrRayCollider()
@@ -29,17 +31,22 @@ namespace XrEngine.OpenXr
 
         protected override void Start(RenderContext ctx)
         {
-            _input = (XrPoseInput)XrApp.Current!.Inputs[InputName!];
+            Debug.Assert(InputName != null);
+            Debug.Assert(_host?.Scene != null);
 
-            _host!.AddChild(_rayView);
+            _input = (XrPoseInput?)XrApp.Current?.Inputs[InputName];
 
-            _sceneTargets = _host!.Scene!.Components<IComponent>().OfType<IRayTarget>().ToArray();
+            _host.AddChild(_rayView);
 
+            _sceneTargets = _host.Scene.Components<IComponent>().OfType<IRayTarget>().ToArray();
         }
 
         protected override void Update(RenderContext ctx)
         {
-            if (_input!.IsChanged && _input.IsActive)
+            Debug.Assert(_input != null);
+            Debug.Assert(_host != null);
+
+            if (_input.IsChanged && _input.IsActive)
             {
                 _rayView.WorldPosition = _input.Value.Position;
                 _rayView.WorldOrientation = _input.Value.Orientation;
@@ -52,7 +59,7 @@ namespace XrEngine.OpenXr
 
                 Collision? result = null;
 
-                var results = _host!.RayCollisions(ray).ToArray();
+                var results = _host.RayCollisions(ray).ToArray();
                 if (results.Length > 0)
                 {
                     var minDistance = results.Min(a => a.Distance);
@@ -64,7 +71,7 @@ namespace XrEngine.OpenXr
 
                     _rayView.Length = result.Distance;
 
-                    var rayTarget = result.Object!.Feature<IRayTarget>();
+                    var rayTarget = result.Object?.Feature<IRayTarget>();
 
                     rayTarget?.NotifyCollision(ctx, result);
 
@@ -77,8 +84,6 @@ namespace XrEngine.OpenXr
                     _rayView.UpdateColor(new Color(1, 1, 1));
                 }
             }
-
-            base.Update(ctx);
         }
 
         public string? InputName { get; set; }

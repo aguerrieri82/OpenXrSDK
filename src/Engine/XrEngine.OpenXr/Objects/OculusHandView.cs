@@ -2,6 +2,7 @@
 using OpenXr.Framework.Oculus;
 using PhysX.Framework;
 using Silk.NET.OpenXR;
+using System.Diagnostics;
 using System.Numerics;
 using XrEngine.Physics;
 using XrMath;
@@ -24,7 +25,8 @@ namespace XrEngine.OpenXr
                 throw new ArgumentNullException();
 
             Name ??= "Hand " + HandType;
-            _input = XrApp.Current!.AddHand<XrHandInputMesh>(HandType);
+
+            _input = XrApp.Current?.AddHand<XrHandInputMesh>(HandType);
 
             base.Start(ctx);
         }
@@ -45,14 +47,17 @@ namespace XrEngine.OpenXr
 
         public override T? Feature<T>() where T : class
         {
-            if (_input != null && typeof(T).IsAssignableFrom(_input!.GetType()))
+            if (_input != null && typeof(T).IsAssignableFrom(_input.GetType()))
                 return (T)(object)_input;
             return base.Feature<T>();
         }
 
         protected override void UpdateSelf(RenderContext ctx)
         {
-            if (!_isInit && _input != null && XrApp.Current!.IsStarted && _input.IsActive)
+            Debug.Assert(XrApp.Current != null);
+            Debug.Assert(_input != null);
+
+            if (!_isInit && XrApp.Current.IsStarted && _input.IsActive)
             {
                 _input.LoadMesh();
 
@@ -93,7 +98,7 @@ namespace XrEngine.OpenXr
                 _isInit = true;
             }
 
-            if (_isInit && _input!.IsActive)
+            if (_isInit && _input.IsActive)
             {
                 for (var i = 0; i < _input.Capsules.Length; i++)
                 {
@@ -119,7 +124,7 @@ namespace XrEngine.OpenXr
             }
 
             if (_isInit)
-                IsVisible = _input!.IsActive;
+                IsVisible = _input.IsActive;
 
             base.UpdateSelf(ctx);
         }

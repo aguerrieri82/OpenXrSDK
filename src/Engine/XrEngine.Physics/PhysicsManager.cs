@@ -81,13 +81,9 @@ namespace XrEngine.Physics
         protected override void Update(RenderContext ctx)
         {
             if (!IsMultiThread)
-            {
                 _system?.Simulate((float)DeltaTime, StepSizeSecs);
-            }
             else
                 _lastUpdateTime = ctx.Time;
-
-            base.Update(ctx);
         }
 
         public void Dispose()

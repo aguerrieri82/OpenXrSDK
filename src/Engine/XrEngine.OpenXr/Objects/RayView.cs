@@ -5,14 +5,13 @@ namespace XrEngine.OpenXr
 {
     public class RayView : TriangleMesh
     {
-        protected float _length;
         protected bool _isDirty = true;
+        protected float _length;
         protected float _size;
 
         public RayView()
         {
             Flags |= EngineObjectFlags.DisableNotifyChangedScene;
-
             Geometry = new Cube3D(Vector3.One);
             Materials.Add(new ColorMaterial(Color.White));
             Length = 4f;
@@ -21,7 +20,7 @@ namespace XrEngine.OpenXr
 
             var matrix = Matrix4x4.CreateTranslation(0, 0, -0.5f);
 
-            Geometry!.ApplyTransform(matrix);
+            Geometry.ApplyTransform(matrix);
         }
 
         public override void Update(RenderContext ctx)

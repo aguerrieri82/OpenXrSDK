@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace XrEngine
 {
     public abstract class Behavior<T> : BaseComponent<T>, IBehavior, IComponent<T> where T : EngineObject
     {
@@ -17,6 +19,7 @@
             _startTime = -1;
             _lastUpdateTime = 0;
         }
+
 
         protected virtual void Start(RenderContext ctx)
         {

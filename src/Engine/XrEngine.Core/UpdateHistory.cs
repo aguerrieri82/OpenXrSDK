@@ -68,7 +68,7 @@
             _index++;
         }
 
-        public void NotifyChanged(Object3D object3D, ObjectChange change)
+        public void NotifyChanged(Object3D sender, ObjectChange change)
         {
             if (_suspend > 0)
                 return;
@@ -78,7 +78,7 @@
                 {
                     Scene = _scene,
                     Name = "Add Object",
-                    Object = object3D,
+                    Object = sender,
                 });
 
             else if (change.IsAny(ObjectChangeType.SceneAdd))
@@ -87,7 +87,7 @@
                 {
                     Scene = _scene,
                     Name = "Remove Object",
-                    Object = object3D,
+                    Object = sender,
                 });
             }
             else if (change.IsAny(ObjectChangeType.Render))

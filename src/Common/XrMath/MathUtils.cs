@@ -184,5 +184,32 @@ namespace XrMath
             return finalRotation;
         }
 
+
+        public static void OrthoNormalize(ref Vector3 normal, ref Vector3 tangent)
+        {
+            // Normalize the normal vector
+            normal = Vector3.Normalize(normal);
+
+            // Project the tangent onto the normal
+            var proj = normal * Vector3.Dot(tangent, normal);
+
+            // Subtract the projection from the tangent to make it orthogonal to the normal
+            tangent -= proj;
+
+            // Normalize the tangent vector
+            float tangentLength = tangent.Length();
+            if (tangentLength > 1e-6f) // Avoid division by zero
+            {
+                tangent /= tangentLength;
+            }
+            else
+            {
+                // If the tangent length is zero, set it to an arbitrary orthogonal vector
+                tangent = Vector3.Cross(normal, Vector3.UnitX);
+                if (tangent.LengthSquared() < 1e-6f)
+                    tangent = Vector3.Cross(normal, Vector3.UnitY);
+                tangent = Vector3.Normalize(tangent);
+            }
+        }
     }
 }

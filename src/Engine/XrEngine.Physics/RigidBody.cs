@@ -360,50 +360,50 @@ namespace XrEngine.Physics
 
         protected override void Update(RenderContext ctx)
         {
-            if (_actor == null)
-                return;
+            if (_actor != null)
+                _manager!.Execute(UpdateWork);
+        }
 
+        void UpdateWork()
+        {
             Debug.Assert(_host != null);
+            Debug.Assert(_actor != null);
 
-            _manager!.Execute(() =>
+            if (!_host.IsManipulating())
             {
-                if (!_host.IsManipulating())
-                {
-                    var curPose = GetPose();
+                var curPose = GetPose();
 
-                    if (Type == PhysicsActorType.Dynamic)
-                    {
-                        if (!curPose.IsSimilar(_lastPose))
-                        {
-                            _lastPose = GetPose();
-                            DynamicActor.GlobalPose = _lastPose;
-                        }
-                        else
-                        {
-                            _lastPose = _actor.GlobalPose;
-                            SetPose(_lastPose);
-                            if (DynamicActor.IsKinematic)
-                                DynamicActor.IsKinematic = false;
-                        }
-                    }
-                    else if (Type == PhysicsActorType.Static)
-                        _actor.GlobalPose = curPose;
-                }
-                else
+                if (Type == PhysicsActorType.Dynamic)
                 {
-                    if (Type != PhysicsActorType.Static)
+                    if (!curPose.IsSimilar(_lastPose))
                     {
-                        if (Type == PhysicsActorType.Dynamic && !DynamicActor.IsKinematic)
-                            DynamicActor.IsKinematic = true;
-
                         _lastPose = GetPose();
-                        DynamicActor.KinematicTarget = _lastPose;
+                        DynamicActor.GlobalPose = _lastPose;
                     }
                     else
-                        _actor.GlobalPose = GetPose();
+                    {
+                        _lastPose = _actor.GlobalPose;
+                        SetPose(_lastPose);
+                        if (DynamicActor.IsKinematic)
+                            DynamicActor.IsKinematic = false;
+                    }
                 }
-            });
+                else if (Type == PhysicsActorType.Static)
+                    _actor.GlobalPose = curPose;
+            }
+            else
+            {
+                if (Type != PhysicsActorType.Static)
+                {
+                    if (Type == PhysicsActorType.Dynamic && !DynamicActor.IsKinematic)
+                        DynamicActor.IsKinematic = true;
 
+                    _lastPose = GetPose();
+                    DynamicActor.KinematicTarget = _lastPose;
+                }
+                else
+                    _actor.GlobalPose = GetPose();
+            }
         }
 
         public override void GetState(IStateContainer container)

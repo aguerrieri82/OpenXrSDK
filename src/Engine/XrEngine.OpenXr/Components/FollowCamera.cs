@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -11,8 +12,8 @@ namespace XrEngine.OpenXr
 
             if (camera != null)
             {
-                _host!.Transform.Position = Offset.Transform(camera.WorldMatrix);
-                _host.Transform.Orientation = camera.Transform.Orientation;
+                _host!.WorldPosition = Offset.Transform(camera.WorldMatrix);
+                _host.WorldOrientation = camera.WorldOrientation;
             }
         }
 

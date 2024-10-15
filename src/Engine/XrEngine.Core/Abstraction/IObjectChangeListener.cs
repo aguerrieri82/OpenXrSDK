@@ -2,6 +2,6 @@
 {
     public interface IObjectChangeListener
     {
-        void NotifyChanged(Object3D object3D, ObjectChange change);
+        void NotifyChanged(Object3D sender, ObjectChange change);
     }
 }

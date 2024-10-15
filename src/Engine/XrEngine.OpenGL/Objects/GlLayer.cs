@@ -43,7 +43,7 @@ namespace XrEngine.OpenGL
 
             if (_type == GlLayerType.Main)
             {
-                foreach (var light in _scene.VisibleDescendants<Light>())
+                foreach (var light in _scene.Descendants<Light>().Visible())
                 {
                     _content.Lights.Add(light);
 
@@ -72,8 +72,8 @@ namespace XrEngine.OpenGL
 
 
             var objects = _layer != null ?
-                _layer.Content.OfType<Object3D>().Where(a => a.IsVisible) :
-                _scene.VisibleDescendants<Object3D>();
+                _layer.Content.OfType<Object3D>().Visible() :
+                _scene.Descendants().Visible();
 
             foreach (var obj3D in objects)
             {

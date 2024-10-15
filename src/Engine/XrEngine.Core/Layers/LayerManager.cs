@@ -47,10 +47,10 @@
             _version++;
         }
 
-        void IObjectChangeListener.NotifyChanged(Object3D object3D, ObjectChange change)
+        void IObjectChangeListener.NotifyChanged(Object3D sender, ObjectChange change)
         {
             foreach (var layer in _layers.Where(a => a.IsEnabled))
-                layer.NotifyChanged(object3D, change);
+                layer.NotifyChanged(sender, change);
         }
 
         protected static string Hash(ILayer3D layer, ILayer3DItem obj)

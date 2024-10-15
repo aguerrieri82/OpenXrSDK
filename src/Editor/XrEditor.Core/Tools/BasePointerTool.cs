@@ -14,8 +14,6 @@ namespace XrEditor
         protected bool _isActive;
         protected readonly IMainDispatcher _main;
 
-
-
         public BasePointerTool()
         {
             _isActive = true;

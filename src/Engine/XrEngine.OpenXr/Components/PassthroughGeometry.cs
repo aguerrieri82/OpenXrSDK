@@ -15,63 +15,63 @@ namespace XrEngine.OpenXr
 
         protected override void Update(RenderContext ctx)
         {
-            if (!_isInit)
+            if (_isInit)
+                return;
+
+            Debug.Assert(_host != null);    
+
+            var xrApp = XrApp.Current;
+
+            _sceneModel ??= _host.Descendants<OculusSceneModel>().FirstOrDefault();
+
+            if (_sceneModel != null && _sceneModel.Children.Count > 0)
             {
-                var xrApp = XrApp.Current;
+                _ptLayer ??= xrApp?.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
 
-                _sceneModel ??= _host!.Descendants<OculusSceneModel>().FirstOrDefault();
-
-                if (_sceneModel != null && _sceneModel.Children.Count > 0)
+                if (_ptLayer != null)
                 {
-                    _ptLayer ??= xrApp?.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
+                    var meshObj = (TriangleMesh)_sceneModel.Children[0];
 
-                    if (_ptLayer != null)
+                    Debug.Assert(meshObj.Geometry != null);
+
+                    var triMesh = new Mesh
                     {
-                        var meshObj = (TriangleMesh)_sceneModel.Children[0];
+                        Indices = meshObj.Geometry.Indices,
+                        Vertices = meshObj.Geometry.ExtractPositions()
+                    };
 
-                        Debug.Assert(meshObj.Geometry != null);
+                    var test = Cube3D.Default;
 
-                        var triMesh = new Mesh
+                    triMesh.Indices = test.Indices!;
+                    triMesh.Vertices = test.Vertices.Select(a => a.Pos).ToArray()!;
+
+                    var ptMesh = _ptLayer.AddMesh(triMesh, xrApp!.Stage, meshObj);
+
+                    /*
+                    _ptLayer.UpdateMesh(
+                        ptMesh, new Posef
                         {
-                            Indices = meshObj.Geometry.Indices,
-                            Vertices = meshObj.Geometry.ExtractPositions()
-                        };
-
-                        var test = Cube3D.Default;
-
-                        triMesh.Indices = test.Indices!;
-                        triMesh.Vertices = test.Vertices.Select(a => a.Pos).ToArray()!;
-
-                        var ptMesh = _ptLayer.AddMesh(triMesh, xrApp!.Stage, meshObj);
-
-                        /*
-                        _ptLayer.UpdateMesh(
-                            ptMesh, new Posef
-                            {
-                                Orientation = meshObj.Transform.Orientation.ToQuaternionf(),
-                                Position = meshObj.Transform.Position.ToVector3f(),  
-                            },
-                            meshObj.Transform.Scale.ToVector3f(),
-                            xrApp.Stage,
-                            xrApp.LastFrameTime);
-                        */
+                            Orientation = meshObj.Transform.Orientation.ToQuaternionf(),
+                            Position = meshObj.Transform.Position.ToVector3f(),  
+                        },
+                        meshObj.Transform.Scale.ToVector3f(),
+                        xrApp.Stage,
+                        xrApp.LastFrameTime);
+                    */
 
 
-                        _ptLayer.UpdateMesh(
-                            ptMesh, new Posef
-                            {
-                                Orientation = Quaternion.Identity.ToQuaternionf()
-                            },
-                            new Vector3f(0.2f, 0.2f, 0.2f),
-                            xrApp.Stage,
-                            xrApp.FramePredictedDisplayTime);
+                    _ptLayer.UpdateMesh(
+                        ptMesh, new Posef
+                        {
+                            Orientation = Quaternion.Identity.ToQuaternionf()
+                        },
+                        new Vector3f(0.2f, 0.2f, 0.2f),
+                        xrApp.Stage,
+                        xrApp.FramePredictedDisplayTime);
 
-                        _isInit = true;
-                    }
+                    _isInit = true;
                 }
             }
-
-            base.Update(ctx);
         }
     }
 }
