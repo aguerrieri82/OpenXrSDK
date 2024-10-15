@@ -1,17 +1,12 @@
-﻿using LogA = Android.Util.Log;
+﻿using static Android.Graphics.ImageDecoder;
+using LogA = Android.Util.Log;
 
 namespace XrEngine.OpenXr
 {
     internal class AndroidProgressLogger : IProgressLogger
     {
-        readonly string _tag;
 
-        public AndroidProgressLogger(string tag = "XrApp")
-        {
-            _tag = tag;
-        }
-
-        public void BeginTask(string? message = null)
+        public void BeginTask(object source, string? message = null)
         {
 
         }
@@ -21,26 +16,28 @@ namespace XrEngine.OpenXr
 
         }
 
-        public void LogMessage(string text, LogLevel level = LogLevel.Info, bool retain = false)
+        public void LogMessage(object source, string text, LogLevel level = LogLevel.Info, bool retain = false)
         {
+            var tag = source.GetType().Name;  
+            
             switch (level)
             {
                 case LogLevel.Debug:
-                    LogA.Debug(_tag, text);
+                    LogA.Debug(tag, text);
                     break;
                 case LogLevel.Info:
-                    LogA.Info(_tag, text);
+                    LogA.Info(tag, text);
                     break;
                 case LogLevel.Error:
-                    LogA.Error(_tag, text);
+                    LogA.Error(tag, text);
                     break;
                 case LogLevel.Warning:
-                    LogA.Warn(_tag, text);
+                    LogA.Warn(tag, text);
                     break;
             }
         }
 
-        public void LogProgress(double current, double total, string? message = null, bool retain = false)
+        public void LogProgress(object source, double current, double total, string? message = null, bool retain = false)
         {
 
         }

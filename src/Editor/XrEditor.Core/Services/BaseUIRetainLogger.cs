@@ -69,20 +69,20 @@ namespace XrEditor.Services
 
         protected abstract void UpdateProgress(double current, double total, string? message);
 
-        public virtual void BeginTask(string? message = null)
+        public virtual void BeginTask(object source, string? message = null)
         {
-            LogProgress(1, 0);
+            LogProgress(source, 1, 0);
             if (message != null)
-                LogMessage(message, LogLevel.Info);
+                LogMessage(source, message, LogLevel.Info);
         }
 
         public virtual void EndTask()
         {
-            LogProgress(0, 0);
-            LogMessage("Done", LogLevel.Info);
+            LogProgress(this, 0, 0);
+            LogMessage(this, "Done", LogLevel.Info);
         }
 
-        public virtual void LogMessage(string text, LogLevel level = LogLevel.Info, bool retain = false)
+        public virtual void LogMessage(object source, string text, LogLevel level = LogLevel.Info, bool retain = false)
         {
             if (string.IsNullOrWhiteSpace(text) || !IsActive)
                 return;
@@ -95,7 +95,7 @@ namespace XrEditor.Services
                 _isDirty = true;
         }
 
-        public virtual void LogProgress(double current, double total, string? message = null, bool retain = false)
+        public virtual void LogProgress(object source, double current, double total, string? message = null, bool retain = false)
         {
             if (!IsActive)
                 return;

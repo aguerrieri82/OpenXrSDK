@@ -33,20 +33,6 @@ namespace XrEngine
             if (!_isInit)
                 Initialize();
 
-            /*
-            var wordBounds = bounds.Transform(_host!.WorldMatrix);
-
-            if (wordBounds.Intersects(ray.ToLine(10000), out var distance))
-            {
-                return new Collision()
-                {
-                    Distance = distance,
-                    LocalPoint = Vector3.Transform(ray.Origin + ray.Direction * distance, _host.WorldMatrixInverse),
-                    Object = _host,
-                };
-            }
-            */
-
             var localRay = ray.Transform(_host!.WorldMatrixInverse);
 
             var bounds = new Bounds3
@@ -55,17 +41,38 @@ namespace XrEngine
                 Max = Center + Size / 2
             };
 
-            if (bounds.Intersects(localRay.ToLine(10000), out var distance))
+            if (bounds.Intersects(localRay.ToLine(10000), out var localDistance))
             {
-                var localPoint = localRay.Origin + localRay.Direction * distance;
-                var wordPoint = localPoint.Transform(_host!.WorldMatrix);
-                var distance2 = (wordPoint - ray.Origin).Length();
+                var localPoint = localRay.PointAt(localDistance);
+                var wordPoint = _host.ToWorld(localPoint);
+
+                Vector3 normal = Vector3.Zero;
+
+                if (MathF.Abs(localPoint.Z - bounds.Min.Z) <= 0.0001f)
+                    normal = -Vector3.UnitZ;
+
+                else if (MathF.Abs(localPoint.Z - bounds.Max.Z) <= 0.0001f)
+                    normal = Vector3.UnitZ;
+
+                else if (MathF.Abs(localPoint.X - bounds.Min.X) <= 0.0001f)
+                    normal = -Vector3.UnitX;
+
+                else if (MathF.Abs(localPoint.X - bounds.Max.X) <= 0.0001f)
+                    normal = Vector3.UnitX;
+
+                else if (MathF.Abs(localPoint.Y - bounds.Min.Y) <= 0.0001f)
+                    normal = -Vector3.UnitY;
+
+                else if (MathF.Abs(localPoint.Y - bounds.Max.Y) <= 0.0001f)
+                    normal = Vector3.UnitY;
+
 
                 return new Collision()
                 {
-                    Distance = distance2,
+                    Distance = (wordPoint - ray.Origin).Length(),
                     LocalPoint = localPoint,
                     Point = wordPoint,
+                    Normal = normal,
                     Object = _host,
                 };
             }

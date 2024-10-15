@@ -55,9 +55,9 @@ namespace XrEngine.OpenXr
         protected override void UpdateSelf(RenderContext ctx)
         {
             Debug.Assert(XrApp.Current != null);
-            Debug.Assert(_input != null);
 
-            if (!_isInit && XrApp.Current.IsStarted && _input.IsActive)
+
+            if (!_isInit && _input != null && _input.IsActive)
             {
                 _input.LoadMesh();
 

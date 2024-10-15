@@ -776,7 +776,8 @@ namespace XrSamples
             }
 
             var mesh3 = new TriangleMesh(new Arrow3D(), (Material)MaterialFactory.CreatePbr("#F00"));
-           
+            var mesh4 = new TriangleMesh(new Donut3D(), (Material)MaterialFactory.CreatePbr("#F00"));
+
             DirectionalLight? dirLight = null;
             
             mesh3.AddBehavior((_, _) =>
@@ -790,6 +791,7 @@ namespace XrSamples
             scene.AddChild(mesh);
             scene.AddChild(mesh2);
             scene.AddChild(mesh3);
+            scene.AddChild(mesh4);
 
             return builder
                 .UseApp(app)

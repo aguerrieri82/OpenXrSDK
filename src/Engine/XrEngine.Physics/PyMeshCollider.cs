@@ -56,8 +56,9 @@ namespace XrEngine.Physics
                 return new Collision
                 {
                     Distance = min,
-                    Normal = minRes.Normal,
+                    Normal = minRes.Normal.ToDirection(item.WorldMatrixInverse),
                     Point = minRes.Position,
+                    LocalPoint = item.ToLocal(minRes.Position),
                     UV = minRes.UV,
                     Object = item
                 };

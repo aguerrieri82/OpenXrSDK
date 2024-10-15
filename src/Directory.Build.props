@@ -11,7 +11,7 @@
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<Platforms>AnyCPU;x64</Platforms>
-		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<NoWarn>$(NoWarn);CS8500</NoWarn>
 		<Configurations>Debug;Release</Configurations>
 		<OpenGL></OpenGL>
@@ -21,9 +21,14 @@
 		<NativePlatform>x64</NativePlatform>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<Optmize>false</Optmize>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
 		<DebugSymbols>true</DebugSymbols>
 		<DebugType>full</DebugType>
+		<IsTrimmable>false</IsTrimmable>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(TargetFramework)' == '$(CoreVersion)-android'">

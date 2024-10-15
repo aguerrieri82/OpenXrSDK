@@ -75,6 +75,6 @@ namespace XrEngine.OpenXr.Windows
 
         public string Name => "Console";
 
-        public DeviceInfo DeviceInfo => _info;
+        public DeviceInfo Device => _info;
     }
 }
