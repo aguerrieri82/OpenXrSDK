@@ -1,4 +1,5 @@
 ﻿using OpenXr.Framework;
+using System.Diagnostics;
 using System.Numerics;
 using XrMath;
 
@@ -13,7 +14,7 @@ namespace XrEngine.OpenXr
         public bool IsValid;
     }
 
-    public abstract class BaseObjectGrabber<T> : Behavior<T> where T : Object3D
+    public abstract class BaseObjectGrabber<T> : Behavior<T>, IObjectTool where T : Object3D
     {
         private Object3D? _grabObject;
         private IGrabbable? _grabbable;
@@ -28,23 +29,27 @@ namespace XrEngine.OpenXr
         {
             Vibrate = vibrate;
             _grabView = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr(new Color(0, 1, 1, 1)));
-            _grabView.Flags |= EngineObjectFlags.DisableNotifyChangedScene;
-            _grabView.Transform.SetScale(0.01f);
-            _grabView.Flags |= EngineObjectFlags.Generated;
+            _grabView.Flags |= EngineObjectFlags.DisableNotifyChangedScene | EngineObjectFlags.Generated;
             _grabView.Name = "Grab View";
+            _grabView.Transform.SetScale(0.01f);
         }
 
         protected override void Start(RenderContext ctx)
         {
-            _host!.Scene!.AddChild(_grabView);
+            Debug.Assert(_host?.Scene != null);
+
+            _host.Scene.AddChild(_grabView);
         }
 
         protected abstract ObjectGrab IsGrabbing();
 
         //TODO: instance object are not included
+
         protected Object3D? FindGrabbable(Vector3 worldPos, out IGrabbable? grabbable)
         {
-            foreach (var item in _host!.Scene!.ObjectsWithComponent<IGrabbable>())
+            Debug.Assert(_host?.Scene != null);
+
+            foreach (var item in _host.Scene.ObjectsWithComponent<IGrabbable>())
             {
                 foreach (var comp in item.Components<IGrabbable>())
                 {
@@ -66,31 +71,45 @@ namespace XrEngine.OpenXr
             _grabbable = grabbable;
             _grabObject = grabObj;
 
-            _startPivot = _grabObject!.Transform.LocalPivot;
-            _startInputOrientation = grabPoint.Orientation;
-            _startOrientation = _grabObject!.WorldOrientation;
+            _grabObject.SetActiveTool(this, true);
+            _grabObject.IsManipulating(true);
 
-            _grabObject?.Transform.SetLocalPivot(_grabObject!.ToLocal(grabPoint.Position), true);
-            _grabObject?.IsManipulating(true);
+            _startPivot = _grabObject.Transform.LocalPivot;
+            _startInputOrientation = grabPoint.Orientation;
+            _startOrientation = _grabObject.WorldOrientation;
+
+            _grabObject.Transform.SetLocalPivot(_grabObject.ToLocal(grabPoint.Position), true);
 
             _grabbable.Grab();
         }
 
         protected virtual void MoveGrabbing(Pose3 grabPoint)
         {
-            _grabObject!.WorldPosition = grabPoint.Position;
-            _grabObject!.WorldOrientation = MathUtils.QuatAdd(_startOrientation, MathUtils.QuatDiff(grabPoint.Orientation, _startInputOrientation));
+            Debug.Assert(_grabObject != null);  
 
-            _grabbable!.OnMove();
+            _grabObject.WorldPosition = grabPoint.Position;
+            _grabObject.WorldOrientation = MathUtils.QuatAdd(_startOrientation, MathUtils.QuatDiff(grabPoint.Orientation, _startInputOrientation));
+
+            _grabbable?.OnMove();
         }
 
         protected virtual void StopGrabbing()
         {
-            _grabObject?.Transform.SetLocalPivot(_startPivot, true);
-            _grabObject?.IsManipulating(false);
+            if (_grabObject != null)
+            {
+                _grabObject.Transform.SetLocalPivot(_startPivot, true);
+                _grabObject.IsManipulating(false);
+                _grabObject.SetActiveTool(this, false);
+                _grabObject = null;
+            }
+
             _grabbable = null;
-            _grabObject = null;
             _grabStarted = false;
+        }
+
+        void IObjectTool.Deactivate()
+        {
+            StopGrabbing();
         }
 
         protected override void OnDisabled()
@@ -107,7 +126,6 @@ namespace XrEngine.OpenXr
 
             _grabView.Transform.Position = objGrab.Pose.Position;
             _grabView.Transform.Orientation = objGrab.Pose.Orientation;
-
 
             if (!_grabStarted)
             {

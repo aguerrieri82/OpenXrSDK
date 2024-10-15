@@ -26,15 +26,11 @@ namespace XrEngine
                 .ToArray();
 
             _collider = _host!.Feature<ICollider3D>();
-
-            base.Start(ctx);
         }
 
         protected override void Update(RenderContext ctx)
         {
             ProcessPointers(ctx);
-
-            base.Update(ctx);
         }
 
         protected void ProcessPointers(RenderContext ctx)

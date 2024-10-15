@@ -35,7 +35,7 @@ namespace XrEngine.OpenXr
             if (!_isInit || !result.IsValid)
                 return result;
 
-            var thumbObj = _host!.Children[_thumbIndex];
+            var thumbObj = _host.Children[_thumbIndex];
 
             var thumb = GetSphere(thumbObj);
 
@@ -45,7 +45,7 @@ namespace XrEngine.OpenXr
 
             foreach (var index in _distalIndices)
             {
-                var otherObj = _host!.Children[index];
+                var otherObj = _host.Children[index];
                 var other = GetSphere(otherObj);
 
                 other.Intersects(thumb, out var offset);
@@ -67,10 +67,11 @@ namespace XrEngine.OpenXr
 
         protected override void Update(RenderContext ctx)
         {
-            if (!_isInit && _host!.HandInput.Mesh != null)
+
+            if (!_isInit && _host?.HandInput.Mesh != null)
             {
                 var index = 0;
-                foreach (var cap in _host!.HandInput.Capsules)
+                foreach (var cap in _host.HandInput.Capsules)
                 {
                     if (cap.Joint == HandJointEXT.ThumbDistalExt)
                         _thumbIndex = index;
@@ -85,8 +86,6 @@ namespace XrEngine.OpenXr
                 }
                 _isInit = _distalIndices.Count > 0;
             }
-
-            base.Update(ctx);
         }
     }
 }

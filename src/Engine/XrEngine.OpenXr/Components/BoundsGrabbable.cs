@@ -9,7 +9,7 @@ namespace XrEngine.OpenXr
 
         protected override void OnAttach()
         {
-            _local = _host!.Feature<ILocalBounds>();
+            _local = _host?.Feature<ILocalBounds>();
             if (_local != null)
                 _local.BoundUpdateMode = UpdateMode.Automatic;
         }

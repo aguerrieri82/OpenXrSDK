@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using XrEngine.Layers;
 
 namespace XrEngine
@@ -6,12 +7,13 @@ namespace XrEngine
     public class Scene3D : Group3D, IObjectChangeListener
     {
         protected Camera? _activeCamera;
-        protected List<IObjectChangeListener> _changeListener = [];
-        protected readonly LayerManager _layers;
         protected EngineApp? _app;
-        protected UpdateHistory _history;
-        protected Canvas3D _gizmos;
-        protected readonly IList<IDrawGizmos> _drawGizmos =[];
+
+        protected readonly List<IObjectChangeListener> _changeListener = [];
+        protected readonly LayerManager _layers;
+        protected readonly UpdateHistory _history;
+        protected readonly Canvas3D _gizmos;
+        protected readonly IList<IDrawGizmos> _drawGizmos = [];
 
         public Scene3D()
         {
@@ -32,8 +34,11 @@ namespace XrEngine
             _gizmos.Clear();
 
             foreach (var draw in _drawGizmos)
-                draw.DrawGizmos(_gizmos);
-
+            {
+                if (draw.IsEnabled)
+                    draw.DrawGizmos(_gizmos);
+            }
+     
             _gizmos.Flush();
         }
 
@@ -53,7 +58,7 @@ namespace XrEngine
                 if (obj is IDrawGizmos draw)
                     _drawGizmos.Add(draw);
 
-                foreach (var component in obj.Components<IComponent>().Where(a => a.IsEnabled).OfType<IDrawGizmos>())
+                foreach (var component in obj.Components<IComponent>().OfType<IDrawGizmos>())
                     _drawGizmos.Add(component);
             }
         }
@@ -71,12 +76,12 @@ namespace XrEngine
             Update(ctx);
         }
 
-        public void NotifyChanged(Object3D object3D, ObjectChange change)
+        public void NotifyChanged(Object3D sender, ObjectChange change)
         {
             //Debug.Assert(_app?.RenderThread == null || Thread.CurrentThread == _app.RenderThread);
 
             if (change.Target == null)
-                change.Target = object3D;
+                change.Target = sender;
 
             if (!change.IsAny(ObjectChangeType.Transform) &&
                 change.Target is not Material &&
@@ -88,12 +93,12 @@ namespace XrEngine
             }
 
             foreach (var listener in _changeListener)
-                listener.NotifyChanged(object3D, change);
+                listener.NotifyChanged(sender, change);
 
             if (_app != null)
             {
                 foreach (var listener in _app.ChangeListeners)
-                    listener.NotifyChanged(object3D, change);
+                    listener.NotifyChanged(sender, change);
             }
         }
 

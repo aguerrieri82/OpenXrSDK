@@ -19,8 +19,6 @@ namespace XrSamples.Android
             _host.Transform.Orientation = camera.Transform.Orientation;
 
             _isSet = true;
-
-            base.Update(ctx);
         }
     }
 }

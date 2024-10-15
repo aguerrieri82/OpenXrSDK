@@ -20,40 +20,40 @@ namespace XrEngine
     {
         #region EngineObject
 
-        public static void SetFlag(this EngineObject obj, EngineObjectFlags flag, bool isSet)
+        public static void SetFlag(this EngineObject self, EngineObjectFlags flag, bool isSet)
         {
             if (isSet)
-                obj.Flags |= flag;
+                self.Flags |= flag;
             else
-                obj.Flags &= ~flag;
+                self.Flags &= ~flag;
         }
 
-        public static Behavior<T> AddBehavior<T>(this T obj, Action<T, RenderContext> action) where T : EngineObject
+        public static Behavior<T> AddBehavior<T>(this T self, Action<T, RenderContext> action) where T : EngineObject
         {
             var result = new LambdaBehavior<T>(action);
-            obj.AddComponent(result);
+            self.AddComponent(result);
             return result;
         }
 
-        public static T AddComponent<T>(this EngineObject obj) where T : IComponent, new()
+        public static T AddComponent<T>(this EngineObject self) where T : IComponent, new()
         {
             var result = new T();
-            obj.AddComponent(result);
+            self.AddComponent(result);
             return result;
         }
 
-        public static T Component<T>(this EngineObject obj) where T : IComponent
+        public static T Component<T>(this EngineObject self) where T : IComponent
         {
-            return obj.Components<T>().Single();
+            return self.Components<T>().Single();
         }
 
-        public static T GetOrCreateProp<T>(this EngineObject obj, string name, Func<T> create)
+        public static T GetOrCreateProp<T>(this EngineObject self, string name, Func<T> create)
         {
-            var result = obj.GetProp<T?>(name);
+            var result = self.GetProp<T?>(name);
             if (result == null)
             {
                 result = create();
-                obj.SetProp(name, result);
+                self.SetProp(name, result);
             }
             return result;
         }
@@ -63,20 +63,61 @@ namespace XrEngine
         #region OBJECT3D
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 ToLocal(this Object3D obj, Vector3 vector)
+        public static Vector3 ToLocal(this Object3D self, Vector3 vector)
         {
-            return vector.Transform(obj.WorldMatrixInverse);
+            return vector.Transform(self.WorldMatrixInverse);
         }
 
-        public static bool IsManipulating(this Object3D obj)
+        public static Pose3 GetWorldPose(this Object3D self)
         {
-            return obj.GetProp<bool>("IsManipulating");
+            return new Pose3
+            {
+                Orientation = self.WorldOrientation,
+                Position = self.WorldPosition
+            };
         }
 
-        public static void IsManipulating(this Object3D obj, bool value)
+        public static Pose3 GetLocalPose(this Object3D self)
         {
-            obj.SetProp("IsManipulating", value);
+            return new Pose3
+            {
+                Orientation = self.Transform.Orientation,
+                Position = self.Transform.Position
+            };
         }
+
+        public static bool IsManipulating(this Object3D self)
+        {
+            return self.GetProp<bool>("IsManipulating");
+        }
+
+        public static void IsManipulating(this Object3D self, bool value)
+        {
+            self.SetProp("IsManipulating", value);
+        }
+
+        public static void SetActiveTool(this Object3D self, IObjectTool value, bool isActive)
+        {
+            var curTool = self.GetActiveTool(); 
+
+
+            if (isActive)
+            {
+                if (curTool != value)
+                    curTool?.Deactivate();
+
+                self.SetProp("ActiveTool", value);
+            }
+
+            else if (curTool == value)
+                self.SetProp("ActiveTool", null);
+        }
+
+        public static IObjectTool? GetActiveTool(this Object3D self)
+        {
+            return self.GetProp<IObjectTool?>("ActiveTool");
+        }
+
 
         public static IEnumerable<Object3D> DescendantsOrSelf(this Object3D self)
         {
@@ -132,7 +173,14 @@ namespace XrEngine
                 return result;
 
             if (self is Group3D group)
-                return group.DescendantsWithFeature<T>().FirstOrDefault().Feature;
+            {
+                foreach (var child in group.Children)
+                {
+                    result = child.FeatureDeep<T>();
+                    if (result != null)
+                        return result;
+                }
+            }
 
             return null;
         }
@@ -155,58 +203,63 @@ namespace XrEngine
                 self.WorldOrientation = pose.Orientation;
         }
 
+
+        public static IEnumerable<T> Visible<T>(this IEnumerable<T> self) where T : Object3D
+        {
+            return self.Where(a => a.IsVisible);
+        }
+
+
         #endregion
 
         #region SCENE
 
-        public static T EnsureLayer<T>(this Scene3D scene) where T: ILayer3D, new() 
+        public static T EnsureLayer<T>(this Scene3D self) where T: ILayer3D, new() 
         {
-            var layer = scene.Layers.OfType<T>().FirstOrDefault();
-            layer ??= scene.AddLayer<T>();
+            var layer = self.Layers.OfType<T>().FirstOrDefault();
+            layer ??= self.AddLayer<T>();
             return layer;
         }
 
-
-        public static PerspectiveCamera PerspectiveCamera(this Scene3D scene)
+        public static PerspectiveCamera PerspectiveCamera(this Scene3D self)
         {
-            return ((PerspectiveCamera)scene.ActiveCamera!);
+            return ((PerspectiveCamera)self.ActiveCamera!);
         }
 
-        public static T AddLayer<T>(this Scene3D scene) where T : ILayer3D, new()
+        public static T AddLayer<T>(this Scene3D self) where T : ILayer3D, new()
         {
-            return scene.AddLayer(new T());
+            return self.AddLayer(new T());
         }
 
-        public static T AddLayer<T>(this Scene3D scene, T layer) where T : ILayer3D
+        public static T AddLayer<T>(this Scene3D self, T layer) where T : ILayer3D
         {
-            scene.Layers.Add(layer);            
+            self.Layers.Add(layer);            
             return layer;
         }
 
-        public static IEnumerable<Object3D> ObjectsWithComponent<TComp>(this Scene3D scene) where TComp : IComponent
+        public static IEnumerable<Object3D> ObjectsWithComponent<TComp>(this Scene3D self) where TComp : IComponent
         {
-            var layer = scene.Layers.OfType<ComponentLayer<TComp>>().FirstOrDefault();
+            var layer = self.Layers.OfType<ComponentLayer<TComp>>().FirstOrDefault();
             if (layer == null)
             {
                 layer = new ComponentLayer<TComp>();
-                scene.Layers.Add(layer);
+                self.Layers.Add(layer);
             }
 
             return layer.Content.Cast<Object3D>();
         }
 
-        public static IEnumerable<T> TypeLayerContent<T>(this Scene3D scene) where T : Object3D
+        public static IEnumerable<T> TypeLayerContent<T>(this Scene3D self) where T : Object3D
         {
-            var layer = scene.Layers.OfType<TypeLayer<T>>().FirstOrDefault();
+            var layer = self.Layers.OfType<TypeLayer<T>>().FirstOrDefault();
             if (layer == null)
                 return [];
             return layer.Content.Cast<T>();
         }
 
-        public static IEnumerable<Collision> RayCollisions(this Scene3D scene, Ray3 ray)
+        public static IEnumerable<Collision> RayCollisions(this Scene3D self, Ray3 ray)
         {
-
-            foreach (var obj in scene.ObjectsWithComponent<ICollider3D>())
+            foreach (var obj in self.ObjectsWithComponent<ICollider3D>())
             {
                 foreach (var collider in obj.Components<ICollider3D>())
                 {
@@ -219,23 +272,6 @@ namespace XrEngine
             }
         }
 
-        public static Pose3 GetWorldPose(this Object3D obj)
-        {
-            return new Pose3
-            {
-                Orientation = obj.WorldOrientation,
-                Position = obj.WorldPosition
-            };
-        }
-
-        public static Pose3 GetLocalPose(this Object3D obj)
-        {
-            return new Pose3
-            {
-                Orientation = obj.Transform.Orientation,
-                Position = obj.Transform.Position
-            };
-        }
 
         #endregion
 
@@ -271,9 +307,9 @@ namespace XrEngine
         }
 
 
-        public static IEnumerable<ObjectFeature<T>> DescendantsWithFeature<T>(this Group3D group) where T : class
+        public static IEnumerable<ObjectFeature<T>> DescendantsWithFeature<T>(this Group3D self) where T : class
         {
-            foreach (var item in group.Descendants())
+            foreach (var item in self.Descendants())
             {
                 var feat = item.Feature<T>();
                 if (feat != null)
@@ -285,21 +321,14 @@ namespace XrEngine
             }
         }
 
-        public static IEnumerable<T> VisibleDescendants<T>(this Group3D target) where T : Object3D
+        public static IEnumerable<Object3D> Descendants(this Group3D self)
         {
-            return target.Descendants<T>().Where(a => a.IsVisible);
+            return self.Descendants<Object3D>();
         }
 
-        public static IEnumerable<Object3D> Descendants(this Group3D target)
+        public static IEnumerable<T> Descendants<T>(this Group3D self) where T : Object3D
         {
-            return target.Descendants<Object3D>();
-        }
-
-
-
-        public static IEnumerable<T> Descendants<T>(this Group3D target) where T : Object3D
-        {
-            foreach (var child in target.Children)
+            foreach (var child in self.Children)
             {
                 if (child is T validChild)
                     yield return validChild;
@@ -316,9 +345,9 @@ namespace XrEngine
 
         #region ENGINE APP
 
-        public static void OpenScene(this EngineApp app, string name)
+        public static void OpenScene(this EngineApp self, string name)
         {
-            app.OpenScene(app.Scenes.Single(s => s.Name == name));
+            self.OpenScene(self.Scenes.Single(s => s.Name == name));
         }
 
         #endregion
@@ -327,18 +356,18 @@ namespace XrEngine
 
         public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, T value);
 
-        public static Geometry3D TransformToLine(this Geometry3D src)
+        public static Geometry3D TransformToLine(this Geometry3D self)
         {
             var res = new Geometry3D();
-            if (src.Indices.Length > 0)
+            if (self.Indices.Length > 0)
             {
                 var srcI = 0;
                 var dstI = 0;
-                var newIndices = new uint[src.Indices.Length * 2];
+                var newIndices = new uint[self.Indices.Length * 2];
                 var newSpan = newIndices.AsSpan();
-                var srcSpan = src.Indices.AsSpan();
+                var srcSpan = self.Indices.AsSpan();
 
-                while (srcI < src.Indices!.Length)
+                while (srcI < self.Indices!.Length)
                 {
                     newSpan[dstI + 0] = srcSpan[srcI + 0];
                     newSpan[dstI + 1] = srcSpan[srcI + 1];
@@ -350,7 +379,7 @@ namespace XrEngine
                     dstI += 6;
                 }
 
-                res.Vertices = src.Vertices;
+                res.Vertices = self.Vertices;
                 res.Indices = newIndices;
 
             }
@@ -362,14 +391,14 @@ namespace XrEngine
             return res;
         }
 
-        public static unsafe Vector3[] ExtractPositions(this Geometry3D geo, bool useIndex = false)
+        public static unsafe Vector3[] ExtractPositions(this Geometry3D self, bool useIndex = false)
         {
             if (!useIndex)
             {
-                var result = new Vector3[geo.Vertices.Length];
+                var result = new Vector3[self.Vertices.Length];
                 var len = result.Length;    
                 fixed (Vector3* pDst = result)
-                fixed (VertexData* pSrc = geo.Vertices)
+                fixed (VertexData* pSrc = self.Vertices)
                 {
                     for (var i = 0; i < len; i++)
                         pDst[i] = pSrc[i].Pos;
@@ -378,11 +407,11 @@ namespace XrEngine
             }
             else
             {
-                var result = new Vector3[geo.Indices.Length];
+                var result = new Vector3[self.Indices.Length];
                 var len = result.Length;
                 fixed (Vector3* pDst = result)
-                fixed (VertexData* pSrc = geo.Vertices)
-                fixed (uint* pIdx = geo.Indices)
+                fixed (VertexData* pSrc = self.Vertices)
+                fixed (uint* pIdx = self.Indices)
                 {
                     for (var i = 0; i < len; i++)
                         pDst[i] = pSrc[(int)pIdx[i]].Pos;
@@ -391,34 +420,34 @@ namespace XrEngine
             }
         }
 
-        public static void ComputeNormals(this Geometry3D geo)
+        public static void ComputeNormals(this Geometry3D self)
         {
-            if (geo.Indices.Length > 0)
+            if (self.Indices.Length > 0)
             {
                 int i = 0;
-                while (i < geo.Indices.Length)
+                while (i < self.Indices.Length)
                 {
-                    var i0 = geo.Indices[i++];
-                    var i1 = geo.Indices[i++];
-                    var i2 = geo.Indices[i++];
+                    var i0 = self.Indices[i++];
+                    var i1 = self.Indices[i++];
+                    var i2 = self.Indices[i++];
 
                     var triangle = new Triangle3
                     {
-                        V0 = geo.Vertices[i0].Pos,
-                        V1 = geo.Vertices[i1].Pos,
-                        V2 = geo.Vertices[i2].Pos,
+                        V0 = self.Vertices[i0].Pos,
+                        V1 = self.Vertices[i1].Pos,
+                        V2 = self.Vertices[i2].Pos,
                     };
 
                     var normal = triangle.Normal();
-                    geo.Vertices[i0].Normal = normal;
-                    geo.Vertices[i1].Normal = normal;
-                    geo.Vertices[i2].Normal = normal;
+                    self.Vertices[i0].Normal = normal;
+                    self.Vertices[i1].Normal = normal;
+                    self.Vertices[i2].Normal = normal;
                 }
             }
             else
             {
                 int i = 0;
-                while (i < geo.Vertices.Length)
+                while (i < self.Vertices.Length)
                 {
                     var i0 = i++;
                     var i1 = i++;
@@ -426,43 +455,43 @@ namespace XrEngine
 
                     var triangle = new Triangle3
                     {
-                        V0 = geo.Vertices[i0].Pos,
-                        V1 = geo.Vertices[i1].Pos,
-                        V2 = geo.Vertices[i2].Pos,
+                        V0 = self.Vertices[i0].Pos,
+                        V1 = self.Vertices[i1].Pos,
+                        V2 = self.Vertices[i2].Pos,
                     };
 
                     var normal = triangle.Normal();
-                    geo.Vertices[i0].Normal = normal;
-                    geo.Vertices[i1].Normal = normal;
-                    geo.Vertices[i2].Normal = normal;
+                    self.Vertices[i0].Normal = normal;
+                    self.Vertices[i1].Normal = normal;
+                    self.Vertices[i2].Normal = normal;
                 }
             }
-            geo.ActiveComponents |= VertexComponent.Normal;
-            geo.Version++;
+            self.ActiveComponents |= VertexComponent.Normal;
+            self.Version++;
         }
 
-        public static void EnsureIndices(this Geometry3D geo)
+        public static void EnsureIndices(this Geometry3D self)
         {
-            if (geo.Indices == null || geo.Indices.Length == 0)
+            if (self.Indices == null || self.Indices.Length == 0)
             {
-                geo.Indices = new uint[geo.Vertices.Length];
-                for (var i = 0; i < geo.Vertices.Length; i++)
-                    geo.Indices[i] = (uint)i;
+                self.Indices = new uint[self.Vertices.Length];
+                for (var i = 0; i < self.Vertices.Length; i++)
+                    self.Indices[i] = (uint)i;
             }
         }
 
-        public static void SmoothNormals(this Geometry3D geo)
+        public static void SmoothNormals(this Geometry3D self)
         {
-            SmoothNormals(geo, 0, (uint)geo.Vertices.Length - 1);
+            SmoothNormals(self, 0, (uint)self.Vertices.Length - 1);
         }
 
-        public static void SmoothNormals(this Geometry3D geo, uint startIndex, uint endIndex)
+        public static void SmoothNormals(this Geometry3D self, uint startIndex, uint endIndex)
         {
             Dictionary<Vector3, List<uint>> groups = [];
 
             for (var i = startIndex; i <= endIndex; i++)
             {
-                var v = geo.Vertices[i].Pos;
+                var v = self.Vertices[i].Pos;
                 if (!groups.TryGetValue(v, out var list))
                 {
                     list = [i];
@@ -477,28 +506,28 @@ namespace XrEngine
                 {
                     var sum = Vector3.Zero;
                     foreach (var index in group)
-                        sum += geo.Vertices[index].Normal;
+                        sum += self.Vertices[index].Normal;
 
                     sum /= group.Count;
                     foreach (var index in group)
-                        geo.Vertices[index].Normal = sum;
+                        self.Vertices[index].Normal = sum;
                 }
             }
-            geo.Version++;
+            self.Version++;
         }
 
-        public static IEnumerable<Triangle3> Triangles(this Geometry3D geo)
+        public static IEnumerable<Triangle3> Triangles(this Geometry3D self)
         {
-            if (geo.Indices.Length > 0)
+            if (self.Indices.Length > 0)
             {
                 int i = 0;
-                while (i < geo.Indices.Length)
+                while (i < self.Indices.Length)
                 {
                     var triangle = new Triangle3
                     {
-                        V0 = geo.Vertices[geo.Indices[i++]].Pos,
-                        V1 = geo.Vertices[geo.Indices[i++]].Pos,
-                        V2 = geo.Vertices[geo.Indices[i++]].Pos,
+                        V0 = self.Vertices[self.Indices[i++]].Pos,
+                        V1 = self.Vertices[self.Indices[i++]].Pos,
+                        V2 = self.Vertices[self.Indices[i++]].Pos,
                     };
                     yield return triangle;
                 }
@@ -506,7 +535,7 @@ namespace XrEngine
             else
             {
                 int i = 0;
-                while (i < geo.Vertices.Length)
+                while (i < self.Vertices.Length)
                 {
                     var i0 = i++;
                     var i1 = i++;
@@ -514,9 +543,9 @@ namespace XrEngine
 
                     var triangle = new Triangle3
                     {
-                        V0 = geo.Vertices[i0].Pos,
-                        V1 = geo.Vertices[i1].Pos,
-                        V2 = geo.Vertices[i2].Pos,
+                        V0 = self.Vertices[i0].Pos,
+                        V1 = self.Vertices[i1].Pos,
+                        V2 = self.Vertices[i2].Pos,
                     };
 
                     yield return triangle;
@@ -525,37 +554,11 @@ namespace XrEngine
             }
         }
 
-        public static void OrthoNormalize(ref Vector3 normal, ref Vector3 tangent)
+
+        public static unsafe void ComputeTangents(this Geometry3D self)
         {
-            // Normalize the normal vector
-            normal = Vector3.Normalize(normal);
-
-            // Project the tangent onto the normal
-            var proj = normal * Vector3.Dot(tangent, normal);
-
-            // Subtract the projection from the tangent to make it orthogonal to the normal
-            tangent -= proj;
-
-            // Normalize the tangent vector
-            float tangentLength = tangent.Length();
-            if (tangentLength > 1e-6f) // Avoid division by zero
-            {
-                tangent /= tangentLength;
-            }
-            else
-            {
-                // If the tangent length is zero, set it to an arbitrary orthogonal vector
-                tangent = Vector3.Cross(normal, Vector3.UnitX);
-                if (tangent.LengthSquared() < 1e-6f)
-                    tangent = Vector3.Cross(normal, Vector3.UnitY);
-                tangent = Vector3.Normalize(tangent);
-            }
-        }
-
-        public static unsafe void ComputeTangents(this Geometry3D geo)
-        {
-            int vertexCount = geo.Vertices.Length;
-            int indexCount = geo.Indices.Length;
+            int vertexCount = self.Vertices.Length;
+            int indexCount = self.Indices.Length;
 
             // Arrays to accumulate the tangent and bitangent vectors
             var tan1 = new Vector3[vertexCount];
@@ -563,8 +566,8 @@ namespace XrEngine
 
             fixed (Vector3* pTan1 = tan1)
             fixed (Vector3* pTan2 = tan2)
-            fixed (uint* pIndex = geo.Indices)
-            fixed (VertexData* pVertex = geo.Vertices)
+            fixed (uint* pIndex = self.Indices)
+            fixed (VertexData* pVertex = self.Vertices)
             {
                 // Iterate over each triangle
                 for (int i = 0; i < indexCount; i += 3)
@@ -627,7 +630,7 @@ namespace XrEngine
                     var t = pTan1[i];
 
                     // Gram-Schmidt orthogonalization
-                    OrthoNormalize(ref n, ref t);
+                    MathUtils.OrthoNormalize(ref n, ref t);
 
                     // Calculate the handedness (w component)
                     Vector3 c = Vector3.Cross(n, t);
@@ -638,44 +641,44 @@ namespace XrEngine
                 }
             }
 
-            geo.ActiveComponents |= VertexComponent.Tangent;
+            self.ActiveComponents |= VertexComponent.Tangent;
         }
 
-        public static void SetVertexData<T>(this Geometry3D geo, VertexAssignDelegate<T> selector, T[] array)
+        public static void SetVertexData<T>(this Geometry3D self, VertexAssignDelegate<T> selector, T[] array)
         {
-            if (geo.Vertices == null)
-                geo.Vertices = new VertexData[array.Length];
+            if (self.Vertices == null)
+                self.Vertices = new VertexData[array.Length];
 
-            if (geo.Vertices.Length < array.Length)
+            if (self.Vertices.Length < array.Length)
             {
-                var newArray = geo.Vertices;
+                var newArray = self.Vertices;
                 Array.Resize(ref newArray, array.Length);
-                geo.Vertices = newArray;
+                self.Vertices = newArray;
             }
 
             for (var i = 0; i < array.Length; i++)
-                selector(ref geo.Vertices[i], array[i]);
+                selector(ref self.Vertices[i], array[i]);
         }
 
-        public static Bounds3 ComputeBounds(this Geometry3D geo, Matrix4x4 transform)
+        public static Bounds3 ComputeBounds(this Geometry3D self, Matrix4x4 transform)
         {
-            if (geo.Vertices != null)
-                return geo.ExtractPositions().ComputeBounds(transform);
+            if (self.Vertices != null)
+                return self.ExtractPositions().ComputeBounds(transform);
 
             return new Bounds3();
         }
 
-        public static void EnsureCCW(this Geometry3D geo)
+        public static void EnsureCCW(this Geometry3D self)
         {
-            if (geo.Indices.Length == 0)
+            if (self.Indices.Length == 0)
                 throw new NotSupportedException();
 
             int i = 0;
 
-            var vSpan = new Span<VertexData>(geo.Vertices);
-            var iSpan = new Span<uint>(geo.Indices);
+            var vSpan = new Span<VertexData>(self.Vertices);
+            var iSpan = new Span<uint>(self.Indices);
 
-            while (i < geo.Indices.Length)
+            while (i < self.Indices.Length)
             {
                 var i0 = iSpan[i];
                 var i1 = iSpan[i + 1];
@@ -730,38 +733,37 @@ namespace XrEngine
             );
         }
 
-        public static Vector3 Project(this Camera camera, Vector3 worldPoint)
+        public static Vector3 Project(this Camera self, Vector3 worldPoint)
         {
-
-            return worldPoint.Project(camera.ViewProjection);
+            return worldPoint.Project(self.ViewProjection);
         }
 
-        public static IEnumerable<Vector3> Project(this Camera camera, IEnumerable<Vector3> worldPoints)
+        public static IEnumerable<Vector3> Project(this Camera self, IEnumerable<Vector3> worldPoints)
         {
-            var viewProj = camera.ViewProjection;
+            var viewProj = self.ViewProjection;
 
             foreach (var vertex in worldPoints)
                 yield return vertex.Project(viewProj);
         }
 
-        public static Vector3 Unproject(this Camera camera, Vector3 viewPoint)
+        public static Vector3 Unproject(this Camera self, Vector3 viewPoint)
         {
-            var viewProjInv = camera.ViewProjectionInverse;
+            var viewProjInv = self.ViewProjectionInverse;
             return viewPoint.Project(viewProjInv);
         }
 
-        public static IEnumerable<Vector3> Unproject(this Camera camera, IEnumerable<Vector3> viewPoint)
+        public static IEnumerable<Vector3> Unproject(this Camera self, IEnumerable<Vector3> viewPoint)
         {
-            var viewProjInv = camera.ViewProjectionInverse;
+            var viewProjInv = self.ViewProjectionInverse;
             foreach (var vertex in viewPoint)
                 yield return vertex.Project(viewProjInv);
         }
 
-        public static Vector3[] FrustumPoints(this Camera camera)
+        public static Vector3[] FrustumPoints(this Camera self)
         {
-            var viewProjInvLeft = camera.ViewProjectionInverse;
+            var viewProjInvLeft = self.ViewProjectionInverse;
 
-            var isStereo = camera.Eyes != null && camera.Eyes.Length > 1;
+            var isStereo = self.Eyes != null && self.Eyes.Length > 1;
 
             Vector3[] corners = new Vector3[isStereo ? 16 : 8];
 
@@ -777,7 +779,7 @@ namespace XrEngine
 
             if (isStereo)
             {
-                Matrix4x4.Invert(camera.Eyes![1].ViewProj, out var viewProjInvRight);
+                Matrix4x4.Invert(self.Eyes![1].ViewProj, out var viewProjInvRight);
 
                 corners[8] = new Vector3(-1, -1, 0).Project(viewProjInvRight);
                 corners[9] = new Vector3(1, -1, 0).Project(viewProjInvRight);
@@ -794,13 +796,13 @@ namespace XrEngine
 
         }
 
-        public static IList<Plane> FrustumPlanes(this Camera camera)
+        public static IList<Plane> FrustumPlanes(this Camera self)
         {
-            var viewProjLeft = camera.ViewProjection;
+            var viewProjLeft = self.ViewProjection;
             var viewProjRight = viewProjLeft;
 
-            if (camera.Eyes != null && camera.Eyes.Length > 1)
-                viewProjRight = camera.Eyes[1].ViewProj;
+            if (self.Eyes != null && self.Eyes.Length > 1)
+                viewProjRight = self.Eyes[1].ViewProj;
 
             var planes = new Plane[6];
 
@@ -918,126 +920,67 @@ namespace XrEngine
         #region TRANSFORM
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetPosition(this Transform3D transform, float x, float y, float z)
+        public static void SetPosition(this Transform3D self, float x, float y, float z)
         {
-            transform.Position = new Vector3(x, y, z);
+            self.Position = new Vector3(x, y, z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetScale(this Transform3D transform, float x, float y, float z)
+        public static void SetScale(this Transform3D self, float x, float y, float z)
         {
-            transform.Scale = new Vector3(x, y, z);
+            self.Scale = new Vector3(x, y, z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetScale(this Transform3D transform, float value)
+        public static void SetScale(this Transform3D self, float value)
         {
-            transform.Scale = new Vector3(value, value, value);
+            self.Scale = new Vector3(value, value, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetPositionZ(this Transform3D transform, float value)
+        public static void SetPositionZ(this Transform3D self, float value)
         {
-            transform.Position = new Vector3(transform.Position.X, transform.Position.Y, value);
+            self.Position = new Vector3(self.Position.X, self.Position.Y, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetPositionX(this Transform3D transform, float value)
+        public static void SetPositionX(this Transform3D self, float value)
         {
-            transform.Position = new Vector3(value, transform.Position.Y, transform.Position.Z);
+            self.Position = new Vector3(value, self.Position.Y, self.Position.Z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetPositionY(this Transform3D transform, float value)
+        public static void SetPositionY(this Transform3D self, float value)
         {
-            transform.Position = new Vector3(transform.Position.X, value, transform.Position.Z);
+            self.Position = new Vector3(self.Position.X, value, self.Position.Z);
         }
 
-        public static Pose3 ToPose(this Transform3D transform)
+        public static Pose3 ToPose(this Transform3D self)
         {
             return new Pose3
             {
-                Orientation = transform.Orientation,
-                Position = transform.Position
+                Orientation = self.Orientation,
+                Position = self.Position
             };
         }
 
         #endregion
 
-        #region UNIFORMS
-
-        /*
-        public static void SetUniformStruct(this IUniformProvider up, string name, object obj, bool optional = false)
-        {
-            foreach (var field in obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
-            {
-                var fullName = $"{name}.{field.Name}";
-                up.SetUniformObject(fullName, field.GetValue(obj)!, optional);
-            }
-        }
-
-        public static void SetUniformStructArray(this IUniformProvider up, string name, ICollection collection, bool optional = false)
-        {
-            var i = 0;
-            foreach (var item in collection)
-            {
-                up.SetUniformStruct($"{name}[{i}]", item, optional);
-                i++;
-            }
-        }
-
-        public static unsafe void SetUniformObject(this IUniformProvider up, string name, object obj, bool optional = false)
-        {
-            if (obj is Vector3 vec3)
-                up.SetUniform(name, vec3, optional);
-            else if (obj is Matrix4x4 mat4)
-                up.SetUniform(name, mat4, optional);
-            else if (obj is float flt)
-                up.SetUniform(name, flt, optional);
-            else if (obj is int vInt)
-                up.SetUniform(name, vInt, optional);
-            else if (obj is float[] fArray)
-                up.SetUniform(name, fArray, optional);
-            else if (obj is int[] iArray)
-                up.SetUniform(name, iArray, optional);
-            else
-            {
-                var type = obj.GetType();
-
-                if (type.IsValueType && !type.IsEnum && !type.IsPrimitive)
-                    up.SetUniformStruct(name, obj, optional);
-
-                else if (obj is ICollection coll)
-                {
-                    var gen = type.GetInterfaces()
-                            .First(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(ICollection<>));
-                    var elType = gen.GetGenericArguments()[0];
-                    if (elType.IsValueType && !elType.IsEnum && !elType.IsPrimitive)
-                        up.SetUniformStructArray(name, coll, optional);
-                }
-                else
-                    throw new NotSupportedException();
-            }
-        }
-
-        */
-        #endregion
-
         #region MATERIAL
 
-        public static void UpdateColor(this TriangleMesh mesh, Color color)
+        public static void UpdateColor(this TriangleMesh self, Color color)
         {
-            mesh.Materials[0].UpdateColor(color);
+            self.Materials[0].UpdateColor(color);
         }
 
-        public static void UpdateColor(this Material material, Color color)
+        public static void UpdateColor(this Material self, Color color)
         {
-            var src = (IColorSource)material;
+            var src = (IColorSource)self;
 
             if ((Vector4)src.Color != (Vector4)color)
             {
-                ((IColorSource)material).Color = color;
-                material.NotifyChanged(ObjectChangeType.Render);
+                ((IColorSource)self).Color = color;
+                self.NotifyChanged(ObjectChangeType.Render);
             }
 
         }
@@ -1046,15 +989,15 @@ namespace XrEngine
 
         #region MISC
 
-        public static void Update<T>(this IEnumerable<T> target, RenderContext ctx) where T : IRenderUpdate
+        public static void Update<T>(this IEnumerable<T> self, RenderContext ctx) where T : IRenderUpdate
         {
-            foreach (var item in target.ToArray())
+            foreach (var item in self.ToArray())
                 item.Update(ctx);
 
             //target.ForeachSafe(a => a.Update(ctx));
         }
 
-        public static void Reset<T>(this IEnumerable<T> target, bool onlySelf) where T : IRenderUpdate
+        public static void Reset<T>(this IEnumerable<T> self, bool onlySelf) where T : IRenderUpdate
         {
             //target.ForeachSafe(a => a.Reset(onlySelf));
         }

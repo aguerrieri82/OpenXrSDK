@@ -12,8 +12,6 @@ namespace XrEngine.Audio
             var system = _host!.Scene!.Component<AudioSystem>();
 
             _listener = new AlListener(system.Device.Al);
-
-            base.Start(ctx);
         }
 
         protected override void Update(RenderContext ctx)

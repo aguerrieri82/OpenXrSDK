@@ -16,7 +16,6 @@ namespace XrEngine.OpenXr
         protected bool _isSceneLoading;
         protected XrApp? _app;
 
-
         public OculusSceneModel()
         {
             Material = (Material)MaterialFactory.CreatePbr(Color.White);

@@ -11,7 +11,6 @@ namespace XrEngine.OpenXr.Components
         protected override void Start(RenderContext ctx)
         {
             OnEnabled();
-            base.Start(ctx);
         }
 
         protected override void OnDisabled()
@@ -57,8 +56,6 @@ namespace XrEngine.OpenXr.Components
                 if (deltaPos > 0.005 || deltaOri > 0.005)
                     Log.Debug(this, $"{_host.Name} DP: {deltaPos} - DO: {deltaOri}");
             }
-
-            base.Update(ctx);
         }
 
         public TimeSpan UpdateInterval { get; set; }

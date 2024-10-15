@@ -49,10 +49,7 @@ namespace XrEngine.Browser.Win
                 });
             }
 
-
             _input = _host!.DescendantsOrSelfComponents<ISurfaceInput>().First();
-
-            base.Start(ctx);
         }
 
         protected override void Update(RenderContext ctx)
@@ -94,8 +91,6 @@ namespace XrEngine.Browser.Win
 
                 _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Moved, _input.MainButton.IsDown ? CefEventFlags.LeftMouseButton | CefEventFlags.IsLeft : CefEventFlags.None);
             }
-
-            base.Update(ctx);
         }
 
         [Action]

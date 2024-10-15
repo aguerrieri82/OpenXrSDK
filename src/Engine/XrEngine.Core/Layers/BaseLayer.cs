@@ -26,12 +26,12 @@
             _manager = null;
         }
 
-        public void NotifyChanged(Object3D object3D, ObjectChange change)
+        public void NotifyChanged(Object3D sender, ObjectChange change)
         {
             if (!IsEnabled)
                 return;
 
-            if (object3D is Group3D group && change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.SceneRemove))
+            if (sender is Group3D group && change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.SceneRemove))
             {
                 foreach (var child in group.DescendantsOrSelf().OfType<T>())
                 {
@@ -40,7 +40,7 @@
                 }
             }
             else
-                NotifyChangedWork(object3D, change);
+                NotifyChangedWork(sender, change);
         }
 
         protected virtual void NotifyChangedWork(Object3D object3D, ObjectChange change)
@@ -65,11 +65,11 @@
 
         public bool IsVisible { get; set; }
 
+        public string Name { get; set; }
+
         public ObjectId Id => _id;
 
         public long Version => _version;
-
-        public string Name { get; set; }
 
         public IEnumerable<ILayer3DItem> Content => (IEnumerable<ILayer3DItem>)_content;
 
