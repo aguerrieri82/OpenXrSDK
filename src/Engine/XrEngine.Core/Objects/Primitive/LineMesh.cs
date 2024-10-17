@@ -21,6 +21,8 @@
 
         public VertexComponent ActiveComponents { get; set; }
 
+        public int RenderPriority { get; set; }
+
 
         #region IVertexSource
 

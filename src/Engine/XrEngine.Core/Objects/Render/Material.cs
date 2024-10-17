@@ -2,9 +2,10 @@
 {
     public enum AlphaMode
     {
-        Opaque,
-        Mask,
-        Blend
+        Opaque = 0,
+        Mask = 1,
+        Blend = 2,
+        BlendMain = 4 | Blend
     }
 
     public enum StencilFunction
@@ -83,7 +84,7 @@
 
         public byte? WriteStencil { get; set; }
 
-        public byte? CompareStencil { get; set; }
+        public byte? CompareStencilMask { get; set; }
 
         public StencilFunction StencilFunction { get; set; }
 

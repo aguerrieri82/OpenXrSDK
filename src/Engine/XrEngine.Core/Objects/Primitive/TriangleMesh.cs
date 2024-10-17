@@ -132,6 +132,9 @@ namespace XrEngine
             base.Dispose();
         }
 
+        public int RenderPriority { get; set; } 
+
+
         public IList<Material> Materials => _materials;
 
         public Bounds3 LocalBounds => _geometry?.Bounds ?? Bounds3.Zero;

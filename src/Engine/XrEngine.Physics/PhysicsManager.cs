@@ -39,6 +39,9 @@ namespace XrEngine.Physics
 
         public void Execute(Action action)
         {
+            if (!_isEnabled)
+                return;
+
             if (IsMultiThread)
                 _queue.Enqueue(action);
             else

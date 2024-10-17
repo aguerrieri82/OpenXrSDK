@@ -1,0 +1,16 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+                    xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+
+    <DataTemplate DataType="{x:Type local:ColorPickerView}">
+        
+        <colorpicker:StandardColorPicker 
+            Style="{DynamicResource DefaultColorPickerStyle}"
+            UseHintColor="True"
+            SelectedColor="{Binding SelectedColor, Mode=TwoWay, Converter={StaticResource ColorToHex}}" />
+    </DataTemplate>
+
+</ResourceDictionary>

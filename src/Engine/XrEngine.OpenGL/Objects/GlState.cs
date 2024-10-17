@@ -355,7 +355,7 @@ namespace XrEngine.OpenGL
                 else
                 {
                     _gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
-                    _gl.StencilFunc((GLEnum)StencilFunc.Value, StencilRef.Value, 0xFF);
+                    _gl.StencilFunc((GLEnum)StencilFunc.Value, StencilRef.Value, StencilRef.Value);
                 }
             }
         }

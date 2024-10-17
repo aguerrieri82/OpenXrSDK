@@ -320,7 +320,7 @@ namespace XrEngine
             if (DoubleSided)
                 bld.AddFeature("DOUBLE_SIDED");
 
-            bld.AddFeature($"ALPHA_MODE {(int)Alpha}");
+            bld.AddFeature($"ALPHA_MODE {(int)(Alpha == AlphaMode.BlendMain ? AlphaMode.Blend : Alpha)}");
 
             bld.SetUniformBuffer("Material", ctx => (MaterialUniforms?)material, 2, false);
 

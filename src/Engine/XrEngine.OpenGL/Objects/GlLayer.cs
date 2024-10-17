@@ -107,7 +107,8 @@ namespace XrEngine.OpenGL
                         vertexContent = new VertexContent
                         {
                             VertexHandler = vrtSrc.Object.GetGlResource(a => GlVertexSourceHandle.Create(_render.GL, vrtSrc)),
-                            ActiveComponents = VertexComponent.None
+                            ActiveComponents = VertexComponent.None,
+                            RenderPriority = vrtSrc.RenderPriority  
                         };
 
                         foreach (var attr in vertexContent.VertexHandler.Layout!.Attributes!)
@@ -151,8 +152,6 @@ namespace XrEngine.OpenGL
                 }
                 content.AvgDistance = sum / count;
             }
-
-
         }
 
         public bool NeedUpdate => _lastUpdateVersion != Version;

@@ -42,7 +42,6 @@ namespace XrEngine.OpenGL
 
         protected override void RenderLayer(GlLayer layer)
         {
-
             _renderer.GL.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin layer {layer.Type}");
 
             var updateContext = _renderer.UpdateContext;
@@ -57,7 +56,7 @@ namespace XrEngine.OpenGL
 
                 progGlobal!.UpdateProgram(updateContext, _renderer.RenderTarget as IShaderHandler);
 
-                foreach (var vertex in shader.Value.Contents)
+                foreach (var vertex in shader.Value.Contents.OrderBy(a => a.Value.RenderPriority))
                 {
                     if (useDepthPass && vertex.Value.Contents.All(a=> a.IsHidden || (a.Query != null && a.Query.GetResult() == 0)))
                         continue;

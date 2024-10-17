@@ -32,10 +32,13 @@ namespace XrEngine.OpenXr.Android
 
             Directory.CreateDirectory(Path.GetDirectoryName(cachePath)!);
 
+            if (name.StartsWith('/'))
+                name = name.Substring(1);
+
             using var srcStream = _context.Assets!.Open(Path.Join(_basePath, name));
             using var dstStream = File.OpenWrite(cachePath);
             srcStream.CopyTo(dstStream);
-
+            
             _loadedFiles.Add(cachePath);
 
             return cachePath;

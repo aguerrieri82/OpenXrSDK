@@ -122,6 +122,8 @@ namespace XrEditor
 
         int IRayPointer.PointerId => -100;
 
+        string IRayPointer.Name => "Mouse";
+
         bool IDrawGizmos.IsEnabled => _isActive;
     }
 }

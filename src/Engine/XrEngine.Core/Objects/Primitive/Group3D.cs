@@ -109,9 +109,11 @@ namespace XrEngine
 
             if (_children.Count > 0)
             {
-      
                 foreach (var child in _children)
                 {
+                    if (force)
+                        child.UpdateBounds(true);
+
                     var childLocal = child.Feature<ILocalBounds>();
 
                     if (childLocal != null)

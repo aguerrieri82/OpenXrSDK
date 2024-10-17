@@ -7,7 +7,7 @@ namespace XrEngine
 
         bool CastShadows { get; set; }
 
-        byte? CompareStencil { get; set; }
+        byte? CompareStencilMask { get; set; }
 
         bool DoubleSided { get; set; }
 

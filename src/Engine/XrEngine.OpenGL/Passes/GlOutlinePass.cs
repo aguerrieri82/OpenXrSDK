@@ -43,7 +43,7 @@ namespace XrEngine.OpenGL
             _clear = CreateProgram(new DepthClearEffect()
             {
                 StencilFunction = StencilFunction.NotEqual,
-                CompareStencil = options.ActiveOutlineStencil
+                CompareStencilMask = options.ActiveOutlineStencil
             });
 
 

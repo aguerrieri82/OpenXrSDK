@@ -10,7 +10,7 @@ namespace XrEditor
         private bool _isLocked;
 
         public Vector3Editor()
-            : this(null, new ValueScale() { ScaleStep = 0.1f, ScaleSmallStep = 0.1f })
+            : this(null, new ValueScale() { ScaleStep = 0.1f, ScaleSmallStep = 0.01f })
         {
         }
 
