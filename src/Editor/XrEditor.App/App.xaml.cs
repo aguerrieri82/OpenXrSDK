@@ -25,6 +25,7 @@ namespace XrEditor
             Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
             Context.Implement<IVideoReader>(() => new FFmpegVideoReader());
             Context.Implement<IVideoCodec>(() => new FFmpegCodec());
+            Context.Implement<IPanelManager>(() => new WpfPanelManager());    
 
             ModuleManager.Instance.Init();
 
@@ -38,7 +39,7 @@ namespace XrEditor
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            MainWindow.Style = this.Resources["CustomWindowStyle"] as Style;
+            MainWindow.Style = Resources["CustomWindowStyle"] as Style;
             MainWindow.Icon = BitmapFrame.Create(new Uri("pack://application:,,,/XrEditor.ico", UriKind.RelativeOrAbsolute));
             MainWindow.Show();
             base.OnStartup(e);

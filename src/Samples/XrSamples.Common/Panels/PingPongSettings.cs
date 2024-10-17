@@ -93,7 +93,7 @@ namespace XrSamples
             var system = pyManager.System;
             var racket = scene.FindByName<Object3D>("Racket");
             var generator = scene.FeatureDeep<BallGenerator>()!;
-            var mesh = scene.FindByName<TriangleMesh>("global-mesh");
+            var mesh = scene.FindByName<TriangleMesh>("Mesh");
 
             pyManager.Options.LengthTolerance = LengthToleranceScale;
             pyManager.Options.EnablePCM = EnablePCM;

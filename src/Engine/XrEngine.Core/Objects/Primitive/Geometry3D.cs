@@ -142,6 +142,17 @@ namespace XrEngine
             }
         }
 
+        protected override void OnChanged(ObjectChange change)
+        {
+            if (change.IsAny(ObjectChangeType.Geometry))
+            {
+                Version++;
+                _boundsDirty = true;
+            }
+
+            base.OnChanged(change);
+        }
+
         public void NotifyLoaded()
         {
             if (!this.Is(EngineObjectFlags.GpuOnly))
@@ -152,6 +163,20 @@ namespace XrEngine
 
             _indices = [];
             _vertices = []; 
+        }
+
+        public Geometry3D Clone()
+        {
+            var result = new Geometry3D();
+            result.Vertices = new VertexData[_vertices.Length];
+            Array.Copy(_vertices, result.Vertices, _vertices.Length);
+            result.Indices = new uint[_indices.Length];
+            Array.Copy(_indices, result.Indices, _indices.Length);
+            result.ActiveComponents = ActiveComponents;
+            result._bounds = _bounds;   
+            result._boundsDirty = _boundsDirty;
+
+            return result;
         }
 
         public IReadOnlySet<EngineObject> Hosts => _hosts;

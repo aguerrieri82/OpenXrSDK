@@ -30,6 +30,12 @@ namespace XrEditor.Nodes
                 Label = "Rotation",
                 Editor = new Vector3Editor(binder.Prop(a => a.Rotation), RadDegreeScale.Instance)
             });
+
+            curProps.Add(new PropertyView
+            {
+                Label = "Local Pivot",
+                Editor = new Vector3Editor(binder.Prop(a => a.LocalPivot), new ValueScale { ScaleMin = 0.001f, ScaleMax = 10, ScaleStep = 0.01f, ScaleSmallStep = 0.01f })
+            });
         }
 
         public string DisplayName => "Transform";

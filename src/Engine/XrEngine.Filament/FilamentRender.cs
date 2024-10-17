@@ -497,6 +497,7 @@ namespace XrEngine.Filament
                         Blending = tex.Alpha switch
                         {
                             AlphaMode.Opaque => FlBlendingMode.OPAQUE,
+                            AlphaMode.BlendMain => FlBlendingMode.TRANSPARENT,
                             AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
                             AlphaMode.Mask => FlBlendingMode.MASKED,
                             _ => throw new NotSupportedException()

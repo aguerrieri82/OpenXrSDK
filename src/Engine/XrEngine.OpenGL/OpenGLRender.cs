@@ -160,7 +160,7 @@ namespace XrEngine.OpenGL
 
             _glState.SetStencilFunc((GlStencilFunction)material.StencilFunction);
             _glState.SetWriteStencil(material.WriteStencil);
-            _glState.SetStencilRef(material.CompareStencil);
+            _glState.SetStencilRef(material.CompareStencilMask);
 
             _glState.UpdateStencil();
 

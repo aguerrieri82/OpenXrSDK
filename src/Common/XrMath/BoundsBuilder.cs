@@ -35,8 +35,8 @@ namespace XrMath
 
         public void Add(Bounds3 newBounds)
         {
-            _result.Min = Vector3.Min(newBounds.Min, Result.Min);
-            _result.Max = Vector3.Max(newBounds.Max, Result.Max);
+            _result.Min = Vector3.Min(newBounds.Min, _result.Min);
+            _result.Max = Vector3.Max(newBounds.Max, _result.Max);
             _isEmpty = false;
         }
 

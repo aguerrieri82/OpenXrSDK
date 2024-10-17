@@ -10,7 +10,7 @@ namespace XrEngine.OpenXr
     public class PassthroughGeometry : Behavior<Scene3D>
     {
         private bool _isInit;
-        private OculusSceneModel? _sceneModel;
+        private OculusSceneView? _sceneModel;
         private XrPassthroughLayer? _ptLayer;
 
         protected override void Update(RenderContext ctx)
@@ -22,7 +22,7 @@ namespace XrEngine.OpenXr
 
             var xrApp = XrApp.Current;
 
-            _sceneModel ??= _host.Descendants<OculusSceneModel>().FirstOrDefault();
+            _sceneModel ??= _host.Descendants<OculusSceneView>().FirstOrDefault();
 
             if (_sceneModel != null && _sceneModel.Children.Count > 0)
             {

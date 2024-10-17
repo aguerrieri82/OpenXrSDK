@@ -106,7 +106,7 @@ namespace XrEngine
 
         public static void SetActiveTool(this Object3D self, IObjectTool value, bool isActive)
         {
-            var curTool = self.GetActiveTool(); 
+            var curTool = self.GetActiveTool();
 
 
             if (isActive)
@@ -222,7 +222,7 @@ namespace XrEngine
 
         #region SCENE
 
-        public static T EnsureLayer<T>(this Scene3D self) where T: ILayer3D, new() 
+        public static T EnsureLayer<T>(this Scene3D self) where T : ILayer3D, new()
         {
             var layer = self.Layers.OfType<T>().FirstOrDefault();
             layer ??= self.AddLayer<T>();
@@ -241,7 +241,7 @@ namespace XrEngine
 
         public static T AddLayer<T>(this Scene3D self, T layer) where T : ILayer3D
         {
-            self.Layers.Add(layer);            
+            self.Layers.Add(layer);
             return layer;
         }
 
@@ -265,18 +265,27 @@ namespace XrEngine
             return layer.Content.Cast<T>();
         }
 
-        public static IEnumerable<Collision> RayCollisions(this Scene3D self, Ray3 ray)
+        public static IEnumerable<Collision> RayCollisions(this Scene3D self, Ray3 ray, IEnumerable<ICollider3D>? colliders = null)
         {
-            foreach (var obj in self.ObjectsWithComponent<ICollider3D>())
+            IEnumerable<ICollider3D> GetColliders()
             {
-                foreach (var collider in obj.Components<ICollider3D>())
+                foreach (var obj in self.ObjectsWithComponent<ICollider3D>())
                 {
-                    if (!collider.IsEnabled)
-                        continue;
-                    var collision = collider.CollideWith(ray);
-                    if (collision != null)
-                        yield return collision;
+                    foreach (var collider in obj.Components<ICollider3D>())
+                    {
+                        if (collider.IsEnabled)
+                            yield return collider;
+                    }
                 }
+            }
+
+            colliders ??= GetColliders();
+
+            foreach (var collider in colliders)
+            {
+                var collision = collider.CollideWith(ray);
+                if (collision != null)
+                    yield return collision;
             }
         }
 
@@ -404,7 +413,7 @@ namespace XrEngine
             if (!useIndex)
             {
                 var result = new Vector3[self.Vertices.Length];
-                var len = result.Length;    
+                var len = result.Length;
                 fixed (Vector3* pDst = result)
                 fixed (VertexData* pSrc = self.Vertices)
                 {
@@ -719,12 +728,12 @@ namespace XrEngine
         {
 
             var hasesh = new Dictionary<Vector512<float>, uint>();
-            var newVertices = new List<VertexData>(self.Vertices.Length);  
+            var newVertices = new List<VertexData>(self.Vertices.Length);
 
             static Vector512<float> Hash(VertexData vert)
             {
                 return Vector512.Create(vert.Pos.X, vert.Pos.Y, vert.Pos.Z, vert.Normal.X, vert.Normal.Y, vert.Normal.Z, vert.UV.X, vert.UV.Y, 0, 0, 0, 0, 0, 0, 0, 0);
-            }       
+            }
 
             foreach (var vert in self.Vertices)
             {
@@ -734,7 +743,7 @@ namespace XrEngine
                     hasesh[hash] = (uint)newVertices.Count;
                     newVertices.Add(vert);
                 }
-                 
+
             }
 
             var indices = new uint[self.Vertices.Length];
@@ -742,8 +751,8 @@ namespace XrEngine
                 indices[i] = hasesh[Hash(self.Vertices[i])];
 
             self.Indices = indices;
-            self.Vertices = newVertices.ToArray(); 
-        }   
+            self.Vertices = newVertices.ToArray();
+        }
 
         #endregion
 
@@ -1004,6 +1013,17 @@ namespace XrEngine
         #endregion
 
         #region MATERIAL
+
+        public static void WriteStencilMask(this Material self, byte channel, bool isOn)
+        {
+            int curValue = self.WriteStencil ?? 0;
+            if (isOn)
+                curValue |= channel;
+            else
+                curValue &= ~channel;
+
+            self.WriteStencil = curValue == 0 ? null : (byte)curValue;
+        }
 
         public static void UpdateColor(this TriangleMesh self, Color color)
         {

@@ -31,8 +31,12 @@
                 <ResourceDictionary Source="/Views/ElementPicker.xaml"/>
                 <ResourceDictionary Source="/Views/LogPanel.xaml"/>
                 <ResourceDictionary Source="/Views/TextEditor.xaml"/>
+                <ResourceDictionary Source="/Views/ContentView.xaml"/>
+                <ResourceDictionary Source="/Views/ColorPickerView.xaml"/>
+                <ResourceDictionary Source="/Views/ActionView.xaml"/>
 
-
+                <ResourceDictionary
+                    Source="pack://application:,,,/ColorPicker;component/Styles/DefaultColorPickerStyle.xaml" />
 
             </ResourceDictionary.MergedDictionaries>
      

@@ -13,6 +13,7 @@
 
         public VertexComponent ActiveComponents;
 
+        public int RenderPriority;
 
         public readonly List<DrawContent> Contents = [];
 

@@ -59,5 +59,7 @@ namespace XrEngine.OpenXr
         public XrInput<bool>? BButton { get; set; }
 
         public int PointerId => _host!.Id.Value.GetHashCode();
+
+        public string Name => "Controller";
     }
 }

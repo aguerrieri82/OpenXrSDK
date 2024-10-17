@@ -51,7 +51,7 @@ namespace XrEditor
                     outline = new OutlineMaterial()
                     {
                         Color = new Color(1, 1, 0, 0.7f),
-                        CompareStencil = 1,
+                        CompareStencilMask = 1,
                         StencilFunction = StencilFunction.NotEqual,
                         Alpha = AlphaMode.Blend,
                         Size = 5,
@@ -66,7 +66,8 @@ namespace XrEditor
                 {
                     if (mat is OutlineMaterial)
                         continue;
-                    mat.WriteStencil = selected ? 1 : null;
+
+                    mat.WriteStencilMask(1, selected);
                 }
             }
         });
@@ -130,10 +131,7 @@ namespace XrEditor
                 if (local != null)
                 {
                     canvas.State.Transform = item.WorldMatrix;
-                    foreach (var face in local.LocalBounds.Faces())
-                        canvas.DrawQuad(face);
-
-                    //canvas.DrawBounds(local.LocalBounds);
+                    canvas.DrawBounds(local.LocalBounds);
                 }
             }
 

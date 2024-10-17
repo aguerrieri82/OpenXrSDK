@@ -43,6 +43,8 @@ namespace XrEditor
             _pointer.ReleasePointer();
         }
 
+        public string Name => _pointer.Name;
+
         public int PointerId => _pointer.PointerId;
     }
 

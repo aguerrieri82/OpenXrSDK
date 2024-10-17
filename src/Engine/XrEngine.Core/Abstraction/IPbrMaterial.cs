@@ -12,6 +12,8 @@
 
         float OcclusionStrength { get; set; }
 
+        float NormalScale { get; set; }
+
         float Metalness { get; set; }
        
         float Roughness { get; set; }

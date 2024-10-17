@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-
+		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -17,8 +17,17 @@
 		<PackageReference Include="System.Text.Json" Version="9.0.0-rc.2.24473.5" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Content Include="Models/**/*" Link="Assets/Models/%(RecursiveDir)/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content Include="Models/*"  CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<AndroidAsset Include="Models/*" Link="Models/%(Filename)%(Extension)" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<Using Remove="Android.Widget" />
+		<Using Remove="Android.App" />
+		<Using Remove="Android" />
+	</ItemGroup>
 </Project>

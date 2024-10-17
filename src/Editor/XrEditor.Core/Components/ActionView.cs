@@ -94,5 +94,8 @@ namespace XrEditor
                 OnPropertyChanged(nameof(IsActive));
             }
         }
+
+
+        public string Name { get; set; }
     }
 }

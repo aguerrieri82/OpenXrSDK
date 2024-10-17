@@ -2,6 +2,8 @@
 
 namespace OpenXr.Framework
 {
+
+
     public class XrAnchor
     {
         public Guid Id { get; set; }
@@ -15,5 +17,6 @@ namespace OpenXr.Framework
         public Mesh? Mesh { get; set; }
 
         public ulong Space { get; set; }
+
     }
 }

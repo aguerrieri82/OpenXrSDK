@@ -625,6 +625,7 @@ namespace XrMath
             return $"#{ToHex(color.A)}{ToHex(color.R)}{ToHex(color.G)}{ToHex(color.B)}";
         }
 
+
         #endregion
 
         #region LINE2
