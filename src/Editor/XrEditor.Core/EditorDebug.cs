@@ -12,6 +12,7 @@ namespace XrEditor
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
               //.UseMultiView()
               //.UseStereo()
+
               .SetRenderQuality(1, Driver == GraphicDriver.FilamentVulkan ? 1u : 1u) ///samples > 1 cause Filament to fuck up
               .CreateRoomManager()
               .Build();

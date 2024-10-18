@@ -246,23 +246,25 @@ namespace XrEngine
         public Vector3 WorldPosition
         {
             get => _parent != null && !_parent.WorldMatrix.IsIdentity ?
-                    _transform.Position.Transform(_parent.WorldMatrix) : _transform.Position;
+                   _transform.Position.Transform(_parent.WorldMatrix) : _transform.Position;
             set
             {
                 _transform.Position = _parent != null && !_parent.WorldMatrix.IsIdentity ?
                     value.Transform(_parent.WorldMatrixInverse) : value;
+
+                //Debug.Assert(value.IsSimilar(WorldPosition, 1e6f));
             }
         }
 
         public Quaternion WorldOrientation
         {
             get => _parent != null && !_parent.WorldMatrix.IsIdentity ?
-                _parent.WorldOrientation * _transform.Orientation :
-                _transform.Orientation;
+                   _parent.WorldOrientation * _transform.Orientation :
+                   _transform.Orientation;
             set
             {
                 _transform.Orientation = _parent != null && !_parent.WorldMatrix.IsIdentity ?
-                    Quaternion.Inverse(_parent.WorldOrientation) * value :
+                    Quaternion.Conjugate(_parent.WorldOrientation) * value :
                     value;
             }
         }

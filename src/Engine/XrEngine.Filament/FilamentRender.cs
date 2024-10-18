@@ -434,12 +434,13 @@ namespace XrEngine.Filament
                         AoMap = AllocateTexture(pbr.OcclusionMap),
                         MetallicFactor = pbr.Metalness,
                         RoughnessFactor = pbr.Roughness,
-                        NormalScale = 1.0f,
+                        NormalScale = pbr.NormalScale,
                         AoStrength = pbr.OcclusionStrength,
                         Blending = pbr.Alpha switch
                         {
                             AlphaMode.Opaque => FlBlendingMode.OPAQUE,
                             AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
+                            AlphaMode.BlendMain => FlBlendingMode.TRANSPARENT,
                             AlphaMode.Mask => FlBlendingMode.MASKED,
                             _ => throw new NotSupportedException()
                         },
@@ -553,7 +554,7 @@ namespace XrEngine.Filament
                 ReceiveShadows = true,
             };
 
-            if (mesh.Materials[0] is PbrV1Material pbr)
+            if (mesh.Materials[0] is IShadowMaterial pbr)
                 meshInfo.CastShadows = pbr.CastShadows;
 
             AddMesh(_app, id, ref meshInfo);
@@ -598,7 +599,10 @@ namespace XrEngine.Filament
             else if (obj is TriangleMesh mesh)
             {
                 if (mesh.Materials.Count == 0 || mesh.Geometry == null || (
-                    mesh.Materials[0] is not PbrV1Material && mesh.Materials[0] is not ColorMaterial))
+                    mesh.Materials[0] is not IPbrMaterial && 
+                    mesh.Materials[0] is not ColorMaterial &&
+                    mesh.Materials[0] is not ShadowOnlyMaterial &&
+                    mesh.Materials[0] is not TextureMaterial))
                     return;
 
                 Create(id, mesh);

@@ -22,5 +22,7 @@ namespace XrInteraction
         int PointerId { get; }
 
         string Name { get; } 
+
+        bool IsCaptured { get; }
     }
 }

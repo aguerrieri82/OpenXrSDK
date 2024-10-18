@@ -103,7 +103,6 @@ namespace OpenXr.Framework.Android
         protected class InputController
         {
             protected ISurfaceInput _surfaceInput;
-            protected bool _lastPointerDown;
             protected long _lastDownTime;
             protected IXrThread _mainThread;
 
@@ -115,12 +114,14 @@ namespace OpenXr.Framework.Android
 
             public void Update(WebView webView)
             {
+                if (!_surfaceInput.IsPointerValid)
+                    return;
 
                 var now = SystemClock.UptimeMillis();
 
                 MotionEventActions actions;
 
-                if (_surfaceInput.BackButton.IsChanged && _surfaceInput.BackButton.IsDown)
+                if (_surfaceInput.SecondaryButton.IsChanged && _surfaceInput.SecondaryButton.IsDown)
                 {
                     _ = _mainThread.ExecuteAsync(webView.GoBack);
                 }
@@ -130,19 +131,13 @@ namespace OpenXr.Framework.Android
                     if (_surfaceInput.MainButton.IsDown)
                     {
                         _lastDownTime = now;
-                        if (!_surfaceInput.IsPointerValid)
-                            return;
                         actions = MotionEventActions.Down;
                     }
                     else
                         actions = MotionEventActions.Up;
-
-                    _lastPointerDown = _surfaceInput.MainButton.IsDown;
                 }
                 else
                 {
-                    if (!_surfaceInput.IsPointerValid)
-                        return;
                     actions = MotionEventActions.Move;
                 }
 

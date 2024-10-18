@@ -5,6 +5,7 @@
         protected bool _isEnabled;
         protected T? _host;
         protected ObjectId _id;
+        protected int _suspendCount;    
 
         public BaseComponent()
         {
@@ -58,6 +59,16 @@
         {
             _id.Value = container.Read<Guid>(nameof(Id));
             IsEnabled = container.Read<bool>(nameof(IsEnabled));
+        }
+
+        public void Suspend()
+        {
+            _suspendCount++;
+        }
+
+        public void Resume()
+        {
+            _suspendCount--;
         }
 
         public bool IsEnabled

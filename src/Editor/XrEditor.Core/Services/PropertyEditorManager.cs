@@ -14,7 +14,7 @@ namespace XrEditor.Services
             Register(new TypedPropertyEditorFactory<Color, ColorEditor>());
             Register(new TypedPropertyEditorFactory<bool, BoolEditor>());
             Register(new TypedPropertyEditorFactory<string, TextEditor<string>>());
-            Register(new TextEditorFactory<Uri>(a => new Uri(a)));
+            Register(new TextEditorFactory<Uri?>(a => string.IsNullOrWhiteSpace(a) ? null : new Uri(a)));
             Register(new TextEditorFactory<byte?>(a => string.IsNullOrWhiteSpace(a) ? null : byte.Parse(a)));
             Register(new TextEditorFactory<uint>(a => uint.Parse(a)));
             Register(new FloatEditorFactory());
