@@ -111,7 +111,7 @@ namespace XrEngine
                 {
                     _lastRotation = ctx.Model!.Transform.Orientation;
                     var newQuat = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI) * _lastRotation;
-                    up.SetUniform("uRotation", newQuat.ToMatrix());
+                    up.SetUniform("uRotation", newQuat.ToMatrix3x3());
                 }
 
 

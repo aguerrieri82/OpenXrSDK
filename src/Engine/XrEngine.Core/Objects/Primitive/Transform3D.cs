@@ -122,7 +122,9 @@ namespace XrEngine
             set
             {
                 _rotation = value;
-                _orientation = Quaternion.CreateFromYawPitchRoll(value.Y, value.X, value.Z);
+                var halfPI = Math.PI / 2 - 0.001;
+                var pitch = Math.Clamp(value.X, -halfPI, halfPI);
+                _orientation = Quaternion.CreateFromYawPitchRoll(value.Y, (float)pitch, value.Z);
                 NotifyChanged();
             }
         }

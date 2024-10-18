@@ -97,8 +97,9 @@ namespace XrEngine
 
             if (drawNormal)
             {
-                DrawLine(quad.PointAt(0, 0), quad.PointAt(0, 0) + quad.Normal() * 0.5f);
-                DrawLine(quad.PointAt(0, 0), quad.PointAt(0, 0) + quad.Tangent() * 0.5f);
+                var center = quad.Size / 2;
+                DrawLine(quad.PointAt(center), quad.PointAt(center) + quad.Normal() * 0.5f);
+                DrawLine(quad.PointAt(center), quad.PointAt(center) + quad.Tangent() * 0.5f);
             }
 
         }

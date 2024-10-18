@@ -78,19 +78,19 @@ namespace XrEngine.Browser.Win
                 _lastUpdateTime = time;
             }
 
-            if (_input!.IsPointerValid)
+            if (!_input!.IsPointerValid)
+                return;
+
+            if (_input.MainButton.IsChanged)
             {
-                if (_input.MainButton.IsChanged)
-                {
-                    if (_input.MainButton.IsDown)
-                        _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Pressed, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
-
-                    else
-                        _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Released, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
-                }
-
-                _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Moved, _input.MainButton.IsDown ? CefEventFlags.LeftMouseButton | CefEventFlags.IsLeft : CefEventFlags.None);
+                if (_input.MainButton.IsDown)
+                    _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Pressed, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
+                else
+                    _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Released, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
             }
+
+            _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Moved, _input.MainButton.IsDown ? CefEventFlags.LeftMouseButton | CefEventFlags.IsLeft : CefEventFlags.None);
+
         }
 
         [Action]

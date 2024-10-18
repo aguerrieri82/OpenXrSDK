@@ -19,6 +19,7 @@ namespace XrEngine.OpenXr
     {
         protected XrPoseInput? _input;
         protected IRayTarget[] _sceneTargets = [];
+        protected Collision? _lastCollision;
         protected readonly RayView _rayView;
         protected readonly HitTargetView _hitView;
 
@@ -85,12 +86,7 @@ namespace XrEngine.OpenXr
 
             if (result != null)
             {
-                var rayTarget = result.Object?.Feature<IRayTarget>();
-
-                rayTarget?.NotifyCollision(ctx, result);
-
-                foreach (var target in _sceneTargets)
-                    target.NotifyCollision(ctx, result);
+                NotifyCollision(ctx, result); 
 
                 _rayView.UpdateColor(new Color(0, 1, 0));
 
@@ -115,9 +111,25 @@ namespace XrEngine.OpenXr
             {
                 _rayView.Length = 3;
                 _rayView.UpdateColor(new Color(1, 1, 1));
+
+                if (_lastCollision != null)
+                    NotifyCollision(ctx, null);
             }
 
+            _lastCollision = result;
+
             _hitView.Materials[0].IsEnabled = ShowHit;
+        }
+
+        protected void NotifyCollision(RenderContext ctx, Collision? collision)
+        {
+            var rayTarget = collision?.Object?.Feature<IRayTarget>();
+
+            rayTarget?.NotifyCollision(ctx, collision);
+
+            foreach (var target in _sceneTargets)
+                target.NotifyCollision(ctx, collision);
+
         }
 
         public IRayColliderHandler?  Handler { get; set; }

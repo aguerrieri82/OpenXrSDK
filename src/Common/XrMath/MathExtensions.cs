@@ -7,39 +7,33 @@ namespace XrMath
 
     public static class MathExtensions
     {
+        public const float EPSILON = 1e-6f;    
+
         #region Matrix4x4
 
-        public static bool DecomposeV2(this Matrix4x4 matrix, out Vector3 translation, out Quaternion rotation, out Vector3 scale)
+        public unsafe static Matrix4x4 InvertRigidBody(this Matrix4x4 src)
         {
-            // Extract the translation
-            translation = new Vector3(matrix.M41, matrix.M42, matrix.M43);
+            var result = stackalloc float[16];
+            var srcArray = (float*)&src;
 
-            // Extract the scale
-            scale = new Vector3(
-                new Vector3(matrix.M11, matrix.M12, matrix.M13).Length(),
-                new Vector3(matrix.M21, matrix.M22, matrix.M23).Length(),
-                new Vector3(matrix.M31, matrix.M32, matrix.M33).Length()
-            );
+            result[0] = srcArray[0];
+            result[1] = srcArray[4];
+            result[2] = srcArray[8];
+            result[3] = 0.0f;
+            result[4] = srcArray[1];
+            result[5] = srcArray[5];
+            result[6] = srcArray[9];
+            result[7] = 0.0f;
+            result[8] = srcArray[2];
+            result[9] = srcArray[6];
+            result[10] = srcArray[10];
+            result[11] = 0.0f;
+            result[12] = -(srcArray[0] * srcArray[12] + srcArray[1] * srcArray[13] + srcArray[2] * srcArray[14]);
+            result[13] = -(srcArray[4] * srcArray[12] + srcArray[5] * srcArray[13] + srcArray[6] * srcArray[14]);
+            result[14] = -(srcArray[8] * srcArray[12] + srcArray[9] * srcArray[13] + srcArray[10] * srcArray[14]);
+            result[15] = 1.0f;
 
-            // If any scale component is zero, return false
-            if (scale.X == 0.0f || scale.Y == 0.0f || scale.Z == 0.0f)
-            {
-                rotation = Quaternion.Identity;
-                return false;
-            }
-
-            // Normalize the rows of the matrix to remove the scale from the rotation
-            Matrix4x4 rotationMatrix = new Matrix4x4(
-                matrix.M11 / scale.X, matrix.M12 / scale.X, matrix.M13 / scale.X, 0.0f,
-                matrix.M21 / scale.Y, matrix.M22 / scale.Y, matrix.M23 / scale.Y, 0.0f,
-                matrix.M31 / scale.Z, matrix.M32 / scale.Z, matrix.M33 / scale.Z, 0.0f,
-                0.0f, 0.0f, 0.0f, 1.0f
-            );
-
-            // Convert the 3x3 rotation matrix into a quaternion
-            rotation = Quaternion.CreateFromRotationMatrix(rotationMatrix);
-
-            return true;
+            return *(Matrix4x4*)result;
         }
 
         #endregion
@@ -69,28 +63,36 @@ namespace XrMath
 
         public static Vector3 PointAt(this Quad3 self, Vector2 point)
         {
+            point -= self.Size / 2;
+
             return self.Pose.Transform(new Vector3(point.X, point.Y, 0));
         }
 
         public static IEnumerable<Vector3> Corners(this Quad3 self)
         {
-            var halfSize = self.Size / 2;
 
-            yield return self.PointAt(-halfSize.X, -halfSize.Y);
-            yield return self.PointAt(halfSize.X, -halfSize.Y);
-            yield return self.PointAt(halfSize.X, halfSize.Y);
-            yield return self.PointAt(-halfSize.X, halfSize.Y);
+            yield return self.PointAt(0, 0);
+            yield return self.PointAt(self.Size.X, 0);
+            yield return self.PointAt(self.Size.X, self.Size.Y);
+            yield return self.PointAt(0, self.Size.Y);
 
+        }
+
+        public static Vector2 LocalPointAt(this Quad3 self, Vector3 worldPoint)
+        {
+            var local = self.Pose.Inverse().Transform(worldPoint);
+
+            return new Vector2(local.X, local.Y) + self.Size / 2;
         }
 
         #endregion
 
         #region PLANE
 
-        public static bool IntersectLine(this Plane plane, Vector3 point1, Vector3 point2)
+        public static bool IntersectLine(this Plane self, Vector3 point1, Vector3 point2)
         {
-            var distance1 = Plane.DotCoordinate(plane, point1);
-            var distance2 = Plane.DotCoordinate(plane, point2);
+            var distance1 = Plane.DotCoordinate(self, point1);
+            var distance2 = Plane.DotCoordinate(self, point2);
 
             return distance1 * distance2 < 0;
         }
@@ -99,16 +101,16 @@ namespace XrMath
 
         #region BOUNDS
 
-        public static IEnumerable<Quad3> Faces(this Bounds3 bounds)
+        public static IEnumerable<Quad3> Faces(this Bounds3 self)
         {
-            var C1 = new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Min.Z);
-            var C2 = new Vector3(bounds.Max.X, bounds.Min.Y, bounds.Min.Z);
-            var C3 = new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Min.Z);
-            var C4 = new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Min.Z);
-            var C5 = new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Max.Z);
-            var C6 = new Vector3(bounds.Max.X, bounds.Min.Y, bounds.Max.Z);
-            var C7 = new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Max.Z);
-            var C8 = new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Max.Z);
+            var C1 = new Vector3(self.Min.X, self.Min.Y, self.Min.Z);
+            var C2 = new Vector3(self.Max.X, self.Min.Y, self.Min.Z);
+            var C3 = new Vector3(self.Max.X, self.Max.Y, self.Min.Z);
+            var C4 = new Vector3(self.Min.X, self.Max.Y, self.Min.Z);
+            var C5 = new Vector3(self.Min.X, self.Min.Y, self.Max.Z);
+            var C6 = new Vector3(self.Max.X, self.Min.Y, self.Max.Z);
+            var C7 = new Vector3(self.Max.X, self.Max.Y, self.Max.Z);
+            var C8 = new Vector3(self.Min.X, self.Max.Y, self.Max.Z);
 
             var quads = new Quad3[6];
 
@@ -133,17 +135,17 @@ namespace XrMath
             return quads;
         }
 
-        public static bool IntersectFrustum(this Bounds3 bounds, IEnumerable<Plane> planes)
+        public static bool IntersectFrustum(this Bounds3 self, IEnumerable<Plane> planes)
         {
             foreach (var plane in planes)
             {
-                if (plane.IntersectLine(bounds.Min, bounds.Max))
+                if (plane.IntersectLine(self.Min, self.Max))
                     return true;
 
                 var positiveVertex = new Vector3(
-                    (plane.Normal.X >= 0) ? bounds.Max.X : bounds.Min.X,
-                    (plane.Normal.Y >= 0) ? bounds.Max.Y : bounds.Min.Y,
-                    (plane.Normal.Z >= 0) ? bounds.Max.Z : bounds.Min.Z
+                    (plane.Normal.X >= 0) ? self.Max.X : self.Min.X,
+                    (plane.Normal.Y >= 0) ? self.Max.Y : self.Min.Y,
+                    (plane.Normal.Z >= 0) ? self.Max.Z : self.Min.Z
                 );
 
                 if (Plane.DotCoordinate(plane, positiveVertex) < 0)
@@ -153,66 +155,53 @@ namespace XrMath
             return true;
         }
 
-        public static Bounds3 ComputeBounds(this IEnumerable<Vector3> points)
+
+        public static Bounds3 Transform(this Bounds3 self, Matrix4x4 matrix)
         {
-            var builder = new BoundsBuilder();
-            builder.Add(points);
-            return builder.Result;
+            return self.Points.ComputeBounds(matrix);
         }
 
-        public static Bounds3 ComputeBounds(this IEnumerable<Vector3> points, Matrix4x4 matrix)
+        public static bool Contains(this Bounds3 self, Vector3 point)
         {
-            var builder = new BoundsBuilder();
-            builder.Add(points.Select(a => a.Transform(matrix)));
-            return builder.Result;
+            return point.X >= self.Min.X && point.X <= self.Max.X &&
+                   point.Y >= self.Min.Y && point.Y <= self.Max.Y &&
+                   point.Z >= self.Min.Z && point.Z <= self.Max.Z;
         }
 
-        public static Bounds3 Transform(this Bounds3 bounds, Matrix4x4 matrix)
+        public static bool Inside(this Bounds3 self, Bounds3 other)
         {
-            return bounds.Points.ComputeBounds(matrix);
-        }
-
-        public static bool Contains(this Bounds3 bounds, Vector3 point)
-        {
-            return point.X >= bounds.Min.X && point.X <= bounds.Max.X &&
-                   point.Y >= bounds.Min.Y && point.Y <= bounds.Max.Y &&
-                   point.Z >= bounds.Min.Z && point.Z <= bounds.Max.Z;
-        }
-
-        public static bool Inside(this Bounds3 bounds, Bounds3 other)
-        {
-            if (bounds.Min.X < other.Min.X || bounds.Max.X > other.Max.X)
+            if (self.Min.X < other.Min.X || self.Max.X > other.Max.X)
                 return false;
-            if (bounds.Min.Y < other.Min.Y || bounds.Max.Y > other.Max.Y)
+            if (self.Min.Y < other.Min.Y || self.Max.Y > other.Max.Y)
                 return false;
-            if (bounds.Min.Z < other.Min.Z || bounds.Max.Z > other.Max.Z)
+            if (self.Min.Z < other.Min.Z || self.Max.Z > other.Max.Z)
                 return false;
 
             return true;
         }
 
-        public static bool Intersects(this Bounds3 bounds, Bounds3 other)
+        public static bool Intersects(this Bounds3 self, Bounds3 other)
         {
-            if (bounds.Max.X < other.Min.X || bounds.Min.X > other.Max.X)
+            if (self.Max.X < other.Min.X || self.Min.X > other.Max.X)
                 return false;
-            if (bounds.Max.Y < other.Min.Y || bounds.Min.Y > other.Max.Y)
+            if (self.Max.Y < other.Min.Y || self.Min.Y > other.Max.Y)
                 return false;
-            if (bounds.Max.Z < other.Min.Z || bounds.Min.Z > other.Max.Z)
+            if (self.Max.Z < other.Min.Z || self.Min.Z > other.Max.Z)
                 return false;
 
             return true;
         }
 
-        public static bool Intersects(this Bounds3 a, Bounds3 b, out Bounds3 result)
+        public static bool Intersects(this Bounds3 self, Bounds3 other, out Bounds3 result)
         {
-            float intersectMinX = Math.Max(a.Min.X, b.Min.X);
-            float intersectMaxX = Math.Min(a.Max.X, b.Max.X);
+            float intersectMinX = Math.Max(self.Min.X, other.Min.X);
+            float intersectMaxX = Math.Min(self.Max.X, other.Max.X);
 
-            float intersectMinY = Math.Max(a.Min.Y, b.Min.Y);
-            float intersectMaxY = Math.Min(a.Max.Y, b.Max.Y);
+            float intersectMinY = Math.Max(self.Min.Y, other.Min.Y);
+            float intersectMaxY = Math.Min(self.Max.Y, other.Max.Y);
 
-            float intersectMinZ = Math.Max(a.Min.Z, b.Min.Z);
-            float intersectMaxZ = Math.Min(a.Max.Z, b.Max.Z);
+            float intersectMinZ = Math.Max(self.Min.Z, other.Min.Z);
+            float intersectMaxZ = Math.Min(self.Max.Z, other.Max.Z);
 
             if (intersectMinX > intersectMaxX || intersectMinY > intersectMaxY || intersectMinZ > intersectMaxZ)
             {
@@ -230,11 +219,11 @@ namespace XrMath
         }
 
 
-        public static bool Intersects(this Bounds3 bounds, Line3 line, out float distance)
+        public static bool Intersects(this Bounds3 self, Line3 line, out float distance)
         {
-            var dir = (line.To - line.From).Normalize(); // direction of the line
-            var tMin = (bounds.Min - line.From) / dir; // minimum t to hit the box
-            var tMax = (bounds.Max - line.From) / dir; // maximum t to hit the box
+            var dir = line.Direction();
+            var tMin = (self.Min - line.From) / dir; 
+            var tMax = (self.Max - line.From) / dir;
 
             // Ensure tMin <= tMax
             var t1 = Vector3.Min(tMin, tMax);
@@ -253,24 +242,26 @@ namespace XrMath
 
         #region POSE
 
-        public static bool IsSimilar(this Pose3 value, Pose3 other, float epsilon = 0.001f)
+        public static bool IsSimilar(this Pose3 self, Pose3 other, float epsilon = EPSILON)
         {
-            return value.Position.IsSimilar(other.Position, epsilon) &&
-                   value.Orientation.IsSimilar(other.Orientation, epsilon);
+            return self.Position.IsSimilar(other.Position, epsilon) &&
+                   self.Orientation.IsSimilar(other.Orientation, epsilon);
         }
 
-        public static Matrix4x4 ToMatrix(this Pose3 pose)
+        public static Matrix4x4 ToMatrix(this Pose3 self)
         {
-            return Matrix4x4.CreateFromQuaternion(pose.Orientation) *
-                   Matrix4x4.CreateTranslation(pose.Position);
+            return Matrix4x4.CreateFromQuaternion(self.Orientation) *
+                   Matrix4x4.CreateTranslation(self.Position);
         }
 
-        public static Pose3 Inverse(this Pose3 pose)
+        public static Pose3 Inverse(this Pose3 self)
         {
+            var quat = Quaternion.Conjugate(self.Orientation);
+
             return new Pose3
             {
-                Orientation = Quaternion.Inverse(pose.Orientation),
-                Position = Vector3.Transform(pose.Position * -1, pose.Orientation)
+                Orientation = quat,
+                Position = Vector3.Transform(-self.Position, quat)
             };
         }
 
@@ -283,18 +274,18 @@ namespace XrMath
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Pose3 Multiply(this Pose3 a, Pose3 b)
+        public static Pose3 Multiply(this Pose3 self, Pose3 other)
         {
             return new Pose3
             {
-                Orientation = a.Orientation * b.Orientation,
-                Position = a.Transform(b.Position)
+                Orientation = self.Orientation * other.Orientation,
+                Position = self.Transform(other.Position)
             };
         }
 
-        public static Pose3 ToPose(this Matrix4x4 matrix)
+        public static Pose3 ToPose(this Matrix4x4 self)
         {
-            Matrix4x4.Decompose(matrix, out var scale, out var orientation, out var translation);
+            Matrix4x4.Decompose(self, out var scale, out var orientation, out var translation);
             return new Pose3
             {
                 Orientation = orientation,
@@ -306,41 +297,55 @@ namespace XrMath
 
         #region TRIANGLE
 
-        public static bool IsCCW(this Triangle3 triangle)
+        public static bool IsCCW(this Triangle3 self)
         {
-            var normal = triangle.Normal();
+            var normal = self.Normal();
             var dot = Vector3.Dot(normal, Vector3.UnitZ);
             return dot > 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 Normal(this Triangle3 triangle)
+        public static Vector3 Normal(this Triangle3 self)
         {
-            var edge1 = triangle.V1 - triangle.V0;
-            var edge2 = triangle.V2 - triangle.V0;
+            var edge1 = self.V1 - self.V0;
+            var edge2 = self.V2 - self.V0;
             var normal = Vector3.Cross(edge1, edge2);
             return Vector3.Normalize(normal);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Triangle3 Transform(this Triangle3 triangle, Matrix4x4 matrix)
+        public static Triangle3 Transform(this Triangle3 self, Matrix4x4 matrix)
         {
             return new Triangle3
             {
-                V0 = triangle.V0.Transform(matrix),
-                V1 = triangle.V1.Transform(matrix),
-                V2 = triangle.V2.Transform(matrix),
+                V0 = self.V0.Transform(matrix),
+                V1 = self.V1.Transform(matrix),
+                V2 = self.V2.Transform(matrix),
             };
         }
 
         #endregion
 
         #region VECTOR3
-
-        public static Quaternion ToOrientation(this Vector3 direction)
+        
+        public static Bounds3 ComputeBounds(this IEnumerable<Vector3> self)
         {
-            return Vector3.UnitZ.RotationTowards(direction);
+            var builder = new BoundsBuilder();
+            builder.Add(self);
+            return builder.Result;
+        }
+
+        public static Bounds3 ComputeBounds(this IEnumerable<Vector3> self, Matrix4x4 matrix)
+        {
+            var builder = new BoundsBuilder();
+            builder.Add(self.Select(a => a.Transform(matrix)));
+            return builder.Result;
+        }
+
+        public static Quaternion ToOrientation(this Vector3 self)
+        {
+            return Vector3.UnitZ.RotationTowards(self);
         }
 
         public static float MinDistanceTo(this Vector3[] self, Vector3 point)
@@ -356,6 +361,7 @@ namespace XrMath
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsSameValue(this Vector3 value, float epsilon)
         {
             return MathF.Abs(value.X - value.Y) < epsilon &&
@@ -363,38 +369,34 @@ namespace XrMath
                    MathF.Abs(value.Y - value.Z) < epsilon;
         }
 
-        public static bool IsSimilar(this Vector2 value, Vector2 other, float epsilon)
-        {
-            return MathF.Abs(value.X - other.X) < epsilon &&
-                MathF.Abs(value.Y - other.Y) < epsilon;
-        }
 
-        public static bool IsSimilar(this Vector3 value, Vector3 other, float epsilon)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsSimilar(this Vector3 self, Vector3 other, float epsilon)
         {
-            return MathF.Abs(value.X - other.X) < epsilon &&
-                MathF.Abs(value.Y - other.Y) < epsilon &&
-                MathF.Abs(value.Z - other.Z) < epsilon;
+            return MathF.Abs(self.X - other.X) < epsilon &&
+                   MathF.Abs(self.Y - other.Y) < epsilon &&
+                   MathF.Abs(self.Z - other.Z) < epsilon;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 Transform(this Vector3 vector, Matrix4x4 matrix)
+        public static Vector3 Transform(this Vector3 self, Matrix4x4 matrix)
         {
-            return Vector3.Transform(vector, matrix);
+            return Vector3.Transform(self, matrix);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 Normalize(this Vector3 vector)
+        public static Vector3 Normalize(this Vector3 self)
         {
-            return Vector3.Normalize(vector);
+            return Vector3.Normalize(self);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 ToDirection(this Vector3 vector, Matrix4x4 matrix)
+        public static Vector3 ToDirection(this Vector3 self, Matrix4x4 matrix)
         {
-            return (vector.Transform(matrix) - Vector3.Zero.Transform(matrix)).Normalize();
+            return (self.Transform(matrix) - Vector3.Zero.Transform(matrix)).Normalize();
         }
 
-        public static Quaternion RotationTowards(this Vector3 from, Vector3 to, float epsilon = 1e-6f)
+        public static Quaternion RotationTowards(this Vector3 from, Vector3 to, float epsilon = EPSILON)
         {
             // Normalize the input vectors
             from = Vector3.Normalize(from);
@@ -444,12 +446,12 @@ namespace XrMath
             return pos - distance * plane.Normal;
         }
 
-        public static float SignedAngleWith(this Vector3 A, Vector3 B, Vector3 planeNormal)
+        public static float SignedAngleWith(this Vector3 self, Vector3 other, Vector3 planeNormal)
         {
-            A = Vector3.Normalize(A);
-            B = Vector3.Normalize(B);
-            var cross = Vector3.Cross(A, B);
-            var dot = Vector3.Dot(A, B);
+            self = Vector3.Normalize(self);
+            other = Vector3.Normalize(other);
+            var cross = Vector3.Cross(self, other);
+            var dot = Vector3.Dot(self, other);
             var angle = MathF.Atan2(cross.Length(), dot);
             var sign = MathF.Sign(Vector3.Dot(cross, planeNormal));
             return angle * sign;
@@ -459,44 +461,44 @@ namespace XrMath
 
         #region RAY 
 
-        public static Line3 ToLine(this Ray3 ray, float len)
+        public static Line3 ToLine(this Ray3 self, float len)
         {
             return new Line3()
             {
-                From = ray.Origin,
-                To = ray.PointAt(len)
+                From = self.Origin,
+                To = self.PointAt(len)
             };
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 PointAt(this Ray3 ray, float distance)
+        public static Vector3 PointAt(this Ray3 self, float distance)
         {
-            return ray.Origin + ray.Direction * distance;
+            return self.Origin + self.Direction * distance;
         }
 
 
-        public static Vector3? Intersects(this Ray3 ray, Triangle3 triangle, out float distance, float epsilon = 1e-6f)
+        public static Vector3? Intersects(this Ray3 self, Triangle3 triangle, out float distance, float epsilon = EPSILON)
         {
             distance = float.PositiveInfinity;
 
             var edge1 = triangle.V1 - triangle.V0;
             var edge2 = triangle.V2 - triangle.V0;
-            var pVec = Vector3.Cross(ray.Direction, edge2);
+            var pVec = Vector3.Cross(self.Direction, edge2);
             var det = Vector3.Dot(edge1, pVec);
 
             if (MathF.Abs(det) < epsilon)
                 return null;
 
             var invDet = 1.0f / det;
-            var tVec = ray.Origin - triangle.V0;
+            var tVec = self.Origin - triangle.V0;
             var u = Vector3.Dot(tVec, pVec) * invDet;
 
             if (u < 0 || u > 1)
                 return null;
 
             var qVec = Vector3.Cross(tVec, edge1);
-            var v = Vector3.Dot(ray.Direction, qVec) * invDet;
+            var v = Vector3.Dot(self.Direction, qVec) * invDet;
 
             if (v < 0 || u + v > 1)
                 return null;
@@ -504,8 +506,8 @@ namespace XrMath
             var t = Vector3.Dot(edge2, qVec) * invDet;
 
             if (t > 0)
-            {
-                var intersectionPoint = ray.Origin + t * ray.Direction;
+            { 
+                var intersectionPoint = self.PointAt(t); 
                 distance = t;
                 return intersectionPoint;
             }
@@ -513,27 +515,37 @@ namespace XrMath
                 return null;
         }
 
-        public static bool Intersects(this Ray3 ray, Plane plane, out Vector3 intersectionPoint)
+        public static bool Intersects(this Ray3 self, Quad3 quad, out Vector3 intersectionPoint, float epsilon = EPSILON)
         {
-            intersectionPoint = Vector3.Zero;
-            var denominator = Vector3.Dot(ray.Direction, plane.Normal);
-            if (Math.Abs(denominator) < 1e-6)
+            if (!self.Intersects(quad.ToPlane(), out intersectionPoint, epsilon))
                 return false;
 
-            var numerator = -Vector3.Dot(ray.Origin, plane.Normal) - plane.D;
+            var local = quad.LocalPointAt(intersectionPoint);
+
+            return local.InRange(Vector2.Zero, quad.Size);  
+        }
+
+        public static bool Intersects(this Ray3 self, Plane plane, out Vector3 intersectionPoint, float epsilon = EPSILON)
+        {
+            intersectionPoint = Vector3.Zero;
+            var denominator = Vector3.Dot(self.Direction, plane.Normal);
+            if (Math.Abs(denominator) < epsilon)
+                return false;
+
+            var numerator = -Vector3.Dot(self.Origin, plane.Normal) - plane.D;
             var t = numerator / denominator;
             if (t < 0)
                 return false;
 
-            intersectionPoint = ray.PointAt(t);
+            intersectionPoint = self.PointAt(t);
             return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Ray3 Transform(this Ray3 ray, Matrix4x4 matrix)
+        public static Ray3 Transform(this Ray3 self, Matrix4x4 matrix)
         {
-            var v0 = Vector3.Transform(ray.Origin, matrix);
-            var v1 = Vector3.Transform(ray.Origin + ray.Direction, matrix);
+            var v0 = Vector3.Transform(self.Origin, matrix);
+            var v1 = Vector3.Transform(self.Origin + self.Direction, matrix);
 
             return new Ray3
             {
@@ -546,37 +558,47 @@ namespace XrMath
 
         #region QUATERNION
 
-        public static bool IsSimilar(this Quaternion value, Quaternion other, float epsilon)
+        public static Quaternion Subtract(this Quaternion self, Quaternion other)
         {
-            return MathF.Abs(value.X - other.X) < epsilon &&
-                MathF.Abs(value.Y - other.Y) < epsilon &&
-                MathF.Abs(value.Z - other.Z) < epsilon &&
-                MathF.Abs(value.W - other.W) < epsilon;
+            return self * Quaternion.Inverse(other);
         }
 
-        public static Vector3 ToEuler(this Quaternion q)
+        public static Quaternion AddDelta(this Quaternion self, Quaternion delta)
+        {
+            return delta * self;
+        }
+
+        public static bool IsSimilar(this Quaternion self, Quaternion other, float epsilon)
+        {
+            return MathF.Abs(self.X - other.X) < epsilon &&
+                MathF.Abs(self.Y - other.Y) < epsilon &&
+                MathF.Abs(self.Z - other.Z) < epsilon &&
+                MathF.Abs(self.W - other.W) < epsilon;
+        }
+
+        public static Vector3 ToEuler(this Quaternion self)
         {
             Vector3 res;
 
-            q = Quaternion.Normalize(q);
+            self = Quaternion.Normalize(self);
 
-            float sinp = -2.0f * (q.X * q.Z - q.W * q.Y);
+            float sinp = -2.0f * (self.X * self.Z - self.W * self.Y);
             sinp = Math.Clamp(sinp, -1.0f, 1.0f);
 
-            res.X = MathF.Atan2(2.0f * (q.Y * q.Z + q.W * q.X), q.W * q.W - q.X * q.X - q.Y * q.Y + q.Z * q.Z);
+            res.X = MathF.Atan2(2.0f * (self.Y * self.Z + self.W * self.X), self.W * self.W - self.X * self.X - self.Y * self.Y + self.Z * self.Z);
             res.Y = MathF.Asin(sinp);
-            res.Z = MathF.Atan2(2.0f * (q.X * q.Y + q.W * q.Z), q.W * q.W + q.X * q.X - q.Y * q.Y - q.Z * q.Z);
+            res.Z = MathF.Atan2(2.0f * (self.X * self.Y + self.W * self.Z), self.W * self.W + self.X * self.X - self.Y * self.Y - self.Z * self.Z);
 
             return res;
         }
 
-        public static Matrix3x3 ToMatrix(this Quaternion quaternion)
+        public static Matrix3x3 ToMatrix3x3(this Quaternion self)
         {
             // Extract individual components of the quaternion
-            float x = quaternion.X;
-            float y = quaternion.Y;
-            float z = quaternion.Z;
-            float w = quaternion.W;
+            float x = self.X;
+            float y = self.Y;
+            float z = self.Z;
+            float w = self.W;
 
             // Calculate matrix elements
             float xx = x * x;
@@ -603,7 +625,7 @@ namespace XrMath
 
         #region COLOR
 
-        public static string ToHex(this Color color)
+        public static string ToHex(this Color self)
         {
             static string ToHex(float value)
             {
@@ -611,10 +633,10 @@ namespace XrMath
                 return iVal.ToString("X").PadLeft(2, '0');
             }
 
-            return $"#{ToHex(color.R)}{ToHex(color.G)}{ToHex(color.B)}{ToHex(color.A)}";
+            return $"#{ToHex(self.R)}{ToHex(self.G)}{ToHex(self.B)}{ToHex(self.A)}";
         }
 
-        public static string ToHexARGB(this Color color)
+        public static string ToHexArgb(this Color self)
         {
             static string ToHex(float value)
             {
@@ -622,7 +644,7 @@ namespace XrMath
                 return iVal.ToString("X").PadLeft(2, '0');
             }
 
-            return $"#{ToHex(color.A)}{ToHex(color.R)}{ToHex(color.G)}{ToHex(color.B)}";
+            return $"#{ToHex(self.A)}{ToHex(self.R)}{ToHex(self.G)}{ToHex(self.B)}";
         }
 
 
@@ -660,22 +682,42 @@ namespace XrMath
 
         #endregion
 
-        #region MISC
+        #region VECTOR2
 
-        public static bool Contains(this Rect2 rect, Vector2 point)
+        public static bool InRange(this Vector2 self, Vector2 min, Vector2 max)
         {
-            return point.X >= rect.X && point.X <= rect.Right &&
-                   point.Y >= rect.Y && point.Y <= rect.Bottom;
+            return self.X >= min.X && self.X <= max.X &&
+                   self.Y >= min.Y && self.Y <= max.Y;
         }
 
-        public static bool Intersects(this Sphere sphere, Sphere other, out float offset)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsSimilar(this Vector2 self, Vector2 other, float epsilon)
         {
-            var dist = (sphere.Center - other.Center).Length();
+            return MathF.Abs(self.X - other.X) < epsilon &&
+                   MathF.Abs(self.Y - other.Y) < epsilon;
+        }
 
-            offset = dist - (sphere.Radius + other.Radius);
+
+        #endregion
+
+        #region MISC
+
+        public static bool Contains(this Rect2 self, Vector2 point)
+        {
+            return point.X >= self.X && point.X <= self.Right &&
+                   point.Y >= self.Y && point.Y <= self.Bottom;
+        }
+
+        public static bool Intersects(this Sphere self, Sphere other, out float offset)
+        {
+            var dist = (self.Center - other.Center).Length();
+
+            offset = dist - (self.Radius + other.Radius);
 
             return offset < 0;
         }
+
+
 
         #endregion
     }

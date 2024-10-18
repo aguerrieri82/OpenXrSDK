@@ -1,4 +1,5 @@
-﻿using XrEngine;
+﻿using OpenXr.Framework;
+using XrEngine;
 using XrInteraction;
 using XrMath;
 
@@ -22,8 +23,7 @@ namespace XrEditor
         RayPointerStatus IRayPointer.GetPointerStatus()
         {
             var result = _lastRay;
-            //TODO need more handlers, i cannot deactivate
-            //_lastRay.IsActive = false;
+            result.IsActive = XrApp.Current == null || !XrApp.Current.IsStarted;
             return result;
         }
 
@@ -119,6 +119,8 @@ namespace XrEditor
             if (_sceneView?.ActiveTool == this)
                 _sceneView.ActiveTool = null;
         }
+
+        public bool IsCaptured => _sceneView?.ActiveTool == this;
 
         int IRayPointer.PointerId => -100;
 

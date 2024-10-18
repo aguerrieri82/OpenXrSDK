@@ -7,13 +7,13 @@ namespace XrEngine.OpenXr.Android
     {
         protected string? _host;
         protected string? _basePath;
-        protected Context2 _context;
+        protected WeakReference<Context2> _context;
 
         public AssetWebRequestHandler(Context2 context, string host, string basePath)
         {
             _host = host;
             _basePath = basePath;
-            _context = context;
+            _context = new WeakReference<Context2>(context);
         }
 
         public bool CanHandle(WebRequest request)
@@ -26,6 +26,9 @@ namespace XrEngine.OpenXr.Android
         {
             Log.Info(this, "Browser Handle Request: {0}", request.Uri);
 
+            if (!_context.TryGetTarget(out var context))
+                return null;    
+
             var path = request.Uri!.LocalPath;
             if (path == "/")
                 path = "index.html";
@@ -34,7 +37,7 @@ namespace XrEngine.OpenXr.Android
 
             try
             {
-                using var srcStream = _context.Assets!.Open(fullPath);
+                using var srcStream = context.Assets!.Open(fullPath);
                 using var memStream = new MemoryStream();
                 srcStream.CopyTo(memStream);
 

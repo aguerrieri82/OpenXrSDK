@@ -46,6 +46,8 @@ namespace XrEditor
         public string Name => _pointer.Name;
 
         public int PointerId => _pointer.PointerId;
+
+        public bool IsCaptured => _pointer.IsCaptured;
     }
 
     public class SceneView : BasePanel

@@ -56,7 +56,7 @@ namespace XrEngine
             var uri = new Uri(hdrUri);
             var loader = (BaseTextureLoader)AssetLoader.Instance.GetLoader(uri);
 
-            if (UseCache)
+            if (UseCache && false)
             {
                 if (hdrUri.StartsWith("res://asset/"))
                 {

@@ -33,13 +33,13 @@ namespace XrEngine
 
         void IRenderUpdate.Update(RenderContext ctx)
         {
-            if (!_isEnabled)
+            if (!_isEnabled || _suspendCount > 0)
                 return;
 
             if (_startTime == -1)
             {
-                Log.Debug(this, "Starting component {0}", GetType().Name);
                 Start(ctx);
+                Log.Debug(this, "Started component {0}", GetType().Name);
                 _startTime = ctx.Time;
                 Started?.Invoke(this, EventArgs.Empty);
             }
