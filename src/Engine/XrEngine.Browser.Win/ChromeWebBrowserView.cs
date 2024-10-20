@@ -9,7 +9,7 @@ namespace XrEngine.Browser.Win
     {
         protected bool _isInit;
         protected ChromeWebBrowser _browser;
-        protected DateTime _lastUpdateTime;
+        protected DateTime _lastTexUpdateTime;
         protected ISurfaceInput? _input;
         protected string? _source;
 
@@ -65,7 +65,7 @@ namespace XrEngine.Browser.Win
 
             var time = _browser.FrameBufferTime;
 
-            if (_browser.FrameBuffer != null && _lastUpdateTime != time)
+            if (_browser.FrameBuffer != null && _lastTexUpdateTime != time)
             {
                 texture.LoadData(new TextureData()
                 {
@@ -75,7 +75,7 @@ namespace XrEngine.Browser.Win
                     Format = TextureFormat.Bgra32
                 });
 
-                _lastUpdateTime = time;
+                _lastTexUpdateTime = time;
             }
 
             if (!_input!.IsPointerValid)

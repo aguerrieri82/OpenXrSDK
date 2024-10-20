@@ -86,7 +86,7 @@
                 instance.UpdateUniforms(updateContext, false);
         }
 
-        protected abstract void RenderLayer(GlLayer layer);
+        public abstract void RenderLayer(GlLayer layer);
 
         public bool IsEnabled { get; set; }
     }

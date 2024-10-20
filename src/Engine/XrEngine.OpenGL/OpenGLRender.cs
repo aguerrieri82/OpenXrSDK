@@ -91,10 +91,17 @@ namespace XrEngine.OpenGL
                 });
             }
 
+            if (_options.UsePlanarReflection)
+            {
+                _renderPasses.Add(new GlReflectionPass(this));    
+            }
+
             _renderPasses.Add(new GlColorPass(this));
 
             if (_options.Outline.Use)
+            {
                 _renderPasses.Add(new GlOutlinePass(this));
+            }
 
             _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
 
@@ -200,6 +207,11 @@ namespace XrEngine.OpenGL
                     _layers.Add(new GlLayer(this, scene, GlLayerType.CastShadow, castShadowLayer));
                 }
 
+                if (_options.UsePlanarReflection)
+                {
+                    scene.EnsureLayer<ReflectionLayer>();
+                }
+
                 _lastScene = scene;
                 _lastLayersVersion = scene.Layers.Version;
             }
@@ -261,7 +273,6 @@ namespace XrEngine.OpenGL
             _dispatcher.ProcessQueue();
 
             _target.End(true);
-
            
             if (flush)
                 _gl.Finish();

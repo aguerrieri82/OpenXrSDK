@@ -17,9 +17,9 @@
             Logger.LogMessage(source, string.Format(message, args), LogLevel.Debug);
         }
 
-        public static void Error(object source, Exception exception)
+        public static void Error(object source, Exception exception, string message = "{0}")
         {
-            Logger.LogMessage(source, exception.ToString(), LogLevel.Error);
+            Logger.LogMessage(source, string.Format(message, exception), LogLevel.Error);
         }
 
 

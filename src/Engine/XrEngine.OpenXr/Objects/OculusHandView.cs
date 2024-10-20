@@ -98,7 +98,7 @@ namespace XrEngine.OpenXr
                 _isInit = true;
             }
 
-            if (_isInit && _input.IsActive)
+            if (_isInit && _input != null && _input.IsActive)
             {
                 for (var i = 0; i < _input.Capsules.Length; i++)
                 {
@@ -124,7 +124,7 @@ namespace XrEngine.OpenXr
             }
 
             if (_isInit)
-                IsVisible = _input.IsActive;
+                IsVisible = _input != null && _input.IsActive;
 
             base.UpdateSelf(ctx);
         }

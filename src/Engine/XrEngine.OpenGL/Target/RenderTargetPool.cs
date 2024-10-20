@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 #endif
 
 
-namespace XrEngine.OpenGL.Oculus
+namespace XrEngine.OpenGL
 {
     public class FrameBufferPool
     {
@@ -22,10 +22,12 @@ namespace XrEngine.OpenGL.Oculus
 
         protected GlTexture CreateDepth(GlTexture color, uint arraySize)
         {
-            var depthTex = new GlTexture(_gl);
-            depthTex.MinFilter = TextureMinFilter.Nearest;
-            depthTex.MagFilter = TextureMagFilter.Nearest;
-            depthTex.MaxLevel = 0;
+            var depthTex = new GlTexture(_gl)
+            {
+                MinFilter = TextureMinFilter.Nearest,
+                MagFilter = TextureMagFilter.Nearest,
+                MaxLevel = 0
+            };
 
             if (arraySize == 1)
             {

@@ -4,6 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using System.Diagnostics;
 using System.Numerics;
 
 
@@ -92,12 +93,14 @@ namespace XrEngine.OpenGL
 
         public void ApplyFilter(Distribution distribution, out uint envTexId, out uint lutTexId)
         {
+            Debug.Assert(GlState.Current != null);  
+
             var mipCount = distribution == Distribution.Lambertian ? 1 : MipLevelCount;
 
             envTexId = CreateCubeMap(mipCount > 1);
             lutTexId = CreateLutTexture();
 
-            GlState.Current.SetActiveTexture(_cubeMapId!, TextureTarget.TextureCubeMap, 0);
+            GlState.Current.SetActiveTexture(_cubeMapId, TextureTarget.TextureCubeMap, 0);
 
             _filterProg!.Use();
             _filterProg.SetUniform("uDistribution", (int)distribution);

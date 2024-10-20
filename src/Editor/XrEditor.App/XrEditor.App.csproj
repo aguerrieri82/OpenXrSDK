@@ -26,6 +26,8 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Engine\XrEngine.Media.FFmpeg\XrEngine.Media.FFmpeg.csproj" />
+	  <ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
+	  <ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
 	  <ProjectReference Include="..\XrEditor.Core\XrEditor.Core.csproj" />
 	</ItemGroup>
 

@@ -8,8 +8,6 @@ using XrMath;
 
 namespace XrEngine
 {
-
-
     public struct ObjectFeature<T> where T : notnull
     {
 
@@ -757,6 +755,8 @@ namespace XrEngine
         #endregion
 
         #region CAMERA
+
+
 
         public static void CreateViewFromDirection(this Camera self, Vector3 directionVector, Vector3 upVector)
         {

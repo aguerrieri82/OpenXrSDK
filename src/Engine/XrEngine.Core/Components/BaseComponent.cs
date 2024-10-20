@@ -87,7 +87,7 @@
         }
 
 
-        T? IComponent<T>.Host => _host;
+        public T? Host => _host;
 
         public ObjectId Id => _id;
     }

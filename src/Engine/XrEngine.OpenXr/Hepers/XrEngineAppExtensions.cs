@@ -157,9 +157,16 @@ namespace XrEngine.OpenXr
             return self;
         }
 
+        public static XrEngineAppBuilder SetGlOptions(this XrEngineAppBuilder self, GlRenderOptions options)
+        {
+            self.Options.DriverOptions = options;
+            return self;
+        }
+
         public static XrEngineAppBuilder UseMultiView(this XrEngineAppBuilder self)
         {
             self.Options.RenderMode = XrRenderMode.MultiView;
+            PlanarReflection.IsMultiView = true;
             return self;
         }
 

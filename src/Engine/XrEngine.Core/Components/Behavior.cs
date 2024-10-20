@@ -47,7 +47,14 @@ namespace XrEngine
             {
                 _deltaTime = _lastUpdateTime == 0 ? 0 : ctx.Time - _lastUpdateTime;
 
-                EngineApp.Current!.Stats.Update(this, () => Update(ctx));
+                try
+                {
+                    EngineApp.Current!.Stats.Update(this, () => Update(ctx));
+                } 
+                catch (Exception ex)
+                {
+                    Log.Error(this, ex, "Update error: {0}");
+                }
 
                 _lastUpdateTime = ctx.Time;
             }

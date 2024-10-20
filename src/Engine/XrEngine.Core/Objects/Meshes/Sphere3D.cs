@@ -6,13 +6,15 @@ namespace XrEngine
     public class Sphere3D : Geometry3D, IGeneratedContent
     {
         public Sphere3D()
+            : this(1, 3)
         {
-            Flags |= EngineObjectFlags.Readonly;
+  
         }
 
         public Sphere3D(float radius, uint levels)
-            : this()
+
         {
+            Flags |= EngineObjectFlags.Readonly;
             Radius = radius;
             Levels = levels;
             Build();

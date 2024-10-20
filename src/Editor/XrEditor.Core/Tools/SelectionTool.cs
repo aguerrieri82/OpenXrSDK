@@ -131,7 +131,9 @@ namespace XrEditor
                 if (local != null)
                 {
                     canvas.State.Transform = item.WorldMatrix;
-                    canvas.DrawBounds(local.LocalBounds);
+                    //canvas.DrawBounds(local.LocalBounds);
+                    foreach (var face in local.LocalBounds.Faces().Skip(4))
+                        canvas.DrawQuad(face);
                 }
             }
 

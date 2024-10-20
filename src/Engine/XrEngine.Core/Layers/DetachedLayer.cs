@@ -34,7 +34,7 @@
 
         public void Add(Object3D item)
         {
-            item._scene = _manager!.Scene;
+            item._scene = _manager?.Scene;
             _content.Add(item);
             NotifyChanged();
         }

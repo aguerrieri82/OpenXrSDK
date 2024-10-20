@@ -150,7 +150,7 @@ namespace XrEngine.Video
 
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //Log.Error(this, ex);
                 }

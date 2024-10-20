@@ -17,7 +17,6 @@
 		<ProjectReference Include="..\XrEngine.Audio\XrEngine.Audio.csproj" />
 		<ProjectReference Include="..\XrEngine.Filament\XrEngine.Filament.csproj" />
 		<ProjectReference Include="..\XrEngine.Glft\XrEngine.Gltf.csproj" />
-		<ProjectReference Include="..\XrEngine.OpenGL.Oculus\XrEngine.OpenGL.Oculus.csproj" />
 		<ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework\OpenXr.Framework.csproj" />
 		<ProjectReference Include="..\XrEngine.Physics\XrEngine.Physics.csproj" />

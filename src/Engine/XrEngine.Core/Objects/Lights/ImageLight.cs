@@ -23,7 +23,7 @@ namespace XrEngine
         {
             Debug.Assert(_cacheBasePath != null);
 
-            var fullPath = Path.Combine(_cacheBasePath, fileName);
+            var fullPath = Path.GetFullPath(Path.Combine(_cacheBasePath, fileName));
             if (!File.Exists(fullPath))
                 return false;
             var texture = AssetLoader.Instance.Load<T>(fullPath);
@@ -31,7 +31,7 @@ namespace XrEngine
             return true;
         }
 
-        protected bool SaveCacheTexture<T>(string fileName, Texture? texture) where T : Texture
+        protected bool SaveCacheTexture<T>(string fileName, T? texture) where T : Texture
         {
             if (texture == null || _cacheBasePath == null)
                 return false;
@@ -43,6 +43,9 @@ namespace XrEngine
             var data = EngineApp.Current!.Renderer!.ReadTexture(texture, texture.Format, 0, null);
             if (data == null)
                 return false;
+
+            if (File.Exists(fullPath))
+                File.Delete(fullPath);
 
             using var file = File.OpenWrite(fullPath);
 
@@ -56,7 +59,7 @@ namespace XrEngine
             var uri = new Uri(hdrUri);
             var loader = (BaseTextureLoader)AssetLoader.Instance.GetLoader(uri);
 
-            if (UseCache && false)
+            if (UseCache)
             {
                 if (hdrUri.StartsWith("res://asset/"))
                 {
@@ -66,7 +69,7 @@ namespace XrEngine
 
                 var info = new FileInfo(hdrUri);
 
-                var baseName = $"{info.Name}_{info.Length}_{info.LastWriteTime:yyyyMMddhhmmss}";
+                var baseName = $"{info.Name}_{info.Length}"; // _{info.LastWriteTime:yyyyMMddhhmmss}";
 
                 _cacheBasePath = Path.Combine(Context.Require<IPlatform>().CachePath, "IBL", baseName);
 
@@ -95,7 +98,7 @@ namespace XrEngine
             {
                 SaveCacheTexture<TextureCube>("lamb.pvr", Textures!.LambertianEnv);
                 SaveCacheTexture<TextureCube>("ggx.pvr", Textures!.GGXEnv);
-                SaveCacheTexture<TextureCube>("ggx_lut.pvr", Textures!.GGXLUT);
+                SaveCacheTexture<Texture2D>("ggx_lut.pvr", Textures!.GGXLUT);
                 SaveCacheTexture<TextureCube>("env.pvr", Textures!.Env);
             }
         }

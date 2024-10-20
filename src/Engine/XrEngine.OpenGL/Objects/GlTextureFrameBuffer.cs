@@ -3,6 +3,8 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGLES.Extensions.EXT;
 #else
 using Silk.NET.OpenGL;
+using System.Net.Mail;
+
 #endif
 
 using System.Runtime.InteropServices;
@@ -11,18 +13,6 @@ namespace XrEngine.OpenGL
 {
     public class GlTextureFrameBuffer : GlBaseFrameBuffer, IGlFrameBuffer
     {
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate void FramebufferTextureMultiviewOVRDelegate(
-            FramebufferTarget target,
-            FramebufferAttachment attachment,
-            uint texture,
-            uint level,
-            uint baseViewIndex,
-            uint numViews);
-
-        static FramebufferTextureMultiviewOVRDelegate? FramebufferTextureMultiviewOVR;
-
-
         private uint _sampleCount;
 
 #if GLES
@@ -37,10 +27,6 @@ namespace XrEngine.OpenGL
 #endif
 
             Create();
-
-            gl.Context.TryGetProcAddress("glFramebufferTextureMultiviewOVR", out var addr);
-            FramebufferTextureMultiviewOVR = Marshal.GetDelegateForFunctionPointer<FramebufferTextureMultiviewOVRDelegate>(addr);
-
         }
 
         public GlTextureFrameBuffer(GL gl, uint colorTex, uint depthTex, uint sampleCount = 1)
@@ -63,12 +49,10 @@ namespace XrEngine.OpenGL
             Color = color;
             Depth = depth;
 
-
             Bind();
 
             if (Color != null)
             {
-
                 bool useMs = false;
                 if (sampleCount > 1)
                 {
@@ -89,21 +73,15 @@ namespace XrEngine.OpenGL
                         FramebufferAttachment.ColorAttachment0,
                         Color.Target,
                         Color, 0);
-                }
 
+                }
             }
 
             if (Depth is GlTexture tex)
             {
-                FramebufferAttachment attachment;
-
-                if (tex.InternalFormat == InternalFormat.Depth24Stencil8 ||
-                    tex.InternalFormat == InternalFormat.Depth24Stencil8Oes ||
-                    tex.InternalFormat == InternalFormat.Depth32fStencil8 ||
-                    tex.InternalFormat == InternalFormat.Rgba)
-                    attachment = FramebufferAttachment.DepthStencilAttachment;
-                else
-                    attachment = FramebufferAttachment.DepthAttachment;
+                var attachment = GlUtils.IsDepthStencil(tex.InternalFormat) ? 
+                        FramebufferAttachment.DepthStencilAttachment : 
+                        FramebufferAttachment.DepthAttachment; 
 
                 bool useMs = false;
                 if (sampleCount > 1)
@@ -120,34 +98,29 @@ namespace XrEngine.OpenGL
 
                 if (!useMs)
                 {
-                    if (tex.Depth > 1)
-                        FramebufferTextureMultiviewOVR!(
-                            Target,
-                            attachment,
-                            tex,
-                            0, 0, tex.Depth);
-                    else
-                        _gl.FramebufferTexture2D(
-                                Target,
-                                attachment,
-                                tex.Target,
-                                tex, 0);
+                    _gl.FramebufferTexture2D(
+                        Target,
+                        attachment,
+                        tex.Target,
+                        tex, 0);
                 }
             }
 
             else if (Depth is GlRenderBuffer rb)
             {
+                var attachment = GlUtils.IsDepthStencil(rb.InternalFormat) ?
+                        FramebufferAttachment.DepthStencilAttachment :
+                        FramebufferAttachment.DepthAttachment;
 
                 _gl.FramebufferRenderbuffer(Target,
-                         FramebufferAttachment.DepthStencilAttachment,
+                         attachment,
                          rb.Target,
                          rb.Handle);
             }
 
             Check();
-
-            //Unbind();
         }
+
 
 
         public void Detach(FramebufferAttachment attachment)

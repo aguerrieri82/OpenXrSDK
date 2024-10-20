@@ -39,7 +39,7 @@ namespace XrEngine.OpenXr
         {
             var obj = Factory.CreateModel(model);
             if (obj != null)
-                AddChild(obj);  
+                AddChild(obj);
         }
 
         protected async Task LoadSceneAsync()
@@ -109,7 +109,7 @@ namespace XrEngine.OpenXr
                         continue;
 
                     var isLocatable = oculus.EnumerateSpaceSupportedComponentsFB(info.Space).Contains(SpaceComponentTypeFB.LocatableFB);
-                    
+
                     if (isLocatable)
                     {
                         if (!oculus.GetSpaceComponentEnabled(info.Space, SpaceComponentTypeFB.LocatableFB))
@@ -121,7 +121,7 @@ namespace XrEngine.OpenXr
                         });
                     }
 
-                    AddChild(model);    
+                    AddChild(model);
                 }
 
                 _isSceneLoaded = true;
@@ -134,7 +134,11 @@ namespace XrEngine.OpenXr
             {
                 _isSceneLoading = false;
             }
+
+            SceneReady?.Invoke(this, EventArgs.Empty);   
         }
+
+        public event EventHandler? SceneReady;
 
         public ISceneModelFactory Factory { get; set; }
     }

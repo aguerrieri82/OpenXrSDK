@@ -57,7 +57,7 @@ namespace XrEngine.OpenGL
             return _renderer.Layers.Where(a => a.Type == GlLayerType.Main).Take(1);
         }
 
-        protected override void RenderLayer(GlLayer layer)
+        public override void RenderLayer(GlLayer layer)
         {
 
             _renderer.GL.BindVertexArray(_fooVa);
