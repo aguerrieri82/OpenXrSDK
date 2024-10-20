@@ -66,6 +66,8 @@ namespace XrEngine.OpenGL
 
         public bool UseDepthPass { get; set; }
 
+        public bool UsePlanarReflection { get; set; }
+
         public ShadowMapOptions ShadowMap { get; }
 
         public GlOutlineOptions Outline { get; }

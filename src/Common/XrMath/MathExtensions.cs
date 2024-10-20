@@ -101,6 +101,15 @@ namespace XrMath
 
         #region BOUNDS
 
+        public static Quad3 BottomFace(this Bounds3 self)
+        {
+            var C1 = new Vector3(self.Min.X, self.Min.Y, self.Min.Z);
+            var C2 = new Vector3(self.Max.X, self.Min.Y, self.Min.Z);
+            var C5 = new Vector3(self.Min.X, self.Min.Y, self.Max.Z);
+            var C6 = new Vector3(self.Max.X, self.Min.Y, self.Max.Z);
+            return MathUtils.QuadFromEdges(C1, C2, C6, C5);
+        }
+
         public static IEnumerable<Quad3> Faces(this Bounds3 self)
         {
             var C1 = new Vector3(self.Min.X, self.Min.Y, self.Min.Z);

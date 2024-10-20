@@ -173,6 +173,7 @@ namespace XrEngine.OpenGL
             _gl.Uniform1(LocateUniform(name, optional), value);
         }
 
+
         public unsafe void SetUniform(string name, Matrix4x4 value, bool optional = false)
         {
             if (!IsChanged(name, value))

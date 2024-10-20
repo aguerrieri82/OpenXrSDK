@@ -120,5 +120,22 @@ namespace XrMath
                 tangent = Vector3.Normalize(tangent);
             }
         }
+
+        public static Matrix4x4 CreateReflectionMatrix(Plane plane)
+        {
+
+
+            float x = plane.Normal.X;
+            float y = plane.Normal.Y;
+            float z = plane.Normal.Z;
+            float d = plane.D;
+
+            return new Matrix4x4(
+                1 - 2 * x * x, -2 * x * y, -2 * x * z, 0,
+                -2 * y * x, 1 - 2 * y * y, -2 * y * z, 0,
+                -2 * z * x, -2 * z * y, 1 - 2 * z * z, 0,
+                -2 * d * x, -2 * d * y, -2 * d * z, 1
+            );
+        }
     }
 }

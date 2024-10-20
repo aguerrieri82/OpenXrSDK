@@ -58,7 +58,7 @@ namespace XrEngine.OpenGL
 
             Bind();
 
-            bool isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
+            var isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
 
             var levelTarget = Target == TextureTarget.TextureCubeMap ? TextureTarget.TextureCubeMapPositiveX : Target;
 
@@ -70,8 +70,6 @@ namespace XrEngine.OpenGL
 
             _gl.GetTexLevelParameter(levelTarget, 0, GetTextureParameter.TextureDepthExt, out int depth);
             _depth = (uint)depth;
-
-
 
             //NOTE: sometimes in level 0 sometimes 1, to investigate
             for (var level = 0; level < 2; level++)
@@ -116,9 +114,6 @@ namespace XrEngine.OpenGL
 
             _gl.GetTexParameter(Target, GetTextureParameter.TextureMaxLevelSgis, out int ml);
             MaxLevel = (uint)ml;
-
-
-
 
             Unbind();
         }

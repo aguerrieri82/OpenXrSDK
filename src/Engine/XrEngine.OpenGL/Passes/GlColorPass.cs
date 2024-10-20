@@ -18,7 +18,6 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(Camera camera)
         {
-
             _renderer.RenderTarget!.Begin(camera);
             _renderer.State.SetView(_renderer.RenderView);
 
@@ -40,7 +39,7 @@ namespace XrEngine.OpenGL
             // _renderer.RenderTarget!.End(false);
         }
 
-        protected override void RenderLayer(GlLayer layer)
+        public override void RenderLayer(GlLayer layer)
         {
             _renderer.GL.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin layer {layer.Type}");
 

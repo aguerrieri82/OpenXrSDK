@@ -1,4 +1,5 @@
 ﻿using Silk.NET.OpenGL;
+using System.Diagnostics;
 using XrMath;
 
 namespace XrEngine.OpenGL
@@ -27,14 +28,14 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(Camera camera)
         {
-            UseProgram(_programInstance!, false);
+            Debug.Assert(_programInstance != null);
+            UseProgram(_programInstance, false);
             return true;
         }
 
 
-        protected override void RenderLayer(GlLayer layer)
+        public override void RenderLayer(GlLayer layer)
         {
-
             var updateContext = _renderer.UpdateContext;
 
             if (_renderer.Options.SortByCameraDistance)
@@ -60,6 +61,14 @@ namespace XrEngine.OpenGL
 
                     foreach (var draw in vertex.Contents)
                     {
+                        var material = draw.ProgramInstance!.Material;
+
+                        if (!PrepareMaterial(material))
+                            continue;
+
+                        if (!CanDraw(draw))
+                            continue;
+
                         if (draw.Object is TriangleMesh mesh && _renderer.Options.FrustumCulling)
                         {
                             draw.IsHidden = !mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes!);
@@ -68,11 +77,6 @@ namespace XrEngine.OpenGL
                         }
                         else
                             draw.IsHidden = false;
-
-                        var material = draw.ProgramInstance!.Material;
-
-                        if (!material.WriteDepth)
-                            continue;
 
                         updateContext.Model = draw.Object;
 
@@ -85,6 +89,16 @@ namespace XrEngine.OpenGL
                     vHandler.Unbind();
                 }
             }
+        }
+
+        protected virtual bool CanDraw(DrawContent draw)
+        {
+            return true;
+        }
+
+        protected virtual bool PrepareMaterial(Material material)
+        {
+            return material.WriteDepth;
         }
 
         protected override void EndRender()

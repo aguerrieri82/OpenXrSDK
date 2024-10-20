@@ -31,10 +31,9 @@ namespace XrEngine
             return true;
         }
 
-        protected override void NotifyChangedWork(Object3D obj, ObjectChange change)
+        protected override void NotifyChangedWork(Object3D sender, ObjectChange change)
         {
-
-            if (obj is T tObj && AffectChange(change))
+            if (sender is T tObj && AffectChange(change))
             {
                 if (change.IsAny(ObjectChangeType.SceneRemove) || !BelongsToLayer(tObj))
                     Remove(tObj);
@@ -68,8 +67,5 @@ namespace XrEngine
         }
 
         protected abstract bool BelongsToLayer(T obj);
-
-
-
     }
 }

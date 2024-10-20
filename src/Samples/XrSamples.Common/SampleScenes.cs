@@ -19,6 +19,8 @@ using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
 using XrEngine.UI.Web;
+using XrEngine.OpenGL;
+
 
 
 #if !ANDROID
@@ -948,6 +950,7 @@ namespace XrSamples
         {
             builder.Configure(RoomDesignerApp.Build)
                 .AddPassthrough()
+
             .ConfigureApp(app =>
             {
                 var scene = (RoomScene)app.App.ActiveScene!;

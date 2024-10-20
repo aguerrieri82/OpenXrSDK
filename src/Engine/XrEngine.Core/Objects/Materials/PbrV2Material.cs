@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 
@@ -323,6 +324,34 @@ namespace XrEngine
             bld.AddFeature($"ALPHA_MODE {(int)(Alpha == AlphaMode.BlendMain ? AlphaMode.Blend : Alpha)}");
 
             bld.SetUniformBuffer("Material", ctx => (MaterialUniforms?)material, 2, false);
+
+
+            var planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
+
+            if (planar != null)
+            {
+                bld.AddFeature("PLANAR_REFLECTION");
+                
+                if (PlanarReflection.IsMultiView)
+                    bld.AddFeature("PLANAR_REFLECTION_MV");
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform("reflectionTexture", planar.Texture, 7);
+
+                    if (PlanarReflection.IsMultiView)
+                    {
+                        if (planar.ReflectionCamera.Eyes != null)
+                        {
+                            up.SetUniform("uReflectMatrix[0]", planar.ReflectionCamera.Eyes[0].ViewProj);
+                            up.SetUniform("uReflectMatrix[1]", planar.ReflectionCamera.Eyes[1].ViewProj);
+                        }
+                    }
+                    else
+                        up.SetUniform("uReflectMatrix", planar.ReflectionCamera.ViewProjection);
+                });
+            }
+
 
             if (ColorMap != null)
             {

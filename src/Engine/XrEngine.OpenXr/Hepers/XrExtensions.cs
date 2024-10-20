@@ -7,12 +7,12 @@ using Silk.NET.OpenGL;
 using Silk.NET.OpenXR;
 using OpenXr.Framework;
 using XrEngine.OpenGL;
-using XrEngine.OpenGL.Oculus;
 using XrEngine.Filament;
 using System.Numerics;
 using XrMath;
 using XrEngine.UI;
 using static XrEngine.Filament.FilamentLib;
+using System.Diagnostics;
 
 
 namespace XrEngine.OpenXr
@@ -171,6 +171,8 @@ namespace XrEngine.OpenXr
 
                     //TODO improve head-rel views VS space-rel views xrApp.Stage is HARDCODED
                     var headLoc = xrApp.SpacesTracker.GetLastLocation(xrApp.Head);
+
+                    Debug.Assert(headLoc != null);  
 
                     xrApp!.LocateViews(xrApp.Head, predTime, headViews);
 

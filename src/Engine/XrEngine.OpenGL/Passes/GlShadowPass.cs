@@ -19,9 +19,7 @@ namespace XrEngine.OpenGL
         private string _allLightsHash = "";
         private DirectionalLight? _light;
         private Camera? _oldCamera;
-        private long _lightVersion = -1;
         private long _layerVersion = -1;
-        private long _recLayerVersion = -1;
         private long _updateFrame;
         private readonly ShadowMapMode _mode;
 

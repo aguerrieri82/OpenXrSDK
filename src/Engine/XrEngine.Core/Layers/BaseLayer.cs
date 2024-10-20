@@ -43,7 +43,7 @@
                 NotifyChangedWork(sender, change);
         }
 
-        protected virtual void NotifyChangedWork(Object3D object3D, ObjectChange change)
+        protected virtual void NotifyChangedWork(Object3D sender, ObjectChange change)
         {
 
         }
@@ -63,6 +63,8 @@
             }
         }
 
+        IEnumerable<ILayer3DItem> ILayer3D.Content => (IEnumerable<ILayer3DItem>)_content;
+
         public bool IsVisible { get; set; }
 
         public string Name { get; set; }
@@ -71,7 +73,7 @@
 
         public long Version => _version;
 
-        public IEnumerable<ILayer3DItem> Content => (IEnumerable<ILayer3DItem>)_content;
+        public IReadOnlyCollection<T> Content => _content;
 
     }
 }

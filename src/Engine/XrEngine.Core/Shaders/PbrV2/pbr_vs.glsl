@@ -16,6 +16,7 @@ layout(location=2) in vec2 texcoord;
 uniform mat4 uModel;
 uniform mat4 uNormalMatrix;
 
+
 layout(location=0) out Vertex
 {
 	vec3 position;
@@ -86,6 +87,7 @@ void main()
 	vout.posLightSpace = uCamera.lightSpaceMatrix * pos;
 
 	#endif
+
 
     vec3 N = normalize(vec3(uNormalMatrix * vec4(normal, 0.0)));
 

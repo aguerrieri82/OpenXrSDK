@@ -1,8 +1,9 @@
 ﻿using System.Numerics;
+using XrMath;
 
 namespace XrEngine
 {
-    public class TextureMaterial : ShaderMaterial
+    public class TextureMaterial : ShaderMaterial,IColorSource
     {
         static readonly Shader SHADER;
 
@@ -21,6 +22,7 @@ namespace XrEngine
             : base()
         {
             _shader = SHADER;
+            Color = Color.White;
         }
 
         public TextureMaterial(Texture2D texture)
@@ -49,17 +51,32 @@ namespace XrEngine
                 bld.AddFeature("EXTERNAL");
             }
 
+            if (Texture?.Transform != null)
+            {
+                bld.AddFeature("USE_TRANSFORM");
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform("uUvTransform", Texture.Transform.Value);
+                });
+            }
+
+            if (CheckTexture)
+            {
+                bld.AddFeature("CHECK_TEXTURE");
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform("uHasTexture", Texture == null ? 0u : 1u);
+                });
+            }
+
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uTexture", Texture!, 0);
+                if (Texture != null)
+                    up.SetUniform("uTexture", Texture, 0);
 
-                if (Texture?.Transform != null)
-                {
-                    bld.AddFeature("UV_TRANSFORM");
-                    up.SetUniform("uUvTransform", Texture.Transform.Value);
-                }
+                up.SetUniform("uColor", Color);
             });
         }
 
@@ -70,8 +87,10 @@ namespace XrEngine
             base.Dispose();
         }
 
+        public bool CheckTexture { get; set; }
+
         public Texture2D? Texture { get; set; }
 
-
+        public Color Color { get; set; }
     }
 }

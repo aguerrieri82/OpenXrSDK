@@ -177,6 +177,8 @@ namespace XrEngine
             {
                 foreach (var component in _props.Values.OfType<IDisposable>())
                     component.Dispose();
+                foreach (var component in _props.Values.OfType<IObjectTool>())
+                    component.Deactivate();
                 _props = null;
             }
 

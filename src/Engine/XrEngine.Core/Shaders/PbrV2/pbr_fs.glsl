@@ -1,5 +1,6 @@
 #include "PbrV2/uniforms.glsl"
 #include "shadow.glsl"
+#include "tonemap.glsl"
 
 // Physically Based Rendering
 // Copyright (c) 2017-2018 Michał Siejak
@@ -11,9 +12,7 @@
 
 const float PI = 3.141592;
 const float Epsilon = 0.00001;
-const float gamma      = 2.2;
-const float inv_gamma  = 1.0 / gamma;
-const float pureWhite  = 1.0;
+
 
 // Constant normal incidence Fresnel factor for all dielectrics.
 const vec3 Fdielectric = vec3(0.04);
@@ -39,6 +38,19 @@ layout(binding=3) uniform sampler2D occlusionTexture;
 layout(binding=4) uniform samplerCube specularTexture;
 layout(binding=5) uniform samplerCube irradianceTexture;
 layout(binding=6) uniform sampler2D specularBRDF_LUT;
+
+#ifdef PLANAR_REFLECTION
+
+	#ifdef PLANAR_REFLECTION_MV
+		layout(binding=7) uniform mediump sampler2DArray reflectionTexture;
+		uniform mat4 uReflectMatrix[2];
+	#else
+		layout(binding=7) uniform sampler2D reflectionTexture;
+		uniform mat4 uReflectMatrix;
+	#endif
+#endif
+
+
 
 uniform float uSpecularTextureLevels;
 uniform float uIblIntensity;
@@ -84,45 +96,6 @@ vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 sRGBToLinear(vec3 srgbIn)
-{
-    return vec3(pow(srgbIn.xyz, vec3(gamma)));
-}
-
-vec3 linearTosRGB(vec3 color)
-{
-    return pow(color, vec3(inv_gamma));
-}
-
-
-vec3 toneMap(vec3 color)
-{
-	float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
-	float mappedLuminance = (luminance * (1.0 + luminance/(pureWhite*pureWhite))) / (1.0 + luminance);
-
-	// Scale color by ratio of average luminances.
-	return (mappedLuminance / luminance) * color;
-}
-
-vec3 toneMapNeutral( vec3 color )
-{
-    const float startCompression = 0.8 - 0.04;
-    const float desaturation = 0.15;
-
-    float x = min(color.r, min(color.g, color.b));
-    float offset = x < 0.08 ? x - 6.25 * x * x : 0.04;
-    color -= offset;
-
-    float peak = max(color.r, max(color.g, color.b));
-    if (peak < startCompression) return color;
-
-    const float d = 1. - startCompression;
-    float newPeak = 1. - d * d / (peak + d - startCompression);
-    color *= newPeak / peak;
-
-    float g = 1. - 1. / (desaturation * (peak - newPeak) + 1.);
-    return mix(color, newPeak * vec3(1, 1, 1), g);
-}
 
 void main()
 {
@@ -302,6 +275,41 @@ void main()
 	#endif
 
 	vec3 color3 = (directLighting + ambientLighting);
+
+	
+	#ifdef PLANAR_REFLECTION
+
+		#ifdef PLANAR_REFLECTION_MV
+			mat4 refMatrix = uReflectMatrix[gl_ViewID_OVR];
+		#else
+			mat4 refMatrix = uReflectMatrix;
+		#endif
+
+		 vec3 reflectPosWorld = vin.position + Lr * 100.0; // Extend the reflection ray
+		 
+		 vec4 reflectPosClip = refMatrix * vec4(reflectPosWorld, 1.0);
+		 
+		 vec3 projCoords = reflectPosClip.xyz / reflectPosClip.w;
+		
+		 projCoords = projCoords * 0.5 + 0.5;
+
+		#ifdef PLANAR_REFLECTION_MV
+			vec4 reflectionColor = texture(reflectionTexture, vec3(projCoords.xy, gl_ViewID_OVR));
+		#else
+			vec4 reflectionColor = texture(reflectionTexture, projCoords.xy);
+		#endif
+
+		
+		 float fresnelFactor = pow(1.0 - cosLo, 3.0) * 0.9 + 0.1;
+
+		 float refFactor = clamp(fresnelFactor * (1.0 - roughness), 0.0, 1.0);
+
+		 refFactor = min(reflectionColor.a, refFactor);
+
+		 color3 = mix(color3, reflectionColor.rgb, refFactor);
+
+	#endif
+
 
 	//Opaque
 	#if ALPHA_MODE == 0
