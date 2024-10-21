@@ -75,6 +75,9 @@ namespace XrEngine.OpenGL
 
         static unsafe GlTexture CreateGlTexture(this Texture2D value, GL gl, bool requireCompression)
         {
+            if (value.Handle != 0)
+                return GlTexture.Attach(gl, (uint)value.Handle, value.SampleCount);
+            
             var glTexture = new GlTexture(gl);
             glTexture.Update(value, requireCompression);
             return glTexture;
@@ -158,6 +161,8 @@ namespace XrEngine.OpenGL
 
             glTexture.Version = texture2D.Version;
             glTexture.Source = texture2D;
+
+            texture2D.Handle = glTexture.Handle;    
         }
 
         public static unsafe Texture TexIdToEngineTexture(this GL gl, uint texId, TextureFormat? readFormat = null)
@@ -186,7 +191,8 @@ namespace XrEngine.OpenGL
             res.MinFilter = (ScaleFilter)glTexture.MinFilter;
             res.BorderColor = glTexture.BorderColor;
             res.SampleCount = glTexture.SampleCount;
-            res.MaxAnisotropy = glTexture.MaxAnisotropy;    
+            res.MaxAnisotropy = glTexture.MaxAnisotropy;
+            res.Handle = glTexture.Handle;
 
             res.Format = glTexture.InternalFormat switch
             {

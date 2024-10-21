@@ -11,21 +11,21 @@ namespace XrEngine.OpenGL
 {
     public partial class GlSimpleProgram : GlBaseProgram
     {
-        readonly string _vSource;
-        readonly string _fSource;
-        readonly string? _gSource;
+        readonly string _vSourceName;
+        readonly string _fSourceName;
+        readonly string? _gSourceName;
 
         public GlSimpleProgram(GL gl, string vSource, string fSource, Func<string, string> resolver)
             : base(gl, resolver)
         {
-            _fSource = fSource;
-            _vSource = vSource;
+            _fSourceName = fSource;
+            _vSourceName = vSource;
         }
 
         public GlSimpleProgram(GL gl, string vSource, string fSource, string? gSource, Func<string, string> resolver)
             : this(gl, vSource, fSource, resolver)
         {
-            _gSource = gSource;
+            _gSourceName = gSource;
         }
 
 
@@ -35,9 +35,9 @@ namespace XrEngine.OpenGL
         {
             Log.Debug(this, "Building program {0}...", _handle);
 
-            var vSource = PatchShader(_vSource, ShaderType.VertexShader);
-            var fSource = PatchShader(_fSource, ShaderType.FragmentShader);
-            var gSource = _gSource != null ? PatchShader(_gSource, ShaderType.GeometryShader) : null;
+            var vSource = PatchShader(_vSourceName, ShaderType.VertexShader);
+            var fSource = PatchShader(_fSourceName, ShaderType.FragmentShader);
+            var gSource = _gSourceName != null ? PatchShader(_gSourceName, ShaderType.GeometryShader) : null;
 
             //vSource = ShaderPreprocessor.ParseShader(vSource);
 

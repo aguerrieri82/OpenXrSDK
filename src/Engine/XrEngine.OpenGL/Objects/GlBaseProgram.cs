@@ -286,8 +286,10 @@ namespace XrEngine.OpenGL
             _extensions.Add(name);
         }
 
-        protected string PatchShader(string source, ShaderType shaderType)
+        protected string PatchShader(string sourceName, ShaderType shaderType)
         {
+            var source = _resolver(sourceName); 
+
             var builder = new StringBuilder();
 
             builder.Append("#version ")
@@ -327,9 +329,12 @@ namespace XrEngine.OpenGL
                     match.Groups[2].Value :
                     match.Groups[1].Value;
 
+                var incPath = Path.GetRelativePath(".", Path.Join(Path.GetDirectoryName(sourceName) ?? "", incName))
+                             .Replace('\\', '/');
+
                 source = string.Concat(
                     source.AsSpan(0, match.Index),
-                    _resolver(incName),
+                    _resolver(incPath),
                     "\n",
                     source.AsSpan(match.Index + match.Length)
                 );

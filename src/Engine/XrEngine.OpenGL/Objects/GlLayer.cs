@@ -55,7 +55,7 @@ namespace XrEngine.OpenGL
 
                             options.SampleCount = 1024;
                             options.Resolution = 256;
-                            options.Mode = IBLProcessMode.GGX | IBLProcessMode.Lambertian;
+                            options.Mode = IblProcessMode.GGX | IblProcessMode.Lambertian;
 
                             imgLight.Textures = _render.ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
                             imgLight.Panorama.NotifyLoaded();

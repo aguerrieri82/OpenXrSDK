@@ -60,6 +60,8 @@ namespace XrEngine
         public Texture2D? DepthMap;
 
         public ShaderUpdate? LastUpdate;
+
+        public Size2I ViewSize;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

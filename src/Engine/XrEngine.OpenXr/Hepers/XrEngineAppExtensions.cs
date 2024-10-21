@@ -2,6 +2,7 @@
 using OpenXr.Framework.Oculus;
 using PhysX.Framework;
 using Silk.NET.OpenXR;
+using System.ComponentModel.DataAnnotations;
 using XrEngine.Objects;
 using XrEngine.OpenGL;
 using XrEngine.Physics;
@@ -13,7 +14,8 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder AddPassthrough(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
         {
-            e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer());
+            if (!e.XrApp.Layers.List.OfType<XrPassthroughLayer>().Any())
+                e.XrApp.Layers.List.Insert(0, new XrPassthroughLayer());
         });
 
         public static XrEngineAppBuilder UseLeftController(this XrEngineAppBuilder self)
@@ -193,6 +195,23 @@ namespace XrEngine.OpenXr
             self.ConfigureApp(app =>
             {
                 app.App.ActiveScene!.AddChild(new XrRoot());
+            });
+            return self;
+        }
+
+        public static XrEngineAppBuilder UseEnvironmentDepth(this XrEngineAppBuilder self)
+        {
+            self.ConfigureApp(e =>
+            {
+                var passTh = e.XrApp.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
+                if (passTh == null)
+                {
+                    passTh = new XrPassthroughLayer();
+                    e.XrApp.Layers.List.Insert(0, passTh);
+                }
+
+                var camera = e.App.ActiveScene?.ActiveCamera;
+                camera?.AddComponent(new OculusEnvDepthProvider(e.XrApp));
             });
             return self;
         }

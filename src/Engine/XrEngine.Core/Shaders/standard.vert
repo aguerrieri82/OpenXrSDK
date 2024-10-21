@@ -21,7 +21,7 @@ out vec3 fNormal;
 out vec3 fPos;
 out vec2 fUv;
 
-#include "position.glsl"
+#include "Shared/position.glsl"
 
 void main()
 {
@@ -32,12 +32,10 @@ void main()
 
     fNormal = mat3(uNormalMatrix) * a_normal;
     fUv = a_texcoord_0;
-
     
     #ifdef UV_TRANSFORM 
 	    fUv = (vec3(fUv, 1) * uUvTransform).xy;
     #endif
-
 
     #ifdef USE_SHADOW_MAP
         fPosLightSpace = uLightSpaceMatrix * pos;

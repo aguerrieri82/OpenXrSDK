@@ -20,9 +20,12 @@ namespace OpenXr.Framework.Oculus
         private PassthroughLayerFB _ptLayer;
         private bool _isStarted;
         private readonly List<XrPassthroughMesh> _meshes = [];
+        private XrEnvironmentDepth _envDepth;
+        private EnvironmentDepthImageMETA? _depthImage;
 
         public XrPassthroughLayer()
         {
+            _envDepth = new XrEnvironmentDepth();
             Purpose = PassthroughLayerPurposeFB.ReconstructionFB;
             Priority = 0;
         }
@@ -31,7 +34,16 @@ namespace OpenXr.Framework.Oculus
         {
             extensions.Add(FBPassthrough.ExtensionName);
             extensions.Add(FBPassthroughKeyboardHands.ExtensionName);
+            extensions.Add(METAEnvironmentDepth.ExtensionName);
+
             base.Initialize(app, extensions);
+        }
+
+        public override void OnBeginFrame(Space space, long displayTime)
+        {
+            if (UseEnvironmentDepth)
+                _depthImage = _envDepth.Acquire(space, displayTime);
+
         }
 
         protected unsafe SystemPassthroughProperties2FB GetPtCapabilities()
@@ -104,6 +116,8 @@ namespace OpenXr.Framework.Oculus
 
             }
 
+            _envDepth.Dispose();
+
             _meshes.Clear();
 
             base.Destroy();
@@ -111,6 +125,7 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe override void Create()
         {
+   
             var caps = GetPtCapabilities();
 
             if ((caps.Capabilities & PassthroughCapabilityFlagsFB.BitFB) == 0)
@@ -124,6 +139,12 @@ namespace OpenXr.Framework.Oculus
 
             _header->Type = StructureType.CompositionLayerPassthroughFB;
 
+            if (UseEnvironmentDepth)
+            {
+                _envDepth.Create(_xrApp!);
+                _envDepth.Start();
+            }
+
             _isStarted = true;
 
             base.Create();
@@ -135,9 +156,18 @@ namespace OpenXr.Framework.Oculus
                 return;
 
             if (isEnabled)
+            {
                 StartPt();
+                if (UseEnvironmentDepth)
+                    _envDepth.Start();
+            }
+
             else
+            {
                 PausePt();
+                if (UseEnvironmentDepth)
+                    _envDepth.Stop();
+            }
         }
 
         protected override bool Update(ref CompositionLayerPassthroughFB layer, ref View[] views, long predTime)
@@ -193,6 +223,12 @@ namespace OpenXr.Framework.Oculus
 
             return result;
         }
+
+        public bool UseEnvironmentDepth { get; set; }
+
+        public XrEnvironmentDepth EnvironmentDepth => _envDepth;
+
+        public EnvironmentDepthImageMETA? DepthImage => _depthImage;
 
         public override XrLayerFlags Flags => XrLayerFlags.EmptySpace;
 

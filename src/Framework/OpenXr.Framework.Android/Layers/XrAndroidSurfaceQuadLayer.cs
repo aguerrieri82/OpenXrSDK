@@ -31,10 +31,11 @@ namespace OpenXr.Framework.Android
             base.Initialize(app, extensions);
         }
 
-        public override void OnBeginFrame()
+        public override void OnBeginFrame(Silk.NET.OpenXR.Space space, long displayTime)
         {
             _surfaceLock.Wait();
         }
+
 
         public override void OnEndFrame()
         {

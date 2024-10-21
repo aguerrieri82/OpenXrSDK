@@ -1,15 +1,16 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 
 namespace XrEngine
 {
-    public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial
+    public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial
     {
         #region CameraUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 128)]
+        [StructLayout(LayoutKind.Explicit, Size = 160)]
         public struct CameraUniforms
         {
             [FieldOffset(0)]
@@ -25,6 +26,15 @@ namespace XrEngine
 
             [FieldOffset(80)]
             public Matrix4x4 LightSpaceMatrix;
+
+            [FieldOffset(144)]
+            public float EnvDepthBias;
+
+            [FieldOffset(148)]
+            public int ActiveEye;
+
+            [FieldOffset(152)]
+            public Size2I ViewSize;
         }
 
         #endregion
@@ -134,6 +144,7 @@ namespace XrEngine
         class GlobalShaderHandler : IShaderHandler
         {
             long _iblVersion = -1;
+            PerspectiveCamera _depthCamera = new PerspectiveCamera();   
 
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
@@ -176,6 +187,25 @@ namespace XrEngine
 
                 bld.AddFeature("MAX_LIGHTS " + LightListUniforms.Max);
 
+                var envDepth = bld.Context.Camera?.Feature<IEnvDepthProvider>();
+                if (envDepth != null)
+                {
+                    bld.AddFeature("HAS_ENV_DEPTH");
+                    bld.ExecuteAction((ctx, up) =>
+                    {
+                        var texture = envDepth.Acquire(_depthCamera);
+                        if (texture != null)
+                            up.SetUniform("envDepth", texture, 8);
+
+                        if (_depthCamera.Eyes != null)
+                        {
+                            up.SetUniform("envViewProj[0]", _depthCamera.Eyes[0].ViewProj);
+                            up.SetUniform("envViewProj[1]", _depthCamera.Eyes[1].ViewProj);
+                        }
+                    });
+                }
+
+
                 bld.SetUniformBuffer("Camera", (ctx) =>
                 {
                     var result = new CameraUniforms
@@ -183,6 +213,9 @@ namespace XrEngine
                         ViewProj = ctx.Camera!.ViewProjection,
                         Position = ctx.Camera!.WorldPosition,
                         Exposure = ctx.Camera.Exposure,
+                        //EnvDepthBias = envDepth?.Bias ?? 0,
+                        ActiveEye = ctx.Camera.ActiveEye,   
+                        ViewSize = ctx.ViewSize  
                     };
 
                     var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
@@ -193,52 +226,59 @@ namespace XrEngine
 
                 }, 0, true);
 
-                if (hasPunctual)
+
+                bld.SetUniformBuffer("Lights", (ctx) =>
                 {
-                    bld.SetUniformBuffer("Lights", (ctx) =>
+                    var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
+
+                    if (ctx.CurrentBuffer!.Hash == hash)
+                        return null;
+
+                    ctx.CurrentBuffer!.Hash = hash;
+
+                    Log.Debug(this, "Build light uniforms");
+
+                    if (!hasPunctual)
                     {
-                        var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
-
-                        if (ctx.CurrentBuffer!.Hash == hash)
-                            return null;
-
-                        ctx.CurrentBuffer!.Hash = hash;
-
-                        Log.Debug(this, "Build light uniforms");
-
-                        var lights = new List<LightUniforms>();
-
-                        foreach (var light in bld.Context.Lights!)
-                        {
-                            if (light is PointLight point)
-                            {
-                                lights.Add(new LightUniforms
-                                {
-                                    Type = 0,
-                                    Color = ((Vector3)point.Color) * point.Intensity,
-                                    Position = point.WorldPosition,
-                                    Range = point.Range
-                                });
-                            }
-                            else if (light is DirectionalLight directional)
-                            {
-                                lights.Add(new LightUniforms
-                                {
-                                    Type = 1,
-                                    Color = ((Vector3)directional.Color) * directional.Intensity,
-                                    Direction = Vector3.Normalize(directional.Direction)
-
-                                });
-                            }
-                        }
-
                         return (LightListUniforms?)new LightListUniforms
                         {
-                            Count = (uint)lights.Count,
-                            Lights = lights.ToArray()
+                            Count = 0,
+                            Lights = []
                         };
-                    }, 1, true);
-                }
+                    }
+
+                    var lights = new List<LightUniforms>();
+
+                    foreach (var light in bld.Context.Lights!)
+                    {
+                        if (light is PointLight point)
+                        {
+                            lights.Add(new LightUniforms
+                            {
+                                Type = 0,
+                                Color = ((Vector3)point.Color) * point.Intensity,
+                                Position = point.WorldPosition,
+                                Range = point.Range
+                            });
+                        }
+                        else if (light is DirectionalLight directional)
+                        {
+                            lights.Add(new LightUniforms
+                            {
+                                Type = 1,
+                                Color = ((Vector3)directional.Color) * directional.Intensity,
+                                Direction = Vector3.Normalize(directional.Direction)
+
+                            });
+                        }
+                    }
+
+                    return (LightListUniforms?)new LightListUniforms
+                    {
+                        Count = (uint)lights.Count,
+                        Lights = lights.ToArray()
+                    };
+                }, 1, true);
 
 
                 if (imgLight != null)
@@ -265,7 +305,10 @@ namespace XrEngine
 
                     });
                 }
+
             }
+
+           
         }
 
         #endregion
@@ -311,6 +354,9 @@ namespace XrEngine
 
             if (ToneMap)
                 bld.AddFeature("TONEMAP");
+
+            if (UseEnvDepth)
+                bld.AddFeature("USE_ENV_DEPTH");
 
             if (ReceiveShadows)
                 bld.AddFeature("RECEIVE_SHADOWS");
@@ -425,5 +471,7 @@ namespace XrEngine
         public float AlphaCutoff { get; set; }
 
         public float NormalScale { get; set; }
+
+        public bool UseEnvDepth { get; set; }   
     }
 }

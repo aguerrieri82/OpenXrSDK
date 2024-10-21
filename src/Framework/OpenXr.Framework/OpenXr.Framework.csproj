@@ -17,23 +17,14 @@
 		<PackageReference Include="Silk.NET.OpenXR.Extensions.EXT" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.OpenXR.Extensions.KHR" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.Windowing" Version="2.21.0" />
-		<PackageReference Include="System.Text.Json" Version="9.0.0-rc.2.24473.5" />
 	</ItemGroup>
-	
-	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
-		<Optmize>False</Optmize>
-	</PropertyGroup>
 	
 	<ItemGroup>
 		<ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
 		<ProjectReference Include="..\OpenXr.Entities\OpenXr.Entities.csproj" />
 	</ItemGroup>
-
-	<ItemGroup>
-		<NativeLibrary Include="runtimes/**/*" />
-	</ItemGroup>
 	
-	<ItemGroup>
+	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<Content Include="runtimes/**/*" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 

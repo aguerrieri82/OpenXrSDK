@@ -84,11 +84,14 @@ namespace XrEngine.OpenXr
             for (var i = 0; i < 2; i++)
                 headViews[i].Type = StructureType.View;
 
-            void RenderView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader*[] colorImages, SwapchainImageBaseHeader*[]? depthImages, XrRenderMode mode, long predTime)
+            void RenderView(ref RenderViewInfo info)
             {
                 nint colorImagePtr;
                 nint depthImagePtr;
                 FlTextureInternalFormat format;
+
+                var depthImages = info.DepthImages;
+                var colorImages = info.ColorImages;
 
                 void GetImage(int imgIndex)
                 {
@@ -118,13 +121,13 @@ namespace XrEngine.OpenXr
 
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 
-                if (mode == XrRenderMode.SingleEye)
+                if (info.Mode == XrRenderMode.SingleEye)
                 {
-                    for (var i = 0; i < colorImages.Length; i++)
+                    for (var i = 0; i < info.ColorImages.Length; i++)
                     {
                         GetImage(i);
 
-                        var rect = views[i].SubImage.ImageRect.Convert().To<Rect2I>();
+                        var rect = info.ProjViews[i].SubImage.ImageRect.Convert().To<Rect2I>();
 
                         renderer.SetRenderTarget(
                             rect.Width,
@@ -133,12 +136,12 @@ namespace XrEngine.OpenXr
                             depthImagePtr,
                             format);
 
-                        var transform = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
+                        var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
 
                         camera.Projection = transform.Projection;
                         camera.WorldMatrix = transform.Transform;
 
-                        var depth = (CompositionLayerDepthInfoKHR*)views[0].Next;
+                        var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[0].Next;
                         if (depth != null)
                         {
                             depth->NearZ = camera.Near;
@@ -155,9 +158,9 @@ namespace XrEngine.OpenXr
                 {
                     GetImage(0);
 
-                    var rect = views[0].SubImage.ImageRect.Convert().To<Rect2I>();
+                    var rect = info.ProjViews[0].SubImage.ImageRect.Convert().To<Rect2I>();
 
-                    if (mode == XrRenderMode.Stereo)
+                    if (info.Mode == XrRenderMode.Stereo)
                         rect.Width *= 2;
 
                     renderer.SetRenderTarget(
@@ -174,20 +177,20 @@ namespace XrEngine.OpenXr
 
                     Debug.Assert(headLoc != null);  
 
-                    xrApp!.LocateViews(xrApp.Head, predTime, headViews);
+                    xrApp!.LocateViews(xrApp.Head, info.DisplayTime, headViews);
 
                     camera.WorldMatrix = (Matrix4x4.CreateFromQuaternion(headLoc.Pose.Orientation) *
                                           Matrix4x4.CreateTranslation(headLoc.Pose.Position));
 
 
-                    for (var i = 0; i < views.Length; i++)
+                    for (var i = 0; i < info.ProjViews.Length; i++)
                     {
                         var transform = XrCameraTransform.FromView(headViews[i], camera.Near, camera.Far);
 
                         camera.Eyes[i].World = transform.Transform;
                         camera.Eyes[i].Projection = transform.Projection;
 
-                        var depth = (CompositionLayerDepthInfoKHR*)views[0].Next;
+                        var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[0].Next;
                         if (depth != null)
                         {
                             depth->NearZ = camera.Near;
@@ -234,42 +237,42 @@ namespace XrEngine.OpenXr
                 renderer = (OpenGLRender)app.Renderer;
 
 
-            void RenderView(ref Span<CompositionLayerProjectionView> views, SwapchainImageBaseHeader*[] colorImages, SwapchainImageBaseHeader*[]? depthImages, XrRenderMode mode, long predTime)
+            void RenderView(ref RenderViewInfo info)
             {
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 
                 if (camera.Eyes == null)
                     camera.Eyes = new CameraEye[2];
 
-                for (var i = 0; i < views.Length; i++)
+                for (var i = 0; i < info.ProjViews.Length; i++)
                 {
-                    var transform = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
+                    var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
                     camera.Eyes[i].World = transform.Transform;
                     camera.Eyes[i].Projection = transform.Projection;
                     Matrix4x4.Invert(transform.Transform, out camera.Eyes[i].View);
                     camera.Eyes[i].ViewProj = camera.Eyes[i].View * camera.Eyes[i].Projection;  
                 }
 
-                if (mode == XrRenderMode.SingleEye)
+                if (info.Mode == XrRenderMode.SingleEye)
                 {
-                    for (var i = 0; i < colorImages.Length; i++)
+                    for (var i = 0; i < info.ColorImages.Length; i++)
                     {
-                        var rect = views[i].SubImage.ImageRect.Convert().To<Rect2I>();
+                        var rect = info.ProjViews[i].SubImage.ImageRect.Convert().To<Rect2I>();
 
-                        var glColorImage = ((SwapchainImageOpenGLKHR*)colorImages[i])->Image;
-                        var glDepthImage = depthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)depthImages[i])->Image;
+                        var glColorImage = ((SwapchainImageOpenGLKHR*)info.ColorImages[i])->Image;
+                        var glDepthImage = info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[i])->Image;
 
                         var renderTarget = targetFactory(renderer.GL, glColorImage, glDepthImage);
 
                         renderer.SetRenderTarget(renderTarget);
 
-                        var transform = XrCameraTransform.FromView(views[i], camera.Near, camera.Far);
+                        var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
 
                         camera.Projection = camera.Eyes[i].Projection;
                         camera.WorldMatrix = camera.Eyes[i].World;
                         camera.ActiveEye = i;
 
-                        var depth = (CompositionLayerDepthInfoKHR*)views[0].Next;
+                        var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[0].Next;
                         if (depth != null)
                         {
                             depth->NearZ = camera.Near;
@@ -283,12 +286,12 @@ namespace XrEngine.OpenXr
 
                     }
                 }
-                else if (mode == XrRenderMode.MultiView)
+                else if (info.Mode == XrRenderMode.MultiView)
                 {
-                    var rect = views[0].SubImage.ImageRect.Convert().To<Rect2I>();
+                    var rect = info.ProjViews[0].SubImage.ImageRect.Convert().To<Rect2I>();
 
-                    var glColorImage = ((SwapchainImageOpenGLKHR*)colorImages[0])->Image;
-                    var glDepthImage = depthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)depthImages[0])->Image;
+                    var glColorImage = ((SwapchainImageOpenGLKHR*)info.ColorImages[0])->Image;
+                    var glDepthImage = info.DepthImages == null ? 0 : ((SwapchainImageOpenGLKHR*)info.DepthImages[0])->Image;
 
                     var renderTarget = targetFactory(renderer.GL, glColorImage, glDepthImage);
 
@@ -297,7 +300,8 @@ namespace XrEngine.OpenXr
                     camera.Projection = camera.Eyes[0].Projection;
                     camera.WorldMatrix = camera.Eyes[0].World;
 
-                    var depth = (CompositionLayerDepthInfoKHR*)views[0].Next;
+                    var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[0].Next;
+
                     if (depth != null)
                     {
                         depth->NearZ = camera.Near;

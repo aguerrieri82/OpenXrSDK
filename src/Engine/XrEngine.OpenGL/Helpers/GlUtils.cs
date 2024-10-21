@@ -18,5 +18,22 @@ namespace XrEngine.OpenGL
                    format == InternalFormat.Depth32fStencil8 ||
                    format == InternalFormat.Depth32fStencil8NV;
         }
+
+        public static bool IsDepth(InternalFormat format)
+        {
+            return format == InternalFormat.DepthComponent ||
+                   format == InternalFormat.DepthComponent16 ||
+                   format == InternalFormat.DepthComponent16Arb ||
+                   format == InternalFormat.DepthComponent16Oes ||
+                   format == InternalFormat.DepthComponent16Sgix ||
+                   format == InternalFormat.DepthComponent24 ||
+                   format == InternalFormat.DepthComponent24Arb ||
+                   format == InternalFormat.DepthComponent24Oes ||
+                   format == InternalFormat.DepthComponent24Sgix ||
+                   format == InternalFormat.DepthComponent32 ||
+                   format == InternalFormat.DepthComponent32fNV ||
+                   format == InternalFormat.DepthComponent32Oes ||
+                   format == InternalFormat.DepthComponent32Sgix;
+        }
     }
 }

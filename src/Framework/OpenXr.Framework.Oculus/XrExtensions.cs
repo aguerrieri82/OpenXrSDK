@@ -54,9 +54,6 @@ namespace OpenXr.Framework
 
                 try
                 {
-
-
-
                     if ((filter.Components & XrAnchorComponent.Bounds) != 0 &&
                         xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.Bounded2DFB))
                     {

@@ -115,6 +115,15 @@ namespace XrEngine.OpenGL
             _gl.GetTexParameter(Target, GetTextureParameter.TextureMaxLevelSgis, out int ml);
             MaxLevel = (uint)ml;
 
+            #warning IMPROVE
+            if (GlUtils.IsDepth(InternalFormat) && (MinFilter != TextureMinFilter.Nearest || MagFilter != TextureMagFilter.Nearest))
+            {
+                MinFilter = TextureMinFilter.Nearest;
+                MagFilter = TextureMagFilter.Nearest;
+                _gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)MinFilter);
+                _gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
+            }
+
             Unbind();
         }
 

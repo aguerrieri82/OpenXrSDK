@@ -648,7 +648,7 @@ namespace OpenXr.Framework
                     break;
             }
 
-
+            SessionChanged?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion
@@ -823,7 +823,7 @@ namespace OpenXr.Framework
 
             BeginFrame();
 
-            ListInvoke<IXrLayer>(_layers.List, a => a.OnBeginFrame());
+            ListInvoke<IXrLayer>(_layers.List, a => a.OnBeginFrame(space, frameTime));
 
             CompositionLayerBaseHeader*[]? layers = null;
 
@@ -847,6 +847,8 @@ namespace OpenXr.Framework
             {
                 ListInvoke<IXrLayer>(_layers.List, a => a.OnEndFrame());
                 EndFrame(frameTime, ref layers, layerCount);
+
+                FramePredictedDisplayTime = 0;
             }
 
             return true;
@@ -1321,7 +1323,8 @@ namespace OpenXr.Framework
 
         protected void LayersInvoke(Action<IXrLayer> action)
         {
-            ListInvoke(_layers.List, action);
+            //Prioriry projection layer
+            ListInvoke(_layers.List.OrderBy(a => a is XrProjectionLayer ? 0 : 1), action);
         }
 
         protected void PluginInvoke(Action<IXrPlugin> action, bool mustSucceed = false)
@@ -1450,6 +1453,8 @@ namespace OpenXr.Framework
         public IReadOnlyDictionary<HandEXT, XrHandInput> Hands => _hands;
 
         public XR Xr => _xr ?? throw new InvalidOperationException("App not initialized");
+
+        public event EventHandler? SessionChanged;
 
         public static XrApp? Current { get; internal set; }
 

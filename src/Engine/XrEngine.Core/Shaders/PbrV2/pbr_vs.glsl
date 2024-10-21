@@ -1,4 +1,4 @@
-#include "PbrV2/uniforms.glsl"
+#include "uniforms.glsl"
 
 
 // Physically Based Rendering
