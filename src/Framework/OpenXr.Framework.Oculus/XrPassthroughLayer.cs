@@ -22,6 +22,7 @@ namespace OpenXr.Framework.Oculus
         private readonly List<XrPassthroughMesh> _meshes = [];
         private XrEnvironmentDepth _envDepth;
         private EnvironmentDepthImageMETA? _depthImage;
+        private bool _removeHand;
 
         public XrPassthroughLayer()
         {
@@ -143,6 +144,7 @@ namespace OpenXr.Framework.Oculus
             {
                 _envDepth.Create(_xrApp!);
                 _envDepth.Start();
+                _envDepth.RemoveHand(_removeHand);
             }
 
             _isStarted = true;
@@ -226,6 +228,20 @@ namespace OpenXr.Framework.Oculus
 
         public bool UseEnvironmentDepth { get; set; }
 
+        public bool RemoveHand
+        {
+            get => _removeHand;
+            set
+            {
+                if (value == _removeHand)
+                    return;
+                _removeHand = value;
+                if (_envDepth.IsStarted)
+                    _envDepth.RemoveHand(value);
+            }
+        }
+
+
         public XrEnvironmentDepth EnvironmentDepth => _envDepth;
 
         public EnvironmentDepthImageMETA? DepthImage => _depthImage;
@@ -233,5 +249,6 @@ namespace OpenXr.Framework.Oculus
         public override XrLayerFlags Flags => XrLayerFlags.EmptySpace;
 
         public PassthroughLayerPurposeFB Purpose { get; set; }
+
     }
 }

@@ -4,6 +4,7 @@
 	layout(binding=8) uniform highp sampler2DArray envDepth;
 
 	uniform mat4 envViewProj[2];
+	uniform float envDepthBias;
 
 	bool passEnvDepth(vec3 fragPos, uint activeEye)
 	{
@@ -24,7 +25,7 @@
 		float curDepth = envPos.z / envPos.w;
 		curDepth = curDepth * 0.5f + 0.5f;
 
-		return curDepth <= depthViewEyeZ;
+		return curDepth <= depthViewEyeZ + envDepthBias;
 	}
 
 #endif

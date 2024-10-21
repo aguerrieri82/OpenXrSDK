@@ -12,10 +12,11 @@ using XrMath;
 using SkiaSharp;
 using System.Runtime.InteropServices;
 using XrEngine.Layers;
+using System.Numerics;
 
 namespace XrEngine.OpenGL
 {
-    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, IShadowMapProvider
+    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, IShadowMapProvider, ITextureFilterProvider
     {
         protected Scene3D? _lastScene;
         protected IGlRenderTarget? _target;
@@ -24,6 +25,7 @@ namespace XrEngine.OpenGL
         protected GlLayer? _mainLayer;
         protected GRContext? _grContext;
         protected GlTextureRenderTarget? _texRenderTarget = null;
+        protected Dictionary<string, GlComputeProgram> _computePrograms = [];
 
         protected long _lastLayersVersion;
 
@@ -563,12 +565,9 @@ namespace XrEngine.OpenGL
             return allExt.Split(' ');
         }
 
-
-
         public void Dispose()
         {
         }
-
 
         public void Suspend()
         {
@@ -576,6 +575,35 @@ namespace XrEngine.OpenGL
 
         public void Resume()
         {
+        }
+
+        public void Kernel3x3(Texture2D src, Texture2D dst, float[] data)
+        {
+            if (!_computePrograms.TryGetValue("Kernel3x3", out var program))
+            {
+                program = new GlComputeProgram(_gl, "Image/Kernel3x3.glsl", str => Embedded.GetString<Material>(str));
+                program.Build();
+                _computePrograms["Kernel3x3"] = program;
+            }
+
+            var curProgram = _glState.ActiveProgram;
+
+            program.Use();
+
+            program.SetUniform("texelSize", new Vector2(1f / dst.Width, 1f / dst.Height));
+            program.SetUniform("weights", data);
+
+            var dstGl = dst.ToGlTexture();
+
+            program.SetUniform("sourceTexture", src, 10);
+
+            _gl.BindImageTexture(0, dst.ToGlTexture(), 0, true, 0, BufferAccessARB.WriteOnly, dstGl.InternalFormat);
+
+            _gl.DispatchCompute((dst.Width + 15) / 16, (dst.Height + 15) / 16, src.Depth);
+
+            _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
+
+            _glState.SetActiveProgram(curProgram ?? 0);
         }
 
         #endregion

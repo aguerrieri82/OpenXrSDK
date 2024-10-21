@@ -33,6 +33,7 @@ namespace XrEngine
         SRgba32,
 
         Gray8,
+        Gray16
     }
 
     public enum TextureCompressionFormat

@@ -28,12 +28,9 @@ namespace XrEngine
             public Matrix4x4 LightSpaceMatrix;
 
             [FieldOffset(144)]
-            public float EnvDepthBias;
-
-            [FieldOffset(148)]
             public int ActiveEye;
 
-            [FieldOffset(152)]
+            [FieldOffset(148)]
             public Size2I ViewSize;
         }
 
@@ -196,6 +193,8 @@ namespace XrEngine
                         var texture = envDepth.Acquire(_depthCamera);
                         if (texture != null)
                             up.SetUniform("envDepth", texture, 8);
+
+                        up.SetUniform("envDepthBias", envDepth.Bias);
 
                         if (_depthCamera.Eyes != null)
                         {

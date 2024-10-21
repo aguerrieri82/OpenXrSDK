@@ -279,7 +279,7 @@ void main()
 
 	
 	#ifdef PLANAR_REFLECTION
-		color3 = planarReflection(color3, vin.position, Lr);
+		color3 = planarReflection(color3, vin.position, Lr, roughness, cosLo);
 	#endif
 
 
