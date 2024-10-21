@@ -1,4 +1,5 @@
 ﻿using Android.Opengl;
+using Android.Util;
 
 namespace OpenXr.Framework.Android
 {
@@ -11,12 +12,12 @@ namespace OpenXr.Framework.Android
             int[] maj = new int[1];
             int[] min = new int[1];
 
+
             var display = EGL14.EglGetDisplay(EGL14.EglDefaultDisplay);
 
             EGL14.EglInitialize(display, maj, 0, min, 0);
 
             EGLConfig[] configs = new EGLConfig[1024];
-
 
             if (!EGL14.EglGetConfigs(display, configs, 0, 1024, numConfigs, 0))
             {
@@ -25,20 +26,13 @@ namespace OpenXr.Framework.Android
 
             int[] configAttribs =
             {
-                EGL14.EglRedSize,
-                8,
-                EGL14.EglGreenSize,
-                8,
-                EGL14.EglBlueSize,
-                8,
-                EGL14.EglAlphaSize,
-                8,
-                EGL14.EglDepthSize,
-                16,
-                EGL14.EglStencilSize,
-                0,
-                EGL14.EglSamples,
-                0,
+                EGL14.EglRedSize, 8,
+                EGL14.EglGreenSize, 8,
+                EGL14.EglBlueSize, 8,
+                EGL14.EglAlphaSize, 8,
+                EGL14.EglDepthSize, 0, //was 16
+                EGL14.EglStencilSize, 0,
+                EGL14.EglSamples, 0,
                 EGL14.EglNone
             };
 
@@ -48,9 +42,8 @@ namespace OpenXr.Framework.Android
 
             for (int i = 0; i < numConfigs[0]; i++)
             {
-
                 EGL14.EglGetConfigAttrib(display, configs[i], EGL14.EglRenderableType, value, 0);
-                if ((value[0] & EGL15.EglOpenglEs3Bit) == 0)
+                if ((value[0] & EGL15.EglOpenglEs3Bit) != EGL15.EglOpenglEs3Bit)
                     continue;
 
                 EGL14.EglGetConfigAttrib(display, configs[i], EGL14.EglSurfaceType, value, 0);
@@ -62,13 +55,8 @@ namespace OpenXr.Framework.Android
                 {
                     EGL14.EglGetConfigAttrib(display, configs[i], configAttribs[j], value, 0);
                     if (value[0] != configAttribs[j + 1])
-                    {
-                        if (configAttribs[j] == EGL14.EglDepthSize)
-                        {
-                            System.Diagnostics.Debug.WriteLine(value[0]);
-                        }
                         break;
-                    }
+              
                 }
                 if (configAttribs[j] == EGL14.EglNone)
                 {
@@ -81,12 +69,13 @@ namespace OpenXr.Framework.Android
             if (!isConfigValid)
                 throw new Exception("config not found");
 
+
             var context = EGL14.EglCreateContext(
                 display,
                 config,
                 EGL14.EglNoContext,
                 [
-                    EGL15.EglContextMajorVersion, 3,
+                    EGL14.EglContextClientVersion, 3,
                    // EGL15.EglContextMinorVersion, 2,
                     EGL15.EglContextOpenglDebug, (debugMode ? EGL14.EglTrue : EGL14.EglFalse),
                    // EGL15.EglContextOpenglProfileMask, EGL15.EglContextOpenglCoreProfileBit,
@@ -100,7 +89,11 @@ namespace OpenXr.Framework.Android
             var surface = EGL14.EglCreatePbufferSurface(
                 display,
                 config,
-                [EGL14.EglWidth, 16, EGL14.EglHeight, 16, EGL14.EglNone],
+                [
+                    EGL14.EglWidth, 16, 
+                    EGL14.EglHeight, 16, 
+                    EGL14.EglNone
+                ],
                 0
             );
 
@@ -117,6 +110,9 @@ namespace OpenXr.Framework.Android
                 throw new Exception("EglMakeCurrent");
             }
 
+            var exts = GLES32.GlGetString(GLES32.GlExtensions); 
+
+            Log.Info("EGL Extensions", exts ?? "");
 
             //EGL14.EglSwapInterval(display, 0);
 

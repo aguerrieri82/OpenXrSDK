@@ -1,6 +1,8 @@
-#include "PbrV2/uniforms.glsl"
-#include "shadow.glsl"
-#include "tonemap.glsl"
+#include "uniforms.glsl"
+#include "../Shared/shadow.glsl"
+#include "../Shared/env_depth.glsl"
+#include "../Shared/tonemap.glsl"
+#include "../Shared/planar_reflection.glsl"
 
 // Physically Based Rendering
 // Copyright (c) 2017-2018 Michał Siejak
@@ -38,18 +40,6 @@ layout(binding=3) uniform sampler2D occlusionTexture;
 layout(binding=4) uniform samplerCube specularTexture;
 layout(binding=5) uniform samplerCube irradianceTexture;
 layout(binding=6) uniform sampler2D specularBRDF_LUT;
-
-#ifdef PLANAR_REFLECTION
-
-	#ifdef PLANAR_REFLECTION_MV
-		layout(binding=7) uniform mediump sampler2DArray reflectionTexture;
-		uniform mat4 uReflectMatrix[2];
-	#else
-		layout(binding=7) uniform sampler2D reflectionTexture;
-		uniform mat4 uReflectMatrix;
-	#endif
-#endif
-
 
 
 uniform float uSpecularTextureLevels;
@@ -99,6 +89,17 @@ vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
 
 void main()
 {
+
+	#if defined(HAS_ENV_DEPTH) && defined(USE_ENV_DEPTH)
+	    
+		if (!passEnvDepth(vin.position, uint(uCamera.activeEye)))
+		{
+			color = vec4(0.0);	
+			return;
+		}
+
+	#endif
+
 	vec3 shadowLightDir;
 
 	// Sample input textures to get shading model params.
@@ -278,36 +279,7 @@ void main()
 
 	
 	#ifdef PLANAR_REFLECTION
-
-		#ifdef PLANAR_REFLECTION_MV
-			mat4 refMatrix = uReflectMatrix[gl_ViewID_OVR];
-		#else
-			mat4 refMatrix = uReflectMatrix;
-		#endif
-
-		 vec3 reflectPosWorld = vin.position + Lr * 100.0; // Extend the reflection ray
-		 
-		 vec4 reflectPosClip = refMatrix * vec4(reflectPosWorld, 1.0);
-		 
-		 vec3 projCoords = reflectPosClip.xyz / reflectPosClip.w;
-		
-		 projCoords = projCoords * 0.5 + 0.5;
-
-		#ifdef PLANAR_REFLECTION_MV
-			vec4 reflectionColor = texture(reflectionTexture, vec3(projCoords.xy, gl_ViewID_OVR));
-		#else
-			vec4 reflectionColor = texture(reflectionTexture, projCoords.xy);
-		#endif
-
-		
-		 float fresnelFactor = pow(1.0 - cosLo, 3.0) * 0.9 + 0.1;
-
-		 float refFactor = clamp(fresnelFactor * (1.0 - roughness), 0.0, 1.0);
-
-		 refFactor = min(reflectionColor.a, refFactor);
-
-		 color3 = mix(color3, reflectionColor.rgb, refFactor);
-
+		color3 = planarReflection(color3, vin.position, Lr);
 	#endif
 
 

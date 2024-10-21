@@ -5,14 +5,28 @@ using System.Runtime.InteropServices;
 
 namespace OpenXr.Framework
 {
+    public unsafe ref struct RenderViewInfo
+    {
+        public Span<CompositionLayerProjectionView> ProjViews;
 
-    public unsafe delegate void RenderViewDelegate(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader*[] colorImages, SwapchainImageBaseHeader*[]? depthImages, XrRenderMode mode, long predTime);
+        public SwapchainImageBaseHeader*[] ColorImages;
+
+        public SwapchainImageBaseHeader*[]? DepthImages;
+
+        public XrRenderMode Mode;
+
+        public long DisplayTime;
+
+    }
+
+    public unsafe delegate void RenderViewDelegate(ref RenderViewInfo info);
 
     public unsafe class XrProjectionLayer : XrBaseLayer<CompositionLayerProjection>
     {
         protected readonly RenderViewDelegate? _renderView;
         protected XrSwapchainInfo[]? _swapchains;
         protected bool _useDepthSWC = false;
+        private bool _useEnvDepth;
 
         XrProjectionLayer()
         {
@@ -65,6 +79,7 @@ namespace OpenXr.Framework
             _header->Space.Handle = 0;
 
         }
+
 
         public override void Create()
         {
@@ -197,7 +212,16 @@ namespace OpenXr.Framework
 
             try
             {
-                _renderView!(ref projViews, colorImages, depthImages, _xrApp!.RenderOptions.RenderMode, predTime);
+                var info = new RenderViewInfo
+                {
+                    ProjViews = projViews,
+                    ColorImages = colorImages,
+                    DepthImages = depthImages,
+                    Mode = _xrApp!.RenderOptions.RenderMode,
+                    DisplayTime = predTime
+                };
+
+                _renderView!(ref info);
             }
             catch (Exception ex)
             {
@@ -226,5 +250,10 @@ namespace OpenXr.Framework
             set => _useDepthSWC = value;
         }
 
+        public bool UseEnvironmentDepth
+        {
+            get => _useEnvDepth;
+            set => _useEnvDepth = value;
+        }
     }
 }

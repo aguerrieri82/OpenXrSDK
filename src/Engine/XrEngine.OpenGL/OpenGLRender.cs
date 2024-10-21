@@ -260,6 +260,7 @@ namespace XrEngine.OpenGL
             _updateCtx.Lights = _mainLayer!.Content.Lights;
             _updateCtx.LightsHash = _mainLayer.Content.LightsHash;
             _updateCtx.FrustumPlanes = camera.FrustumPlanes();
+            _updateCtx.ViewSize = new Size2I(view.Width, view.Height);
 
             foreach (var pass in _renderPasses)
             {
@@ -465,14 +466,14 @@ namespace XrEngine.OpenGL
 
             result.Env = (TextureCube)_gl.TexIdToEngineTexture(processor.OutCubeMapId);
 
-            if ((options.Mode & IBLProcessMode.Lambertian) == IBLProcessMode.Lambertian)
+            if ((options.Mode & IblProcessMode.Lambertian) == IblProcessMode.Lambertian)
             {
                 var texId = processor.ApplyFilter(GlIBLProcessorV2.Distribution.Irradiance);
 
                 result.LambertianEnv = (TextureCube)_gl.TexIdToEngineTexture(texId);
             }
 
-            if ((options.Mode & IBLProcessMode.GGX) == IBLProcessMode.GGX)
+            if ((options.Mode & IblProcessMode.GGX) == IblProcessMode.GGX)
             {
                 var ggx = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGX);
                 var ggxLut = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGXLut);

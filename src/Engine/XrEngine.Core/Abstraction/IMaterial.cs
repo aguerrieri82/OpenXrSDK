@@ -3,6 +3,8 @@ namespace XrEngine
 {
     public interface IMaterial
     {
+        void NotifyChanged(ObjectChange change);
+
         AlphaMode Alpha { get; set; }
 
         bool CastShadows { get; set; }

@@ -5,7 +5,7 @@
     {
         public EngineObject Load();
 
-        public void Update(EngineObject destObj);
+        public void Update(EngineObject dstObj);
 
         public void Delete();
 

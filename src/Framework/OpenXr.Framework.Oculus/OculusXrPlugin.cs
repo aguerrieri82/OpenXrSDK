@@ -3,7 +3,6 @@ using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
-using System;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -65,6 +64,12 @@ namespace OpenXr.Framework.Oculus
 
         #endregion
 
+        #region DEPTH
+
+
+
+        #endregion
+
         protected class ActiveQuery
         {
             public string? Hash { get; set; }
@@ -86,6 +91,8 @@ namespace OpenXr.Framework.Oculus
         protected FBSwapchainUpdateState? _swapChainUpdate;
         protected FBHandTrackingMesh? _handMesh;
         protected FBSpatialEntityStorage? _spatialStorage;
+
+
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
 
@@ -117,7 +124,7 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBFoveation.ExtensionName);
             extensions.Add(FBSwapchainUpdateState.ExtensionName);
             extensions.Add(FBHandTrackingMesh.ExtensionName);
-
+            extensions.Add(METAEnvironmentDepth.ExtensionName);
 
             extensions.Add("XR_FB_hand_tracking_capsules");
             extensions.Add("XR_FB_hand_tracking_aim");
@@ -223,7 +230,6 @@ namespace OpenXr.Framework.Oculus
 
         public Task EraseSpaceAsync(Space space, bool isLocal)
         {
-
             throw new NotImplementedException();
         }
 
@@ -323,7 +329,6 @@ namespace OpenXr.Framework.Oculus
 
                 return (TaskCompletionSource<T>?)query.Completion;
             }
-
         }
 
         public unsafe SpaceComponentTypeFB[] EnumerateSpaceSupportedComponentsFB(Space space)

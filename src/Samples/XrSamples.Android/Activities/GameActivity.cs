@@ -15,10 +15,8 @@ using XrEngine.OpenXr.Android;
 namespace XrSamples.Android.Activities
 {
 
-    [IntentFilter([
-        "com.oculus.intent.category.VR",
-        "android.intent.action.MAIN",
-        "android.intent.category.LAUNCHER"])]
+    [IntentFilter(["android.intent.action.VIEW"], 
+        Categories = ["com.oculus.intent.category.VR", "android.intent.category.DEFAULT"])]
     [Activity(
     Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen",
     LaunchMode = LaunchMode.SingleTask,
@@ -27,7 +25,6 @@ namespace XrSamples.Android.Activities
     HardwareAccelerated = true,
     ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.Orientation,
     ScreenOrientation = ScreenOrientation.Landscape)]
-    [MetaData("com.samsung.android.vr.application.mode", Value = "vr_only")]
     public class GameActivity : XrEngineActivity
     {
         private WebView? _webView;

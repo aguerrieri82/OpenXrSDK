@@ -21,7 +21,7 @@
 		<Content Include="Models/*"  CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidAsset Include="Models/*" Link="Models/%(Filename)%(Extension)" />
 	</ItemGroup>
 	

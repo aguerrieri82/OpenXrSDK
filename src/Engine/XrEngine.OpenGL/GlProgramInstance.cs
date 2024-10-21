@@ -47,9 +47,9 @@ namespace XrEngine.OpenGL
                 var resolver = shader.Resolver!;
 
                 program = new GlSimpleProgram(_gl,
-                    resolver(shader.VertexSourceName!),
-                    resolver(shader.FragmentSourceName!),
-                    shader.GeometrySourceName != null ? resolver(shader.GeometrySourceName!) : null,
+                    shader.VertexSourceName!,
+                    shader.FragmentSourceName!,
+                    shader.GeometrySourceName != null ? shader.GeometrySourceName : null,
                     resolver);
 
                 if (shader.GeometrySourceName != null)

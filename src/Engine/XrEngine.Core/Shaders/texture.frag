@@ -34,6 +34,4 @@ void main()
     #else
         FragColor = texture(uTexture, uv) * uColor;
     #endif
-
-
 }

@@ -47,6 +47,13 @@ namespace XrEngine
             return self.Components<T>().Single();
         }
 
+
+        public static bool TryComponent<T>(this EngineObject self, [NotNullWhen(true)] out T? result) where T : IComponent
+        {
+            result = self.Components<T>().FirstOrDefault();
+            return result != null;
+        }
+
         public static T GetOrCreateProp<T>(this EngineObject self, string name, Func<T> create)
         {
             var result = self.GetProp<T?>(name);
@@ -61,6 +68,28 @@ namespace XrEngine
         #endregion
 
         #region OBJECT3D
+
+        public static void UseEnvDepth(this Object3D self, bool value)
+        {
+            foreach (var mat in self.MaterialsDeep<IEnvDepthMaterial>())
+            {
+                if (mat.UseEnvDepth != value)
+                {
+                    mat.UseEnvDepth = value;
+                    mat.NotifyChanged(ObjectChangeType.Render);
+                }
+            }
+        }
+
+        public static IEnumerable<T> MaterialsDeep<T>(this Object3D self) where T : IMaterial
+        {
+            return self.DescendantsOrSelf()
+                .OfType<TriangleMesh>()
+                .SelectMany(a => a.Materials)
+                .OfType<T>();   
+        }
+
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToLocal(this Object3D self, Vector3 worldPoint)

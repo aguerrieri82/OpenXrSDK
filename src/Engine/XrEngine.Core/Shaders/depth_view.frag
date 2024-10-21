@@ -2,6 +2,8 @@
 
 out vec4 FragColor;
 
+#include "Shared/depth_sampler.glsl"    
+
 #ifdef LINEARIZE
 
 uniform float uNearPlane;
@@ -15,31 +17,9 @@ float linearizeDepth(float depth)
 
 #endif  
 
-
-#ifdef SAMPLES
-    uniform sampler2DMS uTexture;
-#else
-    uniform sampler2D uTexture;
-#endif
-
-
-
 void main()
 {   
-    float depthValue;
-
-    #ifdef SAMPLES
-        vec2 texSize = vec2(textureSize(uTexture));
-
-        depthValue = 0.0;
-
-        for (int i = 0; i < SAMPLES; i++)
-            depthValue += texelFetch(uTexture, ivec2(fUv * texSize), i).r;
-
-        depthValue /= float(SAMPLES);
-    #else
-        depthValue = texture(uTexture, fUv).r;
-    #endif
+    float depthValue = getDepth(fUv);
 
     #ifdef LINEARIZE
         FragColor = vec4(vec3(linearizeDepth(depthValue) / uFarPlane), 1.0);

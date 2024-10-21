@@ -20,12 +20,13 @@ namespace XrSamples
         public bool UsePbrV2 { get; set; }
 
 
-        public static GameSettings Bed()
+        public static GameSettings Helmet()
         {
             return new GameSettings
             {
-                SampleName = "Bed",
+                SampleName = "Helmet",
                 Msaa = 1,
+                UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
                 EnableDepthPass = false

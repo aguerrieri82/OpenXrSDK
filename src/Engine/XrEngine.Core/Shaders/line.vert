@@ -7,7 +7,7 @@ uniform mat4 uModel;
 
 out vec4 fColor;
 
-#include "position.glsl"
+#include "Shared/position.glsl"
 
 void main()
 {

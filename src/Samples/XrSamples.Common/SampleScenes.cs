@@ -993,12 +993,14 @@ namespace XrSamples
             mesh.Transform.SetScale(0.4f);
             mesh.Transform.SetPositionY(1);
             mesh.AddComponent<BoundsGrabbable>();
+            mesh.UseEnvDepth(true);
 
 
             scene.AddChild(mesh);
 
             return builder
                 .UseApp(app)
+                .UseEnvironmentDepth()
                 .UseDefaultHDR()
                 .ConfigureSampleApp();
         }

@@ -12,6 +12,9 @@ layout(std140, binding=0) uniform Camera
 	vec3 cameraPosition;	
 	float exposure;
 	mat4 lightSpaceMatrix;
+	float envDepthBias;
+	int activeEye;
+	ivec2 viewSize;	
 } uCamera;
 
 layout(std140, binding=1) uniform Lights
