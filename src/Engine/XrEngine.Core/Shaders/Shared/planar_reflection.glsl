@@ -11,7 +11,7 @@
 	#endif
 	
 
-	vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr)
+	vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float cosLo)
 	{
 
 		#ifdef PLANAR_REFLECTION_MV

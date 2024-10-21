@@ -13,6 +13,7 @@ namespace XrEngine.OpenXr
         private Texture2D? _lastTexture;
         private XrPassthroughLayer _passTh;
         private long _lastFrameTime;
+        private Texture2D? _outTexture;
 
         public OculusEnvDepthProvider(XrApp xrApp)
         {
@@ -20,6 +21,7 @@ namespace XrEngine.OpenXr
             _passTh.UseEnvironmentDepth = true;
             _xrApp = xrApp;
             _textures = [];
+            Blur = true;    
         }
 
 
@@ -76,9 +78,29 @@ namespace XrEngine.OpenXr
                         _textures[glImg.Image] = texture;
                     }
 
-                    _lastTexture = texture;
+                    if (Blur)
+                    {
+                        if (_host?.Scene?.App?.Renderer is ITextureFilterProvider filter)
+                        {
+                            _outTexture ??= new Texture2D()
+                            {
+                                Width = (uint)_passTh.EnvironmentDepth.Size.Width,
+                                Height = (uint)_passTh.EnvironmentDepth.Size.Height,
+                                Format = TextureFormat.Gray16,
+                                MinFilter = ScaleFilter.Linear,
+                                MagFilter = ScaleFilter.Linear,
+                                MipLevelCount = 1,
+                                Depth = 2,
+                                WrapS = WrapMode.ClampToEdge,
+                                WrapT = WrapMode.ClampToEdge,
+                            };
+                            filter.Blur(texture, _outTexture);
+                            _lastTexture = _outTexture;
+                        }
+                    }
+                    else
+                        _lastTexture = texture;
                 }
-
             }
 
             depthCamera.Projection = depthCamera.Eyes[depthCamera.ActiveEye].Projection;
@@ -89,6 +111,15 @@ namespace XrEngine.OpenXr
             return _lastTexture;
         }
 
+        [Range(-1, 1, 0.001f)]
         public float Bias { get; set; }
+
+        public bool Blur { get; set; }  
+
+        public bool RemoveHand
+        {
+            get => _passTh.RemoveHand;
+            set => _passTh.RemoveHand = value;
+        }
     }
 }

@@ -169,6 +169,24 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
+        public void RemoveHand(bool value)
+        {
+            EnsureInit();
+
+            var info = new EnvironmentDepthHandRemovalSetInfoMETA
+            {
+                Enabled = value ? 1u : 0,
+                Type = StructureType.EnvironmentDepthHandRemovalSetInfoMeta
+            };
+
+            _app.CheckResult(_envDepth.SetEnvironmentDepthHandRemovalMETA(_depthProvider, ref info), "SetEnvironmentDepthHandRemovalMETA");
+        }
+
+        internal void RemoveHand(object removeHand)
+        {
+            throw new NotImplementedException();
+        }
+
         public Size2 Size => _size; 
 
         public NativeArray<SwapchainImageBaseHeader>? Images => _images;

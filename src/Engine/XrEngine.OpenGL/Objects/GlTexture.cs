@@ -224,7 +224,8 @@ namespace XrEngine.OpenGL
                 TextureFormat.SBgra32 or
                 TextureFormat.Bgra32 => PixelFormat.Bgra,
 
-                TextureFormat.Gray8 => PixelFormat.Red,
+                TextureFormat.Gray8 or
+                TextureFormat.Gray16  => PixelFormat.Red,
 
                 TextureFormat.RgFloat32 or
                 TextureFormat.Rg88 => PixelFormat.RG,
@@ -252,6 +253,8 @@ namespace XrEngine.OpenGL
                 TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
 
                 TextureFormat.Depth32Stencil8 => PixelType.Float32UnsignedInt248Rev,
+
+                TextureFormat.Gray16 => PixelType.UnsignedShort,
 
                 TextureFormat.Rgba32 or
                 TextureFormat.Bgra32 or
@@ -285,6 +288,7 @@ namespace XrEngine.OpenGL
                     TextureFormat.Bgra32 => InternalFormat.Rgba8,
 
                     TextureFormat.Gray8 => InternalFormat.R8,
+                    TextureFormat.Gray16 => InternalFormat.R16,
 
                     TextureFormat.RgbFloat32 => InternalFormat.Rgb32f,
 

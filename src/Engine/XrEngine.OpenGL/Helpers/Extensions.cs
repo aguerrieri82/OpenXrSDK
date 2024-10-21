@@ -59,14 +59,14 @@ namespace XrEngine.OpenGL
             return obj.GetOrCreateProp(OpenGLRender.Props.GlResId, () => factory(obj));
         }
 
-        public static unsafe GlTexture ToGlTexture(this Texture obj, bool? reqComp = null)
+        public static unsafe GlTexture ToGlTexture(this Texture value, bool? reqComp = null)
         {
             var renderer = OpenGLRender.Current!;
             var reqCompDef = renderer.Options.RequireTextureCompression;
 
-            return obj.GetGlResource(a =>
+            return value.GetGlResource(a =>
             {
-                if (obj is Texture2D texture2D)
+                if (value is Texture2D texture2D)
                     return texture2D.CreateGlTexture(renderer.GL, reqComp != null ? reqComp.Value : reqCompDef);
 
                 throw new NotSupportedException();
@@ -75,10 +75,16 @@ namespace XrEngine.OpenGL
 
         static unsafe GlTexture CreateGlTexture(this Texture2D value, GL gl, bool requireCompression)
         {
+            GlTexture glTexture;
+
             if (value.Handle != 0)
-                return GlTexture.Attach(gl, (uint)value.Handle, value.SampleCount);
-            
-            var glTexture = new GlTexture(gl);
+            {
+                glTexture = GlTexture.Attach(gl, (uint)value.Handle, value.SampleCount);
+                glTexture.ToEngineTexture(value);
+                return glTexture;
+            }
+
+            glTexture = new GlTexture(gl);
             glTexture.Update(value, requireCompression);
             return glTexture;
         }
@@ -175,30 +181,42 @@ namespace XrEngine.OpenGL
             if (glTexture.Source is Texture texture)
                 return texture;
 
-            Texture2D res;
+            Texture2D result;
 
             if (glTexture.Target == TextureTarget.TextureCubeMap)
-                res = new TextureCube();
+                result = new TextureCube();
             else
-                res = new Texture2D();
+                result = new Texture2D();
 
-            res.Width = glTexture.Width;
-            res.Height = glTexture.Height;
-            res.Depth = glTexture.Depth;
-            res.WrapT = (WrapMode)glTexture.WrapT;
-            res.WrapS = (WrapMode)glTexture.WrapS;
-            res.MagFilter = (ScaleFilter)glTexture.MagFilter;
-            res.MinFilter = (ScaleFilter)glTexture.MinFilter;
-            res.BorderColor = glTexture.BorderColor;
-            res.SampleCount = glTexture.SampleCount;
-            res.MaxAnisotropy = glTexture.MaxAnisotropy;
-            res.Handle = glTexture.Handle;
+            glTexture.ToEngineTexture(result, readFormat);
 
-            res.Format = glTexture.InternalFormat switch
+            glTexture.Source = result;
+
+            return result;
+
+        }
+        public static unsafe Texture ToEngineTexture(this GlTexture glTexture, Texture2D result, TextureFormat? readFormat = null)
+        {
+            result.Width = glTexture.Width;
+            result.Height = glTexture.Height;
+            result.Depth = glTexture.Depth;
+            result.WrapT = (WrapMode)glTexture.WrapT;
+            result.WrapS = (WrapMode)glTexture.WrapS;
+            result.MagFilter = (ScaleFilter)glTexture.MagFilter;
+            result.MinFilter = (ScaleFilter)glTexture.MinFilter;
+            result.BorderColor = glTexture.BorderColor;
+            result.SampleCount = glTexture.SampleCount;
+            result.MaxAnisotropy = glTexture.MaxAnisotropy;
+            result.Handle = glTexture.Handle;
+
+            result.Format = glTexture.InternalFormat switch
             {
                 InternalFormat.Rgb32f => TextureFormat.RgbFloat32,
                 InternalFormat.Rgba16f => TextureFormat.RgbaFloat16,
                 InternalFormat.Rgba => TextureFormat.Rgba32,
+                InternalFormat.R16 => TextureFormat.Gray16,
+                InternalFormat.DepthComponent16 => TextureFormat.Gray16,
+                InternalFormat.R8 => TextureFormat.Gray8,
                 InternalFormat.Depth24Stencil8 => TextureFormat.Depth24Stencil8,
                 InternalFormat.DepthComponent24 => TextureFormat.Depth24Float,
                 InternalFormat.Depth32fStencil8 => TextureFormat.Depth32Stencil8,
@@ -207,14 +225,12 @@ namespace XrEngine.OpenGL
                 _ => throw new NotSupportedException(),
             };
 
-            res.SetProp(OpenGLRender.Props.GlResId, glTexture);
+            result.SetProp(OpenGLRender.Props.GlResId, glTexture);
 
             if (readFormat != null)
-                res.Data = glTexture.Read(readFormat.Value);
+                result.Data = glTexture.Read(readFormat.Value);
 
-            glTexture.Source = res;
-
-            return res;
+            return result;
         }
     }
 }

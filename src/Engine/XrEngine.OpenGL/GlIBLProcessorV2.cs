@@ -56,7 +56,7 @@ namespace XrEngine.OpenGL
 
             void AddFilter(string shader, Distribution distribution)
             {
-                var prog = new GlComputeProgram(_gl, shaderResolver(shader), shaderResolver);
+                var prog = new GlComputeProgram(_gl, shader, shaderResolver);
                 prog.AddFeature($"SAMPLE_COUNT {SampleCount * (distribution == Distribution.Irradiance ? 64 : 1)}u");
                 prog.Build();
                 _filterProg[distribution] = prog;
