@@ -88,10 +88,10 @@ namespace XrEngine
             _activeScene?.Reset();
         }
 
-        public void RenderFrame(Rect2I view, bool flush = true)
+        public bool BeginFrame()
         {
             if (_activeScene == null || _activeScene.ActiveCamera == null || Renderer == null)
-                return;
+                return false;
 
             _context.Frame++;
             _context.Scene = _activeScene;
@@ -107,19 +107,39 @@ namespace XrEngine
                 _activeScene.Update(_context);
             }
 
+            _dispatcher.ProcessQueue();
+
+            _activeScene.DrawGizmos();
+
             _stats.BeginFrame();
 
+            return true;
+        }
+
+        public void RenderScene(Rect2I view, bool flush = true)
+        {
+            if (_activeScene == null || _activeScene.ActiveCamera == null || Renderer == null)
+                return;
+
+            Renderer.Render(_activeScene, _activeScene.ActiveCamera, view, flush);
+        }
+
+        public void EndFrame()
+        {
+            _stats.EndFrame();
+        }
+
+        public void RenderFrame(Rect2I view, bool flush = true)
+        {
+            if (!BeginFrame())
+                return;
             try
             {
-                _activeScene.DrawGizmos();
-
-                Renderer.Render(_activeScene, _activeScene.ActiveCamera, view, flush);
-
-                _dispatcher.ProcessQueue();
+                RenderScene(view, flush);
             }
             finally
             {
-                _stats.EndFrame();
+                EndFrame();
             }
         }
 

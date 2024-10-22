@@ -7,6 +7,7 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0-rc.2.24473.5" />
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
 		<ProjectReference Include="..\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
 	</ItemGroup>
 

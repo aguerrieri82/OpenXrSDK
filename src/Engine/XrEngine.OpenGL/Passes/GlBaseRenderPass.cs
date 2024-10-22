@@ -35,7 +35,11 @@
                 return;
 
             foreach (var layer in SelectLayers())
+            {
+                layer.Prepare(camera);
                 RenderLayer(layer);
+            }
+              
 
             EndRender();
         }

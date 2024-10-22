@@ -310,7 +310,7 @@ void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 
 	shadowOptions.shadowFar = 10;
 	shadowOptions.shadowFarHint = 4;
-	shadowOptions.shadowNearHint = 0.10;
+	shadowOptions.shadowNearHint = 0.10f;
 
 
 	LightManager::Builder(info.type)

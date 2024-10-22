@@ -9,15 +9,17 @@
 
     public class VertexContent
     {
+        public readonly List<DrawContent> Contents = [];
+
         public GlVertexSourceHandle? VertexHandler;
 
         public VertexComponent ActiveComponents;
 
         public int RenderPriority;
 
-        public readonly List<DrawContent> Contents = [];
-
         public float AvgDistance;
+
+        public bool IsHidden;
     }
 
     public class DrawContent

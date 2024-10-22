@@ -46,6 +46,16 @@ namespace XrEngine.OpenXr
             return _renderTarget;
         }
 
+        protected override bool PrepareMaterial(Material material)
+        {
+            var mv = MotionVectorEffect.Instance;
+            mv.WriteDepth = material.WriteDepth;
+            mv.UseDepth = material.UseDepth;
+            mv.DoubleSided = material.DoubleSided;
+            mv.WriteColor = material.WriteColor;
+            return true;
+        }
+
         protected override bool BeginRender(Camera camera)
         {
             if (_glColorImage == null || _glDepthImage == null || _renderTarget == null)

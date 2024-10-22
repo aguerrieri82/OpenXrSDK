@@ -21,17 +21,15 @@ namespace OpenXr.Framework.Android
             AskPermissions,
             Done,
         }
-        private Thread? _loopThread;
-        private XrApp? _xrApp;
-        private bool _isExited;
-        protected readonly HandlerXrThread _mainThread = new HandlerXrThread(new Handler(Looper.MainLooper!));
+        protected Thread? _loopThread;
+        protected XrApp? _xrApp;
+        protected readonly HandlerXrThread _mainThread = new(new Handler(Looper.MainLooper!));
         protected string[] _permissions;
         private LoadStep _loadStep;
 
 
         public XrActivity()
         {
-            _isExited = false;
             _permissions = [
               "com.oculus.permission.USE_SCENE",
                 "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -103,7 +101,6 @@ namespace OpenXr.Framework.Android
             }
             finally
             {
-                _isExited = true;
                 _xrApp?.Logger.LogInformation("---Run App exit---");
             }
         }

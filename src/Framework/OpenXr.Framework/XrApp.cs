@@ -565,13 +565,12 @@ namespace OpenXr.Framework
         #region SESSION
 
 
-        [MemberNotNull(nameof(_views))]
         [MemberNotNull(nameof(_renderOptions))]
         [MemberNotNull(nameof(_xr))]
         [MemberNotNull(nameof(_viewInfo))]
         protected void AssertSessionCreated()
         {
-            if (_session.Handle == 0)
+            if (_session.Handle == 0 || _renderOptions == null || _xr == null || _viewInfo == null)
                 throw new InvalidOperationException();
         }
 
@@ -1108,7 +1107,7 @@ namespace OpenXr.Framework
                     SuggestedBindings = pBindings
                 };
 
-                CheckResult(_xr!.SuggestInteractionProfileBinding(_instance, info), "SuggestInteractionProfileBinding");
+                CheckResult(_xr!.SuggestInteractionProfileBinding(_instance, in info), "SuggestInteractionProfileBinding");
             }
         }
 

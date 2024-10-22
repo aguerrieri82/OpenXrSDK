@@ -10,6 +10,7 @@ namespace XrEngine.OpenGL
         public GlBaseSingleMaterialPass(OpenGLRender renderer)
             : base(renderer)
         {
+            SortByCameraDistance = _renderer.Options.SortByCameraDistance;
         }
 
         protected abstract ShaderMaterial CreateMaterial();
@@ -37,14 +38,11 @@ namespace XrEngine.OpenGL
         {
             var updateContext = _renderer.UpdateContext;
 
-            if (_renderer.Options.SortByCameraDistance)
-                layer.ComputeDistance(updateContext.Camera!);
-
             foreach (var shader in layer.Content.ShaderContents)
             {
                 IEnumerable<VertexContent> vertices = shader.Value.Contents.Values;
 
-                if (_renderer.Options.SortByCameraDistance)
+                if (SortByCameraDistance)
                     vertices = vertices.OrderBy(a => a.AvgDistance);
 
                 foreach (var vertex in vertices)
@@ -60,6 +58,9 @@ namespace XrEngine.OpenGL
 
                     foreach (var draw in vertex.Contents)
                     {
+                        if (draw.IsHidden)
+                            continue;
+
                         var material = draw.ProgramInstance!.Material;
 
                         if (!PrepareMaterial(material))
@@ -67,15 +68,6 @@ namespace XrEngine.OpenGL
 
                         if (!CanDraw(draw))
                             continue;
-
-                        if (draw.Object is TriangleMesh mesh && _renderer.Options.FrustumCulling)
-                        {
-                            draw.IsHidden = !mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes!);
-                            if (draw.IsHidden)
-                                continue;
-                        }
-                        else
-                            draw.IsHidden = false;
 
                         updateContext.Model = draw.Object;
 
@@ -112,5 +104,7 @@ namespace XrEngine.OpenGL
             _programInstance = null;
             base.Dispose();
         }
+
+        protected bool SortByCameraDistance { get; set; }   
     }
 }

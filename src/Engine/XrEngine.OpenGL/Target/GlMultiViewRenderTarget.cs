@@ -61,12 +61,12 @@ namespace XrEngine.OpenGL
             _matrices.FarPlane = camera.Far;
         }
 
-        public void End(bool finalPass)
+        public void End(bool discardDepth)
         {
-            if (finalPass)
+            if (discardDepth)
             {
-                //_frameBuffer.Bind();
-                //_gl.InvalidateFramebuffer(_frameBuffer.Target, DepthStencilAttachment);
+                _frameBuffer.Bind();
+                _gl.InvalidateFramebuffer(_frameBuffer.Target, DepthStencilAttachment);
             }
 
             _frameBuffer.Unbind();

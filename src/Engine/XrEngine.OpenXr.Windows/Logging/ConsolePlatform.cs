@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
+using OpenXr.Framework.OpenGL;
 using Silk.NET.OpenGL;
 using System.Net.NetworkInformation;
 using XrEngine.OpenGL;
