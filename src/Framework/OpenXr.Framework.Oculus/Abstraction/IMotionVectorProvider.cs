@@ -13,5 +13,7 @@ namespace OpenXr.Framework.Oculus
         public long MotionVectorFormat { get; }
 
         public long DepthFormat { get; }
+
+        public bool IsActive { get; set; }
     }
 }

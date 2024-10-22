@@ -8,7 +8,7 @@
 
             var span = new Span<byte>((byte*)buffer, sizeof(T));
 
-            stream.Read(span);
+            stream.ReadExactly(span);
 
             return *buffer;
         }

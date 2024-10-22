@@ -55,21 +55,21 @@ namespace XrEngine.OpenGL
 
                 progGlobal!.UpdateProgram(updateContext, _renderer.RenderTarget as IShaderHandler);
 
-                foreach (var vertex in shader.Value.Contents.OrderBy(a => a.Value.RenderPriority))
+                foreach (var vertex in shader.Value.Contents.Select(a=> a.Value).OrderBy(a => a.RenderPriority))
                 {
-                    if (useDepthPass && vertex.Value.Contents.All(a => a.IsHidden || (a.Query != null && a.Query.GetResult() == 0)))
+                    if (vertex.IsHidden)
                         continue;
 
-                    var vHandler = vertex.Value.VertexHandler!;
+                    if (useDepthPass && vertex.Contents.All(a => a.Query != null && a.Query.GetResult() == 0))
+                        continue;
 
-                    if (vHandler.NeedUpdate)
-                        vHandler.Update();
+                    var vHandler = vertex.VertexHandler!;
 
-                    updateContext.ActiveComponents = vertex.Value.ActiveComponents;
+                    updateContext.ActiveComponents = vertex.ActiveComponents;
 
                     vHandler.Bind();
 
-                    foreach (var draw in vertex.Value.Contents)
+                    foreach (var draw in vertex.Contents)
                     {
                         if (draw.IsHidden)
                             continue;
@@ -81,16 +81,7 @@ namespace XrEngine.OpenGL
                                 continue;
                         }
 
-                        if (!useDepthPass && draw.Object is TriangleMesh mesh && _renderer.Options.FrustumCulling)
-                        {
-                            if (!mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes!))
-                                continue;
-                        }
-
                         var progInst = draw.ProgramInstance!;
-
-                        if (!progInst.Material!.IsEnabled)
-                            continue;
 
                         updateContext.Model = draw.Object;
 

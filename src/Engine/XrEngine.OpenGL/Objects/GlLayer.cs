@@ -1,4 +1,7 @@
-﻿namespace XrEngine.OpenGL
+﻿using Silk.NET.OpenGL;
+using XrMath;
+
+namespace XrEngine.OpenGL
 {
     public enum GlLayerType
     {
@@ -16,6 +19,7 @@
         private readonly ILayer3D? _layer;
         private readonly GlLayerType _type;
         private long _lastUpdateVersion;
+        private long _lastCameraVer;
 
         public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? layer = null)
         {
@@ -125,25 +129,81 @@
                 }
             }
 
-            //_content.ShaderContentsOrder.Clear();
-            //_content.ShaderContentsOrder.AddRange(_content.ShaderContents);
-
             _lastUpdateVersion = _layer != null ? _layer.Version : _scene.Version;
 
             Log.Debug(this, "Content Build");
 
         }
 
-        public void ComputeDistance(Camera camera)
+        public void Prepare(Camera camera)
+        {
+            if (camera.Transform.Version == _lastCameraVer)
+                return;
+            
+            if (_render.Options.FrustumCulling)
+                ComputeFrustumCulling();
+
+            if (_render.Options.SortByCameraDistance)
+                ComputeDistance(camera);
+
+            UpdateVertexHandlers();
+
+            _lastCameraVer = camera.Transform.Version;
+        }
+
+        protected void UpdateVertexHandlers()
+        {
+            foreach (var content in _content.ShaderContents.SelectMany(a => a.Value.Contents.Values))
+            {
+                var vHandler = content.VertexHandler!;
+
+                if (!content.IsHidden && vHandler.NeedUpdate)
+                    vHandler.Update();
+            }
+        }
+
+        protected void ComputeFrustumCulling()
+        {
+            var updateContext = _render.UpdateContext;
+
+            foreach (var content in _content.ShaderContents.SelectMany(a => a.Value.Contents.Values))
+            {
+                var allHidden = true;
+
+                foreach (var draw in content.Contents)
+                {
+                    var progInst = draw.ProgramInstance!;
+
+                    draw.IsHidden = !progInst.Material!.IsEnabled || !draw.Object!.IsVisible;
+
+                    if (!draw.IsHidden && draw.Object is TriangleMesh mesh)
+                        draw.IsHidden = !mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes!);
+
+                    if (!draw.IsHidden)
+                        allHidden = false;
+                }
+
+                content.IsHidden = allHidden;
+            }
+        }
+
+        protected void ComputeDistance(Camera camera)
         {
             var cameraPos = camera.WorldPosition;
 
             foreach (var content in _content.ShaderContents.SelectMany(a => a.Value.Contents.Values))
             {
+                if (content.IsHidden)
+                    continue;
+
                 var count = 0;
                 var sum = 0f;
+
                 foreach (var draw in content.Contents)
                 {
+                    if (draw.IsHidden)
+                        continue;
+
                     draw.Distance = draw.Object!.DistanceTo(cameraPos);
                     count++;
                     sum += draw.Distance;

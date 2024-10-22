@@ -15,19 +15,18 @@ namespace XrEngine
 
 
         readonly List<ServiceInfo> _services = [];
-        readonly ConcurrentDictionary<Type, object> _cache = [];
+        readonly ConcurrentDictionary<Type, object?> _cache = [];
 
-        public object Require(Type type)
+        public object? TryRequire(Type type)
         {
             return _cache.GetOrAdd(type, type =>
             {
                 var info = _services.FirstOrDefault(a => type.IsAssignableFrom(a.Type));
 
                 if (info == null)
-                    throw new NotSupportedException();
+                    return null;
 
-                if (info.Instance == null)
-                    info.Instance = info.Factory!();
+                info.Instance ??= info.Factory!();
 
                 return info.Instance;
             });

@@ -17,6 +17,8 @@ namespace XrEngine.OpenXr
             _renderer = renderer;
             _app = app;
             _passes = _renderer.Passes<GlMotionVectorPass>().ToArray();
+
+
         }
 
         public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader*[] colorImgs, SwapchainImageBaseHeader*[] depthImgs, XrRenderMode mode)
@@ -28,12 +30,14 @@ namespace XrEngine.OpenXr
             }
         }
 
-        public long MotionVectorFormat => (long)InternalFormat.Rgb16f;
+        public long MotionVectorFormat => (long)InternalFormat.Rgba16f;
 
-        public long DepthFormat => (long)InternalFormat.DepthComponent16;
+        public long DepthFormat => (long)InternalFormat.DepthComponent24;
 
         public float Near => _app.ActiveScene?.ActiveCamera?.Near ?? 0.1f;
 
         public float Far => _app.ActiveScene?.ActiveCamera?.Far ?? 100f;
+
+        public bool IsActive { get; set; }
     }
 }

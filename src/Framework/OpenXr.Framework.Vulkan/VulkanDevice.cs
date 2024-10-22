@@ -151,7 +151,7 @@ namespace OpenXr.Framework.Vulkan
                 createInfo.PNext = null;
             }
 
-            if (_vk.CreateInstance(createInfo, null, out _instance) != Result.Success)
+            if (_vk.CreateInstance(in createInfo, null, out _instance) != Result.Success)
             {
                 throw new Exception("failed to create instance!");
             }
@@ -225,7 +225,7 @@ namespace OpenXr.Framework.Vulkan
                 throw new NotSupportedException("VK_KHR_swapchain extension not found.");
             }
 
-            if (_khrSwapChain!.CreateSwapchain(_device, creatInfo, null, out _swapChain) != Result.Success)
+            if (_khrSwapChain!.CreateSwapchain(_device, in creatInfo, null, out _swapChain) != Result.Success)
             {
                 throw new Exception("failed to create swap chain!");
             }

@@ -26,7 +26,7 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public void End(bool finalPass)
+        public void End(bool discardDepth)
         {
         }
 

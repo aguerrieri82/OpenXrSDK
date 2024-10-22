@@ -248,8 +248,8 @@ namespace XrEngine.OpenXr
             {
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 
-                if (camera.Eyes == null)
-                    camera.Eyes = new CameraEye[2];
+                camera.Eyes ??= new CameraEye[2];
+                camera.Transform.Version++;
 
                 for (var i = 0; i < info.ProjViews.Length; i++)
                 {
@@ -262,6 +262,8 @@ namespace XrEngine.OpenXr
 
                 if (info.Mode == XrRenderMode.SingleEye)
                 {
+                    app.BeginFrame();
+
                     for (var i = 0; i < info.ColorImages.Length; i++)
                     {
                         var rect = info.ProjViews[i].SubImage.ImageRect.Convert().To<Rect2I>();
@@ -277,19 +279,18 @@ namespace XrEngine.OpenXr
                         camera.WorldMatrix = camera.Eyes[i].World;
                         camera.ActiveEye = i;
 
-                        var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[0].Next;
+                        var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(ref info.ProjViews[i], StructureType.CompositionLayerDepthInfoKhr);
+
                         if (depth != null)
                         {
                             depth->NearZ = camera.Near;
                             depth->FarZ = camera.Far;
                         }
 
-                        if (i == 0)
-                            app.RenderFrame(rect, false);
-                        else
-                            app.Renderer.Render(app.ActiveScene, camera, rect, true);
-
+                        app.RenderScene(rect, false);
                     }
+
+                    app.EndFrame();
                 }
                 else if (info.Mode == XrRenderMode.MultiView)
                 {
@@ -305,7 +306,7 @@ namespace XrEngine.OpenXr
                     camera.Projection = camera.Eyes[0].Projection;
                     camera.WorldMatrix = camera.Eyes[0].World;
 
-                    var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[0].Next;
+                    var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(ref info.ProjViews[0], StructureType.CompositionLayerDepthInfoKhr);
 
                     if (depth != null)
                     {
@@ -318,7 +319,11 @@ namespace XrEngine.OpenXr
             }
 
             if (renderer.HasPass<GlMotionVectorPass>())
-                xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, new GlMotionVectorProvider(app, renderer)));
+            {
+                var provider = new GlMotionVectorProvider(app, renderer);
+                Context.Implement<IMotionVectorProvider>(provider);  
+                xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, provider));
+            }
             else
                 xrApp.Layers.AddProjection(RenderView);
 

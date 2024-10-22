@@ -6,7 +6,7 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public interface IGlRenderAttachment : IGlObject
+    public interface IGlRenderAttachment : IGlObject, IDisposable
     {
         uint Width { get; }
 

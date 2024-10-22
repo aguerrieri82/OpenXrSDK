@@ -51,7 +51,7 @@ namespace XrEngine.OpenGL
             _renderFrameBuffer.Bind();
         }
 
-        public void End(bool finalPass)
+        public void End(bool discardDepth)
         {
             _renderFrameBuffer.CopyTo(_destFrameBuffer);
             _renderFrameBuffer.Unbind();

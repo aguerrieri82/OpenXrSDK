@@ -1,4 +1,7 @@
-﻿namespace OpenXr.Framework
+﻿using Silk.NET.OpenXR;
+using System.Runtime.CompilerServices;
+
+namespace OpenXr.Framework
 {
     public static class XrExtensions
     {
@@ -6,5 +9,8 @@
         {
             manager.List.Add(new XrProjectionLayer(renderView));
         }
+
+
+
     }
 }

@@ -22,12 +22,12 @@ namespace XrEngine.OpenGL
             _frameBuffer.Bind();
         }
 
-        public void End(bool finalPass)
+        public void End(bool discardDepth)
         {
-            if (finalPass && _frameBuffer.Depth != null)
+            if (discardDepth && _frameBuffer.Depth != null)
             {
-                //_frameBuffer.Bind();
-                //_frameBuffer.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
+                _frameBuffer.Bind();
+                _frameBuffer.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
             }
             _frameBuffer.Unbind();
         }

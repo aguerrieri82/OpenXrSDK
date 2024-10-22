@@ -18,7 +18,6 @@ namespace XrEngine.OpenGL
         private readonly IGlRenderAttachment _glDepthBuffer;
         private Camera? _oldCamera;
         private readonly IGlRenderTarget _renderTarget;
-        private readonly GlLayer? _envLayer;
 
         public GlReflectionPass(OpenGLRender renderer)
             : base(renderer)
@@ -152,8 +151,6 @@ namespace XrEngine.OpenGL
 
             _renderer.GL.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
-            //_renderer.Pass<GlColorPass>()!.RenderLayer(_envLayer);
-
             return base.BeginRender(camera);
         }
 
@@ -169,6 +166,13 @@ namespace XrEngine.OpenGL
         protected override IEnumerable<GlLayer> SelectLayers()
         {
             return _renderer.Layers.Where(a => a.Type == GlLayerType.Main).Take(1);
+        }
+
+        public override void Dispose()
+        {
+            _glDepthBuffer.Dispose();
+            _renderTarget.Dispose();
+            base.Dispose();
         }
 
         protected override void Initialize()
