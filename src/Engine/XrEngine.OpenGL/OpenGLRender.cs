@@ -181,9 +181,14 @@ namespace XrEngine.OpenGL
 
         #region RENDER
 
-        public T? Pass<T>() where T : IGlRenderPass
+        public IEnumerable<T> Passes<T>() where T : IGlRenderPass
         {
-            return _renderPasses.OfType<T>().FirstOrDefault();
+            return _renderPasses.OfType<T>();       
+        }
+
+        public void AddPass(IGlRenderPass pass, int position)
+        {
+            _renderPasses.Insert(position, pass);
         }
 
         protected void UpdateLayers(Scene3D scene)
@@ -567,6 +572,29 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
+            foreach (var pass in _renderPasses)
+                pass.Dispose();
+            _renderPasses.Clear();
+
+            foreach (var program in _computePrograms)
+                program.Value.Dispose();
+
+            _computePrograms.Clear();
+
+            foreach (var layer in _layers)
+                layer.Dispose();
+
+            foreach (var program in GlProgramInstance._programs)
+                program.Value.Dispose();
+            GlProgramInstance._programs.Clear();
+
+            foreach (var texture in GlTexture._attached)
+                texture.Value.Dispose();
+            GlTexture._attached.Clear();
+
+            GlProgramInstance._programs.Clear();
+
+            GC.SuppressFinalize(this);  
         }
 
         public void Suspend()
@@ -605,6 +633,8 @@ namespace XrEngine.OpenGL
 
             _glState.SetActiveProgram(curProgram ?? 0);
         }
+
+
 
         #endregion
 

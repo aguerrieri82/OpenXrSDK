@@ -49,7 +49,5 @@
         public string LightsHash = "";
 
         public readonly Dictionary<Shader, ShaderContent> ShaderContents = [];
-
-        public readonly List<KeyValuePair<Shader, ShaderContent>> ShaderContentsOrder = [];
     }
 }

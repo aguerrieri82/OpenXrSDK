@@ -10,7 +10,7 @@ namespace XrEngine.OpenGL
         Custom
     }
 
-    public class GlLayer
+    public class GlLayer : IDisposable
     {
         readonly OpenGLRender _render;
         readonly RenderContent _content;
@@ -152,6 +152,13 @@ namespace XrEngine.OpenGL
                 }
                 content.AvgDistance = sum / count;
             }
+        }
+
+        public void Dispose()
+        {
+            _content?.ShaderContents.Clear();
+            _content?.Lights?.Clear();
+            GC.SuppressFinalize(this);  
         }
 
         public bool NeedUpdate => _lastUpdateVersion != Version;

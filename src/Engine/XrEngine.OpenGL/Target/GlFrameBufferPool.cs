@@ -1,5 +1,4 @@
 ﻿#if GLES
-
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
@@ -8,16 +7,17 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public class FrameBufferPool
+    public class GlFrameBufferPool : IDisposable
     {
         private readonly GL _gl;
         private readonly bool _multiView;
         private readonly Dictionary<uint, IGlRenderTarget> _targets = [];
 
-        public FrameBufferPool(GL gl, bool multiView)
+        public GlFrameBufferPool(GL gl, bool multiView)
         {
             _gl = gl;
             _multiView = multiView;
+            DepthFormat = TextureFormat.Depth32Stencil8;
         }
 
         protected GlTexture CreateDepth(GlTexture color, uint arraySize)
@@ -32,12 +32,12 @@ namespace XrEngine.OpenGL
             if (arraySize == 1)
             {
                 depthTex.Target = TextureTarget.Texture2D;
-                depthTex.Update(color.Width, color.Height, 1, TextureFormat.Depth32Stencil8);
+                depthTex.Update(color.Width, color.Height, 1, DepthFormat);
             }
             else
             {
                 depthTex.Target = TextureTarget.Texture2DArray;
-                depthTex.Update(color.Width, color.Height, arraySize, TextureFormat.Depth32Stencil8);
+                depthTex.Update(color.Width, color.Height, arraySize, DepthFormat);
             }
 
             return depthTex;
@@ -64,7 +64,9 @@ namespace XrEngine.OpenGL
                     if (sampleCount > 0)
                     {
                         var renderBuf = new GlRenderBuffer(_gl);
-                        renderBuf.Update(glColor.Width, glColor.Height, sampleCount, InternalFormat.Depth32fStencil8);
+                        var intFormat = GlTexture.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);
+
+                        renderBuf.Update(glColor.Width, glColor.Height, sampleCount, intFormat);
                         singleView.FrameBuffer.Configure(glColor, renderBuf, sampleCount);
                     }
                     else
@@ -81,5 +83,20 @@ namespace XrEngine.OpenGL
 
             return target;
         }
+
+        public void Clear()
+        {
+            foreach (var item in _targets)
+                item.Value.Dispose();   
+            _targets.Clear();   
+        }
+
+        public void Dispose()
+        {
+            Clear();
+            GC.SuppressFinalize(this);
+        }
+
+        public TextureFormat DepthFormat {  get; set; } 
     }
 }

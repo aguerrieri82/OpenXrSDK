@@ -332,17 +332,18 @@ namespace OpenXr.Framework
             return _systemId;
         }
 
-        public T* GetSystemProperties<T>(T* other) where T : unmanaged
+        public void GetSystemProperties<T>(ref T other) where T :  unmanaged
         {
-            var result = new SystemProperties
+            fixed (T* pProps = &other)
             {
-                Type = StructureType.SystemProperties,
-                Next = other
-            };
+                var result = new SystemProperties
+                {
+                    Type = StructureType.SystemProperties,
+                    Next = pProps
+                };
 
-            CheckResult(_xr!.GetSystemProperties(_instance, _systemId, &result), "GetSystemProperties");
-
-            return other;
+                CheckResult(_xr!.GetSystemProperties(_instance, _systemId, &result), "GetSystemProperties");
+            }
         }
 
         protected SystemProperties GetSystemProperties()
@@ -655,7 +656,12 @@ namespace OpenXr.Framework
 
         #region SWAPCHAIN
 
-        protected long[] EnumerateSwapchainFormats()
+        public void DestroySwapchain(Swapchain swapchain)
+        {
+            CheckResult(_xr!.DestroySwapchain(swapchain), "DestroySwapchain");
+        }   
+
+        public long[] EnumerateSwapchainFormats()
         {
             uint count = 0;
             CheckResult(_xr!.EnumerateSwapchainFormats(Session, 0, ref count, null), "EnumerateSwapchainFormats");
@@ -668,7 +674,7 @@ namespace OpenXr.Framework
             return result;
         }
 
-        protected internal NativeArray<SwapchainImageBaseHeader> EnumerateSwapchainImages(Swapchain swapchain)
+        public NativeArray<SwapchainImageBaseHeader> EnumerateSwapchainImages(Swapchain swapchain)
         {
             uint count = 0;
 
@@ -688,7 +694,7 @@ namespace OpenXr.Framework
             return images;
         }
 
-        protected internal uint AcquireSwapchainImage(Swapchain swapchain)
+        public uint AcquireSwapchainImage(Swapchain swapchain)
         {
             var acquireInfo = new SwapchainImageAcquireInfo()
             {
@@ -702,7 +708,7 @@ namespace OpenXr.Framework
             return imageIndex;
         }
 
-        protected internal void WaitSwapchainImage(Swapchain swapchain, long timeout = DurationInfinite)
+        public void WaitSwapchainImage(Swapchain swapchain, long timeout = DurationInfinite)
         {
             var info = new SwapchainImageWaitInfo()
             {
@@ -714,7 +720,7 @@ namespace OpenXr.Framework
             CheckResult(_xr!.WaitSwapchainImage(swapchain, in info), "WaitSwapchainImage");
         }
 
-        protected internal void ReleaseSwapchainImage(Swapchain swapchain)
+        public void ReleaseSwapchainImage(Swapchain swapchain)
         {
             var info = new SwapchainImageReleaseInfo()
             {
@@ -743,7 +749,7 @@ namespace OpenXr.Framework
             return CreateSwapChain(size, format, arraySize, usage);
         }
 
-        protected internal Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage)
+        public Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage)
         {
             var info = new SwapchainCreateInfo
             {

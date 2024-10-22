@@ -54,7 +54,7 @@ namespace OpenXr.Framework.Oculus
                 Type = StructureType.SystemPassthroughProperties2FB
             };
 
-            _xrApp!.GetSystemProperties(&props);
+            _xrApp!.GetSystemProperties(ref props);
 
             return props;
         }

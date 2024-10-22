@@ -11,6 +11,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <EmbeddedResource Include="Shaders\motion_vectors.frag" />
+	  <EmbeddedResource Include="Shaders\motion_vectors.vert" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />

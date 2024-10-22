@@ -131,7 +131,7 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_META_spatial_entity_mesh");
             extensions.Add("XR_META_touch_controller_plus");
             extensions.Add("XR_FB_foveation_configuration");
-
+            extensions.Add("XR_FB_space_warp");
         }
 
         public unsafe override void OnInstanceCreated()

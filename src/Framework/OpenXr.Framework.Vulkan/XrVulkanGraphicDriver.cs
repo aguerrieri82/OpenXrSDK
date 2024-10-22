@@ -43,6 +43,7 @@ namespace OpenXr.Framework.Vulkan
         {
             result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats!.Contains((long)a));
             result.DepthFormat = (long)Format.D24UnormS8Uint;
+            //result.MotionVectorFormat = (long)Format.R16G16B16A16Sfloat;
         }
 
         public GraphicsBinding CreateBinding()

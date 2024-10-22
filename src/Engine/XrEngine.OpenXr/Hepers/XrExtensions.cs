@@ -13,6 +13,7 @@ using XrMath;
 using XrEngine.UI;
 using static XrEngine.Filament.FilamentLib;
 using System.Diagnostics;
+using OpenXr.Framework.Oculus;
 
 
 namespace XrEngine.OpenXr
@@ -175,7 +176,7 @@ namespace XrEngine.OpenXr
                     //TODO improve head-rel views VS space-rel views xrApp.Stage is HARDCODED
                     var headLoc = xrApp.SpacesTracker.GetLastLocation(xrApp.Head);
 
-                    Debug.Assert(headLoc != null);  
+                    Debug.Assert(headLoc != null);
 
                     xrApp!.LocateViews(xrApp.Head, info.DisplayTime, headViews);
 
@@ -209,8 +210,14 @@ namespace XrEngine.OpenXr
 
         public static OpenGLRender BindEngineAppGL(this XrApp xrApp, EngineApp app)
         {
-            var pool = new FrameBufferPool(OpenGLRender.Current!.GL,
+            var pool = new GlFrameBufferPool(OpenGLRender.Current!.GL,
                            xrApp.RenderOptions.RenderMode == XrRenderMode.MultiView);
+
+            xrApp.SessionChanged += (s, e) =>
+            {
+                if (xrApp.SessionState == SessionState.Exiting)
+                    pool.Clear();
+            };
 
             return xrApp.BindEngineAppGL(app, (gl, colorTex, depthTex) =>
                 pool.GetRenderTarget(colorTex, xrApp.RenderOptions.SampleCount));
@@ -250,7 +257,7 @@ namespace XrEngine.OpenXr
                     camera.Eyes[i].World = transform.Transform;
                     camera.Eyes[i].Projection = transform.Projection;
                     Matrix4x4.Invert(transform.Transform, out camera.Eyes[i].View);
-                    camera.Eyes[i].ViewProj = camera.Eyes[i].View * camera.Eyes[i].Projection;  
+                    camera.Eyes[i].ViewProj = camera.Eyes[i].View * camera.Eyes[i].Projection;
                 }
 
                 if (info.Mode == XrRenderMode.SingleEye)
@@ -265,8 +272,6 @@ namespace XrEngine.OpenXr
                         var renderTarget = targetFactory(renderer.GL, glColorImage, glDepthImage);
 
                         renderer.SetRenderTarget(renderTarget);
-
-                        var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
 
                         camera.Projection = camera.Eyes[i].Projection;
                         camera.WorldMatrix = camera.Eyes[i].World;
@@ -312,7 +317,10 @@ namespace XrEngine.OpenXr
                 }
             }
 
-            xrApp.Layers.AddProjection(RenderView);
+            if (renderer.HasPass<GlMotionVectorPass>())
+                xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, new GlMotionVectorProvider(app, renderer)));
+            else
+                xrApp.Layers.AddProjection(RenderView);
 
             return renderer;
         }

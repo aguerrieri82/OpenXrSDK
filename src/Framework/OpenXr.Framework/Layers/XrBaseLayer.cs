@@ -52,7 +52,7 @@ namespace OpenXr.Framework
             return Update(ref span[0], ref views, predTime);
         }
 
-        protected abstract bool Update(ref T layer, ref View[] views, long predTime);
+        protected abstract bool Update(ref T layer, ref View[] views, long displayTime);
 
         public virtual void OnBeginFrame(Space space, long displayTime)
         {

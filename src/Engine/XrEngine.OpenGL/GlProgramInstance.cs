@@ -7,9 +7,9 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public class GlProgramInstance : IBufferProvider
+    public class GlProgramInstance : IBufferProvider, IDisposable
     {
-        static readonly Dictionary<string, GlBaseProgram> _programs = [];
+        static internal readonly Dictionary<string, GlBaseProgram> _programs = [];
 
 
         protected ShaderUpdate? _update;
@@ -115,6 +115,11 @@ namespace XrEngine.OpenGL
 
             foreach (var action in _update!.Actions!)
                 action(ctx, Program!);
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);  
         }
 
         public GlProgramGlobal Global { get; }
