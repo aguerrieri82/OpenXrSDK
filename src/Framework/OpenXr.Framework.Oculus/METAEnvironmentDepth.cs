@@ -1,6 +1,5 @@
 ﻿using Silk.NET.Core;
 using Silk.NET.OpenXR;
-using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -28,7 +27,7 @@ namespace OpenXr.Framework.Oculus
 
                 prop.SetValue(this, Marshal.GetDelegateForFunctionPointer(fun, propType));
             }
-       }
+        }
 
         public CreateEnvironmentDepthProviderMETADelegate CreateEnvironmentDepthProviderMETA;
         public DestroyEnvironmentDepthProviderMETADelegate DestroyEnvironmentDepthProviderMETA;

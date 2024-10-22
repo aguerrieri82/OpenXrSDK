@@ -288,7 +288,7 @@ namespace XrEngine.OpenGL
 
         protected string PatchShader(string sourceName, ShaderType shaderType)
         {
-            var source = _resolver(sourceName); 
+            var source = _resolver(sourceName);
 
             var builder = new StringBuilder();
 

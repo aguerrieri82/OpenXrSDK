@@ -1,9 +1,8 @@
-﻿using System.Numerics;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {
-    public class TextureMaterial : ShaderMaterial,IColorSource
+    public class TextureMaterial : ShaderMaterial, IColorSource
     {
         static readonly Shader SHADER;
 
@@ -83,7 +82,7 @@ namespace XrEngine
         public override void Dispose()
         {
             Texture?.Dispose();
-            Texture = null; 
+            Texture = null;
             base.Dispose();
         }
 

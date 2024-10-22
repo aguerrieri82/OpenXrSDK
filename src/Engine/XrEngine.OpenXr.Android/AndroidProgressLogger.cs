@@ -1,5 +1,4 @@
-﻿using static Android.Graphics.ImageDecoder;
-using LogA = Android.Util.Log;
+﻿using LogA = Android.Util.Log;
 
 namespace XrEngine.OpenXr
 {
@@ -18,8 +17,8 @@ namespace XrEngine.OpenXr
 
         public void LogMessage(object source, string text, LogLevel level = LogLevel.Info, bool retain = false)
         {
-            var tag = source.GetType().Name;  
-            
+            var tag = source.GetType().Name;
+
             switch (level)
             {
                 case LogLevel.Debug:

@@ -3,6 +3,6 @@
 
     public interface IObjectTool
     {
-        void Deactivate();  
+        void Deactivate();
     }
 }

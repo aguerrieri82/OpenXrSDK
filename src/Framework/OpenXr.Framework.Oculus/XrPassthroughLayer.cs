@@ -20,7 +20,7 @@ namespace OpenXr.Framework.Oculus
         private PassthroughLayerFB _ptLayer;
         private bool _isStarted;
         private readonly List<XrPassthroughMesh> _meshes = [];
-        private XrEnvironmentDepth _envDepth;
+        private readonly XrEnvironmentDepth _envDepth;
         private EnvironmentDepthImageMETA? _depthImage;
         private bool _removeHand;
 
@@ -126,7 +126,7 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe override void Create()
         {
-   
+
             var caps = GetPtCapabilities();
 
             if ((caps.Capabilities & PassthroughCapabilityFlagsFB.BitFB) == 0)

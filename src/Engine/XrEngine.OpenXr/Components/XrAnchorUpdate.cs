@@ -17,7 +17,7 @@ namespace XrEngine.OpenXr.Components
         {
             var xrApp = XrApp.Current;
             xrApp?.SpacesTracker.Remove(Space);
-            _isInit = false;    
+            _isInit = false;
 
             base.OnDisabled();
         }
@@ -32,21 +32,21 @@ namespace XrEngine.OpenXr.Components
         protected override void Update(RenderContext ctx)
         {
             var xrApp = XrApp.Current;
-            
+
             if (xrApp == null)
                 return;
 
             if (!_isInit)
             {
                 xrApp.SpacesTracker.Add(Space, UpdateInterval);
-                _isInit = true; 
+                _isInit = true;
             }
 
             var loc = xrApp?.SpacesTracker.GetLastLocation(Space);
 
             if (loc == null || !loc.IsValid)
                 return;
-            
+
             _host?.SetGlobalPoseIfChanged(loc.Pose, 0.005f);
 
             if (LogChanges)

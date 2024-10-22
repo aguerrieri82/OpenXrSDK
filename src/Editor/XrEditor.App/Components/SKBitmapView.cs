@@ -7,7 +7,7 @@ namespace XrEditor
 {
     public class SKBitmapView : System.Windows.Controls.Image
     {
-        static object _encodeLock = new object();   
+        static readonly object _encodeLock = new object();
 
         static void OnSKSourceChanged(object obj, DependencyPropertyChangedEventArgs e)
         {

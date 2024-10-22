@@ -4,6 +4,6 @@
     {
         void DrawGizmos(Canvas3D canvas);
 
-        bool IsEnabled { get; }        
+        bool IsEnabled { get; }
     }
 }

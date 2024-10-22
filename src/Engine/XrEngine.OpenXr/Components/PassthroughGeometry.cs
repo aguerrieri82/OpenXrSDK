@@ -18,7 +18,7 @@ namespace XrEngine.OpenXr
             if (_isInit)
                 return;
 
-            Debug.Assert(_host != null);    
+            Debug.Assert(_host != null);
 
             var xrApp = XrApp.Current;
 

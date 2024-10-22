@@ -35,7 +35,7 @@ namespace XrEngine
 
         public static uint GetPixelSizeByte(TextureFormat format)
         {
-            return GetPixelSizeByte(GetFormat(format)); 
+            return GetPixelSizeByte(GetFormat(format));
         }
 
         public static SKColorType GetFormat(TextureFormat format)

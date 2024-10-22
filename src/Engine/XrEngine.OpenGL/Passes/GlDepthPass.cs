@@ -44,7 +44,7 @@ namespace XrEngine.OpenGL
 
         protected override IEnumerable<GlLayer> SelectLayers()
         {
-             return _renderer.Layers.Where(a => a.Type == GlLayerType.Main).Take(1);
+            return _renderer.Layers.Where(a => a.Type == GlLayerType.Main).Take(1);
         }
 
         protected override void Draw(DrawContent draw)

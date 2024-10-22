@@ -5,7 +5,7 @@
         protected bool _isEnabled;
         protected T? _host;
         protected ObjectId _id;
-        protected int _suspendCount;    
+        protected int _suspendCount;
 
         public BaseComponent()
         {

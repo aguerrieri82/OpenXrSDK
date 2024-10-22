@@ -12,7 +12,7 @@ namespace XrEngine.OpenXr
 
         IEnumerable<ICollider3D>? GetColliders();
 
-        bool IsActive { get; }  
+        bool IsActive { get; }
     }
 
     public class XrRayCollider : Behavior<Scene3D>
@@ -86,7 +86,7 @@ namespace XrEngine.OpenXr
 
             if (result != null)
             {
-                NotifyCollision(ctx, result); 
+                NotifyCollision(ctx, result);
 
                 _rayView.UpdateColor(new Color(0, 1, 0));
 
@@ -132,7 +132,7 @@ namespace XrEngine.OpenXr
 
         }
 
-        public IRayColliderHandler?  Handler { get; set; }
+        public IRayColliderHandler? Handler { get; set; }
 
         public string? InputName { get; set; }
 

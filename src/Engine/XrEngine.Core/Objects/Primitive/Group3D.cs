@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {
@@ -120,7 +119,7 @@ namespace XrEngine
                     {
                         var childLocalBounds = childLocal.LocalBounds.Transform(child.Transform.Matrix);
 
-                        builder.Add(childLocalBounds);  
+                        builder.Add(childLocalBounds);
                     }
                 }
             }

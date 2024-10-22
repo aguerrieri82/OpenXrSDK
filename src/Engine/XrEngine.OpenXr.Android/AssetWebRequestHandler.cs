@@ -27,7 +27,7 @@ namespace XrEngine.OpenXr.Android
             Log.Info(this, "Browser Handle Request: {0}", request.Uri);
 
             if (!_context.TryGetTarget(out var context))
-                return null;    
+                return null;
 
             var path = request.Uri!.LocalPath;
             if (path == "/")

@@ -59,7 +59,7 @@
 
         public TextureCompressionFormat Compression { get; set; }
 
-        public long Handle { get; set; }    
+        public long Handle { get; set; }
 
         public string? Name { get; set; }
     }

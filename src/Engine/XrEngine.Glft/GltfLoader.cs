@@ -20,7 +20,7 @@ namespace XrEngine.Gltf
     {
         GltfLoaderOptions _options;
         glTFLoader.Schema.Gltf? _model;
-        
+
         readonly Dictionary<glTFLoader.Schema.Material, ShaderMaterial> _mats = [];
         readonly ConcurrentDictionary<glTFLoader.Schema.Image, TextureData> _images = [];
         readonly ConcurrentDictionary<glTFLoader.Schema.Image, LoadTask<Texture2D>> _textures = [];
@@ -29,7 +29,7 @@ namespace XrEngine.Gltf
         readonly ConcurrentDictionary<int, byte[]> _buffers = [];
         readonly StringBuilder _log = new();
         readonly Func<string, string> _resourceResolver;
-        
+
         string? _basePath;
         string? _filePath;
 
@@ -84,7 +84,7 @@ namespace XrEngine.Gltf
         public struct LoadTask<T>
         {
             public T Result;
-         
+
             public Task Task;
         }
 
@@ -203,11 +203,11 @@ namespace XrEngine.Gltf
             {
                 Result = result,
                 Task = Task.Run(action)
-            };  
+            };
 
-            _tasks.Add(task.Task);  
+            _tasks.Add(task.Task);
 
-            return task;    
+            return task;
         }
 
         public LoadTask<Texture2D> ProcessTexture(glTFLoader.Schema.Texture texture, int index, Dictionary<string, object>? extensions, Texture2D? result = null, bool useSrgb = false)
@@ -461,7 +461,7 @@ namespace XrEngine.Gltf
                 if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
                 {
                     result.MetallicRoughnessMap = DecodeTextureBase(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture).Result;
-                    
+
                     result.Metalness = gltMat.PbrMetallicRoughness.MetallicFactor;
                     result.Roughness = gltMat.PbrMetallicRoughness.RoughnessFactor;
                 }
@@ -475,7 +475,7 @@ namespace XrEngine.Gltf
 
             if (gltMat.OcclusionTexture != null)
             {
-                result.OcclusionMap = DecodeTextureOcclusion(gltMat.OcclusionTexture).Result; 
+                result.OcclusionMap = DecodeTextureOcclusion(gltMat.OcclusionTexture).Result;
                 result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
             }
 
@@ -883,7 +883,7 @@ namespace XrEngine.Gltf
 
         public void ExecuteLoadTasks()
         {
-            Task.WaitAll(_tasks.ToArray()); 
+            Task.WaitAll(_tasks.ToArray());
 
             _tasks.Clear();
         }

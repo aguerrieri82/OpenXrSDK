@@ -599,7 +599,7 @@ namespace XrEngine.Filament
             else if (obj is TriangleMesh mesh)
             {
                 if (mesh.Materials.Count == 0 || mesh.Geometry == null || (
-                    mesh.Materials[0] is not IPbrMaterial && 
+                    mesh.Materials[0] is not IPbrMaterial &&
                     mesh.Materials[0] is not ColorMaterial &&
                     mesh.Materials[0] is not ShadowOnlyMaterial &&
                     mesh.Materials[0] is not TextureMaterial))

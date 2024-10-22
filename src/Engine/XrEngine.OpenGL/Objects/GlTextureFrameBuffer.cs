@@ -114,9 +114,9 @@ namespace XrEngine.OpenGL
 
             if (Depth is GlTexture tex)
             {
-                var attachment = GlUtils.IsDepthStencil(tex.InternalFormat) ? 
-                        FramebufferAttachment.DepthStencilAttachment : 
-                        FramebufferAttachment.DepthAttachment; 
+                var attachment = GlUtils.IsDepthStencil(tex.InternalFormat) ?
+                        FramebufferAttachment.DepthStencilAttachment :
+                        FramebufferAttachment.DepthAttachment;
 
                 bool useMs = false;
                 if (sampleCount > 1)

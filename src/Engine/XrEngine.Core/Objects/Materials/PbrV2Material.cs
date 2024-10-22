@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 
@@ -141,12 +139,12 @@ namespace XrEngine
         class GlobalShaderHandler : IShaderHandler
         {
             long _iblVersion = -1;
-            PerspectiveCamera _depthCamera = new PerspectiveCamera();   
+            readonly PerspectiveCamera _depthCamera = new PerspectiveCamera();
 
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
                 var ibl = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
-                return ctx.LastUpdate?.LightsHash != ctx.LightsHash || 
+                return ctx.LastUpdate?.LightsHash != ctx.LightsHash ||
                        (ibl?.Version ?? -1) != _iblVersion;
             }
 
@@ -213,8 +211,8 @@ namespace XrEngine
                         Position = ctx.Camera!.WorldPosition,
                         Exposure = ctx.Camera.Exposure,
                         //EnvDepthBias = envDepth?.Bias ?? 0,
-                        ActiveEye = ctx.Camera.ActiveEye,   
-                        ViewSize = ctx.ViewSize  
+                        ActiveEye = ctx.Camera.ActiveEye,
+                        ViewSize = ctx.ViewSize
                     };
 
                     var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
@@ -307,7 +305,7 @@ namespace XrEngine
 
             }
 
-           
+
         }
 
         #endregion
@@ -376,7 +374,7 @@ namespace XrEngine
             if (planar != null)
             {
                 bld.AddFeature("PLANAR_REFLECTION");
-                
+
                 if (PlanarReflection.IsMultiView)
                     bld.AddFeature("PLANAR_REFLECTION_MV");
 
@@ -471,6 +469,6 @@ namespace XrEngine
 
         public float NormalScale { get; set; }
 
-        public bool UseEnvDepth { get; set; }   
+        public bool UseEnvDepth { get; set; }
     }
 }

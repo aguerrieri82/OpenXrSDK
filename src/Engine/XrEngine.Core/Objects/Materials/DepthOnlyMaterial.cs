@@ -1,6 +1,4 @@
-﻿using XrMath;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class DepthOnlyMaterial : ShaderMaterial
     {

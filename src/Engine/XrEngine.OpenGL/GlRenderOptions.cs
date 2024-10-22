@@ -72,7 +72,7 @@ namespace XrEngine.OpenGL
 
         public GlOutlineOptions Outline { get; }
 
-        public bool SortByCameraDistance { get; set; }  
+        public bool SortByCameraDistance { get; set; }
 
         public static GlRenderOptions Default() => new();
 

@@ -58,9 +58,9 @@
         public override void Dispose()
         {
             LeftTexture?.Dispose();
-            RightTexture?.Dispose();    
+            RightTexture?.Dispose();
             LeftTexture = null;
-            RightTexture = null;    
+            RightTexture = null;
             base.Dispose();
         }
 

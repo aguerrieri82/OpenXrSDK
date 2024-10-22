@@ -71,7 +71,7 @@ namespace XrEditor
                 }
             }
         });
-    
+
         private async void OnSelectionChanged(IReadOnlyCollection<INode> items)
         {
             _lastSelection = items.ToArray();
@@ -150,7 +150,7 @@ namespace XrEditor
                 {
                     canvas.State.Color = new Color(0, 1, 1, 1);
                     var tangent = new Vector3(_lastCollision.Tangent.Value.X, _lastCollision.Tangent.Value.Y, _lastCollision.Tangent.Value.Z).Normalize();
-                    
+
                     tangent = tangent.Transform(_lastCollision.Object!.NormalMatrix).Normalize();
 
                     canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + tangent * 0.5f);

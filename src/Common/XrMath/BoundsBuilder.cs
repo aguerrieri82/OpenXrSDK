@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using XrMath;
+﻿using System.Numerics;
 
 namespace XrMath
 {
@@ -17,14 +11,14 @@ namespace XrMath
         {
             _result.Min = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
             _result.Max = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-            _isEmpty = true;    
+            _isEmpty = true;
         }
 
         public void Add(Vector3 point)
         {
             _result.Min = Vector3.Min(_result.Min, point);
             _result.Max = Vector3.Max(_result.Max, point);
-            _isEmpty = false;   
+            _isEmpty = false;
         }
 
         public void Add(IEnumerable<Vector3> points)
@@ -46,6 +40,6 @@ namespace XrMath
                 Add(item);
         }
 
-        public readonly Bounds3 Result => _isEmpty ? Bounds3.Zero : _result; 
+        public readonly Bounds3 Result => _isEmpty ? Bounds3.Zero : _result;
     }
 }

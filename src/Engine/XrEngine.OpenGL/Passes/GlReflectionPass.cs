@@ -15,10 +15,10 @@ namespace XrEngine.OpenGL
     {
         private PlanarReflection? _reflection;
         private Scene3D? _lastScene;
-        private IGlRenderAttachment _glDepthBuffer;
+        private readonly IGlRenderAttachment _glDepthBuffer;
         private Camera? _oldCamera;
-        private IGlRenderTarget _renderTarget;
-        private GlLayer? _envLayer;
+        private readonly IGlRenderTarget _renderTarget;
+        private readonly GlLayer? _envLayer;
 
         public GlReflectionPass(OpenGLRender renderer)
             : base(renderer)
@@ -72,7 +72,7 @@ namespace XrEngine.OpenGL
 
         protected override bool PrepareMaterial(Material material)
         {
-            Debug.Assert(_reflection != null);  
+            Debug.Assert(_reflection != null);
             return _reflection.PrepareMaterial(material);
         }
 
@@ -120,7 +120,7 @@ namespace XrEngine.OpenGL
                          _reflection.Texture.Width,
                          _reflection.Texture.Height,
                          _reflection.Texture.Depth,
-                         TextureFormat.Depth24Float);   
+                         TextureFormat.Depth24Float);
                 }
                 else
                 {
@@ -161,8 +161,8 @@ namespace XrEngine.OpenGL
         {
             _renderTarget.End(true);
 
-            _renderer.UpdateContext.Camera = _oldCamera; 
-            
+            _renderer.UpdateContext.Camera = _oldCamera;
+
             base.EndRender();
         }
 

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace XrMath
@@ -7,7 +6,7 @@ namespace XrMath
 
     public static class MathExtensions
     {
-        public const float EPSILON = 1e-6f;    
+        public const float EPSILON = 1e-6f;
 
         #region Matrix4x4
 
@@ -231,7 +230,7 @@ namespace XrMath
         public static bool Intersects(this Bounds3 self, Line3 line, out float distance)
         {
             var dir = line.Direction();
-            var tMin = (self.Min - line.From) / dir; 
+            var tMin = (self.Min - line.From) / dir;
             var tMax = (self.Max - line.From) / dir;
 
             // Ensure tMin <= tMax
@@ -337,7 +336,7 @@ namespace XrMath
         #endregion
 
         #region VECTOR3
-        
+
         public static Bounds3 ComputeBounds(this IEnumerable<Vector3> self)
         {
             var builder = new BoundsBuilder();
@@ -515,8 +514,8 @@ namespace XrMath
             var t = Vector3.Dot(edge2, qVec) * invDet;
 
             if (t > 0)
-            { 
-                var intersectionPoint = self.PointAt(t); 
+            {
+                var intersectionPoint = self.PointAt(t);
                 distance = t;
                 return intersectionPoint;
             }
@@ -531,7 +530,7 @@ namespace XrMath
 
             var local = quad.LocalPointAt(intersectionPoint);
 
-            return local.InRange(Vector2.Zero, quad.Size);  
+            return local.InRange(Vector2.Zero, quad.Size);
         }
 
         public static bool Intersects(this Ray3 self, Plane plane, out Vector3 intersectionPoint, float epsilon = EPSILON)
@@ -672,14 +671,14 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Length(this Line3 self)
         {
-            return Vector3.Distance(self.From, self.To);    
+            return Vector3.Distance(self.From, self.To);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 PointAt(this Line3 self, float distance)
         {
-            return self.From + self.Direction() * distance; 
+            return self.From + self.Direction() * distance;
         }
 
 

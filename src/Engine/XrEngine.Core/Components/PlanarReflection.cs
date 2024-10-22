@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Numerics;
 using XrMath;
 
@@ -20,7 +17,7 @@ namespace XrEngine
         public PlanarReflection(uint textureSize)
         {
             ReflectionCamera = new PerspectiveCamera();
-            
+
             MaterialOverride = new TextureMaterial()
             {
                 CheckTexture = true
@@ -35,7 +32,7 @@ namespace XrEngine
                 MinFilter = ScaleFilter.Linear,
                 WrapS = WrapMode.ClampToEdge,
                 WrapT = WrapMode.ClampToEdge,
-                Depth = IsMultiView ? 2u : 1u,    
+                Depth = IsMultiView ? 2u : 1u,
                 MipLevelCount = 1
             };
         }
@@ -57,7 +54,7 @@ namespace XrEngine
         protected override void Update(RenderContext ctx)
         {
             var camera = ctx.Scene?.ActiveCamera;
-            
+
             if (camera == null)
                 return;
 
@@ -72,7 +69,7 @@ namespace XrEngine
 
             if (IsMultiView)
             {
-                Debug.Assert(camera.Eyes != null && camera.Eyes.Length == 2);  
+                Debug.Assert(camera.Eyes != null && camera.Eyes.Length == 2);
 
                 for (var i = 0; i < 2; i++)
                 {
@@ -98,7 +95,7 @@ namespace XrEngine
                     ReflectionCamera.Eyes[i].World = world;
                     ReflectionCamera.Eyes[i].Projection = camera.Projection;
                     ReflectionCamera.Eyes[i].View = refView;
-                    ReflectionCamera.Eyes[i].ViewProj = refView * camera.Projection;  
+                    ReflectionCamera.Eyes[i].ViewProj = refView * camera.Projection;
                 }
             }
             else
@@ -136,7 +133,7 @@ namespace XrEngine
 
         public Camera ReflectionCamera { get; }
 
-        public Texture2D Texture { get; set; }  
+        public Texture2D Texture { get; set; }
 
         public TextureMaterial MaterialOverride { get; set; }
 

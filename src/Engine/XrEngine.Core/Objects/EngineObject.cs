@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     [Flags]
     public enum EngineObjectFlags

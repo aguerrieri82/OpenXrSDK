@@ -1,11 +1,4 @@
-﻿using Silk.NET.Core;
-using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using Silk.NET.OpenXR;
 
 namespace OpenXr.Framework
 {
@@ -15,9 +8,9 @@ namespace OpenXr.Framework
 
         public Space Space { get; set; }
 
-        public XrSpaceLocation? LastLocation { get; set; }  
+        public XrSpaceLocation? LastLocation { get; set; }
 
-        public DateTime LastUpdateTime { get; set; }    
+        public DateTime LastUpdateTime { get; set; }
     }
 
     public class XrSpacesTracker
@@ -47,8 +40,8 @@ namespace OpenXr.Framework
 
         public void Remove(Space space)
         {
-            _trackData.Remove(space);   
-        }   
+            _trackData.Remove(space);
+        }
 
         public void Update(Space baseSpace, long time)
         {

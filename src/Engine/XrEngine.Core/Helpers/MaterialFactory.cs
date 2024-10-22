@@ -18,9 +18,9 @@ namespace XrEngine
             return result;
         }
 
-        static IPbrMaterial CreatePbr(Type type) 
+        static IPbrMaterial CreatePbr(Type type)
         {
-            return (IPbrMaterial)Activator.CreateInstance(type)!;        
+            return (IPbrMaterial)Activator.CreateInstance(type)!;
         }
 
         public static T CreatePbr<T>() where T : IPbrMaterial, new()
@@ -29,6 +29,6 @@ namespace XrEngine
         }
 
 
-        public static Type DefaultPbr { get; set; } 
+        public static Type DefaultPbr { get; set; }
     }
 }

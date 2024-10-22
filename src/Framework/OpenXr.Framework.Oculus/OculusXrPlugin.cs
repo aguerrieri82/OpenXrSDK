@@ -132,6 +132,7 @@ namespace OpenXr.Framework.Oculus
             extensions.Add("XR_META_touch_controller_plus");
             extensions.Add("XR_FB_foveation_configuration");
             extensions.Add("XR_FB_space_warp");
+            extensions.Add("XR_FB_swapchain_update_state_opengl_es");
         }
 
         public unsafe override void OnInstanceCreated()
@@ -352,7 +353,7 @@ namespace OpenXr.Framework.Oculus
 
             fixed (Guid* uuids = &ids[0])
             {
-                var filter = new SpaceUuidFilterInfoFB();   
+                var filter = new SpaceUuidFilterInfoFB();
 
                 if (hasIds)
                 {

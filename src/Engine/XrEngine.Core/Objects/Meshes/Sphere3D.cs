@@ -8,7 +8,7 @@ namespace XrEngine
         public Sphere3D()
             : this(1, 3)
         {
-  
+
         }
 
         public Sphere3D(float radius, uint levels)

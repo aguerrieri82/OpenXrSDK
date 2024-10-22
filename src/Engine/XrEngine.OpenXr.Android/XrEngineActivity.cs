@@ -1,8 +1,6 @@
-﻿using Java.Lang.Ref;
-using OpenXr.Framework;
+﻿using OpenXr.Framework;
 using OpenXr.Framework.Android;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using XrEngine.Services;
 
 
@@ -16,7 +14,7 @@ namespace XrEngine.OpenXr.Android
 
         protected void Preload(Assembly entry)
         {
-            var references = new HashSet<string>();   
+            var references = new HashSet<string>();
 
             void Visit(Assembly assembly)
             {
@@ -39,7 +37,7 @@ namespace XrEngine.OpenXr.Android
                     {
                         global::Android.Util.Log.Error(nameof(XrEngineActivity), $"Loading ref {reference.Name} failed");
                     }
-                }   
+                }
             }
 
             global::Android.Util.Log.Debug(nameof(XrEngineActivity), $"Start preload");

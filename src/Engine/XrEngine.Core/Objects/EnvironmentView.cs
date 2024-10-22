@@ -33,7 +33,7 @@ namespace XrEngine
                 -1,  1,  1
             ]),
 
-   
+
             ActiveComponents = VertexComponent.Position
         };
 

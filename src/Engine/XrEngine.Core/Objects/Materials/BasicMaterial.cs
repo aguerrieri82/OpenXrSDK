@@ -39,7 +39,7 @@ namespace XrEngine
             public override bool NeedUpdateShader(UpdateShaderContext ctx)
             {
                 if (_lightHash != ctx.LightsHash)
-                    return true;    
+                    return true;
                 return base.NeedUpdateShader(ctx);
             }
         }

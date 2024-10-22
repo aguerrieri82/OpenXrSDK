@@ -5,7 +5,7 @@
         None,
         Hard,
         PCF,
-        VSM 
+        VSM
     }
 
     public class ShadowMapOptions

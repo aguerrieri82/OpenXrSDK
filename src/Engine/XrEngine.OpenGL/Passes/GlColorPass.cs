@@ -45,7 +45,7 @@ namespace XrEngine.OpenGL
 
             var updateContext = _renderer.UpdateContext;
 
-            var useDepthPass = _renderer.Options.UseDepthPass;  
+            var useDepthPass = _renderer.Options.UseDepthPass;
 
             foreach (var shader in layer.Content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
@@ -57,7 +57,7 @@ namespace XrEngine.OpenGL
 
                 foreach (var vertex in shader.Value.Contents.OrderBy(a => a.Value.RenderPriority))
                 {
-                    if (useDepthPass && vertex.Value.Contents.All(a=> a.IsHidden || (a.Query != null && a.Query.GetResult() == 0)))
+                    if (useDepthPass && vertex.Value.Contents.All(a => a.IsHidden || (a.Query != null && a.Query.GetResult() == 0)))
                         continue;
 
                     var vHandler = vertex.Value.VertexHandler!;

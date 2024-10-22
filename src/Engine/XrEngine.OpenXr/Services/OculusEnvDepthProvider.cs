@@ -9,9 +9,9 @@ namespace XrEngine.OpenXr
     public class OculusEnvDepthProvider : BaseComponent<Camera>, IEnvDepthProvider
     {
         readonly XrApp _xrApp;
-        readonly Dictionary<long, Texture2D > _textures;
+        readonly Dictionary<long, Texture2D> _textures;
         private Texture2D? _lastTexture;
-        private XrPassthroughLayer _passTh;
+        private readonly XrPassthroughLayer _passTh;
         private long _lastFrameTime;
         private Texture2D? _outTexture;
 
@@ -21,7 +21,7 @@ namespace XrEngine.OpenXr
             _passTh.UseEnvironmentDepth = true;
             _xrApp = xrApp;
             _textures = [];
-            Blur = true;    
+            Blur = true;
         }
 
 
@@ -63,10 +63,10 @@ namespace XrEngine.OpenXr
                 var img = _passTh.EnvironmentDepth.Images!.ItemPointer((int)data.SwapchainIndex);
                 var type = img->Type;
 
-                if (type == StructureType.SwapchainImageOpenglKhr || 
+                if (type == StructureType.SwapchainImageOpenglKhr ||
                     type == StructureType.SwapchainImageOpenglESKhr)
                 {
-                    
+
                     var glImg = *(SwapchainImageOpenGLKHR*)img;
 
                     if (!_textures.TryGetValue(glImg.Image, out var texture))
@@ -114,7 +114,7 @@ namespace XrEngine.OpenXr
         [Range(-1, 1, 0.001f)]
         public float Bias { get; set; }
 
-        public bool Blur { get; set; }  
+        public bool Blur { get; set; }
 
         public bool RemoveHand
         {
