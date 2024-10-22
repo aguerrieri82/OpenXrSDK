@@ -32,6 +32,7 @@ namespace OpenXr.Framework
 
         public long DepthFormat { get; set; }
 
+
         public XrRenderMode RenderMode { get; set; }
 
         public PerfSettingsLevelEXT CpuLevel { get; set; }

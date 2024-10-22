@@ -232,5 +232,17 @@ namespace XrEngine.OpenGL
 
             return result;
         }
+
+        public static T? Pass<T>(this OpenGLRender self) where T : IGlRenderPass    
+        {
+            return self.Passes<T>().Single();
+        }
+
+        public static bool HasPass<T>(this OpenGLRender self) where T : IGlRenderPass
+        {
+            return self.Passes<T>().Any();
+        }
+
+
     }
 }

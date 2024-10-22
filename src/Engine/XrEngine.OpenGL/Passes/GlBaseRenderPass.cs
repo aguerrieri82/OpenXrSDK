@@ -86,6 +86,11 @@
                 instance.UpdateUniforms(updateContext, false);
         }
 
+        public virtual void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
+
         public abstract void RenderLayer(GlLayer layer);
 
         public bool IsEnabled { get; set; }

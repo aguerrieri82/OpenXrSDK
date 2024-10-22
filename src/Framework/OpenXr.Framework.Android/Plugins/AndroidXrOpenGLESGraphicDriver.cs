@@ -53,6 +53,7 @@ namespace OpenXr.Framework.Android
 
             result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
             result.DepthFormat = (long)InternalFormat.Depth32fStencil8;
+
         }
 
         public GraphicsBinding CreateBinding()

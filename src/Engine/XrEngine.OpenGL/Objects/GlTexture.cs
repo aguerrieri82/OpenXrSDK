@@ -11,7 +11,7 @@ namespace XrEngine.OpenGL
 {
     public class GlTexture : GlObject, IGlRenderAttachment
     {
-        static readonly Dictionary<uint, GlTexture> _attached = [];
+        static internal readonly Dictionary<uint, GlTexture> _attached = [];
 
 
         protected uint _width;

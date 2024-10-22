@@ -106,7 +106,7 @@ namespace OpenXr.Framework
             base.Create();
         }
 
-        protected override bool Update(ref CompositionLayerProjection layer, ref View[] views, long predTime)
+        protected override bool Update(ref CompositionLayerProjection layer, ref View[] views, long displayTime)
         {
             Debug.Assert(_xrApp != null);
             Debug.Assert(_swapchains != null);
@@ -171,18 +171,24 @@ namespace OpenXr.Framework
                     {
                         projView.SubImage.ImageArrayIndex = 0;
                     }
+
+                    UpdateView(ref projView, i); 
                 }
             }
 
             var projViews = new Span<CompositionLayerProjectionView>(layer.Views, (int)layer.ViewCount);
 
             if (_renderView != null)
-                return Render(ref projViews, ref views, _swapchains, predTime);
+                return Render(ref projViews, ref views, _swapchains, displayTime);
 
             return false;
         }
 
-        protected bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
+        protected virtual void UpdateView(ref CompositionLayerProjectionView projView, int index)
+        {
+        }
+
+        protected virtual bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
         {
             var colorImages = new SwapchainImageBaseHeader*[swapchains.Length];
             var depthImages = _useDepthSWC ? new SwapchainImageBaseHeader*[swapchains.Length] : null;

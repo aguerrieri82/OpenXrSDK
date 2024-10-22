@@ -105,5 +105,12 @@ namespace XrEngine.OpenGL
         {
             _renderer.State.SetActiveProgram(0);
         }
+
+        public override void Dispose()
+        {
+            _programInstance?.Dispose();
+            _programInstance = null;    
+            base.Dispose();
+        }
     }
 }

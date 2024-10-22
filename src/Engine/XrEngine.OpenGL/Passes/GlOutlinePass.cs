@@ -80,5 +80,14 @@ namespace XrEngine.OpenGL
         }
 
 
+        public override void Dispose()
+        {
+            _outline?.Dispose();
+            _clear?.Dispose();  
+            _outline = null;
+            _clear = null;  
+            base.Dispose();
+        }
+
     }
 }

@@ -17,7 +17,6 @@ namespace XrEngine.OpenGL
 
         public void Check()
         {
-
             var status = _gl.CheckFramebufferStatus(Target);
 
             if (status != GLEnum.FramebufferComplete)
@@ -57,9 +56,11 @@ namespace XrEngine.OpenGL
 
         public override void Dispose()
         {
-
-            _gl.DeleteFramebuffer(_handle);
-            _handle = 0;
+            if (_handle != 0)
+            {
+                _gl.DeleteFramebuffer(_handle);
+                _handle = 0;
+            }
             GC.SuppressFinalize(this);
         }
 

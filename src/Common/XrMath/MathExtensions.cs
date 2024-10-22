@@ -265,7 +265,7 @@ namespace XrMath
 
         public static Pose3 Inverse(this Pose3 self)
         {
-            var quat = Quaternion.Conjugate(self.Orientation);
+            var quat = Quaternion.Inverse(self.Orientation);
 
             return new Pose3
             {
@@ -278,8 +278,7 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Transform(this Pose3 pose, Vector3 vector)
         {
-            var result = Vector3.Transform(vector, pose.Orientation);
-            return result + pose.Position;
+            return pose.Position + Vector3.Transform(vector, pose.Orientation);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -291,6 +290,7 @@ namespace XrMath
                 Position = self.Transform(other.Position)
             };
         }
+
 
         public static Pose3 ToPose(this Matrix4x4 self)
         {

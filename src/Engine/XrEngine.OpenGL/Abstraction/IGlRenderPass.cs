@@ -1,6 +1,6 @@
 ﻿namespace XrEngine.OpenGL
 {
-    public interface IGlRenderPass
+    public interface IGlRenderPass : IDisposable
     {
         void Render(Camera camera);
 

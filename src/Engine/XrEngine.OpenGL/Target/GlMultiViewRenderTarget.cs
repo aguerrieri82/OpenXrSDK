@@ -63,10 +63,10 @@ namespace XrEngine.OpenGL
 
         public void End(bool finalPass)
         {
-            if (finalPass && false)
+            if (finalPass)
             {
-                _frameBuffer.Bind();
-                _gl.InvalidateFramebuffer(_frameBuffer.Target, DepthStencilAttachment);
+                //_frameBuffer.Bind();
+                //_gl.InvalidateFramebuffer(_frameBuffer.Target, DepthStencilAttachment);
             }
 
             _frameBuffer.Unbind();
@@ -80,6 +80,7 @@ namespace XrEngine.OpenGL
         public void Dispose()
         {
             _frameBuffer.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public void UpdateShader(ShaderUpdateBuilder bld)

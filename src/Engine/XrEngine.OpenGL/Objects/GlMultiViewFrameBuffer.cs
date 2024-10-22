@@ -58,9 +58,7 @@ namespace XrEngine.OpenGL
 
         static void BindFunctions(GL gl)
         {
-            nint addr;
-
-            gl.Context.TryGetProcAddress("glFramebufferTextureMultiviewOVR", out addr);
+            gl.Context.TryGetProcAddress("glFramebufferTextureMultiviewOVR", out nint addr);
             FramebufferTextureMultiviewOVR = Marshal.GetDelegateForFunctionPointer<FramebufferTextureMultiviewOVRDelegate>(addr);
 
             gl.Context.TryGetProcAddress("glFramebufferTextureMultisampleMultiviewOVR", out addr);
@@ -126,12 +124,9 @@ namespace XrEngine.OpenGL
                     depthAtt,
                     _depth,
                     0, 0, 2);
-
             }
 
             Check();
-
-            //Unbind();
         }
 
         public void Detach(FramebufferAttachment attachment)
@@ -174,8 +169,6 @@ namespace XrEngine.OpenGL
             {
                 throw new Exception($"Frame buffer state invalid: {status}");
             }
-
-            //Unbind();
         }
 
         public override GlTexture? QueryTexture(FramebufferAttachment attachment)

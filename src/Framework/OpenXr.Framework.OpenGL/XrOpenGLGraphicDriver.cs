@@ -76,8 +76,8 @@ namespace OpenXr.Framework.OpenGL
 
             result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
             result.DepthFormat = (long)InternalFormat.Depth24Stencil8;
-        }
 
+        }
 
         public T GetApi<T>() where T : class
         {

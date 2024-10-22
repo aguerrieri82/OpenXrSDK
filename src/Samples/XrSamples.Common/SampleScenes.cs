@@ -1000,7 +1000,8 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                .UseEnvironmentDepth()
+                .UseSpaceWarp()
+                //.UseEnvironmentDepth()
                 .UseDefaultHDR()
                 .ConfigureSampleApp();
         }
