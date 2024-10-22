@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace XrEngine
 {
@@ -25,7 +20,7 @@ namespace XrEngine
             var builder = new MeshBuilder();
 
             builder.AddCircle(Vector3.Zero, BaseDiameter / 2, Subs);
-            builder.AddCircle(new Vector3(0,0, BaseLength), ArrowDiameter / 2, Subs);
+            builder.AddCircle(new Vector3(0, 0, BaseLength), ArrowDiameter / 2, Subs);
             var smoothStart = builder.Vertices.Count;
             builder.AddCylinder(Vector3.Zero, BaseDiameter / 2, BaseLength, Subs);
             builder.AddCone(new Vector3(0, 0, BaseLength), ArrowDiameter / 2, ArrowLength, Subs);
@@ -36,7 +31,7 @@ namespace XrEngine
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal;
 
             this.SmoothNormals((uint)smoothStart, (uint)Vertices.Length - 1);
-   
+
             this.ComputeIndices();
 
             Version++;
@@ -48,7 +43,7 @@ namespace XrEngine
 
         public float ArrowDiameter { get; set; }
 
-        public float ArrowLength { get; set; }  
+        public float ArrowLength { get; set; }
 
         public float BaseLength { get; set; }
 

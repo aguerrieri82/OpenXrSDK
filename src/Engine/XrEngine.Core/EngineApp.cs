@@ -59,7 +59,7 @@ namespace XrEngine
         {
             if (_playState == PlayState.Start)
                 return;
-            
+
             if (_playState == PlayState.Stop)
             {
                 _context.StartTime = new TimeSpan(DateTime.Now.Ticks);

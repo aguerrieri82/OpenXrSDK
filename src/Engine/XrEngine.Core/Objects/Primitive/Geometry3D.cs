@@ -162,7 +162,7 @@ namespace XrEngine
                 UpdateBounds();
 
             _indices = [];
-            _vertices = []; 
+            _vertices = [];
         }
 
         public Geometry3D Clone()
@@ -173,7 +173,7 @@ namespace XrEngine
             result.Indices = new uint[_indices.Length];
             Array.Copy(_indices, result.Indices, _indices.Length);
             result.ActiveComponents = ActiveComponents;
-            result._bounds = _bounds;   
+            result._bounds = _bounds;
             result._boundsDirty = _boundsDirty;
 
             return result;

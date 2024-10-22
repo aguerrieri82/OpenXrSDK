@@ -56,7 +56,7 @@ namespace OpenXr.Framework.Android
                     EGL14.EglGetConfigAttrib(display, configs[i], configAttribs[j], value, 0);
                     if (value[0] != configAttribs[j + 1])
                         break;
-              
+
                 }
                 if (configAttribs[j] == EGL14.EglNone)
                 {
@@ -90,8 +90,8 @@ namespace OpenXr.Framework.Android
                 display,
                 config,
                 [
-                    EGL14.EglWidth, 16, 
-                    EGL14.EglHeight, 16, 
+                    EGL14.EglWidth, 16,
+                    EGL14.EglHeight, 16,
                     EGL14.EglNone
                 ],
                 0
@@ -110,7 +110,7 @@ namespace OpenXr.Framework.Android
                 throw new Exception("EglMakeCurrent");
             }
 
-            var exts = GLES32.GlGetString(GLES32.GlExtensions); 
+            var exts = GLES32.GlGetString(GLES32.GlExtensions);
 
             Log.Info("EGL Extensions", exts ?? "");
 

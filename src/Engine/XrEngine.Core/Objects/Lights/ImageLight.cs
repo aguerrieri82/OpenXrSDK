@@ -123,7 +123,7 @@ namespace XrEngine
         {
             Textures.Dispose();
             Panorama?.Dispose();
-            Panorama = null;    
+            Panorama = null;
             base.Dispose();
         }
 

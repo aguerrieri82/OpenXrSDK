@@ -95,7 +95,7 @@ namespace XrEngine.OpenGL
 
             if (_options.UsePlanarReflection)
             {
-                _renderPasses.Add(new GlReflectionPass(this));    
+                _renderPasses.Add(new GlReflectionPass(this));
             }
 
             _renderPasses.Add(new GlColorPass(this));
@@ -183,7 +183,7 @@ namespace XrEngine.OpenGL
 
         public IEnumerable<T> Passes<T>() where T : IGlRenderPass
         {
-            return _renderPasses.OfType<T>();       
+            return _renderPasses.OfType<T>();
         }
 
         public void AddPass(IGlRenderPass pass, int position)
@@ -210,7 +210,7 @@ namespace XrEngine.OpenGL
                 if (_options.ShadowMap.Mode != ShadowMapMode.None)
                 {
                     var castShadowLayer = scene.EnsureLayer<CastShadowsLayer>();
-                    scene.EnsureLayer<ReceiveShadowsLayer>();   
+                    scene.EnsureLayer<ReceiveShadowsLayer>();
                     _layers.Add(new GlLayer(this, scene, GlLayerType.CastShadow, castShadowLayer));
                 }
 
@@ -281,7 +281,7 @@ namespace XrEngine.OpenGL
             _dispatcher.ProcessQueue();
 
             _target.End(true);
-           
+
             if (flush)
                 _gl.Finish();
 
@@ -594,7 +594,7 @@ namespace XrEngine.OpenGL
 
             GlProgramInstance._programs.Clear();
 
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         public void Suspend()

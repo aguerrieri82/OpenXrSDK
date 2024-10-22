@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public abstract class Behavior<T> : BaseComponent<T>, IBehavior, IComponent<T> where T : EngineObject
     {
@@ -50,7 +48,7 @@ namespace XrEngine
                 try
                 {
                     EngineApp.Current!.Stats.Update(this, () => Update(ctx));
-                } 
+                }
                 catch (Exception ex)
                 {
                     Log.Error(this, ex, "Update error: {0}");

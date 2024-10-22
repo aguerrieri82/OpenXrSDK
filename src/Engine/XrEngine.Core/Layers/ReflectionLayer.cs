@@ -1,6 +1,4 @@
-﻿using XrEngine;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class ReflectionLayer : ComponentLayer<PlanarReflection>
     {

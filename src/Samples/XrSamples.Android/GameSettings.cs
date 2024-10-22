@@ -9,12 +9,12 @@ namespace XrSamples
 
         public string? Hdri { get; set; }
 
-        public int Msaa { get; set; } 
+        public int Msaa { get; set; }
 
-        public GraphicDriver Driver { get; set; } 
+        public GraphicDriver Driver { get; set; }
 
         public bool IsMultiView { get; set; }
- 
+
         public bool EnableDepthPass { get; set; }
 
         public bool UsePbrV2 { get; set; }
@@ -28,7 +28,7 @@ namespace XrSamples
                 Msaa = 1,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = true,
+                IsMultiView = false,
                 EnableDepthPass = false
             };
         }

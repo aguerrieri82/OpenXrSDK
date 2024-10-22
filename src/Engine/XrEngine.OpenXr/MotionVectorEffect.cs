@@ -1,14 +1,5 @@
-﻿using glTFLoader.Schema;
-using OpenXr.Framework;
-using Silk.NET.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using XrMath;
 
 namespace XrEngine.OpenXr
 {
@@ -61,7 +52,7 @@ namespace XrEngine.OpenXr
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
-    
+
             bld.ExecuteAction((ctx, up) =>
             {
                 var camera = ctx.Camera;
@@ -75,7 +66,7 @@ namespace XrEngine.OpenXr
                 up.SetUniform("uMatrices.current.model", ctx.Model.WorldMatrix);
 
                 if (camera.ActiveEye == 1)
-                    _models[ctx.Model] = ctx.Model.WorldMatrix; 
+                    _models[ctx.Model] = ctx.Model.WorldMatrix;
             });
 
             base.UpdateShader(bld);

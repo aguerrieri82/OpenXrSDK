@@ -2,7 +2,6 @@
 using OpenXr.Framework.Oculus;
 using PhysX.Framework;
 using Silk.NET.OpenXR;
-using System.ComponentModel.DataAnnotations;
 using XrEngine.Objects;
 using XrEngine.OpenGL;
 using XrEngine.Physics;
@@ -106,7 +105,7 @@ namespace XrEngine.OpenXr
             var sceneView = new OculusSceneView();
 
             var factory = (DefaultSceneModelFactory)sceneView.Factory;
-            
+
             Material? material = null;
             if (arMode)
                 material = new ShadowOnlyMaterial();
@@ -155,7 +154,7 @@ namespace XrEngine.OpenXr
         {
             self.Options.Driver = GraphicDriver.OpenGL;
             self.Options.DriverOptions = new GlRenderOptions();
-            options((GlRenderOptions)self.Options.DriverOptions);       
+            options((GlRenderOptions)self.Options.DriverOptions);
             return self;
         }
 

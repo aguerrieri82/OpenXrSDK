@@ -1,5 +1,4 @@
 ﻿using Android.Content;
-using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
 using Android.Util;
@@ -224,7 +223,7 @@ namespace OpenXr.Framework.Android
         private string? GetWebViewVersion()
         {
             try
-            { 
+            {
                 var packageInfo = _context.PackageManager!.GetPackageInfo("com.google.android.webview", 0);
                 return packageInfo?.VersionName;
             }

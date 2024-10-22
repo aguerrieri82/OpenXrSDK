@@ -172,7 +172,7 @@ namespace OpenXr.Framework
                         projView.SubImage.ImageArrayIndex = 0;
                     }
 
-                    UpdateView(ref projView, i); 
+                    UpdateView(ref projView, i);
                 }
             }
 

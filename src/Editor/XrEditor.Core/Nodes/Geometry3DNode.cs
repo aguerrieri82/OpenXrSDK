@@ -10,7 +10,7 @@ namespace XrEditor.Nodes
         public Geometry3DNode(Geometry3D value)
             : base(value)
         {
-           _autoGenProps = true;  
+            _autoGenProps = true;
         }
 
 

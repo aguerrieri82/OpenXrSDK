@@ -1,31 +1,34 @@
 ﻿using Microsoft.Extensions.Logging;
 using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace OpenXr.Framework.Oculus
 {
     public class XrSpaceWarpProjectionLayer : XrProjectionLayer
     {
-        private NativeArray<CompositionLayerSpaceWarpInfoFB> _spaceWarpInfo; 
-        private Swapchain _motionColorSwapchain;
-        private Swapchain _motionDepthSwapchain;
-        private NativeArray<SwapchainImageBaseHeader>? _motionColorImages;
-        private NativeArray<SwapchainImageBaseHeader>? _motionDepthImages;
-        private IMotionVectorProvider _motionVector;
+        public struct SpaceWarpData
+        {
+            public Swapchain ColorSwapchain;
+            public Swapchain DepthSwapchain;
+            public NativeArray<SwapchainImageBaseHeader> ColorImages;
+            public NativeArray<SwapchainImageBaseHeader> DepthImages;
+        }
+
+        private readonly NativeArray<CompositionLayerSpaceWarpInfoFB> _spaceWarpInfo;
+        private readonly SpaceWarpData[] _spaceWarpData;
+        private readonly Pose3[] _lastPose = new Pose3[2];
+        private readonly bool _warpTexArray = true;
+
+        private readonly IMotionVectorProvider _motionProvider;
         private Extent2Di _motionImageSize;
-        private readonly Pose3[] _lastPose = new Pose3[2];   
 
         public XrSpaceWarpProjectionLayer(RenderViewDelegate renderView, IMotionVectorProvider provider)
             : base(renderView)
         {
             _spaceWarpInfo = new NativeArray<CompositionLayerSpaceWarpInfoFB>(2, typeof(CompositionLayerSpaceWarpInfoFB));
-            _motionVector = provider;   
+            _motionProvider = provider;
+            _spaceWarpData = new SpaceWarpData[_warpTexArray ? 1 : 2];
         }
 
         public unsafe override void Create()
@@ -50,40 +53,64 @@ namespace OpenXr.Framework.Oculus
             if (_motionImageSize.Width == 0 || _motionImageSize.Height == 0)
                 _motionImageSize = _xrApp.RenderOptions.Size;
 
-            _motionColorSwapchain = _xrApp.CreateSwapChain(_motionImageSize, _motionVector.MotionVectorFormat, 2, SwapchainUsageFlags.ColorAttachmentBit | SwapchainUsageFlags.SampledBit);
-            _motionColorImages = _xrApp.EnumerateSwapchainImages(_motionColorSwapchain);
+            for (var i = 0; i < _spaceWarpData.Length; i++)
+            {
+                _spaceWarpData[i].ColorSwapchain = _xrApp.CreateSwapChain(
+                    _motionImageSize,
+                    _motionProvider.MotionVectorFormat,
+                    _warpTexArray ? 2 : 1u,
+                    SwapchainUsageFlags.ColorAttachmentBit | SwapchainUsageFlags.SampledBit, false);
 
-            _motionDepthSwapchain = _xrApp.CreateSwapChain(_motionImageSize, _motionVector.DepthFormat, 2, SwapchainUsageFlags.DepthStencilAttachmentBit | SwapchainUsageFlags.SampledBit);
-            _motionDepthImages = _xrApp.EnumerateSwapchainImages(_motionDepthSwapchain);
+                _spaceWarpData[i].ColorImages = _xrApp.EnumerateSwapchainImages(_spaceWarpData[i].ColorSwapchain);
+
+                _spaceWarpData[i].DepthSwapchain = _xrApp.CreateSwapChain(
+                    _motionImageSize,
+                    _motionProvider.DepthFormat,
+                    _warpTexArray ? 2 : 1u,
+                    SwapchainUsageFlags.DepthStencilAttachmentBit | SwapchainUsageFlags.SampledBit, false);
+
+                _spaceWarpData[i].DepthImages = _xrApp.EnumerateSwapchainImages(_spaceWarpData[i].DepthSwapchain);
+            }
         }
 
         public override void Destroy()
         {
             base.Destroy();
 
-            _xrApp?.DestroySwapchain(_motionColorSwapchain);
-            _xrApp?.DestroySwapchain(_motionDepthSwapchain);
+            foreach (var data in _spaceWarpData)
+            {
+                _xrApp?.DestroySwapchain(data.DepthSwapchain);
+                _xrApp?.DestroySwapchain(data.ColorSwapchain);
 
-            _motionDepthImages?.Dispose();
-            _motionColorImages?.Dispose();  
-        }       
+                data.DepthImages?.Dispose();
+                data.ColorImages?.Dispose();
+            }
+        }
 
         protected unsafe override bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, XrSwapchainInfo[] swapchains, long displayTime)
         {
             Debug.Assert(_xrApp != null);
 
-            var colorIndex = _xrApp.AcquireSwapchainImage(_motionColorSwapchain);
-            var depthIndex = _xrApp.AcquireSwapchainImage(_motionDepthSwapchain);
+            var colorImages = new SwapchainImageBaseHeader*[_spaceWarpData.Length];
+            var depthImages = new SwapchainImageBaseHeader*[_spaceWarpData.Length];
 
-            _xrApp.WaitSwapchainImage(_motionColorSwapchain);
-            _xrApp.WaitSwapchainImage(_motionDepthSwapchain);
+            for (var i = 0; i < _spaceWarpData.Length; i++)
+            {
+                var info = *(CompositionLayerSpaceWarpInfoFB*)(projViews[i].Next);
+
+                var colorIndex = _xrApp.AcquireSwapchainImage(_spaceWarpData[i].ColorSwapchain);
+                _xrApp.WaitSwapchainImage(_spaceWarpData[i].ColorSwapchain);
+
+                var depthIndex = _xrApp.AcquireSwapchainImage(_spaceWarpData[i].DepthSwapchain);
+                _xrApp.WaitSwapchainImage(_spaceWarpData[i].DepthSwapchain);
+
+                colorImages[i] = _spaceWarpData[i].ColorImages!.ItemPointer((int)colorIndex);
+                depthImages[i] = _spaceWarpData[i].DepthImages!.ItemPointer((int)depthIndex);
+            }
 
             try
             {
-                var colorImage = _motionColorImages!.ItemPointer((int)colorIndex);
-                var depthImage = _motionDepthImages!.ItemPointer((int)depthIndex);
-
-                _motionVector.UpdateMotionVectors(ref projViews, colorImage, depthImage, _xrApp!.RenderOptions.RenderMode);
+                _motionProvider.UpdateMotionVectors(ref projViews, colorImages, depthImages, _xrApp!.RenderOptions.RenderMode);
 
                 /*
                 for (var i = 0; i < projViews.Length; i++)
@@ -108,30 +135,36 @@ namespace OpenXr.Framework.Oculus
             }
             finally
             {
-                _xrApp.ReleaseSwapchainImage(_motionColorSwapchain);
-                _xrApp.ReleaseSwapchainImage(_motionDepthSwapchain);
+                for (var i = 0; i < _spaceWarpData.Length; i++)
+                {
+                    _xrApp.ReleaseSwapchainImage(_spaceWarpData[i].ColorSwapchain);
+                    _xrApp.ReleaseSwapchainImage(_spaceWarpData[i].DepthSwapchain);
+                }
             }
 
-            return true; 
+            return true;
         }
 
         protected unsafe override void UpdateView(ref CompositionLayerProjectionView projView, int index)
         {
             var info = _spaceWarpInfo.ItemPointer(index);
 
+            var dataIndex = _warpTexArray ? 0 : index;
+            var arrayIndex = _warpTexArray ? index : 0;
+
             info->Type = StructureType.CompositionLayerSpaceWarpInfoFB;
             info->Next = null;
-            
-            info->DepthSubImage.Swapchain = _motionDepthSwapchain;
-            info->DepthSubImage.ImageArrayIndex = (uint)index;
+
+            info->DepthSubImage.Swapchain = _spaceWarpData[dataIndex].DepthSwapchain;
+            info->DepthSubImage.ImageArrayIndex = (uint)arrayIndex;
             info->DepthSubImage.ImageRect = new Rect2Di
             {
                 Offset = new Offset2Di { X = 0, Y = 0 },
                 Extent = _motionImageSize
             };
 
-            info->MotionVectorSubImage.Swapchain = _motionColorSwapchain;
-            info->MotionVectorSubImage.ImageArrayIndex = (uint)index;
+            info->MotionVectorSubImage.Swapchain = _spaceWarpData[dataIndex].ColorSwapchain;
+            info->MotionVectorSubImage.ImageArrayIndex = (uint)arrayIndex;
             info->MotionVectorSubImage.ImageRect = new Rect2Di
             {
                 Offset = new Offset2Di { X = 0, Y = 0 },
@@ -140,8 +173,8 @@ namespace OpenXr.Framework.Oculus
 
             info->MaxDepth = 1;
             info->MinDepth = 0;
-            info->NearZ = _motionVector.Near;
-            info->FarZ = _motionVector.Far;
+            info->NearZ = _motionProvider.Near;
+            info->FarZ = _motionProvider.Far;
             info->LayerFlags = CompositionLayerSpaceWarpInfoFlagsFB.None;
 
             info->AppSpaceDeltaPose = new Posef
@@ -150,7 +183,7 @@ namespace OpenXr.Framework.Oculus
                 Position = new Vector3f { X = 0, Y = 0, Z = 0 }
             };
 
-            //projView.Next = info;
+            projView.Next = info;
         }
 
         public override void Dispose()

@@ -2,7 +2,6 @@
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;
-using System.Reflection.Emit;
 using XrMath;
 
 namespace OpenXr.Framework
@@ -20,7 +19,7 @@ namespace OpenXr.Framework
             return new Guid(new Span<byte>(uuid.Data, 16));
         }
 
-      
+
 
         public static async Task<List<XrAnchor>> GetAnchorsAsync(this OculusXrPlugin xrOculus, XrAnchorFilter filter)
         {
@@ -32,7 +31,7 @@ namespace OpenXr.Framework
             {
                 var hasLabel = filter.Labels != null || (filter.Components & XrAnchorComponent.Label) != 0;
 
-                string[] labels = [];   
+                string[] labels = [];
 
                 if (hasLabel)
                 {
@@ -49,7 +48,7 @@ namespace OpenXr.Framework
                 {
                     Id = space.Uuid.ToGuid(),
                     Space = space.Space.Handle,
-                    Labels = labels,    
+                    Labels = labels,
                 };
 
                 try

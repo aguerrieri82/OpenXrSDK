@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
@@ -86,7 +85,7 @@ namespace XrEngine
             return self.DescendantsOrSelf()
                 .OfType<TriangleMesh>()
                 .SelectMany(a => a.Materials)
-                .OfType<T>();   
+                .OfType<T>();
         }
 
 

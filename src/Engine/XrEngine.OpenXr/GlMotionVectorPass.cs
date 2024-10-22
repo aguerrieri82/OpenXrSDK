@@ -5,7 +5,6 @@ using Silk.NET.OpenGL;
 #endif
 
 using OpenXr.Framework;
-using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using XrEngine.OpenGL;
 using XrMath;
@@ -38,8 +37,8 @@ namespace XrEngine.OpenXr
             var colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
             var depthTex = ((SwapchainImageOpenGLKHR*)depthImg)->Image;
 
-            _glColorImage =  GlTexture.Attach(_renderer.GL, colorTex, sampleCount, TextureTarget.Texture2DArray);
-            _glDepthImage = GlTexture.Attach(_renderer.GL, depthTex, sampleCount, TextureTarget.Texture2DArray);
+            _glColorImage = GlTexture.Attach(_renderer.GL, colorTex, sampleCount);
+            _glDepthImage = GlTexture.Attach(_renderer.GL, depthTex, sampleCount);
         }
 
         protected override IGlRenderTarget? GetRenderTarget()
@@ -58,10 +57,17 @@ namespace XrEngine.OpenXr
 
             camera.ActiveEye = _activeEye;
 
-            _renderTarget.FrameBuffer.Configure(
-                 _glColorImage, (uint)_activeEye,
-                 _glDepthImage, (uint)_activeEye,
-                 sampleCount);
+            if (_glColorImage.Depth > 1)
+            {
+                _renderTarget.FrameBuffer.Configure(
+                _glColorImage, (uint)_activeEye,
+                _glDepthImage, (uint)_activeEye,
+                sampleCount);
+            }
+            else
+            {
+                _renderTarget.FrameBuffer.Configure(_glColorImage, _glDepthImage, sampleCount);
+            }
 
             _renderTarget.Begin(camera);
 
@@ -85,8 +91,6 @@ namespace XrEngine.OpenXr
                 _glColorImage = null;
                 _glDepthImage = null;
             }
-
-            _renderer.UpdateContext.ProgramInstanceId = 0;
 
             base.EndRender();
         }

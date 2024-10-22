@@ -1,7 +1,4 @@
-﻿using System.Numerics;
-using System.Security.Cryptography;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class StandardVertexShaderHandler : IShaderHandler
     {

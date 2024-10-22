@@ -85,7 +85,7 @@ namespace XrEngine.OpenXr
 
         protected virtual void MoveGrabbing(Pose3 grabPoint)
         {
-            Debug.Assert(_grabObject != null);  
+            Debug.Assert(_grabObject != null);
 
             _grabObject.WorldPosition = grabPoint.Position;
             _grabObject.WorldOrientation = _startOrientation.AddDelta(grabPoint.Orientation.Subtract(_startInputOrientation));

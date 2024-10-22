@@ -18,7 +18,7 @@ namespace XrEngine.OpenXr
         {
             Flags |= EngineObjectFlags.DisableNotifyChangedScene | EngineObjectFlags.Generated;
             Name = "SceneView";
-            Factory = DefaultSceneModelFactory.Instance;    
+            Factory = DefaultSceneModelFactory.Instance;
         }
 
         public override void Update(RenderContext ctx)
@@ -135,7 +135,7 @@ namespace XrEngine.OpenXr
                 _isSceneLoading = false;
             }
 
-            SceneReady?.Invoke(this, EventArgs.Empty);   
+            SceneReady?.Invoke(this, EventArgs.Empty);
         }
 
         public event EventHandler? SceneReady;

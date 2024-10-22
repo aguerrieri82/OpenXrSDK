@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
 {
     public class GeometryScale : BaseComponent<Object3D>, IDrawGizmos, IScaleHandler
     {
-        private Dictionary<TriangleMesh, Geometry3D> _geometries = [];
+        private readonly Dictionary<TriangleMesh, Geometry3D> _geometries = [];
         private Bounds3 _bounds;
         private Vector3 _size;
 
@@ -34,7 +28,7 @@ namespace XrEngine
                 _geometries[item] = item.Geometry!.Clone();
                 item.Geometry.Flags = EngineObjectFlags.None;
             }
-  
+
             base.OnAttach();
         }
 
@@ -85,8 +79,8 @@ namespace XrEngine
 
             foreach (var item in _geometries)
             {
-                var mesh = item.Key;   
-                var geometry = item.Value; 
+                var mesh = item.Key;
+                var geometry = item.Value;
 
                 var curVer = mesh.Geometry!.Vertices;
                 var startVer = geometry!.Vertices;

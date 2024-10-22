@@ -41,7 +41,7 @@ namespace XrEngine.OpenXr
                 {
                     Task.Run(async () =>
                     {
-             
+
                         //var layout = oculus.GetSpaceRoomLayout(_xrApp.Stage);
 
                         var anchors = await oculus.GetAnchorsAsync(new XrAnchorFilter

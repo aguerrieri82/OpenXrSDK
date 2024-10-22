@@ -15,11 +15,16 @@ using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.Services;
 using XrEngine.UI;
+using XrEngine.UI.Web;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
+
+/* Unmerged change from project 'XrSamples.Common (net9.0-android)'
+Removed:
 using XrEngine.UI.Web;
 using XrEngine.OpenGL;
+*/
 
 
 
@@ -181,7 +186,7 @@ namespace XrSamples
             floor.Materials.Add(new ShadowOnlyMaterial
             {
                 Name = "FloorMaterial",
-                ShadowColor = new Color(1f, 0.1f, 0.1f, 0.7f),   
+                ShadowColor = new Color(1f, 0.1f, 0.1f, 0.7f),
             });
 
             floor.Transform.SetPositionY(-0.01f / 2.0f);
@@ -719,7 +724,7 @@ namespace XrSamples
             {
                 foreach (var mat in child.Materials)
                 {
-                    if (mat is IPbrMaterial pbr &&  pbr.Roughness == 0.2f)
+                    if (mat is IPbrMaterial pbr && pbr.Roughness == 0.2f)
                     {
                         //pbr.MetallicRoughness.RoughnessFactor = 0.2f;
                         // pbr.MetallicRoughness.MetallicFactor = 0f;

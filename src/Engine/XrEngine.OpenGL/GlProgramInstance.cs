@@ -119,7 +119,7 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         public GlProgramGlobal Global { get; }

@@ -252,7 +252,7 @@ namespace XrEngine.OpenGL
                     _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
                     _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.Max);
                 }
-           }
+            }
         }
 
         public void SetWriteColor(bool value, bool force = false)

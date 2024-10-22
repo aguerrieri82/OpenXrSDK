@@ -17,7 +17,7 @@
 
         EngineObject Object { get; }
 
-        int RenderPriority { get; } 
+        int RenderPriority { get; }
 
         void NotifyLoaded();
     }

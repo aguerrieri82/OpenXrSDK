@@ -67,8 +67,8 @@ namespace XrEngine.OpenGL
 
         public void Configure(uint colorTex, uint depthTex, uint sampleCount)
         {
-            Configure(GlTexture.Attach(_gl, colorTex, 1, _target), 
-                      GlTexture.Attach(_gl, depthTex, 1, _target), 
+            Configure(GlTexture.Attach(_gl, colorTex, 1, _target),
+                      GlTexture.Attach(_gl, depthTex, 1, _target),
                       sampleCount);
         }
 

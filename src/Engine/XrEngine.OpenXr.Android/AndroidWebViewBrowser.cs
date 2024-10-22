@@ -2,7 +2,6 @@
 using Java.Interop;
 using OpenXr.Framework;
 using OpenXr.Framework.Android;
-using System.Diagnostics.CodeAnalysis;
 using XrEngine.UI.Web;
 
 namespace XrEngine.OpenXr.Android

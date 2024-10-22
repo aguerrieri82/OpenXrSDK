@@ -1,5 +1,4 @@
-﻿using Silk.NET.OpenGL;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using XrMath;
 
 namespace XrEngine.OpenGL
@@ -46,7 +45,7 @@ namespace XrEngine.OpenGL
                 IEnumerable<VertexContent> vertices = shader.Value.Contents.Values;
 
                 if (_renderer.Options.SortByCameraDistance)
-                    vertices = vertices.OrderBy(a => a.AvgDistance); 
+                    vertices = vertices.OrderBy(a => a.AvgDistance);
 
                 foreach (var vertex in vertices)
                 {
@@ -104,12 +103,13 @@ namespace XrEngine.OpenGL
         protected override void EndRender()
         {
             _renderer.State.SetActiveProgram(0);
+            _renderer.UpdateContext.ProgramInstanceId = 0;
         }
 
         public override void Dispose()
         {
             _programInstance?.Dispose();
-            _programInstance = null;    
+            _programInstance = null;
             base.Dispose();
         }
     }

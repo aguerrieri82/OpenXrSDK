@@ -20,7 +20,7 @@ namespace XrEngine.OpenXr
 
         public uint SampleCount { get; set; }
 
-        public object? DriverOptions { get; set; }  
+        public object? DriverOptions { get; set; }
     }
 
     public class XrEngineApp

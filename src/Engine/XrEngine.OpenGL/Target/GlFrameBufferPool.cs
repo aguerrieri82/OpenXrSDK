@@ -87,8 +87,8 @@ namespace XrEngine.OpenGL
         public void Clear()
         {
             foreach (var item in _targets)
-                item.Value.Dispose();   
-            _targets.Clear();   
+                item.Value.Dispose();
+            _targets.Clear();
         }
 
         public void Dispose()
@@ -97,6 +97,6 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
-        public TextureFormat DepthFormat {  get; set; } 
+        public TextureFormat DepthFormat { get; set; }
     }
 }

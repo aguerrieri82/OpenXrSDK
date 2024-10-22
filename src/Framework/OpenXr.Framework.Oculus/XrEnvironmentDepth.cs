@@ -1,12 +1,5 @@
 ﻿using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace OpenXr.Framework.Oculus
@@ -36,7 +29,7 @@ namespace OpenXr.Framework.Oculus
             EnsureInit();
 
             if (_depthProvider.Handle == 0)
-                _depthProvider = CreateProvider();  
+                _depthProvider = CreateProvider();
 
             if (_swapchain.Handle == 0)
             {
@@ -88,7 +81,7 @@ namespace OpenXr.Framework.Oculus
             _app.CheckResult(_envDepth.AcquireEnvironmentDepthImageMETA(_depthProvider, ref acquireInfo, out result), "AcquireEnvironmentDepthImageMETA");
 
             return result;
-        }   
+        }
 
         protected EnvironmentDepthProviderMETA CreateProvider()
         {
@@ -144,11 +137,11 @@ namespace OpenXr.Framework.Oculus
             return swapchain;
         }
 
-        [MemberNotNull(nameof(_app), nameof(_envDepth))]    
+        [MemberNotNull(nameof(_app), nameof(_envDepth))]
         protected void EnsureInit()
         {
             if (_app == null || _envDepth == null)
-                throw new InvalidOperationException("Not initialized"); 
+                throw new InvalidOperationException("Not initialized");
         }
 
         public void Dispose()
@@ -187,7 +180,7 @@ namespace OpenXr.Framework.Oculus
             throw new NotImplementedException();
         }
 
-        public Size2 Size => _size; 
+        public Size2 Size => _size;
 
         public NativeArray<SwapchainImageBaseHeader>? Images => _images;
 

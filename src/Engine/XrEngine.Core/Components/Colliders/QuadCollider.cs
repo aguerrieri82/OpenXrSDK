@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -30,7 +23,7 @@ namespace XrEngine
                 if (!PlaneMode && !uv.InRange(Vector2.Zero, Quad.Size))
                     return null;
 
-                var point = localPoint.Transform(_host.WorldMatrix);    
+                var point = localPoint.Transform(_host.WorldMatrix);
 
                 return new Collision
                 {

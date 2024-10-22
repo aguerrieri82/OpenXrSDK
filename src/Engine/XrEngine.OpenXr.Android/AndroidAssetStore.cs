@@ -38,7 +38,7 @@ namespace XrEngine.OpenXr.Android
             using var srcStream = _context.Assets!.Open(Path.Join(_basePath, name));
             using var dstStream = File.OpenWrite(cachePath);
             srcStream.CopyTo(dstStream);
-            
+
             _loadedFiles.Add(cachePath);
 
             return cachePath;

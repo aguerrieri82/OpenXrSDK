@@ -53,7 +53,7 @@ namespace OpenXr.Framework
         protected Space _head;
         protected Space _local;
         protected Space _stage;
-       
+
 
         protected ulong _systemId;
         protected XrViewInfo? _viewInfo;
@@ -332,7 +332,7 @@ namespace OpenXr.Framework
             return _systemId;
         }
 
-        public void GetSystemProperties<T>(ref T other) where T :  unmanaged
+        public void GetSystemProperties<T>(ref T other) where T : unmanaged
         {
             fixed (T* pProps = &other)
             {
@@ -518,7 +518,7 @@ namespace OpenXr.Framework
         [Obsolete("Oculus throws access violation")]
         public unsafe XrSpaceLocation[] LocateSpaces(Space[] spaces, Space baseSpace, long time = 0)
         {
-            var locations = new SpaceLocationData[spaces.Length];   
+            var locations = new SpaceLocationData[spaces.Length];
 
             fixed (Space* pSpaces = spaces)
             fixed (SpaceLocationData* pLocations = locations)
@@ -544,7 +544,7 @@ namespace OpenXr.Framework
                 CheckResult(_xr!.LocateSpaces(_session, &info, &result), "LocateSpaces");
             }
 
-            return locations.Select(a=> new XrSpaceLocation
+            return locations.Select(a => new XrSpaceLocation
             {
                 Pose = a.Pose.ToPose3(),
                 Flags = a.LocationFlags
@@ -659,7 +659,7 @@ namespace OpenXr.Framework
         public void DestroySwapchain(Swapchain swapchain)
         {
             CheckResult(_xr!.DestroySwapchain(swapchain), "DestroySwapchain");
-        }   
+        }
 
         public long[] EnumerateSwapchainFormats()
         {
@@ -749,7 +749,7 @@ namespace OpenXr.Framework
             return CreateSwapChain(size, format, arraySize, usage);
         }
 
-        public Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage)
+        public Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage, bool mainSwapChain = true)
         {
             var info = new SwapchainCreateInfo
             {
@@ -764,7 +764,8 @@ namespace OpenXr.Framework
                 UsageFlags = usage
             };
 
-            PluginInvoke(p => p.ConfigureSwapchain(ref info));
+            if (mainSwapChain)
+                PluginInvoke(p => p.ConfigureSwapchain(ref info));
 
             var result = new Swapchain();
             CheckResult(_xr!.CreateSwapchain(Session, in info, ref result), "CreateSwapchain");
@@ -820,7 +821,7 @@ namespace OpenXr.Framework
 
             FramePredictedDisplayTime = frameTime;
 
-            _tracker.Update(space, frameTime);  
+            _tracker.Update(space, frameTime);
 
             TrySyncActions(space, frameTime);
 

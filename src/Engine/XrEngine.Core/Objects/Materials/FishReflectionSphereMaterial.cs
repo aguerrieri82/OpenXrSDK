@@ -135,7 +135,7 @@ namespace XrEngine
             LeftMainTexture?.Dispose();
             RightTexture?.Dispose();
             LeftMainTexture = null;
-            RightTexture = null;    
+            RightTexture = null;
             base.Dispose();
         }
 

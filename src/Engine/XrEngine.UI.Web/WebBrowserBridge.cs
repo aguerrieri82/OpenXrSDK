@@ -28,9 +28,9 @@ namespace XrEngine.UI.Web
 
             public object? Result { get; set; }
 
-            public string? Method { get; set; } 
+            public string? Method { get; set; }
 
-            public object?[]? Args { get; set; } 
+            public object?[]? Args { get; set; }
         }
 
         readonly IWebBrowser _webBrowser;
@@ -60,19 +60,19 @@ namespace XrEngine.UI.Web
                 ReqId = Guid.NewGuid().ToString(),
             };
 
-            var cs = new TaskCompletionSource<object?>();       
+            var cs = new TaskCompletionSource<object?>();
 
             _callRequests[msg.ReqId] = new CallRequest
             {
                 CompletionSource = cs,
-                ResultType = typeof(T)    
-            };  
+                ResultType = typeof(T)
+            };
 
             await _webBrowser.PostMessageAsync(JsonSerializer.Serialize(msg, _jsonOptions));
 
             var result = await cs.Task;
 
-            return (T)result!;  
+            return (T)result!;
         }
 
         private async void OnMessageReceived(object? sender, MessageReceivedArgs e)
@@ -143,14 +143,14 @@ namespace XrEngine.UI.Web
             else if (type == "response")
             {
                 var reqId = (string)jObj["reqId"]!;
-                
+
                 var callRequest = _callRequests[reqId];
 
                 _callRequests.Remove(reqId);
 
-                var result = jObj["result"].Deserialize(callRequest.ResultType!, _jsonOptions);  
+                var result = jObj["result"].Deserialize(callRequest.ResultType!, _jsonOptions);
 
-                callRequest.CompletionSource!.SetResult(result); 
+                callRequest.CompletionSource!.SetResult(result);
             }
 
             else if (type == "error")
@@ -163,7 +163,7 @@ namespace XrEngine.UI.Web
 
                 var msg = (string?)jObj["result"];
 
-                callRequest.CompletionSource!.SetException(new InvalidOperationException(msg)); 
+                callRequest.CompletionSource!.SetException(new InvalidOperationException(msg));
 
             }
         }

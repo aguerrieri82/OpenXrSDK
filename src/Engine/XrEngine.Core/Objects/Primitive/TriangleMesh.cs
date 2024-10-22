@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -93,7 +92,7 @@ namespace XrEngine
         public void NotifyLoaded()
         {
             _geometry?.NotifyLoaded();
-     
+
         }
 
         public Geometry3D? Geometry
@@ -132,7 +131,7 @@ namespace XrEngine
             base.Dispose();
         }
 
-        public int RenderPriority { get; set; } 
+        public int RenderPriority { get; set; }
 
 
         public IList<Material> Materials => _materials;

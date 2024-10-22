@@ -188,7 +188,7 @@ namespace XrEngine.OpenGL
 
             _oldCamera = _renderer.UpdateContext.Camera;
             _renderer.UpdateContext.Camera = _lightCamera;
-            _layerVersion = shadowRenderLayer.Version;  
+            _layerVersion = shadowRenderLayer.Version;
 
             return base.BeginRender(camera);
         }

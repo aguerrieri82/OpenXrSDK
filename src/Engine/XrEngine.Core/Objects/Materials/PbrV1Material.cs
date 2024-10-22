@@ -86,8 +86,8 @@ namespace XrEngine
             public float FarPlane;
         }
 
-#endregion
-#region IBLTextures
+        #endregion
+        #region IBLTextures
 
 
         #endregion

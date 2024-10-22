@@ -7,7 +7,6 @@ using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Text.Json;
 using XrEngine;
-using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
 
@@ -15,7 +14,7 @@ using XrEngine.OpenXr.Android;
 namespace XrSamples.Android.Activities
 {
 
-    [IntentFilter(["android.intent.action.VIEW"], 
+    [IntentFilter(["android.intent.action.VIEW"],
         Categories = ["com.oculus.intent.category.VR", "android.intent.category.DEFAULT"])]
     [Activity(
     Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen",
@@ -90,7 +89,7 @@ namespace XrSamples.Android.Activities
                    .AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
 
             if (_settings.UsePbrV2)
-                MaterialFactory.DefaultPbr = typeof(PbrV2Material); 
+                MaterialFactory.DefaultPbr = typeof(PbrV2Material);
             else
                 MaterialFactory.DefaultPbr = typeof(PbrV1Material);
 

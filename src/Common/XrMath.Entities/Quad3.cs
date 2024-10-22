@@ -1,5 +1,4 @@
-﻿using System.Data.Common;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace XrMath
 {

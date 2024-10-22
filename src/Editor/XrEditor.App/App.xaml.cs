@@ -25,7 +25,7 @@ namespace XrEditor
             Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
             Context.Implement<IVideoReader>(() => new FFmpegVideoReader());
             Context.Implement<IVideoCodec>(() => new FFmpegCodec());
-            Context.Implement<IPanelManager>(() => new WpfPanelManager());    
+            Context.Implement<IPanelManager>(() => new WpfPanelManager());
 
             ModuleManager.Instance.Init();
 

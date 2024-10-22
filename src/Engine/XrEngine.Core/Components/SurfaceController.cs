@@ -56,7 +56,7 @@ namespace XrEngine
 
                 if (!status.IsActive)
                     continue;
-        
+
                 if (_collider is QuadCollider quad)
                     quad.PlaneMode = pointer.IsCaptured;
 
@@ -104,7 +104,7 @@ namespace XrEngine
         {
             if (collision != null)
                 _pointer = collision.UV ?? new Vector2(collision.LocalPoint.X, collision.LocalPoint.Y) + new Vector2(0.5f, 0.5f);
-            
+
             _pointerValid = collision != null;
         }
 

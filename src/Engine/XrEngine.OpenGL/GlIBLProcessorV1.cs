@@ -93,7 +93,7 @@ namespace XrEngine.OpenGL
 
         public void ApplyFilter(Distribution distribution, out uint envTexId, out uint lutTexId)
         {
-            Debug.Assert(GlState.Current != null);  
+            Debug.Assert(GlState.Current != null);
 
             var mipCount = distribution == Distribution.Lambertian ? 1 : MipLevelCount;
 

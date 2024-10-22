@@ -115,7 +115,7 @@ namespace XrEngine.OpenGL
             _gl.GetTexParameter(Target, GetTextureParameter.TextureMaxLevelSgis, out int ml);
             MaxLevel = (uint)ml;
 
-            #warning IMPROVE
+#warning IMPROVE
             if (GlUtils.IsDepth(InternalFormat) && (MinFilter != TextureMinFilter.Nearest || MagFilter != TextureMagFilter.Nearest))
             {
                 MinFilter = TextureMinFilter.Nearest;
@@ -225,7 +225,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.Bgra32 => PixelFormat.Bgra,
 
                 TextureFormat.Gray8 or
-                TextureFormat.Gray16  => PixelFormat.Red,
+                TextureFormat.Gray16 => PixelFormat.Red,
 
                 TextureFormat.RgFloat32 or
                 TextureFormat.Rg88 => PixelFormat.RG,
@@ -596,7 +596,7 @@ namespace XrEngine.OpenGL
 
         public uint MaxLevel { get; set; }
 
-        public float MaxAnisotropy { get; set; } 
+        public float MaxAnisotropy { get; set; }
 
         public int Slot { get; set; }
 

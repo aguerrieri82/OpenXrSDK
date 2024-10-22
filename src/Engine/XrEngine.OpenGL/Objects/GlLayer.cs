@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace XrEngine.OpenGL
+﻿namespace XrEngine.OpenGL
 {
     public enum GlLayerType
     {
@@ -108,7 +106,7 @@ namespace XrEngine.OpenGL
                         {
                             VertexHandler = vrtSrc.Object.GetGlResource(a => GlVertexSourceHandle.Create(_render.GL, vrtSrc)),
                             ActiveComponents = VertexComponent.None,
-                            RenderPriority = vrtSrc.RenderPriority  
+                            RenderPriority = vrtSrc.RenderPriority
                         };
 
                         foreach (var attr in vertexContent.VertexHandler.Layout!.Attributes!)
@@ -148,7 +146,7 @@ namespace XrEngine.OpenGL
                 {
                     draw.Distance = draw.Object!.DistanceTo(cameraPos);
                     count++;
-                    sum += draw.Distance;   
+                    sum += draw.Distance;
                 }
                 content.AvgDistance = sum / count;
             }
@@ -158,7 +156,7 @@ namespace XrEngine.OpenGL
         {
             _content?.ShaderContents.Clear();
             _content?.Lights?.Clear();
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         public bool NeedUpdate => _lastUpdateVersion != Version;

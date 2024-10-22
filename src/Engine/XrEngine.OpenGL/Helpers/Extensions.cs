@@ -111,7 +111,7 @@ namespace XrEngine.OpenGL
                 if (texture2D.SampleCount > 1)
                     glTexture.Target = TextureTarget.Texture2DMultisample;
                 else
-                    glTexture.Target = TextureTarget.Texture2D; 
+                    glTexture.Target = TextureTarget.Texture2D;
             }
 
             glTexture.MinFilter = (TextureMinFilter)texture2D.MinFilter;
@@ -121,7 +121,7 @@ namespace XrEngine.OpenGL
             glTexture.SampleCount = texture2D.SampleCount;
             glTexture.BorderColor = texture2D.BorderColor;
             glTexture.IsMutable = texture2D.IsMutable;
-            glTexture.MaxAnisotropy = texture2D.MaxAnisotropy; 
+            glTexture.MaxAnisotropy = texture2D.MaxAnisotropy;
 
             if (texture2D.MinFilter == ScaleFilter.LinearMipmapLinear)
                 glTexture.MaxLevel = (uint)MathF.Log2(MathF.Max(texture2D.Width, texture2D.Height));
@@ -168,7 +168,7 @@ namespace XrEngine.OpenGL
             glTexture.Version = texture2D.Version;
             glTexture.Source = texture2D;
 
-            texture2D.Handle = glTexture.Handle;    
+            texture2D.Handle = glTexture.Handle;
         }
 
         public static unsafe Texture TexIdToEngineTexture(this GL gl, uint texId, TextureFormat? readFormat = null)
@@ -233,7 +233,7 @@ namespace XrEngine.OpenGL
             return result;
         }
 
-        public static T? Pass<T>(this OpenGLRender self) where T : IGlRenderPass    
+        public static T? Pass<T>(this OpenGLRender self) where T : IGlRenderPass
         {
             return self.Passes<T>().Single();
         }

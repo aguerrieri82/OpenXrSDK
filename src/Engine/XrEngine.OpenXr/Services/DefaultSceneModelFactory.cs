@@ -1,10 +1,5 @@
 ﻿using PhysX.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using XrEngine.Physics;
 using XrMath;
 
@@ -115,7 +110,7 @@ namespace XrEngine.OpenXr
                 Restitution = 0.7f
             };
 
-            return rigidBody;   
+            return rigidBody;
         }
 
         public void AddMesh(Material? material = null, bool addPhysics = false)
@@ -159,6 +154,6 @@ namespace XrEngine.OpenXr
         public Dictionary<SceneModelType, SceneModelOptions> Models => _models;
 
 
-        public static readonly DefaultSceneModelFactory Instance = new DefaultSceneModelFactory();   
+        public static readonly DefaultSceneModelFactory Instance = new DefaultSceneModelFactory();
     }
 }

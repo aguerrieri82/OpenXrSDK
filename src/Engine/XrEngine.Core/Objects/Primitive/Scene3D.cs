@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using XrEngine.Layers;
+﻿using XrEngine.Layers;
 
 namespace XrEngine
 {
@@ -38,7 +36,7 @@ namespace XrEngine
                 if (draw.IsEnabled)
                     draw.DrawGizmos(_gizmos);
             }
-     
+
             _gizmos.Flush();
         }
 

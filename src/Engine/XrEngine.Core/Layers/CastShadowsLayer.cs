@@ -25,7 +25,7 @@ namespace XrEngine
             return base.AffectChange(change);
         }
 
-        public long ContentVersion => _contentVersion;     
+        public long ContentVersion => _contentVersion;
 
         public Bounds3 WorldBounds => _bounds;
     }

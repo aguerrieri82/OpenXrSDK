@@ -111,17 +111,17 @@ namespace XrEngine
             Vector3 u = Vector3.Normalize(Vector3.Cross(p.Normal, new Vector3(1, 0, 0)));
             Vector3 v = Vector3.Normalize(Vector3.Cross(p.Normal, u));
 
-            for (var x = -width /2; x <= width / 2; x += span)
+            for (var x = -width / 2; x <= width / 2; x += span)
             {
-                var p1 = planeOrigin + x * u + -height/2 * v;
+                var p1 = planeOrigin + x * u + -height / 2 * v;
                 var p2 = planeOrigin + x * u + height / 2 * v;
                 DrawLine(p1, p2);
             }
 
             for (var y = -height / 2; y <= height / 2; y += span)
             {
-                var p1 = planeOrigin + -width/2 * u + y * v;
-                var p2 = planeOrigin + width/2 * u + y * v;
+                var p1 = planeOrigin + -width / 2 * u + y * v;
+                var p2 = planeOrigin + width / 2 * u + y * v;
                 DrawLine(p1, p2);
             }
         }

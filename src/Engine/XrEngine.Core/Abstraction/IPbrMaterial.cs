@@ -15,7 +15,7 @@
         float NormalScale { get; set; }
 
         float Metalness { get; set; }
-       
+
         float Roughness { get; set; }
 
         bool ToneMap { get; set; }

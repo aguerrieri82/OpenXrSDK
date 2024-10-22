@@ -65,7 +65,7 @@ namespace XrEditor
                     paragraph.Inlines.Add(new Run(string.Format(" ({0}ms)", (int)(msg.Date - _lastMessageTime.Value).TotalMilliseconds)) { Foreground = Brushes.Gray });
 
                 _textBox.Document.Blocks.Add(paragraph);
-                _lastMessageTime = msg.Date; 
+                _lastMessageTime = msg.Date;
             }
 
 

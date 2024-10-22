@@ -59,7 +59,7 @@ namespace XrEditor
                 Title = "Select color",
                 Content = body,
                 Actions = [
-   
+
                     new ActionView
                     {
                         DisplayName = "Cancel",
@@ -72,13 +72,13 @@ namespace XrEditor
             };
 
             _popup = manager.CreatePopup(content, new Size2I(300, 500));
-            
+
             var result = await _popup.ShowAsync();
 
             if (result == null || result.DisplayName == "Cancel")
                 EditValue = oldColor;
 
-            _popup = null; 
+            _popup = null;
         }
 
 
