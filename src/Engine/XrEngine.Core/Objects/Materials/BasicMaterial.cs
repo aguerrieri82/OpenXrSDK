@@ -9,7 +9,7 @@ namespace XrEngine
 
         #region GlobalHandler
 
-        class GlobalHandler : StandardVertexShaderHandler
+        class GlobalHandler : StandardVertexShader
         {
             string? _lightHash;
 
@@ -48,13 +48,10 @@ namespace XrEngine
 
         static BasicMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "basic.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
-                IsLit = true,
-                UpdateHandler = new GlobalHandler()
+                IsLit = true
             };
         }
 

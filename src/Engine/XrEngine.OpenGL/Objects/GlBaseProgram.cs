@@ -144,11 +144,17 @@ namespace XrEngine.OpenGL
             return isChanged;
         }
 
+        static Dictionary<Texture2D, GlTexture> _textures = [];
+
         public void LoadTexture(Texture value, int slot = 0)
         {
             var tex2d = value as Texture2D ?? throw new NotSupportedException();
 
-            var glText = tex2d.ToGlTexture();
+            if (!_textures.TryGetValue(tex2d, out var glText))
+            {
+                glText = tex2d.ToGlTexture();
+                _textures[tex2d] = glText;
+            }   
 
             bool isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
 

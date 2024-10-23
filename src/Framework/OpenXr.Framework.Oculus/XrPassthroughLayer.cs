@@ -138,7 +138,7 @@ namespace OpenXr.Framework.Oculus
 
             CreatePtLayer(Purpose, PassthroughFlagsFB.IsRunningATCreationBitFB);
 
-            _header->Type = StructureType.CompositionLayerPassthroughFB;
+            _header.ValueRef.Type = StructureType.CompositionLayerPassthroughFB;
 
             if (UseEnvironmentDepth)
             {

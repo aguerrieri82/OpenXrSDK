@@ -6,14 +6,11 @@
 
         static DepthViewMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "depth_view.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
                 IsLit = false,
-                Priority = 1,
-                UpdateHandler = StandardVertexShaderHandler.Instance
+                Priority = 1
             };
         }
 

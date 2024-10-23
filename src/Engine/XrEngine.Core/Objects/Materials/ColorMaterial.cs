@@ -8,13 +8,10 @@ namespace XrEngine
 
         static ColorMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "color.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
-                IsLit = false,
-                UpdateHandler = StandardVertexShaderHandler.Instance
+                IsLit = false
             };
         }
 

@@ -44,6 +44,8 @@ layout(binding=6) uniform sampler2D specularBRDF_LUT;
 
 uniform float uSpecularTextureLevels;
 uniform float uIblIntensity;
+uniform vec3 uIblColor;
+
 
 #ifdef USE_IBL_TRANSFORM
 uniform mat3 uIblTransform;
@@ -86,6 +88,20 @@ vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
+float rand(vec2 co) {
+    return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+vec3 addNoise(vec3 color)
+{
+	vec2 seed = vec2(vin.cameraPos.xy + vin.texcoord + vec2(gl_FragCoord));
+	float noise = rand(seed);
+	float linearDepth = (2.0 * uCamera.nearPlane * uCamera.farPlane) / (uCamera.farPlane + uCamera.nearPlane - gl_FragCoord.z * (uCamera.farPlane - uCamera.nearPlane));
+    
+	color += noise * 0.07 * min(linearDepth / 10.0, 1.0);
+
+	return color;
+}
 
 void main()
 {
@@ -242,7 +258,7 @@ void main()
 			irradianceVec *= uIblTransform;
 		#endif
 
-		vec3 irradiance = texture(irradianceTexture, irradianceVec).rgb * uIblIntensity;
+		vec3 irradiance = texture(irradianceTexture, irradianceVec).rgb * uIblIntensity * uIblColor;
 
 		// Calculate Fresnel term for ambient lighting.
 		// Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
@@ -316,6 +332,12 @@ void main()
 	//Blend
 	#if ALPHA_MODE == 2
 		a = max(uMaterial.alphaCutoff, a);
+	#endif
+
+	#ifdef USE_DEPTH_NOISE
+
+	color3 = addNoise(color3);	
+
 	#endif
 
 	// Final fragment color.

@@ -69,8 +69,8 @@ namespace XrEngine
         public override void Update(RenderContext ctx)
         {
             UpdateSelf(ctx);
-
-            _children.Update(ctx);
+            if (!ctx.UpdateOnlySelf)
+                _children.Update(ctx);
         }
 
         protected virtual void UpdateSelf(RenderContext ctx)

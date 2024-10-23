@@ -14,6 +14,10 @@ layout(std140, binding=0) uniform Camera
 	mat4 lightSpaceMatrix;
 	int activeEye;
 	ivec2 viewSize;	
+	float nearPlane;
+	float farPlane;
+	float depthNoiseFactor;
+	float depthNoiseDistance;
 } uCamera;
 
 layout(std140, binding=1) uniform Lights

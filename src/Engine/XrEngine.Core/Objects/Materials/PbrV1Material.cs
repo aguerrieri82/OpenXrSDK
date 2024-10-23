@@ -87,6 +87,7 @@ namespace XrEngine
         }
 
         #endregion
+
         #region IBLTextures
 
 
@@ -443,7 +444,7 @@ namespace XrEngine
 
         #region GlobalShaderHandler
 
-        class GlobalShaderHandler : IShaderHandler
+        class PbrV1Shader : Shader, IShaderHandler
         {
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
@@ -601,6 +602,7 @@ namespace XrEngine
                     });
                 }
             }
+
         }
 
         #endregion
@@ -613,13 +615,12 @@ namespace XrEngine
             LinearOutput = false;
             ToneMap = ToneMapType.TONEMAP_KHR_PBR_NEUTRAL;
 
-            SHADER = new Shader
+            SHADER = new PbrV1Shader
             {
                 FragmentSourceName = "pbr/pbr.frag",
                 VertexSourceName = "pbr/primitive.vert",
                 Resolver = str => Embedded.GetString(str),
-                IsLit = true,
-                UpdateHandler = new GlobalShaderHandler()
+                IsLit = true
             };
         }
 

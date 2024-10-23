@@ -2,6 +2,7 @@
 using Silk.NET.OpenXR;
 using System.Diagnostics;
 using XrMath;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OpenXr.Framework.Oculus
 {
@@ -79,6 +80,7 @@ namespace OpenXr.Framework.Oculus
             }
         }
 
+
         public override void Destroy()
         {
             base.Destroy();
@@ -87,9 +89,6 @@ namespace OpenXr.Framework.Oculus
             {
                 _xrApp?.DestroySwapchain(data.DepthSwapchain);
                 _xrApp?.DestroySwapchain(data.ColorSwapchain);
-
-                data.DepthImages?.Dispose();
-                data.ColorImages?.Dispose();
             }
         }
 
@@ -205,7 +204,14 @@ namespace OpenXr.Framework.Oculus
 
         public override void Dispose()
         {
+            foreach (var data in _spaceWarpData)
+            {
+                data.DepthImages?.Dispose();
+                data.ColorImages?.Dispose();
+            }
+
             _spaceWarpInfo.Dispose();
+
             base.Dispose();
         }
     }

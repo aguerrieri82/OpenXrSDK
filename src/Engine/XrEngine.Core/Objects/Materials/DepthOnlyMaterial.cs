@@ -6,13 +6,10 @@
 
         static DepthOnlyMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "empty.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
-                IsLit = false,
-                UpdateHandler = StandardVertexShaderHandler.Instance
+                IsLit = false
             };
         }
 

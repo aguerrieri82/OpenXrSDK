@@ -3,7 +3,7 @@
     public abstract class BaseLayer<T> : ILayer3D where T : ILayer3DItem
     {
         protected readonly ObjectId _id;
-        protected readonly HashSet<T> _content = [];
+        protected readonly List<T> _content = [];
         protected LayerManager? _manager;
         protected long _version;
 

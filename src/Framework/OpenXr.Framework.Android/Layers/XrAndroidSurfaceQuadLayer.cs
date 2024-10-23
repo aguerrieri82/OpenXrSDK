@@ -72,11 +72,11 @@ namespace OpenXr.Framework.Android
 
             _surface = Surface.GetObject<Surface>(surfaceHandle, JniHandleOwnership.TransferGlobalRef)!;
 
-            _header->SubImage.Swapchain = _swapchain;
-            _header->SubImage.ImageArrayIndex = 0;
-            _header->SubImage.ImageRect.Extent = _size;
-            _header->EyeVisibility = EyeVisibility.Both;
-            _header->LayerFlags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
+            _header.ValueRef.SubImage.Swapchain = _swapchain;
+            _header.ValueRef.SubImage.ImageArrayIndex = 0;
+            _header.ValueRef.SubImage.ImageRect.Extent = _size;
+            _header.ValueRef.EyeVisibility = EyeVisibility.Both;
+            _header.ValueRef.LayerFlags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
         }
 
         public Surface? Surface => _surface;

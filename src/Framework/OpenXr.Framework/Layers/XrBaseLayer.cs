@@ -5,14 +5,13 @@ namespace OpenXr.Framework
 {
     public unsafe abstract class XrBaseLayer<T> : IXrLayer where T : unmanaged
     {
-        protected T* _header;
+        protected NativeStruct<T> _header;
         protected XrApp? _xrApp;
         protected bool _isEnabled;
 
         public XrBaseLayer()
         {
-            _header = (T*)Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(T)));
-            (*_header) = new T();
+            _header.Value = new T();
             _isEnabled = true;
         }
 
@@ -38,17 +37,12 @@ namespace OpenXr.Framework
         public virtual void Dispose()
         {
             Destroy();
-
-            if (_header != null)
-            {
-                Marshal.FreeHGlobal(new nint(_header));
-                _header = null;
-            }
+            _header.Dispose();
         }
 
         public bool Update(ref View[] views, long predTime)
         {
-            var span = new Span<T>(_header, 1);
+            var span = new Span<T>(_header.Pointer, 1);
             return Update(ref span[0], ref views, predTime);
         }
 
@@ -80,6 +74,6 @@ namespace OpenXr.Framework
 
         public virtual XrLayerFlags Flags => XrLayerFlags.None;
 
-        public CompositionLayerBaseHeader* Header => (CompositionLayerBaseHeader*)_header;
+        public CompositionLayerBaseHeader* Header => (CompositionLayerBaseHeader*)_header.Pointer;
     }
 }

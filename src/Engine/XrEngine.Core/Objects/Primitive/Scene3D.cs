@@ -42,7 +42,8 @@ namespace XrEngine
 
         protected override void UpdateSelf(RenderContext ctx)
         {
-            _layers.Layers.OfType<IRenderUpdate>().Update(ctx);
+            if (!ctx.UpdateOnlySelf)
+                _layers.Layers.OfType<IRenderUpdate>().Update(ctx, false);
 
             base.UpdateSelf(ctx);
         }

@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace OpenXr.Framework
 {
@@ -10,6 +11,8 @@ namespace OpenXr.Framework
         {
             _value = null;
         }
+
+        public ref T ValueRef => ref *_value;
 
         public T? Value
         {

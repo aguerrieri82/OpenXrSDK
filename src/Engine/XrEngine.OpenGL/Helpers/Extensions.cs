@@ -61,11 +61,11 @@ namespace XrEngine.OpenGL
 
         public static unsafe GlTexture ToGlTexture(this Texture value, bool? reqComp = null)
         {
-            var renderer = OpenGLRender.Current!;
-            var reqCompDef = renderer.Options.RequireTextureCompression;
-
             return value.GetGlResource(a =>
             {
+                var renderer = OpenGLRender.Current!;
+                var reqCompDef = renderer.Options.RequireTextureCompression;
+
                 if (value is Texture2D texture2D)
                     return texture2D.CreateGlTexture(renderer.GL, reqComp != null ? reqComp.Value : reqCompDef);
 

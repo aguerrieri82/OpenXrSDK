@@ -145,6 +145,7 @@ namespace XrEngine
             _matrix = matrix;
 
             _host?.NotifyChanged(ObjectChangeType.Transform);
+            Version++;
         }
 
         public void Reset()
