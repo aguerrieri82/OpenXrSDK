@@ -259,6 +259,8 @@ namespace OpenXr.Framework
 
             PluginInvoke(p => p.OnSessionEnd());
 
+            SessionChanged?.Invoke(this, EventArgs.Empty);
+
             _logger.LogInformation("Stopped");
         }
 

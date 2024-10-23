@@ -8,15 +8,12 @@ namespace XrEngine
 
         static OutlineMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "color.frag",
-                VertexSourceName = "standard.vert",
                 GeometrySourceName = "outline.geom",
-                Resolver = str => Embedded.GetString(str),
                 Priority = 1,
                 IsLit = false,
-                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
 

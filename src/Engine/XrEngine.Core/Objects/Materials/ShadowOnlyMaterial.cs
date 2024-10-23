@@ -8,13 +8,10 @@ namespace XrEngine.Objects
 
         static ShadowOnlyMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "shadow_only.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
                 IsLit = false,
-                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
 

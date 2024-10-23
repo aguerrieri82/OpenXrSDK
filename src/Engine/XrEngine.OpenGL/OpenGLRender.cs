@@ -74,7 +74,7 @@ namespace XrEngine.OpenGL
             _updateCtx = new UpdateShaderContext
             {
                 RenderEngine = this,
-                ShadowMapProvider = this
+                ShadowMapProvider = this,
             };
 
             _dispatcher = new QueueDispatcher();
@@ -266,8 +266,9 @@ namespace XrEngine.OpenGL
             _updateCtx.Camera = camera;
             _updateCtx.Lights = _mainLayer!.Content.Lights;
             _updateCtx.LightsHash = _mainLayer.Content.LightsHash;
-            _updateCtx.FrustumPlanes = camera.FrustumPlanes();
             _updateCtx.ViewSize = new Size2I(view.Width, view.Height);
+
+            camera.FrustumPlanes(_updateCtx.FrustumPlanes);
 
             foreach (var pass in _renderPasses)
             {

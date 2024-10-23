@@ -215,7 +215,7 @@ namespace XrEngine.OpenXr
 
             xrApp.SessionChanged += (s, e) =>
             {
-                if (xrApp.SessionState == SessionState.Exiting)
+                if (xrApp.State == XrAppState.Stopped)
                     pool.Clear();
             };
 

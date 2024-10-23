@@ -11,5 +11,7 @@
         public double DeltaTime { get; internal set; }
 
         public Scene3D? Scene { get; internal set; }
+
+        public bool UpdateOnlySelf { get; internal set; }
     }
 }

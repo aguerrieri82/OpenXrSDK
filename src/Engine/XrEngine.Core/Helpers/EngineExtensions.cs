@@ -870,15 +870,13 @@ namespace XrEngine
 
         }
 
-        public static IList<Plane> FrustumPlanes(this Camera self)
+        public static IList<Plane> FrustumPlanes(this Camera self, Plane[] planes)
         {
             var viewProjLeft = self.ViewProjection;
             var viewProjRight = viewProjLeft;
 
             if (self.Eyes != null && self.Eyes.Length > 1)
                 viewProjRight = self.Eyes[1].ViewProj;
-
-            var planes = new Plane[6];
 
             // Left plane
             planes[0] = new Plane(
@@ -1074,9 +1072,20 @@ namespace XrEngine
 
         #region MISC
 
-        public static void Update<T>(this IEnumerable<T> self, RenderContext ctx) where T : IRenderUpdate
+        public static void Update<T>(this IList<T> self, RenderContext ctx) where T : IRenderUpdate
         {
-            foreach (var item in self.ToArray())
+            var count = self.Count;
+            for (var i = 0; i < count; i++)
+                self[i].Update(ctx);
+        }
+
+
+        public static void Update<T>(this IEnumerable<T> self, RenderContext ctx, bool safeMode) where T : IRenderUpdate
+        {
+            if (safeMode)
+                self = self.ToArray();
+            
+            foreach (var item in self)
                 item.Update(ctx);
 
             //target.ForeachSafe(a => a.Update(ctx));

@@ -26,12 +26,16 @@ namespace OpenXr.Framework
         protected readonly RenderViewDelegate? _renderView;
         protected XrSwapchainInfo[]? _swapchains;
         protected bool _useDepthSWC = false;
-        private bool _useEnvDepth;
+        protected NativeArray<CompositionLayerDepthInfoKHR> _depthInfo;
+        protected NativeArray<CompositionLayerProjectionView> _projViews;  
 
         XrProjectionLayer()
         {
-            _header->Type = StructureType.CompositionLayerProjection;
-            _header->LayerFlags =
+            _depthInfo = new NativeArray<CompositionLayerDepthInfoKHR>(2, typeof(CompositionLayerDepthInfoKHR));
+            _projViews = new NativeArray<CompositionLayerProjectionView>(2, typeof(CompositionLayerProjectionView));    
+
+            _header.ValueRef.Type = StructureType.CompositionLayerProjection;
+            _header.ValueRef.LayerFlags =
                 CompositionLayerFlags.CorrectChromaticAberrationBit |
                 CompositionLayerFlags.BlendTextureSourceAlphaBit;
             Priority = 10;
@@ -43,22 +47,15 @@ namespace OpenXr.Framework
             _renderView = renderView;
         }
 
+        public override void Dispose()
+        {
+            _depthInfo.Dispose();
+            _projViews.Dispose();
+            base.Dispose();
+        }
+
         public override void Destroy()
         {
-            if (_header != null && _header->Views != null)
-            {
-                var viewCount = _xrApp?.ViewInfo!.ViewCount;
-
-                for (var i = 0; i < _header->ViewCount; i++)
-                {
-                    if (_header->Views[i].Next != null)
-                        Marshal.FreeHGlobal(new nint(_header->Views[i].Next));
-                }
-
-                Marshal.FreeHGlobal(new nint(_header->Views));
-
-                _header->Views = null;
-            }
 
             if (_swapchains != null)
             {
@@ -76,8 +73,7 @@ namespace OpenXr.Framework
                 _swapchains = null;
             }
 
-            _header->Space.Handle = 0;
-
+            _header.ValueRef.Space.Handle = 0;
         }
 
 
@@ -113,7 +109,7 @@ namespace OpenXr.Framework
 
             if (layer.Views == null)
             {
-                layer.Views = (CompositionLayerProjectionView*)Marshal.AllocHGlobal(sizeof(CompositionLayerProjectionView) * views.Length);
+                layer.Views = _projViews.ItemPointer(0);    
                 layer.ViewCount = (uint)views.Length;
 
                 for (var i = 0; i < views.Length; i++)
@@ -141,7 +137,7 @@ namespace OpenXr.Framework
 
                     if (_useDepthSWC)
                     {
-                        var depthInfo = (CompositionLayerDepthInfoKHR*)Marshal.AllocHGlobal(sizeof(CompositionLayerDepthInfoKHR));
+                        var depthInfo = _depthInfo.ItemPointer(i);
                         depthInfo->Type = StructureType.CompositionLayerDepthInfoKhr;
                         depthInfo->MinDepth = 0;
                         depthInfo->MaxDepth = 1;
@@ -256,10 +252,5 @@ namespace OpenXr.Framework
             set => _useDepthSWC = value;
         }
 
-        public bool UseEnvironmentDepth
-        {
-            get => _useEnvDepth;
-            set => _useEnvDepth = value;
-        }
     }
 }

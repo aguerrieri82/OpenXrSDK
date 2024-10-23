@@ -68,10 +68,10 @@
 
         public virtual void Update(RenderContext ctx)
         {
-            if (_components == null)
+            if (_components == null || ctx.UpdateOnlySelf)
                 return;
 
-            _components.OfType<IRenderUpdate>().Update(ctx);
+            _components.OfType<IRenderUpdate>().Update(ctx, false);
         }
 
         public IEnumerable<T> Components<T>() where T : IComponent
@@ -86,15 +86,12 @@
             if (component.Host == this)
                 return component;
 
-            if (component.Host != null)
-                component.Host.RemoveComponent(component);
+            component.Host?.RemoveComponent(component);
 
             component.EnsureId();
             component.Attach(this);
 
-            if (_components == null)
-                _components = [];
-
+            _components ??= [];
             _components.Add(component);
 
             NotifyChanged(ObjectChangeType.Components);
@@ -132,15 +129,12 @@
 
         protected virtual void OnChanged(ObjectChange change)
         {
-
             Changed?.Invoke(this, change);
-
         }
 
         public void SetProp(string name, object? value)
         {
-            if (_props == null)
-                _props = [];
+            _props ??= [];
             _props[name] = value;
         }
 

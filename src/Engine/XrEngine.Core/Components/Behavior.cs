@@ -44,10 +44,13 @@
             else
             {
                 _deltaTime = _lastUpdateTime == 0 ? 0 : ctx.Time - _lastUpdateTime;
-
                 try
                 {
+#if DEBUG
                     EngineApp.Current!.Stats.Update(this, () => Update(ctx));
+#else
+                    Update(ctx);
+#endif
                 }
                 catch (Exception ex)
                 {

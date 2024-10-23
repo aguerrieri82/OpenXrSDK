@@ -45,8 +45,10 @@ namespace XrEngine.OpenGL
             StencilFunc = null;
             StencilRef = null;
             FrameBufferTargets.Clear();
-            TexturesSlots.Clear();
             Features.Clear();
+
+            for (var i = 0; i < TexturesSlots.Length; i++)
+                TexturesSlots[i] = 0;   
         }
 
         public void Restore()
@@ -162,7 +164,8 @@ namespace XrEngine.OpenGL
         {
             ActiveTexture ??= _gl.GetInteger(GetPName.ActiveTexture);
 
-            if (TexturesSlots.TryGetValue(ActiveTexture.Value, out var value) && value == texId && !force)
+            var curSlotValue = TexturesSlots[ActiveTexture.Value];
+            if (curSlotValue == texId && !force)
                 return;
 
             _gl.BindTexture(target, texId);
@@ -174,7 +177,9 @@ namespace XrEngine.OpenGL
 
         public void SetActiveTexture(uint texId, TextureTarget target, int slot, bool force = false)
         {
-            if (TexturesSlots.TryGetValue(slot, out var value) && value == texId && !force)
+            var curSlotValue = TexturesSlots[slot];
+
+            if (curSlotValue == texId && !force)
                 return;
 
             bool forceBind = force;
@@ -415,7 +420,7 @@ namespace XrEngine.OpenGL
 
         public readonly Dictionary<EnableCap, bool> Features = [];
 
-        public readonly Dictionary<int, uint> TexturesSlots = [];
+        public readonly uint[] TexturesSlots = new uint[32];
 
         public readonly Dictionary<FramebufferTarget, uint> FrameBufferTargets = [];
 

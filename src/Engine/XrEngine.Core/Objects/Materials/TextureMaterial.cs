@@ -8,13 +8,10 @@ namespace XrEngine
 
         static TextureMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "texture.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
                 IsLit = false,
-                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
         public TextureMaterial()

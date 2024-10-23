@@ -24,6 +24,8 @@ namespace XrEngine
 
         public long MaterialVersion;
 
+        public long ShaderVersion;
+
         public string? LightsHash;
 
         public string? FeaturesHash;
@@ -33,6 +35,11 @@ namespace XrEngine
 
     public class UpdateShaderContext
     {
+        public UpdateShaderContext()
+        {
+            FrustumPlanes = new Plane[6];   
+        }
+
         public Camera? Camera;
 
         public Shader? Shader;
@@ -53,7 +60,7 @@ namespace XrEngine
 
         public uint ProgramInstanceId;
 
-        public IList<Plane>? FrustumPlanes;
+        public readonly Plane[] FrustumPlanes;
 
         public IShadowMapProvider? ShadowMapProvider;
 

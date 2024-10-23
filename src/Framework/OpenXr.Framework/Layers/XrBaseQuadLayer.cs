@@ -17,7 +17,7 @@ namespace OpenXr.Framework
         public unsafe XrBaseQuadLayer(GetQuadDelegate getQuad)
         {
             _getQuad = getQuad;
-            _header->Type = StructureType.CompositionLayerQuad;
+            _header.ValueRef.Type = StructureType.CompositionLayerQuad;
             Priority = 2;
         }
 

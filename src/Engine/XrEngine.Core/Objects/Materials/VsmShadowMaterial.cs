@@ -6,13 +6,10 @@
 
         static VsmShadowMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "vsm_shadow_map.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
                 IsLit = false,
-                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
 

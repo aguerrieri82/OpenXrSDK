@@ -28,8 +28,8 @@ namespace XrEngine.OpenGL
             {
                 _handlers = [];
 
-                if (Shader.UpdateHandler != null)
-                    _handlers.Add(Shader.UpdateHandler);
+                if (Shader is IShaderHandler shaderHandler)
+                    _handlers.Add(shaderHandler);
 
                 foreach (var handler in globalHandlers.Where(a => a != null))
                     _handlers.Add(handler!);
@@ -47,6 +47,7 @@ namespace XrEngine.OpenGL
                 Update = globalBuilder.Result;
                 Update.LightsHash = ctx.LightsHash;
                 Update.ShaderHandlers = globalHandlers;
+                Update.ShaderVersion = Shader.Version;
 
                 Version++;
             }

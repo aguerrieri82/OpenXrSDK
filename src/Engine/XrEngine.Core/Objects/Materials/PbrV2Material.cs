@@ -8,7 +8,7 @@ namespace XrEngine
     {
         #region CameraUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 160)]
+        [StructLayout(LayoutKind.Explicit, Size = 180)]
         public struct CameraUniforms
         {
             [FieldOffset(0)]
@@ -28,8 +28,20 @@ namespace XrEngine
             [FieldOffset(144)]
             public int ActiveEye;
 
-            [FieldOffset(148)]
+            [FieldOffset(152)]
             public Size2I ViewSize;
+
+            [FieldOffset(160)]
+            public float NearPlane;
+
+            [FieldOffset(164)]
+            public float FarPlane;
+
+            [FieldOffset(168)]
+            public float DepthNoiseFactor;
+
+            [FieldOffset(172)]
+            public float DepthNoiseDistance;
         }
 
         #endregion
@@ -136,7 +148,7 @@ namespace XrEngine
 
         #region GlobalShaderHandler
 
-        class GlobalShaderHandler : IShaderHandler
+        public class PbrV2Shader : Shader, IShaderHandler
         {
             long _iblVersion = -1;
             readonly PerspectiveCamera _depthCamera = new PerspectiveCamera();
@@ -145,6 +157,7 @@ namespace XrEngine
             {
                 var ibl = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
                 return ctx.LastUpdate?.LightsHash != ctx.LightsHash ||
+                       (ctx.LastUpdate?.ShaderVersion != Version) ||
                        (ibl?.Version ?? -1) != _iblVersion;
             }
 
@@ -162,6 +175,9 @@ namespace XrEngine
                     _iblVersion = imgLight.Version;
                     bld.AddFeature("USE_IBL");
                 }
+
+                if (DepthNoiseFactor > 0)
+                    bld.AddFeature("USE_DEPTH_NOISE");
 
                 if (bld.Context.ShadowMapProvider != null)
                 {
@@ -210,9 +226,12 @@ namespace XrEngine
                         ViewProj = ctx.Camera!.ViewProjection,
                         Position = ctx.Camera!.WorldPosition,
                         Exposure = ctx.Camera.Exposure,
-                        //EnvDepthBias = envDepth?.Bias ?? 0,
                         ActiveEye = ctx.Camera.ActiveEye,
-                        ViewSize = ctx.ViewSize
+                        ViewSize = ctx.ViewSize,
+                        NearPlane = ctx.Camera.Near,
+                        FarPlane = ctx.Camera.Far ,
+                        DepthNoiseFactor = DepthNoiseFactor,
+                        DepthNoiseDistance = DepthNoiseDistance
                     };
 
                     var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
@@ -287,6 +306,7 @@ namespace XrEngine
                     {
                         up.SetUniform("uSpecularTextureLevels", (float)imgLight.Textures.MipCount);
                         up.SetUniform("uIblIntensity", (float)imgLight.Intensity);
+                        up.SetUniform("uIblColor", new Vector3(imgLight.Color.R, imgLight.Color.G, imgLight.Color.B));
 
                         if (imgLight.Rotation > 0)
                             up.SetUniform("uIblTransform", Matrix3x3.CreateRotationY(imgLight.Rotation));
@@ -302,10 +322,12 @@ namespace XrEngine
 
                     });
                 }
-
             }
 
 
+            public float DepthNoiseFactor { get; set; }
+
+            public float DepthNoiseDistance { get; set; }
         }
 
         #endregion
@@ -314,13 +336,12 @@ namespace XrEngine
 
         static PbrV2Material()
         {
-            SHADER = new Shader
+            SHADER = new PbrV2Shader
             {
                 FragmentSourceName = "PbrV2/pbr_fs.glsl",
                 VertexSourceName = "PbrV2/pbr_vs.glsl",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = true,
-                UpdateHandler = new GlobalShaderHandler()
             };
         }
 
