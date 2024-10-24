@@ -81,7 +81,7 @@
                     Object = sender,
                 });
 
-            else if (change.IsAny(ObjectChangeType.SceneAdd))
+            else if (change.IsAny(ObjectChangeType.SceneRemove))
             {
                 Add(new SceneRemoveAction
                 {
@@ -92,12 +92,7 @@
             }
             else if (change.IsAny(ObjectChangeType.Render))
             {
-                Add(new EntityChangedAction
-                {
-                    Scene = _scene,
-                    Name = "Changed",
-                    Object = change.Target,
-                });
+     
             }
 
         }

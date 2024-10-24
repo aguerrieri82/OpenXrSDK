@@ -70,7 +70,7 @@ namespace XrEngine
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 if (Texture != null)
-                    up.SetUniform("uTexture", Texture, 0);
+                    up.LoadTexture(Texture, 0);
 
                 up.SetUniform("uColor", Color);
             });

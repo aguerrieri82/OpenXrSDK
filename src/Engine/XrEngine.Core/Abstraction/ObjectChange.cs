@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Collections;
+
+namespace XrEngine
 {
     [Flags]
     public enum ObjectChangeType
@@ -8,13 +10,26 @@
         Parent = 2,
         Transform = 4,
         Render = 8,
-        SceneAdd = Parent | 0x10,
         Geometry = 0x20,
-        Components = 0x40,
-        SceneRemove = Parent | 0x80,
-        Property = 0x100,
-        ChildAdd = 0x200,
-        ChildRemove = 0x400
+        Property = 0x40,
+        Scene = 0x80,
+        Components = 0x100,
+        Children = 0x200,
+        Add = 0x400,
+        Remove = 0x800,
+        Enabled = 0x1000,
+        Material = 0x2000 | Render,
+        SceneAdd = Parent | Add | Scene,
+        SceneRemove = Parent | Remove | Scene,
+        ChildAdd = Add | Children,
+        ChildRemove = Remove | Children,
+        ComponentAdd = Add | Components,
+        ComponentRemove = Remove | Components,  
+        ComponentEnabled = Enabled | Components,
+        MateriaAdd = Add | Material,
+        MateriaRemove = Remove | Material,
+        MaterialEnabled = Enabled | Material,   
+
     }
 
     public struct ObjectChangeSet
@@ -36,7 +51,7 @@
 
                 if (change.Properties != null)
                 {
-                    curChange.Properties ??= new List<string>();
+                    curChange.Properties ??= [];
                     foreach (var prop in change.Properties)
                     {
                         if (!curChange.Properties.Contains(prop))
@@ -60,14 +75,14 @@
 
     public struct ObjectChange
     {
-        public ObjectChange(ObjectChangeType type, EngineObject? target = null, IList<string>? properties = null)
+        public ObjectChange(ObjectChangeType type, object? target = null, IList<string>? properties = null)
         {
             Type = type;
             Target = target;
             Properties = properties;
         }
 
-        public bool IsAny(params ObjectChangeType[] types)
+        public readonly bool IsAny(params ObjectChangeType[] types)
         {
             foreach (var t in types)
                 if ((Type & t) == t)
@@ -75,6 +90,17 @@
             return false;
         }
 
+        public readonly IEnumerable<T> Targets<T>() where T : class
+        {
+            if (Target is T target)
+                yield return target;
+
+            else if (Target is IEnumerable targetEnum)
+            {
+                foreach (var targetChild in targetEnum.OfType<T>())
+                    yield return targetChild;
+            }
+        }   
 
         public static implicit operator ObjectChange(ObjectChangeType type)
         {
@@ -84,7 +110,7 @@
 
         public ObjectChangeType Type;
 
-        public EngineObject? Target;
+        public object? Target;
 
         public IList<string>? Properties;
     }

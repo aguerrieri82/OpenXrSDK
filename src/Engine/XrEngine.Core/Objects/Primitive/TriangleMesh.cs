@@ -74,6 +74,8 @@ namespace XrEngine
                 {
                     foreach (var item in e.OldItems!.Cast<Material>())
                         item.Detach(this, false);
+
+                    NotifyChanged(new ObjectChange(ObjectChangeType.MateriaRemove, e.OldItems));
                 }
             }
 
@@ -84,9 +86,9 @@ namespace XrEngine
                     item.EnsureId();
                     item.Attach(this);
                 }
-            }
 
-            NotifyChanged(ObjectChangeType.Render);
+                NotifyChanged(new ObjectChange(ObjectChangeType.MateriaAdd, e.NewItems));
+            }
         }
 
         public void NotifyLoaded()

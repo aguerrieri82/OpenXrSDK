@@ -49,7 +49,7 @@ namespace XrEngine.OpenGL
                 MipLevelCount = maxMipLevels;
 
             _panToCubeProg = new GlComputeProgram(_gl,
-                shaderResolver("IblV2/equirect2cube_cs.glsl"),
+                "IblV2/equirect2cube_cs.glsl",
                 shaderResolver);
 
             _panToCubeProg.Build();

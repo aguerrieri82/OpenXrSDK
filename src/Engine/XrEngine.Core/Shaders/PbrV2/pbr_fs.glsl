@@ -98,7 +98,7 @@ vec3 addNoise(vec3 color)
 	float noise = rand(seed);
 	float linearDepth = (2.0 * uCamera.nearPlane * uCamera.farPlane) / (uCamera.farPlane + uCamera.nearPlane - gl_FragCoord.z * (uCamera.farPlane - uCamera.nearPlane));
     
-	color += noise * 0.07 * min(linearDepth / 10.0, 1.0);
+	color += noise * uCamera.depthNoiseFactor * min(linearDepth / uCamera.depthNoiseDistance, 1.0);
 
 	return color;
 }

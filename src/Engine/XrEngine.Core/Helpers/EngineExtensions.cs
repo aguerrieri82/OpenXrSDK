@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
@@ -118,16 +119,6 @@ namespace XrEngine
                 Orientation = self.Transform.Orientation,
                 Position = self.Transform.Position
             };
-        }
-
-        public static bool IsManipulating(this Object3D self)
-        {
-            return self.GetProp<bool>("IsManipulating");
-        }
-
-        public static void IsManipulating(this Object3D self, bool value)
-        {
-            self.SetProp("IsManipulating", value);
         }
 
         public static void SetActiveTool(this Object3D self, IObjectTool value, bool isActive)
@@ -291,7 +282,7 @@ namespace XrEngine
             return layer.Content.Cast<T>();
         }
 
-        public static IEnumerable<Collision> RayCollisions(this Scene3D self, Ray3 ray, IEnumerable<ICollider3D>? colliders = null)
+        public static void RayCollisions(this Scene3D self, Ray3 ray, ConcurrentBag<Collision> result, IEnumerable<ICollider3D>? colliders = null)
         {
             IEnumerable<ICollider3D> GetColliders()
             {
@@ -307,12 +298,14 @@ namespace XrEngine
 
             colliders ??= GetColliders();
 
-            foreach (var collider in colliders)
+            result.Clear();
+
+            Parallel.ForEach(colliders, collider =>
             {
                 var collision = collider.CollideWith(ray);
                 if (collision != null)
-                    yield return collision;
-            }
+                    result.Add(collision);
+            });
         }
 
 
@@ -510,7 +503,7 @@ namespace XrEngine
                 }
             }
             self.ActiveComponents |= VertexComponent.Normal;
-            self.Version++;
+            self.NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public static void EnsureIndices(this Geometry3D self)
@@ -556,7 +549,7 @@ namespace XrEngine
                         self.Vertices[index].Normal = sum;
                 }
             }
-            self.Version++;
+            self.NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public static IEnumerable<Triangle3> Triangles(this Geometry3D self)
@@ -783,9 +776,6 @@ namespace XrEngine
         #endregion
 
         #region CAMERA
-
-
-
         public static void CreateViewFromDirection(this Camera self, Vector3 directionVector, Vector3 upVector)
         {
             var lookDirection = Vector3.Normalize(-directionVector);

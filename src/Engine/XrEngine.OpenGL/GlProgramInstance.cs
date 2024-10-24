@@ -7,28 +7,40 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public class GlProgramInstance : IBufferProvider, IDisposable
+    public partial class GlProgramInstance : IBufferProvider, IDisposable
     {
         static internal readonly Dictionary<string, GlBaseProgram> _programs = [];
-
 
         protected ShaderUpdate? _update;
         protected readonly GL _gl;
         protected long _materialVersion = -1;
         protected long _globalVersion = -1;
+        protected IGlBuffer?[] _materialBuffers;
+        protected IGlBuffer?[] _modelBuffers;
 
-        public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global)
+        public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global, Object3D? model)
         {
             _gl = gl;
             Material = material;
             Global = global;
+
+            var bufferMap = material.GetOrCreateProp("BufferMap", () => new GlBufferMap(10));
+            _materialBuffers = bufferMap.Buffers;
+
+            if (model != null)
+            {
+                bufferMap = model.GetOrCreateProp("BufferMap", () => new GlBufferMap(10));
+                _modelBuffers = bufferMap.Buffers;
+            }
+            else
+                _modelBuffers = [];
         }
 
         public void UpdateProgram(UpdateShaderContext ctx)
         {
             if (Program != null && _materialVersion == Material!.Version && _globalVersion == Global.Version)
                 return;
-
+   
             ctx.BufferProvider = this;
 
             var localBuilder = new ShaderUpdateBuilder(ctx);
@@ -82,28 +94,35 @@ namespace XrEngine.OpenGL
 
             program.Use();
 
-            foreach (var action in _update!.BufferUpdates!)
-                action(ctx);
-
             Program = program;
 
             _materialVersion = Material.Version;
             _globalVersion = Global.Version;
         }
 
-        public IBuffer GetBuffer<T>(string name, bool isGlobal)
+        public IBuffer GetBuffer<T>(int bufferId, BufferStore store)
         {
-            if (isGlobal)
-                return Global.GetBuffer<T>(name, true);
+            if (store == BufferStore.Shader)
+                return Global.GetBuffer<T>(bufferId, store);
 
-            var key = "Buffer" + name;
-            var buffer = Material.GetProp<GlBuffer<T>>(key);
+            var storeBuffers = store == BufferStore.Material ? _materialBuffers : _modelBuffers; 
+
+            if (storeBuffers.Length == 0)
+                throw new NotSupportedException("Buffer store not supported");
+
+            var buffer = storeBuffers[bufferId];
             if (buffer == null)
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
-                Material.SetProp(key, buffer);
+                storeBuffers[bufferId] = buffer;
             }
             return buffer;
+        }
+
+        public void UpdateBuffers(UpdateShaderContext ctx)
+        {
+            foreach (var action in _update!.BufferUpdates!)
+                action(ctx);
         }
 
         public void UpdateUniforms(UpdateShaderContext ctx, bool updateGlobals)

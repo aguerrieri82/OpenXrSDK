@@ -95,6 +95,8 @@ namespace XrEngine
 
             _context.Frame++;
             _context.Scene = _activeScene;
+            _context.Camera = _activeScene.ActiveCamera;
+
             _renderThread = Thread.CurrentThread;
 
             if (_playState == PlayState.Start)
@@ -121,7 +123,7 @@ namespace XrEngine
             if (_activeScene == null || _activeScene.ActiveCamera == null || Renderer == null)
                 return;
 
-            Renderer.Render(_activeScene, _activeScene.ActiveCamera, view, flush);
+            Renderer.Render(_context, view, flush);
         }
 
         public void EndFrame()

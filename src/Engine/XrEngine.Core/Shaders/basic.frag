@@ -5,7 +5,7 @@ in vec2 fUv;
 
 #ifdef TEXTURE
 
-uniform sampler2D uTexture;
+layout(binding=0) uniform sampler2D uTexture;
 
 #endif
 
@@ -39,7 +39,7 @@ void main()
       vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
       #ifdef TEXTURE
-        diffuse =  diffuse * texture(uTexture, fUv).rgb;
+        diffuse = diffuse * texture(uTexture, fUv).rgb;
       #endif
 
       vec3 viewDirection = normalize(uViewPos - fPos);

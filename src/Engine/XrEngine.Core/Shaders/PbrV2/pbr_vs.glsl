@@ -13,10 +13,6 @@ layout(location=4) in vec4 tangent;
 layout(location=2) in vec2 texcoord;
 
 
-uniform mat4 uModel;
-uniform mat4 uNormalMatrix;
-
-
 layout(location=0) out Vertex
 {
 	vec3 position;
@@ -34,7 +30,7 @@ layout(location=0) out Vertex
 
     layout(num_views=NUM_VIEWS) in;
 
-    layout(std140) uniform SceneMatrices
+    layout(std140, binding=10) uniform SceneMatrices
     {
         uniform mat4 viewProj[NUM_VIEWS];
         uniform vec3 position[NUM_VIEWS];
@@ -68,7 +64,7 @@ layout(location=0) out Vertex
 
 void main()
 {
-	vec4 pos = uModel * vec4(position, 1.0);
+	vec4 pos = uModel.worldMatrix * vec4(position, 1.0);
 
 	vout.position = pos.xyz; // / pos.w;
 
@@ -89,11 +85,11 @@ void main()
 	#endif
 
 
-    vec3 N = normalize(vec3(uNormalMatrix * vec4(normal, 0.0)));
+    vec3 N = normalize(vec3(uModel.normalMatrix * vec4(normal, 0.0)));
 
     #ifdef HAS_TANGENTS
 
-    vec3 T = normalize(vec3(uModel * vec4(tangent.xyz, 0.0)));
+    vec3 T = normalize(vec3(uModel.worldMatrix * vec4(tangent.xyz, 0.0)));
 	vec3 B = normalize(cross(T, N) * tangent.w);
 
     vout.tangentBasis = mat3(T, B, N);

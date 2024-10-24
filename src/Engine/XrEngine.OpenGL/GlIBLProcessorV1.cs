@@ -76,7 +76,7 @@ namespace XrEngine.OpenGL
             _filterProg.SetUniform("uCubeMap", 0);
             _filterProg.SetUniform("uLodBias", (float)LodBias);
             _filterProg.SetUniform("uWidth", (float)Resolution);
-            _filterProg.SetUniform("HammersleyBuffer", (IBuffer)_hams);
+            _filterProg.LoadBuffer(_hams, 0);
 
 
             _gl.BindVertexArray(_fooVa);

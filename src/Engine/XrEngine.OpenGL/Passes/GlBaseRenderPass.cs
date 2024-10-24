@@ -20,7 +20,7 @@
             return _renderer.Layers.Where(a => a.Type != GlLayerType.CastShadow);
         }
 
-        public virtual void Render(Camera camera)
+        public virtual void Render(RenderContext ctx)
         {
             if (!IsEnabled)
                 return;
@@ -31,12 +31,12 @@
                 _isInit = true;
             }
 
-            if (!BeginRender(camera))
+            if (!BeginRender(ctx.Camera!))
                 return;
 
             foreach (var layer in SelectLayers())
             {
-                layer.Prepare(camera);
+                layer.Prepare(ctx);
                 RenderLayer(layer);
             }
               
@@ -62,7 +62,7 @@
         protected GlProgramInstance CreateProgram(ShaderMaterial material)
         {
             var global = material.Shader!.GetGlResource(gl => new GlProgramGlobal(_renderer.GL, material.Shader!));
-            return new GlProgramInstance(_renderer.GL, material, global);
+            return new GlProgramInstance(_renderer.GL, material, global, null);
         }
 
         protected void UseProgram(GlProgramInstance instance, bool updateUniforms)

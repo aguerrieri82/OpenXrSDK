@@ -72,7 +72,6 @@ namespace XrEngine.OpenXr
             _grabObject = grabObj;
 
             _grabObject.SetActiveTool(this, true);
-            _grabObject.IsManipulating(true);
 
             _startPivot = _grabObject.Transform.LocalPivot;
             _startInputOrientation = grabPoint.Orientation;
@@ -98,7 +97,6 @@ namespace XrEngine.OpenXr
             if (_grabObject != null)
             {
                 _grabObject.Transform.SetLocalPivot(_startPivot, true);
-                _grabObject.IsManipulating(false);
                 _grabObject.SetActiveTool(this, false);
                 _grabObject = null;
             }

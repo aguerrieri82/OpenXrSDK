@@ -55,6 +55,7 @@ namespace XrEngine
             _content.Add(obj);
             _manager?.NotifyObjectAdded(this, obj);
             _version++;
+            OnAdded(obj);
         }
 
         protected void Remove(T obj)
@@ -64,6 +65,17 @@ namespace XrEngine
             _content.Remove(obj);
             _manager?.NotifyObjectRemoved(this, obj);
             _version++;
+            OnRemoved(obj);
+        }
+
+        protected virtual void OnRemoved(T ob)
+        {
+
+        }
+
+        protected virtual void OnAdded(T ob)
+        {
+
         }
 
         protected abstract bool BelongsToLayer(T obj);

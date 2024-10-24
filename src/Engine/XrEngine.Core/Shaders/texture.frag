@@ -1,9 +1,9 @@
 ﻿in vec2 fUv;
 
 #ifdef EXTERNAL
-    uniform samplerExternalOES uTexture;
+    layout(binding=0) uniform samplerExternalOES uTexture;
 #else
-    uniform sampler2D uTexture;
+    layout(binding=0) uniform sampler2D uTexture;
 #endif
 
 #ifdef USE_TRANSFORM

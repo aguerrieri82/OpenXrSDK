@@ -31,13 +31,10 @@
             if (!IsEnabled)
                 return;
 
-            if (sender is Group3D group && change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.SceneRemove))
+            if (sender is Group3D group && change.IsAny(ObjectChangeType.Scene))
             {
-                foreach (var child in group.DescendantsOrSelf().OfType<T>())
-                {
-                    if (child is Object3D child3D)
-                        NotifyChangedWork(child3D, change.Type);
-                }
+                foreach (var child in group.DescendantsOrSelf())
+                    NotifyChangedWork(child, change.Type);
             }
             else
                 NotifyChangedWork(sender, change);

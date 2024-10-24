@@ -23,11 +23,11 @@
     public abstract class Material : EngineObject, IHosted, IMaterial
     {
         readonly HashSet<EngineObject> _hosts = [];
+        private bool _isEnabled;
 
         public Material()
         {
             Alpha = AlphaMode.Opaque;
-            Version = 0;
             IsEnabled = true;
             StencilFunction = StencilFunction.Always;
         }
@@ -52,9 +52,7 @@
         protected override void OnChanged(ObjectChange change)
         {
             foreach (var host in _hosts)
-                host.NotifyChanged(new ObjectChange(ObjectChangeType.Render, this));
-
-            Version++;
+                host.NotifyChanged(new ObjectChange(ObjectChangeType.Material, this));
             base.OnChanged(change);
         }
 
@@ -90,8 +88,18 @@
 
         public AlphaMode Alpha { get; set; }
 
-        public bool IsEnabled { get; set; }
-
         public string? Name { get; set; }
+
+        public bool IsEnabled
+        {
+            get => _isEnabled;
+            set
+            {
+                if (_isEnabled == value)
+                    return;
+                _isEnabled = value;
+                NotifyChanged(ObjectChangeType.MaterialEnabled);
+            }
+        }
     }
 }

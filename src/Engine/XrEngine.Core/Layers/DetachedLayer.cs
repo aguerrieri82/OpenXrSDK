@@ -65,5 +65,7 @@
         {
             _content.Reset(onlySelf);
         }
+
+        int IRenderUpdate.UpdatePriority => 0;
     }
 }

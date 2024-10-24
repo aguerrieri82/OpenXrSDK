@@ -7,11 +7,11 @@ namespace XrEngine.OpenXr
     {
         readonly Dictionary<Object3D, Matrix4x4> _models = [];
 
-        public class GlobalHandler : IShaderHandler
+        public class MotionVectorShader : Shader, IShaderHandler
         {
             readonly Matrix4x4[] _prevViewProj = new Matrix4x4[2];
 
-            public GlobalHandler()
+            public MotionVectorShader()
             {
 
             }
@@ -41,12 +41,11 @@ namespace XrEngine.OpenXr
         MotionVectorEffect()
             : base()
         {
-            _shader = new Shader
+            _shader = new MotionVectorShader
             {
                 FragmentSourceName = "motion_vectors.frag",
                 VertexSourceName = "motion_vectors.vert",
-                Resolver = str => Embedded.GetString(str),
-                UpdateHandler = new GlobalHandler()
+                Resolver = str => Embedded.GetString(str)
             };
         }
 

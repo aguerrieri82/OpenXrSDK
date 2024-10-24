@@ -1,4 +1,5 @@
 ﻿using OpenXr.Framework;
+using System.Collections.Concurrent;
 using XrEngine;
 using XrInteraction;
 using XrMath;
@@ -11,6 +12,8 @@ namespace XrEditor
         protected Color? _oldColor;
         protected Collision? _lastCollision;
         protected RayPointerStatus _lastRay;
+        private bool _isColliding;
+        protected readonly ConcurrentBag<Collision> _collisions = [];
 
         public override void NotifySceneChanged()
         {
@@ -55,11 +58,21 @@ namespace XrEditor
 
             UpdateRay(ev);
 
-            _lastCollision = (await AppDispatcher.ExecuteAsync(() =>
-                                _sceneView.Scene.RayCollisions(_lastRay.Ray)).ConfigureAwait(true))
-                           .OrderBy(a => a.Distance)
-                           .FirstOrDefault();
+            if (_isColliding)
+                return;
 
+            _isColliding = true;
+
+            await AppDispatcher.ExecuteAsync(() =>
+            {
+                _sceneView.Scene.RayCollisions(_lastRay.Ray, _collisions);
+
+                _isColliding = false;
+
+            }).ConfigureAwait(false);   
+
+            _lastCollision = _collisions.OrderBy(a => a.Distance)
+                                        .FirstOrDefault();
 
             var newPick = _lastCollision?.Object;
 

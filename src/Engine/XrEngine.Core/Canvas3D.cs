@@ -143,9 +143,8 @@ namespace XrEngine
 
         public void Flush()
         {
-            _lineMesh.Vertices = _data.ToArray();
-            //_lineMesh.IsVisible = _data.Count > 0;
-            _lineMesh.Version++;
+            _lineMesh.Vertices = _data.ToArray();;
+            _lineMesh.NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public ref Canvas3DState State => ref _curState;

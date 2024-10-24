@@ -80,7 +80,7 @@ namespace XrEngine
             if (DiffuseTexture != null)
             {
                 bld.AddFeature("TEXTURE");
-                bld.SetUniform("uTexture", (ctx) => DiffuseTexture, 0);
+                bld.LoadTexture((ctx) => DiffuseTexture, 0);
             }
 
             bld.ExecuteAction((ctx, up) =>

@@ -18,7 +18,9 @@ namespace XrEngine.OpenGL
              : base(gl)
         {
             _target = target;
-            Hash = "";
+            Hash = string.Empty;
+            Version = -1;
+            Slot = 0;
             Create();
         }
 
@@ -95,6 +97,10 @@ namespace XrEngine.OpenGL
         }
 
         public string Hash { get; set; }
+
+        public long Version { get; set; }   
+
+        public int Slot { get; set; }   
 
         public BufferTargetARB Target => _target;
 

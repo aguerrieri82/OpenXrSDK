@@ -79,7 +79,7 @@ namespace XrEngine
                 Vertices[i].Normal = Vertices[i].Normal.Transform(normalMatrix).Normalize();
             }
 
-            Version++;
+            NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public void Rebuild()
@@ -95,7 +95,7 @@ namespace XrEngine
             Vertices = vertices;
             Indices = [];
 
-            Version++;
+            NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public void UpdateBounds()
@@ -129,7 +129,8 @@ namespace XrEngine
         {
             for (int i = 0; i < _vertices.Length; i++)
                 _vertices[i].UV *= scale;
-            Version++;
+
+            NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public Bounds3 Bounds

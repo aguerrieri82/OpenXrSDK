@@ -9,6 +9,7 @@ using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 
 
 using XrMath;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace XrEngine.OpenGL
 {
@@ -48,7 +49,10 @@ namespace XrEngine.OpenGL
             Features.Clear();
 
             for (var i = 0; i < TexturesSlots.Length; i++)
-                TexturesSlots[i] = 0;   
+                TexturesSlots[i] = 0;
+
+            for (var i = 0; i < BufferSlots.Length; i++)
+                BufferSlots[i] = 0;
         }
 
         public void Restore()
@@ -162,7 +166,7 @@ namespace XrEngine.OpenGL
 
         public void BindTexture(TextureTarget target, uint texId, bool force = false)
         {
-            ActiveTexture ??= _gl.GetInteger(GetPName.ActiveTexture);
+            ActiveTexture ??= (_gl.GetInteger(GetPName.ActiveTexture) - (int)GLEnum.Texture0);
 
             var curSlotValue = TexturesSlots[ActiveTexture.Value];
             if (curSlotValue == texId && !force)
@@ -383,6 +387,19 @@ namespace XrEngine.OpenGL
 #endif
         }
 
+        internal void SetActiveBuffer(IGlBuffer buffer, int slot, bool force = false)
+        {
+            var curSlotValue = BufferSlots[slot];
+
+            if (curSlotValue == buffer.Handle && !force)
+                return;
+
+            _gl.BindBufferBase(buffer.Target, (uint)slot, buffer.Handle);
+            buffer.Slot = slot; 
+
+            BufferSlots[slot] = buffer.Handle;
+        }
+
         public float? ClearDepth;
 
         public Color? ClearColor;
@@ -421,6 +438,8 @@ namespace XrEngine.OpenGL
         public readonly Dictionary<EnableCap, bool> Features = [];
 
         public readonly uint[] TexturesSlots = new uint[32];
+
+        public readonly uint[] BufferSlots =new uint[32];
 
         public readonly Dictionary<FramebufferTarget, uint> FrameBufferTargets = [];
 

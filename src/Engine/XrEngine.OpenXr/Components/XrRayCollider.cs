@@ -1,4 +1,5 @@
 ﻿using OpenXr.Framework;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using XrEngine.Interaction;
 using XrMath;
@@ -22,12 +23,19 @@ namespace XrEngine.OpenXr
         protected Collision? _lastCollision;
         protected readonly RayView _rayView;
         protected readonly HitTargetView _hitView;
+        protected readonly ConcurrentBag<Collision> _collisions = [];
 
         public XrRayCollider()
         {
             _rayView = new RayView();
             _hitView = new HitTargetView();
             ShowHit = false;
+        }
+
+        protected override void OnAttach()
+        {
+            _host!.AddChild(_rayView);
+            _host.AddChild(_hitView);
         }
 
         public override void GetState(IStateContainer container)
@@ -48,10 +56,6 @@ namespace XrEngine.OpenXr
             Debug.Assert(_host?.Scene != null);
 
             _input = (XrPoseInput?)XrApp.Current?.Inputs[InputName];
-
-            _host.AddChild(_rayView);
-            _host.AddChild(_hitView);
-
             _sceneTargets = _host.Scene.Components<IComponent>().OfType<IRayTarget>().ToArray();
         }
 
@@ -76,12 +80,12 @@ namespace XrEngine.OpenXr
 
             var colliders = Handler != null && Handler.IsActive ? Handler.GetColliders() : null;
 
-            var results = _host.RayCollisions(ray, colliders).ToArray();
+            _host.RayCollisions(ray, _collisions, colliders);
 
-            if (results.Length > 0)
+            if (_collisions.Count > 0)
             {
-                var minDistance = results.Min(a => a.Distance);
-                result = results.Where(a => a.Distance == minDistance).FirstOrDefault();
+                var minDistance = _collisions.Min(a => a.Distance);
+                result = _collisions.Where(a => a.Distance == minDistance).FirstOrDefault();
             }
 
             if (result != null)
