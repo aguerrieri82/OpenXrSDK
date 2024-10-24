@@ -6,17 +6,19 @@ namespace XrEngine
     {
         protected Camera? _activeCamera;
         protected EngineApp? _app;
-
+        private int _lockCount;
         protected readonly List<IObjectChangeListener> _changeListener = [];
         protected readonly LayerManager _layers;
         protected readonly UpdateHistory _history;
         protected readonly Canvas3D _gizmos;
         protected readonly IList<IDrawGizmos> _drawGizmos = [];
-
+        protected readonly RenderUpdateManager _updateManager;
+        
         public Scene3D()
         {
             _layers = new LayerManager(this);
             _history = new UpdateHistory(this);
+            _updateManager = new RenderUpdateManager(this);
             _scene = this;
             _gizmos = new Canvas3D();
             _changeListener.Add(_layers);
@@ -38,6 +40,13 @@ namespace XrEngine
             }
 
             _gizmos.Flush();
+        }
+
+        public override void Update(RenderContext ctx)
+        {
+            if (!ctx.UpdateOnlySelf)
+                _updateManager.Update(ctx);
+            base.Update(ctx);
         }
 
         protected override void UpdateSelf(RenderContext ctx)
@@ -79,17 +88,19 @@ namespace XrEngine
         {
             //Debug.Assert(_app?.RenderThread == null || Thread.CurrentThread == _app.RenderThread);
 
-            if (change.Target == null)
-                change.Target = sender;
+            change.Target ??= sender;
 
             if (!change.IsAny(ObjectChangeType.Transform) &&
-                change.Target is not Material &&
+                !change.Targets<object>().All(a=> a is Material) &&
                 (change.Target is not Light || !change.IsAny(ObjectChangeType.Render)))
             {
                 Version++;
 
                 UpdateDrawGizmos();
             }
+
+            if (change.IsAny(ObjectChangeType.Scene, ObjectChangeType.Material, ObjectChangeType.Components))
+                ContentVersion++;
 
             foreach (var listener in _changeListener)
                 listener.NotifyChanged(sender, change);
@@ -127,6 +138,24 @@ namespace XrEngine
                     AddChild(_activeCamera);
             }
         }
+
+        public void LockChanges()
+        {
+            _lockCount++;
+        }
+
+        public void UnlockChanges()
+        {
+            _lockCount--;
+        }   
+
+        public void EnsureNotLocked()
+        {
+            if (_lockCount > 0)
+                throw new InvalidOperationException("Scene changes are locked");
+        }
+
+        public long ContentVersion { get; protected set; }
 
         public Canvas3D Gizmos => _gizmos;
 

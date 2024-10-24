@@ -120,11 +120,11 @@ namespace XrEngine.OpenGL
             return IsEnabled;
         }
 
-        public override void Render(Camera camera)
+        public override void Render(RenderContext ctx)
         {
             UpdateLight();
 
-            base.Render(camera);
+            base.Render(ctx);
         }
 
         protected void UpdateCamera(CastShadowsLayer castLayer)

@@ -8,9 +8,9 @@
 
 
     #ifdef USE_SHADOW_SAMPLER
-        uniform sampler2DShadow uShadowMap;
+        layout(binding=0) uniform sampler2DShadow uShadowMap;
     #else
-        uniform sampler2D uShadowMap;
+        layout(binding=0) uniform sampler2D uShadowMap;
     #endif
     
 

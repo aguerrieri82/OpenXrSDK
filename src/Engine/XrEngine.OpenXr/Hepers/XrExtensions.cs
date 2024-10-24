@@ -152,7 +152,7 @@ namespace XrEngine.OpenXr
                         if (i == 0)
                             app.RenderFrame(rect, false);
                         else
-                            renderer.Render(app.ActiveScene, camera, rect, true);
+                            renderer.Render(app.RenderContext, rect, true);
                     }
                 }
                 else

@@ -81,7 +81,7 @@
             return _components.OfType<T>();
         }
 
-        public T AddComponent<T>(T component) where T : IComponent
+        public virtual T AddComponent<T>(T component) where T : IComponent
         {
             if (component.Host == this)
                 return component;
@@ -94,12 +94,12 @@
             _components ??= [];
             _components.Add(component);
 
-            NotifyChanged(ObjectChangeType.Components);
+            NotifyChanged(new ObjectChange(ObjectChangeType.ComponentAdd, component));
 
             return component;
         }
 
-        public void RemoveComponent(IComponent component)
+        public virtual void RemoveComponent(IComponent component)
         {
             if (component.Host != this)
                 return;
@@ -108,7 +108,7 @@
 
             _components!.Remove(component);
 
-            NotifyChanged(ObjectChangeType.Components);
+            NotifyChanged(new ObjectChange(ObjectChangeType.ComponentRemove, component));
         }
 
         public void NotifyChanged(ObjectChange change)
@@ -129,6 +129,7 @@
 
         protected virtual void OnChanged(ObjectChange change)
         {
+            Version++;
             Changed?.Invoke(this, change);
         }
 
@@ -154,7 +155,6 @@
                 return value;
             return null;
         }
-
 
         public virtual void Dispose()
         {
@@ -196,9 +196,7 @@
 
         public bool IsNotifyChange { get; set; }
 
-        public event Action<EngineObject, ObjectChange>? Changed;
-
-        public long Version { get; set; }
+        public long Version { get; protected set; }
 
         public EngineObjectFlags Flags { get; set; }
 
@@ -207,5 +205,10 @@
             get => _id;
             set => _id = value;
         }
+
+        int IRenderUpdate.UpdatePriority => 0;  
+
+        public event Action<EngineObject, ObjectChange>? Changed;
+
     }
 }

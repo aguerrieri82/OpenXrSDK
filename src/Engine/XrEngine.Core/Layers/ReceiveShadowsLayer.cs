@@ -5,6 +5,8 @@ namespace XrEngine
     public class ReceiveShadowsLayer : BaseAutoLayer<TriangleMesh>
     {
         private Bounds3 _bounds;
+        protected long _contentVersion;
+        protected bool _boundsDirty;
 
         protected override bool BelongsToLayer(TriangleMesh obj)
         {
@@ -14,18 +16,30 @@ namespace XrEngine
 
         protected override bool AffectChange(ObjectChange change)
         {
-            if (change.Target is TriangleMesh obj && Contains(obj))
+            if (change.Targets<TriangleMesh>().Any(Contains))
             {
-                var builder = new BoundsBuilder();
-                builder.Add(_content.Select(a => a.WorldBounds));
-                _bounds = builder.Result;
-                _version++;
+                _boundsDirty = true;
+                _contentVersion++;
             }
 
             return base.AffectChange(change);
         }
 
+        public Bounds3 WorldBounds
+        {
+            get
+            {
+                if (_boundsDirty)
+                {
+                    var builder = new BoundsBuilder();
+                    builder.Add(_content.Select(a => a.WorldBounds));
+                    _bounds = builder.Result;
+                    _boundsDirty = false;
+                }
+                return _bounds;
+            }
+        }
 
-        public Bounds3 WorldBounds => _bounds;
+        public long ContentVersion => _contentVersion;
     }
 }

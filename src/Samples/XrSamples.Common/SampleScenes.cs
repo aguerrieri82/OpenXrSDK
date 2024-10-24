@@ -208,12 +208,13 @@ namespace XrSamples
                     if (mat.Texture == null)
                     {
                         mat.Texture = sp.ShadowMap;
-                        mat.Version++;
+                        mat.NotifyChanged(ObjectChangeType.Render);
                     }
+
                     if (mat.Camera == null)
                     {
                         mat.Camera = sp.LightCamera;
-                        mat.Version++;
+                        mat.NotifyChanged(ObjectChangeType.Render);
                     }
 
                 });
@@ -1005,8 +1006,7 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                .UseSpaceWarp()
-                //.UseEnvironmentDepth()
+                .UseEnvironmentDepth()
                 .UseDefaultHDR()
                 .ConfigureSampleApp();
         }

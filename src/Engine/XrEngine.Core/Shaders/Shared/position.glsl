@@ -5,7 +5,7 @@
 
     layout(num_views=NUM_VIEWS) in;
 
-    layout(std140) uniform SceneMatrices
+    layout(std140, binding=10) uniform SceneMatrices
     {
         uniform mat4 viewProj[NUM_VIEWS];
         uniform vec3 position[NUM_VIEWS];

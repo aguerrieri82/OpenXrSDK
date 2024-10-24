@@ -2,7 +2,7 @@
 {
     public interface IGlRenderPass : IDisposable
     {
-        void Render(Camera camera);
+        void Render(RenderContext ctx);
 
         bool IsEnabled { get; set; }
     }

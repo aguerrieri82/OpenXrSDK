@@ -19,7 +19,7 @@
 
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    up.SetUniform("uShadowMap", ctx.ShadowMapProvider!.ShadowMap!, 14);
+                    up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, 14);
                     up.SetUniform("uLightSpaceMatrix", ctx.ShadowMapProvider.LightCamera!.ViewProjection);
                     if (ctx.ShadowMapProvider.Light != null)
                         up.SetUniform("uLightDirection", ctx.ShadowMapProvider.Light.Direction);

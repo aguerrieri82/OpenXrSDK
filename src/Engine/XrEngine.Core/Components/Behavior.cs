@@ -70,6 +70,9 @@
 
         public IUpdateGroup? UpdateGroup { get; set; }
 
+        public int UpdatePriority { get; protected set; }
+
+
     }
 
     public class LambdaBehavior<T> : Behavior<T> where T : EngineObject
@@ -84,5 +87,6 @@
         {
             _update(_host!, ctx);
         }
+
     }
 }

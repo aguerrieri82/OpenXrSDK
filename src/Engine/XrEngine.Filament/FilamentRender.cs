@@ -629,14 +629,15 @@ namespace XrEngine.Filament
             }
         }
 
-        public unsafe void Render(Scene3D scene, Camera camera, Rect2I viewport, bool flush)
+        public unsafe void Render(RenderContext ctx, Rect2I viewport, bool flush)
         {
+            var scene = ctx.Scene!;
 
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);
 
             var render = stackalloc RenderTarget[1];
-            var persp = (PerspectiveCamera)camera;
+            var camera = (PerspectiveCamera)ctx.Camera!;
 
             render[0].Camera = new CameraInfo
             {
@@ -646,20 +647,20 @@ namespace XrEngine.Filament
                 Transform = camera.WorldMatrix
             };
 
-            if (persp.Eyes != null)
+            if (camera.Eyes != null)
             {
                 render[0].Camera.IsStereo = true;
 
                 render[0].Camera.Eye1 = new CameraEyesInfo
                 {
-                    RelTransform = persp.Eyes[0].World,
-                    Projection = persp.Eyes[0].Projection
+                    RelTransform = camera.Eyes[0].World,
+                    Projection = camera.Eyes[0].Projection
                 };
 
                 render[0].Camera.Eye2 = new CameraEyesInfo
                 {
-                    RelTransform = persp.Eyes[1].World,
-                    Projection = persp.Eyes[1].Projection
+                    RelTransform = camera.Eyes[1].World,
+                    Projection = camera.Eyes[1].Projection
                 };
             }
             else

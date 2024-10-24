@@ -7,9 +7,9 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public class GlProgramGlobal : IBufferProvider
+    public class GlProgramGlobal : IBufferProvider, IDisposable
     {
-        protected readonly Dictionary<string, IGlBuffer> _buffers = [];
+        protected readonly GlBufferMap _bufferMap = new(32);
         protected readonly GL _gl;
         protected List<IShaderHandler> _handlers = [];
 
@@ -22,7 +22,7 @@ namespace XrEngine.OpenGL
         public void UpdateProgram(UpdateShaderContext ctx, params IShaderHandler?[] globalHandlers)
         {
             ctx.BufferProvider = this;
-            ctx.LastUpdate = Update;
+            ctx.LastGlobalUpdate = Update;
 
             if (Update == null)
             {
@@ -56,12 +56,16 @@ namespace XrEngine.OpenGL
                 action(ctx);
         }
 
-        public IBuffer GetBuffer<T>(string name, bool isGlobal)
+        public IBuffer GetBuffer<T>(int bufferId, BufferStore store)
         {
-            if (!_buffers.TryGetValue(name, out var buffer))
+            if (store != BufferStore.Shader)
+                throw new InvalidOperationException("Invalid buffer store");
+
+            var buffer = _bufferMap.Buffers[bufferId];
+            if (buffer == null)
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
-                _buffers[name] = buffer;
+                _bufferMap.Buffers[bufferId] = buffer;
             }
             return buffer;
         }
@@ -73,6 +77,9 @@ namespace XrEngine.OpenGL
 
             foreach (var action in Update.Actions!)
                 action(ctx, uniformProvider);
+        }
+
+        public void Dispose() { 
         }
 
         public ShaderUpdate? Update { get; set; }

@@ -12,6 +12,8 @@
 
         public Scene3D? Scene { get; internal set; }
 
+        public Camera? Camera { get; internal set; }
+
         public bool UpdateOnlySelf { get; internal set; }
     }
 }

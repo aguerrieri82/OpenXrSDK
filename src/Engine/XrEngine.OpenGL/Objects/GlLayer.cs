@@ -19,7 +19,7 @@ namespace XrEngine.OpenGL
         private readonly ILayer3D? _layer;
         private readonly GlLayerType _type;
         private long _lastUpdateVersion;
-        private long _lastCameraVer;
+        private long _lastFrame;
 
         public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? layer = null)
         {
@@ -122,7 +122,7 @@ namespace XrEngine.OpenGL
                     vertexContent.Contents.Add(new DrawContent
                     {
                         Draw = () => vertexContent!.VertexHandler!.Draw(material.Shader.ForcePrimitive),
-                        ProgramInstance = new GlProgramInstance(_render.GL, material, shaderContent.ProgramGlobal!),
+                        ProgramInstance = new GlProgramInstance(_render.GL, material, shaderContent.ProgramGlobal!, obj3D),
                         DrawId = drawId++,
                         Object = obj3D
                     });
@@ -135,20 +135,20 @@ namespace XrEngine.OpenGL
 
         }
 
-        public void Prepare(Camera camera)
+        public void Prepare(RenderContext ctx)
         {
-            if (camera.Transform.Version == _lastCameraVer)
+            if (ctx.Frame == _lastFrame)
                 return;
             
             if (_render.Options.FrustumCulling)
                 ComputeFrustumCulling();
 
             if (_render.Options.SortByCameraDistance)
-                ComputeDistance(camera);
+                ComputeDistance(ctx.Camera!);
 
             UpdateVertexHandlers();
 
-            _lastCameraVer = camera.Transform.Version;
+            _lastFrame = ctx.Frame;
         }
 
         protected void UpdateVertexHandlers()

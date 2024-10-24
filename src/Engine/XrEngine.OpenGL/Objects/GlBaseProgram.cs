@@ -10,6 +10,8 @@ using System.Text;
 using XrMath;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
+using System;
 
 
 namespace XrEngine.OpenGL
@@ -22,7 +24,7 @@ namespace XrEngine.OpenGL
         protected readonly Func<string, string> _resolver;
         protected readonly Dictionary<string, object> _values = [];
         protected readonly Dictionary<string, int> _locations = [];
-        protected readonly Dictionary<string, int> _boundBuffers = [];
+        protected readonly int[] _boundBuffers = new int[32];
 
 
         public GlBaseProgram(GL gl, Func<string, string> includeResolver) : base(gl)
@@ -162,7 +164,6 @@ namespace XrEngine.OpenGL
 
             if (isUpdate)
                 glText.Update(tex2d, false);
-
         }
 
         public void SetUniform(string name, int value, bool optional = false)
@@ -224,29 +225,16 @@ namespace XrEngine.OpenGL
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
-
-        public void SetUniform(string name, IBuffer buffer, int slot = 0, bool optional = false)
+        public void LoadBuffer(IBuffer buffer, int slot = 0)
         {
             var glBuffer = (IGlBuffer)buffer;
 
-            _gl.BindBufferBase(glBuffer.Target, (uint)slot, glBuffer.Handle);
-
-            var index = LocateUniform(name, optional, true);
-
-            if (index == -1)
-                return;
-
-            if (!_boundBuffers.TryGetValue(name, out var curSlot) || slot != curSlot)
-            {
-                _gl.UniformBlockBinding(_handle, (uint)index, (uint)slot);
-                _boundBuffers[name] = slot;
-            }
+            GlState.Current!.SetActiveBuffer(glBuffer, slot);
         }
 
         public unsafe void SetUniform(string name, Texture value, int slot = 0, bool optional = false)
         {
             LoadTexture(value, slot);
-
             SetUniform(name, slot, optional);
         }
 

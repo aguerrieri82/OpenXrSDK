@@ -448,7 +448,7 @@ namespace XrEngine
         {
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
-                return ctx.LastUpdate?.LightsHash != ctx.LightsHash;
+                return ctx.LastGlobalUpdate?.LightsHash != ctx.LightsHash;
             }
 
             public void UpdateShader(ShaderUpdateBuilder bld)
@@ -465,7 +465,7 @@ namespace XrEngine
 
                 bld.AddFeature("MAX_LIGHTS " + LightListUniforms.Max);
 
-                bld.SetUniformBuffer("Camera", (ctx) =>
+                bld.LoadBuffer((ctx) =>
                 {
                     return (CameraUniforms?)new CameraUniforms
                     {
@@ -476,11 +476,11 @@ namespace XrEngine
                         Exposure = ctx.Camera.Exposure,
                         FarPlane = ctx.Camera.Far
                     };
-                }, 0, true);
+                }, 0, BufferStore.Shader);
 
                 if (hasPunctual)
                 {
-                    bld.SetUniformBuffer("Lights", (ctx) =>
+                    bld.LoadBuffer((ctx) =>
                     {
                         var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
 
@@ -542,7 +542,7 @@ namespace XrEngine
                             LightCount = (uint)lights.Count,
                             Lights = lights.ToArray()
                         };
-                    }, 1, true);
+                    }, 1, BufferStore.Shader);
                 }
 
                 if (bld.Context.ShadowMapProvider != null)
@@ -556,7 +556,7 @@ namespace XrEngine
 
                         bld.ExecuteAction((ctx, up) =>
                         {
-                            up.SetUniform("uShadowMap", ctx.ShadowMapProvider!.ShadowMap!, 14);
+                            up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, 14);
                             up.SetUniform("uLightSpaceMatrix", ctx.ShadowMapProvider!.LightCamera!.ViewProjection);
                         });
                     }
@@ -565,7 +565,7 @@ namespace XrEngine
 
                 if (imgLight != null)
                 {
-                    bld.SetUniformBuffer("Ibl", (ctx) =>
+                    bld.LoadBuffer((ctx) =>
                     {
                         var curHash = imgLight.Version.ToString();
 
@@ -580,19 +580,19 @@ namespace XrEngine
                             EnvRotation = Matrix3x3.CreateRotationY(imgLight.Rotation),
                             MipCount = (int)imgLight.Textures.MipCount
                         };
-                    }, 2, true);
+                    }, 2, BufferStore.Shader);
 
 
                     bld.ExecuteAction((ctx, up) =>
                     {
                         if (imgLight.Textures?.LambertianEnv != null)
-                            up.SetUniform("uLambertianEnvSampler", imgLight.Textures.LambertianEnv, 9);
+                            up.LoadTexture(imgLight.Textures.LambertianEnv, 9);
 
                         if (imgLight.Textures?.GGXEnv != null)
-                            up.SetUniform("uGGXEnvSampler", imgLight.Textures.GGXEnv, 10);
+                            up.LoadTexture(imgLight.Textures.GGXEnv, 10);
 
                         if (imgLight.Textures?.GGXLUT != null)
-                            up.SetUniform("uGGXLUT", imgLight.Textures.GGXLUT, 11);
+                            up.LoadTexture(imgLight.Textures.GGXLUT, 11);
                         /*
                          if (imgLight.Textures?.CharlieLUT != null)
                              up.SetUniform("uCharlieLUT", imgLight.Textures.CharlieLUT, 12);
@@ -651,7 +651,17 @@ namespace XrEngine
         {
             var material = new MaterialUniforms();
 
-            bld.SetUniformBuffer("Material", ctx => (MaterialUniforms?)material, 3, false);
+            bld.LoadBuffer(ctx =>
+            {
+                var curVersion = Version;
+
+                if (curVersion == ctx.CurrentBuffer!.Version)
+                    return null;
+                
+                ctx.CurrentBuffer.Version = Version;
+                return (MaterialUniforms?)material;
+
+            }, 3, BufferStore.Material);
 
             if (NormalTexture != null)
             {
@@ -666,7 +676,7 @@ namespace XrEngine
                     material.NormalUVTransform = NormalTexture.Transform.Value;
                 }
 
-                bld.SetUniform("uNormalSampler", (ctx) => NormalTexture, 1);
+                bld.LoadTexture((ctx) => NormalTexture, 1);
             }
 
             if (OcclusionTexture != null)
@@ -682,7 +692,7 @@ namespace XrEngine
                     material.OcclusionUVTransform = OcclusionTexture.Transform.Value;
                 }
 
-                bld.SetUniform("uOcclusionSampler", (ctx) => OcclusionTexture, 2);
+                bld.LoadTexture((ctx) => OcclusionTexture, 2);
             }
 
             material.EmissiveFactor = EmissiveFactor;
@@ -690,7 +700,7 @@ namespace XrEngine
             if (EmissiveTexture != null)
             {
                 bld.AddFeature("HAS_EMISSIVE_MAP 1");
-                bld.SetUniform("uEmissiveSampler", (ctx) => EmissiveTexture, 3);
+                bld.LoadTexture((ctx) => EmissiveTexture, 3);
 
                 if (EmissiveTexture.Transform != null && !EmissiveTexture.Transform.Value.IsIdentity)
                 {
@@ -712,7 +722,7 @@ namespace XrEngine
                     bld.AddFeature("HAS_BASE_COLOR_MAP 1");
 
                     material.BaseColorUVSet = MetallicRoughness.BaseColorUVSet;
-                    bld.SetUniform("uBaseColorSampler", (ctx) => MetallicRoughness.BaseColorTexture, 4);
+                    bld.LoadTexture((ctx) => MetallicRoughness.BaseColorTexture, 4);
 
                     if (MetallicRoughness.BaseColorTexture.Transform != null && !MetallicRoughness.BaseColorTexture.Transform.Value.IsIdentity)
                     {
@@ -727,7 +737,7 @@ namespace XrEngine
 
                     material.MetallicRoughnessUVSet = MetallicRoughness.MetallicRoughnessUVSet;
 
-                    bld.SetUniform("uMetallicRoughnessSampler", (ctx) => MetallicRoughness.MetallicRoughnessTexture, 5);
+                    bld.LoadTexture((ctx) => MetallicRoughness.MetallicRoughnessTexture, 5);
 
                     if (MetallicRoughness.MetallicRoughnessTexture.Transform != null && !MetallicRoughness.MetallicRoughnessTexture.Transform.Value.IsIdentity)
                     {
@@ -748,7 +758,7 @@ namespace XrEngine
 
                     material.DiffuseUVSet = SpecularGlossiness.DiffuseUVSet;
 
-                    bld.SetUniform("uDiffuseSampler", (ctx) => SpecularGlossiness.DiffuseTexture, 4);
+                    bld.LoadTexture((ctx) => SpecularGlossiness.DiffuseTexture, 4);
                 }
 
                 if (SpecularGlossiness?.SpecularGlossinessTexture != null)
@@ -757,7 +767,7 @@ namespace XrEngine
 
                     material.SpecularGlossinessUVSet = SpecularGlossiness.SpecularGlossinessUVSet;
 
-                    bld.SetUniform("uSpecularGlossinessSampler", (ctx) => SpecularGlossiness.SpecularGlossinessTexture, 5);
+                    bld.LoadTexture((ctx) => SpecularGlossiness.SpecularGlossinessTexture, 5);
                 }
 
                 material.DiffuseFactor = SpecularGlossiness?.DiffuseFactor ?? Color.White;
@@ -779,7 +789,7 @@ namespace XrEngine
 
                     bld.AddFeature("HAS_SHEEN_COLOR_MAP 1");
                     material.SheenColorUVSet = Sheen.ColorTextureUVSet;
-                    bld.SetUniform("uSheenColorSampler", (ctx) => Sheen.ColorTexture, 6);
+                    bld.LoadTexture((ctx) => Sheen.ColorTexture, 6);
 
                     if (Sheen.ColorTexture.Transform != null && !Sheen.ColorTexture.Transform.Value.IsIdentity)
                     {
@@ -791,7 +801,7 @@ namespace XrEngine
                 {
                     bld.AddFeature("HAS_SHEEN_ROUGHNESS_MAP 1");
                     material.SheenRoughnessUVSet = Sheen.RoughnessTextureUVSet;
-                    bld.SetUniform("uSheenRoughnessSampler", (ctx) => Sheen.RoughnessTexture, 7);
+                    bld.LoadTexture((ctx) => Sheen.RoughnessTexture, 7);
 
                     if (Sheen.RoughnessTexture.Transform != null && !Sheen.RoughnessTexture.Transform.Value.IsIdentity)
                     {
@@ -836,8 +846,6 @@ namespace XrEngine
 
             bld.SetUniform("uModelMatrix", (ctx) => ctx.Model!.WorldMatrix);
             bld.SetUniform("uNormalMatrix", (ctx) => ctx.Model!.NormalMatrix);
-
-            bld.SetUniformBuffer("Material", ctx => (MaterialUniforms?)material, 3, false);
 
             bld.AddFeature("ALPHAMODE_OPAQUE 0");
             bld.AddFeature("ALPHAMODE_MASK 1");

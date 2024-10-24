@@ -89,12 +89,12 @@ namespace XrEngine.OpenGL
 
             bld.AddFeature("MULTI_VIEW");
 
-            bld.SetUniformBuffer("SceneMatrices", ctx => (SceneMatrices?)_matrices, 10, true);
+            bld.LoadBuffer(ctx => (SceneMatrices?)_matrices, 10, BufferStore.Shader);
         }
 
         public bool NeedUpdateShader(UpdateShaderContext ctx)
         {
-            return ctx.LastUpdate?.ShaderHandlers == null || !ctx.LastUpdate.ShaderHandlers.Contains(this);
+            return ctx.LastGlobalUpdate?.ShaderHandlers == null || !ctx.LastGlobalUpdate.ShaderHandlers.Contains(this);
         }
 
         public void CommitDepth()

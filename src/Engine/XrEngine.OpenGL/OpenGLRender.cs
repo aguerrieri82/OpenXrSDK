@@ -246,13 +246,13 @@ namespace XrEngine.OpenGL
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
-        public void Render(Scene3D scene, Camera camera, Rect2I view, bool flush)
+        public void Render(RenderContext ctx, Rect2I view, bool flush)
         {
             if (_target != null)
-                Render(scene, camera, view, _target, flush);
+                Render(ctx, view, _target, flush);
         }
 
-        public void Render(Scene3D scene, Camera camera, Rect2I view, IGlRenderTarget target, bool flush)
+        public void Render(RenderContext ctx, Rect2I view, IGlRenderTarget target, bool flush)
         {
             EnsureThread();
 
@@ -261,20 +261,19 @@ namespace XrEngine.OpenGL
 
             _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin Render {(target == null ? "Default" : target.GetType().Name)}");
 
-            UpdateLayers(scene);
+            UpdateLayers(ctx.Scene!);
 
-            _updateCtx.Camera = camera;
+            _updateCtx.Camera = ctx.Camera!;
             _updateCtx.Lights = _mainLayer!.Content.Lights;
             _updateCtx.LightsHash = _mainLayer.Content.LightsHash;
             _updateCtx.ViewSize = new Size2I(view.Width, view.Height);
-
-            camera.FrustumPlanes(_updateCtx.FrustumPlanes);
+            _updateCtx.Camera!.FrustumPlanes(_updateCtx.FrustumPlanes);
 
             foreach (var pass in _renderPasses)
             {
                 _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin Pass {pass.GetType().Name}");
 
-                pass.Render(camera);
+                pass.Render(ctx);
 
                 _gl.PopDebugGroup();
             }
@@ -624,7 +623,7 @@ namespace XrEngine.OpenGL
 
             var dstGl = dst.ToGlTexture();
 
-            program.SetUniform("sourceTexture", src, 10);
+            program.LoadTexture(src, 10);
 
             _gl.BindImageTexture(0, dst.ToGlTexture(), 0, true, 0, BufferAccessARB.WriteOnly, dstGl.InternalFormat);
 

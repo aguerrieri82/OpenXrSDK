@@ -6,6 +6,10 @@ namespace XrEngine
 {
     public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial
     {
+        const int CAMERA_BUF = 1;
+        const int LIGHTS_BUF = 2;
+        const int MATERIAL_BUF = 3;
+
         #region CameraUniforms
 
         [StructLayout(LayoutKind.Explicit, Size = 180)]
@@ -48,7 +52,7 @@ namespace XrEngine
 
         #region MaterialUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 128)]
+        [StructLayout(LayoutKind.Explicit, Size = 256)]
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
@@ -75,6 +79,7 @@ namespace XrEngine
 
             [FieldOffset(116)]
             public float AlphaCutoff;
+
 
         }
 
@@ -144,11 +149,25 @@ namespace XrEngine
             public float Range;
         }
 
-        #endregion  
+        #endregion
 
-        #region GlobalShaderHandler
+        #region ModelUniforms
 
-        public class PbrV2Shader : Shader, IShaderHandler
+        [StructLayout(LayoutKind.Explicit, Size = 128)]
+        public struct ModelUniforms
+        {
+            [FieldOffset(0)]
+            public Matrix4x4 WorldMatrix;
+
+            [FieldOffset(64)]
+            public Matrix4x4 NormalMatrix;
+        }
+
+        #endregion
+
+        #region PbrV2Shader
+
+        public class PbrV2Shader : Shader, IShaderHandler 
         {
             long _iblVersion = -1;
             readonly PerspectiveCamera _depthCamera = new PerspectiveCamera();
@@ -156,8 +175,8 @@ namespace XrEngine
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
                 var ibl = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
-                return ctx.LastUpdate?.LightsHash != ctx.LightsHash ||
-                       (ctx.LastUpdate?.ShaderVersion != Version) ||
+                return ctx.LastGlobalUpdate?.LightsHash != ctx.LightsHash ||
+                       (ctx.LastGlobalUpdate?.ShaderVersion != Version) ||
                        (ibl?.Version ?? -1) != _iblVersion;
             }
 
@@ -190,7 +209,7 @@ namespace XrEngine
 
                         bld.ExecuteAction((ctx, up) =>
                         {
-                            up.SetUniform("uShadowMap", ctx.ShadowMapProvider!.ShadowMap!, 14);
+                            up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, 14);
                         });
                     }
                 }
@@ -206,7 +225,7 @@ namespace XrEngine
                     {
                         var texture = envDepth.Acquire(_depthCamera);
                         if (texture != null)
-                            up.SetUniform("envDepth", texture, 8);
+                            up.LoadTexture(texture, 8);
 
                         up.SetUniform("envDepthBias", envDepth.Bias);
 
@@ -219,7 +238,7 @@ namespace XrEngine
                 }
 
 
-                bld.SetUniformBuffer("Camera", (ctx) =>
+                bld.LoadBuffer((ctx) =>
                 {
                     var result = new CameraUniforms
                     {
@@ -240,10 +259,10 @@ namespace XrEngine
 
                     return (CameraUniforms?)result;
 
-                }, 0, true);
+                }, 0, BufferStore.Shader);
 
 
-                bld.SetUniformBuffer("Lights", (ctx) =>
+                bld.LoadBuffer((ctx) =>
                 {
                     var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
 
@@ -294,7 +313,7 @@ namespace XrEngine
                         Count = (uint)lights.Count,
                         Lights = lights.ToArray()
                     };
-                }, 1, true);
+                }, 1, BufferStore.Shader);
 
 
                 if (imgLight != null)
@@ -312,13 +331,13 @@ namespace XrEngine
                             up.SetUniform("uIblTransform", Matrix3x3.CreateRotationY(imgLight.Rotation));
 
                         if (imgLight.Textures?.GGXEnv != null)
-                            up.SetUniform("specularTexture", imgLight.Textures.GGXEnv, 4);
+                            up.LoadTexture(imgLight.Textures.GGXEnv, 4);
 
                         if (imgLight.Textures?.LambertianEnv != null)
-                            up.SetUniform("irradianceTexture", imgLight.Textures.LambertianEnv, 5);
+                            up.LoadTexture(imgLight.Textures.LambertianEnv, 5);
 
                         if (imgLight.Textures?.GGXLUT != null)
-                            up.SetUniform("specularBRDF_LUT", imgLight.Textures.GGXLUT, 6);
+                            up.LoadTexture(imgLight.Textures.GGXLUT, 6);
 
                     });
                 }
@@ -332,7 +351,8 @@ namespace XrEngine
 
         #endregion
 
-        static readonly Shader SHADER;
+    
+        public static readonly PbrV2Shader SHADER;
 
         static PbrV2Material()
         {
@@ -387,7 +407,32 @@ namespace XrEngine
 
             bld.AddFeature($"ALPHA_MODE {(int)(Alpha == AlphaMode.BlendMain ? AlphaMode.Blend : Alpha)}");
 
-            bld.SetUniformBuffer("Material", ctx => (MaterialUniforms?)material, 2, false);
+            
+            bld.LoadBuffer(ctx =>
+            {
+                var curVersion = ctx.Model!.Transform.Version;
+                if (curVersion == ctx.CurrentBuffer!.Version)
+                    return null;
+                ctx.CurrentBuffer!.Version = curVersion;
+
+                return (ModelUniforms?)new ModelUniforms
+                {
+                    NormalMatrix = ctx.Model.NormalMatrix,
+                    WorldMatrix = ctx.Model.WorldMatrix
+                };
+            }, 3, BufferStore.Model);
+
+
+            bld.LoadBuffer(ctx =>
+            {
+                var curVersion = Version;
+                if (curVersion == ctx.CurrentBuffer!.Version)
+                    return null;
+                ctx.CurrentBuffer!.Version = curVersion;
+
+                return (MaterialUniforms?)material;
+
+            }, 2, BufferStore.Material);
 
 
             var planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
@@ -401,7 +446,7 @@ namespace XrEngine
 
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    up.SetUniform("reflectionTexture", planar.Texture, 7);
+                    up.LoadTexture(planar.Texture, 7);
 
                     if (PlanarReflection.IsMultiView)
                     {
@@ -420,7 +465,7 @@ namespace XrEngine
             if (ColorMap != null)
             {
                 bld.AddFeature("USE_ALBEDO_MAP");
-                bld.SetUniform("albedoTexture", ctx => ColorMap, 0);
+                bld.LoadTexture(ctx => ColorMap, 0);
 
                 if (ColorMap.Transform != null)
                 {
@@ -432,32 +477,27 @@ namespace XrEngine
             if (MetallicRoughnessMap != null)
             {
                 bld.AddFeature("USE_METALROUGHNESS_MAP");
-                bld.SetUniform("metalroughnessTexture", ctx => MetallicRoughnessMap, 2);
+                bld.LoadTexture(ctx => MetallicRoughnessMap, 2);
             }
 
             if (NormalMap != null)
             {
                 bld.AddFeature("USE_NORMAL_MAP");
-                bld.SetUniform("normalTexture", ctx => NormalMap, 1);
+                bld.LoadTexture(ctx => NormalMap, 1);
             }
 
             if (OcclusionMap != null)
             {
                 bld.AddFeature("USE_OCCLUSION_MAP");
-                bld.SetUniform("occlusionTexture", ctx => OcclusionMap, 3);
+                bld.LoadTexture(ctx => OcclusionMap, 3);
             }
-
-            bld.ExecuteAction((ctx, up) =>
-            {
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-            });
 
             if ((bld.Context.ActiveComponents & VertexComponent.Tangent) != 0)
                 bld.AddFeature("HAS_TANGENTS");
 
             base.UpdateShader(bld);
         }
+
 
         public Texture2D? OcclusionMap { get; set; }
 
@@ -491,5 +531,7 @@ namespace XrEngine
         public float NormalScale { get; set; }
 
         public bool UseEnvDepth { get; set; }
+
+        
     }
 }

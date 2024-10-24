@@ -83,6 +83,8 @@ namespace XrEngine
             if (child.Parent == this)
                 return child;
 
+            _scene?.EnsureNotLocked();
+
             child.Parent?.RemoveChild(child);
 
             child.EnsureId();
@@ -135,6 +137,8 @@ namespace XrEngine
             if (child.Parent != this)
                 return;
 
+            _scene?.EnsureNotLocked();
+
             _children.Remove(child);
 
             child.SetParent(null, preserveTransform);
@@ -157,6 +161,8 @@ namespace XrEngine
         public UpdateMode BoundUpdateMode { get; set; }
 
         public IReadOnlyList<Object3D> Children => _children.AsReadOnly();
+
+
 
     }
 }

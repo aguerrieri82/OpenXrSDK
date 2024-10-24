@@ -13,7 +13,7 @@
 
         protected override bool AffectChange(ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.SceneRemove))
+            if (change.IsAny(ObjectChangeType.Scene))
                 return true;
 
             if (change.IsAny(ObjectChangeType.Render))

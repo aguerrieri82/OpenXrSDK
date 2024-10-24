@@ -55,6 +55,8 @@ namespace XrEngine
             _normalMatrixDirty = true;
             _worldDirty = false;
 
+            _transform.Version++;
+
             if (IsNotifyChangedScene())
                 _scene?.NotifyChanged(this, ObjectChangeType.Transform);
         }
@@ -129,8 +131,6 @@ namespace XrEngine
             base.OnChanged(change);
         }
 
-
-
         public override void Dispose()
         {
             _parent?.RemoveChild(this);
@@ -195,6 +195,18 @@ namespace XrEngine
                 WorldMatrix = curWorldMatrix;
 
             NotifyChanged(changeType);
+        }
+
+        public override T AddComponent<T>(T component)
+        {
+            _scene?.EnsureNotLocked();
+            return base.AddComponent(component);
+        }
+
+        public override void RemoveComponent(IComponent component)
+        {
+            _scene?.EnsureNotLocked();
+            base.RemoveComponent(component);
         }
 
         public override void GetState(IStateContainer container)

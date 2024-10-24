@@ -369,7 +369,7 @@ namespace XrEngine.Physics
             Debug.Assert(_host != null);
             Debug.Assert(_actor != null);
 
-            if (!_host.IsManipulating())
+            if (_host.GetActiveTool() == null)
             {
                 var curPose = GetPose();
 

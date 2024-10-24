@@ -15,7 +15,7 @@ namespace XrEngine
 
         public SurfaceController()
         {
-
+            UpdatePriority = -1;
         }
 
         protected override void Start(RenderContext ctx)

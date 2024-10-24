@@ -16,9 +16,10 @@ namespace XrEditor
               .SetGlOptions(new GlRenderOptions()
               {
                   UsePlanarReflection = true,
+                  UseDepthPass = false,  
               })
               .SetRenderQuality(1, Driver == GraphicDriver.FilamentVulkan ? 1u : 2u) ///samples > 1 cause Filament to fuck up
-              .CreateCucina()
+              .CreateRoomManager()
               .Build();
     }
 }

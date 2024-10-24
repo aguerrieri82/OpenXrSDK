@@ -7,7 +7,6 @@ namespace XrEngine
     {
         void LoadTexture(Texture value, int slot = 0);
 
-
         void SetUniform(string name, int value, bool optional = false);
 
         void SetUniform(string name, uint value, bool optional = false);
@@ -34,7 +33,7 @@ namespace XrEngine
 
         void SetUniform(string name, Vector2[] value, bool optional = false);
 
-        void SetUniform(string name, IBuffer value, int slot = 0, bool optional = false);
+        void LoadBuffer(IBuffer value, int slot = 0);
 
         void SetLineSize(float size);
 

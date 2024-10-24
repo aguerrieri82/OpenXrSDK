@@ -6,6 +6,7 @@
         readonly HashSet<string> _layersContent = [];
         readonly List<ILayer3D> _layers = [];
         long _version;
+
         public LayerManager(Scene3D scene)
         {
             _scene = scene;

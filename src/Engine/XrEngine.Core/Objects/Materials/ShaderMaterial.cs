@@ -32,7 +32,7 @@
 
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
         {
-            return ctx.LastUpdate?.MaterialVersion != Version;
+            return false;
         }
 
         public virtual void UpdateShader(ShaderUpdateBuilder bld)

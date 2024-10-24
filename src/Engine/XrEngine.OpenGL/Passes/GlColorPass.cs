@@ -1,6 +1,7 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 #else
+using Microsoft.VisualBasic;
 using Silk.NET.OpenGL;
 #endif
 
@@ -55,7 +56,14 @@ namespace XrEngine.OpenGL
 
                 progGlobal!.UpdateProgram(updateContext, _renderer.RenderTarget as IShaderHandler);
 
-                foreach (var vertex in shader.Value.Contents.Select(a=> a.Value).OrderBy(a => a.RenderPriority))
+                IEnumerable<VertexContent> vertices = shader.Value.Contents.Values;
+
+                if (_renderer.Options.SortByCameraDistance)
+                    vertices = vertices.OrderBy(a => a.AvgDistance);
+                else
+                    vertices = vertices.OrderBy(a => a.RenderPriority);
+
+                foreach (var vertex in vertices)
                 {
                     if (vertex.IsHidden)
                         continue;
@@ -94,6 +102,8 @@ namespace XrEngine.OpenGL
                         _renderer.State.SetActiveProgram(progInst.Program!.Handle);
 
                         progInst.UpdateUniforms(updateContext, programChanged);
+
+                        progInst.UpdateBuffers(updateContext);
 
                         _renderer.ConfigureCaps(draw.ProgramInstance!.Material!);
 

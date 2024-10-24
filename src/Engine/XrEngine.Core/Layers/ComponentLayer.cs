@@ -8,8 +8,7 @@
             return change.IsAny(
                 ObjectChangeType.Components,
                 ObjectChangeType.Visibility,
-                ObjectChangeType.SceneAdd,
-                ObjectChangeType.SceneRemove);
+                ObjectChangeType.Scene);
         }
 
         protected override bool BelongsToLayer(Object3D obj)

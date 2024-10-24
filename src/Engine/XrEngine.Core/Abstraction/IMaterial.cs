@@ -27,6 +27,6 @@ namespace XrEngine
 
         byte? WriteStencil { get; set; }
 
-        long Version { get; set; }
+        long Version { get; }
     }
 }
