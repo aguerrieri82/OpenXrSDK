@@ -147,6 +147,21 @@ namespace XrEngine
             _lineMesh.NotifyChanged(ObjectChangeType.Geometry);
         }
 
+        public void DrawCircle(Pose3 pose, float radius, int segments = 30)
+        {
+            var circlePoints = new Vector3[segments];
+            for (int i = 0; i < segments; i++)
+            {
+                float angle = (float)(i * 2 * Math.PI / segments);
+                circlePoints[i] = new Vector3((float)Math.Cos(angle) * radius, (float)Math.Sin(angle) * radius, 0);
+                circlePoints[i] = Vector3.Transform(circlePoints[i], pose.Orientation) + pose.Position;
+
+            }
+
+            for (int i = 0; i < segments; i++)
+                DrawLine(circlePoints[i], circlePoints[(i + 1) % segments]);
+        }
+
         public ref Canvas3DState State => ref _curState;
 
         public Object3D Content => _lineMesh;

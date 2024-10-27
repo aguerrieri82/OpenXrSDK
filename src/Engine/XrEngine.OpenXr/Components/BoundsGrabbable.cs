@@ -31,7 +31,7 @@ namespace XrEngine.OpenXr
         {
         }
 
-        public virtual void OnMove()
+        public virtual void NotifyMove()
         {
 
         }

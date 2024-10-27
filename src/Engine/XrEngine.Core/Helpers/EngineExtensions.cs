@@ -1049,7 +1049,11 @@ namespace XrEngine
         public static void UpdateColor(this TriangleMesh self, Color color)
         {
             foreach (var material in self.Materials.OfType<IColorSource>())
+            {
                 material.Color = color;
+                ((Material) material).NotifyChanged(ObjectChangeType.Render);   
+            }
+              
         }
 
         public static void UpdateColor(this Material self, Color color)

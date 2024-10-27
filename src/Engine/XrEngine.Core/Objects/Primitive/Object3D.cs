@@ -55,10 +55,15 @@ namespace XrEngine
             _normalMatrixDirty = true;
             _worldDirty = false;
 
-            _transform.Version++;
+            OnWorldChanged();
 
             if (IsNotifyChangedScene())
                 _scene?.NotifyChanged(this, ObjectChangeType.Transform);
+        }
+
+        protected virtual void OnWorldChanged()
+        {
+            _transform.Version++;
         }
 
         bool IsNotifyChangedScene()
@@ -260,6 +265,7 @@ namespace XrEngine
                    _transform.Position.Transform(_parent.WorldMatrix) : _transform.Position;
             set
             {
+
                 _transform.Position = _parent != null && !_parent.WorldMatrix.IsIdentity ?
                     value.Transform(_parent.WorldMatrixInverse) : value;
 

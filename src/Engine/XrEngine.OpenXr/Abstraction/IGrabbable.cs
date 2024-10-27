@@ -10,6 +10,6 @@ namespace XrEngine.OpenXr
 
         void Release();
 
-        void OnMove();
+        void NotifyMove();
     }
 }

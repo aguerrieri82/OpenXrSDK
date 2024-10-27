@@ -39,6 +39,8 @@ namespace XrEngine.OpenXr
             get => _length;
             set
             {
+                if (_length == value)
+                    return;
                 _length = value;
                 _isDirty = true;
             }
@@ -49,6 +51,8 @@ namespace XrEngine.OpenXr
             get => _size;
             set
             {
+                if (_size == value)
+                    return;
                 _size = value;
                 _isDirty = true;
             }

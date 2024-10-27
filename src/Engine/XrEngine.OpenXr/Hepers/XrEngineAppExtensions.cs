@@ -218,17 +218,7 @@ namespace XrEngine.OpenXr
             return self;
         }
 
-        public static XrEngineAppBuilder UseBloom(this XrEngineAppBuilder self)
-        {
-            var options = self.Options.DriverOptions;
 
-            if (options is not GlRenderOptions glOptions)
-                throw new NotSupportedException("Bloom is only supported on OpenGL");   
-
-            glOptions.UseBloom = true;  
-
-            return self;    
-        }
 
 
         public static XrEngineAppBuilder UseEnvironmentDepth(this XrEngineAppBuilder self)

@@ -10,6 +10,11 @@ namespace XrEngine
             Range = 10;
         }
 
+        protected internal override void InvalidateWorld()
+        {
+            Version++;
+            base.InvalidateWorld();
+        }
 
 
         public override void GetState(IStateContainer container)

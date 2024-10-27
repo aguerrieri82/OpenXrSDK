@@ -1,6 +1,7 @@
 ﻿using CefSharp;
 using CefSharp.Enums;
 using CefSharp.OffScreen;
+using System.Diagnostics;
 using System.Numerics;
 using System.Text.Json;
 using XrEngine.UI.Web;
@@ -74,7 +75,10 @@ namespace XrEngine.Browser.Win
 
             var viewPos = pos * new Vector2(Size.Width, Size.Height);
 
-            if (eventType == TouchEventType.Moved && flags == CefEventFlags.None)
+            Debug.WriteLine("{0} {1}", viewPos, eventType);
+
+
+            if (eventType == TouchEventType.Moved)
             {
                 _host!.SendMouseMoveEvent((int)viewPos.X, (int)viewPos.Y, false, flags);
             }
