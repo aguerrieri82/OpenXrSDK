@@ -6,7 +6,6 @@ namespace XrEngine
 
     public static class StateContainerExtensions
     {
-        #region STATE
 
         public static void WriteArray<T>(this IStateContainer container, string key, IList<T> items) where T : class, IStateObject
         {
@@ -42,8 +41,8 @@ namespace XrEngine
                     }
                     else
                     {
-                        curItem.SetState(itemState);
                         container.Context.RefTable.Resolved[curItem.Id] = curItem;
+                        curItem.SetState(itemState);
                     }
 
                     foundItems.Add(curItem!);
@@ -195,7 +194,6 @@ namespace XrEngine
             return self.Context.Is(flag);
         }
 
-        #endregion
 
     }
 }

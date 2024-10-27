@@ -31,6 +31,7 @@
 
     <DataTemplate DataType="{x:Type local:MainView}">
         <DockPanel >
+            <ContentPresenter DockPanel.Dock="Top" Content="{Binding Toolbar}"/>
             <ContentPresenter MinWidth="360px" DockPanel.Dock="Right" Content="{Binding PropertiesEditor}"/>
             <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Messages}"/>
             <TabControl  Height="200" DockPanel.Dock="Bottom">

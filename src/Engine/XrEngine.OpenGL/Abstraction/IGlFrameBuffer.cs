@@ -12,6 +12,8 @@ namespace XrEngine.OpenGL
 
         IGlRenderAttachment? Depth { get; }
 
+        GlTexture GetOrCreateEffect(FramebufferAttachment slot);
+
         void Bind();
 
         void Unbind();

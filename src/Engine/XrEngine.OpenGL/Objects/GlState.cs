@@ -6,10 +6,7 @@ using Silk.NET.OpenGL;
 using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 #endif
 
-
-
 using XrMath;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace XrEngine.OpenGL
 {
@@ -447,6 +444,8 @@ namespace XrEngine.OpenGL
         public static GlState? Current;
 
         public static readonly DrawBufferMode[] DRAW_COLOR_0 = [DrawBufferMode.ColorAttachment0];
+
+        public static readonly DrawBufferMode[] DRAW_BACK = [DrawBufferMode.Back];
 
         public static readonly DrawBufferMode[] DRAW_NONE = [DrawBufferMode.None];
 

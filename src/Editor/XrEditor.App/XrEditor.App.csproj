@@ -18,6 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="Fluent.Ribbon" Version="11.0.0-rc0249" />
 	  <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
 	  <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.1" />
 	  <PackageReference Include="System.Private.Uri" Version="4.3.2" />
@@ -28,6 +29,7 @@
 	  <ProjectReference Include="..\..\Engine\XrEngine.Media.FFmpeg\XrEngine.Media.FFmpeg.csproj" />
 	  <ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
 	  <ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
+	  <ProjectReference Include="..\..\UI\UI.Canvas.Wpf\UI.Canvas.Wpf.csproj" />
 	  <ProjectReference Include="..\XrEditor.Core\XrEditor.Core.csproj" />
 	</ItemGroup>
 

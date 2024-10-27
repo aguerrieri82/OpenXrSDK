@@ -34,9 +34,16 @@
                 <ResourceDictionary Source="/Views/ContentView.xaml"/>
                 <ResourceDictionary Source="/Views/ColorPickerView.xaml"/>
                 <ResourceDictionary Source="/Views/ActionView.xaml"/>
-
+                <ResourceDictionary Source="/Views/MainToolbarView.xaml"/>
+                
                 <ResourceDictionary
                     Source="pack://application:,,,/ColorPicker;component/Styles/DefaultColorPickerStyle.xaml" />
+
+                <ResourceDictionary 
+                    Source="pack://application:,,,/Fluent;component/Themes/Generic.xaml" />
+
+                <ResourceDictionary 
+                    Source="pack://application:,,,/Fluent;component/Themes/Themes/Dark.Cobalt.xaml" />
 
             </ResourceDictionary.MergedDictionaries>
      

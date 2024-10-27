@@ -11,6 +11,10 @@
             IsEnabled = true;
         }
 
+        public virtual void Configure()
+        {
+        }
+
         protected virtual void Initialize()
         {
         }
@@ -96,6 +100,7 @@
         }
 
         public abstract void RenderLayer(GlLayer layer);
+
 
         public bool IsEnabled { get; set; }
     }

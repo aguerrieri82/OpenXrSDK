@@ -214,10 +214,16 @@ namespace XrEngine
                     }
                 }
 
+                if (bld.Context.BloomProvider != null)
+                {
+                    bld.AddFeature("USE_BLOOM");
+                }
+
 
                 bld.AddFeature("MAX_LIGHTS " + LightListUniforms.Max);
 
                 var envDepth = bld.Context.Camera?.Feature<IEnvDepthProvider>();
+
                 if (envDepth != null)
                 {
                     bld.AddFeature("HAS_ENV_DEPTH");
@@ -236,7 +242,6 @@ namespace XrEngine
                         }
                     });
                 }
-
 
                 bld.LoadBuffer((ctx) =>
                 {
@@ -342,7 +347,6 @@ namespace XrEngine
                     });
                 }
             }
-
 
             public float DepthNoiseFactor { get; set; }
 

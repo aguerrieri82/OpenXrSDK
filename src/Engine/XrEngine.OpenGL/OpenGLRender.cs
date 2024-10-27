@@ -16,7 +16,7 @@ using System.Numerics;
 
 namespace XrEngine.OpenGL
 {
-    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, IShadowMapProvider, ITextureFilterProvider
+    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, ITextureFilterProvider
     {
         protected Scene3D? _lastScene;
         protected IGlRenderTarget? _target;
@@ -74,7 +74,6 @@ namespace XrEngine.OpenGL
             _updateCtx = new UpdateShaderContext
             {
                 RenderEngine = this,
-                ShadowMapProvider = this,
             };
 
             _dispatcher = new QueueDispatcher();
@@ -83,6 +82,7 @@ namespace XrEngine.OpenGL
             {
                 _shadowPass = new GlShadowPass(this);
                 _renderPasses.Add(_shadowPass);
+                _updateCtx.ShadowMapProvider = _shadowPass;
             }
 
             if (_options.UseDepthPass)
@@ -94,15 +94,18 @@ namespace XrEngine.OpenGL
             }
 
             if (_options.UsePlanarReflection)
-            {
                 _renderPasses.Add(new GlReflectionPass(this));
-            }
-
+            
             _renderPasses.Add(new GlColorPass(this));
 
             if (_options.Outline.Use)
-            {
                 _renderPasses.Add(new GlOutlinePass(this));
+            
+            if (_options.UseBloom)
+            {
+                _boomPass = new GlBloomPass(this);
+                _renderPasses.Add(_boomPass);
+                _updateCtx.BloomProvider = _boomPass;
             }
 
             _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
@@ -268,6 +271,9 @@ namespace XrEngine.OpenGL
             _updateCtx.LightsHash = _mainLayer.Content.LightsHash;
             _updateCtx.ViewSize = new Size2I(view.Width, view.Height);
             _updateCtx.Camera!.FrustumPlanes(_updateCtx.FrustumPlanes);
+
+            foreach (var pass in _renderPasses)
+                pass.Configure();   
 
             foreach (var pass in _renderPasses)
             {
@@ -497,18 +503,6 @@ namespace XrEngine.OpenGL
 
         #endregion
 
-        #region IShadowMapProvider
-
-        Texture2D? IShadowMapProvider.ShadowMap => _shadowPass?.DepthTexture;
-
-        Camera? IShadowMapProvider.LightCamera => _shadowPass?.LightCamera;
-
-        DirectionalLight? IShadowMapProvider.Light => _shadowPass?.Light;
-
-        ShadowMapOptions IShadowMapProvider.Options => _options.ShadowMap;
-
-        #endregion
-
         #region IO
 
         public TextureData ReadFrame()
@@ -659,6 +653,7 @@ namespace XrEngine.OpenGL
 
         [ThreadStatic]
         public static OpenGLRender? Current;
+        private GlBloomPass _boomPass;
         private readonly Thread _thread;
     }
 }

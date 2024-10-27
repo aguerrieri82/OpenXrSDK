@@ -74,11 +74,11 @@
             _components.OfType<IRenderUpdate>().Update(ctx, false);
         }
 
-        public IEnumerable<T> Components<T>() where T : IComponent
+        public IReadOnlyList<IComponent> Components()
         {
             if (_components == null)
                 return [];
-            return _components.OfType<T>();
+            return _components;
         }
 
         public virtual T AddComponent<T>(T component) where T : IComponent

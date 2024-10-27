@@ -29,6 +29,9 @@ namespace XrEngine.Objects
 
             bld.ExecuteAction((ctx, up) =>
             {
+                if (bld.Context.ShadowMapProvider.ShadowMap != null)
+                    up.LoadTexture(bld.Context.ShadowMapProvider.ShadowMap, 14);
+
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uShadowColor", ShadowColor);

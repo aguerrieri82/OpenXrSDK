@@ -32,6 +32,8 @@ namespace XrEngine.UI
             base.Update(ctx);
         }
 
+        static Pointer2Button[] BUTTONS = [Pointer2Button.Left, Pointer2Button.Right];
+
         protected void ProcessPointers()
         {
             if (Pointers == null)
@@ -57,7 +59,7 @@ namespace XrEngine.UI
                     _lastPosition = pos;
                 }
 
-                foreach (var button in Enum.GetValues<Pointer2Button>())
+                foreach (var button in BUTTONS)
                 {
                     var isOn = (status.Buttons & button) == button;
                     var wasOn = (_lastStatus.Buttons & button) == button;

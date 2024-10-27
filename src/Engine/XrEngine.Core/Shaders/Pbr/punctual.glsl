@@ -23,7 +23,7 @@ const int LightType_Spot = 2;
 
 #ifdef USE_PUNCTUAL
 
-layout(std140) uniform Lights{
+layout(std140, binding = 1) uniform Lights{
   int count;
   Light values[MAX_LIGHTS];
 } uLights;

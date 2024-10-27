@@ -42,11 +42,15 @@ namespace XrEngine
             return result;
         }
 
+        public static IEnumerable<T> Components<T>(this EngineObject self) 
+        {
+            return self.Components().OfType<T>();
+        }
+
         public static T Component<T>(this EngineObject self) where T : IComponent
         {
             return self.Components<T>().Single();
         }
-
 
         public static bool TryComponent<T>(this EngineObject self, [NotNullWhen(true)] out T? result) where T : IComponent
         {
@@ -103,6 +107,7 @@ namespace XrEngine
             return localPoint.Transform(self.WorldMatrix);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 GetWorldPose(this Object3D self)
         {
             return new Pose3
@@ -112,6 +117,7 @@ namespace XrEngine
             };
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 GetLocalPose(this Object3D self)
         {
             return new Pose3
@@ -125,7 +131,6 @@ namespace XrEngine
         {
             var curTool = self.GetActiveTool();
 
-
             if (isActive)
             {
                 if (curTool != value)
@@ -138,11 +143,11 @@ namespace XrEngine
                 self.SetProp("ActiveTool", null);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IObjectTool? GetActiveTool(this Object3D self)
         {
             return self.GetProp<IObjectTool?>("ActiveTool");
         }
-
 
         public static IEnumerable<Object3D> DescendantsOrSelf(this Object3D self)
         {
@@ -210,11 +215,11 @@ namespace XrEngine
             return null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Is(this EngineObject self, EngineObjectFlags flags)
         {
             return (self.Flags & flags) == flags;
         }
-
 
         public static void SetGlobalPoseIfChanged(this Object3D self, Pose3 pose, float epsilon = 0.001f)
         {
@@ -229,6 +234,7 @@ namespace XrEngine
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<T> Visible<T>(this IEnumerable<T> self) where T : Object3D
         {
             return self.Where(a => a.IsVisible);
@@ -246,6 +252,7 @@ namespace XrEngine
             return layer;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static PerspectiveCamera PerspectiveCamera(this Scene3D self)
         {
             return ((PerspectiveCamera)self.ActiveCamera!);
@@ -286,13 +293,11 @@ namespace XrEngine
         {
             IEnumerable<ICollider3D> GetColliders()
             {
-                foreach (var obj in self.ObjectsWithComponent<ICollider3D>())
+                foreach (var obj in self.DescendantsOrSelf().Visible())
                 {
-                    foreach (var collider in obj.Components<ICollider3D>())
-                    {
-                        if (collider.IsEnabled)
-                            yield return collider;
-                    }
+                    var collider = obj.Feature<ICollider3D>();
+                    if (collider != null && collider.IsEnabled)
+                        yield return collider;
                 }
             }
 
@@ -1043,7 +1048,8 @@ namespace XrEngine
 
         public static void UpdateColor(this TriangleMesh self, Color color)
         {
-            self.Materials[0].UpdateColor(color);
+            foreach (var material in self.Materials.OfType<IColorSource>())
+                material.Color = color;
         }
 
         public static void UpdateColor(this Material self, Color color)
@@ -1061,6 +1067,36 @@ namespace XrEngine
         #endregion
 
         #region MISC
+
+
+        public static Ray3 ScreenToRay(this Camera self, Vector2 screenPoint)
+        {
+            var normPoint =  new Vector3(
+                2.0f * screenPoint.X / (float)self.ViewSize.Width - 1.0f,
+                1.0f - 2.0f * screenPoint.Y / (float)self.ViewSize.Height,
+                -1
+            );
+
+            var dirEye = Vector4.Transform(new Vector4(normPoint, 1.0f), self.ProjectionInverse);
+            dirEye.W = 0;
+
+            var dirWorld = Vector4.Transform(dirEye, self.WorldMatrix);
+
+            return new Ray3
+            {
+                Origin = self.WorldPosition,
+                Direction = new Vector3(dirWorld.X, dirWorld.Y, dirWorld.Z).Normalize()
+            };
+        }
+
+
+
+        public static Vector2 WorldToScreen(this Camera self, Vector3 world)
+        {
+            var size = new Vector2(self.ViewSize.Width, self.ViewSize.Height);
+            var proj = (world.Project(self.ViewProjection).ToVector2() + Vector2.One) * 0.5f;
+            return new Vector2(proj.X, proj.Y) * size;  
+        }
 
         public static void Update<T>(this IList<T> self, RenderContext ctx) where T : IRenderUpdate
         {

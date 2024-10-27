@@ -115,6 +115,11 @@ namespace CanvasUI
             return default;
         }
 
+        public IProperty<T> GetProperty<T>(string propName)
+        {
+            return new UiPropertyInstance<T>(this, propName);
+        }
+
         public Binding Bind<TValue>(string propName, IProperty<TValue> other, BindingMode mode)
         {
             _bindings ??= [];

@@ -15,6 +15,8 @@
             Height = height;
         }
 
+        public Size2I Size => new Size2I(Width, Height);        
+
         public int X;
 
         public int Y;

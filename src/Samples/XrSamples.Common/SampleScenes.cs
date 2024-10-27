@@ -15,21 +15,13 @@ using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.Services;
 using XrEngine.UI;
-using XrEngine.UI.Web;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
 
-/* Unmerged change from project 'XrSamples.Common (net9.0-android)'
-Removed:
-using XrEngine.UI.Web;
-using XrEngine.OpenGL;
-*/
-
-
-
 #if !ANDROID
 using XrEngine.Browser.Win;
+using XrEngine.UI.Web;
 #endif
 
 namespace XrSamples
@@ -160,7 +152,6 @@ namespace XrSamples
 
             panel.Size = new Size2(0.8f, 0.5f);
             panel.DpiScale = 1.6f;
-
             panel.Content = uiRoot;
             panel.WorldPosition = new Vector3(0, 1, 0);
 
@@ -367,7 +358,7 @@ namespace XrSamples
 
 
             //Ball generator
-            var bg = scene!.AddComponent(new BallGenerator(sound, 5f));
+            var bg = scene!.AddComponent(new BallGenerator(sound, 0f));
             bg.PhysicSettings = settings.Ball;
 
             //Sample ball
@@ -728,10 +719,9 @@ namespace XrSamples
                     if (mat is IPbrMaterial pbr && pbr.Roughness == 0.2f)
                     {
                         //pbr.MetallicRoughness.RoughnessFactor = 0.2f;
-                        // pbr.MetallicRoughness.MetallicFactor = 0f;
+                        //pbr.MetallicRoughness.MetallicFactor = 0f;
                         //pbr.MetallicRoughness.MetallicRoughnessTexture = null;
                     }
-
                 }
             }
 
@@ -745,7 +735,7 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
-        [Sample("Bed")]
+        [Sample("Window/Door")]
         public static XrEngineAppBuilder CreateWindow(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
@@ -955,13 +945,17 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateRoomManager(this XrEngineAppBuilder builder)
         {
             builder.Configure(RoomDesignerApp.Build)
+                .UseBloom()
                 .AddPassthrough()
 
             .ConfigureApp(app =>
             {
                 var scene = (RoomScene)app.App.ActiveScene!;
+                scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
                 scene.AddComponent<DebugGizmos>();
+                scene.AddComponent(new RayPointerRecorder { PointerName = "RightController" });
+                scene.AddComponent<RayPointerPlayer>();
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
                 var ui = scene.UiPanel!;

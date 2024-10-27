@@ -4,6 +4,7 @@ using Silk.NET.OpenGLES.Extensions.EXT;
 #else
 using Silk.NET.OpenGL;
 using System.Net.Mail;
+using XrMath;
 using static System.Net.Mime.MediaTypeNames;
 #endif
 
@@ -13,6 +14,7 @@ namespace XrEngine.OpenGL
     public class GlTextureFrameBuffer : GlBaseFrameBuffer, IGlFrameBuffer
     {
         private uint _sampleCount;
+        private Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
 
 #if GLES
         readonly ExtMultisampledRenderToTexture _extMs;
@@ -87,46 +89,33 @@ namespace XrEngine.OpenGL
             Bind();
 
             if (Color != null)
+                BindAttachment(Color, FramebufferAttachment.ColorAttachment0);
+
+            if (Depth != null)
             {
-                bool useMs = false;
-                if (sampleCount > 1)
-                {
-#if GLES
-                    _extMs.FramebufferTexture2DMultisample(
-                        Target,
-                        FramebufferAttachment.ColorAttachment0,
-                        Color.Target,
-                        Color, 0, sampleCount);
-                    useMs = true;
-#endif
-                }
-
-                if (!useMs)
-                {
-                    _gl.FramebufferTexture2D(
-                        Target,
-                        FramebufferAttachment.ColorAttachment0,
-                        Color.Target,
-                        Color, 0);
-
-                }
+                var attachment = GlUtils.IsDepthStencil(Depth.InternalFormat) ?
+                    FramebufferAttachment.DepthStencilAttachment :
+                    FramebufferAttachment.DepthAttachment;
+                BindAttachment(Depth, attachment);
             }
 
-            if (Depth is GlTexture tex)
-            {
-                var attachment = GlUtils.IsDepthStencil(tex.InternalFormat) ?
-                        FramebufferAttachment.DepthStencilAttachment :
-                        FramebufferAttachment.DepthAttachment;
+            Check();
+        }
 
+        protected void BindAttachment(IGlRenderAttachment obj, FramebufferAttachment slot)
+        {
+
+            if (obj is GlTexture tex)
+            {
                 bool useMs = false;
-                if (sampleCount > 1)
+                if (_sampleCount > 1)
                 {
 #if GLES
                     _extMs.FramebufferTexture2DMultisample(
                         Target,
-                        attachment,
+                        slot,
                         tex.Target,
-                        tex, 0, sampleCount);
+                        tex, 0, _sampleCount);
                     useMs = true;
 #endif
                 }
@@ -135,25 +124,41 @@ namespace XrEngine.OpenGL
                 {
                     _gl.FramebufferTexture2D(
                         Target,
-                        attachment,
+                        slot,
                         tex.Target,
                         tex, 0);
+
                 }
             }
-
-            else if (Depth is GlRenderBuffer rb)
+            else if (obj is GlRenderBuffer rb)
             {
-                var attachment = GlUtils.IsDepthStencil(rb.InternalFormat) ?
-                        FramebufferAttachment.DepthStencilAttachment :
-                        FramebufferAttachment.DepthAttachment;
-
                 _gl.FramebufferRenderbuffer(Target,
-                         attachment,
+                         slot,
                          rb.Target,
                          rb.Handle);
             }
 
-            Check();
+            _attachments[slot] = obj;
+
+        }
+
+        public GlTexture GetOrCreateEffect(FramebufferAttachment slot)
+        {
+            if (Color == null)
+                throw new NotSupportedException();  
+
+            if (!_attachments.TryGetValue(slot, out var obj))
+            {
+                var glTex = Color.Clone(false);
+                glTex.MaxLevel = 0;
+                Bind();
+                BindAttachment(glTex, slot);         
+                SetDrawBuffers(DrawBufferMode.ColorAttachment0, (DrawBufferMode)slot);
+                Check();
+                obj = glTex;    
+            }
+
+            return (GlTexture)obj;
         }
 
         public void Detach(FramebufferAttachment attachment)

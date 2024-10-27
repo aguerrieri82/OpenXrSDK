@@ -3,6 +3,8 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using System.Net.Mail;
+
 #endif
 
 using System.Runtime.InteropServices;
@@ -43,7 +45,7 @@ namespace XrEngine.OpenGL
         protected GlTexture? _color;
         protected GlTexture? _depth;
         protected readonly TextureTarget _target;
-
+        private Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
 
         public GlMultiViewFrameBuffer(GL gl)
             : base(gl)
@@ -85,6 +87,16 @@ namespace XrEngine.OpenGL
 
             Bind();
 
+            BindAttachment(_color, FramebufferAttachment.ColorAttachment0);
+            
+            BindAttachment(_depth, depthAtt);
+
+            Check();
+        }
+
+        protected void BindAttachment(GlTexture glTex, FramebufferAttachment slot)
+        {
+ 
             if (_sampleCount > 1)
             {
                 if (FramebufferTextureMultisampleMultiviewOVR == null)
@@ -92,21 +104,11 @@ namespace XrEngine.OpenGL
 
                 FramebufferTextureMultisampleMultiviewOVR(
                     Target,
-                    FramebufferAttachment.ColorAttachment0,
-                    _color,
+                    slot,
+                    glTex,
                     0,
                     _sampleCount,
                     0, 2);
-
-
-                FramebufferTextureMultisampleMultiviewOVR(
-                        Target,
-                        depthAtt,
-                        _depth,
-                        0,
-                        _sampleCount,
-                        0, 2);
-
             }
             else
             {
@@ -115,18 +117,10 @@ namespace XrEngine.OpenGL
 
                 FramebufferTextureMultiviewOVR!(
                     Target,
-                    FramebufferAttachment.ColorAttachment0,
-                    _color,
-                    0, 0, 2);
-
-                FramebufferTextureMultiviewOVR(
-                    Target,
-                    depthAtt,
-                    _depth,
+                    slot,
+                    glTex,
                     0, 0, 2);
             }
-
-            Check();
         }
 
         public void Detach(FramebufferAttachment attachment)
@@ -169,6 +163,25 @@ namespace XrEngine.OpenGL
             {
                 throw new Exception($"Frame buffer state invalid: {status}");
             }
+        }
+
+        public GlTexture GetOrCreateEffect(FramebufferAttachment slot)
+        {
+            if (Color == null)
+                throw new NotSupportedException();
+
+            if (!_attachments.TryGetValue(slot, out var obj))
+            {
+                var glTex = Color.Clone(false);
+                Bind();
+                BindAttachment(glTex, slot);
+                SetDrawBuffers(DrawBufferMode.ColorAttachment0, (DrawBufferMode)slot);
+                Check();
+                
+                obj = glTex;
+            }
+
+            return (GlTexture)obj;
         }
 
         public override GlTexture? QueryTexture(FramebufferAttachment attachment)

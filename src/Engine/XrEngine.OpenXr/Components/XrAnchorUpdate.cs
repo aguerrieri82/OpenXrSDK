@@ -1,7 +1,7 @@
 ﻿using OpenXr.Framework;
 using Silk.NET.OpenXR;
 
-namespace XrEngine.OpenXr.Components
+namespace XrEngine.OpenXr
 {
 
     public class XrAnchorUpdate : Behavior<Object3D>

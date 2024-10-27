@@ -41,7 +41,6 @@ namespace XrEngine
 
             if (obj.Is(EngineObjectFlags.Readonly) && !container.Is(StateContextFlags.Store))
             {
-
                 ObjectIdStateManager.Instance.Write(key, obj.Id, container);
                 return;
             }

@@ -1,5 +1,5 @@
 
-layout(std140) uniform Material {
+layout(std140, binding=3) uniform Material {
 
     vec4 BaseColorFactor;
     int BaseColorUVSet;
@@ -121,7 +121,7 @@ layout(std140) uniform Material {
 } uMaterial;
 
 
-layout(std140) uniform Camera {
+layout(std140, binding=0) uniform Camera {
     mat4 ViewMatrix;
     mat4 ProjectionMatrix;
     mat4 ViewProjectionMatrix;
@@ -133,18 +133,21 @@ layout(std140) uniform Camera {
 
 uniform mat4 uModelMatrix;
 
-uniform sampler2D uNormalSampler;
-uniform sampler2D uEmissiveSampler;
-uniform sampler2D uOcclusionSampler;
-uniform sampler2D uBaseColorSampler;
-uniform sampler2D uMetallicRoughnessSampler;
+
+layout(binding=1) uniform sampler2D uNormalSampler;
+layout(binding=2) uniform sampler2D uOcclusionSampler;
+layout(binding=3) uniform sampler2D uEmissiveSampler;
+layout(binding=4) uniform sampler2D uBaseColorSampler;
+layout(binding=5) uniform sampler2D uMetallicRoughnessSampler;
+layout(binding=6) uniform sampler2D uSheenColorSampler;
+layout(binding=7) uniform sampler2D uSheenRoughnessSampler;
+
 uniform sampler2D uDiffuseSampler;
 uniform sampler2D uSpecularGlossinessSampler;
 uniform sampler2D uClearcoatSampler;
 uniform sampler2D uClearcoatRoughnessSampler;
 uniform sampler2D uClearcoatNormalSampler;
-uniform sampler2D uSheenColorSampler;
-uniform sampler2D uSheenRoughnessSampler;
+
 uniform sampler2D uSpecularSampler;
 uniform sampler2D uSpecularColorSampler;
 uniform sampler2D uTransmissionSampler;

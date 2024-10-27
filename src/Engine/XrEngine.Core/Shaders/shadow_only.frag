@@ -4,7 +4,7 @@ uniform vec3 uLightDirection;
 in vec4 fPosLightSpace;
 in vec3 fNormal;
 
-out vec4 FragColor;
+layout(location=0) out vec4 FragColor;
 
 #include "Shared/shadow.glsl"	
 

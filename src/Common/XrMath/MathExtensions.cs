@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace XrMath
@@ -9,6 +10,17 @@ namespace XrMath
         public const float EPSILON = 1e-6f;
 
         #region Matrix4x4
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Pose3 ToPose(this Matrix4x4 self)
+        {
+            Matrix4x4.Decompose(self, out var scale, out var orientation, out var translation);
+            return new Pose3
+            {
+                Orientation = orientation,
+                Position = translation
+            };
+        }
 
         public unsafe static Matrix4x4 InvertRigidBody(this Matrix4x4 src)
         {
@@ -39,27 +51,32 @@ namespace XrMath
 
         #region QUOD3
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Normal(this Quad3 self)
         {
             return Vector3.Transform(Vector3.UnitZ, self.Pose.Orientation).Normalize();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Tangent(this Quad3 self)
         {
             return Vector3.Transform(Vector3.UnitX, self.Pose.Orientation).Normalize();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Plane ToPlane(this Quad3 self)
         {
             var normal = self.Normal();
             return new Plane(normal, -Vector3.Dot(normal, self.Pose.Position));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 PointAt(this Quad3 self, float x, float y)
         {
             return self.PointAt(new Vector2(x, y));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 PointAt(this Quad3 self, Vector2 point)
         {
             point -= self.Size / 2;
@@ -77,6 +94,7 @@ namespace XrMath
 
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector2 LocalPointAt(this Quad3 self, Vector3 worldPoint)
         {
             var local = self.Pose.Inverse().Transform(worldPoint);
@@ -88,10 +106,18 @@ namespace XrMath
 
         #region PLANE
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float DotCoordinate(this Plane self, Vector3 point)
+        {
+            return Plane.Dot(self, Vector4.Create(point, 1f));
+        }   
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]  
         public static bool IntersectLine(this Plane self, Vector3 point1, Vector3 point2)
         {
-            var distance1 = Plane.DotCoordinate(self, point1);
-            var distance2 = Plane.DotCoordinate(self, point2);
+            var distance1 = self.DotCoordinate(point1);
+            var distance2 = self.DotCoordinate(point2);
 
             return distance1 * distance2 < 0;
         }
@@ -143,10 +169,12 @@ namespace XrMath
             return quads;
         }
 
-        public static bool IntersectFrustum(this Bounds3 self, IEnumerable<Plane> planes)
+        public static bool IntersectFrustum(this Bounds3 self, Plane[] planes)
         {
-            foreach (var plane in planes)
+            for (var i = 0; i < planes.Length; i++)
             {
+                var plane = planes[i];  
+
                 if (plane.IntersectLine(self.Min, self.Max))
                     return true;
 
@@ -156,7 +184,7 @@ namespace XrMath
                     (plane.Normal.Z >= 0) ? self.Max.Z : self.Min.Z
                 );
 
-                if (Plane.DotCoordinate(plane, positiveVertex) < 0)
+                if (plane.DotCoordinate(positiveVertex) < 0)
                     return false;
             }
 
@@ -169,6 +197,7 @@ namespace XrMath
             return self.Points.ComputeBounds(matrix);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Contains(this Bounds3 self, Vector3 point)
         {
             return point.X >= self.Min.X && point.X <= self.Max.X &&
@@ -176,6 +205,7 @@ namespace XrMath
                    point.Z >= self.Min.Z && point.Z <= self.Max.Z;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Inside(this Bounds3 self, Bounds3 other)
         {
             if (self.Min.X < other.Min.X || self.Max.X > other.Max.X)
@@ -188,6 +218,7 @@ namespace XrMath
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Intersects(this Bounds3 self, Bounds3 other)
         {
             if (self.Max.X < other.Min.X || self.Min.X > other.Max.X)
@@ -250,6 +281,7 @@ namespace XrMath
 
         #region POSE
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsSimilar(this Pose3 self, Pose3 other, float epsilon = EPSILON)
         {
             return self.Position.IsSimilar(other.Position, epsilon) &&
@@ -262,6 +294,7 @@ namespace XrMath
                    Matrix4x4.CreateTranslation(self.Position);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 Inverse(this Pose3 self)
         {
             var quat = Quaternion.Inverse(self.Orientation);
@@ -291,13 +324,25 @@ namespace XrMath
         }
 
 
-        public static Pose3 ToPose(this Matrix4x4 self)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Ray3 ToRay(this Pose3 self)
         {
-            Matrix4x4.Decompose(self, out var scale, out var orientation, out var translation);
-            return new Pose3
+            var direction = Vector3.Transform(-Vector3.UnitZ, self.Orientation);
+
+            var transformedUp = Vector3.Transform(Vector3.UnitY, self.Orientation);
+
+            // Project the transformed up vector onto the plane perpendicular to the direction
+            var projectedUp = transformedUp - Vector3.Dot(transformedUp, direction) * direction;
+
+            // Calculate the roll angle in radians, using atan2 for signed angle
+            float angle = (float)Math.Atan2(Vector3.Dot(Vector3.Cross(Vector3.UnitY, projectedUp), direction),
+                                          Vector3.Dot(Vector3.UnitY, projectedUp));
+
+            return new Ray3
             {
-                Orientation = orientation,
-                Position = translation
+                Origin = self.Position,
+                Direction = direction,
+                Roll = angle
             };
         }
 
@@ -351,9 +396,45 @@ namespace XrMath
             return builder.Result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 ToVector2(this Vector3 self)
+        {
+            return new Vector2(self.X, self.Y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Quaternion ToOrientation(this Vector3 self)
         {
             return Vector3.UnitZ.RotationTowards(self);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Quaternion ToOrientation(this Vector3 self, float roll)
+        {
+            self = Vector3.Normalize(self);
+            var defaultForward = -Vector3.UnitZ;
+
+            var rotationAxis = Vector3.Cross(defaultForward, self);
+            var dot = Vector3.Dot(defaultForward, self);
+
+            Quaternion alignQuaternion;
+            if (rotationAxis.LengthSquared() < 1e-6f)
+            {
+                if (dot > 0)
+                    alignQuaternion = Quaternion.Identity; // No rotation needed
+                else
+                    alignQuaternion = Quaternion.CreateFromAxisAngle(Vector3.UnitX, MathF.PI);
+            }
+            else
+            {
+                rotationAxis = Vector3.Normalize(rotationAxis);
+                var angle = MathF.Acos(dot);
+                alignQuaternion = Quaternion.CreateFromAxisAngle(rotationAxis, angle);
+            }
+
+            var rollQuaternion = Quaternion.CreateFromAxisAngle(self, roll);
+
+            return Quaternion.Concatenate(alignQuaternion, rollQuaternion);
         }
 
         public static float MinDistanceTo(this Vector3[] self, Vector3 point)
@@ -450,7 +531,7 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Project(this Vector3 pos, Plane plane)
         {
-            var distance = Plane.DotCoordinate(plane, pos);
+            var distance = plane.DotCoordinate(pos);
             return pos - distance * plane.Normal;
         }
 
@@ -469,6 +550,7 @@ namespace XrMath
 
         #region RAY 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Line3 ToLine(this Ray3 self, float len)
         {
             return new Line3()
@@ -562,15 +644,26 @@ namespace XrMath
             };
         }
 
+        public static Pose3 ToPose(this Ray3 self)
+        {
+            return new Pose3
+            {
+                Position = self.Origin,
+                Orientation = self.Roll == 0 ? self.Direction.ToOrientation() : self.Direction.ToOrientation(self.Roll)
+            };
+        }
+
         #endregion
 
         #region QUATERNION
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]  
         public static Quaternion Subtract(this Quaternion self, Quaternion other)
         {
             return self * Quaternion.Inverse(other);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Quaternion AddDelta(this Quaternion self, Quaternion delta)
         {
             return delta * self;
@@ -692,6 +785,7 @@ namespace XrMath
 
         #region VECTOR2
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool InRange(this Vector2 self, Vector2 min, Vector2 max)
         {
             return self.X >= min.X && self.X <= max.X &&

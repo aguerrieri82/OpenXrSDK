@@ -32,13 +32,15 @@ namespace XrEditor
             return "";
         }
 
-        public EditorPlatform()
+        public EditorPlatform(string persistentPath = "Data")
         {
             _info = new DeviceInfo
             {
                 Id = GetMacAddress(),
                 Name = Environment.MachineName
             };
+
+            PersistentPath = Path.GetFullPath(persistentPath); 
         }
 
         public IRenderSurface CreateRenderSurface(GraphicDriver driver)
@@ -71,7 +73,7 @@ namespace XrEditor
 
         public IRenderSurface RenderSurface => _renderSurface!;
 
-        public string PersistentPath => Path.GetFullPath("Data");
+        public string PersistentPath { get; }
 
         public string CachePath => Path.GetFullPath("Cache");
 

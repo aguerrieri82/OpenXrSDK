@@ -68,6 +68,8 @@ namespace XrEngine.OpenGL
 
         public bool UsePlanarReflection { get; set; }
 
+        public bool UseBloom { get; set; }
+
         public ShadowMapOptions ShadowMap { get; }
 
         public GlOutlineOptions Outline { get; }
