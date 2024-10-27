@@ -89,7 +89,7 @@ namespace XrEngine.OpenXr
             _grabObject.WorldPosition = grabPoint.Position;
             _grabObject.WorldOrientation = _startOrientation.AddDelta(grabPoint.Orientation.Subtract(_startInputOrientation));
 
-            _grabbable?.OnMove();
+            _grabbable?.NotifyMove();
         }
 
         protected virtual void StopGrabbing()

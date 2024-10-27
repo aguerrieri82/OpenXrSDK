@@ -7,6 +7,7 @@ namespace XrEngine
     public class PlanarReflection : Behavior<Object3D>, IDrawGizmos
     {
         private Plane _plane;
+        private float _lightIntensity;
 
         public PlanarReflection()
             : this(1024)
@@ -42,8 +43,12 @@ namespace XrEngine
         {
             if (material is IPbrMaterial pbr)
             {
+                if (pbr.Alpha == AlphaMode.BlendMain || pbr.Alpha == AlphaMode.Blend)
+                    return false;
+
                 MaterialOverride.Texture = pbr.ColorMap;
-                MaterialOverride.Color = pbr.Color;
+                MaterialOverride.Color = pbr.Color * MathF.Min(1, _lightIntensity * 0.5f);
+                MaterialOverride.Alpha = pbr.Alpha; 
                 return true;
             }
 
@@ -65,7 +70,6 @@ namespace XrEngine
             ReflectionCamera.Near = camera.Near;
 
             float d = Vector3.Dot(normal, _host.WorldPosition);
-
 
             if (IsMultiView)
             {
@@ -115,6 +119,8 @@ namespace XrEngine
                 ReflectionCamera.Projection = camera.Projection;
                 ReflectionCamera.View = refView;
             }
+
+            _lightIntensity = _host!.Scene!.Descendants<Light>().Visible().Select(a => a.Intensity).Sum();
         }
 
         public void DrawGizmos(Canvas3D canvas)

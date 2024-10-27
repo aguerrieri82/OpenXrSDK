@@ -15,8 +15,21 @@ namespace XrEngine
 
         public Collision? CollideWith(Ray3 ray)
         {
-            //TODO implement
-            return null;
+            var sphere = new Sphere(_host!.WorldPosition, Radius);
+            
+            var point = ray.Intersects(sphere, out var distance);
+
+            if (point == null)
+                return null;
+
+            return new Collision
+            {
+                Distance = distance,
+                Point = point.Value,
+                LocalPoint = _host.ToLocal(point.Value),
+                Object = _host,
+                Normal = (point.Value - _host.WorldPosition).Normalize()
+            };
         }
 
         protected override void SetStateWork(IStateContainer container)

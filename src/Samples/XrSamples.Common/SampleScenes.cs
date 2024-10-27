@@ -945,7 +945,7 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateRoomManager(this XrEngineAppBuilder builder)
         {
             builder.Configure(RoomDesignerApp.Build)
-                .UseBloom()
+                .UseRayCollider("Mouse")
                 .AddPassthrough()
 
             .ConfigureApp(app =>

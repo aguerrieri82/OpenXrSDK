@@ -567,6 +567,35 @@ namespace XrMath
             return self.Origin + self.Direction * distance;
         }
 
+        public static Vector3? Intersects(this Ray3 self, Sphere sphere, out float distance, float epsilon = EPSILON)
+        {
+            var oc = self.Origin - sphere.Center;
+
+            float a = Vector3.Dot(self.Direction, self.Direction);
+            float b = 2.0f * Vector3.Dot(oc, self.Direction);
+            float c = Vector3.Dot(oc, oc) - sphere.Radius * sphere.Radius;
+
+            float discriminant = b * b - 4 * a * c;
+
+            if (discriminant < 0)
+            {
+                distance = 0;
+                return null;
+            }
+
+            // Calculate the two possible solutions for t
+            float sqrtDiscriminant = (float)Math.Sqrt(discriminant);
+            float t1 = (-b - sqrtDiscriminant) / (2 * a);
+            float t2 = (-b + sqrtDiscriminant) / (2 * a);
+
+            // Choose the smallest positive t as the intersection point
+            
+            distance = (t1 >= 0) ? t1 : t2;
+
+            return distance >= 0 ? self.PointAt(distance) : null;   
+
+        }
+
 
         public static Vector3? Intersects(this Ray3 self, Triangle3 triangle, out float distance, float epsilon = EPSILON)
         {

@@ -7,6 +7,9 @@ using Android.Webkit;
 using Silk.NET.OpenXR;
 using System.Numerics;
 using XrInteraction;
+using static Android.Views.MotionEvent;
+using static Android.Views.View;
+using static Android.Webkit.WebSettings;
 
 namespace OpenXr.Framework.Android
 {
@@ -21,7 +24,6 @@ namespace OpenXr.Framework.Android
             {
                 _layer = layer;
             }
-
 
             public override void Draw(Canvas canvas)
             {
@@ -99,11 +101,13 @@ namespace OpenXr.Framework.Android
             }
         }
 
-        protected class InputController
+        protected class InputController 
         {
             protected ISurfaceInput _surfaceInput;
             protected long _lastDownTime;
             protected IXrThread _mainThread;
+            private PointerProperties[]? _pointerProps;
+            private PointerCoords[]? _pointerCoords;
 
             public InputController(ISurfaceInput surfaceInput, IXrThread mainThread)
             {
@@ -137,14 +141,64 @@ namespace OpenXr.Framework.Android
                 }
                 else
                 {
-                    actions = MotionEventActions.Move;
+                    if (_surfaceInput.MainButton.IsDown)
+                        actions = MotionEventActions.Move;
+                    else
+                    {
+                        _lastDownTime = now;
+                        actions = MotionEventActions.HoverMove;
+                    }
                 }
 
                 var pos = _surfaceInput.Pointer * new Vector2(webView.Width, webView.Height);
 
-                var ev = MotionEvent.Obtain(_lastDownTime, now, actions, pos.X, webView.Height - pos.Y, MetaKeyStates.None);
+                _pointerProps ??= 
+                [
+                    new()
+                    {
+                        Id = 1,
+                        ToolType = MotionEventToolType.Mouse,
+                    }
+                ];
 
-                webView.DispatchTouchEvent(ev);
+                _pointerCoords ??= 
+                [
+                    new()
+                    {
+                        Pressure = _surfaceInput.MainButton.IsDown || _surfaceInput.SecondaryButton.IsDown ? 1 : 0,
+                        Size = 1,
+                    }
+                ];
+
+                _pointerCoords[0].X = pos.X;
+                _pointerCoords[0].Y = webView.Height - pos.Y;
+
+                MotionEventButtonState buttonState = 0;
+                /*
+                if (_surfaceInput.MainButton.IsDown)
+                    buttonState |= MotionEventButtonState.Primary;
+                
+                if (_surfaceInput.SecondaryButton.IsDown)
+                    buttonState |= MotionEventButtonState.Secondary;
+               */
+
+                var ev = MotionEvent.Obtain(
+                    actions == MotionEventActions.Up ? _lastDownTime : now,
+                    now,
+                    actions,
+                    1,
+                    _pointerProps,
+                    _pointerCoords,
+                    MetaKeyStates.None,
+                    buttonState,
+                    1,
+                    1,
+                    0,
+                    (Edge)0,
+                    InputSourceType.Mouse,
+                    MotionEventFlags.None);
+
+                _ = _mainThread.ExecuteAsync(() => webView.DispatchTouchEvent(ev)); 
             }
         }
 
@@ -257,7 +311,14 @@ namespace OpenXr.Framework.Android
             _webView.Settings.SetNeedInitialFocus(false);
             _webView.Settings.UserAgentString = "Mozilla/5.0 (Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.0.0 Safari/537.36";
             _webView.Settings.CacheMode = CacheModes.CacheElseNetwork;
+
+            _webView.Settings.SetSupportZoom(false);
+            _webView.Settings.DefaultZoom = ZoomDensity.Far;
+            _webView.Settings.BuiltInZoomControls = false;  
+
             _webView.SetLayerType(LayerType.Hardware, null);
+            
+            _webView.SetOnTouchListener(new TouchListener());
 
             if (_context is Activity activity)
             {

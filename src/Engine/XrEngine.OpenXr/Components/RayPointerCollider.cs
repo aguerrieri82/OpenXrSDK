@@ -74,9 +74,8 @@ namespace XrEngine.OpenXr
                 return;
 
             var ray = status.Value.Ray;
-
-            _rayView.WorldPosition = ray.Origin;
-            _rayView.WorldOrientation = ray.ToPose().Orientation;
+            
+            _rayView.SetGlobalPoseIfChanged(ray.ToPose());
 
             Collision? result = null;
 
@@ -107,7 +106,9 @@ namespace XrEngine.OpenXr
                 if (mustUpdate)
                 {
                     _rayView.Length = result.Distance;
-                    _hitView.WorldPosition = result.Point;
+
+                    if (result.Point != _hitView.WorldPosition)
+                        _hitView.WorldPosition = result.Point;
 
                     if (result.Normal != null)
                         _hitView.Forward = result.Normal.Value.ToDirection(result.Object!.WorldMatrix);
