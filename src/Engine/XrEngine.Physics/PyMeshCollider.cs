@@ -8,6 +8,7 @@ namespace XrEngine.Physics
     {
         private PhysicsManager? _manager;
         private PhysicsSystem? _system;
+        private bool _isInit;
 
         protected override void Start(RenderContext ctx)
         {
@@ -22,22 +23,15 @@ namespace XrEngine.Physics
             if (_system == null)
                 return null;
 
+            Initialize();
+
             foreach (var item in _host!.DescendantsOrSelf())
             {
                 var geo = item.Feature<Geometry3D>();
                 if (geo == null)
                     continue;
 
-                var pyGeo = geo.GetOrCreateProp("PyGeo", () =>
-                {
-                    geo.EnsureIndices();
-
-                    return _system!.CreateTriangleMesh(
-                        geo.Indices,
-                        geo.ExtractPositions(),
-                        Vector3.One,
-                        0.01f);
-                });
+                var pyGeo = geo.GetProp<PhysicsGeometry>("PyGeo")!;
 
                 var localRay = ray.Transform(item.WorldMatrixInverse);
 
@@ -68,7 +62,27 @@ namespace XrEngine.Physics
 
         public void Initialize()
         {
+            if (_isInit)
+                return;
+            foreach (var item in _host!.DescendantsOrSelf())
+            {
+                var geo = item.Feature<Geometry3D>();
+                if (geo == null)
+                    continue;
 
+                geo.GetOrCreateProp("PyGeo", () =>
+                {
+                    geo.EnsureIndices();
+
+                    return _system!.CreateTriangleMesh(
+                        geo.Indices,
+                        geo.ExtractPositions(),
+                        Vector3.One,
+                        0.01f);
+                });
+            }
+
+            _isInit = true;
         }
     }
 }

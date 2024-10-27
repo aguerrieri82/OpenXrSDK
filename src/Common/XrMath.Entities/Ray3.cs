@@ -9,5 +9,7 @@ namespace XrMath
 
         public Vector3 Direction;
 
+        public float Roll;
+
     }
 }

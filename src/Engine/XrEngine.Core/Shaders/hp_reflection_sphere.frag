@@ -10,7 +10,7 @@ uniform vec2 uTexCenter;
 uniform vec2 uTexRadius;
 uniform float uShift;
 
-out vec4 FragColor;
+layout(location=0) out vec4 FragColor;
 
 const float PI = 3.14159265358979323846;
 

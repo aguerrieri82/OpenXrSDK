@@ -208,22 +208,7 @@ namespace XrEngine.OpenGL
             result.SampleCount = glTexture.SampleCount;
             result.MaxAnisotropy = glTexture.MaxAnisotropy;
             result.Handle = glTexture.Handle;
-
-            result.Format = glTexture.InternalFormat switch
-            {
-                InternalFormat.Rgb32f => TextureFormat.RgbFloat32,
-                InternalFormat.Rgba16f => TextureFormat.RgbaFloat16,
-                InternalFormat.Rgba => TextureFormat.Rgba32,
-                InternalFormat.R16 => TextureFormat.Gray16,
-                InternalFormat.DepthComponent16 => TextureFormat.Gray16,
-                InternalFormat.R8 => TextureFormat.Gray8,
-                InternalFormat.Depth24Stencil8 => TextureFormat.Depth24Stencil8,
-                InternalFormat.DepthComponent24 => TextureFormat.Depth24Float,
-                InternalFormat.Depth32fStencil8 => TextureFormat.Depth32Stencil8,
-                InternalFormat.DepthComponent32f => TextureFormat.Depth32Float,
-                InternalFormat.DepthComponent32 => TextureFormat.Depth32Float,
-                _ => throw new NotSupportedException(),
-            };
+            result.Format = GlUtils.GetTextureFormat(glTexture.InternalFormat); 
 
             result.SetProp(OpenGLRender.Props.GlResId, glTexture);
 
@@ -243,6 +228,27 @@ namespace XrEngine.OpenGL
             return self.Passes<T>().Any();
         }
 
+        public static GlTexture Clone(this GlTexture self, bool includeContent)
+        {
+            var result = new GlTexture(self.GL);
+            
+            result.Target = self.Target;    
+            result.MinFilter = self.MinFilter;
+            result.MagFilter = self.MagFilter;
+            result.WrapS = self.WrapS;
+            result.WrapT = self.WrapT;
+            result.MaxAnisotropy = self.MaxAnisotropy;
+            result.BorderColor = self.BorderColor;
+            result.MaxLevel = self.MaxLevel;    
+            result.BaseLevel = self.BaseLevel;
+
+            var texFormat = GlUtils.GetTextureFormat(self.InternalFormat);   
+
+            result.Update(self.Width, self.Height, self.Depth, texFormat);
+
+            return result;  
+
+        }
 
     }
 }

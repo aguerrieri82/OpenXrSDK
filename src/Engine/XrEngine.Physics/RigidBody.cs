@@ -36,12 +36,15 @@ namespace XrEngine.Physics
             ContactOffset = 0.01f;
             ContactReportThreshold = 1f;
             EnableCCD = false;
+            AutoTeleport = false;
         }
 
         public void Teleport(Vector3 worldPos)
         {
             _host!.WorldPosition = worldPos;
-            DynamicActor.GlobalPose = GetPose();
+            _lastPose = GetPose();
+            DynamicActor.GlobalPose = _lastPose;
+            DynamicActor.Stop();
         }
 
         protected void SetPose(Pose3 pose)
@@ -122,6 +125,10 @@ namespace XrEngine.Physics
                           Vector3.One
                       );
                     */
+                }
+                else if (collider is PyMeshCollider py && collider.Host is TriangleMesh mesh)
+                {
+                    result = mesh.Geometry!.GetProp<PhysicsGeometry>("PyGeo");
                 }
                 else if (collider is CapsuleCollider cap)
                 {
@@ -375,15 +382,16 @@ namespace XrEngine.Physics
 
                 if (Type == PhysicsActorType.Dynamic)
                 {
-                    if (!curPose.IsSimilar(_lastPose))
+                    if (AutoTeleport && !curPose.IsSimilar(_lastPose, 1e-4f))
                     {
-                        _lastPose = GetPose();
+                        _lastPose = curPose;
                         DynamicActor.GlobalPose = _lastPose;
+                        DynamicActor.Stop();
                     }
                     else
                     {
-                        _lastPose = _actor.GlobalPose;
-                        SetPose(_lastPose);
+                        SetPose(_actor.GlobalPose);
+                        _lastPose = GetPose();
                         if (DynamicActor.IsKinematic)
                             DynamicActor.IsKinematic = false;
                     }
@@ -461,5 +469,7 @@ namespace XrEngine.Physics
         public PhysicsActor Actor => _actor ?? throw new ArgumentNullException();
 
         public bool IsCreated => _actor != null;
+
+        public bool AutoTeleport { get; set; }
     }
 }

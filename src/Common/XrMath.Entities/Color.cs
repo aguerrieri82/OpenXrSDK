@@ -100,6 +100,10 @@ namespace XrMath
             return [R, G, B, A];
         }
 
+        public static Color operator *(Color a, float v)
+        {
+            return new Color(a.R * v, a.G * v, a.B * v, a.A * v);
+        }
 
         public float R;
 

@@ -59,16 +59,16 @@ namespace XrEngine.OpenXr
                 LeftButton = inputs!.Right!.TriggerClick!,
                 AButton = inputs!.Right!.Button!.AClick!,
                 BButton = inputs!.Right!.Button!.BClick!,
-
+                Name = "RightController"
             });
         });
 
 
-        public static XrEngineAppBuilder UseRayCollider(this XrEngineAppBuilder self, string inputName = "RightAimPose") => self.ConfigureApp(e =>
+        public static XrEngineAppBuilder UseRayCollider(this XrEngineAppBuilder self, string pointerName = "RightController") => self.ConfigureApp(e =>
         {
             var inputs = e.GetInputs<XrOculusTouchController>();
 
-            var rayCol = e.App!.ActiveScene!.AddComponent(new XrRayCollider() { InputName = inputName });
+            var rayCol = e.App!.ActiveScene!.AddComponent(new RayPointerCollider() { PointerName = pointerName });
         });
 
         public static XrEngineAppBuilder UseHands(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
@@ -111,6 +111,7 @@ namespace XrEngine.OpenXr
                 material = new ShadowOnlyMaterial();
 
             factory.AddMesh(material, addPhysics);
+
 
             e.App.ActiveScene!.AddChild(sceneView);
         });
@@ -216,6 +217,19 @@ namespace XrEngine.OpenXr
 
             return self;
         }
+
+        public static XrEngineAppBuilder UseBloom(this XrEngineAppBuilder self)
+        {
+            var options = self.Options.DriverOptions;
+
+            if (options is not GlRenderOptions glOptions)
+                throw new NotSupportedException("Bloom is only supported on OpenGL");   
+
+            glOptions.UseBloom = true;  
+
+            return self;    
+        }
+
 
         public static XrEngineAppBuilder UseEnvironmentDepth(this XrEngineAppBuilder self)
         {

@@ -15,7 +15,9 @@ namespace XrEditor
         {
             Gpu.EnableNvAPi();
 
-            XrPlatform.Current = new EditorPlatform();
+            Fluent.Ribbon x;
+   
+            XrPlatform.Current = new EditorPlatform("d:\\Projects\\XrEditor");
 
             Context.Implement<PanelManager>();
             Context.Implement<NodeManager>();

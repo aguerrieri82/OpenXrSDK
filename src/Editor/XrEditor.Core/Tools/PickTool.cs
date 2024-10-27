@@ -30,8 +30,6 @@ namespace XrEditor
             return result;
         }
 
-
-
         protected void UpdateRay(Pointer2Event ev)
         {
             _lastRay.Ray = ToRay(ev);
@@ -103,7 +101,6 @@ namespace XrEditor
                 mat.Color = _oldColor.Value;
                 mat.NotifyChanged(ObjectChangeType.Render);
             }
-
         }
 
         protected virtual void OnEnter(Object3D obj)

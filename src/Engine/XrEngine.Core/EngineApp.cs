@@ -123,6 +123,7 @@ namespace XrEngine
             if (_activeScene == null || _activeScene.ActiveCamera == null || Renderer == null)
                 return;
 
+            _activeScene.ActiveCamera.ViewSize = view.Size;
             Renderer.Render(_context, view, flush);
         }
 

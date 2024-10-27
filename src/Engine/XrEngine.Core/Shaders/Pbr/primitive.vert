@@ -5,7 +5,7 @@ uniform mat4 uModelMatrix;
 uniform mat4 uNormalMatrix;
  
 
-layout(std140) uniform Camera {
+layout(std140, binding = 0) uniform Camera {
     mat4 ViewMatrix;
     mat4 ProjectionMatrix;
     mat4 ViewProjectionMatrix;
@@ -66,7 +66,7 @@ out vec4 v_Color;
 
     layout(num_views=NUM_VIEWS) in;
 
-    layout(std140) uniform SceneMatrices
+    layout(std140, binding = 10) uniform SceneMatrices
     {
         uniform mat4 viewProj[NUM_VIEWS];
         uniform vec4 position[NUM_VIEWS];

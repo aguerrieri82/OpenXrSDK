@@ -1,0 +1,29 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:Fluent="urn:fluent-ribbon"
+                    xmlns:app="clr-namespace:XrEditor"
+                    xmlns:i="clr-namespace:WPF_Icons;assembly=WPF-Icons"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <i:Icon x:Key="SaveIcon" Filled="True" Size="24" Color="#07F" Kind="icon_save"/>
+    <i:Icon x:Key="LoadIcon" Filled="True" Size="24" Color="#FC5" Kind="icon_folder_open"/>
+    
+    <DataTemplate DataType="{x:Type local:MainToolbarView}">
+
+        <Fluent:Ribbon CanMinimize="True" IsMinimized="{Binding IsMinimized, Mode=TwoWay}" >
+
+            <Fluent:RibbonTabItem Header="Home">
+          
+                <Fluent:RibbonGroupBox Header="Scene" >
+                    <Fluent:Button Header="Save" Command="{Binding SaveCommand}" LargeIcon="{StaticResource SaveIcon}"/>
+                    <Fluent:Button Header="Load" Command="{Binding LoadCommand}" LargeIcon="{StaticResource LoadIcon}"/>
+                </Fluent:RibbonGroupBox>
+
+
+            </Fluent:RibbonTabItem>
+
+        </Fluent:Ribbon>
+        
+    </DataTemplate>
+   
+</ResourceDictionary>

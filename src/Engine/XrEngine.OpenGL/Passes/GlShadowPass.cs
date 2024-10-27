@@ -10,7 +10,7 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public class GlShadowPass : GlBaseSingleMaterialPass
+    public class GlShadowPass : GlBaseSingleMaterialPass, IShadowMapProvider
     {
 
         private GlTextureFrameBuffer? _frameBuffer;
@@ -213,5 +213,9 @@ namespace XrEngine.OpenGL
         public Camera LightCamera => _lightCamera;
 
         public bool UseShadowSampler { get; set; }
+
+        ShadowMapOptions IShadowMapProvider.Options => _renderer.Options.ShadowMap; 
+
+        Texture2D? IShadowMapProvider.ShadowMap => DepthTexture;
     }
 }

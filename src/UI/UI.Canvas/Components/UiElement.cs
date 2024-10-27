@@ -277,10 +277,8 @@ namespace CanvasUI
 
             DrawBox(canvas);
 
-
             if (ActualStyle.OverflowX.Value == UiOverflow.Hidden && ActualStyle.OverflowY.Value == UiOverflow.Hidden)
                 canvas.ClipRect(_contentRect.ToSKRect());
-
 
             DrawWork(canvas);
 

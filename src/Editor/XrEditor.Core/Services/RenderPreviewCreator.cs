@@ -67,7 +67,7 @@ namespace XrEditor.Services
 
         public SKBitmap? CreateMaterial(Material material)
         {
-            return CreateMesh(Sphere3D.Default, material);
+            return CreateMesh(IsoSphere3D.Default, material);
         }
 
         public SKBitmap? CreateGeometry(Geometry3D geometry)

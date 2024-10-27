@@ -14,6 +14,7 @@ namespace OpenXr.Framework.OpenGL
         protected XrDynamicType _swapChainType;
 
         protected GLEnum[] _validFormats = [
+           GLEnum.SrcAlpha,
            GLEnum.Srgb8Alpha8,
            GLEnum.Rgba8];
 
@@ -21,6 +22,7 @@ namespace OpenXr.Framework.OpenGL
         public XrOpenGLGraphicDriver(IView view)
             : this(new ViewOpenGLDevice(view))
         {
+
         }
 
         public XrOpenGLGraphicDriver(IOpenGLDevice device)
@@ -76,7 +78,6 @@ namespace OpenXr.Framework.OpenGL
 
             result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
             result.DepthFormat = (long)InternalFormat.Depth24Stencil8;
-
         }
 
         public T GetApi<T>() where T : class

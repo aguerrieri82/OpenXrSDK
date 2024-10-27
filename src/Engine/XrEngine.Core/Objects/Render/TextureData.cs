@@ -18,5 +18,7 @@
         public TextureCompressionFormat Compression { get; set; }
 
         public Memory<byte> Data { get; set; }
+
+
     }
 }

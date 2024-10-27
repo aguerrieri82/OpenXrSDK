@@ -3,7 +3,8 @@
     public enum ValueType
     {
         None,
-        Radiant
+        Radiant,
+        FileName
     }
 
     [AttributeUsage(AttributeTargets.Property)]

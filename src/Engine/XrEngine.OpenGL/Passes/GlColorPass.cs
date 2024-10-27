@@ -19,7 +19,7 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(Camera camera)
         {
-            _renderer.RenderTarget!.Begin(camera);
+            _renderer.RenderTarget!.Begin(camera, _renderer.UpdateContext.ViewSize);
             _renderer.State.SetView(_renderer.RenderView);
 
             if (_renderer.Options.UseDepthPass)
@@ -59,7 +59,7 @@ namespace XrEngine.OpenGL
                 IEnumerable<VertexContent> vertices = shader.Value.Contents.Values;
 
                 if (_renderer.Options.SortByCameraDistance)
-                    vertices = vertices.OrderBy(a => a.AvgDistance);
+                    vertices = vertices.OrderBy(a => a.RenderPriority).ThenBy(a => a.AvgDistance);
                 else
                     vertices = vertices.OrderBy(a => a.RenderPriority);
 
@@ -107,7 +107,8 @@ namespace XrEngine.OpenGL
 
                         _renderer.ConfigureCaps(draw.ProgramInstance!.Material!);
 
-                        _renderer.State.SetWriteDepth(WriteDepth);
+                        if (!WriteDepth)
+                            _renderer.State.SetWriteDepth(false);
 
                         draw.Draw!();
                     }
@@ -119,6 +120,6 @@ namespace XrEngine.OpenGL
             _renderer.GL.PopDebugGroup();
         }
 
-        public bool WriteDepth { get; set; }
+        public bool WriteDepth { get; set; } 
     }
 }

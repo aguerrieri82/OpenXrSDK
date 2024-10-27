@@ -25,7 +25,7 @@ uniform float uBorder;
 uniform uint uActiveEye;
 uint activeEye;
 
-out vec4 FragColor;
+layout(location=0) out vec4 FragColor;
 
 const float PI = 3.14159265358979323846;
 

@@ -10,7 +10,17 @@ namespace XrEditor
             if (Application.Current.Dispatcher.Thread == Thread.CurrentThread)
                 action();
             else
-                await Application.Current.Dispatcher.InvokeAsync(action);
+            {
+                try
+                {
+                    await Application.Current.Dispatcher.InvokeAsync(action);
+                }
+                catch (TaskCanceledException)
+                {
+
+                }
+            }
+
         }
     }
 }

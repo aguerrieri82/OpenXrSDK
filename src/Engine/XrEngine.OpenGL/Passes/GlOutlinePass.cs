@@ -21,7 +21,7 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(Camera camera)
         {
-            _renderer.RenderTarget!.Begin(camera);
+            _renderer.RenderTarget!.Begin(camera, _renderer.RenderView.Size);
             return base.BeginRender(camera);
         }
 

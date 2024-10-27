@@ -47,7 +47,7 @@ namespace XrEngine.OpenGL
         {
             var layer = new DetachedLayer();
 
-            var env = new TriangleMesh(new Sphere3D(2, 3), new TextureMaterial
+            var env = new TriangleMesh(new IsoSphere3D(2, 3), new TextureMaterial
             {
                 UseDepth = true,
                 WriteDepth = false,
@@ -142,7 +142,7 @@ namespace XrEngine.OpenGL
             _oldCamera = _renderer.UpdateContext.Camera;
             _renderer.UpdateContext.Camera = _reflection.ReflectionCamera;
 
-            _renderTarget.Begin(_reflection.ReflectionCamera);
+            _renderTarget.Begin(_reflection.ReflectionCamera, new Size2I(_reflection.Texture.Width, _reflection.Texture.Height));
 
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetWriteDepth(true);

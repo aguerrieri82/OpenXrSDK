@@ -45,6 +45,7 @@ namespace XrEditor
         {
             foreach (var item in items)
             {
+
                 var outline = item.Materials.OfType<OutlineMaterial>().FirstOrDefault();
                 if (outline == null && selected)
                 {
@@ -84,6 +85,7 @@ namespace XrEditor
                 var outlineMeshes = _lastSelection
                     .Select(a => a.Value)
                     .OfType<Object3D>()
+                    .Where(a => a is not Scene3D)
                     .SelectMany(a => a.DescendantsOrSelf())
                     .OfType<TriangleMesh>();
 
@@ -135,23 +137,25 @@ namespace XrEditor
                 }
             }
 
-            if (_lastCollision?.Normal != null)
+            var collision = _lastCollision;
+
+            if (collision?.Normal != null)
             {
                 canvas.State.Color = new Color(0, 1, 0, 1);
                 canvas.State.Transform = Matrix4x4.Identity;
 
-                var normal = (_lastCollision.Normal.Value.Transform(_lastCollision.Object!.NormalMatrix)).Normalize();
+                var normal = (collision.Normal.Value.Transform(collision.Object!.NormalMatrix)).Normalize();
 
-                canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + normal * 0.5f);
+                canvas.DrawLine(collision.Point, collision.Point + normal * 0.5f);
 
-                if (_lastCollision.Tangent != null)
+                if (collision.Tangent != null)
                 {
                     canvas.State.Color = new Color(0, 1, 1, 1);
-                    var tangent = new Vector3(_lastCollision.Tangent.Value.X, _lastCollision.Tangent.Value.Y, _lastCollision.Tangent.Value.Z).Normalize();
+                    var tangent = new Vector3(collision.Tangent.Value.X, collision.Tangent.Value.Y, collision.Tangent.Value.Z).Normalize();
 
-                    tangent = tangent.Transform(_lastCollision.Object!.NormalMatrix).Normalize();
+                    tangent = tangent.Transform(collision.Object!.NormalMatrix).Normalize();
 
-                    canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + tangent * 0.5f);
+                    canvas.DrawLine(collision.Point, collision.Point + tangent * 0.5f);
                 }
 
             }

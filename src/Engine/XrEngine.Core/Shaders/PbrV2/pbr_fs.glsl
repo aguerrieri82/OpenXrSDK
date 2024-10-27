@@ -340,6 +340,7 @@ void main()
 
 	#endif
 
+
 	// Final fragment color.
 	color = vec4(color3 * uCamera.exposure, a);
 

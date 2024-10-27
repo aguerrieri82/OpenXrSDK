@@ -47,6 +47,8 @@ namespace XrEditor
 
             SceneView = new SceneView(surface);
 
+            Toolbar = new MainToolbarView();    
+
             Log = new LogPanel();
         }
 
@@ -71,6 +73,8 @@ namespace XrEditor
 
             });
         }
+
+        public MainToolbarView Toolbar { get; }
 
         public ObservableCollection<MessageView> Messages { get; } = [];
 

@@ -3,7 +3,7 @@ using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
-
+using XrMath;
 
 
 namespace XrEngine.OpenGL
@@ -46,7 +46,7 @@ namespace XrEngine.OpenGL
             _gl = gl;
         }
 
-        public void Begin(Camera camera)
+        public void Begin(Camera camera, Size2I viewSize)
         {
             _renderFrameBuffer.Bind();
         }

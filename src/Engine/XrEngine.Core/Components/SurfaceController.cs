@@ -7,6 +7,7 @@ namespace XrEngine
     public class SurfaceController : Behavior<Object3D>, IRayTarget, ISurfaceInput
     {
         protected Dictionary<IRayPointer, RayPointerStatus> _pointerStatus = [];
+
         Vector2 _pointer;
         bool _pointerValid;
         InputButton _mainInBtn;
@@ -46,7 +47,6 @@ namespace XrEngine
 
             foreach (var pointer in Pointers)
             {
-
                 var status = pointer.GetPointerStatus();
 
                 if (!_pointerStatus.TryGetValue(pointer, out var lastStatus))

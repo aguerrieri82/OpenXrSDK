@@ -64,6 +64,8 @@ namespace XrEngine
 
         public IShadowMapProvider? ShadowMapProvider;
 
+        public IBloomProvider? BloomProvider;
+
         public Texture2D? DepthMap;
 
         public ShaderUpdate? LastGlobalUpdate;

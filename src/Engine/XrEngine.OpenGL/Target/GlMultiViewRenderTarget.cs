@@ -6,6 +6,7 @@ using Silk.NET.OpenGL;
 
 using System.Numerics;
 using System.Runtime.InteropServices;
+using XrMath;
 
 
 namespace XrEngine.OpenGL
@@ -45,7 +46,7 @@ namespace XrEngine.OpenGL
             _gl = gl;
         }
 
-        public void Begin(Camera camera)
+        public void Begin(Camera camera, Size2I viewSize)
         {
             _frameBuffer.Bind();
 
