@@ -17,7 +17,8 @@ namespace XrEngine.OpenGL
 
             while ((err = gl.GetError()) != GLEnum.NoError)
             {
-                //throw new Exception(err.ToString());
+                Log.Warn("CheckError", err.ToString());
+     
             }
         }
 

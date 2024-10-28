@@ -61,7 +61,8 @@ namespace XrEngine
     {
         Normal,
         Depth,
-        External
+        External,
+        Buffer
     }
 
 

@@ -64,7 +64,7 @@ namespace XrEngine.OpenGL
                     if (sampleCount > 0)
                     {
                         var renderBuf = new GlRenderBuffer(_gl);
-                        var intFormat = GlTexture.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);
+                        var intFormat = GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);
 
                         renderBuf.Update(glColor.Width, glColor.Height, sampleCount, intFormat);
                         singleView.FrameBuffer.Configure(glColor, renderBuf, sampleCount);
