@@ -4,7 +4,7 @@
     {
         public nint Data;
 
-        public int Size;
+        public uint Size;
 
         public Action? Free;
 

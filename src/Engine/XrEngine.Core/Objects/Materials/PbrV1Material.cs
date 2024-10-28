@@ -339,7 +339,7 @@ namespace XrEngine
                     if (_buffer.Data != 0)
                         MemoryManager.Free(_buffer.Data);
 
-                    _buffer.Size = newSize;
+                    _buffer.Size = (uint)newSize;
                     _buffer.Data = MemoryManager.Allocate(_buffer.Size, this);
                 }
 

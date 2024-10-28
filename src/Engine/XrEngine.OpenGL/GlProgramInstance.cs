@@ -100,7 +100,7 @@ namespace XrEngine.OpenGL
             _globalVersion = Global.Version;
         }
 
-        public IBuffer GetBuffer<T>(int bufferId, BufferStore store)
+        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store)
         {
             if (store == BufferStore.Shader)
                 return Global.GetBuffer<T>(bufferId, store);
@@ -110,11 +110,11 @@ namespace XrEngine.OpenGL
             if (storeBuffers.Length == 0)
                 throw new NotSupportedException("Buffer store not supported");
 
-            var buffer = storeBuffers[bufferId];
+            var buffer = (IBuffer<T>?)storeBuffers[bufferId];
             if (buffer == null)
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
-                storeBuffers[bufferId] = buffer;
+                storeBuffers[bufferId] = (IGlBuffer)buffer;
             }
             return buffer;
         }

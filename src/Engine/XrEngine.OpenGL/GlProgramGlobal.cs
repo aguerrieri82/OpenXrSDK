@@ -56,16 +56,16 @@ namespace XrEngine.OpenGL
                 action(ctx);
         }
 
-        public IBuffer GetBuffer<T>(int bufferId, BufferStore store)
+        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store)
         {
             if (store != BufferStore.Shader)
                 throw new InvalidOperationException("Invalid buffer store");
 
-            var buffer = _bufferMap.Buffers[bufferId];
+            var buffer = (IBuffer<T>?)_bufferMap.Buffers[bufferId];
             if (buffer == null)
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
-                _bufferMap.Buffers[bufferId] = buffer;
+                _bufferMap.Buffers[bufferId] = (IGlBuffer)buffer;
             }
             return buffer;
         }

@@ -43,6 +43,7 @@ namespace XrEngine.OpenGL
             StencilFunc = null;
             StencilRef = null;
             FrameBufferTargets.Clear();
+            BufferTargets.Clear();
             Features.Clear();
 
             for (var i = 0; i < TexturesSlots.Length; i++)
@@ -101,6 +102,10 @@ namespace XrEngine.OpenGL
 
             foreach (var fb in FrameBufferTargets)
                 BindFrameBuffer(fb.Key, fb.Value, true);
+
+            foreach (var fb in BufferTargets)
+                BindBuffer(fb.Key, fb.Value, true);
+
 
             if (WriteStencil.HasValue)
                 SetWriteStencil(WriteStencil.Value, true);
@@ -338,6 +343,16 @@ namespace XrEngine.OpenGL
             }
         }
 
+        public void BindBuffer(BufferTargetARB target, uint value, bool force = false)
+        {
+            if (!BufferTargets.TryGetValue(target, out var cur) || cur != value || force)
+            {
+                BufferTargets[target] = value;
+
+                _gl.BindBuffer(target, value);
+            }
+        }
+
         public void UpdateStencil()
         {
             if (!_stencilDirty)
@@ -439,6 +454,8 @@ namespace XrEngine.OpenGL
         public readonly uint[] BufferSlots =new uint[32];
 
         public readonly Dictionary<FramebufferTarget, uint> FrameBufferTargets = [];
+
+        public readonly Dictionary<BufferTargetARB, uint> BufferTargets = [];
 
         [ThreadStatic]
         public static GlState? Current;

@@ -246,7 +246,7 @@ namespace XrEngine.OpenGL
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
-        public void LoadBuffer(IBuffer buffer, int slot = 0)
+        public void LoadBuffer<T>(IBuffer<T> buffer, int slot = 0)
         {
             var glBuffer = (IGlBuffer)buffer;
 

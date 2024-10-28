@@ -52,6 +52,11 @@ namespace XrEngine.OpenGL
             Configure();
 
             Unbind();
+
+            _vBuf.Unbind();
+
+            _iBuf?.Unbind();
+
         }
 
         protected void Create()
@@ -62,16 +67,15 @@ namespace XrEngine.OpenGL
         public unsafe void Draw(PrimitiveType primitive = PrimitiveType.Triangles)
         {
             if (_iBuf != null)
-                _gl.DrawElements(primitive, _iBuf.Length, _drawType, null);
+                _gl.DrawElements(primitive, _iBuf.ArrayLength, _drawType, null);
             else
-                _gl.DrawArrays(primitive, 0, _vBuf.Length);
+                _gl.DrawArrays(primitive, 0, _vBuf.ArrayLength);
         }
 
         protected unsafe void Configure()
         {
             foreach (var attr in _layout.Attributes!)
             {
-
                 _gl.EnableVertexAttribArray(attr.Location);
                 _gl.VertexAttribPointer(attr.Location, (int)attr.Count, attr.Type, false, _layout.Size, (void*)attr.Offset);
             }

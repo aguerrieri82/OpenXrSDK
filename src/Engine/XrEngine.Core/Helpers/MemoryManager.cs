@@ -7,15 +7,15 @@ namespace XrEngine
         struct MemoryBlock
         {
             public nint Data;
-            public int Size;
+            public uint Size;
             public object? Owner;
         }
 
         static readonly List<MemoryBlock> _blocks = [];
 
-        public static nint Allocate(int size, object? owner)
+        public static nint Allocate(uint size, object? owner)
         {
-            var result = Marshal.AllocHGlobal(size);
+            var result = Marshal.AllocHGlobal((int)size);
             GC.AddMemoryPressure(size);
             _blocks.Add(new MemoryBlock { Data = result, Size = size, Owner = owner });
             return result;
