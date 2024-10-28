@@ -120,7 +120,7 @@ namespace XrEngine
                 var curValue = value(ctx);
 
                 if (curValue != null)
-                    buffer.Update(curValue);
+                    buffer.Update(curValue.Value);
 
                 ctx.CurrentBuffer = null;
             });

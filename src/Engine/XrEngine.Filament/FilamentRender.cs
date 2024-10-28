@@ -274,12 +274,13 @@ namespace XrEngine.Filament
 
                         _ => throw new NotSupportedException(),
                     };
+
                     result.Data.DataSize = mainData.Data!.Size;
-                    result.Data.Data = MemoryManager.Allocate((int)result.Data.DataSize, this);
+                    result.Data.Data = MemoryManager.Allocate(result.Data.DataSize, this);
                     result.Data.AutoFree = true;
 
-                    var dstMem = new Span<byte>(result.Data.Data.ToPointer(), (int)mainData.Data.Size);
-                    mainData.Data.AsSpan().CopyTo(dstMem);
+                    using var pSrc = mainData.Data.MemoryLock();    
+                    EngineNativeLib.CopyMemory(pSrc, result.Data.Data, mainData.Data.Size);
                 }
             }
 

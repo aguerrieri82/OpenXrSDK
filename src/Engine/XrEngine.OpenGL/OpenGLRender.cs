@@ -13,6 +13,7 @@ using SkiaSharp;
 using System.Runtime.InteropServices;
 using XrEngine.Layers;
 using System.Numerics;
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -138,10 +139,10 @@ namespace XrEngine.OpenGL
 
                    if (sev == GLEnum.DebugSeverityNotification)
                        return;
-                   /*
+                   
                    Debug.WriteLine($"\n\n\n");
                    Debug.WriteLine($"------ OPENGL: {text}");
-                   Debug.WriteLine($"\n\n\n");*/
+                   Debug.WriteLine($"\n\n\n");
                }
            }, null);
 
@@ -348,8 +349,8 @@ namespace XrEngine.OpenGL
             _glState.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0, true);
             _glState.BindFrameBuffer(FramebufferTarget.Framebuffer, 0, true);
 
-            _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
+            _glState.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
+            _glState.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
 
             ConfigureCaps();
         }

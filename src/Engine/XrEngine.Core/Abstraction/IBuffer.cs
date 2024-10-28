@@ -9,4 +9,9 @@
         long Version { get; set; }  
     }
 
+    public interface IBuffer<T> : IBuffer
+    {
+        void Update(T value);
+    }
+
 }
