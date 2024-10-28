@@ -65,8 +65,10 @@ namespace XrEngine.Compression
             var info = new SKImageInfo((int)data.Width, (int)data.Height, type);
 
             var image = new SKBitmap(info);
+
+            using var pSrc = data.Data!.MemoryLock();
+
             fixed (byte* pDst = image.GetPixelSpan())
-            fixed (byte* pSrc = data.Data.Span)
                 PackImage(data.Width, data.Height, pSrc, data.Width, data.Height, pDst, ImageUtils.GetPixelSizeByte(type));
 
             return image;
@@ -83,7 +85,7 @@ namespace XrEngine.Compression
             string? cacheFile = null;
             if (CachePath != null)
             {
-                var hash = BitConverter.ToString(MD5.HashData(data.Data.Span)).Replace("-", "");
+                var hash = Convert.ToHexString(MD5.HashData(data.Data!.AsSpan()));
                 cacheFile = Path.Combine(CachePath, hash + ".pvr");
 
                 if (File.Exists(cacheFile))
@@ -204,9 +206,8 @@ namespace XrEngine.Compression
                     };
 
                     var outData = Encode((uint)curImage.Width, (uint)curImage.Height, pData, ref options, out var outSize);
-                    var outDataSpan = new Span<byte>(outData + 52, (int)outSize - 52);
-
-                    texData.Data = outDataSpan.ToArray();
+                    
+                    texData.Data = MemoryBuffer.Create<byte>(outData + 52, outSize - 52);
                 }
 
                 if (curImage != image)

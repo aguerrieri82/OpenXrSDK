@@ -1,6 +1,7 @@
 ﻿#pragma warning disable CS0649
 
 using SkiaSharp;
+using System.Diagnostics;
 using TurboJpeg;
 
 namespace XrEngine
@@ -21,12 +22,14 @@ namespace XrEngine
                 stream.ReadExactly(buffer);
 
                 var imgData = TurboJpegLib.Decompress(buffer);
+                Debug.Assert(imgData.Data != null);
+
                 return [new TextureData
                 {
                     Width = (uint)imgData.Width,
                     Height = (uint)imgData.Height,
                     Format = TextureFormat.Rgba32,
-                    Data = imgData.Data
+                    Data = MemoryBuffer.Create(imgData.Data),   
                 }];
             }
 
@@ -41,7 +44,7 @@ namespace XrEngine
             {
                 Compression = TextureCompressionFormat.Uncompressed,
                 Format = ImageUtils.GetFormat(image.ColorType),
-                Data = image.GetPixelSpan().ToArray(),
+                Data = MemoryBuffer.Create(image.Bytes),    
                 Height = (uint)image.Height,
                 Width = (uint)image.Width,
             };

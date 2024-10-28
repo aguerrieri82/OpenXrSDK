@@ -265,11 +265,8 @@ namespace XrEngine
                    _transform.Position.Transform(_parent.WorldMatrix) : _transform.Position;
             set
             {
-
                 _transform.Position = _parent != null && !_parent.WorldMatrix.IsIdentity ?
                     value.Transform(_parent.WorldMatrixInverse) : value;
-
-                //Debug.Assert(value.IsSimilar(WorldPosition, 1e6f));
             }
         }
 

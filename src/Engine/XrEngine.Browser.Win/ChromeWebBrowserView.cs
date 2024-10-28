@@ -70,7 +70,7 @@ namespace XrEngine.Browser.Win
             {
                 texture.LoadData(new TextureData()
                 {
-                    Data = new Memory<byte>(_browser.FrameBuffer),
+                    Data = MemoryBuffer.Create(_browser.FrameBuffer),
                     Width = _browser.Size.Width,
                     Height = _browser.Size.Height,
                     Format = TextureFormat.Bgra32

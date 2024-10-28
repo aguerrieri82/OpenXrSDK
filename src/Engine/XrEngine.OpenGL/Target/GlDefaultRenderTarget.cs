@@ -43,7 +43,7 @@ namespace XrEngine.OpenGL
                 Format = TextureFormat.Rgba32
             };
 
-            _color.Update(size.Width, size.Height, 1, TextureFormat.RgbaFloat16, TextureCompressionFormat.Uncompressed, [data]);
+            _color.Update(1, data);
             _depth.Update(size.Width, size.Height, 1, InternalFormat.Depth24Stencil8);
         }
 

@@ -89,17 +89,13 @@ namespace XrEngine.Video
             data.Format = TextureFormat.Rgba32;
 
             var size = data.Width * data.Height * 4;
+            data.Data = MemoryBuffer.CreateOrResize(data.Data, size);   
 
-            if (data.Data.Length != size)
-                data.Data = new Memory<byte>(new byte[size]);
+            using var pData = data.Data.MemoryLock();
 
-            fixed (byte* pData = data.Data.Span)
-            {
-                sws_scale(_swsContext, frame.data, frame.linesize, 0,
-                     _pCodecContext->height, [pData], [(int)data.Width * 4]);
-
-            }
-
+            sws_scale(_swsContext, frame.data, frame.linesize, 0,
+                _pCodecContext->height, [pData], [(int)data.Width * 4]);
+            
             return true;
         }
 

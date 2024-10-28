@@ -75,6 +75,8 @@ namespace XrEngine
 
             set
             {
+                if (_scale.IsSimilar(value, SCALE_TOLLERANCE))
+                    return;
                 _scale = value;
                 NotifyChanged();
             }
@@ -88,7 +90,10 @@ namespace XrEngine
             {
                 if (value.W == 0)
                     value.W = 1;
-                _orientation = Quaternion.Normalize(value);
+                value = Quaternion.Normalize(value);
+                if (_orientation.IsSimilar(value, ORIENTATION_TOLLERANCE))
+                    return;
+                _orientation = value;
                 _rotation = _orientation.ToEuler();
                 NotifyChanged();
             }
@@ -100,6 +105,8 @@ namespace XrEngine
 
             set
             {
+                if (_position.IsSimilar(value, POS_TOLLERANCE))
+                    return;
                 _position = value;
                 NotifyChanged();
             }
@@ -110,6 +117,8 @@ namespace XrEngine
             get => _localPivot;
             set
             {
+                if (_localPivot.IsSimilar(value, POS_TOLLERANCE))
+                    return;
                 _localPivot = value;
                 NotifyChanged();
             }
@@ -130,6 +139,9 @@ namespace XrEngine
 
         public void SetMatrix(Matrix4x4 matrix)
         {
+            if (matrix == _matrix)
+                return;
+
             Matrix4x4.Decompose(matrix, out _scale, out _orientation, out _position);
 
             /*
@@ -183,5 +195,10 @@ namespace XrEngine
         }
 
         public long Version { get; set; }
+
+
+        public const float POS_TOLLERANCE = 0.0001f;
+        public const float SCALE_TOLLERANCE = 0.00001f;
+        public const float ORIENTATION_TOLLERANCE = 0.0001f;
     }
 }

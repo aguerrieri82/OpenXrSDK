@@ -22,8 +22,8 @@
 
     public abstract class Material : EngineObject, IHosted, IMaterial
     {
-        readonly HashSet<EngineObject> _hosts = [];
-        private bool _isEnabled;
+        protected readonly HashSet<EngineObject> _hosts = [];
+        protected bool _isEnabled;
 
         public Material()
         {

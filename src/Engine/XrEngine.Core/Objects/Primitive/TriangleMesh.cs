@@ -9,7 +9,6 @@ namespace XrEngine
         protected readonly ObservableCollection<Material> _materials;
         protected Geometry3D? _geometry;
 
-
         public TriangleMesh()
         {
             _materials = [];
@@ -94,7 +93,6 @@ namespace XrEngine
         public void NotifyLoaded()
         {
             _geometry?.NotifyLoaded();
-
         }
 
         public Geometry3D? Geometry
@@ -134,7 +132,6 @@ namespace XrEngine
         }
 
         public int RenderPriority { get; set; }
-
 
         public IList<Material> Materials => _materials;
 

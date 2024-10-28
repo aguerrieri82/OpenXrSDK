@@ -167,13 +167,15 @@ namespace XrEngine.OpenGL
                     Height = h,
                     Format = format,
                     MipLevel = mipLevel,
-                    Face = face
+                    Face = face,
+                    Data = MemoryBuffer.Create<byte>((uint)pixelSize * w * h / 8)
                 };
-                item.Data = new byte[pixelSize * item.Width * item.Height / 8];
 
                 GetPixelFormat(format, out var pixelFormat, out var pixelType);
 
-                _gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, item.Data.Span);
+                using var pData = item.Data.MemoryLock();
+
+                _gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, pData);
 
                 result.Add(item);
             }
@@ -331,9 +333,12 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
-        public void Update(uint arraySize, params TextureData[] data)
+        public void Update(uint depth, params TextureData[] data)
         {
-            Update(data[0].Width, data[0].Height, arraySize, data[0].Format, data[0].Compression, data);
+            if (data.Length == 0)
+                throw new InvalidOperationException();
+
+            Update(data[0].Width, data[0].Height, depth, data[0].Format, data[0].Compression, data);
         }
 
         public unsafe void Update(uint width, uint height, uint depth, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null)
@@ -428,7 +433,6 @@ namespace XrEngine.OpenGL
                         }
                     }
 
-
                     _isAllocated = true;
                 }
 
@@ -442,7 +446,7 @@ namespace XrEngine.OpenGL
                         var realTarget = Target == TextureTarget.TextureCubeMap ?
                                              TextureTarget.TextureCubeMapPositiveX + (int)level.Face : Target;
 
-                        if (level.Data.Length == 0 && !_isAllocated)
+                        if (level.Data == null && !_isAllocated)
                         {
                             if (data.Count == 1 && data[0].MipLevel == 0)
                             {
@@ -473,8 +477,10 @@ namespace XrEngine.OpenGL
                             }
 
                         }
-                        else if (level.Data.Length > 0)
+                        else if (level.Data != null)
                         {
+                            using var pData = level.Data.MemoryLock();
+
                             _gl.TexSubImage2D(
                                 realTarget,
                                 (int)level.MipLevel,
@@ -484,9 +490,8 @@ namespace XrEngine.OpenGL
                                 level.Height,
                                 pixelFormat,
                                 pixelType,
-                                (ReadOnlySpan<byte>)level.Data.Span);
+                                pData);
                         }
-
                     }
                 }
             }
@@ -500,6 +505,10 @@ namespace XrEngine.OpenGL
                                     (TextureTarget.TextureCubeMapPositiveX + (int)level.Face) :
                                     Target;
 
+                    Debug.Assert(level.Data != null);
+
+                    using var pData = level.Data.MemoryLock();
+
                     _gl.CompressedTexImage2D(
                         realTarget,
                         (int)level.MipLevel,
@@ -507,8 +516,9 @@ namespace XrEngine.OpenGL
                         level.Width,
                         level.Height,
                         0,
-                        (uint)level.Data!.Length,
-                        (ReadOnlySpan<byte>)level.Data.Span);
+                        level.Data.Size,
+                        pData);
+
                 }
 
                 _isCompressed = true;
