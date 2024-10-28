@@ -52,7 +52,7 @@
         protected override void OnChanged(ObjectChange change)
         {
             foreach (var host in _hosts)
-                host.NotifyChanged(new ObjectChange(ObjectChangeType.Material, this));
+                host.NotifyChanged(new ObjectChange(change.Type, this));
             base.OnChanged(change);
         }
 

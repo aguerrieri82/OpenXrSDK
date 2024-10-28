@@ -51,7 +51,7 @@ namespace XrEngine.Physics
         {
             Debug.Assert(_host != null);
 
-            _host.SetGlobalPoseIfChanged(pose);
+            _host.SetWorldPoseIfChanged(pose);
         }
 
         protected Pose3 GetPose()

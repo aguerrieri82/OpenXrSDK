@@ -44,9 +44,8 @@ namespace XrEngine
 
         public override void Update(RenderContext ctx)
         {
-            if (!ctx.UpdateOnlySelf)
-                _updateManager.Update(ctx);
-            base.Update(ctx);
+            _updateManager.Update(ctx);
+            //base.Update(ctx);
         }
 
         protected override void UpdateSelf(RenderContext ctx)
@@ -99,9 +98,14 @@ namespace XrEngine
                 UpdateDrawGizmos();
             }
 
-            if (change.IsAny(ObjectChangeType.Scene, ObjectChangeType.Material, ObjectChangeType.Components))
+            if (change.IsAny(ObjectChangeType.Scene, 
+                             ObjectChangeType.MateriaAdd, 
+                             ObjectChangeType.MateriaRemove,
+                             ObjectChangeType.Components))
+            {
                 ContentVersion++;
-
+            }
+             
             foreach (var listener in _changeListener)
                 listener.NotifyChanged(sender, change);
 

@@ -81,14 +81,13 @@ namespace XrEngine
                     else if (obj is Object3D obj3d)
                         leafGroup.Items.Add(obj3d);
                 }
-
-                Visit(_scene);
-
-      
-                _groups.Sort((a, b) => a.Priority - b.Priority);
-
-                _lastVersion = _scene.ContentVersion;
             }
+            
+            Visit(_scene);
+
+            _groups.Sort((a, b) => a.Priority - b.Priority);
+
+            _lastVersion = _scene.ContentVersion;
         }
 
         public void Update(RenderContext ctx)
