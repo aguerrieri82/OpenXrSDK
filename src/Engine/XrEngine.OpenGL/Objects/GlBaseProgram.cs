@@ -147,23 +147,44 @@ namespace XrEngine.OpenGL
         }
 
         static Dictionary<Texture2D, GlTexture> _textures = [];
+        static Dictionary<Texture2D, GlTextureBuffer> _textureBuffers = [];
 
         public void LoadTexture(Texture value, int slot = 0)
         {
             var tex2d = value as Texture2D ?? throw new NotSupportedException();
 
-            if (!_textures.TryGetValue(tex2d, out var glText))
+            if (tex2d.Type == TextureType.Buffer)
             {
-                glText = tex2d.ToGlTexture();
-                _textures[tex2d] = glText;
-            }   
+                if (!_textureBuffers.TryGetValue(tex2d, out var glTextBuf))
+                {
+                    glTextBuf = new GlTextureBuffer(_gl);
+                    _textureBuffers[tex2d] = glTextBuf;
+                }
 
-            bool isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
+                bool isUpdate = tex2d.Version != glTextBuf.Version && tex2d.Data != null && tex2d.Data.Count > 0;
 
-            GlState.Current!.SetActiveTexture(glText, slot, isUpdate);
+                if (isUpdate)
+                    glTextBuf.Update(tex2d.Data![0]);
 
-            if (isUpdate)
-                glText.Update(tex2d, false);
+                GlState.Current!.SetActiveTexture(glTextBuf.Texture, slot);
+
+                glTextBuf.Version = tex2d.Version;  
+            }
+            else
+            {
+                if (!_textures.TryGetValue(tex2d, out var glText))
+                {
+                    glText = tex2d.ToGlTexture();
+                    _textures[tex2d] = glText;
+                }
+
+                bool isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
+
+                GlState.Current!.SetActiveTexture(glText, slot, isUpdate);
+
+                if (isUpdate)
+                    glText.Update(tex2d, false);
+            }
         }
 
         public void SetUniform(string name, int value, bool optional = false)

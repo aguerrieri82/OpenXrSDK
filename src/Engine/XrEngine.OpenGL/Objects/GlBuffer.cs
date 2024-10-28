@@ -50,6 +50,17 @@ namespace XrEngine.OpenGL
             Unbind();
         }
 
+        public unsafe T* Map(MapBufferAccessMask access)
+        {
+            var ptr = _gl.MapBufferRange(_target, 0, (nuint)(_length * sizeof(T)), access);
+            return (T*)ptr;
+        }
+
+        public void Unmap()
+        {
+            _gl.UnmapBuffer(_target);
+        }
+
         public unsafe void Update(ReadOnlySpan<T> data)
         {
             if (data.Length > 0)
@@ -94,6 +105,15 @@ namespace XrEngine.OpenGL
                 _handle = 0;
             }
             GC.SuppressFinalize(this);
+        }
+
+        public unsafe void Allocate(uint length)
+        {
+            if (_length == length)
+                return;
+
+            _gl.BufferData(_target, (nuint)(length * sizeof(T)), null, BufferUsageARB.StreamDraw);
+            _length = length; 
         }
 
         public string Hash { get; set; }

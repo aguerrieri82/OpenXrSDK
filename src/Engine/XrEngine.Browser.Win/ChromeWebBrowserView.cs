@@ -63,6 +63,7 @@ namespace XrEngine.Browser.Win
                 return;
 
             texture.SetFlag(EngineObjectFlags.EnableDebug, false);
+            texture.Type = TextureType.Buffer;
 
             var time = _browser.FrameBufferTime;
 
@@ -85,12 +86,12 @@ namespace XrEngine.Browser.Win
             if (_input.MainButton.IsChanged)
             {
                 if (_input.MainButton.IsDown)
-                    _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Pressed, CefEventFlags.LeftMouseButton);
+                    _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Pressed, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
                 else
-                    _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Released,  CefEventFlags.LeftMouseButton);
+                    _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Released, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
             }
             else
-                _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Moved, _input.MainButton.IsDown ? CefEventFlags.LeftMouseButton : CefEventFlags.None);
+                _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Moved, _input.MainButton.IsDown ? CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton : CefEventFlags.None);
 
         }
 
