@@ -1,9 +1,12 @@
-﻿using XrMath;
+﻿using System.Numerics;
+using XrMath;
 
 namespace XrEngine
 {
     public class PointLight : Light
     {
+        Vector3 _lastWorldPos;
+
         public PointLight()
         {
             Specular = Color.White;
@@ -12,8 +15,13 @@ namespace XrEngine
 
         protected internal override void InvalidateWorld()
         {
-            Version++;
             base.InvalidateWorld();
+
+            if (!_lastWorldPos.IsSimilar(WorldPosition, 0.001f))
+            {
+                _lastWorldPos = WorldPosition;
+                Version++;
+            }   
         }
 
 

@@ -318,8 +318,6 @@ namespace OpenXr.Framework.Android
 
             _webView.SetLayerType(LayerType.Hardware, null);
             
-            _webView.SetOnTouchListener(new TouchListener());
-
             if (_context is Activity activity)
             {
                 var layout = new ViewGroup.LayoutParams(_size.Width, _size.Height);

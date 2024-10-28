@@ -75,7 +75,7 @@ namespace XrEngine.OpenXr
 
             var ray = status.Value.Ray;
             
-            _rayView.SetGlobalPoseIfChanged(ray.ToPose());
+            _rayView.SetWorldPoseIfChanged(ray.ToPose());
 
             Collision? result = null;
 

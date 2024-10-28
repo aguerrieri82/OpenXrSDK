@@ -221,16 +221,25 @@ namespace XrEngine
             return (self.Flags & flags) == flags;
         }
 
-        public static void SetGlobalPoseIfChanged(this Object3D self, Pose3 pose, float epsilon = 0.001f)
+        public static void SetWorldPoseIfChanged(this Object3D self, Pose3 pose, float epsilonP = 0.001f, float epsilonO = 0.001f)
         {
             var deltaPos = (pose.Position - self.WorldPosition).Length();
             var deltaOri = (pose.Orientation - self.WorldOrientation).Length();
 
-            if (deltaPos > epsilon)
+            var isChanged = deltaPos > epsilonP || deltaOri > epsilonO;
+            
+            if (!isChanged)
+                return;
+
+            self.BeginUpdate();
+
+            if (deltaPos > epsilonP)
                 self.WorldPosition = pose.Position;
 
-            if (deltaOri > epsilon)
+            if (deltaOri > epsilonO)
                 self.WorldOrientation = pose.Orientation;
+
+            self.EndUpdate();
         }
 
 

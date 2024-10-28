@@ -22,6 +22,6 @@ void main()
     vec3 haloColor = uColor.rgb * glowFactor * uIntensity;
 
     // Output the final color with alpha
-    FragColor = vec4(uColor.rgb, glowFactor * uIntensity);
+    FragColor = vec4(haloColor, glowFactor);
 
 }
