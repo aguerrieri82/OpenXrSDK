@@ -91,7 +91,7 @@ namespace XrEngine
             {
                 Compression = TextureCompressionFormat.Uncompressed,
                 Format = ImageUtils.GetFormat(image.ColorType),
-                Data = image.GetPixelSpan().ToArray(),
+                Data = MemoryBuffer.Create(image.Bytes),
                 Height = (uint)image.Height,
                 Width = (uint)image.Width,
             };

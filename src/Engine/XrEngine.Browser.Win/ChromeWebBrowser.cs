@@ -75,9 +75,6 @@ namespace XrEngine.Browser.Win
 
             var viewPos = pos * new Vector2(Size.Width, Size.Height);
 
-            Debug.WriteLine("{0} {1}", viewPos, eventType);
-
-
             if (eventType == TouchEventType.Moved)
             {
                 _host!.SendMouseMoveEvent((int)viewPos.X, (int)viewPos.Y, false, flags);

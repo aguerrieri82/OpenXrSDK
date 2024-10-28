@@ -161,9 +161,11 @@ namespace XrEngine.Gltf
                     {
                         var outImg = TurboJpegLib.Decompress(data);
 
+                        Debug.Assert(outImg.Data != null);
+
                         return new TextureData
                         {
-                            Data = outImg.Data,
+                            Data = MemoryBuffer.Create(outImg.Data),
                             Width = (uint)outImg.Width,
                             Height = (uint)outImg.Height,
                             Format = useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
@@ -175,7 +177,7 @@ namespace XrEngine.Gltf
                         using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
                         return new TextureData
                         {
-                            Data = image.GetPixelSpan().ToArray(),
+                            Data = MemoryBuffer.Create(image.Bytes),
                             Width = (uint)image.Width,
                             Height = (uint)image.Height,
                             Format = image.ColorType switch

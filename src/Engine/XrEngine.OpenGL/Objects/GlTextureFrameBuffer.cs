@@ -206,18 +206,15 @@ namespace XrEngine.OpenGL
             data.MipLevel = 0;
             data.Depth = 0;
             data.Format = TextureFormat.Rgba32;
-
-            var dataSize = Color.Width * Color.Height * 4;
-
-            if (data.Data.Length != dataSize)
-                data.Data = new Memory<byte>(new byte[dataSize]);
+            data.Data = MemoryBuffer.CreateOrResize(data.Data, Color.Width * Color.Height * 4);
 
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _handle);
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
 
-            fixed (byte* pData = data.Data.Span)
-                _gl.ReadPixels(0, 0, Color!.Width, Color.Height, PixelFormat.Rgba, PixelType.UnsignedByte, pData);
-
+            using var pData = data.Data.MemoryLock();
+ 
+            _gl.ReadPixels(0, 0, Color!.Width, Color.Height, PixelFormat.Rgba, PixelType.UnsignedByte, pData);
+           
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, 0);
         }
 

@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CS0649
 
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace XrEngine
@@ -126,8 +127,12 @@ namespace XrEngine
 
 
             stream.WriteStruct(header);
+
             foreach (var img in images.OrderBy(a => a.MipLevel).ThenBy(a => a.Face))
-                stream.Write(img.Data.Span);
+            {
+                Debug.Assert(img.Data != null);
+                stream.Write(img.Data.AsSpan());
+            }
 
             stream.Dispose();
         }

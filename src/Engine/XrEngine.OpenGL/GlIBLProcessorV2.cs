@@ -169,7 +169,7 @@ namespace XrEngine.OpenGL
             else
                 format = data.Format;
 
-            res.Update(data.Width, data.Height, 1, format, data.Compression, [data]);
+            res.Update(1, data);
 
             return res;
         }

@@ -133,18 +133,7 @@ namespace XrEditor.Services
 
             _engine.SetRenderTarget(null);
 
-            var image = new SKBitmap((int)_texture.Width, (int)_texture.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
-
-            var dst = new byte[_texture.Height * _texture.Width * 4];
-
-            fixed (byte* pData = data.Data.Span)
-            fixed (byte* pDst = dst)
-            {
-                EngineNativeLib.ImageFlipY(new nint(pData), new nint(pDst), _texture.Width, _texture.Height, _texture.Width * 4);
-                image.SetPixels(new nint(pDst));
-            }
-
-            return image;
+            return ImageUtils.ToBitmap(data, true);
         }
 
         public IRenderEngine Engine => _engine;

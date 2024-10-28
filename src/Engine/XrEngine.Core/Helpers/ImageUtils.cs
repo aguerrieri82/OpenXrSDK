@@ -1,4 +1,5 @@
 ﻿using SkiaSharp;
+using System.Diagnostics;
 
 namespace XrEngine
 {
@@ -57,21 +58,21 @@ namespace XrEngine
 
             var image = new SKBitmap((int)data.Width, (int)data.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
 
+            Debug.Assert(data.Data != null);
+
             if (flipY)
             {
-                var dst = new byte[data.Height * data.Width * 4];
+                var dst = MemoryBuffer.Create<byte>(data.Height * data.Width * 4);
 
-                fixed (byte* pData = data.Data.Span)
-                fixed (byte* pDst = dst)
-                {
-                    EngineNativeLib.ImageFlipY(new nint(pData), new nint(pDst), data.Width, data.Height, data.Width * 4);
-                    image.SetPixels(new nint(pDst));
-                }
+                using var pData = data.Data.MemoryLock();
+                using var pDst = dst.MemoryLock();
+                EngineNativeLib.ImageFlipY(pData, pDst, data.Width, data.Height, data.Width * 4);
+                image.SetPixels(pDst);
             }
             else
             {
-                fixed (byte* pData = data.Data.Span)
-                    image.SetPixels(new nint(pData));
+                using var pData = data.Data.MemoryLock();
+                image.SetPixels(pData);
             }
 
             return image;
