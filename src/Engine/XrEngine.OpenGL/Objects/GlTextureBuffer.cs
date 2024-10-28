@@ -2,8 +2,10 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using System.Reflection.Emit;
 #endif
+
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace XrEngine.OpenGL
 {
@@ -58,11 +60,15 @@ namespace XrEngine.OpenGL
                        _height);
             }
 
-            var ptr = _buffer.Map(MapBufferAccessMask.WriteBit);
+            var pDst = _buffer.Map(MapBufferAccessMask.WriteBit);
 
-            var pData = data.Data!.MemoryLock();
+            using var pSrc = data.Data!.MemoryLock();
 
-            System.Buffer.MemoryCopy(pData, ptr, _buffer.Length, data.Data.Size); 
+            EngineNativeLib.CopyMemory(pSrc, (nint)pDst, data.Data.Size);
+
+            //Unsafe.CopyBlockUnaligned(pDst, pSrc, _buffer.Length);
+
+            //System.Buffer.MemoryCopy(pSrc, pDst, _buffer.Length, data.Data.Size); 
 
             _buffer.Unmap();
 
