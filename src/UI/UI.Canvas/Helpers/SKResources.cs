@@ -86,5 +86,23 @@ namespace CanvasUI
             }
             return paint;
         }
+
+        public static SKPaint Stroke(Color color, float width, float dashSize)
+        {
+            var id = string.Concat("stroke_", color.ToString(), "_", width, "_", dashSize);
+            if (!_paints.TryGetValue(id, out var paint))
+            {
+                paint = new();
+                paint.ColorF = new SKColorF(color.R, color.G, color.B, color.A);
+                paint.StrokeWidth = width;
+                paint.Style = SKPaintStyle.Stroke;
+                paint.IsStroke = true;
+                paint.IsAntialias = false;
+                paint.PathEffect = SKPathEffect.CreateDash([dashSize, dashSize], dashSize * 2);
+                paint.StrokeJoin = SKStrokeJoin.Miter;
+                _paints[id] = paint;
+            }
+            return paint;
+        }
     }
 }

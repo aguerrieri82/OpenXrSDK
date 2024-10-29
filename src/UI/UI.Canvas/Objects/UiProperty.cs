@@ -1,10 +1,13 @@
-﻿namespace CanvasUI
+﻿using System.Reflection;
+
+namespace CanvasUI
 {
     [Flags]
     public enum UiPropertyFlags
     {
         None,
-        Layout = 0x1
+        Layout = 0x1,
+        Render = 0x2
     }
 
 
@@ -26,6 +29,8 @@
         public Type OwnerType;
 
         public UiPropertyFlags Flags;
+
+        public MethodInfo? OnChangedMethod;
     }
 
 

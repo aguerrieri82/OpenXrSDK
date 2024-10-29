@@ -17,6 +17,11 @@ namespace CanvasUI
             Style.Color = Color.Black;
         }
 
+        protected override void OnNeedRedraw()
+        {
+            NeedRedraw?.Invoke(this, EventArgs.Empty);  
+        }
+
         protected void Layout()
         {
             Measure(new Size2(_viewport.Width, _viewport.Height));
@@ -34,9 +39,17 @@ namespace CanvasUI
 
         public void SetViewport(float x, float y, float width, float height)
         {
-            _viewport = new Rect2(x, y, width, height);
+            var newView = new Rect2(x, y, width, height);
+
+            if (Equals(newView, _viewport))
+                return;
+            
+            _viewport = newView;
             _clientRect = _viewport;
             _isLayoutDirty = true;
         }
+
+
+        public event EventHandler? NeedRedraw;  
     }
 }

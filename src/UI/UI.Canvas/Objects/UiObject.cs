@@ -10,7 +10,7 @@ namespace CanvasUI
     {
         #region PROPERTIES 
 
-        protected static Dictionary<Type, Dictionary<string, UiProperty>> _props = [];
+        protected static readonly Dictionary<Type, Dictionary<string, UiProperty>> _props = [];
 
         public static Dictionary<string, UiProperty> RegisterType<T>()
         {
@@ -42,7 +42,14 @@ namespace CanvasUI
                 if (!TypeConverter.TryConvert(propDesc.DefaultValue, typeProp.PropertyType, out prop.DefaultValue))
                     throw new InvalidCastException();
 
+                
+                var onChanged = compType.GetMethod($"On{typeProp.Name}Changed", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, [typeProp.PropertyType, typeProp.PropertyType]); 
+                if (onChanged != null)
+                    prop.OnChangedMethod = onChanged;
+
                 props[typeProp.Name] = prop;
+
+
             }
 
             var curBase = compType.BaseType;
@@ -79,9 +86,9 @@ namespace CanvasUI
         protected Dictionary<UiProperty, object?>? _values;
         protected List<Binding>? _bindings = null;
 
-        protected virtual void OnPropertyChanged(string propName, object? value, object? oldValue)
+        protected virtual void OnPropertyChanged(UiProperty prop, object? value, object? oldValue)
         {
-            PropertyChanged?.Invoke(this, propName, value, oldValue);
+            PropertyChanged?.Invoke(this, prop.Name, value, oldValue);
         }
 
         public virtual void SetValue<T>(string propName, T? value)
@@ -98,8 +105,10 @@ namespace CanvasUI
             _values[prop] = value;
 
             if (!Equals(value, oldValue))
-                OnPropertyChanged(propName, value, oldValue);
-
+            {
+                OnPropertyChanged(prop, value, oldValue);
+                prop.OnChangedMethod?.Invoke(this, [value, oldValue]);
+            }
         }
 
         public virtual T? GetValue<T>(string propName)

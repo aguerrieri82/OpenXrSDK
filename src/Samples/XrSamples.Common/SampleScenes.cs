@@ -154,9 +154,7 @@ namespace XrSamples
             panel.DpiScale = 1.6f;
             panel.Content = uiRoot;
             panel.WorldPosition = new Vector3(0, 1, 0);
-
-            //panel.AddComponent(new FollowCamera() { Offset = new Vector3(0f, -0.0f, -1f) });
-
+      
             return builder
                 .AddRightPointer()
                 .UseClickMoveFront(panel, 0.5f)

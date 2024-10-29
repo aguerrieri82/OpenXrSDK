@@ -1,4 +1,5 @@
 ﻿
+using System.Reflection;
 using XrEditor.Services;
 using XrEngine;
 
@@ -9,12 +10,16 @@ namespace XrEditor
         protected readonly PanelManager _panelManager;
         protected readonly IUserInteraction _ui;
         protected readonly IMainDispatcher _main;
+        protected string _panelId;
 
         public BasePanel()
         {
             _ui = Context.Require<IUserInteraction>();
             _main = Context.Require<IMainDispatcher>();
             _panelManager = Context.Require<PanelManager>();
+
+            var panelAttr = GetType().GetCustomAttribute<PanelAttribute>(); 
+            _panelId = panelAttr?.PanelId ?? GetType().Name;
 
             _ = LoadAsync();
         }
@@ -40,5 +45,7 @@ namespace XrEditor
         {
             throw new NotImplementedException();
         }
+
+        public string PanelId => _panelId;      
     }
 }

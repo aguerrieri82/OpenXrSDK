@@ -30,17 +30,54 @@
 
 
     <DataTemplate DataType="{x:Type local:MainView}">
+        
         <DockPanel >
             <ContentPresenter DockPanel.Dock="Top" Content="{Binding Toolbar}"/>
-            <ContentPresenter MinWidth="360px" DockPanel.Dock="Right" Content="{Binding PropertiesEditor}"/>
-            <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Messages}"/>
-            <TabControl  Height="200" DockPanel.Dock="Bottom">
-                <TabItem  Header="Log">
-                    <ContentPresenter Content="{Binding Log}"/>
-                </TabItem>
-            </TabControl>
-            <ContentPresenter Width="250px" DockPanel.Dock="Left" Content="{Binding Outline}"/>
-            <ContentPresenter Content="{Binding SceneView}"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="360"/>
+                </Grid.ColumnDefinitions>
+
+                <GridSplitter Width="5px" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left"  VerticalAlignment="Stretch"/>
+
+
+                <ItemsControl ItemsSource="{Binding Messages}"/>
+                
+                <ContentPresenter Margin="5,0,0,0" Grid.Column="1" Content="{Binding PropertiesEditor}"/>
+
+                <Grid Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="250"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="200"/>
+                    </Grid.RowDefinitions>
+
+                    <GridSplitter Height="5px" Grid.Row="1" Grid.ColumnSpan="2" VerticalAlignment="Top"  HorizontalAlignment="Stretch"/>
+                    <GridSplitter Width="5px" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left"  VerticalAlignment="Stretch"/>
+             
+                    <TabControl Margin="0,5,0,0" Grid.Row="1" Grid.ColumnSpan="2">
+                        <TabItem  Header="Log">
+                            <ContentPresenter Content="{Binding Log}"/>
+                        </TabItem>
+                        <TabItem Header="Plot">
+                            <ContentPresenter Content="{Binding Plotter}"/>
+                        </TabItem>
+                    </TabControl>
+
+                    <ContentPresenter Grid.Column="0"  Content="{Binding Outline}"/>
+                    <ContentPresenter Margin="5,0,0,0" Grid.Column="1"  Content="{Binding SceneView}"/>
+                </Grid>
+
+ 
+            </Grid>
+
+
+   
+
         </DockPanel>
     </DataTemplate>
 

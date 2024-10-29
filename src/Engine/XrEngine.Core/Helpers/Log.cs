@@ -2,6 +2,7 @@
 {
     public static class Log
     {
+   
         public static void Info(object source, string message, params object?[] args)
         {
             Logger.LogMessage(source, string.Format(message, args), LogLevel.Info);
@@ -22,7 +23,15 @@
             Logger.LogMessage(source, string.Format(message, exception), LogLevel.Error);
         }
 
+        public static void Value<T>(string name, T value)
+        {
+
+            TimeLogger.LogValue(name, value);
+        }
+
 
         public static IProgressLogger Logger => Context.Require<IProgressLogger>();
+
+        public static ITimeLogger TimeLogger => Context.Require<ITimeLogger>();
     }
 }
