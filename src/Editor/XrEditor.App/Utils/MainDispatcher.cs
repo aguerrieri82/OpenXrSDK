@@ -22,5 +22,24 @@ namespace XrEditor
             }
 
         }
+
+        public void Execute(Action action)
+        {
+
+            if (Application.Current.Dispatcher.Thread == Thread.CurrentThread)
+                action();
+            else
+            {
+                try
+                {
+                    Application.Current.Dispatcher.Invoke(action);
+                }
+                catch (TaskCanceledException)
+                {
+
+                }
+            }
+
+        }
     }
 }

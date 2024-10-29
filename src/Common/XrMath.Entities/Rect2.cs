@@ -78,5 +78,6 @@ namespace XrMath
                 Height = value.Height;
             }
         }
+
     }
 }

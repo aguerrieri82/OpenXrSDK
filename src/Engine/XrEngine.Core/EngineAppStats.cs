@@ -43,6 +43,7 @@
                 _updateTimes[type] += total;
         }
 
+        public long Frame => _frameCount;
 
         public int Fps { get; protected set; }
     }

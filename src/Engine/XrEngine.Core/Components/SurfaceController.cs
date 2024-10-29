@@ -103,7 +103,11 @@ namespace XrEngine
         public void NotifyCollision(RenderContext ctx, Collision? collision)
         {
             if (collision != null)
+            {
                 _pointer = collision.UV ?? new Vector2(collision.LocalPoint.X, collision.LocalPoint.Y) + new Vector2(0.5f, 0.5f);
+                Log.Value("Pointer.X", _pointer.X);
+                Log.Value("Pointer.Y", _pointer.Y);
+            }
 
             _pointerValid = collision != null;
         }

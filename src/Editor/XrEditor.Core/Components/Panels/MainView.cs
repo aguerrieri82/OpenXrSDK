@@ -50,6 +50,11 @@ namespace XrEditor
             Toolbar = new MainToolbarView();    
 
             Log = new LogPanel();
+
+            Plotter = new PanelView
+            {
+                PanelId = "Plotter"
+            };
         }
 
         public void NotifyMessage(string message, MessageType type, int showTimeMs = 2000)
@@ -83,6 +88,8 @@ namespace XrEditor
         public OutlinePanel Outline { get; }
 
         public LogPanel Log { get; }
+
+        public PanelView Plotter { get; }   
 
         public PropertiesEditor PropertiesEditor { get; }
     }

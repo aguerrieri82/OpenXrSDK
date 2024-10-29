@@ -13,13 +13,11 @@
             base.OnPointerUp(ev);
         }
 
-        protected override void OnPropertyChanged(string propName, object? value, object? oldValue)
+        protected void OnIsCheckedChanged(bool value, bool oldValue)
         {
-            if (propName == nameof(IsChecked))
-                CheckedChange?.Invoke(this, EventArgs.Empty);
-
-            base.OnPropertyChanged(propName, value, oldValue);
+            CheckedChange?.Invoke(this, EventArgs.Empty);
         }
+
 
         [UiProperty(false)]
         public bool IsChecked

@@ -26,6 +26,11 @@ namespace CanvasUI
 
         #region LAYOUT
 
+        protected virtual void OnSizeChanged()
+        {
+
+        }
+
         protected void ApplySizeLimit(ref Rect2 rect)
         {
             if (ActualStyle.Width.HasValue)
@@ -105,6 +110,8 @@ namespace CanvasUI
             _renderSize = ArrangeWork(_contentRect);
 
             _isLayoutDirty = false;
+
+            OnSizeChanged();
         }
 
         protected virtual Size2 ArrangeWork(Rect2 finalRect)
@@ -239,16 +246,15 @@ namespace CanvasUI
 
         #region PROPS
 
-        protected override void OnPropertyChanged(string propName, object? value, object? oldValue)
+        protected override void OnPropertyChanged(UiProperty prop, object? value, object? oldValue)
         {
-            var prop = GetProperty(propName, GetType());
 
             if ((prop.Flags & UiPropertyFlags.Layout) == UiPropertyFlags.Layout)
                 InvalidateLayout();
 
             IsDirty = true;
 
-            base.OnPropertyChanged(propName, value, oldValue);
+            base.OnPropertyChanged(prop, value, oldValue);
         }
 
         protected internal void OnStyleChanged(string propName, IStyleValue value, IStyleValue oldValue)
@@ -262,6 +268,16 @@ namespace CanvasUI
         #endregion
 
         #region RENDER
+
+        protected virtual void OnNeedRedraw()
+        {
+
+        }
+
+        public void Invalidate()
+        {
+            IsDirty = true;
+        }
 
         protected virtual void DrawBox(SKCanvas canvas)
         {
@@ -355,10 +371,16 @@ namespace CanvasUI
 
             internal protected set
             {
+                if (_isDirty == value)
+                    return;
+
                 _isDirty = value;
 
                 if (_parent != null)
                     _parent.IsDirty = true;
+
+                if (_isDirty)
+                    OnNeedRedraw();
             }
         }
 
