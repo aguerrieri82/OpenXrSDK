@@ -3240,7 +3240,7 @@
         
     </Style>
 
-    <Style TargetType="{x:Type TabItem}">
+    <Style TargetType="{x:Type TabItem}" x:Key="TabItem">
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
         <Setter Property="Foreground" Value="{DynamicResource ABrush.Foreground.Static}"/>
         <Setter Property="Background" Value="{DynamicResource TabItem.Static.Background}"/>
@@ -3425,6 +3425,11 @@
         </Setter>
     </Style>
 
+
+    <Style TargetType="{x:Type TabItem}" BasedOn="{StaticResource TabItem}">
+       
+    </Style>
+    
     <Style x:Key="NoLeftBorder" TargetType="{x:Type TabItem}" BasedOn="{StaticResource {x:Type TabItem}}">
         <Setter Property="Template">
             <Setter.Value>

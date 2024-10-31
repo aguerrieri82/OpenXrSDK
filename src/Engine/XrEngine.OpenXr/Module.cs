@@ -10,6 +10,11 @@ namespace XrEngine.OpenXr
         {
             TypeStateManager.Instance.Register(new XrInputStateManager());
         }
+
+        public void Shutdown()
+        {
+
+        }
     }
 }
 

@@ -1,6 +1,9 @@
 ﻿using System.Collections.ObjectModel;
+using XrEditor.Services;
 using XrEngine;
 using XrEngine.OpenXr;
+using XrEngine.Services;
+using XrMath;
 
 
 namespace XrEditor
@@ -31,7 +34,7 @@ namespace XrEditor
     }
 
 
-    public class MainView : BaseView, IUserInteraction
+    public class MainView : BaseView, IUserInteraction, IStateManager
     {
         public MainView(GraphicDriver driver)
         {
@@ -51,9 +54,29 @@ namespace XrEditor
 
             Log = new LogPanel();
 
-            Plotter = new PanelView
+            Plotter = Context.Require<PanelManager>().Panel("Plotter")!;
+
+            Content = new SplitView
             {
-                PanelId = "Plotter"
+                Mode = SplitViewMode.Vertical,
+                First = new SplitView
+                {
+                    Mode = SplitViewMode.Horizontal,
+                    SizeMode = SplitViewSizeMode.Second,
+                    Size = 200,
+                    First = new SplitView
+                    {
+                        Mode = SplitViewMode.Vertical,
+                        Size = 250,
+                        SizeMode = SplitViewSizeMode.First,
+                        First = new PanelContainer(Outline),
+                        Second = new PanelContainer(SceneView)
+                    },
+                    Second = new PanelContainer(Log, Plotter)
+                },
+                Second = new PanelContainer(PropertiesEditor),
+                SizeMode = SplitViewSizeMode.Second,
+                Size = 360
             };
         }
 
@@ -79,6 +102,38 @@ namespace XrEditor
             });
         }
 
+        public void GetState(IStateContainer container)
+        {
+            container.Write("Size", Host!.Size);
+            container.Write("State", Host!.State);
+            container.Write("Content", Content);
+
+        }
+
+        public void SetState(IStateContainer container)
+        {
+            Host!.Size = container.Read<Size2>("Size");
+            Host!.State = container.Read<WindowState>("State");
+            Content = container.Read<SplitView>("Content");  
+        }
+
+        public void SaveState()
+        {
+            var container = new JsonStateContainer();
+            GetState(container);
+            var json = container.AsJson();
+            File.WriteAllText("layout.json", json);   
+        }
+
+        public void LoadState()
+        {
+            if (!File.Exists("layout.json"))
+                return; 
+            var json = File.ReadAllText("layout.json");
+            var container = new JsonStateContainer(json);
+            SetState(container);
+        }
+
         public MainToolbarView Toolbar { get; }
 
         public ObservableCollection<MessageView> Messages { get; } = [];
@@ -89,8 +144,12 @@ namespace XrEditor
 
         public LogPanel Log { get; }
 
-        public PanelView Plotter { get; }   
+        public IPanel Plotter { get; }   
 
         public PropertiesEditor PropertiesEditor { get; }
+
+        public BaseView Content { get; internal set; }
+
+        public IWindow? Host { get; set; }
     }
 }

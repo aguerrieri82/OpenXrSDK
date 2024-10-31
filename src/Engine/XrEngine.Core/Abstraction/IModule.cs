@@ -14,5 +14,7 @@
     public interface IModule
     {
         void Load();
+
+        void Shutdown();    
     }
 }

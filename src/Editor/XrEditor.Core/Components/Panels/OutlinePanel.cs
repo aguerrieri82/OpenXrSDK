@@ -139,5 +139,7 @@ namespace XrEditor
         public static OutlinePanel? Instance { get; internal set; }
 
         public ListTreeView TreeView => _treeView;
+
+        public override string? Title => "Outline";
     }
 }

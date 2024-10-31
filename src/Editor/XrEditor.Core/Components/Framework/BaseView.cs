@@ -17,5 +17,6 @@ namespace XrEditor
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
+   
     }
 }

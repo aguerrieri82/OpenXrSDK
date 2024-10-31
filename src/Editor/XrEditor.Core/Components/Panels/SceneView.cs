@@ -66,7 +66,6 @@ namespace XrEditor
         protected SceneXrState _xrState;
         protected IRenderEngine? _render;
         protected XrEngineApp? _engine;
-        protected ToolbarView _toolbar;
         protected MemoryStateContainer? _sceneState;
         protected readonly QueueDispatcher _renderDispatcher;
         protected readonly ActionView _playButton;
@@ -80,9 +79,9 @@ namespace XrEditor
             _renderSurface = renderSurface;
             _renderSurface.SizeChanged += OnSizeChanged;
             _renderSurface.Ready += OnSurfaceReady;
-            _toolbar = new ToolbarView();
+            ToolBar = new ToolbarView();
             _renderDispatcher = new QueueDispatcher();
-            _xrButton = _toolbar.AddToggle("icon_visibility", value =>
+            _xrButton = ToolBar.AddToggle("icon_visibility", false, value =>
             {
                 if (value)
                     StartXr();
@@ -90,11 +89,11 @@ namespace XrEditor
                     StopXr();
             });
 
-            _fpsLabel = _toolbar.AddText(string.Empty);
-            _toolbar.AddDivider();
-            _playButton = _toolbar.AddButton("icon_play_arrow", () => StartApp());
-            _pauseButton = _toolbar.AddButton("icon_pause", () => PauseApp());
-            _stopButton = _toolbar.AddButton("icon_stop", () => StopApp());
+            _fpsLabel = ToolBar.AddText(string.Empty);
+            ToolBar.AddDivider();
+            _playButton = ToolBar.AddButton("icon_play_arrow", () => StartApp());
+            _pauseButton = ToolBar.AddButton("icon_pause", () => PauseApp());
+            _stopButton = ToolBar.AddButton("icon_stop", () => StopApp());
         }
 
         protected async Task CreateAppAsync()
@@ -103,7 +102,7 @@ namespace XrEditor
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
 
-            await _main.ExecuteAsync(() =>
+            await _mainDispatcher.ExecuteAsync(() =>
             {
                 Scene = _engine.App.ActiveScene!;
                 Context.Require<SelectionManager>().Set(Scene.GetNode());
@@ -133,7 +132,7 @@ namespace XrEditor
             _pauseButton.IsActive = _engine!.App.PlayState == PlayState.Pause;
         }
 
-        public Task StartXr() => Dispatcher.ExecuteAsync(() =>
+        public Task StartXr() => RenderDispatcher.ExecuteAsync(() =>
         {
             try
             {
@@ -156,10 +155,13 @@ namespace XrEditor
             }
         });
 
-        public Task StopXr() => Dispatcher.ExecuteAsync(() =>
+        public Task StopXr() => RenderDispatcher.ExecuteAsync(() =>
         {
             try
             {
+                if (!_engine!.XrApp.IsStarted)
+                    return;
+
                 _renderSurface.EnableVSync(true);
                 _engine!.ExitXr();
                 _xrState = SceneXrState.StopRequested;
@@ -225,7 +227,7 @@ namespace XrEditor
 
         protected virtual void OnSceneChanged()
         {
-            _main.ExecuteAsync(() =>
+            _ = _mainDispatcher.ExecuteAsync(() =>
             {
                 foreach (var tool in _tools)
                     tool.NotifySceneChanged();
@@ -243,7 +245,7 @@ namespace XrEditor
                 persp.SetFov(45, _view.Width, _view.Height);
         }
 
-        public Task StartApp() => Dispatcher.ExecuteAsync(() =>
+        public Task StartApp() => RenderDispatcher.ExecuteAsync(() =>
         {
             if (_scene == null || _engine?.App == null || _engine.App.PlayState == PlayState.Start)
                 return;
@@ -261,7 +263,7 @@ namespace XrEditor
             UpdateControls();
         });
 
-        public Task PauseApp() => Dispatcher.ExecuteAsync(() =>
+        public Task PauseApp() => RenderDispatcher.ExecuteAsync(() =>
         {
             if (_engine?.App == null)
                 return;
@@ -269,7 +271,7 @@ namespace XrEditor
             UpdateControls();
         });
 
-        public Task StopApp() => Dispatcher.ExecuteAsync(() =>
+        public Task StopApp() => RenderDispatcher.ExecuteAsync(() =>
         {
             if (_engine?.App == null || _engine.App.PlayState == PlayState.Stop)
                 return;
@@ -359,11 +361,7 @@ namespace XrEditor
             return tool;
         }
 
-        public IDispatcher Dispatcher => _renderDispatcher;
-
-        public ToolbarView ToolbarView => _toolbar;
-
-        public event Action<Scene3D?>? SceneChanged;
+        public IDispatcher RenderDispatcher => _renderDispatcher;
 
         public IReadOnlyList<IEditorTool> Tools => _tools;
 
@@ -374,5 +372,10 @@ namespace XrEditor
         public IEnumerable<Camera> CameraList => _scene?.Descendants<Camera>() ?? [];
 
         public IEditorTool? ActiveTool { get; set; }
+
+
+        public event Action<Scene3D?>? SceneChanged;
+
+        public override string? Title => "Scene";
     }
 }

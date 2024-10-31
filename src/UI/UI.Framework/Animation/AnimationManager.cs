@@ -4,88 +4,18 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using XrMath;
 
 namespace CanvasUI
 {
-    public interface IAnimation
-    {
-        bool IsStarted { get; set; }
-
-        TimeSpan StartTime { get; set; }    
-
-        TimeSpan Duration { get; set; }
-
-        void Step(float t);
-    }
-
-    public abstract class Animation<T> : IAnimation where T : struct
-    {
-        public void Start(T from, T to, float durationMs)
-        {
-            Start(from, to, TimeSpan.FromMilliseconds(durationMs));
-        }
-
-        public void Start(T from, T to, TimeSpan duration)
-        {
-            if (IsStarted)
-                Value = to;
-
-            Duration = duration;
-            From = from;
-            To = to;
-            Value = from;
-
-            AnimationManager.Instance.Start(this);  
-        }
-
-        public void Step(float t)
-        {
-            Value = Interpolate(From, To, t);
-
-            ValueChanged?.Invoke(this, Value);
-        }
-
-        protected abstract T Interpolate(T from, T to, float t);
-
-        public bool IsStarted { get; set; }
-
-        public TimeSpan StartTime { get; set; }
-
-        public TimeSpan Duration { get; set; }
-
-        public T From { get; set; }
-
-        public T To { get; set; }
-
-        public T Value { get; set; }
-
-
-        public event EventHandler<T>? ValueChanged;  
-    }
-
-    public class Rect2Animation : Animation<Rect2>
-    {
-        protected override Rect2 Interpolate(Rect2 from, Rect2 to, float t)
-        {
-            return new Rect2
-            {
-                X = from.X + (to.X - from.X) * t,
-                Y = from.Y + (to.Y - from.Y) * t,
-                Width = from.Width + (to.Width - from.Width) * t,
-                Height = from.Height + (to.Height - from.Height) * t
-            };
-        }
-    }
-
-
     public class AnimationManager
     {
         readonly Thread _thread;
         readonly HashSet<IAnimation> _animations;
+        bool _isStarted;
 
         AnimationManager()
         {
+            _isStarted = true;
             _thread = new Thread(Update);
             _thread.Name = "UI Animation";
             _thread.Start();
@@ -103,20 +33,33 @@ namespace CanvasUI
             }
         }
 
+        public void Stop()
+        {
+            if (!_isStarted)
+                return;
+
+            _isStarted = false;
+            lock (_animations)
+                Monitor.Pulse(_animations);
+            _thread.Join();
+        }
+
         protected void Update()
         {
             var startTime = DateTime.Now;
             
             var toRemove = new HashSet<IAnimation>();   
 
-            while (true)
+            while (_isStarted)
             {
                 lock (_animations)
                 {
                     while (_animations.Count == 0)
                         Monitor.Wait(_animations);
-
                 }
+
+                if (!_isStarted)
+                    return;
 
                 var curTime = DateTime.Now - startTime;
 
@@ -144,9 +87,7 @@ namespace CanvasUI
                             animation.IsStarted = false;
                             toRemove.Add(animation);
                         }
-         
                     }
-           
                 }
 
                 lock (_animations)

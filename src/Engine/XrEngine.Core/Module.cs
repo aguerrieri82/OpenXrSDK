@@ -39,6 +39,11 @@ namespace XrEngine
             typeState.Register(DefaultStateManager.Instance);
             typeState.Register(ObjectStateManager.Instance);
         }
+
+        public void Shutdown()
+        {
+
+        }
     }
 }
 

@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UI.Binding;
 using XrEngine;
 
 namespace XrEditor.Plot
 {
     [Panel("Plotter")]
+    [StateManager(StateManagerMode.Explicit)]
     public class PlotPanel : BasePanel, ITimeLogger
     {
         static readonly string[] PALETTE = [
@@ -43,28 +45,6 @@ namespace XrEditor.Plot
 
             _notifyTimer = new Timer(state => OnNotify(), null, Timeout.Infinite, Timeout.Infinite);
 
-
-            /*
-            var serie = new FunctionPlotterSerie(a => MathF.Sin(a), new MinMax
-            {
-                Min = 0,
-                Max = MathF.PI * 2
-            },
-            new MinMax
-            {
-                Min = -1,
-                Max = 1
-            });
-
-            serie.Color = "#ff0000";
-
-            Plotter.Series.Add(serie);
-            
-            Plotter.PixelPerUnitY = 50;
-            Plotter.PixelPerUnitX = 1;
-            Plotter.MinY = -1;
-            */
-
             Plotter.AutoScaleX = AutoScaleXMode.Advance;
             Plotter.AutoScaleY = AutoScaleYMode.Window;
             Plotter.PixelPerUnitX = 1;
@@ -72,13 +52,25 @@ namespace XrEditor.Plot
             Plotter.ShowAxisX = true;
             Plotter.ShowGridX = true;
             Plotter.TickIntervalX = 60;
-
             Plotter.ShowAxisY = true;
             Plotter.TickIntervalY = 0;
 
             RetainTimeMs = 200;
+
+            ToolBar = new ToolbarView();
+            ToolBar.AddText("X:");
+            ToolBar.AddEnumSelect(Plotter.AutoScaleX, a=> Plotter.AutoScaleX = a);
+            ToolBar.AddText("Y:");
+            ToolBar.AddEnumSelect(Plotter.AutoScaleY, a => Plotter.AutoScaleY = a);
+            ToolBar.AddToggle("icon_vertical_split", Plotter.ShowAxisY, a => Plotter.ShowAxisY = a);
+            ToolBar.AddDivider();
+            ToolBar.AddButton("icon_close", Clear);
         }
 
+        public void Clear()
+        {
+            Plotter.Series.Clear();
+        }
 
         public void LogValue<T>(string name, T value)
         {
@@ -101,7 +93,7 @@ namespace XrEditor.Plot
             if ((_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs)
             {
                 _lastNotifyTime = DateTime.Now;
-                _main.Execute(() => Plotter.NotifyChanged(null));
+                _mainDispatcher.Execute(() => Plotter.NotifyChanged(null));
             }
         }
 
@@ -121,7 +113,7 @@ namespace XrEditor.Plot
                     SampleMode = SerieSampleMode.Nearest
                 };
 
-                _main.Execute(() => Plotter.Series.Add(serie));
+                _mainDispatcher.Execute(() => Plotter.Series.Add(serie));
             }
 
             _lastValueTime = DateTime.Now;
@@ -140,6 +132,22 @@ namespace XrEditor.Plot
       
         }
 
+        public override void SetState(IStateContainer container)
+        {
+            Plotter.AutoScaleX = container.Read<AutoScaleXMode>("AutoScaleX");
+            Plotter.AutoScaleY = container.Read<AutoScaleYMode>("AutoScaleY");
+
+            base.SetState(container);
+        }
+
+        public override void GetState(IStateContainer container)
+        {
+            container.Write("AutoScaleX", Plotter.AutoScaleX);
+            container.Write("AutoScaleY", Plotter.AutoScaleY);
+
+            base.GetState(container);
+        }
+
         public void Checkpoint(string name)
         {
             throw new NotImplementedException();
@@ -147,8 +155,9 @@ namespace XrEditor.Plot
 
         public Plotter Plotter { get;}
 
-
         public int RetainTimeMs { get; set; }
 
+
+        public override string? Title => "Plot";
     }
 }

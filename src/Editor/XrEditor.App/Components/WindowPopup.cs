@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using XrMath;
 
 namespace XrEditor.Components
 {
@@ -7,6 +8,8 @@ namespace XrEditor.Components
         private ActionView? _lastAction;
 
         public TaskCompletionSource? _onClosed;
+
+
 
         public WindowPopup()
         {
@@ -50,6 +53,23 @@ namespace XrEditor.Components
             await _onClosed.Task;
 
             return _lastAction;
+        }
+
+
+        Size2 IWindow.Size
+        {
+            get => new Size2((float)Width, (float)Height);
+            set
+            {
+                Width = value.Width;
+                Height = value.Height;
+            }
+        }
+
+        WindowState IWindow.State
+        {
+            get => (WindowState)WindowState;
+            set => WindowState = (System.Windows.WindowState)value;
         }
     }
 }

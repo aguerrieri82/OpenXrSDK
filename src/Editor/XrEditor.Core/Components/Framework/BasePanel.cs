@@ -9,13 +9,13 @@ namespace XrEditor
     {
         protected readonly PanelManager _panelManager;
         protected readonly IUserInteraction _ui;
-        protected readonly IMainDispatcher _main;
+        protected readonly IMainDispatcher _mainDispatcher;
         protected string _panelId;
 
         public BasePanel()
         {
             _ui = Context.Require<IUserInteraction>();
-            _main = Context.Require<IMainDispatcher>();
+            _mainDispatcher = Context.Require<IMainDispatcher>();
             _panelManager = Context.Require<PanelManager>();
 
             var panelAttr = GetType().GetCustomAttribute<PanelAttribute>(); 
@@ -38,14 +38,19 @@ namespace XrEditor
 
         public virtual void GetState(IStateContainer container)
         {
-            throw new NotImplementedException();
+
         }
 
         public virtual void SetState(IStateContainer container)
         {
-            throw new NotImplementedException();
+
         }
 
         public string PanelId => _panelId;      
+
+        public abstract string? Title { get; }
+
+
+        public ToolbarView? ToolBar { get; set; }
     }
 }

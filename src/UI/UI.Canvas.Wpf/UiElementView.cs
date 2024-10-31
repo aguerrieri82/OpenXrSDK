@@ -52,6 +52,19 @@ namespace UI.Canvas.Wpf
             InvalidateSafe();
         }
 
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            var curSize = base.MeasureOverride(availableSize);
+            
+            if (HorizontalAlignment == HorizontalAlignment.Stretch)
+                curSize.Width = availableSize.Width;
+
+            if (VerticalAlignment == VerticalAlignment.Stretch)
+                curSize.Height = availableSize.Height;
+
+            return curSize;
+        }
+
         public static void OnContentChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var view = (UiElementView)d;
@@ -62,17 +75,31 @@ namespace UI.Canvas.Wpf
         {
             get { return (UiElement?)GetValue(ContentProperty); }
             set { SetValue(ContentProperty, value); }
-        }
-
+        } 
 
         protected virtual void OnContentChanged(UiElement? newContent, UiElement? oldContent)
         {
-            _root.Clear();
+            EnsureContent();
 
-            if (newContent != null)
-                _root.AddChild(newContent);
+            var curWindow = Application.Current.MainWindow;
+
+            var m = PresentationSource.FromVisual(this).CompositionTarget.TransformToDevice;
+            var scaleY = (float)m.M22;
+
+            _root.Style.FontFamily = curWindow.FontFamily.ToString();
+            _root.Style.FontSize = new StyleValue<UnitValue>() { Value = (float)curWindow.FontSize * scaleY };
 
             InvalidateSafe();
+        }
+
+        protected void EnsureContent()
+        {
+            if (Content != null && Content.Parent != _root)
+            {
+                _root.Clear();
+                if (Content != null)
+                    _root.AddChild(Content);
+            }
         }
 
         protected void InvalidateSafe()
@@ -85,6 +112,8 @@ namespace UI.Canvas.Wpf
 
         protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)
         {
+            EnsureContent();
+
             e.Surface.Canvas.Clear();
             _root.SetViewport(0, 0, e.Info.Width, e.Info.Height);
             _root.Draw(e.Surface.Canvas);

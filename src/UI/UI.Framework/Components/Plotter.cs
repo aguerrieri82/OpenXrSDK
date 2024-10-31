@@ -880,6 +880,8 @@ namespace CanvasUI.Components
         {
             lock (this)
             {
+                if (Parent == null)
+                    return;
                 Invalidate();
                 ComputeLayout();
                 ComputeMetrics(true, true);

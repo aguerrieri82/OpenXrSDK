@@ -102,9 +102,13 @@ namespace XrEngine
 
         public static void WriteObject(this IStateContainer container, object obj, Type objType)
         {
+            var sm = objType.GetCustomAttribute<StateManagerAttribute>();
+            var isExplicit = sm != null && sm.Mode == StateManagerMode.Explicit;
             foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
                 var saveState = prop.GetCustomAttribute<SaveStateAttribute>();
+                if (isExplicit && saveState == null)
+                    continue;
                 if (saveState != null && !saveState.IsSave)
                     continue;
                 if (prop.CanWrite && prop.CanRead)
@@ -135,12 +139,17 @@ namespace XrEngine
 
         public static void ReadObject(this IStateContainer container, object obj, Type objType)
         {
+            var sm = objType.GetCustomAttribute<StateManagerAttribute>();
+            var isExplicit = sm != null && sm.Mode == StateManagerMode.Explicit;
+
             foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
                 var saveState = prop.GetCustomAttribute<SaveStateAttribute>();
+
+                if (isExplicit && saveState == null)
+                    continue;
                 if (saveState != null && !saveState.IsSave)
                     continue;
-
                 if (prop.CanWrite && prop.CanRead && container.Contains(prop.Name))
                     prop.SetValue(obj, container.Read(prop.Name, prop.GetValue(obj), prop.PropertyType));
             }

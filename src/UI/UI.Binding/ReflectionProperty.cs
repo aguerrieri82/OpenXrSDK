@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿
+
+using System.Reflection;
 
 namespace UI.Binding
 {
@@ -11,6 +13,15 @@ namespace UI.Binding
         {
             _property = property;
             _object = obj;
+
+            if (_object is  System.ComponentModel.INotifyPropertyChanged notifyPropertyChanged)
+            {
+                notifyPropertyChanged.PropertyChanged += (sender, args) =>
+                {
+                    if (args.PropertyName == _property.Name)
+                        OnChanged();
+                };
+            }
         }
 
         public object? Value

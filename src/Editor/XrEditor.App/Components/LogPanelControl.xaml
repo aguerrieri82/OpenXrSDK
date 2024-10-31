@@ -7,9 +7,13 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <DockPanel>
+        
         <ProgressBar DockPanel.Dock="Bottom" Height="8" x:Name="progressBar"/>
-        <RichTextBox x:Name="textBox" BorderThickness="0" IsReadOnly="True" Background="#333" VerticalScrollBarVisibility="Visible">
 
-        </RichTextBox>
+        <RichTextBox x:Name="textBox" 
+                     BorderThickness="0" 
+                     IsReadOnly="True" 
+                     Background="#333" 
+                     VerticalScrollBarVisibility="Visible"/>
     </DockPanel>
 </UserControl>
