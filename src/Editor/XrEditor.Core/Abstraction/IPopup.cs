@@ -1,9 +1,13 @@
-﻿namespace XrEditor
+﻿using XrMath;
+
+namespace XrEditor
 {
-    public interface IPopup
+    public interface IPopup : IWindow
     {
-        void Close();
 
         Task<ActionView?> ShowAsync();
+
+
+
     }
 }

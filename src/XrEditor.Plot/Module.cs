@@ -1,4 +1,5 @@
-﻿using XrEditor.Services;
+﻿using CanvasUI;
+using XrEditor.Services;
 using XrEngine;
 
 
@@ -10,10 +11,14 @@ namespace XrEditor.Plot
     {
         public void Load()
         {
-            var panel = new PlotPanel();
-
-            Context.Require<PanelManager>().Register(() => panel, panel.PanelId);
+            PlotPanel? instance = null;
+            Context.Require<PanelManager>().Register(()=>(instance ??= new PlotPanel()), "Plotter");
         }
+
+        public void Shutdown()
+        {
+            AnimationManager.Instance.Stop();
+        }   
     }
 }
 

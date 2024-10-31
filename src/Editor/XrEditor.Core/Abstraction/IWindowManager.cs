@@ -3,7 +3,7 @@ using XrMath;
 
 namespace XrEditor
 {
-    public interface IPanelManager
+    public interface IWindowManager
     {
         IPopup CreatePopup(ContentView content, Size2I size);
     }

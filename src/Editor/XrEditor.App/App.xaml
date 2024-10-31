@@ -37,6 +37,8 @@
                 <ResourceDictionary Source="/Views/MainToolbarView.xaml"/>
                 <ResourceDictionary Source="/Views/PanelView.xaml"/>
                 <ResourceDictionary Source="/Views/PlotPanel.xaml"/>
+                <ResourceDictionary Source="/Views/PanelContainer.xaml"/>
+                <ResourceDictionary Source="/Views/SplitView.xaml"/>
                 
                 <ResourceDictionary
                     Source="pack://application:,,,/ColorPicker;component/Styles/DefaultColorPickerStyle.xaml" />

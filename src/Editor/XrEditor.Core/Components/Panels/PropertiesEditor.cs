@@ -182,5 +182,8 @@ namespace XrEditor
         }
 
         public static PropertiesEditor? Instance { get; internal set; }
+
+
+        public override string? Title => "Properties";
     }
 }

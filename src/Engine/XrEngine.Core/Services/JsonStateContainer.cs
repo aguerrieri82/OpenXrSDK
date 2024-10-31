@@ -8,6 +8,11 @@ namespace XrEngine.Services
     {
         const string KEY_REF = "$ref";
 
+        static JsonSerializerOptions _options = new JsonSerializerOptions
+        {
+            IncludeFields = true,
+        };
+
         class StateContext : IStateContext
         {
             public StateContext(JsonObject main)
@@ -38,7 +43,7 @@ namespace XrEngine.Services
 
         public JsonStateContainer(string json)
         {
-            _context = new StateContext(JsonSerializer.Deserialize<JsonObject>(json)!);
+            _context = new StateContext(JsonSerializer.Deserialize<JsonObject>(json, _options)!);
             _state = (JsonObject)_context.Main["Root"]!;
             _context.RefTable.Container = new JsonStateContainer(_context, (JsonObject)_context.Main["Refs"]!);
         }
@@ -78,7 +83,7 @@ namespace XrEngine.Services
             if (manager != null)
                 return manager.Read(key, curObj, type, this);
 
-            return _state[key].Deserialize(type)!;
+            return _state[key].Deserialize(type, _options)!;
         }
 
         public readonly void Write(string key, object? value)
@@ -96,7 +101,7 @@ namespace XrEngine.Services
             }
 
             if (mustSerialize)
-                _state[key] = JsonSerializer.SerializeToNode(value);
+                _state[key] = JsonSerializer.SerializeToNode(value, _options);
         }
 
         public readonly bool IsRef(string key)

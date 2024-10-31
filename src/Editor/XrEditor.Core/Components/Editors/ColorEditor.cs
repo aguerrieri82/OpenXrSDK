@@ -40,7 +40,7 @@ namespace XrEditor
             if (_popup != null)
                 return;
 
-            var manager = Context.Require<IPanelManager>();
+            var manager = Context.Require<IWindowManager>();
 
             var oldColor = _editValue;
 

@@ -6,12 +6,7 @@
 
     <DataTemplate DataType="{x:Type local:SceneView}">
         
-        <DockPanel>
-            <ToolBarTray Orientation="Horizontal"  DockPanel.Dock="Top">
-                <ToolBar Style="{StaticResource ToolBarView}" ItemsSource="{Binding ToolbarView.Items}"/>
-            </ToolBarTray>
-            <ContentPresenter Content="{Binding RenderSurface}"/>
-        </DockPanel>
+        <ContentPresenter Content="{Binding RenderSurface}"/>
 
     </DataTemplate>
    

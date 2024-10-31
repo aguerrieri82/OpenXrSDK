@@ -41,7 +41,7 @@ namespace XrEditor
         }
 
         private Task SetSelectedAsync(IEnumerable<TriangleMesh> items, bool selected) =>
-        _sceneView!.Dispatcher.ExecuteAsync(() =>
+        _sceneView!.RenderDispatcher.ExecuteAsync(() =>
         {
             foreach (var item in items)
             {

@@ -11,6 +11,11 @@ namespace XrEngine.Gltf
         {
             AssetLoader.Instance.Register(GltfAssetLoader.Instance);
         }
+
+        public void Shutdown()
+        {
+
+        }
     }
 }
 

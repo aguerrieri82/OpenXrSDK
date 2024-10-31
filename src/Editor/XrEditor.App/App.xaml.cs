@@ -1,6 +1,7 @@
 ﻿using OpenXr.Framework;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using XrEditor.Plot;
 using XrEditor.Services;
 using XrEngine;
 using XrEngine.OpenXr;
@@ -11,6 +12,8 @@ namespace XrEditor
 {
     public partial class App : Application
     {
+        private MainView _main;
+
         public App()
         {
             Gpu.EnableNvAPi();
@@ -27,16 +30,22 @@ namespace XrEditor
             Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
             Context.Implement<IVideoReader>(() => new FFmpegVideoReader());
             Context.Implement<IVideoCodec>(() => new FFmpegCodec());
-            Context.Implement<IPanelManager>(() => new WpfPanelManager());
+            Context.Implement<IWindowManager>(() => new WpfWindowManager());
 
             ModuleManager.Instance.Init();
+
+            ModuleManager.Ref<PlotPanel>();
+
+            _main = new MainView(EditorDebug.Driver);
 
             MainWindow = new Window
             {
                 Title = "Xr Editor",
-                Content = new MainView(EditorDebug.Driver),
-
+                Content = _main
             };
+
+            _main.Host = new WpfWindow(MainWindow);
+            _main.LoadState();
         }
 
         protected override void OnStartup(StartupEventArgs e)
@@ -49,7 +58,11 @@ namespace XrEditor
 
         protected override void OnExit(ExitEventArgs e)
         {
+            _main.SaveState();
+
             _ = Context.Require<PanelManager>().CloseAllAsync();
+
+            ModuleManager.Instance.Shutdown();  
 
             base.OnExit(e);
         }

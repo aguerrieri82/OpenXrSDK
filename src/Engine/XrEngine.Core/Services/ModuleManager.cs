@@ -38,9 +38,19 @@ namespace XrEngine.Services
             _loaded[assembly] = module;
         }
 
+        public void Shutdown()
+        {
+            foreach (var module in _loaded.Values.Where(a=> a != null))
+                module?.Shutdown();
+        }   
+
         private void OnAssemblyLoad(object? sender, AssemblyLoadEventArgs args)
         {
             LoadAssembly(args.LoadedAssembly);
+        }
+
+        public static void Ref<T>()
+        {
         }
 
         public static readonly ModuleManager Instance = new();
