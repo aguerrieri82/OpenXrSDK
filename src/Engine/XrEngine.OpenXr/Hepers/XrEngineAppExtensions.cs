@@ -219,8 +219,6 @@ namespace XrEngine.OpenXr
         }
 
 
-
-
         public static XrEngineAppBuilder UseEnvironmentDepth(this XrEngineAppBuilder self)
         {
             self.ConfigureApp(e =>

@@ -5,33 +5,35 @@ namespace XrEngine
     public unsafe struct MemoryLock<T> : IDisposable
     {
         private readonly IMemoryBuffer<T> _buffer;
-        private T* _data;
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public MemoryLock(IMemoryBuffer<T> buffer)
         {
             _buffer = buffer;
-            _data = _buffer.Lock();
+            Data = _buffer.Lock();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
             _buffer.Unlock();
-            _data = null;
+            Data = null;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator T*(MemoryLock<T> obj)
         {
-            return obj._data;
+            return obj.Data;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator nint(MemoryLock<T> obj)
         {
-            return (nint)obj._data;
+            return (nint)obj.Data;
         }
+
+        public T* Data;
     }
 
     public unsafe interface IMemoryBuffer<T>

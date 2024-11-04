@@ -453,20 +453,15 @@ namespace XrEngine.Gltf
 
             if (gltMat.PbrMetallicRoughness != null)
             {
-
                 if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
-                {
                     result.ColorMap = DecodeTextureBase(gltMat.PbrMetallicRoughness.BaseColorTexture, _options.ConvertColorTextureSRgb).Result;
-                    result.Color = new Color(gltMat.PbrMetallicRoughness.BaseColorFactor);
-                }
 
                 if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
-                {
                     result.MetallicRoughnessMap = DecodeTextureBase(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture).Result;
 
-                    result.Metalness = gltMat.PbrMetallicRoughness.MetallicFactor;
-                    result.Roughness = gltMat.PbrMetallicRoughness.RoughnessFactor;
-                }
+                result.Color = new Color(gltMat.PbrMetallicRoughness.BaseColorFactor);
+                result.Metalness = gltMat.PbrMetallicRoughness.MetallicFactor;
+                result.Roughness = gltMat.PbrMetallicRoughness.RoughnessFactor;
             }
 
             if (gltMat.NormalTexture != null)

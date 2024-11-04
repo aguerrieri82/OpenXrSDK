@@ -382,6 +382,15 @@ namespace XrMath
 
         #region VECTOR3
 
+        public static Vector3 Round(this Vector3 vector, int decimals)
+        {
+            return new Vector3(
+                MathF.Round(vector.X, decimals),
+                MathF.Round(vector.Y, decimals),
+                MathF.Round(vector.Z, decimals)
+            );
+        }
+
         public static Bounds3 ComputeBounds(this IEnumerable<Vector3> self)
         {
             var builder = new BoundsBuilder();
@@ -751,6 +760,21 @@ namespace XrMath
             );
         }
 
+        public static void GetAxisAndAngle(this Quaternion q, out Vector3 axis, out float angle)
+        {
+            angle = 2.0f * (float)Math.Acos(q.W);
+
+            float sinHalfAngle = (float)Math.Sqrt(1.0f - q.W * q.W);
+
+            if (sinHalfAngle < 0.001f)
+            {
+                axis = Vector3.UnitX;
+            }
+            else
+            {
+                axis = new Vector3(q.X / sinHalfAngle, q.Y / sinHalfAngle, q.Z / sinHalfAngle);
+            }
+        }
         #endregion
 
         #region COLOR
@@ -828,6 +852,11 @@ namespace XrMath
                    MathF.Abs(self.Y - other.Y) < epsilon;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 ToVector3(this Vector2 sel, float z = 0)
+        {
+            return new Vector3(sel.X, sel.Y, z);    
+        }
 
         #endregion
 

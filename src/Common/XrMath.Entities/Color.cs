@@ -100,6 +100,15 @@ namespace XrMath
             return [R, G, B, A];
         }
 
+        public unsafe void ToBytes(byte* dst)
+        {
+            dst[0] = (byte)(R * 255);
+            dst[1] = (byte)(G * 255);
+            dst[2] = (byte)(B * 255);
+            dst[3] = (byte)(A * 255);
+        }
+        
+
         public static Color operator *(Color a, float v)
         {
             return new Color(a.R * v, a.G * v, a.B * v, a.A * v);

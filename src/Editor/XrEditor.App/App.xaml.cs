@@ -12,20 +12,22 @@ namespace XrEditor
 {
     public partial class App : Application
     {
-        private MainView _main;
+        private readonly MainView _main;
+        private readonly WpfViewManager _viewManager;
 
         public App()
         {
             Gpu.EnableNvAPi();
 
-            Fluent.Ribbon x;
-   
+            _viewManager = new WpfViewManager();    
+
             XrPlatform.Current = new EditorPlatform("d:\\Projects\\XrEditor");
 
             Context.Implement<PanelManager>();
             Context.Implement<NodeManager>();
             Context.Implement<SelectionManager>();
             Context.Implement<PropertyEditorManager>();
+            Context.Implement<IViewManager>(_viewManager);
             Context.Implement<IMainDispatcher>(new MainDispatcher());
             Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
             Context.Implement<IVideoReader>(() => new FFmpegVideoReader());
@@ -50,6 +52,9 @@ namespace XrEditor
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            foreach (var res in _viewManager.Resources)
+                Resources.MergedDictionaries.Add(res);  
+
             MainWindow.Style = Resources["CustomWindowStyle"] as Style;
             MainWindow.Icon = BitmapFrame.Create(new Uri("pack://application:,,,/XrEditor.ico", UriKind.RelativeOrAbsolute));
             MainWindow.Show();

@@ -14,8 +14,14 @@ namespace XrEngine.Services
         {
             AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
 
-            foreach (var assemblyRef in Assembly.GetEntryAssembly()!.GetReferencedAssemblies())
-                LoadAssembly(Assembly.Load(assemblyRef));
+            var entry = Assembly.GetEntryAssembly();
+
+            if (entry != null)
+            {
+                foreach (var assemblyRef in entry.GetReferencedAssemblies())
+                    LoadAssembly(Assembly.Load(assemblyRef));
+            }
+
 
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 LoadAssembly(assembly);

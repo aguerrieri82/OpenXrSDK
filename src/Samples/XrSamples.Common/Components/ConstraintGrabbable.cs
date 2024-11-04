@@ -1,7 +1,7 @@
 ﻿using XrEngine;
 using XrEngine.OpenXr;
 
-namespace XrSamples.Components
+namespace XrSamples
 {
     public class ConstraintGrabbable : BoundsGrabbable
     {

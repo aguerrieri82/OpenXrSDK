@@ -1,4 +1,5 @@
 ﻿using CanvasUI;
+using System.Windows;
 using XrEditor.Services;
 using XrEngine;
 
@@ -13,6 +14,7 @@ namespace XrEditor.Plot
         {
             PlotPanel? instance = null;
             Context.Require<PanelManager>().Register(()=>(instance ??= new PlotPanel()), "Plotter");
+            Context.Require<IViewManager>().AddView<Module>("Views/PlotPanel.xaml");  
         }
 
         public void Shutdown()

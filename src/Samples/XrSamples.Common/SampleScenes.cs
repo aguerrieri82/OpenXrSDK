@@ -17,7 +17,9 @@ using XrEngine.Services;
 using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
-using XrSamples.Components;
+using XrEngine.Helpers;
+
+
 
 #if !ANDROID
 using XrEngine.Browser.Win;
@@ -116,7 +118,7 @@ namespace XrSamples
         public static XrEngineAppBuilder UseDefaultHDR(this XrEngineAppBuilder builder)
         {
             if (DefaultHDR == null)
-                DefaultHDR = "res://asset/Envs/CameraEnv.jpg";
+                DefaultHDR = "res://asset/Envs/footprint_court.hdr";
             return builder.UseEnvironmentHDR(DefaultHDR, DefaultShowHDR);
         }
 
@@ -156,7 +158,6 @@ namespace XrSamples
             panel.WorldPosition = new Vector3(0, 1, 0);
       
             return builder
-                .AddRightPointer()
                 .UseClickMoveFront(panel, 0.5f)
                 .ConfigureApp(e =>
                 {
@@ -239,12 +240,13 @@ namespace XrSamples
                    .UseHands()
                    .UseLeftController()
                    .UseRightController()
+                   .AddRightPointer()
                    .UseInputs<XrOculusTouchController>(a => a.AddAction(b => b.Right!.Haptic))
                    .UseRayCollider()
                    .UseGrabbers();
 
-            //if (!IsEditor)
-            builder.AddPassthrough();
+            if (!IsEditor)
+                builder.AddPassthrough();
             return builder;
         }
 
@@ -274,7 +276,6 @@ namespace XrSamples
 
             return builder.UseApp(app)
               .ConfigureSampleApp()
-              .AddRightPointer()
               .UseClickMoveFront(display, 0.5f);
 #else
             return builder;
@@ -282,6 +283,57 @@ namespace XrSamples
 
         }
 
+
+        [Sample("Throw")]
+        public static XrEngineAppBuilder CreateThrow(this XrEngineAppBuilder builder)
+        {
+            var settings = new ThrowSettings();
+            var app = CreateBaseScene();
+            var scene = app.ActiveScene!;
+
+            var cube = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff00000"));
+            cube.Transform.SetScale(0.1f);
+            cube.AddComponent<BoundsGrabbable>();
+            cube.AddComponent<BoxCollider>();
+            cube.AddComponent<SpeedTracker>();
+
+            var rb = cube.AddComponent(new RigidBody()
+            {
+                Type = PhysicsActorType.Dynamic,
+                Density = 10
+            });
+
+            scene.AddChild(cube);
+
+            XrPoseInput? pose = null;
+            XrBoolInput? pick = null;
+
+            cube.AddBehavior((_, _) =>
+            {
+                if (XrApp.Current != null)
+                {
+                    pose ??= (XrPoseInput?)XrApp.Current!.Inputs["RightGripPose"];
+                    pick ??= (XrBoolInput?)XrApp.Current!.Inputs["RightSqueezeClick"];
+                }
+
+                if (pick != null && pick.IsChanged && pick.Value)
+                {
+                    rb.Teleport(pose!.Value.Position);
+                    Context.Require<ITimeLogger>().Clear();
+                }
+            });
+
+            return builder
+              .UseApp(app)
+              .ConfigureSampleApp()
+              .UseDefaultHDR()
+              .UsePhysics(new PhysicsOptions
+              {
+                 
+              })
+              .AddPanel(new ThrowSettingsPanel(settings, scene))
+              .ConfigureApp(app => settings.Apply(app.App.ActiveScene!));
+        }
 
 
         [Sample("Display")]
@@ -1000,6 +1052,116 @@ namespace XrSamples
                 .UseApp(app)
                 .UseEnvironmentDepth()
                 .UseDefaultHDR()
+                .ConfigureSampleApp();
+        }
+
+        [Sample("Car")]
+        public static XrEngineAppBuilder CreateCar(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            scene.AddComponent(new InputObjectForce
+            {
+                InputName = "RightGripPose",
+                HandlerName = "RightTriggerClick",    
+                Factor = 5
+            });
+
+            scene.AddComponent(new InputObjectForce
+            {
+                InputName = "LeftGripPose",
+                HandlerName = "LeftTriggerClick",
+                Factor = 5
+            });
+
+
+            var car = GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
+            car.Name = "car";
+            car.AddComponent<BoundsGrabbable>();
+            car.UpdateBounds();
+            //mesh.UseEnvDepth(true);
+
+            foreach (var mat in car.DescendantsOrSelf().OfType<TriangleMesh>().SelectMany(a => a.Materials).Distinct())
+            {
+                if (mat is IPbrMaterial pbr && mat.Name!.Contains("glass"))
+                {
+                    pbr.Color = "#00000030";
+                    pbr.Alpha = AlphaMode.Blend;
+                }
+            }
+
+            var tex = TextureFactory.CreateChecker();
+
+            var cube = new TriangleMesh(new Cube3D(new Vector3(1, 0.2f, 1)), (Material)MaterialFactory.CreatePbr(tex));
+            cube.Geometry!.ScaleUV(new Vector2(2, 2)); 
+            cube.AddComponent<BoxCollider>();
+            
+            var rb1 = cube.AddComponent<RigidBody>();
+            rb1.Type = PhysicsActorType.Static;
+            rb1.AutoTeleport = true;
+
+            var steer = new MeshBuilder().AddRevolve(new Circle2D
+            {
+                Center = new Vector2(0.4f, 0), 
+                Radius = 0.05f
+            }, 40).ToGeometry();
+
+
+            var steerMesh = new TriangleMesh(steer, (Material)MaterialFactory.CreatePbr(tex));
+            steerMesh.Transform.SetPositionY(0.35f);
+            steerMesh.AddComponent<PyMeshCollider>();
+            var rb2 = steerMesh.AddComponent<RigidBody>();
+            rb2.Type = PhysicsActorType.Dynamic;
+            rb2.AutoTeleport = true;
+            rb2.AngularDamping = 2f;
+
+            var grp = new Group3D();
+            var scale = 0.4f;
+            grp.AddChild(steerMesh);
+            grp.AddChild(cube);
+            grp.Transform.SetPositionY(0.78f);
+            grp.Transform.SetScale(scale);
+            grp.Transform.Rotation = new Vector3(0, -74, -46) / 180 * MathF.PI;
+
+            // scene.AddChild(car);
+            scene.AddChild(grp);
+
+            return builder
+                .UseApp(app)
+                .UsePhysics(new PhysicsOptions())
+                .UseEnvironmentDepth()
+                .UseDefaultHDR()
+                //.UseSpaceWarp()
+                .ConfigureApp(a =>
+                {
+                    var manager = a.App.ActiveScene!.Component<PhysicsManager>();
+                    var pose1 = new Pose3
+                    {
+                        Position = new Vector3(0, 0.1f, 0),
+                        Orientation = Vector3.UnitX.RotationTowards(Vector3.UnitY)
+                    };
+                    var pose2 = new Pose3
+                    {
+                        Position = new Vector3(0, -0.125f, 0),
+                        Orientation = pose1.Orientation
+                    };
+                    
+                    var joint = manager.AddJoint(JointType.Revolute, cube, pose1, steerMesh, pose2);
+                    joint.Damping = 100;
+                    joint.Stiffness = 1000;
+                    joint.BounceThreshold = 100;
+
+                    scale = 0.01f;
+                    joint.InvMassScale1 = scale;
+                    joint.InvMassScale0 = scale;
+                    joint.InvInertiaScale1 = scale;
+                    joint.InvInertiaScale0 = scale;
+      
+
+
+                })
                 .ConfigureSampleApp();
         }
 

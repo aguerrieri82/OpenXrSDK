@@ -1,5 +1,6 @@
 ﻿using PhysX.Framework;
 using System.Collections.Concurrent;
+using XrMath;
 
 namespace XrEngine.Physics
 {
@@ -8,6 +9,7 @@ namespace XrEngine.Physics
         protected PhysicsSystem? _system;
         protected Thread? _simulateThread;
         protected ConcurrentQueue<Action> _queue = [];
+        protected HashSet<Joint> _joints = [];
 
         public PhysicsManager()
         {
@@ -19,9 +21,13 @@ namespace XrEngine.Physics
         protected override void Start(RenderContext ctx)
         {
             Destroy();
+
             _system = new PhysicsSystem();
             _system.Create(Options);
             _system.CreateScene(Options.Gravity);
+
+            foreach (var joint in _joints)
+                joint.Create(ctx);
 
             if (IsMultiThread)
             {
@@ -50,6 +56,9 @@ namespace XrEngine.Physics
 
         protected void Destroy()
         {
+            foreach (var joint in _joints)
+                joint.Destroy();
+
             if (_system != null)
             {
                 _system.Dispose();
@@ -94,6 +103,33 @@ namespace XrEngine.Physics
             Destroy();
             GC.SuppressFinalize(this);
         }
+
+        public void RemoveJoint(Joint joint)
+        {
+            joint.Dispose();    
+            _joints.Remove(joint);
+        }
+
+        public Joint AddJoint(JointType type, Object3D object0, Pose3 pose0, Object3D object1, Pose3 pose1)
+        {
+            var joint = new Joint
+            {
+                Type = type,
+                Object0 = object0,
+                Pose0 = pose0,
+                Object1 = object1,
+                Pose1 = pose1
+            };  
+
+            _joints.Add(joint);
+
+            object0.AddComponent(new JointConnection(joint, 0));
+            object1.AddComponent(new JointConnection(joint, 1)); 
+
+            return joint;
+        }
+
+        public IReadOnlyCollection<Joint> Joint => _joints;   
 
         public float StepSizeSecs { get; set; }
 

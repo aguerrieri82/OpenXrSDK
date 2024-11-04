@@ -323,6 +323,31 @@ namespace XrEngine
         }
 
 
+        public static void ContainsPoint(this Scene3D self, Vector3 worldPoint, ConcurrentBag<Object3D> result, IEnumerable<ICollider3D>? colliders = null)
+        {
+            IEnumerable<ICollider3D> GetColliders()
+            {
+                foreach (var obj in self.DescendantsOrSelf().Visible())
+                {
+                    var collider = obj.Feature<ICollider3D>();
+                    if (collider != null && collider.IsEnabled)
+                        yield return collider;
+                }
+            }
+
+            colliders ??= GetColliders();
+
+            result.Clear();
+
+            Parallel.ForEach(colliders, collider =>
+            {
+                if (collider.ContainsPoint(worldPoint))
+                    result.Add((Object3D)collider.Host!);
+     
+            });
+        }
+
+
         #endregion
 
         #region GROUP
@@ -757,15 +782,16 @@ namespace XrEngine
             }
         }
 
-        public static void ComputeIndices(this Geometry3D self)
+        public static void ComputeIndices(this Geometry3D self, int decimals = 5)
         {
 
             var hasesh = new Dictionary<Vector512<float>, uint>();
             var newVertices = new List<VertexData>(self.Vertices.Length);
 
-            static Vector512<float> Hash(VertexData vert)
+            Vector512<float> Hash(VertexData vert)
             {
-                return Vector512.Create(vert.Pos.X, vert.Pos.Y, vert.Pos.Z, vert.Normal.X, vert.Normal.Y, vert.Normal.Z, vert.UV.X, vert.UV.Y, 0, 0, 0, 0, 0, 0, 0, 0);
+                var pos2 = vert.Pos.Round(decimals);
+                return Vector512.Create(pos2.X, pos2.Y, pos2.Z, vert.Normal.X, vert.Normal.Y, vert.Normal.Z, vert.UV.X, vert.UV.Y, 0, 0, 0, 0, 0, 0, 0, 0);
             }
 
             foreach (var vert in self.Vertices)

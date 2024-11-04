@@ -56,6 +56,11 @@ namespace XrEngine
             _isInit = true;
         }
 
+        public bool ContainsPoint(Vector3 globalPoint)
+        {
+            return false;
+        }
+
         public Quad3 Quad { get; set; }
 
         public bool PlaneMode { get; set; }

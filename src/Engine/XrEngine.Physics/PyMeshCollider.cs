@@ -18,6 +18,32 @@ namespace XrEngine.Physics
             _system = _manager.System;
         }
 
+        public bool ContainsPoint(Vector3 globalPoint)
+        {
+            if (_system == null)
+                return false;
+
+            Initialize();
+
+            foreach (var item in _host!.DescendantsOrSelf())
+            {
+                var geo = item.Feature<Geometry3D>();
+                if (geo == null)
+                    continue;
+
+                var pyGeo = geo.GetProp<PhysicsGeometry>("PyGeo")!;
+
+                var distance = pyGeo.DistanceFrom(globalPoint, item.WorldMatrix.ToPose(), 0, out var _);
+
+                Log.Value("Distance", distance);
+
+                if (distance < 0.001f)
+                    return true;
+            }
+
+            return false;
+        }
+
         public Collision? CollideWith(Ray3 ray)
         {
             if (_system == null)
@@ -32,6 +58,7 @@ namespace XrEngine.Physics
                     continue;
 
                 var pyGeo = geo.GetProp<PhysicsGeometry>("PyGeo")!;
+
 
                 var localRay = ray.Transform(item.WorldMatrixInverse);
 
@@ -74,10 +101,12 @@ namespace XrEngine.Physics
                 {
                     geo.EnsureIndices();
 
+                    Matrix4x4.Decompose(_host!.WorldMatrix, out var scale, out _, out _);
+
                     return _system!.CreateTriangleMesh(
                         geo.Indices,
                         geo.ExtractPositions(),
-                        Vector3.One,
+                        scale,
                         0.01f);
                 });
             }

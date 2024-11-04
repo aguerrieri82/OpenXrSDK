@@ -32,7 +32,7 @@
     <DataTemplate DataType="{x:Type local:MainView}">
         <DockPanel >
             <ContentPresenter DockPanel.Dock="Top" Content="{Binding Toolbar}"/>
-            <ItemsControl ItemsSource="{Binding Messages}"/>
+            <ItemsControl  DockPanel.Dock="Top" ItemsSource="{Binding Messages}"/>
             <ContentPresenter Content="{Binding Content}"/>
         </DockPanel>
     </DataTemplate>

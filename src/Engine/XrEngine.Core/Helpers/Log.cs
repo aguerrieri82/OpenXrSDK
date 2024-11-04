@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using XrMath;
+
+namespace XrEngine
 {
     public static class Log
     {
@@ -27,6 +29,11 @@
         {
 
             TimeLogger.LogValue(name, value);
+        }
+
+        public static void Checkpoint(string name, Color color)
+        {
+            TimeLogger.Checkpoint(name, color);
         }
 
 

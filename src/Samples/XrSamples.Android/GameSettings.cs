@@ -24,8 +24,8 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Ping Pong",
-                Msaa = 1,
+                SampleName = "Car",
+                Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,

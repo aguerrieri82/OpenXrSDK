@@ -1,11 +1,11 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
-                    xmlns:plot="clr-namespace:XrEditor.Plot;assembly=XrEditor.Plot"
+        
+                    xmlns:local="clr-namespace:XrEditor.Plot"
                     xmlns:ui="clr-namespace:UI.Canvas.Wpf;assembly=UI.Canvas.Wpf"
                     xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <DataTemplate DataType="{x:Type plot:PlotPanel}">
+    <DataTemplate DataType="{x:Type local:PlotPanel}">
         <ui:UiElementView HorizontalAlignment="Stretch" Content="{Binding Plotter}"/>
     </DataTemplate>
 
