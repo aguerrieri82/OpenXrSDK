@@ -321,6 +321,7 @@ namespace XrEngine.OpenXr
             if (renderer.HasPass<GlMotionVectorPass>())
             {
                 var provider = new GlMotionVectorProvider(app, renderer);
+                provider.IsActive = true;
                 Context.Implement<IMotionVectorProvider>(provider);  
                 xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, provider));
             }

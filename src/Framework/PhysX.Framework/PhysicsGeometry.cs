@@ -28,6 +28,21 @@ namespace PhysX.Framework
             GC.SuppressFinalize(this);
         }
 
+        public unsafe float DistanceFrom(Vector3 globalPoint, Pose3 pose, PxGeometryQueryFlags flags, out Vector3 closePoint)
+        {
+            var transform = pose.ToPxTransform();
+            
+            uint index = 0;
+            
+            var closePoint2 = new Vector3();
+            
+            var distance = PxGeometryQuery_pointDistance((PxVec3*)&globalPoint, this, &transform, (PxVec3*)&closePoint2, &index, flags);
+            
+            closePoint = closePoint2;
+
+            return distance;
+        }
+
         public unsafe RaycastHit[] Raycast(Ray3 ray, Pose3 pose, float maxDistance, PxHitFlags flags, uint maxHits)
         {
             var result = new PxGeomRaycastHit[maxHits];

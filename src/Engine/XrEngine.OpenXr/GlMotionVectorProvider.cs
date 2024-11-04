@@ -17,8 +17,6 @@ namespace XrEngine.OpenXr
             _renderer = renderer;
             _app = app;
             _passes = _renderer.Passes<GlMotionVectorPass>().ToArray();
-
-
         }
 
         public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader*[] colorImgs, SwapchainImageBaseHeader*[] depthImgs, XrRenderMode mode)

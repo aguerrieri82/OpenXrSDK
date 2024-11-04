@@ -18,6 +18,16 @@ namespace XrEngine
             return result;
         }
 
+        public static IPbrMaterial CreatePbr(Texture2D color)
+        {
+            var result = CreatePbr(DefaultPbr);
+            result.Color = Color.White;
+            result.ColorMap = color;    
+            result.Metalness = 0;
+            result.Roughness = 0.5f;
+            return result;
+        }
+
         static IPbrMaterial CreatePbr(Type type)
         {
             return (IPbrMaterial)Activator.CreateInstance(type)!;

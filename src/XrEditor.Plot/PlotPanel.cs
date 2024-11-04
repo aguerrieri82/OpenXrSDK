@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UI.Binding;
 using XrEngine;
+using XrMath;
 
 namespace XrEditor.Plot
 {
@@ -70,21 +71,15 @@ namespace XrEditor.Plot
         public void Clear()
         {
             Plotter.Series.Clear();
+            Plotter.CheckPoints.Clear();    
         }
 
-        public void LogValue<T>(string name, T value)
-        {
-            if (value is float fValue)
-                LogValue(name, fValue);
-        }
 
         static uint HashString(string str)
         {
             uint hash = 5381;
             foreach (var c in str)
-            {
                 hash = ((hash << 5) + hash) + c;
-            }
             return hash;
         }
 
@@ -95,6 +90,12 @@ namespace XrEditor.Plot
                 _lastNotifyTime = DateTime.Now;
                 _mainDispatcher.Execute(() => Plotter.NotifyChanged(null));
             }
+        }
+       
+        public void LogValue<T>(string name, T value)
+        {
+            if (value is float fValue)
+                LogValue(name, fValue);
         }
 
         public void LogValue(string name, float value)
@@ -129,7 +130,6 @@ namespace XrEditor.Plot
                 _lastNotifyTime = _lastValueTime;
                 _notifyTimer.Change(Timeout.Infinite, Timeout.Infinite);
             }   
-      
         }
 
         public override void SetState(IStateContainer container)
@@ -148,15 +148,23 @@ namespace XrEditor.Plot
             base.GetState(container);
         }
 
-        public void Checkpoint(string name)
+        public void Checkpoint(string name, Color color)
         {
-            throw new NotImplementedException();
+            _mainDispatcher.Execute(() =>
+            {
+                Plotter.CheckPoints.Add(new PlotterCheckPoint()
+                {
+                    X = EngineApp.Current!.Stats.Frame,
+                    Name = name,
+                    Color = color
+                });
+            });
+
         }
 
         public Plotter Plotter { get;}
 
         public int RetainTimeMs { get; set; }
-
 
         public override string? Title => "Plot";
     }

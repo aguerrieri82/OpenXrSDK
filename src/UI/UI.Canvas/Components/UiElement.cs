@@ -4,7 +4,7 @@ using XrMath;
 
 namespace CanvasUI
 {
-    public abstract class UiElement : UiObject, ICanvasDraw, IUiLayoutItem
+    public abstract class UiElement : UiObject, IDrawGizmos, IUiLayoutItem
     {
         protected bool _isDirty;
         protected bool _isLayoutDirty;

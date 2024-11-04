@@ -50,6 +50,11 @@ namespace XrEngine
             _version = _geometry.Version;
         }
 
+        public bool ContainsPoint(Vector3 globalPoint)
+        {
+            throw new NotImplementedException();
+        }
+
         public Collision? CollideWith(Ray3 ray)
         {
             Initialize();

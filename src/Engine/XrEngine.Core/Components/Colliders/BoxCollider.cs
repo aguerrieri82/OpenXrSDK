@@ -93,6 +93,21 @@ namespace XrEngine
             container.Write(nameof(Center), Center);
         }
 
+        public bool ContainsPoint(Vector3 globalPoint)
+        {
+            if (!_isInit)
+                Initialize();
+
+            var localPoint = _host!.ToLocal(globalPoint);
+
+            var bounds = new Bounds3
+            {
+                Min = Center - Size / 2,
+                Max = Center + Size / 2
+            };
+
+            return bounds.Contains(localPoint);   
+        }
 
         public Vector3 Size { get; set; }
 

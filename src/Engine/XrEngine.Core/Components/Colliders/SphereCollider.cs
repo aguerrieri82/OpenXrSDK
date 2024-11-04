@@ -1,4 +1,6 @@
-﻿using XrMath;
+﻿using System.Drawing;
+using System.Numerics;
+using XrMath;
 
 namespace XrEngine
 {
@@ -11,6 +13,14 @@ namespace XrEngine
         public void Initialize()
         {
 
+        }
+
+
+        public bool ContainsPoint(Vector3 globalPoint)
+        {
+            var localPoint = _host!.ToLocal(globalPoint);
+
+            return localPoint.Length() <= Radius;
         }
 
         public Collision? CollideWith(Ray3 ray)

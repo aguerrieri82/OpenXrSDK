@@ -107,7 +107,7 @@ namespace UI.Canvas.Wpf
             if (Application.Current.Dispatcher.Thread == Thread.CurrentThread)
                 InvalidateVisual();
             else
-                Application.Current.Dispatcher.Invoke(InvalidateVisual);
+                Application.Current.Dispatcher.InvokeAsync(InvalidateVisual);
         }
 
         protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)

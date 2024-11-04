@@ -20,6 +20,11 @@ namespace XrEngine
 
         }
 
+        public bool ContainsPoint(Vector3 globalPoint)
+        {
+            throw new NotImplementedException();        
+        }
+
         public Collision? CollideWith(Ray3 ray)
         {
             var localRay = ray.Transform(_host!.WorldMatrixInverse);

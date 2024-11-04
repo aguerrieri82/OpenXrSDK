@@ -13,7 +13,7 @@ namespace XrEngine.Physics
     {
         private PhysicsManager? _manager;
         private PhysicsSystem? _system;
-        private PhysicsActor? _actor;
+        private PhysicsRigidActor? _actor;
         private PhysicsMaterial? _material;
         private Pose3 _lastPose;
 
@@ -289,16 +289,21 @@ namespace XrEngine.Physics
             _actor.Name = _host.Name ?? string.Empty;
 
             if (Type != PhysicsActorType.Static)
-                DynamicActor.ContactReportThreshold = ContactReportThreshold;
-
-            if (EnableCCD)
             {
-                if (Type == PhysicsActorType.Dynamic)
-                    DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableCcd;
+                DynamicActor.ContactReportThreshold = ContactReportThreshold;
+                if (EnableCCD)
+                {
+                    if (Type == PhysicsActorType.Dynamic)
+                        DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableCcd;
 
-                if (Type == PhysicsActorType.Kinematic)
-                    DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableSpeculativeCcd;
+                    if (Type == PhysicsActorType.Kinematic)
+                        DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableSpeculativeCcd;
+                }
+
+                DynamicActor.AngularDamping = AngularDamping;
             }
+
+
 
             Configure?.Invoke(this);
         }
@@ -353,10 +358,14 @@ namespace XrEngine.Physics
             }
         }
 
-        protected override void Start(RenderContext ctx)
+        public override void Reset(bool onlySelf = false)
         {
             Destroy();
-            Create(ctx);
+        }
+
+        protected override void Start(RenderContext ctx)
+        {
+            EnsureCreated(ctx);
             _lastPose = GetPose();
         }
 
@@ -387,13 +396,14 @@ namespace XrEngine.Physics
                         _lastPose = curPose;
                         DynamicActor.GlobalPose = _lastPose;
                         DynamicActor.Stop();
+                        Log.Checkpoint($"Pose reset: {_host!.Name}", "#ff0000");
                     }
                     else
                     {
-                        SetPose(_actor.GlobalPose);
-                        _lastPose = GetPose();
                         if (DynamicActor.IsKinematic)
                             DynamicActor.IsKinematic = false;
+                        SetPose(_actor.GlobalPose);
+                        _lastPose = GetPose();
                     }
                 }
                 else if (Type == PhysicsActorType.Static)
@@ -432,6 +442,12 @@ namespace XrEngine.Physics
             GC.SuppressFinalize(this);
         }
 
+        internal void EnsureCreated(RenderContext ctx)
+        {
+            if (_actor == null)
+                Create(ctx);
+        }
+
         public event RigidBodyContactEventHandler Contact
         {
             add
@@ -458,18 +474,21 @@ namespace XrEngine.Physics
 
         public bool EnableCCD { get; set; }
 
+        public float AngularDamping { get; set; }
+
         public PhysicsActorType Type { get; set; }
 
         public PhysicsMaterialInfo Material { get; set; }
 
-        public PhysicsDynamicActor DynamicActor => (_actor as PhysicsDynamicActor) ?? throw new ArgumentNullException();
+        public bool AutoTeleport { get; set; }
+    
 
-        public PhysicsStaticActor StaticActor => (_actor as PhysicsStaticActor) ?? throw new ArgumentNullException();
+        public PhysicsRigidDynamic DynamicActor => (_actor as PhysicsRigidDynamic) ?? throw new ArgumentNullException();
 
-        public PhysicsActor Actor => _actor ?? throw new ArgumentNullException();
+        public PhysicsRigidStatic StaticActor => (_actor as PhysicsRigidStatic) ?? throw new ArgumentNullException();
+
+        public PhysicsRigidActor Actor => _actor ?? throw new ArgumentNullException();
 
         public bool IsCreated => _actor != null;
-
-        public bool AutoTeleport { get; set; }
     }
 }

@@ -12,7 +12,6 @@ namespace PhysX.Framework
 
         }
 
-
         public void AddActor(PhysicsActor actor)
         {
             _handle->AddActorMut(actor.Handle, null);

@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using XrMath;
 using static PhysX.NativeMethods;
 
 
@@ -223,22 +224,48 @@ namespace PhysX.Framework
             return result;
         }
 
-        public PhysicsActor CreateActor(PhysicsActorInfo info)
+        public PhysicsRevoluteJoint CreateRevoluteJoint(PhysicsRigidActor actor0, Pose3 pose0, PhysicsRigidActor actor1, Pose3 pose1)
+        {
+            var tr0 = pose0.ToPxTransform();
+            var tr1 = pose1.ToPxTransform();
+
+            var handle = _physics->PhysPxRevoluteJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
+            
+            var result = new PhysicsRevoluteJoint(handle, this);
+            result._actor0 = actor0;
+            result._actor0 = actor1;
+            return result;
+        }
+
+        public PhysicsDistanceJoint CreateDistanceJoint(PhysicsRigidActor actor0, Pose3 pose0, PhysicsRigidActor actor1, Pose3 pose1)
+        {
+            var tr0 = pose0.ToPxTransform();
+            var tr1 = pose1.ToPxTransform();
+
+            var handle = _physics->PhysPxDistanceJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
+
+            var result = new PhysicsDistanceJoint(handle, this);
+            result._actor0 = actor0;
+            result._actor0 = actor1;
+            return result;
+        }
+
+        public PhysicsRigidActor CreateActor(PhysicsActorInfo info)
         {
             PxActor* actor = null;
-            PhysicsActor? result;
+            PhysicsRigidActor? result;
             var pxTrans = info.Pose.ToPxTransform();
 
             switch (info.Type)
             {
                 case PhysicsActorType.Static:
                     actor = (PxActor*)_physics->PhysPxCreateStatic1(&pxTrans, info.Shapes[0]);
-                    result = new PhysicsStaticActor(actor, this);
+                    result = new PhysicsRigidStatic(actor, this);
                     break;
                 case PhysicsActorType.Dynamic:
                 case PhysicsActorType.Kinematic:
                     actor = (PxActor*)_physics->PhysPxCreateDynamic1(&pxTrans, info.Shapes[0], info.Density);
-                    result = new PhysicsDynamicActor(actor, this);
+                    result = new PhysicsRigidDynamic(actor, this);
                     break;
                 default:
                     throw new NotSupportedException();
@@ -255,7 +282,7 @@ namespace PhysX.Framework
             _scene!.AddActor(result);
 
             if (info.Type == PhysicsActorType.Kinematic)
-                ((PhysicsDynamicActor)result).IsKinematic = true;
+                ((PhysicsRigidDynamic)result).IsKinematic = true;
 
             result.Id = _actorIds++;
 
@@ -275,8 +302,8 @@ namespace PhysX.Framework
 
         protected virtual internal void NotifyContact(PxContactPairHeader2 header)
         {
-            var actor1 = (PhysicsActor)_objects[new nint(header.actor1)];
-            var actor2 = (PhysicsActor)_objects[new nint(header.actor2)];
+            var actor1 = GetObject<PhysicsRigidActor>(header.actor1);
+            var actor2 = GetObject<PhysicsRigidActor>(header.actor2);
 
             var pairs = new ContactPair[header.nbPairs];
 
@@ -381,8 +408,8 @@ namespace PhysX.Framework
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         static unsafe PxFilterFlags FilterShader(FilterShaderCallbackInfo* info)
         {
-            var actor1 = Current!._actors[info->filterData0.word0];
-            var actor2 = Current!._actors[info->filterData1.word0];
+            var actor1 = (PhysicsRigidActor)Current!._actors[info->filterData0.word0];
+            var actor2 = (PhysicsRigidActor)Current!._actors[info->filterData1.word0];
 
             if (actor1.NotifyContacts || actor2.NotifyContacts)
                 info->pairFlags[0] |=
