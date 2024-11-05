@@ -85,11 +85,16 @@ namespace XrEngine
 
             _scene?.EnsureNotLocked();
 
+            var curWorldMatrix = child.WorldMatrix;
+
             child.Parent?.RemoveChild(child);
 
             child.EnsureId();
 
             child.SetParent(this, preserveTransform);
+
+            if (preserveTransform)
+                child.WorldMatrix = curWorldMatrix;
 
             _children.Add(child);
 

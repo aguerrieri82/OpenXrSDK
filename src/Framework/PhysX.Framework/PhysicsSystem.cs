@@ -177,7 +177,7 @@ namespace PhysX.Framework
             return new PhysicsGeometry((PxGeometry*)&geo);
         }
 
-        public unsafe PhysicsGeometry? CreateConvexMesh(uint[] indices, Vector3[] vertices, Vector3 scale)
+        public unsafe PhysicsGeometry? CreateConvexMesh(uint[]? indices, Vector3[] vertices, Vector3 scale)
         {
             PxConvexMeshCookingResult result;
 
@@ -185,18 +185,23 @@ namespace PhysX.Framework
             desc.points.data = Unsafe.AsPointer(ref vertices[0]);
             desc.points.stride = 12;
             desc.points.count = (uint)vertices.Length;
-            desc.indices.data = Unsafe.AsPointer(ref indices[0]);
-            desc.indices.count = (uint)indices.Length;
-            desc.indices.stride = 4;
-            desc.quantizedCount = 10;
-            desc.vertexLimit = 200;
-            desc.polygonLimit = 50;
 
-            desc.flags = PxConvexFlags.ComputeConvex | PxConvexFlags.DisableMeshValidation | PxConvexFlags.FastInertiaComputation;
+            if (indices != null)
+            {
+                desc.indices.data = Unsafe.AsPointer(ref indices[0]);
+                desc.indices.count = (uint)indices.Length;
+                desc.indices.stride = 4;
+            }
+            
+            desc.vertexLimit = 220;
+            desc.polygonLimit = 200;
+            desc.quantizedCount = 100;
 
+            desc.flags = PxConvexFlags.ComputeConvex | PxConvexFlags.DisableMeshValidation;
             var curScale = _tolerancesScale;
 
             var param = curScale.CookingParamsNew();
+       
 
             /*
             var isValid = param.PhysPxValidateConvexMesh(&desc);
@@ -233,7 +238,7 @@ namespace PhysX.Framework
             
             var result = new PhysicsRevoluteJoint(handle, this);
             result._actor0 = actor0;
-            result._actor0 = actor1;
+            result._actor1 = actor1;
             return result;
         }
 
@@ -246,7 +251,34 @@ namespace PhysX.Framework
 
             var result = new PhysicsDistanceJoint(handle, this);
             result._actor0 = actor0;
-            result._actor0 = actor1;
+            result._actor1 = actor1;
+            return result;
+        }
+
+        public PhysicsFixedJoint CreateFixedJoint(PhysicsRigidActor actor0, Pose3 pose0, PhysicsRigidActor actor1, Pose3 pose1)
+        {
+            var tr0 = pose0.ToPxTransform();
+            var tr1 = pose1.ToPxTransform();
+
+
+            var handle = _physics->PhysPxFixedJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
+
+            var result = new PhysicsFixedJoint(handle, this);
+            result._actor0 = actor0;
+            result._actor1 = actor1;
+            return result;
+        }
+
+        public PhysicsD6Joint CreateD6Joint(PhysicsRigidActor actor0, Pose3 pose0, PhysicsRigidActor actor1, Pose3 pose1)
+        {
+            var tr0 = pose0.ToPxTransform();
+            var tr1 = pose1.ToPxTransform();
+
+            var handle = _physics->PhysPxD6JointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
+
+            var result = new PhysicsD6Joint(handle, this);
+            result._actor0 = actor0;
+            result._actor1 = actor1;
             return result;
         }
 
@@ -290,9 +322,9 @@ namespace PhysX.Framework
 
             foreach (var shape in info.Shapes)
             {
-                PxFilterData data;
+                var data = shape.SimulationFilterData;
                 data.word0 = result.Id;
-                shape.Shape.SetSimulationFilterDataMut(&data);
+                shape.SimulationFilterData = data;
             }
 
             _objects[new nint(actor)] = result;
@@ -388,8 +420,11 @@ namespace PhysX.Framework
             sceneDesc.simulationEventCallback = _eventCallbacks.Handle;
             sceneDesc.flags = PxSceneFlags.EnableCcd | PxSceneFlags.EnablePcm | PxSceneFlags.EnableEnhancedDeterminism;
             sceneDesc.EnableCustomFilterShader(&FilterShader, 1);
-
+           
             _scene = new PhysicsScene(_physics->CreateSceneMut(&sceneDesc), this);
+
+            _scene.SetVisualizationParameter(PxVisualizationParameter.JointLocalFrames, 1f);
+            _scene.SetVisualizationParameter(PxVisualizationParameter.JointLimits, 1f); 
 
             if (_pvd != null)
             {
@@ -410,6 +445,10 @@ namespace PhysX.Framework
         {
             var actor1 = (PhysicsRigidActor)Current!._actors[info->filterData0.word0];
             var actor2 = (PhysicsRigidActor)Current!._actors[info->filterData1.word0];
+
+            var notCollide = info->filterData0.word1 & info->filterData1.word1; 
+            if (notCollide != 0)
+                return PxFilterFlags.Suppress;
 
             if (actor1.NotifyContacts || actor2.NotifyContacts)
                 info->pairFlags[0] |=

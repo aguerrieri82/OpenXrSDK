@@ -24,7 +24,7 @@ namespace XrEngine.Physics
 
         public InputObjectForce()
         {
-            Factor = 50;
+            Factor = 20;
         }
 
         protected override void Update(RenderContext ctx)
@@ -39,6 +39,17 @@ namespace XrEngine.Physics
                     return;
                 
                 Input = XrApp.Current!.Inputs[InputName] as XrPoseInput;
+            }
+
+            if (Haptic == null)
+            {
+                if (XrApp.Current == null || !XrApp.Current.IsStarted)
+                    return;
+
+                if (string.IsNullOrWhiteSpace(HapticName))
+                    return;
+
+                Haptic = XrApp.Current!.Haptics[HapticName];
             }
 
             if (Handler == null)
@@ -57,21 +68,23 @@ namespace XrEngine.Physics
 
             if (!_isDragging)
             {
-                _host!.Scene!.ContainsPoint(Input.Value.Position, _checkObjects);
-
-                foreach (var obj in _checkObjects)
+                if (Handler.IsActive && Handler.Value)
                 {
-                    if (!obj.TryComponent<RigidBody>(out _rigidBody))
-                        return;
+                    _host!.Scene!.ContainsPoint(Input.Value.Position, _checkObjects);
 
-                    if (_rigidBody.Type == PhysX.Framework.PhysicsActorType.Static)
-                        return;
-
-                    if (Handler.IsActive && Handler.IsChanged && Handler.Value)
+                    foreach (var obj in _checkObjects)
                     {
+                        if (!obj.TryComponent<RigidBody>(out _rigidBody))
+                            continue;
+
+                        if (_rigidBody.Type == PhysX.Framework.PhysicsActorType.Static)
+                            continue;
+
                         _isDragging = true;
                         _object = obj;
                         _startDragLocal = _object.ToLocal(Input.Value.Position);
+
+                        Haptic?.VibrateStart(400, 1, TimeSpan.FromMilliseconds(100));
 
                         Log.Checkpoint("Force Start", "#00ff00");
 
@@ -93,7 +106,7 @@ namespace XrEngine.Physics
 
                     var startWorld = _object.ToWorld(_startDragLocal);
                     var curWorlds = Input.Value.Position;
-                    var force = (curWorlds - startWorld) * Factor;
+                    var force = (curWorlds - startWorld) * Factor * _rigidBody.DynamicActor.Mass;
                     
                     _rigidBody.DynamicActor.AddForce(force, startWorld, PhysX.PxForceMode.Impulse);
 
@@ -109,6 +122,8 @@ namespace XrEngine.Physics
 
         public void DrawGizmos(Canvas3D canvas)
         {
+            if (!_isDragging)
+                return;
             canvas.Save();
             canvas.State.Color = "#0000FF";
             canvas.DrawLine(_lastForce.From, _lastForce.To);
@@ -117,14 +132,16 @@ namespace XrEngine.Physics
 
         public float Factor { get; set; }
 
+        public XrHaptic? Haptic { get; set; }
+
         public XrBoolInput? Handler { get; set; }
 
-
         public XrPoseInput? Input { get; set; }
-
 
         public string? InputName { get; set; }
 
         public string? HandlerName { get; set; }
+
+        public string? HapticName { get; set; }
     }
 }

@@ -15,7 +15,7 @@ namespace PhysX.Framework
         internal protected PhysicsRevoluteJoint(PxRevoluteJoint* handle, PhysicsSystem system)
             : base((PxJoint*)handle, system)  
         {
-
+   
         }
 
         public PxJointAngularLimitPair Limit
@@ -29,6 +29,7 @@ namespace PhysX.Framework
             get => RevoluteJoint.GetDriveVelocity();
             set => RevoluteJoint.SetDriveVelocityMut(value, true);
         }
+
 
         public float DriveForceLimit
         {

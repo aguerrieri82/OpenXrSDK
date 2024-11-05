@@ -196,6 +196,18 @@ namespace PhysX.Framework
             }
         }
 
+
+        public uint NotCollideGroup
+        {
+            get => SimulationFilterData.word1;
+            set
+            {
+                var curData = SimulationFilterData;
+                curData.word1 = value;
+                SimulationFilterData = curData;
+            }
+        }
+
         public bool IsExclusive => _handle->IsExclusive();
 
         public ref PxShape Shape => ref Unsafe.AsRef<PxShape>(_handle);

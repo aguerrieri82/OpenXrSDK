@@ -185,7 +185,7 @@ namespace XrEditor
 
             _render = _engine!.App.Renderer!;
 
-            _renderSurface.EnableVSync(true);
+            _renderSurface.EnableVSync(false);
 
             while (_isStarted)
             {

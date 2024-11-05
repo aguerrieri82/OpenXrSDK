@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
+using System.Text.RegularExpressions;
 using XrEngine.Services;
 using XrMath;
 
@@ -72,6 +73,22 @@ namespace XrEngine
         #endregion
 
         #region OBJECT3D
+
+
+        public static Group3D GroupByName(this Group3D self, params string[] names)
+        {
+            var grp = new Group3D();
+            
+            self.AddChild(grp);
+
+            foreach (var name in names)
+            {
+                var child = self.DescendantsOrSelf().FirstOrDefault(a => a.Name == name);
+                if (child != null)
+                    grp.AddChild(child, true);
+            }
+            return grp;
+        }
 
         public static void UseEnvDepth(this Object3D self, bool value)
         {

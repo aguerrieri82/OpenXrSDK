@@ -26,6 +26,8 @@ namespace XrEngine.Physics
             _system.Create(Options);
             _system.CreateScene(Options.Gravity);
 
+            Configure?.Invoke(_system); 
+
             foreach (var joint in _joints)
                 joint.Create(ctx);
 
@@ -129,7 +131,7 @@ namespace XrEngine.Physics
             return joint;
         }
 
-        public IReadOnlyCollection<Joint> Joint => _joints;   
+        public Action<PhysicsSystem>? Configure { get; set; }
 
         public float StepSizeSecs { get; set; }
 
@@ -138,5 +140,7 @@ namespace XrEngine.Physics
         public bool IsMultiThread { get; set; }
 
         public PhysicsSystem? System => _system;
+
+        public IReadOnlyCollection<Joint> Joint => _joints;
     }
 }

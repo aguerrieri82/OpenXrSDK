@@ -15,6 +15,11 @@ namespace XrEngine
 
     public class CapsuleCollider : Behavior<Object3D>, ICollider3D
     {
+        public CapsuleCollider()
+        {
+            Pose = Pose3.Identity;
+        }   
+
         public void Initialize()
         {
 
@@ -69,6 +74,8 @@ namespace XrEngine
         public float Height { get; set; }
 
         public float Radius { get; set; }
+
+        public Pose3 Pose { get; set; }
 
         public CapsuleColliderMode Mode { get; set; }
     }

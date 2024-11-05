@@ -9,9 +9,6 @@
 	</ItemGroup>
 	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="..\..\..\libs\meshoptimizer\win-x64\*.dll"
-				 CopyToOutputDirectory="PreserveNewest"
-				 Link="runtimes/win-x64/native/%(Filename)%(Extension)"/>
 
 		<Content Include="..\..\..\libs\meshoptimizer\win-x64\*.dll"
 				 CopyToOutputDirectory="PreserveNewest"
@@ -21,10 +18,13 @@
 				 CopyToOutputDirectory="PreserveNewest"
 				 Link="runtimes/android-arm64/native/%(Filename)%(Extension)"/>
 
+		<Content Include="..\..\..\libs\meshoptimizer\win-x64\*.dll"
+				 CopyToOutputDirectory="PreserveNewest"
+				 Link="runtimes/win-x64/native/%(Filename)%(Extension)"/>
 
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
-		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\..\..\libs\meshoptimizer\win-x64\*.so" />
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\..\..\libs\meshoptimizer\android-arm64\*.so" />
 	</ItemGroup>
 </Project>
