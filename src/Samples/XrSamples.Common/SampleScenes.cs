@@ -18,6 +18,10 @@ using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
 using XrEngine.Helpers;
+using XrSamples.Components;
+using Microsoft.Extensions.Options;
+
+
 
 
 
@@ -241,7 +245,9 @@ namespace XrSamples
                    .UseLeftController()
                    .UseRightController()
                    .AddRightPointer()
-                   .UseInputs<XrOculusTouchController>(a => a.AddAction(b => b.Right!.Haptic))
+                   .UseInputs<XrOculusTouchController>(a => a
+                       .AddAction(b => b.Right!.Haptic)
+                       .AddAction(b => b.Left!.Haptic))
                    .UseRayCollider()
                    .UseGrabbers();
 
@@ -1059,39 +1065,69 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateCar(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
-
             var scene = app.ActiveScene!;
+
+            scene.AddComponent<PhysicsManager>();
 
             scene.AddComponent(new InputObjectForce
             {
                 InputName = "RightGripPose",
-                HandlerName = "RightTriggerClick",    
-                Factor = 5
+                HandlerName = "RightTriggerClick",
+                HapticName = "RightHaptic",
+                Factor = 20
             });
 
             scene.AddComponent(new InputObjectForce
             {
                 InputName = "LeftGripPose",
                 HandlerName = "LeftTriggerClick",
-                Factor = 5
+                HapticName = "LeftHaptic",
+                Factor = 20
             });
 
-
-            var car = GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
+            var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
             car.Name = "car";
             car.AddComponent<BoundsGrabbable>();
-            car.UpdateBounds();
-            //mesh.UseEnvDepth(true);
+
 
             foreach (var mat in car.DescendantsOrSelf().OfType<TriangleMesh>().SelectMany(a => a.Materials).Distinct())
             {
-                if (mat is IPbrMaterial pbr && mat.Name!.Contains("glass"))
+                if (mat is IPbrMaterial pbr)
                 {
-                    pbr.Color = "#00000030";
-                    pbr.Alpha = AlphaMode.Blend;
+                    if (mat.Name!.Contains("glass"))
+                    {
+                        pbr.Color = "#00000030";
+                        pbr.Alpha = AlphaMode.Blend;
+                    }
+                    if (mat.Name!.Contains("paint"))
+                    {
+                        pbr.Color = "#FF0100FF";
+                        pbr.Roughness = 0.15f;
+                    }
                 }
             }
 
+            var model = new CarModel
+            {
+                WheelFL = car.GroupByName("wheel.Ft.L.003", "wheelbrake.Ft.L.003"),
+                WheelFR = car.GroupByName("wheel.Ft.R.003", "wheelbrake.Ft.R.003"),
+                WheelBL = car.GroupByName("wheel.Bk.L.003", "wheelbrake.Bk.R.003"),
+                WheelBR = car.GroupByName("wheel.Bk.R.003", "wheelbrake.Bk.R.001"),
+                SteeringWheel = car.GroupByName("leatherB_steering.003", "chrome_steering.003", "chrome_logo_steering.003")
+            };
+
+            car.UpdateBounds(true);
+            car.AddComponent(model);
+
+            foreach (var mesh in car.DescendantsOrSelf().OfType<TriangleMesh>())
+            {
+                Log.Info(typeof(SampleScenes), $"Optimizing {mesh.Name}");
+                XrEngine.MeshOptimizer.Simplify(mesh.Geometry!, 0.4f, 0.005f);
+                XrEngine.MeshOptimizer.OptimizeVertexCache(mesh.Geometry!);
+                XrEngine.MeshOptimizer.OptimizeOverdraw(mesh.Geometry!, 1.05f);
+                XrEngine.MeshOptimizer.OptimizeVertexFetch(mesh.Geometry!);
+            }
+          
             var tex = TextureFactory.CreateChecker();
 
             var cube = new TriangleMesh(new Cube3D(new Vector3(1, 0.2f, 1)), (Material)MaterialFactory.CreatePbr(tex));
@@ -1102,6 +1138,7 @@ namespace XrSamples
             rb1.Type = PhysicsActorType.Static;
             rb1.AutoTeleport = true;
 
+            /*
             var steer = new MeshBuilder().AddRevolve(new Circle2D
             {
                 Center = new Vector2(0.4f, 0), 
@@ -1115,7 +1152,7 @@ namespace XrSamples
             var rb2 = steerMesh.AddComponent<RigidBody>();
             rb2.Type = PhysicsActorType.Dynamic;
             rb2.AutoTeleport = true;
-            rb2.AngularDamping = 2f;
+            rb2.AngularDamping = 5f;
 
             var grp = new Group3D();
             var scale = 0.4f;
@@ -1124,18 +1161,36 @@ namespace XrSamples
             grp.Transform.SetPositionY(0.78f);
             grp.Transform.SetScale(scale);
             grp.Transform.Rotation = new Vector3(0, -74, -46) / 180 * MathF.PI;
+            */
 
-            // scene.AddChild(car);
-            scene.AddChild(grp);
+            var floor = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), (Material)MaterialFactory.CreatePbr(tex));
+            floor.Name = "Floor";
+            floor.Transform.SetPositionY(-0.005f);
+            floor.Geometry!.ScaleUV(new Vector2(20, 20));
+            floor.AddComponent(new RigidBody
+            {
+                Type = PhysicsActorType.Static,
+                Material = new PhysicsMaterialInfo()
+                {
+                    StaticFriction = 1f,
+                    DynamicFriction = 1f,
+                    Restitution = 0.2f
+                }
+            });
+
+            scene.AddChild(floor);
+            scene.AddChild(car);
+            //scene.AddChild(grp);
+
+            model.Create();
+            model.HideCar();
 
             return builder
                 .UseApp(app)
-                .UsePhysics(new PhysicsOptions())
-                .UseEnvironmentDepth()
                 .UseDefaultHDR()
-                //.UseSpaceWarp()
                 .ConfigureApp(a =>
                 {
+                    /*
                     var manager = a.App.ActiveScene!.Component<PhysicsManager>();
                     var pose1 = new Pose3
                     {
@@ -1158,10 +1213,9 @@ namespace XrSamples
                     joint.InvMassScale0 = scale;
                     joint.InvInertiaScale1 = scale;
                     joint.InvInertiaScale0 = scale;
-      
-
-
+                    */
                 })
+
                 .ConfigureSampleApp();
         }
 

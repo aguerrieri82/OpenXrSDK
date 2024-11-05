@@ -38,9 +38,14 @@ namespace PhysX.Framework
             RigidBody.ExtAddForceAtPos((PxVec3*)&force, (PxVec3*)&worldPos, mode, true);
         }
 
-        public void UpdateMassAndInertia(float density, Vector3 centerOfMassLocal)
+        public bool UpdateMassAndInertia(float density)
         {
-            RigidBody.ExtUpdateMassAndInertia1(density, (PxVec3*)&centerOfMassLocal, false);
+            return RigidBody.ExtUpdateMassAndInertia1(density, null, false);
+        }
+
+        public bool UpdateMassAndInertia(float density, Vector3 centerOfMassLocal)
+        {
+            return RigidBody.ExtUpdateMassAndInertia1(density, (PxVec3*)&centerOfMassLocal, false);
         }
 
         public float Mass

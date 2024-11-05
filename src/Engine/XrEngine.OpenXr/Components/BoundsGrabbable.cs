@@ -17,7 +17,7 @@ namespace XrEngine.OpenXr
         public bool CanGrab(Vector3 position)
         {
             if (_local != null)
-                return _local.LocalBounds.Contains(position.Transform(_host!.WorldMatrixInverse));
+                return _local.LocalBounds.Contains(_host!.ToLocal(position));
 
             return false;
         }

@@ -84,14 +84,20 @@ namespace XrMath
             return self.Pose.Transform(new Vector3(point.X, point.Y, 0));
         }
 
+        public static Vector3 Center(this Quad3 self)
+        {
+            var sum = Vector3.Zero;
+            foreach (var item in self.Corners())
+                sum += item;
+            return sum / 4;
+        }
+
         public static IEnumerable<Vector3> Corners(this Quad3 self)
         {
-
             yield return self.PointAt(0, 0);
             yield return self.PointAt(self.Size.X, 0);
             yield return self.PointAt(self.Size.X, self.Size.Y);
             yield return self.PointAt(0, self.Size.Y);
-
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -135,7 +141,7 @@ namespace XrMath
             return MathUtils.QuadFromEdges(C1, C2, C6, C5);
         }
 
-        public static IEnumerable<Quad3> Faces(this Bounds3 self)
+        public static CubeFaces Faces(this Bounds3 self)
         {
             var C1 = new Vector3(self.Min.X, self.Min.Y, self.Min.Z);
             var C2 = new Vector3(self.Max.X, self.Min.Y, self.Min.Z);
@@ -146,27 +152,27 @@ namespace XrMath
             var C7 = new Vector3(self.Max.X, self.Max.Y, self.Max.Z);
             var C8 = new Vector3(self.Min.X, self.Max.Y, self.Max.Z);
 
-            var quads = new Quad3[6];
+            var result = new CubeFaces();
 
             // Bottom face (XY plane at Min.Z)
-            quads[0] = MathUtils.QuadFromEdges(C4, C3, C2, C1);
+            result.Back = MathUtils.QuadFromEdges(C4, C3, C2, C1);
 
             // Top face (XY plane at Max.Z)
-            quads[1] = MathUtils.QuadFromEdges(C5, C6, C7, C8);
+            result.Front = MathUtils.QuadFromEdges(C5, C6, C7, C8);
 
             // Front face (XZ plane at Min.Y)
-            quads[2] = MathUtils.QuadFromEdges(C1, C2, C6, C5);
+            result.Bottom = MathUtils.QuadFromEdges(C1, C2, C6, C5);
 
             // Back face (XZ plane at Max.Y)
-            quads[3] = MathUtils.QuadFromEdges(C8, C7, C3, C4);
+            result.Top = MathUtils.QuadFromEdges(C8, C7, C3, C4);
 
             // Left face (YZ plane at Min.X)
-            quads[4] = MathUtils.QuadFromEdges(C8, C4, C1, C5);
+            result.Left = MathUtils.QuadFromEdges(C8, C4, C1, C5);
 
             // Right face (YZ plane at Max.X)
-            quads[5] = MathUtils.QuadFromEdges(C3, C7, C6, C2);
+            result.Right = MathUtils.QuadFromEdges(C3, C7, C6, C2);
 
-            return quads;
+            return result;
         }
 
         public static bool IntersectFrustum(this Bounds3 self, Plane[] planes)
@@ -483,6 +489,12 @@ namespace XrMath
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 Transform(this Vector3 self, Quaternion quat)
+        {
+            return Vector3.Transform(self, quat);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Normalize(this Vector3 self)
         {
             return Vector3.Normalize(self);
@@ -695,6 +707,13 @@ namespace XrMath
 
         #region QUATERNION
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Quaternion Opposite(this Quaternion self)
+        {
+            return new Quaternion(-self.X, -self.Y, -self.Z, self.W);
+        }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]  
         public static Quaternion Subtract(this Quaternion self, Quaternion other)
         {
@@ -818,6 +837,31 @@ namespace XrMath
         public static float Length(this Line3 self)
         {
             return Vector3.Distance(self.From, self.To);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 Center(this Line3 self)
+        {
+            return (self.From + self.To) / 2;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Line3 Expand(this Line3 self, float fromDelta, float toDelta)
+        {
+            return new Line3(self.PointAt(-fromDelta), self.PointAt(self.Length() + toDelta));  
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Line3 Transform(this Line3 self, Matrix4x4 matrix)
+        {
+            return new Line3(self.From.Transform(matrix), self.To.Transform(matrix));   
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Line3 Transform(this Line3 self, Quaternion quat)
+        {
+            return new Line3(Vector3.Transform(self.From, quat), Vector3.Transform(self.To, quat));
         }
 
 

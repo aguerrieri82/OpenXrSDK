@@ -1,5 +1,6 @@
 ﻿using PhysX;
 using PhysX.Framework;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
 using XrMath;
@@ -8,6 +9,16 @@ using XrMath;
 namespace XrEngine.Physics
 {
     public delegate void RigidBodyContactEventHandler(Object3D self, Object3D other, int otherIndex, ContactPair[] pairs);
+
+    [Flags]
+    public enum RigidBodyGroup
+    {
+        None = 0,
+        Group1 = 0x1,
+        Group2 = 0x2,
+        Group3 = 0x4,
+        Group4 = 0x8,
+    }
 
     public class RigidBody : Behavior<Object3D>, IDisposable
     {
@@ -58,12 +69,10 @@ namespace XrEngine.Physics
         {
             Debug.Assert(_host != null);
 
-            Matrix4x4.Decompose(_host.WorldMatrix, out var _, out var orientation, out var translation);
-
             return new Pose3
             {
-                Position = translation,
-                Orientation = orientation
+                Position = _host.WorldPosition,
+                Orientation = _host.WorldOrientation
             };
         }
 
@@ -77,7 +86,7 @@ namespace XrEngine.Physics
             _actor?.Actor.SetActorFlagMut(PxActorFlag.DisableSimulation, true);
         }
 
-        protected PhysicsGeometry? CreateGeometry(ICollider3D? collider, ref Pose3 pose)
+        protected PhysicsGeometry? CreateGeometry(ICollider3D? collider, ref Pose3 pose, Vector3 scale)
         {
             Debug.Assert(_system != null);
             Debug.Assert(_host != null);
@@ -116,7 +125,7 @@ namespace XrEngine.Physics
                     result = _system.CreateTriangleMesh(
                         mc.Geometry.Indices,
                         mc.Geometry.ExtractPositions(),
-                        Vector3.One, LengthToleranceScale
+                        scale, LengthToleranceScale
                     );
                     /*
                     pyGeo = _system.CreateConvexMesh(
@@ -126,22 +135,55 @@ namespace XrEngine.Physics
                       );
                     */
                 }
-                else if (collider is PyMeshCollider py && collider.Host is TriangleMesh mesh)
+                else if (collider is PyMeshCollider py)
                 {
-                    result = mesh.Geometry!.GetProp<PhysicsGeometry>("PyGeo");
+                    if (collider.Host is not TriangleMesh mesh)
+                        mesh = py.MeshObjects().OfType<TriangleMesh>().FirstOrDefault();
+
+                    var geo3d = mesh?.Geometry;
+
+                    if (geo3d != null)
+                        result = geo3d.GetProp<PhysicsGeometry>("PyGeo");
+
+                    if (mesh != null)
+                        pose = (mesh.WorldMatrix * _host.WorldMatrixInverse).ToPose();   
                 }
                 else if (collider is CapsuleCollider cap)
                 {
-                    result = _system.CreateCapsule(cap.Radius, cap.Height * 0.5f);
-                    pose.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI / 2);
+                    result = _system.CreateCapsule(cap.Radius * scale.X, cap.Height * 0.5f * scale.Y);
+                    pose.Position = cap.Pose.Position;
+                    pose.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI / 2) * cap.Pose.Orientation;
                 }
                 else if (collider is SphereCollider sphere)
                 {
-                    result = _system.CreateSphere(sphere.Radius);
+                    result = _system.CreateSphere(sphere.Radius * scale.X);
+
+                }
+                else if (collider is CylinderCollider cyl)
+                {
+                    var points = new List<Vector3>();
+                    float halfHeight = cyl.Height / 2;
+                    
+                    var numSegments = (cyl.Radius * 2 * MathF.PI) / 0.01;
+
+                    for (int i = 0; i < numSegments; i++)
+                    {
+                        float angle = (float)(2 * Math.PI * i / numSegments);
+                        float x = cyl.Radius * (float)Math.Cos(angle);
+                        float z = cyl.Radius * (float)Math.Sin(angle);
+
+                        // Top and bottom points
+                        points.Add(new Vector3(x, halfHeight, z));   // Top circle
+                        points.Add(new Vector3(x, -halfHeight, z));  // Bottom circle
+                    }
+
+                    result = _system.CreateConvexMesh(null, points.ToArray(), Vector3.One);
+
+                    pose = cyl.Pose;    
                 }
                 else if (collider is BoxCollider box)
                 {
-                    result = _system.CreateBox(box.Size / 2);
+                    result = _system.CreateBox(box.Size / 2 * scale);
                     pose.Position = box.Center;
                 }
             }
@@ -149,15 +191,15 @@ namespace XrEngine.Physics
             return result;
         }
 
-        protected PhysicsShape? CreateShape(ICollider3D? collider)
+        protected PhysicsShape? CreateShape(ICollider3D? collider, Vector3 scale)
         {
             Debug.Assert(_system != null);
             Debug.Assert(_host != null);
 
-            PhysicsShape? shape = null; ;
+            PhysicsShape? shape = null;
             Pose3 pose = Pose3.Identity;
 
-            PhysicsGeometry? pyGeo = CreateGeometry(collider, ref pose);
+            PhysicsGeometry? pyGeo = CreateGeometry(collider, ref pose, scale);
 
             if (pyGeo != null)
             {
@@ -169,6 +211,7 @@ namespace XrEngine.Physics
                 });
 
                 shape.ContactOffset = ContactOffset;
+                shape.NotCollideGroup = (uint)NotCollideGroup;  
             }
 
             if (shape != null)
@@ -180,6 +223,7 @@ namespace XrEngine.Physics
             return shape;
         }
 
+        /*
         public void UpdateShape()
         {
             Debug.Assert(_host != null);
@@ -206,6 +250,7 @@ namespace XrEngine.Physics
                 }
             }
         }
+        */
 
         protected void Destroy()
         {
@@ -223,7 +268,6 @@ namespace XrEngine.Physics
                 _material.Release();
                 _material = null;
             }
-
         }
 
         protected void Create(RenderContext ctx)
@@ -259,14 +303,14 @@ namespace XrEngine.Physics
                 if (collider is IRenderUpdate update)
                     update.Update(ctx);
 
-                var shape = CreateShape(collider);
+                var shape = CreateShape(collider, scale);
                 if (shape != null)
                     shapes.Add(shape);
             }
 
             if (shapes.Count == 0)
             {
-                var boxShape = CreateShape(null);
+                var boxShape = CreateShape(null, scale);
                 if (boxShape == null)
                     throw new NotSupportedException("Object has no collider or local bounds");
                 shapes.Add(boxShape);
@@ -280,35 +324,23 @@ namespace XrEngine.Physics
                 Type = Type
             });
 
+            /*
+         
             if (scale.X != 1)
-                _actor.SetScale(scale.X);
+                _actor.SetScale(scale.X); 
+            */
 
             _actor.Tag = _host;
             _actor.NotifyContacts = _contactEvent != null;
             _actor.Contact += OnActorContact;
             _actor.Name = _host.Name ?? string.Empty;
 
-            if (Type != PhysicsActorType.Static)
-            {
-                DynamicActor.ContactReportThreshold = ContactReportThreshold;
-                if (EnableCCD)
-                {
-                    if (Type == PhysicsActorType.Dynamic)
-                        DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableCcd;
-
-                    if (Type == PhysicsActorType.Kinematic)
-                        DynamicActor.RigidBodyFlags |= PxRigidBodyFlags.EnableSpeculativeCcd;
-                }
-
-                DynamicActor.AngularDamping = AngularDamping;
-            }
-
-
+            UpdatePhysics();
 
             Configure?.Invoke(this);
         }
 
-        protected void UpdatePhysics()
+        public void UpdatePhysics()
         {
             if (_actor == null || _system == null || _host == null)
                 return;
@@ -332,13 +364,15 @@ namespace XrEngine.Physics
             {
                 shape.SetMaterials([_material]);
                 shape.ContactOffset = ContactOffset;
+                shape.NotCollideGroup = (uint)NotCollideGroup;   
             }
-
 
             if (Type != PhysicsActorType.Static)
             {
                 DynamicActor.ContactReportThreshold = ContactReportThreshold;
-                DynamicActor.UpdateMassAndInertia(Density, Vector3.Zero);
+                //var res = DynamicActor.UpdateMassAndInertia(Density);
+                DynamicActor.AngularDamping = AngularDamping;
+  
             }
 
             if (Type == PhysicsActorType.Dynamic)
@@ -462,26 +496,34 @@ namespace XrEngine.Physics
             }
         }
 
-        public Action<RigidBody>? Configure { get; set; }
 
+        [Category("Advanced")]
         public float ContactReportThreshold { get; set; }
 
+        [Category("Advanced")]
         public float LengthToleranceScale { get; set; }
 
+        [Category("Advanced")]
         public float ContactOffset { get; set; }
 
-        public float Density { get; set; }
-
+        [Category("Advanced")]
         public bool EnableCCD { get; set; }
 
+        [Category("Advanced")]
         public float AngularDamping { get; set; }
+
+        public float Density { get; set; }
 
         public PhysicsActorType Type { get; set; }
 
         public PhysicsMaterialInfo Material { get; set; }
 
         public bool AutoTeleport { get; set; }
-    
+
+        public RigidBodyGroup NotCollideGroup { get; set; } 
+
+        public Action<RigidBody>? Configure { get; set; }
+
 
         public PhysicsRigidDynamic DynamicActor => (_actor as PhysicsRigidDynamic) ?? throw new ArgumentNullException();
 

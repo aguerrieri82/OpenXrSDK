@@ -10,6 +10,11 @@ namespace XrEngine.Physics
         private PhysicsSystem? _system;
         private bool _isInit;
 
+        public PyMeshCollider()
+        {
+            MeshObjects = () => _host!.DescendantsOrSelf(); 
+        }
+
         protected override void Start(RenderContext ctx)
         {
             _manager = _host!.Scene!.Components<PhysicsManager>().FirstOrDefault();
@@ -25,14 +30,14 @@ namespace XrEngine.Physics
 
             Initialize();
 
-            foreach (var item in _host!.DescendantsOrSelf())
+            foreach (var item in MeshObjects())
             {
                 var geo = item.Feature<Geometry3D>();
                 if (geo == null)
                     continue;
 
                 var pyGeo = geo.GetProp<PhysicsGeometry>("PyGeo")!;
-
+      
                 var distance = pyGeo.DistanceFrom(globalPoint, item.WorldMatrix.ToPose(), 0, out var _);
 
                 Log.Value("Distance", distance);
@@ -51,14 +56,13 @@ namespace XrEngine.Physics
 
             Initialize();
 
-            foreach (var item in _host!.DescendantsOrSelf())
+            foreach (var item in MeshObjects())
             {
                 var geo = item.Feature<Geometry3D>();
                 if (geo == null)
                     continue;
 
                 var pyGeo = geo.GetProp<PhysicsGeometry>("PyGeo")!;
-
 
                 var localRay = ray.Transform(item.WorldMatrixInverse);
 
@@ -91,7 +95,7 @@ namespace XrEngine.Physics
         {
             if (_isInit)
                 return;
-            foreach (var item in _host!.DescendantsOrSelf())
+            foreach (var item in MeshObjects())
             {
                 var geo = item.Feature<Geometry3D>();
                 if (geo == null)
@@ -101,7 +105,7 @@ namespace XrEngine.Physics
                 {
                     geo.EnsureIndices();
 
-                    Matrix4x4.Decompose(_host!.WorldMatrix, out var scale, out _, out _);
+                    Matrix4x4.Decompose(item.WorldMatrix, out var scale, out _, out _);
 
                     return _system!.CreateTriangleMesh(
                         geo.Indices,
@@ -113,5 +117,9 @@ namespace XrEngine.Physics
 
             _isInit = true;
         }
+
+
+        public Func<IEnumerable<Object3D>> MeshObjects { get; set; }    
+
     }
 }

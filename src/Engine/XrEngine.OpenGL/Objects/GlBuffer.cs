@@ -41,7 +41,7 @@ namespace XrEngine.OpenGL
 
             var newArrayLen = sizeBytes / (uint)sizeof(T); 
 
-            if (_arrayLength != newArrayLen)
+            if (_arrayLength != newArrayLen || _target == BufferTargetARB.UniformBuffer)
             {
                 var usage = _target == BufferTargetARB.UniformBuffer ? BufferUsageARB.StreamDraw : BufferUsageARB.StaticDraw;
                 _gl.BufferData(_target, sizeBytes, (void*)data, usage);

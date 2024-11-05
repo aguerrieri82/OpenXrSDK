@@ -8,7 +8,9 @@ namespace XrEngine.Physics
     {
         None,
         Distance,
-        Revolute
+        Revolute,
+        Fixed,
+        D6
     }
 
     public class Joint : IDisposable   
@@ -48,8 +50,18 @@ namespace XrEngine.Physics
             {
                 _joint = system.CreateRevoluteJoint(rb0.Actor, Pose0, rb1.Actor, Pose1);
             }
+            else if (Type == JointType.Fixed)
+            {
+                _joint = system.CreateFixedJoint(rb0.Actor, Pose0, rb1.Actor, Pose1);
+            }
+            else if (Type == JointType.D6)
+            {
+                _joint = system.CreateD6Joint(rb0.Actor, Pose0, rb1.Actor, Pose1);
+            }
 
-            RevoluteJoint.ConstraintFlags |= PhysX.PxConstraintFlags.CollisionEnabled;
+            //RevoluteJoint.ConstraintFlags |= PhysX.PxConstraintFlags.CollisionEnabled;
+
+            Configure?.Invoke(this);
 
             UpdatePhysics();
         }
@@ -99,6 +111,15 @@ namespace XrEngine.Physics
 
 
         public PhysicsRevoluteJoint RevoluteJoint => _joint as PhysicsRevoluteJoint ?? throw new InvalidOperationException("Joint is not a revolute joint");
+        
+        public PhysicsFixedJoint FixedJoint => _joint as PhysicsFixedJoint ?? throw new InvalidOperationException("Joint is not a fixed joint");
+
+        public PhysicsD6Joint D6Joint => _joint as PhysicsD6Joint ?? throw new InvalidOperationException("Joint is not a fixed joint");
+
+        public PhysicsJoint BaseJoint => _joint ?? throw new InvalidOperationException("Joint is not a created");
+
+        public bool IsCreated => _joint != null;    
+
 
         public JointType Type { get; set; } 
 
@@ -125,6 +146,8 @@ namespace XrEngine.Physics
         public float InvMassScale0 { get; set; }
 
         public float InvMassScale1 { get; set; }
+
+        public Action<Joint>? Configure { get; set; }
 
     }
 }

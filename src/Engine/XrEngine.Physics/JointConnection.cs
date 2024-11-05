@@ -8,7 +8,7 @@ using XrMath;
 
 namespace XrEngine.Physics
 {
-    internal class JointConnection : BaseComponent<Object3D>, IDisposable
+    public class JointConnection : BaseComponent<Object3D>, IDisposable, IDrawGizmos
     {
         public JointConnection(Joint joint, int index)
         {
@@ -25,6 +25,8 @@ namespace XrEngine.Physics
 
             Joint.Dispose();
         }
+
+ 
 
         [Range(0, 100, 0.1f)]
         public float Damping
@@ -46,6 +48,34 @@ namespace XrEngine.Physics
                 Joint.Stiffness = value;
                 Joint.UpdatePhysics();
             }
+        }
+
+        public void DrawGizmos(Canvas3D canvas)
+        {
+            if (!Joint.IsCreated)
+                return;
+
+            canvas.Save();
+
+            canvas.State.Transform = Joint.Object0!.WorldMatrix;
+            canvas.State.Color = "#ff0000"; 
+
+            var ps0 = Joint.BaseJoint.LocalPose0;
+
+            var start = ps0.Position;
+            var end = start + Vector3.UnitX.Transform(ps0.Orientation) * 0.5f;
+
+            canvas.DrawLine(start, end);
+
+            canvas.State.Transform = Joint.Object1!.WorldMatrix;
+            canvas.State.Color = "#00FF00";
+
+            var ps1 = Joint.BaseJoint.LocalPose1;
+            start = ps1.Position;
+            end = start + Vector3.UnitX.Transform(ps1.Orientation) * 0.5f;
+            canvas.DrawLine(start, end);
+
+            canvas.Restore();
         }
 
         public Object3D? Other => Index == 0 ? Joint.Object1 : Joint.Object0;

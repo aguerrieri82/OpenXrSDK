@@ -6,9 +6,9 @@ namespace PhysX.Framework
 {
     public struct SolverIterations
     {
-        public uint Min;
+        public uint MinPos;
 
-        public uint Max;
+        public uint MinVel;
     }
 
     public unsafe class PhysicsRigidDynamic : PhysicsRigidBody
@@ -59,12 +59,12 @@ namespace PhysX.Framework
             get
             {
                 SolverIterations result;
-                RigidDynamic.GetSolverIterationCounts(&result.Min, &result.Max);
+                RigidDynamic.GetSolverIterationCounts(&result.MinPos, &result.MinVel);
                 return result;
             }
             set
             {
-                RigidDynamic.SetSolverIterationCountsMut(value.Min, value.Max);
+                RigidDynamic.SetSolverIterationCountsMut(value.MinPos, value.MinVel);
             }
         }
 
