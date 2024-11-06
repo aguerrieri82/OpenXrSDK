@@ -312,11 +312,17 @@ namespace XrMath
             };
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Pose3 Transform(this Pose3 pose, Pose3 other)
+        {
+            return other.Multiply(pose);
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 Transform(this Pose3 pose, Vector3 vector)
+        public static Vector3 Transform(this Pose3 self, Vector3 other)
         {
-            return pose.Position + Vector3.Transform(vector, pose.Orientation);
+            return self.Position + Vector3.Transform(other, self.Orientation);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -329,6 +335,15 @@ namespace XrMath
             };
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Pose3 Difference(this Pose3 self, Pose3 other)
+        {
+            return new Pose3
+            {
+                Orientation = Quaternion.Inverse(self.Orientation) * other.Orientation,
+                Position = other.Position - self.Position
+            };
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Ray3 ToRay(this Pose3 self)
@@ -844,6 +859,13 @@ namespace XrMath
         {
             return (self.From + self.To) / 2;
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Line3 Reverse(this Line3 self)
+        {
+            return new Line3(self.To, self.From);   
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Line3 Expand(this Line3 self, float fromDelta, float toDelta)

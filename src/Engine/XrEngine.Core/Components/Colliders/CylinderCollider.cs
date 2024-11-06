@@ -12,17 +12,19 @@ namespace XrEngine
     {
         public Collision? CollideWith(Ray3 ray)
         {
+            //TODO: Implement
             return null;
         }
 
-        public bool ContainsPoint(Vector3 globalPoint)
+        public bool ContainsPoint(Vector3 worldPoint)
         {
+            //TODO: Implement
             return false;
         }
 
         public void Initialize()
         {
-           
+            //TODO: Implement
         }
 
 

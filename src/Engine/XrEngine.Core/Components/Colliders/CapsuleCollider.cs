@@ -25,7 +25,7 @@ namespace XrEngine
 
         }
 
-        public bool ContainsPoint(Vector3 globalPoint)
+        public bool ContainsPoint(Vector3 worldPoint)
         {
             throw new NotImplementedException();        
         }
@@ -61,6 +61,7 @@ namespace XrEngine
             Height = container.Read<float>(nameof(Height));
             Radius = container.Read<float>(nameof(Radius));
             Mode = container.Read<CapsuleColliderMode>(nameof(Mode));
+            Pose = container.Read<Pose3>(nameof(Pose));
         }
 
         public override void GetState(IStateContainer container)
@@ -69,6 +70,7 @@ namespace XrEngine
             container.Write(nameof(Height), Height);
             container.Write(nameof(Radius), Radius);
             container.Write(nameof(Mode), Mode);
+            container.Write(nameof(Pose), Pose);
         }
 
         public float Height { get; set; }

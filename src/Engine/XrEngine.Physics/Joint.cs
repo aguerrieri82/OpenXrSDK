@@ -1,4 +1,5 @@
-﻿using PhysX.Framework;
+﻿using PhysX;
+using PhysX.Framework;
 using System.Numerics;
 using XrMath;
 
@@ -12,6 +13,69 @@ namespace XrEngine.Physics
         Fixed,
         D6
     }
+    public class JointOptions
+    {
+        public JointOptions()
+        {
+            InvInertiaScale0 = 1;
+            InvInertiaScale1 = 1;
+            InvMassScale0 = 1;
+            InvMassScale1 = 1;
+        }
+
+        public PxConstraintFlags ConstraintFlags;
+        public float InvInertiaScale0;
+        public float InvInertiaScale1;
+        public float InvMassScale0;
+        public float InvMassScale1;
+        public string? Name;
+    }
+
+    public class RevoluteJointOptions : JointOptions
+    {
+        public RevoluteJointOptions()
+        {
+            DriveGearRatio = 1;
+            DriveForceLimit = float.MaxValue;
+        }
+
+        public PxJointAngularLimitPair? Limit;
+        public float DriveVelocity;
+        public float DriveForceLimit;
+        public float DriveGearRatio;
+        public PxRevoluteJointFlags RevoluteJointFlags;
+    }
+
+    public class D6JointOptions : JointOptions
+    {
+        public D6JointOptions()
+        {
+            ProjectionAngularTolerance = MathF.PI;
+            ProjectionLinearTolerance = 1e10f;
+        }
+
+        public PxJointAngularLimitPair? TwistLimit;
+        public PxJointLimitCone? SwingLimit;
+        public PxJointLimitPyramid? PyramidSwingLimit;
+        public PxJointLinearLimit? DistanceLimit;
+        public float ProjectionAngularTolerance;
+        public float ProjectionLinearTolerance;
+        public Pose3? DrivePosition;
+        public Vector3 DriveAngularVelocity;
+        public Vector3 DriveLinearVelocity;
+        public PxD6JointDrive? DriveX;
+        public PxD6JointDrive? DriveY;
+        public PxD6JointDrive? DriveZ;
+        public PxD6JointDrive? DriveSwing;
+        public PxD6JointDrive? DriveTwist;
+        public PxD6JointDrive? DriveSlerp;
+        public PxD6Motion MotionX;
+        public PxD6Motion MotionY;
+        public PxD6Motion MotionZ;
+        public PxD6Motion MotionSwing1;
+        public PxD6Motion MotionSwing2;
+        public PxD6Motion MotionTwist;
+    }
 
     public class Joint : IDisposable   
     {
@@ -20,10 +84,6 @@ namespace XrEngine.Physics
 
         public Joint()
         {
-            InvInertiaScale0 = 1;
-            InvInertiaScale1 = 1;
-            InvMassScale0 = 1;
-            InvMassScale1 = 1;
         }
 
         internal void Create(RenderContext ctx)
@@ -59,11 +119,91 @@ namespace XrEngine.Physics
                 _joint = system.CreateD6Joint(rb0.Actor, Pose0, rb1.Actor, Pose1);
             }
 
-            //RevoluteJoint.ConstraintFlags |= PhysX.PxConstraintFlags.CollisionEnabled;
-
             Configure?.Invoke(this);
 
             UpdatePhysics();
+        }
+
+        protected void SetOptionsBase(JointOptions options)
+        {
+            _joint!.ConstraintFlags = options.ConstraintFlags;
+            _joint.InvInertiaScale0 = options.InvInertiaScale0;
+            _joint.InvInertiaScale1 = options.InvInertiaScale1;
+            _joint.InvMassScale0 = options.InvMassScale0;
+            _joint.InvMassScale1 = options.InvMassScale1;
+
+            if (options.Name != null)
+                _joint.Name = options.Name;
+
+            if (options is RevoluteJointOptions rev)
+                SetOptions(rev);
+
+            else if (options is D6JointOptions d6)
+                SetOptions(d6);
+        }
+
+        protected void SetOptions(RevoluteJointOptions options)
+        {
+            var target = RevoluteJoint;
+
+            if (options.Limit != null)  
+                target.Limit = options.Limit.Value;
+
+            target.DriveVelocity = options.DriveVelocity;
+            target.DriveForceLimit = options.DriveForceLimit;
+            target.DriveGearRatio = options.DriveGearRatio;
+            target.RevoluteJointFlags = options.RevoluteJointFlags;
+        }
+
+        protected void SetOptions(D6JointOptions options)
+        {
+            var target = D6Joint;
+
+            if (options.TwistLimit != null)
+                target.TwistLimit = options.TwistLimit.Value;
+            
+            if (options.SwingLimit != null)
+                target.SwingLimit = options.SwingLimit.Value;
+            
+            if (options.PyramidSwingLimit != null)
+                target.PyramidSwingLimit = options.PyramidSwingLimit.Value;
+            
+            if (options.DistanceLimit != null)
+                target.DistanceLimit = options.DistanceLimit.Value;
+
+            target.ProjectionAngularTolerance = options.ProjectionAngularTolerance;
+            target.ProjectionLinearTolerance = options.ProjectionLinearTolerance;
+            
+            if (options.DrivePosition != null)
+                target.DrivePosition = options.DrivePosition.Value;
+
+            target.DriveAngularVelocity = options.DriveAngularVelocity;
+            target.DriveLinearVelocity = options.DriveLinearVelocity;
+            
+            if (options.DriveX != null)
+                target.DriveX = options.DriveX.Value;
+
+            if (options.DriveY != null)
+                target.DriveY = options.DriveY.Value;
+
+            if (options.DriveZ != null)
+                target.DriveZ = options.DriveZ.Value;
+            
+            if (options.DriveSwing != null)
+                target.DriveSwing = options.DriveSwing.Value;
+            
+            if (options.DriveTwist != null)
+                target.DriveTwist = options.DriveTwist.Value;
+
+            if (options.DriveSlerp != null)
+                target.DriveSlerp = options.DriveSlerp.Value;
+
+            target.MotionX = options.MotionX;
+            target.MotionY = options.MotionY;
+            target.MotionZ = options.MotionZ;
+            target.MotionSwing1 = options.MotionSwing1;
+            target.MotionSwing2 = options.MotionSwing2;
+            target.MotionTwist = options.MotionTwist;
         }
 
         public void UpdatePhysics()
@@ -71,27 +211,11 @@ namespace XrEngine.Physics
             if (_joint == null)
                 return;
 
-            if (_joint is PhysicsRevoluteJoint revoluteJoint)
-            {
-                var limit = revoluteJoint.Limit;
+            if (Options != null)
+                SetOptionsBase(Options);
 
-                limit.damping = Damping;
-                limit.lower = -MathF.PI;
-                limit.upper = MathF.PI;
-                limit.bounceThreshold = BounceThreshold;
-                limit.stiffness = Stiffness;
-                limit.restitution = Restitution;
-      
-                revoluteJoint.RevoluteJointFlags |= PhysX.PxRevoluteJointFlags.LimitEnabled;
-
-                revoluteJoint.Limit = limit;
-            }
-
-            _joint.InvInertiaScale0 = InvInertiaScale0;
-            _joint.InvInertiaScale1 = InvInertiaScale1;
-            _joint.InvMassScale0 = InvMassScale0;
-            _joint.InvMassScale1 = InvMassScale1;
-
+            _joint.LocalPose0 = Pose0;
+            _joint.LocalPose1 = Pose1;
         }
 
         public void Destroy()
@@ -120,7 +244,6 @@ namespace XrEngine.Physics
 
         public bool IsCreated => _joint != null;    
 
-
         public JointType Type { get; set; } 
 
         public Object3D? Object0 { get; set; }
@@ -131,23 +254,8 @@ namespace XrEngine.Physics
 
         public Pose3 Pose1 { get; set; }    
 
-        public float Damping { get; set; }    
-
-        public float BounceThreshold { get; set; }
-
-        public float Stiffness { get; set; }
-
-        public float Restitution { get; set; }
-
-        public float InvInertiaScale0 { get; set; }
-
-        public float InvInertiaScale1 { get; set; }
-
-        public float InvMassScale0 { get; set; }
-
-        public float InvMassScale1 { get; set; }
+        public JointOptions? Options { get; set; }   
 
         public Action<Joint>? Configure { get; set; }
-
     }
 }

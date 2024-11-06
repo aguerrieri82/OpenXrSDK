@@ -56,7 +56,7 @@ namespace XrEngine
             _isInit = true;
         }
 
-        public bool ContainsPoint(Vector3 globalPoint)
+        public bool ContainsPoint(Vector3 worldPoint)
         {
             return false;
         }
