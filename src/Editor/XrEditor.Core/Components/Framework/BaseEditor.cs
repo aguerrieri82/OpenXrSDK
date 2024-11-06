@@ -1,6 +1,7 @@
 ﻿#pragma warning disable CS8618 
 
 using UI.Binding;
+using XrEngine;
 
 namespace XrEditor
 {
@@ -8,6 +9,13 @@ namespace XrEditor
     {
         protected TEdit _editValue;
         protected IProperty<TValue>? _binding;
+        protected IDispatcher _dispatcher;
+        protected internal int _isLoading;
+
+        public BaseEditor()
+        {
+            _dispatcher = EngineApp.Current!.Dispatcher;
+        }   
 
         public virtual void NotifyValueChanged()
         {
@@ -67,15 +75,32 @@ namespace XrEditor
 
         protected virtual void OnEditValueChanged(TEdit newValue)
         {
+            if (_isLoading > 0)
+                return;
+
             if (_binding != null)
-                _binding.Value = EditValueToBind(newValue);
+            {
+                _dispatcher.ExecuteAsync(() =>
+                {
+                    _binding.Value = EditValueToBind(newValue);
+                });
+            }
 
             ValueChanged?.Invoke(this);
         }
 
         protected virtual void OnBindValueChanged(TValue newValue)
         {
-            EditValue = BindToEditValue(newValue);
+            _isLoading++;
+            try
+            {
+                EditValue = BindToEditValue(newValue);
+            }
+            finally
+            {
+                _isLoading--;   
+            }
+      
         }
 
         private void OnBindValueChanged(object? sender, EventArgs e)

@@ -9,7 +9,6 @@ namespace XrEngine
 
         protected override void Start(RenderContext ctx)
         {
-
         }
 
         public void Initialize()
@@ -48,24 +47,25 @@ namespace XrEngine
 
                 Vector3 normal = Vector3.Zero;
 
-                if (MathF.Abs(localPoint.Z - bounds.Min.Z) <= 0.0001f)
+                const float epsilon = 0.0001f;
+
+                if (MathF.Abs(localPoint.Z - bounds.Min.Z) <= epsilon)
                     normal = -Vector3.UnitZ;
 
-                else if (MathF.Abs(localPoint.Z - bounds.Max.Z) <= 0.0001f)
+                else if (MathF.Abs(localPoint.Z - bounds.Max.Z) <= epsilon)
                     normal = Vector3.UnitZ;
 
-                else if (MathF.Abs(localPoint.X - bounds.Min.X) <= 0.0001f)
+                else if (MathF.Abs(localPoint.X - bounds.Min.X) <= epsilon)
                     normal = -Vector3.UnitX;
 
-                else if (MathF.Abs(localPoint.X - bounds.Max.X) <= 0.0001f)
+                else if (MathF.Abs(localPoint.X - bounds.Max.X) <= epsilon)
                     normal = Vector3.UnitX;
 
-                else if (MathF.Abs(localPoint.Y - bounds.Min.Y) <= 0.0001f)
+                else if (MathF.Abs(localPoint.Y - bounds.Min.Y) <= epsilon)
                     normal = -Vector3.UnitY;
 
-                else if (MathF.Abs(localPoint.Y - bounds.Max.Y) <= 0.0001f)
+                else if (MathF.Abs(localPoint.Y - bounds.Max.Y) <= epsilon)
                     normal = Vector3.UnitY;
-
 
                 return new Collision()
                 {
@@ -93,12 +93,12 @@ namespace XrEngine
             container.Write(nameof(Center), Center);
         }
 
-        public bool ContainsPoint(Vector3 globalPoint)
+        public bool ContainsPoint(Vector3 worldPoint)
         {
             if (!_isInit)
                 Initialize();
 
-            var localPoint = _host!.ToLocal(globalPoint);
+            var localPoint = _host!.ToLocal(worldPoint);
 
             var bounds = new Bounds3
             {
@@ -112,6 +112,5 @@ namespace XrEngine
         public Vector3 Size { get; set; }
 
         public Vector3 Center { get; set; }
-
     }
 }

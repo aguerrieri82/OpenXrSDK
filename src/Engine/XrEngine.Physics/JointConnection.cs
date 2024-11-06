@@ -27,29 +27,6 @@ namespace XrEngine.Physics
         }
 
  
-
-        [Range(0, 100, 0.1f)]
-        public float Damping
-        {
-            get => Joint.Damping;
-            set
-            {
-                Joint.Damping = value;  
-                Joint.UpdatePhysics();
-            }
-        }
-
-        [Range(0, 1000, 1f)]
-        public float Stiffness
-        {
-            get => Joint.Stiffness;
-            set
-            {
-                Joint.Stiffness = value;
-                Joint.UpdatePhysics();
-            }
-        }
-
         public void DrawGizmos(Canvas3D canvas)
         {
             if (!Joint.IsCreated)
@@ -57,22 +34,45 @@ namespace XrEngine.Physics
 
             canvas.Save();
 
-            canvas.State.Transform = Joint.Object0!.WorldMatrix;
-            canvas.State.Color = "#ff0000"; 
-
             var ps0 = Joint.BaseJoint.LocalPose0;
+            var ps1 = Joint.BaseJoint.LocalPose1;
 
             var start = ps0.Position;
             var end = start + Vector3.UnitX.Transform(ps0.Orientation) * 0.5f;
-
+            canvas.State.Transform = Joint.Object0!.WorldMatrix;
+            canvas.State.Color = "#ff0000";
             canvas.DrawLine(start, end);
 
-            canvas.State.Transform = Joint.Object1!.WorldMatrix;
-            canvas.State.Color = "#00FF00";
-
-            var ps1 = Joint.BaseJoint.LocalPose1;
             start = ps1.Position;
             end = start + Vector3.UnitX.Transform(ps1.Orientation) * 0.5f;
+            canvas.State.Transform = Joint.Object1!.WorldMatrix;
+            canvas.State.Color = "#800000";
+            canvas.DrawLine(start, end);
+
+            //Y
+            start = ps0.Position;
+            end = start + Vector3.UnitY.Transform(ps0.Orientation) * 0.5f;
+            canvas.State.Transform = Joint.Object0!.WorldMatrix;
+            canvas.State.Color = "#00ff00";
+            canvas.DrawLine(start, end);
+
+            start = ps1.Position;
+            end = start + Vector3.UnitY.Transform(ps1.Orientation) * 0.5f;
+            canvas.State.Transform = Joint.Object1!.WorldMatrix;
+            canvas.State.Color = "#008000";
+            canvas.DrawLine(start, end);
+
+            //Z
+            start = ps0.Position;
+            end = start + Vector3.UnitZ.Transform(ps0.Orientation) * 0.5f;
+            canvas.State.Transform = Joint.Object0!.WorldMatrix;
+            canvas.State.Color = "#0000ff";
+            canvas.DrawLine(start, end);
+
+            start = ps1.Position;
+            end = start + Vector3.UnitZ.Transform(ps1.Orientation) * 0.5f;
+            canvas.State.Transform = Joint.Object1!.WorldMatrix;
+            canvas.State.Color = "#000080";
             canvas.DrawLine(start, end);
 
             canvas.Restore();

@@ -104,8 +104,8 @@ namespace PhysX.Framework
             }
             set
             {
-                var angular = DriveAngularVelocity;
-                D6Joint.SetDriveVelocityMut((PxVec3*)&value, (PxVec3*)&angular, true);
+                var linear = DriveLinearVelocity;
+                D6Joint.SetDriveVelocityMut((PxVec3*)&linear, (PxVec3*)&value, true);
 
             }
         }

@@ -50,7 +50,7 @@ namespace XrEngine
             _version = _geometry.Version;
         }
 
-        public bool ContainsPoint(Vector3 globalPoint)
+        public bool ContainsPoint(Vector3 worldPoint)
         {
             throw new NotImplementedException();
         }
@@ -105,8 +105,8 @@ namespace XrEngine
             return collision;
         }
 
+        public bool UseConvexHull { get; set; }
 
         public Geometry3D? Geometry => _geometry;
-
     }
 }

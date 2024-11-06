@@ -12,7 +12,8 @@ namespace XrEngine.Physics
 
         public PyMeshCollider()
         {
-            MeshObjects = () => _host!.DescendantsOrSelf(); 
+            MeshObjects = () => _host!.DescendantsOrSelf();
+            Tolerance = 0.01f;
         }
 
         protected override void Start(RenderContext ctx)
@@ -107,11 +108,19 @@ namespace XrEngine.Physics
 
                     Matrix4x4.Decompose(item.WorldMatrix, out var scale, out _, out _);
 
+                    if (UseConvexMesh)
+                    {
+                        return _system!.CreateConvexMesh(
+                          geo.Indices,
+                          geo.ExtractPositions(),
+                          scale);
+                    }
+                   
                     return _system!.CreateTriangleMesh(
                         geo.Indices,
                         geo.ExtractPositions(),
                         scale,
-                        0.01f);
+                        Tolerance);
                 });
             }
 
@@ -119,7 +128,11 @@ namespace XrEngine.Physics
         }
 
 
-        public Func<IEnumerable<Object3D>> MeshObjects { get; set; }    
+        public Func<IEnumerable<Object3D>> MeshObjects { get; set; }  
+
+        public bool UseConvexMesh { get; set; } 
+
+        public float Tolerance { get; set; }
 
     }
 }

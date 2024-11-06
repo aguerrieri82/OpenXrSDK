@@ -1089,6 +1089,7 @@ namespace XrSamples
             car.Name = "car";
             car.AddComponent<BoundsGrabbable>();
 
+            var bodyMeshes = new HashSet<TriangleMesh>();
 
             foreach (var mat in car.DescendantsOrSelf().OfType<TriangleMesh>().SelectMany(a => a.Materials).Distinct())
             {
@@ -1103,6 +1104,8 @@ namespace XrSamples
                     {
                         pbr.Color = "#FF0100FF";
                         pbr.Roughness = 0.15f;
+                        foreach (var host in mat.Hosts)
+                            bodyMeshes.Add((TriangleMesh)host);
                     }
                 }
             }
@@ -1113,8 +1116,12 @@ namespace XrSamples
                 WheelFR = car.GroupByName("wheel.Ft.R.003", "wheelbrake.Ft.R.003"),
                 WheelBL = car.GroupByName("wheel.Bk.L.003", "wheelbrake.Bk.R.003"),
                 WheelBR = car.GroupByName("wheel.Bk.R.003", "wheelbrake.Bk.R.001"),
+                CarBody = car.GroupByName("body.003"),
+                CarBodyCollisionMeshes = bodyMeshes,
                 SteeringWheel = car.GroupByName("leatherB_steering.003", "chrome_steering.003", "chrome_logo_steering.003")
             };
+
+            model.CarBody.Name = "car-body";
 
             car.UpdateBounds(true);
             car.AddComponent(model);
@@ -1128,9 +1135,10 @@ namespace XrSamples
                 XrEngine.MeshOptimizer.OptimizeVertexFetch(mesh.Geometry!);
             }
           
-            var tex = TextureFactory.CreateChecker();
-
-            var cube = new TriangleMesh(new Cube3D(new Vector3(1, 0.2f, 1)), (Material)MaterialFactory.CreatePbr(tex));
+            var checkerMat = (Material)MaterialFactory.CreatePbr(TextureFactory.CreateChecker());
+           
+            /*
+            var cube = new TriangleMesh(new Cube3D(new Vector3(1, 0.2f, 1)), checkerMat);
             cube.Geometry!.ScaleUV(new Vector2(2, 2)); 
             cube.AddComponent<BoxCollider>();
             
@@ -1138,7 +1146,7 @@ namespace XrSamples
             rb1.Type = PhysicsActorType.Static;
             rb1.AutoTeleport = true;
 
-            /*
+     
             var steer = new MeshBuilder().AddRevolve(new Circle2D
             {
                 Center = new Vector2(0.4f, 0), 
@@ -1146,7 +1154,7 @@ namespace XrSamples
             }, 40).ToGeometry();
 
 
-            var steerMesh = new TriangleMesh(steer, (Material)MaterialFactory.CreatePbr(tex));
+            var steerMesh = new TriangleMesh(steer, checkerMat);
             steerMesh.Transform.SetPositionY(0.35f);
             steerMesh.AddComponent<PyMeshCollider>();
             var rb2 = steerMesh.AddComponent<RigidBody>();
@@ -1163,8 +1171,8 @@ namespace XrSamples
             grp.Transform.Rotation = new Vector3(0, -74, -46) / 180 * MathF.PI;
             */
 
-            var floor = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), (Material)MaterialFactory.CreatePbr(tex));
-            floor.Name = "Floor";
+            var floor = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), checkerMat);
+            floor.Name = "foor";
             floor.Transform.SetPositionY(-0.005f);
             floor.Geometry!.ScaleUV(new Vector2(20, 20));
             floor.AddComponent(new RigidBody
@@ -1178,12 +1186,28 @@ namespace XrSamples
                 }
             });
 
+            var wall = new TriangleMesh(new Cube3D(new Vector3(5, 3, 0.5f)), checkerMat);
+            wall.Name = "wall";
+            wall.Transform.Position = new Vector3(0, 1.5f, -5f);
+            wall.Geometry!.ScaleUV(new Vector2(5, 3));
+            wall.AddComponent(new RigidBody
+            {
+                Type = PhysicsActorType.Static,
+                Material = new PhysicsMaterialInfo()
+                {
+                    StaticFriction = 1f,
+                    DynamicFriction = 1f,
+                    Restitution = 0.2f
+                }
+            });
+
             scene.AddChild(floor);
+            scene.AddChild(wall);
             scene.AddChild(car);
             //scene.AddChild(grp);
 
             model.Create();
-            model.HideCar();
+            model.CarBody!.IsVisible = false;
 
             return builder
                 .UseApp(app)

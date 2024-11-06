@@ -102,10 +102,9 @@ namespace XrEngine.Physics
 
                 local.BoundUpdateMode = UpdateMode.Automatic;
 
-                result = _system.CreateBox(local.LocalBounds.Size / 2);
+                result = _system.CreateBox(local.LocalBounds.Size / 2 * scale);
 
                 pose.Position = local.LocalBounds.Center;
-
             }
             else
             {
@@ -122,23 +121,25 @@ namespace XrEngine.Physics
                 {
                     mc.Geometry.EnsureIndices();
 
-                    result = _system.CreateTriangleMesh(
-                        mc.Geometry.Indices,
-                        mc.Geometry.ExtractPositions(),
-                        scale, LengthToleranceScale
-                    );
-                    /*
-                    pyGeo = _system.CreateConvexMesh(
-                          mc.Geometry.Indices,
-                          mc.Geometry.ExtractPositions(),
-                          Vector3.One
-                      );
-                    */
+                    if (mc.UseConvexHull)
+                    {
+                        result = _system.CreateConvexMesh(
+                              mc.Geometry.Indices,
+                              mc.Geometry.ExtractPositions(),
+                              scale);
+                    }
+                    else
+                    {
+                        result = _system.CreateTriangleMesh(
+                            mc.Geometry.Indices,
+                            mc.Geometry.ExtractPositions(),
+                            scale, LengthToleranceScale);
+                    }
                 }
                 else if (collider is PyMeshCollider py)
                 {
                     if (collider.Host is not TriangleMesh mesh)
-                        mesh = py.MeshObjects().OfType<TriangleMesh>().FirstOrDefault();
+                        mesh = py.MeshObjects().OfType<TriangleMesh>().FirstOrDefault()!;
 
                     var geo3d = mesh?.Geometry;
 
@@ -157,27 +158,27 @@ namespace XrEngine.Physics
                 else if (collider is SphereCollider sphere)
                 {
                     result = _system.CreateSphere(sphere.Radius * scale.X);
-
+                    pose.Position = sphere.Center;       
                 }
                 else if (collider is CylinderCollider cyl)
                 {
                     var points = new List<Vector3>();
-                    float halfHeight = cyl.Height / 2;
+
+                    var halfHeight = cyl.Height / 2;
                     
-                    var numSegments = (cyl.Radius * 2 * MathF.PI) / 0.01;
+                    var numSegments = (cyl.Radius * 2 * MathF.PI) / 0.01f; //1cm
 
                     for (int i = 0; i < numSegments; i++)
                     {
-                        float angle = (float)(2 * Math.PI * i / numSegments);
-                        float x = cyl.Radius * (float)Math.Cos(angle);
-                        float z = cyl.Radius * (float)Math.Sin(angle);
+                        var angle = (2f * MathF.PI * i / numSegments);
+                        var x = cyl.Radius * MathF.Cos(angle);
+                        var z = cyl.Radius * MathF.Sin(angle);
 
-                        // Top and bottom points
-                        points.Add(new Vector3(x, halfHeight, z));   // Top circle
-                        points.Add(new Vector3(x, -halfHeight, z));  // Bottom circle
+                        points.Add(new Vector3(x, halfHeight, z));  
+                        points.Add(new Vector3(x, -halfHeight, z));  
                     }
 
-                    result = _system.CreateConvexMesh(null, points.ToArray(), Vector3.One);
+                    result = _system.CreateConvexMesh(null, points.ToArray(), scale);
 
                     pose = cyl.Pose;    
                 }
@@ -274,7 +275,7 @@ namespace XrEngine.Physics
         {
             Debug.Assert(_host?.Scene != null);
 
-            _manager = _host.Scene.Components<PhysicsManager>().FirstOrDefault();
+            _host.Scene.TryComponent(out _manager);
 
             _system = _manager?.System;
 
@@ -325,7 +326,7 @@ namespace XrEngine.Physics
             });
 
             /*
-         
+            //TODO: scale is set at shape creation
             if (scale.X != 1)
                 _actor.SetScale(scale.X); 
             */
@@ -370,9 +371,9 @@ namespace XrEngine.Physics
             if (Type != PhysicsActorType.Static)
             {
                 DynamicActor.ContactReportThreshold = ContactReportThreshold;
+                //TODO for some reason UpdateMassAndInertia fails
                 //var res = DynamicActor.UpdateMassAndInertia(Density);
                 DynamicActor.AngularDamping = AngularDamping;
-  
             }
 
             if (Type == PhysicsActorType.Dynamic)
@@ -441,7 +442,10 @@ namespace XrEngine.Physics
                     }
                 }
                 else if (Type == PhysicsActorType.Static)
-                    _actor.GlobalPose = curPose;
+                {
+                    if (!Equals(_actor.GlobalPose, curPose))
+                        _actor.GlobalPose = curPose;
+                }
             }
             else
             {

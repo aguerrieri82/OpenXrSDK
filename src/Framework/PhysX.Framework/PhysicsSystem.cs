@@ -37,6 +37,8 @@ namespace PhysX.Framework
             SpeedTolerance = 4;
             DebugHost = "192.168.1.89";
             DebugPort = 5425;
+            EnablePCM = true;
+            EnableCCD = true;
             UseDebug = true;
             Gravity = new Vector3(0, -9.81f, 0);
         }
@@ -69,6 +71,7 @@ namespace PhysX.Framework
         protected PxTolerancesScale _tolerancesScale;
         protected PxPhysics* _physics;
         protected PxDefaultCpuDispatcher* _dispatcher;
+        private PhysicsOptions _options;
         protected PhysicsScene? _scene;
 
         protected uint _actorIds;
@@ -260,7 +263,6 @@ namespace PhysX.Framework
             var tr0 = pose0.ToPxTransform();
             var tr1 = pose1.ToPxTransform();
 
-
             var handle = _physics->PhysPxFixedJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
 
             var result = new PhysicsFixedJoint(handle, this);
@@ -418,7 +420,13 @@ namespace PhysX.Framework
             sceneDesc.solverType = PxSolverType.Pgs;
             sceneDesc.contactModifyCallback = _contactModify.Handle;
             sceneDesc.simulationEventCallback = _eventCallbacks.Handle;
-            sceneDesc.flags = PxSceneFlags.EnableCcd | PxSceneFlags.EnablePcm | PxSceneFlags.EnableEnhancedDeterminism;
+
+            if (_options.EnableCCD)
+                sceneDesc.flags |= PxSceneFlags.EnableCcd;
+            if (_options.EnablePCM)
+                sceneDesc.flags |= PxSceneFlags.EnablePcm;
+
+            sceneDesc.flags |= PxSceneFlags.EnableEnhancedDeterminism;
             sceneDesc.EnableCustomFilterShader(&FilterShader, 1);
            
             _scene = new PhysicsScene(_physics->CreateSceneMut(&sceneDesc), this);
@@ -449,6 +457,7 @@ namespace PhysX.Framework
             var notCollide = info->filterData0.word1 & info->filterData1.word1; 
             if (notCollide != 0)
                 return PxFilterFlags.Suppress;
+
 
             if (actor1.NotifyContacts || actor2.NotifyContacts)
                 info->pairFlags[0] |=
@@ -505,6 +514,8 @@ namespace PhysX.Framework
             _physics->PhysPxInitExtensions(_pvd);
 
             _dispatcher = phys_PxDefaultCpuDispatcherCreate(1, null, PxDefaultCpuDispatcherWaitForWorkMode.WaitForWork, 0);
+
+            _options = options;
         }
 
         public void Simulate(TimeSpan delta, float stepSize)
