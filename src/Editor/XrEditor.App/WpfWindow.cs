@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using XrMath;
 
 namespace XrEditor
 {
     public class WpfWindow : IWindow
     {
-        private Window _window;
+        private readonly Window _window;
 
         public WpfWindow(Window window)
         {
@@ -30,7 +25,7 @@ namespace XrEditor
         public WindowState State
         {
             get => (WindowState)_window.WindowState;
-            set => _window.WindowState = (System.Windows.WindowState)value; 
+            set => _window.WindowState = (System.Windows.WindowState)value;
         }
 
         public void Close()

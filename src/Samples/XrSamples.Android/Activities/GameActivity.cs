@@ -88,7 +88,7 @@ namespace XrSamples.Android.Activities
             builder.RemovePlaneGrid()
                    .AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
 
-            builder.UseSpaceWarp(); 
+            builder.UseSpaceWarp();
 
             if (_settings.UsePbrV2)
                 MaterialFactory.DefaultPbr = typeof(PbrV2Material);
@@ -99,7 +99,7 @@ namespace XrSamples.Android.Activities
 
             var manager = XrEngine.Context.Require<SampleManager>();
             var sample = manager.GetSample(_settings.SampleName!);
-           
+
             sample.Build!(builder);
 
         }

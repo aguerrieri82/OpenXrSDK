@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace MeshOptimizer
 {
@@ -24,7 +23,7 @@ namespace MeshOptimizer
             float target_error,
             uint options,
             out float result_error);
-    
+
 
         [DllImport("meshoptimizer-native", CallingConvention = CallingConvention.Cdecl)]
         public static extern long meshopt_generateVertexRemap(

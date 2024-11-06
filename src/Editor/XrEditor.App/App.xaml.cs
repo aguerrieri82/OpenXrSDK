@@ -19,7 +19,7 @@ namespace XrEditor
         {
             Gpu.EnableNvAPi();
 
-            _viewManager = new WpfViewManager();    
+            _viewManager = new WpfViewManager();
 
             XrPlatform.Current = new EditorPlatform("d:\\Projects\\XrEditor");
 
@@ -53,7 +53,7 @@ namespace XrEditor
         protected override void OnStartup(StartupEventArgs e)
         {
             foreach (var res in _viewManager.Resources)
-                Resources.MergedDictionaries.Add(res);  
+                Resources.MergedDictionaries.Add(res);
 
             MainWindow.Style = Resources["CustomWindowStyle"] as Style;
             MainWindow.Icon = BitmapFrame.Create(new Uri("pack://application:,,,/XrEditor.ico", UriKind.RelativeOrAbsolute));
@@ -67,7 +67,7 @@ namespace XrEditor
 
             _ = Context.Require<PanelManager>().CloseAllAsync();
 
-            ModuleManager.Instance.Shutdown();  
+            ModuleManager.Instance.Shutdown();
 
             base.OnExit(e);
         }

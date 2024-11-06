@@ -15,6 +15,6 @@
     {
         void Load();
 
-        void Shutdown();    
+        void Shutdown();
     }
 }

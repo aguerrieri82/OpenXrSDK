@@ -147,7 +147,7 @@ namespace XrEngine.Physics
                         result = geo3d.GetProp<PhysicsGeometry>("PyGeo");
 
                     if (mesh != null)
-                        pose = (mesh.WorldMatrix * _host.WorldMatrixInverse).ToPose();   
+                        pose = (mesh.WorldMatrix * _host.WorldMatrixInverse).ToPose();
                 }
                 else if (collider is CapsuleCollider cap)
                 {
@@ -158,14 +158,14 @@ namespace XrEngine.Physics
                 else if (collider is SphereCollider sphere)
                 {
                     result = _system.CreateSphere(sphere.Radius * scale.X);
-                    pose.Position = sphere.Center;       
+                    pose.Position = sphere.Center;
                 }
                 else if (collider is CylinderCollider cyl)
                 {
                     var points = new List<Vector3>();
 
                     var halfHeight = cyl.Height / 2;
-                    
+
                     var numSegments = (cyl.Radius * 2 * MathF.PI) / 0.01f; //1cm
 
                     for (int i = 0; i < numSegments; i++)
@@ -174,13 +174,13 @@ namespace XrEngine.Physics
                         var x = cyl.Radius * MathF.Cos(angle);
                         var z = cyl.Radius * MathF.Sin(angle);
 
-                        points.Add(new Vector3(x, halfHeight, z));  
-                        points.Add(new Vector3(x, -halfHeight, z));  
+                        points.Add(new Vector3(x, halfHeight, z));
+                        points.Add(new Vector3(x, -halfHeight, z));
                     }
 
                     result = _system.CreateConvexMesh(null, points.ToArray(), scale);
 
-                    pose = cyl.Pose;    
+                    pose = cyl.Pose;
                 }
                 else if (collider is BoxCollider box)
                 {
@@ -212,7 +212,7 @@ namespace XrEngine.Physics
                 });
 
                 shape.ContactOffset = ContactOffset;
-                shape.NotCollideGroup = (uint)NotCollideGroup;  
+                shape.NotCollideGroup = (uint)NotCollideGroup;
             }
 
             if (shape != null)
@@ -365,7 +365,7 @@ namespace XrEngine.Physics
             {
                 shape.SetMaterials([_material]);
                 shape.ContactOffset = ContactOffset;
-                shape.NotCollideGroup = (uint)NotCollideGroup;   
+                shape.NotCollideGroup = (uint)NotCollideGroup;
             }
 
             if (Type != PhysicsActorType.Static)
@@ -524,7 +524,7 @@ namespace XrEngine.Physics
 
         public bool AutoTeleport { get; set; }
 
-        public RigidBodyGroup NotCollideGroup { get; set; } 
+        public RigidBodyGroup NotCollideGroup { get; set; }
 
         public Action<RigidBody>? Configure { get; set; }
 

@@ -15,7 +15,7 @@ namespace XrEditor
         public BaseEditor()
         {
             _dispatcher = EngineApp.Current!.Dispatcher;
-        }   
+        }
 
         public virtual void NotifyValueChanged()
         {
@@ -98,9 +98,9 @@ namespace XrEditor
             }
             finally
             {
-                _isLoading--;   
+                _isLoading--;
             }
-      
+
         }
 
         private void OnBindValueChanged(object? sender, EventArgs e)

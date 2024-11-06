@@ -4,7 +4,7 @@ namespace XrEngine
 {
     public static class Log
     {
-   
+
         public static void Info(object source, string message, params object?[] args)
         {
             Logger.LogMessage(source, string.Format(message, args), LogLevel.Info);

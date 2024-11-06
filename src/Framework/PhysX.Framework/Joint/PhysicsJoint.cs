@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using XrMath;
 
 namespace PhysX.Framework
@@ -16,7 +11,7 @@ namespace PhysX.Framework
         protected internal PhysicsRigidActor? _actor1;
 
         public PhysicsJoint(PxJoint* handle, PhysicsSystem system)
-            : base(handle, system)  
+            : base(handle, system)
         {
             _name = "";
         }
@@ -31,7 +26,7 @@ namespace PhysX.Framework
         public Pose3 LocalPose0
         {
             get => _handle->GetLocalPose(PxJointActorIndex.Actor0).ToPose3();
-            set 
+            set
             {
                 var tr = value.ToPxTransform();
                 _handle->SetLocalPoseMut(PxJointActorIndex.Actor0, &tr);

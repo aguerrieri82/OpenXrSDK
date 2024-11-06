@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using XrMath;
-using static System.Collections.Specialized.BitVector32;
 
 namespace XrEngine
 {
@@ -54,7 +53,7 @@ namespace XrEngine
                 Pos = Vector3.Zero
             });
 
-            var zero = (uint) vertices.Count - 1;      
+            var zero = (uint)vertices.Count - 1;
 
             var indices = new List<uint>();
 
@@ -75,7 +74,7 @@ namespace XrEngine
                     indices.Add(zero);
                     indices.Add(first);
                     indices.Add(second);
-            
+
                 }
             }
 

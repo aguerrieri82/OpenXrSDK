@@ -14,7 +14,7 @@ namespace XrEngine.OpenGL
     public class GlTextureFrameBuffer : GlBaseFrameBuffer, IGlFrameBuffer
     {
         private uint _sampleCount;
-        private Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
+        private readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
 
 #if GLES
         readonly ExtMultisampledRenderToTexture _extMs;
@@ -145,17 +145,17 @@ namespace XrEngine.OpenGL
         public GlTexture GetOrCreateEffect(FramebufferAttachment slot)
         {
             if (Color == null)
-                throw new NotSupportedException();  
+                throw new NotSupportedException();
 
             if (!_attachments.TryGetValue(slot, out var obj))
             {
                 var glTex = Color.Clone(false);
                 glTex.MaxLevel = 0;
                 Bind();
-                BindAttachment(glTex, slot);         
+                BindAttachment(glTex, slot);
                 SetDrawBuffers(DrawBufferMode.ColorAttachment0, (DrawBufferMode)slot);
                 Check();
-                obj = glTex;    
+                obj = glTex;
             }
 
             return (GlTexture)obj;
@@ -212,9 +212,9 @@ namespace XrEngine.OpenGL
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
 
             using var pData = data.Data.MemoryLock();
- 
+
             _gl.ReadPixels(0, 0, Color!.Width, Color.Height, PixelFormat.Rgba, PixelType.UnsignedByte, pData);
-           
+
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, 0);
         }
 

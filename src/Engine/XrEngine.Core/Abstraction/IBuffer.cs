@@ -6,7 +6,7 @@
 
         string Hash { get; set; }
 
-        long Version { get; set; }  
+        long Version { get; set; }
     }
 
     public interface IBuffer<T> : IBuffer

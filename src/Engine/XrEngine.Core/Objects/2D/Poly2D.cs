@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace XrEngine
 {
-    public class Poly2D : ICurve2D 
+    public class Poly2D : ICurve2D
     {
         private float _length;
 
 
-        public float Length 
+        public float Length
         {
             get
             {
@@ -27,13 +21,13 @@ namespace XrEngine
         {
             float curLen = 0;
 
-            var totLen = Length;    
+            var totLen = Length;
 
-            var pCount = IsClosed ? Points.Length : Points.Length - 1;  
+            var pCount = IsClosed ? Points.Length : Points.Length - 1;
 
             for (var i = 0; i < pCount; i++)
             {
-                var p1 = Points[i]; 
+                var p1 = Points[i];
                 var p2 = Points[(i + 1) % Points.Length];
 
                 yield return new CurvePoint
@@ -60,13 +54,13 @@ namespace XrEngine
 
         public float GetTimeAtLength(float length)
         {
-            return length / Length; 
+            return length / Length;
         }
 
         protected void UpdateLength()
         {
             _length = 0;
-            
+
             for (int i = 0; i < Points.Length - 1; i++)
                 _length += Vector2.Distance(Points[i], Points[i + 1]);
 

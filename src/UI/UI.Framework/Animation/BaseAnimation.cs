@@ -17,7 +17,7 @@
             To = to;
             Value = from;
 
-            AnimationManager.Instance.Start(this);  
+            AnimationManager.Instance.Start(this);
         }
 
         public void Step(float t)
@@ -42,6 +42,6 @@
         public T Value { get; set; }
 
 
-        public event EventHandler<T>? ValueChanged;  
+        public event EventHandler<T>? ValueChanged;
     }
 }

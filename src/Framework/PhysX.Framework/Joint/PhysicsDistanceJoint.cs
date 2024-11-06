@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using XrMath;
+﻿using System.Runtime.CompilerServices;
 
 namespace PhysX.Framework
 {
@@ -13,7 +6,7 @@ namespace PhysX.Framework
     {
 
         public PhysicsDistanceJoint(PxDistanceJoint* handle, PhysicsSystem system)
-            : base((PxJoint*)handle, system)  
+            : base((PxJoint*)handle, system)
         {
 
         }

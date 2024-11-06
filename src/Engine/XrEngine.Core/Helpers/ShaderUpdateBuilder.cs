@@ -1,10 +1,8 @@
-﻿using SharpEXR.AttributeTypes;
-using System.Collections;
+﻿using System.Collections;
 using System.Numerics;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using System.Xml.Linq;
 using XrMath;
 
 
@@ -37,7 +35,7 @@ namespace XrEngine
     {
         public UpdateShaderContext()
         {
-            FrustumPlanes = new Plane[6];   
+            FrustumPlanes = new Plane[6];
         }
 
         public Camera? Camera;

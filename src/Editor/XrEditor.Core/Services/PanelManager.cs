@@ -13,7 +13,7 @@ namespace XrEditor.Services
 
         readonly List<IPanel> _panels = [];
         readonly List<PanelLoadListener> _loadListeners = [];
-        readonly Dictionary<string, Func<IPanel>> _factories = [];  
+        readonly Dictionary<string, Func<IPanel>> _factories = [];
 
         public void NotifyLoaded(IPanel panel)
         {
@@ -35,7 +35,7 @@ namespace XrEditor.Services
             return _panels.OfType<T>().FirstOrDefault();
         }
 
-        public IPanel? Panel(string name) 
+        public IPanel? Panel(string name)
         {
             var result = _panels.FirstOrDefault(a => a.PanelId == name);
             if (result == null && _factories.TryGetValue(name, out var factory))
@@ -69,16 +69,16 @@ namespace XrEditor.Services
 
         public void Register(Func<IPanel> factory, string panelId)
         {
-            _factories[panelId] = factory;  
+            _factories[panelId] = factory;
         }
 
-        public void Register<T>() where T: IPanel, new()
+        public void Register<T>() where T : IPanel, new()
         {
             var attr = typeof(T).GetCustomAttribute<PanelAttribute>();
             if (attr == null)
                 throw new NotSupportedException();
 
-            Register(() => new T(), attr.PanelId);  
+            Register(() => new T(), attr.PanelId);
         }
     }
 }

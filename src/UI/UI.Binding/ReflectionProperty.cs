@@ -14,7 +14,7 @@ namespace UI.Binding
             _property = property;
             _object = obj;
 
-            if (_object is  System.ComponentModel.INotifyPropertyChanged notifyPropertyChanged)
+            if (_object is System.ComponentModel.INotifyPropertyChanged notifyPropertyChanged)
             {
                 notifyPropertyChanged.PropertyChanged += (sender, args) =>
                 {

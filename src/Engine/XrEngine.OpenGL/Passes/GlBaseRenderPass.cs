@@ -43,7 +43,7 @@
                 layer.Prepare(ctx);
                 RenderLayer(layer);
             }
-              
+
 
             EndRender();
         }

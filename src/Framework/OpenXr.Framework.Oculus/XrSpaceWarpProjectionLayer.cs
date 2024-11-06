@@ -2,7 +2,6 @@
 using Silk.NET.OpenXR;
 using System.Diagnostics;
 using XrMath;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OpenXr.Framework.Oculus
 {
@@ -103,7 +102,7 @@ namespace OpenXr.Framework.Oculus
                     else
                         projViews[i].Next = null;
                 }
-                _lastSpaceWarpActive = _motionProvider.IsActive;    
+                _lastSpaceWarpActive = _motionProvider.IsActive;
             }
 
             if (!_motionProvider.IsActive)
@@ -113,7 +112,7 @@ namespace OpenXr.Framework.Oculus
 
             for (var i = 0; i < _spaceWarpData.Length; i++)
             {
-                 var colorIndex = _xrApp.AcquireSwapchainImage(_spaceWarpData[i].ColorSwapchain);
+                var colorIndex = _xrApp.AcquireSwapchainImage(_spaceWarpData[i].ColorSwapchain);
                 _xrApp.WaitSwapchainImage(_spaceWarpData[i].ColorSwapchain);
 
                 var depthIndex = _xrApp.AcquireSwapchainImage(_spaceWarpData[i].DepthSwapchain);

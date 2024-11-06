@@ -1,5 +1,4 @@
 ﻿using Silk.NET.OpenXR;
-using System.Runtime.InteropServices;
 
 namespace OpenXr.Framework
 {

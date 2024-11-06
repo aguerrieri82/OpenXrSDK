@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
 using XrEditor.Services;
 using XrEngine;
 
@@ -15,12 +10,12 @@ namespace XrEditor
 
         public PanelContainer()
         {
-            Panels = [];    
+            Panels = [];
         }
 
         public PanelContainer(params IPanel[] panels)
         {
-            Panels = [..panels];
+            Panels = [.. panels];
             ActivePanel = panels[0];
         }
 

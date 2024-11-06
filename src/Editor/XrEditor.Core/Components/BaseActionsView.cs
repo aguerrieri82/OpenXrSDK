@@ -17,7 +17,7 @@ namespace XrEditor
             });
 
             action.Icon = new IconView { Name = iconName };
-            
+
             Items.Add(action);
 
             return action;
@@ -44,7 +44,7 @@ namespace XrEditor
 
         }
 
-        
+
         public void AddDivider()
         {
             Items.Add(new ActionDivider());
@@ -71,7 +71,7 @@ namespace XrEditor
                 Items = items,
                 SelectedValue = value
             };
-            
+
             result.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(SingleSelector.SelectedValue))
@@ -79,11 +79,11 @@ namespace XrEditor
             };
 
             Items.Add(result);
-            
+
             return result;
         }
 
-      
+
         public ObservableCollection<IToolbarItem> Items { get; } = [];
     }
 }

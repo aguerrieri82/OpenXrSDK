@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using XrMath;
 
@@ -11,7 +8,7 @@ namespace PhysX.Framework
     {
 
         public PhysicsD6Joint(PxD6Joint* handle, PhysicsSystem system)
-            : base((PxJoint*)handle, system)  
+            : base((PxJoint*)handle, system)
         {
 
         }
@@ -166,7 +163,7 @@ namespace PhysX.Framework
         public PxD6Motion MotionX
         {
             get => D6Joint.GetMotion(PxD6Axis.X);
-            set => D6Joint.SetMotionMut(PxD6Axis.X, value); 
+            set => D6Joint.SetMotionMut(PxD6Axis.X, value);
         }
 
         public PxD6Motion MotionY

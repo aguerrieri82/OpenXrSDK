@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CanvasUI
+﻿namespace CanvasUI
 {
     public class AnimationManager
     {
@@ -47,8 +40,8 @@ namespace CanvasUI
         protected void Update()
         {
             var startTime = DateTime.Now;
-            
-            var toRemove = new HashSet<IAnimation>();   
+
+            var toRemove = new HashSet<IAnimation>();
 
             while (_isStarted)
             {
@@ -77,7 +70,7 @@ namespace CanvasUI
 
                     if (t > 1)
                         t = 1;
-                    
+
                     animation.Step(t);
 
                     if (t == 1)
@@ -100,11 +93,11 @@ namespace CanvasUI
                     Thread.Sleep(TimeSpan.FromSeconds(1f / FrameRate));
             }
         }
-        
+
 
         public int FrameRate { get; set; }
 
 
-        public static readonly AnimationManager Instance = new AnimationManager();      
+        public static readonly AnimationManager Instance = new AnimationManager();
     }
 }

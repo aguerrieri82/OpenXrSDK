@@ -1,5 +1,4 @@
 ﻿using Silk.NET.OpenXR;
-using System.Runtime.CompilerServices;
 
 namespace OpenXr.Framework
 {
@@ -24,7 +23,7 @@ namespace OpenXr.Framework
 
         public static unsafe void AddNextStruct<T>(ref T obj, void* next) where T : unmanaged
         {
-            var nextBase = (BaseInStructure*)next;  
+            var nextBase = (BaseInStructure*)next;
             fixed (void* ptr = &obj)
             {
                 var objPtr = (BaseInStructure*)ptr;

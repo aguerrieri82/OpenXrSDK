@@ -4,7 +4,6 @@ using SkiaSharp.Views.WPF;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Input;
-using System.Xml.Linq;
 
 namespace UI.Canvas.Wpf
 {
@@ -13,11 +12,11 @@ namespace UI.Canvas.Wpf
         public static readonly DependencyProperty ContentProperty =
                 DependencyProperty.Register("Content", typeof(UiElement), typeof(UiElementView), new PropertyMetadata(null, OnContentChanged));
 
-        UIRoot _root;
+        readonly UIRoot _root;
 
         struct Pointer : IUiPointer
         {
-            UiElementView _element;
+            readonly UiElementView _element;
 
             public Pointer(UiElementView element, int id)
             {
@@ -55,7 +54,7 @@ namespace UI.Canvas.Wpf
         protected override Size MeasureOverride(Size availableSize)
         {
             var curSize = base.MeasureOverride(availableSize);
-            
+
             if (HorizontalAlignment == HorizontalAlignment.Stretch)
                 curSize.Width = availableSize.Width;
 
@@ -75,7 +74,7 @@ namespace UI.Canvas.Wpf
         {
             get { return (UiElement?)GetValue(ContentProperty); }
             set { SetValue(ContentProperty, value); }
-        } 
+        }
 
         protected virtual void OnContentChanged(UiElement? newContent, UiElement? oldContent)
         {
@@ -138,10 +137,10 @@ namespace UI.Canvas.Wpf
         protected override void OnMouseMove(MouseEventArgs e)
         {
             var buttons = UiPointerButton.None;
-            
+
             if (e.MiddleButton == MouseButtonState.Pressed)
                 buttons |= UiPointerButton.Middle;
-            
+
             if (e.LeftButton == MouseButtonState.Pressed)
                 buttons |= UiPointerButton.Left;
 
@@ -199,7 +198,7 @@ namespace UI.Canvas.Wpf
             {
                 var hitTest = Content.HitTest(pos);
 
-                UiManager.SetHoverElement(hitTest, pos, (UiPointerButton)buttons);
+                UiManager.SetHoverElement(hitTest, pos, buttons);
 
                 if (hitTest != null)
                 {

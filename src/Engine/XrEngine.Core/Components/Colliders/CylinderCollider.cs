@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -28,7 +23,7 @@ namespace XrEngine
         }
 
 
-        public float Radius { get; set; }   
+        public float Radius { get; set; }
 
         public float Height { get; set; }
 

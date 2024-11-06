@@ -1,11 +1,5 @@
 ﻿using CanvasUI.Components;
-using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XrEngine;
 using XrMath;
 
@@ -35,10 +29,10 @@ namespace XrSamples
 
 
         readonly Plotter _plotter;
-      
+
         private DateTime _lastValueTime;
         private DateTime _lastNotifyTime;
-        private Timer _notifyTimer;
+        private readonly Timer _notifyTimer;
         private IDispatcher? _dispatcher;
 
         public PlotterTimeLogger(Plotter plotter)

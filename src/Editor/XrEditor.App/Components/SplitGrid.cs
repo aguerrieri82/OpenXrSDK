@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -10,9 +8,9 @@ namespace XrEditor
 {
     public class SplitGrid : Grid
     {
-        private ContentPresenter _left;
-        private ContentPresenter _right;
-        private GridSplitter _split;
+        private readonly ContentPresenter _left;
+        private readonly ContentPresenter _right;
+        private readonly GridSplitter _split;
 
         public class GridLengthConverter : IValueConverter
         {

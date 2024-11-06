@@ -279,7 +279,7 @@ namespace XrEngine.Filament
                     result.Data.Data = MemoryManager.Allocate(result.Data.DataSize, this);
                     result.Data.AutoFree = true;
 
-                    using var pSrc = mainData.Data.MemoryLock();    
+                    using var pSrc = mainData.Data.MemoryLock();
                     EngineNativeLib.CopyMemory(pSrc, result.Data.Data, mainData.Data.Size);
                 }
             }

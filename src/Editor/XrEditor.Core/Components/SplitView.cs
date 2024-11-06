@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine;
+﻿using XrEngine;
 
 namespace XrEditor
 {
@@ -35,7 +30,7 @@ namespace XrEditor
             First = left;
             Second = right;
             Mode = mode;
-        }   
+        }
 
         public SplitViewMode Mode { get; set; } = SplitViewMode.Horizontal;
 
@@ -85,7 +80,7 @@ namespace XrEditor
             container.Write("SizeMode", SizeMode);
             if (First != null)
                 container.WriteTypedObject("First", (IStateManager)First);
-            if (Second != null) 
+            if (Second != null)
                 container.WriteTypedObject("Second", (IStateManager)Second);
         }
 

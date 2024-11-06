@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace XrEngine
 {
@@ -12,7 +7,7 @@ namespace XrEngine
 
         public readonly Vector2 GetPointAtTime(float t)
         {
-            var angle = MathF.PI * 2 * t;   
+            var angle = MathF.PI * 2 * t;
             return new Vector2(Center.X + MathF.Cos(angle) * Radius, Center.Y + MathF.Sin(angle) * Radius);
         }
 
@@ -24,7 +19,7 @@ namespace XrEngine
 
         public readonly float GetTimeAtLength(float length)
         {
-            return length / Length; 
+            return length / Length;
         }
 
         public readonly IEnumerable<CurvePoint> Sample(float tolerance, int maxPoints)

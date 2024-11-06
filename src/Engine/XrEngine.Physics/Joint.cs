@@ -77,7 +77,7 @@ namespace XrEngine.Physics
         public PxD6Motion MotionTwist;
     }
 
-    public class Joint : IDisposable   
+    public class Joint : IDisposable
     {
         PhysicsJoint? _joint;
 
@@ -92,7 +92,7 @@ namespace XrEngine.Physics
                 return;
 
             var manager = Object0.Scene?.Component<PhysicsManager>();
-            var system = manager?.System;   
+            var system = manager?.System;
             if (system == null)
                 throw new InvalidOperationException("Physics system is not initialized");
 
@@ -146,7 +146,7 @@ namespace XrEngine.Physics
         {
             var target = RevoluteJoint;
 
-            if (options.Limit != null)  
+            if (options.Limit != null)
                 target.Limit = options.Limit.Value;
 
             target.DriveVelocity = options.DriveVelocity;
@@ -161,25 +161,25 @@ namespace XrEngine.Physics
 
             if (options.TwistLimit != null)
                 target.TwistLimit = options.TwistLimit.Value;
-            
+
             if (options.SwingLimit != null)
                 target.SwingLimit = options.SwingLimit.Value;
-            
+
             if (options.PyramidSwingLimit != null)
                 target.PyramidSwingLimit = options.PyramidSwingLimit.Value;
-            
+
             if (options.DistanceLimit != null)
                 target.DistanceLimit = options.DistanceLimit.Value;
 
             target.ProjectionAngularTolerance = options.ProjectionAngularTolerance;
             target.ProjectionLinearTolerance = options.ProjectionLinearTolerance;
-            
+
             if (options.DrivePosition != null)
                 target.DrivePosition = options.DrivePosition.Value;
 
             target.DriveAngularVelocity = options.DriveAngularVelocity;
             target.DriveLinearVelocity = options.DriveLinearVelocity;
-            
+
             if (options.DriveX != null)
                 target.DriveX = options.DriveX.Value;
 
@@ -188,10 +188,10 @@ namespace XrEngine.Physics
 
             if (options.DriveZ != null)
                 target.DriveZ = options.DriveZ.Value;
-            
+
             if (options.DriveSwing != null)
                 target.DriveSwing = options.DriveSwing.Value;
-            
+
             if (options.DriveTwist != null)
                 target.DriveTwist = options.DriveTwist.Value;
 
@@ -230,21 +230,21 @@ namespace XrEngine.Physics
         public void Dispose()
         {
             Destroy();
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
 
         public PhysicsRevoluteJoint RevoluteJoint => _joint as PhysicsRevoluteJoint ?? throw new InvalidOperationException("Joint is not a revolute joint");
-        
+
         public PhysicsFixedJoint FixedJoint => _joint as PhysicsFixedJoint ?? throw new InvalidOperationException("Joint is not a fixed joint");
 
         public PhysicsD6Joint D6Joint => _joint as PhysicsD6Joint ?? throw new InvalidOperationException("Joint is not a fixed joint");
 
         public PhysicsJoint BaseJoint => _joint ?? throw new InvalidOperationException("Joint is not a created");
 
-        public bool IsCreated => _joint != null;    
+        public bool IsCreated => _joint != null;
 
-        public JointType Type { get; set; } 
+        public JointType Type { get; set; }
 
         public Object3D? Object0 { get; set; }
 
@@ -252,9 +252,9 @@ namespace XrEngine.Physics
 
         public Pose3 Pose0 { get; set; }
 
-        public Pose3 Pose1 { get; set; }    
+        public Pose3 Pose1 { get; set; }
 
-        public JointOptions? Options { get; set; }   
+        public JointOptions? Options { get; set; }
 
         public Action<Joint>? Configure { get; set; }
     }

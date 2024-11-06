@@ -8,7 +8,6 @@ using Silk.NET.OpenXR;
 using System.Numerics;
 using XrInteraction;
 using static Android.Views.MotionEvent;
-using static Android.Views.View;
 using static Android.Webkit.WebSettings;
 
 namespace OpenXr.Framework.Android
@@ -101,7 +100,7 @@ namespace OpenXr.Framework.Android
             }
         }
 
-        protected class InputController 
+        protected class InputController
         {
             protected ISurfaceInput _surfaceInput;
             protected long _lastDownTime;
@@ -152,7 +151,7 @@ namespace OpenXr.Framework.Android
 
                 var pos = _surfaceInput.Pointer * new Vector2(webView.Width, webView.Height);
 
-                _pointerProps ??= 
+                _pointerProps ??=
                 [
                     new()
                     {
@@ -161,7 +160,7 @@ namespace OpenXr.Framework.Android
                     }
                 ];
 
-                _pointerCoords ??= 
+                _pointerCoords ??=
                 [
                     new()
                     {
@@ -194,11 +193,11 @@ namespace OpenXr.Framework.Android
                     1,
                     1,
                     0,
-                    (Edge)0,
+                    0,
                     InputSourceType.Mouse,
                     MotionEventFlags.None);
 
-                _ = _mainThread.ExecuteAsync(() => webView.DispatchTouchEvent(ev)); 
+                _ = _mainThread.ExecuteAsync(() => webView.DispatchTouchEvent(ev));
             }
         }
 
@@ -314,10 +313,10 @@ namespace OpenXr.Framework.Android
 
             _webView.Settings.SetSupportZoom(false);
             _webView.Settings.DefaultZoom = ZoomDensity.Far;
-            _webView.Settings.BuiltInZoomControls = false;  
+            _webView.Settings.BuiltInZoomControls = false;
 
             _webView.SetLayerType(LayerType.Hardware, null);
-            
+
             if (_context is Activity activity)
             {
                 var layout = new ViewGroup.LayoutParams(_size.Width, _size.Height);

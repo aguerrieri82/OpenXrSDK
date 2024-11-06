@@ -48,7 +48,7 @@ namespace XrEngine
 
                 MaterialOverride.Texture = pbr.ColorMap;
                 MaterialOverride.Color = pbr.Color * MathF.Min(1, _lightIntensity * 0.5f);
-                MaterialOverride.Alpha = pbr.Alpha; 
+                MaterialOverride.Alpha = pbr.Alpha;
                 return true;
             }
 

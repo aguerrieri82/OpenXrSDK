@@ -1,12 +1,4 @@
-﻿using CanvasUI;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
@@ -36,14 +28,14 @@ namespace XrSamples
 
         protected override void Update(RenderContext ctx)
         {
-            var tool = _host!.GetActiveTool();  
+            var tool = _host!.GetActiveTool();
 
             if (tool != null)
             {
                 _lastTool = tool;
-                _lastPivotGlobal = _host!.Transform.LocalPivot.Transform(_host.WorldMatrix);  
+                _lastPivotGlobal = _host!.Transform.LocalPivot.Transform(_host.WorldMatrix);
             }
-  
+
 
             if (!_host!.TryComponent<RigidBody>(out var rigidBody))
                 return;
@@ -76,7 +68,7 @@ namespace XrSamples
                 //rigidBody.DynamicActor.Stop();
                 rigidBody.DynamicActor.IsKinematic = false;
                 var force = curAcc * (float)ctx.DeltaTime * rigidBody.DynamicActor.Mass;
-               // rigidBody.DynamicActor.AddForce(force, _lastPivotGlobal, PhysX.PxForceMode.Impulse);
+                // rigidBody.DynamicActor.AddForce(force, _lastPivotGlobal, PhysX.PxForceMode.Impulse);
                 Log.Checkpoint($"Throw: {Math.Round(force.Length(), 3)}", "#00ff00");
             }
 
@@ -87,7 +79,7 @@ namespace XrSamples
             var velocity = rigidBody.DynamicActor.LinearVelocity;
 
             if (velocity.Length() != 0)
-                Log.Value($"{_host!.Name}.Velocity", new Vector2(velocity.X, velocity.Z).Length()); 
+                Log.Value($"{_host!.Name}.Velocity", new Vector2(velocity.X, velocity.Z).Length());
 
             Log.Value($"{_host!.Name}.Acc", curAcc.Length());
         }

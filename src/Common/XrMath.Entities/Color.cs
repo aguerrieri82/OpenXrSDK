@@ -107,7 +107,7 @@ namespace XrMath
             dst[2] = (byte)(B * 255);
             dst[3] = (byte)(A * 255);
         }
-        
+
 
         public static Color operator *(Color a, float v)
         {

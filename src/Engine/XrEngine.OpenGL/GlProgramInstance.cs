@@ -40,7 +40,7 @@ namespace XrEngine.OpenGL
         {
             if (Program != null && _materialVersion == Material!.Version && _globalVersion == Global.Version)
                 return;
-   
+
             ctx.BufferProvider = this;
 
             var localBuilder = new ShaderUpdateBuilder(ctx);
@@ -105,7 +105,7 @@ namespace XrEngine.OpenGL
             if (store == BufferStore.Shader)
                 return Global.GetBuffer<T>(bufferId, store);
 
-            var storeBuffers = store == BufferStore.Material ? _materialBuffers : _modelBuffers; 
+            var storeBuffers = store == BufferStore.Material ? _materialBuffers : _modelBuffers;
 
             if (storeBuffers.Length == 0)
                 throw new NotSupportedException("Buffer store not supported");

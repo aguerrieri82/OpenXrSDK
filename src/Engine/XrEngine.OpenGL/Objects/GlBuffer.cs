@@ -39,7 +39,7 @@ namespace XrEngine.OpenGL
         {
             Bind();
 
-            var newArrayLen = sizeBytes / (uint)sizeof(T); 
+            var newArrayLen = sizeBytes / (uint)sizeof(T);
 
             if (_arrayLength != newArrayLen || _target == BufferTargetARB.UniformBuffer)
             {
@@ -49,8 +49,8 @@ namespace XrEngine.OpenGL
             else
             {
                 var pDst = Map(MapBufferAccessMask.WriteBit);
-                EngineNativeLib.CopyMemory(data, (nint)pDst, sizeBytes);  
-                Unmap();    
+                EngineNativeLib.CopyMemory(data, (nint)pDst, sizeBytes);
+                Unmap();
             }
 
             _arrayLength = newArrayLen;
@@ -128,14 +128,14 @@ namespace XrEngine.OpenGL
                 return;
 
             _gl.BufferData(_target, (nuint)(length * sizeof(T)), null, BufferUsageARB.StreamDraw);
-            _arrayLength = length; 
+            _arrayLength = length;
         }
 
         public string Hash { get; set; }
 
-        public long Version { get; set; }   
+        public long Version { get; set; }
 
-        public int Slot { get; set; }   
+        public int Slot { get; set; }
 
         public BufferTargetARB Target => _target;
 

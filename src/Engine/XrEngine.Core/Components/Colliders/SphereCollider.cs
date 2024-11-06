@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.Numerics;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -28,13 +27,13 @@ namespace XrEngine
             var localRay = ray.Transform(_host!.WorldMatrixInverse);
 
             var sphere = new Sphere(Center, Radius);
-            
+
             var point = ray.Intersects(sphere, out _);
 
             if (point == null)
                 return null;
 
-            var worldPoint = _host.ToWorld(point.Value);    
+            var worldPoint = _host.ToWorld(point.Value);
 
             return new Collision
             {
@@ -62,6 +61,6 @@ namespace XrEngine
 
         public float Radius { get; set; }
 
-        public Vector3 Center { get; set; } 
+        public Vector3 Center { get; set; }
     }
 }

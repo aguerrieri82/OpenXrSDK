@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace XrMath
@@ -116,10 +115,10 @@ namespace XrMath
         public static float DotCoordinate(this Plane self, Vector3 point)
         {
             return Plane.Dot(self, Vector4.Create(point, 1f));
-        }   
+        }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]  
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IntersectLine(this Plane self, Vector3 point1, Vector3 point2)
         {
             var distance1 = self.DotCoordinate(point1);
@@ -179,7 +178,7 @@ namespace XrMath
         {
             for (var i = 0; i < planes.Length; i++)
             {
-                var plane = planes[i];  
+                var plane = planes[i];
 
                 if (plane.IntersectLine(self.Min, self.Max))
                     return true;
@@ -625,10 +624,10 @@ namespace XrMath
             float t2 = (-b + sqrtDiscriminant) / (2 * a);
 
             // Choose the smallest positive t as the intersection point
-            
+
             distance = (t1 >= 0) ? t1 : t2;
 
-            return distance >= 0 ? self.PointAt(distance) : null;   
+            return distance >= 0 ? self.PointAt(distance) : null;
 
         }
 
@@ -729,7 +728,7 @@ namespace XrMath
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]  
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Quaternion Subtract(this Quaternion self, Quaternion other)
         {
             return self * Quaternion.Inverse(other);
@@ -859,24 +858,24 @@ namespace XrMath
         {
             return (self.From + self.To) / 2;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Line3 Reverse(this Line3 self)
         {
-            return new Line3(self.To, self.From);   
+            return new Line3(self.To, self.From);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Line3 Expand(this Line3 self, float fromDelta, float toDelta)
         {
-            return new Line3(self.PointAt(-fromDelta), self.PointAt(self.Length() + toDelta));  
+            return new Line3(self.PointAt(-fromDelta), self.PointAt(self.Length() + toDelta));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Line3 Transform(this Line3 self, Matrix4x4 matrix)
         {
-            return new Line3(self.From.Transform(matrix), self.To.Transform(matrix));   
+            return new Line3(self.From.Transform(matrix), self.To.Transform(matrix));
         }
 
 
@@ -921,7 +920,7 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToVector3(this Vector2 sel, float z = 0)
         {
-            return new Vector3(sel.X, sel.Y, z);    
+            return new Vector3(sel.X, sel.Y, z);
         }
 
         #endregion

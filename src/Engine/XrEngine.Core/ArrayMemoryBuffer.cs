@@ -7,7 +7,7 @@ namespace XrEngine
     {
         GCHandle _handle;
         T[] _data;
-     
+
         public ArrayMemoryBuffer(uint size)
         {
             _data = new T[size];
@@ -55,8 +55,8 @@ namespace XrEngine
             return _data;
         }
 
-        public uint Size => (uint)_data.Length; 
+        public uint Size => (uint)_data.Length;
 
-        public T[] Data => _data;   
+        public T[] Data => _data;
     }
 }

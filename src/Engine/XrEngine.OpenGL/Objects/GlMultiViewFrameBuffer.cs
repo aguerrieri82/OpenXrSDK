@@ -45,7 +45,7 @@ namespace XrEngine.OpenGL
         protected GlTexture? _color;
         protected GlTexture? _depth;
         protected readonly TextureTarget _target;
-        private Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
+        private readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
 
         public GlMultiViewFrameBuffer(GL gl)
             : base(gl)
@@ -88,7 +88,7 @@ namespace XrEngine.OpenGL
             Bind();
 
             BindAttachment(_color, FramebufferAttachment.ColorAttachment0);
-            
+
             BindAttachment(_depth, depthAtt);
 
             Check();
@@ -96,7 +96,7 @@ namespace XrEngine.OpenGL
 
         protected void BindAttachment(GlTexture glTex, FramebufferAttachment slot)
         {
- 
+
             if (_sampleCount > 1)
             {
                 if (FramebufferTextureMultisampleMultiviewOVR == null)
@@ -177,7 +177,7 @@ namespace XrEngine.OpenGL
                 BindAttachment(glTex, slot);
                 SetDrawBuffers(DrawBufferMode.ColorAttachment0, (DrawBufferMode)slot);
                 Check();
-                
+
                 obj = glTex;
             }
 

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine.Physics
@@ -13,20 +8,20 @@ namespace XrEngine.Physics
         public JointConnection(Joint joint, int index)
         {
             Joint = joint;
-            Index = index;  
+            Index = index;
         }
 
         public void Dispose()
         {
-            var other = Other?.Components<JointConnection>().Where(a=> a.Joint == Joint).FirstOrDefault();
-            
+            var other = Other?.Components<JointConnection>().Where(a => a.Joint == Joint).FirstOrDefault();
+
             if (other != null)
                 Other?.RemoveComponent(other);
 
             Joint.Dispose();
         }
 
- 
+
         public void DrawGizmos(Canvas3D canvas)
         {
             if (!Joint.IsCreated)

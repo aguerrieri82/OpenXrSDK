@@ -13,7 +13,7 @@ namespace XrMath
         {
             From = from;
             To = to;
-        }   
+        }
 
         public Vector3 From;
 

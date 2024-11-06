@@ -36,7 +36,7 @@ namespace XrEngine.OpenGL
             _values.Clear();
             _locations.Clear();
             for (var i = 0; i < _boundBuffers.Length; i++)
-                _boundBuffers[i] = 0;  
+                _boundBuffers[i] = 0;
 
             Log.Debug(this, "Program built");
         }

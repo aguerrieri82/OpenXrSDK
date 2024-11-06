@@ -12,7 +12,7 @@
         {
             _handle = handle;
             _system = system;
-            _map[(nint)handle] = this;      
+            _map[(nint)handle] = this;
         }
 
         public PhysicsSystem System => _system;

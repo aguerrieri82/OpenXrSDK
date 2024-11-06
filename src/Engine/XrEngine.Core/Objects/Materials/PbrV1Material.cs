@@ -657,7 +657,7 @@ namespace XrEngine
 
                 if (curVersion == ctx.CurrentBuffer!.Version)
                     return null;
-                
+
                 ctx.CurrentBuffer.Version = Version;
                 return (MaterialUniforms?)material;
 

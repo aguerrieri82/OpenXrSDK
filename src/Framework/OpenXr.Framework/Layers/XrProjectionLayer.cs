@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace OpenXr.Framework
 {
@@ -27,12 +26,12 @@ namespace OpenXr.Framework
         protected XrSwapchainInfo[]? _swapchains;
         protected bool _useDepthSWC = false;
         protected NativeArray<CompositionLayerDepthInfoKHR> _depthInfo;
-        protected NativeArray<CompositionLayerProjectionView> _projViews;  
+        protected NativeArray<CompositionLayerProjectionView> _projViews;
 
         XrProjectionLayer()
         {
             _depthInfo = new NativeArray<CompositionLayerDepthInfoKHR>(2, typeof(CompositionLayerDepthInfoKHR));
-            _projViews = new NativeArray<CompositionLayerProjectionView>(2, typeof(CompositionLayerProjectionView));    
+            _projViews = new NativeArray<CompositionLayerProjectionView>(2, typeof(CompositionLayerProjectionView));
 
             _header.ValueRef.Type = StructureType.CompositionLayerProjection;
             _header.ValueRef.LayerFlags =
@@ -109,7 +108,7 @@ namespace OpenXr.Framework
 
             if (layer.Views == null)
             {
-                layer.Views = _projViews.ItemPointer(0);    
+                layer.Views = _projViews.ItemPointer(0);
                 layer.ViewCount = (uint)views.Length;
 
                 for (var i = 0; i < views.Length; i++)

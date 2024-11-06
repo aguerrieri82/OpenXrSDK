@@ -4,8 +4,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace XrEngine.OpenGL
 {
@@ -18,7 +16,7 @@ namespace XrEngine.OpenGL
         private InternalFormat _format;
 
         public GlTextureBuffer(GL gl)
-            : base(gl)  
+            : base(gl)
         {
             _buffer = new GlBuffer<byte>(gl, BufferTargetARB.PixelUnpackBuffer);
 
@@ -42,7 +40,7 @@ namespace XrEngine.OpenGL
             GlUtils.GetPixelFormat(data.Format, out var pixelFormat, out var pixelType);
 
             _buffer.Bind();
-      
+
             if (_width != data.Width || _height != data.Height)
             {
                 _buffer.Allocate(data.Data!.Size);
@@ -73,7 +71,7 @@ namespace XrEngine.OpenGL
             _buffer.Unmap();
 
             Bind();
-   
+
             _gl.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, data.Width, data.Height, pixelFormat, pixelType, null);
 
             Unbind();

@@ -1,6 +1,5 @@
 ﻿using CanvasUI;
 using CanvasUI.Components;
-using Microsoft.DotNet.PlatformAbstractions;
 using UI.Binding;
 using XrEngine;
 using XrEngine.OpenXr;
@@ -20,7 +19,7 @@ namespace XrSamples
 
         public override void Apply(Scene3D scene)
         {
-            SpeedTracker.SmoothFactor = Sensitivity;    
+            SpeedTracker.SmoothFactor = Sensitivity;
 
             if (_filePath != null)
             {

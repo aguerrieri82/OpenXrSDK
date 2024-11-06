@@ -1,9 +1,6 @@
 ﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Linq;
 using System.Numerics;
 using XrMath;
 
@@ -51,11 +48,11 @@ namespace CanvasUI.Components
 
         public float Min;
 
-        public float Max;       
+        public float Max;
 
-        public float Length => Max - Min;   
+        public float Length => Max - Min;
 
-        public float Center => (Max + Min) / 2; 
+        public float Center => (Max + Min) / 2;
     }
 
     #endregion
@@ -80,7 +77,7 @@ namespace CanvasUI.Components
 
         string? Name { get; }
 
-        Color Color { get;  }
+        Color Color { get; }
 
         bool IsVisible { get; }
 
@@ -103,8 +100,8 @@ namespace CanvasUI.Components
 
         public virtual IEnumerable<Vector2> Sample(Bounds1 xRange, int sampleCount)
         {
-            var sampleSize = xRange.Length / sampleCount;   
-            var curX = xRange.Min;  
+            var sampleSize = xRange.Length / sampleCount;
+            var curX = xRange.Min;
 
             while (curX <= xRange.Max)
             {
@@ -132,9 +129,9 @@ namespace CanvasUI.Components
         }
 
         public abstract float ValueAt(float x);
-        
+
         public abstract Bounds1 GetMinMaxX();
-        
+
         public abstract Bounds1 GetMinMaxYAt(Bounds1 xRange);
 
         public Func<float, string> FormatValue { get; set; }
@@ -153,15 +150,15 @@ namespace CanvasUI.Components
 
     public class FunctionPlotterSerie : BasePlotterSerie
     {
-        private Func<float, float> _func;
+        private readonly Func<float, float> _func;
         Bounds1 _xRange;
-        Bounds1 _yRange; 
+        Bounds1 _yRange;
 
         public FunctionPlotterSerie(Func<float, float> func, Bounds1 xRange, Bounds1 yRange)
         {
             _func = func;
             _xRange = xRange;
-            _yRange = yRange;   
+            _yRange = yRange;
         }
 
         public override Bounds1 GetMinMaxX()
@@ -171,13 +168,13 @@ namespace CanvasUI.Components
 
         public override Bounds1 GetMinMaxYAt(Bounds1 xRange)
         {
-            return _yRange; 
+            return _yRange;
         }
 
         public override float ValueAt(float x)
         {
             return _func(x);
-        }   
+        }
     }
 
     #endregion
@@ -195,8 +192,8 @@ namespace CanvasUI.Components
 
         public void AppendValue(float x, float y, bool notify = true)
         {
-            if (Points.Count > 0 && Points[Points.Count -1].X == x)
-                Points[Points.Count - 1] = new Vector2(x, y);   
+            if (Points.Count > 0 && Points[Points.Count - 1].X == x)
+                Points[Points.Count - 1] = new Vector2(x, y);
             else
                 Points.Add(new Vector2(x, y));
 
@@ -208,17 +205,17 @@ namespace CanvasUI.Components
         {
             Points.Clear();
             NotifyChanged();
-        }       
+        }
 
         public override float ValueAt(float x)
         {
             switch (SampleMode)
             {
                 case SerieSampleMode.Nearest:
-                    var index = IndexOfClosestX(x); 
+                    var index = IndexOfClosestX(x);
                     if (index == -1)
-                        return float.NaN;   
-                    return Points[index].Y; 
+                        return float.NaN;
+                    return Points[index].Y;
                 case SerieSampleMode.Linear:
                     return InterpolateY(x);
                 default:
@@ -241,14 +238,14 @@ namespace CanvasUI.Components
                     var curPoint = Points[curIndex];
 
                     if (curPoint.X > xRange.Max)
-                        break;  
+                        break;
 
                     if (!float.IsNaN(lastPoint.X))
                     {
                         if ((curPoint.X - lastPoint.X) > MinGapX)
                             yield return new Vector2(float.NaN, float.NaN);
                         else if (curPoint.X != lastPoint.X)
-                            yield return new Vector2(curPoint.X, lastPoint.Y); 
+                            yield return new Vector2(curPoint.X, lastPoint.Y);
                     }
 
                     yield return curPoint;
@@ -261,7 +258,7 @@ namespace CanvasUI.Components
             else
             {
                 foreach (var item in base.Sample(xRange, sampleCount))
-                    yield return item;  
+                    yield return item;
             }
         }
 
@@ -299,7 +296,7 @@ namespace CanvasUI.Components
 
                 if (Points[mid].X == targetX)
                 {
-                    return mid; 
+                    return mid;
                 }
                 else if (Points[mid].X < targetX)
                 {
@@ -310,7 +307,7 @@ namespace CanvasUI.Components
                     right = mid - 1;
                 }
             }
-            
+
             if (right == -1)
                 right = 0;
 
@@ -340,7 +337,7 @@ namespace CanvasUI.Components
             {
                 Min = float.PositiveInfinity,
                 Max = float.NegativeInfinity
-            };  
+            };
 
             var index = IndexOfClosestX(xRange.Min);
             if (index == -1)
@@ -359,7 +356,7 @@ namespace CanvasUI.Components
             return result;
         }
 
-        public float MinGapX { get; set; }  
+        public float MinGapX { get; set; }
 
         public SerieSampleMode SampleMode { get; set; }
 
@@ -380,7 +377,7 @@ namespace CanvasUI.Components
         protected Vector2 _startPos;
         protected Vector2 _startValue;
         protected bool _isCapture;
- 
+
         public BasePlotterTool(Plotter plotter)
         {
             _plotter = plotter;
@@ -424,7 +421,7 @@ namespace CanvasUI.Components
 
                 _plotter.ComputeMetrics();
             }
-     
+
         }
 
         protected virtual void StartCapture(UiPointerEvent uiEvent)
@@ -486,7 +483,7 @@ namespace CanvasUI.Components
 
             if (minX > _maxViewRect.Right - _startViewRect.Width)
                 minX = _maxViewRect.Right - _startViewRect.Width;
-            
+
             if (minX < _maxViewRect.X - _startViewRect.Width)
                 minX = _maxViewRect.X - _startViewRect.Width;
 
@@ -537,7 +534,7 @@ namespace CanvasUI.Components
 
             var delta = (pos - _startPos);
 
-            if (MathF.Abs( delta.X) > MathF.Abs(delta.Y))
+            if (MathF.Abs(delta.X) > MathF.Abs(delta.Y))
             {
                 var scaleX = _startScale.X;
 
@@ -557,7 +554,7 @@ namespace CanvasUI.Components
 
                 _plotter.PixelPerUnitY = scaleY;
             }
-            
+
 
 
             return true;
@@ -593,9 +590,9 @@ namespace CanvasUI.Components
             CheckPoints = [];
 
             this.BuildStyle(a => a.Overflow(UiOverflow.Hidden));
-            
+
             FormatValueX = v => v.ToString();
-            
+
             _tools = [];
             _tools.Add(new PanPlotterTool(this));
             _tools.Add(new ScalePlotterTool(this));
@@ -618,14 +615,14 @@ namespace CanvasUI.Components
                 //ComputeMetrics();
                 IsDirty = true;
             }
-      
+
             base.OnPropertyChanged(prop, value, oldValue);
         }
 
         protected virtual void OnViewRectChanged(Rect2 value, Rect2 oldValue)
         {
             UpdatePlotValues(value);
-        }   
+        }
 
         protected void UpdatePlotValues(Rect2 viewRect)
         {
@@ -693,7 +690,7 @@ namespace CanvasUI.Components
 
         public float ValueToPixelY(float valueY)
         {
-            return _chartArea.Bottom - ((valueY - MinY) * PixelPerUnitY);    
+            return _chartArea.Bottom - ((valueY - MinY) * PixelPerUnitY);
         }
 
         public float ValueToPixelX(float valueX)
@@ -891,7 +888,7 @@ namespace CanvasUI.Components
 
                 var labelFill = SKResources.FillColor("#00000080");
 
-          
+
                 foreach (var cp in CheckPoints)
                 {
                     if (cp.X < ViewRect.X || cp.X > ViewRect.Right)
@@ -936,7 +933,7 @@ namespace CanvasUI.Components
                 ComputeLayout();
                 ComputeMetrics();
             }
-  
+
             base.OnSizeChanged();
         }
 
@@ -957,7 +954,7 @@ namespace CanvasUI.Components
         {
             var value = serie.ValueAt(CursorX);
             var valueText = float.IsNaN(value) ? "" : serie.FormatValue(value);
-            return $"{serie.Name}: {valueText}";    
+            return $"{serie.Name}: {valueText}";
         }
 
         protected void ComputeLayout()
@@ -966,7 +963,7 @@ namespace CanvasUI.Components
                 return;
 
             _chartArea = _contentRect;
-            
+
             var font = ActualStyle.GetFont();
 
             if (ShowLegend)
@@ -1021,7 +1018,7 @@ namespace CanvasUI.Components
                 minMaxY.Max = MathF.Max(rangeY.Max, minMaxY.Max);
             }
 
-            return new Rect2(minMaxX.Min, minMaxY.Min, minMaxX.Length, minMaxY.Length); 
+            return new Rect2(minMaxX.Min, minMaxY.Min, minMaxX.Length, minMaxY.Length);
         }
 
 
@@ -1068,7 +1065,7 @@ namespace CanvasUI.Components
                             maxX = MathF.Max(maxX, CheckPoints.Max(a => a.X));
 
                         curViewRect.X = maxX - curViewRect.Width;
-                        CursorX = curViewRect.Right;   
+                        CursorX = curViewRect.Right;
                     }
                 }
             }
@@ -1091,7 +1088,7 @@ namespace CanvasUI.Components
 
                     if (float.IsNaN(range.Max))
                         continue;
-                    
+
                     minMax.Min = MathF.Min(range.Min, minMax.Min);
                     minMax.Max = MathF.Max(range.Max, minMax.Max);
                 }
@@ -1119,7 +1116,7 @@ namespace CanvasUI.Components
 
             if (animate)
             {
-                _viewAnimation.Start(ViewRect, curViewRect, 200);   
+                _viewAnimation.Start(ViewRect, curViewRect, 200);
             }
             else
             {
@@ -1263,6 +1260,6 @@ namespace CanvasUI.Components
         }
 
 
-        public Func<float,string> FormatValueX { get; }
+        public Func<float, string> FormatValueX { get; }
     }
 }

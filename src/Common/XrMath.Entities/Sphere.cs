@@ -12,7 +12,7 @@ namespace XrMath
         {
             Center = center;
             Radius = radius;
-        }   
+        }
 
         public Vector3 Center;
 

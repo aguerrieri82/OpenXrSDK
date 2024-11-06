@@ -95,7 +95,7 @@ namespace XrEditor.Nodes
                 Editor = new BoolEditor(binder.Prop(a => a.EnableCCD))
             });
 
- 
+
 
             curProps.Add(new PropertyView
             {

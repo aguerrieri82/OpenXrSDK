@@ -29,7 +29,7 @@ namespace XrEngine
                     Width = (uint)imgData.Width,
                     Height = (uint)imgData.Height,
                     Format = TextureFormat.Rgba32,
-                    Data = MemoryBuffer.Create(imgData.Data),   
+                    Data = MemoryBuffer.Create(imgData.Data),
                 }];
             }
 
@@ -44,7 +44,7 @@ namespace XrEngine
             {
                 Compression = TextureCompressionFormat.Uncompressed,
                 Format = ImageUtils.GetFormat(image.ColorType),
-                Data = MemoryBuffer.Create(image.Bytes),    
+                Data = MemoryBuffer.Create(image.Bytes),
                 Height = (uint)image.Height,
                 Width = (uint)image.Width,
             };

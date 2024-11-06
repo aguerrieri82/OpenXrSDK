@@ -26,7 +26,7 @@ namespace XrEngine.Physics
             _system.Create(Options);
             _system.CreateScene(Options.Gravity);
 
-            Configure?.Invoke(_system); 
+            Configure?.Invoke(_system);
 
             foreach (var joint in _joints)
                 joint.Create(ctx);
@@ -108,7 +108,7 @@ namespace XrEngine.Physics
 
         public void RemoveJoint(Joint joint)
         {
-            joint.Dispose();    
+            joint.Dispose();
             _joints.Remove(joint);
         }
 
@@ -121,12 +121,12 @@ namespace XrEngine.Physics
                 Pose0 = pose0,
                 Object1 = object1,
                 Pose1 = pose1
-            };  
+            };
 
             _joints.Add(joint);
 
             object0.AddComponent(new JointConnection(joint, 0));
-            object1.AddComponent(new JointConnection(joint, 1)); 
+            object1.AddComponent(new JointConnection(joint, 1));
 
             return joint;
         }

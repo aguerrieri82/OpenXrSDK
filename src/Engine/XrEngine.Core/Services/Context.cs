@@ -12,10 +12,10 @@ namespace XrEngine
             return instance;
         }
 
-        public static bool TryRequire<T>([NotNullWhen(true)]out T? result) where T : class
+        public static bool TryRequire<T>([NotNullWhen(true)] out T? result) where T : class
         {
             result = (T?)Current.TryRequire(typeof(T));
-            return result != null;  
+            return result != null;
         }
 
         public static T RequireInstance<T>() where T : class

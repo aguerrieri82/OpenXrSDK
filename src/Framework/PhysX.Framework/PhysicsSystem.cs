@@ -195,7 +195,7 @@ namespace PhysX.Framework
                 desc.indices.count = (uint)indices.Length;
                 desc.indices.stride = 4;
             }
-            
+
             desc.vertexLimit = 220;
             desc.polygonLimit = 200;
             desc.quantizedCount = 100;
@@ -204,7 +204,7 @@ namespace PhysX.Framework
             var curScale = _tolerancesScale;
 
             var param = curScale.CookingParamsNew();
-       
+
 
             /*
             var isValid = param.PhysPxValidateConvexMesh(&desc);
@@ -238,7 +238,7 @@ namespace PhysX.Framework
             var tr1 = pose1.ToPxTransform();
 
             var handle = _physics->PhysPxRevoluteJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
-            
+
             var result = new PhysicsRevoluteJoint(handle, this);
             result._actor0 = actor0;
             result._actor1 = actor1;
@@ -428,11 +428,11 @@ namespace PhysX.Framework
 
             sceneDesc.flags |= PxSceneFlags.EnableEnhancedDeterminism;
             sceneDesc.EnableCustomFilterShader(&FilterShader, 1);
-           
+
             _scene = new PhysicsScene(_physics->CreateSceneMut(&sceneDesc), this);
 
             _scene.SetVisualizationParameter(PxVisualizationParameter.JointLocalFrames, 1f);
-            _scene.SetVisualizationParameter(PxVisualizationParameter.JointLimits, 1f); 
+            _scene.SetVisualizationParameter(PxVisualizationParameter.JointLimits, 1f);
 
             if (_pvd != null)
             {
@@ -454,7 +454,7 @@ namespace PhysX.Framework
             var actor1 = (PhysicsRigidActor)Current!._actors[info->filterData0.word0];
             var actor2 = (PhysicsRigidActor)Current!._actors[info->filterData1.word0];
 
-            var notCollide = info->filterData0.word1 & info->filterData1.word1; 
+            var notCollide = info->filterData0.word1 & info->filterData1.word1;
             if (notCollide != 0)
                 return PxFilterFlags.Suppress;
 

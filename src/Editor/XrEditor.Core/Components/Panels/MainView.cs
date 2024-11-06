@@ -50,7 +50,7 @@ namespace XrEditor
 
             SceneView = new SceneView(surface);
 
-            Toolbar = new MainToolbarView();    
+            Toolbar = new MainToolbarView();
 
             Log = new LogPanel();
 
@@ -114,7 +114,7 @@ namespace XrEditor
         {
             Host!.Size = container.Read<Size2>("Size");
             Host!.State = container.Read<WindowState>("State");
-            Content = container.Read<SplitView>("Content");  
+            Content = container.Read<SplitView>("Content");
         }
 
         public void SaveState()
@@ -122,13 +122,13 @@ namespace XrEditor
             var container = new JsonStateContainer();
             GetState(container);
             var json = container.AsJson();
-            File.WriteAllText("layout.json", json);   
+            File.WriteAllText("layout.json", json);
         }
 
         public void LoadState()
         {
             if (!File.Exists("layout.json"))
-                return; 
+                return;
             var json = File.ReadAllText("layout.json");
             var container = new JsonStateContainer(json);
             SetState(container);
@@ -144,7 +144,7 @@ namespace XrEditor
 
         public LogPanel Log { get; }
 
-        public IPanel Plotter { get; }   
+        public IPanel Plotter { get; }
 
         public PropertiesEditor PropertiesEditor { get; }
 

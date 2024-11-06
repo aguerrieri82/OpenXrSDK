@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using XrEngine.Layers;
+﻿using XrEngine.Layers;
 
 namespace XrEngine
 {
@@ -14,7 +13,7 @@ namespace XrEngine
         protected readonly Canvas3D _gizmos;
         protected readonly IList<IDrawGizmos> _drawGizmos = [];
         protected readonly RenderUpdateManager _updateManager;
-        
+
         public Scene3D()
         {
             _layers = new LayerManager(this);
@@ -91,7 +90,7 @@ namespace XrEngine
             change.Target ??= sender;
 
             if (!change.IsAny(ObjectChangeType.Transform) &&
-                !change.Targets<object>().All(a=> a is Material) &&
+                !change.Targets<object>().All(a => a is Material) &&
                 (change.Target is not Light || !change.IsAny(ObjectChangeType.Render)))
             {
                 Version++;
@@ -99,14 +98,14 @@ namespace XrEngine
                 UpdateDrawGizmos();
             }
 
-            if (change.IsAny(ObjectChangeType.Scene, 
-                             ObjectChangeType.MateriaAdd, 
+            if (change.IsAny(ObjectChangeType.Scene,
+                             ObjectChangeType.MateriaAdd,
                              ObjectChangeType.MateriaRemove,
                              ObjectChangeType.Components))
             {
                 ContentVersion++;
             }
-             
+
             foreach (var listener in _changeListener)
                 listener.NotifyChanged(sender, change);
 
@@ -152,7 +151,7 @@ namespace XrEngine
         public void UnlockChanges()
         {
             _lockCount--;
-        }   
+        }
 
         public void EnsureNotLocked()
         {

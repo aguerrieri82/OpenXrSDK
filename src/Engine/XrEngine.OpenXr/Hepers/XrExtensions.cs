@@ -322,7 +322,7 @@ namespace XrEngine.OpenXr
             {
                 var provider = new GlMotionVectorProvider(app, renderer);
                 provider.IsActive = true;
-                Context.Implement<IMotionVectorProvider>(provider);  
+                Context.Implement<IMotionVectorProvider>(provider);
                 xrApp.Layers.Add(new XrSpaceWarpProjectionLayer(RenderView, provider));
             }
             else

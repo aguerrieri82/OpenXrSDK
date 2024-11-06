@@ -214,7 +214,7 @@ namespace XrEngine.OpenGL
 
         public bool UseShadowSampler { get; set; }
 
-        ShadowMapOptions IShadowMapProvider.Options => _renderer.Options.ShadowMap; 
+        ShadowMapOptions IShadowMapProvider.Options => _renderer.Options.ShadowMap;
 
         Texture2D? IShadowMapProvider.ShadowMap => DepthTexture;
     }
