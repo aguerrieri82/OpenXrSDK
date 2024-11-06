@@ -67,7 +67,7 @@ namespace XrEditor
 
                 _isColliding = false;
 
-            }).ConfigureAwait(false);   
+            }).ConfigureAwait(false);
 
             _lastCollision = _collisions.OrderBy(a => a.Distance)
                                         .FirstOrDefault();

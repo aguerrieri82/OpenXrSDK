@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace XrEngine
 {
@@ -17,16 +12,16 @@ namespace XrEngine
 
     public interface ICurve2D
     {
-        IEnumerable<CurvePoint> Sample(float tolerance, int maxPoints);  
+        IEnumerable<CurvePoint> Sample(float tolerance, int maxPoints);
 
         Vector2 GetPointAtTime(float t);
 
         Vector2 GetTangentAtTime(float t);
 
-        float GetTimeAtLength(float length);    
+        float GetTimeAtLength(float length);
 
         float Length { get; }
 
-        bool IsClosed { get; }  
+        bool IsClosed { get; }
     }
 }

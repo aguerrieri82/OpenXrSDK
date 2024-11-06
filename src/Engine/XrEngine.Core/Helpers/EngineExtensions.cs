@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
-using System.Text.RegularExpressions;
 using XrEngine.Services;
 using XrMath;
 
@@ -43,7 +42,7 @@ namespace XrEngine
             return result;
         }
 
-        public static IEnumerable<T> Components<T>(this EngineObject self) 
+        public static IEnumerable<T> Components<T>(this EngineObject self)
         {
             return self.Components().OfType<T>();
         }
@@ -78,7 +77,7 @@ namespace XrEngine
         public static Group3D GroupByName(this Group3D self, params string[] names)
         {
             var grp = new Group3D();
-            
+
             self.AddChild(grp);
 
             foreach (var name in names)
@@ -244,7 +243,7 @@ namespace XrEngine
             var deltaOri = (pose.Orientation - self.WorldOrientation).Length();
 
             var isChanged = deltaPos > epsilonP || deltaOri > epsilonO;
-            
+
             if (!isChanged)
                 return;
 
@@ -360,7 +359,7 @@ namespace XrEngine
             {
                 if (collider.ContainsPoint(worldPoint))
                     result.Add((Object3D)collider.Host!);
-     
+
             });
         }
 
@@ -1103,9 +1102,9 @@ namespace XrEngine
             foreach (var material in self.Materials.OfType<IColorSource>())
             {
                 material.Color = color;
-                ((Material) material).NotifyChanged(ObjectChangeType.Render);   
+                ((Material)material).NotifyChanged(ObjectChangeType.Render);
             }
-              
+
         }
 
         public static void UpdateColor(this Material self, Color color)
@@ -1127,9 +1126,9 @@ namespace XrEngine
 
         public static Ray3 ScreenToRay(this Camera self, Vector2 screenPoint)
         {
-            var normPoint =  new Vector3(
-                2.0f * screenPoint.X / (float)self.ViewSize.Width - 1.0f,
-                1.0f - 2.0f * screenPoint.Y / (float)self.ViewSize.Height,
+            var normPoint = new Vector3(
+                2.0f * screenPoint.X / self.ViewSize.Width - 1.0f,
+                1.0f - 2.0f * screenPoint.Y / self.ViewSize.Height,
                 -1
             );
 
@@ -1151,7 +1150,7 @@ namespace XrEngine
         {
             var size = new Vector2(self.ViewSize.Width, self.ViewSize.Height);
             var proj = (world.Project(self.ViewProjection).ToVector2() + Vector2.One) * 0.5f;
-            return new Vector2(proj.X, proj.Y) * size;  
+            return new Vector2(proj.X, proj.Y) * size;
         }
 
         public static void Update<T>(this IList<T> self, RenderContext ctx) where T : IRenderUpdate
@@ -1166,7 +1165,7 @@ namespace XrEngine
         {
             if (safeMode)
                 self = self.ToArray();
-            
+
             foreach (var item in self)
                 item.Update(ctx);
 

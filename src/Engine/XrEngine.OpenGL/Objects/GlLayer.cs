@@ -1,5 +1,4 @@
-﻿using Silk.NET.OpenGL;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -139,7 +138,7 @@ namespace XrEngine.OpenGL
         {
             if (ctx.Frame == _lastFrame)
                 return;
-            
+
             if (_render.Options.FrustumCulling)
                 ComputeFrustumCulling();
 

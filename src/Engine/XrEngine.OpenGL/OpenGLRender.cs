@@ -13,7 +13,6 @@ using SkiaSharp;
 using System.Runtime.InteropServices;
 using XrEngine.Layers;
 using System.Numerics;
-using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -96,12 +95,12 @@ namespace XrEngine.OpenGL
 
             if (_options.UsePlanarReflection)
                 _renderPasses.Add(new GlReflectionPass(this));
-            
+
             _renderPasses.Add(new GlColorPass(this));
 
             if (_options.Outline.Use)
                 _renderPasses.Add(new GlOutlinePass(this));
-            
+
             if (_options.UseBloom)
             {
                 _boomPass = new GlBloomPass(this);
@@ -275,7 +274,7 @@ namespace XrEngine.OpenGL
             _updateCtx.Camera!.FrustumPlanes(_updateCtx.FrustumPlanes);
 
             foreach (var pass in _renderPasses)
-                pass.Configure();   
+                pass.Configure();
 
             foreach (var pass in _renderPasses)
             {
@@ -655,7 +654,7 @@ namespace XrEngine.OpenGL
 
         [ThreadStatic]
         public static OpenGLRender? Current;
-        private GlBloomPass _boomPass;
+        private readonly GlBloomPass _boomPass;
         private readonly Thread _thread;
     }
 }

@@ -39,7 +39,7 @@ namespace PhysX.Framework
 
         public float GetVisualizationParameter(PxVisualizationParameter parameter)
         {
-           return _handle->GetVisualizationParameter(parameter);
+            return _handle->GetVisualizationParameter(parameter);
         }
 
 
@@ -58,7 +58,7 @@ namespace PhysX.Framework
             get => _handle->GetFlags();
         }
 
-        public ref PxRenderBuffer RenderBuffer => ref Unsafe.AsRef<PxRenderBuffer>(_handle->GetRenderBufferMut());  
+        public ref PxRenderBuffer RenderBuffer => ref Unsafe.AsRef<PxRenderBuffer>(_handle->GetRenderBufferMut());
 
 
         public PxPvdSceneClient* PvdClient => _handle->GetScenePvdClientMut();

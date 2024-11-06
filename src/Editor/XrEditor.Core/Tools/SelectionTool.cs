@@ -43,9 +43,9 @@ namespace XrEditor
         private Task SetSelectedAsync(IEnumerable<TriangleMesh> items, bool selected) =>
         _sceneView!.RenderDispatcher.ExecuteAsync(() =>
         {
+            return;
             foreach (var item in items)
             {
-
                 var outline = item.Materials.OfType<OutlineMaterial>().FirstOrDefault();
                 if (outline == null && selected)
                 {

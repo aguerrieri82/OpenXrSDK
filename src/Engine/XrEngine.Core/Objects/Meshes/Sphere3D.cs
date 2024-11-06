@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using XrMath;
-using static System.Collections.Specialized.BitVector32;
 
 namespace XrEngine
 {

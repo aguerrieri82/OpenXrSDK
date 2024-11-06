@@ -87,7 +87,7 @@ namespace XrEngine
             }
 
             Panorama = (Texture2D)loader.LoadAsset(uri, typeof(Texture2D), null, _loaderOptions);
-            Panorama.NotifyChanged(ObjectChangeType.Render);    
+            Panorama.NotifyChanged(ObjectChangeType.Render);
 
             NotifyChanged(ObjectChangeType.Render);
         }

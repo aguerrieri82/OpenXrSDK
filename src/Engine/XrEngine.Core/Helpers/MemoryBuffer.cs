@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
- 
+
     public static class MemoryBuffer
     {
         public static IMemoryBuffer<T> CreateOrResize<T>(IMemoryBuffer<T>? buffer, uint size)

@@ -8,7 +8,7 @@ namespace XrEngine.Services
     {
         const string KEY_REF = "$ref";
 
-        static JsonSerializerOptions _options = new JsonSerializerOptions
+        static readonly JsonSerializerOptions _options = new JsonSerializerOptions
         {
             IncludeFields = true,
         };

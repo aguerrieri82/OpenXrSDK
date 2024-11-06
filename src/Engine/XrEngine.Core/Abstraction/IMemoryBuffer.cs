@@ -44,7 +44,7 @@ namespace XrEngine
 
         void Unlock();
 
-        void Allocate(uint size);   
+        void Allocate(uint size);
 
         uint Size { get; }
 

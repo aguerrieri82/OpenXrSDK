@@ -10,6 +10,7 @@ using XrEngine;
 using XrEngine.Audio;
 using XrEngine.Compression;
 using XrEngine.Gltf;
+using XrEngine.Helpers;
 using XrEngine.Objects;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
@@ -17,9 +18,7 @@ using XrEngine.Services;
 using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
-using XrEngine.Helpers;
 using XrSamples.Components;
-using Microsoft.Extensions.Options;
 
 
 
@@ -160,7 +159,7 @@ namespace XrSamples
             panel.DpiScale = 1.6f;
             panel.Content = uiRoot;
             panel.WorldPosition = new Vector3(0, 1, 0);
-      
+
             return builder
                 .UseClickMoveFront(panel, 0.5f)
                 .ConfigureApp(e =>
@@ -335,7 +334,7 @@ namespace XrSamples
               .UseDefaultHDR()
               .UsePhysics(new PhysicsOptions
               {
-                 
+
               })
               .AddPanel(new ThrowSettingsPanel(settings, scene))
               .ConfigureApp(app => settings.Apply(app.App.ActiveScene!));
@@ -1134,9 +1133,9 @@ namespace XrSamples
                 XrEngine.MeshOptimizer.OptimizeOverdraw(mesh.Geometry!, 1.05f);
                 XrEngine.MeshOptimizer.OptimizeVertexFetch(mesh.Geometry!);
             }
-          
+
             var checkerMat = (Material)MaterialFactory.CreatePbr(TextureFactory.CreateChecker());
-           
+
             /*
             var cube = new TriangleMesh(new Cube3D(new Vector3(1, 0.2f, 1)), checkerMat);
             cube.Geometry!.ScaleUV(new Vector2(2, 2)); 

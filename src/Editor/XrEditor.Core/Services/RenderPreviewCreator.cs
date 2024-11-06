@@ -52,7 +52,7 @@ namespace XrEditor.Services
             _light = new ImageLight();
             _light.LoadPanorama("res://asset/pisa.hdr");
             _light.Intensity = 2.5f;
-            _light.NotifyChanged(ObjectChangeType.Render);  
+            _light.NotifyChanged(ObjectChangeType.Render);
 
             _app = new EngineApp();
             _app.Renderer = _engine;

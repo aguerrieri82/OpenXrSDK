@@ -167,7 +167,7 @@ namespace XrEngine
 
         #region PbrV2Shader
 
-        public class PbrV2Shader : Shader, IShaderHandler 
+        public class PbrV2Shader : Shader, IShaderHandler
         {
             long _iblVersion = -1;
             readonly PerspectiveCamera _depthCamera = new PerspectiveCamera();
@@ -253,7 +253,7 @@ namespace XrEngine
                         ActiveEye = ctx.Camera.ActiveEye,
                         ViewSize = ctx.ViewSize,
                         NearPlane = ctx.Camera.Near,
-                        FarPlane = ctx.Camera.Far ,
+                        FarPlane = ctx.Camera.Far,
                         DepthNoiseFactor = DepthNoiseFactor,
                         DepthNoiseDistance = DepthNoiseDistance
                     };
@@ -355,7 +355,7 @@ namespace XrEngine
 
         #endregion
 
-    
+
         public static readonly PbrV2Shader SHADER;
 
         static PbrV2Material()
@@ -411,7 +411,7 @@ namespace XrEngine
 
             bld.AddFeature($"ALPHA_MODE {(int)(Alpha == AlphaMode.BlendMain ? AlphaMode.Blend : Alpha)}");
 
-            
+
             bld.LoadBuffer(ctx =>
             {
                 var curVersion = ctx.Model!.Transform.Version;
@@ -536,6 +536,6 @@ namespace XrEngine
 
         public bool UseEnvDepth { get; set; }
 
-        
+
     }
 }

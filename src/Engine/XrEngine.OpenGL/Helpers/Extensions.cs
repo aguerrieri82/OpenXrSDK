@@ -18,7 +18,7 @@ namespace XrEngine.OpenGL
             while ((err = gl.GetError()) != GLEnum.NoError)
             {
                 Log.Warn("CheckError", err.ToString());
-     
+
             }
         }
 
@@ -209,7 +209,7 @@ namespace XrEngine.OpenGL
             result.SampleCount = glTexture.SampleCount;
             result.MaxAnisotropy = glTexture.MaxAnisotropy;
             result.Handle = glTexture.Handle;
-            result.Format = GlUtils.GetTextureFormat(glTexture.InternalFormat); 
+            result.Format = GlUtils.GetTextureFormat(glTexture.InternalFormat);
 
             result.SetProp(OpenGLRender.Props.GlResId, glTexture);
 
@@ -232,22 +232,22 @@ namespace XrEngine.OpenGL
         public static GlTexture Clone(this GlTexture self, bool includeContent)
         {
             var result = new GlTexture(self.GL);
-            
-            result.Target = self.Target;    
+
+            result.Target = self.Target;
             result.MinFilter = self.MinFilter;
             result.MagFilter = self.MagFilter;
             result.WrapS = self.WrapS;
             result.WrapT = self.WrapT;
             result.MaxAnisotropy = self.MaxAnisotropy;
             result.BorderColor = self.BorderColor;
-            result.MaxLevel = self.MaxLevel;    
+            result.MaxLevel = self.MaxLevel;
             result.BaseLevel = self.BaseLevel;
 
-            var texFormat = GlUtils.GetTextureFormat(self.InternalFormat);   
+            var texFormat = GlUtils.GetTextureFormat(self.InternalFormat);
 
             result.Update(self.Width, self.Height, self.Depth, texFormat);
 
-            return result;  
+            return result;
 
         }
 

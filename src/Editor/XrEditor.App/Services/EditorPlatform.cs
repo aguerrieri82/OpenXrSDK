@@ -40,7 +40,7 @@ namespace XrEditor
                 Name = Environment.MachineName
             };
 
-            PersistentPath = Path.GetFullPath(persistentPath); 
+            PersistentPath = Path.GetFullPath(persistentPath);
         }
 
         public IRenderSurface CreateRenderSurface(GraphicDriver driver)

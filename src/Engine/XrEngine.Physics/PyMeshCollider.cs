@@ -38,7 +38,7 @@ namespace XrEngine.Physics
                     continue;
 
                 var pyGeo = geo.GetProp<PhysicsGeometry>("PyGeo")!;
-      
+
                 var distance = pyGeo.DistanceFrom(globalPoint, item.WorldMatrix.ToPose(), 0, out var _);
 
                 Log.Value("Distance", distance);
@@ -115,7 +115,7 @@ namespace XrEngine.Physics
                           geo.ExtractPositions(),
                           scale);
                     }
-                   
+
                     return _system!.CreateTriangleMesh(
                         geo.Indices,
                         geo.ExtractPositions(),
@@ -128,9 +128,9 @@ namespace XrEngine.Physics
         }
 
 
-        public Func<IEnumerable<Object3D>> MeshObjects { get; set; }  
+        public Func<IEnumerable<Object3D>> MeshObjects { get; set; }
 
-        public bool UseConvexMesh { get; set; } 
+        public bool UseConvexMesh { get; set; }
 
         public float Tolerance { get; set; }
 

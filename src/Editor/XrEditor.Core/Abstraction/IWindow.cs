@@ -18,6 +18,6 @@ namespace XrEditor
 
         Size2 Size { get; set; }
 
-        WindowState State { get; set; } 
+        WindowState State { get; set; }
     }
 }

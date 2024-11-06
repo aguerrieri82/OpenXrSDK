@@ -206,7 +206,7 @@ namespace XrEngine.Compression
                     };
 
                     var outData = Encode((uint)curImage.Width, (uint)curImage.Height, pData, ref options, out var outSize);
-                    
+
                     texData.Data = MemoryBuffer.Create<byte>(outData + 52, outSize - 52);
                 }
 

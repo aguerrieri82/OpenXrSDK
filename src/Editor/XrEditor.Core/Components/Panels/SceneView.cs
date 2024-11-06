@@ -209,7 +209,7 @@ namespace XrEditor
                         if (_renderSurface.SupportsDualRender)
                         {
                             _render.SetRenderTarget(null);
-                            #warning "Take in account of dual camera"
+#warning "Take in account of dual camera"
                             _render.Render(_scene.App.RenderContext, _view, false);
                         }
                     }

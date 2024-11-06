@@ -79,7 +79,7 @@
                 if (_isEnabled == value)
                     return;
                 _isEnabled = value;
-                
+
                 if (!_isEnabled)
                     OnDisabled();
                 else

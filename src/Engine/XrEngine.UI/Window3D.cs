@@ -32,7 +32,7 @@ namespace XrEngine.UI
             base.Update(ctx);
         }
 
-        static Pointer2Button[] BUTTONS = [Pointer2Button.Left, Pointer2Button.Right];
+        static readonly Pointer2Button[] BUTTONS = [Pointer2Button.Left, Pointer2Button.Right];
 
         protected void ProcessPointers()
         {

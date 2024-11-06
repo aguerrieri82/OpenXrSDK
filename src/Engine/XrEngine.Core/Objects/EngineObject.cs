@@ -206,7 +206,7 @@
             set => _id = value;
         }
 
-        int IRenderUpdate.UpdatePriority => 0;  
+        int IRenderUpdate.UpdatePriority => 0;
 
         public event Action<EngineObject, ObjectChange>? Changed;
 

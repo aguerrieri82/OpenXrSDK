@@ -46,9 +46,9 @@ namespace XrEngine.Services
 
         public void Shutdown()
         {
-            foreach (var module in _loaded.Values.Where(a=> a != null))
+            foreach (var module in _loaded.Values.Where(a => a != null))
                 module?.Shutdown();
-        }   
+        }
 
         private void OnAssemblyLoad(object? sender, AssemblyLoadEventArgs args)
         {

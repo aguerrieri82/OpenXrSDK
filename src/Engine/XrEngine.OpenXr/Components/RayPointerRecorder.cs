@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using XrInteraction;
 
 namespace XrEngine.OpenXr
@@ -82,14 +77,14 @@ namespace XrEngine.OpenXr
             lock (this)
                 json = JsonSerializer.Serialize(_session, options);
 
-            File.WriteAllText(Path.Join(path, "pointer.json"), json);  
+            File.WriteAllText(Path.Join(path, "pointer.json"), json);
         }
 
 
         public RecordSession? Session => _session;
 
-        public IRayPointer? Pointer { get; set; }    
+        public IRayPointer? Pointer { get; set; }
 
-        public string? PointerName { get; set; }  
+        public string? PointerName { get; set; }
     }
 }

@@ -1,13 +1,6 @@
-﻿using CanvasUI;
-using PhysX.Framework;
-using System;
-using System.Collections.Generic;
+﻿using PhysX.Framework;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Runtime.ConstrainedExecution;
-using System.Text;
-using System.Threading.Tasks;
 using XrEngine;
 using XrEngine.Physics;
 using XrMath;
@@ -52,7 +45,7 @@ namespace XrSamples.Components
 
         protected void AttachBody()
         {
-            Debug.Assert(CarBody != null && _mainTube != null);  
+            Debug.Assert(CarBody != null && _mainTube != null);
 
             _bodyMainDeltaPose = _mainTube.GetWorldPose().Difference(CarBody.GetWorldPose());
 
@@ -85,7 +78,7 @@ namespace XrSamples.Components
 
         private void OnContact(Object3D self, Object3D other, int otherIndex, ContactPair[] pairs)
         {
-            Log.Debug(this, "Contact {0} with {1}", self.Name, other.Name); 
+            Log.Debug(this, "Contact {0} with {1}", self.Name, other.Name);
         }
 
         protected void AttachWheels()
@@ -242,7 +235,7 @@ namespace XrSamples.Components
             {
                 var line = new Line3(p1, p2);
                 var cube = new Cube3D(new Vector3(size, size, line.Length()));
-                
+
                 var mesh = new TriangleMesh(cube, (Material)mat)
                 {
                     WorldPosition = line.Center(),
@@ -274,19 +267,19 @@ namespace XrSamples.Components
             }
 
 
-            
+
 
             Debug.Assert(WheelFL != null && WheelFR != null && WheelBL != null && WheelBR != null);
 
- /*
-  t1  |   t3  | t2
- p1--p3--p5--p4--p2
-          |
-          | t5
-          |
-  p6-----p8------p7
-         t4
-*/
+            /*
+             t1  |   t3  | t2
+            p1--p3--p5--p4--p2
+                     |
+                     | t5
+                     |
+             p6-----p8------p7
+                    t4
+           */
 
             var p1 = WheelFL.WorldBounds.Center;// + new Vector3(WheelFL.WorldBounds.Size.X / 2, 0, 0);
 
@@ -327,7 +320,7 @@ namespace XrSamples.Components
 
             AddRotationV2(WheelBL, t4, p6, Vector3.UnitX);
             AddRotationV2(WheelBR, t4, p7, Vector3.UnitX);
-       
+
             AddFixed(t5, t4, p8);
             AddFixed(t5, t3, p5);
 
@@ -379,7 +372,7 @@ namespace XrSamples.Components
 
             if (_steerLeft.D6Joint.DriveSwing.stiffness != SteeringStiffness)
             {
-                var curLimit = _steerLeft.D6Joint.DriveSwing;   
+                var curLimit = _steerLeft.D6Joint.DriveSwing;
                 curLimit.stiffness = SteeringStiffness;
                 _steerLeft.D6Joint.DriveSwing = curLimit;
 
@@ -483,12 +476,12 @@ namespace XrSamples.Components
             }
         }
 
-        public float SteeringStiffness { get; set; }    
+        public float SteeringStiffness { get; set; }
 
         public float WheelMass { get; set; }
-        
+
         public float ChassisDensity { get; set; }
-        
+
         public float CarBodyDensity { get; set; }
 
         public Object3D? WheelFL { get; set; }
@@ -501,7 +494,7 @@ namespace XrSamples.Components
 
         public Object3D? SteeringWheel { get; set; }
 
-        public Object3D? CarBody { get; set; }  
+        public Object3D? CarBody { get; set; }
 
         public IEnumerable<TriangleMesh>? CarBodyCollisionMeshes { get; set; }
     }

@@ -143,7 +143,7 @@ namespace XrEngine
 
         public void Flush()
         {
-            _lineMesh.Vertices = _data.ToArray();;
+            _lineMesh.Vertices = _data.ToArray(); ;
             _lineMesh.NotifyChanged(ObjectChangeType.Geometry);
         }
 

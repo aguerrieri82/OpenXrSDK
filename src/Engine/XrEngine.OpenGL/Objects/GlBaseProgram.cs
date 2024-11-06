@@ -10,8 +10,6 @@ using System.Text;
 using XrMath;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Xml.Linq;
-using System;
 
 
 namespace XrEngine.OpenGL
@@ -146,8 +144,8 @@ namespace XrEngine.OpenGL
             return isChanged;
         }
 
-        static Dictionary<Texture2D, GlTexture> _textures = [];
-        static Dictionary<Texture2D, GlTextureBuffer> _textureBuffers = [];
+        static readonly Dictionary<Texture2D, GlTexture> _textures = [];
+        static readonly Dictionary<Texture2D, GlTextureBuffer> _textureBuffers = [];
 
         public void LoadTexture(Texture value, int slot = 0)
         {
@@ -168,7 +166,7 @@ namespace XrEngine.OpenGL
 
                 GlState.Current!.SetActiveTexture(glTextBuf.Texture, slot);
 
-                glTextBuf.Version = tex2d.Version;  
+                glTextBuf.Version = tex2d.Version;
             }
             else
             {

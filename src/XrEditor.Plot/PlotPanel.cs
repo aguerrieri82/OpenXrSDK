@@ -1,10 +1,4 @@
 ﻿using CanvasUI.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UI.Binding;
 using XrEngine;
 using XrMath;
 
@@ -36,7 +30,7 @@ namespace XrEditor.Plot
 
         private DateTime _lastValueTime;
         private DateTime _lastNotifyTime;
-        private Timer _notifyTimer;
+        private readonly Timer _notifyTimer;
 
         public PlotPanel()
         {
@@ -60,7 +54,7 @@ namespace XrEditor.Plot
 
             ToolBar = new ToolbarView();
             ToolBar.AddText("X:");
-            ToolBar.AddEnumSelect(Plotter.AutoScaleX, a=> Plotter.AutoScaleX = a);
+            ToolBar.AddEnumSelect(Plotter.AutoScaleX, a => Plotter.AutoScaleX = a);
             ToolBar.AddText("Y:");
             ToolBar.AddEnumSelect(Plotter.AutoScaleY, a => Plotter.AutoScaleY = a);
             ToolBar.AddToggle("icon_vertical_split", Plotter.ShowAxisY, a => Plotter.ShowAxisY = a);
@@ -71,7 +65,7 @@ namespace XrEditor.Plot
         public void Clear()
         {
             Plotter.Series.Clear();
-            Plotter.CheckPoints.Clear();    
+            Plotter.CheckPoints.Clear();
         }
 
 
@@ -91,7 +85,7 @@ namespace XrEditor.Plot
                 _mainDispatcher.Execute(() => Plotter.NotifyChanged(null));
             }
         }
-       
+
         public void LogValue<T>(string name, T value)
         {
             if (value is float fValue)
@@ -129,7 +123,7 @@ namespace XrEditor.Plot
             {
                 _lastNotifyTime = _lastValueTime;
                 _notifyTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            }   
+            }
         }
 
         public override void SetState(IStateContainer container)
@@ -162,7 +156,7 @@ namespace XrEditor.Plot
 
         }
 
-        public Plotter Plotter { get;}
+        public Plotter Plotter { get; }
 
         public int RetainTimeMs { get; set; }
 

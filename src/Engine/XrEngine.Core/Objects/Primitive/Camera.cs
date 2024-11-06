@@ -166,6 +166,6 @@ namespace XrEngine
 
         public bool IsLightSpace { get; set; }
 
-        public Size2I ViewSize { get; set; }    
+        public Size2I ViewSize { get; set; }
     }
 }

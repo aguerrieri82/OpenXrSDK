@@ -1,14 +1,7 @@
 ﻿using OpenXr.Framework;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine.Interaction;
-using XrInteraction;
 using XrMath;
 
 namespace XrEngine.Physics
@@ -29,7 +22,7 @@ namespace XrEngine.Physics
 
         protected override void Update(RenderContext ctx)
         {
-          
+
             if (Input == null)
             {
                 if (XrApp.Current == null || !XrApp.Current.IsStarted)
@@ -37,7 +30,7 @@ namespace XrEngine.Physics
 
                 if (string.IsNullOrWhiteSpace(InputName))
                     return;
-                
+
                 Input = XrApp.Current!.Inputs[InputName] as XrPoseInput;
             }
 
@@ -99,7 +92,7 @@ namespace XrEngine.Physics
                     Log.Checkpoint("Force End", "#ff0000");
                     _isDragging = false;
                 }
-              
+
                 else
                 {
                     Debug.Assert(_object != null && _rigidBody != null);
@@ -107,7 +100,7 @@ namespace XrEngine.Physics
                     var startWorld = _object.ToWorld(_startDragLocal);
                     var curWorlds = Input.Value.Position;
                     var force = (curWorlds - startWorld) * Factor * _rigidBody.DynamicActor.Mass;
-                    
+
                     _rigidBody.DynamicActor.AddForce(force, startWorld, PhysX.PxForceMode.Impulse);
 
                     _lastForce = new Line3() { From = startWorld, To = curWorlds };

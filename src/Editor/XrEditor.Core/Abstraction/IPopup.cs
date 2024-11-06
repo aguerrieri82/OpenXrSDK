@@ -1,6 +1,4 @@
-﻿using XrMath;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public interface IPopup : IWindow
     {

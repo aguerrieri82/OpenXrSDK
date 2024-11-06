@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using XrInteraction;
 
 namespace XrEngine.OpenXr
@@ -27,7 +22,7 @@ namespace XrEngine.OpenXr
 
         public RayPointerStatus GetPointerStatus()
         {
-           return _frame.Status;    
+            return _frame.Status;
         }
 
         protected override void Update(RenderContext ctx)
@@ -86,13 +81,13 @@ namespace XrEngine.OpenXr
 
         public int PointerId => _session?.PointerId ?? 0;
 
-        public string Name => _session?.PointerName ?? string.Empty;    
+        public string Name => _session?.PointerName ?? string.Empty;
 
         public bool IsCaptured => _isCaptured;
 
         public int CurrentFrame { get; set; }
 
         [ValueType(ValueType.FileName)]
-        public string? SourceFile { get; set; }  
+        public string? SourceFile { get; set; }
     }
 }

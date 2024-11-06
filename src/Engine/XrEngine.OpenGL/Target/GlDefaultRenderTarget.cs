@@ -18,20 +18,20 @@ namespace XrEngine.OpenGL
         private readonly GlRenderBuffer _depth;
         private readonly GlTextureFrameBuffer _frameBuffer;
 
-  
+
         public GlDefaultRenderTarget(GL gl)
         {
             _gl = gl;
 
             _color = new GlTexture(_gl);
             _color.MaxLevel = 0;
-            _color.IsMutable = true;    
-            
-            _depth = new GlRenderBuffer(_gl);
-            
-            SetSize(new Size2I(16, 16));    
+            _color.IsMutable = true;
 
-            _frameBuffer = new GlTextureFrameBuffer(_gl,_color, _depth);
+            _depth = new GlRenderBuffer(_gl);
+
+            SetSize(new Size2I(16, 16));
+
+            _frameBuffer = new GlTextureFrameBuffer(_gl, _color, _depth);
         }
 
         protected void SetSize(Size2I size)
@@ -48,16 +48,16 @@ namespace XrEngine.OpenGL
         }
 
         public void Begin(Camera camera, Size2I viewSize)
-        {  
-            if (viewSize.Width !=_frameBuffer.Color!.Width || viewSize.Height != _frameBuffer.Color.Height)
+        {
+            if (viewSize.Width != _frameBuffer.Color!.Width || viewSize.Height != _frameBuffer.Color.Height)
                 SetSize(viewSize);
-    
+
             _frameBuffer.Bind();
         }
 
         public void Dispose()
         {
-            _frameBuffer.Dispose(); 
+            _frameBuffer.Dispose();
             GC.SuppressFinalize(this);
         }
 
@@ -67,10 +67,10 @@ namespace XrEngine.OpenGL
             GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
 
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
-            _gl.DrawBuffers(GlState.DRAW_BACK);    
+            _gl.DrawBuffers(GlState.DRAW_BACK);
 
             var w = _frameBuffer.Color!.Width;
-            var h = _frameBuffer.Color.Height;  
+            var h = _frameBuffer.Color.Height;
 
             _gl.BlitFramebuffer(0, 0, (int)w, (int)h, 0, 0, (int)w, (int)h, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
 

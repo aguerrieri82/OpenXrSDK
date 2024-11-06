@@ -79,7 +79,8 @@ namespace XrEngine.OpenGL
                 action(ctx, uniformProvider);
         }
 
-        public void Dispose() { 
+        public void Dispose()
+        {
         }
 
         public ShaderUpdate? Update { get; set; }

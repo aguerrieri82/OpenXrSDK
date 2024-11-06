@@ -123,7 +123,7 @@ namespace XrEngine
                     var vr3 = Vector3.Transform(s2, q2);
 
                     var u1 = samples[j].Time;
-                    var u2 = samples[j + 1].Time;   
+                    var u2 = samples[j + 1].Time;
 
                     var uv0 = new Vector2(u1, v1);
                     var uv1 = new Vector2(u2, v1);

@@ -19,7 +19,7 @@ namespace CanvasUI
 
         protected override void OnNeedRedraw()
         {
-            NeedRedraw?.Invoke(this, EventArgs.Empty);  
+            NeedRedraw?.Invoke(this, EventArgs.Empty);
         }
 
         protected void Layout()
@@ -43,13 +43,13 @@ namespace CanvasUI
 
             if (Equals(newView, _viewport))
                 return;
-            
+
             _viewport = newView;
             _clientRect = _viewport;
             _isLayoutDirty = true;
         }
 
 
-        public event EventHandler? NeedRedraw;  
+        public event EventHandler? NeedRedraw;
     }
 }

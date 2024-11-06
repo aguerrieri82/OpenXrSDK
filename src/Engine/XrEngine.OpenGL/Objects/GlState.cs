@@ -407,7 +407,7 @@ namespace XrEngine.OpenGL
                 return;
 
             _gl.BindBufferBase(buffer.Target, (uint)slot, buffer.Handle);
-            buffer.Slot = slot; 
+            buffer.Slot = slot;
 
             BufferSlots[slot] = buffer.Handle;
         }
@@ -451,7 +451,7 @@ namespace XrEngine.OpenGL
 
         public readonly uint[] TexturesSlots = new uint[32];
 
-        public readonly uint[] BufferSlots =new uint[32];
+        public readonly uint[] BufferSlots = new uint[32];
 
         public readonly Dictionary<FramebufferTarget, uint> FrameBufferTargets = [];
 

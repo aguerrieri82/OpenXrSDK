@@ -106,7 +106,7 @@ namespace XrEngine
                 Max = Center + Size / 2
             };
 
-            return bounds.Contains(localPoint);   
+            return bounds.Contains(localPoint);
         }
 
         public Vector3 Size { get; set; }

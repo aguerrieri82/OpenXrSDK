@@ -24,11 +24,11 @@ namespace XrEngine
         ChildAdd = Add | Children,
         ChildRemove = Remove | Children,
         ComponentAdd = Add | Components,
-        ComponentRemove = Remove | Components,  
+        ComponentRemove = Remove | Components,
         ComponentEnabled = Enabled | Components,
         MateriaAdd = Add | Material,
         MateriaRemove = Remove | Material,
-        MaterialEnabled = Enabled | Material,   
+        MaterialEnabled = Enabled | Material,
 
     }
 
@@ -100,7 +100,7 @@ namespace XrEngine
                 foreach (var targetChild in targetEnum.OfType<T>())
                     yield return targetChild;
             }
-        }   
+        }
 
         public static implicit operator ObjectChange(ObjectChangeType type)
         {

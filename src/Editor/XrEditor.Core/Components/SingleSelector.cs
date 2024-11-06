@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public class SelectorItem
     {
@@ -16,7 +10,7 @@ namespace XrEditor
         public SelectorItem(object? value, string? displayName = null)
         {
             Value = value;
-            DisplayName = displayName ?? value.ToString();  
+            DisplayName = displayName ?? value.ToString();
         }
 
         public string DisplayName { get; set; }
@@ -42,7 +36,7 @@ namespace XrEditor
                 if (Equals(_selectedValue, value))
                     return;
                 _selectedValue = value;
-                OnPropertyChanged(nameof(SelectedValue));    
+                OnPropertyChanged(nameof(SelectedValue));
             }
         }
 

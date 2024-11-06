@@ -48,7 +48,7 @@
                         Texture.Data = [_data];
                         Texture.Width = _data.Width;
                         Texture.Height = _data.Height;
-                        Texture.NotifyChanged(ObjectChangeType.Render);    
+                        Texture.NotifyChanged(ObjectChangeType.Render);
                     }
 
                     _lastFrameTime = ctx.Time;

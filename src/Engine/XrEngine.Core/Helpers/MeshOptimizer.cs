@@ -6,7 +6,7 @@ namespace XrEngine
     {
         public unsafe static uint[] GenerateVertexRemap(Geometry3D geometry)
         {
-            var indexCount = geometry.Indices.Length == 0 ? geometry.Vertices.Length : geometry.Indices.Length; 
+            var indexCount = geometry.Indices.Length == 0 ? geometry.Vertices.Length : geometry.Indices.Length;
             var remap = new uint[indexCount];
             fixed (VertexData* pData = geometry.Vertices)
             {
@@ -18,7 +18,7 @@ namespace XrEngine
                     geometry.Vertices.Length,
                     sizeof(VertexData));
 
-                Array.Resize(ref remap, (int)total);    
+                Array.Resize(ref remap, (int)total);
             }
             return remap;
         }

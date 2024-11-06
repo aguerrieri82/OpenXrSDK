@@ -17,6 +17,6 @@ namespace XrEngine.OpenGL
 
         uint Handle { get; }
 
-        int Slot { get; set; } 
+        int Slot { get; set; }
     }
 }

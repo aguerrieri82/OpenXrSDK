@@ -92,7 +92,7 @@
             }
             else if (change.IsAny(ObjectChangeType.Render))
             {
-     
+
             }
 
         }

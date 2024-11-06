@@ -60,7 +60,7 @@ namespace XrEngine.OpenXr
                       .Where(a => a.Name == PointerName)
                       .FirstOrDefault();
             }
-    
+
             _sceneTargets = _host.Scene.Components<IRayTarget>().ToArray();
         }
 
@@ -74,7 +74,7 @@ namespace XrEngine.OpenXr
                 return;
 
             var ray = status.Value.Ray;
-            
+
             _rayView.SetWorldPoseIfChanged(ray.ToPose());
 
             Collision? result = null;
@@ -143,7 +143,7 @@ namespace XrEngine.OpenXr
 
         public IRayPointer? Pointer { get; set; }
 
-        public string? PointerName { get; set; }    
+        public string? PointerName { get; set; }
 
         public bool ShowHit { get; set; }
 

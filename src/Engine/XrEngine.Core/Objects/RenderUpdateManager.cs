@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class RenderUpdateManager
     {
@@ -82,7 +75,7 @@ namespace XrEngine
                         leafGroup.Items.Add(obj3d);
                 }
             }
-            
+
             Visit(_scene);
 
             _groups.Sort((a, b) => a.Priority - b.Priority);

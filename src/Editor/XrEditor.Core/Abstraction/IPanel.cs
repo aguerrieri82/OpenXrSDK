@@ -9,14 +9,14 @@
             PanelId = panelId;
         }
         public string PanelId { get; }
-    }   
+    }
 
 
     public interface IPanel
     {
         Task CloseAsync();
 
-        string PanelId { get; } 
+        string PanelId { get; }
 
         string? Title { get; }
 

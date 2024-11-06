@@ -144,7 +144,7 @@ namespace XrEngine.OpenGL
 
                 GlState.Current!.SetView(new Rect2I(0, 0, w, h));
 
-                var pixelSize = GlUtils.GetPixelSize(format);   
+                var pixelSize = GlUtils.GetPixelSize(format);
 
                 var item = new TextureData
                 {
@@ -193,7 +193,7 @@ namespace XrEngine.OpenGL
             return result;
         }
 
-     
+
 
         public void Update(uint depth, params TextureData[] data)
         {
@@ -404,7 +404,7 @@ namespace XrEngine.OpenGL
             Unbind();
         }
 
-        protected  internal void UpdateSampler()
+        protected internal void UpdateSampler()
         {
             bool isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
 

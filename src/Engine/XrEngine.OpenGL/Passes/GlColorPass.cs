@@ -5,7 +5,6 @@ using Microsoft.VisualBasic;
 using Silk.NET.OpenGL;
 #endif
 
-using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -120,6 +119,6 @@ namespace XrEngine.OpenGL
             _renderer.GL.PopDebugGroup();
         }
 
-        public bool WriteDepth { get; set; } 
+        public bool WriteDepth { get; set; }
     }
 }

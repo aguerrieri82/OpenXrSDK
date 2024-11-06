@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine.Helpers
 {
@@ -43,7 +38,7 @@ namespace XrEngine.Helpers
             texture.WrapS = WrapMode.Repeat;
             texture.WrapT = WrapMode.Repeat;
             texture.MagFilter = ScaleFilter.Nearest;
-            texture.MinFilter = ScaleFilter.Nearest;  
+            texture.MinFilter = ScaleFilter.Nearest;
 
             return texture;
         }

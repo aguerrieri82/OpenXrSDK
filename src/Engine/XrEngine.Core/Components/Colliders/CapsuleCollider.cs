@@ -18,7 +18,7 @@ namespace XrEngine
         public CapsuleCollider()
         {
             Pose = Pose3.Identity;
-        }   
+        }
 
         public void Initialize()
         {
@@ -27,7 +27,7 @@ namespace XrEngine
 
         public bool ContainsPoint(Vector3 worldPoint)
         {
-            throw new NotImplementedException();        
+            throw new NotImplementedException();
         }
 
         public Collision? CollideWith(Ray3 ray)

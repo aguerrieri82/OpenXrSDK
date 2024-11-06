@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Text;
 using XrMath;
 
 namespace PhysX.Framework
@@ -11,7 +10,7 @@ namespace PhysX.Framework
 
     public abstract unsafe class PhysicsRigidActor : PhysicsActor
     {
-        private string _name;
+        private readonly string _name;
 
         internal PhysicsRigidActor(PxActor* handle, PhysicsSystem system)
             : base(handle, system)

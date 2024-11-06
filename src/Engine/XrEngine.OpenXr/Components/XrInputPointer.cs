@@ -1,6 +1,4 @@
 ﻿using OpenXr.Framework;
-using System.Diagnostics;
-using System.Numerics;
 using XrInteraction;
 using XrMath;
 

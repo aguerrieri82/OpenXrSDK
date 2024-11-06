@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using XrMath;
+﻿using System.Runtime.CompilerServices;
 
 namespace PhysX.Framework
 {
@@ -13,9 +6,9 @@ namespace PhysX.Framework
     {
 
         internal protected PhysicsRevoluteJoint(PxRevoluteJoint* handle, PhysicsSystem system)
-            : base((PxJoint*)handle, system)  
+            : base((PxJoint*)handle, system)
         {
-   
+
         }
 
         public PxJointAngularLimitPair Limit
@@ -41,7 +34,7 @@ namespace PhysX.Framework
         {
             get => RevoluteJoint.GetDriveGearRatio();
             set => RevoluteJoint.SetDriveGearRatioMut(value);
-        }   
+        }
 
         public PxRevoluteJointFlags RevoluteJointFlags
         {

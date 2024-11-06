@@ -21,7 +21,7 @@ namespace XrEngine
             {
                 _lastWorldPos = WorldPosition;
                 Version++;
-            }   
+            }
         }
 
 

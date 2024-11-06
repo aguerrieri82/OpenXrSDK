@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -105,6 +104,6 @@ namespace XrEngine.OpenGL
             base.Dispose();
         }
 
-        protected bool SortByCameraDistance { get; set; }   
+        protected bool SortByCameraDistance { get; set; }
     }
 }

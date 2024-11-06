@@ -1,10 +1,4 @@
-﻿using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine;
+﻿using XrEngine;
 using XrEngine.Services;
 
 namespace XrEditor
@@ -22,10 +16,10 @@ namespace XrEditor
 
         public async Task Save()
         {
-            var container = new JsonStateContainer();   
+            var container = new JsonStateContainer();
             EngineApp.Current!.ActiveScene!.GetState(container);
             var json = container.AsJson();
-            File.WriteAllText("scene.json", container.AsJson());  
+            File.WriteAllText("scene.json", container.AsJson());
 
         }
 

@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Markup;
+﻿using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Markup;
 
 namespace XrEditor
 {
@@ -108,7 +103,7 @@ namespace XrEditor
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static object GetInternalContentManager(DependencyObject obj)
         {
-            return (object)obj.GetValue(InternalContentManagerProperty);
+            return obj.GetValue(InternalContentManagerProperty);
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -230,7 +225,7 @@ namespace XrEditor
 
         public class ContentManager
         {
-            TabControl _tabControl;
+            readonly TabControl _tabControl;
             Decorator _border;
 
             public ContentManager(TabControl tabControl, Decorator border)
@@ -242,7 +237,7 @@ namespace XrEditor
 
             public void ReplaceContainer(Decorator newBorder)
             {
-                if (ReferenceEquals(_border, newBorder)) 
+                if (ReferenceEquals(_border, newBorder))
                     return;
 
                 _border.Child = null; // detach any tab content that old border may hold
@@ -257,11 +252,11 @@ namespace XrEditor
             private ContentControl? GetCurrentContent()
             {
                 var item = _tabControl.SelectedItem;
-                if (item == null) 
+                if (item == null)
                     return null;
 
                 var tabItem = _tabControl.ItemContainerGenerator.ContainerFromItem(item);
-                if (tabItem == null) 
+                if (tabItem == null)
                     return null;
 
                 var cachedContent = GetInternalCachedContent(tabItem);

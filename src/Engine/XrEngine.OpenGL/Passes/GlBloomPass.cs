@@ -38,7 +38,7 @@ namespace XrEngine.OpenGL
         {
             _programH.Dispose();
             _programV.Dispose();
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         public void Render(RenderContext ctx)
@@ -64,6 +64,6 @@ namespace XrEngine.OpenGL
 
         }
 
-        public float Scale { get; set; }    
+        public float Scale { get; set; }
     }
 }
