@@ -21,9 +21,6 @@ using XrMath;
 using XrSamples.Components;
 
 
-
-
-
 #if !ANDROID
 using XrEngine.Browser.Win;
 using XrEngine.UI.Web;
@@ -694,7 +691,7 @@ namespace XrSamples
                         if (window == null)
                             return;
 
-                        var loc = e.XrApp.LocateSpace(new Silk.NET.OpenXR.Space(window.Space), e.XrApp.Stage, e.XrApp.FramePredictedDisplayTime);
+                        var loc = e.XrApp.LocateSpace(new Silk.NET.OpenXR.Space(window.Space), e.XrApp.ReferenceSpace, e.XrApp.FramePredictedDisplayTime);
                         if (loc.IsValid)
                         {
                             var offset = mesh.GetProp<float>("Offset");
@@ -1071,22 +1068,22 @@ namespace XrSamples
             scene.AddComponent(new InputObjectForce
             {
                 InputName = "RightGripPose",
-                HandlerName = "RightTriggerClick",
+                HandlerName = "RightSqueezeClick",
                 HapticName = "RightHaptic",
-                Factor = 20
+                Factor = 30
             });
 
             scene.AddComponent(new InputObjectForce
             {
                 InputName = "LeftGripPose",
-                HandlerName = "LeftTriggerClick",
+                HandlerName = "LeftSqueezeClick",
                 HapticName = "LeftHaptic",
-                Factor = 20
+                Factor = 30
             });
 
             var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
             car.Name = "car";
-            car.AddComponent<BoundsGrabbable>();
+            //car.AddComponent<BoundsGrabbable>();
 
             var bodyMeshes = new HashSet<TriangleMesh>();
 
@@ -1117,7 +1114,18 @@ namespace XrSamples
                 WheelBR = car.GroupByName("wheel.Bk.R.003", "wheelbrake.Bk.R.001"),
                 CarBody = car.GroupByName("body.003"),
                 CarBodyCollisionMeshes = bodyMeshes,
-                SteeringWheel = car.GroupByName("leatherB_steering.003", "chrome_steering.003", "chrome_logo_steering.003")
+                AccInputName = "RightTriggerValue",
+                SeatLocalPose = new Pose3
+                {
+                    Position = new Vector3(-0.4f, 1.1f, 0.2f),
+                    Orientation = Quaternion.Identity
+                },
+                SteeringLocalPose = new Pose3
+                {
+                    Position = new Vector3(-0.43f, 0.885f, -0.08f),
+                    Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -19f / 180 * MathF.PI)
+                },
+                SteeringWheel = car.GroupByName("leatherB_steering.003", "chrome_steering.003", "chrome_logo_steering.003", "texInt_steering.003")
             };
 
             model.CarBody.Name = "car-body";
@@ -1213,6 +1221,8 @@ namespace XrSamples
                 .UseDefaultHDR()
                 .ConfigureApp(a =>
                 {
+                    a.XrApp.UseLocalSpace = true;
+
                     /*
                     var manager = a.App.ActiveScene!.Component<PhysicsManager>();
                     var pose1 = new Pose3

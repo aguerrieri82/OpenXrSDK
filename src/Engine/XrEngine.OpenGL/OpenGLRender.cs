@@ -108,6 +108,13 @@ namespace XrEngine.OpenGL
                 _updateCtx.BloomProvider = _boomPass;
             }
 
+            if (_options.UseHitTest)
+            {
+                var hitTest = new GlHitTestPass(this);
+                _renderPasses.Add(hitTest); 
+                Context.Implement<IViewHitTest>(hitTest);
+            }
+
             _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
 
             ConfigureCaps();

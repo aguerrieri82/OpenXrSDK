@@ -45,7 +45,7 @@ namespace XrEngine.OpenXr
                     triMesh.Indices = test.Indices!;
                     triMesh.Vertices = test.Vertices.Select(a => a.Pos).ToArray()!;
 
-                    var ptMesh = _ptLayer.AddMesh(triMesh, xrApp!.Stage, meshObj);
+                    var ptMesh = _ptLayer.AddMesh(triMesh, xrApp!.ReferenceSpace, meshObj);
 
                     /*
                     _ptLayer.UpdateMesh(
@@ -66,7 +66,7 @@ namespace XrEngine.OpenXr
                             Orientation = Quaternion.Identity.ToQuaternionf()
                         },
                         new Vector3f(0.2f, 0.2f, 0.2f),
-                        xrApp.Stage,
+                        xrApp.ReferenceSpace,
                         xrApp.FramePredictedDisplayTime);
 
                     _isInit = true;

@@ -1,5 +1,6 @@
 ﻿using PhysX.Framework;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using XrMath;
 
 namespace XrEngine.Physics
@@ -10,11 +11,12 @@ namespace XrEngine.Physics
         protected Thread? _simulateThread;
         protected ConcurrentQueue<Action> _queue = [];
         protected HashSet<Joint> _joints = [];
+        protected static Stopwatch _stopwatch = Stopwatch.StartNew();
 
         public PhysicsManager()
         {
             Options = new PhysicsOptions();
-            StepSizeSecs = 1f / 40f;
+            StepSizeSecs = 1f / 70f;
             IsMultiThread = false;
         }
 
@@ -33,7 +35,7 @@ namespace XrEngine.Physics
 
             if (IsMultiThread)
             {
-                _simulateThread = new Thread(SimulateLoop);
+                _simulateThread = new Thread(SimulateLoopV2);
                 _simulateThread.Name = "XrEngine PhysicsSimulate";
                 _simulateThread.Start();
             }
@@ -92,6 +94,28 @@ namespace XrEngine.Physics
             }
         }
 
+        void SimulateLoopV2()
+        {
+            while (IsStarted)
+            {
+                var curTime = _stopwatch.Elapsed;
+
+                while (_queue.TryDequeue(out var action))
+                    action();
+
+                _system?.Simulate((float)StepSizeSecs, StepSizeSecs);
+
+                var ellapsed = (_stopwatch.Elapsed - curTime).TotalSeconds;
+
+                var wait = StepSizeSecs - ellapsed; 
+
+                if (wait > 0)
+                    Thread.Sleep(TimeSpan.FromSeconds(wait));
+                else
+                    Thread.Yield();
+            }
+        }
+
         protected override void Update(RenderContext ctx)
         {
             if (!IsMultiThread)
@@ -130,6 +154,23 @@ namespace XrEngine.Physics
 
             return joint;
         }
+
+        public override void GetState(IStateContainer container)
+        {
+            base.GetState(container);
+            container.Write(nameof(StepSizeSecs), StepSizeSecs);
+            container.Write(nameof(IsMultiThread), IsMultiThread);
+            container.Write(nameof(Options), Options); 
+        }
+
+        protected override void SetStateWork(IStateContainer container)
+        {
+            base.SetStateWork(container);
+            IsMultiThread = container.Read<bool>(nameof(IsMultiThread));
+            StepSizeSecs = container.Read<float>(nameof(StepSizeSecs));
+            Options = container.Read<PhysicsOptions>(nameof(Options));
+        }
+
 
         public Action<PhysicsSystem>? Configure { get; set; }
 

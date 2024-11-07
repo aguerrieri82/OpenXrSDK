@@ -254,7 +254,8 @@ namespace XrEngine.OpenXr
                 for (var i = 0; i < info.ProjViews.Length; i++)
                 {
                     var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
-                    camera.Eyes[i].World = transform.Transform;
+
+                    camera.Eyes[i].World = transform.Transform * XrApp.Current!.ReferenceFrame.ToMatrix();
                     camera.Eyes[i].Projection = transform.Projection;
                     Matrix4x4.Invert(transform.Transform, out camera.Eyes[i].View);
                     camera.Eyes[i].ViewProj = camera.Eyes[i].View * camera.Eyes[i].Projection;

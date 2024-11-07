@@ -32,8 +32,7 @@ namespace OpenXr.Framework
                    nearPlane,
                    farPlane);
 
-            result.Transform = (Matrix4x4.CreateFromQuaternion(pose.Orientation) *
-                                Matrix4x4.CreateTranslation(pose.Position));
+            result.Transform = pose.ToMatrix();
 
             return result;
         }

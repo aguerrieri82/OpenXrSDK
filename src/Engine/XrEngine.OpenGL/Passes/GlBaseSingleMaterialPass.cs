@@ -60,6 +60,8 @@ namespace XrEngine.OpenGL
                         if (draw.IsHidden)
                             continue;
 
+                        updateContext.Model = draw.Object;
+
                         var material = draw.ProgramInstance!.Material;
 
                         if (!PrepareMaterial(material))
@@ -67,8 +69,6 @@ namespace XrEngine.OpenGL
 
                         if (!CanDraw(draw))
                             continue;
-
-                        updateContext.Model = draw.Object;
 
                         _programInstance!.UpdateUniforms(updateContext, false);
 

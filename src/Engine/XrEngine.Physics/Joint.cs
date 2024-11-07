@@ -81,7 +81,6 @@ namespace XrEngine.Physics
     {
         PhysicsJoint? _joint;
 
-
         public Joint()
         {
         }
