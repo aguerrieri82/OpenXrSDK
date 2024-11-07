@@ -152,6 +152,9 @@
     <CustomBuildStep>
       <Outputs>libs\arm64-v8a\*</Outputs>
     </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)\$(TargetFileName) ..\..\..\libs\filament-native\win-x64\$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
@@ -178,6 +181,9 @@
     <CustomBuildStep>
       <Outputs>libs\arm64-v8a\*</Outputs>
     </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)\$(TargetFileName) ..\..\..\libs\filament-native\win-x64\$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -208,6 +214,9 @@
     <CustomBuildStep>
       <Outputs>libs\arm64-v8a\*</Outputs>
     </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)\$(TargetFileName) ..\..\..\libs\filament-native\win-x64\$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <ClCompile>
@@ -238,6 +247,9 @@
     <CustomBuildStep>
       <Outputs>libs\arm64-v8a\*</Outputs>
     </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)\$(TargetFileName) ..\..\..\libs\filament-native\win-x64\$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -264,6 +276,9 @@
     <CustomBuildStep>
       <Outputs>libs\arm64-v8a\*</Outputs>
     </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)\$(TargetFileName) ..\..\..\libs\filament-native\win-x64\$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -294,6 +309,9 @@
     <CustomBuildStep>
       <Outputs>libs\arm64-v8a\*</Outputs>
     </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)\$(TargetFileName) ..\..\..\libs\filament-native\win-x64\$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Config.h" />
