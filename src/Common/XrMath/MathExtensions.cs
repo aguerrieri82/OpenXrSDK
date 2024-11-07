@@ -200,6 +200,11 @@ namespace XrMath
         public static Bounds3 Transform(this Bounds3 self, Matrix4x4 matrix)
         {
             return self.Points.ComputeBounds(matrix);
+            return new Bounds3
+            {
+                Min = self.Min.Transform(matrix),
+                Max = self.Max.Transform(matrix)
+            };
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -312,17 +317,24 @@ namespace XrMath
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Pose3 Transform(this Pose3 pose, Pose3 other)
-        {
-            return other.Multiply(pose);
-        }
-
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Transform(this Pose3 self, Vector3 other)
         {
             return self.Position + Vector3.Transform(other, self.Orientation);
         }
+
+        /*
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Pose3 Transform(this Pose3 pose, Pose3 other)
+        {
+            return other.Multiply(pose);
+        }
+        */
+
+        public static bool IsIdentity(this Pose3 self)
+        {
+            return self.Position == Vector3.Zero && self.Orientation == Quaternion.Identity;    
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 Multiply(this Pose3 self, Pose3 other)

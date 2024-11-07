@@ -33,7 +33,7 @@ namespace XrSamples
 
             while (true)
             {
-                _game.XrApp.RenderFrame(_game.XrApp.Stage);
+                _game.XrApp.RenderFrame(_game.XrApp.ReferenceSpace);
 
                 if (Console.KeyAvailable)
                 {

@@ -531,9 +531,15 @@ namespace PhysX.Framework
             while (curTime < deltaSecs)
             {
                 if (curTime + stepSizeSecs > deltaSecs)
-                    _lastDeltaTime = deltaSecs - curTime;
+                {
+                    var curDeltaTime = deltaSecs - curTime;
+                    if (curDeltaTime < 0.005)
+                        break;
+                    _lastDeltaTime = curDeltaTime;
+                }
                 else
                     _lastDeltaTime = stepSizeSecs;
+       
 
                 _scene!.Scene.SimulateMut(_lastDeltaTime, null, null, 0, true);
 

@@ -98,6 +98,7 @@ namespace OpenXr.Framework
             _extensions.Add("XR_KHR_locate_spaces");
 
             Current = this;
+            ReferenceFrame = Pose3.Identity;
         }
 
         #region START/STOP
@@ -483,7 +484,7 @@ namespace OpenXr.Framework
             return LocateViews(space, displayTime, _views!);
         }
 
-        public ViewState LocateViews(Space space, long displayTime, View[] views)
+        public unsafe ViewState LocateViews(Space space, long displayTime, View[] views)
         {
             Debug.Assert(_viewInfo != null);
 
@@ -505,6 +506,7 @@ namespace OpenXr.Framework
             fixed (View* pViews = views)
                 CheckResult(_xr!.LocateView(_session, in info, ref state, count, ref count, pViews), "LocateView");
 
+
             return state;
         }
 
@@ -514,7 +516,11 @@ namespace OpenXr.Framework
             var result = new SpaceLocation();
             result.Type = StructureType.SpaceLocation;
             CheckResult(_xr!.LocateSpace(space, baseSpace, time, ref result), "LocateSpace");
-            return result.ToXrLocation();
+            return new XrSpaceLocation
+            {
+                Pose = ReferenceFrame.Multiply(result.Pose.ToPose3()),
+                Flags = result.LocationFlags
+            };
         }
 
         [Obsolete("Oculus throws access violation")]
@@ -548,7 +554,7 @@ namespace OpenXr.Framework
 
             return locations.Select(a => new XrSpaceLocation
             {
-                Pose = a.Pose.ToPose3(),
+                Pose = a.Pose.ToPose3().Multiply(ReferenceFrame),
                 Flags = a.LocationFlags
             }).ToArray();
         }
@@ -1446,13 +1452,13 @@ namespace OpenXr.Framework
 
         public Space Stage => _stage;
 
+        public Space ReferenceSpace => UseLocalSpace ? Local : Stage;
+
         public SessionState SessionState => _lastSessionState;
 
         public ILogger Logger => _logger;
 
-
         public XrSpacesTracker SpacesTracker => _tracker;
-
 
         public IReadOnlyDictionary<string, IXrInput> Inputs => _inputs;
 
@@ -1466,6 +1472,10 @@ namespace OpenXr.Framework
 
         public static XrApp? Current { get; internal set; }
 
-        public long FramePredictedDisplayTime { get; private set; }
+        public long FramePredictedDisplayTime { get; set; }
+
+        public Pose3 ReferenceFrame { get; set; }
+
+        public bool UseLocalSpace { get; set; } 
     }
 }

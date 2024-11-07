@@ -12,8 +12,14 @@ namespace XrEditor
         protected Color? _oldColor;
         protected Collision? _lastCollision;
         protected RayPointerStatus _lastRay;
-        private bool _isColliding;
+        protected bool _isPicking;
+        protected IViewHitTest? _hitTest;
         protected readonly ConcurrentBag<Collision> _collisions = [];
+
+        public PickTool()
+        {
+
+        }
 
         public override void NotifySceneChanged()
         {
@@ -56,23 +62,35 @@ namespace XrEditor
 
             UpdateRay(ev);
 
-            if (_isColliding)
+            if (_isPicking)
                 return;
 
-            _isColliding = true;
+            Context.TryRequire(out _hitTest);
+
+            _isPicking = true;
+
+            Object3D? newPick = null;   
 
             await AppDispatcher.ExecuteAsync(() =>
             {
-                _sceneView.Scene.RayCollisions(_lastRay.Ray, _collisions);
+                if (_hitTest != null)
+                {
+                    newPick = _hitTest.HitTest((uint)ev.Position.X, (uint)ev.Position.Y);
+                }
+                else
+                {
+                    _sceneView.Scene.RayCollisions(_lastRay.Ray, _collisions);
 
-                _isColliding = false;
+                    _lastCollision = _collisions.OrderBy(a => a.Distance)
+                                                .FirstOrDefault();
+
+                    newPick = _lastCollision?.Object;
+                }
+
+                _isPicking = false;
 
             }).ConfigureAwait(false);
 
-            _lastCollision = _collisions.OrderBy(a => a.Distance)
-                                        .FirstOrDefault();
-
-            var newPick = _lastCollision?.Object;
 
             if (newPick != null && !CanPick(newPick))
                 newPick = null;

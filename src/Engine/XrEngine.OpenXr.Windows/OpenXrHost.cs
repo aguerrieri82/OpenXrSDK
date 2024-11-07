@@ -46,7 +46,7 @@ namespace XrEngine.OpenXr.Windows
 
             while (engineApp.XrApp.State != XrAppState.Disposed)
             {
-                engineApp.XrApp.RenderFrame(engineApp.XrApp.Stage);
+                engineApp.XrApp.RenderFrame(engineApp.XrApp.ReferenceSpace);
 
                 if (Console.KeyAvailable)
                 {

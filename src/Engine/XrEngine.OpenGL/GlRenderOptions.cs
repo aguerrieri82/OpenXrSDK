@@ -70,6 +70,8 @@ namespace XrEngine.OpenGL
 
         public bool UseBloom { get; set; }
 
+        public bool UseHitTest { get; set; }
+
         public ShadowMapOptions ShadowMap { get; }
 
         public GlOutlineOptions Outline { get; }

@@ -90,7 +90,7 @@ namespace OpenXr.Framework.Android
                 {
                     try
                     {
-                        _xrApp.RenderFrame(_xrApp.Stage);
+                        _xrApp.RenderFrame(_xrApp.ReferenceSpace);
                     }
                     catch (Exception ex)
                     {

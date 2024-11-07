@@ -41,6 +41,9 @@ namespace XrEngine.Physics
 
                 var distance = pyGeo.DistanceFrom(globalPoint, item.WorldMatrix.ToPose(), 0, out var _);
 
+                if (pyGeo.Type == PhysX.PxGeometryType.Trianglemesh)
+                    distance *= pyGeo.TriangleMesh.scale.scale.x;
+
                 Log.Value("Distance", distance);
 
                 if (distance < 0.001f)
@@ -125,6 +128,21 @@ namespace XrEngine.Physics
             }
 
             _isInit = true;
+        }
+
+        public override void GetState(IStateContainer container)
+        {
+            container.Write(nameof(UseConvexMesh), UseConvexMesh);
+            container.Write(nameof(Tolerance), Tolerance);
+
+            base.GetState(container);
+        }
+
+        protected override void SetStateWork(IStateContainer container)
+        {
+            base.SetStateWork(container);
+            Tolerance = container.Read<float>(nameof(Tolerance));
+            UseConvexMesh = container.Read<bool>(nameof(UseConvexMesh));    
         }
 
 

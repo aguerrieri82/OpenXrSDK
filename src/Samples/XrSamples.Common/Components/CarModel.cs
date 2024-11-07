@@ -1,4 +1,7 @@
-﻿using PhysX.Framework;
+﻿using OpenXr.Framework;
+using PhysX;
+using PhysX.Framework;
+using System;
 using System.Diagnostics;
 using System.Numerics;
 using XrEngine;
@@ -20,12 +23,19 @@ namespace XrSamples.Components
         private float _trackWidth;
         private float _wheelRadius;
         private float _steeringAngle;
-        private bool _isChanged;
+        private bool _isWheelChanged;
         private float _wheelSpeedRad;
         private float _lastAngle;
         private TriangleMesh? _mainTube;
-        private Pose3 _bodyMainDeltaPose;
         private RigidBody? _carRigidBody;
+        private float _tubeSize;
+        private IPbrMaterial _tubeMaterial;
+        private Joint _steeringWheelJoint;
+        private Pose3 _steeringPosDiff;
+        private Pose3 _seatPosDiff;
+        private TriangleMesh? _steeringWheelTube;
+        private PhysicsManager _manager;
+        private XrFloatInput _inputAcc;
 
         public CarModel()
         {
@@ -33,6 +43,12 @@ namespace XrSamples.Components
             ChassisDensity = 5000;
             CarBodyDensity = 10;
             SteeringStiffness = 1500;
+
+            _tubeMaterial = MaterialFactory.CreatePbr("#00ff0080");
+            _tubeMaterial.Metalness = 1;
+            _tubeMaterial.Alpha = AlphaMode.Blend;
+
+            _tubeSize = 0.05f;
         }
 
 
@@ -40,6 +56,7 @@ namespace XrSamples.Components
         {
             AttachWheels();
             CreateChassis();
+            AttachSteering();
             AttachBody();
         }
 
@@ -47,8 +64,7 @@ namespace XrSamples.Components
         {
             Debug.Assert(CarBody != null && _mainTube != null);
 
-            _bodyMainDeltaPose = _mainTube.GetWorldPose().Difference(CarBody.GetWorldPose());
-
+       
             var collider = new PyMeshCollider()
             {
                 UseConvexMesh = true
@@ -74,11 +90,9 @@ namespace XrSamples.Components
             {
 
             };
-        }
 
-        private void OnContact(Object3D self, Object3D other, int otherIndex, ContactPair[] pairs)
-        {
-            Log.Debug(this, "Contact {0} with {1}", self.Name, other.Name);
+            _seatPosDiff = _mainTube.GetWorldPose().Difference(_host!.GetWorldPose().Multiply(SeatLocalPose));
+
         }
 
         protected void AttachWheels()
@@ -133,140 +147,78 @@ namespace XrSamples.Components
             }
         }
 
-        Joint AddFixed(Object3D obj0, Object3D obj1, Vector3 point)
+        protected void AttachSteering()
         {
-            var manager = _host!.Scene!.Component<PhysicsManager>();
+            Debug.Assert(SteeringWheel != null && _mainTube != null);
 
-            var pose0 = new Pose3
+            var worldPose = SteeringWheel.GetWorldPose().Multiply(SteeringLocalPose);
+
+            var dir = -Vector3.UnitZ.Transform(worldPose.Orientation);
+
+            var p2 = worldPose.Position + dir * 1f;
+
+            _steeringWheelTube = AddTube(worldPose.Position, worldPose.Position + dir * 1f, PhysicsActorType.Kinematic);
+
+            _steeringPosDiff = _mainTube.GetWorldPose().Difference(_steeringWheelTube.GetWorldPose()); 
+
+            SteeringWheel.AddComponent(new PyMeshCollider
             {
-                Position = point,
-                Orientation = Quaternion.Identity
+                UseConvexMesh = false
+            });
+
+            SteeringWheel.AddComponent(new RigidBody
+            {
+                Type = PhysicsActorType.Dynamic,
+                IsEnabled = true,
+                NotCollideGroup = RigidBodyGroup.Group1,
+                AutoTeleport = false,
+                AngularDamping = 5f,
+                Density = 60,
+                Configure = rb =>
+                {
+                    rb.DynamicActor.Mass = 1;
+                    rb.DynamicActor.MaxDepenetrationVelocity = 1f;
+                    rb.DynamicActor.SolverIterations = new SolverIterations
+                    {
+                        MinPos = 30,
+                        MinVel = 5
+                    };
+                }
+            });
+
+            _steeringWheelJoint = AddRotation(SteeringWheel, _steeringWheelTube, worldPose.Position, Vector3.UnitZ);
+            _steeringWheelJoint.Pose0 = SteeringLocalPose;
+
+
+            var options = (D6JointOptions)_steeringWheelJoint.Options!;
+
+            options.MotionSwing2 = PxD6Motion.Limited;
+            options.SwingLimit = new PxJointLimitCone
+            {
+                zAngle = MathF.PI * 2,
+                stiffness = 1000,
+                damping = 100,
+                bounceThreshold = 100
             };
 
-            var pose1 = new Pose3
+            options.DriveSwing = null;
+            /*
+            options.DriveSwing = new PhysX.PxD6JointDrive
             {
-                Position = point,
-                Orientation = Quaternion.Identity
+                stiffness = 0,
+                damping = 10,
+                forceLimit = 1e6f
             };
-
-            pose0 = obj0.GetWorldPose().Inverse().Multiply(pose0);
-            pose1 = obj1.GetWorldPose().Inverse().Multiply(pose1);
-
-            // pose0.Position -= obj0.Transform.LocalPivot;
-            // pose1.Position -= obj1.Transform.LocalPivot;
-
-            var joint = manager.AddJoint(JointType.D6, obj0, pose0, obj1, pose1);
-
-            return joint;
+            */
         }
-
-        Joint AddRotation(Object3D obj0, Object3D obj1, Vector3 point, Vector3 axis, bool motor = false)
-        {
-            var joint = AddFixed(obj0, obj1, point);
-
-            var opt = new D6JointOptions();
-
-            if (axis == Vector3.UnitX)
-            {
-                opt.MotionTwist = PhysX.PxD6Motion.Free;
-            }
-            else if (axis == Vector3.UnitY)
-            {
-                opt.MotionSwing1 = PhysX.PxD6Motion.Free;
-            }
-
-            opt.ConstraintFlags = PhysX.PxConstraintFlags.CollisionEnabled;
-
-            joint.Options = opt;
-
-            return joint;
-        }
-
-
-        Joint AddRotationV2(Object3D obj0, Object3D obj1, Vector3 point, Vector3 axis, bool motor = false)
-        {
-            var manager = _host!.Scene!.Component<PhysicsManager>();
-
-            var pose0 = new Pose3
-            {
-                Position = point,
-                Orientation = Quaternion.Identity
-            };
-
-            var pose1 = new Pose3
-            {
-                Position = point,
-                Orientation = Quaternion.Identity
-            };
-
-            pose0 = obj0.GetWorldPose().Inverse().Multiply(pose0);
-            pose1 = obj1.GetWorldPose().Inverse().Multiply(pose1);
-
-            // pose0.Position -= obj0.Transform.LocalPivot;
-            // pose1.Position -= obj1.Transform.LocalPivot;
-
-            var joint = manager.AddJoint(JointType.Revolute, obj0, pose0, obj1, pose1);
-
-            var options = new RevoluteJointOptions();
-            if (motor)
-                options.RevoluteJointFlags |= PhysX.PxRevoluteJointFlags.DriveEnabled | PhysX.PxRevoluteJointFlags.DriveFreespin;
-
-            joint.Options = options;
-
-            return joint;
-        }
-
 
         protected void CreateChassis()
         {
-
-            var size = 0.05f;
 
             _chassis = new Group3D
             {
                 Name = "Chassis"
             };
-
-            var mat = MaterialFactory.CreatePbr("#00ff0080");
-            mat.Metalness = 1;
-            mat.Alpha = AlphaMode.Blend;
-
-            TriangleMesh AddTube(Vector3 p1, Vector3 p2)
-            {
-                var line = new Line3(p1, p2);
-                var cube = new Cube3D(new Vector3(size, size, line.Length()));
-
-                var mesh = new TriangleMesh(cube, (Material)mat)
-                {
-                    WorldPosition = line.Center(),
-                    Forward = line.Direction()
-                };
-
-                mesh.AddComponent<BoxCollider>();
-                mesh.AddComponent(new RigidBody
-                {
-                    Type = PhysicsActorType.Dynamic,
-                    AutoTeleport = false,
-                    NotCollideGroup = RigidBodyGroup.Group1,
-                    Density = ChassisDensity,
-                    Configure = rb =>
-                    {
-                        rb.DynamicActor.MaxDepenetrationVelocity = 1f;
-                        rb.DynamicActor.SolverIterations = new SolverIterations
-                        {
-                            MinPos = 10,
-                            MinVel = 5
-                        };
-                        //rb.DynamicActor.MaxLinearVelocity = 1f;
-                        //rb.DynamicActor.MaxAngularVelocity = 1f;
-                    }
-                });
-
-                _chassis.AddChild(mesh);
-                return mesh;
-            }
-
-
 
 
             Debug.Assert(WheelFL != null && WheelFR != null && WheelBL != null && WheelBR != null);
@@ -301,7 +253,7 @@ namespace XrSamples.Components
 
             var p8 = l2.Center();
 
-            var l3 = new Line3(p5, p8).Expand(-size / 2f, -size / 2f);
+            var l3 = new Line3(p5, p8).Expand(-_tubeSize / 2f, -_tubeSize / 2f);
             p5 = l3.From;
             p8 = l3.To;
 
@@ -314,6 +266,8 @@ namespace XrSamples.Components
             var t3 = AddTube(p3, p4);
             var t4 = AddTube(p6, p7);
             var t5 = AddTube(p5, p8);
+
+            AddTube(Vector3.Zero, Vector3.UnitX);
 
             _rotateLeft = AddRotationV2(WheelFL, t1, p1, Vector3.UnitY, true);
             _rotateRight = AddRotationV2(WheelFR, t2, p2, Vector3.UnitY, true);
@@ -365,6 +319,158 @@ namespace XrSamples.Components
         }
 
 
+        private void OnContact(Object3D self, Object3D other, int otherIndex, ContactPair[] pairs)
+        {
+            Log.Debug(this, "Contact {0} with {1}", self.Name, other.Name);
+        }
+
+        TriangleMesh AddTube(Vector3 p1, Vector3 p2, PhysicsActorType type = PhysicsActorType.Dynamic, float size = 0.05f)
+        {
+            Debug.Assert(_chassis != null);
+
+            var line = new Line3(p1, p2);
+            var cube = new Cube3D(new Vector3(size, size, line.Length()));
+
+            var mesh = new TriangleMesh(cube, (Material)_tubeMaterial)
+            {
+                WorldPosition = line.Center(),
+                Forward = line.Direction()
+            };
+
+            mesh.AddComponent<BoxCollider>();
+            mesh.AddComponent(new RigidBody
+            {
+                Type = type,
+                AutoTeleport = type == PhysicsActorType.Static,
+                NotCollideGroup = RigidBodyGroup.Group1,
+                Density = ChassisDensity,
+                Configure = rb =>
+                {
+                    if (type == PhysicsActorType.Static)
+                        return;
+
+                    rb.DynamicActor.MaxLinearVelocity = 100;
+                    rb.DynamicActor.MaxAngularVelocity = 100;
+                    rb.DynamicActor.MaxDepenetrationVelocity = 1f;
+                    rb.DynamicActor.SolverIterations = new SolverIterations
+                    {
+                        MinPos = 20,
+                        MinVel = 5
+                    };
+                    //rb.DynamicActor.MaxLinearVelocity = 1f;
+                    //rb.DynamicActor.MaxAngularVelocity = 1f;
+                }
+            });
+
+            _chassis.AddChild(mesh);
+
+            return mesh;
+        }
+
+
+        Joint AddFixed(Object3D obj0, Object3D obj1, Vector3 point)
+        {
+            var manager = _host!.Scene!.Component<PhysicsManager>();
+
+            var pose0 = new Pose3
+            {
+                Position = point,
+                Orientation = Quaternion.Identity
+            };
+
+            var pose1 = new Pose3
+            {
+                Position = point,
+                Orientation = Quaternion.Identity
+            };
+
+            pose0 = obj0.GetWorldPose().Inverse().Multiply(pose0);
+            pose1 = obj1.GetWorldPose().Inverse().Multiply(pose1);
+
+            // pose0.Position -= obj0.Transform.LocalPivot;
+            // pose1.Position -= obj1.Transform.LocalPivot;
+
+            var joint = manager.AddJoint(JointType.D6, obj0, pose0, obj1, pose1);
+
+            var drive = new PxD6JointDrive
+            {
+                forceLimit = 1000,
+                stiffness = 1000,
+                damping = 10
+            };
+
+            joint.Options = new D6JointOptions()
+            {
+                DriveX = drive,
+                DriveY = drive,
+                DriveZ = drive,
+                DriveSlerp = drive,
+                DriveSwing = drive,
+                DriveTwist = drive, 
+            };
+
+            return joint;
+        }
+
+        Joint AddRotation(Object3D obj0, Object3D obj1, Vector3 point, Vector3 axis, bool motor = false)
+        {
+            var joint = AddFixed(obj0, obj1, point);
+
+            var opt = (D6JointOptions)joint.Options!;   
+
+            if (axis == Vector3.UnitX)
+            {
+                opt.MotionTwist = PhysX.PxD6Motion.Free;
+            }
+            else if (axis == Vector3.UnitY)
+            {
+                opt.MotionSwing1 = PhysX.PxD6Motion.Free;
+            }
+            else if (axis == Vector3.UnitZ)
+            {
+                opt.MotionSwing2 = PhysX.PxD6Motion.Free;
+            }
+
+            opt.ConstraintFlags = PhysX.PxConstraintFlags.CollisionEnabled;
+
+            return joint;
+        }
+
+
+        Joint AddRotationV2(Object3D obj0, Object3D obj1, Vector3 point, Vector3 axis, bool motor = false)
+        {
+            var manager = _host!.Scene!.Component<PhysicsManager>();
+
+            var pose0 = new Pose3
+            {
+                Position = point,
+                Orientation = Quaternion.Identity
+            };
+
+            var pose1 = new Pose3
+            {
+                Position = point,
+                Orientation = Quaternion.Identity
+            };
+
+            pose0 = obj0.GetWorldPose().Inverse().Multiply(pose0);
+            pose1 = obj1.GetWorldPose().Inverse().Multiply(pose1);
+
+            // pose0.Position -= obj0.Transform.LocalPivot;
+            // pose1.Position -= obj1.Transform.LocalPivot;
+
+            var joint = manager.AddJoint(JointType.Revolute, obj0, pose0, obj1, pose1);
+
+            var options = new RevoluteJointOptions();
+            if (motor)
+                options.RevoluteJointFlags |= PhysX.PxRevoluteJointFlags.DriveEnabled | PhysX.PxRevoluteJointFlags.DriveFreespin;
+
+            joint.Options = options;
+
+            return joint;
+        }
+
+
         void ApplySteering()
         {
             if (_steerLeft == null || _steerRight == null || !_steerLeft.IsCreated || !_steerRight.IsCreated)
@@ -392,6 +498,15 @@ namespace XrSamples.Components
                 Position = new Vector3(0, 0, 0),
                 Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, SteeringAngle)
             };
+
+            /*
+            _steeringWheel.D6Joint.DrivePosition = new Pose3
+            {
+                Position = new Vector3(0, 0, 0),
+                Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, SteeringAngle)
+            };
+            */
+
         }
 
         void ApplyDifferential(float avgAngle)
@@ -420,32 +535,61 @@ namespace XrSamples.Components
 
         protected void SyncCarBody()
         {
+            var newPose = _mainTube!.GetWorldPose().Multiply(_steeringPosDiff);
+            _steeringWheelTube!.SetWorldPoseIfChanged(newPose);
+            _steeringWheelTube!.Component<RigidBody>().DynamicActor.KinematicTarget = newPose;
+        }
 
-            //var newPose = _mainTube!.GetWorldPose().Multiply(_bodyMainDeltaPose);
-            //_carRigidBody!.DynamicActor.KinematicTarget = newPose;
-            //CarBody!.SetWorldPoseIfChanged(newPose);
+        protected void SyncCamera()
+        {
+            if (XrApp.Current == null)
+                return;
+            XrApp.Current.ReferenceFrame = _mainTube!.GetWorldPose().Multiply(_seatPosDiff);
+        }
+
+        protected void ApplyAcc()
+        {
+            if (_inputAcc == null && XrApp.Current != null && XrApp.Current.IsStarted)
+                _inputAcc = (XrFloatInput)XrApp.Current.Inputs[AccInputName!];
+
+            if (_inputAcc == null)
+                return;
+
+            if (_inputAcc.IsActive)
+                WheelSpeedRad = _inputAcc.Value * 10f;
         }
 
         protected override void Update(RenderContext ctx)
         {
-            if (_steerLeft != null && _steerLeft.IsCreated)
-            {
-                var avgAngle = (_steerLeft!.D6Joint.SwingYAngle + _steerRight!.D6Joint.SwingYAngle) / 2;
+            _manager ??= _host!.Scene!.Component<PhysicsManager>();
 
-                if (_isChanged || MathF.Abs(_lastAngle - avgAngle) > 0.01f)
+            _manager.Execute(() =>
+            {
+                if (_steerLeft != null && _steerLeft.IsCreated)
                 {
-                    ApplyDifferential(avgAngle);
-                    _lastAngle = avgAngle;
+                    var avgAngle = (_steerLeft!.D6Joint.SwingYAngle + _steerRight!.D6Joint.SwingYAngle) / 2;
+
+                    if (_isWheelChanged || MathF.Abs(_lastAngle - avgAngle) > 0.01f)
+                    {
+                        ApplyDifferential(avgAngle);
+                        _lastAngle = avgAngle;
+                    }
                 }
-            }
 
-            if (_isChanged)
-            {
-                ApplySteering();
-                _isChanged = false;
-            }
-
+                if (_isWheelChanged)
+                {
+                    ApplySteering();
+                    _isWheelChanged = false;
+                }
+            });
+         
             SyncCarBody();
+
+            SyncCamera();
+
+            SteeringAngle = _steeringWheelJoint.D6Joint.SwingZAngle * 0.5f;
+
+            ApplyAcc();
         }
 
         public void DrawGizmos(Canvas3D canvas)
@@ -460,7 +604,7 @@ namespace XrSamples.Components
             set
             {
                 _steeringAngle = value;
-                _isChanged = true;
+                _isWheelChanged = true;
             }
         }
 
@@ -472,9 +616,11 @@ namespace XrSamples.Components
             set
             {
                 _wheelSpeedRad = value;
-                _isChanged = true;
+                _isWheelChanged = true;
             }
         }
+
+        public Pose3 SteeringLocalPose { get; set; }
 
         public float SteeringStiffness { get; set; }
 
@@ -483,6 +629,10 @@ namespace XrSamples.Components
         public float ChassisDensity { get; set; }
 
         public float CarBodyDensity { get; set; }
+
+        public Pose3 SeatLocalPose { get; set; }
+
+        public string? AccInputName { get; set; }
 
         public Object3D? WheelFL { get; set; }
 

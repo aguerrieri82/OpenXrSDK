@@ -199,7 +199,7 @@ namespace XrEditor
                     {
                         try
                         {
-                            _engine.XrApp.RenderFrame(_engine.XrApp.Stage);
+                            _engine.XrApp.RenderFrame(_engine.XrApp.ReferenceSpace);
                         }
                         catch
                         {

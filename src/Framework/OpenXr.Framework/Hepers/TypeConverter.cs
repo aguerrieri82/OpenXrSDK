@@ -44,14 +44,6 @@ namespace OpenXr.Framework
             };
         }
 
-        public static unsafe XrSpaceLocation ToXrLocation(this SpaceLocation value)
-        {
-            return new XrSpaceLocation
-            {
-                Pose = value.Pose.ToPose3(),
-                Flags = value.LocationFlags
-            };
-        }
 
         public static Converter<TIn> Convert<TIn>(this ref TIn value) where TIn : unmanaged
         {
