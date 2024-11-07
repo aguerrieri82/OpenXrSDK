@@ -35,6 +35,7 @@
     <ClInclude Include="Library.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="android-build.cmd" />
     <None Include="packages.config" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
