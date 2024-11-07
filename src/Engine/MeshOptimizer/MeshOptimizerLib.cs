@@ -4,8 +4,6 @@ namespace MeshOptimizer
 {
     public static unsafe class MeshOptimizerLib
     {
-
-
         [DllImport("meshoptimizer-native")]
         public static extern long meshopt_simplifyWithAttributes(
             uint[] destination,
@@ -50,7 +48,6 @@ namespace MeshOptimizer
            long vertex_count,
            long vertex_positions_stride,
            float threshold);
-
 
 
         [DllImport("meshoptimizer-native", CallingConvention = CallingConvention.Cdecl)]
