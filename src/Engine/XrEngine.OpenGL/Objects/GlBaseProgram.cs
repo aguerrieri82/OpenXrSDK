@@ -50,7 +50,6 @@ namespace XrEngine.OpenGL
 
             foreach (var shader in shaders.Where(a => a != 0))
                 _gl.DetachShader(_handle, shader);
-
         }
 
         public void Use()
@@ -198,7 +197,6 @@ namespace XrEngine.OpenGL
                 return;
             _gl.Uniform1(LocateUniform(name, optional), value);
         }
-
 
         public unsafe void SetUniform(string name, Matrix4x4 value, bool optional = false)
         {

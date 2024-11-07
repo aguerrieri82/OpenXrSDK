@@ -86,5 +86,7 @@ namespace XrEditor
         public PropertiesGroupType GroupType { get; }
 
         public ICommand ToggleCollapseCommand { get; }
+
+        public INode Node { get; set; }
     }
 }

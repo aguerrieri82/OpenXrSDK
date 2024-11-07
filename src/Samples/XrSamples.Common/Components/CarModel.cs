@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 using XrEngine;
+using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrMath;
 using IDrawGizmos = XrEngine.IDrawGizmos;
@@ -16,26 +17,29 @@ namespace XrSamples.Components
         private Group3D? _chassis;
         private Joint? _steerLeft;
         private Joint? _steerRight;
-
         private Joint? _rotateLeft;
         private Joint? _rotateRight;
+        private Joint? _steeringWheelJoint;
+
         private float _wheelBase;
         private float _trackWidth;
         private float _wheelRadius;
-        private float _steeringAngle;
-        private bool _isWheelChanged;
-        private float _wheelSpeedRad;
-        private float _lastAngle;
+
         private TriangleMesh? _mainTube;
+        private TriangleMesh? _steeringWheelTube;
         private RigidBody? _carRigidBody;
-        private float _tubeSize;
         private IPbrMaterial _tubeMaterial;
-        private Joint _steeringWheelJoint;
+        private float _tubeSize;
+
+        private float _lastAngle;
+        private float _steeringAngle;
+        private float _wheelSpeedRad;
+        private bool _isWheelChanged;
+
         private Pose3 _steeringPosDiff;
         private Pose3 _seatPosDiff;
-        private TriangleMesh? _steeringWheelTube;
-        private PhysicsManager _manager;
-        private XrFloatInput _inputAcc;
+
+        private PhysicsManager? _manager;
 
         public CarModel()
         {
@@ -43,6 +47,8 @@ namespace XrSamples.Components
             ChassisDensity = 5000;
             CarBodyDensity = 10;
             SteeringStiffness = 1500;
+            PosIterations = 50;
+            UseDifferential = true;
 
             _tubeMaterial = MaterialFactory.CreatePbr("#00ff0080");
             _tubeMaterial.Metalness = 1;
@@ -137,7 +143,7 @@ namespace XrSamples.Components
                         rb.DynamicActor.MassSpaceInertiaTensor /= ratio;
                         rb.DynamicActor.SolverIterations = new SolverIterations
                         {
-                            MinPos = 30,
+                            MinPos = PosIterations,
                             MinVel = 5
                         };
                     }
@@ -166,6 +172,8 @@ namespace XrSamples.Components
                 UseConvexMesh = false
             });
 
+            SteeringWheel.AddComponent<ForceTarget>();
+
             SteeringWheel.AddComponent(new RigidBody
             {
                 Type = PhysicsActorType.Dynamic,
@@ -180,7 +188,7 @@ namespace XrSamples.Components
                     rb.DynamicActor.MaxDepenetrationVelocity = 1f;
                     rb.DynamicActor.SolverIterations = new SolverIterations
                     {
-                        MinPos = 30,
+                        MinPos = PosIterations,
                         MinVel = 5
                     };
                 }
@@ -354,7 +362,7 @@ namespace XrSamples.Components
                     rb.DynamicActor.MaxDepenetrationVelocity = 1f;
                     rb.DynamicActor.SolverIterations = new SolverIterations
                     {
-                        MinPos = 20,
+                        MinPos = PosIterations,
                         MinVel = 5
                     };
                     //rb.DynamicActor.MaxLinearVelocity = 1f;
@@ -470,7 +478,6 @@ namespace XrSamples.Components
             return joint;
         }
 
-
         void ApplySteering()
         {
             if (_steerLeft == null || _steerRight == null || !_steerLeft.IsCreated || !_steerRight.IsCreated)
@@ -506,7 +513,6 @@ namespace XrSamples.Components
                 Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, SteeringAngle)
             };
             */
-
         }
 
         void ApplyDifferential(float avgAngle)
@@ -516,7 +522,7 @@ namespace XrSamples.Components
 
             float ratio = 1;
 
-            if (!float.IsNaN(avgAngle))
+            if (!float.IsNaN(avgAngle) && UseDifferential)
             {
                 var turnRadius = _wheelBase / MathF.Tan(avgAngle);
 
@@ -528,9 +534,6 @@ namespace XrSamples.Components
 
             _rotateLeft!.RevoluteJoint.DriveVelocity = WheelSpeedRad * ratio;
             _rotateRight!.RevoluteJoint.DriveVelocity = WheelSpeedRad;
-
-            // Log.Value("Left", WheelSpeedRad * ratio);
-            // Log.Value("Right", WheelSpeedRad);
         }
 
         protected void SyncCarBody()
@@ -547,16 +550,15 @@ namespace XrSamples.Components
             XrApp.Current.ReferenceFrame = _mainTube!.GetWorldPose().Multiply(_seatPosDiff);
         }
 
-        protected void ApplyAcc()
+        protected void ProcessInput()
         {
-            if (_inputAcc == null && XrApp.Current != null && XrApp.Current.IsStarted)
-                _inputAcc = (XrFloatInput)XrApp.Current.Inputs[AccInputName!];
+            var dir = BackInput != null && BackInput.IsActive && BackInput.Value ? -1 : 1;   
 
-            if (_inputAcc == null)
-                return;
+            if (AccInput != null && AccInput.IsActive)
+                WheelSpeedRad = AccInput.Value * 10f * dir;
 
-            if (_inputAcc.IsActive)
-                WheelSpeedRad = _inputAcc.Value * 10f;
+            if (ShowHideBodyInput != null && ShowHideBodyInput.IsActive && ShowHideBodyInput.IsChanged && ShowHideBodyInput.Value)
+                CarBody!.IsVisible = !CarBody!.IsVisible;
         }
 
         protected override void Update(RenderContext ctx)
@@ -587,9 +589,11 @@ namespace XrSamples.Components
 
             SyncCamera();
 
+            Log.Value("Angle", _steeringWheelJoint!.D6Joint.SwingZAngle);
+
             SteeringAngle = _steeringWheelJoint.D6Joint.SwingZAngle * 0.5f;
 
-            ApplyAcc();
+            ProcessInput();
         }
 
         public void DrawGizmos(Canvas3D canvas)
@@ -620,6 +624,8 @@ namespace XrSamples.Components
             }
         }
 
+        public bool UseDifferential { get; set; }   
+
         public Pose3 SteeringLocalPose { get; set; }
 
         public float SteeringStiffness { get; set; }
@@ -632,7 +638,13 @@ namespace XrSamples.Components
 
         public Pose3 SeatLocalPose { get; set; }
 
-        public string? AccInputName { get; set; }
+        public XrFloatInput? AccInput { get; set; }
+
+        public XrBoolInput? BackInput { get; set; }
+
+        public XrBoolInput? ShowHideBodyInput { get; set; }
+
+        public uint PosIterations { get; set; }
 
         public Object3D? WheelFL { get; set; }
 

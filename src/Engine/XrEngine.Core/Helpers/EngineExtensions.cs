@@ -913,7 +913,6 @@ namespace XrEngine
             }
 
             return corners;
-
         }
 
         public static IList<Plane> FrustumPlanes(this Camera self, Plane[] planes)
@@ -921,9 +920,9 @@ namespace XrEngine
             var viewProjLeft = self.ViewProjection;
             var viewProjRight = viewProjLeft;
 
-            if (self.Eyes != null && self.Eyes.Length > 1)
+            if (self.Eyes != null && self.Eyes.Length > 1 && self.IsStereo)
                 viewProjRight = self.Eyes[1].ViewProj;
-
+     
             // Left plane
             planes[0] = new Plane(
                 viewProjLeft.M14 + viewProjLeft.M11,

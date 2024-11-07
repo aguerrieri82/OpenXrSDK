@@ -1,7 +1,9 @@
 ﻿using OpenXr.Framework;
+using PhysX.Framework;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
+using XrEngine.OpenXr;
 using XrMath;
 
 namespace XrEngine.Physics
@@ -67,10 +69,14 @@ namespace XrEngine.Physics
 
                     foreach (var obj in _checkObjects)
                     {
-                        if (!obj.TryComponent<RigidBody>(out _rigidBody))
+                        if (!obj.TryComponent(out _rigidBody))
                             continue;
 
-                        if (_rigidBody.Type == PhysX.Framework.PhysicsActorType.Static)
+                        if (_rigidBody.Type == PhysicsActorType.Static)
+                            continue;
+
+                        var target = obj.Feature<IForceTarget>();
+                        if (target == null)
                             continue;
 
                         _isDragging = true;

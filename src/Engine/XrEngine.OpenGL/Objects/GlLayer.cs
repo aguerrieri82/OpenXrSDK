@@ -139,8 +139,7 @@ namespace XrEngine.OpenGL
             if (ctx.Frame == _lastFrame)
                 return;
 
-            if (_render.Options.FrustumCulling)
-                ComputeFrustumCulling();
+            ComputeVisibility();
 
             if (_render.Options.SortByCameraDistance)
                 ComputeDistance(ctx.Camera!);
@@ -161,7 +160,7 @@ namespace XrEngine.OpenGL
             }
         }
 
-        protected void ComputeFrustumCulling()
+        protected void ComputeVisibility()
         {
             var updateContext = _render.UpdateContext;
 
@@ -175,7 +174,7 @@ namespace XrEngine.OpenGL
 
                     draw.IsHidden = !progInst.Material!.IsEnabled || !draw.Object!.IsVisible;
 
-                    if (!draw.IsHidden && draw.Object is TriangleMesh mesh)
+                    if (!draw.IsHidden && _render.Options.FrustumCulling && draw.Object is TriangleMesh mesh)
                         draw.IsHidden = !mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes!);
 
                     if (!draw.IsHidden)

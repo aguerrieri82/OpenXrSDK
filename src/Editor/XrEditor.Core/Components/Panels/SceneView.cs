@@ -199,6 +199,7 @@ namespace XrEditor
                     {
                         try
                         {
+          
                             _engine.XrApp.RenderFrame(_engine.XrApp.ReferenceSpace);
                         }
                         catch
@@ -208,6 +209,7 @@ namespace XrEditor
 
                         if (_renderSurface.SupportsDualRender)
                         {
+                            _scene.ActiveCamera.IsStereo = false;
                             _render.SetRenderTarget(null);
 #warning "Take in account of dual camera"
                             _render.Render(_scene.App.RenderContext, _view, false);

@@ -18,9 +18,7 @@ namespace XrEngine.OpenGL
             : base(gl, resolver)
         {
             _cSource = cSource;
-
         }
-
 
         [MemberNotNull(nameof(Computer))]
         public override void Build()

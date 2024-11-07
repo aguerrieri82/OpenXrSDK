@@ -68,6 +68,7 @@ namespace XrEditor
         protected override void OnEditValueChanged(Vector3 newValue)
         {
             _suspendUpdate++;
+
             X._isLoading++;
             Y._isLoading++;
             Z._isLoading++;

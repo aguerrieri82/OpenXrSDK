@@ -98,6 +98,8 @@ namespace XrEditor
             }
             else if (_action == OrbitAction.Translate)
             {
+                //camera.BeginUpdate();
+
                 camera.WorldMatrix = _startWorld;
 
                 var newPoint = ToWorld(ev, _planeZ);
@@ -105,6 +107,8 @@ namespace XrEditor
                 var deltaW = -(newPoint - _startPoint);
 
                 camera.LookAt(_startWorld.Translation + deltaW, _startTarget + deltaW, new Vector3(0, 1, 0));
+
+                //camera.EndUpdate();
             }
         }
 

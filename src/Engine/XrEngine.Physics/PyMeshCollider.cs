@@ -44,8 +44,6 @@ namespace XrEngine.Physics
                 if (pyGeo.Type == PhysX.PxGeometryType.Trianglemesh)
                     distance *= pyGeo.TriangleMesh.scale.scale.x;
 
-                Log.Value("Distance", distance);
-
                 if (distance < 0.001f)
                     return true;
             }

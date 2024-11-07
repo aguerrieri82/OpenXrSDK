@@ -249,16 +249,19 @@ namespace XrEngine.OpenXr
                 var camera = (PerspectiveCamera)app.ActiveScene!.ActiveCamera!;
 
                 camera.Eyes ??= new CameraEye[2];
+                camera.IsStereo = true;
                 camera.Transform.Version++;
+
+                var eyes = camera.Eyes;
 
                 for (var i = 0; i < info.ProjViews.Length; i++)
                 {
                     var transform = XrCameraTransform.FromView(info.ProjViews[i], camera.Near, camera.Far);
 
-                    camera.Eyes[i].World = transform.Transform * XrApp.Current!.ReferenceFrame.ToMatrix();
-                    camera.Eyes[i].Projection = transform.Projection;
-                    Matrix4x4.Invert(transform.Transform, out camera.Eyes[i].View);
-                    camera.Eyes[i].ViewProj = camera.Eyes[i].View * camera.Eyes[i].Projection;
+                    eyes[i].World = transform.Transform * XrApp.Current!.ReferenceFrame.ToMatrix();
+                    eyes[i].Projection = transform.Projection;
+                    Matrix4x4.Invert(eyes[i].World, out eyes[i].View);
+                    eyes[i].ViewProj = eyes[i].View * eyes[i].Projection;
                 }
 
                 if (info.Mode == XrRenderMode.SingleEye)
@@ -276,8 +279,8 @@ namespace XrEngine.OpenXr
 
                         renderer.SetRenderTarget(renderTarget);
 
-                        camera.Projection = camera.Eyes[i].Projection;
-                        camera.WorldMatrix = camera.Eyes[i].World;
+                        camera.Projection = eyes[i].Projection;
+                        camera.WorldMatrix = eyes[i].World;
                         camera.ActiveEye = i;
 
                         var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(ref info.ProjViews[i], StructureType.CompositionLayerDepthInfoKhr);
@@ -304,8 +307,8 @@ namespace XrEngine.OpenXr
 
                     renderer.SetRenderTarget(renderTarget);
 
-                    camera.Projection = camera.Eyes[0].Projection;
-                    camera.WorldMatrix = camera.Eyes[0].World;
+                    camera.Projection = eyes[0].Projection;
+                    camera.WorldMatrix = eyes[0].World.InterpolateWorldMatrix(eyes[1].World, 0.5f);
 
                     var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(ref info.ProjViews[0], StructureType.CompositionLayerDepthInfoKhr);
 
