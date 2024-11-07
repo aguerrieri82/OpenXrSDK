@@ -103,6 +103,12 @@ namespace XrEngine.OpenGL
             return base.BeginRender(camera);
         }
 
+        protected override bool PrepareMaterial(Material material)
+        {
+            _programInstance!.Material.DoubleSided = material.DoubleSided;
+            return base.PrepareMaterial(material);
+        }
+
         protected override bool CanDraw(DrawContent draw)
         {
             if (!Source!.HasOutline(draw.Object!, out var color))

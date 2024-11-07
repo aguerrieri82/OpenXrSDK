@@ -28,9 +28,6 @@
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Physics\XrEngine.Physics.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
-		<ProjectReference Include="..\..\Oculus\Oculus.OVRPlugin\Oculus.OVRPlugin.csproj" />
-		<ProjectReference Include="..\..\Oculus\Oculus.Platform\Oculus.Platform.csproj" />
-		<ProjectReference Include="..\..\Oculus\Oculus.XrPlugin\Oculus.XrPlugin.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
 		<ProjectReference Include="..\XrSamples.Common\XrSamples.Common.csproj" />

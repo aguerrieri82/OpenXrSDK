@@ -278,7 +278,7 @@ namespace XrEngine.OpenGL
 
             foreach (var pass in _renderPasses)
             {
-                _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin Pass {pass.GetType().Name}");
+                _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Pass {pass.GetType().Name}");
 
                 pass.Render(ctx);
 

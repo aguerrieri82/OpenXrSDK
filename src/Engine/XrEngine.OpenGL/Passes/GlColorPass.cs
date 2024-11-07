@@ -41,7 +41,7 @@ namespace XrEngine.OpenGL
 
         public override void RenderLayer(GlLayer layer)
         {
-            _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin layer {layer.Type}");
+            _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Layer {layer.Type}");
 
             var updateContext = _renderer.UpdateContext;
 
