@@ -1,6 +1,4 @@
-﻿using XrEngine.Layers;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class Scene3D : Group3D, IObjectChangeListener
     {
@@ -23,7 +21,12 @@ namespace XrEngine
             _gizmos = new Canvas3D();
             _changeListener.Add(_layers);
 
-            this.AddLayer(new DetachedLayer() { Name = "Gizmos" }).Add(_gizmos.Content);
+            this.AddLayer(new DetachedLayer() 
+            { 
+                Name = "Gizmos",
+                Usage = DetachedLayerUsage.Gizmos
+
+            }).Add(_gizmos.Content);
         }
 
         public void DrawGizmos()

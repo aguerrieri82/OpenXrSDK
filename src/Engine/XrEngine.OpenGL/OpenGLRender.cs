@@ -6,12 +6,10 @@ using Silk.NET.OpenGL;
 using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 #endif
 
-
 using System.Text;
 using XrMath;
 using SkiaSharp;
 using System.Runtime.InteropServices;
-using XrEngine.Layers;
 using System.Numerics;
 
 namespace XrEngine.OpenGL
@@ -26,7 +24,6 @@ namespace XrEngine.OpenGL
         protected GRContext? _grContext;
         protected GlTextureRenderTarget? _texRenderTarget = null;
         protected Dictionary<string, GlComputeProgram> _computePrograms = [];
-
         protected long _lastLayersVersion;
 
         protected readonly int _maxTextureUnits;
@@ -38,6 +35,7 @@ namespace XrEngine.OpenGL
         protected readonly IList<IGlRenderPass> _renderPasses = [];
         protected readonly GlDefaultRenderTarget _defaultTarget;
         protected readonly GlShadowPass? _shadowPass;
+        protected readonly Thread _thread;
 
         public static class Props
         {
@@ -99,13 +97,8 @@ namespace XrEngine.OpenGL
             _renderPasses.Add(new GlColorPass(this));
 
             if (_options.Outline.Use)
-                _renderPasses.Add(new GlOutlinePass(this));
-
-            if (_options.UseBloom)
             {
-                _boomPass = new GlBloomPass(this);
-                _renderPasses.Add(_boomPass);
-                _updateCtx.BloomProvider = _boomPass;
+                _renderPasses.Add(new GlOutlinePass(this, 0));
             }
 
             if (_options.UseHitTest)
@@ -661,7 +654,6 @@ namespace XrEngine.OpenGL
 
         [ThreadStatic]
         public static OpenGLRender? Current;
-        private readonly GlBloomPass _boomPass;
-        private readonly Thread _thread;
+
     }
 }

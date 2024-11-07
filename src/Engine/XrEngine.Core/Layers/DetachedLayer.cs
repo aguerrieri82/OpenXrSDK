@@ -1,5 +1,13 @@
-﻿namespace XrEngine.Layers
+﻿namespace XrEngine
 {
+    public enum DetachedLayerUsage
+    {
+        None = 0,
+        Selection = 0x1,
+        Outline = 0x2,
+        Gizmos = 0x4
+    }
+
     public class DetachedLayer : BaseLayer<Object3D>, IRenderUpdate
     {
         private int _updateCount;
@@ -67,5 +75,7 @@
         }
 
         int IRenderUpdate.UpdatePriority => 0;
+
+        public DetachedLayerUsage Usage { get; set; }
     }
 }

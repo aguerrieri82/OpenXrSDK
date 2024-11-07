@@ -78,14 +78,14 @@ namespace XrEngine.OpenGL
             var glDeptTex = _depthTexture.ToGlTexture();
             var glColorTex = _depthTextureCopy?.ToGlTexture();
 
-            _frameBuffer = new GlTextureFrameBuffer(_renderer.GL);
+            _frameBuffer = new GlTextureFrameBuffer(_gl);
             _frameBuffer.Configure(glColorTex, glDeptTex, 1);
 
             if (UseShadowSampler)
             {
                 glDeptTex.Bind();
-                _renderer.GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
-                _renderer.GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
+                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
+                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
                 glDeptTex.Unbind();
             }
 
@@ -182,7 +182,7 @@ namespace XrEngine.OpenGL
             _renderer.State.SetView(new Rect2I(0, 0, _depthTexture!.Width, _depthTexture.Height));
             _renderer.State.SetCullFace(TriangleFace.Front);
 
-            _renderer.GL.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
+            _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
             UpdateCamera(castLayer);
 

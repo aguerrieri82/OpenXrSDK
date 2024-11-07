@@ -268,14 +268,11 @@ namespace XrSamples.Components
             _wheelBase = l3.Length();
             _trackWidth = Vector3.Distance(p3, p4);
 
-
             var t1 = AddTube(p1, p3);
             var t2 = AddTube(p2, p4);
             var t3 = AddTube(p3, p4);
             var t4 = AddTube(p6, p7);
             var t5 = AddTube(p5, p8);
-
-            AddTube(Vector3.Zero, Vector3.UnitX);
 
             _rotateLeft = AddRotationV2(WheelFL, t1, p1, Vector3.UnitY, true);
             _rotateRight = AddRotationV2(WheelFR, t2, p2, Vector3.UnitY, true);

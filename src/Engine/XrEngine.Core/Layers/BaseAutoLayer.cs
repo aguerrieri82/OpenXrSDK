@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using XrEngine.Layers;
 
 namespace XrEngine
 {

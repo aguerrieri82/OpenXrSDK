@@ -22,9 +22,9 @@ namespace XrEngine.OpenGL
         public GlHitTestPass(OpenGLRender renderer)
             : base(renderer)
         {
-            _renderTarget = new GlTextureRenderTarget(_renderer.GL);
+            _renderTarget = new GlTextureRenderTarget(_gl);
 
-            _colorTexture = new GlTexture(_renderer.GL)
+            _colorTexture = new GlTexture(_gl)
             {
                 MinFilter = TextureMinFilter.Nearest,
                 MagFilter = TextureMagFilter.Nearest,
@@ -41,7 +41,7 @@ namespace XrEngine.OpenGL
             });
 
      
-            _depthBuffer = new GlRenderBuffer(_renderer.GL);
+            _depthBuffer = new GlRenderBuffer(_gl);
             _depthBuffer.Update(16, 16, 1, InternalFormat.DepthComponent24);
 
             _renderTarget.FrameBuffer.Configure(_colorTexture, _depthBuffer, 1);
@@ -62,7 +62,7 @@ namespace XrEngine.OpenGL
             if (!_isBufferValid)
             {
                 _colorTexture.Bind();
-                _renderer.GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+                _gl.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.Rgba, PixelType.UnsignedByte, data);
                 _colorTexture.Unbind();
                 _isBufferValid = true;
             }
@@ -138,8 +138,8 @@ namespace XrEngine.OpenGL
             _renderer.State.SetClearColor(Color.Transparent);
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetWriteColor(true);
-           
-            _renderer.GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
+
+            _gl.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
 
             _objects.Clear();
             _objects.Add(null);
