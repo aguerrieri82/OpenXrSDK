@@ -381,7 +381,6 @@ namespace XrEngine.OpenGL
             }
         }
 
-
         public void SetWireframe(bool value, bool force = false)
         {
 #if !GLES
@@ -445,7 +444,6 @@ namespace XrEngine.OpenGL
         public byte? StencilRef;
 
         public GlStencilFunction? StencilFunc;
-
 
         public readonly Dictionary<EnableCap, bool> Features = [];
 

@@ -38,7 +38,6 @@ namespace XrMath
             return Quaternion.CreateFromRotationMatrix(rotMatrix);
         }
 
-
         public static Quad3 QuadFromEdges(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4)
         {
             var result = new Quad3();

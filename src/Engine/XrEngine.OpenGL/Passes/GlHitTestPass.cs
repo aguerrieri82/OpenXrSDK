@@ -52,9 +52,8 @@ namespace XrEngine.OpenGL
         public unsafe Object3D? HitTest(uint x, uint y)
         {
 #if GLES
-                throw new NotSupportedException(); 
+            throw new NotSupportedException(); 
 #else
-
             if (x >= _lastSize.Width || y >= _lastSize.Height)
                 return null;    
 
@@ -87,7 +86,6 @@ namespace XrEngine.OpenGL
             return _renderTarget;
         }
 
-
         static Color UIntToRGBA(uint color)
         {
             float a = ((color >> 24) & 0xFF) / 255f; 
@@ -110,13 +108,11 @@ namespace XrEngine.OpenGL
             return true;
         }
 
-
         protected override void Draw(DrawContent draw)
         {
             _objects.Add(draw.Object);  
             draw.Draw!();
         }
-
 
         protected override bool BeginRender(Camera camera)
         {

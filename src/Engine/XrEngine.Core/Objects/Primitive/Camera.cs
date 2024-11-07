@@ -164,8 +164,8 @@ namespace XrEngine
 
         public int ActiveEye { get; set; }
 
-        public bool IsLightSpace { get; set; }
-
         public Size2I ViewSize { get; set; }
+
+        public bool IsStereo { get; set; }
     }
 }

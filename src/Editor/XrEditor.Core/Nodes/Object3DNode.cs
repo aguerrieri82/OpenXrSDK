@@ -11,9 +11,8 @@ namespace XrEditor.Nodes
         public Object3DNode(T value)
             : base(value)
         {
-            _components.Add(new Transform3DNode(value.Transform));
+            _components.Add(new Transform3DNode(value.Transform, this));
             _autoGenProps = true;
-            value.Changed += OnElementChanged;
         }
 
         public override void Actions(IList<ActionView> result)
@@ -30,10 +29,6 @@ namespace XrEditor.Nodes
             base.Actions(result);
         }
 
-        protected virtual void OnElementChanged(EngineObject element, ObjectChange change)
-        {
-
-        }
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {

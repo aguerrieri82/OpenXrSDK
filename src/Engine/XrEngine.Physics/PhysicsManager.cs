@@ -5,6 +5,13 @@ using XrMath;
 
 namespace XrEngine.Physics
 {
+    [Flags]
+    public enum PhysicsDebugGizmos
+    {
+        None = 0,
+        Joints = 0x1
+    }
+
     public class PhysicsManager : Behavior<Scene3D>, IDisposable
     {
         protected PhysicsSystem? _system;
@@ -16,7 +23,7 @@ namespace XrEngine.Physics
         public PhysicsManager()
         {
             Options = new PhysicsOptions();
-            StepSizeSecs = 1f / 70f;
+            StepSizeSecs = 1f / 60f;
             IsMultiThread = false;
         }
 
@@ -171,6 +178,7 @@ namespace XrEngine.Physics
             Options = container.Read<PhysicsOptions>(nameof(Options));
         }
 
+        public PhysicsDebugGizmos DebugGizmos { get; set; }
 
         public Action<PhysicsSystem>? Configure { get; set; }
 

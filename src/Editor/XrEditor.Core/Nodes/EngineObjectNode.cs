@@ -3,9 +3,12 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class EngineObjectNode<T> : BaseNode<T>, IItemView, IItemActions, IEditorProperties where T : EngineObject
+    public class EngineObjectNode<T> : BaseNode<T>, INodeChanged, IItemView, IItemActions, IEditorProperties where T : EngineObject
     {
         protected bool _autoGenProps;
+        protected bool _keepChangeListener;
+
+        protected event EventHandler? _nodeChanged;
 
         public EngineObjectNode(T value)
             : base(value)
@@ -25,6 +28,15 @@ namespace XrEditor.Nodes
         {
         }
 
+        protected virtual void OnObjectChanged(EngineObject obj, ObjectChange change)
+        {
+            if (_nodeChanged == null)
+                return;
+
+            Context.Require<IMainDispatcher>().ExecuteAsync(() =>
+                _nodeChanged?.Invoke(this, EventArgs.Empty));
+        }
+
         public virtual void Actions(IList<ActionView> result)
         {
 
@@ -37,5 +49,21 @@ namespace XrEditor.Nodes
         }
 
         public virtual IconView? Icon => null;
+
+        public event EventHandler NodeChanged
+        {
+            add
+            {
+                _nodeChanged += value;
+                _value.Changed += OnObjectChanged;
+            }
+
+            remove
+            {
+                _nodeChanged -= value;
+                if (_nodeChanged == null && !_keepChangeListener)
+                    _value.Changed -= OnObjectChanged;
+            }
+        }
     }
 }

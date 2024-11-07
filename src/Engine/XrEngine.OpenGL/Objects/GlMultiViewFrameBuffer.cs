@@ -1,10 +1,7 @@
 ﻿#if GLES
-
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
-using System.Net.Mail;
-
 #endif
 
 using System.Runtime.InteropServices;
@@ -45,7 +42,7 @@ namespace XrEngine.OpenGL
         protected GlTexture? _color;
         protected GlTexture? _depth;
         protected readonly TextureTarget _target;
-        private readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
+        protected readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
 
         public GlMultiViewFrameBuffer(GL gl)
             : base(gl)

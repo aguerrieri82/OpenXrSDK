@@ -124,7 +124,7 @@ namespace XrEditor
         {
             canvas.Save();
 
-            canvas.State.Color = new Color(0, 1, 1, 1);
+
 
             foreach (var item in _lastSelection.Select(a => a.Value).OfType<Object3D>())
             {
@@ -132,9 +132,15 @@ namespace XrEditor
 
                 if (local != null)
                 {
+                    canvas.State.Color = new Color(0, 1, 1, 1);
                     canvas.State.Transform = item.WorldMatrix;
                     canvas.DrawBounds(local.LocalBounds);
                 }
+
+                canvas.State.Transform = Matrix4x4.Identity;
+                canvas.State.Color = new Color(1, 1, 1, 1);
+                canvas.DrawBounds(item.WorldBounds);
+
             }
 
             var collision = _lastCollision;

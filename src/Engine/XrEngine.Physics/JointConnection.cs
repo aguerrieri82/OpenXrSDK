@@ -5,6 +5,8 @@ namespace XrEngine.Physics
 {
     public class JointConnection : BaseComponent<Object3D>, IDisposable, IDrawGizmos
     {
+        private PhysicsManager? _manager;
+
         public JointConnection(Joint joint, int index)
         {
             Joint = joint;
@@ -25,6 +27,11 @@ namespace XrEngine.Physics
         public void DrawGizmos(Canvas3D canvas)
         {
             if (!Joint.IsCreated)
+                return;
+
+            _manager ??= _host!.Scene!.Component<PhysicsManager>();
+
+            if ((_manager.DebugGizmos & PhysicsDebugGizmos.Joints) == 0)
                 return;
 
             canvas.Save();

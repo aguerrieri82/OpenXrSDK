@@ -94,7 +94,8 @@ namespace XrEditor
                 if (_isSelected)
                     IsSelected = false;
 
-                _host.Items.RemoveAt(_index);
+                if (_index != -1)
+                    _host.Items.RemoveAt(_index);
 
                 if (_parent != null)
                     _parent._children!.Remove(this);
@@ -295,8 +296,10 @@ namespace XrEditor
         public void BeginUpdate(ListTreeNodeView? refItem = null)
         {
             _updateCount++;
-            if (refItem != null)
+
+            if (refItem != null && refItem._index != -1)
                 _minUpdateIndex = Math.Min(_minUpdateIndex ?? int.MaxValue, refItem._index);
+
         }
 
         public void EndUpdate()

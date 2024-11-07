@@ -64,7 +64,6 @@ namespace XrEditor
             return (TEdit)(object)value!;
         }
 
-
         protected virtual TValue EditValueToBind(TEdit value)
         {
             if (value is IConvertible)
@@ -100,7 +99,6 @@ namespace XrEditor
             {
                 _isLoading--;
             }
-
         }
 
         private void OnBindValueChanged(object? sender, EventArgs e)
@@ -113,7 +111,18 @@ namespace XrEditor
         object IPropertyEditor.Value
         {
             get => EditValue!;
-            set => EditValue = (TEdit)value;
+            set
+            {
+                _isLoading++;
+                try
+                {
+                    EditValue = (TEdit)value;
+                }
+                finally
+                {
+                    _isLoading--;
+                }
+            }
         }
 
         IProperty? IPropertyEditor.Binding

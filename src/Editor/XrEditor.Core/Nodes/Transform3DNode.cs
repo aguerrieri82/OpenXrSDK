@@ -7,8 +7,9 @@ namespace XrEditor.Nodes
 {
     public class Transform3DNode : BaseNode<Transform3D>, IEditorProperties, IItemView, IEditorActions
     {
-        public Transform3DNode(Transform3D value) : base(value)
+        public Transform3DNode(Transform3D value, INode parent) : base(value)
         {
+            _parent = parent;
         }
 
         public void EditorProperties(IList<PropertyView> curProps)

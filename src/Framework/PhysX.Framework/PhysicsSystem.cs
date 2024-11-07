@@ -302,7 +302,7 @@ namespace PhysX.Framework
                     result = new PhysicsRigidDynamic(actor, this);
                     break;
                 default:
-                    throw new NotSupportedException();
+                    throw new NotSupportedException($"{info.Type} not found");
             }
 
             foreach (var shape in info.Shapes.Skip(1))
@@ -433,6 +433,7 @@ namespace PhysX.Framework
 
             _scene.SetVisualizationParameter(PxVisualizationParameter.JointLocalFrames, 1f);
             _scene.SetVisualizationParameter(PxVisualizationParameter.JointLimits, 1f);
+   
 
             if (_pvd != null)
             {
@@ -482,6 +483,7 @@ namespace PhysX.Framework
             if (options.DebugHost != null && options.UseDebug)
             {
                 _pvd = _foundation->PhysPxCreatePvd();
+
 
                 fixed (byte* bytePointer = Encoding.UTF8.GetBytes(options.DebugHost))
                 {
@@ -540,7 +542,6 @@ namespace PhysX.Framework
                 else
                     _lastDeltaTime = stepSizeSecs;
        
-
                 _scene!.Scene.SimulateMut(_lastDeltaTime, null, null, 0, true);
 
                 _scene.Scene.FetchResultsMut(true, &error);

@@ -3,9 +3,6 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGLES.Extensions.EXT;
 #else
 using Silk.NET.OpenGL;
-using System.Net.Mail;
-using XrMath;
-using static System.Net.Mime.MediaTypeNames;
 #endif
 
 
@@ -26,7 +23,6 @@ namespace XrEngine.OpenGL
 #if GLES
             gl.TryGetExtension(out _extMs);
 #endif
-
             Create();
         }
 

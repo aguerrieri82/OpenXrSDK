@@ -46,6 +46,31 @@ namespace XrMath
             return *(Matrix4x4*)result;
         }
 
+        public static Matrix4x4 InterpolateWorldMatrix(this Matrix4x4 matrix1, Matrix4x4 matrix2, float t)
+        {
+            // Extract position vectors
+            var position1 = new Vector3(matrix1.M41, matrix1.M42, matrix1.M43);
+            var position2 = new Vector3(matrix2.M41, matrix2.M42, matrix2.M43);
+
+            // Interpolate position
+            var interpolatedPosition = Vector3.Lerp(position1, position2, t);
+
+            // Extract rotation quaternions
+            var rotation1 = Quaternion.CreateFromRotationMatrix(matrix1);
+            var rotation2 = Quaternion.CreateFromRotationMatrix(matrix2);
+
+            // Interpolate rotation
+            var interpolatedRotation = Quaternion.Slerp(rotation1, rotation2, t);
+
+            // Recompose the interpolated matrix
+            var result = Matrix4x4.CreateFromQuaternion(interpolatedRotation);
+            result.M41 = interpolatedPosition.X;
+            result.M42 = interpolatedPosition.Y;
+            result.M43 = interpolatedPosition.Z;
+
+            return result;
+        }
+
         #endregion
 
         #region QUOD3

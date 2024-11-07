@@ -234,7 +234,7 @@ namespace XrSamples
             return builder.AddPanel(new T());
         }
 
-        static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder)
+        static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder, bool usePt = true)
         {
             builder.AddXrRoot()
                    .UseHands()
@@ -247,7 +247,7 @@ namespace XrSamples
                    .UseRayCollider()
                    .UseGrabbers();
 
-            if (!IsEditor)
+            if (!IsEditor && usePt)
                 builder.AddPassthrough();
             return builder;
         }
@@ -1083,10 +1083,10 @@ namespace XrSamples
 
             var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
             car.Name = "car";
-            //car.AddComponent<BoundsGrabbable>();
 
             var bodyMeshes = new HashSet<TriangleMesh>();
 
+            //Fix model
             foreach (var mat in car.DescendantsOrSelf().OfType<TriangleMesh>().SelectMany(a => a.Materials).Distinct())
             {
                 if (mat is IPbrMaterial pbr)
@@ -1106,6 +1106,19 @@ namespace XrSamples
                 }
             }
 
+            //Optimize  
+            foreach (var mesh in car.DescendantsOrSelf().OfType<TriangleMesh>())
+            {
+                Log.Info(typeof(SampleScenes), $"Optimizing {mesh.Name}");
+                XrEngine.MeshOptimizer.Simplify(mesh.Geometry!, 0.4f, 0.005f);
+                XrEngine.MeshOptimizer.OptimizeVertexCache(mesh.Geometry!);
+                XrEngine.MeshOptimizer.OptimizeOverdraw(mesh.Geometry!, 1.05f);
+                XrEngine.MeshOptimizer.OptimizeVertexFetch(mesh.Geometry!);
+            }
+
+            car.UpdateBounds(true);
+
+            //Simlation
             var model = new CarModel
             {
                 WheelFL = car.GroupByName("wheel.Ft.L.003", "wheelbrake.Ft.L.003"),
@@ -1113,8 +1126,8 @@ namespace XrSamples
                 WheelBL = car.GroupByName("wheel.Bk.L.003", "wheelbrake.Bk.R.003"),
                 WheelBR = car.GroupByName("wheel.Bk.R.003", "wheelbrake.Bk.R.001"),
                 CarBody = car.GroupByName("body.003"),
+                SteeringWheel = car.GroupByName("leatherB_steering.003", "chrome_steering.003", "chrome_logo_steering.003", "texInt_steering.003"),
                 CarBodyCollisionMeshes = bodyMeshes,
-                AccInputName = "RightTriggerValue",
                 SeatLocalPose = new Pose3
                 {
                     Position = new Vector3(-0.4f, 1.1f, 0.2f),
@@ -1125,61 +1138,15 @@ namespace XrSamples
                     Position = new Vector3(-0.43f, 0.885f, -0.08f),
                     Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -19f / 180 * MathF.PI)
                 },
-                SteeringWheel = car.GroupByName("leatherB_steering.003", "chrome_steering.003", "chrome_logo_steering.003", "texInt_steering.003")
             };
 
-            model.CarBody.Name = "car-body";
-
-            car.UpdateBounds(true);
             car.AddComponent(model);
-
-            foreach (var mesh in car.DescendantsOrSelf().OfType<TriangleMesh>())
-            {
-                Log.Info(typeof(SampleScenes), $"Optimizing {mesh.Name}");
-                XrEngine.MeshOptimizer.Simplify(mesh.Geometry!, 0.4f, 0.005f);
-                XrEngine.MeshOptimizer.OptimizeVertexCache(mesh.Geometry!);
-                XrEngine.MeshOptimizer.OptimizeOverdraw(mesh.Geometry!, 1.05f);
-                XrEngine.MeshOptimizer.OptimizeVertexFetch(mesh.Geometry!);
-            }
 
             var checkerMat = (Material)MaterialFactory.CreatePbr(TextureFactory.CreateChecker());
 
-            /*
-            var cube = new TriangleMesh(new Cube3D(new Vector3(1, 0.2f, 1)), checkerMat);
-            cube.Geometry!.ScaleUV(new Vector2(2, 2)); 
-            cube.AddComponent<BoxCollider>();
-            
-            var rb1 = cube.AddComponent<RigidBody>();
-            rb1.Type = PhysicsActorType.Static;
-            rb1.AutoTeleport = true;
-
-     
-            var steer = new MeshBuilder().AddRevolve(new Circle2D
-            {
-                Center = new Vector2(0.4f, 0), 
-                Radius = 0.05f
-            }, 40).ToGeometry();
-
-
-            var steerMesh = new TriangleMesh(steer, checkerMat);
-            steerMesh.Transform.SetPositionY(0.35f);
-            steerMesh.AddComponent<PyMeshCollider>();
-            var rb2 = steerMesh.AddComponent<RigidBody>();
-            rb2.Type = PhysicsActorType.Dynamic;
-            rb2.AutoTeleport = true;
-            rb2.AngularDamping = 5f;
-
-            var grp = new Group3D();
-            var scale = 0.4f;
-            grp.AddChild(steerMesh);
-            grp.AddChild(cube);
-            grp.Transform.SetPositionY(0.78f);
-            grp.Transform.SetScale(scale);
-            grp.Transform.Rotation = new Vector3(0, -74, -46) / 180 * MathF.PI;
-            */
-
+            //Floor
             var floor = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), checkerMat);
-            floor.Name = "foor";
+            floor.Name = "floor";
             floor.Transform.SetPositionY(-0.005f);
             floor.Geometry!.ScaleUV(new Vector2(20, 20));
             floor.AddComponent(new RigidBody
@@ -1193,6 +1160,7 @@ namespace XrSamples
                 }
             });
 
+            //Wall
             var wall = new TriangleMesh(new Cube3D(new Vector3(5, 3, 0.5f)), checkerMat);
             wall.Name = "wall";
             wall.Transform.Position = new Vector3(0, 1.5f, -5f);
@@ -1208,48 +1176,28 @@ namespace XrSamples
                 }
             });
 
+            //Add children
             scene.AddChild(floor);
             scene.AddChild(wall);
             scene.AddChild(car);
-            //scene.AddChild(grp);
 
+            //Create model
             model.Create();
             model.CarBody!.IsVisible = false;
+            model.CarBody.Name = "car-body";
 
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
                 .ConfigureApp(a =>
                 {
+                    var inp = (XrOculusTouchController)a.Inputs!;
                     a.XrApp.UseLocalSpace = true;
-
-                    /*
-                    var manager = a.App.ActiveScene!.Component<PhysicsManager>();
-                    var pose1 = new Pose3
-                    {
-                        Position = new Vector3(0, 0.1f, 0),
-                        Orientation = Vector3.UnitX.RotationTowards(Vector3.UnitY)
-                    };
-                    var pose2 = new Pose3
-                    {
-                        Position = new Vector3(0, -0.125f, 0),
-                        Orientation = pose1.Orientation
-                    };
-                    
-                    var joint = manager.AddJoint(JointType.Revolute, cube, pose1, steerMesh, pose2);
-                    joint.Damping = 100;
-                    joint.Stiffness = 1000;
-                    joint.BounceThreshold = 100;
-
-                    scale = 0.01f;
-                    joint.InvMassScale1 = scale;
-                    joint.InvMassScale0 = scale;
-                    joint.InvInertiaScale1 = scale;
-                    joint.InvInertiaScale0 = scale;
-                    */
+                    model.AccInput = inp.Right!.TriggerValue;
+                    model.BackInput = inp.Right!.Button!.AClick;
+                    model.ShowHideBodyInput = inp.Right!.Button!.BClick;
                 })
-
-                .ConfigureSampleApp();
+                .ConfigureSampleApp(false);
         }
 
 
