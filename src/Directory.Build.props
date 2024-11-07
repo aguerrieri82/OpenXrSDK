@@ -19,6 +19,8 @@
 		<IsAndroid>false</IsAndroid>
 		<NativeFolder>$(Configuration)</NativeFolder>
 		<NativePlatform>x64</NativePlatform>
+		<NativeLibsDir>$(SolutionDir)..\libs\</NativeLibsDir>
+		<FilamentLink>PreBuilt</FilamentLink>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">

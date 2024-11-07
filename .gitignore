@@ -379,3 +379,4 @@ Makefile
 *.i64
 /libs/filament-windows
 /libs/filament-android
+/src/Engine/Filament.Native/libs/arm64-v8a/libfilament-native.so

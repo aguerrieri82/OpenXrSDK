@@ -9,17 +9,32 @@
 		<NativeLibrary Runtime="win-$(NativePlatform)" Include="..\Filament.Native\bin\$(NativePlatform)\$(NativeFolder)\*" />
 		<NativeLibrary Runtime="android-arm64" Include="..\Filament.Native\libs\**\*" />
 	</ItemGroup>
-	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+	
+	<ItemGroup Condition="'$(IsAndroid)' == 'false' AND '$(FilamentLink)' != 'PreBuilt'">
 		<Content Include="..\Filament.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
 		<Content Include="..\Filament.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
 		<Content Include="..\Filament.Native\libs\arm64-v8a\*.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
+	<ItemGroup Condition="'$(IsAndroid)' == 'false' AND '$(FilamentLink)' == 'PreBuilt'">
+		<Content Include="$(NativeLibsDir)filament-native\win-x64\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
+		<Content Include="$(NativeLibsDir)filament-native\win-x64\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+		<Content Include="$(NativeLibsDir)filament-native\android-arm64\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'true' AND '$(FilamentLink)' != 'PreBuilt'">
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\Filament.Native\libs\arm64-v8a\*.so" />
 	</ItemGroup>
-	<ItemGroup>
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'true' AND '$(FilamentLink)' == 'PreBuilt'">
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)filament-native\android-arm64\*" />
+	</ItemGroup>
+	
+	<ItemGroup Condition="'$(FilamentLink)' != 'PreBuilt'">
 		<ProjectReference Include="..\Filament.Native\Filament.Native.vcxproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
 	</ItemGroup>
 
