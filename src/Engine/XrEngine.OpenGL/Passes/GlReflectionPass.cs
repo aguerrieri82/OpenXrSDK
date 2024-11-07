@@ -5,7 +5,6 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics;
-using XrEngine.Layers;
 using XrEngine.Services;
 using XrMath;
 
@@ -25,9 +24,9 @@ namespace XrEngine.OpenGL
 
             if (PlanarReflection.IsMultiView)
             {
-                _renderTarget = new GlMultiViewRenderTarget(_renderer.GL);
+                _renderTarget = new GlMultiViewRenderTarget(_gl);
 
-                _glDepthBuffer = new GlTexture(_renderer.GL)
+                _glDepthBuffer = new GlTexture(_gl)
                 {
                     MinFilter = TextureMinFilter.Nearest,
                     MagFilter = TextureMagFilter.Nearest,
@@ -37,8 +36,8 @@ namespace XrEngine.OpenGL
             }
             else
             {
-                _renderTarget = new GlTextureRenderTarget(_renderer.GL);
-                _glDepthBuffer = new GlRenderBuffer(_renderer.GL);
+                _renderTarget = new GlTextureRenderTarget(_gl);
+                _glDepthBuffer = new GlRenderBuffer(_gl);
             }
 
         }
@@ -56,7 +55,6 @@ namespace XrEngine.OpenGL
             });
 
             scene.AddChild(env);
-
 
             layer.Add(env);
             var glLayer = new GlLayer(_renderer, scene, GlLayerType.Custom, layer);
@@ -149,7 +147,7 @@ namespace XrEngine.OpenGL
             _renderer.State.SetClearDepth(1.0f);
             _renderer.State.SetView(new Rect2I(0, 0, _reflection.Texture.Width, _reflection.Texture.Height));
 
-            _renderer.GL.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
+            _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
             return base.BeginRender(camera);
         }

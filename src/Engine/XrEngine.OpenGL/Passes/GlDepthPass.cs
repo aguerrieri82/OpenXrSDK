@@ -21,8 +21,8 @@ namespace XrEngine.OpenGL
             _renderer.State.SetView(_renderer.RenderView);
 
             _renderer.State.SetWriteDepth(true);
-            _renderer.GL.Clear(ClearBufferMask.DepthBufferBit);
-            _renderer.GL.DepthFunc(DepthFunction.Less);
+            _gl.Clear(ClearBufferMask.DepthBufferBit);
+            _gl.DepthFunc(DepthFunction.Less);
             return base.BeginRender(camera);
 
         }
@@ -51,7 +51,7 @@ namespace XrEngine.OpenGL
         {
             if (UseOcclusion)
             {
-                draw.Query ??= draw.Object!.GetOrCreateProp(OpenGLRender.Props.GlQuery, () => new GlQuery(_renderer.GL));
+                draw.Query ??= draw.Object!.GetOrCreateProp(OpenGLRender.Props.GlQuery, () => new GlQuery(_gl));
 
                 draw.Query!.Begin(QueryTarget.AnySamplesPassed);
 

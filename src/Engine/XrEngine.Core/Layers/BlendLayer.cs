@@ -1,6 +1,5 @@
 ﻿namespace XrEngine
 {
-
     public class BlendLayer : BaseAutoLayer<TriangleMesh>
     {
         protected override bool BelongsToLayer(TriangleMesh obj)

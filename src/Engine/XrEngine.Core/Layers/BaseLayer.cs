@@ -1,4 +1,4 @@
-﻿namespace XrEngine.Layers
+﻿namespace XrEngine
 {
     public abstract class BaseLayer<T> : ILayer3D where T : ILayer3DItem
     {

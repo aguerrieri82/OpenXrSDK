@@ -1,13 +1,12 @@
 ﻿using System.Numerics;
 using XrEditor.Services;
 using XrEngine;
-using XrEngine.Layers;
 using XrInteraction;
 using XrMath;
 
 namespace XrEditor
 {
-    public class SelectionTool : PickTool
+    public class SelectionTool : PickTool, IOutlineSource
     {
         private readonly SelectionManager _selection;
         private readonly NodeManager _nodes;
@@ -18,6 +17,8 @@ namespace XrEditor
 
         public SelectionTool()
         {
+            Context.Implement<IOutlineSource>(this);
+
             _selection = Context.Require<SelectionManager>();
             _selection.Changed += OnSelectionChanged;
             _nodes = Context.Require<NodeManager>();
@@ -30,50 +31,27 @@ namespace XrEditor
 
             var layers = _sceneView.Scene.Layers;
 
-            _selectionLayer = layers.Layers
-                .OfType<DetachedLayer>()
-                .Where(a => a.Name == "Selection")
-                .FirstOrDefault();
-
-            _selectionLayer ??= layers.Add(new DetachedLayer() { Name = "Selection" });
+            _selectionLayer ??= layers.Add(new DetachedLayer()
+            {
+                Name = "Selection",
+                Usage = DetachedLayerUsage.Selection | DetachedLayerUsage.Outline
+            });
 
             base.NotifySceneChanged();
         }
 
-        private Task SetSelectedAsync(IEnumerable<TriangleMesh> items, bool selected) =>
-        _sceneView!.RenderDispatcher.ExecuteAsync(() =>
+        bool IOutlineSource.HasOutline(Object3D obj, out Color color)
         {
-            return;
-            foreach (var item in items)
-            {
-                var outline = item.Materials.OfType<OutlineMaterial>().FirstOrDefault();
-                if (outline == null && selected)
-                {
-                    outline = new OutlineMaterial()
-                    {
-                        Color = new Color(1, 1, 0, 0.7f),
-                        CompareStencilMask = 1,
-                        StencilFunction = StencilFunction.NotEqual,
-                        Alpha = AlphaMode.Blend,
-                        Size = 5,
-                    };
-                    item.Materials.Add(outline);
-                }
+            color = new Color(1, 1, 0, 0.7f);
+            return _lastOutline != null && _lastOutline.Contains(obj);  
+        }
 
-                if (outline != null)
-                    outline.IsEnabled = selected;
+        bool IOutlineSource.HasOutlines()
+        {
+            return _lastOutline != null && _lastOutline.Length > 0; 
+        }
 
-                foreach (var mat in item.Materials)
-                {
-                    if (mat is OutlineMaterial)
-                        continue;
-
-                    mat.WriteStencilMask(1, selected);
-                }
-            }
-        });
-
-        private async void OnSelectionChanged(IReadOnlyCollection<INode> items)
+        private void OnSelectionChanged(IReadOnlyCollection<INode> items)
         {
             _lastSelection = items.ToArray();
 
@@ -89,18 +67,15 @@ namespace XrEditor
                     .SelectMany(a => a.DescendantsOrSelf())
                     .OfType<TriangleMesh>();
 
-                if (_lastOutline != null)
-                    await SetSelectedAsync(_lastOutline, false);
 
                 _lastOutline = outlineMeshes.ToArray();
 
-                await SetSelectedAsync(_lastOutline, true);
+                foreach (var item in _lastOutline)
+                    _selectionLayer.Add(item);
 
                 _selectionLayer.EndUpdate();
             }
         }
-
-
         protected override void OnPointerDown(Pointer2Event ev)
         {
             _downPos = ev.Position;
@@ -123,8 +98,6 @@ namespace XrEditor
         public override void DrawGizmos(Canvas3D canvas)
         {
             canvas.Save();
-
-
 
             foreach (var item in _lastSelection.Select(a => a.Value).OfType<Object3D>())
             {
@@ -170,5 +143,6 @@ namespace XrEditor
 
             base.DrawGizmos(canvas);
         }
+
     }
 }

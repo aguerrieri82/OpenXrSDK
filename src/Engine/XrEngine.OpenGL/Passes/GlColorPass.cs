@@ -24,8 +24,8 @@ namespace XrEngine.OpenGL
             if (_renderer.Options.UseDepthPass)
             {
                 _renderer.State.SetWriteColor(true);
-                _renderer.GL.Clear(ClearBufferMask.ColorBufferBit);
-                _renderer.GL.DepthFunc(DepthFunction.Lequal);
+                _gl.Clear(ClearBufferMask.ColorBufferBit);
+                _gl.DepthFunc(DepthFunction.Lequal);
             }
             else
                 _renderer.Clear(_renderer.UpdateContext.Camera!.BackgroundColor);
@@ -41,7 +41,7 @@ namespace XrEngine.OpenGL
 
         public override void RenderLayer(GlLayer layer)
         {
-            _renderer.GL.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin layer {layer.Type}");
+            _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin layer {layer.Type}");
 
             var updateContext = _renderer.UpdateContext;
 
@@ -116,7 +116,7 @@ namespace XrEngine.OpenGL
                 }
             }
 
-            _renderer.GL.PopDebugGroup();
+            _gl.PopDebugGroup();
         }
 
         public bool WriteDepth { get; set; }

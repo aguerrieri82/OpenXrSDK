@@ -254,7 +254,7 @@ namespace XrEditor
             var glOptions = driverOptions as GlRenderOptions ?? new GlRenderOptions();
 
             glOptions.FloatPrecision = ShaderPrecision.High;
-            glOptions.Outline.Use = false;
+            glOptions.Outline.Use = true;
 
             var render = new OpenGLRender(_gl!, glOptions);
 

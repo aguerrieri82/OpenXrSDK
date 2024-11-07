@@ -13,8 +13,6 @@ namespace XrEngine.OpenGL
     {
         public bool Use { get; set; }
 
-        public byte ActiveOutlineStencil { get; set; }
-
         public Color Color { get; set; }
 
         public float Size { get; set; }
@@ -38,14 +36,13 @@ namespace XrEngine.OpenGL
                 Mode = ShadowMapMode.PCF,
                 Size = 2048,
             };
-
             Outline = new GlOutlineOptions()
             {
                 Use = false,
                 Color = new Color(1, 1, 0, 0.7f),
-                Size = 2,
-                ActiveOutlineStencil = 1
+                Size = 2
             };
+
             /*
             PbrMaterial.LinearOutput = true;
             PbrMaterial.ToneMap = PbrMaterial.ToneMapType.TONEMAP_KHR_PBR_NEUTRAL;
@@ -67,8 +64,6 @@ namespace XrEngine.OpenGL
         public bool UseDepthPass { get; set; }
 
         public bool UsePlanarReflection { get; set; }
-
-        public bool UseBloom { get; set; }
 
         public bool UseHitTest { get; set; }
 

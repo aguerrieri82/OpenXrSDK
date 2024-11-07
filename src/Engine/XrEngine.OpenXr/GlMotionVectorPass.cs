@@ -25,7 +25,7 @@ namespace XrEngine.OpenXr
             : base(renderer)
         {
             _xrApp = xrApp;
-            _renderTarget = new GlTextureRenderTarget(_renderer.GL);
+            _renderTarget = new GlTextureRenderTarget(_gl);
             _bindEye = bindEye;
         }
 
@@ -37,8 +37,8 @@ namespace XrEngine.OpenXr
             var colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
             var depthTex = ((SwapchainImageOpenGLKHR*)depthImg)->Image;
 
-            _glColorImage = GlTexture.Attach(_renderer.GL, colorTex, sampleCount);
-            _glDepthImage = GlTexture.Attach(_renderer.GL, depthTex, sampleCount);
+            _glColorImage = GlTexture.Attach(_gl, colorTex, sampleCount);
+            _glDepthImage = GlTexture.Attach(_gl, depthTex, sampleCount);
         }
 
         protected override IGlRenderTarget? GetRenderTarget()
@@ -87,7 +87,7 @@ namespace XrEngine.OpenXr
             _renderer.State.SetClearColor(new Color(0, 0, 0, 1));
             _renderer.State.SetView(new Rect2I(0, 0, _glColorImage.Width, _glColorImage.Height));
 
-            _renderer.GL.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
+            _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
             return base.BeginRender(camera);
         }

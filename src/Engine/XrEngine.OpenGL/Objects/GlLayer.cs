@@ -15,25 +15,25 @@ namespace XrEngine.OpenGL
         readonly OpenGLRender _render;
         readonly RenderContent _content;
         private readonly Scene3D _scene;
-        private readonly ILayer3D? _layer;
+        private readonly ILayer3D? _sceneLayer;
         private readonly GlLayerType _type;
         private long _lastUpdateVersion;
         private long _lastFrame;
 
-        public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? layer = null)
+        public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
         {
             _render = render;
             _content = new RenderContent();
             _scene = scene;
             _lastUpdateVersion = -1;
-            _layer = layer;
+            _sceneLayer = sceneLayer;
             _type = type;
         }
 
 
         public void Update()
         {
-            Log.Info(this, "Building content '{0}' ({1})...", _scene.Name ?? "", _layer?.Name ?? "Main");
+            Log.Info(this, "Building content '{0}' ({1})...", _scene.Name ?? "", _sceneLayer?.Name ?? "Main");
 
             _content.Lights = [];
             _content.ShaderContents.Clear();
@@ -72,8 +72,8 @@ namespace XrEngine.OpenGL
             }
 
 
-            var objects = _layer != null ?
-                _layer.Content.OfType<Object3D>().Visible() :
+            var objects = _sceneLayer != null ?
+                _sceneLayer.Content.OfType<Object3D>().Visible() :
                 _scene.Descendants().Visible();
 
             foreach (var obj3D in objects)
@@ -89,7 +89,7 @@ namespace XrEngine.OpenGL
                     if (material.Shader == null)
                         continue;
 
-                    if ((material.Alpha == AlphaMode.Blend && Type != GlLayerType.Blend) ||
+                    if ((material.Alpha == AlphaMode.Blend && Type == GlLayerType.Main) ||
                         (material.Alpha != AlphaMode.Blend && Type == GlLayerType.Blend))
                         continue;
 
@@ -128,7 +128,7 @@ namespace XrEngine.OpenGL
                 }
             }
 
-            _lastUpdateVersion = _layer != null ? _layer.Version : _scene.Version;
+            _lastUpdateVersion = _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
 
             Log.Debug(this, "Content Build");
 
@@ -223,6 +223,8 @@ namespace XrEngine.OpenGL
 
         public RenderContent Content => _content;
 
-        public long Version => _layer != null ? _layer.Version : _scene.Version;
+        public ILayer3D? SceneLayer => _sceneLayer;
+
+        public long Version => _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
     }
 }

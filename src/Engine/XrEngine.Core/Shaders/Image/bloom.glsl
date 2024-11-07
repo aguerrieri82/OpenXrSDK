@@ -64,7 +64,7 @@ void main() {
             imageStore(image, ivec2(gl_GlobalInvocationID.xy), color);
         #endif
 
-                    //imageStore(image, ivec2(gl_GlobalInvocationID.xy), vec4(1.0,0.0,0.0,1.0));
+       //imageStore(image, ivec2(gl_GlobalInvocationID.xy), vec4(1.0,0.0,0.0,1.0));
     }
 
 }
