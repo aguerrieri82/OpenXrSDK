@@ -23,24 +23,18 @@
 
 	<ItemGroup>
 		<NativeLibrary Runtime="win-$(NativePlatform)" Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" />
-		<NativeLibrary Runtime="android-arm64" Include="..\XrEngine.Native\libs\arm64-v8a\*" />
+		<NativeLibrary Runtime="android-arm64" Include=".$(NativeLibsDir)xrengine-native\android-arm64\*" />
 	</ItemGroup>
 	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="..\XrEngine.Native\libs\arm64-v8a\libxrengine-native.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
+		<Content Include="$(NativeLibsDir)xrengine-native\android-arm64\*.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
 		<Content Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
 		<Content Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
-		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\XrEngine.Native\libs\arm64-v8a\*.so" />
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)xrengine-native\android-arm64\*.so" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="Shaders\PbrV2\uniforms.glsl" />
-	  <None Remove="Shaders\vsm_shadow_map.frag" />
-	</ItemGroup>
-
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
@@ -48,11 +42,6 @@
 	  <ProjectReference Include="..\MeshOptimizer\MeshOptimizer.csproj" />
 	  <ProjectReference Include="..\TurboJpeg\TurboJpeg.csproj" />
 	  <ProjectReference Include="..\XrEngine.Native\XrEngine.Native.vcxproj" />
-	</ItemGroup>
-
-
-	<ItemGroup>
-	  <Folder Include="Components\Input\" />
 	</ItemGroup>
 
 
