@@ -69,7 +69,7 @@ namespace XrEngine.OpenXr
 
         public XrApp XrApp => _xrApp!;
 
-        public object? Inputs { get; internal set; }
+        public IXrBasicInteractionProfile? Inputs { get; internal set; }
     }
 
 

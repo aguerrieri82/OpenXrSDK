@@ -854,7 +854,7 @@ namespace OpenXr.Framework
                                      (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;
 
                     if (isPosValid)
-                        layers = _layers.Render(ref _views, space, frameTime, out layerCount);
+                        layers = _layers.Render(ref _views!, space, frameTime, out layerCount);
                 }
             }
             finally
@@ -970,7 +970,7 @@ namespace OpenXr.Framework
             return builder.Result;
         }
 
-        public T WithInteractionProfile<T>(Action<XrActionsBuilder<T>> build) where T : new()
+        public T WithInteractionProfile<T>(Action<XrActionsBuilder<T>> build) where T : IXrBasicInteractionProfile, new()
         {
             var builder = new XrActionsBuilder<T>(this);
 

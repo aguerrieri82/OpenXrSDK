@@ -93,6 +93,11 @@ namespace XrEngine.Physics
             return null;
         }
 
+        protected override void Update(RenderContext ctx)
+        {
+            Initialize();
+        }
+
         public void Initialize()
         {
             if (_isInit)

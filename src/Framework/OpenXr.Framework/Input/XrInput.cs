@@ -170,7 +170,7 @@ namespace OpenXr.Framework
 
             _isActive = _app.GetActionPoseIsActive(_action, _subPath);
             _isChanged = true;
-            _lastChangeTime = DateTime.Now;
+            _lastChangeTime = DateTime.UtcNow;
 
             var spaceInfo = _app.SpacesTracker.GetLastLocation(_space);
 

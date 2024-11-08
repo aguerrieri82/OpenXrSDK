@@ -106,8 +106,11 @@ namespace XrEngine
 
         public void DrawPlane(Plane p, float width = 10, float height = 10, float span = 1)
         {
-            Vector3 planeOrigin = -p.Normal * p.D;
+            DrawPlane(p, -p.Normal * p.D, width, height, span);
+        }
 
+        public void DrawPlane(Plane p, Vector3 planeOrigin, float width = 10, float height = 10, float span = 1)
+        {
             Vector3 u = Vector3.Normalize(Vector3.Cross(p.Normal, new Vector3(1, 0, 0)));
             Vector3 v = Vector3.Normalize(Vector3.Cross(p.Normal, u));
 

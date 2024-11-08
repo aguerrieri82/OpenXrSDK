@@ -50,7 +50,7 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder AddRightPointer(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
         {
-            var inputs = e.Inputs as XrOculusTouchController;
+            var inputs = e.Inputs;
 
             e.App.ActiveScene!.AddComponent(new XrInputPointer
             {
@@ -122,7 +122,7 @@ namespace XrEngine.OpenXr
         });
 
 
-        public static XrEngineAppBuilder UseInputs<TProfile>(this XrEngineAppBuilder self) where TProfile : new()
+        public static XrEngineAppBuilder UseInputs<TProfile>(this XrEngineAppBuilder self) where TProfile : IXrBasicInteractionProfile,  new()
         {
             return self.UseInputs<TProfile>(a => a.AddAll());
         }

@@ -19,7 +19,7 @@ namespace XrEngine.OpenXr.Android
 
             if (display != null)
             {
-                var inputs = e.Inputs as XrOculusTouchController;
+                var inputs = e.Inputs;
 
                 var xrInput = display.Scene?.Components<XrInputPointer>().FirstOrDefault();
 

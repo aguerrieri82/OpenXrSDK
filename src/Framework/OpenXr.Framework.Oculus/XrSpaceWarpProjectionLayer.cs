@@ -128,19 +128,16 @@ namespace OpenXr.Framework.Oculus
             {
                 _motionProvider.UpdateMotionVectors(ref projViews, _spColorImages, _spDepthImages, _xrApp!.RenderOptions.RenderMode);
 
-                /*
-                NB: only on software moved camera
+
                 for (var i = 0; i < projViews.Length; i++)
                 {
                     var info = _spaceWarpInfo.ItemPointer(i);
-                    var curPose = projViews[i].Pose.ToPose3();
+                    var curPose = _xrApp.ReferenceFrame.Multiply(projViews[i].Pose.ToPose3());
                     var lastPose = _lastPose[i];
-                    var delta = lastPose.Inverse().Multiply(curPose);
-                    info->AppSpaceDeltaPose = delta.ToPoseF();  
+                    info->AppSpaceDeltaPose = lastPose.Inverse().Multiply(curPose).ToPoseF(); 
                     _lastPose[i] = curPose; 
                 }
-                */
-
+     
                 if (!base.Render(ref projViews, ref views, swapchains, displayTime))
                     return false;
 

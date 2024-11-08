@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using System.Diagnostics;
+using XrMath;
 
 namespace XrEngine
 {
@@ -19,7 +20,6 @@ namespace XrEngine
 
             base.Dispose();
         }
-
 
         public override void GetState(IStateContainer container)
         {
@@ -49,6 +49,9 @@ namespace XrEngine
 
         protected internal override void InvalidateWorld()
         {
+            if (_worldDirty)
+                return;
+
             base.InvalidateWorld();
 
             foreach (var child in _children)

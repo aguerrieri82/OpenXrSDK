@@ -81,7 +81,7 @@ namespace XrEditor.Plot
         {
             if ((_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs)
             {
-                _lastNotifyTime = DateTime.Now;
+                _lastNotifyTime = DateTime.UtcNow;
                 _mainDispatcher.Execute(() => Plotter.NotifyChanged(null));
             }
         }
@@ -111,7 +111,7 @@ namespace XrEditor.Plot
                 _mainDispatcher.Execute(() => Plotter.Series.Add(serie));
             }
 
-            _lastValueTime = DateTime.Now;
+            _lastValueTime = DateTime.UtcNow;
 
             var isNotify = (_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs;
 

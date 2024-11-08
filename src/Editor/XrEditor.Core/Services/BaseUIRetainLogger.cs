@@ -49,7 +49,7 @@ namespace XrEditor.Services
             var progressCurrent = _progressCurrent;
             var progressTotal = _progressTotal;
 
-            var invokeTime = DateTime.Now;
+            var invokeTime = DateTime.UtcNow;
 
             _lastUpdate = invokeTime;
             _isDirty = false;
@@ -87,7 +87,7 @@ namespace XrEditor.Services
             if (string.IsNullOrWhiteSpace(text) || !IsActive)
                 return;
 
-            _messages.Enqueue(new LogMessage(text, level, DateTime.Now));
+            _messages.Enqueue(new LogMessage(text, level, DateTime.UtcNow));
 
             if (!retain)
                 _ = UpdateAsync();

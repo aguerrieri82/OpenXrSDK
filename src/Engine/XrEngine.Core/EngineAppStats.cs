@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Diagnostics;
+
+namespace XrEngine
 {
     public class EngineAppStats
     {
@@ -17,27 +19,27 @@
             _fpsFrameCount++;
             _frameCount++;
 
-            var deltaSecs = (DateTime.Now - _fpsLastTime).TotalSeconds;
+            var deltaSecs = (DateTime.UtcNow - _fpsLastTime).TotalSeconds;
 
             if (deltaSecs >= 2)
             {
                 Fps = (int)(_fpsFrameCount / deltaSecs);
                 _fpsFrameCount = 0;
-                _fpsLastTime = DateTime.Now;
+                _fpsLastTime = DateTime.UtcNow;
             }
         }
 
         public void Update(IRenderUpdate renderUpdate, Action action)
         {
-            var start = DateTime.Now;
+            var startTime = Stopwatch.GetTimestamp();
 
             action();
 
-            var total = (DateTime.Now - start).TotalMilliseconds;
+            var total = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
 
             var type = renderUpdate.GetType();
 
-            if (!_updateTimes.TryGetValue(type, out var time))
+            if (!_updateTimes.TryGetValue(type, out _))
                 _updateTimes[type] = total;
             else
                 _updateTimes[type] += total;

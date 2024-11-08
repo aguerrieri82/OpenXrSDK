@@ -104,7 +104,7 @@ namespace XrEngine.OpenGL
             if (_options.UseHitTest)
             {
                 var hitTest = new GlHitTestPass(this);
-                _renderPasses.Add(hitTest); 
+                _renderPasses.Add(hitTest);
                 Context.Implement<IViewHitTest>(hitTest);
             }
 
@@ -131,7 +131,7 @@ namespace XrEngine.OpenGL
                if (SuspendErrors > 0)
                    return;
 
-               unsafe
+               try
                {
                    var span = new Span<byte>((void*)msg, len);
                    var text = Encoding.UTF8.GetString(span);
@@ -143,6 +143,10 @@ namespace XrEngine.OpenGL
                    Debug.WriteLine($"------ OPENGL: {text}");
                    Debug.WriteLine($"\n\n\n");
                    */
+               }
+               catch
+               {
+
                }
            }, null);
 

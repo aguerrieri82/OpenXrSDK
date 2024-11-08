@@ -58,7 +58,7 @@ namespace XrSamples
         {
             if ((_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs)
             {
-                _lastNotifyTime = DateTime.Now;
+                _lastNotifyTime = DateTime.UtcNow;
                 if (EnsureDispatcher())
                     _dispatcher.ExecuteAsync(() => _plotter.NotifyChanged(null));
             }
@@ -122,7 +122,7 @@ namespace XrSamples
                     _dispatcher.ExecuteAsync(() => _plotter.Series.Add(serie));
             }
 
-            _lastValueTime = DateTime.Now;
+            _lastValueTime = DateTime.UtcNow;
 
             var isNotify = (_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs;
 

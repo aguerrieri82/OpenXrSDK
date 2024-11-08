@@ -45,7 +45,7 @@ namespace OpenXr.Framework
 
         public void Update(Space baseSpace, long time)
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
 
             /*
             var spaces = _trackData.Values
