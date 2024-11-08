@@ -18,7 +18,6 @@ namespace XrEngine.Physics
         protected Thread? _simulateThread;
         protected ConcurrentQueue<Action> _queue = [];
         protected HashSet<Joint> _joints = [];
-        protected static Stopwatch _stopwatch = Stopwatch.StartNew();
 
         public PhysicsManager()
         {
@@ -29,6 +28,7 @@ namespace XrEngine.Physics
 
         protected override void Start(RenderContext ctx)
         {
+
             Destroy();
 
             _system = new PhysicsSystem();
@@ -105,14 +105,14 @@ namespace XrEngine.Physics
         {
             while (IsStarted)
             {
-                var curTime = _stopwatch.Elapsed;
+                var startTime = Stopwatch.GetTimestamp();
 
                 while (_queue.TryDequeue(out var action))
                     action();
 
                 _system?.Simulate((float)StepSizeSecs, StepSizeSecs);
 
-                var ellapsed = (_stopwatch.Elapsed - curTime).TotalSeconds;
+                var ellapsed = Stopwatch.GetElapsedTime(startTime).Seconds;
 
                 var wait = StepSizeSecs - ellapsed; 
 
@@ -153,6 +153,9 @@ namespace XrEngine.Physics
                 Object1 = object1,
                 Pose1 = pose1
             };
+
+            if (!pose0.IsFinite() || !pose1.IsFinite())
+                throw new Exception();
 
             _joints.Add(joint);
 

@@ -112,7 +112,7 @@ namespace XrEditor
             {
                 foreach (var grp in groups)
                 {
-                    if (target != null && grp.Node != target && grp.Node.Parent != target)
+                    if (target != null && grp.Node != target && grp.Node?.Parent != target)
                         continue;
                     if (grp.Properties != null)
                         result = result.Concat(grp.Properties); 

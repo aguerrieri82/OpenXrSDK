@@ -3,6 +3,7 @@
   <PropertyGroup>
 	  <TargetFrameworks>$(CoreVersion)-windows</TargetFrameworks>
 	  <UseWPF>true</UseWPF>
+	  <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

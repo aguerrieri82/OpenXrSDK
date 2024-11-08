@@ -102,7 +102,7 @@ namespace CanvasUI
                 pool.Enqueue(new T());
 
             var res = (T)pool.Dequeue();
-            res.Timestamp = DateTime.Now.Ticks;
+            res.Timestamp = DateTime.UtcNow.Ticks;
             return res;
         }
 

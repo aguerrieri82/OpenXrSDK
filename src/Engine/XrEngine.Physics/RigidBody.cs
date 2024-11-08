@@ -62,6 +62,9 @@ namespace XrEngine.Physics
         {
             Debug.Assert(_host != null);
 
+            if (!pose.IsFinite())
+                throw new InvalidOperationException();
+
             _host.SetWorldPoseIfChanged(pose);
         }
 

@@ -137,6 +137,18 @@ namespace XrMath
         #region PLANE
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 Project(this Plane self, Vector3 point)
+        {
+            return point - self.Distance(point) * self.Normal;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Distance(this Plane self, Vector3 point)
+        {
+            return Vector3.Dot(self.Normal, point) + self.D;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DotCoordinate(this Plane self, Vector3 point)
         {
             return Plane.Dot(self, Vector4.Create(point, 1f));
@@ -225,11 +237,6 @@ namespace XrMath
         public static Bounds3 Transform(this Bounds3 self, Matrix4x4 matrix)
         {
             return self.Points.ComputeBounds(matrix);
-            return new Bounds3
-            {
-                Min = self.Min.Transform(matrix),
-                Max = self.Max.Transform(matrix)
-            };
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -315,6 +322,11 @@ namespace XrMath
         #endregion
 
         #region POSE
+
+        public static bool IsFinite(this Pose3 self)
+        {
+            return self.Position.IsFinite() && self.Orientation.IsFinite();
+        }   
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsSimilar(this Pose3 self, Pose3 other, float epsilon = EPSILON)
@@ -438,6 +450,11 @@ namespace XrMath
         #endregion
 
         #region VECTOR3
+
+        public static bool IsFinite(this Vector3 self)
+        {
+            return float.IsFinite(self.X) && float.IsFinite(self.Y) && float.IsFinite(self.Z);
+        }
 
         public static Vector3 Round(this Vector3 vector, int decimals)
         {
@@ -754,9 +771,20 @@ namespace XrMath
             };
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Plane ToPlane(this Ray3 self)
+        {
+            return new Plane(self.Direction, -Vector3.Dot(self.Direction, self.Origin));
+        }
+
         #endregion
 
         #region QUATERNION
+
+        public static bool IsFinite(this Quaternion self)
+        {
+            return float.IsFinite(self.X) && float.IsFinite(self.Y) && float.IsFinite(self.Z) && float.IsFinite(self.W);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Quaternion Opposite(this Quaternion self)

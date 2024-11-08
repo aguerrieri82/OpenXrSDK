@@ -9,7 +9,7 @@ using static PhysX.NativeMethods;
 
 namespace PhysX.Framework
 {
-    internal unsafe partial struct PxContactPairVelocity2
+    internal unsafe struct PxContactPairVelocity2
     {
         public readonly byte type_;
         public fixed byte structgen_pad0[3];
@@ -20,7 +20,7 @@ namespace PhysX.Framework
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct PxContactPairPose2
+    internal unsafe struct PxContactPairPose2
     {
         public byte type_;
         public fixed byte structgen_pad0[3];
@@ -71,7 +71,7 @@ namespace PhysX.Framework
         protected PxTolerancesScale _tolerancesScale;
         protected PxPhysics* _physics;
         protected PxDefaultCpuDispatcher* _dispatcher;
-        private PhysicsOptions _options;
+        protected PhysicsOptions _options;
         protected PhysicsScene? _scene;
 
         protected uint _actorIds;
@@ -90,6 +90,7 @@ namespace PhysX.Framework
             Current = this;
             _contactModify = new ContactModifyCallback();
             _eventCallbacks = new SimulationEventCallbacks();
+            _options = new PhysicsOptions();
         }
 
         public PhysicsMaterial CreateOrGetMaterial(PhysicsMaterialInfo info)
@@ -428,6 +429,7 @@ namespace PhysX.Framework
 
             sceneDesc.flags |= PxSceneFlags.EnableEnhancedDeterminism;
             sceneDesc.EnableCustomFilterShader(&FilterShader, 1);
+     
 
             _scene = new PhysicsScene(_physics->CreateSceneMut(&sceneDesc), this);
 
@@ -606,7 +608,7 @@ namespace PhysX.Framework
         public float LastDeltaTime => _lastDeltaTime;
 
 
-        public event Action<PhysicsActor, PhysicsActor>? Contact;
+        //public event Action<PhysicsActor, PhysicsActor>? Contact;
 
         public ref PxPhysics Physics => ref Unsafe.AsRef<PxPhysics>(_physics);
 

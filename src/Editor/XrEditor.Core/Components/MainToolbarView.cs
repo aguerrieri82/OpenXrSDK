@@ -9,23 +9,24 @@ namespace XrEditor
 
         public MainToolbarView()
         {
-            SaveCommand = new Command(Save);
-            LoadCommand = new Command(Load);
+            SaveCommand = new Command(SaveAsync);
+            LoadCommand = new Command(LoadAsync);
             IsMinimized = true;
         }
 
-        public async Task Save()
+        public Task SaveAsync()
         {
             var container = new JsonStateContainer();
             EngineApp.Current!.ActiveScene!.GetState(container);
             var json = container.AsJson();
             File.WriteAllText("scene.json", container.AsJson());
-
+            return Task.CompletedTask;
         }
 
-        public async Task Load()
+        public Task LoadAsync()
         {
             IsMinimized = true;
+            return Task.CompletedTask;
         }
 
         public bool IsMinimized

@@ -266,11 +266,6 @@ namespace CanvasUI
         {
             var parent = _owner.VisualParent;
 
-            if (propName == "FontFamily")
-            {
-                int x = 2;
-            }
-
             if (BaseStyle == null)
             {
                 if (parent != null)

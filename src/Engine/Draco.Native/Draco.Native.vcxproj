@@ -44,6 +44,7 @@
     <ProjectGuid>{7637AB55-A272-4390-8222-8397150FE18F}</ProjectGuid>
     <RootNamespace>DracoNative</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+	<NoWarn>LNK4099</NoWarn>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

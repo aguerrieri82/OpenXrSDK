@@ -15,6 +15,8 @@ namespace XrSamples.Components
     public class CarModel : Behavior<Group3D>, IDrawGizmos
     {
         private Group3D? _chassis;
+        private Group3D _attachedGroup;
+
         private Joint? _steerLeft;
         private Joint? _steerRight;
         private Joint? _rotateLeft;
@@ -36,7 +38,7 @@ namespace XrSamples.Components
         private float _wheelSpeedRad;
         private bool _isWheelChanged;
 
-        private Pose3 _steeringPosDiff;
+        private Pose3 _attachedPosDiff;
         private Pose3 _seatPosDiff;
 
         private PhysicsManager? _manager;
@@ -45,18 +47,28 @@ namespace XrSamples.Components
         {
             WheelMass = 2;
             ChassisDensity = 5000;
-            CarBodyDensity = 10;
-            SteeringStiffness = 1500;
+            CarBodyDensity = 50;
+            SteeringStiffness = 3000;
             PosIterations = 50;
             UseDifferential = true;
+            SteeringRatio = 1 / 12f;
+            SteeringLimitRad = 0.9f;
+            UseSteeringPhysics = true;
 
             _tubeMaterial = MaterialFactory.CreatePbr("#00ff0080");
             _tubeMaterial.Metalness = 1;
             _tubeMaterial.Alpha = AlphaMode.Blend;
+            
+            _attachedGroup = new Group3D();
 
             _tubeSize = 0.05f;
         }
 
+        protected override void OnAttach()
+        {
+            _host!.AddChild(_attachedGroup);
+            base.OnAttach();
+        }
 
         public void Create()
         {
@@ -64,6 +76,8 @@ namespace XrSamples.Components
             CreateChassis();
             AttachSteering();
             AttachBody();
+
+            _attachedPosDiff = _mainTube!.GetWorldPose().Difference(_attachedGroup.GetWorldPose());
         }
 
         protected void AttachBody()
@@ -86,7 +100,11 @@ namespace XrSamples.Components
                 Type = PhysicsActorType.Dynamic,
                 AutoTeleport = false,
                 Density = CarBodyDensity,
-                NotCollideGroup = RigidBodyGroup.Group1
+                NotCollideGroup = RigidBodyGroup.Group1,
+                Configure = _ =>
+                {
+                    _carRigidBody!.DynamicActor.AngularDamping = 100;
+                }
             });
 
             _carRigidBody.Contact += OnContact;
@@ -157,67 +175,68 @@ namespace XrSamples.Components
         {
             Debug.Assert(SteeringWheel != null && _mainTube != null);
 
-            var worldPose = SteeringWheel.GetWorldPose().Multiply(SteeringLocalPose);
-
-            var dir = -Vector3.UnitZ.Transform(worldPose.Orientation);
-
-            var p2 = worldPose.Position + dir * 1f;
-
-            _steeringWheelTube = AddTube(worldPose.Position, worldPose.Position + dir * 1f, PhysicsActorType.Kinematic);
-
-            _steeringPosDiff = _mainTube.GetWorldPose().Difference(_steeringWheelTube.GetWorldPose()); 
-
             SteeringWheel.AddComponent(new PyMeshCollider
             {
                 UseConvexMesh = false
             });
 
-            SteeringWheel.AddComponent<ForceTarget>();
-
-            SteeringWheel.AddComponent(new RigidBody
+            if (UseSteeringPhysics)
             {
-                Type = PhysicsActorType.Dynamic,
-                IsEnabled = true,
-                NotCollideGroup = RigidBodyGroup.Group1,
-                AutoTeleport = false,
-                AngularDamping = 5f,
-                Density = 60,
-                Configure = rb =>
+                var worldPose = SteeringWheel.GetWorldPose().Multiply(SteeringLocalPose);
+
+                var dir = -Vector3.UnitZ.Transform(worldPose.Orientation);
+
+                var p2 = worldPose.Position + dir * 1f;
+
+                _steeringWheelTube = AddTube(worldPose.Position, worldPose.Position + dir * 1f, PhysicsActorType.Kinematic);
+
+                _attachedGroup.AddChild(_steeringWheelTube, true);
+
+                SteeringWheel.AddComponent<ForceTarget>();
+
+                _steeringWheelJoint = AddRotation(SteeringWheel, _steeringWheelTube, worldPose.Position, Vector3.UnitZ);
+                _steeringWheelJoint.Pose0 = SteeringLocalPose;
+
+                var options = (D6JointOptions)_steeringWheelJoint.Options!;
+
+                options.MotionSwing2 = PxD6Motion.Limited;
+                options.SwingLimit = new PxJointLimitCone
                 {
-                    rb.DynamicActor.Mass = 1;
-                    rb.DynamicActor.MaxDepenetrationVelocity = 1f;
-                    rb.DynamicActor.SolverIterations = new SolverIterations
+                    zAngle = MathF.PI * 2,
+                    stiffness = 1000,
+                    damping = 100,
+                    bounceThreshold = 100
+                };
+
+                options.DriveSwing = null;
+
+                /*
+                options.DriveSwing = new PhysX.PxD6JointDrive
+                {
+                    stiffness = 0,
+                    damping = 10,
+                    forceLimit = 1e6f
+                };
+                */
+            }
+            else
+            {
+                var rotate = new InputRotate
+                {
+                    RotationAxis = new Ray3
                     {
-                        MinPos = PosIterations,
-                        MinVel = 5
-                    };
-                }
-            });
+                        Origin = SteeringLocalPose.Position,
+                        Direction = -Vector3.UnitZ.Transform(SteeringLocalPose.Orientation).Normalize()
+                    },
+                    MinAngle = -SteeringLimitRad / SteeringRatio,
+                    MaxAngle = SteeringLimitRad / SteeringRatio,
+                    MaxDistance = 0.10f
+                };
 
-            _steeringWheelJoint = AddRotation(SteeringWheel, _steeringWheelTube, worldPose.Position, Vector3.UnitZ);
-            _steeringWheelJoint.Pose0 = SteeringLocalPose;
+                SteeringWheel.AddComponent(rotate);
 
-
-            var options = (D6JointOptions)_steeringWheelJoint.Options!;
-
-            options.MotionSwing2 = PxD6Motion.Limited;
-            options.SwingLimit = new PxJointLimitCone
-            {
-                zAngle = MathF.PI * 2,
-                stiffness = 1000,
-                damping = 100,
-                bounceThreshold = 100
-            };
-
-            options.DriveSwing = null;
-            /*
-            options.DriveSwing = new PhysX.PxD6JointDrive
-            {
-                stiffness = 0,
-                damping = 10,
-                forceLimit = 1e6f
-            };
-            */
+                _attachedGroup.AddChild(SteeringWheel, true);
+            }
         }
 
         protected void CreateChassis()
@@ -288,30 +307,34 @@ namespace XrSamples.Components
             _steerLeft = AddRotation(t1, t3, p3, Vector3.UnitY, false);
 
             options = (D6JointOptions)_steerLeft.Options!;
-            options.MotionSwing1 = PhysX.PxD6Motion.Limited;
-            options.SwingLimit = new PhysX.PxJointLimitCone
+            options.MotionSwing1 = PxD6Motion.Limited;
+            //options.MotionSwing2 = PxD6Motion.Limited;
+            options.SwingLimit = new PxJointLimitCone
             {
-                yAngle = 1,
+                yAngle = SteeringLimitRad,
             };
-            options.DriveSwing = new PhysX.PxD6JointDrive
+       
+            options.DriveSwing = new PxD6JointDrive
             {
                 stiffness = SteeringStiffness,
-                damping = 10,
+                damping = 200,
                 forceLimit = 1e6f
             };
 
             _steerRight = AddRotation(t2, t3, p4, Vector3.UnitY, false);
 
             options = (D6JointOptions)_steerRight.Options!;
-            options.MotionSwing1 = PhysX.PxD6Motion.Limited;
-            options.SwingLimit = new PhysX.PxJointLimitCone
+            options.MotionSwing1 = PxD6Motion.Limited;
+            //options.MotionSwing2 = PxD6Motion.Limited;
+            options.SwingLimit = new PxJointLimitCone
             {
-                yAngle = 1,
+                yAngle = SteeringLimitRad,
+
             };
             options.DriveSwing = new PhysX.PxD6JointDrive
             {
                 stiffness = SteeringStiffness,
-                damping = 10,
+                damping = 200,
                 forceLimit = 1e6f
             };
 
@@ -468,7 +491,9 @@ namespace XrSamples.Components
 
             var options = new RevoluteJointOptions();
             if (motor)
-                options.RevoluteJointFlags |= PhysX.PxRevoluteJointFlags.DriveEnabled | PhysX.PxRevoluteJointFlags.DriveFreespin;
+                options.RevoluteJointFlags |= PhysX.PxRevoluteJointFlags.DriveEnabled;
+
+            options.DriveGearRatio = 0.01f;
 
             joint.Options = options;
 
@@ -517,9 +542,10 @@ namespace XrSamples.Components
             if (_rotateLeft == null || _rotateRight == null || !_rotateLeft.IsCreated || !_rotateRight.IsCreated)
                 return;
 
+
             float ratio = 1;
 
-            if (!float.IsNaN(avgAngle) && UseDifferential)
+            if (!float.IsNaN(avgAngle) && avgAngle != 0 && UseDifferential)
             {
                 var turnRadius = _wheelBase / MathF.Tan(avgAngle);
 
@@ -535,9 +561,13 @@ namespace XrSamples.Components
 
         protected void SyncCarBody()
         {
-            var newPose = _mainTube!.GetWorldPose().Multiply(_steeringPosDiff);
-            _steeringWheelTube!.SetWorldPoseIfChanged(newPose);
-            _steeringWheelTube!.Component<RigidBody>().DynamicActor.KinematicTarget = newPose;
+            var newPose = _mainTube!.GetWorldPose().Multiply(_attachedPosDiff);
+
+            _attachedGroup.SetWorldPoseIfChanged(newPose);
+
+            if (UseSteeringPhysics)
+                _steeringWheelTube!.Component<RigidBody>().DynamicActor.KinematicTarget = _steeringWheelTube!.GetWorldPose();
+
         }
 
         protected void SyncCamera()
@@ -545,6 +575,22 @@ namespace XrSamples.Components
             if (XrApp.Current == null)
                 return;
             XrApp.Current.ReferenceFrame = _mainTube!.GetWorldPose().Multiply(_seatPosDiff);
+        }
+
+        protected void SyncSteering()
+        {
+            float wheelAngle = 0; 
+            if (UseSteeringPhysics)
+            {
+                wheelAngle = _steeringWheelJoint!.D6Joint.SwingZAngle * 0.5f;
+            }
+            else
+            {
+                var input = SteeringWheel!.Component<InputRotate>();
+                wheelAngle = input.Angle * SteeringRatio; 
+            }
+
+            SteeringAngle = wheelAngle;
         }
 
         protected void ProcessInput()
@@ -560,6 +606,10 @@ namespace XrSamples.Components
 
         protected override void Update(RenderContext ctx)
         {
+            SyncSteering();
+
+            ProcessInput();
+
             _manager ??= _host!.Scene!.Component<PhysicsManager>();
 
             _manager.Execute(() =>
@@ -585,12 +635,6 @@ namespace XrSamples.Components
             SyncCarBody();
 
             SyncCamera();
-
-            Log.Value("Angle", _steeringWheelJoint!.D6Joint.SwingZAngle);
-
-            SteeringAngle = _steeringWheelJoint.D6Joint.SwingZAngle * 0.5f;
-
-            ProcessInput();
         }
 
         public void DrawGizmos(Canvas3D canvas)
@@ -623,9 +667,16 @@ namespace XrSamples.Components
 
         public bool UseDifferential { get; set; }   
 
+        public bool UseSteeringPhysics { get; set; }
+
         public Pose3 SteeringLocalPose { get; set; }
 
         public float SteeringStiffness { get; set; }
+
+        public float SteeringRatio { get; set; }
+
+        public float SteeringLimitRad { get; set; } 
+
 
         public float WheelMass { get; set; }
 

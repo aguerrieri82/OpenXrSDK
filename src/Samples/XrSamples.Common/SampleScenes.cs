@@ -555,7 +555,7 @@ namespace XrSamples
                     DateTime lastUpdate = new DateTime();
                     mesh.AddBehavior(async (_, _) =>
                     {
-                        if (!e.XrApp.IsStarted || isLoading || ((DateTime.Now - lastUpdate).TotalSeconds < 1000))
+                        if (!e.XrApp.IsStarted || isLoading || ((DateTime.UtcNow - lastUpdate).TotalSeconds < 1000))
                             return;
 
                         isLoading = true;
@@ -595,7 +595,7 @@ namespace XrSamples
                         finally
                         {
                             isLoading = false;
-                            lastUpdate = DateTime.Now;
+                            lastUpdate = DateTime.UtcNow;
                         }
 
                     });
@@ -1128,6 +1128,7 @@ namespace XrSamples
                 CarBody = car.GroupByName("body.003"),
                 SteeringWheel = car.GroupByName("leatherB_steering.003", "chrome_steering.003", "chrome_logo_steering.003", "texInt_steering.003"),
                 CarBodyCollisionMeshes = bodyMeshes,
+                UseSteeringPhysics = false,
                 SeatLocalPose = new Pose3
                 {
                     Position = new Vector3(-0.4f, 1.1f, 0.2f),
@@ -1191,11 +1192,25 @@ namespace XrSamples
                 .UseDefaultHDR()
                 .ConfigureApp(a =>
                 {
-                    var inp = (XrOculusTouchController)a.Inputs!;
+                    var inp = a.Inputs!;
+                   
                     a.XrApp.UseLocalSpace = true;
+                    
                     model.AccInput = inp.Right!.TriggerValue;
                     model.BackInput = inp.Right!.Button!.AClick;
                     model.ShowHideBodyInput = inp.Right!.Button!.BClick;
+
+                    if (!model.UseSteeringPhysics)
+                    {
+                        var rotate = model.SteeringWheel.Component<InputRotate>();
+                        rotate.Left = inp.Left!.GripPose;
+                        rotate.Right = inp.Right!.GripPose;
+                        rotate.LeftClick = inp.Left!.SqueezeClick;
+                        rotate.RightClick = inp.Right!.SqueezeClick;
+                        rotate.LeftHaptic = inp.Left!.Haptic;
+                        rotate.RightHaptic = inp.Right!.Haptic;
+                    }
+          
                 })
                 .ConfigureSampleApp(false);
         }

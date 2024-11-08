@@ -62,7 +62,7 @@ namespace XrEngine
 
             if (_playState == PlayState.Stop)
             {
-                _context.StartTime = new TimeSpan(DateTime.Now.Ticks);
+                _context.StartTime = new TimeSpan(DateTime.UtcNow.Ticks);
                 _context.Frame = 0;
             }
 
@@ -103,7 +103,7 @@ namespace XrEngine
             {
                 var oldTime = _context.Time;
 
-                _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
+                _context.Time = (new TimeSpan(DateTime.UtcNow.Ticks) - _context.StartTime).TotalSeconds;
                 _context.DeltaTime = _context.Time - oldTime;
 
                 _activeScene.Update(_context);

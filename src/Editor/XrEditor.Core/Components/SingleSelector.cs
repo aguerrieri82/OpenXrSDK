@@ -10,7 +10,7 @@
         public SelectorItem(object? value, string? displayName = null)
         {
             Value = value;
-            DisplayName = displayName ?? value.ToString();
+            DisplayName = displayName ?? value?.ToString() ?? "";
         }
 
         public string DisplayName { get; set; }

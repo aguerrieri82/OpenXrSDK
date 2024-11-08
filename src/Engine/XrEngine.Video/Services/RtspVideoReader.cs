@@ -132,11 +132,11 @@ namespace XrEngine.Video
             {
                 try
                 {
-                    if ((DateTime.Now - _lastPingTime).TotalSeconds > timeout)
+                    if ((DateTime.UtcNow - _lastPingTime).TotalSeconds > timeout)
                     {
                         Log.Debug(this, "Rtsp: Ping");
                         _client?.GetParameter(_streamName!, _session);
-                        _lastPingTime = DateTime.Now;
+                        _lastPingTime = DateTime.UtcNow;
                     }
 
                     var nalData = _h264Stream?.ReadNalUnit();
@@ -182,12 +182,12 @@ namespace XrEngine.Video
 
                     _frameCount++;
 
-                    var time = (DateTime.Now - _frameCountStart).TotalSeconds;
-                    if ((DateTime.Now - _frameCountStart).TotalSeconds > 3)
+                    var time = (DateTime.UtcNow - _frameCountStart).TotalSeconds;
+                    if ((DateTime.UtcNow - _frameCountStart).TotalSeconds > 3)
                     {
                         Log.Info(this, "Fps: {0}", (_frameCount / time));
                         _frameCount = 0;
-                        _frameCountStart = DateTime.Now;
+                        _frameCountStart = DateTime.UtcNow;
                     }
 
                     return true;

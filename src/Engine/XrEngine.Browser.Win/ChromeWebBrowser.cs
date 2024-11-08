@@ -108,7 +108,7 @@ namespace XrEngine.Browser.Win
             fixed (byte* pDest = _buffer)
                 Buffer.MemoryCopy((void*)e.BufferHandle, pDest, bufSize, bufSize);
 
-            _bufferTime = DateTime.Now;
+            _bufferTime = DateTime.UtcNow;
         }
 
         async Task InitAsync()

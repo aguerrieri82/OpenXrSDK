@@ -39,7 +39,7 @@
 
         protected void Update()
         {
-            var startTime = DateTime.Now;
+            var startTime = DateTime.UtcNow;
 
             var toRemove = new HashSet<IAnimation>();
 
@@ -54,7 +54,7 @@
                 if (!_isStarted)
                     return;
 
-                var curTime = DateTime.Now - startTime;
+                var curTime = DateTime.UtcNow - startTime;
 
                 toRemove.Clear();
 

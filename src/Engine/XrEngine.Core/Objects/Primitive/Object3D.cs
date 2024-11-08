@@ -11,7 +11,7 @@ namespace XrEngine
         private Matrix4x4 _normalMatrix;
         protected Vector3[]? _worldPoints;
 
-        protected bool _worldDirty;
+        protected internal bool _worldDirty;
         protected bool _worldInverseDirty;
         protected bool _boundsDirty;
         protected bool _normalMatrixDirty;
