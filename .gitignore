@@ -379,6 +379,6 @@ Makefile
 *.i64
 /libs/filament-windows
 /libs/filament-android
-/src/Engine/Filament.Native/libs/arm64-v8a/libfilament-native.so
-/src/Engine/XrEngine.Native/libs/arm64-v8a/libxrengine-native.so
-/src/Engine/Draco.Native/libs/arm64-v8a/libdraco-native.so
+/src/Engine/Filament.Native/libs/
+/src/Engine/XrEngine.Native/libs/
+/src/Engine/Draco.Native/libs/
