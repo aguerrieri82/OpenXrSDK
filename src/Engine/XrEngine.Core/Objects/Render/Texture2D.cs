@@ -3,68 +3,6 @@ using XrMath;
 
 namespace XrEngine
 {
-    public enum TextureFormat
-    {
-        Unknown,
-
-        Depth32Float,
-        Depth24Float,
-        Depth24Stencil8,
-        Depth32Stencil8,
-
-        Rgb24,
-        Rgba32,
-        Bgra32,
-
-        Rg88,
-
-        RgbFloat32,
-        RgbaFloat32,
-
-        RgbFloat16,
-        RgbaFloat16,
-
-        RgFloat32,
-
-        RFloat32,
-
-        SRgb24,
-        SBgra32,
-        SRgba32,
-
-        Gray8,
-        Gray16
-    }
-
-    public enum TextureCompressionFormat
-    {
-        Uncompressed = 0,
-        Etc2 = 0x32435445,
-        Etc1 = 0x31435445
-    }
-
-    public enum WrapMode
-    {
-        ClampToEdge = 33071,
-        Repeat = 10497,
-        ClampToBorder = 33069,
-    }
-
-    public enum ScaleFilter
-    {
-        Nearest = 9728,
-        Linear = 9729,
-        LinearMipmapLinear = 9987,
-    }
-
-    public enum TextureType
-    {
-        Normal,
-        Depth,
-        External,
-        Buffer
-    }
-
 
     public class Texture2D : Texture
     {
@@ -137,8 +75,6 @@ namespace XrEngine
         public Matrix3x3? Transform { get; set; }
 
         public Color BorderColor { get; set; }
-
-        public bool IsMutable { get; set; }
 
         public uint Depth { get; set; }
     }

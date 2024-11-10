@@ -324,7 +324,7 @@ namespace XrEngine.Filament
             var info = new ImageLightInfo
             {
                 Intensity = img.Intensity * 4,
-                Rotation = img.Rotation,
+                Rotation = img.RotationY,
                 ShowSkybox = false,
                 Texture = AllocateTexture(img.Panorama)
             };
@@ -337,7 +337,7 @@ namespace XrEngine.Filament
                 info = new ImageLightInfo
                 {
                     Intensity = img.Intensity * 4,
-                    Rotation = img.Rotation,
+                    Rotation = img.RotationY,
                     ShowSkybox = false,
                 };
                 UpdateImageLight(_app, ref info);

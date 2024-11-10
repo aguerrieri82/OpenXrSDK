@@ -1,6 +1,7 @@
 ﻿
 using System.Diagnostics;
 using XrEngine.Services;
+using XrMath;
 
 namespace XrEngine
 {
@@ -17,6 +18,7 @@ namespace XrEngine
             Intensity = 3;
             UseCache = true;
             Textures = new IBLTextures();
+            LightTransform = Matrix3x3.Identity;    
         }
 
         protected bool LoadCacheTexture<T>(string fileName, Action<T> onLoad) where T : Texture
@@ -106,14 +108,14 @@ namespace XrEngine
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
-            container.Write(nameof(Rotation), Rotation);
+            container.Write(nameof(RotationY), RotationY);
             container.Write("Panorama", Panorama);
         }
 
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-            Rotation = container.Read<float>(nameof(Rotation));
+            RotationY = container.Read<float>(nameof(RotationY));
             Panorama = container.Read("Panorama", Panorama);
             if (Panorama != null)
                 Panorama.NotifyChanged(ObjectChangeType.Render);
@@ -132,7 +134,9 @@ namespace XrEngine
         public Texture2D? Panorama { get; set; }
 
         [ValueType(ValueType.Radiant)]
-        public float Rotation { get; set; }
+        public float RotationY { get; set; }
+
+        public Matrix3x3 LightTransform { get; set; }
 
         public bool UseCache { get; set; }
     }

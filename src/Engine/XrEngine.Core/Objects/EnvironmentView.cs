@@ -61,7 +61,7 @@ namespace XrEngine
                         up.SetUniform("uEnvIntensity", image.Intensity);
                         up.SetUniform("uViewProjectionMatrix", ctx.Camera.ViewProjection);
                         up.SetUniform("uExposure", ctx.Camera.Exposure);
-                        up.SetUniform("uEnvRotation", Matrix3x3.CreateRotationY(image.Rotation));
+                        up.SetUniform("uEnvRotation", Matrix3x3.CreateRotationY(image.RotationY));
                     }
                 });
             }

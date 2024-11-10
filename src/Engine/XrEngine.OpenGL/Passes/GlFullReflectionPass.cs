@@ -4,6 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using System.Diagnostics;
 using System.Numerics;
 using XrMath;
 
@@ -17,10 +18,13 @@ namespace XrEngine.OpenGL
         private readonly IGlRenderAttachment _glDepthBuffer;
         private readonly IGlRenderTarget _renderTarget;
         private bool _isBufferInit;
+        private ImageLight? _imageLight;
+        private Matrix3x3 _oldImageLightTransform;
 
         public GlFullReflectionPass(OpenGLRender renderer)
             : base(renderer)
         {
+            PbrV2Material.ForceIblTransform = true;
 
             if (PlanarReflection.IsMultiView)
             {
@@ -48,14 +52,29 @@ namespace XrEngine.OpenGL
 
         protected override bool CanDraw(DrawContent draw)
         {
-            if (_reflection != null && _reflection.Host == draw.Object)
+            Debug.Assert(_reflection != null);
+
+            if (draw.Object == _reflection.Host)
                 return false;
+
+            var target = draw.Object?.Components<PlanarReflectionTarget>().FirstOrDefault();
+            if (target?.IncludeReflection != null && !target.IncludeReflection(_reflection))
+                return false;
+
             return draw.Object!.IsVisible;
         }
 
         protected override void UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)
         {
-            var newPlane = new Vector4(_reflection!.Plane.Normal, _reflection.Plane.D);
+            if (!_reflection!.UseClipPlane)
+            {
+                base.UpdateProgram(updateContext, progInst);
+                return;
+            }
+               
+            var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
+            
+            progInst.Material.NotifyChanged(ObjectChangeType.Render);
 
             progInst.UpdateProgram(updateContext, ["USE_CLIP_PLANE"], ["GL_EXT_clip_cull_distance"]);
             progInst.Program!.SetUniform("uClipPlane", newPlane);
@@ -66,7 +85,6 @@ namespace XrEngine.OpenGL
             _renderer.State.EnableFeature(EnableCap.ClipDistance0, true);
             base.Draw(draw);
         }
-
 
         protected override bool BeginRender(Camera camera)
         {
@@ -132,6 +150,31 @@ namespace XrEngine.OpenGL
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
+            if (_reflection.AdjustIbl)
+            {
+                _imageLight = _renderer.UpdateContext.Lights?.OfType<ImageLight>().FirstOrDefault();
+
+                if (_imageLight != null)
+                {
+                    _oldImageLightTransform = _imageLight.LightTransform;
+
+                    var normal = _reflection.Plane.Normal;
+
+                    float nx = normal.X, ny = normal.Y, nz = normal.Z;
+
+                    var refMatrix = new Matrix3x3(
+                        1 - 2 * nx * nx, -2 * nx * ny, -2 * nx * nz,
+                        -2 * ny * nx, 1 - 2 * ny * ny, -2 * ny * nz,
+                        -2 * nz * nx, -2 * nz * ny, 1 - 2 * nz * nz
+                    );
+
+                    _imageLight.LightTransform = refMatrix;
+                    //_imageLight.NotifyChanged(ObjectChangeType.Render);
+                }
+            }
+            else
+                _imageLight = null;
+
             return true;
         }
 
@@ -140,6 +183,12 @@ namespace XrEngine.OpenGL
             _renderTarget.End(true);
 
             _renderer.UpdateContext.Camera = _oldCamera;
+
+            if (_imageLight != null)
+            {
+                _imageLight.LightTransform = _oldImageLightTransform;
+                //_imageLight.NotifyChanged(ObjectChangeType.Render);
+            }
         }
 
         protected override IEnumerable<GlLayer> SelectLayers()
