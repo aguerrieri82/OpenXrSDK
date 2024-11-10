@@ -1,4 +1,9 @@
 ﻿
+#ifdef PLANAR_REFLECTION
+    #include "Shared/planar_reflection.glsl"
+    out vec2 fPlanarUv;
+#endif
+
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;
 layout (location = 2) in vec2 a_texcoord_0;
@@ -26,6 +31,7 @@ out vec2 fUv;
 void main()
 {
     vec4 pos = uModel * vec4(a_position, 1.0);
+
     fPos = vec3(pos);
     
     computePos(pos);
@@ -39,5 +45,9 @@ void main()
 
     #ifdef USE_SHADOW_MAP
         fPosLightSpace = uLightSpaceMatrix * pos;
+    #endif
+
+    #ifdef PLANAR_REFLECTION
+        fPlanarUv = planarUV(pos);
     #endif
 }

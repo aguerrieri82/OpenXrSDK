@@ -12,5 +12,8 @@ namespace XrEngine
 
         [DllImport("xrengine-native")]
         public static extern void CopyMemory(nint src, nint dst, uint size);
+
+        [DllImport("xrengine-native")]
+        public static extern int CompareMemory(nint src, nint dst, uint size);
     }
 }

@@ -16,14 +16,28 @@ namespace XrEngine
 
         public void SetFov(float angleDegree, uint width, uint height)
         {
+            ViewSize = new XrMath.Size2I
+            {
+                Width = width,
+                Height = height
+            };
+
             SetFov(angleDegree, (float)width / height);
         }
 
         public void SetFov(float angleDegree, float ratio)
         {
+            FovDegree = angleDegree;
             var rads = MathF.PI / 180f * angleDegree;
             Projection = Matrix4x4.CreatePerspectiveFieldOfView(rads, ratio, Near, Far);
         }
 
+        public void UpdateProjection()
+        {
+            SetFov(FovDegree, ViewSize.Width, ViewSize.Height);
+        }
+
+        public float FovDegree { get; set; }
     }
+
 }

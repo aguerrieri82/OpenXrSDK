@@ -9,6 +9,23 @@
 		layout(binding=7) uniform sampler2D reflectionTexture;
 		uniform mat4 uReflectMatrix;
 	#endif
+
+	vec2 planarUV(vec4 pos)
+	{
+		#ifdef PLANAR_REFLECTION_MV
+			mat4 refMatrix = uReflectMatrix[gl_ViewID_OVR];
+		#else
+			mat4 refMatrix = uReflectMatrix;
+		#endif
+
+		vec4 reflectPosClip = refMatrix * pos;
+		 
+		vec3 projCoords = reflectPosClip.xyz / reflectPosClip.w;
+		
+		projCoords = projCoords * 0.5 + 0.5;
+
+		return projCoords.xy;
+	}
 	
 
 	vec3 planarReflection(vec3 color, vec3 fragPos, vec3 Lr, float roughness, float cosLo)
@@ -33,8 +50,9 @@
 		#else
 			vec4 reflectionColor = texture(reflectionTexture, projCoords.xy);
 		#endif
-
-		
+		#ifdef PURE_REFLECTION
+			return reflectionColor.rgb;
+		#endif	
 			float fresnelFactor = pow(1.0 - cosLo, 3.0) * 0.9 + 0.1;
 
 			float refFactor = clamp(fresnelFactor * (1.0 - roughness), 0.0, 1.0);

@@ -1,5 +1,6 @@
 ﻿using OpenXr.Framework;
 using System.Collections.Concurrent;
+using System.Numerics;
 using XrEngine;
 using XrInteraction;
 using XrMath;
@@ -75,7 +76,20 @@ namespace XrEditor
             {
                 if (_hitTest != null)
                 {
-                    newPick = _hitTest.HitTest((uint)ev.Position.X, (uint)ev.Position.Y);
+                    var result = _hitTest.HitTest((uint)ev.Position.X, (uint)ev.Position.Y);
+                    if (result.Object == null)
+                        _lastCollision = null;
+                    else
+                    {
+                        _lastCollision = new Collision
+                        {
+                            Object = result.Object,
+                            Normal = result.Normal,
+                            Point = result.Pos,
+                            LocalPoint = result.Object!.ToLocal(result.Pos),
+                        };
+                    }
+  
                 }
                 else
                 {
@@ -83,9 +97,9 @@ namespace XrEditor
 
                     _lastCollision = _collisions.OrderBy(a => a.Distance)
                                                 .FirstOrDefault();
-
-                    newPick = _lastCollision?.Object;
                 }
+                
+                newPick = _lastCollision?.Object;
 
                 _isPicking = false;
 

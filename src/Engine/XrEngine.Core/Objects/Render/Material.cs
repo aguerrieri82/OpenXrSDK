@@ -32,7 +32,7 @@
             StencilFunction = StencilFunction.Always;
         }
 
-        public void Attach(EngineObject host)
+        public virtual void Attach(EngineObject host)
         {
             _hosts.Add(host);
         }
@@ -69,6 +69,8 @@
         }
 
         public IReadOnlySet<EngineObject> Hosts => _hosts;
+
+        public bool UseClipDistance { get; set; }
 
         public bool WriteDepth { get; set; }
 

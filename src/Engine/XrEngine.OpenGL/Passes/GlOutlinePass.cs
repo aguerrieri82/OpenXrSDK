@@ -33,7 +33,8 @@ namespace XrEngine.OpenGL
                 MagFilter = TextureMagFilter.Nearest,
                 MaxLevel = 0,
                 IsMutable = true,
-                Target = TextureTarget.Texture2D
+                Target = TextureTarget.Texture2D,
+                EnableDebug = false
             };
 
             _outlineTexture = new GlTexture(_gl)
@@ -42,7 +43,8 @@ namespace XrEngine.OpenGL
                 MagFilter = TextureMagFilter.Linear,
                 MaxLevel = 0,
                 IsMutable = true,
-                Target = TextureTarget.Texture2D
+                Target = TextureTarget.Texture2D,
+                EnableDebug = false
             };
 
             _colorTexture.Update(1, new TextureData

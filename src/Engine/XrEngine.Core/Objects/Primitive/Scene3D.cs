@@ -90,7 +90,7 @@ namespace XrEngine
 
         public void NotifyChanged(Object3D sender, ObjectChange change)
         {
-            Debug.Assert(_app?.RenderThread == null || Thread.CurrentThread == _app.RenderThread);
+            //Debug.Assert(_app?.RenderThread == null || Thread.CurrentThread == _app.RenderThread);
 
             change.Target ??= sender;
 

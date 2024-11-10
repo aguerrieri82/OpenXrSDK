@@ -4,22 +4,21 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System.Diagnostics;
-using XrEngine.Services;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine.OpenGL
 {
-    public class GlReflectionPass : GlBaseSingleMaterialPass
+    public class GlFullReflectionPass : GlColorPass
     {
         private PlanarReflection? _reflection;
         private Scene3D? _lastScene;
         private Camera? _oldCamera;
-        private bool _isBufferInit;
         private readonly IGlRenderAttachment _glDepthBuffer;
         private readonly IGlRenderTarget _renderTarget;
+        private bool _isBufferInit;
 
-        public GlReflectionPass(OpenGLRender renderer)
+        public GlFullReflectionPass(OpenGLRender renderer)
             : base(renderer)
         {
 
@@ -42,55 +41,32 @@ namespace XrEngine.OpenGL
             }
         }
 
-        protected GlLayer CreateEnvLayer(Scene3D scene)
-        {
-            var layer = new DetachedLayer();
-
-            var env = new TriangleMesh(new IsoSphere3D(2, 3), new TextureMaterial
-            {
-                UseDepth = true,
-                WriteDepth = false,
-                DoubleSided = true,
-                Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/Envs/CameraEnv.jpg"),
-            });
-
-            scene.AddChild(env);
-
-            layer.Add(env);
-            var glLayer = new GlLayer(_renderer, scene, GlLayerType.Custom, layer);
-            glLayer.Update();
-            return glLayer;
-        }
-
-        protected override ShaderMaterial CreateMaterial()
-        {
-            throw new NotSupportedException();
-        }
-
-        protected override bool PrepareMaterial(Material material)
-        {
-            Debug.Assert(_reflection != null);
-            return _reflection.PrepareMaterial(material);
-        }
-
-        protected override bool CanDraw(DrawContent draw)
-        {
-            Debug.Assert(_reflection != null);
-
-            if (draw.Object == _reflection.Host)
-                return false;
-
-            var target = draw.Object?.Components<PlanarReflectionTarget>().FirstOrDefault();
-            if (target?.IncludeReflection != null && !target.IncludeReflection(_reflection))
-                return false;
-
-            return true;
-        }
-
         protected override IGlRenderTarget? GetRenderTarget()
         {
             return _renderTarget;
         }
+
+        protected override bool CanDraw(DrawContent draw)
+        {
+            if (_reflection != null && _reflection.Host == draw.Object)
+                return false;
+            return draw.Object!.IsVisible;
+        }
+
+        protected override void UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)
+        {
+            var newPlane = new Vector4(_reflection!.Plane.Normal, _reflection.Plane.D);
+
+            progInst.UpdateProgram(updateContext, ["USE_CLIP_PLANE"], ["GL_EXT_clip_cull_distance"]);
+            progInst.Program!.SetUniform("uClipPlane", newPlane);
+        }
+
+        protected override void Draw(DrawContent draw)
+        {
+            _renderer.State.EnableFeature(EnableCap.ClipDistance0, true);
+            base.Draw(draw);
+        }
+
 
         protected override bool BeginRender(Camera camera)
         {
@@ -131,7 +107,7 @@ namespace XrEngine.OpenGL
             }
 
             if (!_isBufferInit)
-            {
+            { 
                 if (_renderTarget is GlMultiViewRenderTarget mv)
                     mv.FrameBuffer.Configure(_reflection.Texture.ToGlTexture(), (GlTexture)_glDepthBuffer, 1);
 
@@ -141,7 +117,10 @@ namespace XrEngine.OpenGL
                 _isBufferInit = true;
             }
 
-            _oldCamera = _renderer.UpdateContext.Camera;
+            _oldCamera = _renderer.UpdateContext.Camera!;
+
+            _reflection.Update(_oldCamera);
+
             _renderer.UpdateContext.Camera = _reflection.ReflectionCamera;
 
             _renderTarget.Begin(_reflection.ReflectionCamera, new Size2I(_reflection.Texture.Width, _reflection.Texture.Height));
@@ -153,7 +132,7 @@ namespace XrEngine.OpenGL
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 
-            return base.BeginRender(camera);
+            return true;
         }
 
         protected override void EndRender()
@@ -161,8 +140,6 @@ namespace XrEngine.OpenGL
             _renderTarget.End(true);
 
             _renderer.UpdateContext.Camera = _oldCamera;
-
-            base.EndRender();
         }
 
         protected override IEnumerable<GlLayer> SelectLayers()
@@ -175,11 +152,6 @@ namespace XrEngine.OpenGL
             _glDepthBuffer.Dispose();
             _renderTarget.Dispose();
             base.Dispose();
-        }
-
-        protected override void Initialize()
-        {
-            //DONT CALL BASE
         }
     }
 }

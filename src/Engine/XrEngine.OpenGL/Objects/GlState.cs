@@ -45,6 +45,7 @@ namespace XrEngine.OpenGL
             FrameBufferTargets.Clear();
             BufferTargets.Clear();
             Features.Clear();
+            DrawBuffers = null;
 
             for (var i = 0; i < TexturesSlots.Length; i++)
                 TexturesSlots[i] = 0;
@@ -115,6 +116,9 @@ namespace XrEngine.OpenGL
 
             if (StencilFunc.HasValue)
                 SetStencilFunc(StencilFunc.Value, true);
+
+            if (DrawBuffers != null)
+                SetDrawBuffers(DrawBuffers, true);
         }
 
         public void SetClearColor(Color color, bool force = false)
@@ -289,6 +293,7 @@ namespace XrEngine.OpenGL
             }
         }
 
+
         public void SetCullFace(TriangleFace value, bool force = false)
         {
             if (CullFace != value || force)
@@ -322,6 +327,18 @@ namespace XrEngine.OpenGL
             {
                 StencilFunc = value;
                 _stencilDirty = true;
+            }
+        }
+
+
+        public void SetDrawBuffers(DrawBufferMode[] value, bool force = false)
+        {
+            var equals = DrawBuffers != null && Utils.ArrayEquals(DrawBuffers, value);
+
+            if (!equals || force)
+            {
+                DrawBuffers = value;   
+                _gl.DrawBuffers(value);
             }
         }
 
@@ -442,6 +459,8 @@ namespace XrEngine.OpenGL
         public byte? WriteStencil;
 
         public byte? StencilRef;
+
+        public DrawBufferMode[]? DrawBuffers;
 
         public GlStencilFunction? StencilFunc;
 

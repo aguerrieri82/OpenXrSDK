@@ -52,6 +52,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.RFloat32 => PixelFormat.Red,
 
                 TextureFormat.Rgb24 or
+                TextureFormat.RgbFloat16 or
                 TextureFormat.RgbFloat32 or
                 TextureFormat.SRgb24 => PixelFormat.Rgb,
 
@@ -67,6 +68,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.RFloat32 or
                 TextureFormat.Depth24Float => PixelType.Float,
 
+                TextureFormat.RgbFloat16 => PixelType.HalfFloat,
                 TextureFormat.RgbaFloat16 => PixelType.HalfFloat,
 
                 TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
