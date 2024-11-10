@@ -22,7 +22,9 @@ layout(location=0) out Vertex
 	vec3 cameraPos;
 } vout;
 
-
+#ifdef USE_CLIP_PLANE 
+    uniform vec4 uClipPlane;
+#endif
 
 #ifdef MULTI_VIEW
 
@@ -84,7 +86,6 @@ void main()
 
 	#endif
 
-
     vec3 N = normalize(vec3(uModel.normalMatrix * vec4(normal, 0.0)));
 
     #ifdef HAS_TANGENTS
@@ -98,6 +99,10 @@ void main()
 
     vout.tangentBasis = mat3(N, N, N);
 
+    #endif
+
+    #ifdef USE_CLIP_PLANE 
+        gl_ClipDistance[0] = -dot(pos, uClipPlane);
     #endif
 
 	gl_Position = getViewProj() * pos;

@@ -39,6 +39,31 @@ namespace XrEngine.OpenGL
             // _renderer.RenderTarget!.End(false);
         }
 
+        protected virtual bool CanDraw(DrawContent draw)
+        {
+            if (draw.IsHidden)
+                return false;
+
+            if (draw.Query != null)
+            {
+                var passed = draw.Query.GetResult();
+                if (passed == 0)
+                    return false;
+            }
+
+            return true;
+        }
+
+        protected virtual void Draw(DrawContent draw)
+        {
+            draw.Draw!();
+        }
+
+        protected virtual void UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)
+        {
+            progInst.UpdateProgram(updateContext);
+        }
+
         public override void RenderLayer(GlLayer layer)
         {
             _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Layer {layer.Type}");
@@ -64,8 +89,10 @@ namespace XrEngine.OpenGL
 
                 foreach (var vertex in vertices)
                 {
+                    /*
                     if (vertex.IsHidden)
                         continue;
+                    */
 
                     if (useDepthPass && vertex.Contents.All(a => a.Query != null && a.Query.GetResult() == 0))
                         continue;
@@ -78,21 +105,14 @@ namespace XrEngine.OpenGL
 
                     foreach (var draw in vertex.Contents)
                     {
-                        if (draw.IsHidden)
+                        if (!CanDraw(draw))
                             continue;
-
-                        if (draw.Query != null)
-                        {
-                            var passed = draw.Query.GetResult();
-                            if (passed == 0)
-                                continue;
-                        }
 
                         var progInst = draw.ProgramInstance!;
 
                         updateContext.Model = draw.Object;
 
-                        progInst.UpdateProgram(updateContext);
+                        UpdateProgram(updateContext, progInst); 
 
                         bool programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
 
@@ -109,7 +129,7 @@ namespace XrEngine.OpenGL
                         if (!WriteDepth)
                             _renderer.State.SetWriteDepth(false);
 
-                        draw.Draw!();
+                        Draw(draw);
                     }
 
                     vHandler.Unbind();
@@ -118,6 +138,7 @@ namespace XrEngine.OpenGL
 
             _gl.PopDebugGroup();
         }
+
 
         public bool WriteDepth { get; set; }
     }

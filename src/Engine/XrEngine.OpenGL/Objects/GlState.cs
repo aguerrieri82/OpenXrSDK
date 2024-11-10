@@ -289,6 +289,7 @@ namespace XrEngine.OpenGL
             }
         }
 
+
         public void SetCullFace(TriangleFace value, bool force = false)
         {
             if (CullFace != value || force)
@@ -442,6 +443,7 @@ namespace XrEngine.OpenGL
         public byte? WriteStencil;
 
         public byte? StencilRef;
+
 
         public GlStencilFunction? StencilFunc;
 

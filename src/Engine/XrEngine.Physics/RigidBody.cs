@@ -377,6 +377,7 @@ namespace XrEngine.Physics
                 //TODO for some reason UpdateMassAndInertia fails
                 //var res = DynamicActor.UpdateMassAndInertia(Density);
                 DynamicActor.AngularDamping = AngularDamping;
+                DynamicActor.LockFlags = Lock;
             }
 
             if (Type == PhysicsActorType.Dynamic)
@@ -519,6 +520,8 @@ namespace XrEngine.Physics
         [Category("Advanced")]
         public float AngularDamping { get; set; }
 
+        public PxRigidDynamicLockFlags Lock { get; set; }
+
         public float Density { get; set; }
 
         public PhysicsActorType Type { get; set; }
@@ -530,7 +533,6 @@ namespace XrEngine.Physics
         public RigidBodyGroup NotCollideGroup { get; set; }
 
         public Action<RigidBody>? Configure { get; set; }
-
 
         public PhysicsRigidDynamic DynamicActor => (_actor as PhysicsRigidDynamic) ?? throw new ArgumentNullException();
 

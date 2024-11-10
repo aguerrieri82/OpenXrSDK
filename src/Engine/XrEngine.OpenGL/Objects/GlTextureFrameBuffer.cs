@@ -12,6 +12,7 @@ namespace XrEngine.OpenGL
     {
         private uint _sampleCount;
         private readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
+        protected HashSet<DrawBufferMode> _drawBuffers = [];
 
 #if GLES
         readonly ExtMultisampledRenderToTexture _extMs;
@@ -85,7 +86,11 @@ namespace XrEngine.OpenGL
             Bind();
 
             if (Color != null)
+            {
                 BindAttachment(Color, FramebufferAttachment.ColorAttachment0);
+                _drawBuffers.Add(DrawBufferMode.ColorAttachment0);
+            }
+        
 
             if (Depth != null)
             {
@@ -98,7 +103,13 @@ namespace XrEngine.OpenGL
             Check();
         }
 
-        protected void BindAttachment(IGlRenderAttachment obj, FramebufferAttachment slot)
+        public override void Bind()
+        {
+            base.Bind();
+            SetDrawBuffers(_drawBuffers.ToArray());
+        }
+
+        public void BindAttachment(IGlRenderAttachment obj, FramebufferAttachment slot)
         {
 
             if (obj is GlTexture tex)
@@ -138,6 +149,7 @@ namespace XrEngine.OpenGL
 
         }
 
+
         public GlTexture GetOrCreateEffect(FramebufferAttachment slot)
         {
             if (Color == null)
@@ -145,12 +157,15 @@ namespace XrEngine.OpenGL
 
             if (!_attachments.TryGetValue(slot, out var obj))
             {
+                _drawBuffers.Add((DrawBufferMode)slot);
+
                 var glTex = Color.Clone(false);
                 glTex.MaxLevel = 0;
+
                 Bind();
                 BindAttachment(glTex, slot);
-                SetDrawBuffers(DrawBufferMode.ColorAttachment0, (DrawBufferMode)slot);
                 Check();
+                
                 obj = glTex;
             }
 

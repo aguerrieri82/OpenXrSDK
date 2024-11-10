@@ -242,10 +242,17 @@ namespace XrEngine.OpenGL
             result.BorderColor = self.BorderColor;
             result.MaxLevel = self.MaxLevel;
             result.BaseLevel = self.BaseLevel;
-
+            result.IsMutable = self.IsMutable;
+      
             var texFormat = GlUtils.GetTextureFormat(self.InternalFormat);
 
-            result.Update(self.Width, self.Height, self.Depth, texFormat);
+            result.Update(1, new TextureData
+            {
+                Width = self.Width,
+                Height = self.Height,
+                Depth = self.Depth,
+                Format = texFormat
+            });
 
             return result;
 
