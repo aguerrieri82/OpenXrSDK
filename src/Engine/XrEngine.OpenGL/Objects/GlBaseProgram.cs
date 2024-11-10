@@ -228,6 +228,14 @@ namespace XrEngine.OpenGL
             _gl.Uniform2(LocateUniform(name, optional), value.X, value.Y);
         }
 
+
+        public unsafe void SetUniform(string name, Vector4 value, bool optional = false)
+        {
+            if (!IsChanged(name, value))
+                return;
+            _gl.Uniform4(LocateUniform(name, optional), value.X, value.Y, value.Z, value.W);
+        }
+
         public void SetUniform(string name, Vector3 value, bool optional = false)
         {
             if (!IsChanged(name, value))

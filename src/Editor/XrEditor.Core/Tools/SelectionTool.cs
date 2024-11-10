@@ -118,14 +118,15 @@ namespace XrEditor
 
             var collision = _lastCollision;
 
-            if (collision?.Normal != null)
+            if (collision != null)
             {
-                canvas.State.Color = new Color(0, 1, 0, 1);
-                canvas.State.Transform = Matrix4x4.Identity;
+                if (collision.Normal != null)
+                {
+                    canvas.State.Color = new Color(0, 1, 1, 1);
+                    canvas.State.Transform = Matrix4x4.Identity;
 
-                var normal = (collision.Normal.Value.Transform(collision.Object!.NormalMatrix)).Normalize();
-
-                canvas.DrawLine(collision.Point, collision.Point + normal * 0.5f);
+                    canvas.DrawLine(collision.Point, collision.Point + collision.Normal.Value * 0.5f);
+                }
 
                 if (collision.Tangent != null)
                 {

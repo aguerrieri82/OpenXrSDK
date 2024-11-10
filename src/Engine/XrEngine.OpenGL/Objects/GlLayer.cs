@@ -73,8 +73,8 @@ namespace XrEngine.OpenGL
 
 
             var objects = _sceneLayer != null ?
-                _sceneLayer.Content.OfType<Object3D>().Visible() :
-                _scene.Descendants().Visible();
+                _sceneLayer.Content.OfType<Object3D>() :
+                _scene.Descendants();
 
             foreach (var obj3D in objects)
             {
@@ -88,6 +88,8 @@ namespace XrEngine.OpenGL
                 {
                     if (material.Shader == null)
                         continue;
+
+     
 
                     if ((material.Alpha == AlphaMode.Blend && Type == GlLayerType.Main) ||
                         (material.Alpha != AlphaMode.Blend && Type == GlLayerType.Blend))

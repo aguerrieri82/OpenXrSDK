@@ -18,6 +18,7 @@ namespace XrEngine.OpenGL
         protected IGlBuffer?[] _materialBuffers;
         protected IGlBuffer?[] _modelBuffers;
 
+
         public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global, Object3D? model)
         {
             _gl = gl;
@@ -36,7 +37,7 @@ namespace XrEngine.OpenGL
                 _modelBuffers = [];
         }
 
-        public void UpdateProgram(UpdateShaderContext ctx)
+        public void UpdateProgram(UpdateShaderContext ctx, string[]? extraFeatures = null, string[]? extraExtensions = null)
         {
             if (Program != null && _materialVersion == Material!.Version && _globalVersion == Global.Version)
                 return;
@@ -48,6 +49,13 @@ namespace XrEngine.OpenGL
 
             foreach (var feature in Global.Update!.Features!)
                 localBuilder.AddFeature(feature);
+
+            if (extraFeatures!= null)
+            {
+                foreach (var feature in extraFeatures)
+                    localBuilder.AddFeature(feature);
+            }
+
 
             localBuilder.ComputeHash(Material.GetType().FullName!);
 
@@ -70,6 +78,11 @@ namespace XrEngine.OpenGL
                     program.AddExtension("GL_OES_geometry_shader");
                 }
 
+                if (extraExtensions != null)
+                {
+                    foreach (var ext in extraExtensions)
+                        program.AddExtension(ext);
+                }   
 
                 foreach (var ext in _update.Extensions!)
                     program.AddExtension(ext);
@@ -141,11 +154,11 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
+
         public GlProgramGlobal Global { get; }
 
         public ShaderMaterial Material { get; }
 
         public GlBaseProgram? Program { get; set; }
-
     }
 }

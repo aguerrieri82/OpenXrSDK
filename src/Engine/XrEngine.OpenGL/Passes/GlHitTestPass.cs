@@ -4,6 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using System.Numerics;
 using XrMath;
 
 
@@ -11,13 +12,15 @@ namespace XrEngine.OpenGL
 {
     public class GlHitTestPass : GlBaseSingleMaterialPass, IViewHitTest
     {
-        private readonly GlTextureRenderTarget _renderTarget;
-        private readonly GlTexture _colorTexture;
-        private readonly GlRenderBuffer _depthBuffer;
-        private Size2I _lastSize;
-        private readonly List<Object3D?> _objects = [];
-        private bool _isBufferValid;
-        private readonly IMemoryBuffer<uint> _buffer;
+        protected readonly GlTextureRenderTarget _renderTarget;
+        protected readonly GlTexture _colorTexture;
+        protected readonly GlTexture _depthTexture;
+        protected readonly List<Object3D?> _objects = [];
+        protected readonly GlTexture _normalTexture;
+
+        protected Size2I _lastSize;
+        protected bool _isBufferValid;
+        protected Matrix4x4 _lastViewProjInv;
 
         public GlHitTestPass(OpenGLRender renderer)
             : base(renderer)
@@ -40,45 +43,54 @@ namespace XrEngine.OpenGL
                 Format = TextureFormat.Rgba32,
             });
 
-     
-            _depthBuffer = new GlRenderBuffer(_gl);
-            _depthBuffer.Update(16, 16, 1, InternalFormat.DepthComponent24);
+            _depthTexture = new GlTexture(_gl)
+            {
+                MinFilter = TextureMinFilter.Nearest,
+                MagFilter = TextureMagFilter.Nearest,
+                MaxLevel = 0,
+                IsMutable = true,
+                Target = TextureTarget.Texture2D
+            };
 
-            _renderTarget.FrameBuffer.Configure(_colorTexture, _depthBuffer, 1);
+            _depthTexture.Update(1, new TextureData
+            {
+                Width = 16,
+                Height = 16,
+                Format = TextureFormat.Depth32Float,
+            });
 
-            _buffer = MemoryBuffer.Create<uint>(1);   
+            _renderTarget.FrameBuffer.Configure(_colorTexture, _depthTexture, 1);
+            _normalTexture = _renderTarget.FrameBuffer.GetOrCreateEffect(FramebufferAttachment.ColorAttachment1);
         }
 
-        public unsafe Object3D? HitTest(uint x, uint y)
+        public unsafe HitTestResult HitTest(uint x, uint y)
         {
-#if GLES
-            throw new NotSupportedException(); 
-#else
+            var result = new HitTestResult();
+
             if (x >= _lastSize.Width || y >= _lastSize.Height)
-                return null;    
+                return result;    
 
-            using var data = _buffer.MemoryLock();
+            uint objId = 0;
+            Vector3 normal = Vector3.Zero;
+            float depth = 1;
+            var txY = _lastSize.Height - y;
+
+            _renderTarget.FrameBuffer.Bind();
+            _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
+            _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, &objId);
+            _gl.ReadBuffer(ReadBufferMode.ColorAttachment1);
+            _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.Rgb, PixelType.Float, &normal);
+            _gl.ReadPixels((int)x, (int)txY, 1, 1, PixelFormat.DepthComponent, PixelType.Float, &depth);
             
-            if (!_isBufferValid)
-            {
-                _colorTexture.Bind();
-                _gl.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.Rgba, PixelType.UnsignedByte, data);
-                _colorTexture.Unbind();
-                _isBufferValid = true;
-            }
+            if (objId <= 0 || objId >= _objects.Count)
+                return result;
 
-            y = _lastSize.Height - y;   
+            result.Object = _objects[(int)objId];
+            result.Normal = normal;
+            result.Depth = depth;
+            result.Pos = ToView(x, y, result.Depth).Project(_lastViewProjInv);
 
-            var color = data.Data[y * _lastSize.Width + x];
-
-            if (color < 0 || color >= _objects.Count)
-                return null;
-
-            var obj = _objects[(int)color];
-
-            return obj;
-
-            #endif
+            return result;
         }
 
         protected override IGlRenderTarget? GetRenderTarget()
@@ -86,25 +98,16 @@ namespace XrEngine.OpenGL
             return _renderTarget;
         }
 
-        static Color UIntToRGBA(uint color)
-        {
-            float a = ((color >> 24) & 0xFF) / 255f; 
-            float b = ((color >> 16) & 0xFF) / 255f; 
-            float g = ((color >> 8) & 0xFF) / 255f;  
-            float r = (color & 0xFF) / 255f;         
-            return new Color(r, g, b, a);   
-        }
 
         protected override bool PrepareMaterial(Material material)
         {
             var objId = (uint)_objects.Count;
 
-            var mat = (ColorMaterial)_programInstance!.Material;
+            var mat = (HitTestEffect)_programInstance!.Material;
             mat.WriteDepth = material.WriteDepth;
             mat.UseDepth = material.UseDepth;
             mat.DoubleSided = material.DoubleSided;
-            var color = UIntToRGBA(objId);  
-            mat.UpdateColor(color);
+            mat.DrawId = objId; 
             return true;
         }
 
@@ -112,6 +115,15 @@ namespace XrEngine.OpenGL
         {
             _objects.Add(draw.Object);  
             draw.Draw!();
+        }
+
+        protected Vector3 ToView(uint x, uint y, float z)
+        { 
+            return new Vector3(
+                2.0f * x / _lastSize.Width - 1.0f,
+                1.0f - 2.0f * y / _lastSize.Height,
+                2f * z - 1f
+            );
         }
 
         protected override bool BeginRender(Camera camera)
@@ -122,14 +134,27 @@ namespace XrEngine.OpenGL
             if (!Equals( camera.ViewSize, _lastSize))
             {
                 _lastSize = camera.ViewSize;
+
                 _colorTexture.Update(1, new TextureData
                 {
                     Width = _lastSize.Width,
                     Height = _lastSize.Height,
                     Format = TextureFormat.Rgba32,
                 });
-                _depthBuffer.Update(_lastSize.Width, _lastSize.Height, 1, InternalFormat.DepthComponent24);
-                _buffer.Allocate(_depthBuffer.Width * _depthBuffer.Height);     
+                
+                _normalTexture.Update(1, new TextureData
+                {
+                    Width = _lastSize.Width,
+                    Height = _lastSize.Height,
+                    Format = TextureFormat.RgbFloat32,
+                });
+
+                _depthTexture.Update(1, new TextureData
+                {
+                    Width = _lastSize.Width,
+                    Height = _lastSize.Height,
+                    Format = TextureFormat.Depth32Float
+                });
             }
 
             _renderTarget.Begin(camera, _lastSize);
@@ -145,17 +170,19 @@ namespace XrEngine.OpenGL
             _objects.Add(null);
             _isBufferValid = false;
 
+            _lastViewProjInv = camera.ViewProjectionInverse;
+
             return base.BeginRender(camera);
         }
 
         protected override void EndRender()
         {
-            _renderTarget.End(true);
+            _renderTarget.End(false);
         }
 
         protected override ShaderMaterial CreateMaterial()
         {
-            return new ColorMaterial();
+            return new HitTestEffect();
         }
 
         protected override IEnumerable<GlLayer> SelectLayers()

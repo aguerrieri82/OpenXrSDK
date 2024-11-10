@@ -7,13 +7,19 @@ namespace XrEditor.Nodes
     {
         public CameraNode(T value) : base(value)
         {
+            _autoGenProps = false;
         }
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
             base.EditorProperties(binder, curProps);
 
-            binder.PropertyChanged += (_, _, _, _) => _value.NotifyChanged(ObjectChangeType.Render);
+            binder.PropertyChanged += (_, prop, _, _) =>
+            {
+                _value.NotifyChanged(ObjectChangeType.Render);
+                if (prop.Name == nameof(PerspectiveCamera.FovDegree) || prop.Name == nameof(Camera.Near) || prop.Name == nameof(Camera.Far))
+                    ((PerspectiveCamera)(object)_value).UpdateProjection();
+            };
 
             curProps.Add(new PropertyView
             {
@@ -25,7 +31,7 @@ namespace XrEditor.Nodes
             curProps.Add(new PropertyView
             {
                 Label = "Exposure",
-                Editor = new FloatEditor(binder.Prop(a => a.Exposure), 0, 5)
+                Editor = new FloatEditor(binder.Prop(a => a.Exposure), 0, 5, 0.1f)
             });
 
             curProps.Add(new PropertyView
@@ -37,8 +43,18 @@ namespace XrEditor.Nodes
             curProps.Add(new PropertyView
             {
                 Label = "Near",
-                Editor = new FloatEditor(binder.Prop(a => a.Near), new LogScale() { ScaleMin = -3, ScaleMax = 3 }),
+                Editor = new FloatEditor(binder.Prop(a => a.Near), 1, 180),
             });
+
+            if (_value is PerspectiveCamera persp)
+            {
+
+                curProps.Add(new PropertyView
+                {
+                    Label = "Fov",
+                    Editor = new FloatEditor(binder.Prop(a => (a as PerspectiveCamera)!.FovDegree), new LogScale() { ScaleMin = -3, ScaleMax = 3 }),
+                });
+            }
 
         }
 

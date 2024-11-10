@@ -93,16 +93,16 @@ namespace XrSamples.Components
             if (Mirrors == null)
                 return;
 
-            foreach (var mirror in Mirrors.SelectMany(a => a.DescendantsOrSelf().OfType<TriangleMesh>()))
+            foreach (var mirror in Mirrors.SelectMany(a=> a.DescendantsOrSelf().OfType<TriangleMesh>()))
             {
                 mirror.Materials.Clear();
                 //mirror.Materials.Add(new ColorMaterial("#00ff00"));
-                /*
+             
                 mirror.Materials.Add(new MirrorMaterial
                 {
                     TextureSize = 512,
                     DoubleSided = true
-                });*/
+                });
             }
         }
 
@@ -430,7 +430,7 @@ namespace XrSamples.Components
                 DriveZ = drive,
                 DriveSlerp = drive,
                 DriveSwing = drive,
-                DriveTwist = drive,
+                DriveTwist = drive, 
             };
 
             return joint;
@@ -440,7 +440,7 @@ namespace XrSamples.Components
         {
             var joint = AddFixed(obj0, obj1, point);
 
-            var opt = (D6JointOptions)joint.Options!;
+            var opt = (D6JointOptions)joint.Options!;   
 
             if (axis == Vector3.UnitX)
             {
@@ -553,7 +553,7 @@ namespace XrSamples.Components
 
         protected void SyncSteering()
         {
-            float wheelAngle = 0;
+            float wheelAngle = 0; 
             if (UseSteeringPhysics)
             {
                 wheelAngle = _steeringWheelJoint!.D6Joint.SwingZAngle * 0.5f;
@@ -561,7 +561,7 @@ namespace XrSamples.Components
             else
             {
                 var input = SteeringWheel!.Component<InputRotate>();
-                wheelAngle = input.Angle / SteeringRatio;
+                wheelAngle = input.Angle / SteeringRatio; 
             }
 
             SteeringAngle = wheelAngle;
@@ -569,7 +569,7 @@ namespace XrSamples.Components
 
         protected void ProcessInput()
         {
-            var dir = BackInput != null && BackInput.IsActive && BackInput.Value ? -1 : 1;
+            var dir = BackInput != null && BackInput.IsActive && BackInput.Value ? -1 : 1;   
 
             if (AccInput != null && AccInput.IsActive)
                 WheelSpeedRad = AccInput.Value * 10f * dir;
@@ -606,7 +606,7 @@ namespace XrSamples.Components
                     _isWheelChanged = false;
                 }
             });
-
+         
             SyncCarBody();
 
             SyncCamera();
@@ -621,9 +621,9 @@ namespace XrSamples.Components
         {
             if (obj == null || !obj.TryComponent<RigidBody>(out var actor))
                 return;
-
-            actor.Density = density;
-
+            
+            actor.Density = density;  
+            
             if (actor.IsCreated)
                 actor.DynamicActor.UpdateMassAndInertia(density);
 
@@ -634,7 +634,7 @@ namespace XrSamples.Components
         {
             foreach (var wheel in new Object3D?[] { WheelBL, WheelBR, WheelFL, WheelFR })
                 UpdateDensity(wheel, _wheelDensity);
-
+            
             if (_chassis != null)
             {
                 foreach (var item in _chassis.Children)
@@ -708,7 +708,7 @@ namespace XrSamples.Components
 
         public float WheelFriction { get; set; }
 
-        public bool UseDifferential { get; set; }
+        public bool UseDifferential { get; set; }   
 
         public bool UseSteeringPhysics { get; set; }
 
@@ -718,7 +718,7 @@ namespace XrSamples.Components
 
         public float SteeringRatio { get; set; }
 
-        public float SteeringLimitRad { get; set; }
+        public float SteeringLimitRad { get; set; } 
 
         public Pose3 SeatLocalPose { get; set; }
 

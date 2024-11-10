@@ -137,6 +137,12 @@ namespace XrMath
         #region PLANE
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector4 ToVector4(this Plane self)
+        {
+            return new Vector4(self.Normal, self.D);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Project(this Plane self, Vector3 point)
         {
             return point - self.Distance(point) * self.Normal;

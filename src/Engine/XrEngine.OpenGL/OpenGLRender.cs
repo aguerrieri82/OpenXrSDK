@@ -92,7 +92,7 @@ namespace XrEngine.OpenGL
             }
 
             if (_options.UsePlanarReflection)
-                _renderPasses.Add(new GlReflectionPass(this));
+                _renderPasses.Add(new GlFullReflectionPass(this));
 
             _renderPasses.Add(new GlColorPass(this));
 
@@ -161,6 +161,7 @@ namespace XrEngine.OpenGL
             _glState.EnableFeature(EnableCap.Dither, true);
             _glState.EnableFeature(EnableCap.Multisample, true);
             _glState.EnableFeature(EnableCap.ScissorTest, false);
+
         }
 
         public void ConfigureCaps(ShaderMaterial material)
@@ -178,6 +179,8 @@ namespace XrEngine.OpenGL
             _glState.SetStencilFunc((GlStencilFunction)material.StencilFunction);
             _glState.SetWriteStencil(material.WriteStencil);
             _glState.SetStencilRef(material.CompareStencilMask);
+
+            _glState.EnableFeature(EnableCap.ClipDistance0, material.UseClipDistance);
 
             _glState.UpdateStencil();
 
@@ -297,6 +300,8 @@ namespace XrEngine.OpenGL
                 _gl.Finish();
 
             _gl.PopDebugGroup();
+
+            //new GlBenchmark(_gl).Bench();   
         }
 
         public void SetRenderTarget(Texture2D? texture)

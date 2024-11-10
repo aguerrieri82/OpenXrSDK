@@ -159,9 +159,10 @@ namespace XrEngine.OpenXr
             return self;
         }
 
-        public static XrEngineAppBuilder SetGlOptions(this XrEngineAppBuilder self, GlRenderOptions options)
+        public static XrEngineAppBuilder SetGlOptions(this XrEngineAppBuilder self, Action<GlRenderOptions> options)
         {
-            self.Options.DriverOptions = options;
+            self.Options.DriverOptions ??= new GlRenderOptions();
+            options((GlRenderOptions)self.Options.DriverOptions);
             return self;
         }
 
