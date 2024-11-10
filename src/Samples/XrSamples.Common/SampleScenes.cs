@@ -1057,6 +1057,13 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
+        public static Material LoadMaterial(string url)
+        {
+            var gltf = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath(url), GltfOptions);
+            return gltf.Materials[0];
+        }
+
+
         [Sample("Car")]
         public static XrEngineAppBuilder CreateCar(this XrEngineAppBuilder builder)
         {
@@ -1081,6 +1088,12 @@ namespace XrSamples
                 Factor = 30
             });
 
+            var leather = (IPbrMaterial)LoadMaterial("Materials/xjekdbj_tier_2.gltf");
+            leather.Color = "#FF6400FF";
+            leather.DoubleSided = true;
+            leather.Color *= 2f;
+
+
             var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
             car.Name = "car";
 
@@ -1093,7 +1106,7 @@ namespace XrSamples
                 {
                     if (mat.Name!.Contains("glass"))
                     {
-                        pbr.Color = "#00000030";
+                        pbr.Color = "#00000020";
                         pbr.Alpha = AlphaMode.Blend;
                     }
                     if (mat.Name!.Contains("paint"))
@@ -1114,7 +1127,14 @@ namespace XrSamples
                 XrEngine.MeshOptimizer.OptimizeVertexCache(mesh.Geometry!);
                 XrEngine.MeshOptimizer.OptimizeOverdraw(mesh.Geometry!, 1.05f);
                 XrEngine.MeshOptimizer.OptimizeVertexFetch(mesh.Geometry!);
+
+                if (mesh.Name == "leather_armrest.007")
+                {
+                    mesh.Materials.Clear();
+                    mesh.Materials.Add((Material)leather);
+                }
             }
+
 
             car.UpdateBounds(true);
 
@@ -1136,7 +1156,7 @@ namespace XrSamples
                 },
                 SteeringLocalPose = new Pose3
                 {
-                    Position = new Vector3(-0.43f, 0.885f, -0.08f),
+                    Position = new Vector3(-0.428f, 0.926f, -0.062f),
                     Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -19f / 180 * MathF.PI)
                 },
             };
