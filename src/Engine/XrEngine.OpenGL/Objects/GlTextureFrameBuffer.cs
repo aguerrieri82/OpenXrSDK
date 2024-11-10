@@ -10,9 +10,9 @@ namespace XrEngine.OpenGL
 {
     public class GlTextureFrameBuffer : GlBaseFrameBuffer, IGlFrameBuffer
     {
-        private uint _sampleCount;
-        private readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
-        protected HashSet<DrawBufferMode> _drawBuffers = [];
+        protected uint _sampleCount;
+        protected readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
+        protected HashedArray<DrawBufferMode> _drawBuffers = new();
 
 #if GLES
         readonly ExtMultisampledRenderToTexture _extMs;
@@ -57,6 +57,8 @@ namespace XrEngine.OpenGL
                     color,
                     0,
                     (int)colorIndex);
+
+                _drawBuffers.Add(DrawBufferMode.ColorAttachment0);
             }
             if (depth != null)
             {
@@ -106,7 +108,7 @@ namespace XrEngine.OpenGL
         public override void Bind()
         {
             base.Bind();
-            SetDrawBuffers(_drawBuffers.ToArray());
+            GlState.Current!.SetDrawBuffers(_drawBuffers.Data);
         }
 
         public void BindAttachment(IGlRenderAttachment obj, FramebufferAttachment slot)

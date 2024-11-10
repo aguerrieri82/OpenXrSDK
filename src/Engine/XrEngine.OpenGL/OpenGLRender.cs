@@ -300,6 +300,8 @@ namespace XrEngine.OpenGL
                 _gl.Finish();
 
             _gl.PopDebugGroup();
+
+            //new GlBenchmark(_gl).Bench();   
         }
 
         public void SetRenderTarget(Texture2D? texture)
