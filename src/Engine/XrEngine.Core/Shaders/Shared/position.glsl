@@ -3,8 +3,6 @@
 
     #define NUM_VIEWS 2
 
-    layout(num_views=NUM_VIEWS) in;
-
     layout(std140, binding=10) uniform SceneMatrices
     {
         uniform mat4 viewProj[NUM_VIEWS];
@@ -50,6 +48,10 @@
 
 #endif
 
+#ifndef FRAGMENT_SHADER
+
+layout(num_views=NUM_VIEWS) in;
+
 void computePos(vec4 pos) 
 {
     gl_Position = getViewProj() * pos;
@@ -62,3 +64,5 @@ void computePos(vec4 pos)
         gl_Position.z = FORCE_Z * gl_Position.w;
     #endif
 }
+
+#endif  

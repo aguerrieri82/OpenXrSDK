@@ -34,11 +34,12 @@ namespace XrEngine.OpenXr
             base.Update(ctx);
         }
 
-        public void AddChild(SceneModelInfo model)
+        public Object3D? AddChild(SceneModelInfo model)
         {
             var obj = Factory.CreateModel(model);
             if (obj != null)
                 AddChild(obj);
+            return obj;
         }
 
         protected async Task LoadSceneAsync()

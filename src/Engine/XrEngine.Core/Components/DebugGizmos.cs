@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using System.Numerics;
+using XrMath;
 
 namespace XrEngine
 {
@@ -16,6 +17,7 @@ namespace XrEngine
 
             if (ShowBounds)
             {
+
                 foreach (var obj in _host!.DescendantsWithFeature<ILocalBounds>())
                 {
                     if (obj.Object is Group3D)
@@ -27,15 +29,9 @@ namespace XrEngine
 
                     canvas.State.Transform = obj.Object.WorldMatrix;
                     canvas.DrawBounds(local);
+
+ 
                 }
-
-                /*
-                canvas.State.Color = new Color(0, 1, 1, 1);
-                canvas.State.Transform = Matrix4x4.Identity;
-
-                foreach (var obj in _host!.Descendants<Group3D>())
-                    canvas.DrawBounds(obj.WorldBounds);
-                */
             }
 
             foreach (var debugger in Debuggers)

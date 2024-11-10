@@ -73,6 +73,15 @@ namespace XrEngine
 
         #region OBJECT3D
 
+        public static IEnumerable<Object3D> FindByNames(this Group3D self, params string[] names)
+        {
+            foreach (var name in names)
+            {
+                var child = self.DescendantsOrSelf().FirstOrDefault(a => a.Name == name);
+                if (child != null)
+                    yield return child;
+            }
+        }
 
         public static Group3D GroupByName(this Group3D self, params string[] names)
         {
@@ -80,12 +89,9 @@ namespace XrEngine
 
             self.AddChild(grp);
 
-            foreach (var name in names)
-            {
-                var child = self.DescendantsOrSelf().FirstOrDefault(a => a.Name == name);
-                if (child != null)
-                    grp.AddChild(child, true);
-            }
+            foreach (var child in self.FindByNames(names))
+                grp.AddChild(child, true);
+
             return grp;
         }
 

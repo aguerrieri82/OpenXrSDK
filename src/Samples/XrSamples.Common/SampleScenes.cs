@@ -1057,6 +1057,13 @@ namespace XrSamples
                 .ConfigureSampleApp();
         }
 
+        public static Material LoadMaterial(string url)
+        {
+            var gltf = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath(url), GltfOptions);
+            return gltf.Materials[0];
+        }
+
+
         [Sample("Car")]
         public static XrEngineAppBuilder CreateCar(this XrEngineAppBuilder builder)
         {
@@ -1081,6 +1088,12 @@ namespace XrSamples
                 Factor = 30
             });
 
+            var leather = (IPbrMaterial)LoadMaterial("Materials/xjekdbj_tier_2.gltf");   
+            leather.Color = "#FF6400FF";
+            leather.DoubleSided = true;
+            leather.Color *= 2f;
+
+
             var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
             car.Name = "car";
 
@@ -1091,9 +1104,10 @@ namespace XrSamples
             {
                 if (mat is IPbrMaterial pbr)
                 {
+
                     if (mat.Name!.Contains("glass"))
                     {
-                        pbr.Color = "#00000030";
+                        pbr.Color = "#00000020";
                         pbr.Alpha = AlphaMode.Blend;
                     }
                     if (mat.Name!.Contains("paint"))
@@ -1114,11 +1128,17 @@ namespace XrSamples
                 XrEngine.MeshOptimizer.OptimizeVertexCache(mesh.Geometry!);
                 XrEngine.MeshOptimizer.OptimizeOverdraw(mesh.Geometry!, 1.05f);
                 XrEngine.MeshOptimizer.OptimizeVertexFetch(mesh.Geometry!);
+
+                if (mesh.Name == "leather_armrest.007")
+                {
+                    mesh.Materials.Clear();
+                    mesh.Materials.Add((Material)leather);
+                }
             }
 
             car.UpdateBounds(true);
 
-            //Simlation
+            //Simulation
             var model = new CarModel
             {
                 WheelFL = car.GroupByName("wheel.Ft.L.003", "wheelbrake.Ft.L.003"),
@@ -1126,6 +1146,7 @@ namespace XrSamples
                 WheelBL = car.GroupByName("wheel.Bk.L.003", "wheelbrake.Bk.R.003"),
                 WheelBR = car.GroupByName("wheel.Bk.R.003", "wheelbrake.Bk.R.001"),
                 CarBody = car.GroupByName("body.003"),
+                Mirrors = car.FindByNames("reflect_mirror_int.003").ToArray(),
                 SteeringWheel = car.GroupByName("leatherB_steering.003", "chrome_steering.003", "chrome_logo_steering.003", "texInt_steering.003"),
                 CarBodyCollisionMeshes = bodyMeshes,
                 UseSteeringPhysics = false,
@@ -1136,7 +1157,7 @@ namespace XrSamples
                 },
                 SteeringLocalPose = new Pose3
                 {
-                    Position = new Vector3(-0.43f, 0.885f, -0.08f),
+                    Position = new Vector3(-0.428f, 0.926f, -0.062f),
                     Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -19f / 180 * MathF.PI)
                 },
             };
@@ -1184,16 +1205,20 @@ namespace XrSamples
 
             //Create model
             model.Create();
-            model.CarBody!.IsVisible = false;
+            //model.CarBody!.IsVisible = false;
             model.CarBody.Name = "car-body";
 
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
+                .SetGlOptions(opt =>
+                {
+                    opt.UsePlanarReflection = true; 
+                })
                 .ConfigureApp(a =>
                 {
                     var inp = a.Inputs!;
-                   
+    
                     a.XrApp.UseLocalSpace = true;
                     
                     model.AccInput = inp.Right!.TriggerValue;

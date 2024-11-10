@@ -13,11 +13,11 @@ namespace XrEditor
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
               //.UseMultiView()
               //.UseStereo()
-              .SetGlOptions(new GlRenderOptions()
+              .SetGlOptions(opt =>
               {
-                  UsePlanarReflection = true,
-                  UseDepthPass = false,
-                  UseHitTest = true,    
+                  opt.UsePlanarReflection = true;
+                  opt.UseDepthPass = false;
+                  opt.UseHitTest = true;
               })
               .SetRenderQuality(1, Driver == GraphicDriver.FilamentVulkan ? 1u : 1u) ///samples > 1 cause Filament to fuck up
               .CreateCar()

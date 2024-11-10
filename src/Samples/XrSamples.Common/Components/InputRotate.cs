@@ -45,7 +45,6 @@ namespace XrSamples.Components
 
             if (float.IsFinite(curRot))
             {
-                curRot = MathF.Min(MaxAngle, MathF.Max(MinAngle, curRot));
                 Log.Value("Rotation", curRot);
                 ApplyRotation(curRot);
             }
@@ -54,8 +53,11 @@ namespace XrSamples.Components
 
         protected void ApplyRotation(float angle)
         {
+            angle = MathF.Min(MaxAngle, MathF.Max(MinAngle, angle));
+
             _host!.Transform.SetLocalPivot(RotationAxis.Origin, true);
             _host!.Transform.Orientation = _startOrientation * Quaternion.CreateFromAxisAngle(RotationAxis.Direction, angle);
+            
             _angle = angle;
             _left.StartAngle = angle;
             _right.StartAngle = angle;
@@ -115,14 +117,12 @@ namespace XrSamples.Components
             
             canvas.State.Transform = _host!.WorldMatrix;
 
-            var plane = RotationAxis.ToPlane();
-
             canvas.State.Color = "#00FF00";
-
+            canvas.DrawLine(RotationAxis.PointAt(-0.5f), RotationAxis.PointAt(0.5f));
+            /*
+            var plane = RotationAxis.ToPlane();
             canvas.DrawPlane(plane, RotationAxis.Origin, 1, 1, 0.2f);
-
-            canvas.DrawLine(RotationAxis.Origin, RotationAxis.PointAt(0.5f));
-          
+            */
             canvas.State.Color = "#0000FF";
 
             if (_left.IsMoving)
@@ -136,6 +136,13 @@ namespace XrSamples.Components
         public float Angle
         {
             get => _angle;
+            set
+            {
+                if (_angle == value)
+                    return;
+                _angle = value;
+                ApplyRotation(value);   
+            }
         }
 
         public Ray3 RotationAxis { get; set; }
