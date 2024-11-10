@@ -212,7 +212,12 @@ namespace XrEngine.OpenGL
                 Log.Debug(this, "Update texture '{0}'", _handle);
 
             if (_width != width || _height != height || _depth != depth)
+            {
+                if (!IsMutable && _isAllocated)
+                    throw new InvalidOperationException("Immutable texture size changed");
                 _isAllocated = false;
+            }
+
 
             _width = width;
             _height = height;
@@ -301,6 +306,8 @@ namespace XrEngine.OpenGL
 
                 if (data != null)
                 {
+                    bool hasOneLevel = data.Count == 1 && data[0].MipLevel == 0;
+
                     foreach (var level in data)
                     {
                         GlUtils.GetPixelFormat(level.Format, out var pixelFormat, out var pixelType);
@@ -308,52 +315,80 @@ namespace XrEngine.OpenGL
                         var realTarget = Target == TextureTarget.TextureCubeMap ?
                                              TextureTarget.TextureCubeMapPositiveX + (int)level.Face : Target;
 
-                        if (level.Data == null && !_isAllocated)
-                        {
-                            if (data.Count == 1 && data[0].MipLevel == 0)
-                            {
-                                _gl.TexImage2D(
-                                    realTarget,
-                                    0,
-                                    _internalFormat,
-                                    level.Width,
-                                    level.Height,
-                                    0,
-                                    pixelFormat,
-                                    pixelType,
-                                    null);
+                        byte* pData = null;
 
+                        if (level.Data != null)
+                            pData = level.Data.Lock();
+
+                        if (!_isAllocated || pData != null)
+                        {
+                            if (hasOneLevel && IsMutable)
+                            {
+                                if (_depth > 1)
+                                {
+                                    _gl.TexImage3D(
+                                         realTarget,
+                                         0,
+                                         _internalFormat,
+                                         level.Width,
+                                         level.Height,
+                                         _depth,
+                                         0,
+                                         pixelFormat,
+                                         pixelType,
+                                         pData);
+                                }
+                                else
+                                {
+                                    _gl.TexImage2D(
+                                          realTarget,
+                                          0,
+                                          _internalFormat,
+                                          level.Width,
+                                          level.Height,
+                                          0,
+                                          pixelFormat,
+                                          pixelType,
+                                          pData);
+                                }
                             }
                             else
                             {
-                                _gl.TexSubImage2D(
-                                   realTarget,
-                                   (int)level.MipLevel,
-                                   0,
-                                   0,
-                                   level.Width,
-                                   level.Height,
-                                   pixelFormat,
-                                   pixelType,
-                                   null);
+                                if (_depth > 1)
+                                {
+                                    _gl.TexSubImage3D(
+                                         realTarget,
+                                         (int)level.MipLevel,
+                                         0,
+                                         0,
+                                         0,
+                                         level.Width,
+                                         level.Height,
+                                         level.Depth,
+                                         pixelFormat,
+                                         pixelType,
+                                         pData);
+                                }
+                                else
+                                {
+                                    _gl.TexSubImage2D(
+                                            realTarget,
+                                            (int)level.MipLevel,
+                                            0,
+                                            0,
+                                            level.Width,
+                                            level.Height,
+                                            pixelFormat,
+                                            pixelType,
+                                            pData);
+                                }
+              
                             }
 
+                            _isAllocated = true;
                         }
-                        else if (level.Data != null)
-                        {
-                            using var pData = level.Data.MemoryLock();
 
-                            _gl.TexSubImage2D(
-                                realTarget,
-                                (int)level.MipLevel,
-                                0,
-                                0,
-                                level.Width,
-                                level.Height,
-                                pixelFormat,
-                                pixelType,
-                                pData);
-                        }
+                        level.Data?.Unlock();
                     }
                 }
             }

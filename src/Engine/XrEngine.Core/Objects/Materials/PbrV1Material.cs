@@ -577,7 +577,7 @@ namespace XrEngine
                         return (IBLUniforms?)new IBLUniforms
                         {
                             EnvIntensity = imgLight.Intensity,
-                            EnvRotation = Matrix3x3.CreateRotationY(imgLight.Rotation),
+                            EnvRotation = Matrix3x3.CreateRotationY(imgLight.RotationY),
                             MipCount = (int)imgLight.Textures.MipCount
                         };
                     }, 2, BufferStore.Shader);

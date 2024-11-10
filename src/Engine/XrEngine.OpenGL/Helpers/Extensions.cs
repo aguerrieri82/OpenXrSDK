@@ -121,7 +121,7 @@ namespace XrEngine.OpenGL
             glTexture.WrapT = (TextureWrapMode)texture2D.WrapT;
             glTexture.SampleCount = texture2D.SampleCount;
             glTexture.BorderColor = texture2D.BorderColor;
-            glTexture.IsMutable = texture2D.IsMutable;
+            glTexture.IsMutable = (texture2D.Flags & EngineObjectFlags.Mutable) != 0;
             glTexture.MaxAnisotropy = texture2D.MaxAnisotropy;
 
             if (texture2D.MinFilter == ScaleFilter.LinearMipmapLinear)
@@ -210,6 +210,9 @@ namespace XrEngine.OpenGL
             result.MaxAnisotropy = glTexture.MaxAnisotropy;
             result.Handle = glTexture.Handle;
             result.Format = GlUtils.GetTextureFormat(glTexture.InternalFormat);
+
+            if (glTexture.IsMutable)
+                result.Flags |= EngineObjectFlags.Mutable;  
 
             result.SetProp(OpenGLRender.Props.GlResId, glTexture);
 

@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices.JavaScript;
 using XrMath;
 
 namespace XrEngine
@@ -19,6 +18,8 @@ namespace XrEngine
 
         public PlanarReflection(uint textureSize)
         {
+            AdjustIbl = true;   
+
             TextureSize = textureSize;
 
             ReflectionCamera = new PerspectiveCamera();
@@ -35,7 +36,7 @@ namespace XrEngine
                 WrapS = WrapMode.ClampToEdge,
                 WrapT = WrapMode.ClampToEdge,
                 Depth = IsMultiView ? 2u : 1u,
-                IsMutable = true,
+                Flags = EngineObjectFlags.Mutable,
                 MipLevelCount = 1
             };
 
@@ -44,7 +45,7 @@ namespace XrEngine
                 Width = TextureSize,
                 Height = TextureSize,
                 Depth = IsMultiView ? 2u : 1u,
-                Format = TextureFormat.Rgba32
+                Format = TextureFormat.SRgba32
             });
 
             Offset = 0.01f;
@@ -68,7 +69,7 @@ namespace XrEngine
             return false;
         }
 
-         protected void AdjustFov()
+        protected void AdjustFov()
         {
             ReflectionCamera.SetFov(FovDegree, ReflectionCamera.ViewSize.Width, ReflectionCamera.ViewSize.Height);
 
@@ -184,7 +185,8 @@ namespace XrEngine
                 //ReflectionCamera.View = camera.View * Matrix4x4.CreateReflection(plane);
             }
 
-            AdjustFov();
+            if (AutoAdjustFov)
+                AdjustFov();
 
             if (_host?.Scene != null)
                 _lightIntensity = _host.Scene.Descendants<Light>().Visible().Select(a => a.Intensity).Sum();
@@ -192,16 +194,15 @@ namespace XrEngine
 
         public void DrawGizmos(Canvas3D canvas)
         {
-
+            /*
             var bounds = _host!.WorldBounds;
             var pos = bounds.Center;
-
             canvas.Save();
             canvas.State.Color = "#00ff00";
             canvas.DrawPlane(_plane, pos, 1, 2, 0.1f);
             canvas.DrawLine(pos, pos + _plane.Normal);
             canvas.Restore();
-
+            */
         }
 
         [Range(-1, 1, 0.001f)]
@@ -219,6 +220,12 @@ namespace XrEngine
         public float FovDegree { get; set; }
 
         public uint TextureSize { get; set; }
+
+        public bool AutoAdjustFov { get; set; }
+
+        public bool UseClipPlane { get; set; }  
+
+        public bool AdjustIbl { get; set; }
 
         public Plane Plane => _plane;
 

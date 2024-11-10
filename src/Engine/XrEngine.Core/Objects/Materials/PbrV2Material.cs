@@ -120,7 +120,7 @@ namespace XrEngine
                     srcSpan.CopyTo(dstSpan);
                 }
 
-                Log.Debug(this, "Update light buffer");
+                //Log.Debug(this, "Update light buffer");
 
                 return _buffer;
             }
@@ -276,7 +276,7 @@ namespace XrEngine
 
                     ctx.CurrentBuffer!.Hash = hash;
 
-                    Log.Debug(this, "Build light uniforms");
+                    //Log.Debug(this, "Build light uniforms");
 
                     if (!hasPunctual)
                     {
@@ -323,7 +323,9 @@ namespace XrEngine
 
                 if (imgLight != null)
                 {
-                    if (imgLight.Rotation != 0)
+                    var hasTransform = ForceIblTransform || imgLight.RotationY != 0 || imgLight.LightTransform != Matrix3x3.Identity;
+
+                    if (hasTransform)
                         bld.AddFeature("USE_IBL_TRANSFORM");
 
                     bld.ExecuteAction((ctx, up) =>
@@ -332,8 +334,8 @@ namespace XrEngine
                         up.SetUniform("uIblIntensity", (float)imgLight.Intensity);
                         up.SetUniform("uIblColor", new Vector3(imgLight.Color.R, imgLight.Color.G, imgLight.Color.B));
 
-                        if (imgLight.Rotation > 0)
-                            up.SetUniform("uIblTransform", Matrix3x3.CreateRotationY(imgLight.Rotation));
+                        if (hasTransform)
+                            up.SetUniform("uIblTransform", imgLight.LightTransform * Matrix3x3.CreateRotationY(imgLight.RotationY));
 
                         if (imgLight.Textures?.GGXEnv != null)
                             up.LoadTexture(imgLight.Textures.GGXEnv, 4);
@@ -535,7 +537,6 @@ namespace XrEngine
         public float NormalScale { get; set; }
 
         public bool UseEnvDepth { get; set; }
-
-
+        public static bool ForceIblTransform { get; set; }
     }
 }

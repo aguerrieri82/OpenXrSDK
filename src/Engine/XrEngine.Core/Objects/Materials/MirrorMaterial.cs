@@ -42,7 +42,11 @@ namespace XrEngine
             base.Attach(host);
 
             if (!host.TryComponent<PlanarReflection>(out _))
-                host.AddComponent(new PlanarReflection(TextureSize));
+                host.AddComponent(new PlanarReflection(TextureSize)
+                {
+                    AutoAdjustFov = true,
+                    UseClipPlane = true 
+                });
         }
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
