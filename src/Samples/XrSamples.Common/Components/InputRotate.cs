@@ -39,23 +39,25 @@ namespace XrSamples.Components
 
             var a1 = Process(Left, LeftClick, LeftHaptic, ref _left);
             var a2 = Process(Right, RightClick, RightHaptic, ref _right);
-            
-            var curRot = MathF.Min(a1 ?? float.PositiveInfinity, a2 ?? float.PositiveInfinity); 
+
+            var curRot = MathF.Min(a1 ?? float.PositiveInfinity, a2 ?? float.PositiveInfinity);
 
 
             if (float.IsFinite(curRot))
             {
-                curRot = MathF.Min(MaxAngle, MathF.Max(MinAngle, curRot));
                 Log.Value("Rotation", curRot);
                 ApplyRotation(curRot);
             }
-   
+
         }
 
         protected void ApplyRotation(float angle)
         {
+            angle = MathF.Min(MaxAngle, MathF.Max(MinAngle, angle));
+
             _host!.Transform.SetLocalPivot(RotationAxis.Origin, true);
             _host!.Transform.Orientation = _startOrientation * Quaternion.CreateFromAxisAngle(RotationAxis.Direction, angle);
+
             _angle = angle;
             _left.StartAngle = angle;
             _right.StartAngle = angle;
@@ -78,11 +80,11 @@ namespace XrSamples.Components
                 if (!click.Value)
                     return null;
 
-                foreach (var collider in _host!.Components<ICollider3D>().Where(a=> a.IsEnabled))
+                foreach (var collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
                 {
                     if (collider.ContainsPoint(pose.Value.Position))
                     {
-                        status.IsMoving = true; 
+                        status.IsMoving = true;
                         status.StartAngle = _angle;
                         status.StartPos = curPos;
                         status.StartDir = curDir;
@@ -112,17 +114,15 @@ namespace XrSamples.Components
         public void DrawGizmos(Canvas3D canvas)
         {
             canvas.Save();
-            
+
             canvas.State.Transform = _host!.WorldMatrix;
 
-            var plane = RotationAxis.ToPlane();
-
             canvas.State.Color = "#00FF00";
-
+            canvas.DrawLine(RotationAxis.PointAt(-0.5f), RotationAxis.PointAt(0.5f));
+            /*
+            var plane = RotationAxis.ToPlane();
             canvas.DrawPlane(plane, RotationAxis.Origin, 1, 1, 0.2f);
-
-            canvas.DrawLine(RotationAxis.Origin, RotationAxis.PointAt(0.5f));
-          
+            */
             canvas.State.Color = "#0000FF";
 
             if (_left.IsMoving)
@@ -136,6 +136,13 @@ namespace XrSamples.Components
         public float Angle
         {
             get => _angle;
+            set
+            {
+                if (_angle == value)
+                    return;
+                _angle = value;
+                ApplyRotation(value);
+            }
         }
 
         public Ray3 RotationAxis { get; set; }
