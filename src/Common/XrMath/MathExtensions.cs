@@ -174,14 +174,6 @@ namespace XrMath
 
         #region BOUNDS
 
-        public static Quad3 BottomFace(this Bounds3 self)
-        {
-            var C1 = new Vector3(self.Min.X, self.Min.Y, self.Min.Z);
-            var C2 = new Vector3(self.Max.X, self.Min.Y, self.Min.Z);
-            var C5 = new Vector3(self.Min.X, self.Min.Y, self.Max.Z);
-            var C6 = new Vector3(self.Max.X, self.Min.Y, self.Max.Z);
-            return MathUtils.QuadFromEdges(C1, C2, C6, C5);
-        }
 
         public static CubeFaces Faces(this Bounds3 self)
         {
@@ -323,6 +315,42 @@ namespace XrMath
 
             // Return whether intersection exists
             return tNear <= tFar && tFar >= 0;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float DistanceTo(this Bounds3 self, Vector3 point)
+        {
+            var vec = new Vector3(
+                Math.Max(Math.Max(self.Min.X - point.X, 0), point.X - self.Max.X),
+                Math.Max(Math.Max(self.Min.Y - point.Y, 0), point.Y - self.Max.Y),
+                Math.Max(Math.Max(self.Min.Z - point.Z, 0), point.Z - self.Max.Z)
+            );
+            return vec.Length();
+        }
+
+        public static float DistanceSquaredTo(this Bounds3 self, Vector3 point)
+        {
+            var vec = new Vector3(
+                Math.Max(Math.Max(self.Min.X - point.X, 0), point.X - self.Max.X),
+                Math.Max(Math.Max(self.Min.Y - point.Y, 0), point.Y - self.Max.Y),
+                Math.Max(Math.Max(self.Min.Z - point.Z, 0), point.Z - self.Max.Z)
+            );
+            return vec.LengthSquared();
+        }
+
+        public static Bounds3 Merge(this Bounds3 self, Bounds3 other)
+        {
+            return new Bounds3
+            {
+                Min = Vector3.Min(self.Min, other.Min), 
+                Max = Vector3.Max(self.Max, other.Max)  
+            };
+        }
+
+        public static float Volume(this Bounds3 self)
+        {
+            var size = self.Size;
+            return size.X * size.Y * size.Z;
         }
 
         #endregion

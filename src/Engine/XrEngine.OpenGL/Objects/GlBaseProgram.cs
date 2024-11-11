@@ -177,7 +177,7 @@ namespace XrEngine.OpenGL
 
                 bool isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
 
-                GlState.Current!.SetActiveTexture(glText, slot, isUpdate);
+                GlState.Current!.SetActiveTexture(glText, slot, true);
 
                 if (isUpdate)
                     glText.Update(tex2d, false);

@@ -12,6 +12,7 @@ namespace XrEngine.OpenGL
         protected readonly GlBufferMap _bufferMap = new(32);
         protected readonly GL _gl;
         protected List<IShaderHandler> _handlers = [];
+        protected IShaderHandler?[] _lastGlobalHandler = [];
 
         public GlProgramGlobal(GL gl, Shader shader)
         {
@@ -24,8 +25,12 @@ namespace XrEngine.OpenGL
             ctx.BufferProvider = this;
             ctx.LastGlobalUpdate = Update;
 
-            if (Update == null)
+            var handlersChanged = !_lastGlobalHandler.SequenceEqual(globalHandlers);
+
+            if (Update == null || handlersChanged)
             {
+                _lastGlobalHandler = globalHandlers;
+
                 _handlers = [];
 
                 if (Shader is IShaderHandler shaderHandler)
@@ -35,7 +40,7 @@ namespace XrEngine.OpenGL
                     _handlers.Add(handler!);
             }
 
-            var needUpdate = Update == null || _handlers.Any(a => a.NeedUpdateShader(ctx));
+            var needUpdate = Update == null || handlersChanged || _handlers.Any(a => a.NeedUpdateShader(ctx));
 
             if (needUpdate)
             {

@@ -106,6 +106,7 @@
         public override void Dispose()
         {
             Data = null;
+            Handle = 0;
             base.Dispose();
         }
 

@@ -267,6 +267,12 @@ namespace XrEngine.OpenGL
                 Render(ctx, view, _target, flush);
         }
 
+        public void PushGroup(string message)
+        {
+            _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, (uint)message.Length, message);
+
+        }
+
         public void Render(RenderContext ctx, Rect2I view, IGlRenderTarget target, bool flush)
         {
             EnsureThread();
@@ -274,7 +280,7 @@ namespace XrEngine.OpenGL
             _target = target;
             _view = view;
 
-            _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin Render {(target == null ? "Default" : target.GetType().Name)}");
+            PushGroup($"Render {(target == null ? "Default" : target.GetType().Name)}");
 
             UpdateLayers(ctx.Scene!);
 
@@ -286,11 +292,11 @@ namespace XrEngine.OpenGL
             _updateCtx.ContextVersion++;
 
             foreach (var pass in _renderPasses)
-                pass.Configure();
+                pass.Configure(ctx);
 
             foreach (var pass in _renderPasses)
             {
-                _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Pass {pass.GetType().Name}");
+                PushGroup($"Pass {pass.GetType().Name}");
 
                 pass.Render(ctx);
 

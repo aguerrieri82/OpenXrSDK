@@ -214,7 +214,7 @@ namespace XrEngine.OpenGL
                     if (draw.IsHidden)
                         continue;
 
-                    draw.Distance = draw.Object!.DistanceTo(cameraPos);
+                    draw.Distance = draw.Object!.WorldBounds.DistanceTo(cameraPos);
                     count++;
                     sum += draw.Distance;
                 }

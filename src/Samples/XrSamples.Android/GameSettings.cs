@@ -20,7 +20,7 @@ namespace XrSamples
         public bool UsePbrV2 { get; set; }
 
 
-        public static GameSettings Helmet()
+        public static GameSettings Helmet() 
         {
             return new GameSettings
             {
@@ -28,7 +28,7 @@ namespace XrSamples
                 Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = true,
+                IsMultiView = false,
                 EnableDepthPass = false
             };
         }

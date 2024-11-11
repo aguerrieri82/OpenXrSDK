@@ -27,7 +27,6 @@ namespace XrEngine.OpenGL
             _programInstance = CreateProgram(CreateMaterial());
         }
 
-
         protected virtual void Draw(DrawContent draw)
         {
             draw.Draw!();
@@ -75,9 +74,6 @@ namespace XrEngine.OpenGL
 
                     foreach (var draw in vertex.Contents)
                     {
-                        if (draw.IsHidden)
-                            continue;
-
                         if (!CanDraw(draw))
                             continue;
 
@@ -86,11 +82,11 @@ namespace XrEngine.OpenGL
                         var drawMaterial = draw.ProgramInstance!.Material;
 
                         var upRes = UpdateProgram(updateContext, drawMaterial);
+
                         if (upRes == UpdateProgramResult.Skip)
                             continue;
 
                         _programInstance.UpdateUniforms(updateContext, upRes == UpdateProgramResult.Changed);
-
                         _programInstance.UpdateBuffers(updateContext);
 
                         Draw(draw);
@@ -104,7 +100,7 @@ namespace XrEngine.OpenGL
 
         protected virtual bool CanDraw(DrawContent draw)
         {
-            return true;
+            return !draw.IsHidden;
         }
 
         protected override void EndRender()
