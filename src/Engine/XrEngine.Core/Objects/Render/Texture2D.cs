@@ -52,12 +52,16 @@ namespace XrEngine
         {
         }
 
-        public override void LoadData(IList<TextureData> data)
+        public override void LoadData(IList<TextureData> data, bool initSampler = true)
         {
             Height = data[0].Height;
-            WrapT = WrapMode.ClampToEdge;
-            MipLevelCount = data.Max(a => a.MipLevel) + 1;
-            base.LoadData(data);
+
+            if (initSampler)
+            {
+                WrapT = WrapMode.ClampToEdge;
+                MipLevelCount = data.Max(a => a.MipLevel) + 1;
+            }
+            base.LoadData(data, initSampler);
         }
 
         public uint Height { get; set; }

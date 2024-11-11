@@ -101,11 +101,28 @@ namespace XrEngine
 
             var bounds = _host!.WorldBounds!.Points.Select(a => ReflectionCamera.Project(a)).ComputeBounds();
             var scaleRatio = 2.0f / MathF.Max(bounds.Size.X, bounds.Size.Y);
+            
+            if (scaleRatio < 1)
+                return;
+
             var newFovRadians = 2.0f * MathF.Atan(MathF.Tan(FovDegree / 2.0f) / scaleRatio);
             if (!float.IsNaN(newFovRadians))
             {
                 ReflectionCamera.FovDegree = newFovRadians * 180.0f / MathF.PI;
                 ReflectionCamera.UpdateProjection();
+
+                var newBounds = _host!.WorldBounds!.Points.Select(a => ReflectionCamera.Project(a)).ComputeBounds();
+                //var newBounds = bounds;
+                var proj = ReflectionCamera.Projection;
+
+                var regionDistance = Math.Abs(newBounds.Center.Z);
+                var horizontalOffset = (newBounds.Center.X / regionDistance);
+                var verticalOffset = (newBounds.Center.Y / regionDistance);
+
+                proj.M31 = horizontalOffset; 
+                proj.M32 = verticalOffset;
+
+                ReflectionCamera.Projection = proj;
             }
         }
 
@@ -138,8 +155,9 @@ namespace XrEngine
                 {
                     MagFilter = ScaleFilter.Linear,
                     MinFilter = ScaleFilter.Linear,
-                    WrapS = WrapMode.ClampToEdge,
-                    WrapT = WrapMode.ClampToEdge,
+                    WrapS = WrapMode.ClampToBorder,
+                    WrapT = WrapMode.ClampToBorder,
+                    BorderColor = Color.White,
                     Depth = IsMultiView ? 2u : 1u,
                     MipLevelCount = 1
                 };
@@ -150,7 +168,7 @@ namespace XrEngine
                     Height = (uint)curSize.Height,
                     Depth = IsMultiView ? 2u : 1u,
                     Format = UseSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32
-                });
+                }, false);
 
                 ReflectionCamera.ViewSize = new Size2I
                 {

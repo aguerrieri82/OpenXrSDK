@@ -29,7 +29,9 @@ namespace XrEngine
         {
             base.GetState(container);
 
-            container.Write(nameof(Geometry), Geometry);
+            if (Geometry != null)
+                container.Write(nameof(Geometry), Geometry);
+
             container.WriteArray(nameof(Materials), _materials);
         }
 
@@ -81,10 +83,7 @@ namespace XrEngine
             if (e.NewItems != null)
             {
                 foreach (var item in e.NewItems.Cast<Material>())
-                {
-                    item.EnsureId();
                     item.Attach(this);
-                }
 
                 NotifyChanged(new ObjectChange(ObjectChangeType.MateriaAdd, e.NewItems));
             }
@@ -109,10 +108,7 @@ namespace XrEngine
                 _geometry = value;
 
                 if (_geometry != null)
-                {
-                    _geometry.EnsureId();
                     _geometry.Attach(this);
-                }
 
                 NotifyChanged(ObjectChangeType.Geometry);
             }

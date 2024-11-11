@@ -1,13 +1,13 @@
 ﻿namespace XrEngine
 {
-    public class StateObjectManager : ITypeStateManager<IStateObject?>
+    public class StateObjectManager<T> : ITypeStateManager<T?> where T : IStateObject
     {
-        StateObjectManager() { }
+        public StateObjectManager() { }
 
-        public IStateObject? Read(string key, IStateObject? destObj, Type objType, IStateContainer container)
+        public virtual T? Read(string key, T? destObj, Type objType, IStateContainer container)
         {
             if (!container.Contains(key))
-                return null;
+                return default;
 
             var id = container.Read<ObjectId>(key);
 
@@ -15,14 +15,21 @@
 
             if (!refTable.Resolved.TryGetValue(id, out var result))
             {
-                result = refTable.Container!.ReadTypedObject<IStateObject>(id.ToString());
+                if (destObj == null)
+                    result = refTable.Container!.CreateTypedObject<IStateObject>(id.ToString())!;
+                else
+                {
+                    result = destObj;
+                    destObj.SetState(refTable.Container!.Enter(id.ToString()));
+                }
+
                 refTable.Resolved[id] = result;
             }
 
-            return (IStateObject)result;
+            return (T)result;
         }
 
-        public void Write(string key, IStateObject? value, IStateContainer container)
+        public virtual void Write(string key, T? value, IStateContainer container)
         {
             if (value == null)
                 return;
@@ -37,7 +44,5 @@
 
             container.Write(key, value.Id);
         }
-
-        public static readonly StateObjectManager Instance = new();
     }
 }

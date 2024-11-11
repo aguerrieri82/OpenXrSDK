@@ -11,12 +11,10 @@ in vec2 fPlanarUv;
 
 layout(location=0) out vec4 FragColor;
 
-uniform int uMode;
-
 void main()
 {	
-	if (uMode== 1)
-	{
+	#if MIRROR_MODE == 0
+
 	    vec3 N = normalize(fNormal);
 
 		#ifdef DOUBLE_SIDED
@@ -29,9 +27,8 @@ void main()
 		vec3 Lr = reflect(-Lo, N);
 
 		FragColor.rgb = planarReflection(vec3(1.0), fPos, Lr, 0.0, 0.0);
-	}
-	else
-	{
+	#else
+
 		#ifdef PLANAR_REFLECTION_MV
 			vec4 reflectionColor = texture(reflectionTexture, vec3(fPlanarUv.xy, gl_ViewID_OVR));
 		#else
@@ -40,7 +37,7 @@ void main()
 
 		FragColor.rgb = reflectionColor.rgb;
 		FragColor.a = 1.0f;
-	}
+	#endif
 
 	FragColor.a = 1.0f;
 }

@@ -39,6 +39,9 @@ namespace XrEditor
         {
             Debug.Assert(child._children == null || child._children.Count == 0);
 
+            if (_children != null && _children.Contains(child))
+                return;
+
             _host.BeginUpdate(this);
             try
             {
@@ -75,7 +78,13 @@ namespace XrEditor
             try
             {
                 for (var i = _children.Count - 1; i >= 0; i--)
-                    _children[i].Remove();
+                {
+                    if (_children[i].Parent == null)
+                        _children.RemoveAt(i);
+                    else
+                        _children[i].Remove();
+                }
+             
             }
             finally
             {

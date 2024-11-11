@@ -22,6 +22,8 @@ namespace XrEngine
         {
             HashSet<T> foundItems = [];
 
+            var isUpdate = container.Context.Is(StateContextFlags.Update);
+
             if (container.Contains(key))
             {
                 curItems ??= [];
@@ -36,20 +38,20 @@ namespace XrEngine
 
                     if (curItem == null)
                     {
-                        curItem = arrayState.Read<T>(childKey);
-                        addItem(curItem!);
+                        if (!isUpdate)
+                        {
+                            curItem = arrayState.Read<T>(childKey);
+                            addItem(curItem!);
+                        }
                     }
                     else
-                    {
-                        container.Context.RefTable.Resolved[curItem.Id] = curItem;
-                        curItem.SetState(itemState);
-                    }
+                        arrayState.Read(childKey, curItem);
 
                     foundItems.Add(curItem!);
                 }
             }
 
-            if (curItems != null)
+            if (curItems != null && !isUpdate)
             {
                 for (var i = curItems.Count - 1; i >= 0; i--)
                 {
@@ -162,7 +164,7 @@ namespace XrEngine
             value.GetState(objState);
         }
 
-        public static T ReadTypedObject<T>(this IStateContainer container, string key) where T : IStateManager
+        public static T CreateTypedObject<T>(this IStateContainer container, string key) where T : IStateManager
         {
             var objState = container.Enter(key);
             var typeName = objState.ReadTypeName();

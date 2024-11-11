@@ -14,6 +14,7 @@
             _id = ObjectId.New();
             _isEnabled = true;
             Name = GetType().Name;
+            IsVisible = true;
         }
 
         public void Attach(LayerManager manager)
@@ -48,6 +49,7 @@
         protected virtual void OnEnabledChanged()
         {
         }
+
         public bool IsEnabled
         {
             get => _isEnabled;

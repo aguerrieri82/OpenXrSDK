@@ -92,14 +92,14 @@ namespace XrEngine
 
             child.Parent?.RemoveChild(child);
 
-            child.EnsureId();
-
             child.SetParent(this, preserveTransform);
 
             if (preserveTransform)
                 child.WorldMatrix = curWorldMatrix;
 
             _children.Add(child);
+
+            //child.EnsureId();
 
             NotifyChanged(new ObjectChange(ObjectChangeType.ChildAdd, child));
 
@@ -154,6 +154,11 @@ namespace XrEngine
             NotifyChanged(new ObjectChange(ObjectChangeType.ChildRemove, child));
 
             InvalidateBounds();
+        }
+
+        public int ChildIndex(Object3D object3D)
+        {
+            return _children.IndexOf(object3D);
         }
 
         public Bounds3 LocalBounds

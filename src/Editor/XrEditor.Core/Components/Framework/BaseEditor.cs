@@ -116,7 +116,7 @@ namespace XrEditor
                 _isLoading++;
                 try
                 {
-                    EditValue = (TEdit)value;
+                    EditValue = BindToEditValue((TValue)value);
                 }
                 finally
                 {

@@ -17,6 +17,6 @@
 
         string Name { get; set; }
 
-        public bool IsEnabled { get; set; }
+        bool IsEnabled { get; set; }
     }
 }

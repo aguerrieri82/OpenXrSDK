@@ -1,9 +1,18 @@
-﻿using System.Runtime.Intrinsics;
+﻿using System.Diagnostics;
+using System.Runtime.Intrinsics;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace XrEngine
 {
     public static class Utils
     {
+        public static Guid HashGuid(string text)
+        {
+            Debug.Assert(!string.IsNullOrWhiteSpace(text));
+            return new Guid(MD5.HashData(Encoding.UTF8.GetBytes(text)));
+        }
+
         public unsafe static bool ArrayEquals<T>(T[] a, T[] b) where T : unmanaged
         {
             var len = a.Length;

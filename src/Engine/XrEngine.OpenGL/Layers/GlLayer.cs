@@ -229,6 +229,8 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
+        public string? Name => _sceneLayer?.Name;   
+
         public bool NeedUpdate => _lastUpdateVersion != Version;
 
         public GlLayerType Type => _type;
@@ -236,6 +238,8 @@ namespace XrEngine.OpenGL
         public RenderContent Content => _content;
 
         public ILayer3D? SceneLayer => _sceneLayer;
+
+        public Scene3D Scene => _scene;
 
         public bool HasLights { get; set; }
 

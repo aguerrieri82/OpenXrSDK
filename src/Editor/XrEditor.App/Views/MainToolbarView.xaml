@@ -7,6 +7,7 @@
 
     <i:Icon x:Key="SaveIcon" Filled="True" Size="24" Color="#07F" Kind="icon_save"/>
     <i:Icon x:Key="LoadIcon" Filled="True" Size="24" Color="#FC5" Kind="icon_folder_open"/>
+    <i:Icon x:Key="HideSelected" Filled="True" Size="24" Color="#fff" Kind="icon_visibility"/>
     
     <DataTemplate DataType="{x:Type local:MainToolbarView}">
 
@@ -17,6 +18,9 @@
                 <Fluent:RibbonGroupBox Header="Scene" >
                     <Fluent:Button Header="Save" Command="{Binding SaveCommand}" LargeIcon="{StaticResource SaveIcon}"/>
                     <Fluent:Button Header="Load" Command="{Binding LoadCommand}" LargeIcon="{StaticResource LoadIcon}"/>
+                </Fluent:RibbonGroupBox>
+                <Fluent:RibbonGroupBox Header="View" >
+                    <Fluent:ToggleButton Header="Hide unselected" IsChecked="{Binding IsHideSelected}" LargeIcon="{StaticResource HideSelected}"/>
                 </Fluent:RibbonGroupBox>
 
 

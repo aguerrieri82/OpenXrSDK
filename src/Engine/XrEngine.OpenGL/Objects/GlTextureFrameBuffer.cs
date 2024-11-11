@@ -12,7 +12,7 @@ namespace XrEngine.OpenGL
     {
         protected uint _sampleCount;
         protected readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
-        protected HashedArray<DrawBufferMode> _drawBuffers = new();
+        protected readonly HashedArray<DrawBufferMode> _drawBuffers = new() { Sort = true };
 
 #if GLES
         readonly ExtMultisampledRenderToTexture _extMs;
@@ -40,7 +40,7 @@ namespace XrEngine.OpenGL
             Configure(color, depth, sampleCount);
         }
 
-        public void Configure(GlTexture? color, uint colorIndex, GlTexture? depth, uint depthIndex, uint sampleCount)
+        public void Configure(GlTexture? color, uint colorIndex, IGlRenderAttachment? depth, uint depthIndex, uint sampleCount)
         {
             _sampleCount = sampleCount;
 
@@ -60,18 +60,24 @@ namespace XrEngine.OpenGL
 
                 _drawBuffers.Add(DrawBufferMode.ColorAttachment0);
             }
+
             if (depth != null)
             {
                 var attachment = GlUtils.IsDepthStencil(depth.InternalFormat) ?
                     FramebufferAttachment.DepthStencilAttachment :
                     FramebufferAttachment.DepthAttachment;
 
-                _gl.FramebufferTextureLayer(
-                    Target,
-                    attachment,
-                    depth,
-                    0,
-                    (int)depthIndex);
+                if (depth is GlTexture depthTex && (depthTex.Depth > 1 || depthTex.Target == TextureTarget.Texture2DArray))
+                {
+                    _gl.FramebufferTextureLayer(
+                        Target,
+                        attachment,
+                        depthTex,
+                        0,
+                        (int)depthIndex);
+                }
+                else
+                    BindAttachment(depth, attachment, false);
             }
 
             Check();
@@ -88,18 +94,15 @@ namespace XrEngine.OpenGL
             Bind();
 
             if (Color != null)
-            {
-                BindAttachment(Color, FramebufferAttachment.ColorAttachment0);
-                _drawBuffers.Add(DrawBufferMode.ColorAttachment0);
-            }
-        
+                BindAttachment(Color, FramebufferAttachment.ColorAttachment0, true);
+
 
             if (Depth != null)
             {
                 var attachment = GlUtils.IsDepthStencil(Depth.InternalFormat) ?
                     FramebufferAttachment.DepthStencilAttachment :
                     FramebufferAttachment.DepthAttachment;
-                BindAttachment(Depth, attachment);
+                BindAttachment(Depth, attachment, false);
             }
 
             Check();
@@ -111,9 +114,8 @@ namespace XrEngine.OpenGL
             GlState.Current!.SetDrawBuffers(_drawBuffers.Data);
         }
 
-        public void BindAttachment(IGlRenderAttachment obj, FramebufferAttachment slot)
+        public void BindAttachment(IGlRenderAttachment obj, FramebufferAttachment slot, bool useDraw)
         {
-
             if (obj is GlTexture tex)
             {
                 bool useMs = false;
@@ -149,8 +151,9 @@ namespace XrEngine.OpenGL
 
             _attachments[slot] = obj;
 
+            if (useDraw)
+                _drawBuffers.Add((DrawBufferMode)slot);
         }
-
 
         public GlTexture GetOrCreateEffect(FramebufferAttachment slot)
         {
@@ -159,13 +162,11 @@ namespace XrEngine.OpenGL
 
             if (!_attachments.TryGetValue(slot, out var obj))
             {
-                _drawBuffers.Add((DrawBufferMode)slot);
-
                 var glTex = Color.Clone(false);
                 glTex.MaxLevel = 0;
 
                 Bind();
-                BindAttachment(glTex, slot);
+                BindAttachment(glTex, slot, true);
                 Check();
                 
                 obj = glTex;

@@ -13,26 +13,19 @@ namespace XrEngine.OpenGL
 {
     public class GlSimpleReflectionTargetPass : GlBaseSingleMaterialPass, IGlDynamicRenderPass<ReflectionTarget>
     {
+        private readonly GlRenderPassTarget _passTarget;
+
         private PlanarReflection? _reflection;
         private Camera? _oldCamera;
-        private bool _isBufferInit;
-        private IGlRenderAttachment? _glDepthBuffer;
-        private readonly IGlRenderTarget _renderTarget;
-        private int _boundEye;
 
         public GlSimpleReflectionTargetPass(OpenGLRender renderer, bool useMultiviewTarget)
             : base(renderer)
         {
-
-            if (PlanarReflection.IsMultiView && useMultiviewTarget)
+            _passTarget = new GlRenderPassTarget(renderer.GL)
             {
-                _renderTarget = new GlMultiViewRenderTarget(_gl);
-            }
-            else
-            {
-                _renderTarget = new GlTextureRenderTarget(_gl);
-                _glDepthBuffer = new GlRenderBuffer(_gl);
-            }
+                IsMultiView = PlanarReflection.IsMultiView,
+                UseMultiViewTarget = useMultiviewTarget
+            };
         }
 
         protected GlLayer CreateEnvLayer(Scene3D scene)
@@ -122,67 +115,25 @@ namespace XrEngine.OpenGL
 
         protected override IGlRenderTarget? GetRenderTarget()
         {
-            return _renderTarget;
+            return _passTarget.RenderTarget;
         }
 
         protected override bool BeginRender(Camera camera)
         {
-            if (camera.Scene == null)
+            if (camera.Scene == null || _reflection == null)
                 return false;
 
-            if (_reflection?.Texture == null)
+            if (!_reflection.Host!.IsVisible || !_reflection.Host.WorldBounds.IntersectFrustum(_renderer.UpdateContext.FrustumPlanes))
                 return false;
 
-            if (_glDepthBuffer == null || _glDepthBuffer.Width != _reflection.Texture.Width || _glDepthBuffer.Height != _reflection.Texture.Height)
-            {
-                if (_renderTarget is GlMultiViewRenderTarget)
-                {
-                    _glDepthBuffer?.Dispose();
+            _oldCamera = _renderer.UpdateContext.Camera!;
 
-                    _glDepthBuffer = new GlTexture(_gl)
-                    {
-                        MinFilter = TextureMinFilter.Nearest,
-                        MagFilter = TextureMagFilter.Nearest,
-                        MaxLevel = 0,
-                        Target = TextureTarget.Texture2DArray
-                    };
-
-                    ((GlTexture)_glDepthBuffer).Update(_reflection.Texture.Depth, new TextureData
-                    {
-                        Width = _reflection.Texture.Width,
-                        Height = _reflection.Texture.Height,
-                        Format = TextureFormat.Depth24Float
-                    });
-                }
-                else
-                {
-                    ((GlRenderBuffer)_glDepthBuffer!).Update(
-                         _reflection.Texture.Width,
-                         _reflection.Texture.Height,
-                         1,
-                         InternalFormat.DepthComponent24);
-                }
-
-                _isBufferInit = false;
-            }
-
-            if (!_isBufferInit)
-            {
-                if (_renderTarget is GlMultiViewRenderTarget mv)
-                    mv.FrameBuffer.Configure(_reflection.Texture.ToGlTexture(), (GlTexture)_glDepthBuffer, 1);
-
-                else if (_renderTarget is GlTextureRenderTarget tex)
-                    tex.FrameBuffer.Configure(_reflection.Texture.ToGlTexture(), _glDepthBuffer, 1);
-
-                _isBufferInit = true;
-            }
-
-            _oldCamera = _renderer.UpdateContext.Camera;
-            _reflection.Update(_oldCamera!, _boundEye);
+            _reflection.Update(_oldCamera, _passTarget.BoundEye);
 
             _renderer.UpdateContext.Camera = _reflection.ReflectionCamera;
 
-            _renderTarget.Begin(_reflection.ReflectionCamera, new Size2I(_reflection.Texture.Width, _reflection.Texture.Height));
+            _passTarget.Configure(_reflection.Texture!);
+            _passTarget.RenderTarget.Begin(_reflection.ReflectionCamera, new Size2I(_reflection.Texture!.Width, _reflection.Texture.Height));
 
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetWriteDepth(true);
@@ -196,7 +147,7 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender()
         {
-            _renderTarget.End(true);
+            _passTarget.RenderTarget!.End(true);
 
             _renderer.UpdateContext.Camera = _oldCamera;
 
@@ -210,8 +161,7 @@ namespace XrEngine.OpenGL
 
         public override void Dispose()
         {
-            _glDepthBuffer?.Dispose();
-            _renderTarget.Dispose();
+            _passTarget.Dispose();
             base.Dispose();
         }
 
@@ -223,7 +173,7 @@ namespace XrEngine.OpenGL
         public void SetOptions(ReflectionTarget options)
         {
             _reflection = options.PlanarReflection;
-            _boundEye = options.BoundEye;
+            _passTarget.BoundEye = options.BoundEye;
             _programInstance = CreateProgram(_reflection.MaterialOverride!);
         }
     }

@@ -84,15 +84,17 @@ namespace XrEngine.OpenGL
 
             Bind();
 
-            BindAttachment(_color, FramebufferAttachment.ColorAttachment0);
+            BindAttachment(_color, FramebufferAttachment.ColorAttachment0, true);
 
-            BindAttachment(_depth, depthAtt);
+            BindAttachment(_depth, depthAtt, false);
 
             Check();
         }
 
-        protected void BindAttachment(GlTexture glTex, FramebufferAttachment slot)
+        public void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw)
         {
+            if (attachment is not GlTexture glTex)
+                throw new NotSupportedException();
 
             if (_sampleCount > 1)
             {
@@ -170,8 +172,9 @@ namespace XrEngine.OpenGL
             if (!_attachments.TryGetValue(slot, out var obj))
             {
                 var glTex = Color.Clone(false);
+
                 Bind();
-                BindAttachment(glTex, slot);
+                BindAttachment(glTex, slot, true);
                 SetDrawBuffers(DrawBufferMode.ColorAttachment0, (DrawBufferMode)slot);
                 Check();
 

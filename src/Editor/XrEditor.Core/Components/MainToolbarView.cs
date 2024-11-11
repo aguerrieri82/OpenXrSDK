@@ -6,6 +6,7 @@ namespace XrEditor
     public class MainToolbarView : BaseView
     {
         private bool _isMinimized;
+        private bool _isHideSelected;
 
         public MainToolbarView()
         {
@@ -14,19 +15,54 @@ namespace XrEditor
             IsMinimized = true;
         }
 
-        public Task SaveAsync()
+        public async Task SaveAsync()
         {
             var container = new JsonStateContainer();
-            EngineApp.Current!.ActiveScene!.GetState(container);
+            var scene = EngineApp.Current!.ActiveScene!;
+
+            await EngineApp.Current.Dispatcher.ExecuteAsync(() =>
+            {
+                scene.GetState(container);
+            });
+
             var json = container.AsJson();
-            File.WriteAllText("scene.json", container.AsJson());
-            return Task.CompletedTask;
+            var fileName = $"scene-{scene.Id}.json";
+            
+            if (File.Exists(fileName))
+                File.Delete(fileName);
+
+            File.WriteAllText(fileName, container.AsJson());
         }
 
-        public Task LoadAsync()
+        public async Task LoadAsync()
         {
-            IsMinimized = true;
-            return Task.CompletedTask;
+            var scene = EngineApp.Current!.ActiveScene!;
+            var fileName = $"scene-{scene.Id}.json";
+
+            if (!File.Exists(fileName))
+                return;
+            
+            var json = File.ReadAllText(fileName);
+            var container = new JsonStateContainer(json);
+            container.Context.Flags |= StateContextFlags.Update;
+
+            await EngineApp.Current.Dispatcher.ExecuteAsync(() =>
+            {
+                scene.SetState(container);
+            });
+        }
+
+        public void HideUnselected(bool value)
+        {
+            var scene = EngineApp.Current?.ActiveScene;
+            if (scene == null)
+                return;
+
+            var selLayer = scene.Layers.Layers.First(a => a.Name == "Selection");
+            var blendLayer = scene.Layers.Layers.First(a => a.Name == "Blend");
+            selLayer.IsVisible = value;
+            scene.Layers.MainLayerVisible = !value;
+            blendLayer.IsVisible = !value;
         }
 
         public bool IsMinimized
@@ -36,6 +72,19 @@ namespace XrEditor
             {
                 _isMinimized = value;
                 OnPropertyChanged(nameof(IsMinimized));
+            }
+        }
+
+        public bool IsHideSelected
+        {
+            get => _isHideSelected;
+            set
+            {
+                if (_isHideSelected == value)
+                    return; 
+                _isHideSelected = value;
+                HideUnselected(value);
+                OnPropertyChanged(nameof(IsHideSelected));
             }
         }
 
