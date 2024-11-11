@@ -19,6 +19,10 @@ using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
+using System.Diagnostics;
+using XrEngine.OpenGL;
+
+
 
 
 #if !ANDROID
@@ -1087,7 +1091,7 @@ namespace XrSamples
                 Factor = 30
             });
 
-            var leather = (IPbrMaterial)LoadMaterial("Materials/xjekdbj_tier_2.gltf");   
+            var leather = (IPbrMaterial)LoadMaterial("Materials/xjekdbj_tier_2.gltf");
             leather.Color = "#FF6400FF";
             leather.DoubleSided = true;
             leather.Color *= 2f;
@@ -1233,14 +1237,14 @@ namespace XrSamples
                 .UseDefaultHDR()
                 .SetGlOptions(opt =>
                 {
-                    opt.UsePlanarReflection = true; 
+                    opt.UsePlanarReflection = true;
                 })
                 .ConfigureApp(a =>
                 {
                     var inp = a.Inputs!;
-    
+
                     a.XrApp.UseLocalSpace = true;
-                    
+
                     model.AccInput = inp.Right!.TriggerValue;
                     model.BackInput = inp.Right!.Button!.AClick;
                     model.ShowHideBodyInput = inp.Right!.Button!.BClick;
@@ -1259,8 +1263,7 @@ namespace XrSamples
                     var pl = scene.Descendants<PointLight>().First();
                     pl.IsVisible = true;
                     pl.Specular = new Color(0.1f, 0.1f, 0.1f, 1);
-                    pl.Intensity = 1f; 
-
+                    pl.Intensity = 1f;
                 })
                 .ConfigureSampleApp(false);
         }

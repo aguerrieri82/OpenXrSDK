@@ -26,7 +26,7 @@ namespace XrEngine.OpenGL
             IsEnabled = true;
         }
 
-        public virtual void Configure()
+        public virtual void Configure(RenderContext ctx)
         {
         }
 
@@ -106,7 +106,11 @@ namespace XrEngine.OpenGL
             _renderer.ConfigureCaps(instance.Material);
 
             if (updateUniforms)
+            {
                 instance.UpdateUniforms(updateContext, false);
+                instance.UpdateBuffers(updateContext);
+            }
+
         }
 
 

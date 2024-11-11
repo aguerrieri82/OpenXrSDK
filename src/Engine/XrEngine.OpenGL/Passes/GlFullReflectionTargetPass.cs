@@ -10,40 +10,31 @@ using XrMath;
 
 namespace XrEngine.OpenGL
 {
-    public class GlFullReflectionPass : GlColorPass
+
+
+    public class GlFullReflectionTargetPass : GlColorPass, IGlDynamicRenderPass<ReflectionTarget>
     {
         private PlanarReflection? _reflection;
-        private Scene3D? _lastScene;
+        private int _boundEye;
         private Camera? _oldCamera;
-        private readonly IGlRenderAttachment _glDepthBuffer;
+        private IGlRenderAttachment? _glDepthBuffer;
         private readonly IGlRenderTarget _renderTarget;
-        private bool _isBufferInit;
+        private bool _isTargetInit;
         private ImageLight? _imageLight;
         private Matrix3x3 _oldImageLightTransform;
 
-        public GlFullReflectionPass(OpenGLRender renderer)
+        public GlFullReflectionTargetPass(OpenGLRender renderer, bool useMultiviewTarget)
             : base(renderer)
         {
             PbrV2Material.ForceIblTransform = true;
 
-            if (PlanarReflection.IsMultiView)
-            {
+            if (PlanarReflection.IsMultiView && useMultiviewTarget)
                 _renderTarget = new GlMultiViewRenderTarget(_gl);
-
-                _glDepthBuffer = new GlTexture(_gl)
-                {
-                    MinFilter = TextureMinFilter.Nearest,
-                    MagFilter = TextureMagFilter.Nearest,
-                    MaxLevel = 0,
-                    IsMutable = true,
-                    Target = TextureTarget.Texture2DArray
-                };
-            }
             else
-            {
                 _renderTarget = new GlTextureRenderTarget(_gl);
+
+            if (!PlanarReflection.IsMultiView)
                 _glDepthBuffer = new GlRenderBuffer(_gl);
-            }
         }
 
         protected override IGlRenderTarget? GetRenderTarget()
@@ -98,53 +89,64 @@ namespace XrEngine.OpenGL
             if (camera.Scene == null)
                 return false;
 
-            if (_reflection == null || camera.Scene != _lastScene)
+            _oldCamera = _renderer.UpdateContext.Camera!;
+
+            _reflection?.Update(_oldCamera, _boundEye);
+
+            if (_reflection?.Texture == null)
+                return false;
+
+            if (!_reflection.Host!.IsVisible || !_reflection.Host.WorldBounds.IntersectFrustum(_renderer.UpdateContext.FrustumPlanes))
+                return false;
+           
+            if (_glDepthBuffer == null || _glDepthBuffer.Width != _reflection.Texture.Width || _glDepthBuffer.Height != _reflection.Texture.Height)
             {
-                var layer = camera.Scene.EnsureLayer<HasReflectionLayer>();
-
-                var obj = layer.Content.FirstOrDefault();
-                if (obj == null)
-                    return false;
-
-                _reflection = obj.Component<PlanarReflection>();
-
-                _lastScene = camera.Scene;
-            }
-
-            if (_glDepthBuffer.Width != _reflection.Texture.Width || _glDepthBuffer.Height != _reflection.Texture.Height)
-            {
-                if (PlanarReflection.IsMultiView)
+                if (_renderTarget is GlMultiViewRenderTarget || PlanarReflection.IsMultiView)
                 {
-                    ((GlTexture)_glDepthBuffer).Update(
-                         _reflection.Texture.Width,
-                         _reflection.Texture.Height,
-                         _reflection.Texture.Depth,
-                         TextureFormat.Depth24Float);
+                    _glDepthBuffer?.Dispose();
+
+                    _glDepthBuffer = new GlTexture(_gl)
+                    {
+                        MinFilter = TextureMinFilter.Nearest,
+                        MagFilter = TextureMagFilter.Nearest,
+                        MaxLevel = 0,
+                        Target = TextureTarget.Texture2DArray
+                    };
+
+                    ((GlTexture)_glDepthBuffer).Update(_reflection.Texture.Depth, new TextureData
+                    {
+                        Width = _reflection.Texture.Width,
+                        Height = _reflection.Texture.Height,
+                        Format = TextureFormat.Depth24Float
+                    });
                 }
                 else
                 {
-                    ((GlRenderBuffer)_glDepthBuffer).Update(
+                    ((GlRenderBuffer)_glDepthBuffer!).Update(
                          _reflection.Texture.Width,
                          _reflection.Texture.Height,
                          1,
                          InternalFormat.DepthComponent24);
                 }
+
+                _isTargetInit = false;
             }
 
-            if (!_isBufferInit)
+            if (!_isTargetInit || _boundEye != -1)
             { 
                 if (_renderTarget is GlMultiViewRenderTarget mv)
                     mv.FrameBuffer.Configure(_reflection.Texture.ToGlTexture(), (GlTexture)_glDepthBuffer, 1);
 
                 else if (_renderTarget is GlTextureRenderTarget tex)
-                    tex.FrameBuffer.Configure(_reflection.Texture.ToGlTexture(), _glDepthBuffer, 1);
+                {
+                    if (_boundEye != -1)
+                        tex.FrameBuffer.Configure(_reflection.Texture.ToGlTexture(), (uint)_boundEye, (GlTexture)_glDepthBuffer, (uint)_boundEye, 1);
+                    else
+                        tex.FrameBuffer.Configure(_reflection.Texture.ToGlTexture(), _glDepthBuffer, 1);
+                }
 
-                _isBufferInit = true;
+                _isTargetInit = true;
             }
-
-            _oldCamera = _renderer.UpdateContext.Camera!;
-
-            _reflection.Update(_oldCamera);
 
             _renderer.UpdateContext.Camera = _reflection.ReflectionCamera;
 
@@ -205,9 +207,15 @@ namespace XrEngine.OpenGL
 
         public override void Dispose()
         {
-            _glDepthBuffer.Dispose();
+            _glDepthBuffer?.Dispose();
             _renderTarget.Dispose();
             base.Dispose();
+        }
+
+        public void SetOptions(ReflectionTarget options)
+        {
+            _reflection = options.PlanarReflection;
+            _boundEye = options.BoundEye;
         }
     }
 }

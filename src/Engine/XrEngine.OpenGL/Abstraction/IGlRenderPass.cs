@@ -2,7 +2,7 @@
 {
     public interface IGlRenderPass : IDisposable
     {
-        void Configure();
+        void Configure(RenderContext ctx);
 
         void Render(RenderContext ctx);
 

@@ -1,216 +1,74 @@
-﻿#if GLES
-using Silk.NET.OpenGLES;
-#else
-using Silk.NET.OpenGL;
-#endif
-
-using System.Diagnostics;
-using System.Numerics;
-using XrEngine.Services;
-using XrMath;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace XrEngine.OpenGL
 {
-    public class GlReflectionPass : GlBaseSingleMaterialPass
+    public struct ReflectionTarget
     {
-        private PlanarReflection? _reflection;
-        private Scene3D? _lastScene;
-        private Camera? _oldCamera;
-        private bool _isBufferInit;
-        private readonly IGlRenderAttachment _glDepthBuffer;
-        private readonly IGlRenderTarget _renderTarget;
+        public ReflectionTarget(PlanarReflection planarReflection, int boundEye = -1)
+        {
+            PlanarReflection = planarReflection;
+            BoundEye = boundEye;
+        }
+
+        public readonly PlanarReflection PlanarReflection;
+
+        public readonly int BoundEye;
+    }
+
+    public class GlReflectionPass : GlBaseRenderPassGroup<IGlDynamicRenderPass<ReflectionTarget>, ReflectionTarget>
+    {
+        GlSimpleReflectionTargetPass? _simple;
+        GlFullReflectionTargetPass? _full;
 
         public GlReflectionPass(OpenGLRender renderer)
             : base(renderer)
         {
+            UseMultiviewTarget = true;
+        }   
 
-            if (PlanarReflection.IsMultiView)
+        protected override IGlDynamicRenderPass<ReflectionTarget> ConfigurePass(ReflectionTarget options)
+        {
+            if (options.PlanarReflection.Mode == PlanarReflectionMode.Full)
             {
-                _renderTarget = new GlMultiViewRenderTarget(_gl);
+                _full ??= new(_renderer, UseMultiviewTarget);
+                _full.SetOptions(options);
+                return _full;
+            }
 
-                _glDepthBuffer = new GlTexture(_gl)
+            _simple ??= new(_renderer, UseMultiviewTarget);
+            _simple.SetOptions(options);
+            return _simple;
+        }
+
+        protected override IEnumerable<ReflectionTarget> GetPasses(RenderContext ctx)
+        {
+            var layer = ctx.Scene!.EnsureLayer<HasReflectionLayer>();
+
+            foreach (var content in layer.Content)
+            {
+                if (!content.IsVisible)
+                    continue;
+                
+                var reflection = content.Component<PlanarReflection>();
+                if (!reflection.IsEnabled)
+                    continue;
+
+                if (PlanarReflection.IsMultiView && !UseMultiviewTarget)
                 {
-                    MinFilter = TextureMinFilter.Nearest,
-                    MagFilter = TextureMagFilter.Nearest,
-                    MaxLevel = 0,
-                    IsMutable = true,
-                    Target = TextureTarget.Texture2DArray
-                };
-            }
-            else
-            {
-                _renderTarget = new GlTextureRenderTarget(_gl);
-                _glDepthBuffer = new GlRenderBuffer(_gl);
-            }
-        }
-
-        protected GlLayer CreateEnvLayer(Scene3D scene)
-        {
-            var layer = new DetachedLayer();
-
-            var env = new TriangleMesh(new IsoSphere3D(2, 3), new TextureMaterial
-            {
-                UseDepth = true,
-                WriteDepth = false,
-                DoubleSided = true,
-                Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/Envs/CameraEnv.jpg"),
-            });
-
-            scene.AddChild(env);
-
-            layer.Add(env);
-            var glLayer = new GlLayer(_renderer, scene, GlLayerType.Custom, layer);
-            glLayer.Update();
-            return glLayer;
-        }
-
-        protected override ShaderMaterial CreateMaterial()
-        {
-            throw new NotSupportedException();
-        }
-
-        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
-        {
-            Debug.Assert(_reflection != null);
-
-            if (!_reflection.PrepareMaterial(drawMaterial))
-                return UpdateProgramResult.Skip;
-
-            if (_reflection.UseClipPlane)
-            {
-                if (_programInstance!.ExtraExtensions == null)
-                {
-                    _programInstance.ExtraFeatures = ["USE_CLIP_PLANE"];
-                    _programInstance.ExtraExtensions = ["GL_EXT_clip_cull_distance"];
-                    _programInstance.Invalidate();
-                }
-
-                var upRes = base.UpdateProgram(updateContext, drawMaterial);
-
-                _programInstance.Program!.Use();
-
-                _renderer.ConfigureCaps(_programInstance.Material);
-
-                var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
-                _programInstance.Program!.SetUniform("uClipPlane", newPlane);
-
-                return upRes;
-            }
-
-            return base.UpdateProgram(updateContext, drawMaterial);
-        }
-
-        protected override bool CanDraw(DrawContent draw)
-        {
-            Debug.Assert(_reflection != null);
-
-            if (draw.Object == _reflection.Host)
-                return false;
-
-            var target = draw.Object?.Components<PlanarReflectionTarget>().FirstOrDefault();
-            if (target?.IncludeReflection != null && !target.IncludeReflection(_reflection))
-                return false;
-
-            return true;
-        }
-
-        protected override IGlRenderTarget? GetRenderTarget()
-        {
-            return _renderTarget;
-        }
-
-        protected override bool BeginRender(Camera camera)
-        {
-            if (camera.Scene == null)
-                return false;
-
-            if (_reflection == null || camera.Scene != _lastScene)
-            {
-                var layer = camera.Scene.EnsureLayer<HasReflectionLayer>();
-
-                var obj = layer.Content.FirstOrDefault();
-                if (obj == null)
-                    return false;
-
-                _reflection = obj.Component<PlanarReflection>();
-
-                _programInstance = CreateProgram(_reflection.MaterialOverride);
-
-                _lastScene = camera.Scene;
-            }
-
-            if (_glDepthBuffer.Width != _reflection.Texture.Width || _glDepthBuffer.Height != _reflection.Texture.Height)
-            {
-                if (PlanarReflection.IsMultiView)
-                {
-                    ((GlTexture)_glDepthBuffer).Update(
-                         _reflection.Texture.Width,
-                         _reflection.Texture.Height,
-                         _reflection.Texture.Depth,
-                         TextureFormat.Depth24Float);
+                    yield return new ReflectionTarget(reflection, 0);
+                    yield return new ReflectionTarget(reflection, 1);
                 }
                 else
-                {
-                    ((GlRenderBuffer)_glDepthBuffer).Update(
-                         _reflection.Texture.Width,
-                         _reflection.Texture.Height,
-                         1,
-                         InternalFormat.DepthComponent24);
-                }
+                    yield return new ReflectionTarget(reflection);
             }
-
-            if (!_isBufferInit)
-            {
-                if (_renderTarget is GlMultiViewRenderTarget mv)
-                    mv.FrameBuffer.Configure(_reflection.Texture.ToGlTexture(), (GlTexture)_glDepthBuffer, 1);
-
-                else if (_renderTarget is GlTextureRenderTarget tex)
-                    tex.FrameBuffer.Configure(_reflection.Texture.ToGlTexture(), _glDepthBuffer, 1);
-
-                _isBufferInit = true;
-            }
-
-            _oldCamera = _renderer.UpdateContext.Camera;
-            _reflection.Update(_oldCamera!);
-
-            _renderer.UpdateContext.Camera = _reflection.ReflectionCamera;
-
-            _renderTarget.Begin(_reflection.ReflectionCamera, new Size2I(_reflection.Texture.Width, _reflection.Texture.Height));
-
-            _renderer.State.SetWriteColor(true);
-            _renderer.State.SetWriteDepth(true);
-            _renderer.State.SetClearDepth(1.0f);
-            _renderer.State.SetView(new Rect2I(0, 0, _reflection.Texture.Width, _reflection.Texture.Height));
-
-            _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
-
-            return base.BeginRender(camera);
         }
 
-        protected override void EndRender()
-        {
-            _renderTarget.End(true);
 
-            _renderer.UpdateContext.Camera = _oldCamera;
-
-            base.EndRender();
-        }
-
-        protected override IEnumerable<GlLayer> SelectLayers()
-        {
-            return _renderer.Layers.Where(a => a.Type == GlLayerType.Main).Take(1);
-        }
-
-        public override void Dispose()
-        {
-            _glDepthBuffer.Dispose();
-            _renderTarget.Dispose();
-            base.Dispose();
-        }
-
-        protected override void Initialize()
-        {
-            //DONT CALL BASE
-        }
+        public bool UseMultiviewTarget { get; set; }
     }
 }

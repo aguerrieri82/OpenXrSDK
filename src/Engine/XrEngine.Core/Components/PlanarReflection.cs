@@ -1,14 +1,22 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using System.Xml.Linq;
 using XrMath;
 
 namespace XrEngine
 {
-    public class PlanarReflection : Behavior<Object3D>, IDrawGizmos
+    public enum PlanarReflectionMode
     {
+        ColorOnly,
+        Basic,
+        Full
+    }
 
+    public class PlanarReflection : BaseComponent<Object3D>, IDrawGizmos
+    {
         private float _lightIntensity;
         private Plane _plane;
+        private PlanarReflectionMode _mode;
 
         public PlanarReflection()
             : this(1024)
@@ -16,45 +24,37 @@ namespace XrEngine
 
         }
 
-        public PlanarReflection(uint textureSize, bool useSrgb = true)
+        public PlanarReflection(uint textureSize, PlanarReflectionMode mode = PlanarReflectionMode.ColorOnly)
         {
+            _mode = mode;
+
             AdjustIbl = true;   
 
             TextureSize = textureSize;
 
             ReflectionCamera = new PerspectiveCamera();
 
-            MaterialOverride = new TextureMaterial()
+            if (_mode== PlanarReflectionMode.ColorOnly)
             {
-                CheckTexture = true
-            };
-
-            Texture = new Texture2D
+                MaterialOverride = new TextureMaterial()
+                {
+                    CheckTexture = true
+                };
+            }
+            else if (mode == PlanarReflectionMode.Basic)
             {
-                MagFilter = ScaleFilter.Linear,
-                MinFilter = ScaleFilter.Linear,
-                WrapS = WrapMode.ClampToEdge,
-                WrapT = WrapMode.ClampToEdge,
-                Depth = IsMultiView ? 2u : 1u,
-                Flags = EngineObjectFlags.Mutable,
-                MipLevelCount = 1
-            };
-
-            Texture.LoadData(new TextureData
-            {
-                Width = TextureSize,
-                Height = TextureSize,
-                Depth = IsMultiView ? 2u : 1u,
-                Format = useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32
-            });
-
+                MaterialOverride = new BasicMaterial();
+            }
+         
             Offset = 0.01f;
             FovDegree = 45;
         }
 
-
         public virtual bool PrepareMaterial(Material material)
         {
+            if (MaterialOverride == null)
+                return false;   
+
             MaterialOverride.UseClipDistance = UseClipPlane;        
 
             if (material is IPbrMaterial pbr)
@@ -109,15 +109,7 @@ namespace XrEngine
             }
         }
 
-        protected override void Update(RenderContext ctx)
-        {
-            var camera = ctx.Scene?.ActiveCamera;
-
-            if (camera != null)
-                Update(camera);
-        }
-
-        public void Update(Camera camera)
+        public void Update(Camera camera, int boundEye)
         {
             var normal = _host!.Forward.Normalize();
 
@@ -131,20 +123,33 @@ namespace XrEngine
             ReflectionCamera.Near = camera.Near;
 
             var ratio = camera.ViewSize.Width / (float)camera.ViewSize.Height;
+
             var curSize = new Size2
             {
                 Width = TextureSize,
                 Height = (int)(TextureSize / ratio)
             };
 
-            if (curSize.Width != Texture.Width || curSize.Height != Texture.Height)
+            if (Texture == null || curSize.Width != Texture.Width || curSize.Height != Texture.Height)
             {
+                Texture?.Dispose();
+
+                Texture = new Texture2D
+                {
+                    MagFilter = ScaleFilter.Linear,
+                    MinFilter = ScaleFilter.Linear,
+                    WrapS = WrapMode.ClampToEdge,
+                    WrapT = WrapMode.ClampToEdge,
+                    Depth = IsMultiView ? 2u : 1u,
+                    MipLevelCount = 1
+                };
+
                 Texture.LoadData(new TextureData
                 {
                     Width = (uint)curSize.Width,
                     Height = (uint)curSize.Height,
-                    Depth = Texture.Depth,
-                    Format = Texture.Format
+                    Depth = IsMultiView ? 2u : 1u,
+                    Format = UseSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32
                 });
 
                 ReflectionCamera.ViewSize = new Size2I
@@ -154,20 +159,22 @@ namespace XrEngine
                 };
             }
 
-            if (IsMultiView)
+            ReflectionCamera.SetFov(FovDegree, Texture.Width, Texture.Height);
+
+            if (IsMultiView && boundEye == -1)
             {
                 Debug.Assert(camera.Eyes != null && camera.Eyes.Length == 2);
 
                 for (var i = 0; i < 2; i++)
                 {
-                    var world = camera.Eyes[i].World;
+                    var curWorld = camera.Eyes[i].World;
 
-                    var cameraPos = world.Translation;
+                    var cameraPos = curWorld.Translation;
 
                     var distance = Vector3.Dot(normal, cameraPos - pos);
 
-                    var forward = -Vector3.UnitZ.ToDirection(world);
-                    var up = Vector3.UnitY.ToDirection(world);
+                    var forward = -Vector3.UnitZ.ToDirection(curWorld);
+                    var up = Vector3.UnitY.ToDirection(curWorld);
 
                     var refPos = cameraPos - 2 * distance * normal;
 
@@ -179,12 +186,43 @@ namespace XrEngine
 
                     if (ReflectionCamera.Eyes == null)
                         ReflectionCamera.Eyes = new CameraEye[2];
+                    
+                    Matrix4x4.Invert(refView, out var world);
 
                     ReflectionCamera.Eyes[i].World = world;
-                    ReflectionCamera.Eyes[i].Projection = camera.Projection;
+                    ReflectionCamera.Eyes[i].Projection = ReflectionCamera.Projection;
                     ReflectionCamera.Eyes[i].View = refView;
-                    ReflectionCamera.Eyes[i].ViewProj = refView * camera.Projection;
+                    ReflectionCamera.Eyes[i].ViewProj = refView * ReflectionCamera.Projection;
                 }
+            }
+            else if (boundEye != -1)
+            {
+                var eye = camera.Eyes![boundEye];
+
+                var cameraPos = eye.World.Translation;
+                var forward = -Vector3.UnitZ.ToDirection(eye.World);
+                var up = Vector3.UnitY.ToDirection(eye.World);
+
+                var distance = Vector3.Dot(normal, cameraPos - pos);
+
+                var refPos = cameraPos - 2 * distance * normal;
+
+                var refView = Matrix4x4.CreateLookAt(
+                    refPos,
+                    refPos + Vector3.Reflect(forward, normal),
+                    Vector3.Reflect(up, normal)
+                );
+
+         
+                ReflectionCamera.View = refView;
+
+                if (ReflectionCamera.Eyes == null)
+                    ReflectionCamera.Eyes = new CameraEye[2];
+
+                ReflectionCamera.Eyes[boundEye].World = ReflectionCamera.WorldMatrix;
+                ReflectionCamera.Eyes[boundEye].Projection = ReflectionCamera.Projection;
+                ReflectionCamera.Eyes[boundEye].View = refView;
+                ReflectionCamera.Eyes[boundEye].ViewProj = refView * ReflectionCamera.Projection;
             }
             else
             {
@@ -201,10 +239,6 @@ namespace XrEngine
                 );
 
                 ReflectionCamera.View = refView;
-                ReflectionCamera.SetFov(FovDegree, Texture.Width, Texture.Height);
-
-                //ReflectionCamera.Projection = camera.Projection;
-                //ReflectionCamera.View = camera.View * Matrix4x4.CreateReflection(plane);
             }
 
             if (AutoAdjustFov)
@@ -234,9 +268,9 @@ namespace XrEngine
 
         public PerspectiveCamera ReflectionCamera { get; }
 
-        public Texture2D Texture { get; set; }
+        public Texture2D? Texture { get; set; }
 
-        public ShaderMaterial MaterialOverride { get; set; }
+        public ShaderMaterial? MaterialOverride { get; set; }
 
         [Range(1, 180, 1)]
         public float FovDegree { get; set; }
@@ -249,7 +283,11 @@ namespace XrEngine
 
         public bool AdjustIbl { get; set; }
 
+        public bool UseSrgb { get; set; }   
+
         public Plane Plane => _plane;
+
+        public PlanarReflectionMode Mode => _mode;
 
         public static bool IsMultiView { get; set; }
 

@@ -17,7 +17,8 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(Camera camera)
         {
-            _renderer.RenderTarget!.Begin(camera, _renderer.UpdateContext.ViewSize);
+            GetRenderTarget()!.Begin(camera, _renderer.UpdateContext.ViewSize);
+
             _renderer.State.SetView(_renderer.RenderView);
 
             if (_renderer.Options.UseDepthPass)
@@ -30,6 +31,11 @@ namespace XrEngine.OpenGL
                 _renderer.Clear(_renderer.UpdateContext.Camera!.BackgroundColor);
 
             return true;
+        }
+
+        protected override IEnumerable<GlLayer> SelectLayers()
+        {
+            return _renderer.Layers.Where(a => a.Type != GlLayerType.CastShadow && a.Type != GlLayerType.FullReflection);
         }
 
         protected override void EndRender()
@@ -65,7 +71,7 @@ namespace XrEngine.OpenGL
 
         public override void RenderLayer(GlLayer layer)
         {
-            _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Layer {layer.Type}");
+            _renderer.PushGroup($"Layer {layer.Type}");
 
             var updateContext = _renderer.UpdateContext;
 
@@ -77,7 +83,7 @@ namespace XrEngine.OpenGL
 
                 updateContext.Shader = shader.Key;
 
-                progGlobal!.UpdateProgram(updateContext, _renderer.RenderTarget as IShaderHandler);
+                progGlobal!.UpdateProgram(updateContext, GetRenderTarget() as IShaderHandler);
 
                 IEnumerable<VertexContent> vertices = shader.Value.Contents.Values;
 

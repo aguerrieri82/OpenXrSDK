@@ -479,6 +479,8 @@ namespace XrEngine.OpenGL
                 _handle = 0;
             }
 
+            Source = null;
+
             GC.SuppressFinalize(this);
         }
 
