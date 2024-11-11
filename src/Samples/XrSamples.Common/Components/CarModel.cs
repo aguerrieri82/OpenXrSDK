@@ -83,7 +83,7 @@ namespace XrSamples.Components
             CreateChassis();
             AttachSteering();
             AttachBody();
-            //AttachMirrors();
+            AttachMirrors();
 
             _attachedPosDiff = _mainTube!.GetWorldPose().Difference(_attachedGroup.GetWorldPose());
         }
@@ -101,7 +101,7 @@ namespace XrSamples.Components
                 mirror.Materials.Add(new MirrorMaterial
                 {
                     TextureSize = 512,
-                    DoubleSided = true
+                    DoubleSided = false
                 });
             }
         }

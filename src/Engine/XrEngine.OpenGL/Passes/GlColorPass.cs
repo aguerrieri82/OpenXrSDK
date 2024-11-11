@@ -1,7 +1,6 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 #else
-using Microsoft.VisualBasic;
 using Silk.NET.OpenGL;
 #endif
 
@@ -59,9 +58,9 @@ namespace XrEngine.OpenGL
             draw.Draw!();
         }
 
-        protected virtual void UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)
+        protected virtual bool UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)
         {
-            progInst.UpdateProgram(updateContext);
+            return progInst.UpdateProgram(updateContext);
         }
 
         public override void RenderLayer(GlLayer layer)
@@ -89,10 +88,8 @@ namespace XrEngine.OpenGL
 
                 foreach (var vertex in vertices)
                 {
-                    /*
                     if (vertex.IsHidden)
                         continue;
-                    */
 
                     if (useDepthPass && vertex.Contents.All(a => a.Query != null && a.Query.GetResult() == 0))
                         continue;
@@ -112,13 +109,13 @@ namespace XrEngine.OpenGL
 
                         updateContext.Model = draw.Object;
 
-                        UpdateProgram(updateContext, progInst); 
+                        UpdateProgram(updateContext, progInst);
 
-                        bool programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
+                        var programChanged = updateContext.ProgramInstanceId != progInst.Program!.Handle;
 
                         updateContext.ProgramInstanceId = progInst.Program!.Handle;
 
-                        _renderer.State.SetActiveProgram(progInst.Program!.Handle);
+                        progInst.Program.Use();
 
                         progInst.UpdateUniforms(updateContext, programChanged);
 
@@ -138,7 +135,6 @@ namespace XrEngine.OpenGL
 
             _gl.PopDebugGroup();
         }
-
 
         public bool WriteDepth { get; set; }
     }

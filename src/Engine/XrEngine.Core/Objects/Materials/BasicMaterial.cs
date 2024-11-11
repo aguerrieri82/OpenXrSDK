@@ -5,11 +5,11 @@ namespace XrEngine
 {
     public class BasicMaterial : ShaderMaterial, IColorSource
     {
-        static readonly Shader SHADER;
+        static readonly BasicShader SHADER;
 
-        #region GlobalHandler
+        #region BasicShader
 
-        class GlobalHandler : StandardVertexShader
+        class BasicShader : StandardVertexShader
         {
             string? _lightHash;
 
@@ -21,6 +21,9 @@ namespace XrEngine
                     {
                         if (light is AmbientLight ambient)
                             up.SetUniform("light.ambient", (Vector3)ambient.Color * ambient.Intensity);
+                        
+                        else if (light is ImageLight img)
+                            up.SetUniform("light.ambient", (Vector3)img.Color * img.Intensity * 0.1f);
 
                         else if (light is PointLight point)
                         {
@@ -48,7 +51,7 @@ namespace XrEngine
 
         static BasicMaterial()
         {
-            SHADER = new StandardVertexShader
+            SHADER = new BasicShader
             {
                 FragmentSourceName = "basic.frag",
                 IsLit = true
@@ -80,7 +83,10 @@ namespace XrEngine
             if (DiffuseTexture != null)
             {
                 bld.AddFeature("TEXTURE");
-                bld.LoadTexture((ctx) => DiffuseTexture, 0);
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    up.LoadTexture(DiffuseTexture, 0);
+                });
             }
 
             bld.ExecuteAction((ctx, up) =>

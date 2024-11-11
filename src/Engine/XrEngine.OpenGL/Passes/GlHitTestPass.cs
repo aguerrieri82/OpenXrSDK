@@ -98,18 +98,20 @@ namespace XrEngine.OpenGL
             return _renderTarget;
         }
 
-
-        protected override bool PrepareMaterial(Material material)
+        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
         {
             var objId = (uint)_objects.Count;
 
-            var mat = (HitTestEffect)_programInstance!.Material;
-            mat.WriteDepth = material.WriteDepth;
-            mat.UseDepth = material.UseDepth;
-            mat.DoubleSided = material.DoubleSided;
-            mat.DrawId = objId; 
-            return true;
+            var effect = (HitTestEffect)_programInstance!.Material;
+
+            effect.WriteDepth = drawMaterial.WriteDepth;
+            effect.UseDepth = drawMaterial.UseDepth;
+            effect.DoubleSided = drawMaterial.DoubleSided;
+            effect.DrawId = objId;
+
+            return base.UpdateProgram(updateContext, drawMaterial);
         }
+
 
         protected override void Draw(DrawContent draw)
         {

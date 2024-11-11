@@ -9,7 +9,6 @@ using Silk.NET.OpenXR;
 using XrEngine.OpenGL;
 using XrMath;
 
-
 namespace XrEngine.OpenXr
 {
     public class GlMotionVectorPass : GlBaseSingleMaterialPass
@@ -46,14 +45,14 @@ namespace XrEngine.OpenXr
             return _renderTarget;
         }
 
-        protected override bool PrepareMaterial(Material material)
+        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
         {
-            var mv = MotionVectorEffect.Instance;
-            mv.WriteDepth = material.WriteDepth;
-            mv.UseDepth = material.UseDepth;
-            mv.DoubleSided = material.DoubleSided;
-            mv.WriteColor = material.WriteColor;
-            return true;
+            var effect = MotionVectorEffect.Instance;
+            effect.WriteDepth = drawMaterial.WriteDepth;
+            effect.UseDepth = drawMaterial.UseDepth;
+            effect.DoubleSided = drawMaterial.DoubleSided;
+            effect.WriteColor = drawMaterial.WriteColor;
+            return base.UpdateProgram(updateContext, drawMaterial);
         }
 
         protected override bool BeginRender(Camera camera)

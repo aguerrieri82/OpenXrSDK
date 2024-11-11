@@ -276,7 +276,7 @@ namespace XrEngine
 
                     ctx.CurrentBuffer!.Hash = hash;
 
-                    //Log.Debug(this, "Build light uniforms");
+                    Log.Debug(this, "Build light uniforms");
 
                     if (!hasPunctual)
                     {

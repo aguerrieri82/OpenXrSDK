@@ -4,6 +4,10 @@
     out vec2 fPlanarUv;
 #endif
 
+#ifdef USE_CLIP_PLANE 
+    uniform vec4 uClipPlane;
+#endif
+
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;
 layout (location = 2) in vec2 a_texcoord_0;
@@ -50,4 +54,9 @@ void main()
     #ifdef PLANAR_REFLECTION
         fPlanarUv = planarUV(pos);
     #endif
+
+    #ifdef USE_CLIP_PLANE 
+        gl_ClipDistance[0] = -dot(pos, uClipPlane);
+    #endif
+
 }

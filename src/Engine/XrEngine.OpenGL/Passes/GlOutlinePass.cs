@@ -105,11 +105,12 @@ namespace XrEngine.OpenGL
             return base.BeginRender(camera);
         }
 
-        protected override bool PrepareMaterial(Material material)
+        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
         {
-            _programInstance!.Material.DoubleSided = material.DoubleSided;
-            return base.PrepareMaterial(material);
+            _programInstance!.Material.DoubleSided = drawMaterial.DoubleSided;
+            return base.UpdateProgram(updateContext, drawMaterial);
         }
+
 
         protected override bool CanDraw(DrawContent draw)
         {

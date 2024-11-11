@@ -1,10 +1,18 @@
-﻿using System.Diagnostics;
+﻿using Silk.NET.OpenGL;
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
     public abstract class GlBaseSingleMaterialPass : GlBaseRenderPass
     {
         protected GlProgramInstance? _programInstance;
+
+        protected enum UpdateProgramResult
+        {
+            Unchanged,
+            Changed,
+            Skip
+        }
 
         public GlBaseSingleMaterialPass(OpenGLRender renderer)
             : base(renderer)
@@ -33,8 +41,18 @@ namespace XrEngine.OpenGL
         }
 
 
+        protected virtual UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
+        {
+            if (_programInstance!.UpdateProgram(updateContext))
+                return UpdateProgramResult.Changed;
+
+            return UpdateProgramResult.Unchanged;
+        }
+
         public override void RenderLayer(GlLayer layer)
         {
+            Debug.Assert(_programInstance != null);
+
             var updateContext = _renderer.UpdateContext;
 
             foreach (var shader in layer.Content.ShaderContents)
@@ -60,17 +78,20 @@ namespace XrEngine.OpenGL
                         if (draw.IsHidden)
                             continue;
 
-                        updateContext.Model = draw.Object;
-
-                        var material = draw.ProgramInstance!.Material;
-
-                        if (!PrepareMaterial(material))
-                            continue;
-
                         if (!CanDraw(draw))
                             continue;
 
-                        _programInstance!.UpdateUniforms(updateContext, false);
+                        updateContext.Model = draw.Object;
+
+                        var drawMaterial = draw.ProgramInstance!.Material;
+
+                        var upRes = UpdateProgram(updateContext, drawMaterial);
+                        if (upRes == UpdateProgramResult.Skip)
+                            continue;
+
+                        _programInstance.UpdateUniforms(updateContext, upRes == UpdateProgramResult.Changed);
+
+                        _programInstance.UpdateBuffers(updateContext);
 
                         Draw(draw);
 
@@ -84,11 +105,6 @@ namespace XrEngine.OpenGL
         protected virtual bool CanDraw(DrawContent draw)
         {
             return true;
-        }
-
-        protected virtual bool PrepareMaterial(Material material)
-        {
-            return material.WriteDepth;
         }
 
         protected override void EndRender()

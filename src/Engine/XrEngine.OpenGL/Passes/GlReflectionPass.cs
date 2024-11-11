@@ -5,6 +5,7 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Diagnostics;
+using System.Numerics;
 using XrEngine.Services;
 using XrMath;
 
@@ -32,6 +33,7 @@ namespace XrEngine.OpenGL
                     MinFilter = TextureMinFilter.Nearest,
                     MagFilter = TextureMagFilter.Nearest,
                     MaxLevel = 0,
+                    IsMutable = true,
                     Target = TextureTarget.Texture2DArray
                 };
             }
@@ -67,10 +69,35 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
-        protected override bool PrepareMaterial(Material material)
+        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
         {
             Debug.Assert(_reflection != null);
-            return _reflection.PrepareMaterial(material);
+
+            if (!_reflection.PrepareMaterial(drawMaterial))
+                return UpdateProgramResult.Skip;
+
+            if (_reflection.UseClipPlane)
+            {
+                if (_programInstance!.ExtraExtensions == null)
+                {
+                    _programInstance.ExtraFeatures = ["USE_CLIP_PLANE"];
+                    _programInstance.ExtraExtensions = ["GL_EXT_clip_cull_distance"];
+                    _programInstance.Invalidate();
+                }
+
+                var upRes = base.UpdateProgram(updateContext, drawMaterial);
+
+                _programInstance.Program!.Use();
+
+                _renderer.ConfigureCaps(_programInstance.Material);
+
+                var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
+                _programInstance.Program!.SetUniform("uClipPlane", newPlane);
+
+                return upRes;
+            }
+
+            return base.UpdateProgram(updateContext, drawMaterial);
         }
 
         protected override bool CanDraw(DrawContent draw)
@@ -99,13 +126,15 @@ namespace XrEngine.OpenGL
 
             if (_reflection == null || camera.Scene != _lastScene)
             {
-                var layer = camera.Scene.EnsureLayer<ReflectionLayer>();
+                var layer = camera.Scene.EnsureLayer<HasReflectionLayer>();
 
                 var obj = layer.Content.FirstOrDefault();
                 if (obj == null)
                     return false;
 
                 _reflection = obj.Component<PlanarReflection>();
+
+                _programInstance = CreateProgram(_reflection.MaterialOverride);
 
                 _lastScene = camera.Scene;
             }
@@ -142,6 +171,8 @@ namespace XrEngine.OpenGL
             }
 
             _oldCamera = _renderer.UpdateContext.Camera;
+            _reflection.Update(_oldCamera!);
+
             _renderer.UpdateContext.Camera = _reflection.ReflectionCamera;
 
             _renderTarget.Begin(_reflection.ReflectionCamera, new Size2I(_reflection.Texture.Width, _reflection.Texture.Height));
