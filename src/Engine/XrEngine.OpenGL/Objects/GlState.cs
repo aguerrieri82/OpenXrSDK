@@ -333,6 +333,8 @@ namespace XrEngine.OpenGL
 
         public void SetDrawBuffers(DrawBufferMode[] value, bool force = false)
         {
+            _gl.DrawBuffers(value);
+            /*
             var equals = DrawBuffers != null && Utils.ArrayEquals(DrawBuffers, value);
 
             if (!equals || force)
@@ -340,6 +342,7 @@ namespace XrEngine.OpenGL
                 DrawBuffers = value;   
                 _gl.DrawBuffers(value);
             }
+            */
         }
 
         public void BindFrameBuffer(FramebufferTarget target, uint value, bool force = false)

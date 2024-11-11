@@ -60,7 +60,6 @@ namespace XrSamples
             });
 
             var pl1 = scene.AddChild(new PointLight());
-            pl1.Name = "point-light-1";
             pl1.Transform.Position = new Vector3(0, 2, 0);
             pl1.Intensity = 0.3f;
 
@@ -73,7 +72,7 @@ namespace XrSamples
 
             var camera = new PerspectiveCamera
             {
-                Far = 30f,
+                Far = 100f,
                 Near = 0.01f,
                 BackgroundColor = new Color(0, 0, 0, 0),
                 Exposure = 1
@@ -1109,6 +1108,7 @@ namespace XrSamples
                     {
                         pbr.Color = "#00000020";
                         pbr.Alpha = AlphaMode.Blend;
+                        pbr.AlphaCutoff = 0.2f;
                     }
                     if (mat.Name!.Contains("paint"))
                     {
@@ -1182,6 +1182,25 @@ namespace XrSamples
                 }
             });
 
+            var ramp = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), checkerMat);
+            ramp.Name = "ramp";
+            ramp.SetWorldPoseIfChanged(new Pose3()
+            {
+                Position = new Vector3(0f, 2.565f, -19.36f),
+                Orientation = new Quaternion(0.12981941f, 0f, 0f, 0.99153763f)
+            });
+            ramp.Geometry!.ScaleUV(new Vector2(20, 20));
+            ramp.AddComponent(new RigidBody
+            {
+                Type = PhysicsActorType.Static,
+                Material = new PhysicsMaterialInfo()
+                {
+                    StaticFriction = 1f,
+                    DynamicFriction = 1f,
+                    Restitution = 0.2f
+                }
+            });
+
             //Wall
             var wall = new TriangleMesh(new Cube3D(new Vector3(5, 3, 0.5f)), checkerMat);
             wall.Name = "wall";
@@ -1200,6 +1219,7 @@ namespace XrSamples
 
             //Add children
             scene.AddChild(floor);
+            scene.AddChild(ramp);
             scene.AddChild(wall);
             scene.AddChild(car);
 
@@ -1235,7 +1255,12 @@ namespace XrSamples
                         rotate.LeftHaptic = inp.Left!.Haptic;
                         rotate.RightHaptic = inp.Right!.Haptic;
                     }
-          
+
+                    var pl = scene.Descendants<PointLight>().First();
+                    pl.IsVisible = true;
+                    pl.Specular = new Color(0.1f, 0.1f, 0.1f, 1);
+                    pl.Intensity = 1f; 
+
                 })
                 .ConfigureSampleApp(false);
         }

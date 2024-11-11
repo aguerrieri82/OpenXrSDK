@@ -92,7 +92,7 @@ namespace XrEngine.OpenGL
             }
 
             if (_options.UsePlanarReflection)
-                _renderPasses.Add(new GlFullReflectionPass(this));
+                _renderPasses.Add(new GlReflectionPass(this));
 
             _renderPasses.Add(new GlColorPass(this));
 
@@ -121,7 +121,7 @@ namespace XrEngine.OpenGL
         {
             _glState.Reset();
 
-            GL.DrawBuffers(GlState.DRAW_COLOR_0);
+            _glState.SetDrawBuffers(GlState.DRAW_COLOR_0);
         }
 
         public unsafe void EnableDebug()
@@ -208,7 +208,10 @@ namespace XrEngine.OpenGL
             {
                 _layers.Clear();
 
-                _mainLayer = new GlLayer(this, scene, GlLayerType.Main);
+                _mainLayer = new GlLayer(this, scene, GlLayerType.Main)
+                {
+                    HasLights = true
+                };
 
                 _layers.Add(_mainLayer);
 
@@ -227,7 +230,8 @@ namespace XrEngine.OpenGL
 
                 if (_options.UsePlanarReflection)
                 {
-                    scene.EnsureLayer<ReflectionLayer>();
+                    scene.EnsureLayer<HasReflectionLayer>();
+                    _layers.Add(new GlReflectionLayer(this, scene));
                 }
 
                 _lastScene = scene;
@@ -279,6 +283,7 @@ namespace XrEngine.OpenGL
             _updateCtx.LightsHash = _mainLayer.Content.LightsHash;
             _updateCtx.ViewSize = new Size2I(view.Width, view.Height);
             _updateCtx.Camera!.FrustumPlanes(_updateCtx.FrustumPlanes);
+            _updateCtx.ContextVersion++;
 
             foreach (var pass in _renderPasses)
                 pass.Configure();

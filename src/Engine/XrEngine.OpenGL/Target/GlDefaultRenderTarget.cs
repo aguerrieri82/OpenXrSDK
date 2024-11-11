@@ -67,7 +67,7 @@ namespace XrEngine.OpenGL
             GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0);
 
             _gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
-            _gl.DrawBuffers(GlState.DRAW_BACK);
+            GlState.Current.SetDrawBuffers(GlState.DRAW_BACK);
 
             var w = _frameBuffer.Color!.Width;
             var h = _frameBuffer.Color.Height;

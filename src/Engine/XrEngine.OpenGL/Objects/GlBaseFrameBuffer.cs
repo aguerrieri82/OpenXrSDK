@@ -30,9 +30,9 @@ namespace XrEngine.OpenGL
             GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, _handle);
 
             if (modes.Length == 0)
-                _gl.DrawBuffers(GlState.DRAW_NONE);
+                GlState.Current.SetDrawBuffers(GlState.DRAW_NONE);
             else
-                _gl.DrawBuffers(modes);
+                GlState.Current.SetDrawBuffers(modes);
         }
 
         public void SetReadBuffer(ReadBufferMode mode)

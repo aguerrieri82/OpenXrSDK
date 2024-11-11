@@ -69,6 +69,8 @@ namespace XrEngine
         public ShaderUpdate? LastGlobalUpdate;
 
         public Size2I ViewSize;
+
+        public long ContextVersion;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

@@ -2,8 +2,12 @@
 #ifdef MULTI_VIEW
 
     #define NUM_VIEWS 2
+    
+    #ifndef FRAGMENT_SHADER
 
     layout(num_views=NUM_VIEWS) in;
+
+    #endif  
 
     layout(std140, binding=10) uniform SceneMatrices
     {
@@ -50,6 +54,8 @@
 
 #endif
 
+#ifndef FRAGMENT_SHADER
+
 void computePos(vec4 pos) 
 {
     gl_Position = getViewProj() * pos;
@@ -62,3 +68,5 @@ void computePos(vec4 pos)
         gl_Position.z = FORCE_Z * gl_Position.w;
     #endif
 }
+
+#endif

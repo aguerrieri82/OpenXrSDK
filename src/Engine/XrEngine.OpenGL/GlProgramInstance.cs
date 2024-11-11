@@ -13,8 +13,11 @@ namespace XrEngine.OpenGL
 
         protected ShaderUpdate? _update;
         protected readonly GL _gl;
+        
         protected long _materialVersion = -1;
         protected long _globalVersion = -1;
+        protected long _lastGlobalContextVersion = -1;
+
         protected IGlBuffer?[] _materialBuffers;
         protected IGlBuffer?[] _modelBuffers;
 
@@ -37,10 +40,10 @@ namespace XrEngine.OpenGL
                 _modelBuffers = [];
         }
 
-        public void UpdateProgram(UpdateShaderContext ctx, string[]? extraFeatures = null, string[]? extraExtensions = null)
+        public bool UpdateProgram(UpdateShaderContext ctx)
         {
             if (Program != null && _materialVersion == Material!.Version && _globalVersion == Global.Version)
-                return;
+                return false;
 
             ctx.BufferProvider = this;
 
@@ -50,12 +53,11 @@ namespace XrEngine.OpenGL
             foreach (var feature in Global.Update!.Features!)
                 localBuilder.AddFeature(feature);
 
-            if (extraFeatures!= null)
+            if (ExtraFeatures != null)
             {
-                foreach (var feature in extraFeatures)
+                foreach (var feature in ExtraFeatures)
                     localBuilder.AddFeature(feature);
             }
-
 
             localBuilder.ComputeHash(Material.GetType().FullName!);
 
@@ -78,9 +80,9 @@ namespace XrEngine.OpenGL
                     program.AddExtension("GL_OES_geometry_shader");
                 }
 
-                if (extraExtensions != null)
+                if (ExtraExtensions != null)
                 {
-                    foreach (var ext in extraExtensions)
+                    foreach (var ext in ExtraExtensions)
                         program.AddExtension(ext);
                 }   
 
@@ -92,6 +94,7 @@ namespace XrEngine.OpenGL
 
                 foreach (var ext in Global.Update!.Extensions!)
                     program.AddExtension(ext);
+
                 /*
                 foreach (var feature in Global.Update!.Features!)
                     program.AddFeature(feature);
@@ -105,12 +108,16 @@ namespace XrEngine.OpenGL
                 _programs[_update.FeaturesHash!] = program;
             }
 
+            var changed = Program == null || program.Handle != Program.Handle;
+
             program.Use();
 
             Program = program;
 
             _materialVersion = Material.Version;
             _globalVersion = Global.Version;
+
+            return changed;
         }
 
         public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store)
@@ -138,12 +145,22 @@ namespace XrEngine.OpenGL
                 action(ctx);
         }
 
+        static int _skipCount = 0;
+
+        static long _skipVersion  = 0;
+
         public void UpdateUniforms(UpdateShaderContext ctx, bool updateGlobals)
         {
             ctx.BufferProvider = this;
 
             if (updateGlobals)
-                Global.UpdateUniforms(ctx, Program!);
+            {
+                if (ctx.ContextVersion != _lastGlobalContextVersion)
+                {
+                    Global.UpdateUniforms(ctx, Program!);
+                    _lastGlobalContextVersion = ctx.ContextVersion;
+                }
+            }
 
             foreach (var action in _update!.Actions!)
                 action(ctx, Program!);
@@ -154,6 +171,15 @@ namespace XrEngine.OpenGL
             GC.SuppressFinalize(this);
         }
 
+        public void Invalidate()
+        {
+            _materialVersion = -1;
+            _globalVersion = -1;
+        }
+
+        public string[]? ExtraFeatures { get; set; }
+
+        public string[]? ExtraExtensions { get; set; }
 
         public GlProgramGlobal Global { get; }
 

@@ -5,7 +5,7 @@ namespace XrEngine
 {
     public class Object3D : EngineObject, ILayer3DItem, IStateManager
     {
-        protected Bounds3 _worldBounds;
+        internal Bounds3 _worldBounds;
         private Matrix4x4 _worldMatrixInverse;
         private Matrix4x4 _worldMatrix;
         private Matrix4x4 _normalMatrix;
@@ -154,6 +154,7 @@ namespace XrEngine
             _worldInverseDirty = true;
             _boundsDirty = true;
             _normalMatrixDirty = true;
+            _worldPoints = null;
         }
 
         protected internal void InvalidateBounds()

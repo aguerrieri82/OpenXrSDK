@@ -16,7 +16,7 @@ namespace XrEngine
 
         }
 
-        public PlanarReflection(uint textureSize)
+        public PlanarReflection(uint textureSize, bool useSrgb = true)
         {
             AdjustIbl = true;   
 
@@ -45,7 +45,7 @@ namespace XrEngine
                 Width = TextureSize,
                 Height = TextureSize,
                 Depth = IsMultiView ? 2u : 1u,
-                Format = TextureFormat.SRgba32
+                Format = useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32
             });
 
             Offset = 0.01f;
@@ -55,13 +55,37 @@ namespace XrEngine
 
         public virtual bool PrepareMaterial(Material material)
         {
+            MaterialOverride.UseClipDistance = UseClipPlane;        
+
             if (material is IPbrMaterial pbr)
             {
                 if (pbr.Alpha == AlphaMode.BlendMain || pbr.Alpha == AlphaMode.Blend)
                     return false;
 
-                MaterialOverride.Texture = pbr.ColorMap;
-                MaterialOverride.Color = pbr.Color * MathF.Min(1, _lightIntensity * 0.5f);
+                if (MaterialOverride is TextureMaterial tex)
+                {
+                    tex.Texture = pbr.ColorMap;
+                    tex.Color = pbr.Color * MathF.Min(1, _lightIntensity * 0.5f);
+                }
+                else if (MaterialOverride is BasicMaterial bsc)
+                {
+                    var texChanged = (bsc.DiffuseTexture == null && pbr.ColorMap != null ||
+                                      bsc.DiffuseTexture != null && pbr.ColorMap == null);
+
+                    bsc.Shininess = 10;
+    
+                    bsc.DiffuseTexture = null;
+                    bsc.DiffuseTexture = pbr.ColorMap;
+                    bsc.Ambient = Color.White;
+                    bsc.Specular = Color.White;
+                    bsc.Color = pbr.Color * MathF.Min(1, _lightIntensity * 0.5f);
+
+                    if (texChanged)
+                        bsc.NotifyChanged(ObjectChangeType.Render);
+
+                }
+
+                MaterialOverride.DoubleSided = pbr.DoubleSided;
                 MaterialOverride.Alpha = pbr.Alpha;
                 return true;
             }
@@ -161,8 +185,6 @@ namespace XrEngine
                     ReflectionCamera.Eyes[i].View = refView;
                     ReflectionCamera.Eyes[i].ViewProj = refView * camera.Projection;
                 }
-
- 
             }
             else
             {
@@ -194,7 +216,7 @@ namespace XrEngine
 
         public void DrawGizmos(Canvas3D canvas)
         {
-            /*
+            return;
             var bounds = _host!.WorldBounds;
             var pos = bounds.Center;
             canvas.Save();
@@ -202,7 +224,7 @@ namespace XrEngine
             canvas.DrawPlane(_plane, pos, 1, 2, 0.1f);
             canvas.DrawLine(pos, pos + _plane.Normal);
             canvas.Restore();
-            */
+
         }
 
         [Range(-1, 1, 0.001f)]
@@ -214,7 +236,7 @@ namespace XrEngine
 
         public Texture2D Texture { get; set; }
 
-        public TextureMaterial MaterialOverride { get; set; }
+        public ShaderMaterial MaterialOverride { get; set; }
 
         [Range(1, 180, 1)]
         public float FovDegree { get; set; }

@@ -35,6 +35,7 @@ namespace XrEngine.OpenGL
                     MinFilter = TextureMinFilter.Nearest,
                     MagFilter = TextureMagFilter.Nearest,
                     MaxLevel = 0,
+                    IsMutable = true,
                     Target = TextureTarget.Texture2DArray
                 };
             }
@@ -64,20 +65,26 @@ namespace XrEngine.OpenGL
             return draw.Object!.IsVisible;
         }
 
-        protected override void UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)
+        protected override bool UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)
         {
             if (!_reflection!.UseClipPlane)
-            {
-                base.UpdateProgram(updateContext, progInst);
-                return;
-            }
-               
-            var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
-            
-            progInst.Material.NotifyChanged(ObjectChangeType.Render);
+                return base.UpdateProgram(updateContext, progInst);
 
-            progInst.UpdateProgram(updateContext, ["USE_CLIP_PLANE"], ["GL_EXT_clip_cull_distance"]);
+            if (progInst.ExtraExtensions == null)
+            {
+                progInst.ExtraFeatures = ["USE_CLIP_PLANE"];
+                progInst.ExtraExtensions = ["GL_EXT_clip_cull_distance"];
+                progInst.Invalidate();
+            }
+            
+            var upRes = base.UpdateProgram(updateContext, progInst);
+
+            var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
+
+            progInst.Program!.Use();
             progInst.Program!.SetUniform("uClipPlane", newPlane);
+
+            return upRes;
         }
 
         protected override void Draw(DrawContent draw)
@@ -93,7 +100,7 @@ namespace XrEngine.OpenGL
 
             if (_reflection == null || camera.Scene != _lastScene)
             {
-                var layer = camera.Scene.EnsureLayer<ReflectionLayer>();
+                var layer = camera.Scene.EnsureLayer<HasReflectionLayer>();
 
                 var obj = layer.Content.FirstOrDefault();
                 if (obj == null)
@@ -193,7 +200,7 @@ namespace XrEngine.OpenGL
 
         protected override IEnumerable<GlLayer> SelectLayers()
         {
-            return _renderer.Layers.Where(a => a.Type == GlLayerType.Main).Take(1);
+            return _renderer.Layers.Where(a => a.Type == GlLayerType.FullReflection).Take(1);
         }
 
         public override void Dispose()
