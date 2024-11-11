@@ -1,4 +1,5 @@
-﻿namespace XrEngine
+﻿
+namespace XrEngine
 {
 
     public enum TextureFormat
@@ -73,20 +74,24 @@
             LoadData(data);
         }
 
-        public void LoadData(TextureData data)
+        public void LoadData(TextureData data, bool initSampler = true)
         {
-            LoadData([data]);
+            LoadData([data], initSampler);
         }
 
-        public virtual void LoadData(IList<TextureData> data)
+        public virtual void LoadData(IList<TextureData> data, bool initSampler = true)
         {
             Data = data;
             Width = data[0].Width;
             Format = data[0].Format;
             Compression = data[0].Compression;
-            MagFilter = ScaleFilter.Linear;
-            MinFilter = data.Count > 1 ? ScaleFilter.LinearMipmapLinear : ScaleFilter.Linear;
-            WrapS = WrapMode.ClampToEdge;
+
+            if (initSampler)
+            {
+                MagFilter = ScaleFilter.Linear;
+                MinFilter = data.Count > 1 ? ScaleFilter.LinearMipmapLinear : ScaleFilter.Linear;
+                WrapS = WrapMode.ClampToEdge;
+            }
 
             NotifyChanged(ObjectChangeType.Render);
         }
@@ -108,6 +113,11 @@
             Data = null;
             Handle = 0;
             base.Dispose();
+        }
+
+        public override void GeneratePath(List<string> parts)
+        {
+            parts.Add($"Texture-{DateTime.UtcNow.Ticks}");
         }
 
         public IList<TextureData>? Data { get; set; }

@@ -9,7 +9,7 @@ namespace XrEngine.OpenXr
         }
 
         public InputObjectGrabber(XrPoseInput input, XrHaptic? vibrate, params XrFloatInput[] handlers)
-            : base(vibrate)
+            : base(vibrate, input.Name)
         {
             Input = input;
             Handlers = handlers;

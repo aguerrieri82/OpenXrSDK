@@ -1072,7 +1072,8 @@ namespace XrSamples
         {
             var app = CreateBaseScene();
             var scene = app.ActiveScene!;
-
+            scene.Id = Guid.Parse("9692f695-f53c-40c4-900a-d17ac94302d8");  
+            
             scene.AddComponent<PhysicsManager>();
 
             scene.AddComponent(new InputObjectForce
@@ -1128,7 +1129,10 @@ namespace XrSamples
             foreach (var mesh in car.DescendantsOrSelf().OfType<TriangleMesh>())
             {
                 Log.Info(typeof(SampleScenes), $"Optimizing {mesh.Name}");
-                XrEngine.MeshOptimizer.Simplify(mesh.Geometry!, 0.4f, 0.005f);
+
+                if (mesh.Name != "reflect_mirrors.003" && mesh.Name != "reflect_mirror_int.003")
+                    XrEngine.MeshOptimizer.Simplify(mesh.Geometry!, 0.4f, 0.005f);
+                
                 XrEngine.MeshOptimizer.OptimizeVertexCache(mesh.Geometry!);
                 XrEngine.MeshOptimizer.OptimizeOverdraw(mesh.Geometry!, 1.05f);
                 XrEngine.MeshOptimizer.OptimizeVertexFetch(mesh.Geometry!);

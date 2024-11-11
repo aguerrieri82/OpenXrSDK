@@ -24,12 +24,10 @@ namespace XrEngine.OpenGL
             _gl.Clear(ClearBufferMask.DepthBufferBit);
             _gl.DepthFunc(DepthFunction.Less);
             return base.BeginRender(camera);
-
         }
 
         protected override void EndRender()
         {
-
         }
 
         protected override ShaderMaterial CreateMaterial()
@@ -52,11 +50,8 @@ namespace XrEngine.OpenGL
             if (UseOcclusion)
             {
                 draw.Query ??= draw.Object!.GetOrCreateProp(OpenGLRender.Props.GlQuery, () => new GlQuery(_gl));
-
                 draw.Query!.Begin(QueryTarget.AnySamplesPassed);
-
                 draw.Draw!();
-
                 draw.Query.End();
             }
             else

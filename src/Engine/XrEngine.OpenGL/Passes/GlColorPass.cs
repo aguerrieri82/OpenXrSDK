@@ -71,7 +71,13 @@ namespace XrEngine.OpenGL
 
         public override void RenderLayer(GlLayer layer)
         {
-            _renderer.PushGroup($"Layer {layer.Type}");
+            if (layer.SceneLayer != null && !layer.SceneLayer.IsVisible)
+                return;
+
+            if (layer.SceneLayer == null && !layer.Scene.Layers.MainLayerVisible)
+                return;
+
+            _renderer.PushGroup($"Layer {layer.Name ?? layer.Type.ToString()}");
 
             var updateContext = _renderer.UpdateContext;
 

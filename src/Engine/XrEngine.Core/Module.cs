@@ -35,7 +35,7 @@ namespace XrEngine
             typeState.Register(ObjectIdStateManager.Instance);
 
             typeState.Register(EngineObjectStateManager.Instance);
-            typeState.Register(StateObjectManager.Instance);
+            typeState.Register(new StateObjectManager<IStateObject>());
             typeState.Register(DefaultStateManager.Instance);
             typeState.Register(ObjectStateManager.Instance);
         }

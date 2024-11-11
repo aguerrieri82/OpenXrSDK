@@ -2,11 +2,11 @@
 
 namespace XrEngine
 {
-    public class EngineObjectStateManager : ITypeStateManager<EngineObject?>
+    public class EngineObjectStateManager : StateObjectManager<EngineObject>
     {
         EngineObjectStateManager() { }
 
-        public EngineObject? Read(string key, EngineObject? destObj, Type objType, IStateContainer container)
+        public override EngineObject? Read(string key, EngineObject? destObj, Type objType, IStateContainer container)
         {
             if (destObj != null && destObj.Is(EngineObjectFlags.Readonly) && !container.Is(StateContextFlags.Store))
                 return destObj;
@@ -14,27 +14,40 @@ namespace XrEngine
             var objState = container.Enter(key, true);
 
             if (objState == null)
+            {
+                if (container.Context.Is(StateContextFlags.Update))
+                    return destObj;
                 return null;
+            }
 
             if (objState.Contains("$uri"))
             {
                 var assetUri = objState.Read<Uri>("$uri");
+
+                bool mustLoad = true;
+
                 if (destObj != null)
                 {
                     var curAsset = destObj.Component<AssetSource>();
                     if (curAsset != null && curAsset.Asset?.Source == assetUri)
-                        return destObj;
+                        mustLoad = false;
                 }
 
-                return AssetLoader.Instance.Load(assetUri, objType, destObj);
+                if (mustLoad)
+                    destObj = AssetLoader.Instance.Load(assetUri, objType, destObj);
+
+                return base.Read("Id", destObj, objType, objState);
             }
 
-            return (EngineObject?)StateObjectManager.Instance.Read(key, destObj, objType, container);
+            return base.Read(key, destObj, objType, container);
         }
 
-        public void Write(string key, EngineObject? obj, IStateContainer container)
+        public override void Write(string key, EngineObject? obj, IStateContainer container)
         {
             if (obj == null)
+                return;
+
+            if (obj.Is(EngineObjectFlags.Generated))
                 return;
 
             obj.EnsureId();
@@ -47,14 +60,13 @@ namespace XrEngine
 
             var objState = container.Enter(key);
 
-            var assetSrc = obj!.Components<AssetSource>().FirstOrDefault();
-            if (assetSrc != null)
+            if (obj.TryComponent<AssetSource>(out var assetSrc))
             {
                 objState.Write("$uri", assetSrc.Asset!.Source);
-                objState.Write("Id", obj.Id);
+                base.Write("Id", obj, objState);
             }
             else
-                StateObjectManager.Instance.Write(key, obj, container);
+                base.Write(key, obj, container);
         }
 
         public static readonly EngineObjectStateManager Instance = new();

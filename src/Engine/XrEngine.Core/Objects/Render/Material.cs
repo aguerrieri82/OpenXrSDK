@@ -53,19 +53,37 @@
         {
             foreach (var host in _hosts)
                 host.NotifyChanged(new ObjectChange(change.Type, this));
+
             base.OnChanged(change);
         }
 
         protected override void SetStateWork(IStateContainer container)
         {
+            container.ReadObject(this);
+            NotifyChanged(ObjectChangeType.Render);
             base.SetStateWork(container);
-            container.ReadObject<Material>(this);
         }
 
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
             container.WriteObject<Material>(this);
+        }
+
+        public override void GeneratePath(List<string> parts)
+        {
+            if (_hosts.Count > 0)
+            {
+                var host = _hosts.First();
+                host.GeneratePath(parts);
+                if (host is TriangleMesh mesh)
+                {
+                    var index = mesh.Materials.IndexOf(this);
+                    parts.Add($"Materials[{index}]");
+                }
+            }
+
+            base.GeneratePath(parts);
         }
 
         public IReadOnlySet<EngineObject> Hosts => _hosts;

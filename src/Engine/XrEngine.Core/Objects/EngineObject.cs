@@ -37,6 +37,8 @@
 
         public virtual void GetState(IStateContainer container)
         {
+            EnsureId();
+
             container.Write(nameof(Id), _id.Value);
 
             if (_components != null)
@@ -181,7 +183,19 @@
         public void EnsureId()
         {
             if (_id.Value == Guid.Empty)
-                _id = ObjectId.New();
+                _id = Utils.HashGuid(GeneratePath());
+        }
+
+        public string GeneratePath()
+        {
+            var parts = new List<string>();
+            GeneratePath(parts);
+            return string.Join("/", parts); 
+        }
+
+        public virtual void GeneratePath(List<string> parts)
+        {
+
         }
 
         public virtual void Reset(bool onlySelf = false)

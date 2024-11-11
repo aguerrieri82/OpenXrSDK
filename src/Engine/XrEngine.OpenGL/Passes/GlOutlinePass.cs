@@ -11,55 +11,25 @@ namespace XrEngine.OpenGL
 {
     public class GlOutlinePass : GlBaseSingleMaterialPass
     {
-        protected GlTextureRenderTarget _renderTarget;
-        protected int _bindEye;
+        protected readonly GlRenderPassTarget _passTarget;
         protected Size2I _lastSize;
-        protected readonly GlTexture _colorTexture;
-        protected readonly GlTexture _outlineTexture;
         protected readonly GlComputeProgram _outlineProgram;
 
-        public GlOutlinePass(OpenGLRender renderer, int bindEye)
+        public GlOutlinePass(OpenGLRender renderer, int boundEye = -1)
             : base(renderer)
         {
-            _renderTarget = new GlTextureRenderTarget(_gl);
-            _bindEye = bindEye;
+            _passTarget = new GlRenderPassTarget(renderer.GL);
+            _passTarget.BoundEye = boundEye;
+            _passTarget.DepthMode = TargetDepthMode.None;
+            _passTarget.AddExtra(TextureFormat.Rgba32, null, true);
 
             _outlineProgram = new GlComputeProgram(renderer.GL, "Image/outline.glsl", str => Embedded.GetString<Material>(str));
             _outlineProgram.Build();
-
-            _colorTexture = new GlTexture(_gl)
-            {
-                MinFilter = TextureMinFilter.Nearest,
-                MagFilter = TextureMagFilter.Nearest,
-                MaxLevel = 0,
-                IsMutable = true,
-                Target = TextureTarget.Texture2D,
-                EnableDebug = false
-            };
-
-            _outlineTexture = new GlTexture(_gl)
-            {
-                MinFilter = TextureMinFilter.Linear,
-                MagFilter = TextureMagFilter.Linear,
-                MaxLevel = 0,
-                IsMutable = true,
-                Target = TextureTarget.Texture2D,
-                EnableDebug = false
-            };
-
-            _colorTexture.Update(1, new TextureData
-            {
-                Width = 16,
-                Height = 16,
-                Format = TextureFormat.Rgba32,
-            });
-
-            _renderTarget.FrameBuffer.Configure(_colorTexture, null, 1);
         }
 
         protected override IGlRenderTarget? GetRenderTarget()
         {
-            return _renderTarget;
+            return _passTarget.RenderTarget;
         }
 
         protected override bool BeginRender(Camera camera)
@@ -72,28 +42,12 @@ namespace XrEngine.OpenGL
             }
 
             if (!Source.HasOutlines())
-                return false;   
+                return false;
 
-            if (!Equals(camera.ViewSize, _lastSize))
-            {
-                _lastSize = camera.ViewSize;
+            _lastSize = camera.ViewSize;
 
-                _colorTexture.Update(1, new TextureData
-                {
-                    Width = _lastSize.Width,
-                    Height = _lastSize.Height,
-                    Format = TextureFormat.Rgba32,
-                });
-
-                _outlineTexture.Update(1, new TextureData
-                {
-                    Width = _lastSize.Width,
-                    Height = _lastSize.Height,
-                    Format = TextureFormat.Rgba32,
-                });
-            }
-
-            _renderTarget.Begin(camera, _lastSize);
+            _passTarget.Configure(_lastSize.Width, _lastSize.Height, TextureFormat.Rgba32);
+            _passTarget.RenderTarget.Begin(camera, _lastSize);
 
             _renderer.State.SetView(_renderer.RenderView);
             _renderer.State.SetClearColor(Color.Transparent);
@@ -124,16 +78,18 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender()
         {
-            _renderTarget.End(true);
+            _passTarget.RenderTarget!.End(true);
 
             _outlineProgram.Use();
             _outlineProgram.SetUniform("uSize", (int)_renderer.Options.Outline.Size);
 
-            ProcessImage(_colorTexture, _outlineTexture);
+            var outlineTexture = _passTarget.GetExtra(0)!;
+
+            ProcessImage(_passTarget.ColorTexture!, outlineTexture);
 
             _renderer.RenderTarget!.Begin(_renderer.UpdateContext.Camera!, _lastSize);
 
-            OverlayTexture(_outlineTexture);
+            OverlayTexture(outlineTexture);
         }
 
         protected override IEnumerable<GlLayer> SelectLayers()
@@ -157,9 +113,7 @@ namespace XrEngine.OpenGL
         public override void Dispose()
         {
             _outlineProgram.Dispose();
-            _outlineTexture.Dispose();
-            _colorTexture.Dispose();
-            _renderTarget.Dispose();
+            _passTarget.Dispose();
             base.Dispose();
         }
 

@@ -17,7 +17,14 @@ namespace XrEngine
             ActiveComponents = VertexComponent.Position;
             _indices = [];
             _vertices = [];
+        }
 
+        public override void GeneratePath(List<string> parts)
+        {
+            if (_hosts.Count > 0)
+                _hosts.First().GeneratePath(parts);
+            parts.Add("Geometry");
+            base.GeneratePath(parts);
         }
 
         public void Attach(EngineObject host)

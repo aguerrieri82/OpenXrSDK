@@ -11,13 +11,12 @@ namespace XrEngine
     public enum MirrorMode
     {
         Planar,
-        Full 
+        Full,
+        Fixed
     }
 
     public class MirrorMaterial : ShaderMaterial
     {
-    
-
         static readonly StandardVertexShader SHADER;
 
         static MirrorMaterial()
@@ -44,7 +43,7 @@ namespace XrEngine
             if (!host.TryComponent<PlanarReflection>(out _))
                 host.AddComponent(new PlanarReflection(TextureSize, PlanarReflectionMode.Full)
                 {
-                    AutoAdjustFov = false,
+                    AutoAdjustFov = true,
                     UseClipPlane = true,
                     MaterialOverride = new BasicMaterial()
                 });
@@ -66,6 +65,8 @@ namespace XrEngine
 
             bld.AddFeature("PURE_REFLECTION");
 
+            bld.AddFeature($"MIRROR_MODE {(int)Mode}");
+
             bld.ExecuteAction((ctx, up) =>
             {
                 if (planar.Texture != null)
@@ -84,7 +85,6 @@ namespace XrEngine
 
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-                up.SetUniform("uMode", (int)Mode);
                 
             });
 

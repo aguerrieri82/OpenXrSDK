@@ -89,8 +89,8 @@ namespace XrEditor
             Mode = container.Read<SplitViewMode>("Mode");
             Size = container.Read<float>("Size");
             SizeMode = container.Read<SplitViewSizeMode>("SizeMode");
-            First = (BaseView?)container.ReadTypedObject<IStateManager>("First");
-            Second = (BaseView?)container.ReadTypedObject<IStateManager>("Second");
+            First = (BaseView?)container.CreateTypedObject<IStateManager>("First");
+            Second = (BaseView?)container.CreateTypedObject<IStateManager>("Second");
         }
     }
 }

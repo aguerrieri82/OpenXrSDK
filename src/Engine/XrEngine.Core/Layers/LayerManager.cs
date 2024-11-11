@@ -10,6 +10,7 @@
         public LayerManager(Scene3D scene)
         {
             _scene = scene;
+            MainLayerVisible = true;
         }
 
         public T Add<T>(T layer) where T : ILayer3D
@@ -77,6 +78,8 @@
         public Scene3D Scene => _scene;
 
         public IReadOnlyList<ILayer3D> Layers => _layers;
+
+        public bool MainLayerVisible { get; set; }
 
         public long Version => _version;
     }

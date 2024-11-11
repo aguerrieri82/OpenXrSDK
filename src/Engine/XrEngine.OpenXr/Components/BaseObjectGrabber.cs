@@ -25,12 +25,12 @@ namespace XrEngine.OpenXr
         private bool _isVibrating;
         protected bool _grabStarted;
 
-        public BaseObjectGrabber(XrHaptic? vibrate = null)
+        public BaseObjectGrabber(XrHaptic? vibrate = null, string? baseName = "")
         {
             Vibrate = vibrate;
             _grabView = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr(new Color(0, 1, 1, 1)));
             _grabView.Flags |= EngineObjectFlags.DisableNotifyChangedScene | EngineObjectFlags.Generated;
-            _grabView.Name = "Grab View";
+            _grabView.Name = "Grab View " + baseName;
             _grabView.Transform.SetScale(0.01f);
         }
 

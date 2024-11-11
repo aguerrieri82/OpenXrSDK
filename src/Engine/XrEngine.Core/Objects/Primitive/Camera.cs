@@ -53,12 +53,21 @@ namespace XrEngine
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
+
             BackgroundColor = container.Read<Color>(nameof(BackgroundColor));
             Near = container.Read<float>(nameof(Near));
             Far = container.Read<float>(nameof(Far));
             Exposure = container.Read<float>(nameof(Exposure));
             Projection = container.Read<Matrix4x4>(nameof(Projection));
-            Target = container.Read<Vector3>(nameof(Target));
+            _target = container.Read<Vector3>(nameof(Target));
+
+            InvalidateWorld();
+        }
+
+        protected internal override void InvalidateWorld()
+        {
+            _viewProjDirty = true;
+            base.InvalidateWorld();
         }
 
         public Camera Clone()

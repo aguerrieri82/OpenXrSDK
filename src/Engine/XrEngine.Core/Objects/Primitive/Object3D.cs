@@ -336,6 +336,17 @@ namespace XrEngine
             }
         }
 
+        public override void GeneratePath(List<string> parts)
+        {
+            if (_parent != null)
+            {
+                _parent.GeneratePath(parts);
+                parts.Add($"{Name ?? GetType().Name}[{_parent.ChildIndex(this)}]");
+            }
+            else
+                parts.Add(Name ?? GetType().Name);
+        }
+
         public Group3D? Parent => _parent;
 
         public Scene3D? Scene => _scene;

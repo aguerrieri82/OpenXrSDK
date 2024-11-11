@@ -34,6 +34,7 @@ namespace XrEditor
             _selectionLayer ??= layers.Add(new DetachedLayer()
             {
                 Name = "Selection",
+                IsVisible = false,
                 Usage = DetachedLayerUsage.Selection | DetachedLayerUsage.Outline
             });
 
@@ -89,7 +90,11 @@ namespace XrEditor
                 if (_currentPick == null)
                     _selection.Clear();
                 else
+                {
                     _selection.Set(_nodes.CreateNode(_currentPick));
+                    Log.Info(this, _lastCollision?.Point.ToString() ?? "");
+                }
+                  
             }
 
             base.OnPointerUp(ev);

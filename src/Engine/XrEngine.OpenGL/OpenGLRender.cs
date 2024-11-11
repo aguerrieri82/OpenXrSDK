@@ -98,7 +98,7 @@ namespace XrEngine.OpenGL
 
             if (_options.Outline.Use)
             {
-                _renderPasses.Add(new GlOutlinePass(this, 0));
+                _renderPasses.Add(new GlOutlinePass(this));
             }
 
             if (_options.UseHitTest)

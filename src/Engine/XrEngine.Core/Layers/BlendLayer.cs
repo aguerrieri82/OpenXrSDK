@@ -2,6 +2,11 @@
 {
     public class BlendLayer : BaseAutoLayer<TriangleMesh>
     {
+        public BlendLayer()
+        {
+            Name = "Blend";
+        }
+
         protected override bool BelongsToLayer(TriangleMesh obj)
         {
             return obj.IsVisible &&

@@ -505,6 +505,34 @@ namespace XrEngine
             base.UpdateShader(bld);
         }
 
+        public override void GetState(IStateContainer container)
+        {
+            base.GetState(container);
+
+            container.Write(nameof(Color), Color);
+            container.Write(nameof(ShadowColor), ShadowColor);
+            container.Write(nameof(Metalness), Metalness);
+            container.Write(nameof(Roughness), Roughness);
+            container.Write(nameof(OcclusionStrength), OcclusionStrength);
+            container.Write(nameof(AlphaCutoff), AlphaCutoff);
+            container.Write(nameof(NormalScale), NormalScale);
+            container.Write(nameof(UseEnvDepth), UseEnvDepth);
+        }
+
+        protected override void SetStateWork(IStateContainer container)
+        {
+            UseEnvDepth = container.Read<bool>(nameof(UseEnvDepth));
+            NormalScale = container.Read<float>(nameof(NormalScale));
+            AlphaCutoff = container.Read<float>(nameof(AlphaCutoff));
+            OcclusionStrength = container.Read<float>(nameof(OcclusionStrength));
+            Roughness = container.Read<float>(nameof(Roughness));
+            Metalness = container.Read<float>(nameof(Metalness));
+            ShadowColor = container.Read<Color>(nameof(ShadowColor));
+            Color = container.Read<Color>(nameof(Color));
+
+            base.SetStateWork(container);
+        }
+
 
         public Texture2D? OcclusionMap { get; set; }
 
@@ -538,6 +566,7 @@ namespace XrEngine
         public float NormalScale { get; set; }
 
         public bool UseEnvDepth { get; set; }
+
         public static bool ForceIblTransform { get; set; }
     }
 }

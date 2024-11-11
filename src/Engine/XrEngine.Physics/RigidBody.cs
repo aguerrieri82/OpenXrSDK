@@ -400,6 +400,7 @@ namespace XrEngine.Physics
         public override void Reset(bool onlySelf = false)
         {
             Destroy();
+            base.Reset(onlySelf);
         }
 
         protected override void Start(RenderContext ctx)

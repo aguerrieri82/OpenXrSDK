@@ -100,7 +100,7 @@ namespace XrEngine.Gltf
                     case "tex":
                         var texId = int.Parse(uri.Segments[2].TrimEnd('/'));
                         //TODO pass extensions
-                        result = cache.Loader!.ProcessTexture(cache.Loader.Model!.Textures[texId], texId, null, (Texture2D?)destObj).Result;
+                        result = cache.Loader!.ProcessTexture(texId, null, (Texture2D?)destObj).Result;
                         break;
                     case "geo":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
@@ -110,11 +110,11 @@ namespace XrEngine.Gltf
                         break;
                     case "mat":
                         var matId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessMaterialV2(cache.Loader!.Model!.Materials[matId], matId, (PbrV2Material?)destObj);
+                        result = cache.Loader!.ProcessMaterialV2(matId, (PbrV2Material?)destObj);
                         break;
                     case "mesh":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessMesh(cache.Loader!.Model!.Meshes[meshId], meshId, (TriangleMesh?)destObj);
+                        result = cache.Loader!.ProcessMesh(meshId, (TriangleMesh?)destObj);
                         break;
                     default:
                         throw new NotSupportedException();
