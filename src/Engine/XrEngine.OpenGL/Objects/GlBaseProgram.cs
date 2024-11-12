@@ -143,19 +143,16 @@ namespace XrEngine.OpenGL
             return isChanged;
         }
 
-        static readonly Dictionary<Texture2D, GlTexture> _textures = [];
-        static readonly Dictionary<Texture2D, GlTextureBuffer> _textureBuffers = [];
-
         public void LoadTexture(Texture value, int slot = 0)
         {
             var tex2d = value as Texture2D ?? throw new NotSupportedException();
 
             if (tex2d.Type == TextureType.Buffer)
             {
-                if (!_textureBuffers.TryGetValue(tex2d, out var glTextBuf))
+                if (!ObjectBinder.TryGet(tex2d, out GlTextureBuffer? glTextBuf))
                 {
                     glTextBuf = new GlTextureBuffer(_gl);
-                    _textureBuffers[tex2d] = glTextBuf;
+                    ObjectBinder.Bind(tex2d, glTextBuf);
                 }
 
                 bool isUpdate = tex2d.Version != glTextBuf.Version && tex2d.Data != null && tex2d.Data.Count > 0;
@@ -163,22 +160,18 @@ namespace XrEngine.OpenGL
                 if (isUpdate)
                     glTextBuf.Update(tex2d.Data![0]);
 
-                GlState.Current!.SetActiveTexture(glTextBuf.Texture, slot);
+                GlState.Current!.LoadTexture(glTextBuf.Texture, slot);
 
                 glTextBuf.Version = tex2d.Version;
             }
             else
             {
-                if (!_textures.TryGetValue(tex2d, out var glText))
-                {
+                if (!ObjectBinder.TryGet(tex2d, out GlTexture? glText))
                     glText = tex2d.ToGlTexture();
-                    _textures[tex2d] = glText;
-                }
 
                 bool isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
 
-#warning FORCE ACTIVE TEXTURE FOR PLANAR REFLECTION
-                GlState.Current!.SetActiveTexture(glText, slot, true);
+                GlState.Current!.LoadTexture(glText, slot, true);
 
                 if (isUpdate)
                     glText.Update(tex2d, false);
@@ -372,11 +365,9 @@ namespace XrEngine.OpenGL
         public override void Dispose()
         {
             if (_handle != 0)
-            {
                 _gl.DeleteProgram(_handle);
-                _handle = 0;
-            }
-            GC.SuppressFinalize(this);
+
+            base.Dispose(); 
         }
 
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]

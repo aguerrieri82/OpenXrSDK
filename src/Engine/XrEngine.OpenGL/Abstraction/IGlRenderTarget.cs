@@ -9,7 +9,7 @@ namespace XrEngine.OpenGL
 {
     public interface IGlRenderTarget : IDisposable
     {
-        void Begin(Camera camera, Size2I viewSize);
+        void Begin(Camera camera);
 
         void End(bool finalPass);
 

@@ -18,8 +18,10 @@ namespace XrEngine.OpenGL
             _frameBuffer = new GlTextureFrameBuffer(_gl);
         }
 
-        public void Begin(Camera camera, Size2I viewSize)
+        public void Begin(Camera camera)
         {
+            camera.ViewSize = _frameBuffer.Size;
+            GlState.Current!.SetView(new Rect2I(camera.ViewSize));
             _frameBuffer.Bind();
         }
 

@@ -7,7 +7,7 @@ namespace XrEngine
         protected int _fpsFrameCount;
         protected int _frameCount;
         protected DateTime _fpsLastTime;
-        protected Dictionary<Type, double> _updateTimes = [];
+        protected Dictionary<string, double> _updateTimes = [];
 
         public void BeginFrame()
         {
@@ -39,14 +39,16 @@ namespace XrEngine
 
             var type = renderUpdate.GetType();
 
-            if (!_updateTimes.TryGetValue(type, out _))
-                _updateTimes[type] = total;
+            if (!_updateTimes.TryGetValue(type.FullName!, out _))
+                _updateTimes[type.FullName!] = total;
             else
-                _updateTimes[type] += total;
+                _updateTimes[type.FullName!] += total;
         }
+
+        public long LayerChanges;
 
         public long Frame => _frameCount;
 
-        public int Fps { get; protected set; }
+        public int Fps { get; internal set; }
     }
 }

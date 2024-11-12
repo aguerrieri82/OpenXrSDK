@@ -11,8 +11,7 @@ namespace XrEngine
     public enum MirrorMode
     {
         Planar,
-        Full,
-        Fixed
+        Full
     }
 
     public class MirrorMaterial : ShaderMaterial

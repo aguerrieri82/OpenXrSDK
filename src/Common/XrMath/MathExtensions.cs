@@ -174,7 +174,6 @@ namespace XrMath
 
         #region BOUNDS
 
-
         public static CubeFaces Faces(this Bounds3 self)
         {
             var C1 = new Vector3(self.Min.X, self.Min.Y, self.Min.Z);
@@ -214,10 +213,10 @@ namespace XrMath
             for (var i = 0; i < planes.Length; i++)
             {
                 var plane = planes[i];
-
+                /*
                 if (plane.IntersectLine(self.Min, self.Max))
                     return true;
-
+                */
                 var positiveVertex = new Vector3(
                     (plane.Normal.X >= 0) ? self.Max.X : self.Min.X,
                     (plane.Normal.Y >= 0) ? self.Max.Y : self.Min.Y,
@@ -669,6 +668,7 @@ namespace XrMath
             return angle * sign;
         }
 
+
         #endregion
 
         #region RAY 
@@ -1025,6 +1025,11 @@ namespace XrMath
         #endregion
 
         #region MISC
+
+        public static Vector2 ToVector2(this Size2I self)
+        {
+            return new Vector2(self.Width, self.Height);
+        }   
 
         public static bool Contains(this Rect2 self, Vector2 point)
         {

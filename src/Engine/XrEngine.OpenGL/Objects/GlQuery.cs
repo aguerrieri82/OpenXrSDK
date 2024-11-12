@@ -43,11 +43,8 @@ namespace XrEngine.OpenGL
         public override void Dispose()
         {
             if (_handle != 0)
-            {
                 _gl.DeleteQuery(_handle);
-                _handle = 0;
-            }
-            GC.SuppressFinalize(this);
+            base.Dispose();
         }
 
         protected void Create()

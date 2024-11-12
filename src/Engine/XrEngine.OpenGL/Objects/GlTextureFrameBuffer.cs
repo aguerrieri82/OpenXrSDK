@@ -5,14 +5,16 @@ using Silk.NET.OpenGLES.Extensions.EXT;
 using Silk.NET.OpenGL;
 #endif
 
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
     public class GlTextureFrameBuffer : GlBaseFrameBuffer, IGlFrameBuffer
     {
         protected uint _sampleCount;
+        private Size2I _size;
         protected readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
-        protected readonly HashedArray<DrawBufferMode> _drawBuffers = new() { Sort = true };
+        protected readonly MutableArray<DrawBufferMode> _drawBuffers;
 
 #if GLES
         readonly ExtMultisampledRenderToTexture _extMs;
@@ -21,6 +23,7 @@ namespace XrEngine.OpenGL
         public GlTextureFrameBuffer(GL gl)
            : base(gl)
         {
+            _drawBuffers = new MutableArray<DrawBufferMode> { Sort = true };    
 #if GLES
             gl.TryGetExtension(out _extMs);
 #endif
@@ -81,6 +84,8 @@ namespace XrEngine.OpenGL
             }
 
             Check();
+
+            UpdateSize();
         }
 
 
@@ -96,7 +101,6 @@ namespace XrEngine.OpenGL
             if (Color != null)
                 BindAttachment(Color, FramebufferAttachment.ColorAttachment0, true);
 
-
             if (Depth != null)
             {
                 var attachment = GlUtils.IsDepthStencil(Depth.InternalFormat) ?
@@ -106,7 +110,10 @@ namespace XrEngine.OpenGL
             }
 
             Check();
+
+            UpdateSize();
         }
+
 
         public override void Bind()
         {
@@ -282,6 +289,15 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
+        protected void UpdateSize()
+        {
+            if (Color != null)
+                _size = new Size2I(Color.Width, Color.Height);
+            else if (Depth != null)
+                _size = new Size2I(Depth.Width, Depth.Height);
+        }
+
+        public Size2I Size => _size;
 
         public GlTexture? Color { get; protected set; }
 

@@ -80,10 +80,9 @@ namespace XrEngine.OpenGL
             {
                 _gl.DeleteRenderbuffer(_handle);
                 _attached.Remove(_handle);
-                _handle = 0;
             }
 
-            GC.SuppressFinalize(this);
+            base.Dispose();
         }
 
         public static GlRenderBuffer Attach(GL gl, uint handle, RenderbufferTarget target = RenderbufferTarget.Renderbuffer)

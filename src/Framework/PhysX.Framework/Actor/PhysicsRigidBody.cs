@@ -102,6 +102,13 @@ namespace PhysX.Framework
             set => RigidBody.SetRigidBodyFlagMut(PxRigidBodyFlag.Kinematic, value);
         }
 
+        public bool RetainAccelerations
+        {
+            get => (RigidBody.GetRigidBodyFlags() & PxRigidBodyFlags.RetainAccelerations) == PxRigidBodyFlags.RetainAccelerations;
+            set => RigidBody.SetRigidBodyFlagMut(PxRigidBodyFlag.RetainAccelerations, value);
+        }
+
+
         public float MaxContactImpulse
         {
             get => RigidBody.GetMaxContactImpulse();

@@ -175,38 +175,39 @@ namespace XrEngine.OpenGL
             ActiveTexture ??= (_gl.GetInteger(GetPName.ActiveTexture) - (int)GLEnum.Texture0);
 
             var curSlotValue = TexturesSlots[ActiveTexture.Value];
+
             if (curSlotValue == texId && !force)
                 return;
 
             _gl.BindTexture(target, texId);
 
             TexturesSlots[ActiveTexture.Value] = texId;
-
-            return;
         }
 
-        public void SetActiveTexture(uint texId, TextureTarget target, int slot, bool force = false)
+        public void SetActiveTexture(int slot, bool force = false)
+        {
+            if (ActiveTexture != slot || force)
+            {
+                _gl.ActiveTexture(TextureUnit.Texture0 + slot);
+                ActiveTexture = slot;
+            }
+        }
+
+        public void LoadTexture(uint texId, TextureTarget target, int slot, bool force = false)
         {
             var curSlotValue = TexturesSlots[slot];
 
             if (curSlotValue == texId && !force)
                 return;
 
-            bool forceBind = force;
+            SetActiveTexture(slot, force);
 
-            if (ActiveTexture != slot || force)
-            {
-                _gl.ActiveTexture(TextureUnit.Texture0 + slot);
-                ActiveTexture = slot;
-                forceBind = true;
-            }
-
-            BindTexture(target, texId, forceBind);
+            BindTexture(target, texId, force);
         }
 
-        public void SetActiveTexture(GlTexture glTex, int slot, bool force = false)
+        public void LoadTexture(GlTexture glTex, int slot, bool force = false)
         {
-            SetActiveTexture(glTex.Handle, glTex.Target, slot, force);
+            LoadTexture(glTex.Handle, glTex.Target, slot, force);
             glTex.Slot = slot;
         }
 
@@ -429,6 +430,14 @@ namespace XrEngine.OpenGL
             buffer.Slot = slot;
 
             BufferSlots[slot] = buffer.Handle;
+        }
+
+        public void ResetTextures()
+        {
+            for (var i = 0; i < TexturesSlots.Length; i++)
+                TexturesSlots[i] = 0;
+
+            ActiveTexture = null;
         }
 
         public float? ClearDepth;

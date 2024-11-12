@@ -136,6 +136,11 @@
             Changed?.Invoke(this, change);
         }
 
+        public void DeleteProp(string name)
+        {
+            _props?.Remove(name); 
+        }
+
         public void SetProp(string name, object? value)
         {
             _props ??= [];
@@ -170,12 +175,14 @@
 
             if (_props != null)
             {
-                foreach (var component in _props.Values.OfType<IDisposable>())
-                    component.Dispose();
-                foreach (var component in _props.Values.OfType<IObjectTool>())
-                    component.Deactivate();
+                foreach (var prop in _props.Values.OfType<IDisposable>())
+                    prop.Dispose();
+                foreach (var prop in _props.Values.OfType<IObjectTool>())
+                    prop.Deactivate();
                 _props = null;
             }
+
+            ObjectBinder.Unbind(this);
 
             GC.SuppressFinalize(this);
         }

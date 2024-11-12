@@ -62,9 +62,7 @@ namespace XrEngine.OpenGL
                 var cache = _shaders.First(a => a.Value == this);
                 _shaders.Remove(cache.Key);
 
-                _handle = 0;
-
-                GC.SuppressFinalize(this);
+                base.Dispose();
             }
         }
 

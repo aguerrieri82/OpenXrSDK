@@ -288,7 +288,6 @@ namespace XrEngine.OpenGL
             _updateCtx.Lights = _mainLayer!.Content.Lights;
             _updateCtx.LightsHash = _mainLayer.Content.LightsHash;
             _updateCtx.ViewSize = new Size2I(view.Width, view.Height);
-            _updateCtx.Camera!.FrustumPlanes(_updateCtx.FrustumPlanes);
             _updateCtx.ContextVersion++;
 
             foreach (var pass in _renderPasses)
@@ -296,6 +295,8 @@ namespace XrEngine.OpenGL
 
             foreach (var pass in _renderPasses)
             {
+                _updateCtx.Pass = pass;
+
                 PushGroup($"Pass {pass.GetType().Name}");
 
                 pass.Render(ctx);

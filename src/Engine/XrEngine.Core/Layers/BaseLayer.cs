@@ -17,6 +17,10 @@
             IsVisible = true;
         }
 
+        public void EnsureId()
+        {
+        }
+
         public void Attach(LayerManager manager)
         {
             _manager = manager;

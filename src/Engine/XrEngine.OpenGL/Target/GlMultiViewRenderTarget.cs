@@ -46,8 +46,11 @@ namespace XrEngine.OpenGL
             _gl = gl;
         }
 
-        public void Begin(Camera camera, Size2I viewSize)
+        public void Begin(Camera camera)
         {
+            camera.ViewSize = _frameBuffer.Size;
+            GlState.Current!.SetView(new Rect2I(camera.ViewSize));
+
             _frameBuffer.Bind();
 
             var eyes = camera.Eyes;

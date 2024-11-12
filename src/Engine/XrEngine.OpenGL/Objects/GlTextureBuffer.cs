@@ -93,6 +93,7 @@ namespace XrEngine.OpenGL
         {
             _texture.Dispose();
             _buffer.Dispose();
+            base.Dispose();
         }
 
         public GlBuffer<byte> Buffer => _buffer;

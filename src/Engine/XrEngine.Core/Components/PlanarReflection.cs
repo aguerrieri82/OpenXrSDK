@@ -17,6 +17,8 @@ namespace XrEngine
         private float _lightIntensity;
         private Plane _plane;
         private PlanarReflectionMode _mode;
+        private PerspectiveCamera _refCamera;
+        private Bounds3 _clipBounds;
 
         public PlanarReflection()
             : this(1024)
@@ -28,11 +30,14 @@ namespace XrEngine
         {
             _mode = mode;
 
+            _refCamera = new PerspectiveCamera()
+            {
+                Name = "ReflectionCamera"
+            };
+
             AdjustIbl = true;   
 
             TextureSize = textureSize;
-
-            ReflectionCamera = new PerspectiveCamera();
 
             if (_mode== PlanarReflectionMode.ColorOnly)
             {
@@ -95,51 +100,55 @@ namespace XrEngine
 
         protected void AdjustFov()
         {
-            ReflectionCamera.SetFov(FovDegree, ReflectionCamera.ViewSize.Width, ReflectionCamera.ViewSize.Height);
-
-            _host!.UpdateBounds(true);
-
-            var bounds = _host!.WorldBounds!.Points.Select(a => ReflectionCamera.Project(a)).ComputeBounds();
-            var scaleRatio = 2.0f / MathF.Max(bounds.Size.X, bounds.Size.Y);
-            
+            var scaleRatio = 2.0f / MathF.Max(_clipBounds.Size.X, _clipBounds.Size.Y);   
             if (scaleRatio < 1)
                 return;
 
             var newFovRadians = 2.0f * MathF.Atan(MathF.Tan(FovDegree / 2.0f) / scaleRatio);
-            if (!float.IsNaN(newFovRadians))
+
+            if (float.IsNaN(newFovRadians))
+                return;
+
+            _refCamera.FovDegree = newFovRadians * 180.0f / MathF.PI;
+            _refCamera.UpdateProjection();
+
+            var newBounds = _host!.WorldBounds!.Points.Select(a => _refCamera.Project(a)).ComputeBounds();
+
+            var proj = _refCamera.Projection;
+
+            var regionDistance = Math.Abs(newBounds.Center.Z);
+
+            proj.M31 = newBounds.Center.X / regionDistance;
+            proj.M32 = newBounds.Center.Y / regionDistance;
+
+            _refCamera.Projection = proj;
+
+            if (_refCamera.Eyes != null && _refCamera.Eyes.Length == 2)
             {
-                ReflectionCamera.FovDegree = newFovRadians * 180.0f / MathF.PI;
-                ReflectionCamera.UpdateProjection();
-
-                var newBounds = _host!.WorldBounds!.Points.Select(a => ReflectionCamera.Project(a)).ComputeBounds();
-                //var newBounds = bounds;
-                var proj = ReflectionCamera.Projection;
-
-                var regionDistance = Math.Abs(newBounds.Center.Z);
-                var horizontalOffset = (newBounds.Center.X / regionDistance);
-                var verticalOffset = (newBounds.Center.Y / regionDistance);
-
-                proj.M31 = horizontalOffset; 
-                proj.M32 = verticalOffset;
-
-                ReflectionCamera.Projection = proj;
+                _refCamera.Eyes[0].Projection = proj;
+                _refCamera.Eyes[0].ViewProj = _refCamera.Eyes[0].View * proj;
+                _refCamera.Eyes[1].Projection = proj;
+                _refCamera.Eyes[1].ViewProj = _refCamera.Eyes[1].View * proj;
             }
         }
 
-        public void Update(Camera camera, int boundEye)
+        public void Update(Camera mainCamera, int boundEye)
         {
-            var normal = _host!.Forward.Normalize();
+            if (_host == null)
+                return;
+
+            var normal = _host.Forward.Normalize();
 
             _host.UpdateBounds(true);
 
-            var pos = _host!.WorldBounds.Center;
+            var pos = _host.WorldBounds.Center;
 
             _plane = new Plane(normal, -Vector3.Dot(normal, pos) + Offset);
 
-            ReflectionCamera.Far = camera.Far;
-            ReflectionCamera.Near = camera.Near;
+            _refCamera.Far = mainCamera.Far;
+            _refCamera.Near = mainCamera.Near;
 
-            var ratio = camera.ViewSize.Width / (float)camera.ViewSize.Height;
+            var ratio = mainCamera.ViewSize.Width / (float)mainCamera.ViewSize.Height;
 
             var curSize = new Size2
             {
@@ -155,8 +164,8 @@ namespace XrEngine
                 {
                     MagFilter = ScaleFilter.Linear,
                     MinFilter = ScaleFilter.Linear,
-                    WrapS = WrapMode.ClampToBorder,
-                    WrapT = WrapMode.ClampToBorder,
+                    WrapS = Wrap,
+                    WrapT = Wrap,
                     BorderColor = Color.White,
                     Depth = IsMultiView ? 2u : 1u,
                     MipLevelCount = 1
@@ -169,23 +178,19 @@ namespace XrEngine
                     Depth = IsMultiView ? 2u : 1u,
                     Format = UseSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32
                 }, false);
-
-                ReflectionCamera.ViewSize = new Size2I
-                {
-                    Width = Texture.Width,
-                    Height = Texture.Height
-                };
             }
 
-            ReflectionCamera.SetFov(FovDegree, Texture.Width, Texture.Height);
+            _refCamera.SetFov(FovDegree, Texture.Width, Texture.Height);
 
-            if (IsMultiView && boundEye == -1)
+            if (IsMultiView)
             {
-                Debug.Assert(camera.Eyes != null && camera.Eyes.Length == 2);
+                Debug.Assert(mainCamera.Eyes != null && mainCamera.Eyes.Length == 2);
+
+                _refCamera.Eyes ??= new CameraEye[2];
 
                 for (var i = 0; i < 2; i++)
                 {
-                    var curWorld = camera.Eyes[i].World;
+                    var curWorld = mainCamera.Eyes[i].World;
 
                     var cameraPos = curWorld.Translation;
 
@@ -202,49 +207,19 @@ namespace XrEngine
                         Vector3.Reflect(up, normal)
                     );
 
-                    if (ReflectionCamera.Eyes == null)
-                        ReflectionCamera.Eyes = new CameraEye[2];
-                    
                     Matrix4x4.Invert(refView, out var world);
 
-                    ReflectionCamera.Eyes[i].World = world;
-                    ReflectionCamera.Eyes[i].Projection = ReflectionCamera.Projection;
-                    ReflectionCamera.Eyes[i].View = refView;
-                    ReflectionCamera.Eyes[i].ViewProj = refView * ReflectionCamera.Projection;
+                    _refCamera.Eyes[i].World = world;
+                    _refCamera.Eyes[i].Projection = _refCamera.Projection;
+                    _refCamera.Eyes[i].View = refView;
+                    _refCamera.Eyes[i].ViewProj = refView * _refCamera.Projection;
                 }
-            }
-            else if (boundEye != -1)
-            {
-                var eye = camera.Eyes![boundEye];
 
-                var cameraPos = eye.World.Translation;
-                var forward = -Vector3.UnitZ.ToDirection(eye.World);
-                var up = Vector3.UnitY.ToDirection(eye.World);
-
-                var distance = Vector3.Dot(normal, cameraPos - pos);
-
-                var refPos = cameraPos - 2 * distance * normal;
-
-                var refView = Matrix4x4.CreateLookAt(
-                    refPos,
-                    refPos + Vector3.Reflect(forward, normal),
-                    Vector3.Reflect(up, normal)
-                );
-
-         
-                ReflectionCamera.View = refView;
-
-                if (ReflectionCamera.Eyes == null)
-                    ReflectionCamera.Eyes = new CameraEye[2];
-
-                ReflectionCamera.Eyes[boundEye].World = ReflectionCamera.WorldMatrix;
-                ReflectionCamera.Eyes[boundEye].Projection = ReflectionCamera.Projection;
-                ReflectionCamera.Eyes[boundEye].View = refView;
-                ReflectionCamera.Eyes[boundEye].ViewProj = refView * ReflectionCamera.Projection;
+                _refCamera.WorldMatrix = _refCamera.Eyes[0].World.InterpolateWorldMatrix(_refCamera.Eyes[1].World, 0.5f);
             }
             else
             {
-                var cameraPos = camera.WorldPosition;
+                var cameraPos = mainCamera.WorldPosition;
 
                 var distance = Vector3.Dot(normal, cameraPos - pos);
 
@@ -252,17 +227,24 @@ namespace XrEngine
 
                 var refView = Matrix4x4.CreateLookAt(
                     refPos,
-                    refPos + Vector3.Reflect(camera.Forward, normal),
-                    Vector3.Reflect(camera.Up, normal)
+                    refPos + Vector3.Reflect(mainCamera.Forward, normal),
+                    Vector3.Reflect(mainCamera.Up, normal)
                 );
 
-                ReflectionCamera.View = refView;
+                _refCamera.View = refView;
             }
+            
+            _host.UpdateBounds();
+
+            _refCamera.FovDegree = FovDegree;
+            _refCamera.UpdateProjection();
+
+            _clipBounds = _host.WorldBounds!.Points.Select(_refCamera.Project).ComputeBounds();
 
             if (AutoAdjustFov)
                 AdjustFov();
 
-            if (_host?.Scene != null)
+            if (_host.Scene != null)
                 _lightIntensity = _host.Scene.Descendants<Light>().Visible().Select(a => a.Intensity).Sum();
         }
 
@@ -282,18 +264,16 @@ namespace XrEngine
         [Range(-1, 1, 0.001f)]
         public float Offset { get; set; }
 
-        public bool RenderEnvironment { get; set; }
-
-        public PerspectiveCamera ReflectionCamera { get; }
+        [Range(1, 180, 1)]
+        public float FovDegree { get; set; }
 
         public Texture2D? Texture { get; set; }
 
         public ShaderMaterial? MaterialOverride { get; set; }
 
-        [Range(1, 180, 1)]
-        public float FovDegree { get; set; }
-
         public uint TextureSize { get; set; }
+
+        public WrapMode Wrap { get; set; }
 
         public bool AutoAdjustFov { get; set; }
 
@@ -301,11 +281,17 @@ namespace XrEngine
 
         public bool AdjustIbl { get; set; }
 
-        public bool UseSrgb { get; set; }   
+        public bool UseSrgb { get; set; }
+
+        public bool RenderEnvironment { get; set; }
 
         public Plane Plane => _plane;
 
+        public Bounds3 ClipBounds => _clipBounds;
+
         public PlanarReflectionMode Mode => _mode;
+
+        public PerspectiveCamera ReflectionCamera => _refCamera;
 
         public static bool IsMultiView { get; set; }
 

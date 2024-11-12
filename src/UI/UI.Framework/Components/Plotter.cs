@@ -470,7 +470,7 @@ namespace CanvasUI.Components
 
         protected override bool NotifyDown(UiPointerEvent ev, Vector2 value)
         {
-            return ev.Buttons == UiPointerButton.Left;
+            return ev.Pointer!.Buttons == UiPointerButton.Left;
         }
 
         protected override bool NotifyMove(UiPointerEvent ev, Vector2 value)
@@ -517,7 +517,7 @@ namespace CanvasUI.Components
 
         protected override bool NotifyDown(UiPointerEvent ev, Vector2 value)
         {
-            return ev.Buttons == UiPointerButton.Right;
+            return ev.Pointer!.Buttons == UiPointerButton.Right;
         }
 
         protected override void StartCapture(UiPointerEvent uiEvent)
@@ -972,6 +972,9 @@ namespace CanvasUI.Components
 
                 foreach (var serie in Series.Where(a => a.IsVisible))
                     maxW = MathF.Max(maxW, font.MeasureText(GetLegendLabel(serie)));
+
+                if (float.IsInfinity(maxW))
+                    maxW = 0;
 
                 _chartArea.Left += maxW + 16;
                 _legendArea = new Rect2(_contentRect.X, _contentRect.Y, maxW, _contentRect.Height);

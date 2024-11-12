@@ -101,6 +101,7 @@ namespace XrSamples.Components
                 mirror.Materials.Add(new MirrorMaterial
                 {
                     TextureSize = 512,
+                    Mode = MirrorMode.Full,
                     DoubleSided = false
                 });
             }

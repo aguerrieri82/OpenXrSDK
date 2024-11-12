@@ -4,6 +4,8 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using XrMath;
+
 namespace XrEngine.OpenGL
 {
     public interface IGlFrameBuffer : IGlObject
@@ -23,5 +25,7 @@ namespace XrEngine.OpenGL
         void Check();
 
         void SetDrawBuffers(params DrawBufferMode[] modes);
+
+        Size2I Size { get; }    
     }
 }

@@ -7,5 +7,7 @@
         void Capture(UiElement element);
 
         void Release();
+
+        UiPointerButton Buttons { get; }    
     }
 }

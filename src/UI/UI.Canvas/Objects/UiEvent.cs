@@ -13,6 +13,7 @@ namespace CanvasUI
         Right = 0x4
     }
 
+
     public enum UiEventType
     {
         GotFocus,

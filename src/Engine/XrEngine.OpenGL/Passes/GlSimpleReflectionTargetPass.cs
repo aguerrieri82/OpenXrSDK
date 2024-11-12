@@ -133,12 +133,11 @@ namespace XrEngine.OpenGL
             _renderer.UpdateContext.Camera = _reflection.ReflectionCamera;
 
             _passTarget.Configure(_reflection.Texture!);
-            _passTarget.RenderTarget.Begin(_reflection.ReflectionCamera, new Size2I(_reflection.Texture!.Width, _reflection.Texture.Height));
+            _passTarget.RenderTarget.Begin(_reflection.ReflectionCamera);
 
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetClearDepth(1.0f);
-            _renderer.State.SetView(new Rect2I(0, 0, _reflection.Texture.Width, _reflection.Texture.Height));
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 

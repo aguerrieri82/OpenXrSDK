@@ -4,12 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace XrEngine.OpenGL
@@ -41,6 +36,7 @@ namespace XrEngine.OpenGL
         private GL _gl;
         private List<ExtraTexture> _extras = [];
         private bool _isDirty;
+        private GlTexture? _lastColorTexture;
 
         public GlRenderPassTarget(GL gL)
         {
@@ -50,22 +46,10 @@ namespace XrEngine.OpenGL
             DepthFormat = TextureFormat.Depth24Float;
         }
 
-        [MemberNotNull(nameof(RenderTarget))]
-        public void Configure(Texture colorTexture)
-        {
-            Configure(colorTexture.ToGlTexture());  
-        }
-
-        [MemberNotNull(nameof(RenderTarget))]
-        public void Configure(GlTexture colorTexture)
-        {
-            _colorTexture = colorTexture;
-            Configure(colorTexture.Width, colorTexture.Height, GlUtils.GetTextureFormat(colorTexture.InternalFormat));
-        }
 
         public GlTexture? GetExtra(int id)
         {
-            return _extras[id].Texture; 
+            return _extras[id].Texture;
         }
 
         public int AddExtra(TextureFormat format, FramebufferAttachment? attachment, bool isMutable)
@@ -85,11 +69,24 @@ namespace XrEngine.OpenGL
         }
 
         [MemberNotNull(nameof(RenderTarget))]
+        public void Configure(Texture colorTexture)
+        {
+            Configure(colorTexture.ToGlTexture());  
+        }
+
+        [MemberNotNull(nameof(RenderTarget))]
+        public void Configure(GlTexture colorTexture)
+        {
+            _colorTexture = colorTexture;
+            Configure(colorTexture.Width, colorTexture.Height, GlUtils.GetTextureFormat(colorTexture.InternalFormat));
+        }
+
+        [MemberNotNull(nameof(RenderTarget))]
         public void Configure(uint width, uint height, TextureFormat format)
         {
             bool updateTarget = BoundEye != -1;
 
-            bool isColorChanged = false;
+            bool isColorChanged = _colorTexture != _lastColorTexture;
 
             var depth = IsMultiView ? 2u : 1u;
 
@@ -128,7 +125,6 @@ namespace XrEngine.OpenGL
 
                 _mustDisposeColor = true;
     
-                updateTarget = true;
                 isColorChanged = true;
             }
 
@@ -203,7 +199,7 @@ namespace XrEngine.OpenGL
                 _isDirty = false;   
             }
 
-            if (updateTarget)
+            if (updateTarget || isColorChanged)
             {
                 if (_renderTarget is GlMultiViewRenderTarget mv)
                     mv.FrameBuffer.Configure(_colorTexture, (GlTexture)_depthBuffer!, 1);
@@ -218,6 +214,8 @@ namespace XrEngine.OpenGL
             }
 
             FrameBuffer!.Check();
+
+            _lastColorTexture = _colorTexture;
         }
 
         public void Dispose()

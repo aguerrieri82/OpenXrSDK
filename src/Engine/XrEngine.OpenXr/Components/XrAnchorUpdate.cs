@@ -47,7 +47,7 @@ namespace XrEngine.OpenXr
             if (loc == null || !loc.IsValid)
                 return;
 
-            _host?.SetWorldPoseIfChanged(loc.Pose, 0.005f);
+            _host?.SetWorldPoseIfChanged(loc.Pose, true, 0.005f);
 
             if (LogChanges)
             {

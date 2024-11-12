@@ -37,6 +37,8 @@ namespace XrSamples
 
         public PlotterTimeLogger(Plotter plotter)
         {
+            IsEnabled = true;
+
             _plotter = plotter;
 
             _notifyTimer = new Timer(state => OnNotify(), null, Timeout.Infinite, Timeout.Infinite);
@@ -75,6 +77,9 @@ namespace XrSamples
 
         public void Checkpoint(string name, Color color)
         {
+            if (!IsEnabled)
+                return;
+
             if (!EnsureDispatcher())
                 return;
 
@@ -91,19 +96,19 @@ namespace XrSamples
 
         public void LogValue<T>(string name, T value)
         {
+            if (!IsEnabled)
+                return;
+
             if (value is float fValue)
                 LogValue(name, fValue);
         }
 
-        [MemberNotNullWhen(true, nameof(_dispatcher))]
-        protected bool EnsureDispatcher()
-        {
-            _dispatcher = EngineApp.Current?.Renderer?.Dispatcher;
-            return _dispatcher != null;
-        }
 
         public void LogValue(string name, float value)
         {
+            if (!IsEnabled)
+                return;
+
             var serie = (DiscretePlotterSerie?)_plotter.Series.FirstOrDefault(a => a.Name == name);
 
             if (serie == null)
@@ -114,7 +119,7 @@ namespace XrSamples
                 {
                     Name = name,
                     Color = PALETTE[index],
-                    MinGapX = 1,
+                    MinGapX = 10,
                     SampleMode = SerieSampleMode.Nearest
                 };
 
@@ -143,7 +148,16 @@ namespace XrSamples
             _plotter.CheckPoints.Clear();
         }
 
+        [MemberNotNullWhen(true, nameof(_dispatcher))]
+        protected bool EnsureDispatcher()
+        {
+            _dispatcher = EngineApp.Current?.Renderer?.Dispatcher;
+            return _dispatcher != null;
+        }
+
+        
         public int RetainTimeMs { get; set; }
 
+        public bool IsEnabled { get; set; }
     }
 }

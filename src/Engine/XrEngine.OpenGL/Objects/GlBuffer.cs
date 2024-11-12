@@ -117,9 +117,9 @@ namespace XrEngine.OpenGL
             {
                 GlState.Current!.BindBuffer(_target, 0);
                 _gl.DeleteBuffer(_handle);
-                _handle = 0;
             }
-            GC.SuppressFinalize(this);
+
+            base.Dispose();
         }
 
         public unsafe void Allocate(uint length)

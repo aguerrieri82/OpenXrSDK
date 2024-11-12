@@ -1,4 +1,6 @@
-﻿namespace CanvasUI
+﻿using System.Reflection;
+
+namespace CanvasUI
 {
     public readonly struct UiDefaultPointer : IUiPointer
     {
@@ -16,6 +18,8 @@
         {
             UiManager.SetPointerCapture(Id, null);
         }
+
+        public UiPointerButton Buttons => UiPointerButton.None;
 
         public int Id { get; }
 

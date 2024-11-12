@@ -45,7 +45,10 @@ namespace XrEngine
             var info = _services.FirstOrDefault(a => a.Type == type);
 
             if (info != null)
+            {
                 info.Instance = instance;
+                _cache.Clear();
+            }
             else
             {
                 _services.Add(new ServiceInfo

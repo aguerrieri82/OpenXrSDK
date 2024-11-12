@@ -5,6 +5,7 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Runtime.InteropServices;
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -41,6 +42,7 @@ namespace XrEngine.OpenGL
         protected uint _sampleCount;
         protected GlTexture? _color;
         protected GlTexture? _depth;
+        protected Size2I _size;
         protected readonly TextureTarget _target;
         protected readonly Dictionary<FramebufferAttachment, IGlRenderAttachment> _attachments = [];
 
@@ -89,6 +91,8 @@ namespace XrEngine.OpenGL
             BindAttachment(_depth, depthAtt, false);
 
             Check();
+
+            _size = new Size2I(_color.Width, _color.Height);
         }
 
         public void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw)
@@ -197,6 +201,8 @@ namespace XrEngine.OpenGL
 
             throw new NotSupportedException();
         }
+
+        public Size2I Size => _size;    
 
         public GlTexture? Color => _color;
 

@@ -84,6 +84,7 @@ namespace PhysX.Framework
 
         protected float _lastDeltaTime;
         protected bool _isDisposed;
+        protected double _time;
 
         public PhysicsSystem()
         {
@@ -543,10 +544,12 @@ namespace PhysX.Framework
                 }
                 else
                     _lastDeltaTime = stepSizeSecs;
-       
+
                 _scene!.Scene.SimulateMut(_lastDeltaTime, null, null, 0, true);
 
                 _scene.Scene.FetchResultsMut(true, &error);
+
+                _time += _lastDeltaTime;
 
                 curTime += stepSizeSecs;
             }
@@ -607,6 +610,7 @@ namespace PhysX.Framework
 
         public float LastDeltaTime => _lastDeltaTime;
 
+        public double Time => _time;
 
         //public event Action<PhysicsActor, PhysicsActor>? Contact;
 

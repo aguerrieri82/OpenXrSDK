@@ -462,7 +462,7 @@ namespace XrEngine.OpenGL
 
         public void Bind()
         {
-            GlState.Current!.SetActiveTexture(this, Slot);
+            GlState.Current!.LoadTexture(this, Slot);
         }
 
         public void Unbind()
@@ -474,14 +474,20 @@ namespace XrEngine.OpenGL
         {
             if (_handle != 0)
             {
+                GlState.Current!.ResetTextures();
                 _gl.DeleteTexture(_handle);
                 _attached.Remove(_handle);
-                _handle = 0;
+            }
+
+            if (Source is Texture tex)
+            {
+                tex.DeleteProp(OpenGLRender.Props.GlResId);
+                tex.Handle = 0;
             }
 
             Source = null;
 
-            GC.SuppressFinalize(this);
+            base.Dispose();
         }
 
         public static GlTexture Attach(GL gl, uint handle, uint sampleCount = 1, TextureTarget target = 0)

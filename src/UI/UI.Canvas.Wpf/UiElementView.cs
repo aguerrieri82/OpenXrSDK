@@ -36,6 +36,16 @@ namespace UI.Canvas.Wpf
                 UiManager.SetPointerCapture(Id, null);
             }
 
+            public UiPointerButton Buttons
+            {
+                get
+                {
+                    return (Mouse.LeftButton == MouseButtonState.Pressed ? UiPointerButton.Left : UiPointerButton.None) |
+                           (Mouse.RightButton == MouseButtonState.Pressed ? UiPointerButton.Right : UiPointerButton.None) |
+                           (Mouse.MiddleButton == MouseButtonState.Pressed ? UiPointerButton.Middle : UiPointerButton.None);
+                }
+            }
+
             public int Id { get; }
         }
 
