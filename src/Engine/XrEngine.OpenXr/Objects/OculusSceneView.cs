@@ -117,7 +117,8 @@ namespace XrEngine.OpenXr
 
                         model.AddComponent(new XrAnchorUpdate
                         {
-                            Space = info.Space
+                            Space = info.Space,
+                            UpdateInterval =  TimeSpan.FromMilliseconds(300)
                         });
                     }
 

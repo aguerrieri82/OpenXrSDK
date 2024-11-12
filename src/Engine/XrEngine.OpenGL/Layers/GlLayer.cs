@@ -20,6 +20,7 @@ namespace XrEngine.OpenGL
         protected readonly GlLayerType _type;
         protected long _lastUpdateVersion;
         protected long _lastFrame;
+        private Camera? _lastCamera;
 
         public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
         {
@@ -148,17 +149,22 @@ namespace XrEngine.OpenGL
 
         public void Prepare(RenderContext ctx)
         {
-            if (ctx.Frame == _lastFrame)
+            var curCamera = _render.UpdateContext.Camera!;
+
+            if (ctx.Frame == _lastFrame && curCamera == _lastCamera)
                 return;
+
+            curCamera.FrustumPlanes(_render.UpdateContext.FrustumPlanes);
 
             ComputeVisibility();
 
             if (_render.Options.SortByCameraDistance)
-                ComputeDistance(ctx.Camera!);
+                ComputeDistance(curCamera);
 
             UpdateVertexHandlers();
 
             _lastFrame = ctx.Frame;
+            _lastCamera = curCamera;
         }
 
         protected void UpdateVertexHandlers()
@@ -172,9 +178,12 @@ namespace XrEngine.OpenGL
             }
         }
 
-        protected void ComputeVisibility()
+        protected int ComputeVisibility()
         {
             var updateContext = _render.UpdateContext;
+            
+            int totHidden = 0;
+            int totDraw = 0;
 
             foreach (var content in _content.ShaderContents.SelectMany(a => a.Value.Contents.Values))
             {
@@ -182,19 +191,27 @@ namespace XrEngine.OpenGL
 
                 foreach (var draw in content.Contents)
                 {
+                    totDraw++;
+
                     var progInst = draw.ProgramInstance!;
 
                     draw.IsHidden = !progInst.Material!.IsEnabled || !draw.Object!.IsVisible;
 
                     if (!draw.IsHidden && _render.Options.FrustumCulling && draw.Object is TriangleMesh mesh)
+                    {
                         draw.IsHidden = !mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes!);
-
+                        if (draw.IsHidden)
+                            totHidden++;
+                    }
+              
                     if (!draw.IsHidden)
                         allHidden = false;
                 }
 
                 content.IsHidden = allHidden;
             }
+
+            return totHidden;
         }
 
         protected void ComputeDistance(Camera camera)
@@ -214,7 +231,7 @@ namespace XrEngine.OpenGL
                     if (draw.IsHidden)
                         continue;
 
-                    draw.Distance = draw.Object!.WorldBounds.DistanceTo(cameraPos);
+                    draw.Distance = draw.Object!.DistanceTo(cameraPos);
                     count++;
                     sum += draw.Distance;
                 }

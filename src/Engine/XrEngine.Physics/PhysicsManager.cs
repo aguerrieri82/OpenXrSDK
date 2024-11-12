@@ -19,10 +19,10 @@ namespace XrEngine.Physics
         protected ConcurrentQueue<Action> _queue = [];
         protected HashSet<Joint> _joints = [];
 
-        public PhysicsManager()
+        public PhysicsManager(float fps = 40f)
         {
             Options = new PhysicsOptions();
-            StepSizeSecs = 1f / 60f;
+            StepSizeSecs = 1f / fps;
             IsMultiThread = false;
         }
 
@@ -190,6 +190,8 @@ namespace XrEngine.Physics
         public PhysicsOptions Options { get; set; }
 
         public bool IsMultiThread { get; set; }
+
+        public double Time => _system?.Time ?? 0;
 
         public PhysicsSystem? System => _system;
 

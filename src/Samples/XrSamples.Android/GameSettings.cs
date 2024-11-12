@@ -28,7 +28,7 @@ namespace XrSamples
                 Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
-                IsMultiView = true,
+                IsMultiView = false,
                 EnableDepthPass = false
             };
         }

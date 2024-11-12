@@ -47,9 +47,8 @@ namespace XrEngine.OpenGL
             _lastSize = camera.ViewSize;
 
             _passTarget.Configure(_lastSize.Width, _lastSize.Height, TextureFormat.Rgba32);
-            _passTarget.RenderTarget.Begin(camera, _lastSize);
+            _passTarget.RenderTarget.Begin(camera);
 
-            _renderer.State.SetView(_renderer.RenderView);
             _renderer.State.SetClearColor(Color.Transparent);
             _renderer.State.SetWriteDepth(false);
             _renderer.State.SetWriteColor(true);
@@ -87,7 +86,7 @@ namespace XrEngine.OpenGL
 
             ProcessImage(_passTarget.ColorTexture!, outlineTexture);
 
-            _renderer.RenderTarget!.Begin(_renderer.UpdateContext.Camera!, _lastSize);
+            _renderer.RenderTarget!.Begin(_renderer.UpdateContext.Camera!);
 
             OverlayTexture(outlineTexture);
         }

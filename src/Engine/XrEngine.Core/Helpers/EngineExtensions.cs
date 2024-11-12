@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Intrinsics;
 using XrEngine.Services;
 using XrMath;
@@ -130,13 +131,18 @@ namespace XrEngine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Pose3 GetWorldPose(this Object3D self)
+        public static Pose3 GetWorldPose(this Object3D self, bool fromOrigin = false)
         {
-            return new Pose3
+            var result = new Pose3
             {
                 Orientation = self.WorldOrientation,
                 Position = self.WorldPosition
             };
+
+            if (fromOrigin)
+                result.Position -= self.Transform.LocalPivot;
+
+            return result;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -243,25 +249,20 @@ namespace XrEngine
             return (self.Flags & flags) == flags;
         }
 
-        public static void SetWorldPoseIfChanged(this Object3D self, Pose3 pose, float epsilonP = 0.001f, float epsilonO = 0.001f)
+        public static void SetWorldPose(this Object3D self, Pose3 pose, bool fromOrigin = false)
         {
-            var deltaPos = (pose.Position - self.WorldPosition).Length();
-            var deltaOri = (pose.Orientation - self.WorldOrientation).Length();
+            if (fromOrigin)
+                pose.Position -= Vector3.Transform(self.Transform.LocalPivot, pose.Orientation);
 
-            var isChanged = deltaPos > epsilonP || deltaOri > epsilonO;
+            self.WorldMatrix = Matrix4x4.CreateFromQuaternion(pose.Orientation) *
+                               Matrix4x4.CreateTranslation(pose.Position);
+        }
 
-            if (!isChanged)
-                return;
-
-            self.BeginUpdate();
-
-            if (deltaPos > epsilonP)
-                self.WorldPosition = pose.Position;
-
-            if (deltaOri > epsilonO)
-                self.WorldOrientation = pose.Orientation;
-
-            self.EndUpdate();
+        public static void SetWorldPoseIfChanged(this Object3D self, Pose3 pose, bool fromOrigin = false, float epsilonP = 0.001f, float epsilonO = 0.001f)
+        {
+            var curPose = self.GetWorldPose(fromOrigin);  
+            if (!curPose.IsSimilar(pose))
+                SetWorldPose(self, pose, fromOrigin); 
         }
 
 
@@ -1106,8 +1107,11 @@ namespace XrEngine
         {
             foreach (var material in self.Materials.OfType<IColorSource>())
             {
-                material.Color = color;
-                ((Material)material).NotifyChanged(ObjectChangeType.Render);
+                if (material.Color != color)
+                {
+                    material.Color = color;
+                    ((Material)material).NotifyChanged(ObjectChangeType.Render);
+                }
             }
 
         }
@@ -1148,8 +1152,6 @@ namespace XrEngine
                 Direction = new Vector3(dirWorld.X, dirWorld.Y, dirWorld.Z).Normalize()
             };
         }
-
-
 
         public static Vector2 WorldToScreen(this Camera self, Vector3 world)
         {

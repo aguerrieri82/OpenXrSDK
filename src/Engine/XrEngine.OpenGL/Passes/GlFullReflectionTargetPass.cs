@@ -12,12 +12,15 @@ namespace XrEngine.OpenGL
 {
     public class GlFullReflectionTargetPass : GlColorPass, IGlDynamicRenderPass<ReflectionTarget>
     {
+        static readonly Bounds3 _clipSpace = new Bounds3() { Min = -Vector3.One, Max = Vector3.One };
+
         private readonly GlRenderPassTarget _passTarget;
 
         private PlanarReflection? _reflection;
         private Camera? _oldCamera;
         private ImageLight? _imageLight;
         private Matrix3x3 _oldImageLightTransform;
+
 
         public GlFullReflectionTargetPass(OpenGLRender renderer, bool useMultiviewTarget)
             : base(renderer)
@@ -82,22 +85,31 @@ namespace XrEngine.OpenGL
             if (camera.Scene == null || _reflection == null)
                 return false;
 
-            if (!_reflection.Host!.IsVisible || !_reflection.Host.WorldBounds.IntersectFrustum(_renderer.UpdateContext.FrustumPlanes))
+            if (!_reflection.Host!.IsVisible)
                 return false;
 
-            _oldCamera = _renderer.UpdateContext.Camera!;
+            _reflection.Update(camera, _passTarget.BoundEye);
 
-            _reflection.Update(_oldCamera, _passTarget.BoundEye);
+            var clipSize = _reflection.ClipBounds.Size.ToVector2() *
+                           _reflection.ReflectionCamera.ViewSize.ToVector2() / 2;
+
+            if (Math.Max(clipSize.X, clipSize.Y) < 20)
+                return false;
+
+            if (!_reflection.ClipBounds.Intersects(_clipSpace))
+                return false;
+
+            _oldCamera = camera;
 
             _renderer.UpdateContext.Camera = _reflection.ReflectionCamera;
 
             _passTarget.Configure(_reflection.Texture!);
-            _passTarget.RenderTarget.Begin(_reflection.ReflectionCamera, new Size2I(_reflection.Texture!.Width, _reflection.Texture.Height));
+            _passTarget.RenderTarget.Begin(_reflection.ReflectionCamera);
 
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetClearDepth(1.0f);
-            _renderer.State.SetView(new Rect2I(0, 0, _reflection.Texture.Width, _reflection.Texture.Height));
+
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 

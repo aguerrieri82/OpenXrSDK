@@ -17,9 +17,7 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(Camera camera)
         {
-            GetRenderTarget()!.Begin(camera, _renderer.UpdateContext.ViewSize);
-
-            _renderer.State.SetView(_renderer.RenderView);
+            GetRenderTarget()!.Begin(camera);
 
             if (_renderer.Options.UseDepthPass)
             {

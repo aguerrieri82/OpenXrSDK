@@ -2,11 +2,8 @@
 
 namespace XrEngine
 {
-
-
     public static class StateContainerExtensions
     {
-
         public static void WriteArray<T>(this IStateContainer container, string key, IList<T> items) where T : class, IStateObject
         {
             var arrayState = container.Enter(key);

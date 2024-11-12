@@ -305,7 +305,8 @@ namespace XrSamples
             var rb = cube.AddComponent(new RigidBody()
             {
                 Type = PhysicsActorType.Dynamic,
-                Density = 10
+                ToolMode = RigidBodyToolMode.KinematicTarget,
+                Density = 100
             });
 
             scene.AddChild(cube);
@@ -1072,9 +1073,9 @@ namespace XrSamples
         {
             var app = CreateBaseScene();
             var scene = app.ActiveScene!;
-            scene.Id = Guid.Parse("9692f695-f53c-40c4-900a-d17ac94302d8");  
-            
-            scene.AddComponent<PhysicsManager>();
+            scene.Id = Guid.Parse("9692f695-f53c-40c4-900a-d17ac94302d8");
+
+            scene.AddComponent(new PhysicsManager(60));
 
             scene.AddComponent(new InputObjectForce
             {

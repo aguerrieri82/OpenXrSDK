@@ -59,7 +59,6 @@ namespace XrEngine.OpenGL
                 RenderLayer(layer);
             }
 
-
             EndRender();
         }
 

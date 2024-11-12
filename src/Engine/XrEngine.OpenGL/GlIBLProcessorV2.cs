@@ -74,7 +74,7 @@ namespace XrEngine.OpenGL
 
             _panToCubeProg!.Use();
 
-            GlState.Current!.SetActiveTexture(_inputTexture!, 0);
+            GlState.Current!.LoadTexture(_inputTexture!, 0);
 
             _panToCubeProg.SetUniform("inputTexture", 0);
 
@@ -94,7 +94,7 @@ namespace XrEngine.OpenGL
         {
             var program = _filterProg![distribution];
 
-            GlState.Current!.SetActiveTexture(_inputTexture!, 0);
+            GlState.Current!.LoadTexture(_inputTexture!, 0);
 
             var mipCount = distribution == Distribution.GGX ? MipLevelCount : 1;
 
@@ -108,7 +108,7 @@ namespace XrEngine.OpenGL
 
             program.SetUniform("inputTexture", 0);
 
-            GlState.Current.SetActiveTexture(_cubeMapId!, TextureTarget.TextureCubeMap, 0);
+            GlState.Current.LoadTexture(_cubeMapId!, TextureTarget.TextureCubeMap, 0);
 
 
             var res = Resolution;

@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using XrMath;
 
 namespace XrEngine
 {
@@ -16,7 +17,7 @@ namespace XrEngine
 
         public void SetFov(float angleDegree, uint width, uint height)
         {
-            ViewSize = new XrMath.Size2I
+            ViewSize = new Size2I
             {
                 Width = width,
                 Height = height

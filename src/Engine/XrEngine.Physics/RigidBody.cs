@@ -20,6 +20,13 @@ namespace XrEngine.Physics
         Group4 = 0x8,
     }
 
+    public enum RigidBodyToolMode
+    {
+        Dynamic,
+        Kinematic,
+        KinematicTarget,
+    }
+
     public class RigidBody : Behavior<Object3D>, IDisposable
     {
         private PhysicsManager? _manager;
@@ -53,30 +60,29 @@ namespace XrEngine.Physics
         public void Teleport(Vector3 worldPos)
         {
             _host!.WorldPosition = worldPos;
-            _lastPose = GetPose();
-            DynamicActor.GlobalPose = _lastPose;
+            _lastPose = GetHostPose();
+
             DynamicActor.Stop();
+            DynamicActor.GlobalPose = _lastPose; 
         }
 
-        protected void SetPose(Pose3 pose)
+        protected void SetHostPose(Pose3 pose)
         {
             Debug.Assert(_host != null);
 
             if (!pose.IsFinite())
                 throw new InvalidOperationException();
 
-            _host.SetWorldPoseIfChanged(pose);
+            _host.SetWorldPoseIfChanged(pose, true);
+
+            _lastPose = GetHostPose();
         }
 
-        protected Pose3 GetPose()
+        protected Pose3 GetHostPose()
         {
             Debug.Assert(_host != null);
 
-            return new Pose3
-            {
-                Position = _host.WorldPosition,
-                Orientation = _host.WorldOrientation
-            };
+            return _host.GetWorldPose(true);
         }
 
         protected override void OnEnabled()
@@ -324,7 +330,7 @@ namespace XrEngine.Physics
             {
                 Density = Density,
                 Shapes = shapes,
-                Pose = GetPose(),
+                Pose = GetHostPose(),
                 Type = Type
             });
 
@@ -338,6 +344,7 @@ namespace XrEngine.Physics
             _actor.NotifyContacts = _contactEvent != null;
             _actor.Contact += OnActorContact;
             _actor.Name = _host.Name ?? string.Empty;
+            _actor.ActorFlags = PxActorFlags.Visualization;
 
             UpdatePhysics();
 
@@ -406,7 +413,7 @@ namespace XrEngine.Physics
         protected override void Start(RenderContext ctx)
         {
             EnsureCreated(ctx);
-            _lastPose = GetPose();
+            _lastPose = GetHostPose();
         }
 
         private void OnActorContact(PhysicsActor other, int otherIndex, ContactPair[] data)
@@ -425,45 +432,54 @@ namespace XrEngine.Physics
             Debug.Assert(_host != null);
             Debug.Assert(_actor != null);
 
-            if (_host.GetActiveTool() == null)
-            {
-                var curPose = GetPose();
+            var curPose = GetHostPose();
 
-                if (Type == PhysicsActorType.Dynamic)
+            if (!curPose.IsFinite())
+                return;
+
+            if (Type == PhysicsActorType.Dynamic)
+            {
+                var tool = _host.GetActiveTool();
+
+                if (DynamicActor.IsSleeping)
+                    DynamicActor.IsSleeping = false;
+
+                if (tool == null)
                 {
-                    if (AutoTeleport && !curPose.IsSimilar(_lastPose, 1e-4f))
-                    {
-                        _lastPose = curPose;
-                        DynamicActor.GlobalPose = _lastPose;
-                        DynamicActor.Stop();
-                        Log.Checkpoint($"Pose reset: {_host!.Name}", "#ff0000");
-                    }
+                    if (DynamicActor.IsKinematic)
+                        DynamicActor.IsKinematic = false;
+
+                    if ((AutoTeleport && !curPose.IsSimilar(_lastPose, 1e-4f)) || !_actor.GlobalPose.IsFinite())
+                        Teleport(curPose.Position);
                     else
-                    {
-                        if (DynamicActor.IsKinematic)
-                            DynamicActor.IsKinematic = false;
-                        SetPose(_actor.GlobalPose);
-                        _lastPose = GetPose();
-                    }
+                        SetHostPose(_actor.GlobalPose);
                 }
-                else if (Type == PhysicsActorType.Static)
+                else
                 {
-                    if (!Equals(_actor.GlobalPose, curPose))
-                        _actor.GlobalPose = curPose;
+                    if (!DynamicActor.RetainAccelerations)
+                        DynamicActor.RetainAccelerations = true;
+
+                    if (ToolMode != RigidBodyToolMode.Dynamic)
+                    {
+                        if (!DynamicActor.IsKinematic)
+                            DynamicActor.IsKinematic = true;
+                    }
+
+                    if (ToolMode == RigidBodyToolMode.KinematicTarget)
+                        DynamicActor.KinematicTarget = curPose;
+                    else
+                        DynamicActor.GlobalPose = curPose;
                 }
             }
             else
             {
-                if (Type != PhysicsActorType.Static)
+                if (!_actor.GlobalPose.IsSimilar(curPose))
                 {
-                    if (Type == PhysicsActorType.Dynamic && !DynamicActor.IsKinematic)
-                        DynamicActor.IsKinematic = true;
-
-                    _lastPose = GetPose();
-                    DynamicActor.KinematicTarget = _lastPose;
+                    if (Type == PhysicsActorType.Static)
+                        StaticActor.GlobalPose = curPose;
+                    else
+                        DynamicActor.KinematicTarget = curPose;
                 }
-                else
-                    _actor.GlobalPose = GetPose();
             }
         }
 
@@ -504,6 +520,8 @@ namespace XrEngine.Physics
                 _contactEvent -= value;
             }
         }
+
+        public RigidBodyToolMode ToolMode { get; set; }
 
 
         [Category("Advanced")]

@@ -78,13 +78,13 @@ namespace XrEngine.OpenXr
                 _renderTarget.FrameBuffer.Configure(_glColorImage, _glDepthImage, sampleCount);
             }
 
-            _renderTarget.Begin(camera, new Size2I(_glColorImage.Width, _glColorImage.Height));
+            _renderTarget.Begin(camera);
 
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetClearDepth(1.0f);
             _renderer.State.SetClearColor(new Color(0, 0, 0, 1));
-            _renderer.State.SetView(new Rect2I(0, 0, _glColorImage.Width, _glColorImage.Height));
+
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 

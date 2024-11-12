@@ -60,6 +60,7 @@ namespace XrEngine.OpenXr
                             SceneRoot.AddComponent(new XrAnchorUpdate()
                             {
                                 Space = new Space(floor.Space),
+                                UpdateInterval = TimeSpan.FromMilliseconds(300),
                                 LogChanges = true
                             });
                         });

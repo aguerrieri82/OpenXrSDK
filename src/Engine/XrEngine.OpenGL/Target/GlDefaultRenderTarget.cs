@@ -47,10 +47,12 @@ namespace XrEngine.OpenGL
             _depth.Update(size.Width, size.Height, 1, InternalFormat.Depth24Stencil8);
         }
 
-        public void Begin(Camera camera, Size2I viewSize)
+        public void Begin(Camera camera)
         {
-            if (viewSize.Width != _frameBuffer.Color!.Width || viewSize.Height != _frameBuffer.Color.Height)
-                SetSize(viewSize);
+            GlState.Current!.SetView(new Rect2I(camera.ViewSize));
+
+            if (camera.ViewSize.Width != _frameBuffer.Color!.Width || camera.ViewSize.Height != _frameBuffer.Color.Height)
+                SetSize(camera.ViewSize);
 
             _frameBuffer.Bind();
         }

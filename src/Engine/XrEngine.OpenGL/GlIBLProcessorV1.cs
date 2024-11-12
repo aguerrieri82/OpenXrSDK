@@ -100,7 +100,7 @@ namespace XrEngine.OpenGL
             envTexId = CreateCubeMap(mipCount > 1);
             lutTexId = CreateLutTexture();
 
-            GlState.Current.SetActiveTexture(_cubeMapId, TextureTarget.TextureCubeMap, 0);
+            GlState.Current.LoadTexture(_cubeMapId, TextureTarget.TextureCubeMap, 0);
 
             _filterProg!.Use();
             _filterProg.SetUniform("uDistribution", (int)distribution);
@@ -121,7 +121,7 @@ namespace XrEngine.OpenGL
 
             _gl.ClearColor(0, 0, 0, 1);
 
-            GlState.Current!.SetActiveTexture(_inputTexture!, 0);
+            GlState.Current!.LoadTexture(_inputTexture!, 0);
 
             GlState.Current!.SetActiveProgram(_panToCubeProg!.Handle);
 

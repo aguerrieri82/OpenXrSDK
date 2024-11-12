@@ -100,11 +100,9 @@ namespace XrEngine.OpenGL
         public override void Dispose()
         {
             if (_handle != 0)
-            {
                 _gl.DeleteVertexArray(_handle);
-                _handle = 0;
-            }
-            GC.SuppressFinalize(this);
+
+            base.Dispose();
         }
 
         public GlVertexLayout Layout => _layout;

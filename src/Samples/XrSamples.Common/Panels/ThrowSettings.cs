@@ -13,13 +13,17 @@ namespace XrSamples
         public ThrowSettings()
         {
             Sensitivity = 0.2f;
-            ManualMode = false;
+            AutoThrow = false;
 
         }
 
         public override void Apply(Scene3D scene)
         {
+            ((PlotterTimeLogger)Context.Require<ITimeLogger>()).IsEnabled = !DisableLog;
+
             SpeedTracker.SmoothFactor = Sensitivity;
+            SpeedTracker.AutoThrow = AutoThrow;
+            SpeedTracker.MinDeltaTime = MinDeltaTime / 1000f;
 
             if (_filePath != null)
             {
@@ -30,7 +34,11 @@ namespace XrSamples
 
         public float Sensitivity { get; set; }
 
-        public bool ManualMode { get; set; }
+        public float MinDeltaTime { get; set; }
+
+        public bool AutoThrow { get; set; }
+
+        public bool DisableLog { get; set; }
     }
 
     public class ThrowSettingsPanel : UIRoot
@@ -45,6 +53,7 @@ namespace XrSamples
             }
 
             var plotter = new Plotter();
+ 
 
             binder.PropertyChanged += Binder_PropertyChanged;
 
@@ -57,15 +66,21 @@ namespace XrSamples
              )
             .BeginColumn(s => s.RowGap(16))
                 .AddInputRange("Sensitivity", 0f, 1f, binder.Prop(a => a.Sensitivity))
-                .AddInput("Manual", new CheckBox(), binder.Prop(a => a.ManualMode))
+                .AddInputRange("Min Delta Time", 0f, 1000f, binder.Prop(a => a.MinDeltaTime))
+                .BeginRow(s => s.ColGap(16))
+                    .AddInput("Disable Log", new CheckBox(), binder.Prop(a => a.DisableLog))
+                    .AddInput("Auto Throw", new CheckBox(), binder.Prop(a => a.AutoThrow))
+                .EndChild()
             .EndChild()
 
             .AddChild(plotter, bld => bld
                 .Style(s => s.FlexGrow(1)));
 
-
             if (!XrPlatform.IsEditor)
                 Context.Implement<ITimeLogger>(new PlotterTimeLogger(plotter));
+
+            plotter.AutoScaleY = AutoScaleYMode.None;
+            plotter.PixelPerUnitY = 20f;
         }
 
     }

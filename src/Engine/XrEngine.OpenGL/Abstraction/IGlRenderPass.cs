@@ -1,6 +1,6 @@
 ﻿namespace XrEngine.OpenGL
 {
-    public interface IGlRenderPass : IDisposable
+    public interface IGlRenderPass : IDisposable, IRenderPass
     {
         void Configure(RenderContext ctx);
 

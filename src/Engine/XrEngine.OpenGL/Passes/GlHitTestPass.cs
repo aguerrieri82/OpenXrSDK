@@ -102,9 +102,8 @@ namespace XrEngine.OpenGL
             
             _lastSize = camera.ViewSize;
 
-            _passTarget.RenderTarget.Begin(camera, _lastSize);
+            _passTarget.RenderTarget.Begin(camera);
 
-            _renderer.State.SetView(_renderer.RenderView);
             _renderer.State.SetClearColor(Color.Transparent);
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetWriteColor(true);

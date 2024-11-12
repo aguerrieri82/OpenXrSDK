@@ -70,6 +70,8 @@ namespace XrEngine
 
         public Size2I ViewSize;
 
+        public IRenderPass Pass;
+
         public long ContextVersion;
     }
 

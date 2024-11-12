@@ -17,7 +17,16 @@ namespace XrEngine.OpenGL
             EnableDebug = true;
         }
 
-        public abstract void Dispose();
+        public virtual void Dispose()
+        { 
+            if (_handle != 0)
+            {
+                ObjectBinder.Unbind(this);
+                _handle = 0;
+            }
+
+            GC.SuppressFinalize(this);
+        }
 
 
         public static implicit operator uint(GlObject obj)

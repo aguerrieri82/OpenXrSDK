@@ -57,6 +57,7 @@
 
         protected static string Hash(ILayer3D layer, ILayer3DItem obj)
         {
+            obj.EnsureId();
             return $"{layer.Id}|{obj.Id}";
         }
 

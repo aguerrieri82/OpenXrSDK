@@ -35,7 +35,7 @@ namespace XrEngine.OpenGL
                 {
                     var target = targets[i];
 
-                    GlState.Current!.SetActiveTexture(texId, target, 0);
+                    GlState.Current!.LoadTexture(texId, target, 0);
 
                     gL.GetInteger(bindings[i], out int curTexId);
 
@@ -57,7 +57,13 @@ namespace XrEngine.OpenGL
 
         public static unsafe TRes GetGlResource<T, TRes>(this T obj, Func<T, TRes> factory) where T : EngineObject
         {
-            return obj.GetOrCreateProp(OpenGLRender.Props.GlResId, () => factory(obj));
+            return obj.GetOrCreateProp(OpenGLRender.Props.GlResId, () =>
+            {
+                var result = factory(obj);
+                if (result != null)
+                    ObjectBinder.Bind(obj, result);
+                return result;  
+            });
         }
 
         public static unsafe GlTexture ToGlTexture(this Texture value, bool? reqComp = null)

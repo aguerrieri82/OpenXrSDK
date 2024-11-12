@@ -14,6 +14,7 @@ namespace XrEngine.OpenXr
             Input = input;
             Handlers = handlers;
             Vibrate = vibrate;
+            GrabThreshold = 0.9f;
         }
 
         protected override ObjectGrab IsGrabbing()
@@ -21,7 +22,7 @@ namespace XrEngine.OpenXr
             return new ObjectGrab
             {
                 Pose = Input!.Value,
-                IsGrabbing = Handlers!.All(a => a.Value > 0.8),
+                IsGrabbing = Handlers!.All(a => a.Value > GrabThreshold),
                 IsValid = Input.IsActive
             };
         }
@@ -54,6 +55,7 @@ namespace XrEngine.OpenXr
             }
         }
 
+        public float GrabThreshold { get; set; }
 
         public XrPoseInput? Input { get; set; }
 
