@@ -42,13 +42,7 @@
 
     public class RenderContent
     {
-        public IList<Light>? Lights;
-
         public long LayerVersion;
-
-        public long ImageLightVersion = -1;
-
-        public string LightsHash = "";
 
         public readonly Dictionary<Shader, ShaderContent> ShaderContents = [];
     }

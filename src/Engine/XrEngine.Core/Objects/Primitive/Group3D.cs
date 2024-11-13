@@ -25,7 +25,7 @@ namespace XrEngine
         {
             base.GetState(container);
 
-            if ((Flags & EngineObjectFlags.ChildGenerated) == EngineObjectFlags.ChildGenerated)
+            if ((Flags & EngineObjectFlags.ChildrenGenerated) == EngineObjectFlags.ChildrenGenerated)
                 return;
 
             if ((container.Context.Flags & StateContextFlags.SelfOnly) != 0)
@@ -38,7 +38,7 @@ namespace XrEngine
         {
             base.SetStateWork(container);
 
-            if ((Flags & EngineObjectFlags.ChildGenerated) == EngineObjectFlags.ChildGenerated)
+            if ((Flags & EngineObjectFlags.ChildrenGenerated) == EngineObjectFlags.ChildrenGenerated)
                 return;
 
             if ((container.Context.Flags & StateContextFlags.SelfOnly) != 0)

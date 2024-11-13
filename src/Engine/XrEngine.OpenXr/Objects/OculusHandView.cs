@@ -56,7 +56,6 @@ namespace XrEngine.OpenXr
         {
             Debug.Assert(XrApp.Current != null);
 
-
             if (!_isInit && _input != null && _input.IsActive)
             {
                 _input.LoadMesh();
@@ -85,7 +84,7 @@ namespace XrEngine.OpenXr
                     {
                         var rigidBody = capMesh.AddComponent<RigidBody>();
                         rigidBody.Type = PhysicsActorType.Kinematic;
-                        rigidBody.Material = new PhysicsMaterialInfo
+                        rigidBody.MaterialInfo = new PhysicsMaterialInfo
                         {
                             StaticFriction = 10,
                             Restitution = 0,

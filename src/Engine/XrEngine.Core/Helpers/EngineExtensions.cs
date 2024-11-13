@@ -117,7 +117,6 @@ namespace XrEngine
         }
 
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToLocal(this Object3D self, Vector3 worldPoint)
         {
@@ -130,9 +129,69 @@ namespace XrEngine
             return localPoint.Transform(self.WorldMatrix);
         }
 
+        public static void SetWorldPoseIfChanged(this Object3D self, Pose3 pose, bool fromOrigin = false, float epsilonP = 0.001f, float epsilonO = 0.001f)
+        {
+            var curPose = self.GetWorldPose(fromOrigin);
+            if (!curPose.IsSimilar(pose))
+                SetWorldPose(self, pose, fromOrigin);
+        }
+        public static void SetWorldPose(this Object3D self, Pose3 pose, bool fromOrigin = false)
+        {
+            self.WorldOrientation = pose.Orientation;
+            if (fromOrigin)
+                self.MoveLocalToWorld(Vector3.Zero, pose.Position);
+            else
+                self.WorldPosition = pose.Position;
+      
+
+            /*
+             WORKING 
+            pose.Position -= Vector3.Transform(self.Transform.LocalPivot, pose.Orientation);
+
+
+            self.WorldMatrix = Matrix4x4.CreateScale(self.Transform.Scale) *
+                         Matrix4x4.CreateFromQuaternion(pose.Orientation) *
+                         Matrix4x4.CreateTranslation(pose.Position);
+
+            */
+
+
+
+            /*
+
+            var curPivot = Vector3.Zero;
+
+            self.BeginUpdate();
+
+            if (fromOrigin)
+            {
+                curPivot = self.Transform.LocalPivot;
+                if (curPivot != Vector3.Zero)
+                    self.Transform.SetLocalPivot(Vector3.Zero, true);
+            }
+
+            self.WorldPosition = pose.Position;
+            self.WorldOrientation = pose.Orientation;
+
+            if (curPivot != Vector3.Zero)
+                self.Transform.SetLocalPivot(curPivot, true);
+
+            self.EndUpdate();
+
+            */
+        }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 GetWorldPose(this Object3D self, bool fromOrigin = false)
         {
+            var result = new Pose3
+            {
+                Orientation = self.WorldOrientation,
+                Position = fromOrigin ? self.ToWorld(Vector3.Zero) : self.WorldPosition
+            };
+   
+            /*
             var result = new Pose3
             {
                 Orientation = self.WorldOrientation,
@@ -141,6 +200,7 @@ namespace XrEngine
 
             if (fromOrigin)
                 result.Position -= self.Transform.LocalPivot;
+            */
 
             return result;
         }
@@ -154,6 +214,18 @@ namespace XrEngine
                 Position = self.Transform.Position
             };
         }
+
+        public static void MoveLocalToWorld(this Object3D self, Vector3 localPos, Vector3 worldPos)
+        {
+            var localPosAdjusted = (localPos - self.Transform.LocalPivot) * self.Transform.Scale;
+
+            var rotatedLocalPos = localPosAdjusted.Transform(self.Transform.Orientation);
+
+            if (self.Parent != null)
+                worldPos = worldPos.Transform(self.Parent.WorldMatrixInverse);
+
+            self.Transform.Position = worldPos - rotatedLocalPos;
+        }   
 
         public static void SetActiveTool(this Object3D self, IObjectTool value, bool isActive)
         {
@@ -249,23 +321,6 @@ namespace XrEngine
             return (self.Flags & flags) == flags;
         }
 
-        public static void SetWorldPose(this Object3D self, Pose3 pose, bool fromOrigin = false)
-        {
-            if (fromOrigin)
-                pose.Position -= Vector3.Transform(self.Transform.LocalPivot, pose.Orientation);
-
-            self.WorldMatrix = Matrix4x4.CreateFromQuaternion(pose.Orientation) *
-                               Matrix4x4.CreateTranslation(pose.Position);
-        }
-
-        public static void SetWorldPoseIfChanged(this Object3D self, Pose3 pose, bool fromOrigin = false, float epsilonP = 0.001f, float epsilonO = 0.001f)
-        {
-            var curPose = self.GetWorldPose(fromOrigin);  
-            if (!curPose.IsSimilar(pose))
-                SetWorldPose(self, pose, fromOrigin); 
-        }
-
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<T> Visible<T>(this IEnumerable<T> self) where T : Object3D
         {
@@ -288,6 +343,11 @@ namespace XrEngine
         public static PerspectiveCamera PerspectiveCamera(this Scene3D self)
         {
             return ((PerspectiveCamera)self.ActiveCamera!);
+        }
+
+        public static T Layer<T>(this Scene3D self) where T : ILayer3D
+        {
+            return self.Layers.Layers.OfType<T>().First();
         }
 
         public static T AddLayer<T>(this Scene3D self) where T : ILayer3D, new()
@@ -839,6 +899,34 @@ namespace XrEngine
         #endregion
 
         #region CAMERA
+
+        public static Ray3 ScreenToRay(this Camera self, Vector2 screenPoint)
+        {
+            var normPoint = new Vector3(
+                2.0f * screenPoint.X / self.ViewSize.Width - 1.0f,
+                1.0f - 2.0f * screenPoint.Y / self.ViewSize.Height,
+                -1
+            );
+
+            var dirEye = Vector4.Transform(new Vector4(normPoint, 1.0f), self.ProjectionInverse);
+            dirEye.W = 0;
+
+            var dirWorld = Vector4.Transform(dirEye, self.WorldMatrix);
+
+            return new Ray3
+            {
+                Origin = self.WorldPosition,
+                Direction = new Vector3(dirWorld.X, dirWorld.Y, dirWorld.Z).Normalize()
+            };
+        }
+
+        public static Vector2 WorldToScreen(this Camera self, Vector3 world)
+        {
+            var size = new Vector2(self.ViewSize.Width, self.ViewSize.Height);
+            var proj = (world.Project(self.ViewProjection).ToVector2() + Vector2.One) * 0.5f;
+            return new Vector2(proj.X, proj.Y) * size;
+        }
+
         public static void CreateViewFromDirection(this Camera self, Vector3 directionVector, Vector3 upVector)
         {
             var lookDirection = Vector3.Normalize(-directionVector);
@@ -1133,33 +1221,6 @@ namespace XrEngine
         #region MISC
 
 
-        public static Ray3 ScreenToRay(this Camera self, Vector2 screenPoint)
-        {
-            var normPoint = new Vector3(
-                2.0f * screenPoint.X / self.ViewSize.Width - 1.0f,
-                1.0f - 2.0f * screenPoint.Y / self.ViewSize.Height,
-                -1
-            );
-
-            var dirEye = Vector4.Transform(new Vector4(normPoint, 1.0f), self.ProjectionInverse);
-            dirEye.W = 0;
-
-            var dirWorld = Vector4.Transform(dirEye, self.WorldMatrix);
-
-            return new Ray3
-            {
-                Origin = self.WorldPosition,
-                Direction = new Vector3(dirWorld.X, dirWorld.Y, dirWorld.Z).Normalize()
-            };
-        }
-
-        public static Vector2 WorldToScreen(this Camera self, Vector3 world)
-        {
-            var size = new Vector2(self.ViewSize.Width, self.ViewSize.Height);
-            var proj = (world.Project(self.ViewProjection).ToVector2() + Vector2.One) * 0.5f;
-            return new Vector2(proj.X, proj.Y) * size;
-        }
-
         public static void Update<T>(this IList<T> self, RenderContext ctx) where T : IRenderUpdate
         {
             var count = self.Count;
@@ -1191,8 +1252,5 @@ namespace XrEngine
 
 
         #endregion
-
-
-
     }
 }

@@ -251,7 +251,7 @@ namespace XrEngine
                         Position = ctx.Camera!.WorldPosition,
                         Exposure = ctx.Camera.Exposure,
                         ActiveEye = ctx.Camera.ActiveEye,
-                        ViewSize = ctx.ViewSize,
+                        ViewSize = ctx.Camera.ViewSize,
                         NearPlane = ctx.Camera.Near,
                         FarPlane = ctx.Camera.Far,
                         DepthNoiseFactor = DepthNoiseFactor,

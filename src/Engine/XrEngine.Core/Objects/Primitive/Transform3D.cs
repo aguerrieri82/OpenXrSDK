@@ -54,8 +54,8 @@ namespace XrEngine
         {
             if (keepPosition)
             {
-                _position += (value - _localPivot).Transform(
-                    Matrix4x4.CreateScale(_scale) * Matrix4x4.CreateFromQuaternion(_orientation));
+                var localPosAdjusted = (value - _localPivot) * _scale;
+                _position += localPosAdjusted.Transform(_orientation);
             }
             LocalPivot = value;
         }

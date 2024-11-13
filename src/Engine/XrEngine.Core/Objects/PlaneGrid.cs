@@ -104,6 +104,7 @@ namespace XrEngine
         {
             if (change.Properties != null)
                 Build();
+
             base.OnChanged(change);
         }
 

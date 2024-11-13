@@ -33,7 +33,7 @@ namespace XrEngine.OpenGL
 
         protected override IEnumerable<GlLayer> SelectLayers()
         {
-            return _renderer.Layers.Where(a => a.Type != GlLayerType.CastShadow && a.Type != GlLayerType.FullReflection);
+            return _renderer.Layers.Where(a => (a.Type & GlLayerType.Color) == GlLayerType.Color);
         }
 
         protected override void EndRender()
@@ -70,9 +70,6 @@ namespace XrEngine.OpenGL
         public override void RenderLayer(GlLayer layer)
         {
             if (layer.SceneLayer != null && !layer.SceneLayer.IsVisible)
-                return;
-
-            if (layer.SceneLayer == null && !layer.Scene.Layers.MainLayerVisible)
                 return;
 
             _renderer.PushGroup($"Layer {layer.Name ?? layer.Type.ToString()}");

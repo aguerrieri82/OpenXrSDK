@@ -356,6 +356,15 @@ namespace XrMath
 
         #region POSE
 
+        public static Pose3 Lerp(this Pose3 self, Pose3 other, float otherWeight)
+        {
+            return new Pose3
+            {
+                Orientation = Quaternion.Slerp(self.Orientation, other.Orientation, otherWeight),
+                Position = Vector3.Lerp(self.Position, other.Position, otherWeight)
+            };
+        }
+
         public static bool IsFinite(this Pose3 self)
         {
             return self.Position.IsFinite() && self.Orientation.IsFinite();
@@ -567,7 +576,7 @@ namespace XrMath
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsSameValue(this Vector3 value, float epsilon)
+        public static bool IsSameValue(this Vector3 value, float epsilon = 1e-5f)
         {
             return MathF.Abs(value.X - value.Y) < epsilon &&
                    MathF.Abs(value.X - value.Z) < epsilon &&
@@ -576,7 +585,7 @@ namespace XrMath
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsSimilar(this Vector3 self, Vector3 other, float epsilon)
+        public static bool IsSimilar(this Vector3 self, Vector3 other, float epsilon = 1e-5f)
         {
             return MathF.Abs(self.X - other.X) < epsilon &&
                    MathF.Abs(self.Y - other.Y) < epsilon &&
@@ -839,7 +848,7 @@ namespace XrMath
             return delta * self;
         }
 
-        public static bool IsSimilar(this Quaternion self, Quaternion other, float epsilon)
+        public static bool IsSimilar(this Quaternion self, Quaternion other, float epsilon = 1e-5f)
         {
             return MathF.Abs(self.X - other.X) < epsilon &&
                 MathF.Abs(self.Y - other.Y) < epsilon &&

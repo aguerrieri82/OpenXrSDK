@@ -306,6 +306,7 @@ namespace XrSamples
             {
                 Type = PhysicsActorType.Dynamic,
                 ToolMode = RigidBodyToolMode.KinematicTarget,
+                AutoTeleport = false,
                 Density = 100
             });
 
@@ -410,7 +411,7 @@ namespace XrSamples
             //Rigid body
             var rigidBody = racket.AddComponent<RigidBody>();
             rigidBody.Type = PhysicsActorType.Kinematic;
-            rigidBody.Material = new PhysicsMaterialInfo();
+            rigidBody.MaterialInfo = new PhysicsMaterialInfo();
 
 
             //Ball generator
@@ -450,7 +451,6 @@ namespace XrSamples
         [Sample("Chess")]
         public static XrEngineAppBuilder CreateChess(this XrEngineAppBuilder builder)
         {
-
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
@@ -1183,7 +1183,7 @@ namespace XrSamples
             floor.AddComponent(new RigidBody
             {
                 Type = PhysicsActorType.Static,
-                Material = new PhysicsMaterialInfo()
+                MaterialInfo = new PhysicsMaterialInfo()
                 {
                     StaticFriction = 1f,
                     DynamicFriction = 1f,
@@ -1202,7 +1202,7 @@ namespace XrSamples
             ramp.AddComponent(new RigidBody
             {
                 Type = PhysicsActorType.Static,
-                Material = new PhysicsMaterialInfo()
+                MaterialInfo = new PhysicsMaterialInfo()
                 {
                     StaticFriction = 1f,
                     DynamicFriction = 1f,
@@ -1218,7 +1218,7 @@ namespace XrSamples
             wall.AddComponent(new RigidBody
             {
                 Type = PhysicsActorType.Static,
-                Material = new PhysicsMaterialInfo()
+                MaterialInfo = new PhysicsMaterialInfo()
                 {
                     StaticFriction = 1f,
                     DynamicFriction = 1f,

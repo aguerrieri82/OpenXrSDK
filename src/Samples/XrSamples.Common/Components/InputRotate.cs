@@ -82,7 +82,7 @@ namespace XrSamples.Components
 
                 foreach (var collider in _host!.Components<ICollider3D>().Where(a=> a.IsEnabled))
                 {
-                    if (collider.ContainsPoint(pose.Value.Position))
+                    if (collider.ContainsPoint(pose.Value.Position, 0.04f))
                     {
                         status.IsMoving = true; 
                         status.StartAngle = _angle;

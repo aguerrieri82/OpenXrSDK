@@ -24,6 +24,7 @@ namespace XrEngine.Physics
             Options = new PhysicsOptions();
             StepSizeSecs = 1f / fps;
             IsMultiThread = false;
+            UpdatePriority = -1;
         }
 
         protected override void Start(RenderContext ctx)

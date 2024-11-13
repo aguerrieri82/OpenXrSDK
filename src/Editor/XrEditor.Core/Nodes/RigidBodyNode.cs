@@ -30,19 +30,19 @@ namespace XrEditor.Nodes
             curProps.Add(new PropertyView
             {
                 Label = "Restitution",
-                Editor = new FloatEditor(binder.Prop(a => a.Material.Restitution), 0, 1)
+                Editor = new FloatEditor(binder.Prop(a => a.MaterialInfo.Restitution), 0, 1)
             });
 
             curProps.Add(new PropertyView
             {
                 Label = "Static Friction",
-                Editor = new FloatEditor(binder.Prop(a => a.Material.StaticFriction), 0, 1)
+                Editor = new FloatEditor(binder.Prop(a => a.MaterialInfo.StaticFriction), 0, 1)
             });
 
             curProps.Add(new PropertyView
             {
                 Label = "Dynamic Friction",
-                Editor = new FloatEditor(binder.Prop(a => a.Material.StaticFriction), 0, 1)
+                Editor = new FloatEditor(binder.Prop(a => a.MaterialInfo.StaticFriction), 0, 1)
             });
 
             curProps.Add(new PropertyView

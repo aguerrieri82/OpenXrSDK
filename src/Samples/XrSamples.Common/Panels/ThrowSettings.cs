@@ -3,6 +3,7 @@ using CanvasUI.Components;
 using UI.Binding;
 using XrEngine;
 using XrEngine.OpenXr;
+using XrEngine.Physics;
 using CheckBox = CanvasUI.CheckBox;
 
 namespace XrSamples
@@ -14,6 +15,7 @@ namespace XrSamples
         {
             Sensitivity = 0.2f;
             AutoThrow = false;
+            SimFps = 40;
 
         }
 
@@ -25,12 +27,16 @@ namespace XrSamples
             SpeedTracker.AutoThrow = AutoThrow;
             SpeedTracker.MinDeltaTime = MinDeltaTime / 1000f;
 
+            scene.Component<PhysicsManager>().StepSizeSecs = 1f / SimFps;   
+
             if (_filePath != null)
             {
                 Save();
                 Log.Info(this, "Settings SAVED");
             }
         }
+
+        public float SimFps { get; set; }   
 
         public float Sensitivity { get; set; }
 
@@ -67,6 +73,7 @@ namespace XrSamples
             .BeginColumn(s => s.RowGap(16))
                 .AddInputRange("Sensitivity", 0f, 1f, binder.Prop(a => a.Sensitivity))
                 .AddInputRange("Min Delta Time", 0f, 1000f, binder.Prop(a => a.MinDeltaTime))
+                .AddInputRange("Sim Fps", 30f, 200f, binder.Prop(a => a.SimFps))
                 .BeginRow(s => s.ColGap(16))
                     .AddInput("Disable Log", new CheckBox(), binder.Prop(a => a.DisableLog))
                     .AddInput("Auto Throw", new CheckBox(), binder.Prop(a => a.AutoThrow))

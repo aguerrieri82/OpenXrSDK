@@ -11,21 +11,23 @@ using XrMath;
 using SkiaSharp;
 using System.Runtime.InteropServices;
 using System.Numerics;
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
     public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, ITextureFilterProvider
     {
         protected Scene3D? _lastScene;
+        protected long _lastLightLayerVersion;
         protected IGlRenderTarget? _target;
         protected Rect2I _view;
-        protected UpdateShaderContext _updateCtx;
-        protected GlLayer? _mainLayer;
+
         protected GRContext? _grContext;
         protected GlTextureRenderTarget? _texRenderTarget = null;
         protected Dictionary<string, GlComputeProgram> _computePrograms = [];
         protected long _lastLayersVersion;
 
+        protected readonly GlUpdateContext _updateCtx;
         protected readonly int _maxTextureUnits;
         protected readonly GL _gl;
         protected readonly GlState _glState;
@@ -69,7 +71,7 @@ namespace XrEngine.OpenGL
             _lastLayersVersion = -1;
             _target = _defaultTarget;
 
-            _updateCtx = new UpdateShaderContext
+            _updateCtx = new GlUpdateContext
             {
                 RenderEngine = this,
             };
@@ -202,18 +204,55 @@ namespace XrEngine.OpenGL
             _renderPasses.Insert(position, pass);
         }
 
+        protected void UpdateLights(Scene3D scene)
+        {
+            var lights = scene.EnsureLayer<LightLayer>();
+
+            if (_lastLightLayerVersion == lights.Version)
+                return;
+
+            _updateCtx.Lights = [];
+            _updateCtx.LightsHash = "";
+
+            foreach (var light in scene.Descendants<Light>().Visible())
+            {
+                _updateCtx.Lights.Add(light);
+
+                if (light is ImageLight imgLight)
+                {
+                    if (imgLight.Panorama?.Data != null && imgLight.Panorama.Version != _updateCtx.ImageLightVersion)
+                    {
+                        var options = PanoramaProcessorOptions.Default();
+
+                        options.SampleCount = 1024;
+                        options.Resolution = 256;
+                        options.Mode = IblProcessMode.GGX | IblProcessMode.Lambertian;
+
+                        imgLight.Textures = ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
+                        imgLight.Panorama.NotifyLoaded();
+                        imgLight.NotifyIBLCreated();
+
+                        _updateCtx.ImageLightVersion = imgLight.Panorama.Version;
+
+                        ResetState();
+                    }
+                }
+
+                _updateCtx.LightsHash += light.GetType().Name + "|";
+            }
+
+            _lastLightLayerVersion = lights.Version;    
+        }
+
+
         protected void UpdateLayers(Scene3D scene)
         {
             if (_lastScene != scene || _lastLayersVersion != scene.Layers.Version)
             {
                 _layers.Clear();
 
-                _mainLayer = new GlLayer(this, scene, GlLayerType.Main)
-                {
-                    HasLights = true
-                };
-
-                _layers.Add(_mainLayer);
+                var opaque = scene.EnsureLayer<OpaqueLayer>();
+                _layers.Add(new GlLayer(this, scene, GlLayerType.Opaque, opaque));
 
                 foreach (var layer in scene.Layers.Layers.OfType<DetachedLayer>())
                     _layers.Add(new GlLayer(this, scene, GlLayerType.Custom, layer));
@@ -231,7 +270,7 @@ namespace XrEngine.OpenGL
                 if (_options.UsePlanarReflection)
                 {
                     scene.EnsureLayer<HasReflectionLayer>();
-                    _layers.Add(new GlReflectionLayer(this, scene));
+                    _layers.Add(new GlLayer(this, scene, GlLayerType.FullReflection, opaque));
                 }
 
                 _lastScene = scene;
@@ -277,17 +316,19 @@ namespace XrEngine.OpenGL
         {
             EnsureThread();
 
+            Debug.Assert(ctx.Scene != null && ctx.Camera != null);  
+
             _target = target;
             _view = view;
 
             PushGroup($"Render {(target == null ? "Default" : target.GetType().Name)}");
 
-            UpdateLayers(ctx.Scene!);
+            UpdateLayers(ctx.Scene);
 
-            _updateCtx.Camera = ctx.Camera!;
-            _updateCtx.Lights = _mainLayer!.Content.Lights;
-            _updateCtx.LightsHash = _mainLayer.Content.LightsHash;
-            _updateCtx.ViewSize = new Size2I(view.Width, view.Height);
+            UpdateLights(ctx.Scene);
+
+            _updateCtx.Camera = ctx.Camera;
+            _updateCtx.Frame = ctx.Frame;
             _updateCtx.ContextVersion++;
 
             foreach (var pass in _renderPasses)
@@ -566,6 +607,7 @@ namespace XrEngine.OpenGL
             {
                 glDepth.MinFilter = TextureMinFilter.Nearest;
                 glDepth.MagFilter = TextureMagFilter.Nearest;
+
                 glDepth.Bind();
                 _gl.TexParameter(glDepth.Target, TextureParameterName.TextureMinFilter, (int)GLEnum.Nearest);
                 _gl.TexParameter(glDepth.Target, TextureParameterName.TextureMagFilter, (int)GLEnum.Nearest);
@@ -660,13 +702,11 @@ namespace XrEngine.OpenGL
 
         public GlState State => _glState;
 
-        public UpdateShaderContext UpdateContext => _updateCtx;
+        public GlUpdateContext UpdateContext => _updateCtx;
 
         public IDispatcher Dispatcher => _dispatcher;
 
         public IGlRenderTarget? RenderTarget => _target;
-
-        public Rect2I RenderView => _view;
 
         public GlRenderOptions Options => _options;
 

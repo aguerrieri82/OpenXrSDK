@@ -17,7 +17,7 @@ namespace XrEngine.OpenXr
         {
             _xrApp = XrApp.Current ?? throw new InvalidOperationException();
 
-            Flags |= EngineObjectFlags.ChildGenerated | EngineObjectFlags.DisableNotifyChangedScene;
+            Flags |= EngineObjectFlags.ChildrenGenerated | EngineObjectFlags.DisableNotifyChangedScene;
 
             Name = "XrRoot";
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Assimp;
+using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Text;
@@ -10,6 +11,7 @@ using XrEngine.Compression;
 using XrEngine.Gltf;
 using XrEngine.OpenXr.Windows;
 using XrEngine.Video;
+using XrMath;
 using File = System.IO.File;
 
 
@@ -59,7 +61,6 @@ namespace XrSamples
             while (true)
             {
                 var res = h264Stream.ReadNalUnit();
-
             }
 
         }
@@ -143,6 +144,85 @@ namespace XrSamples
             var scene = assimp.ImportFile(fileName, (uint)PostProcessSteps.Triangulate);
 
             ProcessNode(scene->MRootNode, scene);
+        }
+
+        public static void TestPivot()
+        {
+            var obj = new Object3D();
+
+            var pivot = new Vector3(10, -3, 2);
+            var pos1 = new Vector3(2, 1, -2);
+            var pos2 = new Vector3(2, -2, 6);
+            var ori = Quaternion.CreateFromYawPitchRoll(0.3f, -2, 3.3f);
+
+            obj.Transform.SetLocalPivot(pivot, true);
+
+            Debug.Assert(obj.WorldPosition.IsSimilar(pivot));
+
+            obj.WorldPosition = pos1;
+
+            var zero = obj.ToWorld(Vector3.Zero);
+            var wordPivot = obj.ToWorld(pivot);
+
+            Debug.Assert(wordPivot.IsSimilar(pos1));
+
+            obj.WorldOrientation = ori;
+
+            wordPivot = obj.ToWorld(pivot);
+
+            Debug.Assert(wordPivot.IsSimilar(pos1));
+
+            obj.MoveLocalToWorld(Vector3.Zero, Vector3.Zero);
+
+            zero = obj.ToWorld(Vector3.Zero);
+
+            Debug.Assert(zero.IsSimilar(Vector3.Zero));
+
+            var parent = new Group3D();
+            parent.Transform.SetScale(1.4f, 1, 2);
+            parent.Transform.Position = new Vector3(10, -2, 4);
+            parent.Transform.Orientation = Quaternion.CreateFromYawPitchRoll(1.3f, 1.2f, -4f);
+            parent.Transform.LocalPivot = new Vector3(-223, 11, 3);
+
+            parent.AddChild(obj, false);
+
+            zero = obj.ToWorld(Vector3.Zero);
+
+            Debug.Assert(!zero.IsSimilar(Vector3.Zero));
+
+            obj.MoveLocalToWorld(Vector3.Zero, Vector3.Zero);
+
+            zero = obj.ToWorld(Vector3.Zero);
+
+            Debug.Assert(zero.IsSimilar(Vector3.Zero));
+
+            var newPose = new Pose3
+            {
+                Position = pos2,
+                Orientation = ori,
+            };
+
+            obj.SetWorldPose(newPose, true);
+
+            wordPivot = obj.ToWorld(pivot);
+            zero = obj.ToWorld(Vector3.Zero);
+
+            Debug.Assert(zero.IsSimilar(pos2));
+
+            Debug.Assert(obj.WorldOrientation.IsSimilar(ori));
+
+            var curPose = obj.GetWorldPose(true);
+
+            Debug.Assert(curPose.IsSimilar(newPose, 1e-5f));
+
+            obj.Transform.SetLocalPivot(Vector3.Zero, true);
+
+            curPose = obj.GetWorldPose(true);
+
+            Debug.Assert(curPose.IsSimilar(newPose, 1e-5f));
+
+            var curPose2 = obj.GetWorldPose(false);
+
         }
 
 

@@ -111,7 +111,7 @@ namespace XrEngine.OpenXr
 
         protected override IEnumerable<GlLayer> SelectLayers()
         {
-            return _renderer.Layers.Where(a => a.Type == GlLayerType.Main).Take(1);
+            return _renderer.Layers.Where(a => a.Type == GlLayerType.Opaque).Take(1);
         }
 
         public override void Dispose()

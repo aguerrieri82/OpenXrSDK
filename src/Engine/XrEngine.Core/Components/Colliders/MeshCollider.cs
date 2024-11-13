@@ -50,7 +50,7 @@ namespace XrEngine
             _version = _geometry.Version;
         }
 
-        public bool ContainsPoint(Vector3 worldPoint)
+        public bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f)
         {
             throw new NotImplementedException();
         }

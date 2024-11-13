@@ -46,6 +46,7 @@ namespace XrSamples.Components
         private float _wheelDensity;
         private float _chassisDensity;
         private float _carBodyDensity;
+        private float _wheelFriction;
 
         public CarModel()
         {
@@ -69,6 +70,8 @@ namespace XrSamples.Components
             {
                 Name = "attached"
             };
+
+            UpdatePriority = 1;
         }
 
         protected override void OnAttach()
@@ -109,6 +112,7 @@ namespace XrSamples.Components
 
         protected void AttachBody()
         {
+
             Debug.Assert(CarBody != null && _mainTube != null);
 
             var collider = new PyMeshCollider()
@@ -127,11 +131,12 @@ namespace XrSamples.Components
                 AutoTeleport = false,
                 Density = CarBodyDensity,
                 NotCollideGroup = RigidBodyGroup.Group1,
-                AngularDamping = 100
+                AngularDamping = 100,
+
             });
 
             _carRigidBody.Contact += OnContact;
-
+            
             var joint = AddFixed(_mainTube, CarBody, _mainTube.WorldBounds.Center);
 
             _seatPosDiff = _mainTube.GetWorldPose().Difference(_host!.GetWorldPose().Multiply(SeatLocalPose));
@@ -150,7 +155,8 @@ namespace XrSamples.Components
             {
                 DynamicFriction = WheelFriction,
                 StaticFriction = WheelFriction,
-                Restitution = 0.3f
+                Restitution = 0.3f,
+                ForceNew = true
             };
 
             foreach (var wheel in wheels)
@@ -171,11 +177,12 @@ namespace XrSamples.Components
                 wheel.AddComponent(new RigidBody
                 {
                     Type = PhysicsActorType.Dynamic,
-                    Material = pyMaterial,
+                    MaterialInfo = pyMaterial,
                     IsEnabled = true,
                     NotCollideGroup = RigidBodyGroup.Group1,
                     AutoTeleport = false,
                     Density = WheelDensity,
+                    PositionMode = PositionMode.LocalPivot,
                     Configure = rb =>
                     {
                         rb.DynamicActor.MaxDepenetrationVelocity = 1f;
@@ -420,7 +427,7 @@ namespace XrSamples.Components
             var drive = new PxD6JointDrive
             {
                 forceLimit = 1000,
-                stiffness = 1000,
+                stiffness = 100000,
                 damping = 10
             };
 
@@ -549,7 +556,29 @@ namespace XrSamples.Components
         {
             if (XrApp.Current == null)
                 return;
-            XrApp.Current.ReferenceFrame = _mainTube!.GetWorldPose().Multiply(_seatPosDiff);
+
+            XrApp.Current.ReferenceFrame = GetPoseRef(_seatPosDiff, XrApp.Current.ReferenceFrame);   
+        }
+
+        protected Pose3 GetPoseRef(Pose3 deltaRef, Pose3 lastPose)
+        {
+            var curPose = _mainTube!.GetWorldPose();
+
+            if (XrApp.Current != null)
+            {
+                var rb = _mainTube!.Component<RigidBody>();
+
+                if (rb.IsCreated)
+                {
+                    var curVel = rb.DynamicActor.LinearVelocity;
+                    var nextPos = (float)XrApp.Current.FramePredictedDisplayPeriod.TotalSeconds * curVel;
+                    curPose.Position += nextPos;
+                }
+            }
+
+            var newPose = curPose.Multiply(deltaRef);
+
+            return lastPose.Lerp(newPose, 0.9f);
         }
 
         protected void SyncSteering()
@@ -631,6 +660,31 @@ namespace XrSamples.Components
             Log.Info(this, "New Mass {1} {0}", actor.DynamicActor.Mass, obj.Name);
         }
 
+        protected void UpdateFriction()
+        {
+            foreach (var wheel in new Object3D?[] { WheelBL, WheelBR, WheelFL, WheelFR })
+            {
+                if (wheel == null || !wheel.TryComponent<RigidBody>(out var actor))
+                    continue;
+
+                if (actor.Material == null)
+                {
+                    actor.MaterialInfo = new PhysicsMaterialInfo
+                    {
+                        DynamicFriction = _wheelFriction,
+                        StaticFriction = _wheelFriction,
+                        Restitution = 0.3f,
+
+                    };
+                }
+                else
+                {
+                    actor.Material.DynamicFriction = _wheelFriction;
+                    actor.Material.StaticFriction = _wheelFriction;
+                }
+            }
+        }
+
         protected void UpdateDensity()
         {
             foreach (var wheel in new Object3D?[] { WheelBL, WheelBR, WheelFL, WheelFR })
@@ -707,7 +761,16 @@ namespace XrSamples.Components
             }
         }
 
-        public float WheelFriction { get; set; }
+        [Range(0, 5, 0.01f)]
+        public float WheelFriction
+        {
+            get => _wheelFriction;
+            set
+            {
+                _wheelFriction = value;
+                UpdateFriction();
+            }
+        }
 
         public bool UseDifferential { get; set; }   
 

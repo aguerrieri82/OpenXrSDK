@@ -68,9 +68,9 @@ namespace XrSamples
             body.ContactReportThreshold = settings.ContactReportThreshold;
             body.ContactOffset = settings.ContactOffset;
 
-            var curMat = body.Material;
+            var curMat = body.MaterialInfo;
             curMat.Restitution = settings.Restitution;
-            body.Material = curMat;
+            body.MaterialInfo = curMat;
 
             if (body.IsCreated)
             {
