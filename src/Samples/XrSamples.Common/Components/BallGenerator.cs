@@ -60,7 +60,7 @@ namespace XrSamples
             rigidBody.ContactReportThreshold = PhysicSettings.ContactReportThreshold;
             rigidBody.ContactOffset = PhysicSettings.ContactOffset;
 
-            rigidBody.Material = new PhysicsMaterialInfo
+            rigidBody.MaterialInfo = new PhysicsMaterialInfo
             {
                 Restitution = PhysicSettings.Restitution,
                 StaticFriction = 0.8f,

@@ -43,7 +43,6 @@
 
             void Visit(object obj)
             {
-
                 if (obj is EngineObject engObj)
                 {
                     foreach (var comp in engObj.Components<IComponent>().OfType<IRenderUpdate>())

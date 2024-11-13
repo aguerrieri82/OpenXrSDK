@@ -25,7 +25,10 @@ _ = host.RunAsync();
 
 Gpu.EnableNvAPi();
 
-//await Tasks.OvrLibTask(logger);
+Tasks.TestPivot();
+
+return;
+
 //await WindowSceneApp.Run(host.Services);
 await XrSceneApp.Run(host.Services);
 //await SceneAnchors.Run(host.Services, logger);

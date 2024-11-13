@@ -59,10 +59,11 @@ namespace XrEditor
                 return;
 
             var selLayer = scene.Layers.Layers.First(a => a.Name == "Selection");
-            var blendLayer = scene.Layers.Layers.First(a => a.Name == "Blend");
+            var blendLayer = scene.Layer<BlendLayer>();
+            var opaqueLayer = scene.Layer<OpaqueLayer>();
             selLayer.IsVisible = value;
-            scene.Layers.MainLayerVisible = !value;
             blendLayer.IsVisible = !value;
+            opaqueLayer.IsVisible = !value;
         }
 
         public bool IsMinimized

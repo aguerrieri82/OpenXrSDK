@@ -103,7 +103,7 @@ namespace XrEngine.OpenXr
 
             rigidBody.Type = PhysicsActorType.Static;
             rigidBody.ContactOffset = 0.2f;
-            rigidBody.Material = new PhysicsMaterialInfo
+            rigidBody.MaterialInfo = new PhysicsMaterialInfo
             {
                 DynamicFriction = 1,
                 StaticFriction = 1,

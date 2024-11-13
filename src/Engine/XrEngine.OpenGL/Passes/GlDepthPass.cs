@@ -15,6 +15,8 @@ namespace XrEngine.OpenGL
             UseOcclusion = true;
         }
 
+
+
         protected override bool BeginRender(Camera camera)
         {
             _renderer.RenderTarget!.Begin(camera);
@@ -42,7 +44,7 @@ namespace XrEngine.OpenGL
 
         protected override IEnumerable<GlLayer> SelectLayers()
         {
-            return _renderer.Layers.Where(a => a.Type == GlLayerType.Main).Take(1);
+            return _renderer.Layers.Where(a => a.Type == GlLayerType.Opaque).Take(1);
         }
 
         protected override void Draw(DrawContent draw)

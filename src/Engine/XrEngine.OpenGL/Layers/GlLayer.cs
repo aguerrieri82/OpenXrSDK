@@ -2,13 +2,17 @@
 
 namespace XrEngine.OpenGL
 {
+    [Flags]
     public enum GlLayerType
     {
-        Main,
-        CastShadow,
-        Blend,
-        FullReflection, 
-        Custom
+        Unknown = 0,
+        Color = 0x1,
+        Opaque = 0x2 | Color,
+        Blend = 0x4 | Color,
+        CastShadow = 0x8,
+        FullReflection = 0x10,
+        Custom = 0x20,
+        Light = 0x40,   
     }
 
     public class GlLayer : IDisposable
@@ -32,39 +36,6 @@ namespace XrEngine.OpenGL
             _type = type;
         }
 
-        protected void UpdateLights()
-        {
-            _content.Lights = [];
-            _content.LightsHash = "";
-
-            foreach (var light in _scene.Descendants<Light>().Visible())
-            {
-                _content.Lights.Add(light);
-
-                if (light is ImageLight imgLight)
-                {
-                    if (imgLight.Panorama?.Data != null && imgLight.Panorama.Version != _content.ImageLightVersion)
-                    {
-                        var options = PanoramaProcessorOptions.Default();
-
-                        options.SampleCount = 1024;
-                        options.Resolution = 256;
-                        options.Mode = IblProcessMode.GGX | IblProcessMode.Lambertian;
-
-                        imgLight.Textures = _render.ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
-                        imgLight.Panorama.NotifyLoaded();
-                        imgLight.NotifyIBLCreated();
-
-                        _content.ImageLightVersion = imgLight.Panorama.Version;
-                        _render.ResetState();
-                    }
-                }
-
-                _content.LightsHash += light.GetType().Name + "|";
-            }
-        }
-
-
         public virtual void Update()
         {
             Log.Info(this, "Building content '{0}' ({1})...", _scene.Name ?? "", _sceneLayer?.Name ?? "Main");
@@ -73,9 +44,6 @@ namespace XrEngine.OpenGL
             _content.LayerVersion = Version;
 
             var drawId = 0;
-
-            if (HasLights)
-                UpdateLights();
 
             var objects = _sceneLayer != null ?
                 _sceneLayer.Content.OfType<Object3D>() :
@@ -92,10 +60,6 @@ namespace XrEngine.OpenGL
                 foreach (var material in vrtSrc.Materials.OfType<ShaderMaterial>())
                 {
                     if (material.Shader == null)
-                        continue;
-
-                    if ((material.Alpha == AlphaMode.Blend && Type == GlLayerType.Main) ||
-                        (material.Alpha != AlphaMode.Blend && Type == GlLayerType.Blend))
                         continue;
 
                     if (!_content.ShaderContents.TryGetValue(material.Shader, out var shaderContent))
@@ -181,7 +145,7 @@ namespace XrEngine.OpenGL
         protected int ComputeVisibility()
         {
             var updateContext = _render.UpdateContext;
-            
+
             int totHidden = 0;
             int totDraw = 0;
 
@@ -203,7 +167,7 @@ namespace XrEngine.OpenGL
                         if (draw.IsHidden)
                             totHidden++;
                     }
-              
+
                     if (!draw.IsHidden)
                         allHidden = false;
                 }
@@ -242,11 +206,10 @@ namespace XrEngine.OpenGL
         public void Dispose()
         {
             _content?.ShaderContents.Clear();
-            _content?.Lights?.Clear();
             GC.SuppressFinalize(this);
         }
 
-        public string? Name => _sceneLayer?.Name;   
+        public string? Name => _sceneLayer?.Name;
 
         public bool NeedUpdate => _lastUpdateVersion != Version;
 
@@ -257,8 +220,6 @@ namespace XrEngine.OpenGL
         public ILayer3D? SceneLayer => _sceneLayer;
 
         public Scene3D Scene => _scene;
-
-        public bool HasLights { get; set; }
 
         public long Version => _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
     }

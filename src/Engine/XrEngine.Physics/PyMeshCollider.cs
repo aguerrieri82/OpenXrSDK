@@ -24,7 +24,7 @@ namespace XrEngine.Physics
             _system = _manager.System;
         }
 
-        public bool ContainsPoint(Vector3 globalPoint)
+        public bool ContainsPoint(Vector3 globalPoint, float tolerance = 0.001f)
         {
             if (_system == null)
                 return false;
@@ -44,7 +44,7 @@ namespace XrEngine.Physics
                 if (pyGeo.Type == PhysX.PxGeometryType.Trianglemesh)
                     distance *= pyGeo.TriangleMesh.scale.scale.x;
 
-                if (distance < 0.001f)
+                if (distance < tolerance)
                     return true;
             }
 

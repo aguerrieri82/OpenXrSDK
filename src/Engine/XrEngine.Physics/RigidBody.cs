@@ -27,6 +27,12 @@ namespace XrEngine.Physics
         KinematicTarget,
     }
 
+    public enum PositionMode
+    {
+        Origin,
+        LocalPivot,
+    }
+
     public class RigidBody : Behavior<Object3D>, IDisposable
     {
         private PhysicsManager? _manager;
@@ -34,6 +40,7 @@ namespace XrEngine.Physics
         private PhysicsRigidActor? _actor;
         private PhysicsMaterial? _material;
         private Pose3 _lastPose;
+        private IObjectTool? _lastTool;
 
         private event RigidBodyContactEventHandler? _contactEvent;
 
@@ -42,7 +49,7 @@ namespace XrEngine.Physics
         {
             Type = PhysicsActorType.Dynamic;
 
-            Material = new PhysicsMaterialInfo
+            MaterialInfo = new PhysicsMaterialInfo
             {
                 DynamicFriction = 1f,
                 StaticFriction = 1f,
@@ -55,6 +62,8 @@ namespace XrEngine.Physics
             ContactReportThreshold = 1f;
             EnableCCD = false;
             AutoTeleport = false;
+            PositionMode = PositionMode.Origin;
+            ToolMode = RigidBodyToolMode.KinematicTarget;   
         }
 
         public void Teleport(Vector3 worldPos)
@@ -73,7 +82,7 @@ namespace XrEngine.Physics
             if (!pose.IsFinite())
                 throw new InvalidOperationException();
 
-            _host.SetWorldPoseIfChanged(pose, true);
+            _host.SetWorldPoseIfChanged(pose, PositionMode == PositionMode.Origin);
 
             _lastPose = GetHostPose();
         }
@@ -82,7 +91,7 @@ namespace XrEngine.Physics
         {
             Debug.Assert(_host != null);
 
-            return _host.GetWorldPose(true);
+            return _host.GetWorldPose(PositionMode == PositionMode.Origin);
         }
 
         protected override void OnEnabled()
@@ -298,9 +307,9 @@ namespace XrEngine.Physics
 
             _material = _system.CreateOrGetMaterial(new PhysicsMaterialInfo
             {
-                DynamicFriction = Material.DynamicFriction,
-                StaticFriction = Material.StaticFriction,
-                Restitution = Material.Restitution,
+                DynamicFriction = MaterialInfo.DynamicFriction,
+                StaticFriction = MaterialInfo.StaticFriction,
+                Restitution = MaterialInfo.Restitution,
             });
 
             var shapes = new List<PhysicsShape>();
@@ -366,9 +375,9 @@ namespace XrEngine.Physics
 
             _material = _system.CreateOrGetMaterial(new PhysicsMaterialInfo
             {
-                DynamicFriction = Material.DynamicFriction,
-                StaticFriction = Material.StaticFriction,
-                Restitution = Material.Restitution,
+                DynamicFriction = MaterialInfo.DynamicFriction,
+                StaticFriction = MaterialInfo.StaticFriction,
+                Restitution = MaterialInfo.Restitution,
             });
 
             foreach (var shape in _actor.GetShapes())
@@ -385,6 +394,7 @@ namespace XrEngine.Physics
                 //var res = DynamicActor.UpdateMassAndInertia(Density);
                 DynamicActor.AngularDamping = AngularDamping;
                 DynamicActor.LockFlags = Lock;
+                DynamicActor.RetainAccelerations = RetainAccelerations;
             }
 
             if (Type == PhysicsActorType.Dynamic)
@@ -406,6 +416,7 @@ namespace XrEngine.Physics
 
         public override void Reset(bool onlySelf = false)
         {
+            _lastTool = null;
             Destroy();
             base.Reset(onlySelf);
         }
@@ -446,19 +457,22 @@ namespace XrEngine.Physics
 
                 if (tool == null)
                 {
-                    if (DynamicActor.IsKinematic)
-                        DynamicActor.IsKinematic = false;
-
-                    if ((AutoTeleport && !curPose.IsSimilar(_lastPose, 1e-4f)) || !_actor.GlobalPose.IsFinite())
-                        Teleport(curPose.Position);
+        
+                    if (_lastTool != null && ToolMode == RigidBodyToolMode.KinematicTarget)
+                        _actor.GlobalPose = DynamicActor.KinematicTarget;
                     else
-                        SetHostPose(_actor.GlobalPose);
+                    {
+                        if (DynamicActor.IsKinematic)
+                            DynamicActor.IsKinematic = false;
+
+                        if ((AutoTeleport && !curPose.IsSimilar(_lastPose, 1e-4f)) || !_actor.GlobalPose.IsFinite())
+                            Teleport(curPose.Position);
+                        else
+                            SetHostPose(_actor.GlobalPose);
+                    }
                 }
                 else
                 {
-                    if (!DynamicActor.RetainAccelerations)
-                        DynamicActor.RetainAccelerations = true;
-
                     if (ToolMode != RigidBodyToolMode.Dynamic)
                     {
                         if (!DynamicActor.IsKinematic)
@@ -470,6 +484,8 @@ namespace XrEngine.Physics
                     else
                         DynamicActor.GlobalPose = curPose;
                 }
+
+                _lastTool = tool;
             }
             else
             {
@@ -481,6 +497,8 @@ namespace XrEngine.Physics
                         DynamicActor.KinematicTarget = curPose;
                 }
             }
+
+
         }
 
         public override void GetState(IStateContainer container)
@@ -539,19 +557,26 @@ namespace XrEngine.Physics
         [Category("Advanced")]
         public float AngularDamping { get; set; }
 
+        [Category("Advanced")]
+        public bool RetainAccelerations { get; set; }
+
         public PxRigidDynamicLockFlags Lock { get; set; }
+
+        public PositionMode PositionMode { get; set; }
 
         public float Density { get; set; }
 
         public PhysicsActorType Type { get; set; }
 
-        public PhysicsMaterialInfo Material { get; set; }
+        public PhysicsMaterialInfo MaterialInfo { get; set; }
 
         public bool AutoTeleport { get; set; }
 
         public RigidBodyGroup NotCollideGroup { get; set; }
 
         public Action<RigidBody>? Configure { get; set; }
+
+        public PhysicsMaterial? Material => _material;
 
         public PhysicsRigidDynamic DynamicActor => (_actor as PhysicsRigidDynamic) ?? throw new ArgumentNullException();
 

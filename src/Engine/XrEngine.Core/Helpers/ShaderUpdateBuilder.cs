@@ -42,7 +42,7 @@ namespace XrEngine
 
         public Shader? Shader;
 
-        public IEnumerable<Light>? Lights;
+        public IList<Light>? Lights;
 
         public Object3D? Model;
 
@@ -56,8 +56,6 @@ namespace XrEngine
 
         public string? LightsHash;
 
-        public uint ProgramInstanceId;
-
         public readonly Plane[] FrustumPlanes;
 
         public IShadowMapProvider? ShadowMapProvider;
@@ -68,11 +66,11 @@ namespace XrEngine
 
         public ShaderUpdate? LastGlobalUpdate;
 
-        public Size2I ViewSize;
-
-        public IRenderPass Pass;
+        public IRenderPass? Pass;
 
         public long ContextVersion;
+
+        public long Frame;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

@@ -25,7 +25,7 @@ namespace XrEngine
     {
         Collision? CollideWith(Ray3 ray);
 
-        bool ContainsPoint(Vector3 worldPoint);
+        bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f);
 
         void Initialize();
     }

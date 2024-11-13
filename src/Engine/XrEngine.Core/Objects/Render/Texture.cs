@@ -96,13 +96,6 @@ namespace XrEngine
             NotifyChanged(ObjectChangeType.Render);
         }
 
-        protected override void OnChanged(ObjectChange change)
-        {
-            if (change.IsAny(ObjectChangeType.Property, ObjectChangeType.Render))
-                Version++;
-            base.OnChanged(change);
-        }
-
         public void NotifyLoaded()
         {
             Data = null;

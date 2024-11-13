@@ -153,6 +153,7 @@ namespace XrEngine
         {
             if (change.IsAny(ObjectChangeType.Transform))
                 _viewProjDirty = true;
+
             base.OnChanged(change);
         }
 

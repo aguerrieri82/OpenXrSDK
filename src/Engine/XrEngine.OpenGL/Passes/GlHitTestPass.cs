@@ -131,7 +131,7 @@ namespace XrEngine.OpenGL
 
         protected override IEnumerable<GlLayer> SelectLayers()
         {
-            return _renderer.Layers.Where(a => a.Type == GlLayerType.Main || a.Type == GlLayerType.Blend);
+            return _renderer.Layers.Where(a => a.Type == GlLayerType.Opaque || a.Type == GlLayerType.Blend);
         }
     }
 }

@@ -5,11 +5,12 @@
     {
         None = 0,
         Generated = 0x1,
-        ChildGenerated = 0x2,
+        ChildrenGenerated = 0x2,
         Readonly = 0x4,
         EnableDebug = 0x8,
         DisableNotifyChangedScene = 0x10,
         NotifyChangedScene = 0x20,
+        NotifyChanged = 0x100,
         GpuOnly = 0x40,
         Mutable = 0x80
     }
@@ -24,8 +25,7 @@
 
         public EngineObject()
         {
-            Flags = EngineObjectFlags.EnableDebug;
-            IsNotifyChange = true;
+            Flags = EngineObjectFlags.EnableDebug | EngineObjectFlags.NotifyChanged;
         }
 
         public void SetState(IStateContainer container)
@@ -116,7 +116,7 @@
 
         public void NotifyChanged(ObjectChange change)
         {
-            if (!IsNotifyChange)
+            if ((Flags & EngineObjectFlags.NotifyChanged) == 0)
                 return;
 
             if (_updateCount > 0)
@@ -214,10 +214,6 @@
             }
         }
 
-        protected bool HasChangedHandlers => Changed != null;
-
-        public bool IsNotifyChange { get; set; }
-
         public long Version { get; protected set; }
 
         public EngineObjectFlags Flags { get; set; }
@@ -228,9 +224,8 @@
             set => _id = value;
         }
 
-        int IRenderUpdate.UpdatePriority => 0;
-
         public event Action<EngineObject, ObjectChange>? Changed;
 
+        int IRenderUpdate.UpdatePriority => 0;
     }
 }

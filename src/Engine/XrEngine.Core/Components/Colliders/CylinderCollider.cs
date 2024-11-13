@@ -11,7 +11,7 @@ namespace XrEngine
             return null;
         }
 
-        public bool ContainsPoint(Vector3 worldPoint)
+        public bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f)
         {
             //TODO: Implement
             return false;

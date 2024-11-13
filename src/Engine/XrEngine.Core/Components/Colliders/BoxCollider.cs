@@ -93,7 +93,7 @@ namespace XrEngine
             container.Write(nameof(Center), Center);
         }
 
-        public bool ContainsPoint(Vector3 worldPoint)
+        public bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f)
         {
             if (!_isInit)
                 Initialize();

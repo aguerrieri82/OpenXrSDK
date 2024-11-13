@@ -25,7 +25,7 @@ namespace XrEngine
 
         }
 
-        public bool ContainsPoint(Vector3 worldPoint)
+        public bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f)
         {
             throw new NotImplementedException();
         }

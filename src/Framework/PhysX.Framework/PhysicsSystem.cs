@@ -96,7 +96,7 @@ namespace PhysX.Framework
 
         public PhysicsMaterial CreateOrGetMaterial(PhysicsMaterialInfo info)
         {
-            var result = _materials.FirstOrDefault(a =>
+            var result = info.ForceNew ? null : _materials.FirstOrDefault(a =>
                 a.StaticFriction == info.StaticFriction &&
                 a.DynamicFriction == info.DynamicFriction &&
                 a.Restitution == info.Restitution);

@@ -56,14 +56,14 @@ namespace XrEngine
             _worldDirty = false;
 
             OnWorldChanged();
-
-            if (IsNotifyChangedScene())
-                _scene?.NotifyChanged(this, ObjectChangeType.Transform);
         }
 
         protected virtual void OnWorldChanged()
         {
             _transform.Version++;
+
+            if (IsNotifyChangedScene())
+                _scene?.NotifyChanged(this, ObjectChangeType.Transform);
         }
 
         bool IsNotifyChangedScene()

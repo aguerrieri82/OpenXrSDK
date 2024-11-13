@@ -153,10 +153,7 @@ namespace XrEngine
         protected override void OnChanged(ObjectChange change)
         {
             if (change.IsAny(ObjectChangeType.Geometry))
-            {
-                Version++;
                 _boundsDirty = true;
-            }
 
             base.OnChanged(change);
         }
