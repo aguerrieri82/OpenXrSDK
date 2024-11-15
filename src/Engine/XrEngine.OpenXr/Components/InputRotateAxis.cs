@@ -1,16 +1,11 @@
 ﻿using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using XrEngine;
 using XrMath;
 
-namespace XrSamples.Components
+namespace XrEngine.OpenXr
 {
-    public class InputRotate : Behavior<Object3D>, IDrawGizmos
+    public class InputRotateAxis : Behavior<Object3D>, IDrawGizmos
     {
         protected struct MoveStatus
         {
@@ -48,7 +43,6 @@ namespace XrSamples.Components
                 Log.Value("Rotation", curRot);
                 ApplyRotation(curRot);
             }
-   
         }
 
         protected void ApplyRotation(float angle)
@@ -131,6 +125,15 @@ namespace XrSamples.Components
                 canvas.DrawLine(_right.StartPos, _right.LastPos);
 
             canvas.Restore();
+        }
+        public void ConfigureInput(IXrBasicInteractionProfile input)
+        {
+            Left = input.Left!.GripPose;
+            Right = input.Right!.GripPose;
+            LeftClick = input.Left!.SqueezeClick;
+            RightClick = input.Right!.SqueezeClick;
+            LeftHaptic = input.Left!.Haptic;
+            RightHaptic = input.Right!.Haptic;
         }
 
         public float Angle

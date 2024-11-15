@@ -112,7 +112,7 @@ namespace XrEngine
                 mesh.Geometry.NotifyChanged(ObjectChangeType.Geometry);
             }
 
-            _host.Transform.SetMatrix(curTransform);
+            _host.Transform.Set(curTransform);
 
             if (_host is Group3D grp)
                 grp.UpdateBounds(true);

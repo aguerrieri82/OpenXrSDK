@@ -1,4 +1,5 @@
-﻿using XrMath;
+﻿using Silk.NET.Maths;
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -25,6 +26,7 @@ namespace XrEngine.OpenGL
         protected long _lastUpdateVersion;
         protected long _lastFrame;
         private Camera? _lastCamera;
+        private int _lastDrawId;
 
         public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
         {
@@ -34,76 +36,158 @@ namespace XrEngine.OpenGL
             _lastUpdateVersion = -1;
             _sceneLayer = sceneLayer;
             _type = type;
+            if (sceneLayer != null)
+                sceneLayer.Changed += OnSceneLayerChanged;
         }
 
-        public virtual void Update()
+        private void OnSceneLayerChanged(ILayer3D layer, Layer3DChange change)
+        {
+            if (change.Type == Layer3DChangeType.Added)
+                AddContent((Object3D)change.Item);
+
+            else if (change.Type == Layer3DChangeType.Removed)
+                RemoveContent((Object3D)change.Item);
+
+            _lastUpdateVersion = layer.Version;
+        }
+
+        protected virtual ShaderMaterial ReplaceMaterial(ShaderMaterial material)
+        {
+            return material;
+
+            if (material is IPbrMaterial pbr)
+            {
+                return new BasicMaterial
+                {
+                    Alpha = material.Alpha,
+                    CastShadows = material.CastShadows,
+                    IsEnabled = material.IsEnabled,
+                    Color = pbr.Color,
+                    DoubleSided = material.DoubleSided,
+                    UseClipDistance = material.UseClipDistance,
+                    UseDepth = material.UseDepth,
+                    WriteStencil = material.WriteStencil,
+                    WriteDepth = material.WriteDepth,
+                    WriteColor = material.WriteColor,
+                    StencilFunction = material.StencilFunction,
+                    CompareStencilMask = material.CompareStencilMask,
+                    DiffuseTexture = pbr.ColorMap,
+                    Shininess = Math.Max(1, (1 - pbr.Roughness) * 20),
+                    Specular = pbr.Color,
+                    Ambient = Color.White
+                };
+            }
+
+            return material;
+        }
+
+        public void Update()
+        {
+            if (NeedUpdate)
+                Rebuild();
+        }
+
+        public void Rebuild()
         {
             Log.Info(this, "Building content '{0}' ({1})...", _scene.Name ?? "", _sceneLayer?.Name ?? "Main");
 
             _content.ShaderContents.Clear();
             _content.LayerVersion = Version;
 
-            var drawId = 0;
+            _lastDrawId = 0;
 
             var objects = _sceneLayer != null ?
                 _sceneLayer.Content.OfType<Object3D>() :
                 _scene.Descendants();
 
             foreach (var obj3D in objects)
-            {
-                if (obj3D is Light light)
-                    continue;
-
-                if (!obj3D.Feature<IVertexSource>(out var vrtSrc))
-                    continue;
-
-                foreach (var material in vrtSrc.Materials.OfType<ShaderMaterial>())
-                {
-                    if (material.Shader == null)
-                        continue;
-
-                    if (!_content.ShaderContents.TryGetValue(material.Shader, out var shaderContent))
-                    {
-                        shaderContent = new ShaderContent
-                        {
-                            ProgramGlobal = material.Shader.GetGlResource(gl => new GlProgramGlobal(_render.GL, material.Shader!))
-                        };
-
-                        _content.ShaderContents[material.Shader] = shaderContent;
-                    }
-
-                    if (!shaderContent.Contents.TryGetValue(vrtSrc.Object, out var vertexContent))
-                    {
-                        vertexContent = new VertexContent
-                        {
-                            VertexHandler = vrtSrc.Object.GetGlResource(a => GlVertexSourceHandle.Create(_render.GL, vrtSrc)),
-                            ActiveComponents = VertexComponent.None,
-                            RenderPriority = vrtSrc.RenderPriority
-                        };
-
-                        foreach (var attr in vertexContent.VertexHandler.Layout!.Attributes!)
-                            vertexContent.ActiveComponents |= attr.Component;
-
-                        shaderContent.Contents[vrtSrc.Object] = vertexContent;
-                    }
-
-                    var instance = new GlProgramInstance(_render.GL, material, shaderContent.ProgramGlobal!, obj3D);
-
-                    ConfigureProgramInstance(instance);
-
-                    vertexContent.Contents.Add(new DrawContent
-                    {
-                        Draw = () => vertexContent!.VertexHandler!.Draw(material.Shader.ForcePrimitive),
-                        ProgramInstance = instance,
-                        DrawId = drawId++,
-                        Object = obj3D
-                    });
-                }
-            }
+                AddContent(obj3D);
 
             _lastUpdateVersion = _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
 
             Log.Debug(this, "Content Build");
+        }
+
+        protected void RemoveContent(Object3D obj3d)
+        {
+            if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
+                return;
+
+            var clean = new List<Action>();
+
+            foreach (var shader in _content.ShaderContents)
+            {
+                foreach (var vertex in shader.Value.Contents)
+                {
+                    for (var i = vertex.Value.Contents.Count -1; i >= 0; i--)
+                    {
+                        var draw = vertex.Value.Contents[i];
+
+                        if (draw.Object == obj3d)
+                            vertex.Value.Contents.RemoveAt(i);
+                    }
+                
+                    if (vertex.Value.Contents.Count == 0)
+                        clean.Add(() => shader.Value.Contents.Remove(vertex.Key));
+                }
+
+                if (shader.Value.Contents.Count == 0)
+                    clean.Add(() => _content.ShaderContents.Remove(shader.Key));
+            }
+
+            foreach (var action in clean)
+                action();
+        }
+
+        protected void AddContent(Object3D obj3d)
+        {
+            if (!obj3d.Feature<IVertexSource>(out var vrtSrc))
+                return;
+
+            foreach (var realMaterial in vrtSrc.Materials.OfType<ShaderMaterial>())
+            {
+                var material = ReplaceMaterial(realMaterial);
+
+                if (material.Shader == null)
+                    continue;
+
+                if (!_content.ShaderContents.TryGetValue(material.Shader, out var shaderContent))
+                {
+                    shaderContent = new ShaderContent
+                    {
+                        ProgramGlobal = material.Shader.GetGlResource(gl => new GlProgramGlobal(_render.GL, material.Shader!))
+                    };
+
+                    _content.ShaderContents[material.Shader] = shaderContent;
+                }
+
+                if (!shaderContent.Contents.TryGetValue(vrtSrc.Object, out var vertexContent))
+                {
+                    vertexContent = new VertexContent
+                    {
+                        VertexHandler = vrtSrc.Object.GetGlResource(a => GlVertexSourceHandle.Create(_render.GL, vrtSrc)),
+                        ActiveComponents = VertexComponent.None,
+                        RenderPriority = vrtSrc.RenderPriority
+                    };
+
+                    foreach (var attr in vertexContent.VertexHandler.Layout!.Attributes!)
+                        vertexContent.ActiveComponents |= attr.Component;
+
+                    shaderContent.Contents[vrtSrc.Object] = vertexContent;
+                }
+
+                var instance = new GlProgramInstance(_render.GL, material, shaderContent.ProgramGlobal!, obj3d);
+
+                ConfigureProgramInstance(instance);
+
+                vertexContent.Contents.Add(new DrawContent
+                {
+                    Draw = () => vertexContent!.VertexHandler!.Draw(material.Shader.ForcePrimitive),
+                    ProgramInstance = instance,
+                    DrawId = _lastDrawId++,
+                    Object = obj3d
+                });
+            }
         }
 
         protected virtual void ConfigureProgramInstance(GlProgramInstance instance)
@@ -205,6 +289,8 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
+            if (_sceneLayer != null)
+                _sceneLayer.Changed -= OnSceneLayerChanged;
             _content?.ShaderContents.Clear();
             GC.SuppressFinalize(this);
         }

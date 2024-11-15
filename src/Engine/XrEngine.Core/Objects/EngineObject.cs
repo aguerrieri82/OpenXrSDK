@@ -109,7 +109,7 @@
 
             component.Detach();
 
-            _components!.Remove(component);
+            _components?.Remove(component);
 
             NotifyChanged(new ObjectChange(ObjectChangeType.ComponentRemove, component));
         }
@@ -191,6 +191,7 @@
         {
             if (_id.Value == Guid.Empty)
                 _id = Utils.HashGuid(GeneratePath());
+
         }
 
         public string GeneratePath()

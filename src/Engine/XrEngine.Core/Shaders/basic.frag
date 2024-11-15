@@ -11,7 +11,7 @@ layout(binding=0) uniform sampler2D uTexture;
 
 struct Material {
     vec3 ambient;
-    vec3 diffuse;
+    vec4 diffuse;
     vec3 specular;
     float shininess;
 };
@@ -31,23 +31,27 @@ layout(location=0) out vec4 FragColor;
 
 void main()
 {
-      vec3 ambient = light.ambient * material.ambient;
+    vec3 ambient = light.ambient * material.ambient;
 
-      vec3 norm = normalize(fNormal);
-      vec3 lightDirection = normalize(light.position - fPos);
-      float diff = max(dot(norm, lightDirection), 0.0);
-      vec3 diffuse = light.diffuse * (diff * material.diffuse);
+    vec3 norm = normalize(fNormal);
 
-      #ifdef TEXTURE
-        diffuse = diffuse * texture(uTexture, fUv).rgb;
-      #endif
+	if (!gl_FrontFacing)
+		norm = -norm;
 
-      vec3 viewDirection = normalize(uViewPos - fPos);
-      vec3 reflectDirection = reflect(-lightDirection, norm);
-      float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), material.shininess);
-      vec3 specular = light.specular * (spec * material.specular);
+    vec3 lightDirection = normalize(light.position - fPos);
+    float diff = max(dot(norm, lightDirection), 0.0);
+    vec3 diffuse = light.diffuse * (diff * material.diffuse.rgb);
 
-      vec3 result = ambient + diffuse + specular;
+    #ifdef TEXTURE
+    diffuse = diffuse * texture(uTexture, fUv).rgb;
+    #endif
 
-      FragColor = vec4(result, 1.0);
+    vec3 viewDirection = normalize(uViewPos - fPos);
+    vec3 reflectDirection = reflect(-lightDirection, norm);
+    float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), material.shininess);
+    vec3 specular = light.specular * (spec * material.specular);
+
+    vec3 result = ambient + diffuse + specular;
+
+    FragColor = vec4(result, material.diffuse.a);
 }

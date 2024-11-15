@@ -1,9 +1,10 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 #else
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 #endif
-
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -33,7 +34,8 @@ namespace XrEngine.OpenGL
 
         protected override IEnumerable<GlLayer> SelectLayers()
         {
-            return _renderer.Layers.Where(a => (a.Type & GlLayerType.Color) == GlLayerType.Color);
+            return _renderer.Layers.Where(a => (a.Type & GlLayerType.Color) == GlLayerType.Color || 
+                                               (a.SceneLayer is DetachedLayer det));
         }
 
         protected override void EndRender()
@@ -59,6 +61,11 @@ namespace XrEngine.OpenGL
 
         protected virtual void Draw(DrawContent draw)
         {
+            var name = draw.Object!.Name;
+
+            if (name != null)
+                _gl.DebugMessageInsert(DebugSource.DebugSourceApplication, DebugType.DebugTypeMarker, 0, DebugSeverity.DebugSeverityNotification, (uint)name.Length, name);
+
             draw.Draw!();
         }
 
@@ -80,6 +87,7 @@ namespace XrEngine.OpenGL
 
             foreach (var shader in layer.Content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
+
                 var progGlobal = shader.Value!.ProgramGlobal;
 
                 updateContext.Shader = shader.Key;
@@ -95,7 +103,9 @@ namespace XrEngine.OpenGL
 
                 foreach (var vertex in vertices)
                 {
-                    if (vertex.IsHidden)
+   
+
+                    if (vertex.IsHidden && false)
                         continue;
 
                     if (useDepthPass && vertex.Contents.All(a => a.Query != null && a.Query.GetResult() == 0))
@@ -111,6 +121,11 @@ namespace XrEngine.OpenGL
                     {
                         if (!CanDraw(draw))
                             continue;
+
+                        if (draw.Object.Name == "Wall")
+                        {
+                            Debug.WriteLine("wall");
+                        }
 
                         var progInst = draw.ProgramInstance!;
 

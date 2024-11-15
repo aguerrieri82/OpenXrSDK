@@ -10,6 +10,13 @@ namespace XrMath
 
         #region Matrix4x4
 
+
+        public static bool DecomposeDouble(this Matrix4x4 matrix, out Vector3 scale, out Quaternion rotation, out Vector3 translation)
+        {
+            return Matrix4x4.Decompose(matrix, out scale, out rotation, out translation);
+        }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 ToPose(this Matrix4x4 self)
         {
@@ -91,7 +98,7 @@ namespace XrMath
         public static Plane ToPlane(this Quad3 self)
         {
             var normal = self.Normal();
-            return new Plane(normal, -Vector3.Dot(normal, self.Pose.Position));
+            return new Plane(normal, -normal.DotSafe(self.Pose.Position));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -151,7 +158,7 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Distance(this Plane self, Vector3 point)
         {
-            return Vector3.Dot(self.Normal, point) + self.D;
+            return self.Normal.DotSafe(point) + self.D;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -341,8 +348,8 @@ namespace XrMath
         {
             return new Bounds3
             {
-                Min = Vector3.Min(self.Min, other.Min), 
-                Max = Vector3.Max(self.Max, other.Max)  
+                Min = Vector3.Min(self.Min, other.Min),
+                Max = Vector3.Max(self.Max, other.Max)
             };
         }
 
@@ -368,7 +375,7 @@ namespace XrMath
         public static bool IsFinite(this Pose3 self)
         {
             return self.Position.IsFinite() && self.Orientation.IsFinite();
-        }   
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsSimilar(this Pose3 self, Pose3 other, float epsilon = EPSILON)
@@ -411,7 +418,7 @@ namespace XrMath
 
         public static bool IsIdentity(this Pose3 self)
         {
-            return self.Position == Vector3.Zero && self.Orientation == Quaternion.Identity;    
+            return self.Position == Vector3.Zero && self.Orientation == Quaternion.Identity;
         }
 
 
@@ -438,16 +445,16 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Ray3 ToRay(this Pose3 self)
         {
-            var direction = Vector3.Transform(-Vector3.UnitZ, self.Orientation);
+            var direction = (-Vector3.UnitZ).Transform(self.Orientation);
 
-            var transformedUp = Vector3.Transform(Vector3.UnitY, self.Orientation);
+            var transformedUp = Vector3.UnitY.Transform(self.Orientation);
 
             // Project the transformed up vector onto the plane perpendicular to the direction
-            var projectedUp = transformedUp - Vector3.Dot(transformedUp, direction) * direction;
+            var projectedUp = transformedUp - transformedUp.DotSafe(direction) * direction;
 
             // Calculate the roll angle in radians, using atan2 for signed angle
-            float angle = (float)Math.Atan2(Vector3.Dot(Vector3.Cross(Vector3.UnitY, projectedUp), direction),
-                                          Vector3.Dot(Vector3.UnitY, projectedUp));
+            var angle = (float)Math.Atan2(Vector3.UnitY.Cross(projectedUp).DotSafe(direction),
+                                          Vector3.UnitY.DotSafe(projectedUp));
 
             return new Ray3
             {
@@ -464,7 +471,7 @@ namespace XrMath
         public static bool IsCCW(this Triangle3 self)
         {
             var normal = self.Normal();
-            var dot = Vector3.Dot(normal, Vector3.UnitZ);
+            var dot = normal.DotSafe(Vector3.UnitZ);
             return dot > 0;
         }
 
@@ -530,36 +537,17 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Quaternion ToOrientation(this Vector3 self)
         {
-            return Vector3.UnitZ.RotationTowards(self);
+#warning CHANGED THE SIGN
+            return (-Vector3.UnitZ).RotationTowards(self);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Quaternion ToOrientation(this Vector3 self, float roll)
         {
-            self = Vector3.Normalize(self);
-            var defaultForward = -Vector3.UnitZ;
-
-            var rotationAxis = Vector3.Cross(defaultForward, self);
-            var dot = Vector3.Dot(defaultForward, self);
-
-            Quaternion alignQuaternion;
-            if (rotationAxis.LengthSquared() < 1e-6f)
-            {
-                if (dot > 0)
-                    alignQuaternion = Quaternion.Identity; // No rotation needed
-                else
-                    alignQuaternion = Quaternion.CreateFromAxisAngle(Vector3.UnitX, MathF.PI);
-            }
-            else
-            {
-                rotationAxis = Vector3.Normalize(rotationAxis);
-                var angle = MathF.Acos(dot);
-                alignQuaternion = Quaternion.CreateFromAxisAngle(rotationAxis, angle);
-            }
+            var mainQuat = self.ToOrientation();
 
             var rollQuaternion = Quaternion.CreateFromAxisAngle(self, roll);
 
-            return Quaternion.Concatenate(alignQuaternion, rollQuaternion);
+            return rollQuaternion * mainQuat;
         }
 
         public static float MinDistanceTo(this Vector3[] self, Vector3 point)
@@ -604,6 +592,20 @@ namespace XrMath
             return Vector3.Transform(self, quat);
         }
 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float DotSafe(this Vector3 self, Vector3 other)
+        {
+            return Math.Clamp(Vector3.Dot(self, other), -1f, 1f);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 Cross(this Vector3 self, Vector3 other)
+        {
+            return Vector3.Cross(self, other);
+        }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Normalize(this Vector3 self)
         {
@@ -618,38 +620,44 @@ namespace XrMath
 
         public static Quaternion RotationTowards(this Vector3 from, Vector3 to, float epsilon = EPSILON)
         {
-            // Normalize the input vectors
+            return from.RotationTowards(to, Vector3.UnitY, epsilon);
+        }
+
+        public static Quaternion RotationTowards(this Vector3 from, Vector3 to, Vector3 referenceAxis, float epsilon = EPSILON)
+        {
             from = Vector3.Normalize(from);
             to = Vector3.Normalize(to);
 
+            float angle;
+            Vector3 rotationAxis;
+
             // Compute the dot product to find the cosine of the angle between the vectors
-            var dot = Vector3.Dot(from, to);
+            var dot = from.DotSafe(to);
 
             // Handle the case where the vectors are already aligned
             if (MathF.Abs(dot - 1.0f) < epsilon)
-                return Quaternion.Identity; // No rotation needed
+                return Quaternion.Identity;
 
             // Handle the case where the vectors are opposite (180-degree rotation)
             if (MathF.Abs(dot + 1.0f) < epsilon)
             {
                 // Find an orthogonal vector to use as the rotation axis
-                var orthogonalAxis = Vector3.Cross(from, Vector3.UnitX);
-                if (orthogonalAxis.LengthSquared() < epsilon)
-                    orthogonalAxis = Vector3.Cross(from, Vector3.UnitY); // Try a different axis if the first fails
-
-                orthogonalAxis = Vector3.Normalize(orthogonalAxis);
-                return Quaternion.CreateFromAxisAngle(orthogonalAxis, MathF.PI); // 180-degree rotation
+                rotationAxis = Vector3.Cross(from, referenceAxis);
+                if (rotationAxis.LengthSquared() < epsilon)
+                {
+                    referenceAxis = Vector3.UnitX;
+                    rotationAxis = Vector3.Cross(from, referenceAxis); // Try a different axis if the first fails
+                }
+                angle = MathF.PI;
+            }
+            else
+            {
+                rotationAxis = Vector3.Cross(from, to);
+                angle = MathF.Acos(dot);
             }
 
-            // Compute the axis of rotation (cross product of from and to)
-            Vector3 rotationAxis = Vector3.Cross(from, to);
-            rotationAxis = Vector3.Normalize(rotationAxis);
 
-            // Compute the angle between the vectors (acos of the dot product)
-            float angle = MathF.Acos(dot);
-
-            // Create the quaternion representing the rotation
-            return Quaternion.CreateFromAxisAngle(rotationAxis, angle);
+            return Quaternion.CreateFromAxisAngle(rotationAxis.Normalize(), angle);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -671,9 +679,9 @@ namespace XrMath
             self = Vector3.Normalize(self);
             other = Vector3.Normalize(other);
             var cross = Vector3.Cross(self, other);
-            var dot = Vector3.Dot(self, other);
+            var dot = self.DotSafe(other);
             var angle = MathF.Atan2(cross.Length(), dot);
-            var sign = MathF.Sign(Vector3.Dot(cross, planeNormal));
+            var sign = MathF.Sign(cross.DotSafe(planeNormal));
             return angle * sign;
         }
 
@@ -817,7 +825,7 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Plane ToPlane(this Ray3 self)
         {
-            return new Plane(self.Direction, -Vector3.Dot(self.Direction, self.Origin));
+            return new Plane(self.Direction, -self.Direction.DotSafe(self.Origin));
         }
 
         #endregion
@@ -901,21 +909,27 @@ namespace XrMath
             );
         }
 
-        public static void GetAxisAndAngle(this Quaternion q, out Vector3 axis, out float angle)
+        public static void GetAxisAndAngle(this Quaternion self, out Vector3 axis, out float angle)
         {
-            angle = 2.0f * (float)Math.Acos(q.W);
-
-            float sinHalfAngle = (float)Math.Sqrt(1.0f - q.W * q.W);
-
-            if (sinHalfAngle < 0.001f)
-            {
-                axis = Vector3.UnitX;
-            }
-            else
-            {
-                axis = new Vector3(q.X / sinHalfAngle, q.Y / sinHalfAngle, q.Z / sinHalfAngle);
-            }
+            angle = 2.0f * (float)Math.Acos(self.W);
+            axis = new Vector3(self.X, self.Y, self.Z).Normalize();
         }
+
+        public static float AngleAmongAxis(this Quaternion self, Vector3 axis, Vector3 normal)
+        {
+            self.GetAxisAndAngle(out var quatAxis, out _);
+
+            var projection = quatAxis.DotSafe(axis);
+
+            var angle = MathF.Acos(projection);
+
+            var crossProduct = Vector3.Cross(quatAxis, axis);
+
+            var sign = MathF.Sign(crossProduct.DotSafe(normal));
+
+            return angle * sign;
+        }
+
         #endregion
 
         #region COLOR
@@ -1038,7 +1052,7 @@ namespace XrMath
         public static Vector2 ToVector2(this Size2I self)
         {
             return new Vector2(self.Width, self.Height);
-        }   
+        }
 
         public static bool Contains(this Rect2 self, Vector2 point)
         {

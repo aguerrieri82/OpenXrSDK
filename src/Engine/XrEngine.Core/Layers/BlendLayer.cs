@@ -20,7 +20,10 @@
                 return true;
 
             if (change.IsAny(ObjectChangeType.Material))
+            {
+                _version++;
                 return true;
+            }
 
             return false;
         }

@@ -143,7 +143,7 @@ namespace XrEngine.OpenXr
             if (File.Exists(fullPath))
             {
                 model = GltfLoader.LoadFile(fullPath);
-                model.Transform.SetMatrix(Matrix4x4.Identity);
+                model.Transform.Set(Matrix4x4.Identity);
                 model.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
                 model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
                 model.Transform.SetScale(1.06f);

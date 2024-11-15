@@ -899,7 +899,8 @@ namespace XrEngine.Gltf
         {
             var text = string.Join('|', parts) + "|" + _filePath;
             var hash = MD5.HashData(Encoding.UTF8.GetBytes(text));
-            obj.Id = new Guid(hash);
+            //TODO: id must be unqiue per scene, multiple instances can have same id
+            //obj.Id = new Guid(hash);
         }
 
 

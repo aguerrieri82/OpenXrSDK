@@ -94,7 +94,7 @@ namespace XrEngine
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("material.ambient", (Vector3)Ambient);
-                up.SetUniform("material.diffuse", (Vector3)Color);
+                up.SetUniform("material.diffuse", Color);
                 up.SetUniform("material.specular", (Vector3)Specular);
                 up.SetUniform("material.shininess", Shininess);
             });

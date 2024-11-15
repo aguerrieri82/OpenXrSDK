@@ -11,6 +11,7 @@ namespace XrEditor.Services
         public PropertyEditorManager()
         {
             Register(new TypedPropertyEditorFactory<Vector3, Vector3Editor>());
+            Register(new TypedPropertyEditorFactory<Quaternion, QuaternionEditor>());
             Register(new TypedPropertyEditorFactory<Color, ColorEditor>());
             Register(new TypedPropertyEditorFactory<bool, BoolEditor>());
             Register(new TypedPropertyEditorFactory<string, TextEditor<string>>());

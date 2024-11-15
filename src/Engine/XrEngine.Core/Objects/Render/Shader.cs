@@ -12,6 +12,8 @@
 
         public bool IsLit { get; set; }
 
+        public bool IsEffect { get; set; }
+
         public int Priority { get; set; }
 
         public DrawPrimitive? ForcePrimitive { get; set; }

@@ -53,7 +53,6 @@ namespace XrEngine
             if (Contains(obj))
                 return;
             _content.Add(obj);
-            _manager?.NotifyObjectAdded(this, obj);
             _version++;
             OnAdded(obj);
         }
@@ -63,19 +62,20 @@ namespace XrEngine
             if (!Contains(obj))
                 return;
             _content.Remove(obj);
-            _manager?.NotifyObjectRemoved(this, obj);
             _version++;
             OnRemoved(obj);
         }
 
-        protected virtual void OnRemoved(T ob)
+        protected virtual void OnRemoved(T obj)
         {
-
+            _manager?.NotifyObjectRemoved(this, obj);
+            OnChanged(obj, Layer3DChangeType.Removed);
         }
 
-        protected virtual void OnAdded(T ob)
+        protected virtual void OnAdded(T obj)
         {
-
+            _manager?.NotifyObjectAdded(this, obj);
+            OnChanged(obj, Layer3DChangeType.Added);
         }
 
         protected abstract bool BelongsToLayer(T obj);

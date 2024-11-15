@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -248,10 +249,10 @@ namespace XrEngine
 
         public Vector3 Forward
         {
-            get => -Vector3.UnitZ.ToDirection(WorldMatrix);
+            get => (-Vector3.UnitZ).Transform(WorldOrientation).Normalize();
             set
             {
-                WorldOrientation = -value.ToOrientation();
+                WorldOrientation = value.ToOrientation();
             }
         }
 
@@ -315,11 +316,13 @@ namespace XrEngine
             }
             set
             {
+                if (value == WorldMatrix)
+                    return;
 
                 if (_parent == null || _parent.WorldMatrix.IsIdentity)
-                    _transform.SetMatrix(value);
+                    _transform.Set(value);
                 else
-                    _transform.SetMatrix(_parent.WorldMatrixInverse * value);
+                    _transform.Set(value * _parent.WorldMatrixInverse);
 
                 _worldInverseDirty = true;
                 _normalMatrixDirty = true;

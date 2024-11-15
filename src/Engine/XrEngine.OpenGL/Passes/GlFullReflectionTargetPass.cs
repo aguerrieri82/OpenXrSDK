@@ -45,6 +45,9 @@ namespace XrEngine.OpenGL
             if (draw.Object == _reflection.Host)
                 return false;
 
+            if (draw.ProgramInstance!.Material.Shader!.IsEffect)
+                return false;
+
             var target = draw.Object?.Components<PlanarReflectionTarget>().FirstOrDefault();
             if (target?.IncludeReflection != null && !target.IncludeReflection(_reflection))
                 return false;
