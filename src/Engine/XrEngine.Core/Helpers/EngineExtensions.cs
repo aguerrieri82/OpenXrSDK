@@ -435,7 +435,7 @@ namespace XrEngine
         }
 
 
-        public static void ContainsPoint(this Scene3D self, Vector3 worldPoint, ConcurrentBag<Object3D> result, IEnumerable<ICollider3D>? colliders = null)
+        public static void ContainsPoint(this Scene3D self, Vector3 worldPoint, ConcurrentBag<Object3D> result, IEnumerable<ICollider3D>? colliders = null, float tollerance = 0)
         {
             IEnumerable<ICollider3D> GetColliders()
             {
@@ -453,7 +453,7 @@ namespace XrEngine
 
             Parallel.ForEach(colliders, collider =>
             {
-                if (collider.ContainsPoint(worldPoint))
+                if (collider.ContainsPoint(worldPoint, tollerance))
                     result.Add((Object3D)collider.Host!);
 
             });

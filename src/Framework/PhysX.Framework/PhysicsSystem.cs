@@ -7,6 +7,7 @@ using XrMath;
 using static PhysX.NativeMethods;
 
 
+
 namespace PhysX.Framework
 {
     internal unsafe struct PxContactPairVelocity2
@@ -74,6 +75,7 @@ namespace PhysX.Framework
         protected PhysicsOptions _options;
         protected PhysicsScene? _scene;
 
+
         protected uint _actorIds;
         protected Dictionary<uint, PhysicsActor> _actors = [];
         protected Dictionary<nint, object> _objects = [];
@@ -89,6 +91,7 @@ namespace PhysX.Framework
         public PhysicsSystem()
         {
             Current = this;
+            CollideGroups = [];
             _contactModify = new ContactModifyCallback();
             _eventCallbacks = new SimulationEventCallbacks();
             _options = new PhysicsOptions();
@@ -286,6 +289,19 @@ namespace PhysX.Framework
             return result;
         }
 
+        public PhysicsSphericalJoint CreateSphericalJoint(PhysicsRigidActor actor0, Pose3 pose0, PhysicsRigidActor actor1, Pose3 pose1)
+        {
+            var tr0 = pose0.ToPxTransform();
+            var tr1 = pose1.ToPxTransform();
+
+            var handle = _physics->PhysPxSphericalJointCreate((PxRigidActor*)actor0.Handle, &tr0, (PxRigidActor*)actor1.Handle, &tr1);
+
+            var result = new PhysicsSphericalJoint(handle, this);
+            result._actor0 = actor0;
+            result._actor1 = actor1;
+
+            return result;
+        }
         public PhysicsRigidActor CreateActor(PhysicsActorInfo info)
         {
             PxActor* actor = null;
@@ -458,10 +474,30 @@ namespace PhysX.Framework
             var actor1 = (PhysicsRigidActor)Current!._actors[info->filterData0.word0];
             var actor2 = (PhysicsRigidActor)Current!._actors[info->filterData1.word0];
 
-            var notCollide = info->filterData0.word1 & info->filterData1.word1;
-            if (notCollide != 0)
-                return PxFilterFlags.Suppress;
+            var commonGroups = info->filterData0.word1 & info->filterData1.word1;
 
+            if (commonGroups != 0)
+            {
+                var groups = Current!.CollideGroups;
+                var mask = 1;
+                var allFalse = true;
+
+                for (var i = 0; i < groups.Count; i++)
+                {
+                    if ((commonGroups & mask) != 0)
+                    {
+                        if (groups[i].Check(actor1, actor2))
+                        {
+                            allFalse = false;
+                            break;
+                        }
+                    }
+                    mask = mask << 1;
+                }
+
+                if (allFalse)
+                    return PxFilterFlags.Suppress;
+            }
 
             if (actor1.NotifyContacts || actor2.NotifyContacts)
                 info->pairFlags[0] |=
@@ -613,6 +649,8 @@ namespace PhysX.Framework
         public double Time => _time;
 
         //public event Action<PhysicsActor, PhysicsActor>? Contact;
+
+        public List<CollideGroup> CollideGroups { get; set; }
 
         public ref PxPhysics Physics => ref Unsafe.AsRef<PxPhysics>(_physics);
 

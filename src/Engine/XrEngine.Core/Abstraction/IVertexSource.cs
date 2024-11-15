@@ -7,7 +7,7 @@
         LineLoop
     }
 
-    public interface IVertexSource
+    public interface IVertexSource : ILayer3DItem
     {
         DrawPrimitive Primitive { get; }
 

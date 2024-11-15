@@ -37,12 +37,8 @@ namespace XrEngine.OpenXr
             
             var curRot = MathF.Min(a1 ?? float.PositiveInfinity, a2 ?? float.PositiveInfinity); 
 
-
             if (float.IsFinite(curRot))
-            {
-                Log.Value("Rotation", curRot);
                 ApplyRotation(curRot);
-            }
         }
 
         protected void ApplyRotation(float angle)

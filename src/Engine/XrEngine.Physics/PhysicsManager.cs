@@ -18,6 +18,7 @@ namespace XrEngine.Physics
         protected Thread? _simulateThread;
         protected ConcurrentQueue<Action> _queue = [];
         protected HashSet<Joint> _joints = [];
+        protected readonly List<CollideGroup> _collideGroups = [];
 
         public PhysicsManager(float fps = 40f)
         {
@@ -29,12 +30,12 @@ namespace XrEngine.Physics
 
         protected override void Start(RenderContext ctx)
         {
-
             Destroy();
 
             _system = new PhysicsSystem();
             _system.Create(Options);
             _system.CreateScene(Options.Gravity);
+            _system.CollideGroups = _collideGroups;
 
             Configure?.Invoke(_system);
 
@@ -47,6 +48,16 @@ namespace XrEngine.Physics
                 _simulateThread.Name = "XrEngine PhysicsSimulate";
                 _simulateThread.Start();
             }
+        }
+
+        public void SetCollideGroup(RigidBodyGroup group, CollideGroup grp)
+        {
+            var index = (int)MathF.Log2((int)group);
+            
+            while (index >= _collideGroups.Count)
+                _collideGroups.Add(CollideGroup.Always);
+
+            _collideGroups[index] = grp;
         }
 
         public override void Reset(bool onlySelf = false)

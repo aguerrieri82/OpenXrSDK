@@ -170,8 +170,10 @@ namespace XrEngine.Physics
                 else if (collider is CapsuleCollider cap)
                 {
                     result = _system.CreateCapsule(cap.Radius * scale.X, cap.Height * 0.5f * scale.Y);
-                    pose.Position = cap.Pose.Position;
-                    pose.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI / 2) * cap.Pose.Orientation;
+                    pose = cap.Pose.Multiply(new Pose3
+                    {
+                        Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI / 2)
+                    });
                 }
                 else if (collider is SphereCollider sphere)
                 {
@@ -230,7 +232,7 @@ namespace XrEngine.Physics
                 });
 
                 shape.ContactOffset = ContactOffset;
-                shape.NotCollideGroup = (uint)NotCollideGroup;
+                shape.NotCollideGroup = (uint)CollideGroup;
             }
 
             if (shape != null)
@@ -384,7 +386,7 @@ namespace XrEngine.Physics
             {
                 shape.SetMaterials([_material]);
                 shape.ContactOffset = ContactOffset;
-                shape.NotCollideGroup = (uint)NotCollideGroup;
+                shape.NotCollideGroup = (uint)CollideGroup;
             }
 
             if (Type != PhysicsActorType.Static)
@@ -572,7 +574,7 @@ namespace XrEngine.Physics
 
         public bool AutoTeleport { get; set; }
 
-        public RigidBodyGroup NotCollideGroup { get; set; }
+        public RigidBodyGroup CollideGroup { get; set; }
 
         public Action<RigidBody>? Configure { get; set; }
 

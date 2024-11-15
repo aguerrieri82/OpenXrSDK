@@ -4,9 +4,15 @@ namespace XrMath
 {
     public struct Pose3
     {
-        public Vector3 Position;
+        public Pose3()
+        {
+        }
 
-        public Quaternion Orientation;
+        public Pose3(Vector3 position)
+        {
+            Position = position;
+            Orientation = Quaternion.Identity;
+        }
 
         public readonly override bool Equals(object obj)
         {
@@ -19,6 +25,11 @@ namespace XrMath
         {
             return Position.GetHashCode() ^ Orientation.GetHashCode();
         }
+
+        public Vector3 Position;
+
+        public Quaternion Orientation;
+
 
         public static bool operator ==(Pose3 a, Pose3 b) => a.Equals(b);
 

@@ -2,6 +2,7 @@
 using OpenXr.Framework;
 using PhysX;
 using PhysX.Framework;
+using Silk.NET.Vulkan;
 using System;
 using System.Diagnostics;
 using System.Numerics;
@@ -47,6 +48,10 @@ namespace XrSamples.Components
         private float _chassisDensity;
         private float _carBodyDensity;
         private float _wheelFriction;
+        private TriangleMesh _gearBox;
+        private TriangleMesh _gearLever;
+        private Dictionary<string, Vector2> _gears;
+        private string _curGear;
 
         public CarModel()
         {
@@ -86,6 +91,7 @@ namespace XrSamples.Components
             CreateChassis();
             AttachSteering();
             AttachBody();
+            CreateGearBox(false);
 
             _attachedPosDiff = _mainTube!.GetWorldPose().Difference(_attachedGroup.GetWorldPose());
         }
@@ -105,19 +111,19 @@ namespace XrSamples.Components
                 collider.MeshObjects = () => CarBodyCollisionMeshes;
 
             CarBody.AddComponent(collider);
-
+        
             _carRigidBody = CarBody.AddComponent(new RigidBody
             {
                 Type = PhysicsActorType.Dynamic,
                 AutoTeleport = false,
                 Density = CarBodyDensity,
-                NotCollideGroup = RigidBodyGroup.Group1,
+                CollideGroup = RigidBodyGroup.Group1,
                 AngularDamping = 100,
 
             });
 
             _carRigidBody.Contact += OnContact;
-            
+
             var joint = AddFixed(_mainTube, CarBody, _mainTube.WorldBounds.Center);
 
             _seatPosDiff = _mainTube.GetWorldPose().Difference(_host!.GetWorldPose().Multiply(SeatLocalPose));
@@ -160,7 +166,7 @@ namespace XrSamples.Components
                     Type = PhysicsActorType.Dynamic,
                     MaterialInfo = pyMaterial,
                     IsEnabled = true,
-                    NotCollideGroup = RigidBodyGroup.Group1,
+                    CollideGroup = RigidBodyGroup.Group1,
                     AutoTeleport = false,
                     Density = WheelDensity,
                     PositionMode = PositionMode.LocalPivot,
@@ -230,7 +236,7 @@ namespace XrSamples.Components
                     },
                     MinAngle = -SteeringLimitRad * SteeringRatio,
                     MaxAngle = SteeringLimitRad * SteeringRatio,
-                    MaxDistance = 0.10f
+                    MaxDistance = 0.30f
                 };
 
                 SteeringWheel.AddComponent(rotate);
@@ -337,7 +343,7 @@ namespace XrSamples.Components
             {
                 Type = type,
                 AutoTeleport = type == PhysicsActorType.Static,
-                NotCollideGroup = RigidBodyGroup.Group1,
+                CollideGroup = RigidBodyGroup.Group1,
                 Density = ChassisDensity,
                 Configure = rb =>
                 {
@@ -419,7 +425,7 @@ namespace XrSamples.Components
                 DriveZ = drive,
                 DriveSlerp = drive,
                 DriveSwing = drive,
-                DriveTwist = drive, 
+                DriveTwist = drive,
             };
 
             return joint;
@@ -429,7 +435,7 @@ namespace XrSamples.Components
         {
             var joint = AddFixed(obj0, obj1, point);
 
-            var opt = (D6JointOptions)joint.Options!;   
+            var opt = (D6JointOptions)joint.Options!;
 
             if (axis == Vector3.UnitX)
             {
@@ -473,7 +479,7 @@ namespace XrSamples.Components
 
             var options = new RevoluteJointOptions();
             if (motor)
-                options.RevoluteJointFlags |= PhysX.PxRevoluteJointFlags.DriveEnabled;
+                options.RevoluteJointFlags |= PxRevoluteJointFlags.DriveEnabled;
 
             options.DriveGearRatio = 0.01f;
 
@@ -482,6 +488,31 @@ namespace XrSamples.Components
             return joint;
         }
 
+        Joint AddSpherical(Object3D obj0, Object3D obj1, Vector3 point)
+        {
+            var manager = _host!.Scene!.Component<PhysicsManager>();
+
+            var pose0 = new Pose3
+            {
+                Position = point,
+                Orientation = Quaternion.Identity
+            };
+
+            var pose1 = new Pose3
+            {
+                Position = point,
+                Orientation = Quaternion.Identity
+            };
+
+            pose0 = obj0.GetWorldPose().Inverse().Multiply(pose0);
+            pose1 = obj1.GetWorldPose().Inverse().Multiply(pose1);
+
+            var joint = manager.AddJoint(JointType.Spherical, obj0, pose0, obj1, pose1);
+
+            joint.Options = new SphericalJointOptions();
+
+            return joint;
+        }
 
         void ApplySteering()
         {
@@ -538,7 +569,7 @@ namespace XrSamples.Components
             if (XrApp.Current == null)
                 return;
 
-            XrApp.Current.ReferenceFrame = GetPoseRef(_seatPosDiff, XrApp.Current.ReferenceFrame);   
+            XrApp.Current.ReferenceFrame = GetPoseRef(_seatPosDiff, XrApp.Current.ReferenceFrame);
         }
 
         protected Pose3 GetPoseRef(Pose3 deltaRef, Pose3 lastPose)
@@ -564,7 +595,7 @@ namespace XrSamples.Components
 
         protected void SyncSteering()
         {
-            float wheelAngle = 0; 
+            float wheelAngle = 0;
             if (UseSteeringPhysics)
             {
                 wheelAngle = _steeringWheelJoint!.D6Joint.SwingZAngle * 0.5f;
@@ -572,7 +603,7 @@ namespace XrSamples.Components
             else
             {
                 var input = SteeringWheel!.Component<InputRotateAxis>();
-                wheelAngle = input.Angle / SteeringRatio; 
+                wheelAngle = input.Angle / SteeringRatio;
             }
 
             SteeringAngle = wheelAngle;
@@ -580,7 +611,7 @@ namespace XrSamples.Components
 
         protected void ProcessInput()
         {
-            var dir = BackInput != null && BackInput.IsActive && BackInput.Value ? -1 : 1;   
+            var dir = BackInput != null && (BackInput.IsActive && BackInput.Value || _curGear == "R") ? -1 : 1;
 
             if (AccInput != null && AccInput.IsActive)
                 WheelSpeedRad = AccInput.Value * 10f * dir;
@@ -590,11 +621,37 @@ namespace XrSamples.Components
         }
 
 
+
+        protected void ComputeGear()
+        {
+            var topFace = _gearBox.LocalBounds.Faces().Front;
+            var plane = topFace.ToPlane();
+
+            var ray = new Ray3(_gearLever.WorldPosition, _gearLever.Forward);
+            var localRay = ray.Transform(_gearBox.WorldMatrixInverse);
+
+            if (localRay.Intersects(plane, out var localPoint))
+            {
+                var uv = topFace.LocalPointAt(localPoint) / topFace.Size;
+                uv.Y = 1 - uv.Y;
+                foreach (var gear in _gears)
+                {
+                    if ((uv - gear.Value).Length() < 0.1)
+                    {
+                        _curGear = gear.Key;
+                        return;
+                    }
+                }
+            }
+        }
+
         protected override void Update(RenderContext ctx)
         {
             SyncSteering();
 
             ProcessInput();
+
+            ComputeGear();
 
             _manager ??= _host!.Scene!.Component<PhysicsManager>();
 
@@ -617,7 +674,7 @@ namespace XrSamples.Components
                     _isWheelChanged = false;
                 }
             });
-         
+
             SyncCarBody();
 
             SyncCamera();
@@ -632,9 +689,9 @@ namespace XrSamples.Components
         {
             if (obj == null || !obj.TryComponent<RigidBody>(out var actor))
                 return;
-            
-            actor.Density = density;  
-            
+
+            actor.Density = density;
+
             if (actor.IsCreated)
                 actor.DynamicActor.UpdateMassAndInertia(density);
 
@@ -670,7 +727,7 @@ namespace XrSamples.Components
         {
             foreach (var wheel in new Object3D?[] { WheelBL, WheelBR, WheelFL, WheelFR })
                 UpdateDensity(wheel, _wheelDensity);
-            
+
             if (_chassis != null)
             {
                 foreach (var item in _chassis.Children)
@@ -678,6 +735,181 @@ namespace XrSamples.Components
             }
 
             UpdateDensity(CarBody, _carBodyDensity);
+        }
+
+        void CreateGearBox(bool usePyscx)
+        {
+            var lines = new List<Vector2>();
+
+            var xSize = 0.08f * 1;
+            var ySize = 0.07f * 1;
+            var padSize = 0.010f;
+            var lineSize = 0.008f;
+            var leverHeight = 0.3f;
+            var leverOffset = 0.1f;
+
+
+            var centerY = ySize / 2;
+            var boxSizeX = (xSize - lineSize * 3 - padSize * 2) / 2;
+            var boxSizeY = (ySize - lineSize - padSize * 2) / 2;
+
+            lines.Add(new Vector2(0, 0));
+            lines.Add(new Vector2(xSize, padSize));
+
+            lines.Add(new Vector2(0, ySize));
+            lines.Add(new Vector2(xSize, ySize - padSize));
+
+            lines.Add(new Vector2(0, padSize));
+            lines.Add(new Vector2(padSize, ySize - padSize));
+
+            lines.Add(new Vector2(xSize, padSize));
+            lines.Add(new Vector2(xSize - padSize, ySize - padSize));
+
+            var b0 = new Vector2(padSize + lineSize, padSize);
+            var b1 = new Vector2(padSize + lineSize + boxSizeX, padSize + boxSizeY);
+
+            lines.Add(b0);
+            lines.Add(b1);
+
+            var b2 = b0 + new Vector2(boxSizeX + lineSize, 0);
+            var b3 = b1 + new Vector2(boxSizeX + lineSize, 0);
+            lines.Add(b2);
+            lines.Add(b3);
+
+            var b4 = b0 + new Vector2(0, boxSizeY + lineSize);
+            var b5 = b1 + new Vector2(0, boxSizeY + lineSize);
+            lines.Add(b4);
+            lines.Add(b5);
+
+            b4 += new Vector2(boxSizeX + lineSize, 0);
+            b5 += new Vector2(boxSizeX + lineSize, 0);
+            lines.Add(b4);
+            lines.Add(b5);
+
+
+            var boxMesh = new TriangleMesh();
+            var builder = new MeshBuilder();
+            var offset = new Vector2(xSize, ySize) / -2f;
+            for (var i = 0; i < lines.Count; i += 2)
+            {
+                var l0 = lines[i];
+                var l1 = lines[i + 1];
+                var size = l1 - l0;
+                var center = (l0 + l1) / 2;
+
+                builder.AddCube(new Vector3(center + offset, 0), new Vector3(size, 0.003f));
+            }
+
+            var mat = MaterialFactory.CreatePbr("#000000");
+            mat.DoubleSided = true;
+            mat.Roughness = 0.2f;
+            mat.Metalness = 1;
+
+            boxMesh.Geometry = builder.ToGeometry();
+            boxMesh.Materials.Add((Material)mat);
+            boxMesh.SetWorldPose(GearBoxPose);
+            builder.AddColliders(boxMesh);
+
+            _attachedGroup.AddChild(boxMesh);
+
+
+            builder = new MeshBuilder();
+            builder.AddCylinder(Vector3.Zero, (lineSize * 1.5f / 2f) - 0.001f, leverHeight, 10)
+                   .AddSphere(Vector3.Zero, 0.02f, 20);
+
+            var leverMesh = new TriangleMesh();
+            leverMesh.Geometry = builder.ToGeometry();
+            leverMesh.Geometry.SmoothNormals();
+            leverMesh.Materials.Add((Material)mat);
+            leverMesh.SetWorldPose(GearBoxPose.Multiply(new Pose3(new Vector3(0, 0, -leverOffset))));
+            builder.AddColliders(leverMesh);   
+
+            if (usePyscx)
+            {
+                leverMesh.AddComponent(new ForceTarget());
+
+                boxMesh.AddComponent(new RigidBody
+                {
+                    Type = PhysicsActorType.Static,
+                    EnableCCD = true,
+                    CollideGroup = RigidBodyGroup.Group1 | RigidBodyGroup.Group2
+                });
+
+                leverMesh.AddComponent(new RigidBody
+                {
+                    Type = PhysicsActorType.Dynamic,
+                    CollideGroup = RigidBodyGroup.Group1 | RigidBodyGroup.Group2,
+                    Density = 1000,
+                    EnableCCD = true,
+                    Configure = rb =>
+                    {
+                        rb.DynamicActor.SolverIterations = new SolverIterations
+                        {
+                            MinPos = 30
+                        };
+                    }
+                });
+
+                var point = leverMesh.WorldBounds.Faces().Bottom.Center();
+
+                var joint = AddSpherical(leverMesh, boxMesh!, point);
+
+                var opt = (SphericalJointOptions)joint.Options!;
+                opt.SphericalFlags |= PxSphericalJointFlags.LimitEnabled;
+                opt.Limit = new PxJointLimitCone
+                {
+                    yAngle = MathF.PI,
+                    zAngle = MathF.PI,
+                    bounceThreshold = 10f,
+                    stiffness = 1000000,
+                    damping = 30000,
+                };
+
+                _chassis!.AddChild(leverMesh);
+            }
+            else
+            {
+                var point = leverMesh.WorldBounds.Faces().Bottom.Center();
+
+                leverMesh.AddComponent(new InputRotatePivot
+                {
+                    LocalPivot = new Vector3(0,0, leverHeight),
+                    Normal = Vector3.UnitZ,
+                    ValidateOrientation = (worldOri) =>
+                    {
+                        var dir = (-Vector3.UnitZ).Transform(worldOri).Normalize();
+                        var line = new Line3(leverMesh.WorldPosition, leverMesh.WorldPosition + dir * leverHeight);
+                        var localLine = line.Transform(boxMesh.WorldMatrixInverse);
+
+            
+                        foreach (var collider in boxMesh.Components<BoxCollider>())
+                        {
+                            var bounds = new Bounds3()
+                            {
+                                Max = collider.Center + collider.Size / 2,
+                                Min = collider.Center - collider.Size / 2,
+
+                            };
+
+                            if (bounds.Intersects(localLine, out _))
+                                return false;
+                        }
+
+                        return true;
+                    }
+                });
+
+                _attachedGroup.AddChild(leverMesh);
+            }
+
+            _gearBox = boxMesh;
+            _gearLever = leverMesh;
+
+            _gears = new Dictionary<string, Vector2>
+            {
+                ["R"] = new Vector2(0.8f, 0.8f),
+                ["1"] = new Vector2(0.2f, 0.2f)
+            };
         }
 
         public void AddMirror(Group3D obj, Ray3 worldPivot)
@@ -698,7 +930,7 @@ namespace XrSamples.Components
 
             obj.AddComponent(new InputRotatePivot
             {
-                Pivot = worldPivot.Origin,
+                LocalPivot = worldPivot.Origin,
                 Normal = worldPivot.Direction
             });
 
@@ -797,7 +1029,7 @@ namespace XrSamples.Components
             }
         }
 
-        public bool UseDifferential { get; set; }   
+        public bool UseDifferential { get; set; }
 
         public bool UseSteeringPhysics { get; set; }
 
@@ -807,7 +1039,7 @@ namespace XrSamples.Components
 
         public float SteeringRatio { get; set; }
 
-        public float SteeringLimitRad { get; set; } 
+        public float SteeringLimitRad { get; set; }
 
         public Pose3 SeatLocalPose { get; set; }
 
@@ -830,6 +1062,8 @@ namespace XrSamples.Components
         public Object3D? SteeringWheel { get; set; }
 
         public Object3D? CarBody { get; set; }
+
+        public Pose3 GearBoxPose { get; set; }
 
         public IEnumerable<TriangleMesh>? CarBodyCollisionMeshes { get; set; }
     }

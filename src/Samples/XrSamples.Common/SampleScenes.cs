@@ -1078,14 +1078,17 @@ namespace XrSamples
             scene.Id = Guid.Parse("9692f695-f53c-40c4-900a-d17ac94302d8");
 
             //Physics
-            scene.AddComponent(new PhysicsManager(60));
+            var pm = scene.AddComponent(new PhysicsManager(60));
+            pm.SetCollideGroup(RigidBodyGroup.Group1, CollideGroup.Never);
+            pm.SetCollideGroup(RigidBodyGroup.Group2, CollideGroup.Always);
 
             scene.AddComponent(new InputObjectForce
             {
                 InputName = "RightGripPose",
                 HandlerName = "RightSqueezeClick",
                 HapticName = "RightHaptic",
-                Factor = 30
+                Tollerance = 0.01f,
+                Factor = 0.1f
             });
 
             scene.AddComponent(new InputObjectForce
@@ -1093,7 +1096,7 @@ namespace XrSamples
                 InputName = "LeftGripPose",
                 HandlerName = "LeftSqueezeClick",
                 HapticName = "LeftHaptic",
-                Factor = 30
+                Factor = 0.1f
             });
 
             //Material
@@ -1164,6 +1167,11 @@ namespace XrSamples
                 SteeringWheel = car.GroupByName("leatherB_steering.003", "chrome_steering.003", "chrome_logo_steering.003", "texInt_steering.003"),
                 CarBodyCollisionMeshes = bodyMeshes,
                 UseSteeringPhysics = false,
+                GearBoxPose = new Pose3()
+                {
+                    Position = new Vector3(-0.1f, 0.62f, 0.1f),
+                    Orientation = Quaternion.Normalize(new Quaternion(1, 0f, 0f, 0.8f))
+                },
                 SeatLocalPose = new Pose3
                 {
                     Position = new Vector3(-0.4f, 1.1f, 0.2f),

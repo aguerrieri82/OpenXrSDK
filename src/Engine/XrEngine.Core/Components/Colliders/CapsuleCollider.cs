@@ -27,7 +27,20 @@ namespace XrEngine
 
         public bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f)
         {
-            throw new NotImplementedException();
+            var localPoint = _host!.ToLocal(worldPoint);
+
+            localPoint = Pose.Inverse().Transform(localPoint);
+
+            localPoint.Z += Height / 2;
+
+            if (localPoint.Z < - tolerance || localPoint.Z > Height + tolerance)
+                return false;
+
+            var distance = new Vector2(localPoint.X, localPoint.Y).Length();
+            if (distance >= Radius + tolerance)
+                return false;
+
+            return true;
         }
 
         public Collision? CollideWith(Ray3 ray)

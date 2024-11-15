@@ -65,7 +65,7 @@ namespace XrEngine.Physics
             {
                 if (Handler.IsActive && Handler.Value)
                 {
-                    _host!.Scene!.ContainsPoint(Input.Value.Position, _checkObjects);
+                    _host!.Scene!.ContainsPoint(Input.Value.Position, _checkObjects, null, Tollerance);
 
                     foreach (var obj in _checkObjects)
                     {
@@ -85,8 +85,6 @@ namespace XrEngine.Physics
 
                         Haptic?.VibrateStart(400, 1, TimeSpan.FromMilliseconds(100));
 
-                        Log.Checkpoint("Force Start", "#00ff00");
-
                         break;
                     }
                 }
@@ -95,7 +93,6 @@ namespace XrEngine.Physics
             {
                 if (Handler.IsActive && Handler.IsChanged && !Handler.Value)
                 {
-                    Log.Checkpoint("Force End", "#ff0000");
                     _isDragging = false;
                 }
 
@@ -105,9 +102,9 @@ namespace XrEngine.Physics
 
                     var startWorld = _object.ToWorld(_startDragLocal);
                     var curWorlds = Input.Value.Position;
-                    var force = (curWorlds - startWorld) * Factor * _rigidBody.DynamicActor.Mass;
+                    var force = (curWorlds - startWorld) * Factor;
 
-                    _rigidBody.DynamicActor.AddForce(force, startWorld, PhysX.PxForceMode.Impulse);
+                    _rigidBody.DynamicActor.AddForce(force, startWorld, PhysX.PxForceMode.Force);
 
                     _lastForce = new Line3() { From = startWorld, To = curWorlds };
 
@@ -128,6 +125,8 @@ namespace XrEngine.Physics
             canvas.DrawLine(_lastForce.From, _lastForce.To);
             canvas.Restore();
         }
+
+        public float Tollerance { get; set; }
 
         public float Factor { get; set; }
 
