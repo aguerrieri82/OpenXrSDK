@@ -37,7 +37,7 @@ namespace OpenAl.Framework
             _al.SourceRewind(_handle);
         }
 
-        public void DeleteBuffers()
+        public void DeleteBuffer()
         {
             foreach (var buffer in _buffers)
             {
@@ -48,10 +48,34 @@ namespace OpenAl.Framework
             _buffers.Clear();
         }
 
-        public void AddBuffer(AlBuffer buffer)
+        public void SetBuffer(AlBuffer buffer)
         {
             _al.SetSourceProperty(_handle, SourceInteger.Buffer, buffer.Handle);
             _buffers.Add(buffer);
+        }
+
+        public void QueueBuffer(params AlBuffer[] buffers)
+        {
+            _al.SourceQueueBuffers(_handle, buffers.Select(a=> a.Handle).ToArray());
+            foreach (var buffer in _buffers)
+                _buffers.Add(buffer);
+        }
+
+        public IEnumerable<AlBuffer> DequeueBuffers(uint count)
+        {
+            var bufHandles = new uint[count];
+            _al.SourceUnqueueBuffers(_handle, bufHandles);
+            return bufHandles.Select(a => AlBuffer.Attach(_al, a));
+        }
+
+
+        public int BuffersProcessed
+        {
+            get
+            {
+                _al.GetSourceProperty(_handle, GetSourceInteger.BuffersProcessed, out int value);
+                return value;
+            }
         }
 
         public Vector3 Velocity

@@ -39,15 +39,15 @@ namespace OpenAl.Framework
             if (result == null)
             {
                 result = new AlSource(_al);
-                result.AddBuffer(buffer);
+                result.SetBuffer(buffer);
                 _sources.Add(result);
             }
             else
             {
                 if (result.BufferHandle != buffer.Handle)
                 {
-                    result.DeleteBuffers();
-                    result.AddBuffer(buffer);
+                    result.DeleteBuffer();
+                    result.SetBuffer(buffer);
                 }
 
                 result.Stop();
