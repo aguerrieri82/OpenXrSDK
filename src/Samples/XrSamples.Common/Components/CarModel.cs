@@ -39,7 +39,7 @@ namespace XrSamples.Components
         private float _steeringAngle;
         private float _wheelSpeedRad;
         private bool _isWheelChanged;
-
+        private CarSound _carSound;
         private Pose3 _attachedPosDiff;
         private Pose3 _seatPosDiff;
 
@@ -48,9 +48,9 @@ namespace XrSamples.Components
         private float _chassisDensity;
         private float _carBodyDensity;
         private float _wheelFriction;
-        private TriangleMesh _gearBox;
-        private TriangleMesh _gearLever;
-        private Dictionary<string, Vector2> _gears;
+        private TriangleMesh? _gearBox;
+        private TriangleMesh? _gearLever;
+        private Dictionary<string, Vector2>? _gears;
         private string _curGear;
 
         public CarModel()
@@ -76,6 +76,8 @@ namespace XrSamples.Components
                 Name = "attached"
             };
 
+            _curGear = "1";
+
             UpdatePriority = 1;
         }
 
@@ -92,6 +94,8 @@ namespace XrSamples.Components
             AttachSteering();
             AttachBody();
             CreateGearBox(false);
+
+            _carSound = CarBody!.AddComponent(new CarSound());
 
             _attachedPosDiff = _mainTube!.GetWorldPose().Difference(_attachedGroup.GetWorldPose());
         }
@@ -645,6 +649,14 @@ namespace XrSamples.Components
             }
         }
 
+        protected void UpdateSound()
+        {
+            var gear = _curGear == "R" ? 1 : int.Parse(_curGear);
+
+            _carSound.Engine.Gear = gear;
+            _carSound.Engine.Rpm = 40 + (int)(_wheelSpeedRad / (2 * MathF.PI) * 50) ;
+        }
+
         protected override void Update(RenderContext ctx)
         {
             SyncSteering();
@@ -652,6 +664,8 @@ namespace XrSamples.Components
             ProcessInput();
 
             ComputeGear();
+
+            UpdateSound();
 
             _manager ??= _host!.Scene!.Component<PhysicsManager>();
 

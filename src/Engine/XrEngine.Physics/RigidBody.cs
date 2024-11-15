@@ -367,9 +367,8 @@ namespace XrEngine.Physics
             if (_actor == null || _system == null || _host == null)
                 return;
 
-            Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
-
-            _actor.SetScale(scale.X);
+            //Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
+            //_actor.SetScale(scale.X);
 
             _actor.Name = _host.Name ?? string.Empty;
 
@@ -459,7 +458,6 @@ namespace XrEngine.Physics
 
                 if (tool == null)
                 {
-        
                     if (_lastTool != null && ToolMode == RigidBodyToolMode.KinematicTarget)
                         _actor.GlobalPose = DynamicActor.KinematicTarget;
                     else
@@ -499,8 +497,6 @@ namespace XrEngine.Physics
                         DynamicActor.KinematicTarget = curPose;
                 }
             }
-
-
         }
 
         public override void GetState(IStateContainer container)
@@ -541,8 +537,6 @@ namespace XrEngine.Physics
             }
         }
 
-        public RigidBodyToolMode ToolMode { get; set; }
-
 
         [Category("Advanced")]
         public float ContactReportThreshold { get; set; }
@@ -561,6 +555,8 @@ namespace XrEngine.Physics
 
         [Category("Advanced")]
         public bool RetainAccelerations { get; set; }
+
+        public RigidBodyToolMode ToolMode { get; set; }
 
         public PxRigidDynamicLockFlags Lock { get; set; }
 

@@ -16,6 +16,8 @@ namespace OpenAl.Framework
             _al = AL.GetApi();
 
             CreateContext();
+
+            Current = this;
         }
 
         protected void CreateContext()
@@ -46,5 +48,7 @@ namespace OpenAl.Framework
         }
 
         public AL Al => _al;
+
+        public static AlDevice? Current { get; internal set; }
     }
 }
