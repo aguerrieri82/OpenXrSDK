@@ -44,7 +44,7 @@ namespace XrEngine.OpenGL
 
             layer.Add(env);
             var glLayer = new GlLayer(_renderer, scene, GlLayerType.Custom, layer);
-            glLayer.Update();
+            glLayer.Rebuild();
             return glLayer;
         }
 

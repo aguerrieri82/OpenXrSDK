@@ -249,6 +249,9 @@ namespace XrEngine.OpenGL
         {
             if (_lastScene != scene || _lastLayersVersion != scene.Layers.Version)
             {
+                foreach (var layer in _layers)
+                    layer.Dispose();
+
                 _layers.Clear();
 
                 var opaque = scene.EnsureLayer<OpaqueLayer>();
@@ -280,7 +283,7 @@ namespace XrEngine.OpenGL
             foreach (var layer in _layers)
             {
                 if (layer.NeedUpdate)
-                    layer.Update();
+                    layer.Rebuild();
             }
         }
 
@@ -350,7 +353,7 @@ namespace XrEngine.OpenGL
             _target.End(true);
 
             if (flush)
-                _gl.Finish();
+                _gl.Flush();
 
             _gl.PopDebugGroup();
 

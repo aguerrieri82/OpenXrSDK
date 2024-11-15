@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -88,16 +89,19 @@ namespace XrEngine
 
             _scene?.EnsureNotLocked();
 
+            if (preserveTransform && child.Parent != null && child.Parent.WorldMatrix == WorldMatrix)
+                preserveTransform = false;
+
             var curWorldMatrix = child.WorldMatrix;
 
             child.Parent?.RemoveChild(child);
+
+            _children.Add(child);
 
             child.SetParent(this, preserveTransform);
 
             if (preserveTransform)
                 child.WorldMatrix = curWorldMatrix;
-
-            _children.Add(child);
 
             //child.EnsureId();
 
@@ -160,6 +164,8 @@ namespace XrEngine
         {
             return _children.IndexOf(object3D);
         }
+
+
 
         public Bounds3 LocalBounds
         {

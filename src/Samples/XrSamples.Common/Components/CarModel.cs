@@ -86,29 +86,10 @@ namespace XrSamples.Components
             CreateChassis();
             AttachSteering();
             AttachBody();
-            AttachMirrors();
 
             _attachedPosDiff = _mainTube!.GetWorldPose().Difference(_attachedGroup.GetWorldPose());
         }
 
-        protected void AttachMirrors()
-        {
-            if (Mirrors == null)
-                return;
-
-            foreach (var mirror in Mirrors.SelectMany(a=> a.DescendantsOrSelf().OfType<TriangleMesh>()))
-            {
-                mirror.Materials.Clear();
-                //mirror.Materials.Add(new ColorMaterial("#00ff00"));
-             
-                mirror.Materials.Add(new MirrorMaterial
-                {
-                    TextureSize = 512,
-                    Mode = MirrorMode.Full,
-                    DoubleSided = false
-                });
-            }
-        }
 
         protected void AttachBody()
         {
@@ -240,7 +221,7 @@ namespace XrSamples.Components
             }
             else
             {
-                var rotate = new InputRotate
+                var rotate = new InputRotateAxis
                 {
                     RotationAxis = new Ray3
                     {
@@ -347,7 +328,7 @@ namespace XrSamples.Components
             var mesh = new TriangleMesh(cube, (Material)_tubeMaterial)
             {
                 WorldPosition = line.Center(),
-                Forward = line.Direction(),
+                Forward = -line.Direction(),
                 Name = name
             };
 
@@ -590,7 +571,7 @@ namespace XrSamples.Components
             }
             else
             {
-                var input = SteeringWheel!.Component<InputRotate>();
+                var input = SteeringWheel!.Component<InputRotateAxis>();
                 wheelAngle = input.Angle / SteeringRatio; 
             }
 
@@ -699,6 +680,50 @@ namespace XrSamples.Components
             UpdateDensity(CarBody, _carBodyDensity);
         }
 
+        public void AddMirror(Group3D obj, Ray3 worldPivot)
+        {
+            var mirror = (TriangleMesh)obj.Children[0];
+            mirror.Materials.Clear();
+            mirror.Materials.Add(new MirrorMaterial
+            {
+                TextureSize = 512,
+                Mode = MirrorMode.Full,
+                DoubleSided = false
+            });
+
+            obj.AddComponent(new PyMeshCollider
+            {
+
+            });
+
+            obj.AddComponent(new InputRotatePivot
+            {
+                Pivot = worldPivot.Origin,
+                Normal = worldPivot.Direction
+            });
+
+            _attachedGroup.AddChild(obj, true);
+        }
+
+        public void ConfigureInput(IXrBasicInteractionProfile input)
+        {
+            AccInput = input.Right!.TriggerValue;
+            BackInput = input.Right!.Button!.AClick;
+            ShowHideBodyInput = input.Right!.Button!.BClick;
+
+            if (!UseSteeringPhysics)
+            {
+                var rotate = SteeringWheel!.Component<InputRotateAxis>();
+                rotate.ConfigureInput(input);
+            }
+
+            foreach (var item in _attachedGroup.Children)
+            {
+                if (item.TryComponent<InputRotatePivot>(out var rotate))
+                    rotate.ConfigureInput(input);
+            }
+        }
+
 
         [Range(-1, 1, 0.01f)]
         public float SteeringAngle
@@ -709,7 +734,7 @@ namespace XrSamples.Components
                 _steeringAngle = value;
 
                 if (!UseSteeringPhysics)
-                    SteeringWheel!.Component<InputRotate>().Angle = value * SteeringRatio;
+                    SteeringWheel!.Component<InputRotateAxis>().Angle = value * SteeringRatio;
 
                 _isWheelChanged = true;
             }
@@ -805,8 +830,6 @@ namespace XrSamples.Components
         public Object3D? SteeringWheel { get; set; }
 
         public Object3D? CarBody { get; set; }
-
-        public Object3D[]? Mirrors { get; set; }
 
         public IEnumerable<TriangleMesh>? CarBodyCollisionMeshes { get; set; }
     }

@@ -137,21 +137,22 @@ namespace XrEngine
             }
         }
 
-        public void SetMatrix(Matrix4x4 matrix)
+        public void Set(Transform3D other)
+        {
+            _scale = other.Scale;
+            _localPivot = other.LocalPivot;
+            _position = other.Position;
+            _orientation = other.Orientation;
+            _rotation = _orientation.ToEuler();
+            NotifyChanged();
+        }
+
+        public void Set(Matrix4x4 matrix)
         {
             if (matrix == _matrix)
                 return;
 
-            Matrix4x4.Decompose(matrix, out _scale, out _orientation, out _position);
-
-            /*
-            if (float.IsNaN(_position.X) || float.IsNaN(_position.Y) || float.IsNaN(_position.Z))
-                Debugger.Break();
-            if (float.IsNaN(_scale.X) || float.IsNaN(_scale.Y) || float.IsNaN(_scale.Z))
-                Debugger.Break();
-            if (float.IsNaN(_orientation.X) || float.IsNaN(_orientation.Y) || float.IsNaN(_orientation.Z) || float.IsNaN(_orientation.W))
-                Debugger.Break();
-            */
+            matrix.DecomposeDouble(out _scale, out _orientation, out _position);
 
             _rotation = _orientation.ToEuler();
             _matrix = matrix;
@@ -163,7 +164,7 @@ namespace XrEngine
         public void Reset()
         {
             SetLocalPivot(Vector3.Zero, true);
-            SetMatrix(Matrix4x4.Identity);
+            Set(Matrix4x4.Identity);
         }
 
         public void GetState(IStateContainer container)

@@ -10,6 +10,8 @@ namespace XrEditor
 
         public static readonly bool AutoStartApp = true;
 
+        public static readonly bool EnableVSync = true;
+
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
               //.UseMultiView()
               //.UseStereo()

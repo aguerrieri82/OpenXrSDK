@@ -137,6 +137,7 @@ namespace XrEngine
             return this;
         }
 
+
         public Geometry3D ToGeometry()
         {
             var geo = new Geometry3D();

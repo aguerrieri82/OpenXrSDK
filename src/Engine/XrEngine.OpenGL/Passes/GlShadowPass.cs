@@ -1,6 +1,8 @@
 ﻿
 using System.Numerics;
 using XrMath;
+using System.Diagnostics;
+
 
 #if GLES
 using Silk.NET.OpenGLES;
@@ -36,6 +38,7 @@ namespace XrEngine.OpenGL
             _mode = renderer.Options.ShadowMap.Mode;
 
             _lightCamera = new OrtoCamera();
+            _lightCamera.Name = "Shadow";
 
             _depthTexture = new Texture2D
             {
@@ -147,8 +150,9 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(Camera camera)
         {
+            Debug.Assert(camera.Scene != null);
             var shadowRenderLayer = SelectLayers().First();
-            var scene = _renderer.UpdateContext.Camera!.Scene!;
+            var scene = shadowRenderLayer.Scene!;
             var recLayer = scene.EnsureLayer<ReceiveShadowsLayer>();
             var castLayer = scene.EnsureLayer<CastShadowsLayer>();
             var frame = scene.App!.RenderContext.Frame;

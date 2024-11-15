@@ -14,6 +14,7 @@ namespace XrEngine
                 GeometrySourceName = "outline.geom",
                 Priority = 1,
                 IsLit = false,
+                IsEffect = true
             };
         }
 

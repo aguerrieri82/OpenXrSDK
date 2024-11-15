@@ -21,7 +21,7 @@ namespace XrEngine.OpenGL
             _passTarget = new GlRenderPassTarget(renderer.GL);
             _passTarget.BoundEye = boundEye;
             _passTarget.DepthMode = TargetDepthMode.None;
-            _passTarget.AddExtra(TextureFormat.Rgba32, null, true);
+            _passTarget.AddExtra(TextureFormat.Rgba32, null, false);
 
             _outlineProgram = new GlComputeProgram(renderer.GL, "Image/outline.glsl", str => Embedded.GetString<Material>(str));
             _outlineProgram.Build();

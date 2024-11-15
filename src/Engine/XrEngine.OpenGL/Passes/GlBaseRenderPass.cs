@@ -116,8 +116,9 @@ namespace XrEngine.OpenGL
         protected void ProcessImage(GlTexture src, GlTexture dst)
         {
             _gl.BindImageTexture(0, src, 0, false, 0, GLEnum.ReadOnly, src.InternalFormat);
+            _gl.CheckError();
             _gl.BindImageTexture(1, dst, 0, false, 0, GLEnum.WriteOnly, dst.InternalFormat);
-
+            _gl.CheckError();
             _gl.DispatchCompute((src.Width + 15) / 16, (src.Height + 15) / 16, 1);
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
         }

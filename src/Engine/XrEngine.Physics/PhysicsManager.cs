@@ -126,6 +126,9 @@ namespace XrEngine.Physics
 
         protected override void Update(RenderContext ctx)
         {
+            if (ctx.Time < 0.5)
+                return;
+
             if (!IsMultiThread)
                 _system?.Simulate((float)DeltaTime, StepSizeSecs);
             else

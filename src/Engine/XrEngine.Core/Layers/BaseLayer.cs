@@ -66,6 +66,11 @@
             }
         }
 
+        protected virtual void OnChanged(T item, Layer3DChangeType change)
+        {
+            Changed?.Invoke(this, new Layer3DChange(change, item));  
+        }
+
         IEnumerable<ILayer3DItem> ILayer3D.Content => (IEnumerable<ILayer3DItem>)_content;
 
         public bool IsVisible { get; set; }
@@ -77,6 +82,8 @@
         public long Version => _version;
 
         public IReadOnlyCollection<T> Content => _content;
+
+        public event Action<ILayer3D, Layer3DChange>? Changed;
 
     }
 }

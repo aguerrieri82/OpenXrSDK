@@ -21,6 +21,8 @@ using XrMath;
 using XrSamples.Components;
 using System.Diagnostics;
 using XrEngine.OpenGL;
+using XrEngine.Components;
+
 
 
 
@@ -1075,6 +1077,7 @@ namespace XrSamples
             var scene = app.ActiveScene!;
             scene.Id = Guid.Parse("9692f695-f53c-40c4-900a-d17ac94302d8");
 
+            //Physics
             scene.AddComponent(new PhysicsManager(60));
 
             scene.AddComponent(new InputObjectForce
@@ -1093,6 +1096,7 @@ namespace XrSamples
                 Factor = 30
             });
 
+            //Material
             var leather = (IPbrMaterial)LoadMaterial("Materials/xjekdbj_tier_2.gltf");
             leather.Color = "#FF6400FF";
             leather.DoubleSided = true;
@@ -1147,6 +1151,8 @@ namespace XrSamples
 
             car.UpdateBounds(true);
 
+            var scale = car.FindByName<Object3D>("body.003")!.Transform.Matrix;
+
             //Simulation
             var model = new CarModel
             {
@@ -1155,7 +1161,6 @@ namespace XrSamples
                 WheelBL = car.GroupByName("wheel.Bk.L.003", "wheelbrake.Bk.R.003"),
                 WheelBR = car.GroupByName("wheel.Bk.R.003", "wheelbrake.Bk.R.001"),
                 CarBody = car.GroupByName("body.003"),
-                Mirrors = car.FindByNames("reflect_mirror_int.003").ToArray(),
                 SteeringWheel = car.GroupByName("leatherB_steering.003", "chrome_steering.003", "chrome_logo_steering.003", "texInt_steering.003"),
                 CarBodyCollisionMeshes = bodyMeshes,
                 UseSteeringPhysics = false,
@@ -1171,9 +1176,79 @@ namespace XrSamples
                 },
             };
 
+            var mirror = car.FindByName<TriangleMesh>("plasticInt_mirror_int.003")!;
+
+            var splitter = new MeshSplitter(mirror)
+            {
+                SplittedName = "plasticInt_mirror_int_body-mirror",
+                FullIntersection = true,
+                Orientation = new Quaternion(0, 0, 0, 1),
+                Bounds = new Vector3(300, 97, 100),
+                Origin = new Vector3(24, -38, -42f)
+            };
+
+            splitter.ExecuteSplit();
+
+            var mainBody = (TriangleMesh)((Group3D)((Group3D)model.CarBody).Children[0]).Children[0];
+
+            splitter = new MeshSplitter(mainBody)
+            {
+                SplittedName = "mirror_left",
+                FullIntersection = true,
+                Orientation = new Quaternion(0, 0, 0, 1),
+                Bounds = new Vector3(300, 150, 230),
+                Origin = new Vector3(-1028, 470, -390)
+            };
+            splitter.ExecuteSplit();
+
+            splitter = new MeshSplitter(mainBody)
+            {
+                SplittedName = "mirror_right",
+                FullIntersection = true,
+                Orientation = new Quaternion(0, 0, 0, 1),
+                Bounds = new Vector3(300, 150, 230),
+                Origin = new Vector3(940.2f, 470, -390)
+            };
+            splitter.ExecuteSplit();
+
+            mirror = car.FindByName<TriangleMesh>("plastic_mirrors.003")!;
+            splitter = new MeshSplitter(mirror)
+            {
+                SplittedName = "plastic_mirrors_right",
+                FullIntersection = true,
+                Orientation = new Quaternion(0, 0, 0, 1),
+                Bounds = new Vector3(1000, 1000, 1000),
+                Origin = new Vector3(1000, 0, -500)
+            };
+            splitter.ExecuteSplit();
+
+            mirror = car.FindByName<TriangleMesh>("glassClear_mirrors.003")!;
+            splitter.SplittedName = "glassClear_mirrors_right";
+            splitter.Attach(mirror);
+            splitter.ExecuteSplit();
+
+            mirror = car.FindByName<TriangleMesh>("reflect_mirrors.003")!;
+            splitter.SplittedName = "reflect_mirrors_right";
+            splitter.Attach(mirror);
+            splitter.ExecuteSplit();
+
+
+            model.AddMirror(car.GroupByName(scale, "reflect_mirror_int.003", "plasticInt_mirror_int_body-mirror"),
+                new Ray3(new Vector3(-50, 640, -172), new Vector3(0, 0, 1)));
+            model.AddMirror(car.GroupByName(scale, "reflect_mirrors.003", "glassClear_mirrors.003", "plastic_mirrors.003", "mirror_left"), 
+                new Ray3(new Vector3(-850, 390, -300), new Vector3(1, -0.87f, 0)));
+            model.AddMirror(car.GroupByName(scale, "reflect_mirrors_right", "glassClear_mirrors_right", "plastic_mirrors_right", "mirror_right"),
+              new Ray3(new Vector3(800, 390, -300), new Vector3(1, 0.87f, 0)));
+
             car.AddComponent(model);
 
             var checkerMat = (Material)MaterialFactory.CreatePbr(TextureFactory.CreateChecker());
+            var staticMat = new PhysicsMaterialInfo()
+            {
+                StaticFriction = 1f,
+                DynamicFriction = 1f,
+                Restitution = 0.2f
+            };
 
             //Floor
             var floor = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), checkerMat);
@@ -1183,14 +1258,10 @@ namespace XrSamples
             floor.AddComponent(new RigidBody
             {
                 Type = PhysicsActorType.Static,
-                MaterialInfo = new PhysicsMaterialInfo()
-                {
-                    StaticFriction = 1f,
-                    DynamicFriction = 1f,
-                    Restitution = 0.2f
-                }
+                MaterialInfo = staticMat
             });
 
+            //Ramp
             var ramp = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), checkerMat);
             ramp.Name = "ramp";
             ramp.SetWorldPoseIfChanged(new Pose3()
@@ -1202,12 +1273,7 @@ namespace XrSamples
             ramp.AddComponent(new RigidBody
             {
                 Type = PhysicsActorType.Static,
-                MaterialInfo = new PhysicsMaterialInfo()
-                {
-                    StaticFriction = 1f,
-                    DynamicFriction = 1f,
-                    Restitution = 0.2f
-                }
+                MaterialInfo = staticMat
             });
 
             //Wall
@@ -1218,12 +1284,7 @@ namespace XrSamples
             wall.AddComponent(new RigidBody
             {
                 Type = PhysicsActorType.Static,
-                MaterialInfo = new PhysicsMaterialInfo()
-                {
-                    StaticFriction = 1f,
-                    DynamicFriction = 1f,
-                    Restitution = 0.2f
-                }
+                MaterialInfo = staticMat
             });
 
             //Add children
@@ -1234,7 +1295,6 @@ namespace XrSamples
 
             //Create model
             model.Create();
-            //model.CarBody!.IsVisible = false;
             model.CarBody.Name = "car-body";
 
             return builder
@@ -1244,33 +1304,18 @@ namespace XrSamples
                 {
                     opt.UsePlanarReflection = true;
                 })
+                .ConfigureSampleApp(false)
                 .ConfigureApp(a =>
                 {
-                    var inp = a.Inputs!;
-
                     a.XrApp.UseLocalSpace = true;
+                    model.ConfigureInput(a.Inputs!);
 
-                    model.AccInput = inp.Right!.TriggerValue;
-                    model.BackInput = inp.Right!.Button!.AClick;
-                    model.ShowHideBodyInput = inp.Right!.Button!.BClick;
-
-                    if (!model.UseSteeringPhysics)
-                    {
-                        var rotate = model.SteeringWheel.Component<InputRotate>();
-                        rotate.Left = inp.Left!.GripPose;
-                        rotate.Right = inp.Right!.GripPose;
-                        rotate.LeftClick = inp.Left!.SqueezeClick;
-                        rotate.RightClick = inp.Right!.SqueezeClick;
-                        rotate.LeftHaptic = inp.Left!.Haptic;
-                        rotate.RightHaptic = inp.Right!.Haptic;
-                    }
-
+                    //Point light
                     var pl = scene.Descendants<PointLight>().First();
                     pl.IsVisible = true;
                     pl.Specular = new Color(0.1f, 0.1f, 0.1f, 1);
                     pl.Intensity = 1f;
-                })
-                .ConfigureSampleApp(false);
+                });
         }
 
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -74,6 +75,28 @@ namespace XrEngine
 
         #region OBJECT3D
 
+        public static void PropagateTransform(this Object3D self)
+        {
+            var curLocal = self.Transform.Matrix;
+
+            if (curLocal.IsIdentity)
+                return;
+
+            void VisitChildren(Object3D item)
+            {
+                if (item is not Group3D grp)
+                    return;
+
+                foreach (var child in grp.Children)
+                    child.Transform.Set(child.Transform.Matrix * curLocal);
+            }
+            
+            self.Transform.Set(Matrix4x4.Identity);
+
+            VisitChildren(self);
+
+        }
+
         public static IEnumerable<Object3D> FindByNames(this Group3D self, params string[] names)
         {
             foreach (var name in names)
@@ -86,8 +109,14 @@ namespace XrEngine
 
         public static Group3D GroupByName(this Group3D self, params string[] names)
         {
-            var grp = new Group3D();
+            return self.GroupByName(Matrix4x4.Identity, names); 
+        }
 
+        public static Group3D GroupByName(this Group3D self, Matrix4x4 grpTransform, params string[] names)
+        {
+            var grp = new Group3D();
+            if (!grpTransform.IsIdentity)
+                grp.Transform.Set(grpTransform);
             self.AddChild(grp);
 
             foreach (var child in self.FindByNames(names))
@@ -514,6 +543,21 @@ namespace XrEngine
 
         public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, T value);
 
+
+        public static void Rebuild(this Geometry3D self, IEnumerable<Triangle3> triangles)
+        {
+            var vertex = new List<VertexData>();
+
+            var indices = triangles.SelectMany(a => a.Indices);
+
+            foreach (var index in indices)
+                vertex.Add(self.Vertices[index]);
+
+            self.Vertices = vertex.ToArray();
+            self.ComputeIndices();
+            self.NotifyChanged(ObjectChangeType.Geometry);
+        }
+
         public static Geometry3D TransformToLine(this Geometry3D self)
         {
             var res = new Geometry3D();
@@ -678,21 +722,26 @@ namespace XrEngine
         {
             if (self.Indices.Length > 0)
             {
-                int i = 0;
+                uint i = 0;
                 while (i < self.Indices.Length)
                 {
                     var triangle = new Triangle3
                     {
-                        V0 = self.Vertices[self.Indices[i++]].Pos,
-                        V1 = self.Vertices[self.Indices[i++]].Pos,
-                        V2 = self.Vertices[self.Indices[i++]].Pos,
+                        I0 = self.Indices[i++],
+                        I1 = self.Indices[i++],
+                        I2 = self.Indices[i++]
                     };
+
+                    triangle.V0 = self.Vertices[triangle.I0].Pos;
+                    triangle.V1 = self.Vertices[triangle.I1].Pos;
+                    triangle.V2 = self.Vertices[triangle.I2].Pos;
+
                     yield return triangle;
                 }
             }
             else
             {
-                int i = 0;
+                uint i = 0;
                 while (i < self.Vertices.Length)
                 {
                     var i0 = i++;
@@ -701,6 +750,9 @@ namespace XrEngine
 
                     var triangle = new Triangle3
                     {
+                        I0 = i0,
+                        I1 = i1,
+                        I2 = i2,
                         V0 = self.Vertices[i0].Pos,
                         V1 = self.Vertices[i1].Pos,
                         V2 = self.Vertices[i2].Pos,

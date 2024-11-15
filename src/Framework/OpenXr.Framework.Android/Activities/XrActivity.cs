@@ -60,9 +60,9 @@ namespace OpenXr.Framework.Android
         {
             Log.Warn("Life", $"Activity: DESTROY");
 
-            _xrApp?.Dispose();
+            //_xrApp?.Dispose();
 
-            _loopThread?.Join();
+            //_loopThread?.Join();
 
             Process.KillProcess(Process.MyPid());
 
