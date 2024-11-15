@@ -67,7 +67,6 @@ namespace XrEngine
 
                     // Triangle 2
                     indices.Add(first + 1);
-
                     indices.Add(second + 1);
                     indices.Add(second);
                 }

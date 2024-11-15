@@ -1,13 +1,13 @@
 ﻿namespace XrEngine
 {
-    public class OpaqueLayer : BaseAutoLayer<TriangleMesh>
+    public class OpaqueLayer : BaseAutoLayer<IVertexSource>
     {
         public OpaqueLayer()
         {
             Name = "Opaque";
         }
 
-        protected override bool BelongsToLayer(TriangleMesh obj)
+        protected override bool BelongsToLayer(IVertexSource obj)
         {
             return obj.Materials.
                     OfType<ShaderMaterial>().

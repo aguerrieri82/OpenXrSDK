@@ -21,10 +21,7 @@ namespace XrEngine.OpenXr
 
         MoveStatus _left;
         MoveStatus _right;
-        private Vector3 _moveAxis;
-        private float _moveAngle;
-        private float _moveAngleY;
-        private float _moveAngleZ;
+
 
         protected override void Update(RenderContext ctx)
         {
@@ -43,7 +40,7 @@ namespace XrEngine.OpenXr
             if (!pose.IsActive || !click.IsActive || pose.Value.Orientation.W == 0)
                 return false;
 
-            var wordPivot = _host!.ToWorld(Pivot);
+            var wordPivot = _host!.ToWorld(LocalPivot);
 
             var curDir = (pose.Value.Position - wordPivot).Normalize();
 
@@ -92,30 +89,25 @@ namespace XrEngine.OpenXr
             var movAngle = MathF.Acos(status.StartDir.DotSafe(curDir));
             if (movAngle >= MathF.PI / 5 || curSign != status.StartAngleSign)
             {
-                Log.Checkpoint(curSign.ToString(), "ff0000");
                 Checkpoint(ref status);
                 return true;
             }
 
             var deltaAng = (curAngle - status.StartAngle);
-
-            Log.Value("Delta", curAngle);
-
          
             var rollRot = MathF.Abs(deltaAng) < 0.0001f ? Quaternion.Identity :
                           Quaternion.CreateFromAxisAngle(curDir, deltaAng);
 
   
-            _host!.Transform.SetLocalPivot(Pivot, true);
-            
-            //var deltaOri = pose.Value.Orientation.Subtract(status.StartOrientationInput);
+            _host!.Transform.SetLocalPivot(LocalPivot, true);
 
-            _host!.WorldOrientation =
-                                rollRot *
+            var newOri = rollRot *
                                 status.StartDir.RotationTowards(curDir, Normal) *
                                 status.StartOrientation;
 
-            //_host!.WorldOrientation = deltaOri * status.StartOrientation; 
+            if (ValidateOrientation == null || ValidateOrientation(newOri))
+                _host!.WorldOrientation = newOri;
+
             return true;
         }
 
@@ -134,7 +126,7 @@ namespace XrEngine.OpenXr
        
             canvas.State.Color = "#0000FF";
                */
-            var wordPivot = _host!.ToWorld(Pivot);
+            var wordPivot = _host!.ToWorld(LocalPivot);
          
 
             if (_left.IsMoving)
@@ -158,8 +150,7 @@ namespace XrEngine.OpenXr
         [Action]
         public void StartMove()
         {
-      
-            var wordPivot = _host!.ToWorld(Pivot);
+            var wordPivot = _host!.ToWorld(LocalPivot);
 
             var curPos = wordPivot + Vector3.UnitX.Transform(_host!.WorldOrientation).Normalize() * 0.3f;
 
@@ -174,54 +165,13 @@ namespace XrEngine.OpenXr
             _left.LastPos = curPos;
         }
 
-        protected void UpdateMove()
-        {
-            var q1 = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, _moveAngleZ);
-            var q2 = Quaternion.CreateFromAxisAngle(Vector3.UnitY, _moveAngleY);
-            _host!.Transform.SetLocalPivot(Pivot, true);
-            _host!.WorldOrientation = _left.StartOrientation.AddDelta(q1);
-            _host!.WorldOrientation = _host!.WorldOrientation.AddDelta(q2);
-        }
 
-        public Vector3 MoveAxis
-        {
-            get => _moveAxis;
-            set
-            {
-                _moveAxis = value;
-                UpdateMove();
-            }
-        }
+        public Func<Quaternion, bool>? ValidateOrientation { get; set; }
 
-        [ValueType(ValueType.Radiant)]
-        public float MoveAngleZ
-        {
-            get => _moveAngleZ;
-            set
-            {
-                _moveAngleZ = value;
-                UpdateMove();
-            }
-        }
-
-        [ValueType(ValueType.Radiant)]
-        public float MoveAngleY
-        {
-            get => _moveAngleY;
-            set
-            {
-                _moveAngleY = value;
-                UpdateMove();
-            }
-        }
-
-
-
-        public Vector3 Pivot { get; set; }
+        public Vector3 LocalPivot { get; set; }
 
         public Vector3 Normal { get; set; }
 
-        public float MaxDistance { get; set; }
 
         public XrPoseInput? Left { get; set; }
 

@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using SkiaSharp;
+using System.Drawing;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -9,6 +11,8 @@ namespace XrEngine
         {
 
         }
+
+
         public MeshBuilder AddTriangle(Vector3 a, Vector3 b, Vector3 c)
         {
             return AddTriangle(a, b, c, Vector2.Zero, Vector2.Zero, Vector2.Zero);
@@ -20,10 +24,16 @@ namespace XrEngine
             var triangle = new Triangle3 { V0 = a, V1 = b, V2 = c };
             var normal = triangle.Normal();
 
-            Vertices.Add(new VertexData { Pos = a, Normal = normal, UV = uvA });
-            Vertices.Add(new VertexData { Pos = b, Normal = normal, UV = uvB });
-            Vertices.Add(new VertexData { Pos = c, Normal = normal, UV = uvC });
+            AddVertices(new VertexData { Pos = a, Normal = normal, UV = uvA },
+                        new VertexData { Pos = b, Normal = normal, UV = uvB },
+                        new VertexData { Pos = c, Normal = normal, UV = uvC });
 
+            return this;
+        }
+
+        public MeshBuilder AddVertices(params VertexData[] vertices)
+        {
+            Vertices.AddRange(vertices);
             return this;
         }
 
@@ -75,6 +85,18 @@ namespace XrEngine
 
                 AddFace(v1, v2, v4, v3);
             }
+
+            Colliders.Add(new CapsuleCollider
+            {
+                Radius = radius,
+                Height = height,    
+                Pose = new Pose3
+                {
+                    Position = center + new Vector3(0,0, height / 2),
+                    Orientation = Quaternion.Identity
+                }
+            });
+
             return this;
         }
 
@@ -137,6 +159,132 @@ namespace XrEngine
             return this;
         }
 
+        public MeshBuilder AddSphere(Vector3 center, float radius, int subs)
+        {
+            var vertices = new List<VertexData>();
+
+            for (int lat = 0; lat <= subs; lat++)
+            {
+                float theta = lat * MathF.PI / subs;
+                float sinTheta = MathF.Sin(theta);
+                float cosTheta = MathF.Cos(theta);
+
+                for (int lon = 0; lon <= subs; lon++)
+                {
+                    float phi = lon * 2 * MathF.PI / subs;
+                    float sinPhi = MathF.Sin(phi);
+                    float cosPhi = MathF.Cos(phi);
+
+                    float x = sinTheta * cosPhi;
+                    float y = cosTheta;
+                    float z = sinTheta * sinPhi;
+
+                    var tangent = new Vector3(-sinPhi, 0, cosPhi).Normalize();
+
+                    vertices.Add(new VertexData
+                    {
+                        Pos = center + new Vector3(x, y, z) * radius,
+                        Normal = new Vector3(x, y, z).Normalize(),
+                        Tangent = new Vector4(tangent, 1),
+                        UV = new Vector2((float)lon / subs, (float)lat / subs)
+                    });
+                }
+            }
+
+            var indices = new List<uint>();
+
+            for (int lat = 0; lat < subs; lat++)
+            {
+                for (int lon = 0; lon < subs; lon++)
+                {
+                    int first = lat * (subs + 1) + lon;
+                    int second = first + subs + 1;
+
+                    AddVertices(
+                        vertices[first + 1],
+                        vertices[second],
+                        vertices[first],
+                        vertices[first + 1],
+                        vertices[second + 1],
+                        vertices[second]);
+       
+                }
+            }
+
+            Colliders.Add(new SphereCollider
+            {
+                Center = center,
+                Radius = radius,
+            });
+
+            return this;
+        }
+
+        public MeshBuilder AddCube(Vector3 center, Vector3 size)
+        {
+            var halfSize = size / 2;
+
+            var vertices = VertexData.FromPosNormalUV(
+            [
+                //X    Y      Z       Normals UV
+                halfSize.X, halfSize.Y, -halfSize.Z, -0f, 1f, -0f, 1f, 1f,
+                -halfSize.X, halfSize.Y, -halfSize.Z, -0f, 1f, -0f, 0f, 1f,
+                -halfSize.X, halfSize.Y, halfSize.Z, -0f, 1f, -0f, 0f, 0f,
+                halfSize.X, halfSize.Y, halfSize.Z, -0f, 1f, -0f, 1f, 0f,
+                halfSize.X, -halfSize.Y, halfSize.Z, -0f, -0f, 1f, 1f, 0f,
+                halfSize.X, halfSize.Y, halfSize.Z, -0f, -0f, 1f, 1f, 1f,
+                -halfSize.X, halfSize.Y, halfSize.Z, -0f, -0f, 1f, 0f, 1f,
+                -halfSize.X, -halfSize.Y, halfSize.Z, -0f, -0f, 1f, 0f, 0f,
+                -halfSize.X, -halfSize.Y, halfSize.Z, -1f, -0f, -0f, 0f, 0f,
+                -halfSize.X, halfSize.Y, halfSize.Z, -1f, -0f, -0f, 0f, 1f,
+                -halfSize.X, halfSize.Y, -halfSize.Z, -1f, -0f, -0f, 1f, 1f,
+                -halfSize.X, -halfSize.Y, -halfSize.Z, -1f, -0f, -0f, 1f, 0f,
+                -halfSize.X, -halfSize.Y, -halfSize.Z, -0f, -1f, -0f, 0f, 1f,
+                halfSize.X, -halfSize.Y, -halfSize.Z, -0f, -1f, -0f, 1f, 1f,
+                halfSize.X, -halfSize.Y, halfSize.Z, -0f, -1f, -0f, 1f, 0f,
+                -halfSize.X, -halfSize.Y, halfSize.Z, -0f, -1f, -0f, 0f, 0f,
+                halfSize.X, -halfSize.Y, -halfSize.Z, 1f, -0f, -0f, 1f, 0f,
+                halfSize.X, halfSize.Y, -halfSize.Z, 1f, -0f, -0f, 1f, 1f,
+                halfSize.X, halfSize.Y, halfSize.Z, 1f, -0f, -0f, 0f, 1f,
+                halfSize.X, -halfSize.Y, halfSize.Z, 1f, -0f, -0f, 0f, 0f,
+                -halfSize.X, -halfSize.Y, -halfSize.Z, -0f, -0f, -1f, 0f, 0f,
+                -halfSize.X, halfSize.Y, -halfSize.Z, -0f, -0f, -1f, 0f, 1f,
+                halfSize.X, halfSize.Y, -halfSize.Z, -0f, -0f, -1f, 1f, 1f,
+                halfSize.X, -halfSize.Y, -halfSize.Z, -0f, -0f, -1f, 1f, 0f,
+             ]);
+
+            uint[] indices =
+            [
+                 0,1,2,
+                 0,2,3,
+                 4,5,6,
+                 4,6,7,
+                 8,9,10,
+                 8,10,11,
+                 12,13,14,
+                 12,14,15,
+                 16,17,18,
+                 16,18,19,
+                 20,21,22,
+                 20,22,23,
+             ];
+
+            foreach (var idx in indices)
+            {
+                var vrt = vertices[idx];
+                vrt.Pos += center;
+                Vertices.Add(vrt);
+            }
+
+            Colliders.Add(new BoxCollider
+            {
+                Center = center,
+                Size = size,
+            });
+
+            return this;
+        }
+
 
         public Geometry3D ToGeometry()
         {
@@ -145,11 +293,17 @@ namespace XrEngine
             geo.ActiveComponents |= VertexComponent.UV0;
             geo.ComputeIndices();
             geo.ComputeNormals();
-            //geo.SmoothNormals();
-
             return geo;
         }
 
-        public readonly IList<VertexData> Vertices = [];
+        public void AddColliders(Object3D obj)
+        {
+            foreach (var collider in Colliders)
+                obj.AddComponent((IComponent)collider);
+        }
+
+        public readonly List<ICollider3D> Colliders = [];
+
+        public readonly List<VertexData> Vertices = [];
     }
 }

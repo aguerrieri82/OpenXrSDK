@@ -10,6 +10,7 @@ namespace XrEngine.Physics
         None,
         Distance,
         Revolute,
+        Spherical,
         Fixed,
         D6
     }
@@ -44,6 +45,18 @@ namespace XrEngine.Physics
         public float DriveForceLimit;
         public float DriveGearRatio;
         public PxRevoluteJointFlags RevoluteJointFlags;
+    }
+
+    public class SphericalJointOptions : JointOptions
+    {
+        public SphericalJointOptions()
+        {
+
+        }
+
+        public PxJointLimitCone? Limit;
+
+        public PxSphericalJointFlags SphericalFlags;
     }
 
     public class D6JointOptions : JointOptions
@@ -117,6 +130,10 @@ namespace XrEngine.Physics
             {
                 _joint = system.CreateD6Joint(rb0.Actor, Pose0, rb1.Actor, Pose1);
             }
+            else if (Type == JointType.Spherical)
+            {
+                _joint = system.CreateSphericalJoint(rb0.Actor, Pose0, rb1.Actor, Pose1);
+            }
 
             Configure?.Invoke(this);
 
@@ -139,6 +156,19 @@ namespace XrEngine.Physics
 
             else if (options is D6JointOptions d6)
                 SetOptions(d6);
+
+            else if (options is SphericalJointOptions sp)
+                SetOptions(sp);
+        }
+
+        protected void SetOptions(SphericalJointOptions options)
+        {
+            var target = SphericalJoint;
+
+            if (options.Limit != null)
+                target.LimitCone = options.Limit.Value;
+
+            target.SphericalFlags = options.SphericalFlags;
         }
 
         protected void SetOptions(RevoluteJointOptions options)
@@ -232,6 +262,7 @@ namespace XrEngine.Physics
             GC.SuppressFinalize(this);
         }
 
+        public PhysicsSphericalJoint SphericalJoint => _joint as PhysicsSphericalJoint ?? throw new InvalidOperationException("Joint is not a revolute joint");
 
         public PhysicsRevoluteJoint RevoluteJoint => _joint as PhysicsRevoluteJoint ?? throw new InvalidOperationException("Joint is not a revolute joint");
 
