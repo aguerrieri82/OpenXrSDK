@@ -44,15 +44,14 @@ namespace XrSamples
             SmoothFactor = 0.05f;
         }
 
-        public unsafe uint Fill(byte[] data, float timeSec)
+        public unsafe int Fill(byte[] data, float timeSec)
         {
-            uint samplesProvided = 0;
+            int samplesProvided = 0;
 
-            fixed(byte* pData = data)
+            fixed (byte* pData = data)
             {
                 var pShort = (short*)pData;
 
-               
                 while (samplesProvided < data.Length / 2)
                 {
                     _lastRpm += (Rpm - _lastRpm) * SmoothFactor;
@@ -107,7 +106,7 @@ namespace XrSamples
 
         public void Stop()
         {
-            _isStreaming = false; 
+            _isStreaming = false;
         }
 
         public float LowPassAlpha { get; set; }
@@ -122,9 +121,9 @@ namespace XrSamples
 
         public int Rpm { get; set; }
 
-        public uint PrefBufferSize => 0;
+        public int PrefBufferSize => 0;
 
-        public uint PrefBufferCount => 0;
+        public int PrefBufferCount => 0;
 
         public float Length => 0;
 
@@ -143,7 +142,7 @@ namespace XrSamples
         {
             var path = new Path2();
             path.ParseSvgPath("M94.92343,327.20377c0,0 49.25465,-0.47464 58.92396,-1.38418c9.66931,-0.90954 19.87223,-4.79691 31.45914,-9.92189c30.0538,-13.29304 123.65848,-49.52857 146.03591,-56.0304c22.37742,-6.50183 78.53462,-16.79634 116.31143,-19.88525c16.26465,-1.32992 50.68774,-3.56868 58.35304,-3.85481c7.6653,-0.28614 16.32354,0.02712 19.03093,1.30367c2.70739,1.27655 6.71171,5.9732 9.356,10.02931c2.64429,4.05611 20.62308,30.88793 21.98103,40.79565");
-            
+
             var pathBounds = path.Bounds();
 
             var func = path.ToFunctionY(0.1f, -1);
@@ -155,15 +154,17 @@ namespace XrSamples
             using var stream = File.OpenRead(soundPath);
             var data = reader.Decode(stream);
 
+            /*
             if (XrPlatform.IsEditor)
             {
                 Context.Require<IFunctionView>()
                 .ShowDft(data.ToFloat(), (uint)data.Format!.SampleRate, 1024);
             }
+            */
 
             _slicer = new AudioSlicer
             {
-                Data = data,    
+                Data = data,
                 Function = func,
                 StartTime = pathBounds.Min.X,
                 EndTime = pathBounds.Max.X,
@@ -209,7 +210,7 @@ namespace XrSamples
 
         protected override void Start(RenderContext ctx)
         {
-           //_ = PlayAsync(_engine, () => _host!.Forward);
+            //_ = PlayAsync(_engine, () => _host!.Forward);
 
             base.Start(ctx);
         }
@@ -246,7 +247,7 @@ namespace XrSamples
         {
             get => _engine.SliceLen;
             set => _engine.SliceLen = value;
-        }       
+        }
 
 
         [Range(0, 1, 0.01f)]
@@ -263,7 +264,7 @@ namespace XrSamples
             set => _engine.Rpm = (int)value;
         }
 
-        public CarSoundV2 Engine => _engine; 
+        public CarSoundV2 Engine => _engine;
 
     }
 }

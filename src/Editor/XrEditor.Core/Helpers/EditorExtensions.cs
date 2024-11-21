@@ -1,4 +1,5 @@
-﻿using XrEditor.Services;
+﻿using System.Reflection;
+using XrEditor.Services;
 using XrEngine;
 
 namespace XrEditor
@@ -16,5 +17,6 @@ namespace XrEditor
                 node.SetParent(parent);
             return nodes;
         }
+
     }
 }

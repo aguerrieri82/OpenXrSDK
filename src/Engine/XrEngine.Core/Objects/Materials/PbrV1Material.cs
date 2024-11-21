@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿
+using Common.Interop;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 
@@ -340,7 +342,7 @@ namespace XrEngine
                         MemoryManager.Free(_buffer.Data);
 
                     _buffer.Size = (uint)newSize;
-                    _buffer.Data = MemoryManager.Allocate(_buffer.Size, this);
+                    _buffer.Data = MemoryManager.Allocate((int)_buffer.Size, this);
                 }
 
                 ((int*)_buffer.Data)[0] = Lights.Length;

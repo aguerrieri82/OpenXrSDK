@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CS0649
 
+using Common.Interop;
 using SkiaSharp;
 using System.Diagnostics;
 using TurboJpeg;

@@ -15,7 +15,6 @@ namespace XrEditor.Plot
         {
             AddPanel<PlotPanel>("Views/PlotPanel.xaml");
             AddPanel<DrawPanel>("Views/DrawPanel.xaml");
-            AddPanel<LoopEditorPanel>("Views/LoopEditorPanel.xaml");
         }
 
         protected void AddPanel<T>(string viewPath) where T : class, IPanel, new()

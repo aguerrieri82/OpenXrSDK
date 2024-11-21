@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Common.Interop;
+using Microsoft.Extensions.Logging;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
 using XrMath;

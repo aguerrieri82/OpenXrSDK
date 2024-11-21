@@ -2,8 +2,6 @@
 
 namespace OpenXr.Framework
 {
-
-
     public class XrAnchor
     {
         public Guid Id { get; set; }

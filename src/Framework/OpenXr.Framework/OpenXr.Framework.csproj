@@ -20,6 +20,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+		<ProjectReference Include="..\..\Common\Common.Interop\Common.Interop.csproj" />
 		<ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
 		<ProjectReference Include="..\OpenXr.Entities\OpenXr.Entities.csproj" />
 	</ItemGroup>

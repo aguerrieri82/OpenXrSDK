@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using Common.Interop;
+using System.Runtime.InteropServices;
 using XrEngine.Objects;
 using XrMath;
 using static XrEngine.Filament.FilamentLib;
@@ -276,7 +277,7 @@ namespace XrEngine.Filament
                     };
 
                     result.Data.DataSize = mainData.Data!.Size;
-                    result.Data.Data = MemoryManager.Allocate(result.Data.DataSize, this);
+                    result.Data.Data = MemoryManager.Allocate((int)result.Data.DataSize, this);
                     result.Data.AutoFree = true;
 
                     using var pSrc = mainData.Data.MemoryLock();

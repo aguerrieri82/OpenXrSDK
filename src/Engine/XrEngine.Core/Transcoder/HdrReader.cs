@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CS0649
 
+using Common.Interop;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;

@@ -5,6 +5,7 @@ using Silk.NET.OpenGLES.Extensions.EXT;
 using Silk.NET.OpenGL;
 #endif
 
+using Common.Interop;
 using XrMath;
 
 namespace XrEngine.OpenGL

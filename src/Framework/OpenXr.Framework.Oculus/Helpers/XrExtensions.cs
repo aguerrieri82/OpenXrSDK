@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Common.Interop;
+using Microsoft.Extensions.Logging;
 using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Numerics;

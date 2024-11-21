@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Common.Interop;
+using System.Diagnostics;
 using VirtualCamera.IPCamera;
 using XrEngine.Video.Abstraction;
 using XrMath;
