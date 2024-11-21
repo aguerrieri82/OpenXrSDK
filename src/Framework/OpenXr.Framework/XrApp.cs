@@ -829,7 +829,7 @@ namespace OpenXr.Framework
 
             FramePredictedDisplayTime = frameTime;
 
-            FramePredictedDisplayPeriod = TimeSpan.FromTicks( state.PredictedDisplayPeriod / TimeSpan.NanosecondsPerTick);
+            FramePredictedDisplayPeriod = TimeSpan.FromTicks(state.PredictedDisplayPeriod / TimeSpan.NanosecondsPerTick);
 
             _tracker.Update(space, frameTime);
 
@@ -1481,6 +1481,6 @@ namespace OpenXr.Framework
 
         public Pose3 ReferenceFrame { get; set; }
 
-        public bool UseLocalSpace { get; set; } 
+        public bool UseLocalSpace { get; set; }
     }
 }

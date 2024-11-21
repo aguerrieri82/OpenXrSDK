@@ -8,7 +8,7 @@ namespace XrEngine
     {
         public static string Generate<T>()
         {
-            var writer = new StringBuilder();   
+            var writer = new StringBuilder();
 
 
             void WriteTypeName(Type type)
@@ -52,7 +52,7 @@ namespace XrEngine
             void WriteConst(object? value)
             {
                 if (value == null)
-                    writer.Append("null");  
+                    writer.Append("null");
 
                 if (value is string str)
                 {
@@ -104,7 +104,7 @@ namespace XrEngine
                 WriteRefType(value);
 
                 WriteTypeName(value.ParameterType);
-                
+
                 if (!isReturnType)
                 {
                     writer.Append(" ");
@@ -121,7 +121,7 @@ namespace XrEngine
             {
                 if (value == "string" || value == "params")
                     writer.Append("@");
-                writer.Append(value);   
+                writer.Append(value);
             }
 
             var count = 0;
@@ -134,7 +134,7 @@ namespace XrEngine
                 writer.Append(" ");
 
                 writer.Append(method.Name);
-                
+
                 var i = 0;
 
                 if (method.IsGenericMethod)
@@ -164,11 +164,11 @@ namespace XrEngine
                 i = 0;
                 foreach (var arg in method.GetParameters())
                 {
-                    if (i > 0) 
+                    if (i > 0)
                         writer.Append(", ");
-                    
+
                     WriteRefType(arg);
-                    
+
                     WriteIdentifier(arg.Name!);
 
                     i++;

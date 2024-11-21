@@ -155,7 +155,7 @@ namespace XrSamples
             return _dispatcher != null;
         }
 
-        
+
         public int RetainTimeMs { get; set; }
 
         public bool IsEnabled { get; set; }

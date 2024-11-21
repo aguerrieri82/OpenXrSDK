@@ -26,6 +26,6 @@ namespace XrEngine.OpenGL
 
         void SetDrawBuffers(params DrawBufferMode[] modes);
 
-        Size2I Size { get; }    
+        Size2I Size { get; }
     }
 }

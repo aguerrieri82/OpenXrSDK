@@ -1,5 +1,4 @@
-﻿using Silk.NET.Maths;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -13,7 +12,7 @@ namespace XrEngine.OpenGL
         CastShadow = 0x8,
         FullReflection = 0x10,
         Custom = 0x20,
-        Light = 0x40,   
+        Light = 0x40,
     }
 
     public class GlLayer : IDisposable
@@ -119,14 +118,14 @@ namespace XrEngine.OpenGL
             {
                 foreach (var vertex in shader.Value.Contents)
                 {
-                    for (var i = vertex.Value.Contents.Count -1; i >= 0; i--)
+                    for (var i = vertex.Value.Contents.Count - 1; i >= 0; i--)
                     {
                         var draw = vertex.Value.Contents[i];
 
                         if (draw.Object == obj3d)
                             vertex.Value.Contents.RemoveAt(i);
                     }
-                
+
                     if (vertex.Value.Contents.Count == 0)
                         clean.Add(() => shader.Value.Contents.Remove(vertex.Key));
                 }

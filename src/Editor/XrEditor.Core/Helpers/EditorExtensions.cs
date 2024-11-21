@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using XrEditor.Services;
+﻿using XrEditor.Services;
 using XrEngine;
 
 namespace XrEditor
@@ -16,6 +15,15 @@ namespace XrEditor
             foreach (var node in nodes.OfType<IEditableNode>())
                 node.SetParent(parent);
             return nodes;
+        }
+
+        public static Func<Task> ToTask(this Action action)
+        {
+            return () =>
+            {
+                action();
+                return Task.CompletedTask;
+            };
         }
 
     }

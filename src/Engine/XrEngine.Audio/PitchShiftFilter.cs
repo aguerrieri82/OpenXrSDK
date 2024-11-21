@@ -1,10 +1,5 @@
 ﻿using Fftw;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XrEngine.Audio
 {
@@ -37,7 +32,7 @@ namespace XrEngine.Audio
 
             var windowSize = FFtSize;
 
-            _hopSize = windowSize / 4; 
+            _hopSize = windowSize / 4;
             _numFrames = (inputLen - windowSize) / _hopSize + 1;
 
             _window = HannWindow(windowSize);
@@ -52,7 +47,7 @@ namespace XrEngine.Audio
 
             _sampleRate = sampleRate;
 
-            _inputLen = inputLen;   
+            _inputLen = inputLen;
         }
 
 
@@ -83,7 +78,7 @@ namespace XrEngine.Audio
                     if (shiftedIndex < _shiftedSpectrum.Length && shiftedIndex >= 0)
                         _shiftedSpectrum.Pointer[shiftedIndex] = _fftOut.Pointer[i];
                 }
- 
+
                 // Phase vocoder adjustment
                 if (_numFrames > 1)
                 {
@@ -103,7 +98,7 @@ namespace XrEngine.Audio
                         _shiftedSpectrum.Pointer[i] = Complex.FromPolarCoordinates(magnitude, _phaseAccum[i]);
                     }
                 }
-          
+
                 // IFFT
 
                 FftwLib.Dft(_shiftedSpectrum, _fftIn);

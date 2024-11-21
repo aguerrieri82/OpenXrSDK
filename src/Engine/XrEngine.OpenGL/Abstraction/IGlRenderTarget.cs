@@ -3,7 +3,6 @@ using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
-using XrMath;
 
 namespace XrEngine.OpenGL
 {

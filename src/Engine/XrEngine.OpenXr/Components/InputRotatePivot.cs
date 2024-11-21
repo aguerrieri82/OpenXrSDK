@@ -1,7 +1,6 @@
 ﻿using OpenXr.Framework;
 using Silk.NET.OpenXR;
 using System.Numerics;
-using XrEngine;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -66,7 +65,7 @@ namespace XrEngine.OpenXr
                 if (!click.Value)
                     return false;
 
-                foreach (var collider in _host!.Components<ICollider3D>().Where(a=> a.IsEnabled))
+                foreach (var collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
                 {
                     if (collider.ContainsPoint(pose.Value.Position, 0.04f))
                     {
@@ -76,7 +75,7 @@ namespace XrEngine.OpenXr
                         break;
                     }
                 }
-                 
+
                 return false;
             }
 
@@ -94,11 +93,11 @@ namespace XrEngine.OpenXr
             }
 
             var deltaAng = (curAngle - status.StartAngle);
-         
+
             var rollRot = MathF.Abs(deltaAng) < 0.0001f ? Quaternion.Identity :
                           Quaternion.CreateFromAxisAngle(curDir, deltaAng);
 
-  
+
             _host!.Transform.SetLocalPivot(LocalPivot, true);
 
             var newOri = rollRot *
@@ -127,7 +126,7 @@ namespace XrEngine.OpenXr
             canvas.State.Color = "#0000FF";
                */
             var wordPivot = _host!.ToWorld(LocalPivot);
-         
+
 
             if (_left.IsMoving)
                 canvas.DrawLine(wordPivot, _left.LastPos);

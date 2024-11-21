@@ -1,7 +1,6 @@
 ﻿#pragma warning disable CS8618 
 
 using UI.Binding;
-using XrEngine;
 
 namespace XrEditor
 {

@@ -2,14 +2,12 @@
 using glTFLoader.Schema;
 using Newtonsoft.Json.Linq;
 using SkiaSharp;
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 using TurboJpeg;
 
 using XrMath;
@@ -220,7 +218,7 @@ namespace XrEngine.Gltf
 
         public LoadTask<Texture2D> ProcessTexture(int texId, Dictionary<string, object>? extensions, Texture2D? result = null, bool useSrgb = false)
         {
-            var texture = _model!.Textures[texId];  
+            var texture = _model!.Textures[texId];
 
             CheckExtensions(texture.Extensions);
 
@@ -435,7 +433,7 @@ namespace XrEngine.Gltf
 
         public unsafe PbrV2Material ProcessMaterialV2(int matId, PbrV2Material? result = null)
         {
-            var gltMat = _model!.Materials[matId];  
+            var gltMat = _model!.Materials[matId];
 
             if (result == null && _mats.TryGetValue(gltMat, out var mat))
                 return (PbrV2Material)mat;
@@ -481,7 +479,7 @@ namespace XrEngine.Gltf
                 result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
             }
 
-            AssignAsset(result, "mat", matId); 
+            AssignAsset(result, "mat", matId);
 
             _mats[gltMat] = result;
 
@@ -680,7 +678,7 @@ namespace XrEngine.Gltf
 
         public Object3D ProcessMesh(int meshId, Object3D? result = null)
         {
-            var gltMesh = _model!.Meshes[meshId];    
+            var gltMesh = _model!.Meshes[meshId];
 
             if (result == null && _meshes.TryGetValue(gltMesh, out result))
                 return new Object3DInstance() { Reference = result };

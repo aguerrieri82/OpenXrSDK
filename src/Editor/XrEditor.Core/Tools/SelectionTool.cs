@@ -44,12 +44,12 @@ namespace XrEditor
         bool IOutlineSource.HasOutline(Object3D obj, out Color color)
         {
             color = new Color(1, 1, 0, 0.7f);
-            return _lastOutline != null && _lastOutline.Contains(obj);  
+            return _lastOutline != null && _lastOutline.Contains(obj);
         }
 
         bool IOutlineSource.HasOutlines()
         {
-            return _lastOutline != null && _lastOutline.Length > 0; 
+            return _lastOutline != null && _lastOutline.Length > 0;
         }
 
         private void OnSelectionChanged(IReadOnlyCollection<INode> items)
@@ -94,7 +94,7 @@ namespace XrEditor
                     _selection.Set(_nodes.CreateNode(_currentPick));
                     Log.Info(this, _lastCollision?.Point.ToString() ?? "");
                 }
-                  
+
             }
 
             base.OnPointerUp(ev);

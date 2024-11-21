@@ -1,5 +1,4 @@
-﻿using Silk.NET.OpenGL;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {

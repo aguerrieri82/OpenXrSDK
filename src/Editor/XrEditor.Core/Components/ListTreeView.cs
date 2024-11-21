@@ -84,7 +84,7 @@ namespace XrEditor
                     else
                         _children[i].Remove();
                 }
-             
+
             }
             finally
             {

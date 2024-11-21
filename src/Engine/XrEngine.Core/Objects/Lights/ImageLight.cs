@@ -18,7 +18,7 @@ namespace XrEngine
             Intensity = 3;
             UseCache = true;
             Textures = new IBLTextures();
-            LightTransform = Matrix3x3.Identity;    
+            LightTransform = Matrix3x3.Identity;
         }
 
         protected bool LoadCacheTexture<T>(string fileName, Action<T> onLoad) where T : Texture

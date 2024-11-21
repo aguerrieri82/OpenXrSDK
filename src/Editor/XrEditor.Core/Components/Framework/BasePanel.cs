@@ -47,17 +47,41 @@ namespace XrEditor
         {
         }
 
-        public virtual void NotifyActivated(IPanelContainer container, bool isActive)
+        public virtual void OnActivate()
+        {
+
+        }
+
+        public void Attach(IPanelContainer container)
         {
             _container = container;
-            _isActive = isActive;
+        }
+
+        public bool IsActive
+        {
+            get => _isActive;
+            set
+            {
+                if (_isActive == value)
+                    return;
+
+                _isActive = value;
+
+                if (_isActive)
+                {
+                    OnActivate();
+                    if (_container != null)
+                        _container.ActivePanel = this;
+                }
+            }
         }
 
         public string PanelId => _panelId;
 
         public abstract string? Title { get; }
 
-
         public ToolbarView? ToolBar { get; set; }
+     
+        public IPanelContainer? Container => _container;
     }
 }

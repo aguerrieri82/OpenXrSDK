@@ -8,6 +8,6 @@
 
         void Release();
 
-        UiPointerButton Buttons { get; }    
+        UiPointerButton Buttons { get; }
     }
 }

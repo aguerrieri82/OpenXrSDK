@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.Intrinsics;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -36,7 +35,7 @@ namespace XrEngine
             return true;
         }
 
-        public unsafe static bool ArrayEquals(int[] a, int[] b) 
+        public unsafe static bool ArrayEquals(int[] a, int[] b)
         {
             var len = a.Length;
             if (len != b.Length)

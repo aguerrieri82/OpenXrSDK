@@ -10,7 +10,7 @@
     {
         public Layer3DChange(Layer3DChangeType type, ILayer3DItem item)
         {
-            Type = type;    
+            Type = type;
             Item = item;
         }
 

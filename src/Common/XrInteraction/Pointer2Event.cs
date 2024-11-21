@@ -5,7 +5,7 @@ namespace XrInteraction
     [Flags]
     public enum Pointer2Button
     {
-        None = 0x0, 
+        None = 0x0,
         Left = 0x1,
         Middle = 0x2,
         Right = 0x4,

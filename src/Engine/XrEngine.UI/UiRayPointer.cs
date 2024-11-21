@@ -24,7 +24,7 @@ namespace XrEngine.UI
             _pointer.ReleasePointer();
         }
 
-        public UiPointerButton Buttons => (UiPointerButton)_pointer.GetPointerStatus().Buttons;  
+        public UiPointerButton Buttons => (UiPointerButton)_pointer.GetPointerStatus().Buttons;
 
         public readonly int Id => _pointer.PointerId;
     }

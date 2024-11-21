@@ -68,7 +68,7 @@ namespace XrSamples
                 _curPivot = _host.Transform.LocalPivot;
             }
 
-            _lastPivotGlobal = _host.ToWorld(_curPivot);   
+            _lastPivotGlobal = _host.ToWorld(_curPivot);
 
             if (!_host.TryComponent<RigidBody>(out var rigidBody))
                 return;
@@ -86,7 +86,7 @@ namespace XrSamples
 
             if (!_lastPos.IsFinite())
                 _lastPos = Vector3.Zero;
-            
+
             if (!_lastRefSpeed.IsFinite())
                 _lastRefSpeed = Vector3.Zero;
 
@@ -95,11 +95,11 @@ namespace XrSamples
 
             _manager ??= _host.Scene!.Component<PhysicsManager>();
 
-            var curTime = _manager.Time;    
+            var curTime = _manager.Time;
 
             var curPos = Vector3.Lerp(_lastPivotGlobal, _lastPos, c);
 
-            var curOri = Quaternion.Slerp(_host.WorldOrientation, _lastOri, c);   
+            var curOri = Quaternion.Slerp(_host.WorldOrientation, _lastOri, c);
 
             var dt = curTime - _lastUpdateSpeedTime;
 
@@ -115,7 +115,7 @@ namespace XrSamples
                 _lastRefOri = curOri;
                 _lastRefAngSpeed = curAngSpeed;
 
-                _lastUpdateSpeedTime = curTime; 
+                _lastUpdateSpeedTime = curTime;
             }
 
             _lastPos = curPos;

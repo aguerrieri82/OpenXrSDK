@@ -446,13 +446,13 @@ namespace PhysX.Framework
 
             sceneDesc.flags |= PxSceneFlags.EnableEnhancedDeterminism;
             sceneDesc.EnableCustomFilterShader(&FilterShader, 1);
-     
+
 
             _scene = new PhysicsScene(_physics->CreateSceneMut(&sceneDesc), this);
 
             _scene.SetVisualizationParameter(PxVisualizationParameter.JointLocalFrames, 1f);
             _scene.SetVisualizationParameter(PxVisualizationParameter.JointLimits, 1f);
-   
+
 
             if (_pvd != null)
             {

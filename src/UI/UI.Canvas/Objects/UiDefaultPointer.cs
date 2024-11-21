@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace CanvasUI
+﻿namespace CanvasUI
 {
     public readonly struct UiDefaultPointer : IUiPointer
     {

@@ -46,7 +46,9 @@ namespace XrEditor
 
             Outline = new OutlinePanel();
 
-            PropertiesEditor = new PropertiesEditor();
+            PropertiesEditor = new PropertiesEditor(PropertiesEditorMode.Selection);
+
+            ToolPropertiesEditor = new PropertiesEditor(PropertiesEditorMode.Custom, "Tool");
 
             SceneView = new SceneView(surface);
 
@@ -78,7 +80,7 @@ namespace XrEditor
                     },
                     Second = new PanelContainer(Log, Plotter, draw)
                 },
-                Second = new PanelContainer(PropertiesEditor),
+                Second = new PanelContainer(PropertiesEditor, ToolPropertiesEditor),
                 SizeMode = SplitViewSizeMode.Second,
                 Size = 360
             };
@@ -153,6 +155,8 @@ namespace XrEditor
         public IPanel Plotter { get; }
 
         public PropertiesEditor PropertiesEditor { get; }
+
+        public PropertiesEditor ToolPropertiesEditor { get; }
 
         public BaseView Content { get; internal set; }
 

@@ -27,7 +27,7 @@ namespace XrSamples
             SpeedTracker.AutoThrow = AutoThrow;
             SpeedTracker.MinDeltaTime = MinDeltaTime / 1000f;
 
-            scene.Component<PhysicsManager>().StepSizeSecs = 1f / SimFps;   
+            scene.Component<PhysicsManager>().StepSizeSecs = 1f / SimFps;
 
             if (_filePath != null)
             {
@@ -36,7 +36,7 @@ namespace XrSamples
             }
         }
 
-        public float SimFps { get; set; }   
+        public float SimFps { get; set; }
 
         public float Sensitivity { get; set; }
 
@@ -59,7 +59,7 @@ namespace XrSamples
             }
 
             var plotter = new Plotter();
- 
+
 
             binder.PropertyChanged += Binder_PropertyChanged;
 

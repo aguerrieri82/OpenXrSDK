@@ -66,7 +66,7 @@ namespace XrEngine.OpenGL
                 progInst.ExtraExtensions = ["GL_EXT_clip_cull_distance"];
                 progInst.Invalidate();
             }
-            
+
             var upRes = base.UpdateProgram(updateContext, progInst);
 
             var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);

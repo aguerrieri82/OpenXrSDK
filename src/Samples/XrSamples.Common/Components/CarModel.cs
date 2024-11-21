@@ -15,7 +15,7 @@ namespace XrSamples.Components
     public class CarModel : Behavior<Group3D>, IDrawGizmos
     {
         private Group3D? _chassis;
-        private Group3D _attachedGroup;
+        private readonly Group3D _attachedGroup;
 
         private Joint? _steerLeft;
         private Joint? _steerRight;
@@ -30,14 +30,14 @@ namespace XrSamples.Components
         private TriangleMesh? _mainTube;
         private TriangleMesh? _steeringWheelTube;
         private RigidBody? _carRigidBody;
-        private IPbrMaterial _tubeMaterial;
-        private float _tubeSize;
+        private readonly IPbrMaterial _tubeMaterial;
+        private readonly float _tubeSize;
 
         private float _lastAngle;
         private float _steeringAngle;
         private float _wheelSpeedRad;
         private bool _isWheelChanged;
-        private CarSound _carSound;
+        private readonly CarSound _carSound;
         private Pose3 _attachedPosDiff;
         private Pose3 _seatPosDiff;
 
@@ -115,7 +115,7 @@ namespace XrSamples.Components
                 collider.MeshObjects = () => CarBodyCollisionMeshes;
 
             CarBody.AddComponent(collider);
-        
+
             _carRigidBody = CarBody.AddComponent(new RigidBody
             {
                 Type = PhysicsActorType.Dynamic,
@@ -838,7 +838,7 @@ namespace XrSamples.Components
             leverMesh.Geometry!.SmoothNormals();
             leverMesh.Materials.Add((Material)mat);
             leverMesh.SetWorldPose(GearBoxPose.Multiply(new Pose3(new Vector3(0, 0, -leverOffset))));
-            builder.AddColliders(leverMesh);   
+            builder.AddColliders(leverMesh);
 
             if (usePhysic)
             {
@@ -889,7 +889,7 @@ namespace XrSamples.Components
 
                 leverMesh.AddComponent(new InputRotatePivot
                 {
-                    LocalPivot = new Vector3(0,0, leverHeight),
+                    LocalPivot = new Vector3(0, 0, leverHeight),
                     Normal = Vector3.UnitZ,
                     ValidateOrientation = (worldOri) =>
                     {

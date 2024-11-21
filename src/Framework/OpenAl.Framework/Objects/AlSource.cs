@@ -56,7 +56,7 @@ namespace OpenAl.Framework
 
         public void QueueBuffer(params AlBuffer[] buffers)
         {
-            _al.SourceQueueBuffers(_handle, buffers.Select(a=> a.Handle).ToArray());
+            _al.SourceQueueBuffers(_handle, buffers.Select(a => a.Handle).ToArray());
             foreach (var buffer in _buffers)
                 _buffers.Add(buffer);
         }

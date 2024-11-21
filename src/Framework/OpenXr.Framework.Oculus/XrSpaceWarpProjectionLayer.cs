@@ -135,10 +135,10 @@ namespace OpenXr.Framework.Oculus
                     var info = _spaceWarpInfo.ItemPointer(i);
                     var curPose = _xrApp.ReferenceFrame.Multiply(projViews[i].Pose.ToPose3());
                     var lastPose = _lastPose[i];
-                    info->AppSpaceDeltaPose = lastPose.Inverse().Multiply(curPose).ToPoseF(); 
-                    _lastPose[i] = curPose; 
+                    info->AppSpaceDeltaPose = lastPose.Inverse().Multiply(curPose).ToPoseF();
+                    _lastPose[i] = curPose;
                 }
-     
+
                 if (!base.Render(ref projViews, ref views, swapchains, displayTime))
                     return false;
 

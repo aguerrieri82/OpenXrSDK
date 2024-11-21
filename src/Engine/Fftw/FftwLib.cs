@@ -54,7 +54,7 @@ namespace Fftw
         public static FftwPlan DftPlan(FftwBuffer<double> inData, FftwBuffer<Complex> outData, DftFlags flags = DftFlags.FFTW_ESTIMATE)
         {
             var result = fftw_plan_dft_r2c_1d(inData.Length, inData.Pointer, outData.Pointer, flags);
-            return new FftwPlan(result);    
+            return new FftwPlan(result);
         }
     }
 }

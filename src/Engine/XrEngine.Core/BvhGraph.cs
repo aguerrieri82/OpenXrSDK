@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace XrEngine
@@ -185,13 +179,13 @@ namespace XrEngine
         public void Remove(T obj)
         {
             var node = FindNode(Root, obj);
-            if (node == null) 
-                return; 
+            if (node == null)
+                return;
 
             var parent = node.Parent;
             if (parent == null)
             {
-                Root = null; 
+                Root = null;
                 return;
             }
 
@@ -227,16 +221,16 @@ namespace XrEngine
 
         private static BvhNode<T>? FindNode(BvhNode<T>? node, T obj)
         {
-            if (node == null) 
+            if (node == null)
                 return null;
 
-            if (node.IsLeaf && node.Value == obj) 
+            if (node.IsLeaf && node.Value == obj)
                 return node;
 
             var foundInLeft = FindNode(node.Left, obj);
             return foundInLeft ?? FindNode(node.Right, obj);
         }
 
-        public BvhNode<T>? Root { get; private set; }   
+        public BvhNode<T>? Root { get; private set; }
     }
 }

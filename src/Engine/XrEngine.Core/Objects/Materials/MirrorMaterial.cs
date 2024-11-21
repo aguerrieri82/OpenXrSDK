@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrMath;
+﻿using System.Diagnostics;
 
 namespace XrEngine
 {
@@ -51,7 +45,7 @@ namespace XrEngine
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
             var planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
-            
+
             Debug.Assert(planar != null);
 
             bld.AddFeature("PLANAR_REFLECTION");
@@ -84,13 +78,13 @@ namespace XrEngine
 
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-                
+
             });
 
             base.UpdateShader(bld);
         }
 
-        public uint TextureSize { get; set; } 
+        public uint TextureSize { get; set; }
 
         public MirrorMode Mode { get; set; }
     }

@@ -5,6 +5,12 @@ using XrEngine;
 
 namespace XrEditor
 {
+    public enum PropertiesEditorMode
+    {
+        Selection,
+        Custom
+    }
+
     public class PropertiesEditor : BasePanel
     {
         private INode? _activeNode;
@@ -14,11 +20,12 @@ namespace XrEditor
         private IDispatcher? _renderDispatcher;
         private int _isUpdatingProps;
 
-        public PropertiesEditor()
+        public PropertiesEditor(PropertiesEditorMode mode, string title = "Properties")
         {
-            Instance = this;
-            Context.Require<SelectionManager>().Changed += OnSelectionChanged;
-
+            Mode = mode;
+            Title = title;
+            if (mode == PropertiesEditorMode.Selection)
+                Context.Require<SelectionManager>().Changed += OnSelectionChanged;
         }
 
         private async void OnSelectionChanged(IReadOnlyCollection<INode> items)
@@ -76,11 +83,11 @@ namespace XrEditor
                     {
                         Header = cat.Key,
                         Properties = cat.ToArray(),
-                        Node = node,    
+                        Node = node,
                     };
                     result.Groups ??= new List<PropertiesGroupView>();
                     result.Groups.Add(catGrp);
-      
+
                 }
             }
 
@@ -106,7 +113,7 @@ namespace XrEditor
 
         protected IEnumerable<PropertyView> EnumProps(INode? target = null)
         {
-            var result = Enumerable.Empty<PropertyView>();  
+            var result = Enumerable.Empty<PropertyView>();
 
             void Visit(IEnumerable<PropertiesGroupView> groups)
             {
@@ -115,12 +122,12 @@ namespace XrEditor
                     if (target != null && grp.Node != target && grp.Node?.Parent != target)
                         continue;
                     if (grp.Properties != null)
-                        result = result.Concat(grp.Properties); 
+                        result = result.Concat(grp.Properties);
                     if (grp.Groups != null)
                         Visit(grp.Groups);
                 }
             }
-            
+
             if (_groups != null)
                 Visit(_groups);
 
@@ -154,7 +161,7 @@ namespace XrEditor
         protected void Detach()
         {
             if (_activeNode is INodeChanged changed)
-                changed.NodeChanged -= OnNodeChanged;   
+                changed.NodeChanged -= OnNodeChanged;
         }
 
         protected void Attach()
@@ -194,7 +201,7 @@ namespace XrEditor
                 foreach (var update in updates)
                     update();
                 _isUpdatingProps--;
-            });  
+            });
         }
 
         public IList<PropertiesGroupView>? Groups
@@ -263,9 +270,8 @@ namespace XrEditor
             }
         }
 
-        public static PropertiesEditor? Instance { get; internal set; }
+        public PropertiesEditorMode Mode { get; }
 
-
-        public override string? Title => "Properties";
+        public override string? Title { get; }
     }
 }

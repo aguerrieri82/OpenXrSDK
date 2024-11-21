@@ -47,6 +47,7 @@ namespace XrEditor.Services
         public async Task<T> PanelAsync<T>() where T : IPanel
         {
             var panel = _panels.OfType<T>().FirstOrDefault();
+
             if (panel != null)
                 return panel;
 
@@ -75,10 +76,15 @@ namespace XrEditor.Services
         public void Register<T>() where T : IPanel, new()
         {
             var attr = typeof(T).GetCustomAttribute<PanelAttribute>();
+
             if (attr == null)
-                throw new NotSupportedException();
+                throw new NotSupportedException($"Panel attribute not declared in type {typeof(T).FullName}");
 
             Register(() => new T(), attr.PanelId);
         }
+
+
+        public IReadOnlyList<IPanel> Panels => _panels;
+
     }
 }

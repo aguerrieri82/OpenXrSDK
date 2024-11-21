@@ -145,7 +145,7 @@ namespace XrEngine.Physics
         {
             base.SetStateWork(container);
             Tolerance = container.Read<float>(nameof(Tolerance));
-            UseConvexMesh = container.Read<bool>(nameof(UseConvexMesh));    
+            UseConvexMesh = container.Read<bool>(nameof(UseConvexMesh));
         }
 
 

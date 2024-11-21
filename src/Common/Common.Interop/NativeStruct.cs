@@ -1,7 +1,5 @@
-﻿using System.Runtime.InteropServices;
-
-namespace Common.Interop
-{ 
+﻿namespace Common.Interop
+{
     public unsafe struct NativeStruct<T> : IDisposable where T : unmanaged
     {
         private T* _value;
@@ -13,7 +11,7 @@ namespace Common.Interop
 
         public NativeStruct(T value)
         {
-            Value = value;  
+            Value = value;
         }
 
         public T? Value
@@ -27,7 +25,7 @@ namespace Common.Interop
                 {
                     if (_value == null)
                         _value = (T*)MemoryManager.Allocate(sizeof(T), this);
-                    * _value = value.Value;
+                    *_value = value.Value;
                 }
             }
 

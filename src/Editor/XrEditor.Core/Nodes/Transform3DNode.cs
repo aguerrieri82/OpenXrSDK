@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using UI.Binding;
+﻿using UI.Binding;
 using XrEngine;
 using XrMath;
 

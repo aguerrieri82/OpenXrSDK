@@ -19,17 +19,17 @@ namespace XrEngine.Audio
             Debug.Assert(Function != null);
 
             var rangeX = Function.RangeX;
-   
+
             var xt = (value - MinValue) / (MaxValue - MinValue);
 
             if (Function == null)
                 return Data.Duration() * xt;
 
-            var curX = rangeX.Min + xt * (rangeX.Size);    
+            var curX = rangeX.Min + xt * (rangeX.Size);
 
             var curY = Function.Value(curX);
 
-            var timeT =  (curY - StartTime) / (EndTime - StartTime);
+            var timeT = (curY - StartTime) / (EndTime - StartTime);
 
             return Data.Duration() * timeT;
         }
@@ -99,7 +99,7 @@ namespace XrEngine.Audio
 
         public Dictionary<string, int> OffsetMap { get; set; }
 
-        public AudioData? Data { get; set; } 
+        public AudioData? Data { get; set; }
 
         public IFunction2? Function { get; set; }
 
@@ -107,7 +107,7 @@ namespace XrEngine.Audio
 
         public float EndTime { get; set; }
 
-        public float MinValue { get; set; } 
+        public float MinValue { get; set; }
 
         public float MaxValue { get; set; }
 

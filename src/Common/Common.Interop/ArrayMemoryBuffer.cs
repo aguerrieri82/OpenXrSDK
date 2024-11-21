@@ -36,7 +36,7 @@ namespace Common.Interop
         {
             if (_lockCount == 0)
                 _handle = GCHandle.Alloc(_data, GCHandleType.Pinned);
-            
+
             _lockCount++;
 
             return (T*)_handle.AddrOfPinnedObject();

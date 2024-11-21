@@ -25,6 +25,11 @@ namespace XrEditor
 
         public ActionView AddButton(string iconName, Action action, string? displayName = null)
         {
+            return AddButton(iconName, action.ToTask(), displayName);  
+        }
+
+        public ActionView AddButton(string iconName, Func<Task> action, string? displayName = null)
+        {
             var result = new ActionView(action)
             {
                 Icon = new IconView()

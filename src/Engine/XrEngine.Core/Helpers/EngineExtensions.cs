@@ -1,9 +1,7 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Intrinsics;
 using XrEngine.Services;
 using XrMath;
@@ -90,7 +88,7 @@ namespace XrEngine
                 foreach (var child in grp.Children)
                     child.Transform.Set(child.Transform.Matrix * curLocal);
             }
-            
+
             self.Transform.Set(Matrix4x4.Identity);
 
             VisitChildren(self);
@@ -109,7 +107,7 @@ namespace XrEngine
 
         public static Group3D GroupByName(this Group3D self, params string[] names)
         {
-            return self.GroupByName(Matrix4x4.Identity, names); 
+            return self.GroupByName(Matrix4x4.Identity, names);
         }
 
         public static Group3D GroupByName(this Group3D self, Matrix4x4 grpTransform, params string[] names)
@@ -171,7 +169,7 @@ namespace XrEngine
                 self.MoveLocalToWorld(Vector3.Zero, pose.Position);
             else
                 self.WorldPosition = pose.Position;
-      
+
 
             /*
              WORKING 
@@ -219,7 +217,7 @@ namespace XrEngine
                 Orientation = self.WorldOrientation,
                 Position = fromOrigin ? self.ToWorld(Vector3.Zero) : self.WorldPosition
             };
-   
+
             /*
             var result = new Pose3
             {
@@ -254,7 +252,7 @@ namespace XrEngine
                 worldPos = worldPos.Transform(self.Parent.WorldMatrixInverse);
 
             self.Transform.Position = worldPos - rotatedLocalPos;
-        }   
+        }
 
         public static void SetActiveTool(this Object3D self, IObjectTool value, bool isActive)
         {
@@ -1069,7 +1067,7 @@ namespace XrEngine
 
             if (self.Eyes != null && self.Eyes.Length > 1 && self.IsStereo)
                 viewProjRight = self.Eyes[1].ViewProj;
-     
+
             // Left plane
             planes[0] = new Plane(
                 viewProjLeft.M14 + viewProjLeft.M11,

@@ -20,7 +20,7 @@ namespace XrSamples
         public bool UsePbrV2 { get; set; }
 
 
-        public static GameSettings Helmet() 
+        public static GameSettings Helmet()
         {
             return new GameSettings
             {

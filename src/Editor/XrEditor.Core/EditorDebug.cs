@@ -1,5 +1,4 @@
-﻿using XrEngine.OpenGL;
-using XrEngine.OpenXr;
+﻿using XrEngine.OpenXr;
 using XrSamples;
 
 namespace XrEditor

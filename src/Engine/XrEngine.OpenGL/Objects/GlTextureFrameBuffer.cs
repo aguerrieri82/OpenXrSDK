@@ -24,7 +24,7 @@ namespace XrEngine.OpenGL
         public GlTextureFrameBuffer(GL gl)
            : base(gl)
         {
-            _drawBuffers = new MutableArray<DrawBufferMode> { Sort = true };    
+            _drawBuffers = new MutableArray<DrawBufferMode> { Sort = true };
 #if GLES
             gl.TryGetExtension(out _extMs);
 #endif
@@ -176,7 +176,7 @@ namespace XrEngine.OpenGL
                 Bind();
                 BindAttachment(glTex, slot, true);
                 Check();
-                
+
                 obj = glTex;
             }
 

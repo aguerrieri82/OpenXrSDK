@@ -1,7 +1,5 @@
 ﻿using OpenAl.Framework;
-using Silk.NET.Core.Native;
 using Silk.NET.OpenAL;
-using System;
 using System.Numerics;
 
 namespace XrEngine.Audio
@@ -97,7 +95,7 @@ namespace XrEngine.Audio
             _curSource = null;
 
             foreach (var buffer in buffers)
-                buffer.Dispose();   
+                buffer.Dispose();
         }
 
         public void Stop()

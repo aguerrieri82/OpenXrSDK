@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-using System.Runtime.CompilerServices;
-using XrMath;
+﻿using System.Runtime.CompilerServices;
 
 namespace PhysX.Framework
 {

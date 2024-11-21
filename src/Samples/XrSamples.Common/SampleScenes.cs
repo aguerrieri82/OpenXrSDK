@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using XrEngine;
 using XrEngine.Audio;
+using XrEngine.Components;
 using XrEngine.Compression;
 using XrEngine.Gltf;
 using XrEngine.Helpers;
@@ -19,9 +20,13 @@ using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
+
+/* Unmerged change from project 'XrSamples.Common (net9.0-android)'
+Removed:
 using System.Diagnostics;
 using XrEngine.OpenGL;
 using XrEngine.Components;
+*/
 
 
 
@@ -1141,7 +1146,7 @@ namespace XrSamples
 
                 if (mesh.Name != "reflect_mirrors.003" && mesh.Name != "reflect_mirror_int.003")
                     XrEngine.MeshOptimizer.Simplify(mesh.Geometry!, 0.4f, 0.005f);
-                
+
                 XrEngine.MeshOptimizer.OptimizeVertexCache(mesh.Geometry!);
                 XrEngine.MeshOptimizer.OptimizeOverdraw(mesh.Geometry!, 1.05f);
                 XrEngine.MeshOptimizer.OptimizeVertexFetch(mesh.Geometry!);
@@ -1244,7 +1249,7 @@ namespace XrSamples
 
             model.AddMirror(car.GroupByName(scale, "reflect_mirror_int.003", "plasticInt_mirror_int_body-mirror"),
                 new Ray3(new Vector3(-50, 640, -172), new Vector3(0, 0, 1)));
-            model.AddMirror(car.GroupByName(scale, "reflect_mirrors.003", "glassClear_mirrors.003", "plastic_mirrors.003", "mirror_left"), 
+            model.AddMirror(car.GroupByName(scale, "reflect_mirrors.003", "glassClear_mirrors.003", "plastic_mirrors.003", "mirror_left"),
                 new Ray3(new Vector3(-850, 390, -300), new Vector3(1, -0.87f, 0)));
             model.AddMirror(car.GroupByName(scale, "reflect_mirrors_right", "glassClear_mirrors_right", "plastic_mirrors_right", "mirror_right"),
               new Ray3(new Vector3(800, 390, -300), new Vector3(1, 0.87f, 0)));

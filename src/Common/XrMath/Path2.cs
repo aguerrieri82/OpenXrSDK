@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Numerics;
-using System.Text;
 
 namespace XrMath
 {
@@ -37,7 +34,7 @@ namespace XrMath
             float integral = MathF.Asinh(s / (2 * MathF.Sqrt(a * c))) / MathF.Sqrt(a);
 
             return (term1 - term2) / s;
-        }   
+        }
 
         public List<Vector2> SampleAdaptive(List<Vector2> points, float tolerance = 0.01f)
         {
@@ -93,9 +90,9 @@ namespace XrMath
                     result.Min = Vector2.Min(result.Min, point);
                     result.Max = Vector2.Max(result.Max, point);
                 }
-                _bounds= result;    
+                _bounds = result;
             }
-           
+
             return _bounds.Value;
         }
 
@@ -113,7 +110,7 @@ namespace XrMath
         {
             float a = -3 * p1 + 9 * c1 - 9 * c2 + 3 * p2;
             float b = 6 * p1 - 12 * c1 + 6 * c2;
-            float c = -3    * p1 + 3 * c1;
+            float c = -3 * p1 + 3 * c1;
 
             // Solve the quadratic equation: at^2 + bt + c = 0
             var roots = new List<float>();
@@ -161,7 +158,7 @@ namespace XrMath
                 var mid2 = (p1 + p2) * 0.5f;
                 var mid3 = (p2 + p3) * 0.5f;
 
-                var mid4 = (mid1 + mid2) * 0.5f;    
+                var mid4 = (mid1 + mid2) * 0.5f;
                 var mid5 = (mid2 + mid3) * 0.5f;
 
                 var mid6 = (mid4 + mid5) * 0.5f;
@@ -367,7 +364,7 @@ namespace XrMath
                 var distance = Vector2.DistanceSquared(pt, p);
                 if (distance < minDistance)
                 {
-                    result.Segment = segment;   
+                    result.Segment = segment;
                     result.Time = t;
                     result.Point = pt;
                     minDistance = distance;
@@ -421,26 +418,26 @@ namespace XrMath
 
         public List<Vector2> SamplesAdaptive(float tolerance = 0.01f)
         {
-            var result = new List<Vector2>();   
+            var result = new List<Vector2>();
             foreach (var segment in _segments)
                 segment.SampleAdaptive(result, tolerance);
             return result;
         }
-        
+
         public Vector2 SampleAtLen(float len)
         {
-            if (_segments.Count == 0)   
+            if (_segments.Count == 0)
                 return Vector2.Zero;
 
             var totLen = Length();
 
-            if (len> totLen)
+            if (len > totLen)
             {
                 var lastSeg = _segments.Last!.Value;
                 var tan = Vector2.Normalize(lastSeg.Tangent(1));
                 return lastSeg.P2 + tan * (len - totLen);
             }
-            
+
             if (len < 0)
             {
                 var firstSeg = _segments.First!.Value;
@@ -452,7 +449,7 @@ namespace XrMath
             foreach (var segment in _segments)
             {
                 var segLen = segment.Length();
-                
+
                 if (len <= curLen + segLen)
                 {
                     var t = (len - curLen) / segLen;
@@ -461,7 +458,7 @@ namespace XrMath
                 curLen += segLen;
             }
 
-            return Vector2.Zero;    
+            return Vector2.Zero;
         }
 
         public float Length()
@@ -484,7 +481,7 @@ namespace XrMath
 
             foreach (var point in samples)
             {
-                var signY = sign * point.Y; 
+                var signY = sign * point.Y;
 
                 if (signY >= lastY)
                 {
@@ -515,7 +512,7 @@ namespace XrMath
                 }
             }
 
-            return new DiscreteFunction() { Points = newPoints.ToArray() }; 
+            return new DiscreteFunction() { Points = newPoints.ToArray() };
         }
 
         public void MoveTo(Vector2 p1)
@@ -576,7 +573,7 @@ namespace XrMath
 
                 while (i < svgPath.Length && (char.IsDigit(svgPath[i]) || svgPath[i] == '-' || svgPath[i] == '.' || svgPath[i] == ',' || svgPath[i] == ' '))
                 {
-                    if (svgPath[i] == ',' || svgPath[i] == ' ') 
+                    if (svgPath[i] == ',' || svgPath[i] == ' ')
                         i++; // Skip commas
 
                     int start = i;
@@ -596,7 +593,7 @@ namespace XrMath
                         for (int j = 0; j < args.Count; j += 2)
                         {
                             var point = new Vector2(args[j], args[j + 1]);
-                            if (isRelative) 
+                            if (isRelative)
                                 point += _currentPoint;
 
                             MoveTo(point);
@@ -617,7 +614,7 @@ namespace XrMath
                     case 'Q': // Quadratic Bézier
                         for (int j = 0; j < args.Count; j += 4)
                         {
-                            var  c = new Vector2(args[j], args[j + 1]);
+                            var c = new Vector2(args[j], args[j + 1]);
                             var p2 = new Vector2(args[j + 2], args[j + 3]);
 
                             if (isRelative)

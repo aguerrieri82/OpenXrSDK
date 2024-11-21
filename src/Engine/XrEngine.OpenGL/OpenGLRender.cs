@@ -241,7 +241,7 @@ namespace XrEngine.OpenGL
                 _updateCtx.LightsHash += light.GetType().Name + "|";
             }
 
-            _lastLightLayerVersion = lights.Version;    
+            _lastLightLayerVersion = lights.Version;
         }
 
 
@@ -319,7 +319,7 @@ namespace XrEngine.OpenGL
         {
             EnsureThread();
 
-            Debug.Assert(ctx.Scene != null && ctx.Camera != null);  
+            Debug.Assert(ctx.Scene != null && ctx.Camera != null);
 
             _target = target;
             _view = view;

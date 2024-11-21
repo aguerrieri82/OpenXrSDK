@@ -35,7 +35,7 @@ namespace XrEngine.OpenXr
         }
 
 
-        public XrEngineAppBuilder UseInputs<TProfile>(Action<XrActionsBuilder<TProfile>> builder) where TProfile : IXrBasicInteractionProfile,  new()
+        public XrEngineAppBuilder UseInputs<TProfile>(Action<XrActionsBuilder<TProfile>> builder) where TProfile : IXrBasicInteractionProfile, new()
         {
             if (_inputProfile != null && _inputProfile != typeof(TProfile))
                 throw new ArgumentException("Input profile differ");
