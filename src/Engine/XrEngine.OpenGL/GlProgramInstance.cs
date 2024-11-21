@@ -13,7 +13,7 @@ namespace XrEngine.OpenGL
 
         protected ShaderUpdate? _update;
         protected readonly GL _gl;
-        
+
         protected long _materialVersion = -1;
         protected long _globalVersion = -1;
         protected long _lastGlobalContextVersion = -1;
@@ -84,7 +84,7 @@ namespace XrEngine.OpenGL
                 {
                     foreach (var ext in ExtraExtensions)
                         program.AddExtension(ext);
-                }   
+                }
 
                 foreach (var ext in _update.Extensions!)
                     program.AddExtension(ext);
@@ -145,9 +145,9 @@ namespace XrEngine.OpenGL
                 action(ctx);
         }
 
-        static int _skipCount = 0;
+        static readonly int _skipCount = 0;
 
-        static long _skipVersion  = 0;
+        static readonly long _skipVersion = 0;
 
         public void UpdateUniforms(UpdateShaderContext ctx, bool updateGlobals)
         {

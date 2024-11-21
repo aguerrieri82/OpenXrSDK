@@ -1,10 +1,4 @@
-﻿    using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 
 namespace XrMath
@@ -14,7 +8,7 @@ namespace XrMath
         public Bounds1 RangeX => new Bounds1
         {
             Min = Points == null || Points.Length == 0 ? 0 : Points[0].X,
-            Max = Points == null || Points.Length == 0 ? 0 :Points[^1].X
+            Max = Points == null || Points.Length == 0 ? 0 : Points[^1].X
         };
 
         public Bounds2 Bounds()

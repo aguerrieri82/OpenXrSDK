@@ -69,7 +69,7 @@ namespace XrEngine.OpenGL
         {
             if (!Source!.HasOutline(draw.Object!, out var color))
                 return false;
-            
+
             _programInstance!.Material.UpdateColor(color);
 
             return true;
@@ -101,11 +101,11 @@ namespace XrEngine.OpenGL
 
         protected override ShaderMaterial CreateMaterial()
         {
-            return new ColorMaterial() 
-            { 
+            return new ColorMaterial()
+            {
                 Color = Color.White,
                 WriteDepth = false,
-                UseDepth = false,   
+                UseDepth = false,
             };
         }
 

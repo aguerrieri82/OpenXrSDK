@@ -1,44 +1,112 @@
 ﻿using CanvasUI.Components;
 using Fftw;
 using OpenAl.Framework;
+using System.Dynamic;
 using System.IO;
 using System.Numerics;
+using System.Windows.Controls;
 using UI.Binding;
+using XrEditor.Services;
 using XrEngine;
 using XrEngine.Audio;
 
 namespace XrEditor.Audio
 {
     [Panel("LoopEditor")]
-    public class LoopEditorPanel : BasePanel, UI.Binding.INotifyPropertyChanged
+    public class LoopEditorPanel : BasePanel, IAssetEditor
     {
-        public class Settings
+    
+        public class Settings : BaseView, INotifyPropertyChanged, IItemView
         {
+            readonly LoopEditorPanel _host;
 
-            [Range(0, 20, 0.01f)]
-            public readonly AutoProperty<float> Offset = new();
+            private float _offset;
+            private float _duration;
+            private float _smoothFactor;
+            private float _loopOfs;
+            private float _pitchFactor;
+            private bool _showMain;
+            private bool _showSmooth;
+            private bool _showLoop;
+            private bool _showPitch;
+
+            public Settings(LoopEditorPanel host)
+            {
+                _host = host;
+            }
+
+            public void NotifyPropertyChanged(IProperty property)
+            {
+                _host._version++;
+                _host.UpdatePlotterView();
+                _host.UpdateAudioView();
+                _host.UpdateDftView();
+                _host.ComputePitch();
+            }
+
+
+            [Range(0, 30, 0.1f)]
+            public float Offset
+            {
+                get => _offset;
+                set => SetProperty(ref _offset, value);
+            }
 
             [Range(0, 2, 0.01f)]
-            public readonly AutoProperty<float> Duration = new();
+            public float Duration
+            {
+                get => _duration;
+                set => SetProperty(ref _duration, value);
+            }
 
             [Range(0, 1000, 0.1f)]
-            public readonly AutoProperty<float> SmoothFactor = new();
+            public float SmoothFactor
+            {
+                get => _smoothFactor;
+                set => SetProperty(ref _smoothFactor, value);
+            }
 
             [Range(0, 5000, 1)]
-            public readonly AutoProperty<float> LoopOfs = new();
-            
+            public float LoopOfs
+            {
+                get => _loopOfs;
+                set => SetProperty(ref _loopOfs, value);
+            }
+
             [Range(1, 100, 0.1f)]
-            public readonly AutoProperty<float> PitchFactor = new();
+            public float PitchFactor
+            {
+                get => _pitchFactor;
+                set => SetProperty(ref _pitchFactor, value);
+            }
 
+            public bool ShowMain
+            {
+                get => _showMain;
+                set => SetProperty(ref _showMain, value);
+            }
 
-            public readonly AutoProperty<bool> ShowMain = new();
+            public bool ShowSmooth
+            {
+                get => _showSmooth;
+                set => SetProperty(ref _showSmooth, value);
+            }
 
-            public readonly AutoProperty<bool> ShowSmooth = new();
+            public bool ShowLoop
+            {
+                get => _showLoop;
+                set => SetProperty(ref _showLoop, value);
+            }
 
-            public readonly AutoProperty<bool> ShowLoop = new();
+            public bool ShowPitch
+            {
+                get => _showPitch;
+                set => SetProperty(ref _showPitch, value);
+            }
 
+            string IItemView.DisplayName => "Loop Editor";
 
-            public readonly AutoProperty<bool> ShowPitch = new();
+            IconView? IItemView.Icon => null;
         }
 
         protected Settings _settings;
@@ -53,6 +121,7 @@ namespace XrEditor.Audio
         protected IAudioOut _audioOut;
         protected Task? _playTask;
         protected long _version;
+        protected TextView _statusText;
 
         public LoopEditorPanel()
         {
@@ -95,11 +164,11 @@ namespace XrEditor.Audio
                 Points = []
             };
 
-            _settings = new Settings();
-            _settings.Duration.Value = 0.2f;
-            _settings.SmoothFactor.Value = 20;
-            _settings.ShowMain.Value = true;
-            _settings.ShowSmooth.Value = true;
+            _settings = new Settings(this);
+            _settings.Duration = 0.2f;
+            _settings.SmoothFactor = 20;
+            _settings.ShowMain = true;
+            _settings.ShowSmooth = true;
 
             Plotter = new Plotter
             {
@@ -120,13 +189,10 @@ namespace XrEditor.Audio
 
             Plotter.Tool<PanPlotterTool>().CanPanY = false;
 
-            Properties = [];
-            PropertyView.CreateProperties(_settings, _settings.GetType(), Properties, this);
-
             Plotter.ViewChanged += (_, _) =>
             {
-                _settings.Offset.Value = Plotter.ViewRect.X;
-                _settings.Duration.Value = Plotter.ViewRect.Width;   
+                _settings.Offset = Plotter.ViewRect.X;
+                _settings.Duration = Plotter.ViewRect.Width;
             };
 
             Plotter.Series.Add(_mainAudio);
@@ -136,12 +202,14 @@ namespace XrEditor.Audio
 
             DftPlotter.Series.Add(_dft);
 
-            UpdateLoopPosCommand = new Command(UpdateLoopPos);
+            ToolBar = new ToolbarView();
 
-            PlayCommand = new Command(PlayAsync);
-            StopCommand = new Command(StopAsync);
-
-            StatusText = "";
+            ToolBar.AddButton("icon_play_arrow", PlayAsync);
+            ToolBar.AddButton("icon_stop", StopAsync);
+            ToolBar.AddDivider();
+            ToolBar.AddButton("icon_repeat", UpdateLoopPos);
+            ToolBar.AddDivider();
+            _statusText = ToolBar.AddText("");
 
             LoadWaveAsset("CarSound.wav");
         }
@@ -157,7 +225,7 @@ namespace XrEditor.Audio
             OnPropertyChanged(nameof(IsPlaying));
 
             return _playTask;
-      
+
         }
 
         protected void PlayWork()
@@ -276,7 +344,7 @@ namespace XrEditor.Audio
 
         public void UpdateLoopPos()
         {
-            _settings.LoopOfs.Value = _slicer.BestLoopOffset(_settings.Offset, _settings.Duration);
+            _settings.LoopOfs = _slicer.BestLoopOffset(_settings.Offset, _settings.Duration);
         }
 
         protected void ComputeCorrelation()
@@ -297,14 +365,12 @@ namespace XrEditor.Audio
                 sum += _mainAudio!.Points[s1].Y * _mainAudio.Points[s2].Y;
             }
 
-            StatusText = sum.ToString();
-
-            OnPropertyChanged(nameof(StatusText));
+            _statusText.Text = MathF.Round(sum, 1).ToString();
         }
 
         protected void ComputePitch()
         {
-            var sampleRate = (int)_slicer.Data!.Format.SampleRate;
+            var sampleRate = _slicer.Data!.Format.SampleRate;
 
             var len = (int)(_settings.Duration * sampleRate) - (int)_settings.LoopOfs;
             var startSample = (int)(sampleRate * _settings.Offset);
@@ -327,6 +393,9 @@ namespace XrEditor.Audio
 
         protected void UpdateAudioView()
         {
+            if (_settings.Offset < 0)
+                _settings.Offset = 0;
+
             var sampleRate = (float)_slicer.Data!.Format.SampleRate;
 
             var ofsTime = _settings.LoopOfs / (float)sampleRate;
@@ -337,7 +406,7 @@ namespace XrEditor.Audio
             var endIndex = (int)((loopStart + _settings.Duration) * sampleRate);
 
             var data = new Vector2[endIndex - startIndex];
-            for (var i= 0; i < data.Length; i++)
+            for (var i = 0; i < data.Length; i++)
             {
                 var p = _mainAudio!.Points[i + startIndex];
                 data[i] = new Vector2(p.X - (loopStart - _settings.Offset), p.Y);
@@ -398,7 +467,7 @@ namespace XrEditor.Audio
 
             using var aIn = new FftwBuffer<double>(dftSize);
             using var aOut = new FftwBuffer<Complex>(dftSize / 2 + 1);
-             
+
             for (var j = 0; j < dftSize; j++)
                 aIn.Pointer[j] = _mainAudio!.Points[startIndex + j].Y;
 
@@ -422,39 +491,30 @@ namespace XrEditor.Audio
             Plotter.ViewRect = new XrMath.Rect2(_settings.Offset, -1, _settings.Duration, 2);
         }
 
-        public void NotifyPropertyChanged(IProperty property)
+        public override void OnActivate()
         {
-            _version++;
+            var toolProps = Context.Require<PanelManager>().Panels
+                 .OfType<PropertiesEditor>()
+                 .FirstOrDefault(a => a.Mode == PropertiesEditorMode.Custom);
+
+            if (toolProps != null)
+            {
+                toolProps.ActiveNode = _settings.GetNode();
+                toolProps.IsActive = true;
+            }
+ 
 
             UpdatePlotterView();
             UpdateAudioView();
             UpdateDftView();
-            ComputePitch();
         }
 
-        public override void NotifyActivated(IPanelContainer container, bool isActive)
-        {
-            base.NotifyActivated(container, isActive);
-            UpdatePlotterView();
-            UpdateAudioView();
-            UpdateDftView();
-        }
+        public bool IsPlaying => _playTask != null;
 
-        public bool IsPlaying => _playTask != null;  
-
-        public Command UpdateLoopPosCommand { get; }
-
-        public Command PlayCommand { get; }
-
-        public Command StopCommand { get; }
-
-        public IList<PropertyView> Properties { get; }
 
         public Plotter Plotter { get; }
 
         public Plotter DftPlotter { get; }
-
-        public string StatusText { get; set; }
 
         public override string? Title => "Loop Editor";
     }

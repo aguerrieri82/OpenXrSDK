@@ -9,6 +9,7 @@ namespace XrEditor.Services
         public NodeManager()
         {
             RegisterHandler(new EngineObjectNodeHandler());
+            RegisterHandler(new GenericNodeHandler());
         }
 
         public INode CreateNode(object value)

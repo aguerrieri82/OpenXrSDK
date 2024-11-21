@@ -1,13 +1,6 @@
 ﻿using OpenAl.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using XrEngine;
 using XrEngine.Audio;
-using XrEngine.OpenXr;
 using XrMath;
 
 namespace XrSamples
@@ -135,7 +128,7 @@ namespace XrSamples
 
     public class CarSoundV2 : AudioLooper, ICarSound
     {
-        AudioSlicer _slicer;
+        readonly AudioSlicer _slicer;
         byte[] _buffer = [];
 
         public CarSoundV2()
@@ -186,7 +179,7 @@ namespace XrSamples
         protected override void LoadNextBuffer()
         {
             var rnd = (int)(10 * new Random().NextSingle());
-            _slicer.FillBuffer((int)Rpm + 0, SliceLen, ref _buffer);
+            _slicer.FillBuffer(Rpm + 0, SliceLen, ref _buffer);
             LoadBuffer(_buffer);
         }
 
@@ -201,7 +194,7 @@ namespace XrSamples
 
     public class CarSound : AudioEmitter
     {
-        CarSoundV2 _engine;
+        readonly CarSoundV2 _engine;
 
         public CarSound()
         {

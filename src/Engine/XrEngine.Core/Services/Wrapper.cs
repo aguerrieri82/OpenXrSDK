@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public abstract class Wrapper<T>
     {
         protected List<Action> _actions = [];
-        protected readonly T _instance; 
+        protected readonly T _instance;
 
         public Wrapper(T instance)
         {
@@ -36,9 +30,9 @@ namespace XrEngine
         public void Clear()
         {
             _actions.Clear();
-        }   
+        }
 
-        public List<Action> Actions => _actions;    
+        public List<Action> Actions => _actions;
 
     }
 }

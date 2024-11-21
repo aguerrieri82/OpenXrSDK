@@ -371,7 +371,7 @@ namespace XrEngine.OpenGL
             if (_handle != 0)
                 _gl.DeleteProgram(_handle);
 
-            base.Dispose(); 
+            base.Dispose();
         }
 
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]

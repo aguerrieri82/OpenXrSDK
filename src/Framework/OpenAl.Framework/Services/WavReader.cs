@@ -53,7 +53,7 @@ namespace OpenAl.Framework
                     BitsPerSample = header.bit_depth,
                     Channels = header.num_channels,
                     SampleRate = header.sample_rate
-                }, 
+                },
                 new byte[header.data_bytes]);
 
             var tot = stream.Read(result.Buffer);

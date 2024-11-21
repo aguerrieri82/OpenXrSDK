@@ -16,10 +16,29 @@ namespace XrEditor
         }
 
         public ActionView(Action action)
+            : this(action.ToTask())
         {
-            ExecuteCommand = new Command(action);
+        }
+
+        public ActionView(Func<Task> action)
+        {
+            ExecuteCommand = new Command(async () =>
+            {
+                var wasActive = _isActive;
+                IsActive = true;
+                try
+                {
+                    await action();
+                }
+                finally
+                {
+                    IsActive = wasActive;
+                }
+            });
             _isEnabled = true;
         }
+
+    
 
         public static void CreateActions(object obj, IList<ActionView> actions)
         {

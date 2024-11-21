@@ -4,7 +4,7 @@ namespace OpenAl.Framework
 {
     public class AlBuffer : AlObject, IDisposable
     {
-        static Dictionary<uint, AlBuffer> _attached = [];
+        static readonly Dictionary<uint, AlBuffer> _attached = [];
 
         public AlBuffer(AL al)
             : this(al, al.GenBuffer())
@@ -13,7 +13,7 @@ namespace OpenAl.Framework
 
         public AlBuffer(AL al, uint handle) : base(al, handle)
         {
-            _attached[handle] = this;   
+            _attached[handle] = this;
         }
 
         public void SetData(AudioData data)
@@ -64,7 +64,7 @@ namespace OpenAl.Framework
         {
             if (!_attached.TryGetValue(handle, out var result))
                 result = new AlBuffer(al, handle);
-            return result;  
+            return result;
         }
     }
 }

@@ -1,9 +1,4 @@
 ﻿using OpenAl.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XrEngine.Audio
 {
@@ -21,7 +16,7 @@ namespace XrEngine.Audio
 
         float Length { get; }
 
-        AudioFormat Format { get; } 
+        AudioFormat Format { get; }
 
         bool IsStreaming { get; }
     }

@@ -122,7 +122,7 @@ namespace XrEngine.OpenXr
         });
 
 
-        public static XrEngineAppBuilder UseInputs<TProfile>(this XrEngineAppBuilder self) where TProfile : IXrBasicInteractionProfile,  new()
+        public static XrEngineAppBuilder UseInputs<TProfile>(this XrEngineAppBuilder self) where TProfile : IXrBasicInteractionProfile, new()
         {
             return self.UseInputs<TProfile>(a => a.AddAll());
         }

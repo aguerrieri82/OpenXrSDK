@@ -21,7 +21,7 @@ namespace UI.Binding
         {
             if (_object is System.ComponentModel.INotifyPropertyChanged notifyPropertyChanged)
                 notifyPropertyChanged.PropertyChanged -= OnPropertyChanged;
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         void OnPropertyChanged(object? sender, PropertyChangedEventArgs args)
@@ -47,6 +47,9 @@ namespace UI.Binding
         protected virtual void OnChanged()
         {
             Changed?.Invoke(this, EventArgs.Empty);
+
+            if (_object is INotifyPropertyChanged notify)
+                notify.NotifyPropertyChanged(this);
         }
 
         public Type Type => _property.PropertyType;

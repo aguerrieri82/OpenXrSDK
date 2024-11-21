@@ -27,7 +27,7 @@ namespace XrEditor
 
             var json = container.AsJson();
             var fileName = $"scene-{scene.Id}.json";
-            
+
             if (File.Exists(fileName))
                 File.Delete(fileName);
 
@@ -41,7 +41,7 @@ namespace XrEditor
 
             if (!File.Exists(fileName))
                 return;
-            
+
             var json = File.ReadAllText(fileName);
             var container = new JsonStateContainer(json);
             container.Context.Flags |= StateContextFlags.Update;
@@ -82,7 +82,7 @@ namespace XrEditor
             set
             {
                 if (_isHideSelected == value)
-                    return; 
+                    return;
                 _isHideSelected = value;
                 HideUnselected(value);
                 OnPropertyChanged(nameof(IsHideSelected));

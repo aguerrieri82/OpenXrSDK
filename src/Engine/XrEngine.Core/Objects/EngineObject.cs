@@ -138,7 +138,7 @@
 
         public void DeleteProp(string name)
         {
-            _props?.Remove(name); 
+            _props?.Remove(name);
         }
 
         public void SetProp(string name, object? value)
@@ -198,7 +198,7 @@
         {
             var parts = new List<string>();
             GeneratePath(parts);
-            return string.Join("/", parts); 
+            return string.Join("/", parts);
         }
 
         public virtual void GeneratePath(List<string> parts)

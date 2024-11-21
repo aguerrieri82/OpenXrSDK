@@ -6,14 +6,13 @@ using System.Security.Cryptography;
 
 #endif
 
-using XrMath;
 
 namespace XrEngine.OpenGL
 {
     public abstract class GlBaseRenderPass : IGlRenderPass
     {
         static GlSimpleProgram? _drawQuad;
-        static uint _emptyVertexArray;    
+        static uint _emptyVertexArray;
 
         protected readonly OpenGLRender _renderer;
         protected bool _isInit;
@@ -125,7 +124,7 @@ namespace XrEngine.OpenGL
 
         protected void OverlayTexture(GlTexture texture)
         {
-            OverlayTexture(texture.ToEngineTexture());   
+            OverlayTexture(texture.ToEngineTexture());
         }
 
         protected void OverlayTexture(Texture texture)

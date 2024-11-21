@@ -9,16 +9,16 @@ namespace XrEditor.Audio
 {
     public class DrawDft : IDraw2D
     {
-        List<Complex[]> _dft = [];
+        readonly List<Complex[]> _dft = [];
 
-        private float _freqStep;
-        private int _maxIndex;
-        private int _minIndex;
-        private float _min;
-        private float _max;
-        private float _avg;
-        private float _sigma;
-        private uint _sampleRate;
+        private readonly float _freqStep;
+        private readonly int _maxIndex;
+        private readonly int _minIndex;
+        private readonly float _min;
+        private readonly float _max;
+        private readonly float _avg;
+        private readonly float _sigma;
+        private readonly uint _sampleRate;
         private SKBitmap? _image;
 
         public unsafe DrawDft(float[] data, uint sampleRate, uint dftSize)

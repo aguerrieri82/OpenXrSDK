@@ -3,7 +3,6 @@ using OpenAl.Framework;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using static Silk.NET.Core.Native.WinString;
 
 namespace XrEngine.Audio
 {
@@ -65,7 +64,7 @@ namespace XrEngine.Audio
         {
             None = 0,
             Done = 1,
-            Prepared  = 2,
+            Prepared = 2,
             BeginLoop = 4,
             EndLoop = 8,
             InQueue = 0x10
@@ -174,9 +173,9 @@ namespace XrEngine.Audio
                     buffers = [.. _buffers];
 
                 var events = buffers.Select(a => a.Event).ToArray();
-                
+
                 var index = WaitHandle.WaitAny(events, timeoutMs);
-                
+
                 if (index == WaitHandle.WaitTimeout)
                     return null;
 
@@ -206,13 +205,13 @@ namespace XrEngine.Audio
         {
             var wFormat = new WaveFormat
             {
-                cbSize = (ushort) Marshal.SizeOf<WaveFormat>(),
+                cbSize = (ushort)Marshal.SizeOf<WaveFormat>(),
                 nChannels = (ushort)format.Channels,
                 wBitsPerSample = (ushort)format.BitsPerSample,
-                nSamplesPerSec= (ushort)format.SampleRate,
-                nBlockAlign= (ushort)(format.BitsPerSample * format.Channels / 8),
+                nSamplesPerSec = (ushort)format.SampleRate,
+                nBlockAlign = (ushort)(format.BitsPerSample * format.Channels / 8),
                 nAvgBytesPerSec = (uint)((format.BitsPerSample * format.Channels / 8) * format.SampleRate),
-                wFormatTag= WAVE_FORMAT_PCM
+                wFormatTag = WAVE_FORMAT_PCM
             };
 
             var del = (WaveOutProcDelegate)WaveOutProc;

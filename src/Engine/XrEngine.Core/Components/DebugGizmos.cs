@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {
@@ -30,7 +29,7 @@ namespace XrEngine
                     canvas.State.Transform = obj.Object.WorldMatrix;
                     canvas.DrawBounds(local);
 
- 
+
                 }
             }
 

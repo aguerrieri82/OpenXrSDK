@@ -1,6 +1,4 @@
-﻿using SkiaSharp;
-using System.Drawing;
-using System.Numerics;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -88,10 +86,10 @@ namespace XrEngine
             Colliders.Add(new CapsuleCollider
             {
                 Radius = radius,
-                Height = height,    
+                Height = height,
                 Pose = new Pose3
                 {
-                    Position = center + new Vector3(0,0, height / 2),
+                    Position = center + new Vector3(0, 0, height / 2),
                     Orientation = Quaternion.Identity
                 }
             });
@@ -206,7 +204,7 @@ namespace XrEngine
                         vertices[first + 1],
                         vertices[second + 1],
                         vertices[second]);
-       
+
                 }
             }
 

@@ -68,7 +68,7 @@
 
         protected virtual void OnChanged(T item, Layer3DChangeType change)
         {
-            Changed?.Invoke(this, new Layer3DChange(change, item));  
+            Changed?.Invoke(this, new Layer3DChange(change, item));
         }
 
         IEnumerable<ILayer3DItem> ILayer3D.Content => (IEnumerable<ILayer3DItem>)_content;

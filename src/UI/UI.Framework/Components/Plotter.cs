@@ -228,13 +228,13 @@ namespace CanvasUI.Components
         {
             if (SampleMode == SerieSampleMode.Nearest)
             {
-                var curIndex = (float) IndexOfClosestX(xRange.Min);
+                var curIndex = (float)IndexOfClosestX(xRange.Min);
                 if (curIndex == -1)
                     yield break;
 
-                var endIndex = IndexOfClosestX(xRange.Max); 
+                var endIndex = IndexOfClosestX(xRange.Max);
 
-                var skip =  (endIndex - curIndex) / (float)sampleCount;
+                var skip = (endIndex - curIndex) / sampleCount;
 
                 if (skip < 1)
                     skip = 1;
@@ -498,7 +498,7 @@ namespace CanvasUI.Components
 
                 _plotter.MinX = minX;
             }
-     
+
             if (CanPanY)
             {
                 var minY = _startViewRect.Y - (_startPos.Y - pos.Y) / _plotter.PixelPerUnitY;
@@ -1180,7 +1180,7 @@ namespace CanvasUI.Components
 
         protected internal void OnViewChanged()
         {
-            ViewChanged?.Invoke(this, EventArgs.Empty); 
+            ViewChanged?.Invoke(this, EventArgs.Empty);
         }
 
 

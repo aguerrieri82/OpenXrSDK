@@ -34,7 +34,7 @@ namespace XrEngine.OpenGL
 
         protected override IEnumerable<GlLayer> SelectLayers()
         {
-            return _renderer.Layers.Where(a => (a.Type & GlLayerType.Color) == GlLayerType.Color || 
+            return _renderer.Layers.Where(a => (a.Type & GlLayerType.Color) == GlLayerType.Color ||
                                                (a.SceneLayer is DetachedLayer det));
         }
 
@@ -103,7 +103,7 @@ namespace XrEngine.OpenGL
 
                 foreach (var vertex in vertices)
                 {
-   
+
 
                     if (vertex.IsHidden && false)
                         continue;

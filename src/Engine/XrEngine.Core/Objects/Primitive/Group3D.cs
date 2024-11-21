@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {

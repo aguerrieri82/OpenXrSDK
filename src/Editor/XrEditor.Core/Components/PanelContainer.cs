@@ -16,8 +16,21 @@ namespace XrEditor
 
         public PanelContainer(params IPanel[] panels)
         {
-            Panels = [.. panels];
+            Panels = [];
+            Panels.CollectionChanged += OnPanelsChanged;
+            foreach (var panel in panels)
+                Panels.Add(panel);
             ActivePanel = panels[0];
+        }
+
+        private void OnPanelsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null)
+            {
+                foreach (var item in e.NewItems.OfType<IPanel>())
+                    item.Attach(this);
+
+            }
         }
 
         public void GetState(IStateContainer container)
@@ -70,9 +83,11 @@ namespace XrEditor
             {
                 if (_activePanel == value)
                     return;
-                _activePanel?.NotifyActivated(this, false);
+                if (_activePanel != null)
+                    _activePanel.IsActive = false;
                 _activePanel = value;
-                _activePanel?.NotifyActivated(this, true);
+                if (_activePanel != null)
+                    _activePanel.IsActive = true;
                 OnPropertyChanged(nameof(ActivePanel));
             }
         }
@@ -84,8 +99,8 @@ namespace XrEditor
             {
                 if (_isActive == value)
                     return;
-                _isActive = value;  
-                OnPropertyChanged(nameof(IsActive));    
+                _isActive = value;
+                OnPropertyChanged(nameof(IsActive));
             }
         }
 

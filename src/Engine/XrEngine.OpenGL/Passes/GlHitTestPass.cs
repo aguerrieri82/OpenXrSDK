@@ -33,7 +33,7 @@ namespace XrEngine.OpenGL
             var result = new HitTestResult();
 
             if (x >= _lastSize.Width || y >= _lastSize.Height)
-                return result;    
+                return result;
 
             uint objId = 0;
             Vector3 normal = Vector3.Zero;
@@ -80,12 +80,12 @@ namespace XrEngine.OpenGL
 
         protected override void Draw(DrawContent draw)
         {
-            _objects.Add(draw.Object);  
+            _objects.Add(draw.Object);
             draw.Draw!();
         }
 
         protected Vector3 ToView(uint x, uint y, float z)
-        { 
+        {
             return new Vector3(
                 2.0f * x / _lastSize.Width - 1.0f,
                 1.0f - 2.0f * y / _lastSize.Height,
@@ -99,7 +99,7 @@ namespace XrEngine.OpenGL
                 return false;
 
             _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.Rgba32);
-            
+
             _lastSize = camera.ViewSize;
 
             _passTarget.RenderTarget.Begin(camera);

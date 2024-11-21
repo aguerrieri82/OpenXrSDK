@@ -20,7 +20,7 @@ namespace XrMath
             }
         }
 
-        public readonly Vector2 Size => Max - Min;  
+        public readonly Vector2 Size => Max - Min;
 
         public readonly Vector2 Center => (Max + Min) / 2;
 

@@ -53,7 +53,7 @@ namespace XrEngine.Physics
         public void SetCollideGroup(RigidBodyGroup group, CollideGroup grp)
         {
             var index = (int)MathF.Log2((int)group);
-            
+
             while (index >= _collideGroups.Count)
                 _collideGroups.Add(CollideGroup.Always);
 
@@ -126,7 +126,7 @@ namespace XrEngine.Physics
 
                 var ellapsed = Stopwatch.GetElapsedTime(startTime).Seconds;
 
-                var wait = StepSizeSecs - ellapsed; 
+                var wait = StepSizeSecs - ellapsed;
 
                 if (wait > 0)
                     Thread.Sleep(TimeSpan.FromSeconds(wait));
@@ -185,7 +185,7 @@ namespace XrEngine.Physics
             base.GetState(container);
             container.Write(nameof(StepSizeSecs), StepSizeSecs);
             container.Write(nameof(IsMultiThread), IsMultiThread);
-            container.Write(nameof(Options), Options); 
+            container.Write(nameof(Options), Options);
         }
 
         protected override void SetStateWork(IStateContainer container)

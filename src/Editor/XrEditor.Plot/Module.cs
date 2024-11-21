@@ -1,6 +1,5 @@
 ﻿using CanvasUI;
 using System.Reflection;
-using System.Windows.Controls;
 using XrEditor.Services;
 using XrEngine;
 

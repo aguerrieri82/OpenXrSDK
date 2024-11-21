@@ -383,7 +383,7 @@ namespace XrEngine.OpenGL
                                             pixelType,
                                             pData);
                                 }
-              
+
                             }
 
                             _isAllocated = true;

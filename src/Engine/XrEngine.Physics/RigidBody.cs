@@ -63,7 +63,7 @@ namespace XrEngine.Physics
             EnableCCD = false;
             AutoTeleport = false;
             PositionMode = PositionMode.Origin;
-            ToolMode = RigidBodyToolMode.KinematicTarget;   
+            ToolMode = RigidBodyToolMode.KinematicTarget;
         }
 
         public void Teleport(Vector3 worldPos)
@@ -72,7 +72,7 @@ namespace XrEngine.Physics
             _lastPose = GetHostPose();
 
             DynamicActor.Stop();
-            DynamicActor.GlobalPose = _lastPose; 
+            DynamicActor.GlobalPose = _lastPose;
         }
 
         protected void SetHostPose(Pose3 pose)

@@ -34,8 +34,8 @@ namespace XrEngine.OpenXr
 
             var a1 = Process(Left, LeftClick, LeftHaptic, ref _left);
             var a2 = Process(Right, RightClick, RightHaptic, ref _right);
-            
-            var curRot = MathF.Min(a1 ?? float.PositiveInfinity, a2 ?? float.PositiveInfinity); 
+
+            var curRot = MathF.Min(a1 ?? float.PositiveInfinity, a2 ?? float.PositiveInfinity);
 
             if (float.IsFinite(curRot))
                 ApplyRotation(curRot);
@@ -47,7 +47,7 @@ namespace XrEngine.OpenXr
 
             _host!.Transform.SetLocalPivot(RotationAxis.Origin, true);
             _host!.Transform.Orientation = _startOrientation * Quaternion.CreateFromAxisAngle(RotationAxis.Direction, angle);
-            
+
             _angle = angle;
             _left.StartAngle = angle;
             _right.StartAngle = angle;
@@ -70,11 +70,11 @@ namespace XrEngine.OpenXr
                 if (!click.Value)
                     return null;
 
-                foreach (var collider in _host!.Components<ICollider3D>().Where(a=> a.IsEnabled))
+                foreach (var collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
                 {
                     if (collider.ContainsPoint(pose.Value.Position, 0.04f))
                     {
-                        status.IsMoving = true; 
+                        status.IsMoving = true;
                         status.StartAngle = _angle;
                         status.StartPos = curPos;
                         status.StartDir = curDir;
@@ -104,7 +104,7 @@ namespace XrEngine.OpenXr
         public void DrawGizmos(Canvas3D canvas)
         {
             canvas.Save();
-            
+
             canvas.State.Transform = _host!.WorldMatrix;
 
             canvas.State.Color = "#00FF00";
@@ -140,7 +140,7 @@ namespace XrEngine.OpenXr
                 if (_angle == value)
                     return;
                 _angle = value;
-                ApplyRotation(value);   
+                ApplyRotation(value);
             }
         }
 

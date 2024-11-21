@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine.OpenGL
+﻿namespace XrEngine.OpenGL
 {
     public interface IGlDynamicRenderPass<TOptions> : IGlRenderPass
     {
-        void SetOptions(TOptions options);  
+        void SetOptions(TOptions options);
     }
 
     public abstract class GlBaseRenderPassGroup<TPass, TOptions> : IGlRenderPass where TPass : IGlDynamicRenderPass<TOptions>

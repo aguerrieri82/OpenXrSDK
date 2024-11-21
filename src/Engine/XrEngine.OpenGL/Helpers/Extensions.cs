@@ -62,7 +62,7 @@ namespace XrEngine.OpenGL
                 var result = factory(obj);
                 if (result != null)
                     ObjectBinder.Bind(obj, result);
-                return result;  
+                return result;
             });
         }
 
@@ -218,7 +218,7 @@ namespace XrEngine.OpenGL
             result.Format = GlUtils.GetTextureFormat(glTexture.InternalFormat);
 
             if (glTexture.IsMutable)
-                result.Flags |= EngineObjectFlags.Mutable;  
+                result.Flags |= EngineObjectFlags.Mutable;
 
             result.SetProp(OpenGLRender.Props.GlResId, glTexture);
 
@@ -252,7 +252,7 @@ namespace XrEngine.OpenGL
             result.MaxLevel = self.MaxLevel;
             result.BaseLevel = self.BaseLevel;
             result.IsMutable = self.IsMutable;
-      
+
             var texFormat = GlUtils.GetTextureFormat(self.InternalFormat);
 
             result.Update(1, new TextureData

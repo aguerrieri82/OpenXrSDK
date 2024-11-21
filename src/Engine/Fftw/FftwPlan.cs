@@ -4,7 +4,7 @@
     {
         public FftwPlan(nint handle)
         {
-            Handle = handle;    
+            Handle = handle;
         }
 
         public void Execute()
@@ -17,6 +17,6 @@
             FftwLib.fftw_free(Handle);
         }
 
-        public readonly nint Handle;    
+        public readonly nint Handle;
     }
 }

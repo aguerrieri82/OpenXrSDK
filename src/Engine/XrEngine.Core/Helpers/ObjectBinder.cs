@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace XrEngine
 {
     public static class ObjectBinder
     {
-        static Dictionary<object, object> _bindings = [];
+        static readonly Dictionary<object, object> _bindings = [];
 
         public static void Bind(object a, object b)
         {
@@ -34,9 +29,9 @@ namespace XrEngine
                 _bindings.Remove(b);
 
                 if (b is IDisposable disposable)
-                    disposable.Dispose();   
-            }   
-        }   
+                    disposable.Dispose();
+            }
+        }
 
         public static T Get<T>(object a) where T : class
         {
@@ -44,7 +39,7 @@ namespace XrEngine
         }
 
 
-        public static bool TryGet<T>(object a, [NotNullWhen(true)]out T? result) where T : class
+        public static bool TryGet<T>(object a, [NotNullWhen(true)] out T? result) where T : class
         {
             result = null;
             return _bindings.TryGetValue(a, out var obj) && (result = obj as T) != null;

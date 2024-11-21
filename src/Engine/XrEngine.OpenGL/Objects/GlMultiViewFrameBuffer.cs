@@ -202,7 +202,7 @@ namespace XrEngine.OpenGL
             throw new NotSupportedException();
         }
 
-        public Size2I Size => _size;    
+        public Size2I Size => _size;
 
         public GlTexture? Color => _color;
 

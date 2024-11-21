@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine.OpenGL
+﻿namespace XrEngine.OpenGL
 {
     public struct ReflectionTarget
     {
@@ -30,7 +22,7 @@ namespace XrEngine.OpenGL
             : base(renderer)
         {
             UseMultiviewTarget = true;
-        }   
+        }
 
         protected override IGlDynamicRenderPass<ReflectionTarget> ConfigurePass(ReflectionTarget options)
         {
@@ -54,7 +46,7 @@ namespace XrEngine.OpenGL
             {
                 if (!content.IsVisible)
                     continue;
-                
+
                 var reflection = content.Component<PlanarReflection>();
                 if (!reflection.IsEnabled)
                     continue;

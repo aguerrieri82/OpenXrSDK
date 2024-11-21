@@ -4,13 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XrEngine.OpenGL
 {
@@ -45,12 +39,12 @@ namespace XrEngine.OpenGL
             {
                 Log.Info(this, "Running Task: {0}", task);
                 Debug.WriteLine("Running Task: {0}", task);
-                
+
                 var time = Stopwatch.GetTimestamp();
 
                 for (var i = 0; i < iterations; i++)
                     action();
-                
+
                 var diff = Stopwatch.GetElapsedTime(time);
 
                 Log.Info(this, "Task: {0}, {1} ms", task, diff.TotalMilliseconds);
@@ -61,21 +55,21 @@ namespace XrEngine.OpenGL
 
         public void Standard(DrawBufferMode[] buffer)
         {
-             _gl.DrawBuffers(buffer);
+            _gl.DrawBuffers(buffer);
         }
 
         public bool CompareA<T>(T[] a, T[] b)
         {
-            return a.AsSpan().SequenceEqual(b); 
+            return a.AsSpan().SequenceEqual(b);
         }
 
-        public bool CompareB<T>(T[] a, T[] b) where T: struct
+        public bool CompareB<T>(T[] a, T[] b) where T : struct
         {
             var len = a.Length;
             if (len != b.Length)
                 return false;
 
-            for (var i = 0; i < len; i++)   
+            for (var i = 0; i < len; i++)
                 if (!a[i].Equals(b[i]) == false)
                     return false;
             return true;
@@ -115,7 +109,7 @@ namespace XrEngine.OpenGL
             return true;
         }
 
-        public bool CompareF(DrawBufferMode[] a, DrawBufferMode[] b) 
+        public bool CompareF(DrawBufferMode[] a, DrawBufferMode[] b)
         {
             var len = a.Length;
             if (len != b.Length)

@@ -19,7 +19,7 @@
                 FftwLib.fftw_free((nint)Pointer);
                 Pointer = null;
             }
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         public void CopyFrom(FftwBuffer<T> src, int srcOffset, int count)

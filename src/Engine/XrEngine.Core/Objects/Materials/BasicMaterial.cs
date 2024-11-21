@@ -21,7 +21,7 @@ namespace XrEngine
                     {
                         if (light is AmbientLight ambient)
                             up.SetUniform("light.ambient", (Vector3)ambient.Color * ambient.Intensity);
-                        
+
                         else if (light is ImageLight img)
                             up.SetUniform("light.ambient", (Vector3)img.Color * img.Intensity * 0.1f);
 

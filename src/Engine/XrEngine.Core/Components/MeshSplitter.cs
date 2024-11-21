@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices.JavaScript;
-using System.Text;
-using System.Threading.Tasks;
 using XrMath;
 
 namespace XrEngine.Components
@@ -18,7 +12,7 @@ namespace XrEngine.Components
         Matrix4x4 _boundsTransform;
         TriangleMesh? _splittedMesh;
         Geometry3D? _startGeo;
-        
+
 
         public MeshSplitter()
         {
@@ -86,7 +80,7 @@ namespace XrEngine.Components
             _startGeo.EnsureIndices();
 
             _splitTriangles.Clear();
-            _originalTriangles.Clear(); 
+            _originalTriangles.Clear();
 
             _splitBounds = new Bounds3
             {
@@ -150,7 +144,7 @@ namespace XrEngine.Components
 
         public Vector3 Origin { get; set; }
 
-        public Quaternion Orientation { get; set; } 
+        public Quaternion Orientation { get; set; }
 
         public Vector3 Bounds { get; set; }
 

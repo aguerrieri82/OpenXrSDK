@@ -20,7 +20,7 @@ namespace XrEditor.Plot
 
             public DrawElement(Action<SKCanvas, Rect2> draw)
             {
-                _draw = draw;   
+                _draw = draw;
             }
 
             protected override void DrawWork(SKCanvas canvas)

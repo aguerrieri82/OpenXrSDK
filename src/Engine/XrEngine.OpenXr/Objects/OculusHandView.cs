@@ -2,7 +2,6 @@
 using OpenXr.Framework.Oculus;
 using PhysX.Framework;
 using Silk.NET.OpenXR;
-using System.Diagnostics;
 using System.Numerics;
 using XrEngine.Physics;
 using XrMath;

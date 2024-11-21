@@ -16,12 +16,16 @@
     {
         Task CloseAsync();
 
-        void NotifyActivated(IPanelContainer container, bool isActive);
+        void Attach(IPanelContainer container);
+
+        bool IsActive { get; set; }
 
         string PanelId { get; }
 
         string? Title { get; }
 
         ToolbarView? ToolBar { get; }
+
+        IPanelContainer? Container { get; }
     }
 }

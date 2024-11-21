@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class Scene3D : Group3D, IObjectChangeListener
     {
@@ -23,8 +21,8 @@ namespace XrEngine
             _gizmos = new Canvas3D();
             _changeListener.Add(_layers);
 
-            this.AddLayer(new DetachedLayer() 
-            { 
+            this.AddLayer(new DetachedLayer()
+            {
                 Name = "Gizmos",
                 Usage = DetachedLayerUsage.Gizmos
 

@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
-using System.Xml.Linq;
 using XrMath;
 
 namespace XrEngine
@@ -16,8 +15,8 @@ namespace XrEngine
     {
         private float _lightIntensity;
         private Plane _plane;
-        private PlanarReflectionMode _mode;
-        private PerspectiveCamera _refCamera;
+        private readonly PlanarReflectionMode _mode;
+        private readonly PerspectiveCamera _refCamera;
         private Bounds3 _clipBounds;
 
         public PlanarReflection()
@@ -35,11 +34,11 @@ namespace XrEngine
                 Name = "ReflectionCamera"
             };
 
-            AdjustIbl = true;   
+            AdjustIbl = true;
 
             TextureSize = textureSize;
 
-            if (_mode== PlanarReflectionMode.ColorOnly)
+            if (_mode == PlanarReflectionMode.ColorOnly)
             {
                 MaterialOverride = new TextureMaterial()
                 {
@@ -50,7 +49,7 @@ namespace XrEngine
             {
                 MaterialOverride = new BasicMaterial();
             }
-         
+
             Offset = 0.01f;
             FovDegree = 45;
         }
@@ -58,9 +57,9 @@ namespace XrEngine
         public virtual bool PrepareMaterial(Material material)
         {
             if (MaterialOverride == null)
-                return false;   
+                return false;
 
-            MaterialOverride.UseClipDistance = UseClipPlane;        
+            MaterialOverride.UseClipDistance = UseClipPlane;
 
             if (material is IPbrMaterial pbr)
             {
@@ -78,7 +77,7 @@ namespace XrEngine
                                       bsc.DiffuseTexture != null && pbr.ColorMap == null);
 
                     bsc.Shininess = 10;
-    
+
                     bsc.DiffuseTexture = null;
                     bsc.DiffuseTexture = pbr.ColorMap;
                     bsc.Ambient = Color.White;
@@ -100,7 +99,7 @@ namespace XrEngine
 
         protected void AdjustFov()
         {
-            var scaleRatio = 2.0f / MathF.Max(_clipBounds.Size.X, _clipBounds.Size.Y);   
+            var scaleRatio = 2.0f / MathF.Max(_clipBounds.Size.X, _clipBounds.Size.Y);
             if (scaleRatio < 1)
                 return;
 
@@ -234,7 +233,7 @@ namespace XrEngine
 
                 _refCamera.View = refView;
             }
-            
+
             _host.UpdateBounds();
 
             _refCamera.FovDegree = FovDegree;
@@ -278,7 +277,7 @@ namespace XrEngine
 
         public bool AutoAdjustFov { get; set; }
 
-        public bool UseClipPlane { get; set; }  
+        public bool UseClipPlane { get; set; }
 
         public bool AdjustIbl { get; set; }
 

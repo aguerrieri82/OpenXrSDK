@@ -33,7 +33,7 @@ namespace XrEngine
 
             localPoint.Z += Height / 2;
 
-            if (localPoint.Z < - tolerance || localPoint.Z > Height + tolerance)
+            if (localPoint.Z < -tolerance || localPoint.Z > Height + tolerance)
                 return false;
 
             var distance = new Vector2(localPoint.X, localPoint.Y).Length();
