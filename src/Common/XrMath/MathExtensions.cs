@@ -516,14 +516,14 @@ namespace XrMath
 
         public static Bounds3 ComputeBounds(this IEnumerable<Vector3> self)
         {
-            var builder = new BoundsBuilder();
+            var builder = new Bounds3Builder();
             builder.Add(self);
             return builder.Result;
         }
 
         public static Bounds3 ComputeBounds(this IEnumerable<Vector3> self, Matrix4x4 matrix)
         {
-            var builder = new BoundsBuilder();
+            var builder = new Bounds3Builder();
             builder.Add(self.Select(a => a.Transform(matrix)));
             return builder.Result;
         }

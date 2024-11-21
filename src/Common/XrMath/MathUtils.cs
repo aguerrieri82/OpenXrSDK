@@ -121,8 +121,6 @@ namespace XrMath
 
         public static Matrix4x4 CreateReflectionMatrix(Plane plane)
         {
-
-
             float x = plane.Normal.X;
             float y = plane.Normal.Y;
             float z = plane.Normal.Z;
@@ -134,6 +132,34 @@ namespace XrMath
                 -2 * z * x, -2 * z * y, 1 - 2 * z * z, 0,
                 -2 * d * x, -2 * d * y, -2 * d * z, 1
             );
+        }
+
+        public static unsafe Complex[] Dft(float[] values)
+        {
+            return Dft(values, 0, values.Length);
+        }
+
+        public static unsafe Complex[] Dft(float[] values, int offset, int size)
+        {
+            fixed (float* pValues = &values[offset])
+            {
+                int N = size;
+                Complex[] output = new Complex[N];
+
+                for (int k = 0; k < N; k++) // For each output element
+                {
+                    Complex sum = Complex.Zero;
+                    for (int n = 0; n < N; n++) // For each input element
+                    {
+                        double angle = -2.0 * Math.PI * k * n / N;
+                        sum += pValues[n] * new Complex(Math.Cos(angle), Math.Sin(angle));
+                    }
+                    output[k] = sum;
+                }
+
+                return output;
+            }
+ 
         }
     }
 }

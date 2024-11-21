@@ -2,8 +2,6 @@
 using OpenXr.Framework;
 using PhysX;
 using PhysX.Framework;
-using Silk.NET.Vulkan;
-using System;
 using System.Diagnostics;
 using System.Numerics;
 using XrEngine;
@@ -78,6 +76,8 @@ namespace XrSamples.Components
 
             _curGear = "1";
 
+            _carSound = new CarSound();
+
             UpdatePriority = 1;
         }
 
@@ -95,7 +95,7 @@ namespace XrSamples.Components
             AttachBody();
             CreateGearBox(false);
 
-            _carSound = CarBody!.AddComponent(new CarSound());
+            CarBody!.AddComponent(_carSound);
 
             _attachedPosDiff = _mainTube!.GetWorldPose().Difference(_attachedGroup.GetWorldPose());
         }
@@ -443,18 +443,18 @@ namespace XrSamples.Components
 
             if (axis == Vector3.UnitX)
             {
-                opt.MotionTwist = PhysX.PxD6Motion.Free;
+                opt.MotionTwist = PxD6Motion.Free;
             }
             else if (axis == Vector3.UnitY)
             {
-                opt.MotionSwing1 = PhysX.PxD6Motion.Free;
+                opt.MotionSwing1 = PxD6Motion.Free;
             }
             else if (axis == Vector3.UnitZ)
             {
-                opt.MotionSwing2 = PhysX.PxD6Motion.Free;
+                opt.MotionSwing2 = PxD6Motion.Free;
             }
 
-            opt.ConstraintFlags = PhysX.PxConstraintFlags.CollisionEnabled;
+            opt.ConstraintFlags = PxConstraintFlags.CollisionEnabled;
 
             return joint;
         }
@@ -518,6 +518,28 @@ namespace XrSamples.Components
             return joint;
         }
 
+
+        protected Pose3 GetPoseRef(Pose3 deltaRef, Pose3 lastPose)
+        {
+            var curPose = _mainTube!.GetWorldPose();
+
+            if (XrApp.Current != null)
+            {
+                var rb = _mainTube!.Component<RigidBody>();
+
+                if (rb.IsCreated)
+                {
+                    var curVel = rb.DynamicActor.LinearVelocity;
+                    var nextPos = (float)XrApp.Current.FramePredictedDisplayPeriod.TotalSeconds * curVel;
+                    curPose.Position += nextPos;
+                }
+            }
+
+            var newPose = curPose.Multiply(deltaRef);
+
+            return lastPose.Lerp(newPose, 0.9f);
+        }
+
         void ApplySteering()
         {
             if (_steerLeft == null || _steerRight == null || !_steerLeft.IsCreated || !_steerRight.IsCreated)
@@ -576,30 +598,10 @@ namespace XrSamples.Components
             XrApp.Current.ReferenceFrame = GetPoseRef(_seatPosDiff, XrApp.Current.ReferenceFrame);
         }
 
-        protected Pose3 GetPoseRef(Pose3 deltaRef, Pose3 lastPose)
-        {
-            var curPose = _mainTube!.GetWorldPose();
-
-            if (XrApp.Current != null)
-            {
-                var rb = _mainTube!.Component<RigidBody>();
-
-                if (rb.IsCreated)
-                {
-                    var curVel = rb.DynamicActor.LinearVelocity;
-                    var nextPos = (float)XrApp.Current.FramePredictedDisplayPeriod.TotalSeconds * curVel;
-                    curPose.Position += nextPos;
-                }
-            }
-
-            var newPose = curPose.Multiply(deltaRef);
-
-            return lastPose.Lerp(newPose, 0.9f);
-        }
 
         protected void SyncSteering()
         {
-            float wheelAngle = 0;
+            float wheelAngle;
             if (UseSteeringPhysics)
             {
                 wheelAngle = _steeringWheelJoint!.D6Joint.SwingZAngle * 0.5f;
@@ -613,7 +615,7 @@ namespace XrSamples.Components
             SteeringAngle = wheelAngle;
         }
 
-        protected void ProcessInput()
+        protected void SyncInput()
         {
             var dir = BackInput != null && (BackInput.IsActive && BackInput.Value || _curGear == "R") ? -1 : 1;
 
@@ -626,19 +628,19 @@ namespace XrSamples.Components
 
 
 
-        protected void ComputeGear()
+        protected void SyncGear()
         {
-            var topFace = _gearBox.LocalBounds.Faces().Front;
+            var topFace = _gearBox!.LocalBounds.Faces().Front;
             var plane = topFace.ToPlane();
 
-            var ray = new Ray3(_gearLever.WorldPosition, _gearLever.Forward);
+            var ray = new Ray3(_gearLever!.WorldPosition, _gearLever.Forward);
             var localRay = ray.Transform(_gearBox.WorldMatrixInverse);
 
             if (localRay.Intersects(plane, out var localPoint))
             {
                 var uv = topFace.LocalPointAt(localPoint) / topFace.Size;
                 uv.Y = 1 - uv.Y;
-                foreach (var gear in _gears)
+                foreach (var gear in _gears!)
                 {
                     if ((uv - gear.Value).Length() < 0.1)
                     {
@@ -649,23 +651,24 @@ namespace XrSamples.Components
             }
         }
 
-        protected void UpdateSound()
+        protected void SyncSound()
         {
             var gear = _curGear == "R" ? 1 : int.Parse(_curGear);
 
             _carSound.Engine.Gear = gear;
-            _carSound.Engine.Rpm = 40 + (int)(_wheelSpeedRad / (2 * MathF.PI) * 50) ;
+            //_carSound.Engine.Rpm = 40 + (int)(_wheelSpeedRad / (2 * MathF.PI) * 50) ;
         }
 
         protected override void Update(RenderContext ctx)
         {
+
             SyncSteering();
 
-            ProcessInput();
+            SyncInput();
 
-            ComputeGear();
+            SyncGear();
 
-            UpdateSound();
+            SyncSound();
 
             _manager ??= _host!.Scene!.Component<PhysicsManager>();
 
@@ -751,7 +754,7 @@ namespace XrSamples.Components
             UpdateDensity(CarBody, _carBodyDensity);
         }
 
-        void CreateGearBox(bool usePyscx)
+        void CreateGearBox(bool usePhysic)
         {
             var lines = new List<Vector2>();
 
@@ -811,7 +814,7 @@ namespace XrSamples.Components
                 var size = l1 - l0;
                 var center = (l0 + l1) / 2;
 
-                builder.AddCube(new Vector3(center + offset, 0), new Vector3(size, 0.003f));
+                builder.AddCube(new Vector3(center + offset, 0), new Vector3(size, 0.01f));
             }
 
             var mat = MaterialFactory.CreatePbr("#000000");
@@ -831,14 +834,13 @@ namespace XrSamples.Components
             builder.AddCylinder(Vector3.Zero, (lineSize * 1.5f / 2f) - 0.001f, leverHeight, 10)
                    .AddSphere(Vector3.Zero, 0.02f, 20);
 
-            var leverMesh = new TriangleMesh();
-            leverMesh.Geometry = builder.ToGeometry();
-            leverMesh.Geometry.SmoothNormals();
+            var leverMesh = new TriangleMesh(builder.ToGeometry());
+            leverMesh.Geometry!.SmoothNormals();
             leverMesh.Materials.Add((Material)mat);
             leverMesh.SetWorldPose(GearBoxPose.Multiply(new Pose3(new Vector3(0, 0, -leverOffset))));
             builder.AddColliders(leverMesh);   
 
-            if (usePyscx)
+            if (usePhysic)
             {
                 leverMesh.AddComponent(new ForceTarget());
 
@@ -895,14 +897,24 @@ namespace XrSamples.Components
                         var line = new Line3(leverMesh.WorldPosition, leverMesh.WorldPosition + dir * leverHeight);
                         var localLine = line.Transform(boxMesh.WorldMatrixInverse);
 
-            
+                        var topFace = _gearBox!.LocalBounds.Faces().Front;
+                        var plane = topFace.ToPlane();
+                        var ray = new Ray3(leverMesh!.WorldPosition, dir);
+                        var localRay = ray.Transform(_gearBox.WorldMatrixInverse);
+
+                        if (!localRay.Intersects(plane, out var localPoint))
+                            return false;
+
+                        var uv = topFace.LocalPointAt(localPoint) / topFace.Size;
+                        if (uv.X < 0 || uv.X > 1 || uv.Y < 0 || uv.Y > 1)
+                            return false;
+
                         foreach (var collider in boxMesh.Components<BoxCollider>())
                         {
                             var bounds = new Bounds3()
                             {
                                 Max = collider.Center + collider.Size / 2,
                                 Min = collider.Center - collider.Size / 2,
-
                             };
 
                             if (bounds.Intersects(localLine, out _))

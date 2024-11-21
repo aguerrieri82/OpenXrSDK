@@ -10,4 +10,6 @@ extern "C" {
 	EXPORT void APIENTRY CopyMemory(uint8_t* src, uint8_t* dst, uint32_t size);
 
 	EXPORT int APIENTRY CompareMemory(uint8_t* src, uint8_t* dst, uint32_t size);
+
+	EXPORT void APIENTRY Dft(float* values, std::complex<double>* out, uint32_t size);
 }

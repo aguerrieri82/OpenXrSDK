@@ -1075,6 +1075,7 @@ namespace XrSamples
         {
             var app = CreateBaseScene();
             var scene = app.ActiveScene!;
+            scene.ActiveCamera!.BackgroundColor = "#7C93DB";
             scene.Id = Guid.Parse("9692f695-f53c-40c4-900a-d17ac94302d8");
 
             //Physics
@@ -1169,8 +1170,8 @@ namespace XrSamples
                 UseSteeringPhysics = false,
                 GearBoxPose = new Pose3()
                 {
-                    Position = new Vector3(-0.1f, 0.62f, 0.1f),
-                    Orientation = Quaternion.Normalize(new Quaternion(1, 0f, 0f, 0.8f))
+                    Position = new Vector3(-0.1f, 0.61f, 0.1f),
+                    Orientation = Quaternion.Normalize(new Quaternion(1, 0f, 0f, 0.82f))
                 },
                 SeatLocalPose = new Pose3
                 {

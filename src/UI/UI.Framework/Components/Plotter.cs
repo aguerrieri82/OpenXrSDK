@@ -91,11 +91,11 @@ namespace CanvasUI.Components
     public abstract class BasePlotterSerie : IPlotterSerie
     {
         Plotter? _host;
+
         public BasePlotterSerie()
         {
             FormatValue = (v) => v.ToString();
             IsVisible = true;
-
         }
 
         public virtual IEnumerable<Vector2> Sample(Bounds1 xRange, int sampleCount)
@@ -188,6 +188,7 @@ namespace CanvasUI.Components
         {
             Points = [];
             SampleMode = SerieSampleMode.Nearest;
+            MaxGapX = float.PositiveInfinity;
         }
 
         public void AppendValue(float x, float y, bool notify = true)
@@ -227,22 +228,29 @@ namespace CanvasUI.Components
         {
             if (SampleMode == SerieSampleMode.Nearest)
             {
-                var curIndex = IndexOfClosestX(xRange.Min);
+                var curIndex = (float) IndexOfClosestX(xRange.Min);
                 if (curIndex == -1)
                     yield break;
+
+                var endIndex = IndexOfClosestX(xRange.Max); 
+
+                var skip =  (endIndex - curIndex) / (float)sampleCount;
+
+                if (skip < 1)
+                    skip = 1;
 
                 var lastPoint = new Vector2(float.NaN, float.NaN);
 
                 while (curIndex < Points.Count)
                 {
-                    var curPoint = Points[curIndex];
+                    var curPoint = Points[(int)curIndex];
 
                     if (curPoint.X > xRange.Max)
                         break;
 
                     if (!float.IsNaN(lastPoint.X))
                     {
-                        if ((curPoint.X - lastPoint.X) > MinGapX)
+                        if ((curPoint.X - lastPoint.X) > MaxGapX)
                             yield return new Vector2(float.NaN, float.NaN);
                         else if (curPoint.X != lastPoint.X)
                             yield return new Vector2(curPoint.X, lastPoint.Y);
@@ -252,7 +260,7 @@ namespace CanvasUI.Components
 
                     lastPoint = curPoint;
 
-                    curIndex++;
+                    curIndex += skip;
                 }
             }
             else
@@ -356,7 +364,7 @@ namespace CanvasUI.Components
             return result;
         }
 
-        public float MinGapX { get; set; }
+        public float MaxGapX { get; set; }
 
         public SerieSampleMode SampleMode { get; set; }
 
@@ -465,7 +473,8 @@ namespace CanvasUI.Components
         public PanPlotterTool(Plotter plotter)
             : base(plotter)
         {
-
+            CanPanX = true;
+            CanPanY = true;
         }
 
         protected override bool NotifyDown(UiPointerEvent ev, Vector2 value)
@@ -477,27 +486,40 @@ namespace CanvasUI.Components
         {
             var pos = ev.WindowPosition;
 
-            var minX = _startViewRect.X + (_startPos.X - pos.X) / _plotter.PixelPerUnitX;
+            if (CanPanX)
+            {
+                var minX = _startViewRect.X + (_startPos.X - pos.X) / _plotter.PixelPerUnitX;
 
-            var minY = _startViewRect.Y - (_startPos.Y - pos.Y) / _plotter.PixelPerUnitY;
+                if (minX > _maxViewRect.Right - _startViewRect.Width)
+                    minX = _maxViewRect.Right - _startViewRect.Width;
 
-            if (minX > _maxViewRect.Right - _startViewRect.Width)
-                minX = _maxViewRect.Right - _startViewRect.Width;
+                if (minX < _maxViewRect.X - _startViewRect.Width)
+                    minX = _maxViewRect.X - _startViewRect.Width;
 
-            if (minX < _maxViewRect.X - _startViewRect.Width)
-                minX = _maxViewRect.X - _startViewRect.Width;
+                _plotter.MinX = minX;
+            }
+     
+            if (CanPanY)
+            {
+                var minY = _startViewRect.Y - (_startPos.Y - pos.Y) / _plotter.PixelPerUnitY;
 
-            if (minY > _maxViewRect.Bottom - _startViewRect.Height)
-                minY = _maxViewRect.Bottom - _startViewRect.Height;
+                if (minY > _maxViewRect.Bottom - _startViewRect.Height)
+                    minY = _maxViewRect.Bottom - _startViewRect.Height;
 
-            if (minY < _maxViewRect.Y)
-                minY = _maxViewRect.Y;
+                if (minY < _maxViewRect.Y)
+                    minY = _maxViewRect.Y;
 
+                _plotter.MinY = minY;
+            }
 
-            _plotter.MinX = minX;
-            _plotter.MinY = minY;
+            _plotter.OnViewChanged();
+
             return true;
         }
+
+        public bool CanPanX { get; set; }
+
+        public bool CanPanY { get; set; }
 
     }
 
@@ -564,10 +586,9 @@ namespace CanvasUI.Components
 
     #endregion
 
-    public class PlotterCheckPoint
+    public class PlotterReference
     {
-
-        public float X { get; set; }
+        public float Value { get; set; }
 
         public string? Name { get; set; }
 
@@ -587,7 +608,8 @@ namespace CanvasUI.Components
         public Plotter()
         {
             Series = [];
-            CheckPoints = [];
+            ReferencesX = [];
+            ReferencesY = [];
 
             this.BuildStyle(a => a.Overflow(UiOverflow.Hidden));
 
@@ -606,6 +628,11 @@ namespace CanvasUI.Components
                     UpdatePlotValues(ViewRect);
                 }
             };
+        }
+
+        public T Tool<T>() where T : BasePlotterTool
+        {
+            return _tools.OfType<T>().Single();
         }
 
         protected override void OnPropertyChanged(UiProperty prop, object? value, object? oldValue)
@@ -648,7 +675,7 @@ namespace CanvasUI.Components
                 value.CollectionChanged += OnSeriesChanged;
         }
 
-        protected virtual void OnCheckPointsChanged(ObservableCollection<PlotterCheckPoint> value, ObservableCollection<PlotterCheckPoint> oldValue)
+        protected virtual void OnCheckPointsChanged(ObservableCollection<PlotterReference> value, ObservableCollection<PlotterReference> oldValue)
         {
             if (oldValue != null)
                 oldValue.CollectionChanged -= OnCheckPointsChanged;
@@ -889,12 +916,12 @@ namespace CanvasUI.Components
                 var labelFill = SKResources.FillColor("#00000080");
 
 
-                foreach (var cp in CheckPoints)
+                foreach (var cp in ReferencesX)
                 {
-                    if (cp.X < ViewRect.X || cp.X > ViewRect.Right)
+                    if (cp.Value < ViewRect.X || cp.Value > ViewRect.Right)
                         continue;
 
-                    pixelX = ValueToPixelX(cp.X);
+                    pixelX = ValueToPixelX(cp.Value);
 
                     canvas.DrawLine(new SKPoint(pixelX, _chartArea.Y),
                                   new SKPoint(pixelX, _chartArea.Bottom),
@@ -903,12 +930,12 @@ namespace CanvasUI.Components
 
                 var curOfs = _chartArea.Bottom - 16;
 
-                foreach (var cp in CheckPoints)
+                foreach (var cp in ReferencesX)
                 {
-                    if (cp.X < ViewRect.X || cp.X > ViewRect.Right)
+                    if (cp.Value < ViewRect.X || cp.Value > ViewRect.Right)
                         continue;
 
-                    pixelX = ValueToPixelX(cp.X);
+                    pixelX = ValueToPixelX(cp.Value);
 
                     if (cp.Name != null)
                     {
@@ -923,6 +950,20 @@ namespace CanvasUI.Components
                         curOfs -= font.Size + 16;
                     }
                 }
+
+
+                foreach (var cp in ReferencesY)
+                {
+                    if (cp.Value < ViewRect.Y || cp.Value > ViewRect.Bottom)
+                        continue;
+
+                    var pixelY = ValueToPixelY(cp.Value);
+
+                    canvas.DrawLine(new SKPoint(_chartArea.X, pixelY),
+                                  new SKPoint(_chartArea.Right, pixelY),
+                                  SKResources.Stroke(cp.Color, 1));
+                }
+
             }
         }
 
@@ -1064,8 +1105,8 @@ namespace CanvasUI.Components
                     {
                         var maxX = minMax.Max;
 
-                        if (CheckPoints.Any())
-                            maxX = MathF.Max(maxX, CheckPoints.Max(a => a.X));
+                        if (ReferencesX.Any())
+                            maxX = MathF.Max(maxX, ReferencesX.Max(a => a.Value));
 
                         curViewRect.X = maxX - curViewRect.Width;
                         CursorX = curViewRect.Right;
@@ -1137,6 +1178,15 @@ namespace CanvasUI.Components
             base.OnPointerMove(ev);
         }
 
+        protected internal void OnViewChanged()
+        {
+            ViewChanged?.Invoke(this, EventArgs.Empty); 
+        }
+
+
+        public event EventHandler? ViewChanged;
+
+
         [UiProperty(0f, UiPropertyFlags.Render)]
         public float MinX
         {
@@ -1190,10 +1240,17 @@ namespace CanvasUI.Components
         }
 
         [UiProperty]
-        public ObservableCollection<PlotterCheckPoint> CheckPoints
+        public ObservableCollection<PlotterReference> ReferencesX
         {
-            get => GetValue<ObservableCollection<PlotterCheckPoint>>(nameof(CheckPoints))!;
-            set => SetValue(nameof(CheckPoints), value);
+            get => GetValue<ObservableCollection<PlotterReference>>(nameof(ReferencesX))!;
+            set => SetValue(nameof(ReferencesX), value);
+        }
+
+        [UiProperty]
+        public ObservableCollection<PlotterReference> ReferencesY
+        {
+            get => GetValue<ObservableCollection<PlotterReference>>(nameof(ReferencesY))!;
+            set => SetValue(nameof(ReferencesY), value);
         }
 
 
@@ -1262,7 +1319,6 @@ namespace CanvasUI.Components
             set => SetValue(nameof(TickIntervalY), value);
         }
 
-
-        public Func<float, string> FormatValueX { get; }
+        public Func<float, string> FormatValueX { get; set; }
     }
 }

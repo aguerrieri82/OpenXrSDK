@@ -31,7 +31,7 @@ namespace XrEngine
             {
                 if (_boundsDirty)
                 {
-                    var builder = new BoundsBuilder();
+                    var builder = new Bounds3Builder();
                     builder.Add(_content.Select(a => a.WorldBounds));
                     _bounds = builder.Result;
                     _boundsDirty = false;

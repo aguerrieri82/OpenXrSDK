@@ -1,10 +1,9 @@
-﻿
-
+﻿using System.ComponentModel;
 using System.Reflection;
 
 namespace UI.Binding
 {
-    public class ReflectionProperty : IProperty
+    public class ReflectionProperty : IProperty, IDisposable
     {
         protected readonly PropertyInfo _property;
         protected readonly object _object;
@@ -15,13 +14,20 @@ namespace UI.Binding
             _object = obj;
 
             if (_object is System.ComponentModel.INotifyPropertyChanged notifyPropertyChanged)
-            {
-                notifyPropertyChanged.PropertyChanged += (sender, args) =>
-                {
-                    if (args.PropertyName == _property.Name)
-                        OnChanged();
-                };
-            }
+                notifyPropertyChanged.PropertyChanged += OnPropertyChanged;
+        }
+
+        public void Dispose()
+        {
+            if (_object is System.ComponentModel.INotifyPropertyChanged notifyPropertyChanged)
+                notifyPropertyChanged.PropertyChanged -= OnPropertyChanged;
+            GC.SuppressFinalize(this);  
+        }
+
+        void OnPropertyChanged(object? sender, PropertyChangedEventArgs args)
+        {
+            if (args.PropertyName == _property.Name)
+                OnChanged();
         }
 
         public object? Value

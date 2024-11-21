@@ -47,15 +47,15 @@ namespace OpenAl.Framework
             if (header.riff_header != RIFF || header.wave_header != WAVE)
                 throw new InvalidOperationException();
 
-            var result = new AudioData();
-            result.Format = new AudioFormat
-            {
-                BitsPerSample = header.bit_depth,
-                Channels = header.num_channels,
-                SampleRate = header.sample_rate
-            };
+            var result = new AudioData(
+                new AudioFormat
+                {
+                    BitsPerSample = header.bit_depth,
+                    Channels = header.num_channels,
+                    SampleRate = header.sample_rate
+                }, 
+                new byte[header.data_bytes]);
 
-            result.Buffer = new byte[header.data_bytes];
             var tot = stream.Read(result.Buffer);
             Debug.Assert(tot == header.data_bytes);
 

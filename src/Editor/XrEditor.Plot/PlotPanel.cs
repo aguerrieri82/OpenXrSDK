@@ -65,7 +65,7 @@ namespace XrEditor.Plot
         public void Clear()
         {
             Plotter.Series.Clear();
-            Plotter.CheckPoints.Clear();
+            Plotter.ReferencesX.Clear();
         }
 
 
@@ -104,7 +104,7 @@ namespace XrEditor.Plot
                 {
                     Name = name,
                     Color = PALETTE[index],
-                    MinGapX = 1,
+                    MaxGapX = 1,
                     SampleMode = SerieSampleMode.Nearest
                 };
 
@@ -146,9 +146,9 @@ namespace XrEditor.Plot
         {
             _mainDispatcher.Execute(() =>
             {
-                Plotter.CheckPoints.Add(new PlotterCheckPoint()
+                Plotter.ReferencesX.Add(new PlotterReference()
                 {
-                    X = EngineApp.Current!.Stats.Frame,
+                    Value = EngineApp.Current!.Stats.Frame,
                     Name = name,
                     Color = color
                 });

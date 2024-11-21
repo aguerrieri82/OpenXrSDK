@@ -118,7 +118,7 @@ namespace XrEngine
             if (!_boundsDirty && !force)
                 return;
 
-            var builder = new BoundsBuilder();
+            var builder = new Bounds3Builder();
 
             if (_children.Count > 0)
             {

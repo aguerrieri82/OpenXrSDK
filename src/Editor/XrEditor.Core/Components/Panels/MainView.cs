@@ -56,6 +56,10 @@ namespace XrEditor
 
             Plotter = Context.Require<PanelManager>().Panel("Plotter")!;
 
+            var draw = Context.Require<PanelManager>().Panel("Draw")!;
+            var loopEditor = Context.Require<PanelManager>().Panel("LoopEditor")!;
+
+
             Content = new SplitView
             {
                 Mode = SplitViewMode.Vertical,
@@ -70,9 +74,9 @@ namespace XrEditor
                         Size = 250,
                         SizeMode = SplitViewSizeMode.First,
                         First = new PanelContainer(Outline),
-                        Second = new PanelContainer(SceneView)
+                        Second = new PanelContainer(SceneView, loopEditor)
                     },
-                    Second = new PanelContainer(Log, Plotter)
+                    Second = new PanelContainer(Log, Plotter, draw)
                 },
                 Second = new PanelContainer(PropertiesEditor),
                 SizeMode = SplitViewSizeMode.Second,
@@ -127,6 +131,8 @@ namespace XrEditor
 
         public void LoadState()
         {
+            return;
+
             if (!File.Exists("layout.json"))
                 return;
             var json = File.ReadAllText("layout.json");

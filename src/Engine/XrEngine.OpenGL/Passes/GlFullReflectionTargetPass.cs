@@ -112,7 +112,7 @@ namespace XrEngine.OpenGL
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetWriteDepth(true);
             _renderer.State.SetClearDepth(1.0f);
-
+            _renderer.State.SetClearColor(_reflection.ReflectionCamera.BackgroundColor);
 
             _gl.Clear((uint)(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit));
 

@@ -43,8 +43,6 @@ namespace OpenAl.Framework
                     throw new NotSupportedException();
             }
 
-
-
             fixed (byte* pData = data)
                 _al.BufferData(_handle, bf, pData, data.Length, format.SampleRate);
         }
