@@ -31,6 +31,7 @@
 	  <ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
 	  <ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
 	  <ProjectReference Include="..\..\UI\UI.Canvas.Wpf\UI.Canvas.Wpf.csproj" />
+	  <ProjectReference Include="..\XrEditor.Audio\XrEditor.Audio.csproj" />
 	  <ProjectReference Include="..\XrEditor.Plot\XrEditor.Plot.csproj" />
 	  <ProjectReference Include="..\XrEditor.Core\XrEditor.Core.csproj" />
 	</ItemGroup>

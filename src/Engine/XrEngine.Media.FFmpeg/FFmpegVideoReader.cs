@@ -1,4 +1,5 @@
-﻿using FFmpeg.AutoGen;
+﻿using Common.Interop;
+using FFmpeg.AutoGen;
 using System.Runtime.InteropServices;
 using XrMath;
 using static FFmpeg.AutoGen.ffmpeg;

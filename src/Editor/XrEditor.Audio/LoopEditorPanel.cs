@@ -1,19 +1,13 @@
 ﻿using CanvasUI.Components;
 using Fftw;
 using OpenAl.Framework;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using UI.Binding;
 using XrEngine;
 using XrEngine.Audio;
 
-namespace XrEditor.Plot
+namespace XrEditor.Audio
 {
     [Panel("LoopEditor")]
     public class LoopEditorPanel : BasePanel, UI.Binding.INotifyPropertyChanged

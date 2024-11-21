@@ -8,7 +8,7 @@ namespace XrMath
     {
         public const float EPSILON = 1e-6f;
 
-        #region Matrix4x4
+        #region MATRIX4x4
 
 
         public static bool DecomposeDouble(this Matrix4x4 matrix, out Vector3 scale, out Quaternion rotation, out Vector3 translation)

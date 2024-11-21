@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>$(CoreVersion)-windows</TargetFrameworks>
+	  <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Engine\XrEngine.Audio.Win\XrEngine.Audio.Win.csproj" />
+    <ProjectReference Include="..\..\UI\UI.Canvas.Wpf\UI.Canvas.Wpf.csproj" />
+    <ProjectReference Include="..\XrEditor.Core\XrEditor.Core.csproj" />
+  </ItemGroup>
+
+
+
+</Project>

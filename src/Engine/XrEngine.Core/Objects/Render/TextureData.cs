@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using Common.Interop;
+
+namespace XrEngine
 {
 
     public class TextureData

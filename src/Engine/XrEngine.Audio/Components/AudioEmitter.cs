@@ -36,7 +36,7 @@ namespace XrEngine.Audio
             double bufferTime = 0.05f;
             var bufferCount = Math.Max(2, stream.PrefBufferCount);
 
-            var bufferSizeBytes = (uint)(bufferTime * stream.Format.SampleRate * (stream.Format.BitsPerSample / 8));
+            var bufferSizeBytes = (int)(bufferTime * stream.Format.SampleRate * (stream.Format.BitsPerSample / 8));
 
             if (stream.PrefBufferSize > 0)
                 bufferSizeBytes = stream.PrefBufferSize;

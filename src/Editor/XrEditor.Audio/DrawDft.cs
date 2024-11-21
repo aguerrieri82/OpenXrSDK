@@ -2,11 +2,10 @@
 using Fftw;
 using SkiaSharp;
 using System.Numerics;
-using XrEngine.Audio;
 using XrMath;
 using Color = XrMath.Color;
 
-namespace XrEditor.Plot
+namespace XrEditor.Audio
 {
     public class DrawDft : IDraw2D
     {

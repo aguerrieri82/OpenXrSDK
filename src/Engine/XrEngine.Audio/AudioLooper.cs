@@ -25,7 +25,7 @@ namespace XrEngine.Audio
 
         }
 
-        public unsafe virtual uint Fill(byte[] data, float timeSec)
+        public unsafe virtual int Fill(byte[] data, float timeSec)
         {
             Debug.Assert(Loop?.Format != null);
 
@@ -73,7 +73,7 @@ namespace XrEngine.Audio
                 _lastSample = l;
             }
 
-            return (uint)data.Length;
+            return data.Length;
         }
 
         public void Start()
@@ -90,9 +90,9 @@ namespace XrEngine.Audio
 
         public float FadeSize { get; set; }
 
-        public uint PrefBufferSize => (uint)(0.1f * 44100 * 2);
+        public int PrefBufferSize => (int)(0.1f * 44100 * 2);
 
-        public uint PrefBufferCount => 2;
+        public int PrefBufferCount => 2;
 
         public float Length => 0;
 

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace XrEngine
+namespace Common.Interop
 {
 
     public static class MemoryBuffer

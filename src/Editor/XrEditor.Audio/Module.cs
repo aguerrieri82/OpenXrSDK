@@ -1,20 +1,18 @@
 ﻿using CanvasUI;
 using System.Reflection;
-using System.Windows.Controls;
 using XrEditor.Services;
 using XrEngine;
 
 
-[assembly: Module(typeof(XrEditor.Plot.Module))]
+[assembly: Module(typeof(XrEditor.Audio.Module))]
 
-namespace XrEditor.Plot
+namespace XrEditor.Audio
 {
     public class Module : IModule
     {
         public void Load()
         {
-            AddPanel<PlotPanel>("Views/PlotPanel.xaml");
-            AddPanel<DrawPanel>("Views/DrawPanel.xaml");
+            AddPanel<LoopEditorPanel>("Views/LoopEditorPanel.xaml");
         }
 
         protected void AddPanel<T>(string viewPath) where T : class, IPanel, new()

@@ -1,14 +1,9 @@
-﻿using Microsoft.VisualBasic;
+﻿using Common.Interop;
 using OpenAl.Framework;
-using Silk.NET.Core.Native;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
+using static Silk.NET.Core.Native.WinString;
 
 namespace XrEngine.Audio
 {
@@ -90,17 +85,12 @@ namespace XrEngine.Audio
             public AudioBuffer()
             {
                 Event = new ManualResetEvent(false);
-                Header = (WaveHeader*)Marshal.AllocHGlobal(Marshal.SizeOf<WaveHeader>());
-                *Header = new WaveHeader();
+                Header.Value = new WaveHeader();
             }
 
             public void Dispose()
             {
-                if (Header != null)
-                {
-                    Marshal.FreeHGlobal((nint)Header);
-                    Header = null;
-                }
+                Header.Dispose();
                 Event.Dispose();
                 Buffer?.Dispose();
                 GC.SuppressFinalize(this);
@@ -108,7 +98,7 @@ namespace XrEngine.Audio
 
             public uint Id;
 
-            public WaveHeader* Header;
+            public NativeStruct<WaveHeader> Header;
 
             public ArrayMemoryBuffer<byte>? Buffer;
 
@@ -134,9 +124,9 @@ namespace XrEngine.Audio
                     Id = _lastBufId++
                 };
 
-                aBuffer.Header->dwBufferLength = (uint)buffer.Length;
-                aBuffer.Header->lpData = (nint)aBuffer.Buffer.Lock();
-                aBuffer.Header->dwUser = (nint)aBuffer.Id;
+                aBuffer.Header.ValueRef.dwBufferLength = (uint)buffer.Length;
+                aBuffer.Header.ValueRef.lpData = (nint)aBuffer.Buffer.Lock();
+                aBuffer.Header.ValueRef.dwUser = (nint)aBuffer.Id;
 
                 CheckError(waveOutPrepareHeader(_hWaveOut, aBuffer.Header, (uint)Marshal.SizeOf<WaveHeader>()));
 
@@ -145,7 +135,7 @@ namespace XrEngine.Audio
             }
 
 
-            aBuffer.Header->dwFlags &= ~(WaveHeaderFlags.Done);
+            aBuffer.Header.ValueRef.dwFlags &= ~(WaveHeaderFlags.Done);
 
             aBuffer.Event.Reset();
 
@@ -173,7 +163,7 @@ namespace XrEngine.Audio
                     return null;
 
                 if (timeoutMs == 0)
-                    aBuffer = _buffers.FirstOrDefault(a => (a.Header->dwFlags & WaveHeaderFlags.Done) != 0);
+                    aBuffer = _buffers.FirstOrDefault(a => (a.Header.ValueRef.dwFlags & WaveHeaderFlags.Done) != 0);
             }
 
             if (aBuffer == null && timeoutMs > 0)
@@ -204,7 +194,7 @@ namespace XrEngine.Audio
             {
                 foreach (var buffer in _buffers)
                 {
-                    Debug.Assert((buffer.Header->dwFlags & WaveHeaderFlags.InQueue) == 0);
+                    Debug.Assert((buffer.Header.ValueRef.dwFlags & WaveHeaderFlags.InQueue) == 0);
                     CheckError(waveOutUnprepareHeader(_hWaveOut, buffer.Header, (uint)Marshal.SizeOf<WaveHeader>()));
                     buffer.Dispose();
                 }

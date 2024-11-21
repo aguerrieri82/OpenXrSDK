@@ -13,11 +13,11 @@ namespace XrEngine.Audio
 
         void Stop();
 
-        uint Fill(byte[] data, float timeSec);
+        int Fill(byte[] data, float timeSec);
 
-        uint PrefBufferSize { get; }
+        int PrefBufferSize { get; }
 
-        uint PrefBufferCount { get; }
+        int PrefBufferCount { get; }
 
         float Length { get; }
 

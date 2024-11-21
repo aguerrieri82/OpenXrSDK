@@ -1,6 +1,7 @@
 ﻿using OpenXr.Framework;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using XrEditor.Audio;
 using XrEditor.Plot;
 using XrEditor.Services;
 using XrEngine;
@@ -38,6 +39,7 @@ namespace XrEditor
             ModuleManager.Instance.Init();
 
             ModuleManager.Ref<PlotPanel>();
+            ModuleManager.Ref<LoopEditorPanel>();
 
             _main = new MainView(EditorDebug.Driver);
 

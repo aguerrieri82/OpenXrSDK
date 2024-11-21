@@ -37,6 +37,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\Common\Common.Interop\Common.Interop.csproj" />
 	  <ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
 	  <ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
 	  <ProjectReference Include="..\MeshOptimizer\MeshOptimizer.csproj" />

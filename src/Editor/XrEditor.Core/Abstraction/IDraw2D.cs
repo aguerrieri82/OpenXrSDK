@@ -1,7 +1,7 @@
 ﻿using SkiaSharp;
 using XrMath;
 
-namespace XrEditor.Plot
+namespace XrEditor
 {
     public interface IDraw2D
     {

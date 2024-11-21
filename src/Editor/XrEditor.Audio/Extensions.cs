@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using XrEngine;
 
-namespace XrEngine
+namespace XrEditor.Audio
 {
-    public interface IFunctionView
+    public static class Extensions
     {
-        void ShowDft(float[] data, uint sampleRate, uint size);
+
+
     }
 }
