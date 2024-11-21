@@ -975,6 +975,8 @@ namespace CanvasUI.Components
                 ComputeMetrics();
             }
 
+            OnViewChanged();
+
             base.OnSizeChanged();
         }
 
@@ -1029,7 +1031,7 @@ namespace CanvasUI.Components
 
             if (ShowAxisY)
             {
-                _yAxisArea = new Rect2(_chartArea.X, _chartArea.Y, 100, _chartArea.Height);
+                _yAxisArea = new Rect2(_chartArea.X, _chartArea.Y, LabelWidthY, _chartArea.Height);
                 _chartArea.Left += _yAxisArea.Width + 4;
                 _xAxisArea.Left = _chartArea.Left;
             }
@@ -1317,6 +1319,13 @@ namespace CanvasUI.Components
         {
             get => GetValue<float>(nameof(TickIntervalY));
             set => SetValue(nameof(TickIntervalY), value);
+        }
+
+        [UiProperty(100f, UiPropertyFlags.Render)]
+        public float LabelWidthY
+        {
+            get => GetValue<float>(nameof(LabelWidthY));
+            set => SetValue(nameof(LabelWidthY), value);
         }
 
         public Func<float, string> FormatValueX { get; set; }
