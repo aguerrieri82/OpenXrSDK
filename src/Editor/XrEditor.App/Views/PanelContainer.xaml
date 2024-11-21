@@ -15,6 +15,7 @@
                     IsSynchronizedWithCurrentItem="True" 
                     app:TabContent.IsCached="True"    
                     TabStripPlacement="Bottom" 
+                    Focusable="True"
                     HorizontalContentAlignment="Stretch"
                     ItemsSource="{Binding Panels}" 
                     SelectedItem="{Binding ActivePanel, Mode=TwoWay}" >
@@ -28,13 +29,15 @@
             </DataTemplate>
             
             <DataTemplate x:Key="Single" DataType="{x:Type local:PanelContainer}">
-                <ContentPresenter Content="{Binding ActivePanel}"/>
+                <ContentPresenter  Content="{Binding ActivePanel}">
+                </ContentPresenter>
+
             </DataTemplate>
         </DataTemplate.Resources>
-        
-        <Border>
-            <DockPanel>
-                <Border Padding="8,2,8,2" DockPanel.Dock="Top" Background="{DynamicResource PrimaryColor}">
+
+        <Border Focusable="True">
+            <DockPanel >
+                <Border Focusable="True" x:Name="titleBar" Padding="8,2,8,2" DockPanel.Dock="Top" Background="#666">
                     <TextBlock  Text="{Binding ActivePanel.Title}"/>
                 </Border>
                 <ToolBarTray x:Name="toolbar" Orientation="Horizontal" DockPanel.Dock="Top">
@@ -44,14 +47,26 @@
                 <ContentPresenter x:Name="body" ContentTemplate="{StaticResource Tabs}" Content="{Binding}" />
 
             </DockPanel>
+
+            <b:Interaction.Triggers>
+                <b:EventTrigger EventName="GotFocus">
+                    <b:ChangePropertyAction PropertyName="IsActive" TargetObject="{Binding}" Value="True"/>
+                </b:EventTrigger>
+                <b:EventTrigger EventName="LostFocus">
+                    <b:ChangePropertyAction PropertyName="IsActive" TargetObject="{Binding}" Value="False"/>
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
         </Border>
-
-
 
         <DataTemplate.Triggers>
             <DataTrigger Binding="{Binding Panels.Count}" Value="1">
                 <DataTrigger.Setters>
                     <Setter Property="ContentTemplate" Value="{StaticResource Single}" TargetName="body"/>
+                </DataTrigger.Setters>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                <DataTrigger.Setters>
+                    <Setter Property="Background" Value="{DynamicResource PrimaryColor}" TargetName="titleBar"/>
                 </DataTrigger.Setters>
             </DataTrigger>
             <DataTrigger Binding="{Binding ActivePanel.ToolBar}" Value="{x:Null}">

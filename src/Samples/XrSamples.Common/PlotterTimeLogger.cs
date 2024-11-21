@@ -85,9 +85,9 @@ namespace XrSamples
 
             _dispatcher.ExecuteAsync(() =>
             {
-                _plotter.CheckPoints.Add(new PlotterCheckPoint()
+                _plotter.ReferencesX.Add(new PlotterReference()
                 {
-                    X = EngineApp.Current!.Stats.Frame,
+                    Value = EngineApp.Current!.Stats.Frame,
                     Name = name,
                     Color = color
                 });
@@ -119,7 +119,7 @@ namespace XrSamples
                 {
                     Name = name,
                     Color = PALETTE[index],
-                    MinGapX = 10,
+                    MaxGapX = 10,
                     SampleMode = SerieSampleMode.Nearest
                 };
 
@@ -145,7 +145,7 @@ namespace XrSamples
         public void Clear()
         {
             _plotter.Series.Clear();
-            _plotter.CheckPoints.Clear();
+            _plotter.ReferencesX.Clear();
         }
 
         [MemberNotNullWhen(true, nameof(_dispatcher))]

@@ -2,12 +2,12 @@
 
 namespace XrMath
 {
-    public struct BoundsBuilder
+    public struct Bounds3Builder
     {
         Bounds3 _result;
         bool _isEmpty;
 
-        public BoundsBuilder()
+        public Bounds3Builder()
         {
             _result.Min = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
             _result.Max = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);

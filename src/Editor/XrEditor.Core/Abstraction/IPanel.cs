@@ -16,6 +16,8 @@
     {
         Task CloseAsync();
 
+        void NotifyActivated(IPanelContainer container, bool isActive);
+
         string PanelId { get; }
 
         string? Title { get; }

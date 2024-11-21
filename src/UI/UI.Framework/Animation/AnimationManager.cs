@@ -58,7 +58,12 @@
 
                 toRemove.Clear();
 
-                foreach (var animation in _animations)
+                IList<IAnimation> animations;
+
+                lock (_animations)
+                    animations = _animations.ToArray();
+
+                foreach (var animation in animations)
                 {
                     if (!animation.IsStarted)
                     {
@@ -75,11 +80,8 @@
 
                     if (t == 1)
                     {
-                        lock (_animations)
-                        {
-                            animation.IsStarted = false;
-                            toRemove.Add(animation);
-                        }
+                        animation.IsStarted = false;
+                        toRemove.Add(animation);
                     }
                 }
 

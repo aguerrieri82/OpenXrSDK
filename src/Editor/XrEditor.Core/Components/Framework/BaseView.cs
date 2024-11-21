@@ -10,7 +10,7 @@ namespace XrEditor
         {
         }
 
-        protected void OnPropertyChanged(string name)
+        protected virtual void OnPropertyChanged(string name)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }

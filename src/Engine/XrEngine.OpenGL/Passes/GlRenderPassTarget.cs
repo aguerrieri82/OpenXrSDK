@@ -84,6 +84,9 @@ namespace XrEngine.OpenGL
         [MemberNotNull(nameof(RenderTarget))]
         public void Configure(uint width, uint height, TextureFormat format)
         {
+            if (width == 0 || height == 0)
+                return;
+
             bool updateTarget = BoundEye != -1;
 
             bool isColorChanged = _colorTexture != _lastColorTexture;

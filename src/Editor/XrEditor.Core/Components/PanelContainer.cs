@@ -4,9 +4,10 @@ using XrEngine;
 
 namespace XrEditor
 {
-    public class PanelContainer : BaseView, IStateManager
+    public class PanelContainer : BaseView, IStateManager, IPanelContainer
     {
         private IPanel? _activePanel;
+        private bool _isActive;
 
         public PanelContainer()
         {
@@ -69,8 +70,22 @@ namespace XrEditor
             {
                 if (_activePanel == value)
                     return;
+                _activePanel?.NotifyActivated(this, false);
                 _activePanel = value;
+                _activePanel?.NotifyActivated(this, true);
                 OnPropertyChanged(nameof(ActivePanel));
+            }
+        }
+
+        public bool IsActive
+        {
+            get => _isActive;
+            set
+            {
+                if (_isActive == value)
+                    return;
+                _isActive = value;  
+                OnPropertyChanged(nameof(IsActive));    
             }
         }
 

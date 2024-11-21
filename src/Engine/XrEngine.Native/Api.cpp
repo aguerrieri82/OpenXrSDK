@@ -47,6 +47,25 @@ void ImageCopyChannel(uint8_t* src, uint8_t* dst, const uint32_t width, uint32_t
     }
 }
 
+
+void Dft(float* values, std::complex<double>* out, uint32_t size)
+{
+    const double PI = acos(-1);
+
+    for (int k = 0; k < size; k++) // For each output element
+    {
+        std::complex<double> sum = { 0, 0 };
+
+        for (int n = 0; n < size; n++) // For each input element
+        {
+            double angle = -2.0 * PI * k * n / size;
+            sum += (double)values[n] * std::complex(cos(angle), sin(angle));
+        }
+        out[k] = sum;
+    }
+}
+
+
 /*
 void ParseHDR() {
     

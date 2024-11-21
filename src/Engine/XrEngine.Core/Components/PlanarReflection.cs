@@ -147,6 +147,7 @@ namespace XrEngine
 
             _refCamera.Far = mainCamera.Far;
             _refCamera.Near = mainCamera.Near;
+            _refCamera.BackgroundColor = mainCamera.BackgroundColor;
 
             var ratio = mainCamera.ViewSize.Width / (float)mainCamera.ViewSize.Height;
 

@@ -11,6 +11,8 @@ namespace XrEditor
         protected readonly IUserInteraction _ui;
         protected readonly IMainDispatcher _mainDispatcher;
         protected string _panelId;
+        protected IPanelContainer? _container;
+        protected bool _isActive;
 
         public BasePanel()
         {
@@ -43,7 +45,12 @@ namespace XrEditor
 
         public virtual void SetState(IStateContainer container)
         {
+        }
 
+        public virtual void NotifyActivated(IPanelContainer container, bool isActive)
+        {
+            _container = container;
+            _isActive = isActive;
         }
 
         public string PanelId => _panelId;

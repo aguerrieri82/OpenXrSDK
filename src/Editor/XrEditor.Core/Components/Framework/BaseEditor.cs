@@ -9,15 +9,20 @@ namespace XrEditor
     {
         protected TEdit _editValue;
         protected IProperty<TValue>? _binding;
-        protected IDispatcher _dispatcher;
         protected internal int _isLoading;
 
         public BaseEditor()
         {
-            _dispatcher = EngineApp.Current!.Dispatcher;
+
         }
 
-        public virtual void NotifyValueChanged()
+        public void NotifyBindValueChanged()
+        {
+            if (_binding != null)
+                OnBindValueChanged(_binding.Value);
+        }
+
+        public virtual void NotifyEditValueChanged()
         {
             OnPropertyChanged(nameof(EditValue));
         }
@@ -78,15 +83,11 @@ namespace XrEditor
                 return;
 
             if (_binding != null)
-            {
-                _dispatcher.ExecuteAsync(() =>
-                {
-                    _binding.Value = EditValueToBind(newValue);
-                });
-            }
+                _binding.Value = EditValueToBind(newValue);
 
             ValueChanged?.Invoke(this);
         }
+
 
         protected virtual void OnBindValueChanged(TValue newValue)
         {

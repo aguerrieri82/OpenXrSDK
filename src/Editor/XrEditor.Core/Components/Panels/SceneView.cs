@@ -191,7 +191,7 @@ namespace XrEditor
             {
                 _fpsLabel.Text = _engine!.App.Stats.Fps.ToString();
 
-                if (_scene?.App == null)
+                if (_scene?.App == null || !_isActive)
                     Thread.Sleep(50);
                 else
                 {
@@ -199,12 +199,10 @@ namespace XrEditor
                     {
                         try
                         {
-          
                             _engine.XrApp.RenderFrame(_engine.XrApp.ReferenceSpace);
                         }
                         catch
                         {
-
                         }
 
                         if (_renderSurface.SupportsDualRender)

@@ -19,13 +19,17 @@ namespace XrEditor
             base.OnChanged();
 
             if (_host is EngineObject obj)
-                obj.NotifyChanged(new ObjectChange
+            {
+                EngineApp.Current!.Dispatcher.ExecuteAsync(() =>
                 {
-                    Type = ObjectChangeType.Property,
-                    Target = obj,
-                    Properties = [Name!]
+                    obj.NotifyChanged(new ObjectChange
+                    {
+                        Type = ObjectChangeType.Property,
+                        Target = obj,
+                        Properties = [Name!]
+                    });
                 });
-
+            }
         }
     }
 }

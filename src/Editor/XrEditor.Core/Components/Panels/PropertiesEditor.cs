@@ -194,8 +194,7 @@ namespace XrEditor
                 foreach (var update in updates)
                     update();
                 _isUpdatingProps--;
-            });
-    
+            });  
         }
 
         public IList<PropertiesGroupView>? Groups

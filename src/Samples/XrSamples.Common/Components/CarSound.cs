@@ -3,19 +3,33 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using XrEngine;
 using XrEngine.Audio;
+using XrEngine.OpenXr;
+using XrMath;
 
 namespace XrSamples
 {
-    public class CarSoundStream : IAudioStream
+    public interface ICarSound : IAudioStream
+    {
+        float SmoothFactor { get; set; }
+
+        int Rpm { get; set; }
+
+        int Gear { get; set; }
+
+    }
+
+
+    public class CarSoundV1 : ICarSound
     {
         protected float _lastRpm;
         protected float _lastSample;
         protected bool _isStreaming;
 
-        public CarSoundStream()
+        public CarSoundV1()
         {
             Format = new AudioFormat
             {
@@ -41,8 +55,6 @@ namespace XrSamples
                
                 while (samplesProvided < data.Length / 2)
                 {
-                    //var curRpm = _lastRpm + (Rpm - _lastRpm) * (samplesProvided / (data.Length / 2));
-
                     _lastRpm += (Rpm - _lastRpm) * SmoothFactor;
 
                     var curTime = timeSec + (samplesProvided / (float)Format.SampleRate);
@@ -121,18 +133,83 @@ namespace XrSamples
         public bool IsStreaming => _isStreaming;
     }
 
+
+    public class CarSoundV2 : AudioLooper, ICarSound
+    {
+        AudioSlicer _slicer;
+        byte[] _buffer = [];
+
+        public CarSoundV2()
+        {
+            var path = new Path2();
+            path.ParseSvgPath("M94.92343,327.20377c0,0 49.25465,-0.47464 58.92396,-1.38418c9.66931,-0.90954 19.87223,-4.79691 31.45914,-9.92189c30.0538,-13.29304 123.65848,-49.52857 146.03591,-56.0304c22.37742,-6.50183 78.53462,-16.79634 116.31143,-19.88525c16.26465,-1.32992 50.68774,-3.56868 58.35304,-3.85481c7.6653,-0.28614 16.32354,0.02712 19.03093,1.30367c2.70739,1.27655 6.71171,5.9732 9.356,10.02931c2.64429,4.05611 20.62308,30.88793 21.98103,40.79565");
+            
+            var pathBounds = path.Bounds();
+
+            var func = path.ToFunctionY(0.1f, -1);
+
+            var asset = Context.Require<IAssetStore>();
+
+            var soundPath = asset.GetPath("CarSound.wav");
+            var reader = new WavReader();
+            using var stream = File.OpenRead(soundPath);
+            var data = reader.Decode(stream);
+
+            if (XrPlatform.IsEditor)
+            {
+                Context.Require<IFunctionView>()
+                .ShowDft(data.ToFloat(), (uint)data.Format!.SampleRate, 1024);
+            }
+
+            _slicer = new AudioSlicer
+            {
+                Data = data,    
+                Function = func,
+                StartTime = pathBounds.Min.X,
+                EndTime = pathBounds.Max.X,
+                MinValue = 2000,
+                MaxValue = 50,
+                //OffsetMap = JsonSerializer.Deserialize<Dictionary<string, int>>(File.ReadAllText(asset.GetPath("loops.json")).Replace("0,2","0.2"))!
+            };
+
+            var time = _slicer.TimeForValue(100);
+
+            Loop = new AudioData(data.Format, _buffer);
+            SmoothFactor = 0.02f;
+            SliceLen = 0.2f;
+            FadeSize = 0.05f;
+
+            LoadNextBuffer();
+        }
+
+        protected override void LoadNextBuffer()
+        {
+            var rnd = (int)(10 * new Random().NextSingle());
+            _slicer.FillBuffer((int)Rpm + 0, SliceLen, ref _buffer);
+            LoadBuffer(_buffer);
+        }
+
+        public float SliceLen { get; set; }
+
+        public float SmoothFactor { get; set; }
+
+        public int Gear { get; set; }
+
+        public int Rpm { get; set; }
+    }
+
     public class CarSound : AudioEmitter
     {
-        CarSoundStream _engine;
+        CarSoundV2 _engine;
 
         public CarSound()
         {
-            _engine = new CarSoundStream(); 
+            _engine = new CarSoundV2();
         }
 
         protected override void Start(RenderContext ctx)
         {
-            _ = PlayAsync(_engine, () => _host!.Forward);
+           //_ = PlayAsync(_engine, () => _host!.Forward);
 
             base.Start(ctx);
         }
@@ -143,13 +220,33 @@ namespace XrSamples
             base.Reset(onlySelf);
         }
 
+        [Action()]
+        public void Save()
+        {
+            File.WriteAllBytes("d:\\test.pcm", _engine.Loop.Buffer);
+        }
+
+        [Range(0, 1, 0.001f)]
+        public float Pitch
+        {
+            get => _curSource!.Pitch;
+            set => _curSource!.Pitch = value;
+        }
+
+
+        [Range(0, 1, 0.001f)]
+        public float FadeSize
+        {
+            get => _engine.FadeSize;
+            set => _engine.FadeSize = value;
+        }
 
         [Range(0, 1, 0.01f)]
-        public float LowPassAlpha
+        public float SliceLen
         {
-            get => _engine.LowPassAlpha;
-            set => _engine.LowPassAlpha = value;
-        }
+            get => _engine.SliceLen;
+            set => _engine.SliceLen = value;
+        }       
 
 
         [Range(0, 1, 0.01f)]
@@ -159,9 +256,14 @@ namespace XrSamples
             set => _engine.SmoothFactor = value;
         }
 
+        [Range(40, 2000, 1)]
+        public float Rpm
+        {
+            get => _engine.Rpm;
+            set => _engine.Rpm = (int)value;
+        }
 
-
-        public CarSoundStream Engine => _engine; 
+        public CarSoundV2 Engine => _engine; 
 
     }
 }

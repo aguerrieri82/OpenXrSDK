@@ -1,0 +1,50 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        
+                    xmlns:local="clr-namespace:XrEditor.Plot"
+                    xmlns:ui="clr-namespace:UI.Canvas.Wpf;assembly=UI.Canvas.Wpf"
+                    xmlns:ic="clr-namespace:WPF_Icons;assembly=WPF-Icons"
+                    xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate DataType="{x:Type local:LoopEditorPanel}">
+        <DockPanel>
+            <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Properties}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock TextAlignment="Center" HorizontalAlignment="Center" Text="{Binding Label}"/>
+                            <ContentPresenter HorizontalAlignment="Center"  Content="{Binding Editor}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="5">
+                <Button Padding="5,5,5,5" Command="{Binding UpdateLoopPosCommand}">Update Loop</Button>
+                <Button Command="{Binding PlayCommand}">
+                    Play
+                </Button>
+                <Button Command="{Binding StopCommand}">
+                    Stop
+                </Button>
+                <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding StatusText}"/>
+            </StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+
+                </Grid.RowDefinitions>
+                <ui:UiElementView Grid.Row="0" HorizontalAlignment="Stretch" Content="{Binding Plotter}"/>
+                <ui:UiElementView Grid.Row="1" HorizontalAlignment="Stretch" Content="{Binding DftPlotter}"/>
+            </Grid>
+
+        </DockPanel>
+       
+    </DataTemplate>
+
+</ResourceDictionary>
