@@ -53,14 +53,14 @@ namespace XrEngine
                     var image = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
                     var textures = image?.Textures;
 
-                    if (image != null && textures != null && ctx.Camera != null)
+                    if (image != null && textures != null && ctx.PassCamera != null)
                     {
                         up.SetUniform("uGGXEnvSampler", textures.Env!, 0);
                         up.SetUniform("uMipCount", (int)textures.MipCount);
                         up.SetUniform("uEnvBlurNormalized", Blur);
                         up.SetUniform("uEnvIntensity", image.Intensity);
-                        up.SetUniform("uViewProjectionMatrix", ctx.Camera.ViewProjection);
-                        up.SetUniform("uExposure", ctx.Camera.Exposure);
+                        up.SetUniform("uViewProjectionMatrix", ctx.PassCamera.ViewProjection);
+                        up.SetUniform("uExposure", ctx.PassCamera.Exposure);
                         up.SetUniform("uEnvRotation", Matrix3x3.CreateRotationY(image.RotationY));
                     }
                 });

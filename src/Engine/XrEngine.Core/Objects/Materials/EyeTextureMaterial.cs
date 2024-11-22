@@ -44,7 +44,7 @@
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
 
-                if (((PerspectiveCamera)ctx.Camera!).ActiveEye == 0)
+                if (((PerspectiveCamera)ctx.PassCamera!).ActiveEye == 0)
                     up.SetUniform("uTexture", LeftTexture!, 0);
                 else
                     up.SetUniform("uTexture", RightTexture!, 0);

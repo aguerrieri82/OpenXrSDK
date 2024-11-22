@@ -196,7 +196,7 @@ namespace XrEngine.OpenGL
 
         public void Prepare(RenderContext ctx)
         {
-            var curCamera = _render.UpdateContext.Camera!;
+            var curCamera = _render.UpdateContext.PassCamera!;
 
             if (ctx.Frame == _lastFrame && curCamera == _lastCamera)
                 return;

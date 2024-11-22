@@ -8,12 +8,13 @@ namespace XrEngine.OpenXr
 {
     public class OculusEnvDepthProvider : BaseComponent<Camera>, IEnvDepthProvider
     {
-        readonly XrApp _xrApp;
-        readonly Dictionary<long, Texture2D> _textures;
-        private Texture2D? _lastTexture;
-        private readonly XrPassthroughLayer _passTh;
-        private long _lastFrameTime;
-        private Texture2D? _outTexture;
+        protected readonly XrApp _xrApp;
+        protected readonly Dictionary<long, Texture2D> _textures;
+        protected readonly XrPassthroughLayer _passTh;
+        protected long _lastFrameTime;
+        protected Texture2D? _outTexture;
+        protected Texture2D? _lastTexture;
+        protected Camera? _lastCamera;
 
         public OculusEnvDepthProvider(XrApp xrApp)
         {
@@ -21,6 +22,7 @@ namespace XrEngine.OpenXr
             _passTh.UseEnvironmentDepth = true;
             _xrApp = xrApp;
             _textures = [];
+            _lastFrameTime = -1;
             Blur = true;
         }
 
@@ -31,7 +33,15 @@ namespace XrEngine.OpenXr
                 return null;
 
             if (_xrApp.FramePredictedDisplayTime == _lastFrameTime)
+            {
+                depthCamera.Far = _lastCamera!.Far;
+                depthCamera.Near = _lastCamera.Near;
+                depthCamera.Eyes = _lastCamera.Eyes;
+                depthCamera.Projection = _lastCamera.Projection;
+                depthCamera.View = _lastCamera.View;
                 return _lastTexture;
+            }
+
 
             depthCamera.Eyes ??= new CameraEye[2];
 
@@ -66,7 +76,6 @@ namespace XrEngine.OpenXr
                 if (type == StructureType.SwapchainImageOpenglKhr ||
                     type == StructureType.SwapchainImageOpenglESKhr)
                 {
-
                     var glImg = *(SwapchainImageOpenGLKHR*)img;
 
                     if (!_textures.TryGetValue(glImg.Image, out var texture))
@@ -107,6 +116,8 @@ namespace XrEngine.OpenXr
             depthCamera.WorldMatrix = depthCamera.Eyes[depthCamera.ActiveEye].World;
 
             _lastFrameTime = _xrApp.FramePredictedDisplayTime;
+
+            _lastCamera = depthCamera;
 
             return _lastTexture;
         }

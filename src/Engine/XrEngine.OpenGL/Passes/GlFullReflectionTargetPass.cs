@@ -104,7 +104,7 @@ namespace XrEngine.OpenGL
 
             _oldCamera = camera;
 
-            _renderer.UpdateContext.Camera = _reflection.ReflectionCamera;
+            _renderer.UpdateContext.PassCamera = _reflection.ReflectionCamera;
 
             _passTarget.Configure(_reflection.Texture!);
             _passTarget.RenderTarget.Begin(_reflection.ReflectionCamera);
@@ -152,7 +152,7 @@ namespace XrEngine.OpenGL
         {
             _passTarget.RenderTarget!.End(true);
 
-            _renderer.UpdateContext.Camera = _oldCamera;
+            _renderer.UpdateContext.PassCamera = _oldCamera;
 
             if (_imageLight != null)
             {

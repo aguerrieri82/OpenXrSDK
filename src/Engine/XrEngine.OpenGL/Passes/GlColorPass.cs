@@ -27,7 +27,7 @@ namespace XrEngine.OpenGL
                 _gl.DepthFunc(DepthFunction.Lequal);
             }
             else
-                _renderer.Clear(_renderer.UpdateContext.Camera!.BackgroundColor);
+                _renderer.Clear(_renderer.UpdateContext.PassCamera!.BackgroundColor);
 
             return true;
         }

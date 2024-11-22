@@ -38,7 +38,9 @@ namespace XrEngine
             FrustumPlanes = new Plane[6];
         }
 
-        public Camera? Camera;
+        public Camera? MainCamera;
+
+        public Camera? PassCamera;
 
         public Shader? Shader;
 

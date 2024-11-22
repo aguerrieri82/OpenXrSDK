@@ -4,7 +4,8 @@
     {
         Triangle,
         Line,
-        LineLoop
+        LineLoop,
+        Point
     }
 
     public interface IVertexSource : ILayer3DItem

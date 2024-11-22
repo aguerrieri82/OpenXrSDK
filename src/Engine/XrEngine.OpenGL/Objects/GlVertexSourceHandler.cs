@@ -71,6 +71,7 @@ namespace XrEngine.OpenGL
                 DrawPrimitive.Triangle => PrimitiveType.Triangles,
                 DrawPrimitive.Line => PrimitiveType.Lines,
                 DrawPrimitive.LineLoop => PrimitiveType.Patches,
+                DrawPrimitive.Point => PrimitiveType.Points,
                 _ => throw new NotSupportedException()
             };
         }

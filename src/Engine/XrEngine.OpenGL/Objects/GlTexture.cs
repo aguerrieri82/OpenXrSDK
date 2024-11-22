@@ -132,13 +132,26 @@ namespace XrEngine.OpenGL
         {
             var result = new List<TextureData>();
 
-            void ReadTarget(TextureTarget target, uint mipLevel, uint face = 0)
+            void ReadTarget(TextureTarget target, uint mipLevel, uint face = 0, uint depth = 0)
             {
-                _gl.FramebufferTexture2D(
-                     FramebufferTarget.ReadFramebuffer,
-                     FramebufferAttachment.ColorAttachment0,
-                     target,
-                     _handle, (int)mipLevel);
+                if (target == TextureTarget.Texture2DArray)
+                {
+                    _gl.FramebufferTextureLayer(
+                         FramebufferTarget.ReadFramebuffer,
+                         FramebufferAttachment.ColorAttachment0,
+                         _handle,
+                         (int)mipLevel,
+                         (int)depth);
+                }
+                else
+                {
+                    _gl.FramebufferTexture2D(
+                         FramebufferTarget.ReadFramebuffer,
+                         FramebufferAttachment.ColorAttachment0,
+                         target,
+                         _handle, (int)mipLevel);
+                }
+
 
                 var w = Width >> (int)mipLevel;
                 var h = Height >> (int)mipLevel;
@@ -182,6 +195,11 @@ namespace XrEngine.OpenGL
                 {
                     for (var face = 0; face < 6; face++)
                         ReadTarget(TextureTarget.TextureCubeMapPositiveX + face, mipLevel, (uint)face);
+                }
+                else if (Target == TextureTarget.Texture2DArray)
+                {
+                    for (uint i = 0; i < _depth; i++)
+                        ReadTarget(Target, mipLevel, 0, i);
                 }
                 else
                     ReadTarget(Target, mipLevel);

@@ -223,7 +223,7 @@ namespace XrEngine
 
                 bld.AddFeature("MAX_LIGHTS " + LightListUniforms.Max);
 
-                var envDepth = bld.Context.Camera?.Feature<IEnvDepthProvider>();
+                var envDepth = bld.Context.MainCamera?.Feature<IEnvDepthProvider>();
 
                 if (envDepth != null)
                 {
@@ -248,13 +248,13 @@ namespace XrEngine
                 {
                     var result = new CameraUniforms
                     {
-                        ViewProj = ctx.Camera!.ViewProjection,
-                        Position = ctx.Camera!.WorldPosition,
-                        Exposure = ctx.Camera.Exposure,
-                        ActiveEye = ctx.Camera.ActiveEye,
-                        ViewSize = ctx.Camera.ViewSize,
-                        NearPlane = ctx.Camera.Near,
-                        FarPlane = ctx.Camera.Far,
+                        ViewProj = ctx.PassCamera!.ViewProjection,
+                        Position = ctx.PassCamera!.WorldPosition,
+                        Exposure = ctx.PassCamera.Exposure,
+                        ActiveEye = ctx.PassCamera.ActiveEye,
+                        ViewSize = ctx.PassCamera.ViewSize,
+                        NearPlane = ctx.PassCamera.Near,
+                        FarPlane = ctx.PassCamera.Far,
                         DepthNoiseFactor = DepthNoiseFactor,
                         DepthNoiseDistance = DepthNoiseDistance
                     };

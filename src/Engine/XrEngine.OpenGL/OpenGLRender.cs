@@ -163,7 +163,7 @@ namespace XrEngine.OpenGL
             _glState.EnableFeature(EnableCap.Dither, true);
             _glState.EnableFeature(EnableCap.Multisample, true);
             _glState.EnableFeature(EnableCap.ScissorTest, false);
-
+            _glState.EnableFeature(EnableCap.ProgramPointSize, true);
         }
 
         public void ConfigureCaps(ShaderMaterial material)
@@ -330,7 +330,8 @@ namespace XrEngine.OpenGL
 
             UpdateLights(ctx.Scene);
 
-            _updateCtx.Camera = ctx.Camera;
+            _updateCtx.PassCamera = ctx.Camera;
+            _updateCtx.MainCamera = ctx.Camera;
             _updateCtx.Frame = ctx.Frame;
             _updateCtx.ContextVersion++;
 
