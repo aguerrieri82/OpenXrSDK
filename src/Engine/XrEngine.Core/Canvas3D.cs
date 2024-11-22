@@ -15,7 +15,7 @@ namespace XrEngine
     public class Canvas3D
     {
         readonly LineMesh _lineMesh = new();
-        readonly List<LineData> _data = [];
+        readonly List<PointData> _data = [];
         readonly Stack<Canvas3DState> _states = [];
         Canvas3DState _curState;
 
@@ -28,13 +28,13 @@ namespace XrEngine
 
         public void DrawLine(Vector3 from, Vector3 to)
         {
-            _data.Add(new LineData
+            _data.Add(new PointData
             {
                 Pos = from.Transform(_curState.Transform),
                 Color = _curState.Color,
                 Size = _curState.LineWidth
             });
-            _data.Add(new LineData
+            _data.Add(new PointData
             {
                 Pos = to.Transform(_curState.Transform),
                 Color = _curState.Color,

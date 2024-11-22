@@ -25,7 +25,7 @@ namespace XrEngine.OpenXr
             {
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    var camera = ctx.Camera;
+                    var camera = ctx.PassCamera;
 
                     Debug.Assert(camera?.Eyes != null);
 
@@ -54,7 +54,7 @@ namespace XrEngine.OpenXr
 
             bld.ExecuteAction((ctx, up) =>
             {
-                var camera = ctx.Camera;
+                var camera = ctx.PassCamera;
 
                 if (ctx.Model == null || camera == null)
                     return;

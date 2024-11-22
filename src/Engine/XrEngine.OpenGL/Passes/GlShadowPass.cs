@@ -134,7 +134,7 @@ namespace XrEngine.OpenGL
         {
             _lightCamera.CreateViewFromDirection(_light!.Direction, Vector3.UnitY);
 
-            var frustumPoints = _renderer.UpdateContext.Camera!.FrustumPoints();
+            var frustumPoints = _renderer.UpdateContext.PassCamera!.FrustumPoints();
             var frustumLightBounds = frustumPoints.ComputeBounds(_lightCamera.View);
 
             var receiveBounds = castLayer.WorldBounds;
@@ -190,8 +190,8 @@ namespace XrEngine.OpenGL
 
             UpdateCamera(castLayer);
 
-            _oldCamera = _renderer.UpdateContext.Camera;
-            _renderer.UpdateContext.Camera = _lightCamera;
+            _oldCamera = _renderer.UpdateContext.PassCamera;
+            _renderer.UpdateContext.PassCamera = _lightCamera;
             _layerVersion = shadowRenderLayer.Version;
 
             return base.BeginRender(camera);
@@ -199,7 +199,7 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender()
         {
-            _renderer.UpdateContext.Camera = _oldCamera;
+            _renderer.UpdateContext.PassCamera = _oldCamera;
             _renderer.State.SetCullFace(TriangleFace.Back);
 
             if (_mode == ShadowMapMode.VSM)

@@ -86,7 +86,7 @@ namespace XrEngine.OpenGL
 
             ProcessImage(_passTarget.ColorTexture!, outlineTexture);
 
-            _renderer.RenderTarget!.Begin(_renderer.UpdateContext.Camera!);
+            _renderer.RenderTarget!.Begin(_renderer.UpdateContext.PassCamera!);
 
             OverlayTexture(outlineTexture);
         }

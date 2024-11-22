@@ -12,6 +12,83 @@ using IDrawGizmos = XrEngine.IDrawGizmos;
 
 namespace XrSamples.Components
 {
+    public class EngineModel
+    {
+        // Constants
+        double M = 1500;           // Vehicle mass (kg)
+        double r = 0.3;            // Wheel radius (m)
+        double T_engine_max = 50; // Max engine torque (Nm)
+        double FDR = 4.0;          // Final drive ratio
+        double efficiency = 0.9;   // Transmission efficiency
+
+
+        // Resistance constants
+        double C_rr = 0.015;       // Rolling resistance coefficient
+        double g = 9.81;           // Gravitational acceleration (m/s^2)
+        double rho = 1.225;        // Air density (kg/m^3)
+        double Cd = 0.8;           // Drag coefficient 
+        double A = 2.2;            // Frontal area (m^2)
+
+        // Initial conditions
+        double v = 0.0;            // Vehicle speed (m/s)
+        double s = 0.0;            // Distance traveled (m)
+
+        double omega_wheel;
+        double engineRPM;
+
+
+
+        public void Step(float dt)
+        {
+            // 1. Engine torque
+            double T_engine = Acceleration * T_engine_max;
+
+            // 2. Torque at wheels
+            double T_wheel = T_engine * Gear * FDR * efficiency;
+
+            // 3. Force at wheels
+            double F_wheel = T_wheel / r;
+
+            // 4a. Rolling resistance
+            double F_rolling = C_rr * M * g;
+
+            // 4b. Aerodynamic drag
+            double F_drag = 0.5 * rho * Cd * A * v * v;
+
+            // 5. Net force
+            double F_net = F_wheel - (F_rolling + F_drag);
+
+            // 6. Acceleration
+            double a = F_net / M;
+
+            // 7. Update speed
+            v += a * dt;
+            if (v < 0) 
+                v = 0; // Ensure speed doesn't become negative
+
+            // 8. Update position
+            s += v * dt;
+
+            // 9a. Wheel angular velocity and RPM
+            omega_wheel = v / r; // (rad/s)
+      
+            // 9b. Engine angular velocity and RPM
+            double omega_engine = omega_wheel * Gear * FDR;
+            engineRPM = omega_engine * (60 / (2 * Math.PI));
+        }
+
+
+        public float Acceleration = 0;
+
+        public float Gear = 3.5f;
+
+        public float OmegaWheel => (float)omega_wheel;
+
+        public float EngineRPM => (float)engineRPM;
+
+
+    }
+
     public class CarModel : Behavior<Group3D>, IDrawGizmos
     {
         private Group3D? _chassis;
@@ -50,6 +127,7 @@ namespace XrSamples.Components
         private TriangleMesh? _gearLever;
         private Dictionary<string, Vector2>? _gears;
         private string _curGear;
+        private EngineModel _engine;
 
         public CarModel()
         {
@@ -77,6 +155,8 @@ namespace XrSamples.Components
             _curGear = "1";
 
             _carSound = new CarSound();
+
+            _engine = new EngineModel();
 
             UpdatePriority = 1;
         }
@@ -618,9 +698,7 @@ namespace XrSamples.Components
         protected void SyncInput()
         {
             var dir = BackInput != null && (BackInput.IsActive && BackInput.Value || _curGear == "R") ? -1 : 1;
-
-            if (AccInput != null && AccInput.IsActive)
-                WheelSpeedRad = AccInput.Value * 10f * dir;
+            WheelSpeedRad = _engine.OmegaWheel * dir;
 
             if (ShowHideBodyInput != null && ShowHideBodyInput.IsActive && ShowHideBodyInput.IsChanged && ShowHideBodyInput.Value)
                 CarBody!.IsVisible = !CarBody!.IsVisible;
@@ -656,11 +734,13 @@ namespace XrSamples.Components
             var gear = _curGear == "R" ? 1 : int.Parse(_curGear);
 
             _carSound.Engine.Gear = gear;
-            //_carSound.Engine.Rpm = 40 + (int)(_wheelSpeedRad / (2 * MathF.PI) * 50) ;
+            _carSound.Engine.Rpm = 40 + (int)_engine.EngineRPM;
         }
 
         protected override void Update(RenderContext ctx)
         {
+            _engine.Acceleration = AccInput != null && AccInput.IsActive ? AccInput.Value : AccInputSim / 100f;
+            _engine.Step((float)_deltaTime);
 
             SyncSteering();
 
@@ -1054,6 +1134,10 @@ namespace XrSamples.Components
                 UpdateFriction();
             }
         }
+
+        [Range(0, 100, 0.5f)]
+        public float AccInputSim { get; set; }
+
 
         public bool UseDifferential { get; set; }
 

@@ -126,11 +126,11 @@ namespace XrEngine.OpenGL
             if (!_reflection.Host!.IsVisible || !_reflection.Host.WorldBounds.IntersectFrustum(_renderer.UpdateContext.FrustumPlanes))
                 return false;
 
-            _oldCamera = _renderer.UpdateContext.Camera!;
+            _oldCamera = _renderer.UpdateContext.PassCamera!;
 
             _reflection.Update(_oldCamera, _passTarget.BoundEye);
 
-            _renderer.UpdateContext.Camera = _reflection.ReflectionCamera;
+            _renderer.UpdateContext.PassCamera = _reflection.ReflectionCamera;
 
             _passTarget.Configure(_reflection.Texture!);
             _passTarget.RenderTarget.Begin(_reflection.ReflectionCamera);
@@ -149,7 +149,7 @@ namespace XrEngine.OpenGL
         {
             _passTarget.RenderTarget!.End(true);
 
-            _renderer.UpdateContext.Camera = _oldCamera;
+            _renderer.UpdateContext.PassCamera = _oldCamera;
 
             base.EndRender();
         }

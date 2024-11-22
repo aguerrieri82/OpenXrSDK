@@ -30,7 +30,7 @@ namespace XrSamples
                 Channels = 1,
                 SampleRate = 44100
             };
-            FrequencyFactor = 10f;
+            FrequencyFactor = 200f / 12000f;
             LowPassAlpha = 0.08f;
             GearRatios = [3.5f, 2.1f, 1.5f, 1.0f, 0.8f];
             Gear = 1;
@@ -51,7 +51,7 @@ namespace XrSamples
 
                     var curTime = timeSec + (samplesProvided / (float)Format.SampleRate);
 
-                    float frequency = (_lastRpm / 60f) * FrequencyFactor * GearRatios[Gear - 1];
+                    float frequency = 30 + _lastRpm * FrequencyFactor;
 
                     // Generate the engine sound using a sawtooth wave (richer harmonics)
                     float sampleValue = GenerateSawtoothWave(frequency, curTime);
@@ -194,16 +194,16 @@ namespace XrSamples
 
     public class CarSound : AudioEmitter
     {
-        readonly CarSoundV2 _engine;
+        readonly CarSoundV1 _engine;
 
         public CarSound()
         {
-            _engine = new CarSoundV2();
+            _engine = new CarSoundV1();
         }
 
         protected override void Start(RenderContext ctx)
         {
-            //_ = PlayAsync(_engine, () => _host!.Forward);
+            _ = PlayAsync(_engine, () => _host!.Forward);
 
             base.Start(ctx);
         }
@@ -214,11 +214,7 @@ namespace XrSamples
             base.Reset(onlySelf);
         }
 
-        [Action()]
-        public void Save()
-        {
-            File.WriteAllBytes("d:\\test.pcm", _engine.Loop.Buffer);
-        }
+
 
         [Range(0, 1, 0.001f)]
         public float Pitch
@@ -226,7 +222,7 @@ namespace XrSamples
             get => _curSource!.Pitch;
             set => _curSource!.Pitch = value;
         }
-
+        /*
 
         [Range(0, 1, 0.001f)]
         public float FadeSize
@@ -241,6 +237,7 @@ namespace XrSamples
             get => _engine.SliceLen;
             set => _engine.SliceLen = value;
         }
+        */
 
 
         [Range(0, 1, 0.01f)]
@@ -257,7 +254,7 @@ namespace XrSamples
             set => _engine.Rpm = (int)value;
         }
 
-        public CarSoundV2 Engine => _engine;
+        public CarSoundV1 Engine => _engine;
 
     }
 }

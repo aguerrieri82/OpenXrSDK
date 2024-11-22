@@ -188,6 +188,8 @@ namespace XrEngine.UI
 
         public Size2I PixelSize => _pixelSize;
 
+        public Texture2D? ActiveTexture => _activeTexture;
+
         public CanvasViewMode Mode
         {
             get => _mode;

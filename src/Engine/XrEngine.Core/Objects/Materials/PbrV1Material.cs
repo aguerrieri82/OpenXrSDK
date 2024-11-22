@@ -471,12 +471,12 @@ namespace XrEngine
                 {
                     return (CameraUniforms?)new CameraUniforms
                     {
-                        Position = ctx.Camera!.WorldPosition,
-                        ProjectionMatrix = ctx.Camera.Projection,
-                        ViewMatrix = ctx.Camera.View,
-                        ViewProjectionMatrix = ctx.Camera!.ViewProjection,
-                        Exposure = ctx.Camera.Exposure,
-                        FarPlane = ctx.Camera.Far
+                        Position = ctx.PassCamera!.WorldPosition,
+                        ProjectionMatrix = ctx.PassCamera.Projection,
+                        ViewMatrix = ctx.PassCamera.View,
+                        ViewProjectionMatrix = ctx.PassCamera!.ViewProjection,
+                        Exposure = ctx.PassCamera.Exposure,
+                        FarPlane = ctx.PassCamera.Far
                     };
                 }, 0, BufferStore.Shader);
 

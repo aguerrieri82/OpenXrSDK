@@ -20,6 +20,8 @@ namespace XrEngine.OpenGL
                 TextureFormat.RgbFloat32 => 32 * 3,
                 TextureFormat.RgbaFloat32 => 32 * 4,
                 TextureFormat.RgbaFloat16 => 16 * 4,
+                TextureFormat.Depth24Float => 24,
+                TextureFormat.Gray16 => 16,
                 _ => throw new NotSupportedException()
             };
 

@@ -29,7 +29,7 @@
 
             bld.ExecuteAction((ctx, up) =>
             {
-                var camera = ctx.Camera!;
+                var camera = ctx.PassCamera!;
 
                 up.SetUniform("uViewProj", camera.ViewProjection);
                 up.SetUniform("uViewPos", camera.WorldPosition, true);

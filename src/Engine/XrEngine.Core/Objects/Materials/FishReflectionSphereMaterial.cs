@@ -97,7 +97,7 @@ namespace XrEngine
 
             bld.ExecuteAction((ctx, up) =>
             {
-                var camera = ((PerspectiveCamera)ctx.Camera!);
+                var camera = ((PerspectiveCamera)ctx.PassCamera!);
 
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);

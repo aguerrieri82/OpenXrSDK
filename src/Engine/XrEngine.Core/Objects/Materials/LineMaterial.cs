@@ -25,17 +25,13 @@
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
         {
-            if (bld.Context.Camera != null)
-            {
-                bld.SetUniform("uViewProj", (ctx) => ctx.Camera!.ViewProjection);
-            }
+            if (bld.Context.PassCamera != null)
+                bld.SetUniform("uViewProj", (ctx) => ctx.PassCamera!.ViewProjection);
 
             if (bld.Context.Model != null)
-                bld.SetUniform("uModel", (ctx) =>
-                    ctx.Model!.WorldMatrix);
+                bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
         }
+
         public float LineWidth { get; set; }
-
-
     }
 }
