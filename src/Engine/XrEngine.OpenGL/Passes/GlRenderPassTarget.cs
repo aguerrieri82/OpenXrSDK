@@ -68,20 +68,19 @@ namespace XrEngine.OpenGL
             return _extras.Count - 1;
         }
 
-        [MemberNotNull(nameof(RenderTarget))]
+
         public void Configure(Texture colorTexture)
         {
             Configure(colorTexture.ToGlTexture());
         }
 
-        [MemberNotNull(nameof(RenderTarget))]
         public void Configure(GlTexture colorTexture)
         {
             _colorTexture = colorTexture;
             Configure(colorTexture.Width, colorTexture.Height, GlUtils.GetTextureFormat(colorTexture.InternalFormat));
         }
 
-        [MemberNotNull(nameof(RenderTarget))]
+
         public void Configure(uint width, uint height, TextureFormat format)
         {
             if (width == 0 || height == 0)

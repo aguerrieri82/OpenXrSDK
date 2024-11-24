@@ -7,6 +7,7 @@ using XrMath;
 using static PhysX.NativeMethods;
 
 
+#pragma warning disable CS0649
 
 namespace PhysX.Framework
 {

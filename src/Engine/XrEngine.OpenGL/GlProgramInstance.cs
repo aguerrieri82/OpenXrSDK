@@ -145,9 +145,6 @@ namespace XrEngine.OpenGL
                 action(ctx);
         }
 
-        static readonly int _skipCount = 0;
-
-        static readonly long _skipVersion = 0;
 
         public void UpdateUniforms(UpdateShaderContext ctx, bool updateGlobals)
         {

@@ -12,20 +12,13 @@ namespace XrEngine.Media.Android
 
     public class AndroidVideoCodec : IVideoCodec
     {
-        struct ConvertData
-        {
-            public FrameBuffer Src;
-            public FrameBuffer Dst;
-        }
-
         private MediaCodec? _codec;
         private VideoFormat _outFormat;
         private string? _mimeType;
         private bool _isCodecInit;
         private SurfaceTexture? _surfaceTex;
         private readonly long _timeout;
-        private readonly ConcurrentQueue<ConvertData> _convertQueue = new ConcurrentQueue<ConvertData>();
-
+    
         public AndroidVideoCodec()
         {
             _timeout = 60 * 1000;
@@ -135,8 +128,6 @@ namespace XrEngine.Media.Android
 
             _outFormat = outFormat;
             _mimeType = mimeType;
-            _convertQueue.Clear();
-
         }
 
         public Texture2D? OutTexture { get; set; }

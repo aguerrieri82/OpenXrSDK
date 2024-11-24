@@ -150,11 +150,9 @@ namespace XrEditor.Audio
                 }
             }
 
-            using var paint = new SKPaint();
-            paint.IsAntialias = true;
-            paint.FilterQuality = SKFilterQuality.Medium;
+            //var sampOp = new SKSamplingOptions(SKFilterMode.Linear);
 
-            canvas.DrawBitmap(_image, new SKRect(0, 0, _image.Width, _image.Height), rect.ToSKRect());
+            canvas.DrawBitmap(_image, new SKRect(0, 0, _image.Width, _image.Height));
         }
 
 

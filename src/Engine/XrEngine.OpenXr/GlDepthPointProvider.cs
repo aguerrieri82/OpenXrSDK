@@ -65,7 +65,7 @@ namespace XrEngine.OpenXr
 
             var curTarget = renderer.RenderTarget;
 
-            _target.RenderTarget.Begin(_depthCamera);
+            _target.RenderTarget!.Begin(_depthCamera);
 
             _program.Use();
             _program.LoadTexture(texture, 8);

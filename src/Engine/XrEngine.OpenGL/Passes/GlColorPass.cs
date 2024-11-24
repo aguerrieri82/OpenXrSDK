@@ -122,11 +122,6 @@ namespace XrEngine.OpenGL
                         if (!CanDraw(draw))
                             continue;
 
-                        if (draw.Object.Name == "Wall")
-                        {
-                            Debug.WriteLine("wall");
-                        }
-
                         var progInst = draw.ProgramInstance!;
 
                         updateContext.Model = draw.Object;

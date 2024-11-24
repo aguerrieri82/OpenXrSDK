@@ -9,6 +9,6 @@
     <ProjectReference Include="..\UI.Binding\UI.Binding.csproj" />
   </ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.4.1" />
+		<PackageReference Include="SkiaSharp" Version="3.118.0-preview.1.2" />
 	</ItemGroup>
 </Project>
