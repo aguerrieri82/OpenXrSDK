@@ -373,8 +373,6 @@ Makefile
 /dist/
 
 #other
-/third-party/
-/sdk/
 **/XrSamples.Common/Assets/
 *.i64
 /libs/filament-windows
