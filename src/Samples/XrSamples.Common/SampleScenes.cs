@@ -1100,7 +1100,7 @@ namespace XrSamples
                 if (!isInit && window.ActiveTexture != null)
                 {
                     mat.Texture = window.ActiveTexture;
-                    var size = new Vector2(window.ActiveTexture!.Width, window.ActiveTexture.Height);
+                    var size = new Vector2(window.ActiveTexture.Width, window.ActiveTexture.Height);
                     var viewSize = new Vector2(scene.ActiveCamera!.ViewSize.Width, scene.ActiveCamera.ViewSize.Height);
                     var relSize = 2 * size / viewSize;
                     window.Transform.Scale = new Vector3(relSize.X, relSize.Y, 1);
