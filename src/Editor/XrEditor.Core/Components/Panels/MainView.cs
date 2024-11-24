@@ -133,8 +133,6 @@ namespace XrEditor
 
         public void LoadState()
         {
-            return;
-
             if (!File.Exists("layout.json"))
                 return;
             var json = File.ReadAllText("layout.json");

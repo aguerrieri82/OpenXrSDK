@@ -91,7 +91,7 @@ namespace OpenXr.Framework
                     }
                 }
 
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //_logger.LogError(ex, "GetAnchors {itemId}", item.Id);
                 }

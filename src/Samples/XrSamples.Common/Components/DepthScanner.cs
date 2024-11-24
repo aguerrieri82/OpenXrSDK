@@ -42,12 +42,12 @@ namespace XrSamples.Components
             if (FrameRate > 0)
             {
                 if ((ctx.Time - _lastScanTime) >= 1f / FrameRate)
-                    Scan(ctx.Frame);
+                    Scan(ctx);
             }
             else
             {
                 if (ScanInput != null && ScanInput.IsActive && ScanInput.IsChanged && ScanInput.Value)
-                    Scan(ctx.Frame);
+                    Scan(ctx);
             }
 
             if (HideInput != null && HideInput.IsActive && HideInput.IsChanged && HideInput.Value)
@@ -66,7 +66,7 @@ namespace XrSamples.Components
             base.Update(ctx);
         }
 
-        unsafe void Scan(long frame)
+        unsafe void Scan(RenderContext ctx)
         {
             var depth = _host?.Scene?.ActiveCamera?.Feature<IEnvDepthProvider>();
             if (depth == null)
@@ -148,13 +148,15 @@ namespace XrSamples.Components
                 fixed (Vector3* pPoints = array)
                 {
                     var span = new Span<byte>(pPoints, sizeof(Vector3) * array.Length);
-                    File.WriteAllBytes(Path.Join(baseDir, $"{frame}-points.bin"), span);
+                    File.WriteAllBytes(Path.Join(baseDir, $"{ctx.Frame}-points.bin"), span);
                 }
 
                 var json = JsonConvert.SerializeObject(camera);
                 
-                File.WriteAllText(Path.Join(baseDir, $"{frame}-camera.json"), json);
+                File.WriteAllText(Path.Join(baseDir, $"{ctx.Frame}-camera.json"), json);
             }
+
+            _lastScanTime = ctx.Time;
         }
 
         public Color Color { get; set; }

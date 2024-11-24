@@ -53,7 +53,7 @@ namespace XrEngine.OpenGL
         protected virtual ShaderMaterial ReplaceMaterial(ShaderMaterial material)
         {
             return material;
-
+            /*
             if (material is IPbrMaterial pbr)
             {
                 return new BasicMaterial
@@ -78,6 +78,7 @@ namespace XrEngine.OpenGL
             }
 
             return material;
+            */
         }
 
         public void Update()

@@ -39,8 +39,8 @@ namespace XrEngine.Physics
             var ps0 = Joint.BaseJoint.LocalPose0;
             var ps1 = Joint.BaseJoint.LocalPose1;
 
-            ps0.Position -= -Joint.Object0.Transform.LocalPivot;
-            ps1.Position -= -Joint.Object1.Transform.LocalPivot;
+            ps0.Position -= -Joint.Object0!.Transform.LocalPivot;
+            ps1.Position -= -Joint.Object1!.Transform.LocalPivot;
 
 
             var start = ps0.Position;

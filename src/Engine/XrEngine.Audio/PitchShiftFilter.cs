@@ -1,4 +1,5 @@
 ﻿using Fftw;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace XrEngine.Audio
@@ -7,12 +8,12 @@ namespace XrEngine.Audio
     {
         private int _hopSize;
         private int _numFrames;
-        private double[] _window;
-        private double[] _phaseAccum;
-        private double[] _prevPhase;
-        private FftwBuffer<double> _fftIn;
-        private FftwBuffer<Complex> _fftOut;
-        private FftwBuffer<Complex> _shiftedSpectrum;
+        private double[]? _window;
+        private double[]? _phaseAccum;
+        private double[]? _prevPhase;
+        private FftwBuffer<double>? _fftIn;
+        private FftwBuffer<Complex>? _fftOut;
+        private FftwBuffer<Complex>? _shiftedSpectrum;
         private int _sampleRate;
         private int _inputLen;
 
@@ -53,6 +54,8 @@ namespace XrEngine.Audio
 
         public unsafe void Transform(float[] input, float[] output)
         {
+            Debug.Assert(_fftIn != null && _fftOut != null && _prevPhase != null && _shiftedSpectrum != null && _phaseAccum != null);
+
             var windowSize = FFtSize;
 
             if (_numFrames > 1)

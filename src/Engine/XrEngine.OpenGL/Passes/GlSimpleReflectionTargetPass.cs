@@ -133,7 +133,7 @@ namespace XrEngine.OpenGL
             _renderer.UpdateContext.PassCamera = _reflection.ReflectionCamera;
 
             _passTarget.Configure(_reflection.Texture!);
-            _passTarget.RenderTarget.Begin(_reflection.ReflectionCamera);
+            _passTarget.RenderTarget!.Begin(_reflection.ReflectionCamera);
 
             _renderer.State.SetWriteColor(true);
             _renderer.State.SetWriteDepth(true);

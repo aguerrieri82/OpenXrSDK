@@ -20,7 +20,7 @@ namespace XrEditor.Audio
 
             public int Length { get; set; }
 
-            public Vector2[] Frequencies { get; set; } 
+            public Vector2[]? Frequencies { get; set; } 
         }
 
     
