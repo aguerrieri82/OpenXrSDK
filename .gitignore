@@ -382,3 +382,4 @@ Makefile
 /src/Engine/Filament.Native/libs/
 /src/Engine/XrEngine.Native/libs/
 /src/Engine/Draco.Native/libs/
+/libs/physx-141/include
