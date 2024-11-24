@@ -19,3 +19,6 @@
 [submodule "third-party/libjpeg-turbo"]
 	path = third-party/libjpeg-turbo
 	url = https://github.com/libjpeg-turbo/libjpeg-turbo
+[submodule "third-party/physx-rs"]
+	path = third-party/physx-rs
+	url = https://github.com/aguerrieri82/physx-rs
