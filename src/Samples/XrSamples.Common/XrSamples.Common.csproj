@@ -26,4 +26,7 @@
 		<Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
+		<AndroidAsset Remove="Assets/**/*" />
+	</ItemGroup>
 </Project>

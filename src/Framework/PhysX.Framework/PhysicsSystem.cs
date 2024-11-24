@@ -65,7 +65,7 @@ namespace PhysX.Framework
 
     public unsafe class PhysicsSystem : IDisposable
     {
-        const uint VersionNumber = (5 << 24) + (1 << 16) + (3 << 8);
+        const uint VersionNumber = 0x05010200;
 
         protected static PxFoundation* _foundation;
         protected PxPvd* _pvd;

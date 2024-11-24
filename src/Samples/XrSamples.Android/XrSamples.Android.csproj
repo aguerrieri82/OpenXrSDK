@@ -18,7 +18,6 @@
 		<PublishTrimmed>false</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
 		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
-		
 		<DebugSymbols>true</DebugSymbols>
 		<AndroidManagedSymbols>true</AndroidManagedSymbols> 
 	</PropertyGroup>
@@ -26,15 +25,6 @@
 	<ItemGroup>
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../libs/*.so" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="Env.txt" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <AndroidEnvironment Include="Env.txt" />
-	</ItemGroup>
-
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />
