@@ -5,7 +5,7 @@ namespace XrEditor
 {
     public class PanelView : BaseView
     {
-        private string? _panelId;
+        private Guid? _panelId;
         private IPanel? _panel;
 
         public IPanel? Panel
@@ -13,12 +13,12 @@ namespace XrEditor
             get
             {
                 if (_panel == null && _panelId != null)
-                    _panel = Context.Require<PanelManager>().Panel(_panelId);
+                    _panel = Context.Require<PanelManager>().Panel(_panelId.Value);
                 return _panel;
             }
         }
 
-        public string? PanelId
+        public Guid? PanelId
         {
             get => _panelId;
             set

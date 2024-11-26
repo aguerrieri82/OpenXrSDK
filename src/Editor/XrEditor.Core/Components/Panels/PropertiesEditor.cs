@@ -20,10 +20,17 @@ namespace XrEditor
         private IDispatcher? _renderDispatcher;
         private int _isUpdatingProps;
 
-        public PropertiesEditor(PropertiesEditorMode mode, string title = "Properties")
+        public PropertiesEditor(PropertiesEditorMode mode, Guid panelId)
         {
+            _panelId = panelId; 
+            
             Mode = mode;
-            Title = title;
+            
+            if (panelId == TOOLS)
+                Title = "Tools";
+            else if (panelId == PROPERTIES)
+                Title = "Properties";
+
             if (mode == PropertiesEditorMode.Selection)
                 Context.Require<SelectionManager>().Changed += OnSelectionChanged;
         }
@@ -273,5 +280,11 @@ namespace XrEditor
         public PropertiesEditorMode Mode { get; }
 
         public override string? Title { get; }
+
+
+        public static readonly Guid PROPERTIES = new("3fc8a4fb-806b-49cd-b770-ec127c8e5f79");
+
+        public static readonly Guid TOOLS = new("d50e5a2d-dd41-4de2-9327-6b01e676cdc9");
+
     }
 }

@@ -46,9 +46,9 @@ namespace XrEditor
 
             Outline = new OutlinePanel();
 
-            PropertiesEditor = new PropertiesEditor(PropertiesEditorMode.Selection);
+            PropertiesEditor = new PropertiesEditor(PropertiesEditorMode.Selection, PropertiesEditor.PROPERTIES);
 
-            ToolPropertiesEditor = new PropertiesEditor(PropertiesEditorMode.Custom, "Tool");
+            ToolPropertiesEditor = new PropertiesEditor(PropertiesEditorMode.Custom, PropertiesEditor.TOOLS);
 
             SceneView = new SceneView(surface);
 
@@ -56,11 +56,13 @@ namespace XrEditor
 
             Log = new LogPanel();
 
-            Plotter = Context.Require<PanelManager>().Panel("Plotter")!;
+            var pm = Context.Require<PanelManager>();
 
-            var draw = Context.Require<PanelManager>().Panel("Draw")!;
-            var loopEditor = Context.Require<PanelManager>().Panel("LoopEditor")!;
+            Plotter = pm.Panel(Guid.Parse("cf183da2-a88f-499c-bea4-b286644d4e78"))!;
 
+            var draw = pm.Panel(Guid.Parse("58cd65ac-f832-4cad-84ae-4bfcb3375c77"))!;
+
+            var loopEditor = pm.Panel(Guid.Parse("c219f3ab-392d-49f6-8afc-df69d2c6d283"))!;
 
             Content = new SplitView
             {

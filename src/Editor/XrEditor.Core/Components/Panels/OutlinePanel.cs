@@ -3,6 +3,8 @@ using XrEngine;
 
 namespace XrEditor
 {
+
+    [Panel("6cc81a05-0e2d-4782-b9c3-0d8ab46550ca")]
     public class OutlinePanel : BasePanel
     {
         static protected Dictionary<INode, ListTreeNodeView> _listNodeMap = [];

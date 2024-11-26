@@ -14,12 +14,12 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<RunAOTCompilation>true</RunAOTCompilation>
-		<PublishTrimmed>true</PublishTrimmed>
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<PublishTrimmed>false</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
-		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
-		<DebugSymbols>false</DebugSymbols>
-		<AndroidManagedSymbols>false</AndroidManagedSymbols> 
+		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
+		<DebugSymbols>true</DebugSymbols>
+		<AndroidManagedSymbols>true</AndroidManagedSymbols> 
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -115,6 +115,7 @@ namespace XrEngine.OpenGL
                     WrapT = _colorTexture?.WrapT ?? TextureWrapMode.ClampToEdge,
                     BorderColor = _colorTexture?.BorderColor ?? Color.White,
                     MaxLevel = 0,
+                    EnableDebug = false,
                     Target = depth == 2 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D
                 };
 

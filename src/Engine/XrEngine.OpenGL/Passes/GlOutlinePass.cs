@@ -13,7 +13,7 @@ namespace XrEngine.OpenGL
     {
         protected readonly GlRenderPassTarget _passTarget;
         protected Size2I _lastSize;
-        protected readonly GlComputeProgram _outlineProgram;
+        protected readonly GlSimpleProgram _outlineProgram;
 
         public GlOutlinePass(OpenGLRender renderer, int boundEye = -1)
             : base(renderer)
@@ -21,9 +21,8 @@ namespace XrEngine.OpenGL
             _passTarget = new GlRenderPassTarget(renderer.GL);
             _passTarget.BoundEye = boundEye;
             _passTarget.DepthMode = TargetDepthMode.None;
-            _passTarget.AddExtra(TextureFormat.Rgba32, null, false);
 
-            _outlineProgram = new GlComputeProgram(renderer.GL, "Image/outline.glsl", str => Embedded.GetString<Material>(str));
+            _outlineProgram = new GlSimpleProgram(renderer.GL, "Utils/fullscreen.vert", "outline.frag", str => Embedded.GetString<Material>(str));
             _outlineProgram.Build();
         }
 
@@ -79,16 +78,14 @@ namespace XrEngine.OpenGL
         {
             _passTarget.RenderTarget!.End(true);
 
-            _outlineProgram.Use();
-            _outlineProgram.SetUniform("uSize", (int)_renderer.Options.Outline.Size);
-
-            var outlineTexture = _passTarget.GetExtra(0)!;
-
-            ProcessImage(_passTarget.ColorTexture!, outlineTexture);
 
             _renderer.RenderTarget!.Begin(_renderer.UpdateContext.PassCamera!);
 
-            OverlayTexture(outlineTexture);
+            _outlineProgram.Use();
+            _outlineProgram.SetUniform("uSize", (int)_renderer.Options.Outline.Size);
+            _outlineProgram.LoadTexture(_passTarget.ColorTexture!.ToEngineTexture(), 0);
+
+            DrawQuad();
         }
 
         protected override IEnumerable<GlLayer> SelectLayers()

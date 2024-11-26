@@ -45,7 +45,7 @@ namespace XrMath
             var edge1 = p2 - p1;
             var edge2 = p4 - p1;
 
-            Vector3 normal = Vector3.Normalize(Vector3.Cross(edge1, edge2));
+            Vector3 normal = -Vector3.Normalize(Vector3.Cross(edge1, edge2));
 
             result.Pose.Position = (p1 + p2 + p3 + p4) / 4;
             result.Pose.Orientation = normal.ToOrientation();

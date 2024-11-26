@@ -6,10 +6,12 @@
     {
         public PanelAttribute(string panelId)
         {
-            PanelId = panelId;
+            PanelId = Guid.Parse(panelId);
         }
-        public string PanelId { get; }
+
+        public Guid PanelId { get; }
     }
+
 
 
     public interface IPanel
@@ -20,7 +22,7 @@
 
         bool IsActive { get; set; }
 
-        string PanelId { get; }
+        Guid PanelId { get; }
 
         string? Title { get; }
 

@@ -123,11 +123,7 @@ namespace XrEditor.Services
         {
             _engine.SetRenderTarget(_texture);
 
-            _app.RenderFrame(new Rect2I()
-            {
-                Width = _texture.Width,
-                Height = _texture.Height
-            });
+            _app.RenderFrame();
 
             var data = ((IFrameReader)_app.Renderer!).ReadFrame();
 

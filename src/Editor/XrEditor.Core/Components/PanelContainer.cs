@@ -58,7 +58,7 @@ namespace XrEditor
             foreach (var key in panels.Keys)
             {
                 var panelState = panels.Enter(key);
-                var panelId = panelState.Read<string>("PanelId");
+                var panelId = panelState.Read<Guid>("PanelId");
                 var panel = manager.Panel(panelId);
                 if (panel == null)
                     throw new Exception("");

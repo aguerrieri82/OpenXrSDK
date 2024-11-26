@@ -69,7 +69,7 @@ namespace XrEditor
             return AddSelect(items, value, setValue);
         }
 
-        public SingleSelector AddSelect<T>(IList<SelectorItem> items, T value, Action<T> setValue) where T : struct, Enum
+        public SingleSelector AddSelect<T>(IList<SelectorItem> items, T value, Action<T> setValue) 
         {
             var result = new SingleSelector
             {
@@ -80,7 +80,11 @@ namespace XrEditor
             result.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(SingleSelector.SelectedValue))
-                    setValue((T)result.SelectedValue);
+                {
+                    if (result.SelectedValue != null)
+                        setValue((T)result.SelectedValue);
+                }
+
             };
 
             Items.Add(result);

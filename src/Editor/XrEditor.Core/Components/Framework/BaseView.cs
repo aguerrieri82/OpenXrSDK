@@ -6,7 +6,6 @@ namespace XrEditor
 {
     public abstract class BaseView : INotifyPropertyChanged
     {
-
         public BaseView()
         {
         }
@@ -27,7 +26,5 @@ namespace XrEditor
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-
-
     }
 }

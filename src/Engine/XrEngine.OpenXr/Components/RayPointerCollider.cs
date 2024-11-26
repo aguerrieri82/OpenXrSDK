@@ -136,8 +136,8 @@ namespace XrEngine.OpenXr
 
             foreach (var target in _sceneTargets)
                 target.NotifyCollision(ctx, collision);
-
         }
+
 
         public IRayColliderHandler? Handler { get; set; }
 

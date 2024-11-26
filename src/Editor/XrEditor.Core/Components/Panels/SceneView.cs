@@ -1,5 +1,6 @@
 ﻿
 using OpenXr.Framework.Oculus;
+using System.Numerics;
 using System.Xml.Linq;
 using XrEditor.Services;
 using XrEngine;
@@ -50,29 +51,32 @@ namespace XrEditor
         public bool IsCaptured => _pointer.IsCaptured;
     }
 
+
+    [Panel("e0c28154-c76f-4765-83dc-0fe9ceb6f655")]
     public class SceneView : BasePanel
     {
         protected readonly IRenderSurface _renderSurface;
 
 
-        protected Camera? _camera;
+        protected Camera _camera;
         protected Scene3D? _scene;
         protected Thread? _renderThread;
         protected bool _isStarted;
-        protected Rect2I _view = new();
         protected XrHandInputMesh? _rHand;
         protected XrOculusTouchController? _inputs;
-        protected List<IEditorTool> _tools = [];
         protected SceneXrState _xrState;
         protected IRenderEngine? _render;
         protected XrEngineApp? _engine;
         protected MemoryStateContainer? _sceneState;
+        protected SingleSelector _cameraList;
         protected readonly QueueDispatcher _renderDispatcher;
         protected readonly ActionView _playButton;
         protected readonly ActionView _pauseButton;
         protected readonly ActionView _stopButton;
         protected readonly ActionView _xrButton;
         protected readonly TextView _fpsLabel;
+        protected readonly PerspectiveCamera _sceneCamera;
+        protected readonly List<IEditorTool> _tools = [];
 
         public SceneView(IRenderSurface renderSurface)
         {
@@ -89,11 +93,46 @@ namespace XrEditor
                     StopXr();
             });
 
+            _sceneCamera = new PerspectiveCamera
+            {
+                Far = 100f,
+                Near = 0.01f,
+                BackgroundColor = new Color(0, 0, 0, 0),
+                Exposure = 1,
+                FovDegree = 45,
+                Name = "Scene"
+            };
+
+            _sceneCamera.LookAt(new Vector3(1, 1.7f, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
+            _camera = _sceneCamera;
+
             _fpsLabel = ToolBar.AddText(string.Empty);
             ToolBar.AddDivider();
-            _playButton = ToolBar.AddButton("icon_play_arrow", () => StartApp());
-            _pauseButton = ToolBar.AddButton("icon_pause", () => PauseApp());
-            _stopButton = ToolBar.AddButton("icon_stop", () => StopApp());
+            _playButton = ToolBar.AddButton("icon_play_arrow", StartApp);
+            _pauseButton = ToolBar.AddButton("icon_pause", PauseApp);
+            _stopButton = ToolBar.AddButton("icon_stop", StopApp);
+            ToolBar.AddDivider();
+            _cameraList = ToolBar.AddSelect(ListCameras(), _camera, c => Camera = c);
+
+        }
+
+        protected IList<SelectorItem> ListCameras()
+        {
+            var result = new List<SelectorItem>();
+            result.Add(new SelectorItem { DisplayName = "Scene", Value = _sceneCamera });
+            if (_scene != null)
+            {
+                foreach (var camera in _scene.Descendants<PerspectiveCamera>())
+                    result.Add(new SelectorItem
+                    {
+                        Value = camera,
+                        DisplayName = camera.Name ?? $"Camera {result.Count}"
+                    });
+            }
+
+
+            return result;
         }
 
         protected async Task CreateAppAsync()
@@ -207,14 +246,13 @@ namespace XrEditor
 
                         if (_renderSurface.SupportsDualRender)
                         {
-                            _scene.App.RenderContext.Camera!.IsStereo = false;
+                            _camera.IsStereo = false;
                             _render.SetRenderTarget(null);
-#warning "Take in account of dual camera"
-                            _render.Render(_scene.App.RenderContext, _view, false);
+                            _scene.App.RenderScene(_camera);
                         }
                     }
                     else
-                        _scene.App!.RenderFrame(_view);
+                        _scene.App.RenderFrame(_camera);
 
                     _renderSurface.SwapBuffers();
 
@@ -238,11 +276,15 @@ namespace XrEditor
 
         protected void UpdateSize()
         {
-            _view.Width = (uint)(_renderSurface!.Size.X);
-            _view.Height = (uint)(_renderSurface.Size.Y);
+            var width = (uint)(_renderSurface!.Size.X);
+            var height = (uint)(_renderSurface.Size.Y);
 
             if (_camera is PerspectiveCamera persp)
-                persp.SetFov(45, _view.Width, _view.Height);
+            {
+                if (persp.FovDegree == 0)
+                    persp.FovDegree = 45;
+                persp.SetFov(persp.FovDegree, width, height);
+            }
         }
 
         public Task StartApp() => RenderDispatcher.ExecuteAsync(() =>
@@ -330,8 +372,7 @@ namespace XrEditor
                     return;
 
                 _scene = value;
-
-                Camera = _scene?.ActiveCamera;
+                _cameraList.Items = ListCameras();
 
                 OnPropertyChanged(nameof(Scene));
                 OnPropertyChanged(nameof(CameraList));
@@ -340,7 +381,7 @@ namespace XrEditor
             }
         }
 
-        public Camera? Camera
+        public Camera Camera
         {
             get => _camera;
             set
@@ -348,6 +389,7 @@ namespace XrEditor
                 if (_camera == value)
                     return;
                 _camera = value;
+                UpdateSize();
                 OnPropertyChanged(nameof(Camera));
             }
         }
