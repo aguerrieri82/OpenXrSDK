@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageReference Include="CefSharp.Common.NETCore" Version="131.2.70" />
     <PackageReference Include="CefSharp.OffScreen.NETCore" Version="131.2.70" />
+    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>
 
   <ItemGroup>

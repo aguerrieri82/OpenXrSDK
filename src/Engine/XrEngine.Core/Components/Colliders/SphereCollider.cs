@@ -28,7 +28,7 @@ namespace XrEngine
 
             var sphere = new Sphere(Center, Radius);
 
-            var point = ray.Intersects(sphere, out _);
+            var point = localRay.Intersects(sphere, out _);
 
             if (point == null)
                 return null;

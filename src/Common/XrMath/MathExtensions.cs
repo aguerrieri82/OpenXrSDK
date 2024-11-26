@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace XrMath
@@ -98,7 +99,7 @@ namespace XrMath
         public static Plane ToPlane(this Quad3 self)
         {
             var normal = self.Normal();
-            return new Plane(normal, -normal.DotSafe(self.Pose.Position));
+            return new Plane(normal, -Vector3.Dot(normal, self.Pose.Position));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -135,7 +136,6 @@ namespace XrMath
         public static Vector2 LocalPointAt(this Quad3 self, Vector3 worldPoint)
         {
             var local = self.Pose.Inverse().Transform(worldPoint);
-
             return new Vector2(local.X, local.Y) + self.Size / 2;
         }
 
@@ -158,7 +158,7 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Distance(this Plane self, Vector3 point)
         {
-            return self.Normal.DotSafe(point) + self.D;
+            return self.Normal.Dot(point) + self.D;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -450,11 +450,11 @@ namespace XrMath
             var transformedUp = Vector3.UnitY.Transform(self.Orientation);
 
             // Project the transformed up vector onto the plane perpendicular to the direction
-            var projectedUp = transformedUp - transformedUp.DotSafe(direction) * direction;
+            var projectedUp = transformedUp - transformedUp.Dot(direction) * direction;
 
             // Calculate the roll angle in radians, using atan2 for signed angle
-            var angle = (float)Math.Atan2(Vector3.UnitY.Cross(projectedUp).DotSafe(direction),
-                                          Vector3.UnitY.DotSafe(projectedUp));
+            var angle = (float)Math.Atan2(Vector3.UnitY.Cross(projectedUp).Dot(direction),
+                                          Vector3.UnitY.Dot(projectedUp));
 
             return new Ray3
             {
@@ -471,7 +471,7 @@ namespace XrMath
         public static bool IsCCW(this Triangle3 self)
         {
             var normal = self.Normal();
-            var dot = normal.DotSafe(Vector3.UnitZ);
+            var dot = normal.Dot(Vector3.UnitZ);
             return dot > 0;
         }
 
@@ -600,6 +600,12 @@ namespace XrMath
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Dot(this Vector3 self, Vector3 other)
+        {
+            return Vector3.Dot(self, other);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Cross(this Vector3 self, Vector3 other)
         {
             return Vector3.Cross(self, other);
@@ -681,7 +687,7 @@ namespace XrMath
             var cross = Vector3.Cross(self, other);
             var dot = self.DotSafe(other);
             var angle = MathF.Atan2(cross.Length(), dot);
-            var sign = MathF.Sign(cross.DotSafe(planeNormal));
+            var sign = MathF.Sign(cross.Dot(planeNormal));
             return angle * sign;
         }
 
@@ -825,7 +831,7 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Plane ToPlane(this Ray3 self)
         {
-            return new Plane(self.Direction, -self.Direction.DotSafe(self.Origin));
+            return new Plane(self.Direction, -self.Direction.Dot(self.Origin));
         }
 
         #endregion
@@ -919,13 +925,13 @@ namespace XrMath
         {
             self.GetAxisAndAngle(out var quatAxis, out _);
 
-            var projection = quatAxis.DotSafe(axis);
+            var projection = quatAxis.Dot(axis);
 
             var angle = MathF.Acos(projection);
 
             var crossProduct = Vector3.Cross(quatAxis, axis);
 
-            var sign = MathF.Sign(crossProduct.DotSafe(normal));
+            var sign = MathF.Sign(crossProduct.Dot(normal));
 
             return angle * sign;
         }

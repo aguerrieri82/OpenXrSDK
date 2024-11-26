@@ -6,7 +6,7 @@ using XrMath;
 
 namespace XrEditor.Plot
 {
-    [Panel("Draw")]
+    [Panel("58cd65ac-f832-4cad-84ae-4bfcb3375c77")]
     [StateManager(StateManagerMode.Explicit)]
     public class DrawPanel : BasePanel
     {

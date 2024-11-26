@@ -142,6 +142,7 @@ namespace XrEngine.OpenXr
 
                         camera.Projection = transform.Projection;
                         camera.WorldMatrix = transform.Transform;
+                        camera.ViewSize = rect.Size;
 
                         var depth = (CompositionLayerDepthInfoKHR*)info.ProjViews[0].Next;
                         if (depth != null)
@@ -151,7 +152,7 @@ namespace XrEngine.OpenXr
                         }
 
                         if (i == 0)
-                            app.RenderFrame(rect, false);
+                            app.RenderFrame();
                         else
                             renderer.Render(app.RenderContext, rect, true);
                     }
@@ -200,7 +201,8 @@ namespace XrEngine.OpenXr
                         }
                     }
 
-                    app.RenderFrame(rect);
+                    camera.ViewSize = rect.Size;
+                    app.RenderFrame(camera);
                 }
             }
 
@@ -283,6 +285,7 @@ namespace XrEngine.OpenXr
                         camera.Projection = eyes[i].Projection;
                         camera.WorldMatrix = eyes[i].World;
                         camera.ActiveEye = i;
+                        camera.ViewSize = rect.Size;
 
                         var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(ref info.ProjViews[i], StructureType.CompositionLayerDepthInfoKhr);
 
@@ -292,7 +295,7 @@ namespace XrEngine.OpenXr
                             depth->FarZ = camera.Far;
                         }
 
-                        app.RenderScene(rect, false);
+                        app.RenderScene();
                     }
 
                     app.EndFrame();
@@ -310,6 +313,7 @@ namespace XrEngine.OpenXr
 
                     camera.Projection = eyes[0].Projection;
                     camera.WorldMatrix = eyes[0].World.InterpolateWorldMatrix(eyes[1].World, 0.5f);
+                    camera.ViewSize = rect.Size;
 
                     var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(ref info.ProjViews[0], StructureType.CompositionLayerDepthInfoKhr);
 
@@ -319,7 +323,7 @@ namespace XrEngine.OpenXr
                         depth->FarZ = camera.Far;
                     }
 
-                    app.RenderFrame(rect);
+                    app.RenderFrame();
                 }
             }
 

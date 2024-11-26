@@ -135,15 +135,21 @@ namespace XrEngine.OpenGL
                 _drawQuad.Build();
             }
 
-            if (_emptyVertexArray == 0)
-                _emptyVertexArray = _gl.GenVertexArray();
-
             _drawQuad.Use();
             _drawQuad.LoadTexture(texture, 0);
 
             _renderer.State.SetUseDepth(false);
             _renderer.State.SetWriteDepth(false);
             _renderer.State.SetAlphaMode(AlphaMode.Blend);
+
+            DrawQuad();
+        }
+
+        protected void DrawQuad()
+        {
+
+            if (_emptyVertexArray == 0)
+                _emptyVertexArray = _gl.GenVertexArray();
 
             _gl.BindVertexArray(_emptyVertexArray);
             _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);

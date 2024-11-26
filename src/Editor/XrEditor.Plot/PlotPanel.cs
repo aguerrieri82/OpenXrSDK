@@ -4,7 +4,7 @@ using XrMath;
 
 namespace XrEditor.Plot
 {
-    [Panel("Plotter")]
+    [Panel("cf183da2-a88f-499c-bea4-b286644d4e78")]
     [StateManager(StateManagerMode.Explicit)]
     public class PlotPanel : BasePanel, ITimeLogger
     {

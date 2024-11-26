@@ -150,7 +150,7 @@ namespace XrEngine.OpenGL
 
         protected override bool BeginRender(Camera camera)
         {
-            Debug.Assert(camera.Scene != null);
+            //Debug.Assert(camera.Scene != null);
             var shadowRenderLayer = SelectLayers().First();
             var scene = shadowRenderLayer.Scene!;
             var recLayer = scene.EnsureLayer<ReceiveShadowsLayer>();

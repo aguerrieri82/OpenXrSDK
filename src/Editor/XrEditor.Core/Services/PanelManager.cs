@@ -2,6 +2,27 @@
 
 namespace XrEditor.Services
 {
+
+    public class PanelInfo
+    {
+        public PanelInfo(Func<IPanel> factory, Guid panelId)
+        {
+            PanelId = panelId;
+            Factory = factory;
+        }
+
+
+        public Guid PanelId { get; }
+
+        public Func<IPanel> Factory { get; }
+
+        public string? Title { get; set; }
+
+        public string? Icon { get; set; }
+
+        public IPanel? Instance { get; set; }
+    }
+
     public class PanelManager
     {
         class PanelLoadListener
@@ -13,7 +34,7 @@ namespace XrEditor.Services
 
         readonly List<IPanel> _panels = [];
         readonly List<PanelLoadListener> _loadListeners = [];
-        readonly Dictionary<string, Func<IPanel>> _factories = [];
+        readonly Dictionary<Guid, PanelInfo> _infos = [];
 
         public void NotifyLoaded(IPanel panel)
         {
@@ -35,11 +56,14 @@ namespace XrEditor.Services
             return _panels.OfType<T>().FirstOrDefault();
         }
 
-        public IPanel? Panel(string name)
+        public IPanel? Panel(Guid panelId)
         {
-            var result = _panels.FirstOrDefault(a => a.PanelId == name);
-            if (result == null && _factories.TryGetValue(name, out var factory))
-                result = factory();
+            var result = _panels.FirstOrDefault(a => a.PanelId == panelId);
+            if (result == null && _infos.TryGetValue(panelId, out var info))
+            {
+                info.Instance ??= info.Factory();
+                return info.Instance;
+            }
             return result;
         }
 
@@ -68,9 +92,16 @@ namespace XrEditor.Services
             await Task.WhenAll(_panels.Select(a => a.CloseAsync()));
         }
 
-        public void Register(Func<IPanel> factory, string panelId)
+
+        public void Register(PanelInfo info)
         {
-            _factories[panelId] = factory;
+            _infos[info.PanelId] = info;
+        }
+
+
+        public void Register(Func<IPanel> factory, Guid panelId)
+        {
+            Register(new PanelInfo(factory, panelId));
         }
 
         public void Register<T>() where T : IPanel, new()

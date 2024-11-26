@@ -10,7 +10,7 @@ namespace XrEditor
         protected readonly PanelManager _panelManager;
         protected readonly IUserInteraction _ui;
         protected readonly IMainDispatcher _mainDispatcher;
-        protected string _panelId;
+        protected Guid _panelId;
         protected IPanelContainer? _container;
         protected bool _isActive;
 
@@ -21,7 +21,9 @@ namespace XrEditor
             _panelManager = Context.Require<PanelManager>();
 
             var panelAttr = GetType().GetCustomAttribute<PanelAttribute>();
-            _panelId = panelAttr?.PanelId ?? GetType().Name;
+
+            if (panelAttr != null)
+                _panelId = panelAttr.PanelId;
 
             _ = LoadAsync();
         }
@@ -76,7 +78,7 @@ namespace XrEditor
             }
         }
 
-        public string PanelId => _panelId;
+        public Guid PanelId => _panelId;
 
         public abstract string? Title { get; }
 

@@ -95,7 +95,6 @@ namespace XrEngine
 
             _context.Frame++;
             _context.Scene = _activeScene;
-            _context.Camera = _activeScene.ActiveCamera;
 
             _renderThread = Thread.CurrentThread;
 
@@ -118,13 +117,14 @@ namespace XrEngine
             return true;
         }
 
-        public void RenderScene(Rect2I view, bool flush = true)
+        public void RenderScene(Camera? camera = null, bool flush = true)
         {
             if (_activeScene == null || _activeScene.ActiveCamera == null || Renderer == null)
                 return;
 
-            _activeScene.ActiveCamera.ViewSize = view.Size;
-            Renderer.Render(_context, view, flush);
+            _context.Camera = camera ?? _activeScene.ActiveCamera;
+
+            Renderer.Render(_context, new Rect2I(_context.Camera.ViewSize), flush);
         }
 
         public void EndFrame()
@@ -132,13 +132,13 @@ namespace XrEngine
             _stats.EndFrame();
         }
 
-        public void RenderFrame(Rect2I view, bool flush = true)
+        public void RenderFrame(Camera? camera = null, bool flush = true)
         {
             if (!BeginFrame())
                 return;
             try
             {
-                RenderScene(view, flush);
+                RenderScene(camera, flush);
             }
             finally
             {

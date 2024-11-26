@@ -524,7 +524,6 @@ namespace PhysX.Framework
             {
                 _pvd = _foundation->PhysPxCreatePvd();
 
-
                 fixed (byte* bytePointer = Encoding.UTF8.GetBytes(options.DebugHost))
                 {
                     var transport = phys_PxDefaultPvdSocketTransportCreate(bytePointer, options.DebugPort, 10000);
