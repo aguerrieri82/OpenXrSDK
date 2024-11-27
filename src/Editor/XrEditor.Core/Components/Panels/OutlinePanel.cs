@@ -1,10 +1,12 @@
-﻿using XrEditor.Services;
+﻿using System.ComponentModel;
+using XrEditor.Services;
 using XrEngine;
 
 namespace XrEditor
 {
 
     [Panel("6cc81a05-0e2d-4782-b9c3-0d8ab46550ca")]
+    [DisplayName("Outline")]
     public class OutlinePanel : BasePanel
     {
         static protected Dictionary<INode, ListTreeNodeView> _listNodeMap = [];

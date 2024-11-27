@@ -594,7 +594,7 @@ namespace XrMath
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float DotSafe(this Vector3 self, Vector3 other)
+        public static float DotNormal(this Vector3 self, Vector3 other)
         {
             return Math.Clamp(Vector3.Dot(self, other), -1f, 1f);
         }
@@ -638,7 +638,7 @@ namespace XrMath
             Vector3 rotationAxis;
 
             // Compute the dot product to find the cosine of the angle between the vectors
-            var dot = from.DotSafe(to);
+            var dot = from.DotNormal(to);
 
             // Handle the case where the vectors are already aligned
             if (MathF.Abs(dot - 1.0f) < epsilon)
@@ -685,7 +685,7 @@ namespace XrMath
             self = Vector3.Normalize(self);
             other = Vector3.Normalize(other);
             var cross = Vector3.Cross(self, other);
-            var dot = self.DotSafe(other);
+            var dot = self.DotNormal(other);
             var angle = MathF.Atan2(cross.Length(), dot);
             var sign = MathF.Sign(cross.Dot(planeNormal));
             return angle * sign;
@@ -739,7 +739,6 @@ namespace XrMath
             distance = (t1 >= 0) ? t1 : t2;
 
             return distance >= 0 ? self.PointAt(distance) : null;
-
         }
 
 
@@ -831,7 +830,7 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Plane ToPlane(this Ray3 self)
         {
-            return new Plane(self.Direction, -self.Direction.Dot(self.Origin));
+            return new Plane(self.Direction, -(self.Direction.Dot(self.Origin)));
         }
 
         #endregion

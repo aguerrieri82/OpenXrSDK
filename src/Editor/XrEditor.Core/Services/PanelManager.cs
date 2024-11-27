@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel;
+using System.Reflection;
 
 namespace XrEditor.Services
 {
@@ -99,23 +100,29 @@ namespace XrEditor.Services
         }
 
 
-        public void Register(Func<IPanel> factory, Guid panelId)
+        public void Register(Func<IPanel> factory, Guid panelId, string? title = null)
         {
-            Register(new PanelInfo(factory, panelId));
+            Register(new PanelInfo(factory, panelId)
+            {
+                Title = title,    
+            });
         }
 
         public void Register<T>() where T : IPanel, new()
         {
-            var attr = typeof(T).GetCustomAttribute<PanelAttribute>();
-
-            if (attr == null)
+            var panelAttr = typeof(T).GetCustomAttribute<PanelAttribute>();
+            var displayAttr = typeof(T).GetCustomAttribute<DisplayNameAttribute>();
+            if (panelAttr == null)
                 throw new NotSupportedException($"Panel attribute not declared in type {typeof(T).FullName}");
 
-            Register(() => new T(), attr.PanelId);
+            Register(() => new T(), panelAttr.PanelId, displayAttr?.DisplayName);
         }
 
 
         public IReadOnlyList<IPanel> Panels => _panels;
+
+        public IReadOnlyCollection<PanelInfo> PanelsInfo => _infos.Values;
+
 
     }
 }

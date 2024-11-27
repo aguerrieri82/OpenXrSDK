@@ -1,4 +1,7 @@
 ﻿using SkiaSharp;
+using System.Collections.ObjectModel;
+using System.Net.ServerSentEvents;
+using System.Text.RegularExpressions;
 using UI.Binding;
 using XrEditor.Services;
 using XrEngine;
@@ -14,7 +17,7 @@ namespace XrEditor
     public class PropertiesEditor : BasePanel
     {
         private INode? _activeNode;
-        private IList<PropertiesGroupView>? _groups;
+        private readonly ObservableCollection<PropertiesGroupView> _groups = [];
         private readonly List<PropertyView> _props = [];
         private SKBitmap? _nodePreview;
         private IDispatcher? _renderDispatcher;
@@ -33,6 +36,7 @@ namespace XrEditor
 
             if (mode == PropertiesEditorMode.Selection)
                 Context.Require<SelectionManager>().Changed += OnSelectionChanged;
+
         }
 
         private async void OnSelectionChanged(IReadOnlyCollection<INode> items)
@@ -67,6 +71,7 @@ namespace XrEditor
                     {
                         Name = view.DisplayName,
                         Icon = view.Icon,
+                        OnRemove = () => _groups.Remove(result)                 
                     };
                 else
                     result.Header = view.DisplayName;
@@ -143,7 +148,7 @@ namespace XrEditor
 
         protected void UpdateProperties()
         {
-            var result = new List<PropertiesGroupView>();
+            _groups.Clear();
 
             if (_activeNode != null)
             {
@@ -151,18 +156,16 @@ namespace XrEditor
                 if (mainGrp != null && mainGrp.Properties.Count > 0)
                 {
                     mainGrp.Header = _activeNode.Types.First();
-                    result.Add(mainGrp);
+                    _groups.Add(mainGrp);
                 }
 
                 foreach (var compo in _activeNode.Components)
                 {
                     var group = CreateProps(compo);
                     if (group != null)
-                        result.Add(group);
+                        _groups.Add(group);
                 }
             }
-
-            Groups = result;
         }
 
         protected void Detach()
@@ -175,6 +178,37 @@ namespace XrEditor
         {
             if (_activeNode is INodeChanged changed)
                 changed.NodeChanged += OnNodeChanged;
+
+            if (_activeNode?.Value is EngineObject obj)
+            {
+                ToolBar = new ToolbarView();
+                ToolBar.AddButton("icon_add", async () =>
+                {
+                    var picker = new ItemPickerView();
+                    picker.ItemsSource = ComponentsSource.Instance;
+
+                    var selItem = await picker.ShowAsync("Add component");
+                
+                    if (selItem != null)
+                        await AddComponentAsync((TypeInfo)selItem);
+                });
+
+                OnPropertyChanged(nameof(ToolBar));
+            }
+        }
+
+        protected async Task AddComponentAsync(TypeInfo type)
+        {
+            var comp = (IComponent)type.CreateInstance()!;
+
+            var obj = (EngineObject)_activeNode!.Value;
+
+            await EngineApp.Current!.Dispatcher.ExecuteAsync(() => obj.AddComponent(comp));
+
+            var grp =  CreateProps(comp.GetNode());
+
+            if (grp != null)
+                _groups.Add(grp);
         }
 
         protected virtual void OnNodeChanged(object? sender, EventArgs e)
@@ -211,16 +245,7 @@ namespace XrEditor
             });
         }
 
-        public IList<PropertiesGroupView>? Groups
-        {
-            get => _groups;
-            set
-            {
-                _groups = value;
-                OnPropertyChanged(nameof(Groups));
-            }
-        }
-
+        public ObservableCollection<PropertiesGroupView> Groups => _groups;
 
         public INode? ActiveNode
         {

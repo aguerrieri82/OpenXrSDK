@@ -13,6 +13,9 @@ namespace XrEditor
             if (item is ActionView)
                 return (DataTemplate)parentItemsControl.FindResource("ActionView");
 
+            if (item is MenuView)
+                return (DataTemplate)parentItemsControl.FindResource("MenuView");
+
             return base.SelectTemplate(item, parentItemsControl);
         }
     }

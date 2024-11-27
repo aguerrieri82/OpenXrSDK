@@ -2,6 +2,7 @@
 using Fftw;
 using Newtonsoft.Json;
 using OpenAl.Framework;
+using System.ComponentModel;
 using System.IO;
 using System.Numerics;
 using System.Windows.Controls;
@@ -12,6 +13,7 @@ using XrEngine.Audio;
 namespace XrEditor.Audio
 {
     [Panel("c219f3ab-392d-49f6-8afc-df69d2c6d283")]
+    [DisplayName("Loop Editor")]
     public class LoopEditorPanel : BasePanel, IAssetEditor
     {
         public class AudioSlice

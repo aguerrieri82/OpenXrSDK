@@ -345,6 +345,9 @@ namespace XrEngine.OpenXr
         {
             foreach (var wall in self.Children.Where(a => a.Name == "Wall"))
             {
+                if (!wall.IsVisible)
+                    continue;
+
                 var mesh = (TriangleMesh)wall;
                 var cube = (Cube3D)mesh.Geometry!;
 

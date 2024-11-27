@@ -125,7 +125,7 @@ namespace XrEngine.OpenXr
 
             _lastCollision = result;
 
-            _hitView.Materials[0].IsEnabled = ShowHit;
+            _hitView.IsVisible = ShowHit;
         }
 
         protected void NotifyCollision(RenderContext ctx, Collision? collision)

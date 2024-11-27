@@ -38,7 +38,25 @@
         <Border Focusable="True">
             <DockPanel >
                 <Border Focusable="True" x:Name="titleBar" Padding="8,2,8,2" DockPanel.Dock="Top" Background="#666">
-                    <TextBlock  Text="{Binding ActivePanel.Title}"/>
+                    <DockPanel>
+                        <Button Padding="4,0,4,0" BorderThickness="0" Background="Transparent" DockPanel.Dock="Right">
+                            <i:Icon Color="#ddd" Size="14" Kind="icon_arrow_drop_down"/>
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="Click">
+                                    <app:OpenContextMenuAction />
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <Button.ContextMenu>
+                                <ContextMenu Style="{StaticResource MenuView}" ItemsSource="{Binding Menu.Items}"/>
+                            </Button.ContextMenu>
+                        </Button>
+                        <Button Padding="4,0,4,0"  Command="{Binding CloseCommand}" BorderThickness="0" Background="Transparent" DockPanel.Dock="Right">
+                            <i:Icon Color="#ddd" Size="12" Kind="icon_close"/>
+                        </Button>
+                        <TextBlock VerticalAlignment="Center"  Text="{Binding ActivePanel.Title}"/>
+
+                
+                    </DockPanel>
                 </Border>
                 <ToolBarTray x:Name="toolbar" Orientation="Horizontal" DockPanel.Dock="Top">
                     <ToolBar Style="{StaticResource ToolBarView}" ItemsSource="{Binding ActivePanel.ToolBar.Items}"/>

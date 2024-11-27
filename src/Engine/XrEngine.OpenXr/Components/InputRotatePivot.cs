@@ -85,7 +85,7 @@ namespace XrEngine.OpenXr
                 return false;
             }
 
-            var movAngle = MathF.Acos(status.StartDir.DotSafe(curDir));
+            var movAngle = MathF.Acos(status.StartDir.DotNormal(curDir));
             if (movAngle >= MathF.PI / 5 || curSign != status.StartAngleSign)
             {
                 Checkpoint(ref status);

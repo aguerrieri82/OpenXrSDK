@@ -1,5 +1,6 @@
 ﻿
 using OpenXr.Framework.Oculus;
+using System.ComponentModel;
 using System.Numerics;
 using System.Xml.Linq;
 using XrEditor.Services;
@@ -53,6 +54,7 @@ namespace XrEditor
 
 
     [Panel("e0c28154-c76f-4765-83dc-0fe9ceb6f655")]
+    [DisplayName("Scene")]
     public class SceneView : BasePanel
     {
         protected readonly IRenderSurface _renderSurface;
