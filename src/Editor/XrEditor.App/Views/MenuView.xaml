@@ -1,11 +1,12 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
                     xmlns:app="clr-namespace:XrEditor"
+                    xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:i="clr-namespace:WPF_Icons;assembly=WPF-Icons"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <app:MenuTemplateSelector x:Key="MenuTemplateSelector" />
-    
+
 
     <Style x:Key="MenuView"  BasedOn="{StaticResource DarkMenu}" TargetType="ContextMenu" >
         <Setter Property="ItemContainerTemplateSelector" Value="{StaticResource MenuTemplateSelector}"/>
@@ -17,19 +18,37 @@
                 <Separator/>
             </DataTemplate>
 
+            <DataTemplate DataType="local:MenuView" x:Key="MenuView">
+                <MenuItem Header="{Binding DisplayName}"
+                          UsesItemContainerTemplate="True"
+                          ItemContainerTemplateSelector="{StaticResource MenuTemplateSelector}"
+                          ItemsSource="{Binding Items}">
+
+                </MenuItem>
+            </DataTemplate>
+
             <DataTemplate DataType="local:ActionView" x:Key="ActionView">
                 <MenuItem Header="{Binding DisplayName}"
                           Command="{Binding ExecuteCommand}"
                           IsEnabled="{Binding ExecuteCommand.IsEnabled}">
-                
-                        <MenuItem.Icon>
-                            <i:Icon Size="16" 
+
+                    <MenuItem.Icon>
+                        <i:Icon Size="16" 
                                 VerticalAlignment="Center" 
                                 HorizontalAlignment="Center" 
                                 Color="#666" 
-                                Kind="{Binding Icon.Name}" />
-                        </MenuItem.Icon>
-     
+                                Kind="{Binding Icon.Name}" >
+
+          
+                        </i:Icon>
+                    </MenuItem.Icon>
+                    
+                    <b:Interaction.Triggers>
+                        <b:DataTrigger Binding="{Binding Icon}"  Value="{x:Null}">
+                            <b:ChangePropertyAction PropertyName="Icon" Value="{x:Null}"/>
+                        </b:DataTrigger>
+                    </b:Interaction.Triggers>
+                    
                 </MenuItem>
             </DataTemplate>
         </Style.Resources>

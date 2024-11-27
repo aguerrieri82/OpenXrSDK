@@ -1,10 +1,12 @@
 ﻿using CanvasUI.Components;
+using System.ComponentModel;
 using XrEngine;
 using XrMath;
 
 namespace XrEditor.Plot
 {
     [Panel("cf183da2-a88f-499c-bea4-b286644d4e78")]
+    [DisplayName("Plot")]
     [StateManager(StateManagerMode.Explicit)]
     public class PlotPanel : BasePanel, ITimeLogger
     {

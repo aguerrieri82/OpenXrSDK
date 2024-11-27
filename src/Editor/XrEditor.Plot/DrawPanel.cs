@@ -1,5 +1,6 @@
 ﻿using CanvasUI;
 using SkiaSharp;
+using System.ComponentModel;
 using System.Windows.Controls;
 using XrEngine;
 using XrMath;
@@ -7,6 +8,7 @@ using XrMath;
 namespace XrEditor.Plot
 {
     [Panel("58cd65ac-f832-4cad-84ae-4bfcb3375c77")]
+    [DisplayName("Draw")]
     [StateManager(StateManagerMode.Explicit)]
     public class DrawPanel : BasePanel
     {

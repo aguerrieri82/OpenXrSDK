@@ -31,7 +31,7 @@
 
         void IRenderUpdate.Update(RenderContext ctx)
         {
-            if (!_isEnabled || _suspendCount > 0)
+            if (!_isEnabled || _suspendCount > 0 || _host == null)
                 return;
 
             if (_startTime == -1)

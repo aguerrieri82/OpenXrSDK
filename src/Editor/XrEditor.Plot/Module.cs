@@ -18,10 +18,7 @@ namespace XrEditor.Plot
 
         protected void AddPanel<T>(string viewPath) where T : class, IPanel, new()
         {
-            var attr = typeof(T).GetCustomAttribute<PanelAttribute>();
-
-            T? instance = null;
-            Context.Require<PanelManager>().Register(() => (instance ??= new T()), attr!.PanelId);
+            Context.Require<PanelManager>().Register<T>();
             Context.Require<IViewManager>().AddView<Module>(viewPath);
         }
 

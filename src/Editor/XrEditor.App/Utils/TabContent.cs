@@ -133,7 +133,7 @@ namespace XrEditor
             {
                 if (args.OldValue != null && ((bool)args.OldValue))
                 {
-                    throw new NotImplementedException("Cannot change TabContent.IsCached from True to False. Turning tab caching off is not implemented");
+                    //throw new NotImplementedException("Cannot change TabContent.IsCached from True to False. Turning tab caching off is not implemented");
                 }
 
                 return;

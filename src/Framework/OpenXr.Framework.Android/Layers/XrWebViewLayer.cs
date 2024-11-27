@@ -52,14 +52,12 @@ namespace OpenXr.Framework.Android
             public override bool ShouldOverrideUrlLoading(WebView? view, string? url)
             {
                 Log.Debug(TAG, "ShouldOverrideUrlLoading");
-                //view!.LoadUrl(url!);
                 return false;
             }
 
             public override void OnPageFinished(WebView? view, string? url)
             {
                 Log.Debug(TAG, "OnPageFinished");
-                //_layer.UpdateScale();
                 base.OnPageFinished(view, url);
             }
 
@@ -314,22 +312,19 @@ namespace OpenXr.Framework.Android
             _webView.Settings.SetSupportZoom(false);
             _webView.Settings.DefaultZoom = ZoomDensity.Far;
             _webView.Settings.BuiltInZoomControls = false;
+            //_webView.Settings.UseWideViewPort = true;
+            //_webView.Settings.LoadWithOverviewMode = true;
 
             _webView.SetLayerType(LayerType.Hardware, null);
 
+
             if (_context is Activity activity)
             {
-                var layout = new ViewGroup.LayoutParams(_size.Width, _size.Height);
+                var layout = new ViewGroup.LayoutParams((int)(_size.Width * 1.3f), (int)(_size.Height * 1.3f));
                 activity.AddContentView(_webView, layout);
-                UpdateScale();
             }
         }
 
-        void UpdateScale()
-        {
-            var density = _webView!.Resources!.DisplayMetrics!.Density;
-            _webView.SetInitialScale((int)(1.8f / density * 100));
-        }
 
         public HandlerXrThread MainThread => _mainThread;
 

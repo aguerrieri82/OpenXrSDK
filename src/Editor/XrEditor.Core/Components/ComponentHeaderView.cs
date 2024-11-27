@@ -9,6 +9,18 @@ namespace XrEditor
         public ComponentHeaderView(IComponent component)
         {
             _component = component;
+            RemoveCommand = new Command(RemoveAsync);
+        }
+
+
+        public async Task RemoveAsync()
+        {
+            await EngineApp.Current!.Dispatcher.ExecuteAsync(() =>
+            {
+                _component.Host?.RemoveComponent(_component);
+            });
+
+            OnRemove?.Invoke();
         }
 
         public bool IsEnabled
@@ -24,5 +36,9 @@ namespace XrEditor
         public string? Name { get; set; }
 
         public IconView? Icon { get; set; }
+
+        public Command RemoveCommand { get;  }
+
+        public Action? OnRemove { get; set; }
     }
 }

@@ -56,6 +56,11 @@ namespace XrEditor
 
         public void Attach(IPanelContainer container)
         {
+            if (_container == container)
+                return;
+
+            _container?.Remove(this);
+            
             _container = container;
         }
 

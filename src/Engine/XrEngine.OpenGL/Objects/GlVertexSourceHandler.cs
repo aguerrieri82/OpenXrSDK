@@ -109,7 +109,7 @@ namespace XrEngine.OpenGL
 
         public override IVertexSource Source => _source;
 
-        public override bool NeedUpdate => _source.Object.Version != Version || Version == -1;
+        public override bool NeedUpdate => _source.Object != null && ( _source.Object.Version != Version || Version == -1);
 
         public override GlVertexLayout Layout => _vertices.Layout;
     }
