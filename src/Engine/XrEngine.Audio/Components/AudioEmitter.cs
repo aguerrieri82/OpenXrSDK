@@ -32,7 +32,7 @@ namespace XrEngine.Audio
             var al = AlDevice.Current!.Al;
 
             double bufferTime = 0.05f;
-            var bufferCount = Math.Max(2, stream.PrefBufferCount);
+            var bufferCount = Math.Max(1, stream.PrefBufferCount);
 
             var bufferSizeBytes = (int)(bufferTime * stream.Format.SampleRate * (stream.Format.BitsPerSample / 8));
 
@@ -85,7 +85,7 @@ namespace XrEngine.Audio
                 if (_curSource.State == SourceState.Stopped)
                     _curSource.Play();
 
-                await Task.Delay(10);
+                await Task.Delay(1);
             }
 
             _activeStreams.Remove(stream);

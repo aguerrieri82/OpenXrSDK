@@ -1,4 +1,6 @@
-﻿using Context2 = global::Android.Content.Context;
+﻿using Android.Content.Res.Loader;
+using XrEngine.Services;
+using Context2 = global::Android.Content.Context;
 
 namespace XrEngine.OpenXr.Android
 {
@@ -46,8 +48,14 @@ namespace XrEngine.OpenXr.Android
 
         public IEnumerable<string> List(string path)
         {
+         
             return _context.Assets!.List(Path.Join(_basePath, path))!
                 .Select(a => Path.Join(path, a));
+        }
+
+        public IEnumerable<string> ListDirectories(string storePath)
+        {
+            throw new NotSupportedException();
         }
 
         public Stream Open(string name)

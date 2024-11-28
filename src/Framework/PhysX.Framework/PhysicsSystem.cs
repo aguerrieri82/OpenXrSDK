@@ -439,6 +439,9 @@ namespace PhysX.Framework
             sceneDesc.solverType = PxSolverType.Pgs;
             sceneDesc.contactModifyCallback = _contactModify.Handle;
             sceneDesc.simulationEventCallback = _eventCallbacks.Handle;
+            sceneDesc.kineKineFilteringMode = PxPairFilteringMode.Keep;
+            sceneDesc.staticKineFilteringMode = PxPairFilteringMode.Keep;   
+
 
             if (_options.EnableCCD)
                 sceneDesc.flags |= PxSceneFlags.EnableCcd;
@@ -530,6 +533,9 @@ namespace PhysX.Framework
                     Task.Run(() =>
                     {
                         _pvd->ConnectMut(transport, PxPvdInstrumentationFlags.All);
+
+
+
                     });
                 }
             }
@@ -568,6 +574,8 @@ namespace PhysX.Framework
         {
             uint error;
             float curTime = 0;
+
+            var test = _pvd->IsConnectedMut(false);
 
             while (curTime < deltaSecs)
             {

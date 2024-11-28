@@ -6,6 +6,7 @@ namespace XrMath
     {
         public Pose3()
         {
+            Orientation = Quaternion.Identity;
         }
 
         public Pose3(Vector3 position)

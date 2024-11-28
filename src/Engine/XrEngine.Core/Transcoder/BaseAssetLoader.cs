@@ -2,7 +2,11 @@
 {
     public abstract class BaseAssetLoader : IAssetLoader
     {
-        protected abstract bool CanHandleExtension(string extension, out Type resType);
+        protected virtual bool CanHandleExtension(string extension, out Type resType)
+        {
+            resType = typeof(object);
+            return false;
+        }
 
         protected string GetFilePath(Uri uri)
         {
@@ -11,7 +15,7 @@
             return uri.IsAbsoluteUri ? uri.LocalPath : uri.ToString();
         }
 
-        public bool CanHandle(Uri uri, out Type resType)
+        public virtual bool CanHandle(Uri uri, out Type resType)
         {
             if (CanHandleExtension(Path.GetExtension(GetFilePath(uri)).ToLower(), out resType))
                 return true;
@@ -19,6 +23,9 @@
             return false;
         }
 
+
         public abstract EngineObject LoadAsset(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null);
+
+   
     }
 }

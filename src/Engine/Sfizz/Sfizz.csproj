@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="NAudio.Core" Version="2.2.1" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="libs/arm64-v8a/libsfizz_api.so" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content Include="sfizz_api.dll" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+</Project>

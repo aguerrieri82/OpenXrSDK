@@ -239,6 +239,7 @@ namespace XrEngine.Physics
             {
                 shape.Tag = collider;
                 shape.LocalPose = pose;
+                shape.Flags |= PxShapeFlags.SceneQueryShape;
             }
 
             return shape;

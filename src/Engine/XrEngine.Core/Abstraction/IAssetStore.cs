@@ -7,5 +7,7 @@
         string GetPath(string name);
 
         IEnumerable<string> List(string storePath);
+
+        IEnumerable<string> ListDirectories(string storePath);
     }
 }

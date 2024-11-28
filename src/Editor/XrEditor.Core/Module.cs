@@ -16,6 +16,7 @@ namespace XrEditor
             pm.Register(() => new PropertiesEditor(PropertiesEditorMode.Custom, PropertiesEditor.TOOLS), PropertiesEditor.TOOLS, "Tools");
             pm.Register<OutlinePanel>();
             pm.Register<LogPanel>();
+            pm.Register<AssetsPanel>();
         }
 
 

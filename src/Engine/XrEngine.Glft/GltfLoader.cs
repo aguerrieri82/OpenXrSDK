@@ -24,8 +24,8 @@ namespace XrEngine.Gltf
         glTFLoader.Schema.Gltf? _model;
 
         readonly Dictionary<glTFLoader.Schema.Material, ShaderMaterial> _mats = [];
-        readonly ConcurrentDictionary<glTFLoader.Schema.Image, TextureData> _images = [];
-        readonly ConcurrentDictionary<glTFLoader.Schema.Image, LoadTask<Texture2D>> _textures = [];
+        readonly ConcurrentDictionary<Image, TextureData> _images = [];
+        readonly ConcurrentDictionary<Image, LoadTask<Texture2D>> _textures = [];
         readonly Dictionary<glTFLoader.Schema.Mesh, Object3D> _meshes = [];
         readonly List<Task> _tasks = [];
         readonly ConcurrentDictionary<int, byte[]> _buffers = [];
@@ -216,7 +216,7 @@ namespace XrEngine.Gltf
             return task;
         }
 
-        public LoadTask<Texture2D> ProcessTexture(int texId, Dictionary<string, object>? extensions, Texture2D? result = null, bool useSrgb = false)
+        public LoadTask<Texture2D> ProcessTextureTask(int texId, Dictionary<string, object>? extensions, Texture2D? result = null, bool useSrgb = false)
         {
             var texture = _model!.Textures[texId];
 
@@ -293,25 +293,25 @@ namespace XrEngine.Gltf
             });
         }
 
-        protected LoadTask<Texture2D> DecodeTextureOcclusion(MaterialOcclusionTextureInfo info)
+        protected LoadTask<Texture2D> DecodeTextureOcclusionTask(MaterialOcclusionTextureInfo info)
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTexture(info.Index, info.Extensions);
+            return ProcessTextureTask(info.Index, info.Extensions);
         }
 
-        protected LoadTask<Texture2D> DecodeTextureNormal(MaterialNormalTextureInfo info)
+        protected LoadTask<Texture2D> DecodeTextureNormalTask(MaterialNormalTextureInfo info)
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTexture(info.Index, info.Extensions);
+            return ProcessTextureTask(info.Index, info.Extensions);
         }
 
-        protected LoadTask<Texture2D> DecodeTextureBase(TextureInfo info, bool useSRgb = false)
+        protected LoadTask<Texture2D> DecodeTextureBaseTask(TextureInfo info, bool useSRgb = false)
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTexture(info.Index, info.Extensions, null, useSRgb);
+            return ProcessTextureTask(info.Index, info.Extensions, null, useSRgb);
         }
 
         public PbrV1Material ProcessMaterialV1(int matId, PbrV1Material? result = null)
@@ -346,13 +346,13 @@ namespace XrEngine.Gltf
 
                 if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
                 {
-                    result.MetallicRoughness.BaseColorTexture = DecodeTextureBase(gltMat.PbrMetallicRoughness.BaseColorTexture, _options.ConvertColorTextureSRgb).Result;
+                    result.MetallicRoughness.BaseColorTexture = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.BaseColorTexture, _options.ConvertColorTextureSRgb).Result;
                     result.MetallicRoughness.BaseColorUVSet = gltMat.PbrMetallicRoughness.BaseColorTexture.TexCoord;
                 }
 
                 if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
                 {
-                    result.MetallicRoughness.MetallicRoughnessTexture = DecodeTextureBase(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture).Result;
+                    result.MetallicRoughness.MetallicRoughnessTexture = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture).Result;
                     result.MetallicRoughness.MetallicRoughnessUVSet = gltMat.PbrMetallicRoughness.MetallicRoughnessTexture.TexCoord;
                 }
 
@@ -360,18 +360,18 @@ namespace XrEngine.Gltf
             }
 
             if (gltMat.EmissiveTexture != null)
-                result.EmissiveTexture = DecodeTextureBase(gltMat.EmissiveTexture).Result;
+                result.EmissiveTexture = DecodeTextureBaseTask(gltMat.EmissiveTexture).Result;
 
             if (gltMat.NormalTexture != null)
             {
-                result.NormalTexture = DecodeTextureNormal(gltMat.NormalTexture).Result;
+                result.NormalTexture = DecodeTextureNormalTask(gltMat.NormalTexture).Result;
                 result.NormalScale = gltMat.NormalTexture.Scale;
                 result.NormalUVSet = gltMat.NormalTexture.TexCoord;
             }
 
             if (gltMat.OcclusionTexture != null)
             {
-                result.OcclusionTexture = DecodeTextureOcclusion(gltMat.OcclusionTexture).Result;
+                result.OcclusionTexture = DecodeTextureOcclusionTask(gltMat.OcclusionTexture).Result;
                 result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
                 result.OcclusionUVSet = gltMat.OcclusionTexture.TexCoord;
             }
@@ -388,13 +388,13 @@ namespace XrEngine.Gltf
 
                 if (specGloss.Value.diffuseTexture != null)
                 {
-                    result.SpecularGlossiness.DiffuseTexture = DecodeTextureBase(specGloss.Value.diffuseTexture).Result;
+                    result.SpecularGlossiness.DiffuseTexture = DecodeTextureBaseTask(specGloss.Value.diffuseTexture).Result;
                     result.SpecularGlossiness.DiffuseUVSet = specGloss.Value.diffuseTexture.TexCoord;
                 }
 
                 if (specGloss.Value.specularGlossinessTexture != null)
                 {
-                    result.SpecularGlossiness.SpecularGlossinessTexture = DecodeTextureBase(specGloss.Value.specularGlossinessTexture).Result;
+                    result.SpecularGlossiness.SpecularGlossinessTexture = DecodeTextureBaseTask(specGloss.Value.specularGlossinessTexture).Result;
                     result.SpecularGlossiness.SpecularGlossinessUVSet = specGloss.Value.specularGlossinessTexture.TexCoord;
                 }
 
@@ -413,12 +413,12 @@ namespace XrEngine.Gltf
 
                 if (sheen.Value.sheenColorTexture != null)
                 {
-                    result.Sheen.ColorTexture = DecodeTextureBase(sheen.Value.sheenColorTexture).Result;
+                    result.Sheen.ColorTexture = DecodeTextureBaseTask(sheen.Value.sheenColorTexture).Result;
                     result.Sheen.ColorTextureUVSet = sheen.Value.sheenColorTexture.TexCoord;
                 }
                 if (sheen.Value.sheenRoughnessTexture != null)
                 {
-                    result.Sheen.RoughnessTexture = DecodeTextureBase(sheen.Value.sheenRoughnessTexture).Result;
+                    result.Sheen.RoughnessTexture = DecodeTextureBaseTask(sheen.Value.sheenRoughnessTexture).Result;
                     result.Sheen.RoughnessTextureUVSet = sheen.Value.sheenRoughnessTexture.TexCoord;
                 }
             }
@@ -457,10 +457,10 @@ namespace XrEngine.Gltf
             if (gltMat.PbrMetallicRoughness != null)
             {
                 if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
-                    result.ColorMap = DecodeTextureBase(gltMat.PbrMetallicRoughness.BaseColorTexture, _options.ConvertColorTextureSRgb).Result;
+                    result.ColorMap = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.BaseColorTexture, _options.ConvertColorTextureSRgb).Result;
 
                 if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
-                    result.MetallicRoughnessMap = DecodeTextureBase(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture).Result;
+                    result.MetallicRoughnessMap = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture).Result;
 
                 result.Color = new Color(gltMat.PbrMetallicRoughness.BaseColorFactor);
                 result.Metalness = gltMat.PbrMetallicRoughness.MetallicFactor;
@@ -469,13 +469,13 @@ namespace XrEngine.Gltf
 
             if (gltMat.NormalTexture != null)
             {
-                result.NormalMap = DecodeTextureNormal(gltMat.NormalTexture).Result;
+                result.NormalMap = DecodeTextureNormalTask(gltMat.NormalTexture).Result;
                 result.NormalScale = gltMat.NormalTexture.Scale;
             }
 
             if (gltMat.OcclusionTexture != null)
             {
-                result.OcclusionMap = DecodeTextureOcclusion(gltMat.OcclusionTexture).Result;
+                result.OcclusionMap = DecodeTextureOcclusionTask(gltMat.OcclusionTexture).Result;
                 result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
             }
 
@@ -907,20 +907,15 @@ namespace XrEngine.Gltf
         {
             obj.AddComponent(new AssetSource
             {
-                Asset = CreateAsset<EngineObject>(name, parts)
+                Asset = new BaseAsset<GltfLoaderOptions, GltfAssetLoader>(
+                    GltfAssetLoader.Instance,
+                    name,
+                    typeof(T),
+                    new Uri("res://gltf/" + string.Join('/', parts) + "?src=" + _filePath),
+                    _options)
             });
 
             GenerateId(obj, parts);
-        }
-
-        protected IAsset CreateAsset<T>(string name, params object[] parts)
-        {
-            return new BaseAsset<GltfLoaderOptions, GltfAssetLoader>(
-                GltfAssetLoader.Instance,
-                name,
-                typeof(T),
-                new Uri("res://gltf/" + string.Join('/', parts) + "?src=" + _filePath),
-                _options);
         }
 
         public static Object3D LoadFile(string filePath)
