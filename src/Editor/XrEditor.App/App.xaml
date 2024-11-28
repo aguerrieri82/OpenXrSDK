@@ -40,6 +40,7 @@
                 <ResourceDictionary Source="/Views/SplitView.xaml"/>
                 <ResourceDictionary Source="/Views/QuaternionEditor.xaml"/>
                 <ResourceDictionary Source="/Views/ItemPickerView.xaml"/>
+                <ResourceDictionary Source="/Views/AssetsPanel.xaml"/>
                 <ResourceDictionary
                     Source="pack://application:,,,/ColorPicker;component/Styles/DefaultColorPickerStyle.xaml" />
 

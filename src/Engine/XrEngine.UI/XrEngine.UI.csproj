@@ -6,6 +6,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\UI\UI.Framework\UI.Framework.csproj" />
+    <ProjectReference Include="..\Fftw\Fftw.csproj" />
+    <ProjectReference Include="..\MeshOptimizer\MeshOptimizer.csproj" />
+    <ProjectReference Include="..\TurboJpeg\TurboJpeg.csproj" />
     <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
   </ItemGroup>
 

@@ -4,8 +4,8 @@
 
     public interface IAssetLoader
     {
-        bool CanHandle(Uri uri, out Type resType);
+        bool CanHandle(Uri uri, out Type assetType);
 
-        EngineObject LoadAsset(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null);
+        EngineObject LoadAsset(Uri uri, Type assetType, EngineObject? destObj, IAssetLoaderOptions? options = null);
     }
 }

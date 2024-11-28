@@ -1,5 +1,7 @@
 ﻿
 
+using System.IO;
+
 namespace XrEngine
 {
     public class LocalAssetStore : IAssetStore
@@ -23,9 +25,15 @@ namespace XrEngine
             return Path.Join(_basePath, name);
         }
 
-        public IEnumerable<string> List(string path)
+        public IEnumerable<string> List(string storePath)
         {
-            return Directory.EnumerateFiles(Path.Join(_basePath, path))
+            return Directory.EnumerateFiles(Path.Join(_basePath, storePath))
+                  .Select(a => a.Substring(_basePath.Length));
+        }
+
+        public IEnumerable<string> ListDirectories(string storePath)
+        {
+            return Directory.EnumerateDirectories(Path.Join(_basePath, storePath))
                   .Select(a => a.Substring(_basePath.Length));
         }
     }

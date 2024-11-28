@@ -1,7 +1,7 @@
 ﻿
 namespace XrEngine
 {
-    public interface IMaterial
+    public interface IMaterial : IName
     {
         void NotifyChanged(ObjectChange change);
 
@@ -15,7 +15,7 @@ namespace XrEngine
 
         bool IsEnabled { get; set; }
 
-        string? Name { get; set; }
+        new string? Name { get; set; }
 
         StencilFunction StencilFunction { get; set; }
 

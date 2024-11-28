@@ -30,6 +30,11 @@ namespace XrEditor.Nodes
 
         protected virtual void OnObjectChanged(EngineObject obj, ObjectChange change)
         {
+            OnNodeChanged();
+        }
+
+        protected virtual void OnNodeChanged()
+        {
             if (_nodeChanged == null)
                 return;
 

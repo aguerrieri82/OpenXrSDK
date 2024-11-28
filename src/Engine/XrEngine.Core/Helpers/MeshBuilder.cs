@@ -54,7 +54,7 @@ namespace XrEngine
             return this;
         }
 
-        public MeshBuilder AddCircle(Vector3 center, float radius, float subs)
+        public MeshBuilder AddCircle(Vector3 center, float radius, float subs, bool reverse = false)
         {
             for (var i = 0; i < subs; i++)
             {
@@ -62,7 +62,10 @@ namespace XrEngine
                 var a2 = MathF.PI * 2 * (i + 1) / subs;
                 var v1 = center + new Vector3(MathF.Cos(a1) * radius, MathF.Sin(a1) * radius, 0);
                 var v2 = center + new Vector3(MathF.Cos(a2) * radius, MathF.Sin(a2) * radius, 0);
-                AddTriangle(v1, center, v2);
+                if (reverse)
+                    AddTriangle(v2, center, v1);
+                else
+                    AddTriangle(v1, center, v2);
             }
             return this;
         }

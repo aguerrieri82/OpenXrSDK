@@ -23,29 +23,29 @@ namespace XrEngine.Gltf
             return uri.IsAbsoluteUri ? uri.LocalPath : uri.ToString();
         }
 
-        public bool CanHandle(Uri uri, out Type resType)
+        public bool CanHandle(Uri uri, out Type assetType)
         {
             if (uri.Scheme == "res" && uri.Host == "gltf")
             {
                 var seg = uri.Segments.FirstOrDefault();
                 if (seg == "/tex")
                 {
-                    resType = typeof(Texture2D);
+                    assetType = typeof(Texture2D);
                     return true;
                 }
                 if (seg == "/geo")
                 {
-                    resType = typeof(Geometry3D);
+                    assetType = typeof(Geometry3D);
                     return true;
                 }
                 if (seg == "/mat")
                 {
-                    resType = typeof(PbrV1Material);
+                    assetType = MaterialFactory.DefaultPbr;
                     return true;
                 }
                 if (seg == "/mesh")
                 {
-                    resType = typeof(Object3D);
+                    assetType = typeof(Object3D);
                     return true;
                 }
             }
@@ -53,11 +53,11 @@ namespace XrEngine.Gltf
             var ext = Path.GetExtension(uri.ToString());
             if (ext == ".glb" || ext == ".gltf")
             {
-                resType = typeof(Object3D);
+                assetType = typeof(Object3D);
                 return true;
             }
 
-            resType = typeof(object);
+            assetType = typeof(object);
 
             return false;
         }
@@ -100,7 +100,7 @@ namespace XrEngine.Gltf
                     case "tex":
                         var texId = int.Parse(uri.Segments[2].TrimEnd('/'));
                         //TODO pass extensions
-                        result = cache.Loader!.ProcessTexture(texId, null, (Texture2D?)destObj).Result;
+                        result = cache.Loader!.ProcessTextureTask(texId, null, (Texture2D?)destObj).Result;
                         break;
                     case "geo":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));

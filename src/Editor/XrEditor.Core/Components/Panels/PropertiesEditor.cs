@@ -275,7 +275,11 @@ namespace XrEditor
             }
             set
             {
+                if (value == NodeName)
+                    return;
 
+                if (_activeNode is INameEdit edit)
+                    edit.Name = value;
             }
         }
 

@@ -20,6 +20,8 @@ using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
+using DrumsVR.Game;
+
 
 /* Unmerged change from project 'XrSamples.Common (net9.0-android)'
 Removed:
@@ -1040,6 +1042,29 @@ namespace XrSamples
 
             return builder;
         }
+
+
+        [Sample("CreateDrums")]
+        public static XrEngineAppBuilder CreateDrums(this XrEngineAppBuilder builder)
+        {
+            builder.Configure(DrumsVRApp.Build)
+                .UseRayCollider("Mouse")
+                .AddPassthrough()
+
+            .ConfigureApp(app =>
+            {
+                var scene = (DrumsVR.Game.MainScene)app.App.ActiveScene!;
+                scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
+
+                scene.AddComponent<DebugGizmos>();
+                scene.AddComponent(new RayPointerRecorder { PointerName = "RightController" });
+                scene.AddComponent<RayPointerPlayer>();
+                scene.AddChild(new PlaneGrid(6f, 12f, 2f));
+            });
+
+            return builder;
+        }
+
 
         [Sample("Helmet")]
         public static XrEngineAppBuilder CreateHelmet(this XrEngineAppBuilder builder)

@@ -4,7 +4,7 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class Object3DNode<T> : EngineObjectNode<T> where T : Object3D
+    public class Object3DNode<T> : EngineObjectNode<T>, INameEdit where T : Object3D
     {
         readonly NodeDictionary _components = [];
 
@@ -64,5 +64,14 @@ namespace XrEditor.Nodes
 
         public override string DisplayName => _value.Name ?? _value.GetType().Name;
 
+        string? INameEdit.Name
+        {
+            get => DisplayName;
+            set
+            {
+                _value.Name = value;
+                OnNodeChanged();
+            }
+        }
     }
 }
