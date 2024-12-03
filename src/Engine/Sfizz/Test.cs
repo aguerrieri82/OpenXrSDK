@@ -26,7 +26,7 @@ namespace Sfizz
             synth.loadSfzFile("D:\\SoundFont\\Sm\\Programs\\SM_Drums_kit.sfz");
 
             synth.setVolume(2);
-
+            /*
             var wOut = new WasapiOut();
             wOut.Init(new SfizzSampleProvider(synth, buf, cfg.BlockSize * 2, cfg.SampleRate, 2));
             wOut.Play();
@@ -36,6 +36,7 @@ namespace Sfizz
                 synth.noteOn(0, 54, 127);
                 Thread.Sleep(400);
             }
+            */
         }
     }
 }

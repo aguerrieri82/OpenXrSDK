@@ -41,6 +41,7 @@
                 <ResourceDictionary Source="/Views/QuaternionEditor.xaml"/>
                 <ResourceDictionary Source="/Views/ItemPickerView.xaml"/>
                 <ResourceDictionary Source="/Views/AssetsPanel.xaml"/>
+                <ResourceDictionary Source="/Views/PlayerView.xaml"/>
                 <ResourceDictionary
                     Source="pack://application:,,,/ColorPicker;component/Styles/DefaultColorPickerStyle.xaml" />
 

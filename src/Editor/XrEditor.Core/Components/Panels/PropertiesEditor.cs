@@ -59,6 +59,9 @@ namespace XrEditor
             if (node is not IEditorProperties editorProps)
                 return null;
 
+            if (node is INodeChanged changed)
+                changed.NodeChanged += OnNodeChanged;
+
             var result = new PropertiesGroupView(PropertiesGroupType.Main)
             {
                 Node = node
@@ -170,15 +173,23 @@ namespace XrEditor
 
         protected void Detach()
         {
-            if (_activeNode is INodeChanged changed)
-                changed.NodeChanged -= OnNodeChanged;
+            void Visit(IEnumerable<PropertiesGroupView> groups)
+            {
+                foreach (var grp in groups)
+                {
+                    if (grp.Node is INodeChanged changed)
+                        changed.NodeChanged -= OnNodeChanged;   
+
+                    if (grp.Groups != null)
+                        Visit(grp.Groups);
+                }
+            }
+
+            Visit(_groups);
         }
 
         protected void Attach()
         {
-            if (_activeNode is INodeChanged changed)
-                changed.NodeChanged += OnNodeChanged;
-
             if (_activeNode?.Value is EngineObject obj)
             {
                 ToolBar = new ToolbarView();
@@ -215,7 +226,6 @@ namespace XrEditor
         {
             if (_isUpdatingProps > 0)
                 return;
-
 
             var props = EnumProps((INode)sender!);
 

@@ -35,6 +35,8 @@ namespace OpenXr.Framework.Android
                 "android.permission.WRITE_EXTERNAL_STORAGE",
                 "android.permission.READ_EXTERNAL_STORAGE"
               ];
+
+
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)

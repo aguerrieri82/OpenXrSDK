@@ -6,7 +6,7 @@ namespace XrEngine.OpenXr
     {
         bool CanGrab(Vector3 position);
 
-        void Grab();
+        void Grab(string grabber);
 
         void Release();
 

@@ -12,6 +12,7 @@ namespace XrEngine.Audio
             var system = _host!.Scene!.Component<AudioSystem>();
 
             _listener = new AlListener(system.Device.Al);
+
         }
 
         protected override void Update(RenderContext ctx)
@@ -25,6 +26,13 @@ namespace XrEngine.Audio
                 Forward = _host!.Forward,
                 Up = Vector3.UnitY
             };
+        }
+
+
+        public float Gain
+        {
+            get => _listener?.Gain ?? 0; 
+            set => _listener!.Gain = value;    
         }
     }
 }

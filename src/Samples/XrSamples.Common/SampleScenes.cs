@@ -1019,8 +1019,8 @@ namespace XrSamples
                 scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
                 scene.AddComponent<DebugGizmos>();
-                scene.AddComponent(new RayPointerRecorder { PointerName = "RightController" });
-                scene.AddComponent<RayPointerPlayer>();
+                scene.AddComponent(new XrInputRecorder { PointerName = "RightController" });
+                scene.AddComponent<XrInputPlayer>();
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
                 var ui = scene.UiPanel!;
@@ -1057,8 +1057,8 @@ namespace XrSamples
                 scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
                 scene.AddComponent<DebugGizmos>();
-                scene.AddComponent(new RayPointerRecorder { PointerName = "RightController" });
-                scene.AddComponent<RayPointerPlayer>();
+                scene.AddComponent(new XrInputRecorder { PointerName = "RightController" });
+                scene.AddComponent<XrInputPlayer>();
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
             });
 

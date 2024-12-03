@@ -11,8 +11,7 @@
     <DockPanel >
 
         <DockPanel.Resources>
-            <Style TargetType="Button" x:Key="Arrow">
-
+            <Style TargetType="Button" BasedOn="{StaticResource ButtonStyle}" x:Key="Arrow">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="Width" Value="16"/>

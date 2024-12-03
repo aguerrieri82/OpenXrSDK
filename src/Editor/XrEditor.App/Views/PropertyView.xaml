@@ -4,13 +4,13 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <DataTemplate DataType="{x:Type local:PropertyView}">
-        <StackPanel Orientation="Horizontal">
-            <StackPanel.Resources>
+        <DockPanel>
+            <DockPanel.Resources>
                 <app:EditorSelector x:Key="EditorSelector"/>
-            </StackPanel.Resources>
-            <TextBlock VerticalAlignment="Center" Width="130" Text="{Binding Label}"/>
-            <ContentPresenter ContentTemplateSelector="{StaticResource EditorSelector}" VerticalAlignment="Center" Content="{Binding Editor}"/>
-        </StackPanel>
+            </DockPanel.Resources>
+            <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Width="130" Text="{Binding Label}"/>
+            <ContentPresenter ContentTemplateSelector="{StaticResource EditorSelector}"  VerticalAlignment="Center" Content="{Binding Editor}"/>
+        </DockPanel>
     </DataTemplate>
    
 </ResourceDictionary>

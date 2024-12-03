@@ -10,6 +10,20 @@ namespace XrEngine.OpenXr.Android
     {
         protected XrEngineApp? _engine;
 
+        public XrEngineActivity()
+        {
+            AppDomain.CurrentDomain.UnhandledException += (sender, arg) =>
+            {
+                if (arg.ExceptionObject is Exception ex)
+                    Log.Error(sender, ex);
+            };
+
+            TaskScheduler.UnobservedTaskException += (sender, ex) =>
+            {
+                Log.Error(sender!, ex.Exception);
+            };
+        }
+
         protected abstract void Build(XrEngineAppBuilder builder);
 
         protected void Preload(Assembly entry)

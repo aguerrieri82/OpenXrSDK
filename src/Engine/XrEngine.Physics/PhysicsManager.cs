@@ -18,6 +18,7 @@ namespace XrEngine.Physics
         protected Thread? _simulateThread;
         protected ConcurrentQueue<Action> _queue = [];
         protected HashSet<Joint> _joints = [];
+        protected HashSet<Joint> _jointToCreate = [];
         protected readonly List<CollideGroup> _collideGroups = [];
 
         public PhysicsManager(float fps = 40f)
@@ -137,6 +138,14 @@ namespace XrEngine.Physics
 
         protected override void Update(RenderContext ctx)
         {
+            if (_jointToCreate.Count > 0)
+            {
+                foreach (var joint in _jointToCreate)
+                    joint.Create(ctx);
+
+                _jointToCreate.Clear();
+            }
+
             if (ctx.Time < 0.5)
                 return;
 
@@ -176,6 +185,9 @@ namespace XrEngine.Physics
 
             object0.AddComponent(new JointConnection(joint, 0));
             object1.AddComponent(new JointConnection(joint, 1));
+
+            if (IsStarted)
+                _jointToCreate.Add(joint);
 
             return joint;
         }

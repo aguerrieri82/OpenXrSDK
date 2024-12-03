@@ -106,6 +106,9 @@ namespace XrEditor
 
             foreach (var item in _lastSelection.Select(a => a.Value).OfType<Object3D>())
             {
+                if (item is Scene3D)
+                    continue;
+
                 var local = item.Feature<ILocalBounds>();
 
                 if (local != null)

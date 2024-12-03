@@ -42,8 +42,6 @@ namespace PhysX.Framework
             return _handle->GetVisualizationParameter(parameter);
         }
 
-
-
         public override void Dispose()
         {
             if (_handle != null)

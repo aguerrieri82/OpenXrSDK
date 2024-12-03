@@ -10,7 +10,7 @@ namespace PhysX.Framework
         public PhysicsD6Joint(PxD6Joint* handle, PhysicsSystem system)
             : base((PxJoint*)handle, system)
         {
-
+  
         }
 
         public PxD6JointDrive GetDrive(PxD6Drive type)
@@ -90,38 +90,20 @@ namespace PhysX.Framework
             }
         }
 
-        public Vector3 DriveAngularVelocity
+        public VelocityVector DriveVelocity
         {
             get
             {
-                PxVec3 linear;
-                PxVec3 angular;
-                D6Joint.GetDriveVelocity(&linear, &angular);
-                return angular;
+                var result = new VelocityVector();
+                D6Joint.GetDriveVelocity((PxVec3*)&result.Linear, (PxVec3*)&result.Angular);
+                return result;
             }
             set
             {
-                var linear = DriveLinearVelocity;
-                D6Joint.SetDriveVelocityMut((PxVec3*)&linear, (PxVec3*)&value, true);
-
+                D6Joint.SetDriveVelocityMut((PxVec3*)&value.Linear, (PxVec3*)&value.Angular, true);
             }
         }
 
-        public Vector3 DriveLinearVelocity
-        {
-            get
-            {
-                PxVec3 linear;
-                PxVec3 angular;
-                D6Joint.GetDriveVelocity(&linear, &angular);
-                return linear;
-            }
-            set
-            {
-                var angular = DriveAngularVelocity;
-                D6Joint.SetDriveVelocityMut((PxVec3*)&value, (PxVec3*)&angular, true);
-            }
-        }
 
 
         public PxD6JointDrive DriveX

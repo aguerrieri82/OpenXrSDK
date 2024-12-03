@@ -22,18 +22,21 @@ namespace XrEngine.OpenXr
             return false;
         }
 
-        public virtual void Grab()
+        public virtual void Grab(string grabber)
         {
-
+            Grabber = grabber;  
         }
 
         public virtual void Release()
         {
+            Grabber = null;
         }
 
         public virtual void NotifyMove()
         {
 
         }
+
+        public string? Grabber { get; protected set; }
     }
 }

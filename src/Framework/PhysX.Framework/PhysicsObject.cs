@@ -6,13 +6,11 @@
 
         protected PhysicsSystem _system;
 
-        protected static readonly Dictionary<nint, object> _map = [];
-
         public PhysicsObject(T* handle, PhysicsSystem system)
         {
             _handle = handle;
             _system = system;
-            _map[(nint)handle] = this;
+            _system.RegisterObject(handle, this);
         }
 
         public PhysicsSystem System => _system;

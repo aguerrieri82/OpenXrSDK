@@ -12,6 +12,8 @@ namespace XrEngine.OpenXr
         public bool IsGrabbing;
 
         public bool IsValid;
+
+        public string? Grabber;
     }
 
     public abstract class BaseObjectGrabber<T> : Behavior<T>, IObjectTool where T : Object3D
@@ -65,7 +67,7 @@ namespace XrEngine.OpenXr
             return null;
         }
 
-        protected virtual void StartGrabbing(IGrabbable grabbable, Object3D grabObj, Pose3 grabPoint)
+        protected virtual void StartGrabbing(IGrabbable grabbable, Object3D grabObj, Pose3 grabPoint, string grabber)
         {
             _grabStarted = true;
             _grabbable = grabbable;
@@ -79,7 +81,7 @@ namespace XrEngine.OpenXr
 
             _grabObject.Transform.SetLocalPivot(_grabObject.ToLocal(grabPoint.Position), true);
 
-            _grabbable.Grab();
+            _grabbable.Grab(grabber);
         }
 
         protected virtual void MoveGrabbing(Pose3 grabPoint)
@@ -138,7 +140,7 @@ namespace XrEngine.OpenXr
                     }
 
                     if (objGrab.IsGrabbing)
-                        StartGrabbing(grabbable!, grabObj, objGrab.Pose);
+                        StartGrabbing(grabbable!, grabObj, objGrab.Pose, objGrab.Grabber ?? "");
 
                     _grabView.UpdateColor(new Color(0, 1, 0, 1));
                 }

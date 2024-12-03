@@ -50,7 +50,7 @@ namespace XrEditor.Services
                 _scene.Layers.Remove(_scene.Layers.Layers[0]);
 
             _light = new ImageLight();
-            _light.LoadPanorama("res://asset/pisa.hdr");
+            _light.LoadPanorama("res://asset/Envs/pisa.hdr");
             _light.Intensity = 2.5f;
             _light.NotifyChanged(ObjectChangeType.Render);
 
