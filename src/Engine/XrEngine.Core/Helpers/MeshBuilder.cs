@@ -1,8 +1,19 @@
-﻿using System.Numerics;
+﻿using SkiaSharp;
+using System.Collections.Generic;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using XrMath;
 
 namespace XrEngine
 {
+    public enum CylinderPart
+    {
+        TopCap = 0x1,
+        BottomCap = 0x2,
+        Body = 0x4,
+        All = TopCap | BottomCap | Body
+    }
+
     public readonly struct MeshBuilder
     {
         public MeshBuilder()
@@ -281,6 +292,19 @@ namespace XrEngine
                 Center = center,
                 Size = size,
             });
+
+            return this;
+        }
+
+        public MeshBuilder Transform(Matrix4x4 matrix)
+        {
+            var span = CollectionsMarshal.AsSpan(Vertices);
+
+            foreach (ref var item in span)
+            {
+                item.Pos = Vector3.Transform(item.Pos, matrix);
+                item.Normal = Vector3.TransformNormal(item.Normal, matrix);
+            }
 
             return this;
         }

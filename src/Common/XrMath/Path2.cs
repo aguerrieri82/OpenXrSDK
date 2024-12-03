@@ -16,7 +16,6 @@ namespace XrMath
         protected float? _length;
         protected Bounds2? _bounds;
 
-
         private float QuadraticLength()
         {
             // Compute the coefficients
@@ -36,16 +35,26 @@ namespace XrMath
             return (term1 - term2) / s;
         }
 
-        public List<Vector2> SampleAdaptive(List<Vector2> points, float tolerance = 0.01f)
+        public List<Path2Point> SampleAdaptive(List<Path2Point> points, float tolerance = 0.01f)
         {
-            if (points.Count == 0 || points[^1] != P1)
-                points.Add(P1);
+            if (points.Count == 0 || points[^1].Point != P1)
+                points.Add(new Path2Point
+                {
+                    Point = P1,
+                    Segment = this,
+                    Time = 0
+                });
 
             if (!IsLinear())
                 SampleAdaptiveV2(0, 1, tolerance, points);
 
-            if (points.Count == 0 || points[^1] != P2)
-                points.Add(P2);
+            if (points.Count == 0 || points[^1].Point != P2)
+                points.Add(new Path2Point
+                {
+                    Point = P2,
+                    Time = 1,
+                    Segment = this  
+                });
 
             return points;
         }
@@ -132,9 +141,10 @@ namespace XrMath
             return roots;
         }
 
-        public List<Vector2> SampleAdaptive(float tolerance = 0.01f)
+
+        public List<Path2Point> SampleAdaptive(float tolerance = 0.01f)
         {
-            return SampleAdaptive(new List<Vector2>(), tolerance);
+            return SampleAdaptive(new List<Path2Point>(), tolerance);
         }
 
         private void SampleAdaptive(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float tolerance, List<Vector2> points)
@@ -169,7 +179,7 @@ namespace XrMath
             }
         }
 
-        private void SampleAdaptiveV2(float t0, float t1, float tolerance, List<Vector2> points)
+        private void SampleAdaptiveV2(float t0, float t1, float tolerance, List<Path2Point> points)
         {
             var mid = (t0 + t1) / 2;
             var p0 = Sample(t0);
@@ -186,8 +196,13 @@ namespace XrMath
             }
             else
             {
-                if (points.Count == 0 || points[^1] != p2)
-                    points.Add(p2);
+                if (points.Count == 0 || points[^1].Point != p2)
+                    points.Add(new Path2Point
+                    {
+                        Point = p2,
+                        Segment = this,
+                        Time = t1
+                    });
             }
         }
 
@@ -258,7 +273,7 @@ namespace XrMath
                     _length = 0;
                     var samples = SampleAdaptive(tolerance);
                     for (var i = 0; i < samples.Count - 1; i++)
-                        _length += (samples[i] - samples[i + 1]).Length();
+                        _length += (samples[i].Point - samples[i + 1].Point).Length();
                 }
             }
 
@@ -298,6 +313,27 @@ namespace XrMath
             _bounds = null;
             _length = null;
         }
+
+        public void Transform(Matrix3x2 matrix)
+        {
+            P1 = Vector2.Transform(P1, matrix);
+            P2 = Vector2.Transform(P2, matrix);
+            C1 = Vector2.Transform(C1, matrix);
+            C2 = Vector2.Transform(C2, matrix);
+            Invalidate();
+        }
+
+        public IEnumerable<Vector2> Points
+        {
+            get
+            {
+                yield return P1;
+                yield return C1;
+                yield return C2;
+                yield return P2;
+            }
+        }
+  
 
         public Vector2 P1;
         public Vector2 P2;
@@ -416,9 +452,9 @@ namespace XrMath
             return result;
         }
 
-        public List<Vector2> SamplesAdaptive(float tolerance = 0.01f)
+        public List<Path2Point> SamplesAdaptive(float tolerance = 0.01f)
         {
-            var result = new List<Vector2>();
+            var result = new List<Path2Point>();
             foreach (var segment in _segments)
                 segment.SampleAdaptive(result, tolerance);
             return result;
@@ -655,6 +691,20 @@ namespace XrMath
                 }
             }
         }
+
+        public void Transform(Matrix3x2 matrix)
+        {
+            foreach (var segment in _segments)
+                segment.Transform(matrix);
+
+        }
+
+        public Path2Segment this[int index]
+        {
+            get => _segments.ElementAt(index);
+        } 
+
+        public LinkedList<Path2Segment> Segments => _segments;
 
         public long Version => _version;
     }

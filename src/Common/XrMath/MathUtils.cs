@@ -134,32 +134,9 @@ namespace XrMath
             );
         }
 
-        public static unsafe Complex[] Dft(float[] values)
+        public static Plane PlaneFromNormalPoint(Vector3 normal, Vector3 point)
         {
-            return Dft(values, 0, values.Length);
-        }
-
-        public static unsafe Complex[] Dft(float[] values, int offset, int size)
-        {
-            fixed (float* pValues = &values[offset])
-            {
-                int N = size;
-                Complex[] output = new Complex[N];
-
-                for (int k = 0; k < N; k++) // For each output element
-                {
-                    Complex sum = Complex.Zero;
-                    for (int n = 0; n < N; n++) // For each input element
-                    {
-                        double angle = -2.0 * Math.PI * k * n / N;
-                        sum += pValues[n] * new Complex(Math.Cos(angle), Math.Sin(angle));
-                    }
-                    output[k] = sum;
-                }
-
-                return output;
-            }
-
+            return new Plane(normal, -Vector3.Dot(normal, point));
         }
     }
 }

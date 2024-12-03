@@ -23,7 +23,6 @@ namespace XrEngine.Physics
             Joint.Dispose();
         }
 
-
         public void DrawGizmos(Canvas3D canvas)
         {
             if (!Joint.IsCreated)

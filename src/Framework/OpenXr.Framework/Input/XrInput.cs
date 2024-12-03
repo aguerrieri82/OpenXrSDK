@@ -1,5 +1,6 @@
 ﻿using Silk.NET.OpenXR;
 using System.Numerics;
+using System.Text.Json;
 using XrMath;
 using Action = Silk.NET.OpenXR.Action;
 
@@ -73,6 +74,15 @@ namespace OpenXr.Framework
         }
 
         public abstract void Update(Space refSpace, long predictTime);
+
+        public void ForceState(bool isChanged, bool isActive, object value)
+        {
+            _isActive = isActive;
+            _isChanged = isChanged;
+            if (value is JsonElement je)
+                value = je.Deserialize<TValue>(new JsonSerializerOptions { IncludeFields = true })!;
+            _value = (TValue)value;
+        }
 
         public DateTime LastChangeTime => _lastChangeTime;
 

@@ -16,12 +16,15 @@ namespace PhysX.Framework
             _name = "";
         }
 
+
         public void SetActors(PhysicsRigidActor actor0, PhysicsRigidActor actor1)
         {
             _handle->SetActorsMut((PxRigidActor*)actor0.Handle, (PxRigidActor*)actor1.Handle);
             _actor0 = actor0;
             _actor1 = actor1;
         }
+
+        public PhysicsConstraint Constraint => _system.GetOrCreateObject<PhysicsConstraint>(_handle->GetConstraint());
 
         public Pose3 LocalPose0
         {
@@ -48,6 +51,7 @@ namespace PhysX.Framework
             set => _handle->SetConstraintFlagsMut(value);
             get => _handle->GetConstraintFlags();
         }
+
 
         public float InvInertiaScale0
         {
@@ -93,9 +97,31 @@ namespace PhysX.Framework
             }
         }
 
-        public PhysicsRigidActor? Actor0 => _actor0;
+        public PhysicsRigidActor? Actor0
+        {
+            get => _actor0;
+            set
+            {
+                if (_actor0 == value)
+                    return; 
+                _actor0 = value;
+                _handle->SetActorsMut(value == null ? null : (PxRigidActor*)value.Handle,
+                                     _actor1 == null ? null : (PxRigidActor*)_actor1.Handle);
+            }
+        }
 
-        public PhysicsRigidActor? Actor1 => _actor1;
+        public PhysicsRigidActor? Actor1
+        {
+            get => _actor1;
+            set
+            {
+                if (_actor1 == value)
+                    return;
+                _actor1 = value;
+                _handle->SetActorsMut(_actor0 == null ? null : (PxRigidActor*)_actor0.Handle,
+                                      value == null ? null : (PxRigidActor*)value.Handle);
+            }
+        }
 
         public ref PxJoint Joint => ref Unsafe.AsRef<PxJoint>(_handle);
     }

@@ -1,64 +1,67 @@
-﻿using System.Text.Json;
+﻿using OpenXr.Framework;
+using System.Text.Json;
 using XrInteraction;
 
 namespace XrEngine.OpenXr
 {
-    public class RayPointerRecorder : Behavior<Scene3D>
+    public class XrInputRecorder : Behavior<Scene3D>
     {
+        public struct InputStatus
+        {
+            public bool IsActive { get; set; }
+
+            public bool IsChanged { get; set; } 
+
+            public object Value { get; set; }
+        }
+
         public struct RecordFrame
         {
             public double Time;
 
-            public RayPointerStatus Status;
+            public Dictionary<string, InputStatus> Inputs;
         }
 
         public class RecordSession
         {
-            public string? PointerName;
-
-            public int PointerId;
-
             public IList<RecordFrame>? Frames;
         }
 
 
         RecordSession? _session;
 
-        public RayPointerRecorder()
+        public XrInputRecorder()
         {
             IsEnabled = false;
         }
 
         protected override void Update(RenderContext ctx)
         {
-            if (Pointer == null)
-            {
-                if (!string.IsNullOrWhiteSpace(PointerName))
-                {
-                    Pointer = _host!.Scene!
-                        .Components<IRayPointer>()
-                        .Where(a => a.Name == PointerName)
-                        .FirstOrDefault();
-                }
-
-                if (Pointer == null)
-                    return;
-            }
+            if (XrApp.Current == null)
+                return;
 
             _session ??= new RecordSession
             {
-                PointerName = Pointer.Name,
-                PointerId = Pointer.PointerId,
                 Frames = []
             };
 
             lock (this)
             {
-                _session.Frames!.Add(new RecordFrame
+                var frame = new RecordFrame
                 {
                     Time = ctx.Time,
-                    Status = Pointer.GetPointerStatus()
-                });
+                    Inputs = []
+                };
+
+                foreach (var input in XrApp.Current.Inputs.Values)
+                    frame.Inputs[input.Name] = new InputStatus
+                    {
+                        IsChanged = input.IsChanged,
+                        Value = input.Value,
+                        IsActive = input.IsActive
+                    };
+
+                _session.Frames!.Add(frame);
             }
         }
 
@@ -77,7 +80,7 @@ namespace XrEngine.OpenXr
             lock (this)
                 json = JsonSerializer.Serialize(_session, options);
 
-            File.WriteAllText(Path.Join(path, "pointer.json"), json);
+            File.WriteAllText(Path.Join(path, "inputs.json"), json);
         }
 
 

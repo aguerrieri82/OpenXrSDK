@@ -6,6 +6,9 @@ namespace OpenXr.Framework
     {
         void Update(Space refSpace, long predictTime);
 
+
+        void ForceState(bool isChanged, bool isActive, object value);
+
         public DateTime LastChangeTime { get; }
 
         public bool IsActive { get; }

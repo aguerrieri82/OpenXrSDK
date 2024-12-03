@@ -9,11 +9,12 @@ namespace XrEngine
         {
         }
 
-        public Cylinder3D(float radius, float height, uint subs = 15)
+        public Cylinder3D(float radius, float height, uint subs = 15, CylinderPart parts = CylinderPart.All)
         {
             Subs = subs;
             Radius = radius;
             Height = height;
+            Parts = parts;
             Flags |= EngineObjectFlags.Readonly;
             Build();
         }
@@ -22,10 +23,15 @@ namespace XrEngine
         {
             var builder = new MeshBuilder();
 
-            builder.AddCylinder(Center, Radius, Height, Subs);
+            if ((Parts & CylinderPart.Body) != 0)
+                builder.AddCylinder(Center, Radius, Height, Subs);
             var smoothEnd = builder.Vertices.Count;
-            builder.AddCircle(Center, Radius, Subs);
-            builder.AddCircle(Center + new Vector3(0, 0, Height), Radius, Subs, true);
+
+            if ((Parts & CylinderPart.BottomCap) != 0)
+                builder.AddCircle(Center, Radius, Subs);
+
+            if ((Parts & CylinderPart.TopCap) != 0)
+                builder.AddCircle(Center + new Vector3(0, 0, Height), Radius, Subs, true);
 
             Vertices = builder.Vertices.ToArray();
             Indices = [];
@@ -46,5 +52,7 @@ namespace XrEngine
         public float Radius { get; set; }
 
         public float Height { get; set; }
+
+        public CylinderPart Parts { get; set; }
     }
 }

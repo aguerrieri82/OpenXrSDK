@@ -79,7 +79,7 @@ namespace PhysX.Framework
 
         protected uint _actorIds;
         protected Dictionary<uint, PhysicsActor> _actors = [];
-        protected Dictionary<nint, object> _objects = [];
+        protected Dictionary<nint, WeakReference> _objects = [];
         protected IList<PhysicsMaterial> _materials = [];
 
         protected SimulationEventCallbacks _eventCallbacks;
@@ -117,7 +117,6 @@ namespace PhysX.Framework
         {
             var material = _physics->CreateMaterialMut(info.StaticFriction, info.DynamicFriction, info.Restitution);
             var result = new PhysicsMaterial(material, this);
-            _objects[new nint(material)] = result;
             if (shared)
                 _materials.Add(result);
             return result;
@@ -234,7 +233,6 @@ namespace PhysX.Framework
         {
             var shape = _physics->CreateShapeMut(info.Geometry!, info.Material!, info.IsEsclusive, info.Flags);
             var result = new PhysicsShape(shape, info.Geometry!, this);
-            _objects[new nint(shape)] = result;
             return result;
         }
 
@@ -348,7 +346,6 @@ namespace PhysX.Framework
                 shape.SimulationFilterData = data;
             }
 
-            _objects[new nint(actor)] = result;
 
             return result;
         }
@@ -647,9 +644,21 @@ namespace PhysX.Framework
             }
         }
 
-        public T GetObject<T>(void* handle)
+        public T GetOrCreateObject<T>(void* handle)
         {
-            return (T)_objects[new nint(handle)];
+            if (_objects.TryGetValue(new nint(handle), out var obj))
+                return (T)obj.Target!;
+            return (T)Activator.CreateInstance(typeof(T), (nint)handle, this)!;
+        }
+
+        public void RegisterObject(void* handle, object obj)
+        {
+            _objects[new nint(handle)] = new WeakReference(obj);
+        }   
+
+        public T GetObject<T>(void* handle) 
+        {
+            return (T)_objects[new nint(handle)].Target!;
         }
 
         public float LastDeltaTime => _lastDeltaTime;

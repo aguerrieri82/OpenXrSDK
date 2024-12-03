@@ -74,8 +74,7 @@ namespace XrEngine.Physics
         public float ProjectionAngularTolerance;
         public float ProjectionLinearTolerance;
         public Pose3? DrivePosition;
-        public Vector3 DriveAngularVelocity;
-        public Vector3 DriveLinearVelocity;
+        public VelocityVector? DriveVelocity;
         public PxD6JointDrive? DriveX;
         public PxD6JointDrive? DriveY;
         public PxD6JointDrive? DriveZ;
@@ -206,8 +205,8 @@ namespace XrEngine.Physics
             if (options.DrivePosition != null)
                 target.DrivePosition = options.DrivePosition.Value;
 
-            target.DriveAngularVelocity = options.DriveAngularVelocity;
-            target.DriveLinearVelocity = options.DriveLinearVelocity;
+            if (options.DriveVelocity != null)
+                target.DriveVelocity = options.DriveVelocity.Value;
 
             if (options.DriveX != null)
                 target.DriveX = options.DriveX.Value;

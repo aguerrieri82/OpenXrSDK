@@ -72,14 +72,15 @@ namespace XrEngine.Audio
                 while (_curSource.BuffersProcessed > 0)
                 {
                     var buffer = _curSource.DequeueBuffers(1).First();
+
                     FillBuffer(buffer);
-                    _curSource.Direction = getDirection();
+
+                    _curSource.Direction = getDirection();    
+                    _curSource.Position = Position ?? _host!.WorldPosition;
                     _curSource.QueueBuffer(buffer);
 
                     if (_curSource.State == SourceState.Stopped)
                         _curSource.Play();
-
-                    _curSource.Position = _host!.WorldPosition;
                 }
 
                 if (_curSource.State == SourceState.Stopped)
@@ -106,5 +107,9 @@ namespace XrEngine.Audio
             foreach (var stream in _activeStreams.ToArray())
                 stream.Stop();
         }
+
+        public Vector3? Position { get; set; }
+
+        public AlSource? ActiveSource => _curSource;
     }
 }

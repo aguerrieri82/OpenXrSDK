@@ -73,7 +73,7 @@ namespace XrSamples
 
             view.Render += t =>
             {
-                app.RenderFrame(viewRect);
+                app.RenderFrame();
             };
 
             view.Run();

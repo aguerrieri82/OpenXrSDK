@@ -167,15 +167,25 @@ namespace XrMath
             return Plane.Dot(self, Vector4.Create(point, 1f));
         }
 
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IntersectLine(this Plane self, Vector3 point1, Vector3 point2)
+        public static bool Intersects(this Plane self, Line3 line, out Vector3 point)
         {
-            var distance1 = self.DotCoordinate(point1);
-            var distance2 = self.DotCoordinate(point2);
+            point = Vector3.Zero;
 
-            return distance1 * distance2 < 0;
+            Vector3 direction = line.To - line.From;
+            var denominator = Vector3.Dot(direction, self.Normal);
+            if (Math.Abs(denominator) < EPSILON)
+                return false;
+
+            var numerator = -(Vector3.Dot(line.From, self.Normal) + self.D);
+            var t = numerator / denominator;
+            if (t < -EPSILON || t > 1 + EPSILON)
+                return false;
+
+            point = line.From + t * direction;
+            return true;
         }
+
+
 
         #endregion
 
