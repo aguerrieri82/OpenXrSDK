@@ -25,7 +25,8 @@ _ = host.RunAsync();
 
 Gpu.EnableNvAPi();
 
-Tasks.TestPivot();
+Tasks.Train();
+//Tasks.TestPivot();
 
 return;
 

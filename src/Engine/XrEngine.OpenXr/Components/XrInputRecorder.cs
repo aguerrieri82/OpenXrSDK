@@ -85,9 +85,5 @@ namespace XrEngine.OpenXr
 
 
         public RecordSession? Session => _session;
-
-        public IRayPointer? Pointer { get; set; }
-
-        public string? PointerName { get; set; }
     }
 }

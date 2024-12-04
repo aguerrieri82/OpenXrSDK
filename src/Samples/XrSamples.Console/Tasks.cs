@@ -1,14 +1,18 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Assimp;
+using Silk.NET.OpenXR;
 using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Text;
+using System.Text.Json;
 using VirtualCamera.IPCamera;
 using XrEngine;
+using XrEngine.AI;
 using XrEngine.Compression;
 using XrEngine.Gltf;
+using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
 using XrEngine.Video;
 using XrMath;
@@ -20,6 +24,49 @@ namespace XrSamples
     public class Tasks
     {
         public static IServiceProvider? Services { get; set; }
+
+
+        public static void Train()
+        {
+            var options = new JsonSerializerOptions
+            {
+                IncludeFields = true,
+            };
+
+            var json = File.ReadAllText(Path.Join("D:\\Projects\\XrEditor", "inputs.json"));
+
+            var session = JsonSerializer.Deserialize<XrInputRecorder.RecordSession>(json, options);
+
+     
+            var data = new List<PoseTrainData>();   
+
+            foreach (var frame in session.Frames) {
+                if (!frame.Inputs.TryGetValue("RightGripPose", out var pose))
+                    continue;
+                var value = pose.Value;
+                if (value is JsonElement je)
+                    value = je.Deserialize<Pose3>(new JsonSerializerOptions { IncludeFields = true })!;
+
+                data.Add(new PoseTrainData
+                {
+                    Pose = (Pose3)value,
+                    Time = (float)frame.Time
+                });
+            }
+
+            var pred = new AIPosePredictorCore(7);
+           //pred.Train(data);
+            for (var i = 8; i < data.Count; i++)
+            {
+                var slice = data.Skip(i - 8).Take(8).ToArray();
+                var test = pred.Predict(slice);
+                var control = data[i];
+                Console.WriteLine(test.Pose.Position - control.Pose.Position);
+            }
+          
+
+
+        }
 
         public static void ReadRtsp()
         {

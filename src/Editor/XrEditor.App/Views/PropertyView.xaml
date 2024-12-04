@@ -4,13 +4,18 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <DataTemplate DataType="{x:Type local:PropertyView}">
-        <DockPanel>
-            <DockPanel.Resources>
+        <Grid >
+            <Grid.Resources>
                 <app:EditorSelector x:Key="EditorSelector"/>
-            </DockPanel.Resources>
-            <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Width="130" Text="{Binding Label}"/>
-            <ContentPresenter ContentTemplateSelector="{StaticResource EditorSelector}"  VerticalAlignment="Center" Content="{Binding Editor}"/>
-        </DockPanel>
+            </Grid.Resources>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Column1" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Margin="0,0,32,0" Grid.Column="0" DockPanel.Dock="Left" VerticalAlignment="Center"  Text="{Binding Label}"/>
+            <ContentPresenter Grid.Column="1" ContentTemplateSelector="{StaticResource EditorSelector}"  VerticalAlignment="Center"  Content="{Binding Editor}"/>
+        </Grid>
+
     </DataTemplate>
    
 </ResourceDictionary>
