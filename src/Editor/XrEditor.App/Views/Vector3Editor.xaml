@@ -6,7 +6,7 @@
 
     <DataTemplate DataType="{x:Type local:Vector3Editor}">
         
-        <StackPanel Margin="-22,0,0,0" Orientation="Horizontal">
+        <StackPanel Margin="0,0,0,0" Orientation="Horizontal">
             <StackPanel.Resources>
                 <app:BoolToVisibility x:Key="BoolToVisibility"/>
             </StackPanel.Resources>
