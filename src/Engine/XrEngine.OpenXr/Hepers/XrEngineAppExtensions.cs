@@ -83,20 +83,20 @@ namespace XrEngine.OpenXr
         {
             var inputs = e.GetInputs<XrOculusTouchController>();
 
-            e.App!.ActiveScene!.AddComponent(new InputObjectGrabber(
+            e.App!.ActiveScene!.AddComponent(new InputGrabber(
                 inputs.Right!.GripPose!,
                 null,
                 inputs.Right!.SqueezeValue!,
                 inputs.Right!.TriggerValue!));
 
-            e.App!.ActiveScene!.AddComponent(new InputObjectGrabber(
+            e.App!.ActiveScene!.AddComponent(new InputGrabber(
                 inputs.Left!.GripPose!,
                 null,
                 inputs.Left!.SqueezeValue!,
                 inputs.Left!.TriggerValue!));
 
             foreach (var hand in e.App.ActiveScene.Descendants<OculusHandView>())
-                hand.AddComponent(new HandObjectGrabber());
+                hand.AddComponent(new HandGrabber());
         });
 
 

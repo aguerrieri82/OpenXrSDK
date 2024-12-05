@@ -892,7 +892,7 @@ namespace CanvasUI.Components
 
                 foreach (var serie in curSeries)
                 {
-                    SKPoint prevPoint = new SKPoint(float.NaN, float.NaN);
+                    var prevPoint = new SKPoint(float.NaN, float.NaN);
 
                     var paint = SKResources.Stroke(serie.Color, 1);
 

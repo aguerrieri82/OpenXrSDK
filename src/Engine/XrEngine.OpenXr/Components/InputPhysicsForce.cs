@@ -8,7 +8,7 @@ using XrMath;
 
 namespace XrEngine.Physics
 {
-    public class InputObjectForce : Behavior<Scene3D>, IDrawGizmos
+    public class InputPhysicsForce : Behavior<Scene3D>, IDrawGizmos
     {
         private bool _isDragging;
         private Vector3 _startDragLocal;
@@ -17,7 +17,7 @@ namespace XrEngine.Physics
         private Line3 _lastForce;
         private readonly ConcurrentBag<Object3D> _checkObjects = [];
 
-        public InputObjectForce()
+        public InputPhysicsForce()
         {
             Factor = 20;
         }

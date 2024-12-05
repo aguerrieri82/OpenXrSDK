@@ -1,12 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
+﻿
 using OpenXr.Framework;
-
 using Silk.NET.OpenXR;
 using System.ComponentModel;
 using System.Numerics;
 using System.Text.Json;
-using XrEngine.OpenXr.Services;
-using XrInteraction;
+
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -51,9 +49,8 @@ namespace XrEngine.OpenXr
             foreach (var input in _frame.Inputs)
             {
                 var xrInput = XrApp.Current.Inputs[input.Key];
-                xrInput?.ForceState(input.Value.IsChanged, input.Value.IsActive, input.Value.Value);
+                xrInput?.SetState(input.Value);
             }
-
         }
 
         [Action]
@@ -115,9 +112,7 @@ namespace XrEngine.OpenXr
 
             canvas.Save();
 
-
             AdvancePosePredictor pre0 = new();
-
 
             for (var i = min; i<= max; i++)
             {
@@ -186,7 +181,6 @@ namespace XrEngine.OpenXr
             }
         }
 
-
         public bool ShowTrail { get; set; } 
 
         public PlayerState PlayerState => _state;
@@ -199,6 +193,5 @@ namespace XrEngine.OpenXr
 
 
         public event PropertyChangedEventHandler? PropertyChanged;
-
     }
 }

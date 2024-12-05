@@ -79,7 +79,7 @@ namespace XrSamples
             {
                 _lastKinematic = rigidBody.DynamicActor.IsKinematic;
 
-                mustThrow = _lastKinematic == false && _lastTool is InputObjectGrabber;
+                mustThrow = _lastKinematic == false && _lastTool is InputGrabber;
             }
 
             var c = SmoothFactor;
