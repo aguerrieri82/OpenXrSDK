@@ -1,18 +1,18 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using Tensorflow;
 using Tensorflow.Keras.Engine;
 using Tensorflow.NumPy;
 using XrMath;
-using static Tensorflow.Binding;
 using static Tensorflow.KerasApi;
 
 namespace XrEngine.AI
 {
-    public class PoseTrainData
+    public struct PoseTrainData
     {
-        public float Time { get; set; }
+        public float Time;
 
-        public Pose3 Pose { get; set; }
+        public Pose3 Pose;
     }
 
     public class AIPosePredictorCore 
@@ -20,44 +20,78 @@ namespace XrEngine.AI
         const int _featureSize = 8;
 
         private IModel? _model;
-        
-        private string _modelPath = "d:\\pose_prediction_model";
-
-        private int _sequenceLength;
+        private readonly string _modelPath;
+        private readonly int _sequenceLength;
 
 
-        public AIPosePredictorCore(int sequenceLength)
+        public AIPosePredictorCore(int sequenceLength, string path)
         {
             _sequenceLength = sequenceLength;
+            _modelPath = path;  
         }
 
-        public void Train(List<PoseTrainData> poses)
+        public void Train(List<PoseTrainData> poses, int epochs = 20, int batchSize = 32)
         {
-            // Prepare training and validation datasets
             var (xTrain, yTrain) = PrepareDataset(poses);
             var (xVal, yVal) = PrepareDataset(poses.GetRange(poses.Count - 60, 60));
 
-            // Create or load the model
-            if (File.Exists($"{_modelPath}.pb"))
+            if (File.Exists($"{_modelPath}/saved_model.pb"))
             {
                 Console.WriteLine("Loading saved model...");
-                _model = keras.models.load_model(_modelPath);
+                LoadModel();
             }
             else
             {
                 Console.WriteLine("Creating a new model...");
-                _model = CreateModel();
+                CreateModel();
             }
 
-            // Train the model
             Console.WriteLine("Training the model...");
-            _model.fit(xTrain, yTrain, batch_size: 32, epochs: 20, validation_data: (xVal, yVal), verbose: 2);
 
-            // Save the model after training
-            _model.save(_modelPath);
-            _model.save_weights(_modelPath + ".h5");
+            _model.fit(xTrain, yTrain, 
+                batch_size: batchSize, 
+                epochs: epochs,               
+                validation_data: (xVal, yVal), 
+                verbose: 2);
+
+            SaveModel();
 
             Console.WriteLine("Model training complete and saved.");
+        }
+
+        [MemberNotNull(nameof(_model))]
+        private void CreateModel()
+        {
+            _model = keras.Sequential(
+            [
+                keras.layers.InputLayer(input_shape: new Shape(_sequenceLength, _featureSize)),
+                keras.layers.LSTM(128, return_sequences: false),
+                keras.layers.Dense(64, activation: keras.activations.Relu),
+                keras.layers.Dense(_featureSize)
+            ]);
+
+            _model?.compile(
+                    optimizer: keras.optimizers.Adam(learning_rate: 0.001f),
+                    loss: keras.losses.MeanAbsoluteError(),
+                    metrics: ["mean_absolute_error"]
+            );
+        }
+
+        [MemberNotNull(nameof(_model))] 
+        protected void LoadModel()
+        {
+            if (!File.Exists($"{_modelPath}/saved_model.pb"))
+                throw new InvalidOperationException("Model not found. Train the model before making predictions.");
+            _model = keras.models.load_model(_modelPath);
+            _model.load_weights(_modelPath + ".h5");
+        }
+
+        protected void SaveModel()
+        {
+            if (_model == null)
+                return;
+            _model.save(_modelPath);
+            _model.save_weights(_modelPath + ".h5");
         }
 
         public PoseTrainData Predict(IList<PoseTrainData> poseSequence)
@@ -66,25 +100,16 @@ namespace XrEngine.AI
                 throw new ArgumentException($"At least {_sequenceLength} poses are required for prediction.");
 
             if (_model == null)
-            {
-                if (!File.Exists($"{_modelPath}/saved_model.pb"))
-                    throw new InvalidOperationException("Model not found. Train the model before making predictions.");
-                _model = keras.models.load_model(_modelPath);
-                _model.load_weights(_modelPath + ".h5");
-            }
+                LoadModel();
 
-            // Prepare input for prediction
             var xInput = PrepareInputForPrediction(poseSequence);
             var lastPose = poseSequence[^1];
 
-            // Predict the next pose
-            var prediction = _model.predict(xInput).First();
-            var outputArray = prediction.numpy();
+            var prediction = _model.predict(xInput).First()[0];
 
-            // Construct the next pose
-            var deltaPos = new Vector3((float)outputArray[0, 0], (float)outputArray[0, 1], (float)outputArray[0, 2]);
-            var deltaOrient = new Quaternion((float)outputArray[0, 3], (float)outputArray[0, 4], (float)outputArray[0, 5], (float)outputArray[0, 6]);
-            var deltaTime = (float)outputArray[0, 7];
+            var deltaPos = new Vector3((float)prediction[0], (float)prediction[1], (float)prediction[2]);
+            var deltaOrient = new Quaternion((float)prediction[3], (float)prediction[4], (float)prediction[5], (float)prediction[6]);
+            var deltaTime = (float)prediction[7];
 
             return new PoseTrainData
             {
@@ -96,51 +121,6 @@ namespace XrEngine.AI
                 Time = lastPose.Time + deltaTime
             };
         }
-
-        private Sequential CreateModel()
-        {
-            var model = keras.Sequential(
-            [
-                keras.layers.InputLayer(input_shape: new Shape(_sequenceLength, _featureSize)),
-                keras.layers.LSTM(128, return_sequences: false),
-                keras.layers.Dense(64, activation: keras.activations.Relu),
-                keras.layers.Dense(_featureSize)
-            ]);
-
-            model!.compile(
-                    optimizer: keras.optimizers.Adam(learning_rate: 0.001f),
-                    loss: keras.losses.MeanAbsoluteError(),
-                    metrics: ["mean_absolute_error"]
-            );
-
-
-            return model;
-        }
-
-        public static float[,] ConvertListTo2DArray(List<float[]> list)
-        {
-            if (list == null || list.Count == 0)
-                throw new ArgumentException("The input list is null or empty.");
-
-            int rows = list.Count;
-            int cols = list[0].Length;
-
-            float[,] array = new float[rows, cols];
-
-            for (int i = 0; i < rows; i++)
-            {
-                if (list[i].Length != cols)
-                    throw new ArgumentException("All rows in the input list must have the same number of columns.");
-
-                for (int j = 0; j < cols; j++)
-                {
-                    array[i, j] = list[i][j];
-                }
-            }
-
-            return array;
-        }
-
 
         private (NDArray, NDArray) PrepareDataset(List<PoseTrainData> poses)
         {

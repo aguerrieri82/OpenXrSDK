@@ -516,11 +516,20 @@ namespace OpenXr.Framework
         {
             var result = new SpaceLocation();
             result.Type = StructureType.SpaceLocation;
+
+            var vel = new SpaceVelocity();
+            vel.Type = StructureType.SpaceVelocity;
+            
+            result.Next = &vel;
+
             CheckResult(_xr!.LocateSpace(space, baseSpace, time, ref result), "LocateSpace");
             return new XrSpaceLocation
             {
                 Pose = ReferenceFrame.Multiply(result.Pose.ToPose3()),
-                Flags = result.LocationFlags
+                Flags = result.LocationFlags,
+                VelocityFlags = vel.VelocityFlags,  
+                LinearVelocity = vel.LinearVelocity.ToVector3(),
+                AngularVelocity = vel.AngularVelocity.ToVector3()
             };
         }
 

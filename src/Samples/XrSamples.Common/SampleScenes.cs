@@ -1180,7 +1180,7 @@ namespace XrSamples
             pm.SetCollideGroup(RigidBodyGroup.Group1, CollideGroup.Never);
             pm.SetCollideGroup(RigidBodyGroup.Group2, CollideGroup.Always);
 
-            scene.AddComponent(new InputObjectForce
+            scene.AddComponent(new InputPhysicsForce
             {
                 InputName = "RightGripPose",
                 HandlerName = "RightSqueezeClick",
@@ -1189,7 +1189,7 @@ namespace XrSamples
                 Factor = 0.1f
             });
 
-            scene.AddComponent(new InputObjectForce
+            scene.AddComponent(new InputPhysicsForce
             {
                 InputName = "LeftGripPose",
                 HandlerName = "LeftSqueezeClick",

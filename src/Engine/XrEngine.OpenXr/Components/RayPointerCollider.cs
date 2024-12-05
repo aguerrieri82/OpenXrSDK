@@ -6,14 +6,6 @@ using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public interface IRayColliderHandler
-    {
-        bool UpdateRayView(RayPointerCollider collider, Collision? collision);
-
-        IEnumerable<ICollider3D>? GetColliders();
-
-        bool IsActive { get; }
-    }
 
     public class RayPointerCollider : Behavior<Scene3D>
     {

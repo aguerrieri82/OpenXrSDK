@@ -1,4 +1,5 @@
 ﻿using OpenXr.Framework;
+using System.Numerics;
 using System.Text.Json;
 using XrInteraction;
 
@@ -6,27 +7,29 @@ namespace XrEngine.OpenXr
 {
     public class XrInputRecorder : Behavior<Scene3D>
     {
-        public struct InputStatus
-        {
-            public bool IsActive { get; set; }
+   
 
-            public bool IsChanged { get; set; } 
-
-            public object Value { get; set; }
-        }
+        #region RecordFrame
 
         public struct RecordFrame
         {
             public double Time;
 
-            public Dictionary<string, InputStatus> Inputs;
+            public long XrTime;
+
+            public Dictionary<string, XrInputState> Inputs;
         }
+
+        #endregion
+
+        #region RecordSession
 
         public class RecordSession
         {
             public IList<RecordFrame>? Frames;
         }
 
+        #endregion
 
         RecordSession? _session;
 
@@ -50,18 +53,15 @@ namespace XrEngine.OpenXr
                 var frame = new RecordFrame
                 {
                     Time = ctx.Time,
+                    XrTime = XrApp.Current.FramePredictedDisplayTime,
                     Inputs = []
                 };
 
                 foreach (var input in XrApp.Current.Inputs.Values)
-                    frame.Inputs[input.Name] = new InputStatus
-                    {
-                        IsChanged = input.IsChanged,
-                        Value = input.Value,
-                        IsActive = input.IsActive
-                    };
-
-                _session.Frames!.Add(frame);
+                {
+                    frame.Inputs[input.Name] = input.GetState();
+                    _session.Frames!.Add(frame);
+                }
             }
         }
 

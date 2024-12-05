@@ -15,7 +15,7 @@ namespace XrEngine.AI
 
         public AIPosePredictor()
         {
-            _core = new AIPosePredictorCore(7);
+            _core = new AIPosePredictorCore(7, "d:\\pose_prediction_model");
         }   
 
         public Pose3 Predict(float dt)

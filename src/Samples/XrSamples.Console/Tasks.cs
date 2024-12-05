@@ -54,7 +54,7 @@ namespace XrSamples
                 });
             }
 
-            var pred = new AIPosePredictorCore(7);
+            var pred = new AIPosePredictorCore(7, "d:\\pose_prediction_model");
            //pred.Train(data);
             for (var i = 8; i < data.Count; i++)
             {
