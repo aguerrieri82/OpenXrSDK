@@ -22,6 +22,8 @@ using XrMath;
 using XrSamples.Components;
 using DrumsVR.Game;
 using XrEngine.AI;
+using XrEngine.Devices;
+
 
 
 
@@ -1049,6 +1051,11 @@ namespace XrSamples
         [Sample("CreateDrums")]
         public static XrEngineAppBuilder CreateDrums(this XrEngineAppBuilder builder)
         {
+#if WINDOWS        
+            Context.Implement<IBleManager>(() => new XrEngine.Devices.Windows.WinBleManager());
+#else
+            Context.Implement<IBleManager>(() => new XrEngine.Devices.Android.AndroidBleManager());
+#endif
             builder.Configure(DrumsVRApp.Build)
                 .UseRayCollider("Mouse")
                 .AddPassthrough()

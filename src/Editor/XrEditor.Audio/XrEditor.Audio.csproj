@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>$(CoreVersion)-windows</TargetFrameworks>
+	  <TargetFrameworks>$(CoreVersion)-$(WinVersion)</TargetFrameworks>
 	  <UseWPF>true</UseWPF>
   </PropertyGroup>
 

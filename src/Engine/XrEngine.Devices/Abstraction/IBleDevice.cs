@@ -27,8 +27,7 @@ namespace XrEngine.Devices
         Indicate
     }
 
-    public delegate void BleCharacteristicValueChangedDelegate(BleCharacteristicInfo characteristicInfo, byte[] value); 
-
+    public delegate void BleCharacteristicValueChangedDelegate(BleCharacteristicInfo characteristicInfo, byte[] value);
 
     public interface IBleDevice
     {
@@ -36,13 +35,13 @@ namespace XrEngine.Devices
 
         Task DisconnectAsync();
 
-        Task< IEnumerable<BleServiceInfo>> GetServicesAsync(int timeoutMs);
+        Task<IEnumerable<BleServiceInfo>> GetServicesAsync(int timeoutMs);
 
-        Task<IEnumerable<BleCharacteristicInfo>> GetCharacteristicsAsync(BleServiceInfo serviceInfo, int timeoutMs);   
+        Task<IEnumerable<BleCharacteristicInfo>> GetCharacteristicsAsync(BleServiceInfo serviceInfo, int timeoutMs);
 
         Task<byte[]> ReadCharacteristicAsync(BleCharacteristicInfo characteristicInfo);
 
-        Task WriteCharacteristic(BleCharacteristicInfo characteristicInfo, byte[] data);
+        Task WriteCharacteristicAsync(BleCharacteristicInfo characteristicInfo, byte[] data);
 
         Task WriteCharacteristicConfigurationAsync(BleCharacteristicInfo characteristicInfo, BleCharacteristicConfig value);
 
@@ -50,7 +49,6 @@ namespace XrEngine.Devices
 
         void RemoveCharacteristicValueChangedHandler(BleCharacteristicInfo characteristicInfo, BleCharacteristicValueChangedDelegate handler);
 
-
-        bool IsConnected { get; }   
+        bool IsConnected { get; }
     }
 }

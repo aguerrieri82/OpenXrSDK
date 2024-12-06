@@ -8,18 +8,18 @@ namespace XrEngine.Devices
 {
     public class BleDeviceInfo
     {
-        public BleAddress Address;
+        public BleAddress Address { get; set; }
 
-        public string? Name;
+        public string? Name { get; set; }
     }
 
     public class BleDeviceFilter
     {
-        public string? Name;
+        public string? Name { get; set; }
 
-        public int MaxDevices;
+        public int MaxDevices { get; set; }
 
-        public TimeSpan Timeout;    
+        public TimeSpan Timeout { get; set; }
     }
 
     public struct BleAddress
@@ -28,7 +28,6 @@ namespace XrEngine.Devices
 
         public static implicit operator BleAddress(ulong value) => new() { Value = value };    
     }
-
 
     public interface IBleManager
     {

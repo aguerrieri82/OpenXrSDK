@@ -15,6 +15,16 @@ int averageADC(int pin, int samples = 10) {
 
 void AdcReadTask::stepWork()
 { 
+    #ifdef BUILD_RELEASE
+
+    if (!bltMonitor.isActive())
+    {
+        suspend(100);
+        return;
+    }
+    
+    #endif
+
     int adcValue = averageADC(ADC_PIN);
     
     if (settings.mode == 'H')
@@ -23,33 +33,36 @@ void AdcReadTask::stepWork()
         {
             if (adcValue > settings.rampUp)
             {
-              _state = 1;
-              _upTime = millis();
+                _state = 1;
+                _upTime = millis();
+                log_d("Ramp Up");
             }
         }
         else if (_state == 1)
         {
             if (adcValue > settings.rampHit)
             {
-                _state = 2;
                 SensorValue value;
 
                 value.timestamp = millis();
                 value.deltaTime = value.timestamp - _upTime;
                 value.value = 1;
 
-                log_d("Hit, dt: %d", value.deltaTime);
+                log_i("Hit, dt: %d", value.deltaTime);
 
                 led.blink(200);
 
                 bltMonitor.setValue(value);
+
+                _state = 2;
             }
         }
         else if (_state == 2)
         {
-            if (adcValue < settings.rampDown)
+            if (adcValue < settings.rampUp)
             {
-              _state = 0;
+                _state = 0;
+                log_d("Ramp Down");
             }
         }
     }
@@ -64,7 +77,13 @@ void AdcReadTask::stepWork()
         bltMonitor.setValue(value);
     }
 
-    this->suspend(std::min(1, 1000 / settings.sampleRate));
+
+    auto delayMs = std::min(1, 1000 / settings.sampleRate);
+
+    suspend(delayMs);
+    
+    //esp_sleep_enable_timer_wakeup(delayMs * 1000);
+    //esp_deep_sleep_start();
 }
 
 void AdcReadTask::setup()

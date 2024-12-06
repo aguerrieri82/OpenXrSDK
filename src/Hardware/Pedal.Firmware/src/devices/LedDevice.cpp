@@ -22,7 +22,6 @@ void LedDevice::off()
 
 void LedDevice::blink(int timeMs)
 {
-
      TTaskFunction body = [=]() {
         on();
         delay(timeMs);

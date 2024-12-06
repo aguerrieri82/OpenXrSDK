@@ -5,7 +5,7 @@
 		<RootNamespace>XrSamples</RootNamespace>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<UseOpenGL>true</UseOpenGL>
-		<TargetFrameworks>$(CoreVersion)-windows$(WinVersion)</TargetFrameworks>
+		<TargetFrameworks>$(CoreVersion)-$(WinVersion)</TargetFrameworks>
 	</PropertyGroup>
 
 

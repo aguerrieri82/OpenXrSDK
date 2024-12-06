@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<RootNamespace>XrSamples</RootNamespace>
-		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
+		<TargetFrameworks>$(CoreVersion)-$(WinVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
 
 	<ItemGroup>

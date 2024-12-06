@@ -37,7 +37,7 @@ namespace XrSamples
 
             var manager = new WinBleManager();
 
-            /*
+     
             Log.Info(typeof(Tasks), "Find device...");
 
             var devices = await manager.FindDevicesAsync(new BleDeviceFilter
@@ -52,7 +52,7 @@ namespace XrSamples
                 Log.Warn(typeof(Tasks), "No devices found");
                 return;
             }
-            */
+
 
             var pedal = new BlePedal(manager);
 

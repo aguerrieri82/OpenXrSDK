@@ -67,9 +67,10 @@ void BltMonitorTask::onConnect(BLEServer *pServer)
 
 void BltMonitorTask::onDisconnect(BLEServer *pServer)
 {
+    log_d("BLE: %i", _server->getConnectedCount());
     log_d("BLE Client Disconnect");
 
-    if (_server->getConnectedCount() == 0)
+    if (_server->getConnectedCount() <= 1)
         _server->startAdvertising();
 
     _lastActivityTime = millis();
