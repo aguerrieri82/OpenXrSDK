@@ -89,6 +89,8 @@ namespace XrEditor
 
             Items.Add(result);
 
+            setValue(value);
+
             return result;
         }
 

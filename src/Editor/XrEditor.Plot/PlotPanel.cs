@@ -32,6 +32,8 @@ namespace XrEditor.Plot
 
         private DateTime _lastValueTime;
         private DateTime _lastNotifyTime;
+        private SingleSelector _autoScaleX;
+        private SingleSelector _autoScaleY;
         private readonly Timer _notifyTimer;
 
         public PlotPanel()
@@ -56,9 +58,9 @@ namespace XrEditor.Plot
 
             ToolBar = new ToolbarView();
             ToolBar.AddText("X:");
-            ToolBar.AddEnumSelect(Plotter.AutoScaleX, a => Plotter.AutoScaleX = a);
+            _autoScaleX = ToolBar.AddEnumSelect(Plotter.AutoScaleX, a => Plotter.AutoScaleX = a);
             ToolBar.AddText("Y:");
-            ToolBar.AddEnumSelect(Plotter.AutoScaleY, a => Plotter.AutoScaleY = a);
+            _autoScaleY= ToolBar.AddEnumSelect(Plotter.AutoScaleY, a => Plotter.AutoScaleY = a);
             ToolBar.AddToggle("icon_vertical_split", Plotter.ShowAxisY, a => Plotter.ShowAxisY = a);
             ToolBar.AddDivider();
             ToolBar.AddButton("icon_close", Clear);
@@ -130,8 +132,8 @@ namespace XrEditor.Plot
 
         public override void SetState(IStateContainer container)
         {
-            Plotter.AutoScaleX = container.Read<AutoScaleXMode>("AutoScaleX");
-            Plotter.AutoScaleY = container.Read<AutoScaleYMode>("AutoScaleY");
+            _autoScaleX.SelectedValue = container.Read<AutoScaleXMode>("AutoScaleX");
+            _autoScaleY.SelectedValue = container.Read<AutoScaleYMode>("AutoScaleY");
 
             base.SetState(container);
         }

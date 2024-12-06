@@ -13,9 +13,9 @@ namespace XrEngine.AI
         AIPosePredictorCore _core;
         readonly List<PoseTrainData> _data = [];
 
-        public AIPosePredictor()
+        public AIPosePredictor(string modelPath)
         {
-            _core = new AIPosePredictorCore(7, "d:\\pose_prediction_model");
+            _core = new AIPosePredictorCore(7, modelPath);
         }   
 
         public Pose3 Predict(float dt)

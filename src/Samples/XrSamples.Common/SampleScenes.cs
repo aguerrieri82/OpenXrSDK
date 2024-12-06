@@ -1055,12 +1055,12 @@ namespace XrSamples
 
             .ConfigureApp(app =>
             {
-                var scene = (DrumsVR.Game.MainScene)app.App.ActiveScene!;
+                var scene = (MainScene)app.App.ActiveScene!;
                 scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
                 scene.AddComponent<DebugGizmos>();
                 scene.AddComponent<XrInputRecorder>();
-                scene.AddComponent(new XrInputPlayer(new AIPosePredictor()));
+                scene.AddComponent(new XrInputPlayer(new AIPosePredictor("d:\\pose_prediction_model")));
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
             });
 

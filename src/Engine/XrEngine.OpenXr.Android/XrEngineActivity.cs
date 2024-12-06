@@ -24,7 +24,7 @@ namespace XrEngine.OpenXr.Android
             };
         }
 
-        protected abstract void Build(XrEngineAppBuilder builder);
+        protected abstract void BuildApp(XrEngineAppBuilder builder);
 
         protected void Preload(Assembly entry)
         {
@@ -69,7 +69,7 @@ namespace XrEngine.OpenXr.Android
             var builder = new XrEngineAppBuilder()
                    .UsePlatform(new AndroidPlatform(this));
 
-            Build(builder);
+            BuildApp(builder);
 
             _engine = builder.Build();
 

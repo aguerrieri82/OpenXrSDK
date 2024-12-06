@@ -5,7 +5,7 @@
 		<RootNamespace>XrSamples</RootNamespace>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<UseOpenGL>true</UseOpenGL>
-		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
+		<TargetFrameworks>$(CoreVersion)-windows$(WinVersion)</TargetFrameworks>
 	</PropertyGroup>
 
 
@@ -24,6 +24,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\Engine\XrEngine.AI\XrEngine.AI.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Compression\XrEngine.Compression.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Devices\XrEngine.Devices.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Glft\XrEngine.Gltf.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />

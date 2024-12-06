@@ -24,7 +24,7 @@ namespace OpenXr.Framework.Android
         protected Thread? _loopThread;
         protected XrApp? _xrApp;
         protected readonly HandlerXrThread _mainThread = new(new Handler(Looper.MainLooper!));
-        protected string[] _permissions;
+        protected List<string> _permissions;
         private LoadStep _loadStep;
 
 
@@ -32,11 +32,9 @@ namespace OpenXr.Framework.Android
         {
             _permissions = [
               "com.oculus.permission.USE_SCENE",
-                "android.permission.WRITE_EXTERNAL_STORAGE",
-                "android.permission.READ_EXTERNAL_STORAGE"
-              ];
-
-
+              "android.permission.WRITE_EXTERNAL_STORAGE",
+              "android.permission.READ_EXTERNAL_STORAGE"
+            ];
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)

@@ -1,0 +1,18 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "process",
+			"label": "Serial Monitor V2",
+			"command": "bin/SerialMonitor.exe",
+			"args": [
+				"COM4",
+				"115200",
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"group": "test",
+		}
+	]
+}
