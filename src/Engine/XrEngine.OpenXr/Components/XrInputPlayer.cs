@@ -50,6 +50,12 @@ namespace XrEngine.OpenXr
             {
                 var xrInput = XrApp.Current.Inputs[input.Key];
                 xrInput?.SetState(input.Value);
+
+                if (input.Key== "RightGripPose")
+                {
+                    var pose = ((XrPoseInput)xrInput!).Value;
+                    Log.Value("Pose-X", MathF.Round( pose.Position.X, 5));
+                }   
             }
         }
 

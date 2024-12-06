@@ -20,6 +20,11 @@
             AnimationManager.Instance.Start(this);
         }
 
+        public void Stop()
+        {
+            IsStarted = false;
+        }
+
         public void Step(float t)
         {
             Value = Interpolate(From, To, t);

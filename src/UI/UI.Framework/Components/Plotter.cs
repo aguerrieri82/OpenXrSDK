@@ -1,6 +1,7 @@
 ﻿using SkiaSharp;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Numerics;
 using XrMath;
 
@@ -183,6 +184,7 @@ namespace CanvasUI.Components
 
     public class DiscretePlotterSerie : BasePlotterSerie
     {
+        Bounds1 _yRange;
 
         public DiscretePlotterSerie()
         {
@@ -193,6 +195,17 @@ namespace CanvasUI.Components
 
         public void AppendValue(float x, float y, bool notify = true)
         {
+            if (Points.Count == 0)
+            {
+                _yRange.Min = y;
+                _yRange.Max = y;
+            }
+            else
+            {
+                _yRange.Min = MathF.Min(y, _yRange.Min);
+                _yRange.Max = MathF.Max(y, _yRange.Max);
+            }
+
             if (Points.Count > 0 && Points[Points.Count - 1].X == x)
                 Points[Points.Count - 1] = new Vector2(x, y);
             else
@@ -200,10 +213,13 @@ namespace CanvasUI.Components
 
             if (notify)
                 NotifyChanged();
+
         }
 
         public void Clear()
         {
+            _yRange.Min = 0;
+            _yRange.Max = 0;
             Points.Clear();
             NotifyChanged();
         }
@@ -241,6 +257,8 @@ namespace CanvasUI.Components
 
                 var lastPoint = new Vector2(float.NaN, float.NaN);
 
+                var maxIndex = curIndex;
+
                 while (curIndex < Points.Count)
                 {
                     var curPoint = Points[(int)curIndex];
@@ -250,7 +268,7 @@ namespace CanvasUI.Components
 
                     if (!float.IsNaN(lastPoint.X))
                     {
-                        if ((curPoint.X - lastPoint.X) > MaxGapX)
+                        if ((curPoint.X - lastPoint.X) > MaxGapX && skip <= 1)
                             yield return new Vector2(float.NaN, float.NaN);
                         else if (curPoint.X != lastPoint.X)
                             yield return new Vector2(curPoint.X, lastPoint.Y);
@@ -341,6 +359,9 @@ namespace CanvasUI.Components
 
         public override Bounds1 GetMinMaxYAt(Bounds1 xRange)
         {
+            if (xRange.Equals(GetMinMaxX()))
+                return _yRange;
+
             var result = new Bounds1
             {
                 Min = float.PositiveInfinity,
@@ -447,6 +468,8 @@ namespace CanvasUI.Components
             _plotter.PointerUp += OnPointerUp;
 
             uiEvent.Pointer!.Capture(_plotter);
+
+            _plotter._activeTool = this;
         }
 
         protected virtual void EndCapture(UiPointerEvent uiEvent)
@@ -460,7 +483,7 @@ namespace CanvasUI.Components
 
             uiEvent.Pointer!.Release();
 
-
+            _plotter._activeTool = null;
         }
     }
 
@@ -556,28 +579,18 @@ namespace CanvasUI.Components
 
             var delta = (pos - _startPos);
 
-            if (MathF.Abs(delta.X) > MathF.Abs(delta.Y))
+            var ctrl = (ev.Modifiers & UiModifier.Ctrl) != 0;
+            
+            var scaleFactor = MathF.Pow(2, delta.X * 0.01f); ;
+
+            if (!ctrl)
             {
-                var scaleX = _startScale.X;
-
-                scaleX += delta.X * 0.01f * scaleX;
-
-                scaleX = MathF.Max(0.1f, scaleX);
-
-                _plotter.PixelPerUnitX = scaleX;
+                _plotter.PixelPerUnitX = MathF.Max(0.1f, _startScale.X * scaleFactor);
             }
             else
             {
-                var scaleY = _startScale.Y;
-
-                scaleY += delta.X * 0.01f * scaleY;
-
-                scaleY = MathF.Max(0.1f, scaleY);
-
-                _plotter.PixelPerUnitY = scaleY;
+                _plotter.PixelPerUnitY = MathF.Max(0.1f, _startScale.Y * scaleFactor);
             }
-
-
 
             return true;
         }
@@ -597,6 +610,8 @@ namespace CanvasUI.Components
 
     public class Plotter : UiElement
     {
+        protected internal BasePlotterTool? _activeTool;
+
         protected Rect2 _chartArea;
         protected int _updateView;
         protected Rect2 _legendArea;
@@ -986,11 +1001,14 @@ namespace CanvasUI.Components
             {
                 if (Parent == null)
                     return;
+                
+                if (_activeTool != null)
+                    return;
+
                 Invalidate();
                 ComputeLayout();
                 ComputeMetrics(true, true);
             }
-
         }
 
         protected string GetLegendLabel(IPlotterSerie serie)
@@ -1013,11 +1031,16 @@ namespace CanvasUI.Components
             {
                 var maxW = float.NegativeInfinity;
 
-                foreach (var serie in Series.Where(a => a.IsVisible))
-                    maxW = MathF.Max(maxW, font.MeasureText(GetLegendLabel(serie)));
+                if (LegendWidth == 0)
+                {
+                    foreach (var serie in Series.Where(a => a.IsVisible))
+                        maxW = MathF.Max(maxW, font.MeasureText(GetLegendLabel(serie)));
 
-                if (float.IsInfinity(maxW))
-                    maxW = 0;
+                    if (float.IsInfinity(maxW))
+                        maxW = 0;
+                }
+                else
+                    maxW = LegendWidth;
 
                 _chartArea.Left += maxW + 16;
                 _legendArea = new Rect2(_contentRect.X, _contentRect.Y, maxW, _contentRect.Height);
@@ -1159,6 +1182,9 @@ namespace CanvasUI.Components
 
             if (curViewRect.Width == 0 || curViewRect.Height == 0)
                 return;
+            
+            if (ViewRect.Equals(curViewRect))
+                return;
 
             if (animate)
             {
@@ -1166,6 +1192,7 @@ namespace CanvasUI.Components
             }
             else
             {
+                _viewAnimation.Stop();
                 ViewRect = curViewRect;
                 UpdatePlotValues(curViewRect);
             }
@@ -1326,6 +1353,13 @@ namespace CanvasUI.Components
         {
             get => GetValue<float>(nameof(LabelWidthY));
             set => SetValue(nameof(LabelWidthY), value);
+        }
+
+        [UiProperty(100f, UiPropertyFlags.Render)]
+        public float LegendWidth
+        {
+            get => GetValue<float>(nameof(LegendWidth));
+            set => SetValue(nameof(LegendWidth), value);
         }
 
         public Func<float, string> FormatValueX { get; set; }

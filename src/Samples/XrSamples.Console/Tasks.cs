@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using Silk.NET.Assimp;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
@@ -11,11 +12,14 @@ using VirtualCamera.IPCamera;
 using XrEngine;
 using XrEngine.AI;
 using XrEngine.Compression;
+using XrEngine.Devices;
+using XrEngine.Devices.Windows;
 using XrEngine.Gltf;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
 using XrEngine.Video;
 using XrMath;
+using static Tensorflow.ApiDef.Types;
 using File = System.IO.File;
 
 
@@ -26,7 +30,74 @@ namespace XrSamples
         public static IServiceProvider? Services { get; set; }
 
 
-        public static void Train()
+        public static async Task TestBlePedalAsync()
+        {
+            Context.Implement<ILogger>(Services!.GetService<ILogger<Tasks>>()!);
+            Context.Implement<IProgressLogger>(new ProgressLogger());
+
+            var manager = new WinBleManager();
+
+            /*
+            Log.Info(typeof(Tasks), "Find device...");
+
+            var devices = await manager.FindDevicesAsync(new BleDeviceFilter
+            {
+                Name = "Pedal Controller",
+                MaxDevices = 1,
+                Timeout = TimeSpan.FromSeconds(10)
+            });
+
+            if (devices.Count == 0)
+            {
+                Log.Warn(typeof(Tasks), "No devices found");
+                return;
+            }
+            */
+
+            var pedal = new BlePedal(manager);
+
+            Log.Info(typeof(Tasks), "Connecting");
+
+            //await pedal.ConnectAsync(devices[0].Address);
+
+            await pedal.ConnectAsync(225243778289514);
+
+            Log.Info(typeof(Tasks), "Read Settings");
+
+            var set = await pedal.ReadSettingsAsync();
+
+            set.RampUp = 900;
+            set.RampHit = 1390;
+            set.RampDown = 1200;
+            set.SampleRate = 100;
+            set.Mode = (byte)'H';
+
+
+            Log.Info(typeof(Tasks), "Update Settings");
+
+            await pedal.UpdateSettingsAsync(set);
+
+            Log.Info(typeof(Tasks), "Wait for data...");
+
+            pedal.Data +=  (sender, args) =>
+            {
+                Log.Debug("", "Hit: {0}", args.Data.Value);
+            };
+
+            while (pedal.IsConnected)
+            {
+                var bat = await pedal.GetBatteryAsync();
+
+                Log.Info("", "Battery: {0}", MathF.Round(bat, 2));
+
+                await Task.Delay(30000);
+            }
+
+            Console.ReadKey();
+        }
+
+
+        public static void TrainPosePredictor()
         {
             var options = new JsonSerializerOptions
             {

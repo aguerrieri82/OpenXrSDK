@@ -67,7 +67,7 @@ namespace XrSamples.Android.Activities
             base.OnXpAppStarted(app);
         }
 
-        protected override void Build(XrEngineAppBuilder builder)
+        protected override void BuildApp(XrEngineAppBuilder builder)
         {
             var external = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
             XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(external, "Assets")));

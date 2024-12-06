@@ -4,6 +4,7 @@ using SkiaSharp.Views.WPF;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace UI.Canvas.Wpf
 {
@@ -116,7 +117,7 @@ namespace UI.Canvas.Wpf
             if (Application.Current.Dispatcher.Thread == Thread.CurrentThread)
                 InvalidateVisual();
             else
-                Application.Current.Dispatcher.InvokeAsync(InvalidateVisual);
+                Application.Current.Dispatcher.InvokeAsync(InvalidateVisual, DispatcherPriority.Background);
         }
 
         protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)
@@ -191,6 +192,18 @@ namespace UI.Canvas.Wpf
 
             var capture = UiManager.GetPointerCapture(0);
 
+            var mod = UiModifier.None;
+
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                mod |= UiModifier.Ctrl;
+            
+            if (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt))
+                mod |= UiModifier.Alt;
+
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+                mod |= UiModifier.Shift;
+
+
             if (capture != null)
             {
                 var uiEv = UiManager.AcquireEvent<UiPointerEvent>();
@@ -201,6 +214,7 @@ namespace UI.Canvas.Wpf
                 uiEv.Type = type;
                 uiEv.Source = capture;
                 uiEv.Dispatch = UiEventDispatch.Direct;
+                uiEv.Modifiers = mod;
                 capture.DispatchEvent(uiEv);
 
             }
@@ -220,6 +234,7 @@ namespace UI.Canvas.Wpf
                     uiEv.Type = type;
                     uiEv.Source = hitTest;
                     uiEv.Dispatch = UiEventDispatch.Bubble;
+                    uiEv.Modifiers = mod;
 
                     hitTest.DispatchEvent(uiEv);
                 }
