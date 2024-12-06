@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<RootNamespace>XrEditor</RootNamespace>
+		<TargetFrameworks>$(CoreVersion)-$(WinVersion);</TargetFrameworks>
 	</PropertyGroup>
 
 	<ItemGroup>

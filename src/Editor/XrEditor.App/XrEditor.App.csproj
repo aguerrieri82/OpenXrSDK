@@ -4,12 +4,11 @@
 		<RootNamespace>XrEditor</RootNamespace>
 		<OutputType>WinExe</OutputType>
 		<AssemblyName>XrEditor</AssemblyName>
-		<TargetFrameworks>$(CoreVersion)-windows</TargetFrameworks>
+		<TargetFrameworks>$(CoreVersion)-$(WinVersion)</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<XamlDebuggingInformation>True</XamlDebuggingInformation>
 		<RuntimeIdentifier>win-$(Platform)</RuntimeIdentifier>
 		<UseOpenGL>true</UseOpenGL>
-		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
 		<ApplicationIcon>XrEditor.ico</ApplicationIcon>
 		<NoWarn>MC3066</NoWarn>
 	</PropertyGroup>

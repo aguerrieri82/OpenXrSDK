@@ -2,17 +2,15 @@
 
 Settings settings;
 
-void loadSettings() {
-
-
-
+void loadSettings() 
+{
     Settings curSettings;
 
     size_t result = preferences.getBytes("settings", &curSettings, sizeof(Settings));
 
     if (curSettings.key != SETTINGS_KEY || curSettings.size != sizeof(Settings))
     {
-        log_i("No Setting in EEPROM, use default");
+        log_w("No Setting in EEPROM, use default");
 
         memset(&settings, 0, sizeof(Settings));
 
@@ -27,10 +25,16 @@ void loadSettings() {
         saveSettings();
     }
     else
+    {
+        log_i("Settings loaded");
         settings = curSettings;
+    }    
 }
 
-void saveSettings() {
-  preferences.putBytes("settings", &settings, sizeof(Settings));
+void saveSettings() 
+{
+    preferences.putBytes("settings", &settings, sizeof(Settings));
+
+    log_i("Settings saved");
 }
 

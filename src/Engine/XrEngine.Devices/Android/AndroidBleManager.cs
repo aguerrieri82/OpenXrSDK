@@ -3,7 +3,6 @@
 using Android.Bluetooth;
 using Android.Bluetooth.LE;
 using Android.Content;
-using static Android.Bluetooth.BluetoothAdapter;
 
 namespace XrEngine.Devices.Android
 {
@@ -13,17 +12,18 @@ namespace XrEngine.Devices.Android
 
         protected class BleScanCallback : ScanCallback
         {
+            readonly BleDeviceFilter _filter;
+            readonly TaskCompletionSource<BluetoothDevice?> _source;
 
-            TaskCompletionSource<BluetoothDevice?> _source;
-
-            public BleScanCallback()
+            public BleScanCallback(BleDeviceFilter filter)
             {
                 _source = new();
+                _filter = filter;
             }
 
             public override void OnScanResult(ScanCallbackType callbackType, ScanResult? result)
             {
-                if (result?.Device?.Name == "Pedal Controller")
+                if (_filter.Name != null && result?.Device?.Name == _filter.Name)
                     _source.SetResult(result.Device);
 
                 base.OnScanResult(callbackType, result);
@@ -58,37 +58,59 @@ namespace XrEngine.Devices.Android
 
         public async  Task<IList<BleDeviceInfo>> FindDevicesAsync(BleDeviceFilter filter)
         {
+            var result = new List<BleDeviceInfo>();
+
+            void AddDevice(BluetoothDevice device)
+            {
+                if (filter.Name != null && device.Name != filter.Name)
+                    return;
+
+                result.Add(new BleDeviceInfo
+                {
+                    Address = ulong.Parse(device.Address!.Replace(":", ""), System.Globalization.NumberStyles.HexNumber),
+                    Name = device.Name
+                });
+            }
+
+            foreach (var device in _adapter.BondedDevices!)
+                AddDevice(device);
+
+
+            if (filter.MaxDevices > 0 && result.Count >= filter.MaxDevices)
+                return result;
+
             var scanner = _adapter.BluetoothLeScanner!;
 
-            var scanCallback = new BleScanCallback();
-            scanner.StartScan(scanCallback);
+            var scanSettings = new ScanSettings.Builder()
+                .SetScanMode(global::Android.Bluetooth.LE.ScanMode.LowLatency)! // Or LowPower, Balanced based on your needs
+                .Build()!;
+
+
+            var scanCallback = new BleScanCallback(filter);
+            scanner.StartScan(null, scanSettings, scanCallback);
 
             try
             {
                 var device = await scanCallback.Task.WaitAsync(filter.Timeout);
 
                 if (device != null)
-                {
-                    return
-                    [
-                        new BleDeviceInfo
-                        {
-                            Address = ulong.Parse(device.Address!.Replace(":", ""), System.Globalization.NumberStyles.HexNumber),
-                            Name = device.Name
-                        }
-                    ];
-                }
+                    AddDevice(device);
             }
             catch
             {
 
             }
-            return [];
+            return result;
         }
 
         public Task<IBleDevice> GetDeviceAsync(BleAddress address)
         {
-            throw new NotImplementedException();
+            var device = _adapter.GetRemoteDevice(BitConverter.GetBytes(address.Value).Take(6).Reverse().ToArray());    
+            
+            if (device == null)
+                throw new InvalidOperationException();  
+
+            return Task.FromResult<IBleDevice>(new AndroidBleDevice(device));
         }
     }
 }

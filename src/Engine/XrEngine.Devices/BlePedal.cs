@@ -9,16 +9,8 @@ namespace XrEngine.Devices
         {
             Data = data;
         }
+
         public T Data { get; }
-    }
-
-    public class DeviceInfo
-    {
-        public ulong Address { get; set; }
-
-        public string? Name { get; set; }
-
-        public string? FwVersion { get; set; }
     }
 
 
@@ -37,11 +29,17 @@ namespace XrEngine.Devices
     public struct BlePedalSettings
     {
         public uint Size;
+        
         public int Key;
+        
         public byte Mode;
+        
         public int SampleRate;
+        
         public int RampUp;
+        
         public int RampHit;
+
         public int RampDown;
     }
 
@@ -75,8 +73,7 @@ namespace XrEngine.Devices
 
             var buf = StructToBytes(value);
 
-            await _device.WriteCharacteristic(_settingsChar, buf);
-
+            await _device.WriteCharacteristicAsync(_settingsChar, buf);
         }
 
         public async Task DisconnectAsync()

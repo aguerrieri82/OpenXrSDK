@@ -29,6 +29,8 @@ namespace XrEngine.Devices.Windows
         public async Task ConnectAsync()
         {
             _device = await BluetoothLEDevice.FromBluetoothAddressAsync(_address.Value);
+            if (_device == null)
+                throw new Exception("Device not found");    
         }
 
         public Task DisconnectAsync()
@@ -63,7 +65,7 @@ namespace XrEngine.Devices.Windows
                 {
                     try
                     {
-                        chars = await service!.GetCharacteristicsAsync(BluetoothCacheMode.Cached)
+                        chars = await service!.GetCharacteristicsAsync(BluetoothCacheMode.Uncached)
                            .AsTask()
                            .WaitAsync(TimeSpan.FromSeconds(5));
 
@@ -102,15 +104,18 @@ namespace XrEngine.Devices.Windows
                 {
                     try
                     {
-                        _services = await _device!.GetGattServicesAsync(BluetoothCacheMode.Cached)
+                        _services = await _device!.GetGattServicesAsync(BluetoothCacheMode.Uncached)
                         .AsTask()
-                        .WaitAsync(TimeSpan.FromSeconds(30));
+                        .WaitAsync(TimeSpan.FromSeconds(40));
 
                         if (_services.Status == GattCommunicationStatus.Success)
                             break;
+
+                        Console.WriteLine(_services.Status);
                     }
                     catch
                     {
+                        Console.WriteLine("Timeout");
                     }
 
                     if (timeoutMs > 0 && (DateTime.UtcNow - startTime).TotalMilliseconds > timeoutMs)
@@ -131,7 +136,7 @@ namespace XrEngine.Devices.Windows
         }
 
 
-        public async Task WriteCharacteristic(BleCharacteristicInfo characteristicInfo, byte[] data)
+        public async Task WriteCharacteristicAsync(BleCharacteristicInfo characteristicInfo, byte[] data)
         {
             var cts = GetCharacteristicInternal(characteristicInfo);
             await cts.WriteValueAsync(CryptographicBuffer.CreateFromByteArray(data));
@@ -143,7 +148,6 @@ namespace XrEngine.Devices.Windows
             await cts.WriteClientCharacteristicConfigurationDescriptorAsync((GattClientCharacteristicConfigurationDescriptorValue)value);
         }
 
-
         public void RemoveCharacteristicValueChangedHandler(BleCharacteristicInfo characteristicInfo, BleCharacteristicValueChangedDelegate handler)
         {
             var cts = GetCharacteristicInternal(characteristicInfo);
@@ -151,7 +155,6 @@ namespace XrEngine.Devices.Windows
             cts.ValueChanged -= changed;
             _valueChanged.Remove(handler);
         }
-
 
         public void AddCharacteristicValueChangedHandler(BleCharacteristicInfo characteristicInfo, BleCharacteristicValueChangedDelegate handler)
         {

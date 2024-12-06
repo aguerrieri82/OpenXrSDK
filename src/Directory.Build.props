@@ -4,7 +4,7 @@
 
 	<PropertyGroup>
 		<CoreVersion>net9.0</CoreVersion>
-		<WinVersion>10.0.26100.0</WinVersion>
+		<WinVersion>windows10.0.26100.0</WinVersion>
 		<TargetFrameworks>$(CoreVersion)</TargetFrameworks>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageVersion>0.2.1</PackageVersion>
