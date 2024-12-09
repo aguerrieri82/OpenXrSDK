@@ -51,7 +51,7 @@ namespace OpenXr.Framework.Android
         protected abstract XrApp CreateApp();
 
 
-        protected virtual void OnXpAppStarted(XrApp app)
+        protected virtual void OnXrAppStarted(XrApp app)
         {
 
         }
@@ -84,7 +84,7 @@ namespace OpenXr.Framework.Android
 
                 _xrApp.Start();
 
-                _mainThread.ExecuteAsync(() => OnXpAppStarted(_xrApp)).Wait();
+                _mainThread.ExecuteAsync(() => OnXrAppStarted(_xrApp)).Wait();
 
                 while (_xrApp.IsStarted)
                 {

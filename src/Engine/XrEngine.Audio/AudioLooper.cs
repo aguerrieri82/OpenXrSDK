@@ -25,7 +25,7 @@ namespace XrEngine.Audio
 
         }
 
-        public unsafe virtual int Fill(byte[] data, float timeSec)
+        public unsafe virtual int Fill(Span<byte> data, float timeSec)
         {
             Debug.Assert(Loop?.Format != null);
 

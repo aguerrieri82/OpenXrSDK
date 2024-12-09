@@ -37,7 +37,7 @@ namespace XrSamples
             SmoothFactor = 0.05f;
         }
 
-        public unsafe int Fill(byte[] data, float timeSec)
+        public unsafe int Fill(Span<byte> data, float timeSec)
         {
             int samplesProvided = 0;
 
@@ -203,8 +203,7 @@ namespace XrSamples
 
         protected override void Start(RenderContext ctx)
         {
-            _ = PlayAsync(_engine, () => _host!.Forward);
-
+            Play(_engine, () => _host!.Forward);
             base.Start(ctx);
         }
 
@@ -213,7 +212,6 @@ namespace XrSamples
             Stop();
             base.Reset(onlySelf);
         }
-
 
 
         [Range(0, 1, 0.001f)]
