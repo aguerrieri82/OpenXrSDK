@@ -197,6 +197,7 @@ namespace XrEngine.OpenXr
             {
                 app.App.ActiveScene!.AddChild(new XrRoot());
             });
+
             return self;
         }
 

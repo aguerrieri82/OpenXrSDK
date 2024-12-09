@@ -52,7 +52,7 @@ namespace XrEngine.Audio
         }
 
 
-        public unsafe void Transform(float[] input, float[] output)
+        public unsafe void Transform(Span<float> input, Span<float> output)
         {
             Debug.Assert(_fftIn != null && _fftOut != null && _prevPhase != null && _shiftedSpectrum != null && _phaseAccum != null);
 

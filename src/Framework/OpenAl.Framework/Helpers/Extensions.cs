@@ -1,7 +1,18 @@
-﻿namespace OpenAl.Framework
+﻿using Silk.NET.OpenAL;
+
+namespace OpenAl.Framework
 {
     public static class Extensions
     {
+
+        public static void CheckError(this AL al, string msg)
+        {
+            var err = al.GetError();
+            if (err != AudioError.NoError)
+                throw new InvalidOperationException($"{err} - {msg}");
+        }
+
+
         public static float SampleToTimeByte(this AudioFormat self, int sample)
         {
             var sampleSize = (self.BitsPerSample / 8) * self.Channels;

@@ -8,6 +8,6 @@ namespace XrEngine.Audio
 {
     public interface IAudioBuffer
     {
-        void CopyTo(byte[] buffer, int offset, int startSample, int sampleCount);
+        void CopyTo(Span<byte> buffer, int offset, int startSample, int sampleCount);
     }
 }

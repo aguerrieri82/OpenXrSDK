@@ -4,6 +4,6 @@
     {
         void Initialize(int inputLen, int sampleRate);
 
-        void Transform(float[] input, float[] output);
+        void Transform(Span<float> input, Span<float> output);
     }
 }

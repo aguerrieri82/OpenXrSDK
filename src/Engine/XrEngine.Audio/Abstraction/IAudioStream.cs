@@ -8,7 +8,7 @@ namespace XrEngine.Audio
 
         void Stop();
 
-        int Fill(byte[] data, float timeSec);
+        int Fill(Span<byte> data, float timeSec);
 
         int PrefBufferSize { get; }
 

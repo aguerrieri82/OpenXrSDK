@@ -11,13 +11,13 @@ namespace XrEngine.Audio
         protected HashSet<IAudioStream> _activeStreams = [];
         protected AlSource? _curSource;
 
-        #region  ThreadAudioControl
+        #region  StreamControl
 
-        protected class ThreadAudioControl : IAudioControl
+        protected class StreamControl : IAudioControl
         {
-            private readonly Thread _thread;
+            private readonly Thread? _thread;
 
-            public ThreadAudioControl(Thread thread)
+            public StreamControl(Thread? thread = null)
             {
                 _thread = thread;
             }
@@ -27,7 +27,7 @@ namespace XrEngine.Audio
                 if (IsStopped)
                     return;
                 IsStopped = true;
-                _thread.Join();
+                _thread?.Join();
             }
 
             public bool IsStopped { get; private set; }
@@ -58,16 +58,70 @@ namespace XrEngine.Audio
             return _curSource;
         }
 
+        public unsafe IAudioControl PlayRT(IAudioStream stream, Func<Vector3> getDirection)
+        {
+            var al = AlDevice.Current!.Al;
+
+            var buffer = new AlBuffer(al);
+            var source = new AlSource(al);
+
+            long curSamples = 0;
+
+            al.GetError();
+
+            var control = new StreamControl();
+
+            buffer.SetCallback(stream.Format, data =>
+            {
+                if (!stream.IsStreaming || control.IsStopped)
+                {
+                    _activeStreams.Remove(stream);
+
+                    source.Stop();
+                    source.Dispose();
+
+                    buffer.Dispose();
+
+                    return 0;
+                }
+
+                int curSize = 0;
+
+                while (curSize < data.Length)
+                {
+                    var res = stream.Fill(data.Slice(curSize), curSamples / (float)stream.Format.SampleRate);
+
+                    curSamples += res / (stream.Format.BitsPerSample / 8);
+
+                    curSize += res;   
+                }
+
+                return curSize; 
+            });
+
+            source.SetBuffer(buffer);
+
+            _activeStreams.Add(stream);
+
+            stream.Start();
+
+            source.Play();
+
+            _curSource = source;
+
+            return control;
+        }
+
         public IAudioControl Play(IAudioStream stream, Func<Vector3> getDirection)
         {
-            var thread = new Thread(p => PlayWork(stream, getDirection, (ThreadAudioControl)p!));
+            var thread = new Thread(p => PlayWork(stream, getDirection, (StreamControl)p!));
             thread.Name = "Audio Stream Player";
-            var control = new ThreadAudioControl(thread);
+            var control = new StreamControl(thread);
             thread.Start(control);
             return control;
         }
 
-        protected void PlayWork(IAudioStream stream, Func<Vector3> getDirection, ThreadAudioControl control)
+        protected void PlayWork(IAudioStream stream, Func<Vector3> getDirection, StreamControl control)
         {
             var al = AlDevice.Current!.Al;
 
@@ -97,42 +151,43 @@ namespace XrEngine.Audio
                 FillBuffer(buffers[i]);
             }
 
-            _curSource = new AlSource(al);
-            _curSource.QueueBuffer(buffers);
+            var source = new AlSource(al);
+            source.QueueBuffer(buffers);
 
             _activeStreams.Add(stream);
 
             stream.Start();
 
-            _curSource.Play();
+            source.Play();
+
+            _curSource = source;    
 
             while (stream.IsStreaming && !control.IsStopped)
             {
-                while (_curSource.BuffersProcessed > 0)
+                while (source.BuffersProcessed > 0)
                 {
-                    var buffer = _curSource.DequeueBuffers(1).First();
+                    var buffer = source.DequeueBuffers(1).First();
 
                     FillBuffer(buffer);
 
-                    _curSource.Direction = getDirection();
-                    _curSource.Position = Position ?? _host!.WorldPosition;
-                    _curSource.QueueBuffer(buffer);
+                    source.Direction = getDirection();
+                    source.Position = Position ?? _host!.WorldPosition;
+                    source.QueueBuffer(buffer);
 
-                    if (_curSource.State == SourceState.Stopped)
-                        _curSource.Play();
+                    if (source.State == SourceState.Stopped)
+                        source.Play();
                 }
 
-                if (_curSource.State == SourceState.Stopped)
-                    _curSource.Play();
+                if (source.State == SourceState.Stopped)
+                    source.Play();
 
                 EngineNativeLib.SleepFor((ulong)(PoolSleepMs * 1000000));
             }
 
             _activeStreams.Remove(stream);
 
-            _curSource.Stop();
-            _curSource.Dispose();
-            _curSource = null;
+            source.Stop();
+            source.Dispose();
 
             foreach (var buffer in buffers)
                 buffer.Dispose();
