@@ -40,6 +40,7 @@ namespace XrEngine.UI.Web
         static readonly JsonSerializerOptions _jsonOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            IncludeFields = true,
             PropertyNameCaseInsensitive = true
         };
 

@@ -6,7 +6,6 @@ using Java.Util;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using static Android.Renderscripts.Sampler;
 
 #pragma warning disable CA1422
 #pragma warning disable CA1416
@@ -27,7 +26,7 @@ namespace XrEngine.Devices.Android
             private TaskCompletionSource<GattStatus>? _connect;
             private TaskCompletionSource<GattStatus>? _write;
             private TaskCompletionSource<byte[]>? _read;
-            private BluetoothGattDescriptor _readDesc;
+            private BluetoothGattDescriptor? _readDesc;
             private BluetoothGattCharacteristic? _readCts;
             private BluetoothGattCharacteristic? _writeCts;
 
@@ -92,7 +91,7 @@ namespace XrEngine.Devices.Android
             public override void OnDescriptorRead(BluetoothGatt? gatt, BluetoothGattDescriptor? descriptor, [GeneratedEnum] GattStatus status)
             {
                 if (_readDesc == descriptor && _read != null)
-                    _read.SetResult(descriptor!.GetValue());
+                    _read.SetResult(descriptor!.GetValue()!);
                 base.OnDescriptorRead(gatt, descriptor, status);
             }
 

@@ -54,9 +54,9 @@ namespace XrEngine.Devices
         BleCharacteristicInfo? _batteryChar;
 
         static readonly Guid MAIN_SERVICE = Guid.Parse("a10bbd49-a988-4fc7-bc7f-58a672d3d653");
-        static readonly Guid VALUE_UUID = Guid.Parse("00000003-0000-1000-8000-00805F9B34FB");
-        static readonly Guid SETTINGS_UUID = Guid.Parse("00000001-0000-1000-8000-00805F9B34FB");
-        static readonly Guid BATTERY_UUID = Guid.Parse("00000002-0000-1000-8000-00805F9B34FB");
+        static readonly Guid SETTINGS_UUID = BleUUID.FromInt(0x1);
+        static readonly Guid BATTERY_UUID = BleUUID.FromInt(0x2);
+        static readonly Guid VALUE_UUID = BleUUID.FromInt(0x3);
 
         public BlePedal(IBleManager manager)
         {

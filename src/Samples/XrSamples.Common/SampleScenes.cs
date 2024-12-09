@@ -27,6 +27,8 @@ using XrEngine.Devices;
 
 
 
+
+
 /* Unmerged change from project 'XrSamples.Common (net9.0-android)'
 Removed:
 using System.Diagnostics;
@@ -1062,6 +1064,7 @@ namespace XrSamples
 
             .ConfigureApp(app =>
             {
+                var drumApp = (DrumsVRApp)app.App;
                 var scene = (MainScene)app.App.ActiveScene!;
                 scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
@@ -1069,7 +1072,25 @@ namespace XrSamples
                 scene.AddComponent<XrInputRecorder>();
                 scene.AddComponent(new XrInputPlayer(new AIPosePredictor("d:\\pose_prediction_model")));
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
+
+
+                var ui = scene.UiPanel!;
+
+#if !__ANDROID__
+                var webView = new ChromeWebBrowserView
+                {
+                    Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
+                    ZoomLevel = 0,
+                    RequestHandler = new FsWebRequestHandler("main", drumApp.Settings.UiBaseUri)
+                };
+
+                ui.AddComponent<SurfaceController>();
+                ui.AddComponent(webView);
+
+                drumApp.SetUIBrowser(webView.Browser);
+#endif
             });
+
 
             return builder;
         }

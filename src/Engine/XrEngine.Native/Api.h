@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+#include <thread>
 
 extern "C" {
 
@@ -11,5 +13,9 @@ extern "C" {
 
 	EXPORT int APIENTRY CompareMemory(uint8_t* src, uint8_t* dst, uint32_t size);
 
-	EXPORT void APIENTRY Dft(float* values, std::complex<double>* out, uint32_t size);
+	EXPORT void SleepUntil(uint64_t timeNs);
+
+	EXPORT void SleepFor(uint64_t timeNs);
+
+	EXPORT uint64_t Now();
 }

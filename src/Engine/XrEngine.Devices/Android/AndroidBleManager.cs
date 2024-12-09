@@ -82,7 +82,7 @@ namespace XrEngine.Devices.Android
             var scanner = _adapter.BluetoothLeScanner!;
 
             var scanSettings = new ScanSettings.Builder()
-                .SetScanMode(global::Android.Bluetooth.LE.ScanMode.LowLatency)! // Or LowPower, Balanced based on your needs
+                .SetScanMode(global::Android.Bluetooth.LE.ScanMode.LowLatency)! 
                 .Build()!;
 
 

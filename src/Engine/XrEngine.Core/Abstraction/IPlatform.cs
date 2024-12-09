@@ -9,11 +9,13 @@
 
     public interface IPlatform
     {
-        public DeviceInfo Device { get; }
+        DeviceInfo Device { get; }
 
-        public string PersistentPath { get; }
+        string PersistentPath { get; }
 
-        public string CachePath { get; }
+        string CachePath { get; }
+
+        string SharedPath  => PersistentPath;
 
         public string Name { get; }
     }
