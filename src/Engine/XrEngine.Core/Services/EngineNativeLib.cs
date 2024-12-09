@@ -18,16 +18,14 @@ namespace XrEngine
         public static extern int CompareMemory(nint src, nint dst, uint size);
 
         [DllImport("xrengine-native")]
-        public static extern unsafe void Dft(float* values, Complex* output, uint size);
+        public static extern ulong Now();
 
 
-        public static unsafe Complex[] Dft(float[] values, int offset, uint size)
-        {
-            var result = new Complex[size];
-            fixed (Complex* pRes = result)
-            fixed (float* pValues = &values[offset])
-                Dft(pValues, pRes, size);
-            return result;
-        }
+        [DllImport("xrengine-native")]
+        public static extern void SleepUntil(ulong time);
+
+        [DllImport("xrengine-native")]
+        public static extern void SleepFor(ulong time);
+
     }
 }

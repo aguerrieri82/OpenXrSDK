@@ -15,10 +15,13 @@
 	url = https://github.com/aguerrieri82/filament
 [submodule "third-party/openal-soft"]
 	path = third-party/openal-soft
-	url = https://github.com/JogAmp/openal-soft/
+	url = https://github.com/kcat/openal-soft
 [submodule "third-party/libjpeg-turbo"]
 	path = third-party/libjpeg-turbo
 	url = https://github.com/libjpeg-turbo/libjpeg-turbo
 [submodule "third-party/physx-rs"]
 	path = third-party/physx-rs
 	url = https://github.com/aguerrieri82/physx-rs
+[submodule "third-party/oboe"]
+	path = third-party/oboe
+	url = https://github.com/google/oboe
