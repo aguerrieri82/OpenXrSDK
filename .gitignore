@@ -378,8 +378,7 @@ Makefile
 /libs/filament-windows
 /libs/filament-android
 /libs/physx-141
+/libs/oboe
 /src/Engine/Filament.Native/libs/
 /src/Engine/XrEngine.Native/libs/
 /src/Engine/Draco.Native/libs/
-
-/libs/oboe
