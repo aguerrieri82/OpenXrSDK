@@ -13,7 +13,7 @@ namespace XrEditor
     {
         private readonly ObservableCollection<NavItemView> _navItems = [];
         private readonly ObservableCollection<FolderItemView> _folderItems = [];
-        private IAssetStore _store;
+        private readonly IAssetStore _store;
         private string _curPath;
         private FolderItemView? _selectedItem;
 
@@ -73,7 +73,7 @@ namespace XrEditor
                     if (_name == value)
                         return;
                     _name = value;
-                    OnPropertyChanged(nameof(Name));    
+                    OnPropertyChanged(nameof(Name));
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace XrEditor
             var parts = _curPath.Replace('\\', '/')
                 .Split('/')
                 .Select(a => a.Trim())
-                .Where(a=> a != "")
+                .Where(a => a != "")
                 .ToArray();
 
             var curPath = "";

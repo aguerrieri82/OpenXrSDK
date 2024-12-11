@@ -1,7 +1,5 @@
 ﻿using SkiaSharp;
 using System.Collections.ObjectModel;
-using System.Net.ServerSentEvents;
-using System.Text.RegularExpressions;
 using UI.Binding;
 using XrEditor.Services;
 using XrEngine;
@@ -25,10 +23,10 @@ namespace XrEditor
 
         public PropertiesEditor(PropertiesEditorMode mode, Guid panelId)
         {
-            _panelId = panelId; 
-            
+            _panelId = panelId;
+
             Mode = mode;
-            
+
             if (panelId == TOOLS)
                 Title = "Tools";
             else if (panelId == PROPERTIES)
@@ -74,7 +72,7 @@ namespace XrEditor
                     {
                         Name = view.DisplayName,
                         Icon = view.Icon,
-                        OnRemove = () => _groups.Remove(result)                 
+                        OnRemove = () => _groups.Remove(result)
                     };
                 else
                     result.Header = view.DisplayName;
@@ -178,7 +176,7 @@ namespace XrEditor
                 foreach (var grp in groups)
                 {
                     if (grp.Node is INodeChanged changed)
-                        changed.NodeChanged -= OnNodeChanged;   
+                        changed.NodeChanged -= OnNodeChanged;
 
                     if (grp.Groups != null)
                         Visit(grp.Groups);
@@ -199,7 +197,7 @@ namespace XrEditor
                     picker.ItemsSource = ComponentsSource.Instance;
 
                     var selItem = await picker.ShowAsync("Add component");
-                
+
                     if (selItem != null)
                         await AddComponentAsync((TypeInfo)selItem);
                 });
@@ -216,7 +214,7 @@ namespace XrEditor
 
             await EngineApp.Current!.Dispatcher.ExecuteAsync(() => obj.AddComponent(comp));
 
-            var grp =  CreateProps(comp.GetNode());
+            var grp = CreateProps(comp.GetNode());
 
             if (grp != null)
                 _groups.Add(grp);

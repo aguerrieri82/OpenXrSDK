@@ -90,7 +90,7 @@ namespace XrEngine.Audio
 
         public float FadeSize { get; set; }
 
-        public int PrefBufferSize => (int)(0.1f * 44100 * 2);
+        public int PrefBufferSizeSamples => (int)(0.1f * 44100);
 
         public int PrefBufferCount => 2;
 

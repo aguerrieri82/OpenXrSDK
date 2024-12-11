@@ -437,7 +437,7 @@ namespace PhysX.Framework
             sceneDesc.contactModifyCallback = _contactModify.Handle;
             sceneDesc.simulationEventCallback = _eventCallbacks.Handle;
             sceneDesc.kineKineFilteringMode = PxPairFilteringMode.Keep;
-            sceneDesc.staticKineFilteringMode = PxPairFilteringMode.Keep;   
+            sceneDesc.staticKineFilteringMode = PxPairFilteringMode.Keep;
 
 
             if (_options.EnableCCD)
@@ -654,9 +654,9 @@ namespace PhysX.Framework
         public void RegisterObject(void* handle, object obj)
         {
             _objects[new nint(handle)] = new WeakReference(obj);
-        }   
+        }
 
-        public T GetObject<T>(void* handle) 
+        public T GetObject<T>(void* handle)
         {
             return (T)_objects[new nint(handle)].Target!;
         }

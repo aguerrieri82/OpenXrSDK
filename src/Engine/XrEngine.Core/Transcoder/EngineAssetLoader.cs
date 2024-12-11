@@ -10,7 +10,7 @@ namespace XrEngine
         class EngineObjectHeader
         {
             [JsonPropertyName("$type")]
-            public string? TypeName { get; set; }  
+            public string? TypeName { get; set; }
 
             public string? Name { get; set; }
         }
@@ -28,7 +28,7 @@ namespace XrEngine
             var path = GetFilePath(uri);
             var json = File.ReadAllText(path);
             var state = new JsonStateContainer(json);
-            var obj =(EngineObject)ObjectManager.Instance.CreateObject(state.ReadTypeName()!);
+            var obj = (EngineObject)ObjectManager.Instance.CreateObject(state.ReadTypeName()!);
             obj.SetState(state);
             return obj;
         }

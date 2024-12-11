@@ -45,7 +45,7 @@ namespace XrEditor
                     {
                         ActivePanel = instance;
                     });
-     
+
 
                 }, info.Title);
             }
@@ -89,7 +89,7 @@ namespace XrEditor
         {
             if (_activePanel == null)
                 return Task.CompletedTask;
-            
+
             Panels.Remove(_activePanel);
             return Task.CompletedTask;
 

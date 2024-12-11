@@ -68,7 +68,7 @@ namespace XrEngine.OpenXr
 
             _program.Use();
             _program.LoadTexture(texture, 8);
-            
+
             Matrix4x4.Invert(_depthCamera.Eyes[0].ViewProj, out var mat0);
             Matrix4x4.Invert(_depthCamera.Eyes[1].ViewProj, out var mat1);
 

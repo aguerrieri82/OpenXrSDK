@@ -45,7 +45,7 @@ namespace XrEngine.Devices.Windows
                 if (!string.IsNullOrWhiteSpace(e.Advertisement.LocalName))
                     curDev.Name = e.Advertisement.LocalName;
 
-                if (filter.MaxDevices > 0 &&  result.Count >= filter.MaxDevices)
+                if (filter.MaxDevices > 0 && result.Count >= filter.MaxDevices)
                     cancel.Cancel();
             };
 

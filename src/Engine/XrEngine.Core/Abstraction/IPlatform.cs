@@ -15,7 +15,7 @@
 
         string CachePath { get; }
 
-        string SharedPath  => PersistentPath;
+        string SharedPath => PersistentPath;
 
         public string Name { get; }
     }

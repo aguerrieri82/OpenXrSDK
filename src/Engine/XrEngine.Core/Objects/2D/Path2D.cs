@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using XrMath;
 
 namespace XrEngine
 {
     public class Path2D : ICurve2D
     {
-        Path2 _path;
+        readonly Path2 _path;
 
         public Path2D(Path2 path)
         {
@@ -38,7 +33,7 @@ namespace XrEngine
 
         public IEnumerable<CurvePoint> Sample(float tolerance, int maxPoints)
         {
-            var points =  _path.SamplesAdaptive(tolerance);
+            var points = _path.SamplesAdaptive(tolerance);
 
             return points.Select(a => new CurvePoint
             {

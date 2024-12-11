@@ -9,7 +9,7 @@ namespace XrEngine.OpenXr
 {
     public class InputPhysicsGrabber : Behavior<Scene3D>, IObjectTool
     {
-        private TriangleMesh _grabView;
+        private readonly TriangleMesh _grabView;
         private bool _grabStarted;
         private IGrabbable? _grabbable;
         private Object3D? _grabObject;
@@ -75,13 +75,13 @@ namespace XrEngine.OpenXr
             var pm = _host!.Scene!.Component<PhysicsManager>();
 
             _joint = pm.AddJoint(JointType.D6,
-                        _grabView, 
-                        Pose3.Identity, 
+                        _grabView,
+                        Pose3.Identity,
                         grabObj,
                         grabObj.GetWorldPose().Inverse().Multiply(grabPoint));
 
             var rb = grabObj.Component<RigidBody>();
-            rb.IsEnabled = true;    
+            rb.IsEnabled = true;
 
             _grabbable.Grab(grabber);
         }

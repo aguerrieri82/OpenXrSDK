@@ -1,8 +1,4 @@
-﻿
-
-using System.IO;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class LocalAssetStore : IAssetStore
     {

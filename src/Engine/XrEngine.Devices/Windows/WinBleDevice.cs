@@ -30,7 +30,7 @@ namespace XrEngine.Devices.Windows
         {
             _device = await BluetoothLEDevice.FromBluetoothAddressAsync(_address.Value);
             if (_device == null)
-                throw new Exception("Device not found");    
+                throw new Exception("Device not found");
         }
 
         public Task DisconnectAsync()

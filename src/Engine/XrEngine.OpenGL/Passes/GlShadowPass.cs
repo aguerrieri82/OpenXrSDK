@@ -1,7 +1,6 @@
 ﻿
 using System.Numerics;
 using XrMath;
-using System.Diagnostics;
 
 
 #if GLES

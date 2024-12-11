@@ -45,10 +45,7 @@ namespace OpenAl.Framework
             else
             {
                 if (result.BufferHandle != buffer.Handle)
-                {
-                    result.DeleteBuffer();
                     result.SetBuffer(buffer);
-                }
 
                 result.Stop();
                 result.Rewind();

@@ -10,7 +10,7 @@ namespace XrEngine.Audio
 
         int Fill(Span<byte> data, float timeSec);
 
-        int PrefBufferSize { get; }
+        int PrefBufferSizeSamples { get; }
 
         int PrefBufferCount { get; }
 

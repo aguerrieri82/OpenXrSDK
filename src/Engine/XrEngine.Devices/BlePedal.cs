@@ -29,15 +29,15 @@ namespace XrEngine.Devices
     public struct BlePedalSettings
     {
         public uint Size;
-        
+
         public int Key;
-        
+
         public byte Mode;
-        
+
         public int SampleRate;
-        
+
         public int RampUp;
-        
+
         public int RampHit;
 
         public int RampDown;
@@ -78,7 +78,7 @@ namespace XrEngine.Devices
 
         public async Task DisconnectAsync()
         {
-            if(_device != null)
+            if (_device != null)
             {
                 await _device.DisconnectAsync();
                 _device = null;
@@ -88,7 +88,7 @@ namespace XrEngine.Devices
         public async Task ConnectAsync(BleAddress address, int timeoutMs = 0)
         {
             _device = await _manager.GetDeviceAsync(address);
-            
+
             await _device.ConnectAsync();
 
             var services = await _device.GetServicesAsync(timeoutMs);
@@ -120,14 +120,14 @@ namespace XrEngine.Devices
 
         public async Task<BlePedalSettings> ReadSettingsAsync()
         {
-             var data = await _device!.ReadCharacteristicAsync(_settingsChar!);
-             return BytesToStruct<BlePedalSettings>(data);
+            var data = await _device!.ReadCharacteristicAsync(_settingsChar!);
+            return BytesToStruct<BlePedalSettings>(data);
         }
 
         static unsafe T BytesToStruct<T>(byte[] data) where T : unmanaged
         {
             fixed (byte* pBuf = data)
-                return *(T*)pBuf;   
+                return *(T*)pBuf;
         }
 
         static unsafe byte[] StructToBytes<T>(T value) where T : unmanaged

@@ -1,6 +1,5 @@
 ﻿using Silk.NET.OpenAL;
 using Silk.NET.OpenAL.Extensions.Soft;
-using System;
 using System.Runtime.InteropServices;
 
 namespace OpenAl.Framework
@@ -58,6 +57,10 @@ namespace OpenAl.Framework
 
     public class AlBuffer : AlObject, IDisposable
     {
+
+        const int AL_FORMAT_MONO_FLOAT32 = 0x10010;
+        const int AL_FORMAT_STEREO_FLOAT32 = 0x10011;
+
         static SoftCallbackBuffer? _callback;
 
         static alBufferSamplesSOFTDelegate? alBufferSamplesSOFT;
@@ -70,7 +73,7 @@ namespace OpenAl.Framework
             : this(al, al.GenBuffer())
         {
             alBufferSamplesSOFT ??= Marshal.GetDelegateForFunctionPointer<alBufferSamplesSOFTDelegate>(al.Context.GetProcAddress("alBufferSamplesSOFT"));
-            
+
             if (_callback == null)
                 al.TryGetExtension<SoftCallbackBuffer>(out _callback);
         }
@@ -87,7 +90,7 @@ namespace OpenAl.Framework
             _al.CheckError("alBufferSamplesSOFT");
         }
 
-        public unsafe void SetCallback(AudioFormat format, Func<Span<byte>,int> callback)
+        public unsafe void SetCallback(AudioFormat format, Func<Span<byte>, int> callback)
         {
             _callback!.BufferCallback(_handle, GetBufferFormat(format), format.SampleRate, new PfnBufferCallback((user, samplerData, numBytes) =>
             {
@@ -113,23 +116,29 @@ namespace OpenAl.Framework
         {
             BufferFormat bf;
 
-            //#define AL_FORMAT_MONO_FLOAT32                   0x10010
-            //#define AL_FORMAT_STEREO_FLOAT32                 0x10011
-
-
-            switch (format.BitsPerSample)
+            switch (format.SampleType)
             {
-                case 8:
+                case AudioSampleType.Byte:
                     if (format.Channels == 1)
                         bf = BufferFormat.Mono8;
                     else
                         bf = BufferFormat.Stereo8;
                     break;
-                case 16:
+                case AudioSampleType.Short:
                     if (format.Channels == 1)
                         bf = BufferFormat.Mono16;
                     else
                         bf = BufferFormat.Stereo16;
+                    break;
+                case AudioSampleType.Float:
+
+                    if (!_al.IsExtensionPresent("AL_EXT_FLOAT32"))
+                        throw new NotSupportedException();
+
+                    if (format.Channels == 1)
+                        bf = (BufferFormat)AL_FORMAT_MONO_FLOAT32;
+                    else
+                        bf = (BufferFormat)AL_FORMAT_STEREO_FLOAT32;
                     break;
                 default:
                     throw new NotSupportedException();
@@ -142,6 +151,8 @@ namespace OpenAl.Framework
         {
             fixed (byte* pData = data)
                 _al.BufferData(_handle, GetBufferFormat(format), pData, data.Length, format.SampleRate);
+
+            _al.CheckError("BufferData");
         }
 
         public void Dispose()

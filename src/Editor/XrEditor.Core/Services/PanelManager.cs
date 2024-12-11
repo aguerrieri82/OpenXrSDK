@@ -104,7 +104,7 @@ namespace XrEditor.Services
         {
             Register(new PanelInfo(factory, panelId)
             {
-                Title = title,    
+                Title = title,
             });
         }
 

@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Drawing;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace XrMath
@@ -162,15 +160,15 @@ namespace XrMath
                      ? new Vector3(-self.Normal.Y, self.Normal.X, 0)
                      : new Vector3(0, -self.Normal.Z, self.Normal.Y);
 
-            uAxis = Vector3.Normalize(Vector3.Cross(arbitrary, self.Normal)); 
-            vAxis = Vector3.Normalize(Vector3.Cross(self.Normal, uAxis));       
+            uAxis = Vector3.Normalize(Vector3.Cross(arbitrary, self.Normal));
+            vAxis = Vector3.Normalize(Vector3.Cross(self.Normal, uAxis));
         }
 
 
         public static Vector2 ProjectUV(this Plane self, Vector3 point)
         {
             self.OrthogonalAxis(out var uAxis, out var vAxis);
-            return self.ProjectUV(point, uAxis, vAxis); 
+            return self.ProjectUV(point, uAxis, vAxis);
         }
 
         public static Vector2 ProjectUV(this Plane self, Vector3 point, Vector3 uAxis, Vector3 vAxis)

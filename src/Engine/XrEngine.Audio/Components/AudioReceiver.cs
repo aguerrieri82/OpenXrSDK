@@ -31,8 +31,8 @@ namespace XrEngine.Audio
 
         public float Gain
         {
-            get => _listener?.Gain ?? 0; 
-            set => _listener!.Gain = value;    
+            get => _listener?.Gain ?? 0;
+            set => _listener!.Gain = value;
         }
     }
 }

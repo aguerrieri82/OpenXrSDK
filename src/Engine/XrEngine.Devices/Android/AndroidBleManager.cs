@@ -56,7 +56,7 @@ namespace XrEngine.Devices.Android
             _adapter = _bltManager.Adapter!;
         }
 
-        public async  Task<IList<BleDeviceInfo>> FindDevicesAsync(BleDeviceFilter filter)
+        public async Task<IList<BleDeviceInfo>> FindDevicesAsync(BleDeviceFilter filter)
         {
             var result = new List<BleDeviceInfo>();
 
@@ -82,7 +82,7 @@ namespace XrEngine.Devices.Android
             var scanner = _adapter.BluetoothLeScanner!;
 
             var scanSettings = new ScanSettings.Builder()
-                .SetScanMode(global::Android.Bluetooth.LE.ScanMode.LowLatency)! 
+                .SetScanMode(global::Android.Bluetooth.LE.ScanMode.LowLatency)!
                 .Build()!;
 
 
@@ -105,10 +105,10 @@ namespace XrEngine.Devices.Android
 
         public Task<IBleDevice> GetDeviceAsync(BleAddress address)
         {
-            var device = _adapter.GetRemoteDevice(BitConverter.GetBytes(address.Value).Take(6).Reverse().ToArray());    
-            
+            var device = _adapter.GetRemoteDevice(BitConverter.GetBytes(address.Value).Take(6).Reverse().ToArray());
+
             if (device == null)
-                throw new InvalidOperationException();  
+                throw new InvalidOperationException();
 
             return Task.FromResult<IBleDevice>(new AndroidBleDevice(device));
         }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine.Devices
+﻿namespace XrEngine.Devices
 {
     public class BleDeviceInfo
     {
@@ -24,9 +18,9 @@ namespace XrEngine.Devices
 
     public struct BleAddress
     {
-        public ulong Value;   
+        public ulong Value;
 
-        public static implicit operator BleAddress(ulong value) => new() { Value = value };    
+        public static implicit operator BleAddress(ulong value) => new() { Value = value };
     }
 
     public interface IBleManager

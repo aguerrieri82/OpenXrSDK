@@ -1,10 +1,4 @@
-﻿using CefSharp.DevTools.Page;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 using XrEngine;
 
 namespace XrEditor
@@ -35,7 +29,7 @@ namespace XrEditor
             if (_editValue is INotifyPropertyChanged notify)
                 notify.PropertyChanged -= OnPropertyChanged;
 
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
 
         private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -85,11 +79,11 @@ namespace XrEditor
                 if (_editValue.Frame == value)
                     return;
                 _editValue.Frame = value;
-                OnPropertyChanged(nameof(Position)); 
+                OnPropertyChanged(nameof(Position));
             }
         }
 
-        public int Length 
+        public int Length
         {
             get => _editValue.Length;
         }
@@ -105,7 +99,7 @@ namespace XrEditor
             PrevFrameCommand.IsEnabled = Position > 0 && _editValue.PlayerState != PlayerState.Play;
         }
 
-        public Command PlayCommand { get;  }
+        public Command PlayCommand { get; }
 
         public Command StopCommand { get; }
 

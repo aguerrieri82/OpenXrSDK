@@ -1,11 +1,4 @@
-﻿using CanvasUI;
-using CefSharp.DevTools.Accessibility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine;
+﻿using XrEngine;
 using XrMath;
 
 namespace XrEditor
@@ -49,12 +42,12 @@ namespace XrEditor
 
         public void Select()
         {
-            _popup?.Close(); 
+            _popup?.Close();
         }
 
         public async Task RefreshAsync()
         {
-            if (_isRefreshing >0)
+            if (_isRefreshing > 0)
                 return;
 
             _isRefreshing++;
@@ -78,9 +71,9 @@ namespace XrEditor
         }
 
         public IList<ItemView>? Items { get; set; }
-        
 
-        public IItemsSource? ItemsSource { get; set; }   
+
+        public IItemsSource? ItemsSource { get; set; }
 
         public async Task<object?> ShowAsync(string title)
         {

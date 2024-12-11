@@ -1,7 +1,4 @@
-﻿using XrEngine;
-using XrEngine.Physics;
-
-namespace XrEditor.Nodes
+﻿namespace XrEditor.Nodes
 {
     public class GenericNodeHandler : INodeHandler
     {

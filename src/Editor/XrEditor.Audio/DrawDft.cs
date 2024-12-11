@@ -1,5 +1,4 @@
-﻿using CanvasUI;
-using Fftw;
+﻿using Fftw;
 using SkiaSharp;
 using System.Numerics;
 using XrMath;

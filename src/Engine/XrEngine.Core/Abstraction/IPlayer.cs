@@ -15,6 +15,6 @@
 
         int Frame { get; set; }
 
-        int Length { get; } 
+        int Length { get; }
     }
 }

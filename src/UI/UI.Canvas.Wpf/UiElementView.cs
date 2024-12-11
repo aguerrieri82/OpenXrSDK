@@ -196,7 +196,7 @@ namespace UI.Canvas.Wpf
 
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
                 mod |= UiModifier.Ctrl;
-            
+
             if (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt))
                 mod |= UiModifier.Alt;
 

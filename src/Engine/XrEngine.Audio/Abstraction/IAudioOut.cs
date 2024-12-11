@@ -13,6 +13,5 @@ namespace XrEngine.Audio
         void Enqueue(byte[] buffer);
 
         byte[]? Dequeue(int timeoutMs);
-
     }
 }

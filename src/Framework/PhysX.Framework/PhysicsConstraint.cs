@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
 
 namespace PhysX.Framework
 {
@@ -31,7 +25,7 @@ namespace PhysX.Framework
             _handle->MarkDirtyMut();
         }
 
-        public bool IsValid => _handle->IsValid(); 
+        public bool IsValid => _handle->IsValid();
 
         public VelocityVector Force
         {

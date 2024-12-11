@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XrEditor
 {
@@ -29,14 +24,14 @@ namespace XrEditor
                 var refAss = assembly.GetReferencedAssemblies();
 
                 if (baseType.Assembly != assembly && (refAss == null ||
-                    !refAss.Any(a=> a.FullName == curAss.FullName)))
+                    !refAss.Any(a => a.FullName == curAss.FullName)))
                     continue;
 
                 foreach (var type in assembly.GetTypes())
                 {
                     if (!baseType.IsAssignableFrom(type))
                         continue;
-                    
+
                     if (type.IsAbstract)
                         continue;
 
@@ -48,9 +43,9 @@ namespace XrEditor
 
                     yield return new TypeInfo
                     {
-                        Name = dispName?.DisplayName ?? type.Name,  
+                        Name = dispName?.DisplayName ?? type.Name,
                         Type = baseType,
-                        CreateInstance = ()=> Activator.CreateInstance(type)
+                        CreateInstance = () => Activator.CreateInstance(type)
                     };
                 }
             }
@@ -58,7 +53,7 @@ namespace XrEditor
 
         public static IEnumerable<TypeInfo> GetTypes<T>()
         {
-            return GetTypes(typeof(T)); 
+            return GetTypes(typeof(T));
         }
     }
 }
