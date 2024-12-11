@@ -37,7 +37,7 @@ namespace XrEditor
 
         public IconView? Icon { get; set; }
 
-        public Command RemoveCommand { get;  }
+        public Command RemoveCommand { get; }
 
         public Action? OnRemove { get; set; }
     }

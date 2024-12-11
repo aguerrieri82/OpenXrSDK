@@ -53,7 +53,7 @@ namespace XrMath
                 {
                     Point = P2,
                     Time = 1,
-                    Segment = this  
+                    Segment = this
                 });
 
             return points;
@@ -333,7 +333,7 @@ namespace XrMath
                 yield return P2;
             }
         }
-  
+
 
         public Vector2 P1;
         public Vector2 P2;
@@ -702,7 +702,7 @@ namespace XrMath
         public Path2Segment this[int index]
         {
             get => _segments.ElementAt(index);
-        } 
+        }
 
         public LinkedList<Path2Segment> Segments => _segments;
 

@@ -1,13 +1,11 @@
 ﻿using OpenXr.Framework;
-using System.Numerics;
 using System.Text.Json;
-using XrInteraction;
 
 namespace XrEngine.OpenXr
 {
     public class XrInputRecorder : Behavior<Scene3D>
     {
-   
+
 
         #region RecordFrame
 
@@ -60,8 +58,9 @@ namespace XrEngine.OpenXr
                 foreach (var input in XrApp.Current.Inputs.Values)
                 {
                     frame.Inputs[input.Name] = input.GetState();
-                    _session.Frames!.Add(frame);
+
                 }
+                _session.Frames!.Add(frame);
             }
         }
 

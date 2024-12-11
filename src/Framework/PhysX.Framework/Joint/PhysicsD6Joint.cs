@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using XrMath;
 
 namespace PhysX.Framework
@@ -10,7 +9,7 @@ namespace PhysX.Framework
         public PhysicsD6Joint(PxD6Joint* handle, PhysicsSystem system)
             : base((PxJoint*)handle, system)
         {
-  
+
         }
 
         public PxD6JointDrive GetDrive(PxD6Drive type)

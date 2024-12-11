@@ -1,13 +1,7 @@
 ﻿
 using Newtonsoft.Json;
 using OpenXr.Framework;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using XrEngine;
 using XrMath;
 
@@ -15,9 +9,9 @@ namespace XrSamples.Components
 {
     public class DepthScanner : Behavior<Object3D>
     {
-        List<PointData> _points = [];
+        readonly List<PointData> _points = [];
         double _lastScanTime;
-        PerspectiveCamera _depthCamera;
+        readonly PerspectiveCamera _depthCamera;
         string? _sessionName;
 
         struct CameraInfo
@@ -106,7 +100,7 @@ namespace XrSamples.Components
 
                     var worldPos = _depthCamera.Unproject(pos);
 
-                    curPoints.Add(worldPos);    
+                    curPoints.Add(worldPos);
                 }
             }
 
@@ -152,7 +146,7 @@ namespace XrSamples.Components
                 }
 
                 var json = JsonConvert.SerializeObject(camera);
-                
+
                 File.WriteAllText(Path.Join(baseDir, $"{ctx.Frame}-camera.json"), json);
             }
 
@@ -161,9 +155,9 @@ namespace XrSamples.Components
 
         public Color Color { get; set; }
 
-        public string? SavePath { get; set; }    
+        public string? SavePath { get; set; }
 
-        public int FrameRate { get; set; }  
+        public int FrameRate { get; set; }
 
         public XrInput<bool>? ScanInput { get; set; }
 

@@ -25,7 +25,7 @@ namespace XrEditor
 
         public ActionView AddButton(string iconName, Action action, string? displayName = null)
         {
-            return AddButton(iconName, action.ToTask(), displayName);  
+            return AddButton(iconName, action.ToTask(), displayName);
         }
 
         public ActionView AddButton(string iconName, Func<Task> action, string? displayName = null)
@@ -69,7 +69,7 @@ namespace XrEditor
             return AddSelect(items, value, setValue);
         }
 
-        public SingleSelector AddSelect<T>(IList<SelectorItem> items, T value, Action<T> setValue) 
+        public SingleSelector AddSelect<T>(IList<SelectorItem> items, T value, Action<T> setValue)
         {
             var result = new SingleSelector
             {

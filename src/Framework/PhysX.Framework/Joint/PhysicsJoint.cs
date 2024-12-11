@@ -103,7 +103,7 @@ namespace PhysX.Framework
             set
             {
                 if (_actor0 == value)
-                    return; 
+                    return;
                 _actor0 = value;
                 _handle->SetActorsMut(value == null ? null : (PxRigidActor*)value.Handle,
                                      _actor1 == null ? null : (PxRigidActor*)_actor1.Handle);

@@ -15,19 +15,19 @@ namespace XrSamples.Components
     public class EngineModel
     {
         // Constants
-        double M = 1500;           // Vehicle mass (kg)
-        double r = 0.3;            // Wheel radius (m)
-        double T_engine_max = 50; // Max engine torque (Nm)
-        double FDR = 4.0;          // Final drive ratio
-        double efficiency = 0.9;   // Transmission efficiency
+        readonly double M = 1500;           // Vehicle mass (kg)
+        readonly double r = 0.3;            // Wheel radius (m)
+        readonly double T_engine_max = 50; // Max engine torque (Nm)
+        readonly double FDR = 4.0;          // Final drive ratio
+        readonly double efficiency = 0.9;   // Transmission efficiency
 
 
         // Resistance constants
-        double C_rr = 0.015;       // Rolling resistance coefficient
-        double g = 9.81;           // Gravitational acceleration (m/s^2)
-        double rho = 1.225;        // Air density (kg/m^3)
-        double Cd = 0.8;           // Drag coefficient 
-        double A = 2.2;            // Frontal area (m^2)
+        readonly double C_rr = 0.015;       // Rolling resistance coefficient
+        readonly double g = 9.81;           // Gravitational acceleration (m/s^2)
+        readonly double rho = 1.225;        // Air density (kg/m^3)
+        readonly double Cd = 0.8;           // Drag coefficient 
+        readonly double A = 2.2;            // Frontal area (m^2)
 
         // Initial conditions
         double v = 0.0;            // Vehicle speed (m/s)
@@ -63,7 +63,7 @@ namespace XrSamples.Components
 
             // 7. Update speed
             v += a * dt;
-            if (v < 0) 
+            if (v < 0)
                 v = 0; // Ensure speed doesn't become negative
 
             // 8. Update position
@@ -71,7 +71,7 @@ namespace XrSamples.Components
 
             // 9a. Wheel angular velocity and RPM
             omega_wheel = v / r; // (rad/s)
-      
+
             // 9b. Engine angular velocity and RPM
             double omega_engine = omega_wheel * Gear * FDR;
             engineRPM = omega_engine * (60 / (2 * Math.PI));
@@ -127,7 +127,7 @@ namespace XrSamples.Components
         private TriangleMesh? _gearLever;
         private Dictionary<string, Vector2>? _gears;
         private string _curGear;
-        private EngineModel _engine;
+        private readonly EngineModel _engine;
 
         public CarModel()
         {

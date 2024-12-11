@@ -24,7 +24,7 @@ namespace XrEngine.OpenXr
 
         public virtual void Grab(string grabber)
         {
-            Grabber = grabber;  
+            Grabber = grabber;
         }
 
         public virtual void Release()

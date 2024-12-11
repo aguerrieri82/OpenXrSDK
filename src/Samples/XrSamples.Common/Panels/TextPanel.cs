@@ -1,11 +1,8 @@
 ﻿using CanvasUI;
-using UI.Binding;
-using XrEngine;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace XrSamples
 {
- 
+
     public class TextPanel : UIRoot
     {
         public TextPanel()

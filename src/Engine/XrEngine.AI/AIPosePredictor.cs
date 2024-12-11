@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XrEngine.OpenXr;
+﻿using XrEngine.OpenXr;
 using XrMath;
 
 namespace XrEngine.AI
 {
     public class AIPosePredictor : IPosePredictor
     {
-        AIPosePredictorCore _core;
+        readonly AIPosePredictorCore _core;
         readonly List<PoseTrainData> _data = [];
 
         public AIPosePredictor(string modelPath)
         {
             _core = new AIPosePredictorCore(7, modelPath);
-        }   
+        }
 
         public Pose3 Predict(float dt)
         {

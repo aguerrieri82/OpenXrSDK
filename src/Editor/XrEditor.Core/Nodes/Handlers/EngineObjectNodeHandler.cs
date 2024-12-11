@@ -66,7 +66,7 @@ namespace XrEditor.Nodes
             {
                 if (value is RigidBody)
                     nodeType = typeof(RigidBodyNode);
-                
+
                 else if (value is IPlayer)
                     nodeType = typeof(PlayerNode<>).MakeGenericType(comp.GetType());
 

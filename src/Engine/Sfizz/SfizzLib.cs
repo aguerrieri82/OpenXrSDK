@@ -12,8 +12,8 @@ namespace Sfizz
 
         public struct Config
         {
-            public int BlockSize;
-            public int SampleRate; 
+            public int ChannelSizeSamples;
+            public int SampleRate;
             public ProcessMode ProcessMode;
             public int SampleQuality;
             public int NumVoices;

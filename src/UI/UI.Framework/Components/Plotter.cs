@@ -1,7 +1,6 @@
 ﻿using SkiaSharp;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Numerics;
 using XrMath;
 
@@ -580,7 +579,7 @@ namespace CanvasUI.Components
             var delta = (pos - _startPos);
 
             var ctrl = (ev.Modifiers & UiModifier.Ctrl) != 0;
-            
+
             var scaleFactor = MathF.Pow(2, delta.X * 0.01f); ;
 
             if (!ctrl)
@@ -1001,7 +1000,7 @@ namespace CanvasUI.Components
             {
                 if (Parent == null)
                     return;
-                
+
                 if (_activeTool != null)
                     return;
 
@@ -1182,7 +1181,7 @@ namespace CanvasUI.Components
 
             if (curViewRect.Width == 0 || curViewRect.Height == 0)
                 return;
-            
+
             if (ViewRect.Equals(curViewRect))
                 return;
 

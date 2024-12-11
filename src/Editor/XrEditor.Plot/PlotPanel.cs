@@ -32,8 +32,8 @@ namespace XrEditor.Plot
 
         private DateTime _lastValueTime;
         private DateTime _lastNotifyTime;
-        private SingleSelector _autoScaleX;
-        private SingleSelector _autoScaleY;
+        private readonly SingleSelector _autoScaleX;
+        private readonly SingleSelector _autoScaleY;
         private readonly Timer _notifyTimer;
 
         public PlotPanel()
@@ -60,7 +60,7 @@ namespace XrEditor.Plot
             ToolBar.AddText("X:");
             _autoScaleX = ToolBar.AddEnumSelect(Plotter.AutoScaleX, a => Plotter.AutoScaleX = a);
             ToolBar.AddText("Y:");
-            _autoScaleY= ToolBar.AddEnumSelect(Plotter.AutoScaleY, a => Plotter.AutoScaleY = a);
+            _autoScaleY = ToolBar.AddEnumSelect(Plotter.AutoScaleY, a => Plotter.AutoScaleY = a);
             ToolBar.AddToggle("icon_vertical_split", Plotter.ShowAxisY, a => Plotter.ShowAxisY = a);
             ToolBar.AddDivider();
             ToolBar.AddButton("icon_close", Clear);

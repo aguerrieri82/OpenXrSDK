@@ -15,7 +15,7 @@ namespace XrEngine.OpenXr
         XrInputRecorder.RecordFrame _frame;
         int _frameNum;
         PlayerState _state;
-        IPosePredictor? _predictor;
+        readonly IPosePredictor? _predictor;
 
         public XrInputPlayer()
             : this(null)
@@ -24,7 +24,7 @@ namespace XrEngine.OpenXr
 
         public XrInputPlayer(IPosePredictor? predictor)
         {
-            _predictor = predictor; 
+            _predictor = predictor;
         }
 
         protected override void Update(RenderContext ctx)
@@ -51,16 +51,16 @@ namespace XrEngine.OpenXr
                 var xrInput = XrApp.Current.Inputs[input.Key];
                 xrInput?.SetState(input.Value);
 
-                if (input.Key== "RightGripPose")
+                if (input.Key == "RightGripPose")
                 {
                     var pose = ((XrPoseInput)xrInput!).Value;
-                    Log.Value("Pose-X", MathF.Round( pose.Position.X, 5));
-                }   
+                    Log.Value("Pose-X", MathF.Round(pose.Position.X, 5));
+                }
             }
         }
 
         [Action]
-        public void Load()
+        public async Task LoadAsync()
         {
             var options = new JsonSerializerOptions
             {
@@ -69,9 +69,9 @@ namespace XrEngine.OpenXr
 
             var path = Context.Require<IPlatform>().PersistentPath;
 
-            var json = File.ReadAllText(Path.Join(path, "inputs.json"));
+            using var stream = File.OpenRead(Path.Join(path, "inputs.json"));
 
-            _session = JsonSerializer.Deserialize<XrInputRecorder.RecordSession>(json, options);
+            _session = await JsonSerializer.DeserializeAsync<XrInputRecorder.RecordSession>(stream, options);
 
             Frame = 0;
 
@@ -81,7 +81,7 @@ namespace XrEngine.OpenXr
         protected void OnPropertyChanged(string name)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }   
+        }
 
 
         public override void GetState(IStateContainer container)
@@ -112,7 +112,7 @@ namespace XrEngine.OpenXr
             var DELTA = 10;
 
             var min = Math.Max(0, _frameNum - DELTA);
-            var max = Math.Min(Length -1, _frameNum + DELTA);
+            var max = Math.Min(Length - 1, _frameNum + DELTA);
 
             var prevPoint = Vector3.Zero;
 
@@ -120,7 +120,7 @@ namespace XrEngine.OpenXr
 
             AdvancePosePredictor pre0 = new();
 
-            for (var i = min; i<= max; i++)
+            for (var i = min; i <= max; i++)
             {
                 var frame = _session.Frames[i];
                 var alpha = 1 - (Math.Abs(i - _frameNum) / (float)DELTA);
@@ -148,7 +148,7 @@ namespace XrEngine.OpenXr
                 prevPoint = curPose.Position;
 
                 pre0.Track(curPose, (float)frame.Time);
-                _predictor!.Track(curPose, (float)frame.Time);   
+                _predictor!.Track(curPose, (float)frame.Time);
 
                 if (i == _frameNum && i > 10)
                 {
@@ -156,7 +156,7 @@ namespace XrEngine.OpenXr
                     var pdt = maxTime - (float)frame.Time;
                     var pp0 = _predictor.Predict((float)pdt);
                     var pp1 = pre0.Predict((float)pdt);
-                    
+
                     canvas.State.Color = new Color(1, 1, 0);
                     canvas.DrawCircle(pp0, 0.002f, 10);
 
@@ -177,7 +177,7 @@ namespace XrEngine.OpenXr
                 value = Math.Min(Math.Max(0, value), Length - 1);
 
                 if (value == _frameNum)
-                    return; 
+                    return;
 
                 _frameNum = value;
 
@@ -187,11 +187,11 @@ namespace XrEngine.OpenXr
             }
         }
 
-        public bool ShowTrail { get; set; } 
+        public bool ShowTrail { get; set; }
 
         public PlayerState PlayerState => _state;
 
-        public int Length => _session?.Frames?.Count ?? 0;  
+        public int Length => _session?.Frames?.Count ?? 0;
 
 
         [ValueType(ValueType.FileName)]

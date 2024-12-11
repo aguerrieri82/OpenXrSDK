@@ -24,7 +24,7 @@ namespace XrEngine
             return radius + tolerance <= Radius;
         }
 
-        
+
 
         public float Distance(Vector3 worldPoint)
         {

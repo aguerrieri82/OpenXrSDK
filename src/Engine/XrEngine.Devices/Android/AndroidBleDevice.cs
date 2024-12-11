@@ -23,7 +23,7 @@ namespace XrEngine.Devices.Android
             private readonly AndroidBleDevice _host;
 
             private TaskCompletionSource<GattStatus>? _discServices;
-            private TaskCompletionSource<GattStatus>? _connect;
+            private readonly TaskCompletionSource<GattStatus>? _connect;
             private TaskCompletionSource<GattStatus>? _write;
             private TaskCompletionSource<byte[]>? _read;
             private BluetoothGattDescriptor? _readDesc;
@@ -145,7 +145,7 @@ namespace XrEngine.Devices.Android
         private readonly BluetoothDevice _device;
         private BluetoothGatt? _gatt;
         private GattCallback? _gattCb;
-        private List<ValueChangedHandler> _changedHandlers = [];
+        private readonly List<ValueChangedHandler> _changedHandlers = [];
 
         public AndroidBleDevice(BluetoothDevice device)
         {
@@ -157,7 +157,7 @@ namespace XrEngine.Devices.Android
             _gattCb = new GattCallback(this);
 
             _gatt = _device.ConnectGatt(Application.Context, true, _gattCb);
-            
+
             var res = await _gattCb.ConnectTask;
 
             if (res != GattStatus.Success)
@@ -187,10 +187,10 @@ namespace XrEngine.Devices.Android
             while (true)
             {
                 var task = _gattCb.DiscoverServicesTask;
-                
+
                 if (timeoutMs > 0)
                     task = task.WaitAsync(TimeSpan.FromMilliseconds(timeoutMs));
-                
+
                 var res = await task;
                 if (res == GattStatus.Success)
                     break;
@@ -228,7 +228,7 @@ namespace XrEngine.Devices.Android
             if (_gatt == null || _gattCb == null)
                 throw new InvalidOperationException("Not connected");
 
-            var service = _gatt.GetService(ToUUID(serviceInfo.Id)) ?? 
+            var service = _gatt.GetService(ToUUID(serviceInfo.Id)) ??
                 throw new InvalidOperationException("Service not found");
 
             var result = new List<BleCharacteristicInfo>();
@@ -323,7 +323,7 @@ namespace XrEngine.Devices.Android
                     Handler = handler,
                     Info = characteristicInfo
                 });
-            }   
+            }
         }
 
         public void RemoveCharacteristicValueChangedHandler(BleCharacteristicInfo characteristicInfo, BleCharacteristicValueChangedDelegate handler)
@@ -344,7 +344,7 @@ namespace XrEngine.Devices.Android
         protected virtual void OnCharacteristicChanged(Guid ctsId, byte[] value)
         {
             foreach (var handler in _changedHandlers.Where(a => a.Info.Id == ctsId))
-                handler.Handler(handler.Info, value); 
+                handler.Handler(handler.Info, value);
         }
 
         static UUID ToUUID(Guid guid) => UUID.FromString(guid.ToString())!;

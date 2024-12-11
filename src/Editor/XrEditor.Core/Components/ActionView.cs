@@ -38,7 +38,7 @@ namespace XrEditor
             _isEnabled = true;
         }
 
-    
+
 
         public static void CreateActions(object obj, IList<ActionView> actions)
         {

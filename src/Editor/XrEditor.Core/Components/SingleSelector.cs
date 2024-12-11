@@ -37,7 +37,7 @@ namespace XrEditor
             {
                 if (Equals(_selectedValue, value))
                     return;
-                
+
                 if (!AllowNull && value == null)
                 {
                     if (_items.Count > 0)
@@ -60,9 +60,9 @@ namespace XrEditor
                 _items = value;
 
                 var curSelection = _selectedValue;
-                
+
                 OnPropertyChanged(nameof(Items));
-                
+
                 if (_items.Any(a => a.Value == curSelection))
                 {
                     _selectedValue = curSelection;

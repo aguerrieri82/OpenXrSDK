@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public abstract class BaseItemsSource<TItem, TValue> : IItemsSource
     {
@@ -18,7 +12,7 @@ namespace XrEditor
                 items = items.Where(a => parts.All(p => (GetText(a) ?? "").ToLower().Contains(p)));
             }
 
-            return items.OrderBy(GetText);   
+            return items.OrderBy(GetText);
         }
 
 
@@ -47,7 +41,7 @@ namespace XrEditor
 
         IEnumerable<object> IItemsSource.Filter(string? query)
         {
-            return Filter(query).Cast<object>(); 
+            return Filter(query).Cast<object>();
         }
     }
 }

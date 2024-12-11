@@ -6,7 +6,7 @@ using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework
 {
-  
+
     public abstract class XrInput<TValue> : IXrInput
     {
         protected bool _isChanged;

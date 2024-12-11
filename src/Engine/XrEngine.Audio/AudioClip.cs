@@ -1,10 +1,5 @@
 ﻿using OpenAl.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XrEngine.Audio
 {
@@ -19,8 +14,8 @@ namespace XrEngine.Audio
         {
             Range = new AudioRange(format);
             Range.Size = buffer.Length;
-            _buffer = buffer;   
-            _format = format;   
+            _buffer = buffer;
+            _format = format;
         }
 
         public AudioClip SubClipTime(float startTime, float endTime)

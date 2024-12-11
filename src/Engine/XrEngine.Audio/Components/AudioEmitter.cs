@@ -1,6 +1,5 @@
 ﻿using OpenAl.Framework;
 using Silk.NET.OpenAL;
-using System.IO;
 using System.Numerics;
 
 namespace XrEngine.Audio
@@ -38,7 +37,7 @@ namespace XrEngine.Audio
 
         public AudioEmitter()
         {
-            PoolSleepMs = 0.1f;    
+            PoolSleepMs = 0.1f;
         }
 
         public AlSource Play(AlBuffer buffer, Vector3 direction)
@@ -91,12 +90,12 @@ namespace XrEngine.Audio
                 {
                     var res = stream.Fill(data.Slice(curSize), curSamples / (float)stream.Format.SampleRate);
 
-                    curSamples += res / (stream.Format.BitsPerSample / 8);
+                    curSamples += res;
 
-                    curSize += res;   
+                    curSize += res;
                 }
 
-                return curSize; 
+                return curSize;
             });
 
             source.SetBuffer(buffer);
@@ -126,11 +125,13 @@ namespace XrEngine.Audio
             var al = AlDevice.Current!.Al;
 
             double bufferTime = 0.05f;
-            var bufferCount = Math.Max(1, stream.PrefBufferCount);
-            var bufferSizeBytes = (int)(bufferTime * stream.Format.SampleRate * (stream.Format.BitsPerSample / 8));
 
-            if (stream.PrefBufferSize > 0)
-                bufferSizeBytes = stream.PrefBufferSize;
+            var sampleSize = (stream.Format.BitsPerSample / 8);
+            var bufferCount = Math.Max(1, stream.PrefBufferCount);
+            var bufferSizeBytes = (int)(bufferTime * stream.Format.SampleRate * sampleSize);
+
+            if (stream.PrefBufferSizeSamples > 0)
+                bufferSizeBytes = stream.PrefBufferSizeSamples * sampleSize;
 
             var buffers = new AlBuffer[bufferCount];
 
@@ -140,9 +141,11 @@ namespace XrEngine.Audio
 
             void FillBuffer(AlBuffer toFill)
             {
-                stream.Fill(bufferData, curSamples / (float)stream.Format.SampleRate);
+                var totSamples = stream.Fill(bufferData, curSamples / (float)stream.Format.SampleRate);
+
                 toFill.SetData(bufferData, stream.Format);
-                curSamples += bufferSizeBytes / (stream.Format.BitsPerSample / 8);
+
+                curSamples += totSamples;
             }
 
             for (var i = 0; i < bufferCount; i++)
@@ -160,7 +163,7 @@ namespace XrEngine.Audio
 
             source.Play();
 
-            _curSource = source;    
+            _curSource = source;
 
             while (stream.IsStreaming && !control.IsStopped)
             {

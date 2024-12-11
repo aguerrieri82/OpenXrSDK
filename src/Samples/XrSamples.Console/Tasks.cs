@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using Silk.NET.Assimp;
-using Silk.NET.OpenXR;
 using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
@@ -19,7 +17,6 @@ using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
 using XrEngine.Video;
 using XrMath;
-using static Tensorflow.ApiDef.Types;
 using File = System.IO.File;
 
 
@@ -37,7 +34,7 @@ namespace XrSamples
 
             var manager = new WinBleManager();
 
-     
+
             Log.Info(typeof(Tasks), "Find device...");
 
             var devices = await manager.FindDevicesAsync(new BleDeviceFilter
@@ -79,7 +76,7 @@ namespace XrSamples
 
             Log.Info(typeof(Tasks), "Wait for data...");
 
-            pedal.Data +=  (sender, args) =>
+            pedal.Data += (sender, args) =>
             {
                 Log.Debug("", "Hit: {0}", args.Data.Value);
             };
@@ -108,10 +105,11 @@ namespace XrSamples
 
             var session = JsonSerializer.Deserialize<XrInputRecorder.RecordSession>(json, options);
 
-     
-            var data = new List<PoseTrainData>();   
 
-            foreach (var frame in session.Frames) {
+            var data = new List<PoseTrainData>();
+
+            foreach (var frame in session.Frames)
+            {
                 if (!frame.Inputs.TryGetValue("RightGripPose", out var pose))
                     continue;
                 var value = pose.Value;
@@ -126,7 +124,7 @@ namespace XrSamples
             }
 
             var pred = new AIPosePredictorCore(7, "d:\\pose_prediction_model");
-           //pred.Train(data);
+            //pred.Train(data);
             for (var i = 8; i < data.Count; i++)
             {
                 var slice = data.Skip(i - 8).Take(8).ToArray();
@@ -134,7 +132,7 @@ namespace XrSamples
                 var control = data[i];
                 Console.WriteLine(test.Pose.Position - control.Pose.Position);
             }
-          
+
 
 
         }

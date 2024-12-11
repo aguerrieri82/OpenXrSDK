@@ -60,7 +60,7 @@ namespace XrEditor
                 return;
 
             _container?.Remove(this);
-            
+
             _container = container;
         }
 
@@ -88,7 +88,7 @@ namespace XrEditor
         public abstract string? Title { get; }
 
         public ToolbarView? ToolBar { get; set; }
-     
+
         public IPanelContainer? Container => _container;
     }
 }

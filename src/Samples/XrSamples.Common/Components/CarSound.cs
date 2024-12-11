@@ -26,7 +26,7 @@ namespace XrSamples
         {
             Format = new AudioFormat
             {
-                BitsPerSample = 16,
+                SampleType = AudioSampleType.Short,
                 Channels = 1,
                 SampleRate = 44100
             };
@@ -114,7 +114,7 @@ namespace XrSamples
 
         public int Rpm { get; set; }
 
-        public int PrefBufferSize => 0;
+        public int PrefBufferSizeSamples => 0;
 
         public int PrefBufferCount => 0;
 

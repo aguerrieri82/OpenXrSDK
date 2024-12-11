@@ -1,7 +1,6 @@
 ﻿using Android.Graphics;
 using Android.Media;
 using Android.Views;
-using System.Collections.Concurrent;
 using XrEngine.OpenGL;
 using XrEngine.Video;
 using XrEngine.Video.Abstraction;
@@ -18,7 +17,7 @@ namespace XrEngine.Media.Android
         private bool _isCodecInit;
         private SurfaceTexture? _surfaceTex;
         private readonly long _timeout;
-    
+
         public AndroidVideoCodec()
         {
             _timeout = 60 * 1000;

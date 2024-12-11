@@ -15,7 +15,7 @@ namespace XrEngine.AI
         public Pose3 Pose;
     }
 
-    public class AIPosePredictorCore 
+    public class AIPosePredictorCore
     {
         const int _featureSize = 8;
 
@@ -27,7 +27,7 @@ namespace XrEngine.AI
         public AIPosePredictorCore(int sequenceLength, string path)
         {
             _sequenceLength = sequenceLength;
-            _modelPath = path;  
+            _modelPath = path;
         }
 
         public void Train(List<PoseTrainData> poses, int epochs = 20, int batchSize = 32)
@@ -48,10 +48,10 @@ namespace XrEngine.AI
 
             Console.WriteLine("Training the model...");
 
-            _model.fit(xTrain, yTrain, 
-                batch_size: batchSize, 
-                epochs: epochs,               
-                validation_data: (xVal, yVal), 
+            _model.fit(xTrain, yTrain,
+                batch_size: batchSize,
+                epochs: epochs,
+                validation_data: (xVal, yVal),
                 verbose: 2);
 
             SaveModel();
@@ -77,7 +77,7 @@ namespace XrEngine.AI
             );
         }
 
-        [MemberNotNull(nameof(_model))] 
+        [MemberNotNull(nameof(_model))]
         protected void LoadModel()
         {
             if (!File.Exists($"{_modelPath}/saved_model.pb"))

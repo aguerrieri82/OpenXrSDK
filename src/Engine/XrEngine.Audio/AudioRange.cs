@@ -1,26 +1,19 @@
 ﻿using OpenAl.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XrEngine.Audio
 {
     public class AudioRange
     {
+        readonly AudioFormat _format;
         int _startSample;
         int _endSample;
-        int _channel;
-        readonly  AudioFormat _format;
-
+        readonly int _channel;
 
         public AudioRange(AudioFormat format, int channel = 0)
         {
             _format = format;
             _channel = 0;
         }
-
 
         public void ShiftTime(float delta)
         {
@@ -31,7 +24,7 @@ namespace XrEngine.Audio
         public void ShiftSamples(int delta)
         {
             _startSample += delta;
-            _endSample += delta;    
+            _endSample += delta;
         }
 
         public float StartTime
@@ -48,7 +41,7 @@ namespace XrEngine.Audio
 
         public int StartOffset
         {
-            get => (_startSample * (_format.BitsPerSample / 8) * _format.Channels) + 
+            get => (_startSample * (_format.BitsPerSample / 8) * _format.Channels) +
                    (_format.BitsPerSample / 8 * _channel);
         }
 

@@ -1,4 +1,5 @@
 ﻿using CanvasUI;
+using DrumsVR.Game;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using PhysX;
@@ -7,9 +8,11 @@ using RoomDesigner.Game;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using XrEngine;
+using XrEngine.AI;
 using XrEngine.Audio;
 using XrEngine.Components;
 using XrEngine.Compression;
+using XrEngine.Devices;
 using XrEngine.Gltf;
 using XrEngine.Helpers;
 using XrEngine.Objects;
@@ -20,9 +23,6 @@ using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
-using DrumsVR.Game;
-using XrEngine.AI;
-using XrEngine.Devices;
 
 
 
@@ -1173,7 +1173,7 @@ namespace XrSamples
             {
                 SavePath = Path.Join(XrPlatform.Current!.PersistentPath, "Scanner"),
             });
-                
+
             scene.AddChild(points);
             scene.AddChild(window);
 

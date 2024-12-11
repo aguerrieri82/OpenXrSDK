@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public interface IItemsSource
     {
@@ -13,7 +7,7 @@ namespace XrEditor
 
         string? GetText(object? item);
 
-        object? GetValue(object? item); 
+        object? GetValue(object? item);
 
     }
 }

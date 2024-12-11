@@ -18,14 +18,14 @@ namespace XrEditor.Audio
     {
         public class AudioSlice
         {
-            public int Start {  get; set; } 
+            public int Start { get; set; }
 
             public int Length { get; set; }
 
-            public Vector2[]? Frequencies { get; set; } 
+            public Vector2[]? Frequencies { get; set; }
         }
 
-    
+
         public class Settings : BaseView, IItemView
         {
             readonly LoopEditorPanel _host;
@@ -265,7 +265,7 @@ namespace XrEditor.Audio
                 range.EndSample -= (int)_settings.LoopEndOffset;
 
                 var best = _dft.Points.OrderByDescending(a => a.Y).Take(3);
-                
+
                 slices.Add(new AudioSlice
                 {
                     Length = range.Length,
@@ -279,7 +279,6 @@ namespace XrEditor.Audio
             var json = JsonConvert.SerializeObject(slices);
 
             _mainDispatcher.Execute(() => Context.Require<IClipboard>().Copy(json, "text/json"));
-
         }
 
 
@@ -425,7 +424,7 @@ namespace XrEditor.Audio
                 //move forward to find 0 cross line
                 i = start;
                 lastValue = pData[i];
-              
+
                 while (i < clipLen)
                 {
                     var curValue = pData[i];

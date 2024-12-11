@@ -2,7 +2,7 @@
 {
     public class ItemView : IconTextView
     {
-        
-        public object? Value { get; set; }  
+
+        public object? Value { get; set; }
     }
 }
