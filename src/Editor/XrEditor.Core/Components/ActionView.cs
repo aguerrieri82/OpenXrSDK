@@ -49,14 +49,17 @@ namespace XrEditor
         {
             foreach (var method in objType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
-
                 var action = method.GetCustomAttribute<ActionAttribute>();
                 if (action == null)
                     continue;
 
+                var name = method.Name;
+                if (name.EndsWith("Async"))
+                    name = name[..^5];      
+
                 var propView = new ActionView
                 {
-                    DisplayName = method.Name,
+                    DisplayName = name,
                     ExecuteCommand = new Command(() => method.Invoke(obj, null)),
                 };
 

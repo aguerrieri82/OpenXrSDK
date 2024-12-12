@@ -64,23 +64,23 @@
                     </ItemsControl>
                 </Border>
                 <ItemsControl ItemsSource="{Binding Groups}"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
+
                 <ItemsControl ItemsSource="{Binding Actions}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal"/>
+                            <StackPanel Margin="10,0,10,10" Orientation="Horizontal"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Button Padding="5,4,5,4" Command="{Binding ExecuteCommand}" Margin="0,0,5,0">
+                            <Button MinWidth="70" Padding="5,4,5,4" Command="{Binding ExecuteCommand}" Margin="0,0,5,0">
                                 <TextBlock Text="{Binding DisplayName}"/>
                             </Button>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
+           
         </StackPanel>
 
         <DataTemplate.Triggers>

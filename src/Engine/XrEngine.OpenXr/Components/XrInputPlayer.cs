@@ -25,6 +25,7 @@ namespace XrEngine.OpenXr
         public XrInputPlayer(IPosePredictor? predictor)
         {
             _predictor = predictor;
+            SourceFile = "inputs.json";
         }
 
         protected override void Update(RenderContext ctx)
@@ -69,7 +70,7 @@ namespace XrEngine.OpenXr
 
             var path = Context.Require<IPlatform>().PersistentPath;
 
-            using var stream = File.OpenRead(Path.Join(path, "inputs.json"));
+            using var stream = File.OpenRead(Path.Join(path, SourceFile));
 
             _session = await JsonSerializer.DeserializeAsync<XrInputRecorder.RecordSession>(stream, options);
 
@@ -88,12 +89,14 @@ namespace XrEngine.OpenXr
         {
             base.GetState(container);
             container.Write(nameof(SourceFile), SourceFile);
+            container.Write(nameof(ShowTrail), ShowTrail);
         }
 
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
             SourceFile = container.Read<string>(nameof(SourceFile));
+            ShowTrail = container.Read<bool>(nameof(ShowTrail));
         }
 
         public void SetPlayState(PlayerState state)
@@ -186,6 +189,8 @@ namespace XrEngine.OpenXr
                 OnPropertyChanged(nameof(Frame));
             }
         }
+
+
 
         public bool ShowTrail { get; set; }
 

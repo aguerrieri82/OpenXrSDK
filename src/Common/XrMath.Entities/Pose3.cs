@@ -27,11 +27,6 @@ namespace XrMath
             return Position.GetHashCode() ^ Orientation.GetHashCode();
         }
 
-        public Vector3 Position;
-
-        public Quaternion Orientation;
-
-
         public static bool operator ==(Pose3 a, Pose3 b) => a.Equals(b);
 
         public static bool operator !=(Pose3 a, Pose3 b) => !a.Equals(b);
@@ -41,5 +36,10 @@ namespace XrMath
         {
             Orientation = Quaternion.Identity
         };
+
+
+        public Vector3 Position;
+
+        public Quaternion Orientation;
     }
 }

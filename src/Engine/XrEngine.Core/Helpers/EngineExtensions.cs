@@ -47,6 +47,11 @@ namespace XrEngine
             return self.Components().OfType<T>();
         }
 
+        public static IEnumerable<T> ComponentsDeep<T>(this Object3D self)
+        {
+            return self.DescendantsOrSelf().SelectMany(a=> a.Components<T>());  
+        }
+
         public static T Component<T>(this EngineObject self) where T : IComponent
         {
             return self.Components<T>().Single();
