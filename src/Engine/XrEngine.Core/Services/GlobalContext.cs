@@ -32,7 +32,7 @@ namespace XrEngine
             });
         }
 
-        public object RequireInstance(Type type)
+        public object RequireNew(Type type)
         {
             var info = _services.FirstOrDefault(a => type.IsAssignableFrom(a.Type));
             if (info?.Factory == null)

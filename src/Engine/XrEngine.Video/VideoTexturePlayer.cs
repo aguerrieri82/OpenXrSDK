@@ -21,7 +21,7 @@
             {
                 try
                 {
-                    Reader ??= Context.RequireInstance<IVideoReader>();
+                    Reader ??= Context.RequireNew<IVideoReader>();
                     Reader.OutTexture = Texture;
                     Texture?.SetFlag(EngineObjectFlags.EnableDebug, false);
                     Reader.Open(Source);

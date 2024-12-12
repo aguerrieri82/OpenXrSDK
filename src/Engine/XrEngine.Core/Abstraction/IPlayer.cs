@@ -11,7 +11,7 @@
     {
         void SetPlayState(PlayerState state);
 
-        PlayerState PlayerState { get; }
+        PlayerState PlayState { get; }
 
         int Frame { get; set; }
 
