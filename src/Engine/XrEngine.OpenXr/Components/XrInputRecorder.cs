@@ -5,8 +5,6 @@ namespace XrEngine.OpenXr
 {
     public class XrInputRecorder : Behavior<Scene3D>
     {
-
-
         #region RecordFrame
 
         public struct RecordFrame
@@ -34,6 +32,7 @@ namespace XrEngine.OpenXr
         public XrInputRecorder()
         {
             IsEnabled = false;
+            OutFile = "inputs.json";
         }
 
         protected override void Update(RenderContext ctx)
@@ -79,8 +78,24 @@ namespace XrEngine.OpenXr
             lock (this)
                 json = JsonSerializer.Serialize(_session, options);
 
-            File.WriteAllText(Path.Join(path, "inputs.json"), json);
+            File.WriteAllText(Path.Join(path, OutFile), json);
         }
+
+        public override void GetState(IStateContainer container)
+        {
+            container.Write(nameof(OutFile), OutFile);
+            base.GetState(container);
+        }
+
+        protected override void SetStateWork(IStateContainer container)
+        {
+            OutFile = container.Read<string>(nameof(OutFile));
+
+            base.SetStateWork(container);
+        }
+
+        [ValueType(ValueType.FileName)]
+        public string? OutFile { get; set; }
 
 
         public RecordSession? Session => _session;
