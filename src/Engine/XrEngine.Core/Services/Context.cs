@@ -18,9 +18,9 @@ namespace XrEngine
             return result != null;
         }
 
-        public static T RequireInstance<T>() where T : class
+        public static T RequireNew<T>() where T : class
         {
-            return (T)Current.RequireInstance(typeof(T));
+            return (T)Current.RequireNew(typeof(T));
         }
 
 

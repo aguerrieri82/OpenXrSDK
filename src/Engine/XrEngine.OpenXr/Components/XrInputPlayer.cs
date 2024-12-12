@@ -194,7 +194,7 @@ namespace XrEngine.OpenXr
 
         public bool ShowTrail { get; set; }
 
-        public PlayerState PlayerState => _state;
+        public PlayerState PlayState => _state;
 
         public int Length => _session?.Frames?.Count ?? 0;
 

@@ -81,7 +81,7 @@ namespace XrEngine.Video
                     }
                 }
 
-                _videoCodec = Context.RequireInstance<IVideoCodec>();
+                _videoCodec = Context.RequireNew<IVideoCodec>();
                 _videoCodec.OutTexture = OutTexture;
 
                 Log.Debug(this, "Rtsp: Open Codec");

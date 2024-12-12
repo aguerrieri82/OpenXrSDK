@@ -124,7 +124,7 @@ namespace OpenXr.Framework.Android
             if (!global::Android.OS.Environment.IsExternalStorageManager)
             {
                 var intent = new Intent(global::Android.Provider.Settings.ActionManageAppAllFilesAccessPermission!,
-               global::Android.Net.Uri.Parse("package:" + Application.Context.PackageName));
+                global::Android.Net.Uri.Parse("package:" + Application.Context.PackageName));
 
                 StartActivityForResult(intent, STORAGE_REQUEST);
             }

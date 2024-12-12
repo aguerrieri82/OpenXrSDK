@@ -93,10 +93,10 @@ namespace XrEditor
             if (_editValue == null)
                 return;
 
-            PlayCommand.IsEnabled = _editValue.PlayerState != PlayerState.Play;
-            PauseCommand.IsEnabled = _editValue.PlayerState == PlayerState.Play;
-            NextFrameCommand.IsEnabled = Position < Length - 1 && _editValue.PlayerState != PlayerState.Play;
-            PrevFrameCommand.IsEnabled = Position > 0 && _editValue.PlayerState != PlayerState.Play;
+            PlayCommand.IsEnabled = _editValue.PlayState != PlayerState.Play;
+            PauseCommand.IsEnabled = _editValue.PlayState == PlayerState.Play;
+            NextFrameCommand.IsEnabled = Position < Length - 1 && _editValue.PlayState != PlayerState.Play;
+            PrevFrameCommand.IsEnabled = Position > 0 && _editValue.PlayState != PlayerState.Play;
         }
 
         public Command PlayCommand { get; }
