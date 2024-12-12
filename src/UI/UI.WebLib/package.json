@@ -1,0 +1,22 @@
+{
+  "name": "xrsdk-ui",
+  "version": "0.0.1",
+  "main": "src\\index.tsx",
+  "type": "module",
+  "scripts": {
+    "compile": "tsc",
+    "install:pnpm": "pnpm install",
+    "upgrade": "pnpm up -latest",
+    "lint:fix": "eslint ./src/**/*.ts* --fix"
+  },
+  "keywords": [],
+  "author": "Andrea Guerrieri",
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "eslint": "9.16.0",
+    "globals": "^15.13.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  },
+  "packageManager": "pnpm@8.5.1"
+}
