@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "noEmitOnError": false,
+    "sourceMap": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "outDir": "dist",
+    "declarationDir": "dist/types",
+    "declaration": true,
+    "inlineSources": false,
+    "noImplicitOverride": true
+  },
+  "compileOnSave": true,
+  "include": [
+    "src/"
+  ]
+}
+ 

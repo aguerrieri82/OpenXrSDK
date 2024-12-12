@@ -358,6 +358,8 @@ namespace XrEditor
 
         public override Task CloseAsync()
         {
+            StopApp();
+
             StopXr();
 
             Stop();

@@ -6,6 +6,9 @@ namespace XrEditor
     {
         public async Task ExecuteAsync(Action action)
         {
+            if (Application.Current == null)
+                return;
+
             if (Application.Current.Dispatcher.Thread == Thread.CurrentThread)
                 action();
             else

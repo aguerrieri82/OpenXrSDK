@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace XrEngine.Audio
 {
-    public class AudioEmitter : Behavior<Object3D>
+    public class AudioEmitter : Behavior<Object3D>, IDisposable
     {
         static AlSourcePool? _pool;
         protected HashSet<IAudioStream> _activeStreams = [];
@@ -203,6 +203,18 @@ namespace XrEngine.Audio
 
             foreach (var stream in _activeStreams.ToArray())
                 stream.Stop();
+        }
+
+        public override void Reset(bool onlySelf = false)
+        {
+            Stop();
+            base.Reset(onlySelf);
+        }
+
+        public void Dispose()
+        {
+            Stop();
+            GC.SuppressFinalize(this);
         }
 
         public float PoolSleepMs { get; set; }

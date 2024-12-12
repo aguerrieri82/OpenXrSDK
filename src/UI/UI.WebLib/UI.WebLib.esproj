@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.1220281">
+  <ItemGroup>
+    <None Remove=".vscode\**" />
+    <TypeScriptConfiguration Remove=".vscode\**" />
+  </ItemGroup>
+  <PropertyGroup>
+    <StartupCommand>pnpm dev</StartupCommand>
+    <ShouldRunNpmInstall>False</ShouldRunNpmInstall>
+    <ShouldRunBuildScript>False</ShouldRunBuildScript>
+  </PropertyGroup>
+</Project>

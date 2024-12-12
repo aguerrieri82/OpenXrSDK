@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Sfizz;
 using Silk.NET.Assimp;
 using System.Diagnostics;
 using System.Globalization;
@@ -26,6 +27,15 @@ namespace XrSamples
     {
         public static IServiceProvider? Services { get; set; }
 
+        public static void ParseSfz()
+        {
+            var file = @"D:\SoundFont\WilkinsonAudio.NakedDrums\Wilkinson Audio\Naked Drums\User\Naked Drums GM.sfz";
+            var parser = new SfzParser();
+            parser.Parse(file);
+            var size = parser.SamplesSize();
+            //parser.CopyTo("d:\\test\\");
+
+        }
 
         public static async Task TestBlePedalAsync()
         {
