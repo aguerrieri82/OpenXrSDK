@@ -29,7 +29,6 @@ namespace XrEngine
         MateriaAdd = Add | Material,
         MateriaRemove = Remove | Material,
         MaterialEnabled = Enabled | Material,
-
     }
 
     public struct ObjectChangeSet

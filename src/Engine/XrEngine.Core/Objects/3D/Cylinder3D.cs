@@ -25,6 +25,7 @@ namespace XrEngine
 
             if ((Parts & CylinderPart.Body) != 0)
                 builder.AddCylinder(Center, Radius, Height, Subs);
+
             var smoothEnd = builder.Vertices.Count;
 
             if ((Parts & CylinderPart.BottomCap) != 0)
@@ -38,7 +39,7 @@ namespace XrEngine
 
             ActiveComponents = VertexComponent.Position | VertexComponent.Normal;
 
-            this.SmoothNormals(0, (uint)smoothEnd);
+            this.SmoothNormals(0, (uint)smoothEnd - 1);
 
             this.ComputeIndices();
 

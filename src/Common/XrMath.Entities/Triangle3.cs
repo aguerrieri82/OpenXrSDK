@@ -4,6 +4,18 @@ namespace XrMath
 {
     public struct Triangle3
     {
+        public Triangle3()
+        {
+
+        }
+
+        public Triangle3(Vector3 v0, Vector3 v1, Vector3 v2)
+        {
+            V0 = v0;
+            V1 = v1;
+            V2 = v2;
+        }
+
         public Vector3 this[int index]
         {
             get => index switch

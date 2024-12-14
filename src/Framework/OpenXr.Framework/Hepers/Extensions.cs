@@ -43,8 +43,6 @@ namespace OpenXr.Framework
             };
         }
 
-
-
         public static void AddProjection(this XrLayerManager manager, RenderViewDelegate renderView)
         {
             manager.List.Add(new XrProjectionLayer(renderView));

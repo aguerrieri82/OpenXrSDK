@@ -5,7 +5,7 @@ using XrEngine.Transcoder;
 
 namespace XrEngine
 {
-    public class EngineAssetLoader : BaseAssetLoader, IAssetWriter
+    public class EngineAssetTranscoder : BaseAssetLoader, IAssetWriter
     {
         class EngineObjectHeader
         {

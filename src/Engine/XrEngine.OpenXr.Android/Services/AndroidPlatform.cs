@@ -27,7 +27,7 @@ namespace XrEngine.OpenXr.Android
             Context.Implement<IAssetStore>(new AndroidAssetStore(context, ""));
             Context.Implement<ILogger>(new AndroidLogger("XrApp"));
             Context.Implement<IProgressLogger>(new AndroidProgressLogger());
-            Context.Implement<ITimeLogger>(new NullTimeLogger());
+            Context.Implement<ITimeLogger>(NullTimeLogger.Instance);
 
             _context = context;
 

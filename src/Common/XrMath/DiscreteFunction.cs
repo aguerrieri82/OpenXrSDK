@@ -13,22 +13,7 @@ namespace XrMath
 
         public Bounds2 Bounds()
         {
-            if (Points.Length == 0)
-                return Bounds2.Zero;
-
-            var result = new Bounds2()
-            {
-                Min = Points[0],
-                Max = Points[0]
-            };
-
-            foreach (var point in Points.Skip(1))
-            {
-                result.Max = Vector2.Max(result.Max, point);
-                result.Min = Vector2.Min(result.Min, point);
-            }
-
-            return result;
+            return Points.Bounds();
         }
 
         float InterpolateY(int index, float targetX)

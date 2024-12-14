@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 
@@ -17,18 +18,24 @@ namespace XrEngine
         public MeshBuilder()
         {
         }
-
+        public MeshBuilder AddTriangle(Triangle3 triangle)
+        {
+            return AddTriangle(triangle.V0, triangle.V1, triangle.V2, Vector2.Zero, Vector2.Zero, Vector2.Zero);
+        }
 
         public MeshBuilder AddTriangle(Vector3 a, Vector3 b, Vector3 c)
         {
             return AddTriangle(a, b, c, Vector2.Zero, Vector2.Zero, Vector2.Zero);
         }
 
-
         public MeshBuilder AddTriangle(Vector3 a, Vector3 b, Vector3 c, Vector2 uvA, Vector2 uvB, Vector2 uvC)
         {
             var triangle = new Triangle3 { V0 = a, V1 = b, V2 = c };
             var normal = triangle.Normal();
+
+            if (!normal.IsFinite())
+                return this;
+
 
             AddVertices(new VertexData { Pos = a, Normal = normal, UV = uvA },
                         new VertexData { Pos = b, Normal = normal, UV = uvB },
@@ -161,7 +168,12 @@ namespace XrEngine
                     var uv2 = new Vector2(u1, v2);
                     var uv3 = new Vector2(u2, v2);
 
-                    AddFace(vr0, vr1, vr3, vr2, uv0, uv1, uv3, uv2, true);
+                    if (vr0.IsSimilar(vr2))
+                    {
+                        AddTriangle(vr3, vr1, vr0, uv3, uv1, uv0);
+                    }
+                    else
+                        AddFace(vr0, vr1, vr3, vr2, uv0, uv1, uv3, uv2, true);
                 }
             }
 
@@ -294,6 +306,145 @@ namespace XrEngine
             return this;
         }
 
+        public MeshBuilder FillCurve(ICurve2D curve, float tolerance = 0.001f, int maxPoints = 1000)
+        {
+            var samples = curve
+                .Sample(tolerance, maxPoints)
+                .ToArray();
+
+            return FillPoly(samples.Select(x => x.Position).ToArray()); 
+        }
+
+        public MeshBuilder FillPoly(Vector2[] points)
+        {
+            var triangles = PolyTriangulate.TriangulateSimplePolygon(points);
+            foreach (var triangle in triangles)
+                AddTriangle(triangle.V0, triangle.V1, triangle.V2);
+            return this;    
+        }
+
+        public MeshBuilder ExtrudePoly(Vector2[] points, float length, bool addCaps)
+        {
+            return ExtrudePoly(points, length, Vector3.UnitZ, addCaps);
+        }
+
+
+        public MeshBuilder ExtrudePoly(Vector2[] points, float length, Vector3 axis, bool addCaps)
+        {
+            var ofs = axis * length;
+
+            for (var i = 0; i < points.Length; i++)
+            {
+                var a = points[i].ToVector3();
+                var b = points[(i + 1) % points.Length].ToVector3();
+                var c = a + ofs;
+                var d = b + ofs;
+                AddFace(a, b, d, c); 
+            }
+
+            if (addCaps)
+            {
+                var triangles = PolyTriangulate.TriangulateSimplePolygon(points);
+
+                var bounds = points.Bounds();
+
+                Vector2 BoundsUV(Vector3 point)
+                {
+                    var xy = point.ToVector2();
+                    return (xy - bounds.Min) / bounds.Size;
+                }
+
+                foreach (var triangle in triangles)
+                    AddTriangle(triangle.V2, triangle.V1, triangle.V0, 
+                               BoundsUV(triangle.V2), BoundsUV(triangle.V1), BoundsUV(triangle.V0));
+
+                foreach (var triangle in triangles)
+                    AddTriangle(triangle.V0 + ofs, triangle.V1 + ofs, triangle.V2 + ofs,
+                               BoundsUV(triangle.V0), BoundsUV(triangle.V1), BoundsUV(triangle.V2));
+            }
+
+            return this;
+        }
+
+        public MeshBuilder LoftPoly(Poly2 profile, Poly2 path)
+        {
+            return LoftPoly(profile, new Poly2D(path)); 
+        }
+
+        public MeshBuilder LoftPoly(Poly2 profile, ICurve2D path, float tolerance = 0.001f, int maxPoints = 1000)
+        {
+            var pathPoints = path
+                .Sample(tolerance, maxPoints)
+                .ToArray();
+
+            Vector3 ToVector3(Vector2 p)
+            {
+                return new Vector3(p.X, 0, p.Y);
+            }
+
+            (Vector3, Vector3) Convert(CurvePoint p)
+            {
+                return (ToVector3(p.Position), ToVector3(p.Tangent));
+            }
+
+            Matrix4x4 Transform(Vector3 position, Vector3 tangent)
+            {
+                tangent = Vector3.Normalize(tangent);
+                Vector3 up = new Vector3(0, 1, 0); // Arbitrary "up" vector
+                Vector3 right = Vector3.Cross(up, tangent); // Perpendicular to tangent
+                if (right.LengthSquared() < 1e-6) // Degenerate case: fallback to Z-axis
+                    right = Vector3.UnitX;
+
+                up = Vector3.Cross(tangent, right); // Recompute the orthogonal up vector
+
+                return new Matrix4x4(
+                    right.X, right.Y, right.Z, 0,
+                    up.X, up.Y, up.Z, 0,
+                    tangent.X, tangent.Y, tangent.Z, 0,
+                    position.X, position.Y, position.Z, 1
+                );
+            }
+
+            for (var j = 0; j < pathPoints.Length - 1; j++)
+            {
+                var (p0, t0) = Convert(pathPoints[j]);
+                var (p1, t1) = Convert(pathPoints[j + 1]);
+
+                t1 = (t0 + t1) / 2;
+
+                if (j  > 0)
+                {
+                    var (p2, t2) = Convert(pathPoints[j - 1]);
+                    t0 = (t0 + t2) / 2;
+                }
+
+
+                var len = profile.Points.Length;
+                if (!profile.IsClosed)
+                    len--;
+
+                var matrix0 = Transform(p0, t0);
+                var matrix1 = Transform(p1, t1);
+
+
+                for (var i = 0; i < len; i++)
+                {
+                    var a = profile.Points[i];
+                    var b = profile.Points[(i + 1) % profile.Points.Length];
+
+                    var a0 = Vector3.Transform(new Vector3(a.X, a.Y, 0), matrix0);
+                    var b0 = Vector3.Transform(new Vector3(b.X, b.Y, 0), matrix0);
+
+                    var a1 = Vector3.Transform(new Vector3(a.X, a.Y, 0), matrix1);
+                    var b1 = Vector3.Transform(new Vector3(b.X, b.Y, 0), matrix1);
+
+                    AddFace(a0, a1, b1, b0);
+                }
+            }
+
+            return this;
+        }
+
         public MeshBuilder Transform(Matrix4x4 matrix)
         {
             var span = CollectionsMarshal.AsSpan(Vertices);
@@ -306,7 +457,6 @@ namespace XrEngine
 
             return this;
         }
-
 
         public Geometry3D ToGeometry()
         {

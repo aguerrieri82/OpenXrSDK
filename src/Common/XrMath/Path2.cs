@@ -88,18 +88,7 @@ namespace XrMath
                     }
                 }
 
-                var result = new Bounds2
-                {
-                    Min = points[0],
-                    Max = points[0]
-                };
-
-                foreach (var point in points)
-                {
-                    result.Min = Vector2.Min(result.Min, point);
-                    result.Max = Vector2.Max(result.Max, point);
-                }
-                _bounds = result;
+                _bounds = points.Bounds();
             }
 
             return _bounds.Value;
@@ -452,11 +441,42 @@ namespace XrMath
             return result;
         }
 
+        public List<Vector2> SamplesFixedGlobal(float dt)
+        {
+            var result = new List<Vector2>();
+            var totLen = Length();
+            var dLen = totLen * dt;
+            foreach (var segment in _segments)
+            {
+                float segDt;
+
+                if (segment.IsLinear())
+                    segDt = 1;
+                else
+                {
+                    var len = segment.Length();
+                    segDt = dLen / len;
+                }
+
+                for (float t = 0; t <= 1; t += segDt)
+                {
+                    if (t != 1 && t + dt > 1)
+                        t = 1;
+                    var point = segment.Sample(t);
+                    if (result.Count == 0 || point != result[result.Count - 1])
+                        result.Add(point);
+                }
+            }
+            return result;
+        }
+
         public List<Path2Point> SamplesAdaptive(float tolerance = 0.01f)
         {
             var result = new List<Path2Point>();
+
             foreach (var segment in _segments)
                 segment.SampleAdaptive(result, tolerance);
+
             return result;
         }
 
@@ -643,6 +663,22 @@ namespace XrMath
                             var point = new Vector2(args[j], args[j + 1]);
                             if (isRelative) point += _currentPoint;
 
+                            LineTo(point);
+                        }
+                        break;
+
+                    case 'H': // Horizontal line
+                        {
+                            float x = args[0];
+                            var point = new Vector2(isRelative ? _currentPoint.X + x : x, _currentPoint.Y);
+                            LineTo(point);
+                        }
+                        break;
+
+                    case 'V': // Vertical line
+                        {
+                            float y = args[0];
+                            var point = new Vector2(_currentPoint.X, isRelative ? _currentPoint.Y + y : y);
                             LineTo(point);
                         }
                         break;

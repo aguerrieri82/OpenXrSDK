@@ -1,6 +1,8 @@
 ﻿namespace XrEngine
 {
-    public interface IAssetLoaderOptions { }
+    public interface IAssetLoaderOptions
+    {
+    }
 
     public interface IAssetLoader
     {

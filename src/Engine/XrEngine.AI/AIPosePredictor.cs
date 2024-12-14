@@ -5,12 +5,12 @@ namespace XrEngine.AI
 {
     public class AIPosePredictor : IPosePredictor
     {
-        readonly AIPosePredictorCore _core;
+        readonly AIPosePredictorModel _core;
         readonly List<PoseTrainData> _data = [];
 
         public AIPosePredictor(string modelPath)
         {
-            _core = new AIPosePredictorCore(7, modelPath);
+            _core = new AIPosePredictorModel(7, modelPath);
         }
 
         public Pose3 Predict(float dt)

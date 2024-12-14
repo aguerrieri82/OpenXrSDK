@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -546,7 +547,6 @@ namespace XrEngine
 
         public delegate void VertexAssignDelegate<T>(ref VertexData vertexData, T value);
 
-
         public static void Rebuild(this Geometry3D self, IEnumerable<Triangle3> triangles)
         {
             var vertex = new List<VertexData>();
@@ -690,17 +690,19 @@ namespace XrEngine
             SmoothNormals(self, 0, (uint)self.Vertices.Length - 1);
         }
 
-        public static void SmoothNormals(this Geometry3D self, uint startIndex, uint endIndex)
+        public static void SmoothNormals(this Geometry3D self, uint startIndex, uint endIndex, int decimals = 4)
         {
+
             Dictionary<Vector3, List<uint>> groups = [];
 
             for (var i = startIndex; i <= endIndex; i++)
             {
-                var v = self.Vertices[i].Pos;
-                if (!groups.TryGetValue(v, out var list))
+                var pos = self.Vertices[i].Pos.Round(decimals);
+
+                if (!groups.TryGetValue(pos, out var list))
                 {
                     list = [i];
-                    groups[v] = list;
+                    groups[pos] = list;
                 }
                 else
                     list.Add(i);
@@ -709,13 +711,22 @@ namespace XrEngine
             {
                 if (group.Count > 1)
                 {
-                    var sum = Vector3.Zero;
+                    var avg = Vector3.Zero;
+                    int count = 0;
                     foreach (var index in group)
-                        sum += self.Vertices[index].Normal;
+                    {
+                        var normal = self.Vertices[index].Normal;
+                        if (!normal.IsFinite())
+                            continue;
+                        avg += normal;
+                        count++;
+                    }
 
-                    sum /= group.Count;
-                    foreach (var index in group)
-                        self.Vertices[index].Normal = sum;
+                    avg /= count;
+
+
+                   foreach (var index in group)
+                        self.Vertices[index].Normal = avg;
                 }
             }
             self.NotifyChanged(ObjectChangeType.Geometry);

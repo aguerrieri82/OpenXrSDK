@@ -12,9 +12,6 @@ namespace XrEngine
             _path = path;
         }
 
-        public float Length => _path.Length();
-
-        public bool IsClosed => false;
 
         public Vector2 GetPointAtTime(float t)
         {
@@ -34,13 +31,37 @@ namespace XrEngine
         public IEnumerable<CurvePoint> Sample(float tolerance, int maxPoints)
         {
             var points = _path.SamplesAdaptive(tolerance);
+            var pathLen = _path.Length();
 
-            return points.Select(a => new CurvePoint
+            Path2Segment? lastSeg = null;
+            var segLen = 0f;
+            var totLen = 0f;
+            foreach (var point in points)
             {
-                Position = a.Point,
-                Length = 0,
-                Tangent = a.Segment.Tangent(a.Time)
-            });
+                if (lastSeg != point.Segment)
+                {
+                    totLen += segLen;
+                    lastSeg = point.Segment;
+                    segLen = lastSeg.Length();
+                }
+
+                var cPoint = new CurvePoint
+                {
+                    Position = point.Point,
+                    Length = totLen + (segLen * point.Time),
+                    Tangent = point.Segment.Tangent(point.Time),
+                };
+
+                cPoint.Time = cPoint.Length / pathLen;
+
+                yield return cPoint;
+            }
+
         }
+
+        public float Length => _path.Length();
+
+        public bool IsClosed => false;
+
     }
 }
