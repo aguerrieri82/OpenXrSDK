@@ -20,6 +20,9 @@ const float Epsilon = 0.00001;
 const vec3 Fdielectric = vec3(0.04);
 
 
+#define DEBUG_UV  1
+
+
 layout(location=0) in Vertex
 {
 	vec3 position;
@@ -344,5 +347,10 @@ void main()
 	// Final fragment color.
 	color = vec4(color3 * uCamera.exposure, a);
 
+#if DEBUG == DEBUG_UV
+
+	color = vec4(vin.texcoord.x, vin.texcoord.y, 0.0, 1.0);
+
+#endif
 
 }

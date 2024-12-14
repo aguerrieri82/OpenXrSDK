@@ -47,6 +47,5 @@ namespace XrEngine
 
         public float BaseLength { get; set; }
 
-
     }
 }

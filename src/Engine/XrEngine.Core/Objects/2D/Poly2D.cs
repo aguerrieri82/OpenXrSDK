@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using XrMath;
 
 namespace XrEngine
 {
@@ -7,15 +8,29 @@ namespace XrEngine
         private float _length;
 
 
+        public Poly2D()
+        {
+            Points = [];
+            Invalidate();
+        }
+
+
+        public Poly2D(Poly2 poly)
+        {
+            Points = poly.Points;
+            IsClosed = poly.IsClosed;
+            Invalidate();
+        }
+
         public float Length
         {
             get
             {
-                UpdateLength();
+                if (float.IsNaN(_length))
+                    UpdateLength();
                 return _length;
             }
         }
-
 
         public IEnumerable<CurvePoint> Sample(float tolerance, int maxPoints)
         {
@@ -39,6 +54,20 @@ namespace XrEngine
                 };
 
                 curLen += Vector2.Distance(p1, p2);
+
+                if (!IsClosed && i == pCount - 1)
+                {
+                    yield return new CurvePoint
+                    {
+                        Position = p2,
+                        Tangent = Vector2.Normalize(p2 - p1),
+                        Length = curLen,
+                        Time = curLen / totLen
+                    };
+
+                }
+
+            
             }
         }
 
@@ -57,6 +86,11 @@ namespace XrEngine
             return length / Length;
         }
 
+        public void Invalidate()
+        {
+            _length = float.NaN;
+        }   
+
         protected void UpdateLength()
         {
             _length = 0;
@@ -70,8 +104,8 @@ namespace XrEngine
 
         bool ICurve2D.IsClosed => IsClosed;
 
-        public bool IsClosed;
+        public bool IsClosed { get; set; }
 
-        public Vector2[] Points = [];
+        public Vector2[] Points { get; set; }   
     }
 }

@@ -53,8 +53,6 @@ export class BaseBridge  {
 
             }
         });
-
-
     }
 
     start() {

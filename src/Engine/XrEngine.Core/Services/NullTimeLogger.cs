@@ -4,6 +4,11 @@ namespace XrEngine
 {
     public class NullTimeLogger : ITimeLogger
     {
+        NullTimeLogger()
+        {
+
+        }
+
         public void Checkpoint(string name, Color color)
         {
 
@@ -18,5 +23,7 @@ namespace XrEngine
         {
 
         }
+
+        public static readonly NullTimeLogger Instance = new(); 
     }
 }

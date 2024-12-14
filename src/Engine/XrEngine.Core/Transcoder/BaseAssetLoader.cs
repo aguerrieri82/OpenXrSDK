@@ -23,9 +23,7 @@
             return false;
         }
 
-
         public abstract EngineObject LoadAsset(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null);
-
 
     }
 }

@@ -11,6 +11,17 @@ namespace XrMath
             X = x; Y = y; Width = width; Height = height;
         }
 
+        public readonly IEnumerable<Vector2> Corners
+        {
+            get
+            {
+                yield return new Vector2(X, Y);
+                yield return new Vector2(X + Width, Y);
+                yield return new Vector2(X + Width, Y + Height);
+                yield return new Vector2(X, Y + Height);
+            }
+        }
+
         public void Expand(Size2 amount)
         {
             Width += amount.Width;
@@ -79,5 +90,10 @@ namespace XrMath
             }
         }
 
+
+        public static Rect2 FromCenter(float width, float height)
+        {
+            return new Rect2(-width / 2, -height / 2, width, height);
+        }   
     }
 }

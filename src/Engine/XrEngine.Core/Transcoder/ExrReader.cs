@@ -7,7 +7,6 @@ namespace XrEngine
 {
     public class ExrReader : BaseTextureLoader
     {
-
         ExrReader()
         {
         }

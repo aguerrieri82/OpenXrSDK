@@ -547,6 +547,7 @@ namespace XrMath
             };
         }
 
+
         #endregion
 
         #region VECTOR3
@@ -1099,6 +1100,67 @@ namespace XrMath
         public static Vector3 ToVector3(this Vector2 sel, float z = 0)
         {
             return new Vector3(sel.X, sel.Y, z);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Cross(this Vector2 a, Vector2 b)
+        {
+            return a.X * b.Y - a.Y * b.X;
+        }
+
+        #endregion
+
+        #region POLY2
+
+        public static Vector2[] Transform(this Vector2[] self, Matrix3x2 matrix)
+        {
+            var res = new Vector2[self.Length]; 
+            for (var i = 0; i < self.Length; i++)
+                res[i] = Vector2.Transform(self[i], matrix);
+            return res;
+        }
+
+        public static Bounds2 Bounds(this IList<Vector2> self)
+        {
+            if (self.Count == 0)
+                return new Bounds2();   
+
+            var result = new Bounds2
+            {
+                Min = self[0],
+                Max = self[0]
+            };
+
+            foreach (var point in self.Skip(1))
+            {
+                result.Min = Vector2.Min(result.Min, point);
+                result.Max = Vector2.Max(result.Max, point);
+            }
+
+            return result;
+        }
+
+        public static Bounds2 Bounds(this Poly2 self)
+        {
+           return self.Points.Bounds(); 
+        }
+
+        public static void EnsureCCW(this Poly2 self)
+        {
+            if (self.SignedArea() < 0)
+                Array.Reverse(self.Points); 
+        }
+
+        public static float SignedArea(this Poly2 self)
+        {
+            float area = 0;
+            for (var i = 0; i < self.Points.Length; i++)
+            {
+                var current = self.Points[i];
+                var next = self.Points[(i + 1) % self.Points.Length];
+                area += (current.X * next.Y - next.X * current.Y);
+            }
+            return area * 0.5f;
         }
 
         #endregion

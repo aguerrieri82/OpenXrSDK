@@ -5,6 +5,12 @@ using XrMath;
 
 namespace XrEngine
 {
+    public enum PbrV2Debug
+    {
+        None = 0,
+        Uv = 1
+    }
+
     public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial
     {
         const int CAMERA_BUF = 1;
@@ -397,6 +403,8 @@ namespace XrEngine
                 AlphaCutoff = AlphaCutoff,
             };
 
+            bld.AddFeature($"DEBUG {(int)Debug}");
+
             if (ToneMap)
                 bld.AddFeature("TONEMAP");
 
@@ -568,6 +576,9 @@ namespace XrEngine
 
         public bool UseEnvDepth { get; set; }
 
+        public PbrV2Debug Debug { get; set; }
+
         public static bool ForceIblTransform { get; set; }
+
     }
 }

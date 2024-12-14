@@ -11,8 +11,7 @@ namespace XrEngine
             public TaskCompletionSource<object?>? Completion;
         }
 
-        readonly ConcurrentQueue<QueueTask> _queue = [];
-
+        protected readonly ConcurrentQueue<QueueTask> _queue = [];
         protected bool _isProcessingQueue;
         protected Thread? _thread;
 

@@ -15,7 +15,7 @@ namespace XrEngine.AI
         public Pose3 Pose;
     }
 
-    public class AIPosePredictorCore
+    public class AIPosePredictorModel
     {
         const int _featureSize = 8;
 
@@ -24,7 +24,7 @@ namespace XrEngine.AI
         private readonly int _sequenceLength;
 
 
-        public AIPosePredictorCore(int sequenceLength, string path)
+        public AIPosePredictorModel(int sequenceLength, string path)
         {
             _sequenceLength = sequenceLength;
             _modelPath = path;

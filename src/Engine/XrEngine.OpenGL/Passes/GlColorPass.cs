@@ -1,7 +1,6 @@
 ﻿#if GLES
 using Silk.NET.OpenGLES;
 #else
-using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 #endif
 
@@ -86,7 +85,6 @@ namespace XrEngine.OpenGL
 
             foreach (var shader in layer.Content.ShaderContents.OrderBy(a => a.Key.Priority))
             {
-
                 var progGlobal = shader.Value!.ProgramGlobal;
 
                 updateContext.Shader = shader.Key;
@@ -102,8 +100,6 @@ namespace XrEngine.OpenGL
 
                 foreach (var vertex in vertices)
                 {
-
-
                     if (vertex.IsHidden && false)
                         continue;
 

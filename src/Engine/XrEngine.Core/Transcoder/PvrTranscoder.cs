@@ -23,7 +23,7 @@ namespace XrEngine
             RGBAFloat16 = 0x1010101061626772
         }
 
-        public enum ColourSpace : uint
+        public enum ColorSpace : uint
         {
             LinearRGB = 0,
             sRGB = 1,
@@ -32,7 +32,7 @@ namespace XrEngine
 
         public enum ChannelType : uint
         {
-            UnsignedByteNormalised = 0,
+            UnsignedByteNormalized = 0,
             Float = 12
         }
 
@@ -42,7 +42,7 @@ namespace XrEngine
             public uint Version;
             public uint Flags;
             public PixelFormat PixelFormat;
-            public ColourSpace ColourSpace;
+            public ColorSpace ColorSpace;
             public ChannelType ChannelType;
             public uint Height;
             public uint Width;
@@ -79,45 +79,45 @@ namespace XrEngine
             switch (images[0].Format)
             {
                 case TextureFormat.Rgba32:
-                    header.ColourSpace = ColourSpace.LinearRGB;
+                    header.ColorSpace = ColorSpace.LinearRGB;
                     if (images[0].Compression == TextureCompressionFormat.Etc2)
                         header.PixelFormat = PixelFormat.ETC2_RGBA;
                     else
                         header.PixelFormat = PixelFormat.RGBA8;
                     break;
                 case TextureFormat.Rgb24:
-                    header.ColourSpace = ColourSpace.LinearRGB;
+                    header.ColorSpace = ColorSpace.LinearRGB;
                     if (images[0].Compression == TextureCompressionFormat.Etc2)
                         header.PixelFormat = PixelFormat.ETC2_RGB;
                     else
                         header.PixelFormat = PixelFormat.RGB8;
                     break;
                 case TextureFormat.SRgb24:
-                    header.ColourSpace = ColourSpace.sRGB;
+                    header.ColorSpace = ColorSpace.sRGB;
                     if (images[0].Compression == TextureCompressionFormat.Etc2)
                         header.PixelFormat = PixelFormat.ETC2_RGB;
                     else
                         header.PixelFormat = PixelFormat.RGB8;
                     break;
                 case TextureFormat.SRgba32:
-                    header.ColourSpace = ColourSpace.sRGB;
+                    header.ColorSpace = ColorSpace.sRGB;
                     if (images[0].Compression == TextureCompressionFormat.Etc2)
                         header.PixelFormat = PixelFormat.ETC2_RGBA;
                     else
                         header.PixelFormat = PixelFormat.RGBA8;
                     break;
                 case TextureFormat.RgbFloat32:
-                    header.ColourSpace = ColourSpace.LinearRGB;
+                    header.ColorSpace = ColorSpace.LinearRGB;
                     header.PixelFormat = PixelFormat.RGBFloat32;
                     header.ChannelType = ChannelType.Float;
                     break;
                 case TextureFormat.RgbaFloat32:
-                    header.ColourSpace = ColourSpace.LinearRGB;
+                    header.ColorSpace = ColorSpace.LinearRGB;
                     header.PixelFormat = PixelFormat.RGBAFloat32;
                     header.ChannelType = ChannelType.Float;
                     break;
                 case TextureFormat.RgbaFloat16:
-                    header.ColourSpace = ColourSpace.LinearRGB;
+                    header.ColorSpace = ColorSpace.LinearRGB;
                     header.PixelFormat = PixelFormat.RGBAFloat16;
                     header.ChannelType = ChannelType.Float;
                     break;
@@ -169,14 +169,14 @@ namespace XrEngine
             {
                 case PixelFormat.ETC2_RGB:
                     comp = TextureCompressionFormat.Etc2;
-                    if (header.ColourSpace == ColourSpace.sRGB)
+                    if (header.ColorSpace == ColorSpace.sRGB)
                         format = TextureFormat.SRgb24;
                     else
                         format = TextureFormat.Rgb24;
                     break;
                 case PixelFormat.ETC2_RGBA:
                     comp = TextureCompressionFormat.Etc2;
-                    if (header.ColourSpace == ColourSpace.sRGB)
+                    if (header.ColorSpace == ColorSpace.sRGB)
                         format = TextureFormat.SRgba32;
                     else
                         format = TextureFormat.Rgba32;
@@ -186,7 +186,7 @@ namespace XrEngine
                     format = TextureFormat.Rgb24;
                     break;
                 case PixelFormat.RGB8:
-                    if (header.ColourSpace == ColourSpace.LinearRGB)
+                    if (header.ColorSpace == ColorSpace.LinearRGB)
                         format = TextureFormat.Rgb24;
                     else
                         format = TextureFormat.SRgb24;

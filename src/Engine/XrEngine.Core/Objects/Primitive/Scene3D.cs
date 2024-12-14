@@ -4,18 +4,18 @@
     {
         protected Camera? _activeCamera;
         protected EngineApp? _app;
-        private int _lockCount;
-        protected readonly List<IObjectChangeListener> _changeListener = [];
+        protected int _lockCount;
+        protected readonly List<IObjectChangeListener> _changeListener;
         protected readonly LayerManager _layers;
-        protected readonly UpdateHistory _history;
         protected readonly Canvas3D _gizmos;
-        protected readonly IList<IDrawGizmos> _drawGizmos = [];
+        protected readonly IList<IDrawGizmos> _drawGizmos;
         protected readonly RenderUpdateManager _updateManager;
 
         public Scene3D()
         {
+            _drawGizmos = [];
+            _changeListener = [];
             _layers = new LayerManager(this);
-            _history = new UpdateHistory(this);
             _updateManager = new RenderUpdateManager(this);
             _scene = this;
             _gizmos = new Canvas3D();
@@ -165,8 +165,6 @@
         public long ContentVersion { get; protected set; }
 
         public Canvas3D Gizmos => _gizmos;
-
-        public UpdateHistory History => _history;
 
         public IList<IObjectChangeListener> ChangeListeners => _changeListener;
 

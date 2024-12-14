@@ -137,7 +137,6 @@ namespace XrEngine.Components
         }
 
 
-
         public bool ShowGizmos { get; set; }
 
         public string? SplittedName { get; set; }
