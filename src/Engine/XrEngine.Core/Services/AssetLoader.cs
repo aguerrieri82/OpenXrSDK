@@ -1,4 +1,4 @@
-﻿namespace XrEngine.Services
+﻿namespace XrEngine
 {
     public class AssetLoader
     {

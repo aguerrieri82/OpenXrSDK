@@ -1,5 +1,4 @@
-﻿using XrEngine.Services;
-
+﻿
 namespace XrEngine
 {
     public class EngineObjectStateManager : StateObjectManager<EngineObject>

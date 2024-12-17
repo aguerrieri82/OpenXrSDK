@@ -25,12 +25,13 @@ int CompareMemory(uint8_t* src, uint8_t* dst, uint32_t size)
 }
 
 
-void ImageCopyChannel(uint8_t* src, uint8_t* dst, const uint32_t width, uint32_t height, const uint32_t rowSize, const  uint32_t srcOfs, const uint32_t dstOfs, const uint32_t cSize)
+void ImageCopyChannel(uint8_t* src, uint8_t* dst, const uint32_t width, uint32_t height, const uint32_t srcRowSize, const uint32_t dstRowSize, const  uint32_t srcOfs, const uint32_t dstOfs, const uint32_t cSize)
 {
     uint8_t* curSrc = src + srcOfs;
 	uint8_t* curDst = dst + dstOfs; 
 
-	const uint32_t pixelSize = rowSize / width; 
+	const uint32_t srcPixelSize = srcRowSize / width; 
+	const uint32_t dstPixelSize = dstRowSize / width;
 
     while (height > 0) {
         uint32_t curWidth = width;
@@ -39,8 +40,8 @@ void ImageCopyChannel(uint8_t* src, uint8_t* dst, const uint32_t width, uint32_t
 			for (uint32_t c = 0; c < cSize; c++)
 				curDst[c] = curSrc[c];  
 
-			curSrc += pixelSize;
-			curDst += pixelSize;
+			curSrc += srcPixelSize;
+			curDst += dstPixelSize;
 			curWidth--;
 		}   
         height--;

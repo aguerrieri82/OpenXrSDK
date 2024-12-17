@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace XrEngine.Services
+namespace XrEngine
 {
     public class ModuleManager
     {
