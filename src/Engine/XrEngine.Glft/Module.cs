@@ -1,5 +1,4 @@
 ﻿using XrEngine;
-using XrEngine.Services;
 
 [assembly: Module(typeof(XrEngine.Gltf.Module))]
 

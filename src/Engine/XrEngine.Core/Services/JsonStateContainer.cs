@@ -2,7 +2,7 @@
 using System.Text.Json.Nodes;
 
 
-namespace XrEngine.Services
+namespace XrEngine
 {
     public struct JsonStateContainer : IStateContainer
     {

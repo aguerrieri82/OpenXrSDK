@@ -6,7 +6,6 @@ using Silk.NET.OpenGL;
 
 using System.Diagnostics;
 using System.Numerics;
-using XrEngine.Services;
 using XrMath;
 
 namespace XrEngine.OpenGL

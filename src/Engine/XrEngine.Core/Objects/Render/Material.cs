@@ -121,5 +121,10 @@
                 NotifyChanged(ObjectChangeType.MaterialEnabled);
             }
         }
+
+        public virtual Material Clone()
+        {
+            return (Material)MemberwiseClone();
+        }
     }
 }

@@ -13,6 +13,12 @@ namespace XrEngine
         All = TopCap | BottomCap | Body
     }
 
+    public enum UVMode
+    {
+        Normalized,
+        Size
+    }
+
     public readonly struct MeshBuilder
     {
         public MeshBuilder()
@@ -70,24 +76,54 @@ namespace XrEngine
             return this;
         }
 
-        public MeshBuilder AddCircle(Vector3 center, float radius, float subs, bool reverse = false)
+        public MeshBuilder AddCircle(Vector3 center, float radius, float subs, bool reverse = false, UVMode uvMode = UVMode.Normalized)
         {
             for (var i = 0; i < subs; i++)
             {
                 var a1 = MathF.PI * 2 * i / subs;
                 var a2 = MathF.PI * 2 * (i + 1) / subs;
-                var v1 = center + new Vector3(MathF.Cos(a1) * radius, MathF.Sin(a1) * radius, 0);
-                var v2 = center + new Vector3(MathF.Cos(a2) * radius, MathF.Sin(a2) * radius, 0);
-                if (reverse)
-                    AddTriangle(v2, center, v1);
+                var v1 = center + new Vector3(MathF.Cos(a1), MathF.Sin(a1), 0) * radius;
+                var v2 = center + new Vector3(MathF.Cos(a2), MathF.Sin(a2), 0) * radius;
+
+                Vector2 uv0, uv1, uv2;
+      
+
+                if (uvMode == UVMode.Size)
+                {
+                    uv0 = new Vector2(0, 0);
+                    uv1 = new Vector2(MathF.Cos(a1), MathF.Sin(a1)) * radius;
+                    uv2 = new Vector2(MathF.Cos(a2), MathF.Sin(a2)) * radius;
+                }
                 else
-                    AddTriangle(v1, center, v2);
+                {
+                    uv0 = new Vector2(0.5f, 0.5f);
+                    uv1 = (new Vector2(MathF.Cos(a1), MathF.Sin(a1)) + Vector2.One) / 2f;
+                    uv2 = (new Vector2(MathF.Cos(a2), MathF.Sin(a2)) + Vector2.One) / 2f;
+                }
+
+                if (reverse)
+                    AddTriangle(v2, center, v1, uv2, uv0, uv1);
+                else
+                    AddTriangle(v1, center, v2, uv1, uv0, uv2);
             }
             return this;
         }
 
-        public MeshBuilder AddCylinder(Vector3 center, float radius, float height, float subs)
+        public MeshBuilder AddCylinder(Vector3 center, float radius, float height, float subs, UVMode uvMode)
         {
+            float u1, u2, vv1, vv2;
+            
+            if (uvMode == UVMode.Normalized)
+            {
+                vv1 = 0;
+                vv2 = 1;
+            }
+            else
+            {
+                vv1 = 0;
+                vv2 = height;
+            }
+
             for (var i = 0; i < subs; i++)
             {
                 var a1 = MathF.PI * 2 * i / subs;
@@ -99,8 +135,25 @@ namespace XrEngine
                 var v3 = new Vector3(v1.X, v1.Y, v1.Z + height);
                 var v4 = new Vector3(v2.X, v2.Y, v2.Z + height);
 
-                AddFace(v1, v2, v4, v3);
+
+                if (uvMode == UVMode.Normalized)
+                {
+                    u1 = a1 / (MathF.PI * 2); 
+                    u2 = a2 / (MathF.PI * 2);
+                }
+                else
+                {
+                    u1 = a1 * radius;
+                    u2 = a2 * radius;
+                }
+
+                AddFace(v1, v2, v4, v3,
+                    new Vector2(u1, vv1),
+                    new Vector2(u2, vv1),
+                    new Vector2(u2, vv2),
+                    new Vector2(u1, vv2));
             }
+
 
             Colliders.Add(new CapsuleCollider
             {
@@ -131,13 +184,16 @@ namespace XrEngine
             return this;
         }
 
-        public MeshBuilder AddRevolve(ICurve2D curve, float subs, float startAngle = 0f, float endAngle = MathF.PI * 2)
+        public MeshBuilder AddRevolve(ICurve2D curve, float subs, UVMode uvMode, bool reverse = false, float startAngle = 0f, float endAngle = MathF.PI * 2)
         {
             var step = (endAngle - startAngle) / subs;
+
 
             var samples = curve
                 .Sample(0.001f, 1000)
                 .ToArray();
+
+            float v1 = 0, v2 = 0, u1, u2;
 
             for (var i = 0; i < subs; i++)
             {
@@ -147,8 +203,11 @@ namespace XrEngine
                 var q1 = Quaternion.CreateFromAxisAngle(Vector3.UnitY, a1);
                 var q2 = Quaternion.CreateFromAxisAngle(Vector3.UnitY, a2);
 
-                var v1 = a1 / (MathF.PI * 2);
-                var v2 = a2 / (MathF.PI * 2);
+                if (uvMode == UVMode.Normalized)
+                {
+                    v1 = a1 / (MathF.PI * 2);
+                    v2 = a2 / (MathF.PI * 2);
+                }
 
                 for (var j = 0; j < samples.Length - 1; j++)
                 {
@@ -160,20 +219,39 @@ namespace XrEngine
                     var vr2 = Vector3.Transform(s1, q2);
                     var vr3 = Vector3.Transform(s2, q2);
 
-                    var u1 = samples[j].Time;
-                    var u2 = samples[j + 1].Time;
+                    Vector2 uv0, uv1, uv2, uv3;
 
-                    var uv0 = new Vector2(u1, v1);
-                    var uv1 = new Vector2(u2, v1);
-                    var uv2 = new Vector2(u1, v2);
-                    var uv3 = new Vector2(u2, v2);
+                    if (uvMode == UVMode.Normalized)
+                    {
+                        u1 = samples[j].Time;
+                        u2 = samples[j + 1].Time;
+                        uv0 = new Vector2(u1, v1);
+                        uv1 = new Vector2(u2, v1);
+                        uv2 = new Vector2(u1, v2);
+                        uv3 = new Vector2(u2, v2);
+                    }
+                    else
+                    {
+                        u1 = samples[j].Length * 6;
+                        u2 = samples[j + 1].Length * 6;
+                        var r1 = samples[j].Position.Length();
+                        var r2 = samples[j + 1].Position.Length();
+                        uv0 = new Vector2(u1, r1 * a1);
+                        uv1 = new Vector2(u2,  r2 * a1);
+                        uv2 = new Vector2(u1, r1 * a2);
+                        uv3 = new Vector2(u2,  r2 * a2);
+                    }
+
 
                     if (vr0.IsSimilar(vr2))
                     {
-                        AddTriangle(vr3, vr1, vr0, uv3, uv1, uv0);
+                        if (reverse)
+                            AddTriangle(vr0, vr1, vr3, uv0, uv1, uv3);
+                        else
+                            AddTriangle(vr3, vr1, vr0, uv3, uv1, uv0);
                     }
                     else
-                        AddFace(vr0, vr1, vr3, vr2, uv0, uv1, uv3, uv2, true);
+                        AddFace(vr0, vr1, vr3, vr2, uv0, uv1, uv3, uv2, !reverse);
                 }
             }
 
@@ -312,7 +390,7 @@ namespace XrEngine
                 .Sample(tolerance, maxPoints)
                 .ToArray();
 
-            return FillPoly(samples.Select(x => x.Position).ToArray()); 
+            return FillPoly(samples.Select(x => x.Position).ToArray());
         }
 
         public MeshBuilder FillPoly(Vector2[] points)
@@ -320,16 +398,16 @@ namespace XrEngine
             var triangles = PolyTriangulate.TriangulateSimplePolygon(points);
             foreach (var triangle in triangles)
                 AddTriangle(triangle.V0, triangle.V1, triangle.V2);
-            return this;    
+            return this;
         }
 
-        public MeshBuilder ExtrudePoly(Vector2[] points, float length, bool addCaps)
+        public MeshBuilder ExtrudePoly(Vector2[] points, float length, UVMode uvMode, bool addCaps)
         {
-            return ExtrudePoly(points, length, Vector3.UnitZ, addCaps);
+            return ExtrudePoly(points, length, Vector3.UnitZ, uvMode, addCaps);
         }
 
 
-        public MeshBuilder ExtrudePoly(Vector2[] points, float length, Vector3 axis, bool addCaps)
+        public MeshBuilder ExtrudePoly(Vector2[] points, float length, Vector3 axis, UVMode uvMode, bool addCaps)
         {
             var ofs = axis * length;
 
@@ -339,7 +417,7 @@ namespace XrEngine
                 var b = points[(i + 1) % points.Length].ToVector3();
                 var c = a + ofs;
                 var d = b + ofs;
-                AddFace(a, b, d, c); 
+                AddFace(a, b, d, c);
             }
 
             if (addCaps)
@@ -350,12 +428,14 @@ namespace XrEngine
 
                 Vector2 BoundsUV(Vector3 point)
                 {
-                    var xy = point.ToVector2();
-                    return (xy - bounds.Min) / bounds.Size;
+                    var xy = point.ToVector2() - bounds.Min;
+                    if (uvMode == UVMode.Normalized)
+                        xy /= bounds.Size;
+                    return xy;
                 }
 
                 foreach (var triangle in triangles)
-                    AddTriangle(triangle.V2, triangle.V1, triangle.V0, 
+                    AddTriangle(triangle.V2, triangle.V1, triangle.V0,
                                BoundsUV(triangle.V2), BoundsUV(triangle.V1), BoundsUV(triangle.V0));
 
                 foreach (var triangle in triangles)
@@ -366,12 +446,12 @@ namespace XrEngine
             return this;
         }
 
-        public MeshBuilder LoftPoly(Poly2 profile, Poly2 path)
+        public MeshBuilder LoftPoly(Poly2 profile, Poly2 path, UVMode uvMode)
         {
-            return LoftPoly(profile, new Poly2D(path)); 
+            return LoftPoly(profile, new Poly2D(path), uvMode);
         }
 
-        public MeshBuilder LoftPoly(Poly2 profile, ICurve2D path, float tolerance = 0.001f, int maxPoints = 1000)
+        public MeshBuilder LoftPoly(Poly2 profile, ICurve2D path, UVMode uvMode, float tolerance = 0.001f, int maxPoints = 1000)
         {
             var pathPoints = path
                 .Sample(tolerance, maxPoints)
@@ -390,8 +470,8 @@ namespace XrEngine
             Matrix4x4 Transform(Vector3 position, Vector3 tangent)
             {
                 tangent = Vector3.Normalize(tangent);
-                Vector3 up = new Vector3(0, 1, 0); // Arbitrary "up" vector
-                Vector3 right = Vector3.Cross(up, tangent); // Perpendicular to tangent
+                var up = new Vector3(0, 1, 0); // Arbitrary "up" vector
+                var right = Vector3.Cross(up, tangent); // Perpendicular to tangent
                 if (right.LengthSquared() < 1e-6) // Degenerate case: fallback to Z-axis
                     right = Vector3.UnitX;
 
@@ -405,6 +485,8 @@ namespace XrEngine
                 );
             }
 
+            var profLen = profile.Length();
+
             for (var j = 0; j < pathPoints.Length - 1; j++)
             {
                 var (p0, t0) = Convert(pathPoints[j]);
@@ -412,7 +494,7 @@ namespace XrEngine
 
                 t1 = (t0 + t1) / 2;
 
-                if (j  > 0)
+                if (j > 0)
                 {
                     var (p2, t2) = Convert(pathPoints[j - 1]);
                     t0 = (t0 + t2) / 2;
@@ -426,11 +508,13 @@ namespace XrEngine
                 var matrix0 = Transform(p0, t0);
                 var matrix1 = Transform(p1, t1);
 
-
+                var curLen = 0f;
                 for (var i = 0; i < len; i++)
                 {
                     var a = profile.Points[i];
                     var b = profile.Points[(i + 1) % profile.Points.Length];
+
+                    var ab = Vector2.Distance(a, b);
 
                     var a0 = Vector3.Transform(new Vector3(a.X, a.Y, 0), matrix0);
                     var b0 = Vector3.Transform(new Vector3(b.X, b.Y, 0), matrix0);
@@ -438,7 +522,28 @@ namespace XrEngine
                     var a1 = Vector3.Transform(new Vector3(a.X, a.Y, 0), matrix1);
                     var b1 = Vector3.Transform(new Vector3(b.X, b.Y, 0), matrix1);
 
-                    AddFace(a0, a1, b1, b0);
+                    Vector2 uva0, uvb0, uva1, uvb1;
+                    if (uvMode == UVMode.Normalized)
+                    {
+                        uva0 = new Vector2(curLen / profLen, pathPoints[j].Time);
+                        uva1 = new Vector2(curLen / profLen, pathPoints[j + 1].Time);
+                        uvb1 = new Vector2((curLen + ab) / profLen, pathPoints[j + 1].Time);
+                        uvb0 = new Vector2((curLen + ab) / profLen, pathPoints[j].Time);
+                    }
+                    else
+                    {
+                        uva0 = new Vector2(curLen, pathPoints[j].Length);
+                        uva1 = new Vector2(curLen, pathPoints[j + 1].Length);
+                        uvb1 = new Vector2((curLen + ab), pathPoints[j + 1].Length);
+                        uvb0 = new Vector2((curLen + ab), pathPoints[j].Length);
+                    }
+
+
+                    AddFace(a0, a1, b1, b0,
+                        uva0, uva1, uvb1, uvb0,
+                        true);
+
+                    curLen += ab;
                 }
             }
 

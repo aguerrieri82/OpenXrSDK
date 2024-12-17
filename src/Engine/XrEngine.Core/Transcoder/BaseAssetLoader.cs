@@ -1,4 +1,4 @@
-﻿namespace XrEngine.Transcoder
+﻿namespace XrEngine
 {
     public abstract class BaseAssetLoader : IAssetLoader
     {

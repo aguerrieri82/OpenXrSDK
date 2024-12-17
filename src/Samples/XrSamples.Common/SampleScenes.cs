@@ -18,7 +18,6 @@ using XrEngine.Helpers;
 using XrEngine.Objects;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
-using XrEngine.Services;
 using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
@@ -1053,7 +1052,8 @@ namespace XrSamples
         [Sample("CreateDrums")]
         public static XrEngineAppBuilder CreateDrums(this XrEngineAppBuilder builder)
         {
-#if WINDOWS        
+#if WINDOWS
+            Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
             Context.Implement<IBleManager>(() => new XrEngine.Devices.Windows.WinBleManager());
 #else
             Context.Implement<IBleManager>(() => new XrEngine.Devices.Android.AndroidBleManager());

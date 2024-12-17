@@ -911,7 +911,7 @@ namespace XrSamples.Components
 
 
             builder = new MeshBuilder();
-            builder.AddCylinder(Vector3.Zero, (lineSize * 1.5f / 2f) - 0.001f, leverHeight, 10)
+            builder.AddCylinder(Vector3.Zero, (lineSize * 1.5f / 2f) - 0.001f, leverHeight, 10, UVMode.Normalized)
                    .AddSphere(Vector3.Zero, 0.02f, 20);
 
             var leverMesh = new TriangleMesh(builder.ToGeometry());

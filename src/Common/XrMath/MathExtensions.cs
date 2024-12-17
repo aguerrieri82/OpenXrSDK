@@ -1151,6 +1151,19 @@ namespace XrMath
                 Array.Reverse(self.Points); 
         }
 
+        public static float Length(this Poly2 self)
+        {
+            var length = 0f;
+
+            for (int i = 0; i < self.Points.Length - 1; i++)
+                length += Vector2.Distance(self.Points[i], self.Points[i + 1]);
+
+            if (self.IsClosed)
+                length += Vector2.Distance(self.Points[^1], self.Points[0]);
+
+            return length;
+        }
+
         public static float SignedArea(this Poly2 self)
         {
             float area = 0;

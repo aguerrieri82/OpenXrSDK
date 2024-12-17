@@ -1,6 +1,7 @@
 ﻿using Common.Interop;
 using SkiaSharp;
 using System.Diagnostics;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace XrEngine
 {
@@ -14,6 +15,32 @@ namespace XrEngine
             { SKColorType.RgbaF16, TextureFormat.RgbaFloat16 },
             { SKColorType.RgbaF32, TextureFormat.RgbaFloat32 },
         };
+
+        public static Texture2D MergeMetalRaugh(Texture2D metal, Texture2D roughness)
+        {
+            return MergeMetalRaugh(metal.Data![0], roughness.Data![0]);       
+        }
+
+        public static Texture2D MergeMetalRaugh(TextureData metal, TextureData roughness)
+        {
+            var mrImage= MemoryBuffer.Create<byte>(metal.Width * metal.Height * 4);
+
+            using var pMetal = metal.Data!.MemoryLock();
+            using var pRough = roughness.Data!.MemoryLock();
+            using var pDst = mrImage.MemoryLock();
+            EngineNativeLib.ImageCopyChannel(pMetal, pDst, metal.Width, metal.Height, metal.Width, metal.Width * 4, 0, 2, 1);
+            EngineNativeLib.ImageCopyChannel(pRough, pDst, metal.Width, metal.Height, metal.Width, metal.Width * 4, 0, 1, 1);
+
+            var tex = new Texture2D();
+            tex.LoadData(new TextureData
+            {
+                Data = mrImage,
+                Width = metal.Width,
+                Height = metal.Height,
+                Format = TextureFormat.Rgba32
+            });
+            return tex;
+        }
 
 
         public static uint GetPixelSizeByte(SKColorType type)
