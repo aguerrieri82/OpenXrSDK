@@ -6,6 +6,15 @@ namespace XrEngine.Filament
 {
     public unsafe static class FilamentLib
     {
+        public enum PrimitiveType : byte
+        {
+            POINTS         = 0,    //!< points
+            LINES          = 1,    //!< lines
+            LINE_STRIP     = 3,    //!< line strip
+            TRIANGLES      = 4,    //!< triangles
+            TRIANGLE_STRIP = 5     //!< triangle strip
+        };
+
 
         public enum ReleaseContextMode
         {
@@ -310,6 +319,7 @@ namespace XrEngine.Filament
             public long VerticesCount;
             public VertexLayout layout;
             public Bounds3 Bounds;
+            public PrimitiveType Primitive;
         }
 
         public struct ImageData
@@ -320,6 +330,8 @@ namespace XrEngine.Filament
             public uint DataSize;
             [MarshalAs(UnmanagedType.U1)]
             public bool AutoFree;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool IsBgr;
 
         };
 
@@ -375,6 +387,7 @@ namespace XrEngine.Filament
             public bool WriteColor;
             [MarshalAs(UnmanagedType.U1)]
             public bool IsShadowOnly;
+            public float LineWidth;
         };
 
         public struct ImageLightInfo
@@ -472,6 +485,10 @@ namespace XrEngine.Filament
 
         [DllImport("filament-native")]
         public static extern void SetMeshMaterial(IntPtr app, Guid id, Guid matId);
+
+
+        [DllImport("filament-native")]
+        public static extern nint Allocate(uint size);
 
     }
 }

@@ -1,4 +1,6 @@
 ﻿using Common.Interop;
+using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using XrEngine.Objects;
 using XrMath;
@@ -241,6 +243,7 @@ namespace XrEngine.Filament
                     TextureFormat.RgbaFloat32 => FlTextureInternalFormat.RGBA32F,
                     TextureFormat.RgbFloat16 => FlTextureInternalFormat.RGB16F,
                     TextureFormat.Bgra32 => FlTextureInternalFormat.RGBA8,
+                    TextureFormat.Gray8 => FlTextureInternalFormat.R8,
                     _ => throw new NotSupportedException(),
                 };
                 if (texture.Data != null)
@@ -257,6 +260,8 @@ namespace XrEngine.Filament
 
                         TextureFormat.Bgra32 => FlPixelFormat.RGBA,
 
+                        TextureFormat.Gray8 => FlPixelFormat.R,
+
                         _ => throw new NotSupportedException(),
                     };
 
@@ -270,15 +275,17 @@ namespace XrEngine.Filament
 
                         TextureFormat.Rgba32 or
                         TextureFormat.Bgra32 or
-                        TextureFormat.SRgba32
+                        TextureFormat.SRgba32 or
+                        TextureFormat.Gray8
                             => FlPixelType.UBYTE,
 
                         _ => throw new NotSupportedException(),
                     };
 
                     result.Data.DataSize = mainData.Data!.Size;
-                    result.Data.Data = MemoryManager.Allocate((int)result.Data.DataSize, this);
+                    result.Data.Data = Allocate(result.Data.DataSize);
                     result.Data.AutoFree = true;
+                    result.Data.IsBgr = mainData.Format == TextureFormat.Bgra32 || mainData.Format == TextureFormat.SBgra32;
 
                     using var pSrc = mainData.Data.MemoryLock();
                     EngineNativeLib.CopyMemory(pSrc, result.Data.Data, mainData.Data.Size);
@@ -411,7 +418,8 @@ namespace XrEngine.Filament
                         Vertices = (byte*)pVert,
                         VerticesCount = geo.Vertices!.Length,
                         Indices = pIndex,
-                        IndicesCount = pIndex == null ? 0 : geo.Indices!.Length
+                        IndicesCount = pIndex == null ? 0 : geo.Indices!.Length,
+                        Primitive = PrimitiveType.TRIANGLES
                     };
 
                     AddGeometry(_app, id, ref geoInfo);
@@ -514,6 +522,28 @@ namespace XrEngine.Filament
                     };
                 }
 
+                if (mat is LineMaterial line)
+                {
+                    return new MaterialInfo
+                    {
+                        Blending = line.Alpha switch
+                        {
+                            AlphaMode.Opaque => FlBlendingMode.OPAQUE,
+                            AlphaMode.BlendMain => FlBlendingMode.TRANSPARENT,
+                            AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
+                            AlphaMode.Mask => FlBlendingMode.MASKED,
+                            _ => throw new NotSupportedException()
+                        },
+                        Color = Color.White,
+                        DoubleSided = line.DoubleSided,
+                        LineWidth = line.LineWidth,
+                        IsLit = false,
+                        WriteDepth = line.WriteDepth,
+                        WriteColor = line.WriteColor,
+                        UseDepth = line.UseDepth,
+                    };
+                }
+
                 throw new NotSupportedException();
             }
 
@@ -522,8 +552,16 @@ namespace XrEngine.Filament
 
             mat.Changed += (s, c) =>
             {
-                matInfo = UpdateMatInfo();
-                UpdateMaterial(_app, mat.Id, ref matInfo);
+                if (c.IsAny(ObjectChangeType.MaterialEnabled))
+                {
+                    foreach (var host in mat.Hosts.OfType<Object3D>())
+                        SetObjVisible(_app, host.Id, host.IsVisible && mat.IsEnabled);
+                }
+                else
+                {
+                    matInfo = UpdateMatInfo();
+                    UpdateMaterial(_app, mat.Id, ref matInfo);
+                }
             };
 
             if (mat is TextureMaterial tex)
@@ -538,6 +576,67 @@ namespace XrEngine.Filament
                     }
                 };
             }
+        }
+
+        protected unsafe void Create(Guid id, LineMesh mesh)
+        {
+            var matId = GetOrCreate(mesh.Material, matId => Create(matId, mesh.Material));
+
+            var attributes = new VertexAttribute[2];
+
+            attributes[0] = new VertexAttribute
+            {
+                Offset = 0,
+                Size = 12,
+                Type = VertexAttributeType.Position
+            };
+
+            attributes[1] = new VertexAttribute
+            {
+                Offset = 12,
+                Size = 16,
+                Type = VertexAttributeType.Color
+            };
+
+            var bounds = mesh.Vertices.Select(a => a.Pos).ComputeBounds();
+
+            fixed (VertexAttribute* pAttr = attributes)
+            {
+                var layout = new VertexLayout
+                {
+                    SizeByte = (uint)Marshal.SizeOf<PointData>(),
+                    AttributeCount = (uint)attributes.Length,
+                    Attributes = pAttr
+                };
+
+                fixed (PointData* pVert = mesh.Vertices)
+                {
+                    var geoInfo = new GeometryInfo
+                    {
+                        layout = layout,
+                        Bounds = bounds,
+                        Vertices = (byte*)pVert,
+                        VerticesCount = mesh.Vertices.Length,
+                        Indices = null,
+                        IndicesCount = 0,
+                        Primitive = PrimitiveType.LINES
+                    };
+
+                    AddGeometry(_app, id, ref geoInfo);
+                }
+            }
+
+            var meshInfo = new MeshInfo
+            {
+                Culling = true,
+                Fog = false,
+                GeometryId = id,
+                MaterialId = matId,
+                ReceiveShadows = false,
+                CastShadows = false,
+            };
+
+            AddMesh(_app, id, ref meshInfo);
         }
 
         protected void Create(Guid id, TriangleMesh mesh)
@@ -563,6 +662,8 @@ namespace XrEngine.Filament
             if (mesh.Parent is not Scene3D)
                 SetObjParent(_app, id, mesh.Parent!.Id);
 
+            SetObjTransform(_app, id, mesh.WorldMatrix);
+
             mesh.Changed += (s, c) =>
             {
                 if (c.IsAny(ObjectChangeType.Render) && mesh.Materials.Count > 0)
@@ -570,6 +671,12 @@ namespace XrEngine.Filament
                     var matId = GetOrCreate(mesh.Materials[0], matId => Create(matId, mesh.Materials[0]));
                     SetMeshMaterial(_app, id, matId);
                 }
+
+                if (c.IsAny(ObjectChangeType.Visibility))
+                    SetObjVisible(_app, id, mesh.IsVisible);    
+
+                if (c.IsAny(ObjectChangeType.Transform))
+                    SetObjTransform(_app, id, mesh.WorldMatrix);
             };
         }
 
@@ -608,6 +715,11 @@ namespace XrEngine.Filament
 
                 Create(id, mesh);
             }
+            else if (obj is LineMesh lineMesh)
+            {
+
+                Create(id, lineMesh);
+            }
         }
 
         protected unsafe void BuildContent(Scene3D scene)
@@ -626,6 +738,7 @@ namespace XrEngine.Filament
             {
                 if (!obj.IsVisible)
                     continue;
+
                 GetOrCreate(obj, id => Create(id, obj));
             }
         }
@@ -673,6 +786,7 @@ namespace XrEngine.Filament
             render[0].RenderTargetId = _activeRenderTarget!.RenderTargetId;
             render[0].ViewId = _activeRenderTarget.ViewId;
             render[0].Viewport = viewport;
+
 
             foreach (var mesh in _content!.Objects!.Where(a => a.Key is TriangleMesh || a.Key is Object3DInstance))
             {

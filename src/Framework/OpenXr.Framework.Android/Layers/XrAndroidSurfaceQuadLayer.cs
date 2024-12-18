@@ -1,5 +1,6 @@
 ﻿using Android.Runtime;
 using Android.Views;
+using Common.Interop;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.KHR;
 
@@ -11,6 +12,7 @@ namespace OpenXr.Framework.Android
         protected KhrAndroidSurfaceSwapchain? _androidSurface;
         protected Extent2Di _size;
         protected SemaphoreSlim _surfaceLock = new(1, 1);
+        protected NativeStruct<CompositionLayerImageLayoutFB> _layerFlags;
 
         protected XrAndroidSurfaceQuadLayer(GetQuadDelegate getQuad)
             : base(getQuad)
@@ -24,10 +26,27 @@ namespace OpenXr.Framework.Android
             _size = size;
         }
 
-        public override void Initialize(XrApp app, IList<string> extensions)
+        public unsafe override void Initialize(XrApp app, IList<string> extensions)
         {
             extensions.Add(KhrAndroidSurfaceSwapchain.ExtensionName);
             extensions.Add("XR_FB_android_surface_swapchain_create");
+
+            var driver = app.Plugin<IXrGraphicDriver>().SwapChainImageType.StructureType;
+
+            if (driver == StructureType.SwapchainImageVulkanKhr)
+            {
+                extensions.Add("XR_FB_composition_layer_image_layout");
+
+                _layerFlags.Value = new CompositionLayerImageLayoutFB
+                {
+                    Type = StructureType.CompositionLayerImageLayoutFB,
+                    Flags = CompositionLayerImageLayoutFlagsFB.VerticalFlipBitFB,
+                    Next = null
+                };
+
+                StructChain.AddNextStruct(ref _header.ValueRef, _layerFlags.Pointer);
+            }
+
             base.Initialize(app, extensions);
         }
 
@@ -56,6 +75,7 @@ namespace OpenXr.Framework.Android
             var fbInfo = new AndroidSurfaceSwapchainCreateInfoFB
             {
                 Type = StructureType.AndroidSurfaceSwapchainCreateInfoFB,
+                CreateFlags = AndroidSurfaceSwapchainFlagsFB.None,
             };
 
             //info.Next = &fbInfo;
@@ -75,8 +95,15 @@ namespace OpenXr.Framework.Android
             _header.ValueRef.SubImage.Swapchain = _swapchain;
             _header.ValueRef.SubImage.ImageArrayIndex = 0;
             _header.ValueRef.SubImage.ImageRect.Extent = _size;
+
             _header.ValueRef.EyeVisibility = EyeVisibility.Both;
             _header.ValueRef.LayerFlags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
+        }
+
+        public override void Dispose()
+        {
+            _layerFlags.Dispose();
+            base.Dispose();
         }
 
         public Surface? Surface => _surface;

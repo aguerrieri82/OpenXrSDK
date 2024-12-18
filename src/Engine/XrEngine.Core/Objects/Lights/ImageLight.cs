@@ -7,6 +7,7 @@ namespace XrEngine
     public class ImageLight : Light
     {
         private string? _cacheBasePath;
+
         private static readonly TextureLoadOptions _loaderOptions = new()
         {
             Format = TextureFormat.RgbaFloat32
@@ -15,7 +16,6 @@ namespace XrEngine
         public ImageLight()
         {
             Intensity = 3;
-            UseCache = true;
             Textures = new IBLTextures();
             LightTransform = Matrix3x3.Identity;
         }
@@ -137,6 +137,6 @@ namespace XrEngine
 
         public Matrix3x3 LightTransform { get; set; }
 
-        public bool UseCache { get; set; }
+        public static bool UseCache { get; set; }
     }
 }

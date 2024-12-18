@@ -42,4 +42,6 @@ extern "C" {
 	EXPORT bool APIENTRY UpdateTexture(FilamentApp* app, OBJID textId, const ImageData& data);
 
 	EXPORT void APIENTRY SetMeshMaterial(FilamentApp* app, const OBJID id, const OBJID matId);
+
+	EXPORT uint8_t* APIENTRY Allocate(size_t size);
 }

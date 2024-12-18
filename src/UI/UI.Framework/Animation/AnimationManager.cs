@@ -47,7 +47,7 @@
             {
                 lock (_animations)
                 {
-                    while (_animations.Count == 0)
+                    while (_animations.Count == 0 && _isStarted)
                         Monitor.Wait(_animations);
                 }
 

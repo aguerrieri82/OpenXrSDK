@@ -13,10 +13,12 @@ namespace XrEngine
 
         public unsafe override IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
+            var fileName = ((FileStream)stream).Name; 
+
             var exrFile = EXRFile.FromStream(stream);
             var part = exrFile.Parts[0];
 
-            part.Open(stream);
+            part.Open(fileName);
 
             var floats = part.GetFloats(ChannelConfiguration.RGB, true, GammaEncoding.Linear, true);
 

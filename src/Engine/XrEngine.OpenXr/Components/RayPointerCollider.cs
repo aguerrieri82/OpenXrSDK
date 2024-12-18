@@ -19,7 +19,7 @@ namespace XrEngine.OpenXr
         {
             _rayView = new RayView();
             _hitView = new HitTargetView();
-            _hitView.Materials[0].IsEnabled = false;
+            //_hitView.Materials[0].IsEnabled = false;
             ShowHit = false;
         }
 

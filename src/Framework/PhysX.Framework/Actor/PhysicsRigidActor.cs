@@ -33,7 +33,7 @@ namespace PhysX.Framework
             RigidActor.PhysPxScaleRigidActor(value, scaleMass);
         }
 
-        public PhysicsShape[] GetShapes()
+        public IList<PhysicsShape> GetShapes()
         {
             var size = RigidActor.GetNbShapes();
 
@@ -41,10 +41,13 @@ namespace PhysX.Framework
 
             RigidActor.GetShapes(shapes, size, 0);
 
-            var result = new PhysicsShape[size];
-
+            var result = new List<PhysicsShape>();
             for (var i = 0; i < size; i++)
-                result[i] = _system.GetObject<PhysicsShape>(shapes[i]);
+            {
+                var shape = _system.GetObject<PhysicsShape>(shapes[i]);
+                if (shape != null)
+                    result.Add(shape);
+            }
 
             return result;
         }
