@@ -27,15 +27,4 @@
 		<AndroidAsset Remove="Assets/**/*" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Content Update="Assets\Metronome\accent.wav">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Update="Assets\Metronome\beat.wav">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Update="Assets\Metronome\note.wav">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	</ItemGroup>
 </Project>

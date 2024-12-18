@@ -57,7 +57,8 @@ FilamentApp* Initialize(const InitializeOptions& options) {
 #endif
 
 	auto app = new FilamentApp();
-	app->iblTexture = nullptr;
+	app->iblSpecTexture = nullptr;
+	app->iblIrrTexture = nullptr;
 	app->indirectLight = nullptr;
 	app->skyboxTexture = nullptr;
 	app->skybox = nullptr;
@@ -338,8 +339,10 @@ void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 }
 
 static void DeleteBuffer(void* buffer, size_t size, void* user) {
-	//delete[] buffer;
+	delete[] buffer;
 }
+
+
 
 template <typename T>
 T* UnpackBuffer(uint8_t* pSrc, int offset, size_t stride, size_t count) {
@@ -353,6 +356,10 @@ T* UnpackBuffer(uint8_t* pSrc, int offset, size_t stride, size_t count) {
 		curDst++;
 	}
 	return pDst;
+}
+
+uint8_t* Allocate(size_t size) {
+	return new uint8_t[size];
 }
 
 
@@ -445,7 +452,7 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 			vbBuilder.attribute(va, 0, at, attr.offset, info.layout.sizeByte);
 	};
 
-	bool hasOrientation = hasNormals && !hasTangents;
+	bool hasOrientation = hasNormals && !hasTangents && info.primitive == PrimitiveType::TRIANGLES;
 
 	vbBuilder.bufferCount(hasOrientation ? 2 : 1);
 
@@ -492,6 +499,7 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 	result.ib = ib;
 	result.vb = vb;
 	result.box = { center, halfSize };
+	result.primitive = info.primitive;	
 
 	app->geometries[id] = result;
 }
@@ -773,13 +781,12 @@ void AddMesh(FilamentApp* app, OBJID id, const MeshInfo& info)
 		.receiveShadows(info.receiveShadows)
 		.material(0, mat)
 		.fog(info.fog)
-		.geometry(0, PrimitiveType::TRIANGLES, geo.vb, geo.ib)
+		.geometry(0, geo.primitive, geo.vb, geo.ib)
 		.build(*app->engine, mesh);
 
 	auto& tcm = app->engine->getTransformManager();
 	auto& rm = app->engine->getRenderableManager();
 	rm.setLayerMask(rm.getInstance(mesh), MAIN_LAYER, MAIN_LAYER);
-
 
 	//tcm.create(mesh);
 	app->scene->addEntity(mesh);
@@ -801,7 +808,9 @@ void SetObjVisible(FilamentApp* app, const OBJID id, const bool visible)
 	auto& obj = app->entities[id];
 	auto& rm = app->engine->getRenderableManager();
 	auto objInstance = rm.getInstance(obj);
-	rm.setLayerMask(objInstance, INVISIBLE_LAYER, visible ? INVISIBLE_LAYER : 0);
+
+	rm.setLayerMask(objInstance, INVISIBLE_LAYER, visible ? 0 : INVISIBLE_LAYER);
+	rm.setLayerMask(objInstance, MAIN_LAYER, visible ? MAIN_LAYER : 0);
 }
 
 
@@ -815,16 +824,9 @@ static Texture* CreateTexture(FilamentApp* app, const TextureInfo& info) {
 		.sampler(Texture::Sampler::SAMPLER_2D)
 		.build(*app->engine);
 
-
-	Texture::PixelBufferDescriptor buffer(info.data.data, info.data.dataSize,
-		info.data.format, info.data.type, info.data.autoFree ? DeleteBuffer : nullptr, (void*)"TEX");
-
-	texture->setImage(*app->engine, 0, std::move(buffer));
-
-	if (info.levels > 1)
-		texture->generateMipmaps(*app->engine);
-
 	app->textures[info.textureId] = texture;
+
+	UpdateTexture(app, info.textureId, info.data);
 	
 	return texture;
 }
@@ -847,10 +849,38 @@ bool UpdateTexture(FilamentApp* app, OBJID textId, const ImageData& data) {
 		return false;
 
 	Texture* texture = app->textures[textId];
-	Texture::PixelBufferDescriptor buffer(data.data, data.dataSize,
-		data.format, data.type, data.autoFree ? DeleteBuffer : nullptr, (void*)"TEX");
 
-	texture->setImage(*app->engine, 0, std::move(buffer));
+	if (data.isBgr) {
+
+		auto lineSize = texture->getWidth() * 4;
+		auto bgrData = new uint8_t[data.dataSize];
+		auto src = data.data;
+		auto h = texture->getHeight();
+
+		for (int y = 0; y < h; y++) {
+			
+			auto dst = bgrData + y * lineSize;
+			auto src = data.data + y * lineSize;
+
+			for (int x = 0; x < lineSize; x += 4) {
+				dst[x] = src[x + 2];
+				dst[x + 1] = src[x + 1];
+				dst[x + 2] = src[x];
+				dst[x + 3] = src[x + 3];
+			}
+		}
+
+		Texture::PixelBufferDescriptor buffer(bgrData, data.dataSize,
+			data.format, data.type, DeleteBuffer, (void*)"TEX");
+
+		texture->setImage(*app->engine, 0, std::move(buffer));
+	}
+	else {
+
+		Texture::PixelBufferDescriptor buffer(data.data, data.dataSize,
+			data.format, data.type, data.autoFree ? DeleteBuffer : nullptr, (void*)"TEX");
+		texture->setImage(*app->engine, 0, std::move(buffer));
+	}
 
 	if (texture->getLevels() > 1)
 		texture->generateMipmaps(*app->engine);
@@ -1013,6 +1043,15 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 			)SHADER";
 		}
 	}
+
+	if (info.lineWidth > 0) {
+
+		builder.require(filament::VertexAttribute::COLOR);
+
+		shader += R"SHADER(
+			material.baseColor = getColor();
+        )SHADER";
+	}
 	
 	shader += "}\n";
 
@@ -1074,6 +1113,8 @@ void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcep
 	if (info.isShadowOnly)
 		hash += "_so";
 
+	if (info.lineWidth > 0)
+		hash += "_l";
 
 
 	Material* flMat;
@@ -1211,19 +1252,18 @@ void AddImageLight(FilamentApp* app, const ImageLightInfo& info) {
 	IBLPrefilterContext::IrradianceFilter irradianceFilter(context);
 
 
-
 	app->skyboxTexture = equirectangularToCubemap(equirectTxt);
 
 	app->engine->destroy(equirectTxt);
 
-	app->iblTexture = specularFilter(app->skyboxTexture);
+	app->iblSpecTexture = specularFilter(app->skyboxTexture);
 
-	auto rotMat = mat3f::rotation(info.rotation, vec3<float>(0.0f, 1.0f, 0.0f));
+	app->iblIrrTexture = irradianceFilter({ .generateMipmap = false }, app->skyboxTexture);
 
 	app->indirectLight = IndirectLight::Builder()
-		.reflections(app->iblTexture)
-		.intensity(info.intensity * 10000)
-		//.rotation(rotMat)
+		.reflections(app->iblSpecTexture)
+		.irradiance(app->iblIrrTexture)
+		.intensity(info.intensity * 30000)
 		.build(*app->engine);
 
 	app->scene->setIndirectLight(app->indirectLight);

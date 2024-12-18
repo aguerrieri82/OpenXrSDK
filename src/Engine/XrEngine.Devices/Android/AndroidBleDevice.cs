@@ -23,7 +23,7 @@ namespace XrEngine.Devices.Android
             private readonly AndroidBleDevice _host;
 
             private TaskCompletionSource<GattStatus>? _discServices;
-            private readonly TaskCompletionSource<GattStatus>? _connect;
+            private TaskCompletionSource<GattStatus>? _connect;
             private TaskCompletionSource<GattStatus>? _write;
             private TaskCompletionSource<byte[]>? _read;
             private BluetoothGattDescriptor? _readDesc;
@@ -58,7 +58,9 @@ namespace XrEngine.Devices.Android
                 }
 
                 _connect?.SetResult(status);
+                _connect = null;
             }
+
             public override void OnCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value)
             {
 

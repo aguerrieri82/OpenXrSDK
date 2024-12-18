@@ -99,6 +99,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "#Filament", "#Filament", "{
 		..\third-party\filament\filament\backend\include\backend\platforms\PlatformWGL.h = ..\third-party\filament\filament\backend\include\backend\platforms\PlatformWGL.h
 		..\third-party\filament\filament\backend\src\vulkan\VulkanDriver.cpp = ..\third-party\filament\filament\backend\src\vulkan\VulkanDriver.cpp
 		..\third-party\filament\filament\backend\src\vulkan\VulkanHandles.cpp = ..\third-party\filament\filament\backend\src\vulkan\VulkanHandles.cpp
+		..\third-party\filament\filament\backend\src\vulkan\VulkanTexture.cpp = ..\third-party\filament\filament\backend\src\vulkan\VulkanTexture.cpp
+		..\third-party\filament\filament\backend\src\vulkan\VulkanTexture.h = ..\third-party\filament\filament\backend\src\vulkan\VulkanTexture.h
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XrEngine.Native", "Engine\XrEngine.Native\XrEngine.Native.vcxproj", "{842C66E7-4D5D-4B95-B704-A99A18BCFAF3}"

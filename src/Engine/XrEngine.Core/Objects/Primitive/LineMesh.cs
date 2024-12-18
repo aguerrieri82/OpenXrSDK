@@ -1,4 +1,5 @@
-﻿namespace XrEngine
+﻿
+namespace XrEngine
 {
 
     public class LineMesh : Object3D, IVertexSource<PointData, uint>
@@ -6,6 +7,7 @@
         public LineMesh()
         {
             Material = new LineMaterial();
+            Material.Attach(this);
             Vertices = [];
             ActiveComponents = VertexComponent.Position | VertexComponent.Color4;
         }
@@ -14,6 +16,7 @@
         {
 
         }
+
 
         public PointData[] Vertices { get; set; }
 

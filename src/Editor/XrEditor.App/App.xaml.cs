@@ -41,6 +41,7 @@ namespace XrEditor
             ModuleManager.Ref<LoopEditorPanel>();
 
             _main = new MainView(EditorDebug.Driver);
+            ImageLight.UseCache = EditorDebug.Driver == GraphicDriver.OpenGL;
 
             MainWindow = new Window
             {

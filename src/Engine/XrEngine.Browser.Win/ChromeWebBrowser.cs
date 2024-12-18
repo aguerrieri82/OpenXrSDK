@@ -119,7 +119,7 @@ namespace XrEngine.Browser.Win
                 CachePath = CachePath,
                 Locale = "it",
                 WindowlessRenderingEnabled = true,
-                BackgroundColor = 0xFFFFFF
+                BackgroundColor = 0xFFFFFF,
             };
 
             settings.EnableAudio();
