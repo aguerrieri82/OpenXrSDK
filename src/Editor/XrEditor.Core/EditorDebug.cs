@@ -9,7 +9,7 @@ namespace XrEditor
 
         public static readonly bool AutoStartApp = true;
 
-        public static readonly bool EnableVSync = false;
+        public static readonly bool EnableVSync = true;
 
         public static readonly string AssetsPath = @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\";
 

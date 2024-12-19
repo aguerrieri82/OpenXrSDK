@@ -26,7 +26,7 @@ namespace OpenXr.Framework.Android
         protected readonly HandlerXrThread _mainThread = new(new Handler(Looper.MainLooper!));
         protected List<string> _permissions;
         private LoadStep _loadStep;
-
+        protected bool _isRestart;
 
         public XrActivity()
         {
@@ -64,7 +64,15 @@ namespace OpenXr.Framework.Android
 
             //_loopThread?.Join();
 
-            Process.KillProcess(Process.MyPid());
+            if (!_isRestart)
+                Process.KillProcess(Process.MyPid());
+            else
+            {
+                var intent = PackageManager!.GetLaunchIntentForPackage(PackageName!)!;
+                intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask);
+                StartActivity(intent);
+                Java.Lang.JavaSystem.Exit(0);
+            }
 
             base.OnDestroy();
         }

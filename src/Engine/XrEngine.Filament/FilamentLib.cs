@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using XrMath;
 
 namespace XrEngine.Filament
@@ -422,69 +423,78 @@ namespace XrEngine.Filament
             public VulkanContext Vulkan;
         }
 
+       public struct FilamentApp
+        {
+            public nint Handle;
+        }   
+
 
         [DllImport("filament-native")]
-        public static extern IntPtr Initialize(ref InitializeOptions options);
+        public static extern FilamentApp Initialize(ref InitializeOptions options);
 
         [DllImport("filament-native")]
-        public static extern uint AddView(IntPtr app, ref ViewOptions options);
+        public static extern uint AddView(FilamentApp app, ref ViewOptions options);
 
         [DllImport("filament-native")]
-        public static extern void UpdateView(IntPtr app, uint viewId, ref ViewOptions options);
+        public static extern void UpdateView(FilamentApp app, uint viewId, ref ViewOptions options);
 
         [DllImport("filament-native")]
-        public static extern int AddRenderTarget(IntPtr app, ref RenderTargetOptions options);
+        public static extern int AddRenderTarget(FilamentApp app, ref RenderTargetOptions options);
 
         [DllImport("filament-native")]
-        public static extern void Render(IntPtr app, RenderTarget* targets, uint count, bool wait);
+        public static extern void Render(FilamentApp app, RenderTarget* targets, uint count, bool wait);
 
         [DllImport("filament-native")]
-        public static extern void AddLight(IntPtr app, Guid id, ref LightInfo info);
+        public static extern void AddLight(FilamentApp app, Guid id, ref LightInfo info);
 
         [DllImport("filament-native")]
-        public static extern void AddGeometry(IntPtr app, Guid id, ref GeometryInfo info);
+        public static extern void AddGeometry(FilamentApp app, Guid id, ref GeometryInfo info);
 
         [DllImport("filament-native")]
-        public static extern void AddMesh(IntPtr app, Guid id, ref MeshInfo info);
+        public static extern void AddMesh(FilamentApp app, Guid id, ref MeshInfo info);
 
         [DllImport("filament-native")]
-        public static extern void AddGroup(IntPtr app, Guid id);
+        public static extern void AddGroup(FilamentApp app, Guid id);
 
         [DllImport("filament-native")]
-        public static extern void SetWorldMatrix(IntPtr app, Guid meshId, ref Matrix4x4 matrix);
+        public static extern void SetWorldMatrix(FilamentApp app, Guid meshId, ref Matrix4x4 matrix);
 
         [DllImport("filament-native")]
-        public static extern void SetObjTransform(IntPtr app, Guid id, Matrix4x4 matrix);
+        public static extern void SetObjTransform(FilamentApp app, Guid id, Matrix4x4 matrix);
 
         [DllImport("filament-native")]
-        public static extern void SetObjParent(IntPtr app, Guid id, Guid parentId);
+        public static extern void SetObjParent(FilamentApp app, Guid id, Guid parentId);
 
         [DllImport("filament-native")]
-        public static extern void AddMaterial(IntPtr app, Guid id, ref MaterialInfo material);
+        public static extern void AddMaterial(FilamentApp app, Guid id, ref MaterialInfo material);
         [DllImport("filament-native")]
-        public static extern void UpdateMaterial(IntPtr app, Guid id, ref MaterialInfo material);
+        public static extern void UpdateMaterial(FilamentApp app, Guid id, ref MaterialInfo material);
 
         [DllImport("filament-native")]
-        public static extern bool GetGraphicContext(IntPtr app, out GraphicContextInfo info);
+        public static extern bool GetGraphicContext(FilamentApp app, out GraphicContextInfo info);
 
         [DllImport("filament-native")]
-        public static extern void ReleaseContext(IntPtr app, ReleaseContextMode mode);
+        public static extern void ReleaseContext(FilamentApp app, ReleaseContextMode mode);
 
         [DllImport("filament-native")]
-        public static extern void SetObjVisible(IntPtr app, Guid id, bool visible);
+        public static extern void SetObjVisible(FilamentApp app, Guid id, bool visible);
 
         [DllImport("filament-native")]
-        public static extern void AddImageLight(IntPtr app, ref ImageLightInfo info);
+        public static extern void AddImageLight(FilamentApp app, ref ImageLightInfo info);
 
         [DllImport("filament-native")]
-        public static extern void UpdateImageLight(IntPtr app, ref ImageLightInfo info);
+        public static extern void UpdateImageLight(FilamentApp app, ref ImageLightInfo info);
 
         [DllImport("filament-native")]
         [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool UpdateTexture(IntPtr app, Guid id, ref ImageData info);
+        public static extern bool UpdateTexture(FilamentApp app, Guid id, ref ImageData info);
 
         [DllImport("filament-native")]
-        public static extern void SetMeshMaterial(IntPtr app, Guid id, Guid matId);
+        public static extern void SetMeshMaterial(FilamentApp app, Guid id, Guid matId);
+
+
+        [DllImport("filament-native")]
+        public static extern void UpdateMeshGeometry(FilamentApp app, Guid meshId, Guid geometryId, ref GeometryInfo info);
 
 
         [DllImport("filament-native")]

@@ -406,6 +406,7 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 
 
 	Geometry result;
+	result.soBuffer = nullptr;	
 
 	for (uint32_t i = 0; i < info.layout.attributeCount; i++) {
 		auto& attr = info.layout.attributes[i];
@@ -503,6 +504,31 @@ void AddGeometry(FilamentApp* app, OBJID id, const GeometryInfo& info)
 
 	app->geometries[id] = result;
 }
+
+void UpdateMeshGeometry(FilamentApp* app, OBJID meshId, OBJID geometryId, const GeometryInfo& info) {
+	
+	auto oldGeo = app->geometries[geometryId];
+
+	AddGeometry(app, geometryId, info);
+
+	auto geo = app->geometries[geometryId];
+
+	auto mesh = app->entities[meshId];	
+
+	auto& rm = app->engine->getRenderableManager();
+
+	rm.setGeometryAt(rm.getInstance(mesh), 0, 
+		geo.primitive,
+		geo.vb, geo.ib, 0, geo.ib->getIndexCount());
+
+	app->engine->destroy(oldGeo.vb);
+	app->engine->destroy(oldGeo.ib);
+
+	oldGeo.vb = nullptr;
+	oldGeo.ib = nullptr;
+	oldGeo.soBuffer = nullptr;
+}
+
 
 /*
 void AddGeometryV3(FilamentApp* app, OBJID id, const GeometryInfo& info)
@@ -754,7 +780,7 @@ void AddGroup(FilamentApp* app, OBJID id) {
 
 	auto group = EntityManager::get().create();
 	auto& tcm = app->engine->getTransformManager();
-	//tcm.create(group);
+	tcm.create(group);
 	app->scene->addEntity(group);
 	app->entities[id] = group;
 }
@@ -788,7 +814,7 @@ void AddMesh(FilamentApp* app, OBJID id, const MeshInfo& info)
 	auto& rm = app->engine->getRenderableManager();
 	rm.setLayerMask(rm.getInstance(mesh), MAIN_LAYER, MAIN_LAYER);
 
-	//tcm.create(mesh);
+	tcm.create(mesh);
 	app->scene->addEntity(mesh);
 	app->entities[id] = mesh;
 }
