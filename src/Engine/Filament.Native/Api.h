@@ -43,5 +43,7 @@ extern "C" {
 
 	EXPORT void APIENTRY SetMeshMaterial(FilamentApp* app, const OBJID id, const OBJID matId);
 
+	EXPORT void APIENTRY UpdateMeshGeometry(FilamentApp* app, OBJID meshId, OBJID geometryId, const GeometryInfo& info);
+
 	EXPORT uint8_t* APIENTRY Allocate(size_t size);
 }

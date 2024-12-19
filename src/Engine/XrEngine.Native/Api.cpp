@@ -16,7 +16,7 @@ void ImageFlipY(uint8_t* src, uint8_t* dst, uint32_t width, uint32_t height, uin
 void CopyMemory(uint8_t* src, uint8_t* dst, uint32_t size)
 {
 	memcpy(dst, src, size);
-}
+} 
 
 
 int CompareMemory(uint8_t* src, uint8_t* dst, uint32_t size)
