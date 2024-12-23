@@ -71,7 +71,9 @@ namespace XrEngine.OpenGL
                 program = new GlSimpleProgram(_gl,
                     shader.VertexSourceName!,
                     shader.FragmentSourceName!,
-                    shader.GeometrySourceName != null ? shader.GeometrySourceName : null,
+                    shader.GeometrySourceName,
+                    shader.TessControlSourceName,
+                    shader.TessEvalSourceName,
                     resolver);
 
                 if (shader.GeometrySourceName != null)
@@ -79,6 +81,12 @@ namespace XrEngine.OpenGL
                     program.AddExtension("GL_EXT_geometry_shader");
                     program.AddExtension("GL_OES_geometry_shader");
                 }
+
+                if (shader.TessEvalSourceName != null)
+                {
+                    program.AddExtension("GL_EXT_tessellation_shader");
+                    program.AddExtension("GL_OES_tessellation_shader");
+                }   
 
                 if (ExtraExtensions != null)
                 {
@@ -156,6 +164,9 @@ namespace XrEngine.OpenGL
                 {
                     Global.UpdateUniforms(ctx, Program!);
                     _lastGlobalContextVersion = ctx.ContextVersion;
+
+                    if (Material.Shader!.TessEvalSourceName != null)
+                        _gl.PatchParameter(PatchParameterName.Vertices, Material.Shader.PatchVertices);
                 }
             }
 

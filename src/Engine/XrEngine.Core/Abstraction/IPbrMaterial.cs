@@ -10,6 +10,7 @@
 
         Texture2D? OcclusionMap { get; set; }
 
+
         float OcclusionStrength { get; set; }
 
         float NormalScale { get; set; }

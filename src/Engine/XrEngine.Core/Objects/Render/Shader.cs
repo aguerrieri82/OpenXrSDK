@@ -8,6 +8,12 @@
 
         public string? GeometrySourceName { get; set; }
 
+        public string? TessControlSourceName { get; set; }
+
+        public string? TessEvalSourceName { get; set; }
+
+        public int PatchVertices { get; set; }  
+
         public Func<string, string>? Resolver { get; set; }
 
         public bool IsLit { get; set; }

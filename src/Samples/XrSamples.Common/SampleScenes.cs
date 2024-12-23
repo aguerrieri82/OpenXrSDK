@@ -22,8 +22,7 @@ using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
-
-
+using System;
 
 
 
@@ -1192,6 +1191,70 @@ namespace XrSamples
                   depth.ClearInput = a.Inputs!.Right.Button!.BClick;
                   depth.HideInput = a.Inputs!.Right.Button!.AClick;
               });
+        }
+
+
+        public static XrEngineAppBuilder CreateEarth(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+            var scene = app.ActiveScene!;
+            var mat = MaterialFactory.CreatePbr("#ffffff");
+            //mat.ColorMap = TextureFactory.CreateChecker();
+            //mat.ColorMap.Transform = Matrix3x3.CreateScale(500, 500);
+            mat.ColorMap = AssetLoader.Instance.Load<Texture2D>("res://asset/world.topo.bathy.200411.3x21600x10800.jpg");
+            mat.ColorMap.Transform = Matrix3x3.CreateScale(-1, 1);
+            mat.ColorMap.WrapS = WrapMode.Repeat;
+            mat.ColorMap.WrapT = WrapMode.Repeat;
+            mat.ColorMap.Format = TextureFormat.SBgra32;
+
+            if (mat is IHeightMaterial hm)
+            {
+                hm.HeightMap = AssetLoader.Instance.Load<Texture2D>("res://asset/gebco_08_rev_elev_21600x10800.png");
+                hm.HeightMap.Transform = Matrix3x3.CreateScale(-1, 1);
+                hm.HeightMap.WrapS = WrapMode.Repeat;
+                hm.HeightMap.WrapT = WrapMode.Repeat;
+                hm.HeightScale = Unit(6.4f);
+            }
+
+
+            float Unit(float value)
+            {
+                return value / 100f;
+            }
+
+
+            var earth = new TriangleMesh(new Sphere3D(Unit(6378), 1000), (Material)mat);
+
+            var sun = new TriangleMesh(new Sphere3D(Unit(696340), 100), (Material)MaterialFactory.CreatePbr("#ffff00"));
+            sun.Transform.SetPositionZ(Unit(149600000));    
+
+            var cube = new TriangleMesh(new Cube3D(new Vector3(1, 1, 1)),
+            new GlowVolumeSliceMaterial()
+            {
+                SphereRadius = Unit(6378),
+                HaloWidth = Unit(40),
+                HaloColor = "#0000FF09",
+                Slices = 100
+            });
+            cube.Transform.SetScale(2 * Unit(6378 + 40));
+            cube.Name = "Athmosphere";  
+
+            earth.Name = "Earth";
+            scene.AddChild(earth);
+            scene.AddChild(cube);
+            scene.AddChild(sun);
+
+            var camera = scene.PerspectiveCamera();
+            camera.WorldPosition = new Vector3(0, 0, -Unit(6378 + 40));
+            camera.WorldOrientation = Quaternion.Identity;
+            camera.Near = Unit(1);
+            camera.Far = Unit(180600000);
+            //camera.Target = new Vector3(0, 0, 0);       
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .ConfigureSampleApp();
+
         }
 
 

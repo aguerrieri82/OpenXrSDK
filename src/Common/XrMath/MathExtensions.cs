@@ -743,6 +743,12 @@ namespace XrMath
             return angle * sign;
         }
 
+        public static float AngleWith(this Vector3 self, Vector3 other)
+        {
+            var dot = self.Normalize().DotNormal(other.Normalize());
+            return MathF.Acos(dot); 
+        }
+
 
         #endregion
 
