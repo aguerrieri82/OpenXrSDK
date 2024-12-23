@@ -181,9 +181,13 @@ namespace XrEngine.OpenGL
 
                 ConfigureProgramInstance(instance);
 
+                var primitive = material.Shader.ForcePrimitive;
+                if (material is IHeightMaterial mat && mat.HeightMap != null)
+                    primitive = DrawPrimitive.Patch;
+
                 vertexContent.Contents.Add(new DrawContent
                 {
-                    Draw = () => vertexContent!.VertexHandler!.Draw(material.Shader.ForcePrimitive),
+                    Draw = () => vertexContent!.VertexHandler!.Draw(primitive),
                     ProgramInstance = instance,
                     DrawId = _lastDrawId++,
                     Object = obj3d

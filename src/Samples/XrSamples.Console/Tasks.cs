@@ -93,7 +93,7 @@ namespace XrSamples
 
             while (pedal.IsConnected)
             {
-                var bat = await pedal.GetBatteryAsync();
+                var bat = await pedal.GetBatteryRawAsync();
 
                 Log.Info("", "Battery: {0}", MathF.Round(bat, 2));
 

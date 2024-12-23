@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using XrEngine.OpenGL;
-using XrEngine.Services;
 
 namespace XrEngine.OpenXr.Windows
 {

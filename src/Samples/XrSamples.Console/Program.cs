@@ -27,7 +27,7 @@ Gpu.EnableNvAPi();
 
 Tasks.Services = host.Services;
 
- Tasks.ParseSfz();
+await Tasks.TestBlePedalAsync();
 //Tasks.TestPivot();
 
 return;

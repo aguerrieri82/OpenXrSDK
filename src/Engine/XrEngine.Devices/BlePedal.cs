@@ -108,15 +108,24 @@ namespace XrEngine.Devices
 
         public async Task<float> GetBatteryAsync()
         {
-            var data = await _device!.ReadCharacteristicAsync(_batteryChar!);
 
-            var raw = BytesToStruct<uint>(data);
+            var raw = await GetBatteryRawAsync();
 
             float voltageADC = (raw / 4095f) * 3.3f;
             float batteryVoltage = voltageADC * (100000f + 100000f) / 100000f;
 
             return batteryVoltage;
         }
+
+        public async Task<float> GetBatteryRawAsync()
+        {
+            var data = await _device!.ReadCharacteristicAsync(_batteryChar!);
+
+            var raw = BytesToStruct<uint>(data);
+
+            return raw;
+        }
+
 
         public async Task<BlePedalSettings> ReadSettingsAsync()
         {

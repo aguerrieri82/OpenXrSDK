@@ -11,7 +11,7 @@ namespace XrEngine
         Uv = 1
     }
 
-    public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial
+    public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial
     {
         const int CAMERA_BUF = 1;
         const int LIGHTS_BUF = 2;
@@ -373,6 +373,9 @@ namespace XrEngine
             {
                 FragmentSourceName = "PbrV2/pbr_fs.glsl",
                 VertexSourceName = "PbrV2/pbr_vs.glsl",
+                TessControlSourceName = "Shared/height_map.tesc",
+                TessEvalSourceName = "Shared/height_map.tese",
+                PatchVertices = 3,
                 Resolver = str => Embedded.GetString(str),
                 IsLit = true,
             };
@@ -386,6 +389,8 @@ namespace XrEngine
             Metalness = 1.0f;
             OcclusionStrength = 1.0f;
             NormalScale = 1;
+            HeightScale = 1;
+            HeightTessFactor = 4;
             ToneMap = true;
         }
 
@@ -477,6 +482,28 @@ namespace XrEngine
                 });
             }
 
+            if (HeightMap != null)
+            {
+                bld.AddFeature("USE_HEIGHT_MAP");
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    if (HeightMap != null)
+                    {
+                        up.LoadTexture(HeightMap, 8);
+                        Vector2 size;
+                        if (HeightMap.Data != null && HeightMap.Data.Count > 0)
+                            size = new Vector2(HeightMap.Data[0].Width, HeightMap.Data[0].Height);
+                        else
+                            size = new Vector2(HeightMap.Width, HeightMap.Height);
+                        up.SetUniform("uHeightTexSize", size);
+                    }
+             
+                    up.SetUniform("uHeightScale", HeightScale);
+                    up.SetUniform("uTessFactor", HeightTessFactor);
+                });
+            }
+
 
             if (ColorMap != null)
             {
@@ -542,6 +569,11 @@ namespace XrEngine
             base.SetStateWork(container);
         }
 
+        public float HeightTessFactor { get; set; }
+
+        public float HeightScale{ get; set; }
+
+        public Texture2D? HeightMap { get; set; }
 
         public Texture2D? OcclusionMap { get; set; }
 

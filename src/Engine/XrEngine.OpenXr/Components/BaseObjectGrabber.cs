@@ -30,10 +30,12 @@ namespace XrEngine.OpenXr
         public BaseObjectGrabber(XrHaptic? vibrate = null, string? baseName = "")
         {
             Vibrate = vibrate;
+            Offset = Pose3.Identity;
             _grabView = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr(new Color(0, 1, 1, 1)));
             _grabView.Flags |= EngineObjectFlags.DisableNotifyChangedScene | EngineObjectFlags.Generated;
             _grabView.Name = "Grab View " + baseName;
             _grabView.Transform.SetScale(0.01f);
+
         }
 
         protected override void Start(RenderContext ctx)
@@ -88,8 +90,9 @@ namespace XrEngine.OpenXr
         {
             Debug.Assert(_grabObject != null);
 
-            _grabObject.WorldPosition = grabPoint.Position;
-            _grabObject.WorldOrientation = _startOrientation.AddDelta(grabPoint.Orientation.Subtract(_startInputOrientation));
+
+            _grabObject.WorldPosition = Offset.Position + grabPoint.Position;
+            _grabObject.WorldOrientation = Offset.Orientation * _startOrientation.AddDelta(grabPoint.Orientation.Subtract(_startInputOrientation));
 
             _grabbable?.NotifyMove();
         }
@@ -168,5 +171,7 @@ namespace XrEngine.OpenXr
         public Object3D GrabView => _grabView;
 
         public XrHaptic? Vibrate { get; set; }
+
+        public Pose3 Offset { get; set; }
     }
 }

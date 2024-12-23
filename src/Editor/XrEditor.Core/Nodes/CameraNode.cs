@@ -37,7 +37,7 @@ namespace XrEditor.Nodes
             curProps.Add(new PropertyView
             {
                 Label = "Far",
-                Editor = new FloatEditor(binder.Prop(a => a.Far), new LogScale() { ScaleMin = -3, ScaleMax = 3 }),
+                Editor = new FloatEditor(binder.Prop(a => a.Far), 1, 180),
             });
 
             curProps.Add(new PropertyView
@@ -52,7 +52,7 @@ namespace XrEditor.Nodes
                 curProps.Add(new PropertyView
                 {
                     Label = "Fov",
-                    Editor = new FloatEditor(binder.Prop(a => (a as PerspectiveCamera)!.FovDegree), new LogScale() { ScaleMin = -3, ScaleMax = 3 }),
+                    Editor = new FloatEditor(binder.Prop(a => (a as PerspectiveCamera)!.FovDegree), 0, 360, 1),
                 });
             }
 
