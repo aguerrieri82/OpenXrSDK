@@ -3,7 +3,7 @@ in vec3 fNormal;
 
 uniform sampler2D uTexture;
 uniform vec3 uCenter;
-uniform vec3 uViewPos;
+uniform vec3 uCameraPos;
 uniform float uRadius;
 uniform mat3 uRotation;
 uniform vec2 uTexCenter;
@@ -61,11 +61,11 @@ vec2 sampleFish(vec2 polar, float fov)
 void main()
 {
 
-	vec3 viewDir = normalize(uViewPos - fPos);
+	vec3 viewDir = normalize(uCameraPos - fPos);
 
     vec2 polar;
 
-    if (raySphereIntersect(uViewPos, viewDir, uCenter, uRadius, polar))
+    if (raySphereIntersect(uCameraPos, viewDir, uCenter, uRadius, polar))
     {
     	vec2 pfish = sampleFish(polar, PI);    
 

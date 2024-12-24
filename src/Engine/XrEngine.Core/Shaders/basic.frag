@@ -25,7 +25,7 @@ struct Light {
 
 uniform Material material;
 uniform Light light;
-uniform vec3 uViewPos;
+uniform vec3 uCameraPos;
 
 layout(location=0) out vec4 FragColor;
 
@@ -46,7 +46,7 @@ void main()
     diffuse = diffuse * texture(uTexture, fUv).rgb;
     #endif
 
-    vec3 viewDirection = normalize(uViewPos - fPos);
+    vec3 viewDirection = normalize(uCameraPos - fPos);
     vec3 reflectDirection = reflect(-lightDirection, norm);
     float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);

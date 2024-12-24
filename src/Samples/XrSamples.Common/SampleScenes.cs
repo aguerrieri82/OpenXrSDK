@@ -134,7 +134,7 @@ namespace XrSamples
         public static XrEngineAppBuilder UseDefaultHDR(this XrEngineAppBuilder builder)
         {
             if (DefaultHDR == null)
-                DefaultHDR = "res://asset/Envs/footprint_court.hdr";
+                DefaultHDR = "res://asset/Envs/StudioTomoco.hdr";
             return builder.UseEnvironmentHDR(DefaultHDR, DefaultShowHDR);
         }
 
@@ -1201,6 +1201,7 @@ namespace XrSamples
             var mat = MaterialFactory.CreatePbr("#ffffff");
             //mat.ColorMap = TextureFactory.CreateChecker();
             //mat.ColorMap.Transform = Matrix3x3.CreateScale(500, 500);
+
             mat.ColorMap = AssetLoader.Instance.Load<Texture2D>("res://asset/world.topo.bathy.200411.3x21600x10800.jpg");
             mat.ColorMap.Transform = Matrix3x3.CreateScale(-1, 1);
             mat.ColorMap.WrapS = WrapMode.Repeat;
@@ -1210,23 +1211,28 @@ namespace XrSamples
             if (mat is IHeightMaterial hm)
             {
                 hm.HeightMap = AssetLoader.Instance.Load<Texture2D>("res://asset/gebco_08_rev_elev_21600x10800.png");
-                hm.HeightMap.Transform = Matrix3x3.CreateScale(-1, 1);
                 hm.HeightMap.WrapS = WrapMode.Repeat;
                 hm.HeightMap.WrapT = WrapMode.Repeat;
                 hm.HeightScale = Unit(6.4f);
+                hm.HeightNormalStrength = 0.1f;
             }
 
 
             float Unit(float value)
             {
-                return value / 100f;
+                return value / 1000f;
             }
 
 
-            var earth = new TriangleMesh(new Sphere3D(Unit(6378), 1000), (Material)mat);
+            var sphere = new QuadSphere3D(Unit(6378), 4);
+            //sphere.ToTriangles();
+            var wire = new WireframeMaterial() { Color = "#00ff00" };
 
-            var sun = new TriangleMesh(new Sphere3D(Unit(696340), 100), (Material)MaterialFactory.CreatePbr("#ffff00"));
-            sun.Transform.SetPositionZ(Unit(149600000));    
+            var earth = new TriangleMesh(sphere, (Material)mat);
+            // earth.Materials.Add(wire);
+
+            var sun = new TriangleMesh(new Sphere3D(Unit(696340), 50), (Material)MaterialFactory.CreatePbr("#ffff00"));
+            sun.Transform.SetPositionZ(Unit(149600000));
 
             var cube = new TriangleMesh(new Cube3D(new Vector3(1, 1, 1)),
             new GlowVolumeSliceMaterial()
@@ -1237,7 +1243,7 @@ namespace XrSamples
                 Slices = 100
             });
             cube.Transform.SetScale(2 * Unit(6378 + 40));
-            cube.Name = "Athmosphere";  
+            cube.Name = "Athmosphere";
 
             earth.Name = "Earth";
             scene.AddChild(earth);
@@ -1250,6 +1256,50 @@ namespace XrSamples
             camera.Near = Unit(1);
             camera.Far = Unit(180600000);
             //camera.Target = new Vector3(0, 0, 0);       
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .ConfigureSampleApp();
+
+        }
+
+        public static XrEngineAppBuilder CreateHeightMap(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+            var scene = app.ActiveScene!;
+            var mat = MaterialFactory.CreatePbr("#ffffff");
+            mat.Roughness = 0f;
+            mat.ColorMap = AssetLoader.Instance.Load<Texture2D>("res://asset/world.topo.bathy.200411.3x21600x10800.jpg");
+            mat.ColorMap.Transform = Matrix3x3.CreateScale(-1, 1);
+            mat.ColorMap.WrapS = WrapMode.Repeat;
+            mat.ColorMap.WrapT = WrapMode.Repeat;
+            mat.ColorMap.Format = TextureFormat.SBgra32;
+
+            if (mat is IHeightMaterial hm)
+            {
+                hm.HeightMap = AssetLoader.Instance.Load<Texture2D>("res://asset/gebco_08_rev_elev_21600x10800.png");
+                hm.HeightMap.WrapS = WrapMode.Repeat;
+                hm.HeightMap.WrapT = WrapMode.Repeat;
+                hm.HeightMap.MagFilter = ScaleFilter.Linear;
+                hm.HeightMap.MinFilter = ScaleFilter.Linear;
+                hm.HeightScale = 0.1f;
+                hm.HeightTessFactor = 64;
+                hm.HeightNormalStrength = 0.2f;
+
+                //mat.NormalMap = NormalMap.FromHeightMap(hm.HeightMap, 1f);
+                //mat.NormalMap.SaveAs("d:\\heightmap.png");
+            }
+
+            var quod = new QuadPatch3D(new Size2(2, 1), 100);
+            //quod.ToTriangles();
+
+            var wire = new WireframeMaterial() { Color = "#00ff00" };
+
+            var plane = new TriangleMesh(quod, (Material)mat);
+            plane.Materials.Add(wire);
+
+            scene.AddChild(plane);
+
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()

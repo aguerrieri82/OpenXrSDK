@@ -30,6 +30,7 @@ out vec3 fNormal;
 out vec3 fPos;
 out vec2 fUv;
 
+
 #include "Shared/position.glsl"
 
 void main()

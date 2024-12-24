@@ -73,6 +73,7 @@ namespace XrEngine.OpenGL
                 DrawPrimitive.LineLoop => PrimitiveType.LineLoop,
                 DrawPrimitive.Point => PrimitiveType.Points,
                 DrawPrimitive.Patch => PrimitiveType.Patches,
+                DrawPrimitive.Quad => PrimitiveType.Quads,
 
                 _ => throw new NotSupportedException()
             };

@@ -1,4 +1,9 @@
-﻿using XrEngine.Materials;
+﻿#if GLES
+using Silk.NET.OpenGLES;
+#else
+using Silk.NET.OpenGL;
+#endif
+
 using XrMath;
 
 namespace XrEngine.OpenGL
@@ -181,13 +186,26 @@ namespace XrEngine.OpenGL
 
                 ConfigureProgramInstance(instance);
 
-                var primitive = material.Shader.ForcePrimitive;
-                if (material is IHeightMaterial mat && mat.HeightMap != null)
-                    primitive = DrawPrimitive.Patch;
+                Action draw;
+
+                if (material is ITesselation tess && tess.UseTesselation)
+                {
+                    var size = vrtSrc.Primitive == DrawPrimitive.Quad ? 4 : 3;
+                    draw = () =>
+                    {
+                        _render.GL.PatchParameter(PatchParameterName.Vertices, size);  
+                        vertexContent!.VertexHandler!.Draw(DrawPrimitive.Patch);
+                    };
+                }
+                else
+                {
+                    var primitive = material.Shader.ForcePrimitive;
+                    draw = () => vertexContent!.VertexHandler!.Draw(primitive);
+                }
 
                 vertexContent.Contents.Add(new DrawContent
                 {
-                    Draw = () => vertexContent!.VertexHandler!.Draw(primitive),
+                    Draw = draw,
                     ProgramInstance = instance,
                     DrawId = _lastDrawId++,
                     Object = obj3d

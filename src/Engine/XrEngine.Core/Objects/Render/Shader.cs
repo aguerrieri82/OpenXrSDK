@@ -12,7 +12,6 @@
 
         public string? TessEvalSourceName { get; set; }
 
-        public int PatchVertices { get; set; }  
 
         public Func<string, string>? Resolver { get; set; }
 

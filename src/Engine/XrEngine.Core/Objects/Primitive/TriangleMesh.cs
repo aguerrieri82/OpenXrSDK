@@ -141,7 +141,7 @@ namespace XrEngine
 
         VertexComponent IVertexSource.ActiveComponents => _geometry?.ActiveComponents ?? VertexComponent.None;
 
-        DrawPrimitive IVertexSource.Primitive => DrawPrimitive.Triangle;
+        DrawPrimitive IVertexSource.Primitive => _geometry?.Primitive ?? DrawPrimitive.Triangle;
 
         uint[] IVertexSource<VertexData, uint>.Indices => _geometry?.Indices ?? [];
 

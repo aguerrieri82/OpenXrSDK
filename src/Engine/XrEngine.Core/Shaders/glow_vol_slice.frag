@@ -4,7 +4,7 @@ uniform float uSphereRadius; // Radius of the sphere (r)
 uniform float uHaloWidth; // Width of the halo (d)
 uniform vec4 uHaloColor; // Color of the halo
 
-uniform vec3 uViewPos; 
+uniform vec3 uCameraPos; 
 in vec3 fPos;
 
 out vec4 fragColor; 

@@ -32,7 +32,7 @@
                 var camera = ctx.PassCamera!;
 
                 up.SetUniform("uViewProj", camera.ViewProjection);
-                up.SetUniform("uViewPos", camera.WorldPosition, true);
+                up.SetUniform("uCameraPos", camera.WorldPosition, true);
                 up.SetUniform("uFarPlane", camera.Far);
             });
         }

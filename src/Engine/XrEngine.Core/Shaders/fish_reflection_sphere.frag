@@ -13,7 +13,7 @@ uniform vec3  uSphereCenter;
 uniform float uSphereRadius;
 
 uniform mat3 uRotation;
-uniform vec3 uViewPos;
+uniform vec3 uCameraPos;
 
 uniform vec2 uTexCenter[2];
 uniform vec2 uTexRadius[2];
@@ -78,11 +78,11 @@ void main()
         activeEye = uActiveEye;
     #endif
 
-	vec3 viewDir = normalize(uViewPos - fPos);
+	vec3 viewDir = normalize(uCameraPos - fPos);
 
     vec2 polar;
 
-    if (raySphereIntersect(uViewPos, viewDir, uSphereCenter, uSphereRadius, polar))
+    if (raySphereIntersect(uCameraPos, viewDir, uSphereCenter, uSphereRadius, polar))
     {
     	vec2 pfish = sampleFish(polar, uFov);
 	    FragColor = vec4(texture(uTexture, pfish).rgb, 1.0);
