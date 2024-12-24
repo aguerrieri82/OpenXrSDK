@@ -7,14 +7,31 @@ namespace XrEngine
 {
     public static class ImageUtils
     {
-        static readonly Dictionary<SKColorType, TextureFormat> FORMAT_MAP = new() {
+        static readonly Dictionary<SKColorType, TextureFormat> SKIA_FORMAT_MAP = new() {
             { SKColorType.Bgra8888, TextureFormat.Bgra32 },
             { SKColorType.Rgba8888, TextureFormat.Rgba32 },
             { SKColorType.Srgba8888, TextureFormat.SRgba32 },
             { SKColorType.Gray8, TextureFormat.Gray8 },
             { SKColorType.RgbaF16, TextureFormat.RgbaFloat16 },
             { SKColorType.RgbaF32, TextureFormat.RgbaFloat32 },
+
         };
+
+        public static SKBitmap ApplyGaussianBlur(SKBitmap bitmap, float radius)
+        {
+            using var surface = SKSurface.Create(new SKImageInfo(bitmap.Width, bitmap.Height));
+
+            using var paint = new SKPaint
+            {
+                ImageFilter = SKImageFilter.CreateBlur(radius, radius),
+            };
+
+            surface.Canvas.DrawBitmap(bitmap, 0, 0, paint);
+            surface.Canvas.Flush();
+
+            return SKBitmap.FromImage(surface.Snapshot().ToRasterImage());
+        }
+
 
         public static Texture2D MergeMetalRaugh(Texture2D metal, Texture2D roughness)
         {
@@ -64,37 +81,37 @@ namespace XrEngine
 
         public static uint GetPixelSizeByte(TextureFormat format)
         {
-            return GetPixelSizeByte(GetFormat(format));
+            return GetPixelSizeByte(GetSkFormat(format));
         }
 
-        public static SKColorType GetFormat(TextureFormat format)
+        public static SKColorType GetSkFormat(TextureFormat format)
         {
-            return FORMAT_MAP.First(a => a.Value == format).Key;
+            return SKIA_FORMAT_MAP.First(a => a.Value == format).Key;
         }
 
         public static TextureFormat GetFormat(SKColorType color)
         {
-            if (!FORMAT_MAP.TryGetValue(color, out TextureFormat format))
+            if (!SKIA_FORMAT_MAP.TryGetValue(color, out TextureFormat format))
                 throw new NotSupportedException();
             return format;
         }
 
         public static unsafe SKBitmap ToBitmap(TextureData data, bool flipY)
         {
-            if (data.Format != TextureFormat.Rgba32)
-                throw new NotSupportedException();
 
-            var image = new SKBitmap((int)data.Width, (int)data.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+            var pixelSize = GetPixelSizeByte(data.Format);
+
+            var image = new SKBitmap((int)data.Width, (int)data.Height, GetSkFormat(data.Format), SKAlphaType.Opaque);
 
             Debug.Assert(data.Data != null);
 
             if (flipY)
             {
-                var dst = MemoryBuffer.Create<byte>(data.Height * data.Width * 4);
+                var dst = MemoryBuffer.Create<byte>(data.Height * data.Width * pixelSize);
 
                 using var pData = data.Data.MemoryLock();
                 using var pDst = dst.MemoryLock();
-                EngineNativeLib.ImageFlipY(pData, pDst, data.Width, data.Height, data.Width * 4);
+                EngineNativeLib.ImageFlipY(pData, pDst, data.Width, data.Height, data.Width * pixelSize);
                 image.SetPixels(pDst);
             }
             else

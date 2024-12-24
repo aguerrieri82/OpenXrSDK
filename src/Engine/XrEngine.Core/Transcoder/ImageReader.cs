@@ -38,7 +38,7 @@ namespace XrEngine
 
             var outFormat = options?.Format;
             if (outFormat != null)
-                image = ImageUtils.ChangeColorSpace(image, ImageUtils.GetFormat(outFormat.Value));
+                image = ImageUtils.ChangeColorSpace(image, ImageUtils.GetSkFormat(outFormat.Value));
 
 
             var data = new TextureData

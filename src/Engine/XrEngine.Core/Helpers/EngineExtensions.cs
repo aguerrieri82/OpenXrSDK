@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using SkiaSharp;
+using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
@@ -674,6 +676,30 @@ namespace XrEngine
             self.NotifyChanged(ObjectChangeType.Geometry);
         }
 
+        public static void ToTriangles(this Geometry3D self)
+        {
+            if (self.Primitive != DrawPrimitive.Quad)
+                throw new NotSupportedException();
+
+            var newIndices = new List<uint>(self.Indices.Length / 2 * 3);
+
+            for (int i = 0; i < self.Indices.Length; i += 4)
+            {
+                // First triangle of the quad
+                newIndices.Add(self.Indices[i]);
+                newIndices.Add(self.Indices[i + 1]);
+                newIndices.Add(self.Indices[i + 2]);
+
+                // Second triangle of the quad
+                newIndices.Add(self.Indices[i]);
+                newIndices.Add(self.Indices[i + 2]);
+                newIndices.Add(self.Indices[i + 3]);
+            }
+
+            self.Indices = newIndices.ToArray();
+            self.Primitive = DrawPrimitive.Triangle;
+        }
+
         public static void EnsureIndices(this Geometry3D self)
         {
             if (self.Indices == null || self.Indices.Length == 0)
@@ -889,6 +915,7 @@ namespace XrEngine
 
             return new Bounds3();
         }
+
 
         public static void EnsureCCW(this Geometry3D self)
         {
@@ -1285,6 +1312,15 @@ namespace XrEngine
 
         #region MISC
 
+        public static void SaveAs(this Texture2D self, string path, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100)
+        {
+            using var bmp = ImageUtils.ToBitmap(self.Data![0], false);
+            using var enc = bmp.Encode(format, quality);
+            if (File.Exists(path))
+                File.Delete(path); 
+            using var file = File.OpenWrite(path);
+            enc.SaveTo(file);
+        }
 
         public static void Update<T>(this IList<T> self, RenderContext ctx) where T : IRenderUpdate
         {

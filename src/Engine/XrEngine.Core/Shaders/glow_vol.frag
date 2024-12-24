@@ -6,7 +6,7 @@ uniform vec3 glowColor; // Color of the glow
 uniform vec4 haloColor; // Color of the halo
 uniform float stepSize;
 
-uniform vec3 uViewPos; 
+uniform vec3 uCameraPos; 
 in vec3 fPos;
 
 out vec4 fragColor; 
@@ -34,14 +34,14 @@ bool intersectSphere(vec3 rayOrigin, vec3 rayDir, vec3 sphereCenter, float spher
 
 void main() {
 
-    vec3 rayDirection = normalize(fPos - uViewPos);
+    vec3 rayDirection = normalize(fPos - uCameraPos);
 
-    if (!intersectSphere(uViewPos, rayDirection, sphereCenter, sphereRadius + haloWidth)) 
+    if (!intersectSphere(uCameraPos, rayDirection, sphereCenter, sphereRadius + haloWidth)) 
         discard;
    
 
     // Step along the ray
-    vec3 rayOrigin = uViewPos + rayDirection * t0; // Start point of ray inside the volume
+    vec3 rayOrigin = uCameraPos + rayDirection * t0; // Start point of ray inside the volume
 
     vec3 step = rayDirection * stepSize;
 
@@ -65,7 +65,7 @@ void main() {
 
     vec4 accumulatedColor = vec4(0.0); // Accumulated color and alpha
 
-    vec3 samplePos = uViewPos + rayDirection * t0; 
+    vec3 samplePos = uCameraPos + rayDirection * t0; 
 
 
     for (float t = t0; t < t1; t += stepSize) {

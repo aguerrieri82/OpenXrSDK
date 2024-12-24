@@ -1,42 +1,62 @@
-﻿#ifdef USE_HEIGHT_MAP
+﻿
+layout(vertices = 4) out; 
 
-layout(vertices = 3) out; // Quad patch for terrain
+#ifdef HAS_TANGENTS
+    in mat3 fTangentBasis[];
+    out mat3 tcTangentBasis[];
+#else
+    in vec3 fNormal[]; 
+    out vec3 tcNormal[]; 
+#endif
 
-in vec2 texCoords[]; // Input texture coordinates from vertex shader
-out vec2 tcTexCoords[]; // Pass to tessellation evaluation shader
+in vec2 fUv[]; 
+out vec2 tcUv[]; 
 
-uniform float uTessFactor; // Base tessellation factor
-uniform vec3 uViewPos;      // Camera position for LOD
+uniform float uTessFactor; 
+
+#ifdef PBR_V2
+    #include "../PbrV2/uniforms.glsl"
+#else
+    uniform vec3 uCameraPos;
+#endif
+
 
 void main() {
-    // Pass through texture coordinates
-    tcTexCoords[gl_InvocationID] = texCoords[gl_InvocationID];
+    
+    vec3 cameraPos;
 
-    // Compute tessellation level based on distance to camera
+    #ifdef PBR_V2
+        cameraPos = uCamera.cameraPosition;
+    #else
+        cameraPos = uCameraPos;
+    #endif
+
+    tcUv[gl_InvocationID] = fUv[gl_InvocationID];
+
+    #ifdef HAS_TANGENTS
+        tcTangentBasis[gl_InvocationID] = fTangentBasis[gl_InvocationID]; 
+    #else
+        tcNormal[gl_InvocationID] = fNormal[gl_InvocationID];
+    #endif
+
     vec3 worldPos = gl_in[gl_InvocationID].gl_Position.xyz;
-    float distance = length(uViewPos - worldPos);
-    float tessLevel = mix(uTessFactor * 4.0, uTessFactor, distance / 100.0);
+    float distance = length(cameraPos - worldPos);
+    float tessLevel = mix(uTessFactor, 1.0, distance / 2.0);
+
     tessLevel = clamp(tessLevel, 1.0, 64.0);
 
-    // Set tessellation levels
-    gl_TessLevelOuter[0] = tessLevel;
-    gl_TessLevelOuter[1] = tessLevel;
-    gl_TessLevelOuter[2] = tessLevel;
-    gl_TessLevelInner[0] = tessLevel;
-}
-
-#else
-
-layout(vertices = 3) out; 
-
-void main() {
-
-    gl_TessLevelOuter[0] = 1.0;
-    gl_TessLevelOuter[1] = 1.0;
-    gl_TessLevelOuter[2] = 1.0;
-    gl_TessLevelInner[0] = 1.0;
-
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
-}
 
-#endif
+
+    if (gl_InvocationID == 0) {
+
+        gl_TessLevelOuter[0] = tessLevel;
+        gl_TessLevelOuter[1] = tessLevel;
+        gl_TessLevelOuter[2] = tessLevel;
+        gl_TessLevelOuter[3] = tessLevel;
+        gl_TessLevelInner[0] = tessLevel;
+        gl_TessLevelInner[1] = tessLevel;
+    }
+
+
+}

@@ -36,8 +36,6 @@ layout(std140, binding=2) uniform Material
 	vec4 shadowColor;
 	float normalScale;
 	float alphaCutoff;
-	mat4 worldMatrix;
-	mat4 normalMatrix;
 } uMaterial;
 
 layout(std140, binding=3) uniform Model

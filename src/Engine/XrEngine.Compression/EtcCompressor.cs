@@ -98,7 +98,7 @@ namespace XrEngine.Compression
             }
 
 
-            var skType = ImageUtils.GetFormat(data.Format);
+            var skType = ImageUtils.GetSkFormat(data.Format);
 
             bool useSrgb = data.Format == TextureFormat.SRgba32 || data.Format == TextureFormat.SRgb24;
 

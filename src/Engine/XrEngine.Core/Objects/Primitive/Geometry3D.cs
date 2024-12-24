@@ -11,12 +11,15 @@ namespace XrEngine
         protected VertexData[] _vertices;
         protected uint[] _indices;
 
+
         public Geometry3D()
         {
             _boundsDirty = true;
             ActiveComponents = VertexComponent.Position;
+            Primitive = DrawPrimitive.Triangle;
             _indices = [];
             _vertices = [];
+
         }
 
         public override void GeneratePath(List<string> parts)
@@ -199,5 +202,7 @@ namespace XrEngine
             get => _vertices;
             set => _vertices = value;
         }
+
+        public DrawPrimitive Primitive { get; set; }
     }
 }

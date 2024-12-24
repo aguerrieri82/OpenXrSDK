@@ -4,33 +4,27 @@
 #include "../Shared/tonemap.glsl"
 #include "../Shared/planar_reflection.glsl"
 
-// Physically Based Rendering
-// Copyright (c) 2017-2018 Michał Siejak
-
-// Physically Based shading model: Lambetrtian diffuse BRDF + Cook-Torrance microfacet specular BRDF + IBL for ambient.
-
-// This implementation is based on "Real Shading in Unreal Engine 4" SIGGRAPH 2013 course notes by Epic Games.
-// See: http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
-
 const float PI = 3.141592;
 const float Epsilon = 0.00001;
 
-
-// Constant normal incidence Fresnel factor for all dielectrics.
 const vec3 Fdielectric = vec3(0.04);
 
+#define DEBUG_UV        1
+#define DEBUG_NORMAL    2
+#define DEBUG_TANGENT   3
+#define DEBUG_BITANGENT 4
 
-#define DEBUG_UV  1
+in vec3 fNormal;
+in vec3 fPos;
+in vec2 fUv;
+in vec3 fCameraPos;    
+in mat3 fTangentBasis;
+in vec3 fDebug;
 
+#ifdef USE_SHADOW_MAP
+    in vec4 fPosLightSpace;
+#endif
 
-layout(location=0) in Vertex
-{
-	vec3 position;
-	vec2 texcoord;
-	mat3 tangentBasis;
-	vec4 posLightSpace;
-	vec3 cameraPos;
-} vin;
 
 layout(location=0) out vec4 color;
 
@@ -97,7 +91,7 @@ float rand(vec2 co) {
 
 vec3 addNoise(vec3 color)
 {
-	vec2 seed = vec2(vin.cameraPos.xy + vin.texcoord + vec2(gl_FragCoord));
+	vec2 seed = vec2(fCameraPos.xy + fUv + vec2(gl_FragCoord));
 	float noise = rand(seed);
 	float linearDepth = (2.0 * uCamera.nearPlane * uCamera.farPlane) / (uCamera.farPlane + uCamera.nearPlane - gl_FragCoord.z * (uCamera.farPlane - uCamera.nearPlane));
     
@@ -111,7 +105,7 @@ void main()
 
 	#if defined(HAS_ENV_DEPTH) && defined(USE_ENV_DEPTH)
 	    
-		if (!passEnvDepth(vin.position, uint(uCamera.activeEye)))
+		if (!passEnvDepth(fPos, uint(uCamera.activeEye)))
 		{
 			color = vec4(0.0);	
 			return;
@@ -123,7 +117,7 @@ void main()
 
 	// Sample input textures to get shading model params.
 	#ifdef USE_ALBEDO_MAP
-		vec4 baseColor = texture(albedoTexture, vin.texcoord) * uMaterial.color;
+		vec4 baseColor = texture(albedoTexture, fUv) * uMaterial.color;
 	#else
 		vec4 baseColor = uMaterial.color;	
 	#endif
@@ -138,7 +132,7 @@ void main()
 
 	#ifdef USE_METALROUGHNESS_MAP
 
-		vec4 mr = texture(metalroughnessTexture, vin.texcoord);
+		vec4 mr = texture(metalroughnessTexture, fUv);
 		float metalness = mr.b * uMaterial.metalness;
 		float roughness = mr.g * uMaterial.roughness;
 
@@ -148,15 +142,15 @@ void main()
 	#endif
 
 	// Outgoing light direction (vector from world-space fragment position to the "eye").
-	vec3 Lo = normalize(vin.cameraPos - vin.position);
+	vec3 Lo = normalize(fCameraPos - fPos);
 
 	// Get current fragment's normal and transform to world space.
-	#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
+	#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) 
 
-		vec3 N = normalize(2.0 * texture(normalTexture, vin.texcoord).rgb - 1.0);	
+		vec3 N = normalize(2.0 * texture(normalTexture, fUv).rgb - 1.0);	
 		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
 
-		mat3 TBN = vin.tangentBasis;
+		mat3 TBN = fTangentBasis;
 
 		#ifdef DOUBLE_SIDED
 
@@ -172,7 +166,7 @@ void main()
 		N = normalize(TBN * N);
 
 	#else
-		vec3 N = normalize(vin.tangentBasis[2]);
+		vec3 N = normalize(fNormal);
 		#ifdef DOUBLE_SIDED
 		if (!gl_FrontFacing)
 			N = -N;
@@ -199,7 +193,7 @@ void main()
 		if(uLights.lights[i].type == 0u)
 		{
 			// Point light.
-			vec3 lightDir = uLights.lights[i].position - vin.position;
+			vec3 lightDir = uLights.lights[i].position - fPos;
 			float distance = length(lightDir);
 			Li = normalize(lightDir);
 
@@ -298,7 +292,7 @@ void main()
 
 	
 	#ifdef PLANAR_REFLECTION
-		color3 = planarReflection(color3, vin.position, Lr, roughness, cosLo);
+		color3 = planarReflection(color3, fPos, Lr, roughness, cosLo);
 	#endif
 
 
@@ -311,13 +305,13 @@ void main()
 
 
 	#ifdef USE_OCCLUSION_MAP
-    float ao = texture(occlusionTexture, vin.texcoord).r;
+    float ao = texture(occlusionTexture, fUv).r;
     color3 *= mix(1.0, ao, uMaterial.occlusionStrength);
 	#endif
 
 	#if defined(USE_SHADOW_MAP) && defined(RECEIVE_SHADOWS) && defined(USE_PUNCTUAL)
 
-		float shadow = calculateShadow(vin.posLightSpace, N, shadowLightDir);
+		float shadow = calculateShadow(fPosLightSpace, N, shadowLightDir);
 
 		#ifdef TRANSPARENT
 			color3 = shadow * uMaterial.shadowColor.rgb;
@@ -349,7 +343,19 @@ void main()
 
 #if DEBUG == DEBUG_UV
 
-	color = vec4(vin.texcoord.x, vin.texcoord.y, 0.0, 1.0);
+	color = vec4(fUv.x, fUv.y, 0.0, 1.0);
+
+#elif DEBUG == DEBUG_NORMAL
+
+	color = vec4(N * 0.5 + 0.5, 1.0);
+
+#elif DEBUG == DEBUG_TANGENT
+
+	color = vec4(fTangentBasis[0] * 0.5 + 0.5, 1.0);
+
+#elif DEBUG == DEBUG_BITANGENT
+
+	color = vec4(fTangentBasis[1] * 0.5 + 0.5, 1.0);
 
 #endif
 

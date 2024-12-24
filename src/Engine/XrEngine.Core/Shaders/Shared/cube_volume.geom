@@ -3,7 +3,7 @@ layout(triangle_strip, max_vertices = 18) out; // Max 6 slices (2 triangles each
 
 uniform mat4 uViewProj;
 uniform mat4 uModel;
-uniform vec3 uViewPos;
+uniform vec3 uCameraPos;
 uniform vec3 uCameraForward; // Camera forward vector
 uniform vec3 uCameraUp; // Camera up vector
 uniform int uNumSlices; // Number of slices

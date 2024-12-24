@@ -8,7 +8,10 @@ namespace XrEngine
     public enum PbrV2Debug
     {
         None = 0,
-        Uv = 1
+        Uv = 1,
+        Normal = 2,
+        Tangent = 3,
+        Bitangent = 4
     }
 
     public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial
@@ -19,7 +22,7 @@ namespace XrEngine
 
         #region CameraUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 180)]
+        [StructLayout(LayoutKind.Explicit, Size = 176)]
         public struct CameraUniforms
         {
             [FieldOffset(0)]
@@ -59,7 +62,7 @@ namespace XrEngine
 
         #region MaterialUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 256)]
+        [StructLayout(LayoutKind.Explicit, Size = 128)]
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
@@ -375,7 +378,6 @@ namespace XrEngine
                 VertexSourceName = "PbrV2/pbr_vs.glsl",
                 TessControlSourceName = "Shared/height_map.tesc",
                 TessEvalSourceName = "Shared/height_map.tese",
-                PatchVertices = 3,
                 Resolver = str => Embedded.GetString(str),
                 IsLit = true,
             };
@@ -407,6 +409,8 @@ namespace XrEngine
                 NormalScale = NormalScale,
                 AlphaCutoff = AlphaCutoff,
             };
+
+            bld.AddFeature("PBR_V2");
 
             bld.AddFeature($"DEBUG {(int)Debug}");
 
@@ -491,14 +495,10 @@ namespace XrEngine
                     if (HeightMap != null)
                     {
                         up.LoadTexture(HeightMap, 8);
-                        Vector2 size;
-                        if (HeightMap.Data != null && HeightMap.Data.Count > 0)
-                            size = new Vector2(HeightMap.Data[0].Width, HeightMap.Data[0].Height);
-                        else
-                            size = new Vector2(HeightMap.Width, HeightMap.Height);
-                        up.SetUniform("uHeightTexSize", size);
+                        up.SetUniform("uHeightTexSize", new Vector2(HeightMap.Width, HeightMap.Height));
                     }
              
+                    up.SetUniform("uHeightNormalStrength", HeightNormalStrength);
                     up.SetUniform("uHeightScale", HeightScale);
                     up.SetUniform("uTessFactor", HeightTessFactor);
                 });
@@ -569,8 +569,15 @@ namespace XrEngine
             base.SetStateWork(container);
         }
 
+
+        bool ITesselation.UseTesselation => HeightMap != null;
+
+        [Range(0, 1, 0.01f)]
+        public float HeightNormalStrength { get; set; } 
+
         public float HeightTessFactor { get; set; }
 
+        [Range(0, 10, 0.01f)]
         public float HeightScale{ get; set; }
 
         public Texture2D? HeightMap { get; set; }

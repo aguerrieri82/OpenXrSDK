@@ -6,7 +6,8 @@
         Line,
         LineLoop,
         Point,
-        Patch
+        Patch,
+        Quad
     }
 
     public interface IVertexSource : ILayer3DItem

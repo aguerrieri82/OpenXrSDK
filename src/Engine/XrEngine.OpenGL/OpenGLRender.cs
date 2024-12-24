@@ -462,7 +462,7 @@ namespace XrEngine.OpenGL
 
             var props = new SKSurfaceProperties(SKPixelGeometry.RgbVertical);
 
-            return SKSurface.Create(_grContext, grTexture, ImageUtils.GetFormat(texture.Format), props);
+            return SKSurface.Create(_grContext, grTexture, ImageUtils.GetSkFormat(texture.Format), props);
         }
 
         #endregion
