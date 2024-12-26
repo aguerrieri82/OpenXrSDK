@@ -74,7 +74,19 @@ namespace XrEngine.OpenGL
                 var reqCompDef = renderer.Options.RequireTextureCompression;
 
                 if (value is Texture2D texture2D)
+                {
+                    if (texture2D.Type == TextureType.Depth)
+                    {
+                        var glTex = renderer.RenderTarget!.QueryTexture(FramebufferAttachment.DepthAttachment);
+                        if (glTex == null)
+                            throw new NotSupportedException();
+                        if (texture2D.Handle == 0)
+                            glTex.ToEngineTexture(texture2D);
+                        return glTex;
+                    }
+
                     return texture2D.CreateGlTexture(renderer.GL, reqComp != null ? reqComp.Value : reqCompDef);
+                }
 
                 throw new NotSupportedException();
             });

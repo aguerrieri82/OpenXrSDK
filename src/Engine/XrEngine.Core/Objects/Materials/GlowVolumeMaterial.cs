@@ -2,9 +2,10 @@
 
 namespace XrEngine
 {
-    public class GlowVolumeMaterial : ShaderMaterial
+    public class GlowVolumeMaterial : ShaderMaterial, IVolumeMaterial
     {
         public static readonly Shader SHADER;
+
 
         static GlowVolumeMaterial()
         {
@@ -42,7 +43,19 @@ namespace XrEngine
                 up.SetUniform("stepSize", StepSize);
 
             });
+
+            if (UseDepthCulling)
+            {
+                bld.AddFeature("USE_DEPTH_CULL");
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform("uInvViewProj", ctx.PassCamera!.ViewProjectionInverse);
+                    up.LoadTexture(new Texture2D() { Type = TextureType.Depth }, 1);
+                });
+            }
         }
+
+        public bool UseDepthCulling { get; set; }
 
         public float SphereRadius { get; set; }
 

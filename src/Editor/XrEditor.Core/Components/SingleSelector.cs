@@ -1,4 +1,5 @@
-﻿using XrEngine;
+﻿using System.Linq;
+using XrEngine;
 
 namespace XrEditor
 {
@@ -28,6 +29,7 @@ namespace XrEditor
         public SingleSelector()
         {
             _items = [];
+            ValueType = typeof(object);
         }
 
         public object? SelectedValue
@@ -36,6 +38,9 @@ namespace XrEditor
             set
             {
                 if (Equals(_selectedValue, value))
+                    return;
+
+                if (value != null && !ValueType.IsAssignableFrom(value.GetType()))
                     return;
 
                 if (!AllowNull && value == null)
@@ -49,6 +54,8 @@ namespace XrEditor
                 OnPropertyChanged(nameof(SelectedValue));
             }
         }
+
+
 
         public IList<SelectorItem> Items
         {
@@ -64,15 +71,12 @@ namespace XrEditor
                 OnPropertyChanged(nameof(Items));
 
                 if (_items.Any(a => a.Value == curSelection))
-                {
-                    _selectedValue = curSelection;
-                    Context.Require<IMainDispatcher>().Execute(() =>
-                    {
-                        OnPropertyChanged(nameof(SelectedValue));
-                    });
-                }
+                    SelectedValue = curSelection;
+
             }
         }
+
+        public Type ValueType { get; set; } 
 
         public bool AllowNull { get; set; }
     }

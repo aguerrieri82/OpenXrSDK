@@ -115,6 +115,7 @@ namespace XrEditor
             _stopButton = ToolBar.AddButton("icon_stop", StopApp);
             ToolBar.AddDivider();
             _cameraList = ToolBar.AddSelect(ListCameras(), _camera, c => Camera = c);
+            _cameraList.ValueType = typeof(Camera); 
 
         }
 
@@ -378,7 +379,7 @@ namespace XrEditor
                 _cameraList.Items = ListCameras();
 
                 OnPropertyChanged(nameof(Scene));
-                OnPropertyChanged(nameof(CameraList));
+
                 OnSceneChanged();
                 UpdateSize();
             }
@@ -413,8 +414,6 @@ namespace XrEditor
         public EngineAppStats? Stats => _scene?.App?.Stats;
 
         public IRenderSurface RenderSurface => _renderSurface;
-
-        public IEnumerable<Camera> CameraList => _scene?.Descendants<Camera>() ?? [];
 
         public IEditorTool? ActiveTool { get; set; }
 

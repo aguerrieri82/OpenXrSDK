@@ -67,6 +67,8 @@ namespace XrEditor.Services
 
         public SKBitmap? CreateMaterial(Material material)
         {
+            if (material is IVolumeMaterial)
+                return null;
             return CreateMesh(IsoSphere3D.Default, material);
         }
 
@@ -77,6 +79,9 @@ namespace XrEditor.Services
 
         public SKBitmap? CreateTexture(Texture2D texture)
         {
+            if (texture.Type == TextureType.Depth)
+                return null;
+
             if (texture.Width == 0 || texture.Height == 0)
             {
                 var src = texture.Component<AssetSource>();

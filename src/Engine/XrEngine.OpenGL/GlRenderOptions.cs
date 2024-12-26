@@ -31,6 +31,7 @@ namespace XrEngine.OpenGL
             SortByCameraDistance = true;
             UseSRGB = false;
             RequireTextureCompression = false;
+            UseVolume = true;
             ShadowMap = new ShadowMapOptions()
             {
                 Mode = ShadowMapMode.PCF,
@@ -64,6 +65,8 @@ namespace XrEngine.OpenGL
         public bool UseDepthPass { get; set; }
 
         public bool UsePlanarReflection { get; set; }
+
+        public bool UseVolume { get; set; }
 
         public bool UseHitTest { get; set; }
 

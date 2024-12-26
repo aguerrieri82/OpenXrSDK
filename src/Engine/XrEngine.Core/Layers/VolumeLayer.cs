@@ -1,17 +1,17 @@
 ﻿namespace XrEngine
 {
-    public class BlendLayer : BaseAutoLayer<TriangleMesh>
+    public class VolumeLayer : BaseAutoLayer<TriangleMesh>
     {
-        public BlendLayer()
+        public VolumeLayer()
         {
-            Name = "Blend";
+            Name = "Volume";
         }
 
         protected override bool BelongsToLayer(TriangleMesh obj)
         {
             return obj.Materials.
-                    OfType<ShaderMaterial>().
-                    Any(a => a.Alpha == AlphaMode.Blend && a is not IVolumeMaterial);
+                    OfType<IVolumeMaterial>().
+                    Any();
         }
 
         protected override bool AffectChange(ObjectChange change)

@@ -1,19 +1,18 @@
 
+#define MODE_NONE 0
+#define MODE_HARD 1
+#define MODE_PCF  2
+#define MODE_VCF  3
+
+
 #ifdef USE_SHADOW_MAP 
-
-    #define MODE_NONE 0
-    #define MODE_HARD 1
-    #define MODE_PCF  2
-    #define MODE_VCF  3
-
 
     #ifdef USE_SHADOW_SAMPLER
         layout(binding=14) uniform sampler2DShadow uShadowMap;
     #else
         layout(binding=14) uniform sampler2D uShadowMap;
     #endif
-    
-
+   
 
     #if SHADOW_MAP_MODE == MODE_VCF
          

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using XrEngine;
 using XrInteraction;
 using XrMath;
@@ -107,6 +108,7 @@ namespace XrEditor
                 var deltaW = -(newPoint - _startPoint);
 
                 camera.LookAt(_startWorld.Translation + deltaW, _startTarget + deltaW, new Vector3(0, 1, 0));
+
 
                 //camera.EndUpdate();
             }

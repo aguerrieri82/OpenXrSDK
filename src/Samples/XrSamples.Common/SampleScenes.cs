@@ -1241,7 +1241,7 @@ namespace XrSamples
 
             var cube = new TriangleMesh();
 
-            if (false)
+            if (true)
             {
                 cube.Geometry = new Cube3D();
                 cube.Materials.Add(new GlowVolumeMaterial()
@@ -1249,7 +1249,7 @@ namespace XrSamples
                     SphereRadius = Unit(6378),
                     HaloWidth = Unit(40),
                     HaloColor = "#0000FF09",
-                    StepSize = Unit(1)
+                    StepSize = Unit(5)
                 });
             }
             else
@@ -1284,15 +1284,27 @@ namespace XrSamples
             cube.Name = "Athmosphere";
 
             earth.Name = "Earth";
+            earth.SetWorldPose(new Pose3()
+            {
+                Position = new Vector3(0f, 0f, 0f),
+                Orientation = new Quaternion(-0.20752391f, -0.059714455f, -0.012692701f, 0.9763232f)
+            });
             scene.AddChild(earth);
             scene.AddChild(cube);
             scene.AddChild(sun);
 
             var camera = scene.PerspectiveCamera();
-            camera.WorldPosition = new Vector3(0, 0, -Unit(6378 + 40));
-            camera.WorldOrientation = Quaternion.Identity;
-            camera.Near = Unit(1);
+            camera.Name = "Main";
+            camera.Near = Unit(1f);
             camera.Far = Unit(180600000);
+            /*
+            camera.SetWorldPose(new Pose3()
+            {
+                Position = new Vector3(9.011675E-05f, 0.12793548f, -6.3957214f),
+                Orientation = new Quaternion(-0.70675313f, -1.5462184E-08f, -1.544673E-08f, 0.7074602f)
+            });
+            camera.Target = Vector3.Zero;
+            */
             //camera.Target = new Vector3(0, 0, 0);       
             return builder
                 .UseApp(app)

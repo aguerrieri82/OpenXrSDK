@@ -87,7 +87,7 @@ namespace XrEngine.OpenGL
         public GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
             if (attachment == FramebufferAttachment.DepthAttachment)
-                return GlDepthUtils.GetDepthUsingCopy(_gl, this);
+                return _frameBuffer.QueryTexture(FramebufferAttachment.DepthAttachment);
 
             return null;
         }

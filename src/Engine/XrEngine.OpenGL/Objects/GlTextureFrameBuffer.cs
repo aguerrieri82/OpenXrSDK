@@ -279,7 +279,7 @@ namespace XrEngine.OpenGL
         public override GlTexture? QueryTexture(FramebufferAttachment attachment)
         {
             if (attachment == FramebufferAttachment.DepthAttachment && Depth is GlRenderBuffer)
-                return GlDepthUtils.GetDepthUsingFramebuffer(_gl, this);
+                return GlDepthUtils.GetDepthUsingCopy(_gl, this);
 
             if (attachment == FramebufferAttachment.ColorAttachment0)
                 return Color;
