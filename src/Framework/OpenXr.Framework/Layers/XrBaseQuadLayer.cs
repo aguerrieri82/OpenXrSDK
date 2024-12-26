@@ -1,6 +1,4 @@
-﻿using Common.Interop;
-using Silk.NET.OpenXR;
-using System.Numerics;
+﻿using Silk.NET.OpenXR;
 using XrMath;
 
 namespace OpenXr.Framework
@@ -21,7 +19,7 @@ namespace OpenXr.Framework
         {
             _getQuad = getQuad;
             _header.ValueRef.Type = StructureType.CompositionLayerQuad;
-  
+
             Priority = 2;
         }
 
@@ -31,11 +29,11 @@ namespace OpenXr.Framework
             var quad = _getQuad();
 
             var pose = quad.Pose;
-  
+
             layer.Size.Width = quad.Size.X;
             layer.Size.Height = quad.Size.Y;
             layer.Pose = quad.Pose.ToPoseF();
-        
+
             return true;
         }
 

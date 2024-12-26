@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
-    public interface IHeightMaterial : IMaterial, ITesselation
+    public enum HeightNormalMode
     {
-        float HeightTessFactor { get; set; }
+        Fast,
+        Sobel
+    }
 
+    public interface IHeightMaterial : IMaterial, ITessellation
+    {
         float HeightScale { get; set; }
 
         float HeightNormalStrength { get; set; }
+
+        HeightNormalMode HeightNormalMode { get; set; }
 
         Texture2D? HeightMap { get; set; }
     }

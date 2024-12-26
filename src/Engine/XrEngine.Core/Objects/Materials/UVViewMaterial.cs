@@ -1,6 +1,4 @@
-﻿using XrMath;
-
-namespace XrEngine.Materials
+﻿namespace XrEngine.Materials
 {
     public class UVViewMaterial : ShaderMaterial
     {

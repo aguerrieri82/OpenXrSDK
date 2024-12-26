@@ -1,7 +1,5 @@
 ﻿using SkiaSharp;
-using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -51,7 +49,7 @@ namespace XrEngine
 
         public static IEnumerable<T> ComponentsDeep<T>(this Object3D self)
         {
-            return self.DescendantsOrSelf().SelectMany(a=> a.Components<T>());  
+            return self.DescendantsOrSelf().SelectMany(a => a.Components<T>());
         }
 
         public static T Component<T>(this EngineObject self) where T : IComponent
@@ -564,7 +562,11 @@ namespace XrEngine
 
         public static Geometry3D TransformToLine(this Geometry3D self)
         {
+            if (self.Primitive != DrawPrimitive.Triangle)
+                throw new NotSupportedException();
+
             var res = new Geometry3D();
+            res.Primitive = DrawPrimitive.Line;
             if (self.Indices.Length > 0)
             {
                 var srcI = 0;
@@ -587,11 +589,10 @@ namespace XrEngine
 
                 res.Vertices = self.Vertices;
                 res.Indices = newIndices;
-
             }
             else
             {
-
+                throw new NotSupportedException();
             }
 
             return res;
@@ -628,6 +629,9 @@ namespace XrEngine
 
         public static void ComputeNormals(this Geometry3D self)
         {
+            if (self.Primitive != DrawPrimitive.Triangle)
+                throw new NotSupportedException();
+
             if (self.Indices.Length > 0)
             {
                 int i = 0;
@@ -698,6 +702,7 @@ namespace XrEngine
 
             self.Indices = newIndices.ToArray();
             self.Primitive = DrawPrimitive.Triangle;
+            self.NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public static void EnsureIndices(this Geometry3D self)
@@ -708,6 +713,7 @@ namespace XrEngine
                 for (var i = 0; i < self.Vertices.Length; i++)
                     self.Indices[i] = (uint)i;
             }
+            self.NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public static void SmoothNormals(this Geometry3D self)
@@ -717,6 +723,8 @@ namespace XrEngine
 
         public static void SmoothNormals(this Geometry3D self, uint startIndex, uint endIndex, int decimals = 4)
         {
+            if (self.Primitive != DrawPrimitive.Triangle)
+                throw new NotSupportedException();
 
             Dictionary<Vector3, List<uint>> groups = [];
 
@@ -750,7 +758,7 @@ namespace XrEngine
                     avg /= count;
 
 
-                   foreach (var index in group)
+                    foreach (var index in group)
                         self.Vertices[index].Normal = avg;
                 }
             }
@@ -759,6 +767,9 @@ namespace XrEngine
 
         public static IEnumerable<Triangle3> Triangles(this Geometry3D self)
         {
+            if (self.Primitive != DrawPrimitive.Triangle)
+                throw new NotSupportedException();
+
             if (self.Indices.Length > 0)
             {
                 uint i = 0;
@@ -805,6 +816,9 @@ namespace XrEngine
 
         public static unsafe void ComputeTangents(this Geometry3D self)
         {
+            if (self.Primitive != DrawPrimitive.Triangle)
+                throw new NotSupportedException();
+
             int vertexCount = self.Vertices.Length;
             int indexCount = self.Indices.Length;
 
@@ -890,6 +904,7 @@ namespace XrEngine
             }
 
             self.ActiveComponents |= VertexComponent.Tangent;
+            self.NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public static void SetVertexData<T>(this Geometry3D self, VertexAssignDelegate<T> selector, T[] array)
@@ -906,6 +921,8 @@ namespace XrEngine
 
             for (var i = 0; i < array.Length; i++)
                 selector(ref self.Vertices[i], array[i]);
+
+            self.NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public static Bounds3 ComputeBounds(this Geometry3D self, Matrix4x4 transform)
@@ -986,6 +1003,8 @@ namespace XrEngine
 
             self.Indices = indices;
             self.Vertices = newVertices.ToArray();
+
+            self.NotifyChanged(ObjectChangeType.Geometry);
         }
 
         #endregion
@@ -1317,7 +1336,7 @@ namespace XrEngine
             using var bmp = ImageUtils.ToBitmap(self.Data![0], false);
             using var enc = bmp.Encode(format, quality);
             if (File.Exists(path))
-                File.Delete(path); 
+                File.Delete(path);
             using var file = File.OpenWrite(path);
             enc.SaveTo(file);
         }

@@ -58,74 +58,77 @@ void main() {
 
     vec2 texelSize = (1.0 / uHeightTexSize);
 
-
-    float height = texture(heightMap, fUv).r * uHeightScale;
+    vec3 curNormal;
 
     #ifdef HAS_TANGENTS
         
-        mat3 tangentBasis;
-
-        tangentBasis[0] = mix(mix(tcTangentBasis[0][0], tcTangentBasis[1][0], gl_TessCoord.x),
+        fTangentBasis[0] = mix(mix(tcTangentBasis[0][0], tcTangentBasis[1][0], gl_TessCoord.x),
                               mix(tcTangentBasis[3][0], tcTangentBasis[2][0], gl_TessCoord.x),
                               gl_TessCoord.y);
-        tangentBasis[1] = mix(mix(tcTangentBasis[0][1], tcTangentBasis[1][1], gl_TessCoord.x),
+        fTangentBasis[1] = mix(mix(tcTangentBasis[0][1], tcTangentBasis[1][1], gl_TessCoord.x),
                               mix(tcTangentBasis[3][1], tcTangentBasis[2][1], gl_TessCoord.x),
                               gl_TessCoord.y);
-        tangentBasis[2] = mix(mix(tcTangentBasis[0][2], tcTangentBasis[1][2], gl_TessCoord.x),
+        fTangentBasis[2] = mix(mix(tcTangentBasis[0][2], tcTangentBasis[1][2], gl_TessCoord.x),
                               mix(tcTangentBasis[3][2], tcTangentBasis[2][2], gl_TessCoord.x),
                               gl_TessCoord.y);
 
-        fPos += tangentBasis[2] * height;
+        curNormal = fTangentBasis[2]; 
 
-        #ifdef USE_NORMAL_MAP
-            fNormal = fTangentBasis[2];
+    #else
+
+        curNormal  =  mix(mix(tcNormal[0], tcNormal[1], gl_TessCoord.x),
+                    mix(tcNormal[3], tcNormal[2], gl_TessCoord.x),
+                    gl_TessCoord.y);
+    #endif
+    
+    float height = texture(heightMap, fUv).r * uHeightScale;
+
+    fPos += curNormal * height;
+
+    #ifdef USE_NORMAL_MAP
+        fNormal = curNormal;
+    #else
+
+        float dX, dY;
+
+        #ifdef NORMAL_SOBEL
+
+            vec3 h00 = texture(heightMap, fUv + vec2(-texelSize.x, -texelSize.y)).rgb;
+            vec3 h10 = texture(heightMap, fUv + vec2(0.0, -texelSize.y)).rgb;
+            vec3 h20 = texture(heightMap, fUv + vec2(texelSize.x, -texelSize.y)).rgb;
+
+            vec3 h01 = texture(heightMap, fUv + vec2(-texelSize.x, 0.0)).rgb;
+            vec3 h21 = texture(heightMap, fUv + vec2(texelSize.x, 0.0)).rgb;
+
+            vec3 h02 = texture(heightMap, fUv + vec2(-texelSize.x, texelSize.y)).rgb;
+            vec3 h12 = texture(heightMap, fUv + vec2(0.0, texelSize.y)).rgb;
+            vec3 h22 = texture(heightMap, fUv + vec2(texelSize.x, texelSize.y)).rgb;
+
+            dX = h00.r * -1.0 + h20.r * 1.0 + h01.r * -2.0 + h21.r * 2.0 + h02.r * -1.0 + h22.r * 1.0;
+            dY = h00.r * -1.0 + h02.r * 1.0 + h10.r * -2.0 + h12.r * 2.0 + h20.r * -1.0 + h22.r * 1.0;
+
         #else
+
             float hL = texture(heightMap, fUv - vec2(texelSize.x, 0.0)).r;
             float hR = texture(heightMap, fUv + vec2(texelSize.x, 0.0)).r;
             float hD = texture(heightMap, fUv - vec2(0.0, texelSize.y)).r;
             float hU = texture(heightMap, fUv + vec2(0.0, texelSize.y)).r;
 
-            float dhdx = (hR - hL); 
-            float dhdy = (hU - hD);
+            dX = (hR - hL); 
+            dY = (hU - hD);
 
-            vec3 hNormal = normalize(vec3(dhdx, dhdy, uHeightNormalStrength));
-
-            fNormal = normalize(tangentBasis * hNormal);
         #endif
 
-    #else
-    
-        vec3 normal  =  mix(mix(tcNormal[0], tcNormal[1], gl_TessCoord.x),
-                        mix(tcNormal[3], tcNormal[2], gl_TessCoord.x),
-                        gl_TessCoord.y);
-                    
-        normal = normalize(normal);
+        vec3 hNormal = normalize(vec3(-dX * uHeightNormalStrength, -dY * uHeightNormalStrength, 1.0));
 
-        fPos += normal * height;
-
-        vec3 position_dx = mix(mix(p0, p1, gl_TessCoord.x + texelSize.x),
-                               mix(p3, p2, gl_TessCoord.x + texelSize.x),
-                               gl_TessCoord.y);
-        vec3 position_dy = mix(mix(p0, p1, gl_TessCoord.x),
-                               mix(p3, p2, gl_TessCoord.x),
-                               gl_TessCoord.y + texelSize.y);
-
-        // Apply displacement to the offset positions
-        float displacement_dx = texture(heightMap, fUv + vec2(texelSize.x, 0.0)).r * uHeightScale;
-        float displacement_dy = texture(heightMap, fUv + vec2(0.0, texelSize.y)).r * uHeightScale;
-
-        position_dx += normal * displacement_dx;
-        position_dy += normal * displacement_dy;
-
-        // Compute tangent vectors
-        vec3 tangent_u = position_dx - fPos;
-        vec3 tangent_v = position_dy - fPos;
-
-        // Compute the normal as the cross product of the tangents
-        fNormal = normalize(cross(tangent_u, tangent_v));
-
+        #ifdef HAS_TANGENTS
+            fNormal = normalize(fTangentBasis * hNormal);
+        #else
+            fNormal = normalize(curNormal + hNormal);
+        #endif
 
     #endif
+
 
     gl_Position = viewProj * vec4(fPos, 1.0);
 }

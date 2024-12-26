@@ -22,7 +22,6 @@ using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
-using System;
 
 
 
@@ -553,7 +552,7 @@ namespace XrSamples
                 Alpha = AlphaMode.Blend,
             };
 
-            var mesh = new TriangleMesh(new Quad3D(new Size2(1, 1)), mat);
+            var mesh = new TriangleMesh(new Quad3D(), mat);
 
             mesh.Name = "mesh";
 
@@ -671,7 +670,7 @@ namespace XrSamples
 
             var mat2 = new TextureMaterial(videoTex);
 
-            var mesh = new TriangleMesh(new Quad3D(new Size2(1, 1)), mat);
+            var mesh = new TriangleMesh(new Quad3D(), mat);
 
             mesh.Transform.SetScale(1.3f);
             mesh.Transform.SetPosition(0, 1f, 0);
@@ -1202,7 +1201,7 @@ namespace XrSamples
             //mat.ColorMap = TextureFactory.CreateChecker();
             //mat.ColorMap.Transform = Matrix3x3.CreateScale(500, 500);
 
-            mat.ColorMap = AssetLoader.Instance.Load<Texture2D>("res://asset/world.topo.bathy.200411.3x21600x10800.jpg");
+            mat.ColorMap = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/world.topo.bathy.200411.3x21600x10800.jpg");
             mat.ColorMap.Transform = Matrix3x3.CreateScale(-1, 1);
             mat.ColorMap.WrapS = WrapMode.Repeat;
             mat.ColorMap.WrapT = WrapMode.Repeat;
@@ -1210,7 +1209,7 @@ namespace XrSamples
 
             if (mat is IHeightMaterial hm)
             {
-                hm.HeightMap = AssetLoader.Instance.Load<Texture2D>("res://asset/gebco_08_rev_elev_21600x10800.png");
+                hm.HeightMap = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/gebco_08_rev_elev_21600x10800.png");
                 hm.HeightMap.WrapS = WrapMode.Repeat;
                 hm.HeightMap.WrapT = WrapMode.Repeat;
                 hm.HeightScale = Unit(6.4f);
@@ -1269,34 +1268,36 @@ namespace XrSamples
             var scene = app.ActiveScene!;
             var mat = MaterialFactory.CreatePbr("#ffffff");
             mat.Roughness = 0f;
-            mat.ColorMap = AssetLoader.Instance.Load<Texture2D>("res://asset/world.topo.bathy.200411.3x21600x10800.jpg");
+
+            mat.ColorMap = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/world.topo.bathy.200411.3x21600x10800.jpg");
             mat.ColorMap.Transform = Matrix3x3.CreateScale(-1, 1);
             mat.ColorMap.WrapS = WrapMode.Repeat;
             mat.ColorMap.WrapT = WrapMode.Repeat;
             mat.ColorMap.Format = TextureFormat.SBgra32;
 
+
             if (mat is IHeightMaterial hm)
             {
-                hm.HeightMap = AssetLoader.Instance.Load<Texture2D>("res://asset/gebco_08_rev_elev_21600x10800.png");
+                hm.HeightMap = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/gebco_08_rev_elev_21600x10800.png");
                 hm.HeightMap.WrapS = WrapMode.Repeat;
                 hm.HeightMap.WrapT = WrapMode.Repeat;
                 hm.HeightMap.MagFilter = ScaleFilter.Linear;
                 hm.HeightMap.MinFilter = ScaleFilter.Linear;
-                hm.HeightScale = 0.1f;
-                hm.HeightTessFactor = 64;
-                hm.HeightNormalStrength = 0.2f;
+                hm.HeightScale = 0.001f;
+                hm.TargetTriSize = 5;
+                hm.DebugTessellation = true;
+                hm.HeightNormalStrength = 1f;
+                hm.HeightNormalMode = HeightNormalMode.Sobel;
 
                 //mat.NormalMap = NormalMap.FromHeightMap(hm.HeightMap, 1f);
                 //mat.NormalMap.SaveAs("d:\\heightmap.png");
             }
 
-            var quod = new QuadPatch3D(new Size2(2, 1), 100);
+            var quod = new QuadPatch3D(new Vector2(2, 1), 200);
             //quod.ToTriangles();
 
-            var wire = new WireframeMaterial() { Color = "#00ff00" };
-
             var plane = new TriangleMesh(quod, (Material)mat);
-            plane.Materials.Add(wire);
+
 
             scene.AddChild(plane);
 

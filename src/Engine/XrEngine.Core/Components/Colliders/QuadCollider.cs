@@ -47,7 +47,7 @@ namespace XrEngine
                 {
                     Quad = new Quad3
                     {
-                        Size = new Vector2(quad3d.Size.Width, quad3d.Size.Height),
+                        Size = quad3d.Size,
                         Pose = Pose3.Identity
                     };
                 }

@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 
-
 namespace XrMath
 {
     public class DiscreteFunction : IFunction2

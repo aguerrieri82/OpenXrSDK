@@ -94,6 +94,6 @@ namespace XrMath
         public static Rect2 FromCenter(float width, float height)
         {
             return new Rect2(-width / 2, -height / 2, width, height);
-        }   
+        }
     }
 }

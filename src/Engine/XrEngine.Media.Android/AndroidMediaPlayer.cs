@@ -1,22 +1,16 @@
 ﻿using Android.Media;
 using Android.Runtime;
-using Android.Content;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
 
 namespace XrEngine.Media
 {
-    public class AndroidMediaPlayer : Java.Lang.Object, IMediaPlayer, 
-        MediaPlayer.IOnPreparedListener, 
+    public class AndroidMediaPlayer : Java.Lang.Object, IMediaPlayer,
+        MediaPlayer.IOnPreparedListener,
         MediaPlayer.IOnErrorListener,
         MediaPlayer.IOnCompletionListener,
         AudioManager.IOnAudioFocusChangeListener
     {
-        MediaPlayer _player;
+        readonly MediaPlayer _player;
         private readonly AudioManager _audioManager;
         float _volume;
         bool _isPrepared;

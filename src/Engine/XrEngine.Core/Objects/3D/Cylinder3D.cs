@@ -57,6 +57,6 @@ namespace XrEngine
 
         public CylinderPart Parts { get; set; }
 
-        public UVMode UVMode { get; set; }  
+        public UVMode UVMode { get; set; }
     }
 }

@@ -6,20 +6,21 @@ namespace XrEngine
     public class Quad3D : Geometry3D, IGeneratedContent
     {
         public Quad3D()
+            : this(Vector2.One)
         {
-            Flags |= EngineObjectFlags.Readonly;
+
         }
 
-        public Quad3D(Size2 size)
-            : this()
+        public Quad3D(Vector2 size)
         {
+            Flags |= EngineObjectFlags.Readonly;
             Size = size;
             Build();
         }
 
         public void Build()
         {
-            var halfSize = new Vector2(Size.Width, Size.Height) / 2;
+            var halfSize = new Vector2(Size.X, Size.Y) / 2;
 
             Vertices = VertexData.FromPosNormalUV(
             [
@@ -46,8 +47,8 @@ namespace XrEngine
                 _vertices[i].UV.Y = _vertices[i].UV.Y == 0 ? 1 : 0;
         }
 
-        public Size2 Size { get; set; }
+        public Vector2 Size { get; set; }
 
-        public static readonly Quad3D Default = new(new Size2(1, 1));
+        public static readonly Quad3D Default = new(Vector2.One);
     }
 }

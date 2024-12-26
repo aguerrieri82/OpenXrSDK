@@ -1,4 +1,5 @@
 ﻿using Common.Interop;
+using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
@@ -22,7 +23,7 @@ namespace XrEngine
 
         #region CameraUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 176)]
+        [StructLayout(LayoutKind.Explicit, Size = 400)]
         public struct CameraUniforms
         {
             [FieldOffset(0)]
@@ -56,6 +57,25 @@ namespace XrEngine
 
             [FieldOffset(172)]
             public float DepthNoiseDistance;
+
+            [FieldOffset(176)]
+            public Plane FrustumPlane1;
+            [FieldOffset(192)]
+            public Plane FrustumPlane2;
+            [FieldOffset(208)]
+            public Plane FrustumPlane3;
+            [FieldOffset(224)]
+            public Plane FrustumPlane4;
+            [FieldOffset(240)]
+            public Plane FrustumPlane5;
+            [FieldOffset(256)]
+            public Plane FrustumPlane6;
+
+            [FieldOffset(272)]
+            public Matrix4x4 View;
+
+            [FieldOffset(336)]
+            public Matrix4x4 Proj;
         }
 
         #endregion
@@ -265,7 +285,15 @@ namespace XrEngine
                         NearPlane = ctx.PassCamera.Near,
                         FarPlane = ctx.PassCamera.Far,
                         DepthNoiseFactor = DepthNoiseFactor,
-                        DepthNoiseDistance = DepthNoiseDistance
+                        DepthNoiseDistance = DepthNoiseDistance,
+                        FrustumPlane1 = ctx.FrustumPlanes[0],
+                        FrustumPlane2 = ctx.FrustumPlanes[1],
+                        FrustumPlane3 = ctx.FrustumPlanes[2],
+                        FrustumPlane4 = ctx.FrustumPlanes[3],
+                        FrustumPlane5 = ctx.FrustumPlanes[4],
+                        FrustumPlane6 = ctx.FrustumPlanes[5],
+                        View = ctx.PassCamera.View,
+                        Proj = ctx.PassCamera.Projection,
                     };
 
                     var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
@@ -392,7 +420,7 @@ namespace XrEngine
             OcclusionStrength = 1.0f;
             NormalScale = 1;
             HeightScale = 1;
-            HeightTessFactor = 4;
+            TargetTriSize = 5f;
             ToneMap = true;
         }
 
@@ -490,6 +518,9 @@ namespace XrEngine
             {
                 bld.AddFeature("USE_HEIGHT_MAP");
 
+                if (HeightNormalMode == HeightNormalMode.Sobel)
+                    bld.AddFeature("NORMAL_SOBEL");
+
                 bld.ExecuteAction((ctx, up) =>
                 {
                     if (HeightMap != null)
@@ -497,10 +528,10 @@ namespace XrEngine
                         up.LoadTexture(HeightMap, 8);
                         up.SetUniform("uHeightTexSize", new Vector2(HeightMap.Width, HeightMap.Height));
                     }
-             
+
                     up.SetUniform("uHeightNormalStrength", HeightNormalStrength);
                     up.SetUniform("uHeightScale", HeightScale);
-                    up.SetUniform("uTessFactor", HeightTessFactor);
+                    up.SetUniform("uTargetTriSize", TargetTriSize);
                 });
             }
 
@@ -570,17 +601,27 @@ namespace XrEngine
         }
 
 
-        bool ITesselation.UseTesselation => HeightMap != null;
+        bool ITessellation.UseTessellation => HeightMap != null;
+
+        public bool DebugTessellation { get; set; }
 
         [Range(0, 1, 0.01f)]
-        public float HeightNormalStrength { get; set; } 
-
-        public float HeightTessFactor { get; set; }
+        [Category("HeightMap")]
+        public float HeightNormalStrength { get; set; }
 
         [Range(0, 10, 0.01f)]
-        public float HeightScale{ get; set; }
+        [Category("HeightMap")]
+        public float HeightScale { get; set; }
 
+        [Category("HeightMap")]
+        public float TargetTriSize { get; set; }
+
+        [Category("HeightMap")]
+        public HeightNormalMode HeightNormalMode { get; set; }
+
+        [Category("HeightMap")]
         public Texture2D? HeightMap { get; set; }
+
 
         public Texture2D? OcclusionMap { get; set; }
 

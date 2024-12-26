@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {
@@ -12,7 +11,7 @@ namespace XrEngine
             SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "glow_vol_slice.frag",
-                GeometrySourceName = "cube_volume.geom",   
+                GeometrySourceName = "cube_volume.geom",
                 IsLit = false
             };
         }
@@ -53,7 +52,7 @@ namespace XrEngine
 
         public Color HaloColor { get; set; }
 
-        [Range(1, 100, 1)]   
+        [Range(1, 100, 1)]
         public int Slices { get; set; }
     }
 }

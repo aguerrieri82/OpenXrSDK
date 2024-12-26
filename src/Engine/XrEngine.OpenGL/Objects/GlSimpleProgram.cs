@@ -50,7 +50,7 @@ namespace XrEngine.OpenGL
 
             if (gSource != null)
                 Geometry = GlShader.GetOrCreate(_gl, ShaderType.GeometryShader, gSource);
-            
+
             if (tcSource != null)
                 TessControl = GlShader.GetOrCreate(_gl, ShaderType.TessControlShader, tcSource);
 
@@ -74,13 +74,13 @@ namespace XrEngine.OpenGL
             Fragment?.Dispose();
             Geometry?.Dispose();
             TessControl?.Dispose();
-            TessEval?.Dispose();    
+            TessEval?.Dispose();
 
             Vertex = null;
             Fragment = null;
             Geometry = null;
             TessControl = null;
-            TessEval = null;    
+            TessEval = null;
 
             base.Dispose();
         }

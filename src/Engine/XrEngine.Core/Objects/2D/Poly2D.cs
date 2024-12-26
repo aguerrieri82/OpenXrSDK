@@ -67,7 +67,7 @@ namespace XrEngine
 
                 }
 
-            
+
             }
         }
 
@@ -89,7 +89,7 @@ namespace XrEngine
         public void Invalidate()
         {
             _length = float.NaN;
-        }   
+        }
 
         protected void UpdateLength()
         {
@@ -106,6 +106,6 @@ namespace XrEngine
 
         public bool IsClosed { get; set; }
 
-        public Vector2[] Points { get; set; }   
+        public Vector2[] Points { get; set; }
     }
 }

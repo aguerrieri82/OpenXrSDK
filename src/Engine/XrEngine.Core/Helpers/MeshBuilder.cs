@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 
@@ -86,7 +85,7 @@ namespace XrEngine
                 var v2 = center + new Vector3(MathF.Cos(a2), MathF.Sin(a2), 0) * radius;
 
                 Vector2 uv0, uv1, uv2;
-      
+
 
                 if (uvMode == UVMode.Size)
                 {
@@ -112,7 +111,7 @@ namespace XrEngine
         public MeshBuilder AddCylinder(Vector3 center, float radius, float height, float subs, UVMode uvMode)
         {
             float u1, u2, vv1, vv2;
-            
+
             if (uvMode == UVMode.Normalized)
             {
                 vv1 = 0;
@@ -138,7 +137,7 @@ namespace XrEngine
 
                 if (uvMode == UVMode.Normalized)
                 {
-                    u1 = a1 / (MathF.PI * 2); 
+                    u1 = a1 / (MathF.PI * 2);
                     u2 = a2 / (MathF.PI * 2);
                 }
                 else
@@ -237,9 +236,9 @@ namespace XrEngine
                         var r1 = samples[j].Position.Length();
                         var r2 = samples[j + 1].Position.Length();
                         uv0 = new Vector2(u1, r1 * a1);
-                        uv1 = new Vector2(u2,  r2 * a1);
+                        uv1 = new Vector2(u2, r2 * a1);
                         uv2 = new Vector2(u1, r1 * a2);
-                        uv3 = new Vector2(u2,  r2 * a2);
+                        uv3 = new Vector2(u2, r2 * a2);
                     }
 
 

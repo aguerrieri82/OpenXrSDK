@@ -1,11 +1,11 @@
-﻿using SkiaSharp;
-using System.Numerics;
-using XrMath;
+﻿using System.Numerics;
 
 namespace XrEngine
 {
     public class QuadSphere3D : Geometry3D, IGeneratedContent
     {
+        protected Vector2 _patchSize;
+
         public QuadSphere3D()
             : this(1, 3)
         {
@@ -19,8 +19,6 @@ namespace XrEngine
             Primitive = DrawPrimitive.Quad;
             Build();
         }
-
-    
 
 
         public void Build()
@@ -117,10 +115,7 @@ namespace XrEngine
                 var centerToV0 = Vector3.Normalize(v0);
 
                 if (Vector3.Dot(normal, centerToV0) < 0)
-                {
-                    // Swap to correct winding
                     return [i0, i3, i2, i1];
-                }
 
                 return [i0, i1, i2, i3];
             }
@@ -137,30 +132,42 @@ namespace XrEngine
                 return (uint)index;
             }
 
-            // Generate sphere by subdividing and projecting
+
             (List<Vector3>, List<uint>) GenerateSphere(int levels)
             {
                 var (vertices, indices) = GenerateCubeQuads();
 
                 for (int i = 0; i < levels; i++)
-                {
                     (vertices, indices) = SubdivideAndProject(vertices, indices);
-                }
 
                 return (vertices, indices);
+            }
+
+            Vector4 ComputeTangent(Vector3 pos)
+            {
+                var normal = Vector3.Normalize(pos);
+
+                var arbitrary = Math.Abs(normal.Y) > 0.999f ? new Vector3(1, 0, 0) : new Vector3(0, 1, 0);
+
+                var tangent = Vector3.Normalize(Vector3.Cross(arbitrary, normal));
+
+                var bitangent = Vector3.Cross(normal, tangent);
+
+                var w = Vector3.Dot(Vector3.Cross(tangent, bitangent), normal) > 0.0f ? 1.0f : -1.0f;
+
+                return new Vector4(tangent, w);
             }
 
             // Calculate UV mapping
             Vector2 CalculateUV(Vector3 vertex)
             {
                 var normal = Vector3.Normalize(vertex);
-                float u = 0.5f + (float)(Math.Atan2(normal.Z, normal.X) / (2 * Math.PI));
-                float v = 0.5f - (float)(Math.Asin(normal.Y) / Math.PI);
-
+                var u = 0.5f + (float)(Math.Atan2(normal.Z, normal.X) / (2 * Math.PI));
+                var v = 0.5f - (float)(Math.Asin(normal.Y) / Math.PI);
                 return new Vector2(u, v);
             }
 
-            bool CrossesSeam(float[] us)
+            bool CrossesSeam(IEnumerable<float> us)
             {
                 float maxU = us.Max();
                 float minU = us.Min();
@@ -181,14 +188,14 @@ namespace XrEngine
                 var uvs = positions.Select(CalculateUV).ToArray();
 
                 // Check for seam crossing
-                bool crossesSeam = CrossesSeam(uvs.Select(uv => uv.X).ToArray());
+                bool crossesSeam = CrossesSeam(uvs.Select(uv => uv.X));
 
                 uint[] quadIndices = new uint[4];
 
                 for (int j = 0; j < 4; j++)
                 {
-                    Vector3 position = positions[j] * Radius;
-                    Vector2 uv = uvs[j];
+                    var position = positions[j] * Radius;
+                    var uv = uvs[j];
 
                     if (crossesSeam && uv.X < 0.25f)
                         uv.X += 1.0f;
@@ -197,10 +204,12 @@ namespace XrEngine
 
                     if (!vertexMap.TryGetValue(key, out uint index))
                     {
+
                         var vertexData = new VertexData
                         {
                             Pos = position,
                             Normal = Vector3.Normalize(positions[j]),
+                            Tangent = ComputeTangent(position),
                             UV = uv
                         };
                         finalVertices.Add(vertexData);
@@ -217,16 +226,15 @@ namespace XrEngine
             Vertices = finalVertices.ToArray();
             Indices = finalIndices.ToArray();
 
-            ActiveComponents |= VertexComponent.Normal | VertexComponent.UV0;
+            ActiveComponents |= VertexComponent.Normal | VertexComponent.UV0 | VertexComponent.Tangent;
         }
-
-        // Determine if quad crosses the UV seam
-  
 
         public int Levels { get; set; }
 
         public float Radius { get; set; }
 
         public Vector3 Center { get; set; }
+
+        public Vector2 PatchSize => _patchSize;
     }
 }

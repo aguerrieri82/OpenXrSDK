@@ -1,7 +1,4 @@
-﻿using Common.Interop;
-using System.Diagnostics;
-using System.Numerics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using XrEngine.Objects;
 using XrMath;
 using static XrEngine.Filament.FilamentLib;
@@ -439,13 +436,13 @@ namespace XrEngine.Filament
                 }
             }
 
-            Create(false);  
+            Create(false);
 
             geo.Changed += (s, c) =>
             {
                 if (c.IsAny(ObjectChangeType.Geometry))
                     Create(true);
-            };  
+            };
         }
 
         protected void Create(Guid id, Material mat)
@@ -676,7 +673,7 @@ namespace XrEngine.Filament
 
         protected void Create(Guid id, TriangleMesh mesh)
         {
-            var geoId = GetOrCreate(mesh.Geometry!, geoId => Create(geoId, id,  mesh.Geometry!));
+            var geoId = GetOrCreate(mesh.Geometry!, geoId => Create(geoId, id, mesh.Geometry!));
 
             var matId = GetOrCreate(mesh.Materials[0], matId => Create(matId, mesh.Materials[0]));
 
@@ -704,7 +701,7 @@ namespace XrEngine.Filament
                     SetMeshMaterial(_app, id, matId);
                 }
 
-                OnObjectChanged((Object3D)s, c); 
+                OnObjectChanged((Object3D)s, c);
             };
         }
 

@@ -44,8 +44,8 @@ namespace XrEngine
 
         public override T? Feature<T>() where T : class
         {
-            if (typeof(T) == typeof(Geometry3D))
-                return (T?)(object?)Geometry;
+            if (Geometry is T geo)
+                return geo;
             return base.Feature<T>();
         }
 

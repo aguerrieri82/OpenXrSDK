@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {
@@ -51,7 +50,7 @@ namespace XrEngine
 
         public Color HaloColor { get; set; }
 
-        [Range(0, 1, 0.001f)]   
+        [Range(0, 1, 0.001f)]
         public float StepSize { get; set; }
     }
 }

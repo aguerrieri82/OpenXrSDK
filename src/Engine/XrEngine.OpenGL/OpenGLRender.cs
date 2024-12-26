@@ -10,8 +10,8 @@ using System.Text;
 using XrMath;
 using SkiaSharp;
 using System.Runtime.InteropServices;
-using System.Numerics;
 using System.Diagnostics;
+using System.Numerics;
 
 namespace XrEngine.OpenGL
 {

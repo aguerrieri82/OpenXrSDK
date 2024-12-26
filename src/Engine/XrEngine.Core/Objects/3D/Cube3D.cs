@@ -21,7 +21,7 @@ namespace XrEngine
         {
 
             var builder = new MeshBuilder();
-            builder.AddCube(Center, Size);  
+            builder.AddCube(Center, Size);
             var halfSize = Size / 2;
 
             Vertices = VertexData.FromPosNormalUV(
