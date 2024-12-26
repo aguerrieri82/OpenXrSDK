@@ -12,16 +12,11 @@ void main()
 {    
     float distanceToCenter = length(fPos - uCenter);
 
-
     float glowFactor = smoothstep(uRadius, uRadius + uWidth, distanceToCenter);
-
 
     glowFactor = 1.0 - glowFactor;
 
-
     vec3 haloColor = uColor.rgb * glowFactor * uIntensity;
 
-
     FragColor = vec4(haloColor, glowFactor);
-
 }

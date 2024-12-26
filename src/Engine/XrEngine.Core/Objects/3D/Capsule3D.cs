@@ -6,18 +6,18 @@ namespace XrEngine
     public class Capsule3D : Geometry3D, IGeneratedContent
     {
         public Capsule3D()
+            : this(0.5f, 1)
         {
-            Flags |= EngineObjectFlags.Readonly;
+
         }
 
         public Capsule3D(float radius, float height, int horizontal = 7, int vertical = 7)
-            : this()
         {
             Radius = radius;
             Height = height;
             SubsH = horizontal;
             SubsV = vertical;
-
+            Flags |= EngineObjectFlags.Readonly;
             Build();
         }
 

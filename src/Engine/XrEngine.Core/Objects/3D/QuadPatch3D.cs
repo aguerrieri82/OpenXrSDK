@@ -5,7 +5,7 @@ namespace XrEngine
     public class QuadPatch3D : Geometry3D, IGeneratedContent
     {
         public QuadPatch3D()
-            : this(new Vector2(1, 1))
+            : this(Vector2.One)
         {
         }
 

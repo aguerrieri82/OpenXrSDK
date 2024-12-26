@@ -271,7 +271,7 @@ namespace XrEngine.OpenGL
 
                     draw.IsHidden = !progInst.Material!.IsEnabled || !draw.Object!.IsVisible;
 
-                    if (!draw.IsHidden && _render.Options.FrustumCulling && draw.Object is TriangleMesh mesh)
+                    if (!draw.IsHidden && _render.Options.FrustumCulling && draw.Object is TriangleMesh mesh && (mesh.Flags & EngineObjectFlags.NoFrustumCulling) == 0)
                     {
                         draw.IsHidden = !mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes!);
                         if (draw.IsHidden)

@@ -1,42 +1,65 @@
-﻿layout(triangles) in;
-layout(triangle_strip, max_vertices = 18) out; // Max 6 slices (2 triangles each)
+﻿layout(points) in;
+layout(triangle_strip, max_vertices = 4) out; // Max 6 slices (2 triangles each)
 
-uniform mat4 uViewProj;
-uniform mat4 uModel;
-uniform vec3 uCameraPos;
-uniform vec3 uCameraForward; // Camera forward vector
-uniform vec3 uCameraUp; // Camera up vector
-uniform int uNumSlices; // Number of slices
+#include "uniforms.glsl"
 
-out vec3 fPos; // Pass texture coordinates to the fragment shader
+uniform mat4 uModel;            // Model matrix
+uniform vec3 uCameraForward;    // Camera forward vector
+uniform vec3 uCameraUp;         // Camera up vector
+uniform int uNumSlices;         // Number of slices
 
-const vec3 cubeCenter = vec3(0.0, 0.0, 0.0);
+out vec3 fPos; // Pass vertex position to fragment shader
+
+
 const vec3 cubeSize = vec3(1.0, 1.0, 1.0);
-
+const vec3 cubeCenter = vec3(0.0, 0.0, 0.0);
 
 void main() {
 
-    // Camera's right vector (cross product of forward and up)
+    mat4 viewProj = uCamera.viewProj;
+
+    float faceId = gl_in[0].gl_Position.x;
+
+    if (faceId >= float(uNumSlices))
+        return;
+
     vec3 cameraRight = normalize(cross(uCameraForward, uCameraUp));
-    vec3 cameraUp = normalize(cross(cameraRight, uCameraForward));
+    vec3 cameraUp = normalize(uCameraUp);
 
-    for (int i = 0; i < uNumSlices; ++i) {
-        float t = float(i) / float(uNumSlices - 1); // Interpolation factor
-        vec3 sliceCenter = cubeCenter + uCameraForward * (t - 0.5) * cubeSize.z;
+    float t = float(faceId) / float(uNumSlices - 1); // Interpolation factor
+    vec3 sliceCenter = cubeCenter + uCameraForward * (t - 0.5) * cubeSize.z;
 
-        // Define the four corners of the slice quad in the camera-aligned plane
-        vec3 corners[4] = vec3[](
-            sliceCenter - cameraRight * cubeSize.x * 0.5 - cameraUp * cubeSize.y * 0.5,
-            sliceCenter + cameraRight * cubeSize.x * 0.5 - cameraUp * cubeSize.y * 0.5,
-            sliceCenter + cameraRight * cubeSize.x * 0.5 + cameraUp * cubeSize.y * 0.5,
-            sliceCenter - cameraRight * cubeSize.x * 0.5 + cameraUp * cubeSize.y * 0.5
-        );
+    // Define the four corners of the slice quad in the camera-aligned plane
+    vec3 corners[4] = vec3[](
+        sliceCenter - cameraRight * cubeSize.x * 0.5 - cameraUp * cubeSize.y * 0.5,
+        sliceCenter + cameraRight * cubeSize.x * 0.5 - cameraUp * cubeSize.y * 0.5,
+        sliceCenter + cameraRight * cubeSize.x * 0.5 + cameraUp * cubeSize.y * 0.5,
+        sliceCenter - cameraRight * cubeSize.x * 0.5 + cameraUp * cubeSize.y * 0.5
+    );
 
-        for (int j = 0; j < 4; ++j) {
-            gl_Position = uViewProj * uModel * vec4(corners[j], 1.0);
-            fPos = corners[j];
-            EmitVertex();
-        }
-        EndPrimitive();
-    }
+    // Emit two triangles to form the quad
+       
+    vec4 pos;
+
+    pos = uModel * vec4(corners[0], 1.0);
+    fPos = pos.xyz;
+    gl_Position = viewProj * pos;
+    EmitVertex();
+
+    pos = uModel * vec4(corners[1], 1.0);
+    fPos = pos.xyz;
+    gl_Position = viewProj * pos;
+    EmitVertex();
+
+    pos = uModel * vec4(corners[3], 1.0);
+    fPos = pos.xyz;
+    gl_Position = viewProj * pos;
+    EmitVertex();
+       
+    pos = uModel * vec4(corners[2], 1.0);
+    fPos = pos.xyz;
+    gl_Position = viewProj * pos;
+    EmitVertex();
+
+    EndPrimitive();
 }

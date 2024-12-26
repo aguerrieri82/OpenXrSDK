@@ -1,4 +1,5 @@
 ﻿
 void main()
 {    
+	discard;
 }

@@ -5,14 +5,14 @@ namespace XrEngine
     public class Cube3D : Geometry3D, IGeneratedContent
     {
         public Cube3D()
+            : this(Vector3.One) 
         {
-            Flags |= EngineObjectFlags.Readonly;
+
         }
 
         public Cube3D(Vector3 size)
-            : this()
         {
-
+            Flags |= EngineObjectFlags.Readonly;
             Size = size;
             Build();
         }
@@ -84,6 +84,6 @@ namespace XrEngine
 
         public Vector3 Center { get; set; }
 
-        public static readonly Cube3D Default = new(new Vector3(1, 1, 1));
+        public static readonly Cube3D Default = new();
     }
 }

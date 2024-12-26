@@ -1,18 +1,20 @@
-﻿in vec2 fUv;
+﻿#include "Shared/depth_sampler.glsl"    
+#include "Shared/uniforms.glsl"    
+
+in vec2 fUv;
 
 layout(location=0) out vec4 FragColor;
 
-#include "Shared/depth_sampler.glsl"    
+
 
 #ifdef LINEARIZE 
 
-uniform float uNearPlane;
-uniform float uFarPlane;
+
 
 float linearizeDepth(float depth)
 {
     float z = depth * 2.0 - 1.0;
-    return (2.0 * uNearPlane * uFarPlane) / (uFarPlane + uNearPlane - z * (uFarPlane - uNearPlane));
+    return (2.0 * uCamera.nearPlane * uCamera.farPlane) / (uCamera.farPlane + uCamera.nearPlane - z * (uCamera.farPlane - uCamera.nearPlane));
 }
 
 
@@ -23,7 +25,7 @@ void main()
     float depthValue = getDepth(fUv);
 
     #ifdef LINEARIZE
-        FragColor = vec4(vec3(linearizeDepth(depthValue) / uFarPlane), 1.0);
+        FragColor = vec4(vec3(linearizeDepth(depthValue) / uCamera.farPlane), 1.0);
     #else
         FragColor = vec4(vec3(depthValue), 1.0);
     #endif

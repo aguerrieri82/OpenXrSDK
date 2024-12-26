@@ -12,7 +12,8 @@
         NotifyChangedScene = 0x20,
         NotifyChanged = 0x100,
         GpuOnly = 0x40,
-        Mutable = 0x80
+        Mutable = 0x80,
+        NoFrustumCulling = 0x100
     }
 
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject

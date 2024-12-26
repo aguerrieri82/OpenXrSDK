@@ -1,4 +1,6 @@
-﻿in vec3 fNormal;
+﻿#include "Shared/uniforms.glsl"
+
+in vec3 fNormal;
 in vec3 fPos;
 in vec2 fUv;
 
@@ -25,7 +27,6 @@ struct Light {
 
 uniform Material material;
 uniform Light light;
-uniform vec3 uCameraPos;
 
 layout(location=0) out vec4 FragColor;
 
@@ -46,7 +47,7 @@ void main()
     diffuse = diffuse * texture(uTexture, fUv).rgb;
     #endif
 
-    vec3 viewDirection = normalize(uCameraPos - fPos);
+    vec3 viewDirection = normalize(uCamera.position - fPos);
     vec3 reflectDirection = reflect(-lightDirection, norm);
     float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);
