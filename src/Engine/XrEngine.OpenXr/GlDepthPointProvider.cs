@@ -28,7 +28,7 @@ namespace XrEngine.OpenXr
 
             _depthCamera = new PerspectiveCamera();
 
-            _program = new GlSimpleProgram(_gl, "Utils/fullscreen.vert", "depth_point.frag", s =>
+            _program = new GlSimpleProgram(_gl, "fullscreen.vert", "depth_point.frag", s =>
             {
                 if (s.EndsWith(".vert"))
                     return Embedded.GetString<Object3D>(s);

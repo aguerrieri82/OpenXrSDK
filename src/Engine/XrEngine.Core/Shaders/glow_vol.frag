@@ -1,18 +1,17 @@
 ﻿
-uniform vec3 sphereCenter; // Center of the sphere in world space
-uniform float sphereRadius; // Radius of the sphere (r)
-uniform float haloWidth; // Width of the halo (d)
-uniform vec3 glowColor; // Color of the glow
-uniform vec4 haloColor; // Color of the halo
+#include "Shared/uniforms.glsl"
+
+uniform vec3 sphereCenter; 
+uniform float sphereRadius;
+uniform float haloWidth; 
+uniform vec4 haloColor; 
 uniform float stepSize;
 
-uniform vec3 uCameraPos; 
 in vec3 fPos;
 
 out vec4 fragColor; 
 
 float t0,t1;
-
 
 bool intersectSphere(vec3 rayOrigin, vec3 rayDir, vec3 sphereCenter, float sphereRadius) {
     vec3 oc = rayOrigin - sphereCenter;      // Ray origin offset from sphere center
@@ -34,56 +33,47 @@ bool intersectSphere(vec3 rayOrigin, vec3 rayDir, vec3 sphereCenter, float spher
 
 void main() {
 
-    vec3 rayDirection = normalize(fPos - uCameraPos);
+    vec3 cameraPos = uCamera.pos;
 
-    if (!intersectSphere(uCameraPos, rayDirection, sphereCenter, sphereRadius + haloWidth)) 
-        discard;
-   
-
-    // Step along the ray
-    vec3 rayOrigin = uCameraPos + rayDirection * t0; // Start point of ray inside the volume
-
-    vec3 step = rayDirection * stepSize;
+    vec3 rayDirection = normalize(fPos - cameraPos);
 
 
-    // Order t0, t1
-    if(t0 > t1) {
-        float tmp = t0;
-        t0 = t1;
-        t1 = tmp;
-    }
+    if (!intersectSphere(cameraPos, rayDirection, sphereCenter, sphereRadius + haloWidth)) 
+        discard;    
 
     // If both intersections are behind camera, discard
-    if(t1 < 0.0) {
+    if (t1 < 0.0) 
         discard;
-    }
 
     // If the near intersection is behind camera, clamp it
-    if(t0 < 0.0) {
+    if (t0 < 0.0) 
         t0 = 0.0;
-    }
+  
+    vec3 step = rayDirection * stepSize;
 
     vec4 accumulatedColor = vec4(0.0); // Accumulated color and alpha
 
-    vec3 samplePos = uCameraPos + rayDirection * t0; 
-
+    vec3 samplePos = cameraPos + rayDirection * t0; 
 
     for (float t = t0; t < t1; t += stepSize) {
 
- 
         float dist = length(samplePos - sphereCenter);
-
-        if (dist <= sphereRadius)
+  
+        if (dist <= sphereRadius )
             break;
        
-        if (dist > sphereRadius && dist <= sphereRadius + haloWidth) {
+        if (dist <= sphereRadius + haloWidth) 
+        {
             float alpha = 1.0 - ((dist - sphereRadius) / haloWidth); // Fade alpha
             accumulatedColor.a += (1.0 - accumulatedColor.a) * alpha * haloColor.a; // Blend alpha
-        }
 
-        if (accumulatedColor.a >= 1.0) 
+            if (accumulatedColor.a >= 1.0) 
+                break;
+        }
+        else if (accumulatedColor.a > 0.0) 
             break;
-               samplePos += step;
+         
+        samplePos += step;
 
     }
 

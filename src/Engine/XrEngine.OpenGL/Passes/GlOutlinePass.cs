@@ -22,7 +22,7 @@ namespace XrEngine.OpenGL
             _passTarget.BoundEye = boundEye;
             _passTarget.DepthMode = TargetDepthMode.None;
 
-            _outlineProgram = new GlSimpleProgram(renderer.GL, "Utils/fullscreen.vert", "outline.frag", str => Embedded.GetString<Material>(str));
+            _outlineProgram = new GlSimpleProgram(renderer.GL, "fullscreen.vert", "outline.frag", str => Embedded.GetString<Material>(str));
             _outlineProgram.Build();
         }
 

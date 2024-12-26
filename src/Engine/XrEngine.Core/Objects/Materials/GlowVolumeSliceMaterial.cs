@@ -10,8 +10,10 @@ namespace XrEngine
         {
             SHADER = new StandardVertexShader
             {
+                
                 FragmentSourceName = "glow_vol_slice.frag",
-                GeometrySourceName = "cube_volume.geom",
+                GeometrySourceName = "Shared/cube_volume.geom",
+                VertexSourceName = "pass.vert",
                 IsLit = false
             };
         }

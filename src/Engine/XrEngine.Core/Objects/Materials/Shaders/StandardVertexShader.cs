@@ -1,4 +1,6 @@
-﻿namespace XrEngine
+﻿using System.Diagnostics;
+
+namespace XrEngine
 {
     public class StandardVertexShader : Shader, IShaderHandler
     {
@@ -20,21 +22,41 @@
                 bld.ExecuteAction((ctx, up) =>
                 {
                     up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, 14);
-                    up.SetUniform("uLightSpaceMatrix", ctx.ShadowMapProvider.LightCamera!.ViewProjection);
                     if (ctx.ShadowMapProvider.Light != null)
                         up.SetUniform("uLightDirection", ctx.ShadowMapProvider.Light.Direction);
                 });
             }
 
-
-            bld.ExecuteAction((ctx, up) =>
+            bld.LoadBuffer((ctx) =>
             {
-                var camera = ctx.PassCamera!;
+                Debug.Assert(ctx.PassCamera != null);
 
-                up.SetUniform("uViewProj", camera.ViewProjection);
-                up.SetUniform("uCameraPos", camera.WorldPosition, true);
-                up.SetUniform("uFarPlane", camera.Far);
-            });
+                var result = new CameraUniforms
+                {
+                    ViewProj = ctx.PassCamera.ViewProjection,
+                    Position = ctx.PassCamera.WorldPosition,
+                    Exposure = ctx.PassCamera.Exposure,
+                    ActiveEye = ctx.PassCamera.ActiveEye,
+                    ViewSize = ctx.PassCamera.ViewSize,
+                    NearPlane = ctx.PassCamera.Near,
+                    FarPlane = ctx.PassCamera.Far,
+                    FrustumPlane1 = ctx.FrustumPlanes[0],
+                    FrustumPlane2 = ctx.FrustumPlanes[1],
+                    FrustumPlane3 = ctx.FrustumPlanes[2],
+                    FrustumPlane4 = ctx.FrustumPlanes[3],
+                    FrustumPlane5 = ctx.FrustumPlanes[4],
+                    FrustumPlane6 = ctx.FrustumPlanes[5],
+                    View = ctx.PassCamera.View,
+                    Proj = ctx.PassCamera.Projection,
+                };
+
+                var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
+                if (light != null)
+                    result.LightSpaceMatrix = light.Value;
+
+                return (CameraUniforms?)result;
+
+            }, 0, BufferStore.Shader);
         }
 
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)

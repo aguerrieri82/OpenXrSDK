@@ -1206,18 +1206,24 @@ namespace XrSamples
             mat.ColorMap.WrapS = WrapMode.Repeat;
             mat.ColorMap.WrapT = WrapMode.Repeat;
             mat.ColorMap.Format = TextureFormat.SBgra32;
+            mat.ColorMap.MinFilter = ScaleFilter.LinearMipmapLinear;
+            mat.ColorMap.MipLevelCount = 20;
 
             if (mat is IHeightMaterial hm)
             {
                 hm.HeightMap = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/gebco_08_rev_elev_21600x10800.png");
                 hm.HeightMap.WrapS = WrapMode.Repeat;
                 hm.HeightMap.WrapT = WrapMode.Repeat;
+                hm.HeightMap.MipLevelCount = 20;
+                hm.HeightMap.MinFilter = ScaleFilter.LinearMipmapLinear;
                 hm.HeightScale = Unit(6.4f);
-                hm.HeightNormalStrength = 0.1f;
+                hm.HeightScale = 0.05f;
+                hm.HeightNormalStrength = 1;
+                hm.HeightNormalMode = HeightNormalMode.Sobel;
             }
 
 
-            float Unit(float value)
+            static float Unit(float value)
             {
                 return value / 1000f;
             }
@@ -1233,14 +1239,47 @@ namespace XrSamples
             var sun = new TriangleMesh(new Sphere3D(Unit(696340), 50), (Material)MaterialFactory.CreatePbr("#ffff00"));
             sun.Transform.SetPositionZ(Unit(149600000));
 
-            var cube = new TriangleMesh(new Cube3D(new Vector3(1, 1, 1)),
-            new GlowVolumeSliceMaterial()
+            var cube = new TriangleMesh();
+
+            if (false)
             {
-                SphereRadius = Unit(6378),
-                HaloWidth = Unit(40),
-                HaloColor = "#0000FF09",
-                Slices = 100
-            });
+                cube.Geometry = new Cube3D();
+                cube.Materials.Add(new GlowVolumeMaterial()
+                {
+                    SphereRadius = Unit(6378),
+                    HaloWidth = Unit(40),
+                    HaloColor = "#0000FF09",
+                    StepSize = Unit(1)
+                });
+            }
+            else
+            {
+                cube.Flags |= EngineObjectFlags.NoFrustumCulling;
+
+                var vtx = new VertexData[5000];
+                for (var i = 0; i < vtx.Length; i++)
+                {
+                    vtx[i] = new VertexData()
+                    {
+                        Pos = new Vector3(i, 0, 0)
+                    };
+                }
+                cube.Geometry = new Geometry3D
+                {
+                    Primitive = DrawPrimitive.Point,
+                    Vertices = vtx,
+                    ActiveComponents = VertexComponent.Position
+                };
+                cube.Materials.Add(new GlowVolumeSliceMaterial()
+                {
+                    SphereRadius = Unit(6378),
+                    HaloWidth = Unit(40),
+                    HaloColor = "#0000FF09",
+                    Slices = 100
+                });
+            }
+         
+
             cube.Transform.SetScale(2 * Unit(6378 + 40));
             cube.Name = "Athmosphere";
 

@@ -1,6 +1,8 @@
 ﻿
 layout(quads) in;
 
+#include "uniforms.glsl"
+
 #ifdef HAS_TANGENTS
     in mat3 tcTangentBasis[];
     out mat3 fTangentBasis;
@@ -23,25 +25,12 @@ uniform float uHeightScale;
 uniform vec2 uHeightTexSize;
 uniform float uHeightNormalStrength;
 
-#ifdef PBR_V2
-    #include "../PbrV2/uniforms.glsl"
-#else
-    uniform vec3 uCameraPos;
-    uniform mat4 uViewProj;
-#endif
 
 void main() {
     
-    mat4 viewProj;
-
-    #ifdef PBR_V2
-        fCameraPos = uCamera.cameraPosition;
-        viewProj = uCamera.viewProj;
-    #else
-        fCameraPos = uCameraPos;
-        viewProj = uViewProj;
-    #endif
-
+    mat4 viewProj = uCamera.viewProj;
+    fCameraPos = uCamera.pos;
+  
     vec3 p0 = gl_in[0].gl_Position.xyz;
     vec3 p1 = gl_in[1].gl_Position.xyz;
     vec3 p2 = gl_in[2].gl_Position.xyz;

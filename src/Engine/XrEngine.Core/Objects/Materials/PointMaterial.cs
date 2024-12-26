@@ -25,7 +25,6 @@
         {
             bld.ExecuteAction((ctx, bld) =>
             {
-                bld.SetUniform("uViewProj", ctx.PassCamera!.ViewProjection);
                 bld.SetUniform("uModel", ctx.Model!.WorldMatrix);
             });
         }

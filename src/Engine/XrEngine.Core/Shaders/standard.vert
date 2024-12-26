@@ -1,4 +1,7 @@
 ﻿
+#include "Shared/uniforms.glsl"
+#include "Shared/position.glsl"
+
 #ifdef PLANAR_REFLECTION
     #include "Shared/planar_reflection.glsl"
     out vec2 fPlanarUv;
@@ -16,22 +19,16 @@ uniform mat4 uModel;
 uniform mat4 uNormalMatrix;
 
 #ifdef USE_SHADOW_MAP
-    uniform mat4 uLightSpaceMatrix;
     out vec4 fPosLightSpace;
 #endif
 
-    
 #ifdef UV_TRANSFORM
     uniform mat3 uUvTransform;
 #endif
 
-
 out vec3 fNormal;
 out vec3 fPos;
 out vec2 fUv;
-
-
-#include "Shared/position.glsl"
 
 void main()
 {
@@ -49,7 +46,7 @@ void main()
     #endif
 
     #ifdef USE_SHADOW_MAP
-        fPosLightSpace = uLightSpaceMatrix * pos;
+        fPosLightSpace = uCamera.lightSpaceMatrix * pos;
     #endif
 
     #ifdef PLANAR_REFLECTION

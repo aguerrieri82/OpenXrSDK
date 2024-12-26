@@ -1,4 +1,5 @@
-﻿out int fViewIndex;
+﻿
+out int fViewIndex;
 
 #ifdef MULTI_VIEW
 
@@ -34,23 +35,19 @@
 
 #else
 
-    uniform mat4 uViewProj;
-    uniform vec3 uCameraPos;
-    uniform float uFarPlane;    
-
     vec3 getViewPos() 
     {
-       return uCameraPos;   
+       return uCamera.pos;   
     }
 
     mat4 getViewProj() 
     {
-       return uViewProj;   
+       return uCamera.viewProj;   
     }
 
     float getFarPlane() 
     {
-       return uFarPlane;   
+       return uCamera.farPlane;   
     }
 
 #endif
@@ -62,7 +59,7 @@ void computePos(vec4 pos)
     #ifdef MULTI_VIEW
         fViewIndex = gl_ViewID_OVR;
     #else
-        fViewIndex = 0;
+        fViewIndex = uCamera.activeEye;
     #endif
 
     #ifdef USE_HEIGHT_MAP

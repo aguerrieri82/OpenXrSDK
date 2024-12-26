@@ -23,7 +23,7 @@ namespace XrEditor
                   opt.UseHitTest = true;
               })
               .SetRenderQuality(1, 2)
-              .CreateHeightMap()
+              .CreateEarth()
               .Build();
     }
 }

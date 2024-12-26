@@ -1,5 +1,5 @@
 #include "uniforms.glsl"
-
+#include "../Shared/position.glsl"
 
 layout(location=0) in vec3 position;
 layout(location=1) in vec3 normal;
@@ -14,48 +14,6 @@ out mat3 fTangentBasis;
 
 #ifdef USE_SHADOW_MAP
     out vec4 fPosLightSpace;
-#endif
-
-
-#ifdef USE_CLIP_PLANE 
-    uniform vec4 uClipPlane;
-#endif
-
-#ifdef MULTI_VIEW
-
-    #define NUM_VIEWS 2
-
-    layout(num_views=NUM_VIEWS) in;
-
-    layout(std140, binding=10) uniform SceneMatrices
-    {
-        uniform mat4 viewProj[NUM_VIEWS];
-        uniform vec3 position[NUM_VIEWS];
-        float farPlane;
-    } uMatrices;
-
-    vec3 getViewPos() 
-    {
-       return uMatrices.position[gl_ViewID_OVR];   
-    }
-
-    mat4 getViewProj() 
-    {
-       return uMatrices.viewProj[gl_ViewID_OVR];   
-    }
-
-#else
-
-    vec3 getViewPos() 
-    {
-       return uCamera.cameraPosition;   
-    }
-
-    mat4 getViewProj() 
-    {
-       return uCamera.viewProj;   
-    }
-
 #endif
 
 
