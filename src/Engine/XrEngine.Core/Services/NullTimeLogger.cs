@@ -24,6 +24,6 @@ namespace XrEngine
 
         }
 
-        public static readonly NullTimeLogger Instance = new(); 
+        public static readonly NullTimeLogger Instance = new();
     }
 }

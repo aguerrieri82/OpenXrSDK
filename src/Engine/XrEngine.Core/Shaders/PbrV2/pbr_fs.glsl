@@ -351,11 +351,11 @@ void main()
 
 #elif DEBUG == DEBUG_TANGENT
 
-	color = vec4(fTangentBasis[0] * 0.5 + 0.5, 1.0);
+	color = vec4(normalize(fTangentBasis[0]) * 0.5 + 0.5, 1.0);
 
 #elif DEBUG == DEBUG_BITANGENT
 
-	color = vec4(fTangentBasis[1] * 0.5 + 0.5, 1.0);
+	color = vec4(normalize(fTangentBasis[1]) * 0.5 + 0.5, 1.0);
 
 #endif
 

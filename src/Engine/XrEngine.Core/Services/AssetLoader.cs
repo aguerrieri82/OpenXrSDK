@@ -3,7 +3,7 @@
     public class AssetLoader
     {
         readonly List<IAssetLoader> _loaders = [];
-        readonly Dictionary<Uri, EngineObject> _cache = []; 
+        readonly Dictionary<Uri, EngineObject> _cache = [];
 
         AssetLoader()
         {
@@ -21,7 +21,7 @@
         {
             if (destObj == null && _cache.TryGetValue(uri, out var obj))
                 return obj;
-            
+
             obj = GetLoader(uri).LoadAsset(uri, resType, destObj, options);
 
             if (destObj == null)

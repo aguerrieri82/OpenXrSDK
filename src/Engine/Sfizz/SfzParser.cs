@@ -1,25 +1,20 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Sfizz
 {
     public class SfzParser
     {
-        Dictionary<string, Token[]> _includes = [];
-        Dictionary<string, string> _defines = [];
-        HashSet<string> _samples = [];
+        readonly Dictionary<string, Token[]> _includes = [];
+        readonly Dictionary<string, string> _defines = [];
+        readonly HashSet<string> _samples = [];
         private string _rootFile;
         string? _basePath;
-        private List<Section> _sections = [];
+        private readonly List<Section> _sections = [];
         private Section? _curSection;
         private string? _samplesPath;
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         public enum TokenType
         {
@@ -309,7 +304,7 @@ namespace Sfizz
 
         public long SamplesSize()
         {
-            long result = 0;    
+            long result = 0;
             foreach (var sample in _samples)
                 result += new FileInfo(sample).Length;
             return result;
@@ -363,7 +358,7 @@ namespace Sfizz
                 _rootFile = fileName;
                 _basePath = Path.GetDirectoryName(fileName);
             }
-     
+
 
             if (!_includes.TryGetValue(fullPath, out var tokens))
             {
@@ -410,7 +405,7 @@ namespace Sfizz
                     }
                     else if (token.Type != TokenType.Comment)
                         result.Append(token.Value);
-                    
+
                     i++;
 
                     if (i >= tokens.Length || cond(tokens[i]))
@@ -436,7 +431,7 @@ namespace Sfizz
                     if (token.Value == "define")
                     {
                         var name = NextToken();
-                   
+
                         if (name.Type != TokenType.Var)
                             throw new Exception("Expected var");
 
@@ -466,11 +461,11 @@ namespace Sfizz
                 else if (token.Type == TokenType.Identifier)
                 {
                     if (_curSection?.Properties == null)
-                        throw new Exception("Expected section");    
+                        throw new Exception("Expected section");
 
                     i--;
 
-                    var name = ReadValueUntil(a=> a.Type != TokenType.Identifier && a.Type != TokenType.Var).Trim();
+                    var name = ReadValueUntil(a => a.Type != TokenType.Identifier && a.Type != TokenType.Var).Trim();
 
                     var op = NextToken();
 

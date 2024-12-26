@@ -67,7 +67,7 @@ namespace XrEngine.OpenGL
             {
                 var shader = Material.Shader!;
                 var resolver = shader.Resolver!;
-                var useTess = shader.TessEvalSourceName != null && (Material is ITesselation tess && tess.UseTesselation);
+                var useTess = shader.TessEvalSourceName != null && (Material is ITessellation tess && tess.UseTessellation);
 
                 program = new GlSimpleProgram(_gl,
                     shader.VertexSourceName!,
@@ -87,7 +87,7 @@ namespace XrEngine.OpenGL
                 {
                     program.AddExtension("GL_EXT_tessellation_shader");
                     program.AddExtension("GL_OES_tessellation_shader");
-                }   
+                }
 
                 if (ExtraExtensions != null)
                 {

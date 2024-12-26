@@ -46,7 +46,7 @@ namespace XrEngine
 
         public bool IsClosed => true;
 
-        public float Radius { get; set; }   
+        public float Radius { get; set; }
 
         public Vector2 Center { get; set; }
     }

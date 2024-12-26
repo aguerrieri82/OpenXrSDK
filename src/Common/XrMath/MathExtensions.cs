@@ -746,7 +746,7 @@ namespace XrMath
         public static float AngleWith(this Vector3 self, Vector3 other)
         {
             var dot = self.Normalize().DotNormal(other.Normalize());
-            return MathF.Acos(dot); 
+            return MathF.Acos(dot);
         }
 
 
@@ -1120,7 +1120,7 @@ namespace XrMath
 
         public static Vector2[] Transform(this Vector2[] self, Matrix3x2 matrix)
         {
-            var res = new Vector2[self.Length]; 
+            var res = new Vector2[self.Length];
             for (var i = 0; i < self.Length; i++)
                 res[i] = Vector2.Transform(self[i], matrix);
             return res;
@@ -1129,7 +1129,7 @@ namespace XrMath
         public static Bounds2 Bounds(this IList<Vector2> self)
         {
             if (self.Count == 0)
-                return new Bounds2();   
+                return new Bounds2();
 
             var result = new Bounds2
             {
@@ -1148,13 +1148,13 @@ namespace XrMath
 
         public static Bounds2 Bounds(this Poly2 self)
         {
-           return self.Points.Bounds(); 
+            return self.Points.Bounds();
         }
 
         public static void EnsureCCW(this Poly2 self)
         {
             if (self.SignedArea() < 0)
-                Array.Reverse(self.Points); 
+                Array.Reverse(self.Points);
         }
 
         public static float Length(this Poly2 self)

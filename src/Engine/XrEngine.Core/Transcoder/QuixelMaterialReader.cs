@@ -1,9 +1,10 @@
 ﻿
 using Common.Interop;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using XrMath;
+
+#pragma warning disable CS8618
 
 namespace XrEngine
 {
@@ -233,12 +234,12 @@ namespace XrEngine
 
                 IMemoryBuffer<byte>? mrImage = null;
 
-                var mat = Parse(fileName);  
+                var mat = Parse(fileName);
 
                 foreach (var texture in mat.Textures!)
                 {
                     var localPath = uri.LocalPath;
-                    var texPath = Path.Join(Path.GetDirectoryName(localPath), texture.FileName!).Replace('\\','/');
+                    var texPath = Path.Join(Path.GetDirectoryName(localPath), texture.FileName!).Replace('\\', '/');
                     var texUri = $"{uri.Scheme}://{uri.Host}{texPath}";
 
                     var tex2D = AssetLoader.Instance.Load<Texture2D>(texUri, new TextureLoadOptions

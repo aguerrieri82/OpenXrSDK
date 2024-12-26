@@ -1,11 +1,6 @@
 ﻿using Common.Interop;
 using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XrEngine
 {
@@ -14,14 +9,14 @@ namespace XrEngine
         public static Texture2D FromHeightMap(Texture2D map, float strength)
         {
             if (map.Data == null || map.Data!.Count == 0 || map.Data[0].Data == null)
-                throw new InvalidOperationException("Texture data is empty");   
-            return FromHeightMap(map.Data[0], strength);    
+                throw new InvalidOperationException("Texture data is empty");
+            return FromHeightMap(map.Data[0], strength);
         }
 
         public static Texture2D FromHeightMap(TextureData data, float strength)
         {
             var pixelSize = ImageUtils.GetPixelSizeByte(data.Format);
-            
+
             using var skImage = ImageUtils.ToBitmap(data, false);
 
             return FromHeightMap(skImage, strength);
@@ -51,7 +46,7 @@ namespace XrEngine
                         float tr = srcData[((y - 1) * width + (x + 1)) * pixelSize] / 255f;
                         float l = srcData[(y * width + (x - 1)) * pixelSize] / 255f;
                         float r = srcData[(y * width + (x + 1)) * pixelSize] / 255f;
-                        float bl = srcData[((y + 1) * width + (x - 1))   * pixelSize] / 255f;
+                        float bl = srcData[((y + 1) * width + (x - 1)) * pixelSize] / 255f;
                         float b = srcData[((y + 1) * width + x) * pixelSize] / 255f;
                         float br = srcData[((y + 1) * width + (x + 1)) * pixelSize] / 255f;
 
@@ -71,7 +66,7 @@ namespace XrEngine
                 }
 
                 res.Unlock();
-            } 
+            }
 
             return Texture2D.FromData([new TextureData
             {

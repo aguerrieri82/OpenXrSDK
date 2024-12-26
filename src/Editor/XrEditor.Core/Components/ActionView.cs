@@ -55,7 +55,7 @@ namespace XrEditor
 
                 var name = method.Name;
                 if (name.EndsWith("Async"))
-                    name = name[..^5];      
+                    name = name[..^5];
 
                 var propView = new ActionView
                 {

@@ -18,6 +18,9 @@ layout(std140, binding=0) uniform Camera
 	float farPlane;
 	float depthNoiseFactor;
 	float depthNoiseDistance;
+	vec4 frustumPlanes[6];
+	mat4 view;
+	mat4 proj;
 } uCamera;
 
 layout(std140, binding=1) uniform Lights

@@ -188,12 +188,15 @@ namespace XrEngine.OpenGL
 
                 Action draw;
 
-                if (material is ITesselation tess && tess.UseTesselation)
+#warning Tessellation improve draw
+                if (material is ITessellation tess && tess.UseTessellation)
                 {
                     var size = vrtSrc.Primitive == DrawPrimitive.Quad ? 4 : 3;
                     draw = () =>
                     {
-                        _render.GL.PatchParameter(PatchParameterName.Vertices, size);  
+                        _render.GL.PatchParameter(PatchParameterName.Vertices, size);
+                        _render.State.SetWireframe(tess.DebugTessellation);
+                        _render.State.SetLineWidth(0.5f);
                         vertexContent!.VertexHandler!.Draw(DrawPrimitive.Patch);
                     };
                 }

@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using XrMath;
 
 namespace XrEngine.Filament
@@ -9,10 +8,10 @@ namespace XrEngine.Filament
     {
         public enum PrimitiveType : byte
         {
-            POINTS         = 0,    //!< points
-            LINES          = 1,    //!< lines
-            LINE_STRIP     = 3,    //!< line strip
-            TRIANGLES      = 4,    //!< triangles
+            POINTS = 0,    //!< points
+            LINES = 1,    //!< lines
+            LINE_STRIP = 3,    //!< line strip
+            TRIANGLES = 4,    //!< triangles
             TRIANGLE_STRIP = 5     //!< triangle strip
         };
 
@@ -423,10 +422,10 @@ namespace XrEngine.Filament
             public VulkanContext Vulkan;
         }
 
-       public struct FilamentApp
+        public struct FilamentApp
         {
             public nint Handle;
-        }   
+        }
 
 
         [DllImport("filament-native")]

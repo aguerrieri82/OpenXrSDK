@@ -1,7 +1,6 @@
 ﻿using Common.Interop;
 using SkiaSharp;
 using System.Diagnostics;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace XrEngine
 {
@@ -35,12 +34,12 @@ namespace XrEngine
 
         public static Texture2D MergeMetalRaugh(Texture2D metal, Texture2D roughness)
         {
-            return MergeMetalRaugh(metal.Data![0], roughness.Data![0]);       
+            return MergeMetalRaugh(metal.Data![0], roughness.Data![0]);
         }
 
         public static Texture2D MergeMetalRaugh(TextureData metal, TextureData roughness)
         {
-            var mrImage= MemoryBuffer.Create<byte>(metal.Width * metal.Height * 4);
+            var mrImage = MemoryBuffer.Create<byte>(metal.Width * metal.Height * 4);
 
             using var pMetal = metal.Data!.MemoryLock();
             using var pRough = roughness.Data!.MemoryLock();

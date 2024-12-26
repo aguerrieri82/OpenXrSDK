@@ -30,7 +30,7 @@ namespace XrEngine.UI
             _size = new Size2(1, 1);
             _sizeDirty = true;
 
-            var quad = new Quad3D(new Size2(1, 1));
+            var quad = new Quad3D();
             quad.FlipYUV();
 
             Geometry = quad;
