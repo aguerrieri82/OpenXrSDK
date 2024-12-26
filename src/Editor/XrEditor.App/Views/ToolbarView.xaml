@@ -31,7 +31,11 @@
             </DataTemplate>
             
             <DataTemplate DataType="{x:Type local:SingleSelector}">
-                <ComboBox ItemsSource="{Binding Items}" SelectedValue="{Binding SelectedValue, Mode=TwoWay}" SelectedValuePath="Value" DisplayMemberPath="DisplayName" />
+                <ComboBox SelectedValuePath="Value" 
+                          DisplayMemberPath="DisplayName" 
+                          ItemsSource="{Binding Items}" 
+                          SelectedValue="{Binding SelectedValue, Mode=TwoWay}"
+                          IsSynchronizedWithCurrentItem="True" />
             </DataTemplate>
 
         </Style.Resources>

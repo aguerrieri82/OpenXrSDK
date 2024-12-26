@@ -19,6 +19,7 @@ namespace XrEngine.OpenGL
         FullReflection = 0x10,
         Custom = 0x20,
         Light = 0x40,
+        Volume = 0x80 | Color,  
     }
 
     public class GlLayer : IDisposable

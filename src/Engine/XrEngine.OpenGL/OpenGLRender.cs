@@ -276,6 +276,13 @@ namespace XrEngine.OpenGL
                     _layers.Add(new GlLayer(this, scene, GlLayerType.FullReflection, opaque));
                 }
 
+                if (_options.UseVolume)
+                {
+                    var volume = scene.EnsureLayer<VolumeLayer>();
+                    _layers.Add(new GlLayer(this, scene, GlLayerType.Volume, volume));
+                }
+
+
                 _lastScene = scene;
                 _lastLayersVersion = scene.Layers.Version;
             }

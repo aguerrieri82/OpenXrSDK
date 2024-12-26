@@ -8,11 +8,13 @@ uniform vec3 uCameraForward;    // Camera forward vector
 uniform vec3 uCameraUp;         // Camera up vector
 uniform int uNumSlices;         // Number of slices
 
+
 out vec3 fPos; // Pass vertex position to fragment shader
 
 
 const vec3 cubeSize = vec3(1.0, 1.0, 1.0);
 const vec3 cubeCenter = vec3(0.0, 0.0, 0.0);
+
 
 void main() {
 

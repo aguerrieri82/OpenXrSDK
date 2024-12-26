@@ -7,6 +7,13 @@ uniform float haloWidth;
 uniform vec4 haloColor; 
 uniform float stepSize;
 
+#ifdef USE_DEPTH_CULL
+
+    uniform mat4 uInvViewProj;
+    layout(binding=1) uniform sampler2D depthTexture;
+
+#endif
+
 in vec3 fPos;
 
 out vec4 fragColor; 
@@ -31,9 +38,30 @@ bool intersectSphere(vec3 rayOrigin, vec3 rayDir, vec3 sphereCenter, float spher
     return true;
 }
 
+#ifdef USE_DEPTH_CULL
+
+vec3 getWorldPosFromDepth(float depth, vec2 uv) {
+    vec4 clipPos = vec4(uv * 2.0 - 1.0, depth, 1.0); 
+    vec4 worldPos = uInvViewProj * clipPos;
+    return worldPos.xyz / worldPos.w;
+}
+
+#endif
+
 void main() {
 
     vec3 cameraPos = uCamera.pos;
+    
+    #ifdef USE_DEPTH_CULL
+
+        vec2 uv = gl_FragCoord.xy / vec2(uCamera.viewSize);
+
+        float sceneDepth = texture(depthTexture, uv).r;
+        vec3 sceneIntersection = getWorldPosFromDepth(sceneDepth, uv);
+
+        float depthIntPoint = length(sceneIntersection - cameraPos);
+
+    #endif
 
     vec3 rayDirection = normalize(fPos - cameraPos);
 
@@ -61,7 +89,14 @@ void main() {
   
         if (dist <= sphereRadius )
             break;
+
+        #ifdef USE_DEPTH_CULL
+
+            if (length(samplePos - cameraPos) > depthIntPoint)
+                break;
        
+        #endif   
+
         if (dist <= sphereRadius + haloWidth) 
         {
             float alpha = 1.0 - ((dist - sphereRadius) / haloWidth); // Fade alpha
@@ -70,9 +105,10 @@ void main() {
             if (accumulatedColor.a >= 1.0) 
                 break;
         }
+        /*
         else if (accumulatedColor.a > 0.0) 
             break;
-         
+         */
         samplePos += step;
 
     }

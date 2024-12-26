@@ -82,5 +82,8 @@ namespace XrEngine
         public Color BorderColor { get; set; }
 
         public uint Depth { get; set; }
+
+
+        public static readonly Texture2D DepthBuffer = new() { Type = TextureType.Depth };
     }
 }
