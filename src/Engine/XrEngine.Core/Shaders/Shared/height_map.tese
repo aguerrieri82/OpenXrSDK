@@ -1,5 +1,5 @@
 ﻿
-layout(quads) in;
+layout(quads, equal_spacing, ccw) in;
 
 #include "uniforms.glsl"
 
@@ -12,19 +12,37 @@ layout(quads) in;
 
 in vec2 tcUv[];
 
-out vec2 fUv;     
-out vec3 fPos;      
-out vec3 fCameraPos; 
-out vec3 fNormal; 
-out vec3 fDebug;
+#ifdef NORMAL_GEO
+
+    layout(location = 0) out vec2 fUv;     
+    layout(location = 1) out vec3 fPos;      
+    layout(location = 2) out vec3 fCameraPos; 
+    layout(location = 3) out vec3 fNormal; 
+    layout(location = 4) out float fHeight;
+
+#else
+    out vec2 fUv;     
+    out vec3 fPos;      
+    out vec3 fCameraPos; 
+    out vec3 fNormal; 
+    out float fHeight;
+#endif
 
 
 layout(binding=8) uniform sampler2D heightMap; 
 
 uniform float uHeightScale;  
 uniform vec2 uHeightTexSize;
-uniform float uHeightNormalStrength;
+uniform vec3 uHeightNormalStrength;
 uniform float uSphereRadius;    
+
+
+void computeTBN(vec3 curNormal, out vec3 tangent, out vec3 bitangent) {
+
+    vec3 reference = abs(curNormal.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+    tangent = normalize(cross(reference, curNormal));
+    bitangent = normalize(cross(curNormal, tangent));
+}
 
 void main() {
     
@@ -44,8 +62,8 @@ void main() {
 
     #ifdef HEIGHT_MASK_VALUE
 
-    if (hValue == HEIGHT_MASK_VALUE)
-        hValue = 0.0;
+        if (hValue == HEIGHT_MASK_VALUE)
+            hValue = 0.0;
 
     #endif
 
@@ -56,44 +74,55 @@ void main() {
 
     vec3 curNormal;
 
-    #ifdef IS_SPHERE
-        curNormal = normalize(fPos);
-        fPos = curNormal * uSphereRadius;
-    #endif
-
     vec2 texelSize = (1.0 / uHeightTexSize);
 
-    #ifdef HAS_TANGENTS
-        
-        fTangentBasis[0] = mix(mix(tcTangentBasis[0][0], tcTangentBasis[1][0], gl_TessCoord.x),
-                              mix(tcTangentBasis[3][0], tcTangentBasis[2][0], gl_TessCoord.x),
-                              gl_TessCoord.y);
-        fTangentBasis[1] = mix(mix(tcTangentBasis[0][1], tcTangentBasis[1][1], gl_TessCoord.x),
-                              mix(tcTangentBasis[3][1], tcTangentBasis[2][1], gl_TessCoord.x),
-                              gl_TessCoord.y);
-        fTangentBasis[2] = mix(mix(tcTangentBasis[0][2], tcTangentBasis[1][2], gl_TessCoord.x),
-                              mix(tcTangentBasis[3][2], tcTangentBasis[2][2], gl_TessCoord.x),
-                              gl_TessCoord.y);
-
-        #ifndef IS_SPHERE
-            curNormal = fTangentBasis[2]; 
+    #ifdef IS_SPHERE
+    
+        #ifndef HAS_TANGENTS
+           #define HAS_TANGENTS
+           mat3 fTangentBasis;
         #endif
+
+
+        curNormal = normalize(fPos);
+
+        fPos = curNormal * uSphereRadius;
+
+        computeTBN(curNormal, fTangentBasis[0], fTangentBasis[1]);
+
+        fTangentBasis[2] = curNormal;
+
     #else
 
-        #ifndef IS_SPHERE
+        #ifdef HAS_TANGENTS
+        
+            fTangentBasis[0] = mix(mix(tcTangentBasis[0][0], tcTangentBasis[1][0], gl_TessCoord.x),
+                                  mix(tcTangentBasis[3][0], tcTangentBasis[2][0], gl_TessCoord.x),
+                                  gl_TessCoord.y);
+            fTangentBasis[1] = mix(mix(tcTangentBasis[0][1], tcTangentBasis[1][1], gl_TessCoord.x),
+                                  mix(tcTangentBasis[3][1], tcTangentBasis[2][1], gl_TessCoord.x),
+                                  gl_TessCoord.y);
+            fTangentBasis[2] = mix(mix(tcTangentBasis[0][2], tcTangentBasis[1][2], gl_TessCoord.x),
+                                  mix(tcTangentBasis[3][2], tcTangentBasis[2][2], gl_TessCoord.x),
+                                  gl_TessCoord.y);
+
+           curNormal = fTangentBasis[2]; 
+
+        #else
 
             curNormal = mix(mix(tcNormal[0], tcNormal[1], gl_TessCoord.x),
                 mix(tcNormal[3], tcNormal[2], gl_TessCoord.x),
                 gl_TessCoord.y);
+
         #endif
 
     #endif
     
-    float height = hValue * uHeightScale;
+    fHeight = hValue * uHeightScale;
 
-    fPos += curNormal * height;
+    fPos += curNormal * fHeight;
 
-    #ifdef USE_NORMAL_MAP
+    #if defined(USE_NORMAL_MAP) || defined(NORMAL_GEO)
         fNormal = curNormal;
     #else
 
@@ -101,19 +130,19 @@ void main() {
 
         #ifdef NORMAL_SOBEL
 
-            vec3 h00 = texture(heightMap, fUv + vec2(-texelSize.x, -texelSize.y)).rgb;
-            vec3 h10 = texture(heightMap, fUv + vec2(0.0, -texelSize.y)).rgb;
-            vec3 h20 = texture(heightMap, fUv + vec2(texelSize.x, -texelSize.y)).rgb;
+            float h00 = texture(heightMap, fUv + vec2(-texelSize.x, -texelSize.y)).r;
+            float h10 = texture(heightMap, fUv + vec2(0.0, -texelSize.y)).r;
+            float h20 = texture(heightMap, fUv + vec2(texelSize.x, -texelSize.y)).r;
 
-            vec3 h01 = texture(heightMap, fUv + vec2(-texelSize.x, 0.0)).rgb;
-            vec3 h21 = texture(heightMap, fUv + vec2(texelSize.x, 0.0)).rgb;
+            float h01 = texture(heightMap, fUv + vec2(-texelSize.x, 0.0)).r;
+            float h21 = texture(heightMap, fUv + vec2(texelSize.x, 0.0)).r;
 
-            vec3 h02 = texture(heightMap, fUv + vec2(-texelSize.x, texelSize.y)).rgb;
-            vec3 h12 = texture(heightMap, fUv + vec2(0.0, texelSize.y)).rgb;
-            vec3 h22 = texture(heightMap, fUv + vec2(texelSize.x, texelSize.y)).rgb;
+            float h02 = texture(heightMap, fUv + vec2(-texelSize.x, texelSize.y)).r;
+            float h12 = texture(heightMap, fUv + vec2(0.0, texelSize.y)).r;
+            float h22 = texture(heightMap, fUv + vec2(texelSize.x, texelSize.y)).r;
 
-            dX = h00.r * -1.0 + h20.r * 1.0 + h01.r * -2.0 + h21.r * 2.0 + h02.r * -1.0 + h22.r * 1.0;
-            dY = h00.r * -1.0 + h02.r * 1.0 + h10.r * -2.0 + h12.r * 2.0 + h20.r * -1.0 + h22.r * 1.0;
+            dX = h00 * -1.0 + h20 * 1.0 + h01 * -2.0 + h21 * 2.0 + h02 * -1.0 + h22 * 1.0;
+            dY = h00 * -1.0 + h02 * 1.0 + h10 * -2.0 + h12 * 2.0 + h20 * -1.0 + h22 * 1.0;
 
         #else
 
@@ -127,7 +156,7 @@ void main() {
 
         #endif
 
-        vec3 hNormal = normalize(vec3(-dX * uHeightNormalStrength, -dY * uHeightNormalStrength, 1.0));
+        vec3 hNormal = normalize(vec3(-dX * uHeightScale, -dY * uHeightScale, 1.0) * uHeightNormalStrength);
 
         #ifdef HAS_TANGENTS
             fNormal = normalize(fTangentBasis * hNormal);

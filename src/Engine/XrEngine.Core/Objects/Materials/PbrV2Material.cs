@@ -12,7 +12,9 @@ namespace XrEngine
         Uv = 1,
         Normal = 2,
         Tangent = 3,
-        Bitangent = 4
+        Bitangent = 4,
+        Metalness = 5,
+        Roughness = 6
     }
 
     public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial
@@ -348,6 +350,7 @@ namespace XrEngine
                 VertexSourceName = "PbrV2/pbr_vs.glsl",
                 TessControlSourceName = "Shared/height_map.tesc",
                 TessEvalSourceName = "Shared/height_map.tese",
+                GeometrySourceName = "Shared/height_map.geom",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = true,
             };
@@ -461,6 +464,8 @@ namespace XrEngine
 
                 if (HeightMap.NormalMode == HeightNormalMode.Sobel)
                     bld.AddFeature("NORMAL_SOBEL");
+                else if (HeightMap.NormalMode == HeightNormalMode.Geometry)
+                    bld.AddFeature("NORMAL_GEO");
 
                 if (HeightMap.MaskValue != null)
                     bld.AddFeature($"HEIGHT_MASK_VALUE {HeightMap.MaskValue}.0");
@@ -549,6 +554,14 @@ namespace XrEngine
 
             base.SetStateWork(container);
         }
+
+        TessellationMode ITessellationMaterial.TessellationMode => 
+            HeightMap?.Texture != null ? (HeightMap.NormalMode == HeightNormalMode.Geometry ? 
+                                            TessellationMode.Geometry : 
+                                            TessellationMode.Normal)
+                                        : TessellationMode.None;
+
+        bool ITessellationMaterial.DebugTessellation => HeightMap?.DebugTessellation ?? false;
 
         public HeightMapSettings? HeightMap { get; set; }
 

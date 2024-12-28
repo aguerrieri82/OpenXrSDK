@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,7 +10,8 @@ namespace XrEngine
     public enum HeightNormalMode
     {
         Fast,
-        Sobel
+        Sobel,
+        Geometry
     }
 
     public class HeightMapSettings : TessellationSettings
@@ -18,7 +20,7 @@ namespace XrEngine
 
         public float SphereRadius { get; set; }
 
-        public float NormalStrength { get; set; }
+        public Vector3 NormalStrength { get; set; }
 
         public HeightNormalMode NormalMode { get; set; }
 
