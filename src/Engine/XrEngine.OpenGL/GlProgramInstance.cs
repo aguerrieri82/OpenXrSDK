@@ -59,20 +59,31 @@ namespace XrEngine.OpenGL
                     localBuilder.AddFeature(feature);
             }
 
+            var shader = Material.Shader!;
+
+            var tesMode = Material is ITessellationMaterial tes ? tes.TessellationMode : TessellationMode.None;
+            var useTess = shader.TessEvalSourceName != null && tesMode != TessellationMode.None;
+            var useGeo = shader.GeometrySourceName != null && 
+                         (shader.TessEvalSourceName == null || tesMode == TessellationMode.Geometry);
+
+            if (useTess)
+                localBuilder.AddFeature("USE_TESS_SHADER");
+            
+            if (useGeo)
+                localBuilder.AddFeature("USE_GEO_SHADER");
+
             localBuilder.ComputeHash(Material.GetType().FullName!);
 
             _update = localBuilder.Result;
 
             if (!_programs.TryGetValue(_update.FeaturesHash!, out var program))
             {
-                var shader = Material.Shader!;
                 var resolver = shader.Resolver!;
-                var useTess = shader.TessEvalSourceName != null && (Material is IHeightMaterial hm && hm.HeightMap?.Texture != null);
 
                 program = new GlSimpleProgram(_gl,
                     shader.VertexSourceName!,
                     shader.FragmentSourceName!,
-                    shader.GeometrySourceName,
+                    useGeo ? shader.GeometrySourceName : null,
                     useTess ? shader.TessControlSourceName : null,
                     useTess ? shader.TessEvalSourceName : null,
                     resolver);

@@ -140,6 +140,7 @@ namespace XrSamples
             Geometry = new QuadPatch3D(new Vector2(ww, hh), 100);
          
             var pbr = MaterialFactory.CreatePbr("#ffffff");
+            pbr.Roughness = 1f;
 
             if (Roughness != null)
                 pbr.MetallicRoughnessMap = ImageUtils.MergeMetalRaugh(Roughness);
@@ -152,8 +153,8 @@ namespace XrSamples
                     Texture = HeightMap,
                     ScaleFactor = 0.0001f,
                     TargetTriSize = 5,
-                    NormalStrength = 1f,
-                    NormalMode = HeightNormalMode.Sobel,
+                    NormalStrength = new Vector3(10, 10, 0.23f),
+                    NormalMode = HeightNormalMode.Fast,
                     MaskValue = -9999,
                     SphereRadius = EarthRadius
                 };

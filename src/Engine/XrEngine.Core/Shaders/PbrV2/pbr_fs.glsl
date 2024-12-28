@@ -13,6 +13,8 @@ const vec3 Fdielectric = vec3(0.04);
 #define DEBUG_NORMAL    2
 #define DEBUG_TANGENT   3
 #define DEBUG_BITANGENT 4
+#define DEBUG_METALNESS 5
+#define DEBUG_ROUGHNESS 6
 
 in vec3 fNormal;
 in vec3 fPos;
@@ -133,8 +135,8 @@ void main()
 	#ifdef USE_METALROUGHNESS_MAP
 
 		vec4 mr = texture(metalroughnessTexture, fUv);
-		float metalness = mr.b * uMaterial.metalness;
-		float roughness = mr.g * uMaterial.roughness;
+		float metalness = clamp(mr.b * uMaterial.metalness, 0.0, 1.0);
+		float roughness = clamp(mr.g * uMaterial.roughness, 0.0, 1.0);
 
 	#else
 		float metalness = uMaterial.metalness;
@@ -356,6 +358,14 @@ void main()
 #elif DEBUG == DEBUG_BITANGENT
 
 	color = vec4(normalize(fTangentBasis[1]) * 0.5 + 0.5, 1.0);
+
+#elif DEBUG == DEBUG_METALNESS
+	
+	color = vec4(vec3(metalness), 1.0);
+
+#elif DEBUG == DEBUG_ROUGHNESS
+	
+	color = vec4(vec3(roughness), 1.0);
 
 #endif
 

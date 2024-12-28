@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    public interface IHeightMaterial : IMaterial
+    public interface IHeightMaterial : ITessellationMaterial
     {
         public HeightMapSettings? HeightMap { get; set; }
     }
