@@ -361,8 +361,6 @@ namespace XrEngine
             Metalness = 1.0f;
             OcclusionStrength = 1.0f;
             NormalScale = 1;
-            HeightScale = 1;
-            TargetTriSize = 5f;
             ToneMap = true;
         }
 
@@ -456,24 +454,34 @@ namespace XrEngine
                 });
             }
 
-            if (HeightMap != null)
+            if (HeightMap?.Texture != null)
             {
+
                 bld.AddFeature("USE_HEIGHT_MAP");
 
-                if (HeightNormalMode == HeightNormalMode.Sobel)
+                if (HeightMap.NormalMode == HeightNormalMode.Sobel)
                     bld.AddFeature("NORMAL_SOBEL");
+
+                if (HeightMap.MaskValue != null)
+                    bld.AddFeature($"HEIGHT_MASK_VALUE {HeightMap.MaskValue}.0");
+
+                if (HeightMap.SphereRadius > 0)
+                    bld.AddFeature("IS_SPHERE");
 
                 bld.ExecuteAction((ctx, up) =>
                 {
                     if (HeightMap != null)
                     {
-                        up.LoadTexture(HeightMap, 8);
-                        up.SetUniform("uHeightTexSize", new Vector2(HeightMap.Width, HeightMap.Height));
+                        up.LoadTexture(HeightMap.Texture!, 8);
+                        up.SetUniform("uHeightTexSize", new Vector2(HeightMap.Texture.Width, HeightMap.Texture.Height));
                     }
 
-                    up.SetUniform("uHeightNormalStrength", HeightNormalStrength);
-                    up.SetUniform("uHeightScale", HeightScale);
-                    up.SetUniform("uTargetTriSize", TargetTriSize);
+                    up.SetUniform("uHeightNormalStrength", HeightMap!.NormalStrength);
+                    up.SetUniform("uHeightScale", HeightMap.ScaleFactor);
+                    up.SetUniform("uTargetTriSize", HeightMap.TargetTriSize);
+
+                    if (HeightMap.SphereRadius > 0)
+                        up.SetUniform("uSphereRadius", HeightMap.SphereRadius);
                 });
             }
 
@@ -542,28 +550,7 @@ namespace XrEngine
             base.SetStateWork(container);
         }
 
-
-        bool ITessellation.UseTessellation => HeightMap != null;
-
-        public bool DebugTessellation { get; set; }
-
-        [Range(0, 1, 0.01f)]
-        [Category("HeightMap")]
-        public float HeightNormalStrength { get; set; }
-
-        [Range(0, 10, 0.01f)]
-        [Category("HeightMap")]
-        public float HeightScale { get; set; }
-
-        [Category("HeightMap")]
-        public float TargetTriSize { get; set; }
-
-        [Category("HeightMap")]
-        public HeightNormalMode HeightNormalMode { get; set; }
-
-        [Category("HeightMap")]
-        public Texture2D? HeightMap { get; set; }
-
+        public HeightMapSettings? HeightMap { get; set; }
 
         public Texture2D? OcclusionMap { get; set; }
 

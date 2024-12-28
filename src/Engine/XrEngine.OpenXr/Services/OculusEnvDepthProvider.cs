@@ -95,7 +95,7 @@ namespace XrEngine.OpenXr
                             {
                                 Width = (uint)_passTh.EnvironmentDepth.Size.Width,
                                 Height = (uint)_passTh.EnvironmentDepth.Size.Height,
-                                Format = TextureFormat.Gray16,
+                                Format = TextureFormat.GrayInt16,
                                 MinFilter = ScaleFilter.Linear,
                                 MagFilter = ScaleFilter.Linear,
                                 MipLevelCount = 1,

@@ -1,6 +1,11 @@
 ﻿using Common.Interop;
 using SkiaSharp;
 using System.Diagnostics;
+using System.Runtime.Intrinsics.X86;
+using System.Runtime.Intrinsics;
+using System.Runtime.CompilerServices;
+using System.Diagnostics.Metrics;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace XrEngine
 {
@@ -10,7 +15,7 @@ namespace XrEngine
             { SKColorType.Bgra8888, TextureFormat.Bgra32 },
             { SKColorType.Rgba8888, TextureFormat.Rgba32 },
             { SKColorType.Srgba8888, TextureFormat.SRgba32 },
-            { SKColorType.Gray8, TextureFormat.Gray8 },
+            { SKColorType.Gray8, TextureFormat.GrayInt8 },
             { SKColorType.RgbaF16, TextureFormat.RgbaFloat16 },
             { SKColorType.RgbaF32, TextureFormat.RgbaFloat32 },
 
@@ -44,8 +49,8 @@ namespace XrEngine
             using var pMetal = metal.Data!.MemoryLock();
             using var pRough = roughness.Data!.MemoryLock();
             using var pDst = mrImage.MemoryLock();
-            EngineNativeLib.ImageCopyChannel(pMetal, pDst, metal.Width, metal.Height, metal.Width, metal.Width * 4, 0, 2, 1);
-            EngineNativeLib.ImageCopyChannel(pRough, pDst, metal.Width, metal.Height, metal.Width, metal.Width * 4, 0, 1, 1);
+            EngineNativeLib.ImageCopyChannel(pMetal, pDst, metal.Width, metal.Height, metal.Width * GetPixelSizeByte(metal.Format), metal.Width * 4, 0, 2, 1);
+            EngineNativeLib.ImageCopyChannel(pRough, pDst, roughness.Width, roughness.Height, roughness.Width * GetPixelSizeByte(roughness.Format), metal.Width * 4, 0, 1, 1);
 
             var tex = new Texture2D();
             tex.LoadData(new TextureData
@@ -56,6 +61,23 @@ namespace XrEngine
                 Format = TextureFormat.Rgba32
             });
             return tex;
+        }
+
+        public static Texture2D MergeMetalRaugh(Texture2D roughness)
+        {
+            var metalData = MemoryBuffer.Create<byte>(roughness.Width * roughness.Height * 1);
+            metalData.AsSpan().Fill(255);
+
+            var texData = new TextureData
+            {
+                Data = metalData,
+                Width = roughness.Width,
+                Height = roughness.Height,
+                Format = TextureFormat.GrayInt8
+            };
+
+
+            return MergeMetalRaugh(texData, roughness.Data![0]);
         }
 
 
@@ -120,6 +142,40 @@ namespace XrEngine
             }
 
             return image;
+        }
+
+        public static unsafe IMemoryBuffer<byte> ConvertShortToFloat(IMemoryBuffer<byte> data)
+        {
+            int i = 0;
+            int length = (int)data.Size / 2;
+            int vectorSize = Vector128<short>.Count;
+
+            var result = MemoryBuffer.Create<byte>((uint)length * sizeof(float));
+
+            using var src = data.MemoryLock();
+            using var dst = result.MemoryLock();
+ 
+            var dstFloat = (float*)dst.Data;
+            var srcShort = (short*)src.Data;
+
+            if (Avx2.IsSupported)
+            {
+                for (; i <= length - vectorSize; i += vectorSize)
+                {
+                    var shortVector = Unsafe.Read<Vector128<short>>(srcShort + i);
+
+                    var intVector = Avx2.ConvertToVector256Int32(shortVector);
+
+                    var floatVector = Avx2.ConvertToVector256Single(intVector);
+
+                    floatVector.Store(dstFloat + i);
+                }
+            }
+
+            for (; i < length; i++)
+                dstFloat[i] = srcShort[i];
+
+            return result;
         }
 
         public static SKBitmap ChangeColorSpace(SKBitmap src, SKColorType dest)

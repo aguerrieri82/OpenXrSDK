@@ -43,8 +43,6 @@ namespace XrEngine
                 up.SetUniform("uHaloWidth", HaloWidth);
                 up.SetUniform("uHaloColor", HaloColor);
                 up.SetUniform("uNumSlices", Slices);
-                up.SetUniform("uCameraForward", ctx.MainCamera!.Forward);
-                up.SetUniform("uCameraUp", ctx.MainCamera.Up);
             });
         }
 

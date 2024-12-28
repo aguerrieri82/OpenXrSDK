@@ -24,7 +24,7 @@ layout(binding=8) uniform sampler2D heightMap;
 uniform float uHeightScale;  
 uniform vec2 uHeightTexSize;
 uniform float uHeightNormalStrength;
-
+uniform float uSphereRadius;    
 
 void main() {
     
@@ -40,14 +40,28 @@ void main() {
               mix(tcUv[3], tcUv[2], gl_TessCoord.x),
               gl_TessCoord.y);
 
+    float hValue = texture(heightMap, fUv).r;
+
+    #ifdef HEIGHT_MASK_VALUE
+
+    if (hValue == HEIGHT_MASK_VALUE)
+        hValue = 0.0;
+
+    #endif
+
 
     fPos  = mix(mix(p0, p1, gl_TessCoord.x),
                 mix(p3, p2, gl_TessCoord.x),
                 gl_TessCoord.y);
 
-    vec2 texelSize = (1.0 / uHeightTexSize);
-
     vec3 curNormal;
+
+    #ifdef IS_SPHERE
+        curNormal = normalize(fPos);
+        fPos = curNormal * uSphereRadius;
+    #endif
+
+    vec2 texelSize = (1.0 / uHeightTexSize);
 
     #ifdef HAS_TANGENTS
         
@@ -61,16 +75,21 @@ void main() {
                               mix(tcTangentBasis[3][2], tcTangentBasis[2][2], gl_TessCoord.x),
                               gl_TessCoord.y);
 
-        curNormal = fTangentBasis[2]; 
-
+        #ifndef IS_SPHERE
+            curNormal = fTangentBasis[2]; 
+        #endif
     #else
 
-        curNormal  =  mix(mix(tcNormal[0], tcNormal[1], gl_TessCoord.x),
-                    mix(tcNormal[3], tcNormal[2], gl_TessCoord.x),
-                    gl_TessCoord.y);
+        #ifndef IS_SPHERE
+
+            curNormal = mix(mix(tcNormal[0], tcNormal[1], gl_TessCoord.x),
+                mix(tcNormal[3], tcNormal[2], gl_TessCoord.x),
+                gl_TessCoord.y);
+        #endif
+
     #endif
     
-    float height = texture(heightMap, fUv).r * uHeightScale;
+    float height = hValue * uHeightScale;
 
     fPos += curNormal * height;
 

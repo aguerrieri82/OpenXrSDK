@@ -1,19 +1,7 @@
 ﻿namespace XrEngine
 {
-    public enum HeightNormalMode
+    public interface IHeightMaterial : IMaterial
     {
-        Fast,
-        Sobel
-    }
-
-    public interface IHeightMaterial : IMaterial, ITessellation
-    {
-        float HeightScale { get; set; }
-
-        float HeightNormalStrength { get; set; }
-
-        HeightNormalMode HeightNormalMode { get; set; }
-
-        Texture2D? HeightMap { get; set; }
+        public HeightMapSettings? HeightMap { get; set; }
     }
 }

@@ -248,7 +248,7 @@ namespace XrEngine
 
         public Vector3 Forward
         {
-            get => (-Vector3.UnitZ).Transform(WorldOrientation).Normalize();
+            get => (-Vector3.UnitZ).Transform(WorldOrientation);
             set
             {
                 WorldOrientation = value.ToOrientation();
@@ -257,7 +257,12 @@ namespace XrEngine
 
         public Vector3 Up
         {
-            get => Vector3.UnitY.ToDirection(WorldMatrix);
+            get => Vector3.UnitY.Transform(WorldOrientation);
+        }
+
+        public Vector3 Right
+        {
+            get => Vector3.UnitX.Transform(WorldOrientation);
         }
 
         public Vector3 WorldPosition

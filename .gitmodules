@@ -25,3 +25,9 @@
 [submodule "third-party/oboe"]
 	path = third-party/oboe
 	url = https://github.com/google/oboe
+[submodule "third-party/libtiff"]
+	path = third-party/libtiff
+	url = https://github.com/libsdl-org/libtiff
+[submodule "third-party/glut"]
+	path = third-party/glut
+	url = https://github.com/markkilgard/glut
