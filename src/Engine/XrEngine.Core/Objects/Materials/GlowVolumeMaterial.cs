@@ -53,7 +53,12 @@ namespace XrEngine
                     up.LoadTexture(new Texture2D() { Type = TextureType.Depth }, 1);
                 });
             }
+
+            if (BlendColor)
+                bld.AddFeature("BLEND_COLOR");
         }
+
+        public bool BlendColor { get; set; }
 
         public bool UseDepthCulling { get; set; }
 

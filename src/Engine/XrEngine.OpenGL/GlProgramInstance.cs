@@ -67,7 +67,7 @@ namespace XrEngine.OpenGL
             {
                 var shader = Material.Shader!;
                 var resolver = shader.Resolver!;
-                var useTess = shader.TessEvalSourceName != null && (Material is ITessellation tess && tess.UseTessellation);
+                var useTess = shader.TessEvalSourceName != null && (Material is IHeightMaterial hm && hm.HeightMap?.Texture != null);
 
                 program = new GlSimpleProgram(_gl,
                     shader.VertexSourceName!,

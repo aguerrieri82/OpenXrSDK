@@ -190,13 +190,13 @@ namespace XrEngine.OpenGL
                 Action draw;
 
 #warning Tessellation improve draw
-                if (material is ITessellation tess && tess.UseTessellation)
+                if (material is IHeightMaterial hm && hm.HeightMap != null)
                 {
                     var size = vrtSrc.Primitive == DrawPrimitive.Quad ? 4 : 3;
                     draw = () =>
                     {
                         _render.GL.PatchParameter(PatchParameterName.Vertices, size);
-                        _render.State.SetWireframe(tess.DebugTessellation);
+                        _render.State.SetWireframe(hm.HeightMap.DebugTessellation);
                         _render.State.SetLineWidth(0.5f);
                         vertexContent!.VertexHandler!.Draw(DrawPrimitive.Patch);
                     };

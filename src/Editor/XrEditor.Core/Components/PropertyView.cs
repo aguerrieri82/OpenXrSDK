@@ -14,14 +14,21 @@ namespace XrEditor
 
         }
 
-        public static void CreateProperties(object obj, Type objType, IList<PropertyView> result, INotifyPropertyChanged? propertyChanged = null)
+        public static void CreateProperties(object obj, Type? objType, IList<PropertyView> result, INotifyPropertyChanged? propertyChanged = null)
         {
             CreateProperties(obj, objType, null, result, propertyChanged);
         }
 
-        public static void CreateProperties(object obj, Type objType, object? host, IList<PropertyView> result, INotifyPropertyChanged? propertyChanged)
+        public static void CreateProperties(object obj, Type? objType, object? host, IList<PropertyView> result, INotifyPropertyChanged? propertyChanged)
         {
-            foreach (var field in objType.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+            var binding = BindingFlags.Public | BindingFlags.Instance;
+
+            if (objType == null)
+                objType = obj.GetType();
+            else
+                binding |= BindingFlags.DeclaredOnly;
+
+            foreach (var field in objType.GetFields(binding))
             {
                 if (!typeof(IProperty).IsAssignableFrom(field.FieldType))
                     continue;
@@ -64,7 +71,7 @@ namespace XrEditor
             }
 
 
-            foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+            foreach (var prop in objType.GetProperties(binding))
             {
                 if (!prop.CanWrite || !prop.CanRead)
                     continue;
@@ -77,7 +84,7 @@ namespace XrEditor
                     {
                         var value = prop.GetValue(obj);
                         if (value != null)
-                            CreateProperties(value, value.GetType(), host ?? obj, result, propertyChanged);
+                            CreateProperties(value, null, host ?? obj, result, propertyChanged);
                     }
 
                     continue;

@@ -43,7 +43,7 @@ namespace XrEngine.OpenXr
 
             var curDir = (pose.Value.Position - wordPivot).Normalize();
 
-            pose.Value.Orientation.GetAxisAndAngle(out var inputDir, out var curAngleUnsigned);
+            pose.Value.Orientation.AxisAndAngle(out var inputDir, out var curAngleUnsigned);
 
             var curSign = MathF.Sign(Vector3.Dot(curDir, inputDir));
 

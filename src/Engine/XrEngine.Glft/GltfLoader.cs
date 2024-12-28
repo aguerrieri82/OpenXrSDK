@@ -189,7 +189,7 @@ namespace XrEngine.Gltf
                                 SKColorType.Srgba8888 => TextureFormat.SRgba32,
                                 SKColorType.Bgra8888 => useSrgb ? TextureFormat.SBgra32 : TextureFormat.Bgra32,
                                 SKColorType.Rgba8888 => useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
-                                SKColorType.Gray8 => TextureFormat.Gray8,
+                                SKColorType.Gray8 => TextureFormat.GrayInt8,
                                 _ => throw new NotSupportedException()
                             }
                         };

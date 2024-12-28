@@ -1,5 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using DotSpatial.Projections;
+using GeoAPI.CoordinateSystems;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ProjNet.CoordinateSystems;
+using ProjNet.CoordinateSystems.Transformations;
 using Sfizz;
 using Silk.NET.Assimp;
 using System.Diagnostics;
@@ -16,6 +20,7 @@ using XrEngine.Devices.Windows;
 using XrEngine.Gltf;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
+using XrEngine.Tiff;
 using XrEngine.Video;
 using XrMath;
 using File = System.IO.File;
@@ -26,6 +31,15 @@ namespace XrSamples
     public class Tasks
     {
         public static IServiceProvider? Services { get; set; }
+
+        public static void ParseGeoTiff()
+        {
+
+            var tile = new GeoTile();
+            tile.LoadGeoTiff(@"C:\Users\aguer\Downloads\w47575_s10.tif");
+
+        }
+
 
         public static void ParseSfz()
         {

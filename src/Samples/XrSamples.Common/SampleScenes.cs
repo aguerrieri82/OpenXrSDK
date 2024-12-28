@@ -24,19 +24,6 @@ using XrMath;
 using XrSamples.Components;
 
 
-
-
-/* Unmerged change from project 'XrSamples.Common (net9.0-android)'
-Removed:
-using System.Diagnostics;
-using XrEngine.OpenGL;
-using XrEngine.Components;
-*/
-
-
-
-
-
 #if !ANDROID
 using XrEngine.Browser.Win;
 using XrEngine.UI.Web;
@@ -1193,13 +1180,14 @@ namespace XrSamples
         }
 
 
+        [Sample("Earth")]   
         public static XrEngineAppBuilder CreateEarth(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
             var scene = app.ActiveScene!;
             var mat = MaterialFactory.CreatePbr("#ffffff");
-            //mat.ColorMap = TextureFactory.CreateChecker();
-            //mat.ColorMap.Transform = Matrix3x3.CreateScale(500, 500);
+
+            var EARTH_RAD = 6378.137f;
 
             mat.ColorMap = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/world.topo.bathy.200411.3x21600x10800.jpg");
             mat.ColorMap.Transform = Matrix3x3.CreateScale(-1, 1);
@@ -1211,25 +1199,29 @@ namespace XrSamples
 
             if (mat is IHeightMaterial hm)
             {
-                hm.HeightMap = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/gebco_08_rev_elev_21600x10800.png");
-                hm.HeightMap.WrapS = WrapMode.Repeat;
-                hm.HeightMap.WrapT = WrapMode.Repeat;
-                hm.HeightMap.MipLevelCount = 20;
-                hm.HeightMap.MinFilter = ScaleFilter.LinearMipmapLinear;
-                hm.HeightScale = Unit(6.4f);
-                hm.HeightScale = 0.05f;
-                hm.HeightNormalStrength = 1;
-                hm.HeightNormalMode = HeightNormalMode.Sobel;
+                hm.HeightMap = new HeightMapSettings
+                {
+                    Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/gebco_08_rev_elev_21600x10800.png"),
+                    ScaleFactor = Unit(6.4f),
+                    NormalStrength = 1,
+                    NormalMode = HeightNormalMode.Sobel,
+                    SphereRadius = Unit(EARTH_RAD),
+                    TargetTriSize = 5
+                };
+                hm.HeightMap.Texture.WrapS = WrapMode.Repeat;
+                hm.HeightMap.Texture.WrapT = WrapMode.Repeat;
+                hm.HeightMap.Texture.MipLevelCount = 20;
+                hm.HeightMap.Texture.MinFilter = ScaleFilter.LinearMipmapLinear;
             }
 
 
             static float Unit(float value)
             {
-                return value / 1000f;
+                return value / 10f;
             }
 
 
-            var sphere = new QuadSphere3D(Unit(6378), 4);
+            var sphere = new QuadSphere3D(Unit(EARTH_RAD), 4);
             //sphere.ToTriangles();
             var wire = new WireframeMaterial() { Color = "#00ff00" };
 
@@ -1246,9 +1238,10 @@ namespace XrSamples
                 cube.Geometry = new Cube3D();
                 cube.Materials.Add(new GlowVolumeMaterial()
                 {
-                    SphereRadius = Unit(6378),
+                    SphereRadius = Unit(EARTH_RAD),
                     HaloWidth = Unit(40),
-                    HaloColor = "#0000FF09",
+                    HaloColor = "#005FFF09",
+                    UseDepthCulling = true,
                     StepSize = Unit(5)
                 });
             }
@@ -1272,7 +1265,7 @@ namespace XrSamples
                 };
                 cube.Materials.Add(new GlowVolumeSliceMaterial()
                 {
-                    SphereRadius = Unit(6378),
+                    SphereRadius = Unit(EARTH_RAD),
                     HaloWidth = Unit(40),
                     HaloColor = "#0000FF09",
                     Slices = 100
@@ -1280,32 +1273,35 @@ namespace XrSamples
             }
          
 
-            cube.Transform.SetScale(2 * Unit(6378 + 40));
+            cube.Transform.SetScale(2 * Unit(EARTH_RAD + 40));
             cube.Name = "Athmosphere";
 
             earth.Name = "Earth";
+            /*
             earth.SetWorldPose(new Pose3()
             {
                 Position = new Vector3(0f, 0f, 0f),
                 Orientation = new Quaternion(-0.20752391f, -0.059714455f, -0.012692701f, 0.9763232f)
             });
+            */
+            var tile = new GeoTile();
+            tile.EarthRadius = Unit(EARTH_RAD);
+            tile.Roughness = AssetLoader.Instance.Load<Texture2D>("C:\\Users\\aguer\\Downloads\\viz.SRTMGL1_roughness.png");
+            tile.LoadGeoTiff(@"C:\Users\aguer\Downloads\output_SRTMGL1.tif");
+
+
             scene.AddChild(earth);
             scene.AddChild(cube);
             scene.AddChild(sun);
+            scene.AddChild(tile);
 
             var camera = scene.PerspectiveCamera();
             camera.Name = "Main";
             camera.Near = Unit(1f);
             camera.Far = Unit(180600000);
-            /*
-            camera.SetWorldPose(new Pose3()
-            {
-                Position = new Vector3(9.011675E-05f, 0.12793548f, -6.3957214f),
-                Orientation = new Quaternion(-0.70675313f, -1.5462184E-08f, -1.544673E-08f, 0.7074602f)
-            });
-            camera.Target = Vector3.Zero;
-            */
-            //camera.Target = new Vector3(0, 0, 0);       
+            camera.Target = tile.WorldBounds.Center;
+
+    
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
@@ -1329,16 +1325,20 @@ namespace XrSamples
 
             if (mat is IHeightMaterial hm)
             {
-                hm.HeightMap = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/gebco_08_rev_elev_21600x10800.png");
-                hm.HeightMap.WrapS = WrapMode.Repeat;
-                hm.HeightMap.WrapT = WrapMode.Repeat;
-                hm.HeightMap.MagFilter = ScaleFilter.Linear;
-                hm.HeightMap.MinFilter = ScaleFilter.Linear;
-                hm.HeightScale = 0.001f;
-                hm.TargetTriSize = 5;
-                hm.DebugTessellation = true;
-                hm.HeightNormalStrength = 1f;
-                hm.HeightNormalMode = HeightNormalMode.Sobel;
+                hm.HeightMap = new HeightMapSettings
+                {
+                    Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/gebco_08_rev_elev_21600x10800.png"),
+                    ScaleFactor = 0.001f,
+                    TargetTriSize = 5,
+                    DebugTessellation = true,
+                    NormalStrength = 1f,
+                    NormalMode = HeightNormalMode.Sobel
+                };
+
+                hm.HeightMap.Texture.WrapS = WrapMode.Repeat;
+                hm.HeightMap.Texture.WrapT = WrapMode.Repeat;
+                hm.HeightMap.Texture.MagFilter = ScaleFilter.Linear;
+                hm.HeightMap.Texture.MinFilter = ScaleFilter.Linear;
 
                 //mat.NormalMap = NormalMap.FromHeightMap(hm.HeightMap, 1f);
                 //mat.NormalMap.SaveAs("d:\\heightmap.png");

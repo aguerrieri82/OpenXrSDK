@@ -26,11 +26,9 @@ bool intersectSphere(vec3 rayOrigin, vec3 rayDir, vec3 sphereCenter, float spher
     float c = dot(oc, oc) - sphereRadius * sphereRadius; // Distance from sphere center squared
     float discriminant = b * b - c;         // Quadratic discriminant
 
-    // Debug output for discriminant and input values
-    if (discriminant < 0.0) 
+    if (discriminant < 1e-6) 
         return false;
     
-
     float sqrtDiscriminant = sqrt(discriminant);
     t0 = -b - sqrtDiscriminant;             // Closest intersection point
     t1 = -b + sqrtDiscriminant;             // Furthest intersection point
@@ -75,7 +73,7 @@ void main() {
 
     // If the near intersection is behind camera, clamp it
     if (t0 < 0.0) 
-        t0 = 0.0;
+        t0 = 1e-3;
   
     vec3 step = rayDirection * stepSize;
 
@@ -99,9 +97,15 @@ void main() {
 
         if (dist <= sphereRadius + haloWidth) 
         {
-            float alpha = 1.0 - ((dist - sphereRadius) / haloWidth); // Fade alpha
+            float a1 = smoothstep(sphereRadius, sphereRadius + haloWidth, dist);
+            float a2 = clamp(exp(-(dist - sphereRadius) / haloWidth), 0.0, 1.0);
+
+            float alpha = a1;
+
+            accumulatedColor.rgb += (1.0 - accumulatedColor.a) * alpha * haloColor.rgb * haloColor.a;
             accumulatedColor.a += (1.0 - accumulatedColor.a) * alpha * haloColor.a; // Blend alpha
 
+          
             if (accumulatedColor.a >= 1.0) 
                 break;
         }
@@ -113,8 +117,11 @@ void main() {
 
     }
 
-    // Output the accumulated color
+    #ifdef BLEND_COLOR
+        fragColor.rgb = accumulatedColor.rgb;
+    #else
+        fragColor.rgb = haloColor.rgb;
+    #endif
 
-    fragColor.rgb = haloColor.rgb;
     fragColor.a = accumulatedColor.a;
 }

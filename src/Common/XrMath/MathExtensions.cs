@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace XrMath
@@ -589,7 +590,6 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Quaternion ToOrientation(this Vector3 self)
         {
-#warning CHANGED THE SIGN
             return (-Vector3.UnitZ).RotationTowards(self);
         }
 
@@ -673,7 +673,11 @@ namespace XrMath
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToDirection(this Vector3 self, Matrix4x4 matrix)
         {
-            return (self.Transform(matrix) - Vector3.Zero.Transform(matrix)).Normalize();
+            return new Vector3(
+                  self.X * matrix.M11 + self.Y * matrix.M21 + self.Z * matrix.M31,
+                  self.X * matrix.M12 + self.Y * matrix.M22 + self.Z * matrix.M32,
+                  self.X * matrix.M13 + self.Y * matrix.M23 + self.Z * matrix.M33
+              ).Normalize();
         }
 
         public static Quaternion RotationTowards(this Vector3 from, Vector3 to, float epsilon = EPSILON)
@@ -972,7 +976,7 @@ namespace XrMath
             );
         }
 
-        public static void GetAxisAndAngle(this Quaternion self, out Vector3 axis, out float angle)
+        public static void AxisAndAngle(this Quaternion self, out Vector3 axis, out float angle)
         {
             angle = 2.0f * (float)Math.Acos(self.W);
             axis = new Vector3(self.X, self.Y, self.Z).Normalize();
@@ -980,7 +984,7 @@ namespace XrMath
 
         public static float AngleAmongAxis(this Quaternion self, Vector3 axis, Vector3 normal)
         {
-            self.GetAxisAndAngle(out var quatAxis, out _);
+            self.AxisAndAngle(out var quatAxis, out _);
 
             var projection = quatAxis.Dot(axis);
 
@@ -991,6 +995,33 @@ namespace XrMath
             var sign = MathF.Sign(crossProduct.Dot(normal));
 
             return angle * sign;
+        }
+
+        public static Vector3 Right(this Quaternion q)
+        {
+            return new Vector3(
+                1 - 2 * (q.Y * q.Y + q.Z * q.Z),
+                2 * (q.X * q.Y + q.W * q.Z),
+                2 * (q.X * q.Z - q.W * q.Y)
+            );
+        }
+
+        public static Vector3 Up(this Quaternion q)
+        {
+            return new Vector3(
+                2 * (q.X * q.Y - q.W * q.Z),
+                1 - 2 * (q.X * q.X + q.Z * q.Z),
+                2 * (q.Y * q.Z + q.W * q.X)
+            );
+        }
+
+        public static Vector3 Forward(this Quaternion q)
+        {
+            return - new Vector3(
+                2 * (q.X * q.Z + q.W * q.Y),
+                2 * (q.Y * q.Z - q.W * q.X),
+                1 - 2 * (q.X * q.X + q.Y * q.Y)
+            );
         }
 
         #endregion

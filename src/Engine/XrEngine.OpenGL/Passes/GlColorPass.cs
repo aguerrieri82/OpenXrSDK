@@ -59,12 +59,14 @@ namespace XrEngine.OpenGL
 
         protected virtual void Draw(DrawContent draw)
         {
+            draw.Draw!();
+
             var name = draw.Object!.Name;
 
             if (name != null)
                 _gl.DebugMessageInsert(DebugSource.DebugSourceApplication, DebugType.DebugTypeMarker, 0, DebugSeverity.DebugSeverityNotification, (uint)name.Length, name);
 
-            draw.Draw!();
+        
         }
 
         protected virtual bool UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)

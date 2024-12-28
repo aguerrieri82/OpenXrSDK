@@ -71,7 +71,7 @@ namespace XrEditor
             var camera = (PerspectiveCamera)_sceneView.Camera;
             var curDir = (camera.WorldPosition - camera.Target);
             var curLen = curDir.Length();
-            var newLen = curLen + curLen * -ev.WheelDelta * 0.001f;
+            var newLen = curLen + curLen * -ev.WheelDelta * ZoomSpeed;
 
             camera.WorldPosition = camera.Target + curDir.Normalize() * newLen;
         }

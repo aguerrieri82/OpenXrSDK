@@ -241,7 +241,7 @@ namespace XrEngine.Filament
                     TextureFormat.RgbaFloat32 => FlTextureInternalFormat.RGBA32F,
                     TextureFormat.RgbFloat16 => FlTextureInternalFormat.RGB16F,
                     TextureFormat.Bgra32 => FlTextureInternalFormat.RGBA8,
-                    TextureFormat.Gray8 => FlTextureInternalFormat.R8,
+                    TextureFormat.GrayInt8 => FlTextureInternalFormat.R8,
                     _ => throw new NotSupportedException(),
                 };
 
@@ -259,7 +259,7 @@ namespace XrEngine.Filament
 
                         TextureFormat.Bgra32 => FlPixelFormat.RGBA,
 
-                        TextureFormat.Gray8 => FlPixelFormat.R,
+                        TextureFormat.GrayInt8 => FlPixelFormat.R,
 
                         _ => throw new NotSupportedException(),
                     };
@@ -275,7 +275,7 @@ namespace XrEngine.Filament
                         TextureFormat.Rgba32 or
                         TextureFormat.Bgra32 or
                         TextureFormat.SRgba32 or
-                        TextureFormat.Gray8
+                        TextureFormat.GrayInt8
                             => FlPixelType.UBYTE,
 
                         _ => throw new NotSupportedException(),
