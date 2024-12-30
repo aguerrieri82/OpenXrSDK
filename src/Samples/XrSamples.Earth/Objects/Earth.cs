@@ -10,7 +10,7 @@ namespace XrSamples.Earth
         public Earth()
         {
             SphereRadius = Unit(6371.0f);
-            AxisTilt = (float)DegreesToRadians(23.5f);
+            AxisTilt = (float)DegreesToRadians(-23.5f);
             BaseColor = Color.White;
             AtmosphereColor = "#005FFF09";
             AtmosphereHeight = Unit(40);

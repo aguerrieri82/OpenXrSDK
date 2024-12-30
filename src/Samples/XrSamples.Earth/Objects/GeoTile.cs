@@ -196,7 +196,7 @@ namespace XrSamples.Earth
                     Texture = HeightMap,
                     ScaleFactor = Unit(0.001f),
                     TargetTriSize = 5,
-                    NormalStrength = new Vector3(10, 10, 0.23f),
+                    NormalStrength = new Vector3(1000, -1000, -0.3f),
                     NormalMode = HeightNormalMode.Fast,
                     MaskValue = -9999,
                     SphereRadius = SphereRadius,
