@@ -11,7 +11,9 @@ namespace XrEditor
 
         public static readonly bool EnableVSync = true;
 
-        public static readonly string AssetsPath = @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\";
+        public static readonly string[] AssetsPath = [
+            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",
+            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\"];  
 
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
               //.UseMultiView()

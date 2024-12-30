@@ -1,8 +1,12 @@
-﻿namespace XrEngine
+﻿using XrMath;
+
+namespace XrEngine
 {
     public interface IPbrMaterial : IMaterial, IColorSource, IShadowMaterial
     {
         Texture2D? ColorMap { get; set; }
+
+        uint ColorMapUVSet { get; set; }    
 
         Texture2D? MetallicRoughnessMap { get; set; }
 
@@ -10,6 +14,7 @@
 
         Texture2D? OcclusionMap { get; set; }
 
+        Color EmissiveColor { get; set; }
 
         float OcclusionStrength { get; set; }
 

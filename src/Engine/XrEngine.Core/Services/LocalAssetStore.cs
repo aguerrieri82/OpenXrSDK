@@ -9,6 +9,12 @@
             _basePath = Path.GetFullPath(basePath);
         }
 
+
+        public bool Contains(string name)
+        {
+            return File.Exists(GetPath(name));  
+        }
+
         public Stream Open(string name)
         {
             return File.OpenRead(GetPath(name));
@@ -32,5 +38,6 @@
             return Directory.EnumerateDirectories(Path.Join(_basePath, storePath))
                   .Select(a => a.Substring(_basePath.Length));
         }
+
     }
 }

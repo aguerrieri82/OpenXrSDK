@@ -20,6 +20,8 @@ namespace XrEngine
 
         public float SphereRadius { get; set; }
 
+        public Vector3 SphereWorldCenter { get; set; }  
+
         public Vector3 NormalStrength { get; set; }
 
         public HeightNormalMode NormalMode { get; set; }

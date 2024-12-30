@@ -302,7 +302,7 @@ namespace XrEngine.Tiff
             return result;
         }
 
-        public static unsafe TextureData Read(this Tiff tiff, bool flipY = true)
+        public static unsafe TextureData Read(this Tiff tiff, bool flipY = false)
         {
             var w = GetIntField(tiff, TiffTag.ImageWidth);
             var h = GetIntField(tiff, TiffTag.ImageLength);
@@ -397,7 +397,36 @@ namespace XrEngine.Tiff
             else
             {
                 if (tw > 0)
-                    throw new NotSupportedException();
+                {
+                    var tileSize = (uint)TIFFTileSize(tiff);
+                    var tileBuf = MemoryBuffer.Create<byte>(tileSize);
+
+                    using var tileBufData = buffer.MemoryLock();
+
+                    var tLineSize = tileSize / th;
+
+                    for (uint y = 0; y < h; y += (uint)th) // Iterate over tiles vertically
+                    {
+                        for (uint x = 0; x < w; x += (uint)tw) // Iterate over tiles horizontally
+                        {
+                            TIFFReadTile(tiff, tileBufData, x, y, 0, 0);
+
+                            var curTh = Math.Min(h - y, th);
+                            var mainBufOfs = data.Data + (x * ps) + (y * lineSize);
+                            var tileBufOfs = tileBufData.Data;
+                            var cutTLineSize = Math.Min(tLineSize, (w - x) * ps);
+
+                            for (uint y1 = 0; y1 < curTh; y1++)
+                            {
+                                EngineNativeLib.CopyMemory((nint)tileBufOfs, (nint)mainBufOfs, (uint)cutTLineSize);
+                                mainBufOfs += lineSize;
+                                tileBufOfs += tLineSize;
+                            }
+
+                        }
+                    }
+                }
+
                 for (var y = 0; y < h; y++)
                     TIFFReadScanline(tiff, data.Data + (y * lineSize), y, 0);
             }

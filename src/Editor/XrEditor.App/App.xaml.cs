@@ -29,7 +29,7 @@ namespace XrEditor
             Context.Implement<PropertyEditorManager>();
             Context.Implement<IViewManager>(_viewManager);
             Context.Implement<IMainDispatcher>(new MainDispatcher());
-            Context.Implement<IAssetStore>(new LocalAssetStore(EditorDebug.AssetsPath)); ;
+            Context.Implement<IAssetStore>(MergedAssetStore.FromLocalPaths(EditorDebug.AssetsPath));
             Context.Implement<IVideoReader>(() => new FFmpegVideoReader());
             Context.Implement<IVideoCodec>(() => new FFmpegCodec());
             Context.Implement<IWindowManager>(() => new WpfWindowManager());

@@ -44,6 +44,10 @@ namespace XrEditor
         bool IOutlineSource.HasOutline(Object3D obj, out Color color)
         {
             color = new Color(1, 1, 0, 0.7f);
+
+            if (obj is TriangleMesh mesh && mesh.Geometry?.Primitive == DrawPrimitive.Quad)
+                return false;
+
             return _lastOutline != null && _lastOutline.Contains(obj);
         }
 

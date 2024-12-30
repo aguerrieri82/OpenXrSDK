@@ -12,7 +12,7 @@ namespace XrEditor.Nodes
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
-            base.EditorProperties(binder, curProps);
+           // base.EditorProperties(binder, curProps);
 
             binder.PropertyChanged += (_, prop, _, _) =>
             {

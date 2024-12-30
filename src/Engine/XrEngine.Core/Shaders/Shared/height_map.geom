@@ -6,6 +6,10 @@ layout(location = 1) in vec3 tcPos[];
 layout(location = 2) in vec3 tcCameraPos[]; 
 layout(location = 3) in vec3 tcNormal[]; 
 
+#ifdef HAS_UV2
+    layout(location = 4) in vec2 tcUv2[]; 
+    out vec2 fUv2;
+#endif
 
 out vec2 fUv;     
 out vec3 fPos;      
@@ -37,6 +41,9 @@ void main()
     #ifndef NORMAL_GEO
         fNormal = tcNormal[0];
     #endif
+    #ifdef HAS_UV2
+        fUv2 = tcUv2[0];
+    #endif
     EmitVertex();
 
     gl_Position = gl_in[1].gl_Position;
@@ -46,6 +53,9 @@ void main()
     #ifndef NORMAL_GEO
         fNormal = tcNormal[1];
     #endif
+    #ifdef HAS_UV2
+        fUv2 = tcUv2[1];
+    #endif
     EmitVertex();
 
     gl_Position = gl_in[2].gl_Position;
@@ -54,6 +64,9 @@ void main()
     fCameraPos = tcCameraPos[2];
     #ifndef NORMAL_GEO
         fNormal = tcNormal[2];
+    #endif
+    #ifdef HAS_UV2
+        fUv2 = tcUv2[2];
     #endif
     EmitVertex();
 

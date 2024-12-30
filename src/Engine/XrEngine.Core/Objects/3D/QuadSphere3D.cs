@@ -162,9 +162,10 @@ namespace XrEngine
             Vector2 CalculateUV(Vector3 vertex)
             {
                 var normal = Vector3.Normalize(vertex);
-                var u = 0.5f + (float)(Math.Atan2(normal.Z, normal.X) / (2 * Math.PI));
-                var v = 0.5f - (float)(Math.Asin(normal.Y) / Math.PI);
-                return new Vector2(u, v);
+                var u = (0.25f + (float)(Math.Atan2(normal.Z, normal.X) / (2 * Math.PI))) % 1;
+                var v = (0.5f - (float)(Math.Asin(normal.Y) / Math.PI)) % 1;
+
+                return new Vector2(1 - u, v);
             }
 
             bool CrossesSeam(IEnumerable<float> us)

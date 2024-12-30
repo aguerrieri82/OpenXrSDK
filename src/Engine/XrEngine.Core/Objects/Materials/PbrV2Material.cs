@@ -26,7 +26,7 @@ namespace XrEngine
 
         #region MaterialUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 128)]
+        [StructLayout(LayoutKind.Explicit, Size = 144)]
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
@@ -54,7 +54,8 @@ namespace XrEngine
             [FieldOffset(116)]
             public float AlphaCutoff;
 
-
+            [FieldOffset(128)]
+            public Vector4 EmissiveColor;
         }
 
         #endregion
@@ -189,9 +190,7 @@ namespace XrEngine
                 }
 
                 if (bld.Context.BloomProvider != null)
-                {
                     bld.AddFeature("USE_BLOOM");
-                }
 
 
                 bld.AddFeature("MAX_LIGHTS " + LightListUniforms.Max);
@@ -258,7 +257,7 @@ namespace XrEngine
 
                     ctx.CurrentBuffer!.Hash = hash;
 
-                    Log.Debug(this, "Build light uniforms");
+                    //Log.Debug(this, "Build light uniforms");
 
                     if (!hasPunctual)
                     {
@@ -379,6 +378,7 @@ namespace XrEngine
                 OcclusionStrength = OcclusionStrength,
                 NormalScale = NormalScale,
                 AlphaCutoff = AlphaCutoff,
+                EmissiveColor = EmissiveColor
             };
 
             bld.AddFeature("PBR_V2");
@@ -457,13 +457,16 @@ namespace XrEngine
                 });
             }
 
+            if (EmissiveColor != Color.Black)
+                bld.AddFeature("USE_EMISSIVE");
+
             if (HeightMap?.Texture != null)
             {
-
                 bld.AddFeature("USE_HEIGHT_MAP");
 
                 if (HeightMap.NormalMode == HeightNormalMode.Sobel)
                     bld.AddFeature("NORMAL_SOBEL");
+
                 else if (HeightMap.NormalMode == HeightNormalMode.Geometry)
                     bld.AddFeature("NORMAL_GEO");
 
@@ -471,7 +474,15 @@ namespace XrEngine
                     bld.AddFeature($"HEIGHT_MASK_VALUE {HeightMap.MaskValue}.0");
 
                 if (HeightMap.SphereRadius > 0)
+                {
                     bld.AddFeature("IS_SPHERE");
+                    bld.ExecuteAction((ctx, up) =>
+                    {
+                        up.SetUniform("uSphereRadius", HeightMap.SphereRadius);
+                        up.SetUniform("uSphereCenter", HeightMap.SphereWorldCenter);
+                    });
+                }
+            
 
                 bld.ExecuteAction((ctx, up) =>
                 {
@@ -480,13 +491,9 @@ namespace XrEngine
                         up.LoadTexture(HeightMap.Texture!, 8);
                         up.SetUniform("uHeightTexSize", new Vector2(HeightMap.Texture.Width, HeightMap.Texture.Height));
                     }
-
                     up.SetUniform("uHeightNormalStrength", HeightMap!.NormalStrength);
                     up.SetUniform("uHeightScale", HeightMap.ScaleFactor);
                     up.SetUniform("uTargetTriSize", HeightMap.TargetTriSize);
-
-                    if (HeightMap.SphereRadius > 0)
-                        up.SetUniform("uSphereRadius", HeightMap.SphereRadius);
                 });
             }
 
@@ -501,6 +508,8 @@ namespace XrEngine
                     bld.AddFeature("HAS_TEX_TRANSFORM");
                     material.TexTransform = ColorMap.Transform.Value;
                 }
+
+                bld.AddFeature($"ALBEDO_UV_SET {ColorMapUVSet}");
             }
 
             if (MetallicRoughnessMap != null)
@@ -523,6 +532,9 @@ namespace XrEngine
 
             if ((bld.Context.ActiveComponents & VertexComponent.Tangent) != 0)
                 bld.AddFeature("HAS_TANGENTS");
+
+            if ((bld.Context.ActiveComponents & VertexComponent.UV1) != 0)
+                bld.AddFeature("HAS_UV2");
 
             base.UpdateShader(bld);
         }
@@ -569,6 +581,8 @@ namespace XrEngine
 
         public Texture2D? ColorMap { get; set; }
 
+        public uint ColorMapUVSet { get; set; }
+
         public Texture2D? MetallicRoughnessMap { get; set; }
 
         public Texture2D? NormalMap { get; set; }
@@ -597,6 +611,8 @@ namespace XrEngine
         public float NormalScale { get; set; }
 
         public bool UseEnvDepth { get; set; }
+
+        public Color EmissiveColor { get; set; }
 
         public PbrV2Debug Debug { get; set; }
 

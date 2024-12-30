@@ -28,7 +28,7 @@ namespace XrEngine
                 {
                     Pos = new Vector3((x - 0.5f) * Size.X, (y - 0.5f) * Size.Y, 0),
                     Normal = new Vector3(0, 0, 1),
-                    UV = new Vector2(x, y),
+                    UV = new Vector2(x, (1 - y)),
                     Tangent = new Vector4(1, 0, 0, 1)
                 });
             }
