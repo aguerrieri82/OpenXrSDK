@@ -312,21 +312,16 @@ namespace XrEngine.Tiff
             var sf = (SampleFormat)GetIntField(tiff, TiffTag.SampleFormat);
             var pm = (TiffPhotometric)GetIntField(tiff, TiffTag.Photometric);
 
-            var ps = (bps / 8);
-            var lineSize = w * ps;
-;
-            var buffer = MemoryBuffer.Create<byte>((uint)(lineSize * h));
-           
+
             var result = new TextureData
             {
                 Width = (uint)w,
-                Height = (uint)h,
-                Data = buffer
+                Height = (uint)h
             };
 
             if (pm == TiffPhotometric.MinIsBlack || pm == TiffPhotometric.MinIsWhite)
             {
-                if (sf == SampleFormat.UnsignedInteger)
+                if (sf == SampleFormat.UnsignedInteger || sf == 0)
                 {
                     if (bps == 16)
                         result.Format = TextureFormat.GrayInt16;
@@ -349,9 +344,27 @@ namespace XrEngine.Tiff
                     else
                         throw new NotSupportedException();
                 }
+                else
+                    throw new NotSupportedException();
+            }
+            else if (pm == TiffPhotometric.RGB)
+            {
+                if (bps == 8)
+                {
+                    bps *= 3;
+                    result.Format = TextureFormat.Rgb24;
+                }
+                else
+                    throw new NotSupportedException();
             }
             else
                 throw new NotSupportedException();
+
+            var ps = (bps / 8);
+            var lineSize = w * ps;
+            
+            var buffer = MemoryBuffer.Create<byte>((uint)(lineSize * h));
+            result.Data = buffer;
 
             using var data = buffer.MemoryLock();
 

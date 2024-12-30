@@ -56,8 +56,10 @@ namespace XrSamples.Earth
             return dayCount + fractionOfDay;
         }
 
-        public const float UniversScale =1f;
+        public const float UniverseOrbitScale = 0.4f;
 
-        public static readonly float AU = Unit(149597870.7f * UniversScale);
+        public const float UniversePlanetScale = 1f;
+
+        public static readonly float AU = Unit(149597870.7f * UniverseOrbitScale);
     }
 }

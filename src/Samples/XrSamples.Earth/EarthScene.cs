@@ -13,9 +13,12 @@ namespace XrSamples.Earth
         private PointLight _sunLight;
         private Earth _earth;
         private Sun _sun;
+        private Moon _moon;
 
         public EarthScene()
         {
+
+            ModuleManager.Ref<TiffReader>();
 
             AddChild(new PlaneGrid(6f, 12f, 2f));
 
@@ -35,7 +38,10 @@ namespace XrSamples.Earth
             });
 
             _earth = AddChild(new Earth());
-            AddChild(_earth.CreateOrbit());
+            AddChild(_earth.CreateOrbit("#0000ff"));
+
+            _moon = AddChild(new Moon());
+            AddChild(_moon.CreateOrbit(Color.White));
 
             _sun = AddChild(new Sun());
 
@@ -50,6 +56,8 @@ namespace XrSamples.Earth
 
 
         public Earth Earth => _earth;
+
+        public Moon Moon => _moon;
 
         public Sun Sun => _sun;
     }

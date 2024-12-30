@@ -26,10 +26,10 @@ namespace XrSamples.Earth
             _sphere = AddSphere();
         }
 
-        public Object3D CreateOrbit()
+        public Object3D CreateOrbit(Color color)
         {
-            var mesh = Orbit!.CreateGeometry(Color.White, 0.0001f);
-            mesh.Name = "Orbit";
+            var mesh = Orbit!.CreateGeometry(color, 0.0001f);
+            mesh.Name = "Orbit " + Name;
             return mesh;
         }
 
@@ -103,11 +103,17 @@ namespace XrSamples.Earth
             AddChild(tile); 
         }
 
+        public virtual float RotationAngle(DateTime utcTime)
+        {
+
+            return 0;
+        }
+
         public override void Update(RenderContext ctx)
         {
 
             _transform.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, AxisTilt) *
-                                    Quaternion.CreateFromAxisAngle(Vector3.UnitY, Rotation);
+                                    Quaternion.CreateFromAxisAngle(Vector3.UnitY, Rotation + RotationOffset);
 
             if (_sphere!.Materials[0] is IHeightMaterial hm && hm.HeightMap != null)
                 hm.HeightMap!.SphereWorldCenter = WorldPosition;
@@ -146,6 +152,10 @@ namespace XrSamples.Earth
         public float Rotation { get; set; }
 
 
-        public int SubLevels { get; set; } 
+        public int SubLevels { get; set; }
+
+
+        [ValueType(XrEngine.ValueType.Radiant)]
+        public float RotationOffset { get; set; }
     }
 }
