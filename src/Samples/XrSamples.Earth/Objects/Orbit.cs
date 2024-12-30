@@ -8,6 +8,11 @@ namespace XrSamples.Earth
 {
     public class Orbit
     {
+        public Orbit()
+        {
+            OrbitScale = Vector3.One;
+        }
+
         public LineMesh CreateGeometry(Color color, float stepSize = 0.01f)
         {
             var vertices = new List<Vector3>();
@@ -76,7 +81,7 @@ namespace XrSamples.Earth
 
             // Return position in the XZ plane (with Y=0)
             // multiplied by AU to convert from "astronomical units" to your engine’s scale.
-            return new Vector3((float)x, 0f, -(float)y) * AU;
+            return (new Vector3((float)x, 0f, (float)y) * OrbitScale * AU).Transform(Quaternion.CreateFromAxisAngle(Vector3.UnitY, RotationOffset));
         }
 
         // Keep angles in the range [0..2π)
@@ -109,7 +114,8 @@ namespace XrSamples.Earth
                 SemiMajorAxis = 1.0,  
                 MeanAnomalyAtEpoch = DegreesToRadians(357.529),
                 MeanMotion = DegreesToRadians(0.985608),
-                ArgumentOfPerihelion = DegreesToRadians(102.937)
+                ArgumentOfPerihelion = DegreesToRadians(102.937),
+                OrbitScale = new Vector3(1, 1,-1)
             };
         }
 
@@ -121,15 +127,29 @@ namespace XrSamples.Earth
                 SemiMajorAxis = Unit(384400f * UniverseOrbitScale) / AU,
                 MeanAnomalyAtEpoch = DegreesToRadians(115.3654), 
                 MeanMotion = DegreesToRadians(13.176358), 
-                ArgumentOfPerihelion = DegreesToRadians(318.15) 
+                ArgumentOfPerihelion = DegreesToRadians(318.15) ,
+                RotationOffset = (float)DegreesToRadians(58)
             };
         }
 
-        // Orbital parameters (in radians & AU)
-        public double Eccentricity;
-        public double SemiMajorAxis;
-        public double MeanAnomalyAtEpoch;
-        public double MeanMotion;
-        public double ArgumentOfPerihelion;
+
+        public double Eccentricity { get; set; }
+        
+        public double SemiMajorAxis { get; set; }
+
+
+        public double MeanAnomalyAtEpoch { get; set; }
+
+
+        public double MeanMotion { get; set; }
+
+
+        public double ArgumentOfPerihelion { get; set; }
+
+        public Vector3 OrbitScale { get; set; }
+
+        [ValueType(XrEngine.ValueType.Radiant)]
+        public float RotationOffset { get; set; }
+
     }
 }
