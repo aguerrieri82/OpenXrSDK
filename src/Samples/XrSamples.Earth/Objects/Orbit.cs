@@ -76,7 +76,7 @@ namespace XrSamples.Earth
 
             // Return position in the XZ plane (with Y=0)
             // multiplied by AU to convert from "astronomical units" to your engine’s scale.
-            return new Vector3((float)x, 0f, (float)y) * AU;
+            return new Vector3((float)x, 0f, -(float)y) * AU;
         }
 
         // Keep angles in the range [0..2π)

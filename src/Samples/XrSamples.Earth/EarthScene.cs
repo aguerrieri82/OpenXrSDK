@@ -30,7 +30,7 @@ namespace XrSamples.Earth
             _sunLight = AddChild(new PointLight()
             {
                 Name = "Sun Light",
-                Intensity = 2,
+                Intensity = 4,
                 Range = AU * 2,
             });
 

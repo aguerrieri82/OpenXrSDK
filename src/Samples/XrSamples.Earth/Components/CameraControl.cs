@@ -24,7 +24,9 @@ namespace XrSamples.Earth
             Altitude = 30;
             Heading = 0;
             LockCamera = true;
-            Offset = (float)DegreesToRadians(162);
+            SunAtOrigin = false;
+
+            Offset = (float)DegreesToRadians(Math.PI / 2);
 
             Time = "17:00";
             Altitude = 10000;
@@ -77,39 +79,6 @@ namespace XrSamples.Earth
             return new Vector3(x, y, z).Transform(_host.Earth.WorldMatrix);
         }
 
-        public static float ComputeEarthRotationAngleV2(DateTime utcTime, bool solarDay)
-        {
-            // Convert to Julian Date
-            double jd = ToJulianDate(utcTime);
-            double d = jd - 2451545.0; // days since J2000
-
-            // GMST (radians)
-            double gmstHours = 18.697374558 + 24.06570982441908 * d;
-            gmstHours = gmstHours % 24.0;
-            if (gmstHours < 0) gmstHours += 24.0;
-            double gmst = gmstHours * (Math.PI / 12.0);
-
-            // Sun’s approximate Right Ascension (radians)
-            double M = (357.529 + 0.98560028 * d) % 360.0;         // mean anomaly (deg)
-            double L0 = (280.459 + 0.98564736 * d) % 360.0;         // mean longitude (deg)
-            double Mrad = M * (Math.PI / 180.0);
-            double L0rad = L0 * (Math.PI / 180.0);
-            double lambda = (L0
-                             + 1.915 * Math.Sin(Mrad) * (180.0 / Math.PI)
-                             + 0.020 * Math.Sin(2 * Mrad) * (180.0 / Math.PI)) % 360.0;
-            double lambdaRad = lambda * (Math.PI / 180.0);
-            double eps = 23.439 * (Math.PI / 180.0);
-            double alpha = Math.Atan2(Math.Sin(lambdaRad) * Math.Cos(eps),
-                                      Math.Cos(lambdaRad));
-            alpha = (alpha < 0) ? alpha + 2.0 * Math.PI : alpha;
-
-            // Earth rotation = GMST - SunRA, normalized
-            double rotation = gmst - alpha;
-            rotation = rotation % (2.0 * Math.PI);
-            if (rotation < 0) rotation += 2.0 * Math.PI;
-            return (float)rotation;
-        }
-
         public static float ComputeEarthRotationAngle(DateTime utcTime)
         {
             double julianDate = ToJulianDate(utcTime);
@@ -138,7 +107,6 @@ namespace XrSamples.Earth
                 _posDirty = true;
             }
 
-
             UpdatePos();
 
             base.Update(ctx);
@@ -157,15 +125,21 @@ namespace XrSamples.Earth
 
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EarthPosAngle)));
 
+                _host.Earth.Rotation = Offset + ComputeEarthRotationAngle(_dateTime);
+
+                if (SunAtOrigin)
+                    _host.Earth.Transform.Position = earthPos;
+
                 foreach (var item in _host.Children)
                 {
                     if (item == _host.Earth || item is Camera)
                         continue;
 
-                    item.Transform.Position = -earthPos;
+                    if (SunAtOrigin)
+                        item.Transform.Position = Vector3.Zero;
+                    else
+                        item.Transform.Position = -earthPos;
                 }
-
-                _host.Earth.Rotation = Offset + ComputeEarthRotationAngle(_dateTime);
 
                 _posDirty = false;
             }
@@ -230,6 +204,8 @@ namespace XrSamples.Earth
 
         [ValueType(XrEngine.ValueType.Radiant)]
         public float EarthPosAngle { get; set; }
+
+        public bool SunAtOrigin { get; set; }
 
     }
 }
