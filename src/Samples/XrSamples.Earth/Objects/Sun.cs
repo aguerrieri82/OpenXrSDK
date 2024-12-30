@@ -13,8 +13,9 @@ namespace XrSamples.Earth
     {
         public Sun()
         {
-            SphereRadius = Unit(696340 * UniversScale);
-            BaseColor = new Color(1, 1, 0.5f);
+            Name = "Sun";
+            SphereRadius = Unit(696340 * UniversePlanetScale);
+            BaseColor = "#C26700FF";
 
             Create();
 

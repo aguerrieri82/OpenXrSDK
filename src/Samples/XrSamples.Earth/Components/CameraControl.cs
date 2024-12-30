@@ -1,14 +1,21 @@
-﻿
-using System.ComponentModel;
-
+﻿using System.ComponentModel;
 using System.Numerics;
-
+using System.Runtime.InteropServices.JavaScript;
 using XrEngine;
 using XrMath;
 using static XrSamples.Earth.SceneConst;
 
 namespace XrSamples.Earth
 {
+    public enum AnchorPoint
+    {
+        Free,
+        Earth,
+        Moon,
+        Sun 
+    }
+
+
     public class CameraControl : Behavior<EarthScene>, INotifyPropertyChanged
     {
         DateTime _dateTime;
@@ -18,15 +25,16 @@ namespace XrSamples.Earth
         public CameraControl()
         {
             _dateTime = DateTime.Now;
-            Speed = 10;
+            Speed = 1000;
             Latitude = 12.1518378f;
             Longitude = 43.570749f;
-            Altitude = 30;
+            Altitude = 2;
             Heading = 0;
             LockCamera = true;
             SunAtOrigin = false;
-
-            Offset = (float)DegreesToRadians(Math.PI / 2);
+            Origin = AnchorPoint.Earth;
+            Target = AnchorPoint.Free;
+            Zoom = 1;
 
             Time = "17:00";
             Altitude = 10000;
@@ -79,23 +87,6 @@ namespace XrSamples.Earth
             return new Vector3(x, y, z).Transform(_host.Earth.WorldMatrix);
         }
 
-        public static float ComputeEarthRotationAngle(DateTime utcTime)
-        {
-            double julianDate = ToJulianDate(utcTime);
-
-            // Adjust Julian Date for UT1 if needed
-            double dUT1 = julianDate - 2451545.0;
-
-            // Calculate Earth Rotation Angle (ERA) in radians
-            double eraRadians = 2.0 * Math.PI * (0.7790572732640 + 1.00273781191135448 * dUT1);
-            eraRadians %= 2.0 * Math.PI; // Normalize to [0, 2π)
-
-            if (eraRadians < 0)
-                eraRadians += 2.0 * Math.PI;
-
-            return (float)eraRadians;
-        }
-
         protected override void Update(RenderContext ctx)
         {
             if (Animate)
@@ -117,22 +108,29 @@ namespace XrSamples.Earth
             if (_host?.Earth?.Orbit == null)
                 return;
 
+            if (Zoom < 1)
+                Zoom = 1;
+
             if (_posDirty || true)
             {
                 var earthPos = _host.Earth.Orbit.GetPosition(_dateTime);
+
+                _host.Moon.Transform.Position = _host.Moon.Orbit!.GetPosition(_dateTime);
 
                 EarthPosAngle = MathF.Atan2(earthPos.X, earthPos.Z);
 
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EarthPosAngle)));
 
-                _host.Earth.Rotation = Offset + ComputeEarthRotationAngle(_dateTime);
+                _host.Earth.Rotation = _host.Earth.RotationAngle(_dateTime);
+
+                _host.Moon.Rotation = _host.Moon.RotationAngle(_dateTime);
 
                 if (SunAtOrigin)
                     _host.Earth.Transform.Position = earthPos;
 
                 foreach (var item in _host.Children)
                 {
-                    if (item == _host.Earth || item is Camera)
+                    if (item == _host.Earth || item is Camera || item is Moon || item.Name == "Orbit Moon")
                         continue;
 
                     if (SunAtOrigin)
@@ -144,15 +142,41 @@ namespace XrSamples.Earth
                 _posDirty = false;
             }
 
+            var camera = (PerspectiveCamera)_host.ActiveCamera!;
+
             if (LockCamera)
             {
-                var cameraPos = ComputePosition(new Vector2(Latitude, Longitude), Altitude);
+                camera.FovDegree = 45f * (1f / Zoom);
+                camera.UpdateProjection();
 
-                var (cameraDir, cameraUp) = ComputeCameraDirectionAndUp(cameraPos, Heading, Elevation);
+                 var cameraPos = ComputePosition(new Vector2(Latitude, Longitude), Altitude);
+                var normal = cameraPos.Normalize();
 
-                var cameraTarget = cameraPos + cameraDir * Unit(10);
+                if (Target == AnchorPoint.Free)
+                {
+                    var (cameraDir, cameraUp) = ComputeCameraDirectionAndUp(cameraPos, Heading, Elevation);
 
-                _host.ActiveCamera!.LookAt(cameraPos, cameraTarget, cameraUp);
+                    var cameraTarget = cameraPos + cameraDir * Unit(10);
+
+                    _host.ActiveCamera!.LookAt(cameraPos, cameraTarget, cameraUp);
+                }
+                else if (Target == AnchorPoint.Moon)
+                {
+                    var cameraDir = (_host.Moon.Transform.Position - _host.ActiveCamera!.Transform.Position).Normalize();
+      
+                    var cameraTarget = cameraPos + cameraDir * Unit(10);
+
+                    _host.ActiveCamera!.LookAt(cameraPos, cameraTarget, normal);
+                }
+                else if (Target == AnchorPoint.Sun)
+                {
+                    var cameraDir = (_host.Sun.Transform.Position - _host.ActiveCamera!.Transform.Position).Normalize();
+
+                    var cameraTarget = cameraPos + cameraDir * Unit(10);
+
+            
+                    _host.ActiveCamera!.LookAt(cameraPos, cameraTarget, normal);
+                }
             }
         }
 
@@ -200,12 +224,17 @@ namespace XrSamples.Earth
         public bool Animate { get; set; }
 
         [ValueType(XrEngine.ValueType.Radiant)]
-        public float Offset { get; set; }
-
-        [ValueType(XrEngine.ValueType.Radiant)]
         public float EarthPosAngle { get; set; }
 
         public bool SunAtOrigin { get; set; }
+
+        public AnchorPoint Target { get; set; }
+
+        public AnchorPoint Origin { get; set; }
+
+
+        [Range(1, 100, 1)]
+        public float Zoom { get; set; }
 
     }
 }

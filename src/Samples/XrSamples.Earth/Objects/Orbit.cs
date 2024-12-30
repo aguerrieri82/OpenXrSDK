@@ -106,10 +106,22 @@ namespace XrSamples.Earth
             return new Orbit
             {
                 Eccentricity = 0.0167,
-                SemiMajorAxis = 1.0,    // in AU  
+                SemiMajorAxis = 1.0,  
                 MeanAnomalyAtEpoch = DegreesToRadians(357.529),
                 MeanMotion = DegreesToRadians(0.985608),
                 ArgumentOfPerihelion = DegreesToRadians(102.937)
+            };
+        }
+
+        public static Orbit Moon()
+        {
+            return new Orbit
+            {
+                Eccentricity = 0.0549, 
+                SemiMajorAxis = Unit(384400f * UniverseOrbitScale) / AU,
+                MeanAnomalyAtEpoch = DegreesToRadians(115.3654), 
+                MeanMotion = DegreesToRadians(13.176358), 
+                ArgumentOfPerihelion = DegreesToRadians(318.15) 
             };
         }
 

@@ -9,6 +9,7 @@ namespace XrSamples.Earth
     {
         public Earth()
         {
+            Name = "Earth";
             SphereRadius = Unit(6371.0f);
             AxisTilt = (float)DegreesToRadians(-23.5f);
             BaseColor = Color.White;
@@ -16,6 +17,7 @@ namespace XrSamples.Earth
             AtmosphereHeight = Unit(40);
             SubLevels = 6;
             Orbit = Orbit.Earth();
+            RotationOffset = MathF.PI / 2;
 
             Albedo = AssetLoader.Instance.Load<Texture2D>("res://asset/world.topo.bathy.200411.3x21600x10800.jpg");
             Albedo.WrapS = WrapMode.Repeat;
@@ -43,6 +45,23 @@ namespace XrSamples.Earth
 
             Create();
 
+        }
+
+        public override float RotationAngle(DateTime utcTime)
+        {
+            double julianDate = ToJulianDate(utcTime);
+
+            // Adjust Julian Date for UT1 if needed
+            double dUT1 = julianDate - 2451545.0;
+
+            // Calculate Earth Rotation Angle (ERA) in radians
+            double eraRadians = 2.0 * Math.PI * (0.7790572732640 + 1.00273781191135448 * dUT1);
+            eraRadians %= 2.0 * Math.PI; // Normalize to [0, 2π)
+
+            if (eraRadians < 0)
+                eraRadians += 2.0 * Math.PI;
+
+            return (float)eraRadians;
         }
 
     }
