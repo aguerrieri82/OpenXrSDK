@@ -21,7 +21,11 @@ in vec3 fPos;
 in vec2 fUv;
 in vec3 fCameraPos;    
 in mat3 fTangentBasis;
-in vec3 fDebug;
+
+
+#if defined(HAS_UV2) || (defined(ALBEDO_UV_SET) && ALBEDO_UV_SET == 1)
+	in vec2 fUv2;
+#endif
 
 #ifdef USE_SHADOW_MAP
     in vec4 fPosLightSpace;
@@ -119,7 +123,14 @@ void main()
 
 	// Sample input textures to get shading model params.
 	#ifdef USE_ALBEDO_MAP
-		vec4 baseColor = texture(albedoTexture, fUv) * uMaterial.color;
+
+		#if ALBEDO_UV_SET == 1
+			vec2 albUv = fUv2;
+		#else
+			vec2 albUv = fUv;
+		#endif
+
+		vec4 baseColor = texture(albedoTexture, albUv) * uMaterial.color;
 	#else
 		vec4 baseColor = uMaterial.color;	
 	#endif
@@ -307,8 +318,8 @@ void main()
 
 
 	#ifdef USE_OCCLUSION_MAP
-    float ao = texture(occlusionTexture, fUv).r;
-    color3 *= mix(1.0, ao, uMaterial.occlusionStrength);
+		float ao = texture(occlusionTexture, fUv).r;
+		color3 *= mix(1.0, ao, uMaterial.occlusionStrength);
 	#endif
 
 	#if defined(USE_SHADOW_MAP) && defined(RECEIVE_SHADOWS) && defined(USE_PUNCTUAL)
@@ -323,6 +334,10 @@ void main()
 		#endif
 
 	#endif
+
+	#ifdef USE_EMISSIVE
+		color3 += uMaterial.emissive.rgb * uMaterial.emissive.a * cosLo;
+	#endif
 	
 	#ifdef TONEMAP
 		color3 = linearTosRGB(toneMap(color3));
@@ -335,7 +350,7 @@ void main()
 
 	#ifdef USE_DEPTH_NOISE
 
-	color3 = addNoise(color3);	
+		color3 = addNoise(color3);	
 
 	#endif
 

@@ -2,6 +2,15 @@
 
 namespace XrEngine
 {
+
+    [Flags]
+    public enum GlowFadeMode
+    {
+        Linear = 1,
+        Exp = 2,
+        Both = Linear | Exp
+    };
+
     public class GlowVolumeMaterial : ShaderMaterial, IVolumeMaterial
     {
         public static readonly Shader SHADER;
@@ -27,6 +36,7 @@ namespace XrEngine
             Alpha = AlphaMode.Blend;
             UseDepth = false;
             WriteDepth = false;
+            FadeMode = GlowFadeMode.Linear;
         }
 
         public override void UpdateShader(ShaderUpdateBuilder bld)
@@ -54,6 +64,8 @@ namespace XrEngine
                 });
             }
 
+            bld.AddFeature($"FADE_MODE {(int)FadeMode}");
+
             if (BlendColor)
                 bld.AddFeature("BLEND_COLOR");
         }
@@ -70,5 +82,7 @@ namespace XrEngine
 
         [Range(0, 1, 0.001f)]
         public float StepSize { get; set; }
+
+        public GlowFadeMode FadeMode { get; set; }
     }
 }

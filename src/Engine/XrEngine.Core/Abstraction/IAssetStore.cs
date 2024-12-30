@@ -4,6 +4,8 @@
     {
         Stream Open(string name);
 
+        bool Contains(string name); 
+
         string GetPath(string name);
 
         IEnumerable<string> List(string storePath);

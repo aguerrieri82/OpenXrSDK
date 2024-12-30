@@ -12,13 +12,21 @@ layout(quads, equal_spacing, ccw) in;
 
 in vec2 tcUv[];
 
+#ifdef HAS_UV2
+    in vec2 tcUv2[];   
+#endif
+
 #ifdef NORMAL_GEO
 
     layout(location = 0) out vec2 fUv;     
     layout(location = 1) out vec3 fPos;      
     layout(location = 2) out vec3 fCameraPos; 
     layout(location = 3) out vec3 fNormal; 
-    layout(location = 4) out float fHeight;
+    layout(location = 5) out float fHeight;
+
+    #ifdef HAS_UV2
+        layout(location = 4) out vec2 fUv2;   
+    #endif
 
 #else
     out vec2 fUv;     
@@ -26,6 +34,11 @@ in vec2 tcUv[];
     out vec3 fCameraPos; 
     out vec3 fNormal; 
     out float fHeight;
+
+    #ifdef HAS_UV2
+        out vec2 fUv2;   
+    #endif
+
 #endif
 
 
@@ -34,8 +47,9 @@ layout(binding=8) uniform sampler2D heightMap;
 uniform float uHeightScale;  
 uniform vec2 uHeightTexSize;
 uniform vec3 uHeightNormalStrength;
-uniform float uSphereRadius;    
 
+uniform float uSphereRadius;    
+uniform vec3 uSphereCenter;    
 
 void computeTBN(vec3 curNormal, out vec3 tangent, out vec3 bitangent) {
 
@@ -57,6 +71,15 @@ void main() {
     fUv = mix(mix(tcUv[0], tcUv[1], gl_TessCoord.x),
               mix(tcUv[3], tcUv[2], gl_TessCoord.x),
               gl_TessCoord.y);
+
+
+    #ifdef HAS_UV2
+
+        fUv2 = mix(mix(tcUv2[0], tcUv2[1], gl_TessCoord.x),
+                  mix(tcUv2[3], tcUv2[2], gl_TessCoord.x),
+                  gl_TessCoord.y); 
+    #endif
+
 
     float hValue = texture(heightMap, fUv).r;
 
@@ -83,10 +106,9 @@ void main() {
            mat3 fTangentBasis;
         #endif
 
+        curNormal = normalize(fPos - uSphereCenter);
 
-        curNormal = normalize(fPos);
-
-        fPos = curNormal * uSphereRadius;
+        fPos = uSphereCenter + curNormal * uSphereRadius;
 
         computeTBN(curNormal, fTangentBasis[0], fTangentBasis[1]);
 

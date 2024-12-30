@@ -11,9 +11,16 @@ layout(vertices = 4) out;
     out vec3 tcNormal[]; 
 #endif
 
+#ifdef HAS_UV2
+    in vec2 fUv2[]; 
+    out vec2 tcUv2[];
+#endif
+
 in vec2 fUv[]; 
 out vec2 tcUv[]; 
 out vec2 tessLevelInner[];  
+
+
 
 uniform float uTargetTriSize;
 uniform float uHeightScale;  
@@ -65,6 +72,10 @@ void main() {
     
     tcUv[gl_InvocationID] = fUv[gl_InvocationID];
 
+    #ifdef HAS_UV2
+        tcUv2[gl_InvocationID] = fUv2[gl_InvocationID];
+    #endif
+    
     #ifdef HAS_TANGENTS
         tcTangentBasis[gl_InvocationID] = fTangentBasis[gl_InvocationID]; 
     #else

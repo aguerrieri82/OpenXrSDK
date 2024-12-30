@@ -100,12 +100,17 @@ void main() {
             float a1 = smoothstep(sphereRadius, sphereRadius + haloWidth, dist);
             float a2 = clamp(exp(-(dist - sphereRadius) / haloWidth), 0.0, 1.0);
 
-            float alpha = a1;
+            #if FADE_MODE == 1
+                 float alpha = a1;
+            #elif FADE_MODE == 2
+                float alpha = a2;
+            #else
+                 float alpha = a1 * a2;
+            #endif
 
             accumulatedColor.rgb += (1.0 - accumulatedColor.a) * alpha * haloColor.rgb * haloColor.a;
             accumulatedColor.a += (1.0 - accumulatedColor.a) * alpha * haloColor.a; // Blend alpha
-
-          
+    
             if (accumulatedColor.a >= 1.0) 
                 break;
         }

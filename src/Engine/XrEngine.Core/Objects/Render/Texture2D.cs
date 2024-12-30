@@ -77,7 +77,7 @@ namespace XrEngine
 
         public uint MipLevelCount { get; set; }
 
-        public Matrix3x3? Transform { get; set; }
+        public Matrix3x3? Transform { get; set; } 
 
         public Color BorderColor { get; set; }
 

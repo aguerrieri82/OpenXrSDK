@@ -24,6 +24,7 @@ layout(std140, binding=2) uniform Material
 	vec4 shadowColor;
 	float normalScale;
 	float alphaCutoff;
+	vec4 emissive;
 } uMaterial;
 
 layout(std140, binding=3) uniform Model

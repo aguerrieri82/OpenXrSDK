@@ -6,6 +6,11 @@ layout(location=1) in vec3 normal;
 layout(location=4) in vec4 tangent;
 layout(location=2) in vec2 texcoord;
 
+#ifdef HAS_UV2
+    layout(location=3) in vec2 texcoord2;
+    out vec2 fUv2;
+#endif
+
 out vec3 fNormal;
 out vec3 fPos;
 out vec2 fUv;
@@ -16,6 +21,9 @@ out mat3 fTangentBasis;
     out vec4 fPosLightSpace;
 #endif
 
+#ifdef USE_HEIGHT_MAP
+    out vec3 fOrigin;
+#endif
 
 void main()
 {
@@ -26,6 +34,10 @@ void main()
 	fUv = texcoord;
 
 	fCameraPos = getViewPos();
+
+    #ifdef HAS_UV2
+        fUv2 = texcoord2;
+    #endif
 
 	#ifdef HAS_TEX_TRANSFORM
 	    fUv = (vec3(texcoord.xy, 1) * uMaterial.texTransform).xy;
