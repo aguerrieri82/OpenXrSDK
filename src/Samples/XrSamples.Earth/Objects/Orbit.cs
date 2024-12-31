@@ -55,33 +55,74 @@ namespace XrSamples.Earth
             return GetPosition(M);
         }
 
-        public Vector3 GetPosition(double angleRadians)
+        public Vector3 GetPosition(double M)
         {
-            // 1) Solve Kepler’s Equation for the Eccentric Anomaly, E (in radians)
-            double E = SolveKeplerEquation(angleRadians, Eccentricity);
+            double E = SolveKeplerEquation(M, Eccentricity);
 
-            // 2) True Anomaly (ν), also in radians
-            double trueAnomaly = 2.0 * Math.Atan2(
+            // 2) True anomaly ν
+            double nu = 2.0 * Math.Atan2(
                 Math.Sqrt(1 + Eccentricity) * Math.Sin(E / 2.0),
                 Math.Sqrt(1 - Eccentricity) * Math.Cos(E / 2.0)
             );
 
-            // 3) Orbital Radius (r)
+            // 3) Orbital radius r
             double r = SemiMajorAxis * (1 - Eccentricity * Math.Cos(E));
 
-            // 4) Position in orbital plane (xOrbital, yOrbital)
-            double xOrbital = r * Math.Cos(trueAnomaly);
-            double yOrbital = r * Math.Sin(trueAnomaly);
+            // 4) (xOrb, yOrb) in the orbital plane
+            double xOrb = r * Math.Cos(nu);
+            double yOrb = r * Math.Sin(nu);
 
-            // 5) Rotate by ArgumentOfPerihelion (in radians) to get final coords
-            double x = xOrbital * Math.Cos(ArgumentOfPerihelion)
-                     - yOrbital * Math.Sin(ArgumentOfPerihelion);
-            double y = xOrbital * Math.Sin(ArgumentOfPerihelion)
-                     + yOrbital * Math.Cos(ArgumentOfPerihelion);
+            // ----------- 3D ORBIT ORIENTATIONS -------------
+            // a) Rotate by argument of perihelion ω around Z
+            double cosw = Math.Cos(ArgumentOfPerihelion);
+            double sinw = Math.Sin(ArgumentOfPerihelion);
 
-            // Return position in the XZ plane (with Y=0)
-            // multiplied by AU to convert from "astronomical units" to your engine’s scale.
-            return (new Vector3((float)x, 0f, (float)y) * OrbitScale * AU).Transform(Quaternion.CreateFromAxisAngle(Vector3.UnitY, RotationOffset));
+            double xw = xOrb * cosw - yOrb * sinw;
+            double yw = xOrb * sinw + yOrb * cosw;
+            double zw = 0.0;
+
+            // b) Inclination i around X
+            double cosi = Math.Cos(Inclination);
+            double sini = Math.Sin(Inclination);
+
+            double xi = xw;
+            double yi = yw * cosi;
+            double zi = yw * sini;  // tilt out of the X–Z plane
+
+            // c) Longitude of ascending node Ω around Z
+            double cosO = Math.Cos(LongitudeOfAscendingNode);
+            double sinO = Math.Sin(LongitudeOfAscendingNode);
+
+            double xEcl = xi * cosO - yi * sinO;
+            double yEcl = xi * sinO + yi * cosO;
+            double zEcl = zi;
+
+            // ----- Remap final coords so Y is 'up' and orbit is in X–Z if i=0 -----
+            // xEcl -> X
+            // yEcl -> Z
+            // zEcl -> Y
+            var final = new Vector3(
+                (float)xEcl,
+                (float)zEcl,
+                (float)yEcl
+            ) * (AU * OrbitScale);
+
+            // Optional extra rotation about +Y for your scene
+            if (Math.Abs(OrbitOffset) > 1e-9)
+            {
+
+                var orbitNormal = new Vector3(
+                    (float)(Math.Sin(Inclination) * Math.Sin(LongitudeOfAscendingNode)),
+                    (float)(Math.Cos(Inclination)),
+                    (float)(-Math.Sin(Inclination) * Math.Cos(LongitudeOfAscendingNode))
+                );
+
+                final = final.Transform(
+                    Quaternion.CreateFromAxisAngle(orbitNormal, OrbitOffset)
+                );
+            }
+
+            return final;
         }
 
         // Keep angles in the range [0..2π)
@@ -123,15 +164,21 @@ namespace XrSamples.Earth
         {
             return new Orbit
             {
-                Eccentricity = 0.0549, 
+                Eccentricity = 0.0549,
                 SemiMajorAxis = Unit(384400f * UniverseOrbitScale) / AU,
-                MeanAnomalyAtEpoch = DegreesToRadians(115.3654), 
-                MeanMotion = DegreesToRadians(13.176358), 
-                ArgumentOfPerihelion = DegreesToRadians(318.15) ,
-                RotationOffset = (float)DegreesToRadians(58)
+                MeanAnomalyAtEpoch = DegreesToRadians(115.3654),
+                MeanMotion = DegreesToRadians(13.176358),
+                ArgumentOfPerihelion = DegreesToRadians(318.15),
+                Inclination = DegreesToRadians(5.145),
+                LongitudeOfAscendingNode = DegreesToRadians(125.08),
+                OrbitScale = new Vector3(1, 1, -1),
+                OrbitOffset = (float)DegreesToRadians(0),
             };
         }
+        
+        public double LongitudeOfAscendingNode { get; set; }
 
+        public double Inclination { get; set; }
 
         public double Eccentricity { get; set; }
         
@@ -149,7 +196,7 @@ namespace XrSamples.Earth
         public Vector3 OrbitScale { get; set; }
 
         [ValueType(XrEngine.ValueType.Radiant)]
-        public float RotationOffset { get; set; }
+        public float OrbitOffset { get; set; }
 
     }
 }

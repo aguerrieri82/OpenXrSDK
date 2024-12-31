@@ -15,8 +15,9 @@ namespace XrSamples.Earth
             BaseColor = Color.White;
             SubLevels = 6;
             Orbit = Orbit.Moon();
-            RotationOffset = (float)DegreesToRadians(250);
-            Albedo = AssetLoader.Instance.Load<Texture2D>("res://asset/lroc_color_poles_hw5x3.tif");
+            RotationOffset = (float)DegreesToRadians(0);
+
+            Albedo = AssetLoader.Instance.Load<Texture2D>("res://asset/lroc_color_poles_16k.tif");
             Albedo.WrapS = WrapMode.Repeat;
             Albedo.WrapT = WrapMode.Repeat;
             Albedo.Format = TextureFormat.SBgra32;
@@ -25,7 +26,7 @@ namespace XrSamples.Earth
 
             HeightMap = new HeightMapSettings
             {
-                Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/ldem_hw5x3.tif"),
+                Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/ldem_16_uint.tif"),
                 ScaleFactor = 0.01f,
                 NormalStrength = new Vector3(100, -100, 1),
                 NormalMode = HeightNormalMode.Sobel,

@@ -14,6 +14,7 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateEarth(this XrEngineAppBuilder builder)
         {
             var app = new EngineApp();
+
             app.OpenScene(new EarthScene()); 
 
             return builder.UseApp(app);

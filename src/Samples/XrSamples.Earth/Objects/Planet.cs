@@ -113,7 +113,7 @@ namespace XrSamples.Earth
         {
 
             _transform.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, AxisTilt) *
-                                    Quaternion.CreateFromAxisAngle(Vector3.UnitY, Rotation + RotationOffset);
+                                     Quaternion.CreateFromAxisAngle(Vector3.UnitY, Rotation + RotationOffset);
 
             if (_sphere!.Materials[0] is IHeightMaterial hm && hm.HeightMap != null)
                 hm.HeightMap!.SphereWorldCenter = WorldPosition;
