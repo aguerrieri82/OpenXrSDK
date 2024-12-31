@@ -49,6 +49,8 @@ namespace XrSamples.Earth
                           "viz.SRTMGL1_roughness.png",
                           "2024-11-23-00_00_2024-11-23-23_59_Sentinel-2_L1C_True_color.jpg");
 
+            AddChild(new StarDome());   
+
             this.AddComponent<CameraControl>();
 
             ActiveCamera = _camera;

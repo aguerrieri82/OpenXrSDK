@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using OpenXr.Framework;
+using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.InteropServices.JavaScript;
 using XrEngine;
@@ -20,7 +21,7 @@ namespace XrSamples.Earth
     {
         DateTime _dateTime;
         bool _posDirty;
-
+        private bool _sunAtOrigin;
 
         public CameraControl()
         {
@@ -31,7 +32,6 @@ namespace XrSamples.Earth
             Altitude = 2;
             Heading = 0;
             LockCamera = true;
-            SunAtOrigin = false;
             Origin = AnchorPoint.Earth;
             Target = AnchorPoint.Free;
             Zoom = 1;
@@ -125,15 +125,19 @@ namespace XrSamples.Earth
 
                 _host.Moon.Rotation = _host.Moon.RotationAngle(_dateTime);
 
-                if (SunAtOrigin)
+                if (_sunAtOrigin)
                     _host.Earth.Transform.Position = earthPos;
 
                 foreach (var item in _host.Children)
                 {
-                    if (item == _host.Earth || item is Camera || item is Moon || item.Name == "Orbit Moon")
+                    if (item == _host.Earth || 
+                        item is Camera || 
+                        item is StarDome ||
+                        item is Moon || 
+                        item.Name == "Orbit Moon")
                         continue;
 
-                    if (SunAtOrigin)
+                    if (_sunAtOrigin)
                         item.Transform.Position = Vector3.Zero;
                     else
                         item.Transform.Position = -earthPos;
@@ -149,34 +153,36 @@ namespace XrSamples.Earth
                 camera.FovDegree = 45f * (1f / Zoom);
                 camera.UpdateProjection();
 
-                 var cameraPos = ComputePosition(new Vector2(Latitude, Longitude), Altitude);
+                var cameraPos = ComputePosition(new Vector2(Latitude, Longitude), Altitude);
+
                 var normal = cameraPos.Normalize();
+
+                Vector3 cameraDir, cameraUp;
 
                 if (Target == AnchorPoint.Free)
                 {
-                    var (cameraDir, cameraUp) = ComputeCameraDirectionAndUp(cameraPos, Heading, Elevation);
-
-                    var cameraTarget = cameraPos + cameraDir * Unit(10);
-
-                    _host.ActiveCamera!.LookAt(cameraPos, cameraTarget, cameraUp);
+                    (cameraDir, cameraUp) = ComputeCameraDirectionAndUp(cameraPos, Heading, Elevation);
                 }
                 else if (Target == AnchorPoint.Moon)
                 {
-                    var cameraDir = (_host.Moon.Transform.Position - _host.ActiveCamera!.Transform.Position).Normalize();
-      
-                    var cameraTarget = cameraPos + cameraDir * Unit(10);
+                    cameraDir = (_host.Moon.Transform.Position - _host.ActiveCamera!.Transform.Position).Normalize();
+                    cameraUp = normal;
 
-                    _host.ActiveCamera!.LookAt(cameraPos, cameraTarget, normal);
                 }
                 else if (Target == AnchorPoint.Sun)
                 {
-                    var cameraDir = (_host.Sun.Transform.Position - _host.ActiveCamera!.Transform.Position).Normalize();
-
-                    var cameraTarget = cameraPos + cameraDir * Unit(10);
-
-            
-                    _host.ActiveCamera!.LookAt(cameraPos, cameraTarget, normal);
+                    cameraDir = (_host.Sun.Transform.Position - _host.ActiveCamera!.Transform.Position).Normalize();
+                    cameraUp = normal;
                 }
+                else
+                    throw new NotImplementedException();
+
+                var cameraTarget = cameraPos + cameraDir * Unit(10);
+
+                if (XrApp.Current != null && XrApp.Current.IsStarted)
+                    XrApp.Current.ReferenceFrame = camera.GetWorldPose();
+                else
+                    _host.ActiveCamera!.LookAt(cameraPos, cameraTarget, cameraUp);
             }
         }
 
@@ -225,8 +231,6 @@ namespace XrSamples.Earth
 
         [ValueType(XrEngine.ValueType.Radiant)]
         public float EarthPosAngle { get; set; }
-
-        public bool SunAtOrigin { get; set; }
 
         public AnchorPoint Target { get; set; }
 

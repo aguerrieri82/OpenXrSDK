@@ -382,3 +382,11 @@ Makefile
 /src/Engine/Filament.Native/libs/
 /src/Engine/XrEngine.Native/libs/
 /src/Engine/Draco.Native/libs/
+/src/Samples/XrSamples.Earth/Assets/elev_bump_16k.jpg
+/src/Samples/XrSamples.Earth/Assets/viz.SRTMGL1_roughness.png
+/src/Samples/XrSamples.Earth/Assets/waves.png
+/src/Samples/XrSamples.Earth/Assets/world.topo.bathy.200411.3x21600x10800.jpg
+/src/Samples/XrSamples.Earth/Assets/world.topo.bathy.200411.3x5400x2700.png
+/src/Samples/XrSamples.Earth/Assets/2024-11-23-00_00_2024-11-23-23_59_Sentinel-2_L1C_True_color.jpg
+/src/Samples/XrSamples.Earth/Assets/gebco_08_rev_elev_21600x10800.png
+/src/Samples/XrSamples.Earth/Assets/output_SRTMGL1.tif
