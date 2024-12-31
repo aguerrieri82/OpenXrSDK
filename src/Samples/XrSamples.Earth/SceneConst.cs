@@ -25,8 +25,26 @@ namespace XrSamples.Earth
             return degrees * Math.PI / 180.0;
         }
 
+        public static Vector2 NormalToUV(Vector3 normal)
+        {
+            // Compute longitude (λ) and latitude (φ) from the normalized vector
+            var longitude = Math.Atan2(normal.Z, normal.X); // Range: -π to π
+            var latitude = Math.Asin(normal.Y);            // Range: -π/2 to π/2
+
+            // Convert longitude to UV's u (range: 0 to 1)
+            var u = (float)((longitude / (2 * Math.PI)) + 0.5);
+
+            // Convert latitude to UV's v (range: 0 to 1)
+            var v = (float)((latitude / Math.PI) + 0.5);
+
+            // Return the UV coordinates
+            return new Vector2(1 - u, 1 - v);
+        }
+
         public static double ToJulianDate(DateTime utc)
         {
+            //utc += TimeSpan.FromHours(5 - 0.5);
+
             // Adapted from astronomical formulas
             // integer day, month, year
             int year = utc.Year;

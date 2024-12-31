@@ -17,7 +17,7 @@ namespace XrSamples.Earth
             AtmosphereHeight = Unit(40);
             SubLevels = 6;
             Orbit = Orbit.Earth();
-            RotationOffset = MathF.PI / 2;
+
 
             Albedo = AssetLoader.Instance.Load<Texture2D>("res://asset/world.topo.bathy.200411.3x21600x10800.jpg");
             Albedo.WrapS = WrapMode.Repeat;

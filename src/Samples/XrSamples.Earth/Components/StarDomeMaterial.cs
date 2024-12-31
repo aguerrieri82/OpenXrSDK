@@ -31,11 +31,18 @@ namespace XrSamples.Earth
             _shader = SHADER;
 
             DoubleSided = true;
-            Stars = AssetLoader.Instance.Load<Texture2D>("res://asset/starmap_16k.tif");
-            Grid = AssetLoader.Instance.Load<Texture2D>("res://asset/celestial_grid.tif");
-            Constellations = AssetLoader.Instance.Load<Texture2D>("res://asset/constellation_figures.tif");
+            Stars = ConfigureTexture(AssetLoader.Instance.Load<Texture2D>("res://asset/starmap_16k.tif"));
+            Grid = ConfigureTexture(AssetLoader.Instance.Load<Texture2D>("res://asset/celestial_grid.tif"));
+            Constellations = ConfigureTexture(AssetLoader.Instance.Load<Texture2D>("res://asset/constellation_figures.tif"));
             Exposure = 1;
             Transparency = 1;
+        }
+
+        protected Texture2D ConfigureTexture(Texture2D texture)
+        {
+            texture.MinFilter = ScaleFilter.LinearMipmapLinear;
+            texture.MipLevelCount = 20;
+            return texture;
         }
 
         public override void UpdateShader(ShaderUpdateBuilder bld)

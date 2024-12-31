@@ -80,9 +80,12 @@ namespace XrSamples.Earth
 
             var radius = (_host!.Earth.SphereRadius + Unit(altitude));
 
-            var x = radius * MathF.Cos(latRad) * MathF.Sin(lonRad);
-            var y = radius * MathF.Sin(latRad);
-            var z = radius * MathF.Cos(latRad) * MathF.Cos(lonRad);
+
+            // Compute Cartesian coordinates
+            float x = radius * MathF.Cos(latRad) * MathF.Cos(lonRad);
+            float y = radius * MathF.Sin(latRad);
+            float z = radius * MathF.Cos(latRad) * MathF.Sin(lonRad);
+
 
             return new Vector3(x, y, z).Transform(_host.Earth.WorldMatrix);
         }
@@ -222,7 +225,7 @@ namespace XrSamples.Earth
 
         public float Longitude { get; set; }
 
-        [Range(0, 1000, 0.001f)]
+        [Range(0, 1000, 0.5f)]
         public float Altitude { get; set; } 
 
         public float Speed { get; set; }

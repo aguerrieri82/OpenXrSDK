@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Tensorflow;
+using Tensorflow.Gradients;
 using XrEngine;
 using XrEngine.Tiff;
 using XrMath;
@@ -23,24 +24,24 @@ namespace XrSamples.Earth
 
         Vector3 ToCartesian(Vector2 latLng)
         {
-            var lonRad = (latLng.X * MathF.PI / 180.0f) + OffsetX;
-            var latRad = (latLng.Y * MathF.PI / 180.0f) + OffsetY;
+            // Convert degrees to radians
+            float latRad = (float)DegreesToRadians(latLng.Y);
+            float lonRad = (float)DegreesToRadians(latLng.X);
 
-            var x = SphereRadius * MathF.Cos(latRad) * MathF.Sin(lonRad);
-            var y = SphereRadius * MathF.Sin(latRad);                    
-            var z = SphereRadius * MathF.Cos(latRad) * MathF.Cos(lonRad);
 
-            return new Vector3(x, y, z);
+            // Compute Cartesian coordinates
+            float x = SphereRadius * MathF.Cos(latRad) * MathF.Cos(lonRad);
+            float y = SphereRadius * MathF.Sin(latRad);
+            float z = SphereRadius * MathF.Cos(latRad) * MathF.Sin(lonRad);
+
+            return new Vector3(x, y, -z);
         }
 
         Vector2 ToUv(Vector2 latLng)
         {
             var normal = ToCartesian(latLng).Normalize();
 
-            var u = (0.25f + (float)(Math.Atan2(normal.Z, normal.X) / (2 * Math.PI))) % 1;
-            var v = (0.5f - (float)(Math.Asin(normal.Y) / Math.PI)) % 1;
-
-            return new Vector2(1 - u, v);
+            return NormalToUV(normal);
         }
 
         public void LoadAlbedoSlice(Texture2D tex)
@@ -203,9 +204,10 @@ namespace XrSamples.Earth
                     SphereWorldCenter = SphereWorldCenter
                 };
 
+                HeightMap.MipLevelCount = 20;
                 HeightMap.WrapS = WrapMode.ClampToEdge;
                 HeightMap.WrapT = WrapMode.ClampToEdge;
-                HeightMap.MagFilter = ScaleFilter.Linear;
+                HeightMap.MagFilter = ScaleFilter.LinearMipmapLinear;
                 HeightMap.MinFilter = ScaleFilter.Linear;
 
                 if (texData.Format == TextureFormat.GrayRawSInt16)

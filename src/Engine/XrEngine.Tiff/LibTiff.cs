@@ -6,7 +6,7 @@ namespace XrEngine.Tiff
 {
     public static class LibTiff
     {
-        private const string LibTiffDll = "tiffd"; // Name of the libtiff library (.so, .dll, or .dylib)
+        private const string LibTiffDll = "tiff";
 
         public enum TiffTag
         {

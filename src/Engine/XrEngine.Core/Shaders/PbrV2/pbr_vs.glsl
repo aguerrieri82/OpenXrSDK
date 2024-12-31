@@ -65,9 +65,5 @@ void main()
         gl_ClipDistance[0] = -dot(pos, uClipPlane);
     #endif
 
-    #ifdef USE_HEIGHT_MAP
-        gl_Position = pos;
-    #else   
-	    gl_Position = getViewProj() * pos;
-    #endif
+    computePos(pos);
 }

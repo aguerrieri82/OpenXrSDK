@@ -13,8 +13,8 @@ namespace XrSamples.Earth
     {
         public StarDome()
         {
-            Size = 1;
-            Geometry = new Sphere3D(1, 500);
+            Size = 0.02f;
+            Geometry = new Sphere3D(100, 100);
             Materials.Add(new StarDomeMaterial());
 
             _transform.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, (float)DegreesToRadians(-23.5f)) *

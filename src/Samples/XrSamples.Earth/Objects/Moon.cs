@@ -15,7 +15,6 @@ namespace XrSamples.Earth
             BaseColor = Color.White;
             SubLevels = 6;
             Orbit = Orbit.Moon();
-            RotationOffset = (float)DegreesToRadians(0);
 
             Albedo = AssetLoader.Instance.Load<Texture2D>("res://asset/lroc_color_poles_16k.tif");
             Albedo.WrapS = WrapMode.Repeat;

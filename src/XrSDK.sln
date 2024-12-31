@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "#Global", "#Global", "{BFA63182-DD48-4C33-B80D-D7F518545D16}"
 	ProjectSection(SolutionItems) = preProject
+		..\.gitattributes = ..\.gitattributes
 		..\.gitignore = ..\.gitignore
 		AspNetCoreMini.props = AspNetCoreMini.props
 		Directory.Build.props = Directory.Build.props

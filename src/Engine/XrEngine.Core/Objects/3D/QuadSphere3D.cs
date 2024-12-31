@@ -162,10 +162,20 @@ namespace XrEngine
             Vector2 CalculateUV(Vector3 vertex)
             {
                 var normal = Vector3.Normalize(vertex);
-                var u = (0.25f + (float)(Math.Atan2(normal.Z, normal.X) / (2 * Math.PI))) % 1;
-                var v = (0.5f - (float)(Math.Asin(normal.Y) / Math.PI)) % 1;
 
-                return new Vector2(1 - u, v);
+                // Longitude: range [-PI, PI]
+                float longitude = (float)Math.Atan2(-normal.Z, normal.X);
+
+                // Latitude: range [-PI/2, PI/2]
+                float latitude = (float)Math.Asin(normal.Y);
+
+                // Convert longitude to U in [0, 1]
+                float u = (longitude / (2.0f * (float)Math.PI)) + 0.5f;
+
+                // Convert latitude to V in [0, 1], Y-flipped
+                float v = 1.0f - ((latitude / (float)Math.PI) + 0.5f);
+
+                return new Vector2(u, v);
             }
 
             bool CrossesSeam(IEnumerable<float> us)

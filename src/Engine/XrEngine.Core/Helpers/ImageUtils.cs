@@ -52,7 +52,12 @@ namespace XrEngine
             EngineNativeLib.ImageCopyChannel(pMetal, pDst, metal.Width, metal.Height, metal.Width * GetPixelSizeByte(metal.Format), metal.Width * 4, 0, 2, 1);
             EngineNativeLib.ImageCopyChannel(pRough, pDst, roughness.Width, roughness.Height, roughness.Width * GetPixelSizeByte(roughness.Format), metal.Width * 4, 0, 1, 1);
 
-            var tex = new Texture2D();
+            var tex = new Texture2D
+            {
+                MipLevelCount = 20,
+                MinFilter = ScaleFilter.LinearMipmapLinear
+            };
+
             tex.LoadData(new TextureData
             {
                 Data = mrImage,

@@ -121,7 +121,7 @@ namespace XrEngine.OpenGL
                 */
 
                 //TODO not working
-                //program.AddFeature("ZLOG_F 0.001");
+                //program.AddFeature("ZLOG_F 0.0001");
 
                 program.Build();
 
