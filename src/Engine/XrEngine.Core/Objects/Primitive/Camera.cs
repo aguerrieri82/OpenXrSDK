@@ -5,9 +5,15 @@ namespace XrEngine
 {
     public struct CameraEye
     {
-        public Matrix4x4 Transform;
+        public Matrix4x4 ViewProj;
+
+        public Matrix4x4 View;
+
+        public Matrix4x4 World;
 
         public Matrix4x4 Projection;
+
+
     }
 
     public abstract class Camera : Object3D
@@ -29,8 +35,8 @@ namespace XrEngine
 
         public void LookAt(Vector3 position, Vector3 target, Vector3 up)
         {
-            View = Matrix4x4.CreateLookAt(position, target, up);
             _target = target;
+            View = Matrix4x4.CreateLookAt(position, target, up);
         }
 
         public override void GetState(IStateContainer container)
@@ -47,12 +53,21 @@ namespace XrEngine
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
+
             BackgroundColor = container.Read<Color>(nameof(BackgroundColor));
             Near = container.Read<float>(nameof(Near));
             Far = container.Read<float>(nameof(Far));
             Exposure = container.Read<float>(nameof(Exposure));
             Projection = container.Read<Matrix4x4>(nameof(Projection));
-            Target = container.Read<Vector3>(nameof(Target));
+            _target = container.Read<Vector3>(nameof(Target));
+
+            InvalidateWorld();
+        }
+
+        protected internal override void InvalidateWorld()
+        {
+            _viewProjDirty = true;
+            base.InvalidateWorld();
         }
 
         public Camera Clone()
@@ -138,6 +153,7 @@ namespace XrEngine
         {
             if (change.IsAny(ObjectChangeType.Transform))
                 _viewProjDirty = true;
+
             base.OnChanged(change);
         }
 
@@ -158,6 +174,8 @@ namespace XrEngine
 
         public int ActiveEye { get; set; }
 
+        public Size2I ViewSize { get; set; }
 
+        public bool IsStereo { get; set; }
     }
 }

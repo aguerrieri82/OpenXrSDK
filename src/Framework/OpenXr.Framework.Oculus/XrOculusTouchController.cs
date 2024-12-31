@@ -34,12 +34,16 @@
     [XrPath("/interaction_profiles/oculus/touch_controller_pro")]
     [XrPath("/interaction_profiles/facebook/touch_controller_pro")]
     [XrPath("/interaction_profiles/khr/simple_controller")]
-    public class XrOculusTouchController
+    public class XrOculusTouchController : IXrBasicInteractionProfile
     {
         [XrPath("/user/hand/left")]
         public XrOculusTouchControllerHand<XrInteractionProfileHandLeft>? Left;
 
         [XrPath("/user/hand/right")]
         public XrOculusTouchControllerHand<XrInteractionProfileHandRight>? Right;
+
+        XrInteractionProfileHand<XrInteractionProfileHandLeft>? IXrBasicInteractionProfile.Left => Left;
+
+        XrInteractionProfileHand<XrInteractionProfileHandRight>? IXrBasicInteractionProfile.Right => Right;
     }
 }

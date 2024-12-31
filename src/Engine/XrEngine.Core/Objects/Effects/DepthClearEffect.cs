@@ -9,7 +9,7 @@
             SHADER = new Shader
             {
                 FragmentSourceName = "clear.frag",
-                VertexSourceName = "Utils/fullscreen.vert",
+                VertexSourceName = "fullscreen.vert",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = false,
                 Priority = -1

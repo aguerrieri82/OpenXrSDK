@@ -17,7 +17,6 @@ namespace XrEngine.OpenGL
 
         public void Check()
         {
-
             var status = _gl.CheckFramebufferStatus(Target);
 
             if (status != GLEnum.FramebufferComplete)
@@ -31,9 +30,9 @@ namespace XrEngine.OpenGL
             GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, _handle);
 
             if (modes.Length == 0)
-                _gl.DrawBuffers(GlState.DRAW_NONE);
+                GlState.Current.SetDrawBuffers(GlState.DRAW_NONE);
             else
-                _gl.DrawBuffers(modes);
+                GlState.Current.SetDrawBuffers(modes);
         }
 
         public void SetReadBuffer(ReadBufferMode mode)
@@ -57,10 +56,10 @@ namespace XrEngine.OpenGL
 
         public override void Dispose()
         {
+            if (_handle != 0)
+                _gl.DeleteFramebuffer(_handle);
 
-            _gl.DeleteFramebuffer(_handle);
-            _handle = 0;
-            GC.SuppressFinalize(this);
+            base.Dispose();
         }
 
         public FramebufferTarget Target { get; set; }

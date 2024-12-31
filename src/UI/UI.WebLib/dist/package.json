@@ -1,0 +1,9 @@
+{
+  "name": "@eusoft/xrsdk-ui",
+  "version": "0.0.1",
+  "main": "index.js",
+  "types": "types/index.d.ts",
+  "type": "module",
+  "keywords": [],
+  "author": "Andrea Guerrieri"
+}

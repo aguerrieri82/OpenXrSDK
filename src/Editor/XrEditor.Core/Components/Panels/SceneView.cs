@@ -1,10 +1,11 @@
 ﻿
 using OpenXr.Framework.Oculus;
+using System.ComponentModel;
+using System.Numerics;
 using System.Xml.Linq;
 using XrEditor.Services;
 using XrEngine;
 using XrEngine.OpenXr;
-using XrEngine.Services;
 using XrInteraction;
 using XrMath;
 
@@ -43,42 +44,49 @@ namespace XrEditor
             _pointer.ReleasePointer();
         }
 
+        public string Name => _pointer.Name;
+
         public int PointerId => _pointer.PointerId;
+
+        public bool IsCaptured => _pointer.IsCaptured;
     }
 
+
+    [Panel("e0c28154-c76f-4765-83dc-0fe9ceb6f655")]
+    [DisplayName("Scene")]
     public class SceneView : BasePanel
     {
         protected readonly IRenderSurface _renderSurface;
 
 
-        protected Camera? _camera;
+        protected Camera _camera;
         protected Scene3D? _scene;
         protected Thread? _renderThread;
         protected bool _isStarted;
-        protected Rect2I _view = new();
         protected XrHandInputMesh? _rHand;
         protected XrOculusTouchController? _inputs;
-        protected List<IEditorTool> _tools = [];
         protected SceneXrState _xrState;
         protected IRenderEngine? _render;
         protected XrEngineApp? _engine;
-        protected ToolbarView _toolbar;
         protected MemoryStateContainer? _sceneState;
+        protected SingleSelector _cameraList;
         protected readonly QueueDispatcher _renderDispatcher;
         protected readonly ActionView _playButton;
         protected readonly ActionView _pauseButton;
         protected readonly ActionView _stopButton;
         protected readonly ActionView _xrButton;
         protected readonly TextView _fpsLabel;
+        protected readonly PerspectiveCamera _sceneCamera;
+        protected readonly List<IEditorTool> _tools = [];
 
         public SceneView(IRenderSurface renderSurface)
         {
             _renderSurface = renderSurface;
             _renderSurface.SizeChanged += OnSizeChanged;
             _renderSurface.Ready += OnSurfaceReady;
-            _toolbar = new ToolbarView();
+            ToolBar = new ToolbarView();
             _renderDispatcher = new QueueDispatcher();
-            _xrButton = _toolbar.AddToggle("icon_visibility", value =>
+            _xrButton = ToolBar.AddToggle("icon_visibility", false, value =>
             {
                 if (value)
                     StartXr();
@@ -86,11 +94,47 @@ namespace XrEditor
                     StopXr();
             });
 
-            _fpsLabel = _toolbar.AddText(string.Empty);
-            _toolbar.AddDivider();
-            _playButton = _toolbar.AddButton("icon_play_arrow", () => StartApp());
-            _pauseButton = _toolbar.AddButton("icon_pause", () => PauseApp());
-            _stopButton = _toolbar.AddButton("icon_stop", () => StopApp());
+            _sceneCamera = new PerspectiveCamera
+            {
+                Far = 100f,
+                Near = 0.01f,
+                BackgroundColor = new Color(0, 0, 0, 0),
+                Exposure = 1,
+                FovDegree = 45,
+                Name = "Scene"
+            };
+
+            _sceneCamera.LookAt(new Vector3(1, 1.7f, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
+            _camera = _sceneCamera;
+
+            _fpsLabel = ToolBar.AddText(string.Empty);
+            ToolBar.AddDivider();
+            _playButton = ToolBar.AddButton("icon_play_arrow", StartApp);
+            _pauseButton = ToolBar.AddButton("icon_pause", PauseApp);
+            _stopButton = ToolBar.AddButton("icon_stop", StopApp);
+            ToolBar.AddDivider();
+            _cameraList = ToolBar.AddSelect(ListCameras(), _camera, c => Camera = c);
+            _cameraList.ValueType = typeof(Camera); 
+
+        }
+
+        protected IList<SelectorItem> ListCameras()
+        {
+            var result = new List<SelectorItem>();
+            result.Add(new SelectorItem { DisplayName = "Scene", Value = _sceneCamera });
+            if (_scene != null)
+            {
+                foreach (var camera in _scene.Descendants<PerspectiveCamera>())
+                    result.Add(new SelectorItem
+                    {
+                        Value = camera,
+                        DisplayName = camera.Name ?? $"Camera {result.Count}"
+                    });
+            }
+
+
+            return result;
         }
 
         protected async Task CreateAppAsync()
@@ -99,9 +143,8 @@ namespace XrEditor
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
 
-            await _main.ExecuteAsync(() =>
+            await _mainDispatcher.ExecuteAsync(() =>
             {
-
                 Scene = _engine.App.ActiveScene!;
                 Context.Require<SelectionManager>().Set(Scene.GetNode());
                 UpdateControls();
@@ -130,7 +173,7 @@ namespace XrEditor
             _pauseButton.IsActive = _engine!.App.PlayState == PlayState.Pause;
         }
 
-        public Task StartXr() => Dispatcher.ExecuteAsync(() =>
+        public Task StartXr() => RenderDispatcher.ExecuteAsync(() =>
         {
             try
             {
@@ -153,10 +196,13 @@ namespace XrEditor
             }
         });
 
-        public Task StopXr() => Dispatcher.ExecuteAsync(() =>
+        public Task StopXr() => RenderDispatcher.ExecuteAsync(() =>
         {
             try
             {
+                if (!_engine!.XrApp.IsStarted)
+                    return;
+
                 _renderSurface.EnableVSync(true);
                 _engine!.ExitXr();
                 _xrState = SceneXrState.StopRequested;
@@ -180,13 +226,13 @@ namespace XrEditor
 
             _render = _engine!.App.Renderer!;
 
-            _renderSurface.EnableVSync(false);
+            _renderSurface.EnableVSync(EditorDebug.EnableVSync);
 
             while (_isStarted)
             {
                 _fpsLabel.Text = _engine!.App.Stats.Fps.ToString();
 
-                if (_scene?.App == null)
+                if (_scene?.App == null || !_isActive)
                     Thread.Sleep(50);
                 else
                 {
@@ -194,21 +240,21 @@ namespace XrEditor
                     {
                         try
                         {
-                            _engine.XrApp.RenderFrame(_engine.XrApp.Stage);
+                            _engine.XrApp.RenderFrame(_engine.XrApp.ReferenceSpace);
                         }
                         catch
                         {
-
                         }
 
                         if (_renderSurface.SupportsDualRender)
                         {
+                            _camera.IsStereo = false;
                             _render.SetRenderTarget(null);
-                            _render.Render(_scene!, _camera!, _view, false);
+                            _scene.App.RenderScene(_camera);
                         }
                     }
                     else
-                        _scene.App!.RenderFrame(_view);
+                        _scene.App.RenderFrame(_camera);
 
                     _renderSurface.SwapBuffers();
 
@@ -221,7 +267,7 @@ namespace XrEditor
 
         protected virtual void OnSceneChanged()
         {
-            _main.ExecuteAsync(() =>
+            _ = _mainDispatcher.ExecuteAsync(() =>
             {
                 foreach (var tool in _tools)
                     tool.NotifySceneChanged();
@@ -232,14 +278,18 @@ namespace XrEditor
 
         protected void UpdateSize()
         {
-            _view.Width = (uint)(_renderSurface!.Size.X);
-            _view.Height = (uint)(_renderSurface.Size.Y);
+            var width = (uint)(_renderSurface!.Size.X);
+            var height = (uint)(_renderSurface.Size.Y);
 
             if (_camera is PerspectiveCamera persp)
-                persp.SetFov(45, _view.Width, _view.Height);
+            {
+                if (persp.FovDegree == 0)
+                    persp.FovDegree = 45;
+                persp.SetFov(persp.FovDegree, width, height);
+            }
         }
 
-        public Task StartApp() => Dispatcher.ExecuteAsync(() =>
+        public Task StartApp() => RenderDispatcher.ExecuteAsync(() =>
         {
             if (_scene == null || _engine?.App == null || _engine.App.PlayState == PlayState.Start)
                 return;
@@ -257,7 +307,7 @@ namespace XrEditor
             UpdateControls();
         });
 
-        public Task PauseApp() => Dispatcher.ExecuteAsync(() =>
+        public Task PauseApp() => RenderDispatcher.ExecuteAsync(() =>
         {
             if (_engine?.App == null)
                 return;
@@ -265,7 +315,7 @@ namespace XrEditor
             UpdateControls();
         });
 
-        public Task StopApp() => Dispatcher.ExecuteAsync(() =>
+        public Task StopApp() => RenderDispatcher.ExecuteAsync(() =>
         {
             if (_engine?.App == null || _engine.App.PlayState == PlayState.Stop)
                 return;
@@ -308,6 +358,8 @@ namespace XrEditor
 
         public override Task CloseAsync()
         {
+            StopApp();
+
             StopXr();
 
             Stop();
@@ -324,17 +376,16 @@ namespace XrEditor
                     return;
 
                 _scene = value;
-
-                Camera = _scene?.ActiveCamera;
+                _cameraList.Items = ListCameras();
 
                 OnPropertyChanged(nameof(Scene));
-                OnPropertyChanged(nameof(CameraList));
+
                 OnSceneChanged();
                 UpdateSize();
             }
         }
 
-        public Camera? Camera
+        public Camera Camera
         {
             get => _camera;
             set
@@ -342,6 +393,7 @@ namespace XrEditor
                 if (_camera == value)
                     return;
                 _camera = value;
+                UpdateSize();
                 OnPropertyChanged(nameof(Camera));
             }
         }
@@ -355,11 +407,7 @@ namespace XrEditor
             return tool;
         }
 
-        public IDispatcher Dispatcher => _renderDispatcher;
-
-        public ToolbarView ToolbarView => _toolbar;
-
-        public event Action<Scene3D?>? SceneChanged;
+        public IDispatcher RenderDispatcher => _renderDispatcher;
 
         public IReadOnlyList<IEditorTool> Tools => _tools;
 
@@ -367,8 +415,11 @@ namespace XrEditor
 
         public IRenderSurface RenderSurface => _renderSurface;
 
-        public IEnumerable<Camera> CameraList => _scene?.Descendants<Camera>() ?? [];
-
         public IEditorTool? ActiveTool { get; set; }
+
+
+        public event Action<Scene3D?>? SceneChanged;
+
+        public override string? Title => "Scene";
     }
 }

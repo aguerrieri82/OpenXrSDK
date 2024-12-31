@@ -13,7 +13,7 @@ namespace XrEngine.OpenXr.Windows
 
         }
 
-        public void BeginTask(string? message = null)
+        public void BeginTask(object source, string? message = null)
         {
 
         }
@@ -23,7 +23,7 @@ namespace XrEngine.OpenXr.Windows
 
         }
 
-        public void LogMessage(string text, LogLevel level = LogLevel.Info, bool retain = false)
+        public void LogMessage(object source, string text, LogLevel level = LogLevel.Info, bool retain = false)
         {
             var msLevel = level switch
             {
@@ -37,7 +37,7 @@ namespace XrEngine.OpenXr.Windows
             _logger.Log(msLevel, text);
         }
 
-        public void LogProgress(double current, double total, string? message = null, bool retain = false)
+        public void LogProgress(object source, double current, double total, string? message = null, bool retain = false)
         {
 
         }

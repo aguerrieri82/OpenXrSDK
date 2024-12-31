@@ -1,106 +1,73 @@
-#include "PbrV2/uniforms.glsl"
-
-
-// Physically Based Rendering
-// Copyright (c) 2017-2018 Michał Siejak
-
-// Physically Based shading model: Vertex program.
+#include "uniforms.glsl"
+#include "../Shared/position.glsl"
 
 layout(location=0) in vec3 position;
 layout(location=1) in vec3 normal;
 layout(location=4) in vec4 tangent;
-//layout(location=3) in vec3 bitangent;
 layout(location=2) in vec2 texcoord;
 
-
-uniform mat4 uModel;
-uniform mat4 uNormalMatrix;
-
-layout(location=0) out Vertex
-{
-	vec3 position;
-	vec2 texcoord;
-	mat3 tangentBasis;
-	vec4 posLightSpace;
-	vec3 cameraPos;
-} vout;
-
-
-
-#ifdef MULTI_VIEW
-
-    #define NUM_VIEWS 2
-
-    layout(num_views=NUM_VIEWS) in;
-
-    layout(std140) uniform SceneMatrices
-    {
-        uniform mat4 viewProj[NUM_VIEWS];
-        uniform vec3 position[NUM_VIEWS];
-        float farPlane;
-    } uMatrices;
-
-    vec3 getViewPos() 
-    {
-       return uMatrices.position[gl_ViewID_OVR];   
-    }
-
-    mat4 getViewProj() 
-    {
-       return uMatrices.viewProj[gl_ViewID_OVR];   
-    }
-
-#else
-
-    vec3 getViewPos() 
-    {
-       return uCamera.cameraPosition;   
-    }
-
-    mat4 getViewProj() 
-    {
-       return uCamera.viewProj;   
-    }
-
+#ifdef HAS_UV2
+    layout(location=3) in vec2 texcoord2;
+    out vec2 fUv2;
 #endif
 
+out vec3 fNormal;
+out vec3 fPos;
+out vec2 fUv;
+out vec3 fCameraPos;    
+out mat3 fTangentBasis;
+
+#ifdef USE_SHADOW_MAP
+    out vec4 fPosLightSpace;
+#endif
+
+#ifdef USE_HEIGHT_MAP
+    out vec3 fOrigin;
+#endif
 
 void main()
 {
-	vec4 pos = uModel * vec4(position, 1.0);
+	vec4 pos = uModel.worldMatrix * vec4(position, 1.0);
 
-	vout.position = pos.xyz; // / pos.w;
+	fPos = pos.xyz; 
 
-	vout.texcoord = texcoord;
+	fUv = texcoord;
 
-	vout.cameraPos = getViewPos();
+	fCameraPos = getViewPos();
+
+    #ifdef HAS_UV2
+        fUv2 = texcoord2;
+    #endif
 
 	#ifdef HAS_TEX_TRANSFORM
-
-	vout.texcoord = (vec3(texcoord.xy, 1) * uMaterial.texTransform).xy;
-
+	    fUv = (vec3(texcoord.xy, 1) * uMaterial.texTransform).xy;
 	#endif
 
 	#ifdef USE_SHADOW_MAP
-    
-	vout.posLightSpace = uCamera.lightSpaceMatrix * pos;
-
+	    fPosLightSpace = uCamera.lightSpaceMatrix * pos;
 	#endif
 
-    vec3 N = normalize(vec3(uNormalMatrix * vec4(normal, 0.0)));
+    vec3 N = normalize(vec3(uModel.normalMatrix * vec4(normal, 0.0)));
+
+    fNormal = N;
 
     #ifdef HAS_TANGENTS
+        vec3 T = normalize(vec3(uModel.worldMatrix * vec4(tangent.xyz, 0.0)));
+	    vec3 B = normalize(cross(T, N) * tangent.w);
 
-    vec3 T = normalize(vec3(uModel * vec4(tangent.xyz, 0.0)));
-	vec3 B = normalize(cross(T, N) * tangent.w);
-
-    vout.tangentBasis = mat3(T, B, N);
+        fTangentBasis = mat3(T, B, N);
 
     #else
-
-    vout.tangentBasis = mat3(N, N, N);
-
+        fTangentBasis = mat3(N, N, N);
     #endif
 
-	gl_Position = getViewProj() * pos;
+    #ifdef USE_CLIP_PLANE 
+        gl_ClipDistance[0] = -dot(pos, uClipPlane);
+    #endif
+
+    #ifdef USE_HEIGHT_MAP
+        gl_Position = pos;
+    #else   
+	    gl_Position = getViewProj() * pos;
+    #endif
 }

@@ -1,4 +1,5 @@
 ﻿
+using System.Reflection;
 using XrEditor.Services;
 using XrEngine;
 
@@ -8,13 +9,21 @@ namespace XrEditor
     {
         protected readonly PanelManager _panelManager;
         protected readonly IUserInteraction _ui;
-        protected readonly IMainDispatcher _main;
+        protected readonly IMainDispatcher _mainDispatcher;
+        protected Guid _panelId;
+        protected IPanelContainer? _container;
+        protected bool _isActive;
 
         public BasePanel()
         {
             _ui = Context.Require<IUserInteraction>();
-            _main = Context.Require<IMainDispatcher>();
+            _mainDispatcher = Context.Require<IMainDispatcher>();
             _panelManager = Context.Require<PanelManager>();
+
+            var panelAttr = GetType().GetCustomAttribute<PanelAttribute>();
+
+            if (panelAttr != null)
+                _panelId = panelAttr.PanelId;
 
             _ = LoadAsync();
         }
@@ -33,12 +42,53 @@ namespace XrEditor
 
         public virtual void GetState(IStateContainer container)
         {
-            throw new NotImplementedException();
+
         }
 
         public virtual void SetState(IStateContainer container)
         {
-            throw new NotImplementedException();
         }
+
+        public virtual void OnActivate()
+        {
+
+        }
+
+        public void Attach(IPanelContainer container)
+        {
+            if (_container == container)
+                return;
+
+            _container?.Remove(this);
+
+            _container = container;
+        }
+
+        public bool IsActive
+        {
+            get => _isActive;
+            set
+            {
+                if (_isActive == value)
+                    return;
+
+                _isActive = value;
+
+                if (_isActive)
+                {
+                    OnActivate();
+                    if (_container != null)
+                        _container.ActivePanel = this;
+                }
+            }
+        }
+
+        public Guid PanelId => _panelId;
+
+        public abstract string? Title { get; }
+
+        public ToolbarView? ToolBar { get; set; }
+
+        public IPanelContainer? Container => _container;
     }
 }

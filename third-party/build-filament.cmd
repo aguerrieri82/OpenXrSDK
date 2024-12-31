@@ -8,6 +8,8 @@ cd filament
 
 SET FILAMENT_PATH=%CD%
 
+md %FILAMENT_PATH%\out\cmake-release-win
+
 cd %FILAMENT_PATH%\out\cmake-release-win
 cmake -G Ninja ..\.. ^
     -DCMAKE_INSTALL_PREFIX=..\release-win\filament ^
@@ -24,6 +26,7 @@ ninja install
 xcopy %FILAMENT_PATH%\out\release-win\filament\include %OUT_PATH%\filament-windows\include /S /Y
 xcopy %FILAMENT_PATH%\out\release-win\filament\lib\x86_64 %OUT_PATH%\filament-windows\lib\x86_64\mt /S /Y
 
+md %FILAMENT_PATH%\out\cmake-debug-win
 
 cd %FILAMENT_PATH%\out\cmake-debug-win
 cmake -G Ninja ..\.. ^

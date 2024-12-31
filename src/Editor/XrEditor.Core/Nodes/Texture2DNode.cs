@@ -23,6 +23,7 @@ namespace XrEditor.Nodes
 
         public async Task<SKBitmap?> CreatePreviewAsync()
         {
+
             try
             {
                 var preview = Context.Require<RenderPreviewCreator>();

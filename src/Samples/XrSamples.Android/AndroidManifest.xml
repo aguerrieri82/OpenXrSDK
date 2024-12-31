@@ -13,7 +13,7 @@
 	<uses-permission android:name="com.oculus.permission.USE_ANCHOR_API" />
 	<uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
 	
-	<uses-feature android:glEsVersion="0x00030001" />
+	<uses-feature android:glEsVersion="0x00030001"  android:required="true" />
 	
 	<uses-feature android:name="oculus.software.vr.app.hybrid"/>
 	<uses-feature android:name="com.oculus.feature.PASSTHROUGH" />

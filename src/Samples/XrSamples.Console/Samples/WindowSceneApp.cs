@@ -10,7 +10,6 @@ using XrEngine.OpenGL;
 using Silk.NET.Windowing;
 using XrMath;
 using XrEngine.OpenXr;
-using XrEngine.Services;
 using XrEngine.OpenXr.Windows;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -73,7 +72,7 @@ namespace XrSamples
 
             view.Render += t =>
             {
-                app.RenderFrame(viewRect);
+                app.RenderFrame();
             };
 
             view.Run();

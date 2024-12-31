@@ -7,7 +7,6 @@ using OpenXr.Framework.Oculus;
 using Silk.NET.OpenXR;
 using System.Text.Json;
 using XrEngine;
-using XrEngine.OpenGL;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Android;
 
@@ -15,10 +14,8 @@ using XrEngine.OpenXr.Android;
 namespace XrSamples.Android.Activities
 {
 
-    [IntentFilter([
-        "com.oculus.intent.category.VR",
-        "android.intent.action.MAIN",
-        "android.intent.category.LAUNCHER"])]
+    [IntentFilter(["android.intent.action.VIEW"],
+        Categories = ["com.oculus.intent.category.VR", "android.intent.category.DEFAULT"])]
     [Activity(
     Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen",
     LaunchMode = LaunchMode.SingleTask,
@@ -27,7 +24,6 @@ namespace XrSamples.Android.Activities
     HardwareAccelerated = true,
     ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.Orientation,
     ScreenOrientation = ScreenOrientation.Landscape)]
-    [MetaData("com.samsung.android.vr.application.mode", Value = "vr_only")]
     public class GameActivity : XrEngineActivity
     {
         private WebView? _webView;
@@ -51,10 +47,12 @@ namespace XrSamples.Android.Activities
             base.OnLoad();
         }
 
-        protected override void OnXpAppStarted(XrApp app)
+        protected override void OnXrAppStarted(XrApp app)
         {
+            /*
             if (_engine?.App.Renderer is OpenGLRender openGL)
                 openGL.EnableDebug();
+            */
 
             app.Plugin<OculusXrPlugin>().UpdateFoveation(FoveationDynamicFB.DisabledFB, FoveationLevelFB.HighFB, 90f);
 
@@ -66,10 +64,10 @@ namespace XrSamples.Android.Activities
                 _webView.LoadUrl("https://www.youtube.com");
             }
 
-            base.OnXpAppStarted(app);
+            base.OnXrAppStarted(app);
         }
 
-        protected override void Build(XrEngineAppBuilder builder)
+        protected override void BuildApp(XrEngineAppBuilder builder)
         {
             var external = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
             XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(external, "Assets")));
@@ -90,8 +88,10 @@ namespace XrSamples.Android.Activities
             builder.RemovePlaneGrid()
                    .AddWebBrowser(this, app => app.ActiveScene?.FindByName<TriangleMesh>("display"));
 
+            builder.UseSpaceWarp();
+
             if (_settings.UsePbrV2)
-                MaterialFactory.DefaultPbr = typeof(PbrV2Material); 
+                MaterialFactory.DefaultPbr = typeof(PbrV2Material);
             else
                 MaterialFactory.DefaultPbr = typeof(PbrV1Material);
 
@@ -99,6 +99,7 @@ namespace XrSamples.Android.Activities
 
             var manager = XrEngine.Context.Require<SampleManager>();
             var sample = manager.GetSample(_settings.SampleName!);
+
             sample.Build!(builder);
 
         }

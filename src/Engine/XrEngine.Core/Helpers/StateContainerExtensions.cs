@@ -2,12 +2,8 @@
 
 namespace XrEngine
 {
-
-
     public static class StateContainerExtensions
     {
-        #region STATE
-
         public static void WriteArray<T>(this IStateContainer container, string key, IList<T> items) where T : class, IStateObject
         {
             var arrayState = container.Enter(key);
@@ -23,6 +19,8 @@ namespace XrEngine
         {
             HashSet<T> foundItems = [];
 
+            var isUpdate = container.Context.Is(StateContextFlags.Update);
+
             if (container.Contains(key))
             {
                 curItems ??= [];
@@ -37,20 +35,20 @@ namespace XrEngine
 
                     if (curItem == null)
                     {
-                        curItem = arrayState.Read<T>(childKey);
-                        addItem(curItem!);
+                        if (!isUpdate)
+                        {
+                            curItem = arrayState.Read<T>(childKey);
+                            addItem(curItem!);
+                        }
                     }
                     else
-                    {
-                        curItem.SetState(itemState);
-                        container.Context.RefTable.Resolved[curItem.Id] = curItem;
-                    }
+                        arrayState.Read(childKey, curItem);
 
                     foundItems.Add(curItem!);
                 }
             }
 
-            if (curItems != null)
+            if (curItems != null && !isUpdate)
             {
                 for (var i = curItems.Count - 1; i >= 0; i--)
                 {
@@ -103,9 +101,13 @@ namespace XrEngine
 
         public static void WriteObject(this IStateContainer container, object obj, Type objType)
         {
+            var sm = objType.GetCustomAttribute<StateManagerAttribute>();
+            var isExplicit = sm != null && sm.Mode == StateManagerMode.Explicit;
             foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
                 var saveState = prop.GetCustomAttribute<SaveStateAttribute>();
+                if (isExplicit && saveState == null)
+                    continue;
                 if (saveState != null && !saveState.IsSave)
                     continue;
                 if (prop.CanWrite && prop.CanRead)
@@ -136,12 +138,17 @@ namespace XrEngine
 
         public static void ReadObject(this IStateContainer container, object obj, Type objType)
         {
+            var sm = objType.GetCustomAttribute<StateManagerAttribute>();
+            var isExplicit = sm != null && sm.Mode == StateManagerMode.Explicit;
+
             foreach (var prop in objType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
                 var saveState = prop.GetCustomAttribute<SaveStateAttribute>();
+
+                if (isExplicit && saveState == null)
+                    continue;
                 if (saveState != null && !saveState.IsSave)
                     continue;
-
                 if (prop.CanWrite && prop.CanRead && container.Contains(prop.Name))
                     prop.SetValue(obj, container.Read(prop.Name, prop.GetValue(obj), prop.PropertyType));
             }
@@ -154,7 +161,7 @@ namespace XrEngine
             value.GetState(objState);
         }
 
-        public static T ReadTypedObject<T>(this IStateContainer container, string key) where T : IStateManager
+        public static T CreateTypedObject<T>(this IStateContainer container, string key) where T : IStateManager
         {
             var objState = container.Enter(key);
             var typeName = objState.ReadTypeName();
@@ -195,7 +202,6 @@ namespace XrEngine
             return self.Context.Is(flag);
         }
 
-        #endregion
 
     }
 }

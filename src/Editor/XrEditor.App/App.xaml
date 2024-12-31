@@ -31,8 +31,25 @@
                 <ResourceDictionary Source="/Views/ElementPicker.xaml"/>
                 <ResourceDictionary Source="/Views/LogPanel.xaml"/>
                 <ResourceDictionary Source="/Views/TextEditor.xaml"/>
+                <ResourceDictionary Source="/Views/ContentView.xaml"/>
+                <ResourceDictionary Source="/Views/ColorPickerView.xaml"/>
+                <ResourceDictionary Source="/Views/ActionView.xaml"/>
+                <ResourceDictionary Source="/Views/MainToolbarView.xaml"/>
+                <ResourceDictionary Source="/Views/PanelView.xaml"/>
+                <ResourceDictionary Source="/Views/PanelContainer.xaml"/>
+                <ResourceDictionary Source="/Views/SplitView.xaml"/>
+                <ResourceDictionary Source="/Views/QuaternionEditor.xaml"/>
+                <ResourceDictionary Source="/Views/ItemPickerView.xaml"/>
+                <ResourceDictionary Source="/Views/AssetsPanel.xaml"/>
+                <ResourceDictionary Source="/Views/PlayerView.xaml"/>
+                <ResourceDictionary
+                    Source="pack://application:,,,/ColorPicker;component/Styles/DefaultColorPickerStyle.xaml" />
 
+                <ResourceDictionary 
+                    Source="pack://application:,,,/Fluent;component/Themes/Generic.xaml" />
 
+                <ResourceDictionary 
+                    Source="pack://application:,,,/Fluent;component/Themes/Themes/Dark.Cobalt.xaml" />
 
             </ResourceDictionary.MergedDictionaries>
      

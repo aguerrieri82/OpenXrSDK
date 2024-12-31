@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {
@@ -13,11 +12,19 @@ namespace XrEngine
             BoundUpdateMode = UpdateMode.Manual;
         }
 
+        public override void Dispose()
+        {
+            for (var i = _children.Count - 1; i >= 0; i--)
+                _children[i].Dispose();
+
+            base.Dispose();
+        }
+
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
 
-            if ((Flags & EngineObjectFlags.ChildGenerated) == EngineObjectFlags.ChildGenerated)
+            if ((Flags & EngineObjectFlags.ChildrenGenerated) == EngineObjectFlags.ChildrenGenerated)
                 return;
 
             if ((container.Context.Flags & StateContextFlags.SelfOnly) != 0)
@@ -30,7 +37,7 @@ namespace XrEngine
         {
             base.SetStateWork(container);
 
-            if ((Flags & EngineObjectFlags.ChildGenerated) == EngineObjectFlags.ChildGenerated)
+            if ((Flags & EngineObjectFlags.ChildrenGenerated) == EngineObjectFlags.ChildrenGenerated)
                 return;
 
             if ((container.Context.Flags & StateContextFlags.SelfOnly) != 0)
@@ -41,6 +48,9 @@ namespace XrEngine
 
         protected internal override void InvalidateWorld()
         {
+            if (_worldDirty)
+                return;
+
             base.InvalidateWorld();
 
             foreach (var child in _children)
@@ -61,8 +71,8 @@ namespace XrEngine
         public override void Update(RenderContext ctx)
         {
             UpdateSelf(ctx);
-
-            _children.Update(ctx);
+            if (!ctx.UpdateOnlySelf)
+                _children.Update(ctx);
         }
 
         protected virtual void UpdateSelf(RenderContext ctx)
@@ -75,13 +85,23 @@ namespace XrEngine
             if (child.Parent == this)
                 return child;
 
+            _scene?.EnsureNotLocked();
+
+            if (preserveTransform && child.Parent != null && child.Parent.WorldMatrix == WorldMatrix)
+                preserveTransform = false;
+
+            var curWorldMatrix = child.WorldMatrix;
+
             child.Parent?.RemoveChild(child);
 
-            child.EnsureId();
+            _children.Add(child);
 
             child.SetParent(this, preserveTransform);
 
-            _children.Add(child);
+            if (preserveTransform)
+                child.WorldMatrix = curWorldMatrix;
+
+            //child.EnsureId();
 
             NotifyChanged(new ObjectChange(ObjectChangeType.ChildAdd, child));
 
@@ -96,29 +116,28 @@ namespace XrEngine
             if (!_boundsDirty && !force)
                 return;
 
-            var bounds = new Bounds3();
+            var builder = new Bounds3Builder();
 
             if (_children.Count > 0)
             {
-                bounds.Min = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
-                bounds.Max = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-
                 foreach (var child in _children)
                 {
+                    if (force)
+                        child.UpdateBounds(true);
+
                     var childLocal = child.Feature<ILocalBounds>();
 
                     if (childLocal != null)
                     {
                         var childLocalBounds = childLocal.LocalBounds.Transform(child.Transform.Matrix);
 
-                        bounds.Min = Vector3.Min(childLocalBounds.Min, bounds.Min);
-                        bounds.Max = Vector3.Max(childLocalBounds.Max, bounds.Max);
+                        builder.Add(childLocalBounds);
                     }
                 }
             }
 
-            _localBounds = bounds;
-            _worldBounds = bounds.Transform(WorldMatrix);
+            _localBounds = builder.Result;
+            _worldBounds = _localBounds.Transform(WorldMatrix);
 
             base.UpdateBounds();
         }
@@ -128,6 +147,8 @@ namespace XrEngine
             if (child.Parent != this)
                 return;
 
+            _scene?.EnsureNotLocked();
+
             _children.Remove(child);
 
             child.SetParent(null, preserveTransform);
@@ -136,6 +157,13 @@ namespace XrEngine
 
             InvalidateBounds();
         }
+
+        public int ChildIndex(Object3D object3D)
+        {
+            return _children.IndexOf(object3D);
+        }
+
+
 
         public Bounds3 LocalBounds
         {
@@ -150,6 +178,8 @@ namespace XrEngine
         public UpdateMode BoundUpdateMode { get; set; }
 
         public IReadOnlyList<Object3D> Children => _children.AsReadOnly();
+
+
 
     }
 }

@@ -4,13 +4,13 @@
 		<RootNamespace>XrEditor</RootNamespace>
 		<OutputType>WinExe</OutputType>
 		<AssemblyName>XrEditor</AssemblyName>
-		<TargetFrameworks>$(CoreVersion)-windows</TargetFrameworks>
+		<TargetFrameworks>$(CoreVersion)-$(WinVersion)</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<XamlDebuggingInformation>True</XamlDebuggingInformation>
 		<RuntimeIdentifier>win-$(Platform)</RuntimeIdentifier>
 		<UseOpenGL>true</UseOpenGL>
-		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
 		<ApplicationIcon>XrEditor.ico</ApplicationIcon>
+		<NoWarn>MC3066</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -18,13 +18,20 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="Fluent.Ribbon" Version="11.0.0-rc0249" />
 	  <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+	  <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.1" />
 	  <PackageReference Include="System.Private.Uri" Version="4.3.2" />
 	  <PackageReference Include="WPF-Icons" Version="2.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Engine\XrEngine.Media.FFmpeg\XrEngine.Media.FFmpeg.csproj" />
+	  <ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
+	  <ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
+	  <ProjectReference Include="..\..\UI\UI.Canvas.Wpf\UI.Canvas.Wpf.csproj" />
+	  <ProjectReference Include="..\XrEditor.Audio\XrEditor.Audio.csproj" />
+	  <ProjectReference Include="..\XrEditor.Plot\XrEditor.Plot.csproj" />
 	  <ProjectReference Include="..\XrEditor.Core\XrEditor.Core.csproj" />
 	</ItemGroup>
 

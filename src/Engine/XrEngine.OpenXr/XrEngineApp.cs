@@ -20,7 +20,7 @@ namespace XrEngine.OpenXr
 
         public uint SampleCount { get; set; }
 
-        public object? DriverOptions { get; set; }  
+        public object? DriverOptions { get; set; }
     }
 
     public class XrEngineApp
@@ -69,7 +69,7 @@ namespace XrEngine.OpenXr
 
         public XrApp XrApp => _xrApp!;
 
-        public object? Inputs { get; internal set; }
+        public IXrBasicInteractionProfile? Inputs { get; internal set; }
     }
 
 

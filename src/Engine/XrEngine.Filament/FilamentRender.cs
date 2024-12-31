@@ -61,7 +61,7 @@ namespace XrEngine.Filament
         }
 
         protected Rect2I _viewport;
-        protected IntPtr _app;
+        protected FilamentApp _app;
         protected Dictionary<IntPtr, RenderTargetBind> _renderTargets = [];
         protected List<ViewSizeRtBind> _views = [];
         protected RenderTargetBind? _activeRenderTarget;
@@ -211,6 +211,7 @@ namespace XrEngine.Filament
         protected Guid GetOrCreate<T>(T obj, Action<Guid> factory) where T : EngineObject
         {
             obj.EnsureId();
+
             if (!_content!.Objects!.TryGetValue(obj, out var curId))
             {
                 factory(obj.Id);
@@ -240,8 +241,10 @@ namespace XrEngine.Filament
                     TextureFormat.RgbaFloat32 => FlTextureInternalFormat.RGBA32F,
                     TextureFormat.RgbFloat16 => FlTextureInternalFormat.RGB16F,
                     TextureFormat.Bgra32 => FlTextureInternalFormat.RGBA8,
+                    TextureFormat.GrayInt8 => FlTextureInternalFormat.R8,
                     _ => throw new NotSupportedException(),
                 };
+
                 if (texture.Data != null)
                 {
                     var mainData = texture.Data[0];
@@ -256,6 +259,8 @@ namespace XrEngine.Filament
 
                         TextureFormat.Bgra32 => FlPixelFormat.RGBA,
 
+                        TextureFormat.GrayInt8 => FlPixelFormat.R,
+
                         _ => throw new NotSupportedException(),
                     };
 
@@ -269,18 +274,20 @@ namespace XrEngine.Filament
 
                         TextureFormat.Rgba32 or
                         TextureFormat.Bgra32 or
-                        TextureFormat.SRgba32
+                        TextureFormat.SRgba32 or
+                        TextureFormat.GrayInt8
                             => FlPixelType.UBYTE,
 
                         _ => throw new NotSupportedException(),
                     };
-                    result.Data.DataSize = (uint)mainData.Data!.Length;
-                    result.Data.Data = MemoryManager.Allocate(mainData.Data.Length, this);
+
+                    result.Data.DataSize = mainData.Data!.Size;
+                    result.Data.Data = Allocate(result.Data.DataSize);
                     result.Data.AutoFree = true;
+                    result.Data.IsBgr = mainData.Format == TextureFormat.Bgra32 || mainData.Format == TextureFormat.SBgra32;
 
-
-                    var dstMem = new Span<byte>(result.Data.Data.ToPointer(), mainData.Data.Length);
-                    mainData.Data.Span.CopyTo(dstMem);
+                    using var pSrc = mainData.Data.MemoryLock();
+                    EngineNativeLib.CopyMemory(pSrc, result.Data.Data, mainData.Data.Size);
                 }
             }
 
@@ -323,8 +330,8 @@ namespace XrEngine.Filament
         {
             var info = new ImageLightInfo
             {
-                Intensity = img.Intensity * 4,
-                Rotation = img.Rotation,
+                Intensity = img.Intensity * 1,
+                Rotation = img.RotationY,
                 ShowSkybox = false,
                 Texture = AllocateTexture(img.Panorama)
             };
@@ -336,10 +343,11 @@ namespace XrEngine.Filament
             {
                 info = new ImageLightInfo
                 {
-                    Intensity = img.Intensity * 4,
-                    Rotation = img.Rotation,
+                    Intensity = img.Intensity * 1,
+                    Rotation = img.RotationY,
                     ShowSkybox = false,
                 };
+
                 UpdateImageLight(_app, ref info);
             };
         }
@@ -347,62 +355,69 @@ namespace XrEngine.Filament
         protected void Create(Guid id, Group3D group)
         {
             AddGroup(_app, id);
-            if (group.Parent is not Scene3D)
-                SetObjParent(_app, id, group.Parent!.Id);
+
+            UpdateHierarchy(group);
+
+            group.Changed += (s, e) =>
+            {
+                OnObjectChanged((Object3D)s, e);
+            };
         }
 
-        protected unsafe void Create(Guid id, Geometry3D geo)
+
+        protected unsafe void Create(Guid geoId, Guid meshId, Geometry3D geo)
         {
-            var attributes = new List<VertexAttribute>();
-
-            if ((geo.ActiveComponents & VertexComponent.Position) != 0)
-                attributes.Add(new VertexAttribute
-                {
-                    Offset = 0,
-                    Size = 12,
-                    Type = VertexAttributeType.Position
-                });
-
-
-            if ((geo.ActiveComponents & VertexComponent.Normal) != 0)
-                attributes.Add(new VertexAttribute
-                {
-                    Offset = 12,
-                    Size = 12,
-                    Type = VertexAttributeType.Normal
-                });
-
-            if ((geo.ActiveComponents & VertexComponent.UV0) != 0)
-                attributes.Add(new VertexAttribute
-                {
-                    Offset = 24,
-                    Size = 8,
-                    Type = VertexAttributeType.UV0
-                });
-
-
-            if ((geo.ActiveComponents & VertexComponent.Tangent) != 0)
-                attributes.Add(new VertexAttribute
-                {
-                    Offset = 32,
-                    Size = 16,
-                    Type = VertexAttributeType.Tangent
-                });
-
-            var attributesArray = attributes.ToArray();
-
-            fixed (VertexAttribute* pAttr = attributesArray)
+            void Create(bool updateMode)
             {
-                var layout = new VertexLayout
-                {
-                    SizeByte = (uint)Marshal.SizeOf<VertexData>(),
-                    AttributeCount = (uint)attributes.Count,
-                    Attributes = pAttr
-                };
+                var attributes = new List<VertexAttribute>();
 
+                if ((geo.ActiveComponents & VertexComponent.Position) != 0)
+                    attributes.Add(new VertexAttribute
+                    {
+                        Offset = 0,
+                        Size = 12,
+                        Type = VertexAttributeType.Position
+                    });
+
+
+                if ((geo.ActiveComponents & VertexComponent.Normal) != 0)
+                    attributes.Add(new VertexAttribute
+                    {
+                        Offset = 12,
+                        Size = 12,
+                        Type = VertexAttributeType.Normal
+                    });
+
+                if ((geo.ActiveComponents & VertexComponent.UV0) != 0)
+                    attributes.Add(new VertexAttribute
+                    {
+                        Offset = 24,
+                        Size = 8,
+                        Type = VertexAttributeType.UV0
+                    });
+
+
+                if ((geo.ActiveComponents & VertexComponent.Tangent) != 0)
+                    attributes.Add(new VertexAttribute
+                    {
+                        Offset = 32,
+                        Size = 16,
+                        Type = VertexAttributeType.Tangent
+                    });
+
+                var attributesArray = attributes.ToArray();
+
+                fixed (VertexAttribute* pAttr = attributesArray)
                 fixed (uint* pIndex = geo.Indices)
                 fixed (VertexData* pVert = geo.Vertices)
                 {
+                    var layout = new VertexLayout
+                    {
+                        SizeByte = (uint)Marshal.SizeOf<VertexData>(),
+                        AttributeCount = (uint)attributes.Count,
+                        Attributes = pAttr
+                    };
+
                     var geoInfo = new GeometryInfo
                     {
                         layout = layout,
@@ -410,12 +425,24 @@ namespace XrEngine.Filament
                         Vertices = (byte*)pVert,
                         VerticesCount = geo.Vertices!.Length,
                         Indices = pIndex,
-                        IndicesCount = pIndex == null ? 0 : geo.Indices!.Length
+                        IndicesCount = pIndex == null ? 0 : geo.Indices!.Length,
+                        Primitive = PrimitiveType.TRIANGLES
                     };
 
-                    AddGeometry(_app, id, ref geoInfo);
+                    if (updateMode)
+                        UpdateMeshGeometry(_app, meshId, geoId, ref geoInfo);
+                    else
+                        AddGeometry(_app, geoId, ref geoInfo);
                 }
             }
+
+            Create(false);
+
+            geo.Changed += (s, c) =>
+            {
+                if (c.IsAny(ObjectChangeType.Geometry))
+                    Create(true);
+            };
         }
 
         protected void Create(Guid id, Material mat)
@@ -434,12 +461,13 @@ namespace XrEngine.Filament
                         AoMap = AllocateTexture(pbr.OcclusionMap),
                         MetallicFactor = pbr.Metalness,
                         RoughnessFactor = pbr.Roughness,
-                        NormalScale = 1.0f,
+                        NormalScale = pbr.NormalScale,
                         AoStrength = pbr.OcclusionStrength,
                         Blending = pbr.Alpha switch
                         {
                             AlphaMode.Opaque => FlBlendingMode.OPAQUE,
                             AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
+                            AlphaMode.BlendMain => FlBlendingMode.TRANSPARENT,
                             AlphaMode.Mask => FlBlendingMode.MASKED,
                             _ => throw new NotSupportedException()
                         },
@@ -497,6 +525,7 @@ namespace XrEngine.Filament
                         Blending = tex.Alpha switch
                         {
                             AlphaMode.Opaque => FlBlendingMode.OPAQUE,
+                            AlphaMode.BlendMain => FlBlendingMode.TRANSPARENT,
                             AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
                             AlphaMode.Mask => FlBlendingMode.MASKED,
                             _ => throw new NotSupportedException()
@@ -511,6 +540,28 @@ namespace XrEngine.Filament
                     };
                 }
 
+                if (mat is LineMaterial line)
+                {
+                    return new MaterialInfo
+                    {
+                        Blending = line.Alpha switch
+                        {
+                            AlphaMode.Opaque => FlBlendingMode.OPAQUE,
+                            AlphaMode.BlendMain => FlBlendingMode.TRANSPARENT,
+                            AlphaMode.Blend => FlBlendingMode.TRANSPARENT,
+                            AlphaMode.Mask => FlBlendingMode.MASKED,
+                            _ => throw new NotSupportedException()
+                        },
+                        Color = Color.White,
+                        DoubleSided = line.DoubleSided,
+                        LineWidth = line.LineWidth,
+                        IsLit = false,
+                        WriteDepth = line.WriteDepth,
+                        WriteColor = line.WriteColor,
+                        UseDepth = line.UseDepth,
+                    };
+                }
+
                 throw new NotSupportedException();
             }
 
@@ -519,8 +570,16 @@ namespace XrEngine.Filament
 
             mat.Changed += (s, c) =>
             {
-                matInfo = UpdateMatInfo();
-                UpdateMaterial(_app, mat.Id, ref matInfo);
+                if (c.IsAny(ObjectChangeType.MaterialEnabled))
+                {
+                    foreach (var host in mat.Hosts.OfType<Object3D>())
+                        SetObjVisible(_app, host.Id, host.IsVisible && mat.IsEnabled);
+                }
+                else
+                {
+                    matInfo = UpdateMatInfo();
+                    UpdateMaterial(_app, mat.Id, ref matInfo);
+                }
             };
 
             if (mat is TextureMaterial tex)
@@ -537,9 +596,84 @@ namespace XrEngine.Filament
             }
         }
 
+        protected unsafe void Create(Guid id, LineMesh mesh)
+        {
+            var matId = GetOrCreate(mesh.Material, matId => Create(matId, mesh.Material));
+
+            void CreateGeometry(bool isUpdate)
+            {
+                var attributes = new VertexAttribute[2];
+
+                attributes[0] = new VertexAttribute
+                {
+                    Offset = 0,
+                    Size = 12,
+                    Type = VertexAttributeType.Position
+                };
+
+                attributes[1] = new VertexAttribute
+                {
+                    Offset = 12,
+                    Size = 16,
+                    Type = VertexAttributeType.Color
+                };
+
+                var bounds = mesh.Vertices.Select(a => a.Pos).ComputeBounds();
+
+                fixed (VertexAttribute* pAttr = attributes)
+                fixed (PointData* pVert = mesh.Vertices)
+                {
+                    var layout = new VertexLayout
+                    {
+                        SizeByte = (uint)Marshal.SizeOf<PointData>(),
+                        AttributeCount = (uint)attributes.Length,
+                        Attributes = pAttr
+                    };
+
+                    var geoInfo = new GeometryInfo
+                    {
+                        layout = layout,
+                        Bounds = bounds,
+                        Vertices = (byte*)pVert,
+                        VerticesCount = mesh.Vertices.Length,
+                        Indices = null,
+                        IndicesCount = 0,
+                        Primitive = PrimitiveType.LINES
+                    };
+
+                    if (isUpdate)
+                        UpdateMeshGeometry(_app, id, id, ref geoInfo);
+                    else
+                        AddGeometry(_app, id, ref geoInfo);
+                }
+            }
+
+            CreateGeometry(false);
+
+            var meshInfo = new MeshInfo
+            {
+                Culling = true,
+                Fog = false,
+                GeometryId = id,
+                MaterialId = matId,
+                ReceiveShadows = false,
+                CastShadows = false,
+            };
+
+            AddMesh(_app, id, ref meshInfo);
+
+            UpdateHierarchy(mesh);
+
+            mesh.Changed += (s, c) =>
+            {
+                if (c.IsAny(ObjectChangeType.Geometry))
+                    CreateGeometry(true);
+            };
+        }
+
         protected void Create(Guid id, TriangleMesh mesh)
         {
-            var geoId = GetOrCreate(mesh.Geometry!, geoId => Create(geoId, mesh.Geometry!));
+            var geoId = GetOrCreate(mesh.Geometry!, geoId => Create(geoId, id, mesh.Geometry!));
 
             var matId = GetOrCreate(mesh.Materials[0], matId => Create(matId, mesh.Materials[0]));
 
@@ -552,13 +686,12 @@ namespace XrEngine.Filament
                 ReceiveShadows = true,
             };
 
-            if (mesh.Materials[0] is PbrV1Material pbr)
+            if (mesh.Materials[0] is IShadowMaterial pbr)
                 meshInfo.CastShadows = pbr.CastShadows;
 
             AddMesh(_app, id, ref meshInfo);
 
-            if (mesh.Parent is not Scene3D)
-                SetObjParent(_app, id, mesh.Parent!.Id);
+            UpdateHierarchy(mesh);
 
             mesh.Changed += (s, c) =>
             {
@@ -567,7 +700,31 @@ namespace XrEngine.Filament
                     var matId = GetOrCreate(mesh.Materials[0], matId => Create(matId, mesh.Materials[0]));
                     SetMeshMaterial(_app, id, matId);
                 }
+
+                OnObjectChanged((Object3D)s, c);
             };
+        }
+
+        protected void OnObjectChanged(Object3D obj, ObjectChange change)
+        {
+            if (change.IsAny(ObjectChangeType.Transform))
+                SetObjTransform(_app, obj.Id, obj.Transform.Matrix);
+
+            if (change.IsAny(ObjectChangeType.Visibility))
+            {
+                foreach (var item in obj.DescendantsOrSelf())
+                    SetObjVisible(_app, item.Id, item.IsVisible);
+            }
+
+        }
+
+        protected void UpdateHierarchy(Object3D obj)
+        {
+            if (obj.Parent != null && obj.Parent is not Scene3D)
+                SetObjParent(_app, obj.Id, obj.Parent.Id);
+
+            SetObjTransform(_app, obj.Id, obj.Transform.Matrix);
+            SetObjVisible(_app, obj.Id, obj.IsVisible);
         }
 
         protected void Create(Guid id, Object3D obj)
@@ -597,41 +754,52 @@ namespace XrEngine.Filament
             else if (obj is TriangleMesh mesh)
             {
                 if (mesh.Materials.Count == 0 || mesh.Geometry == null || (
-                    mesh.Materials[0] is not PbrV1Material && mesh.Materials[0] is not ColorMaterial))
+                    mesh.Materials[0] is not IPbrMaterial &&
+                    mesh.Materials[0] is not ColorMaterial &&
+                    mesh.Materials[0] is not ShadowOnlyMaterial &&
+                    mesh.Materials[0] is not TextureMaterial))
                     return;
 
                 Create(id, mesh);
+            }
+            else if (obj is LineMesh lineMesh)
+            {
+                Create(id, lineMesh);
             }
         }
 
         protected unsafe void BuildContent(Scene3D scene)
         {
-            if (_content == null)
+            _content ??= new Content()
             {
-                _content = new Content()
-                {
-                    Objects = []
-                };
-            }
+                Objects = []
+            };
+
             _content.Scene = scene;
             _content.Version = scene.Version;
 
             foreach (var obj in scene.Descendants())
-            {
-                if (!obj.IsVisible)
-                    continue;
                 GetOrCreate(obj, id => Create(id, obj));
+
+            foreach (var layer in scene.Layers.OfType<DetachedLayer>())
+            {
+                if (layer.Usage == DetachedLayerUsage.Gizmos)
+                {
+                    foreach (var obj in layer.Content.SelectMany(a => a.DescendantsOrSelf()))
+                        GetOrCreate(obj, id => Create(id, obj));
+                }
             }
         }
 
-        public unsafe void Render(Scene3D scene, Camera camera, Rect2I viewport, bool flush)
+        public unsafe void Render(RenderContext ctx, Rect2I viewport, bool flush)
         {
+            var scene = ctx.Scene!;
 
             if (_content == null || _content.Scene != scene || _content.Version != scene.Version)
                 BuildContent(scene);
 
             var render = stackalloc RenderTarget[1];
-            var persp = (PerspectiveCamera)camera;
+            var camera = (PerspectiveCamera)ctx.Camera!;
 
             render[0].Camera = new CameraInfo
             {
@@ -641,20 +809,20 @@ namespace XrEngine.Filament
                 Transform = camera.WorldMatrix
             };
 
-            if (persp.Eyes != null)
+            if (camera.Eyes != null)
             {
                 render[0].Camera.IsStereo = true;
 
                 render[0].Camera.Eye1 = new CameraEyesInfo
                 {
-                    RelTransform = persp.Eyes[0].Transform,
-                    Projection = persp.Eyes[0].Projection
+                    RelTransform = camera.Eyes[0].World,
+                    Projection = camera.Eyes[0].Projection
                 };
 
                 render[0].Camera.Eye2 = new CameraEyesInfo
                 {
-                    RelTransform = persp.Eyes[1].Transform,
-                    Projection = persp.Eyes[1].Projection
+                    RelTransform = camera.Eyes[1].World,
+                    Projection = camera.Eyes[1].Projection
                 };
             }
             else
@@ -666,12 +834,6 @@ namespace XrEngine.Filament
             render[0].RenderTargetId = _activeRenderTarget!.RenderTargetId;
             render[0].ViewId = _activeRenderTarget.ViewId;
             render[0].Viewport = viewport;
-
-            foreach (var mesh in _content!.Objects!.Where(a => a.Key is TriangleMesh || a.Key is Object3DInstance))
-            {
-                SetObjVisible(_app, mesh.Value, ((Object3D)mesh.Key).IsVisible);
-                SetObjTransform(_app, mesh.Value, ((Object3D)mesh.Key).WorldMatrix);
-            }
 
             FilamentLib.Render(_app, render, 1, flush);
 

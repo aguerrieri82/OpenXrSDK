@@ -1,4 +1,5 @@
-﻿using Silk.NET.OpenXR;
+﻿using Common.Interop;
+using Silk.NET.OpenXR;
 using System.Diagnostics;
 using XrMath;
 
@@ -30,11 +31,11 @@ namespace OpenXr.Framework
 
             _images = _xrApp.EnumerateSwapchainImages(_swapchain);
 
-            _header->SubImage.Swapchain = _swapchain;
-            _header->SubImage.ImageArrayIndex = 0;
-            _header->SubImage.ImageRect.Extent = extent;
-            _header->EyeVisibility = EyeVisibility.Both;
-            _header->LayerFlags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
+            _header.ValueRef.SubImage.Swapchain = _swapchain;
+            _header.ValueRef.SubImage.ImageArrayIndex = 0;
+            _header.ValueRef.SubImage.ImageRect.Extent = extent;
+            _header.ValueRef.EyeVisibility = EyeVisibility.Both;
+            _header.ValueRef.LayerFlags = CompositionLayerFlags.BlendTextureSourceAlphaBit;
 
             base.Create();
         }

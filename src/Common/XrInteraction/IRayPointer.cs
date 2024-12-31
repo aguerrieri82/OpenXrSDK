@@ -20,5 +20,9 @@ namespace XrInteraction
         void ReleasePointer();
 
         int PointerId { get; }
+
+        string Name { get; }
+
+        bool IsCaptured { get; }
     }
 }

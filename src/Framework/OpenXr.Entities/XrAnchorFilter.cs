@@ -15,5 +15,7 @@
         public IList<Guid>? Ids { get; set; }
 
         public XrAnchorComponent Components { get; set; }
+
+        public IList<string>? Labels { get; set; }
     }
 }

@@ -70,6 +70,7 @@ namespace OpenXr.Framework.Android
 
             extensions.Add(KhrLoaderInit.ExtensionName);
             extensions.Add(KhrAndroidThreadSettings.ExtensionName);
+            extensions.Add("XR_EXT_performance_settings");
 
             var func = new PfnVoidFunction();
             _app!.CheckResult(_app.Xr.GetInstanceProcAddr(new Instance(), "xrInitializeLoaderKHR", &func), "Bind xrInitializeLoaderKHR");

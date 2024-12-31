@@ -29,9 +29,9 @@
         {
         }
 
-        public void NotifyChanged(Object3D obj, ObjectChange change)
+        public void NotifyChanged(Object3D sender, ObjectChange change)
         {
-            if (change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.Render) && obj is TriangleMesh mesh)
+            if (change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.Render) && sender is TriangleMesh mesh)
             {
                 foreach (var material in mesh.Materials.OfType<ShaderMaterial>())
                 {
@@ -42,8 +42,8 @@
                     {
                         var layer = new ShaderMeshLayer(material.Shader);
                         _layers[material.Shader] = layer;
-                        obj.Scene!.Layers.Add(layer);
-                        layer.NotifyChanged(obj, change);
+                        sender.Scene!.Layers.Add(layer);
+                        layer.NotifyChanged(sender, change);
                     }
                 }
             }

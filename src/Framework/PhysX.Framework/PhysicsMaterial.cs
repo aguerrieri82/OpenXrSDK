@@ -10,6 +10,8 @@ namespace PhysX.Framework
         public float DynamicFriction;
 
         public float Restitution;
+
+        public bool ForceNew;
     }
 
 
@@ -23,7 +25,7 @@ namespace PhysX.Framework
             AddRef();
         }
 
-        public float Dumping
+        public float Damping
         {
             get => _handle->GetDamping();
             set => _handle->SetDampingMut(value);

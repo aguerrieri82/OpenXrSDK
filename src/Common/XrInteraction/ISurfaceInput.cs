@@ -17,7 +17,6 @@ namespace XrInteraction
 
         public InputButton MainButton { get; }
 
-        [Obsolete("Test")]
-        public InputButton BackButton { get; }
+        public InputButton SecondaryButton { get; }
     }
 }

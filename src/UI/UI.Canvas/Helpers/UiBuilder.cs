@@ -86,6 +86,14 @@
             return builder;
         }
 
+        public static IUiBuilder<TCont> AddChild<TCont, TChild>(this IUiBuilder<TCont> builder, TChild child, Action<IUiBuilder<TChild>> build) where TCont : UiContainer where TChild : UiElement
+        {
+            var childBuilder = UiBuilder.From(child);
+            build(childBuilder);
+
+            builder.Element.AddChild(child);
+            return builder;
+        }
 
         public static IUiBuilder<TCont> AddChild<TCont, TChild>(this IUiBuilder<TCont> builder, Action<IUiBuilder<TChild>>? build = null) where TChild : UiElement, new() where TCont : UiContainer
         {

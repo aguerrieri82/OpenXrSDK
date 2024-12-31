@@ -12,7 +12,6 @@ namespace PhysX.Framework
 
         }
 
-
         public void AddActor(PhysicsActor actor)
         {
             _handle->AddActorMut(actor.Handle, null);
@@ -33,6 +32,16 @@ namespace PhysX.Framework
             _handle->SetFlagMut(flag, isSet);
         }
 
+        public void SetVisualizationParameter(PxVisualizationParameter parameter, float value)
+        {
+            _handle->SetVisualizationParameterMut(parameter, value);
+        }
+
+        public float GetVisualizationParameter(PxVisualizationParameter parameter)
+        {
+            return _handle->GetVisualizationParameter(parameter);
+        }
+
         public override void Dispose()
         {
             if (_handle != null)
@@ -47,6 +56,9 @@ namespace PhysX.Framework
             get => _handle->GetFlags();
         }
 
+        public uint Timestamp => _handle->GetTimestamp();
+
+        public ref PxRenderBuffer RenderBuffer => ref Unsafe.AsRef<PxRenderBuffer>(_handle->GetRenderBufferMut());
 
         public PxPvdSceneClient* PvdClient => _handle->GetScenePvdClientMut();
 

@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public enum ValueType
     {
         None,
-        Radiant
+        Radiant,
+        FileName
     }
 
-    [AttributeUsage(AttributeTargets.Property)]    
+    [AttributeUsage(AttributeTargets.Property)]
     public class ValueTypeAttribute : Attribute
     {
         public ValueTypeAttribute(ValueType type)

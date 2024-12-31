@@ -1,27 +1,24 @@
-﻿using System.Numerics;
+﻿using XrMath;
 
 namespace XrEngine
 {
-    public class TextureMaterial : ShaderMaterial
+    public class TextureMaterial : ShaderMaterial, IColorSource
     {
         static readonly Shader SHADER;
 
         static TextureMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "texture.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
                 IsLit = false,
-                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
         public TextureMaterial()
             : base()
         {
             _shader = SHADER;
-            Scale = new Vector2(1, 1);
+            Color = Color.White;
         }
 
         public TextureMaterial(Texture2D texture)
@@ -50,20 +47,46 @@ namespace XrEngine
                 bld.AddFeature("EXTERNAL");
             }
 
+            if (Texture?.Transform != null)
+            {
+                bld.AddFeature("USE_TRANSFORM");
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform("uUvTransform", Texture.Transform.Value);
+                });
+            }
+
+            if (CheckTexture)
+            {
+                bld.AddFeature("CHECK_TEXTURE");
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform("uHasTexture", Texture == null ? 0u : 1u);
+                });
+            }
+
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uTexture", Texture!, 0);
-                up.SetUniform("uOffset", Offset);
-                up.SetUniform("uScale", Scale);
+                if (Texture != null)
+                    up.LoadTexture(Texture, 0);
+
+                up.SetUniform("uColor", Color);
             });
         }
 
+        public override void Dispose()
+        {
+            Texture?.Dispose();
+            Texture = null;
+            base.Dispose();
+        }
+
+        public bool CheckTexture { get; set; }
+
         public Texture2D? Texture { get; set; }
 
-        public Vector2 Offset { get; set; }
-
-        public Vector2 Scale { get; set; }
+        public Color Color { get; set; }
     }
 }

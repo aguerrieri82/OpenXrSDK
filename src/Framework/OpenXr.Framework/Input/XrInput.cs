@@ -1,11 +1,11 @@
 ﻿using Silk.NET.OpenXR;
 using System.Numerics;
+using System.Text.Json;
 using XrMath;
 using Action = Silk.NET.OpenXR.Action;
 
 namespace OpenXr.Framework
 {
-
 
     public abstract class XrInput<TValue> : IXrInput
     {
@@ -75,6 +75,25 @@ namespace OpenXr.Framework
         }
 
         public abstract void Update(Space refSpace, long predictTime);
+
+        public virtual void SetState(XrInputState state)
+        {
+            _isActive = state.IsActive;
+            _isChanged = state.IsChanged;
+            if (state.Value is JsonElement je)
+                state.Value = je.Deserialize<TValue>(new JsonSerializerOptions { IncludeFields = true })!;
+            _value = (TValue)state.Value;
+        }
+
+        public virtual XrInputState GetState()
+        {
+            return new XrInputState
+            {
+                Value = _value!,
+                IsChanged = _isChanged,
+                IsActive = _isActive,
+            };
+        }
 
         public DateTime LastChangeTime => _lastChangeTime;
 
@@ -151,6 +170,8 @@ namespace OpenXr.Framework
     public class XrPoseInput : XrInput<Pose3>
     {
         protected Space _space;
+        protected Vector3? _linearVelocity;
+        protected Vector3? _angularVelocity;
 
         public XrPoseInput(XrApp app, string path, string name)
             : base(app, path, ActionType.PoseInput, name)
@@ -161,6 +182,7 @@ namespace OpenXr.Framework
         {
             var result = base.Initialize();
             _space = _app.CreateActionSpace(_action, _subPath);
+            _app.SpacesTracker.Add(_space, TimeSpan.Zero);
             return result;
         }
 
@@ -171,12 +193,44 @@ namespace OpenXr.Framework
 
             _isActive = _app.GetActionPoseIsActive(_action, _subPath);
             _isChanged = true;
-            _lastChangeTime = DateTime.Now;
+            _lastChangeTime = DateTime.UtcNow;
 
-            var spaceInfo = _app.LocateSpace(_space, refSpace, predictTime);
-            if (spaceInfo.IsValid)
+            var spaceInfo = _app.SpacesTracker.GetLastLocation(_space);
+
+            if (spaceInfo != null && spaceInfo.IsValid)
+            {
                 _value = spaceInfo.Pose;
+
+                if ((spaceInfo.VelocityFlags & SpaceVelocityFlags.LinearValidBit) != 0)
+                    _linearVelocity = spaceInfo.LinearVelocity;
+                else
+                    _linearVelocity = null;
+
+                if ((spaceInfo.VelocityFlags & SpaceVelocityFlags.AngularValidBit) != 0)
+                    _angularVelocity = spaceInfo.AngularVelocity;
+                else
+                    _angularVelocity = null;
+            }
         }
+
+        public override void SetState(XrInputState state)
+        {
+            base.SetState(state);
+            _angularVelocity = state.AngularVelocity;
+            _linearVelocity = state.LinearVelocity;
+        }
+
+        public override XrInputState GetState()
+        {
+            var res = base.GetState();
+            res.AngularVelocity = _angularVelocity;
+            res.LinearVelocity = _linearVelocity;
+            return res;
+        }
+
+        public Vector3? LinearVelocity => _linearVelocity;
+
+        public Vector3? AngularVelocity => _angularVelocity;
 
         public Space Space => _space;
     }

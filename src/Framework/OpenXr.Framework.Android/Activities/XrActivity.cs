@@ -21,22 +21,20 @@ namespace OpenXr.Framework.Android
             AskPermissions,
             Done,
         }
-        private Thread? _loopThread;
-        private XrApp? _xrApp;
-        private bool _isExited;
-        protected readonly HandlerXrThread _mainThread = new HandlerXrThread(new Handler(Looper.MainLooper!));
-        protected string[] _permissions;
+        protected Thread? _loopThread;
+        protected XrApp? _xrApp;
+        protected readonly HandlerXrThread _mainThread = new(new Handler(Looper.MainLooper!));
+        protected List<string> _permissions;
         private LoadStep _loadStep;
-
+        protected bool _isRestart;
 
         public XrActivity()
         {
-            _isExited = false;
             _permissions = [
               "com.oculus.permission.USE_SCENE",
-                "android.permission.WRITE_EXTERNAL_STORAGE",
-                "android.permission.READ_EXTERNAL_STORAGE"
-              ];
+              "android.permission.WRITE_EXTERNAL_STORAGE",
+              "android.permission.READ_EXTERNAL_STORAGE"
+            ];
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)
@@ -53,7 +51,7 @@ namespace OpenXr.Framework.Android
         protected abstract XrApp CreateApp();
 
 
-        protected virtual void OnXpAppStarted(XrApp app)
+        protected virtual void OnXrAppStarted(XrApp app)
         {
 
         }
@@ -62,11 +60,19 @@ namespace OpenXr.Framework.Android
         {
             Log.Warn("Life", $"Activity: DESTROY");
 
-            _xrApp?.Dispose();
+            //_xrApp?.Dispose();
 
-            _loopThread?.Join();
+            //_loopThread?.Join();
 
-            Process.KillProcess(Process.MyPid());
+            if (!_isRestart)
+                Process.KillProcess(Process.MyPid());
+            else
+            {
+                var intent = PackageManager!.GetLaunchIntentForPackage(PackageName!)!;
+                intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask);
+                StartActivity(intent);
+                Java.Lang.JavaSystem.Exit(0);
+            }
 
             base.OnDestroy();
         }
@@ -86,13 +92,13 @@ namespace OpenXr.Framework.Android
 
                 _xrApp.Start();
 
-                _mainThread.ExecuteAsync(() => OnXpAppStarted(_xrApp)).Wait();
+                _mainThread.ExecuteAsync(() => OnXrAppStarted(_xrApp)).Wait();
 
                 while (_xrApp.IsStarted)
                 {
                     try
                     {
-                        _xrApp.RenderFrame(_xrApp.Stage);
+                        _xrApp.RenderFrame(_xrApp.ReferenceSpace);
                     }
                     catch (Exception ex)
                     {
@@ -103,7 +109,6 @@ namespace OpenXr.Framework.Android
             }
             finally
             {
-                _isExited = true;
                 _xrApp?.Logger.LogInformation("---Run App exit---");
             }
         }
@@ -127,7 +132,7 @@ namespace OpenXr.Framework.Android
             if (!global::Android.OS.Environment.IsExternalStorageManager)
             {
                 var intent = new Intent(global::Android.Provider.Settings.ActionManageAppAllFilesAccessPermission!,
-               global::Android.Net.Uri.Parse("package:" + Application.Context.PackageName));
+                global::Android.Net.Uri.Parse("package:" + Application.Context.PackageName));
 
                 StartActivityForResult(intent, STORAGE_REQUEST);
             }

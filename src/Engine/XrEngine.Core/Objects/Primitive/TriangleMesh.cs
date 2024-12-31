@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -9,7 +8,6 @@ namespace XrEngine
     {
         protected readonly ObservableCollection<Material> _materials;
         protected Geometry3D? _geometry;
-
 
         public TriangleMesh()
         {
@@ -31,7 +29,9 @@ namespace XrEngine
         {
             base.GetState(container);
 
-            container.Write(nameof(Geometry), Geometry);
+            if (Geometry != null)
+                container.Write(nameof(Geometry), Geometry);
+
             container.WriteArray(nameof(Materials), _materials);
         }
 
@@ -44,8 +44,8 @@ namespace XrEngine
 
         public override T? Feature<T>() where T : class
         {
-            if (typeof(T) == typeof(Geometry3D))
-                return (T?)(object?)Geometry;
+            if (Geometry is T geo)
+                return geo;
             return base.Feature<T>();
         }
 
@@ -53,16 +53,10 @@ namespace XrEngine
         public override void UpdateBounds(bool force = false)
         {
             if (Geometry != null)
-            {
                 _worldBounds = Geometry.Bounds.Transform(WorldMatrix);
-
-            }
-
 
             _boundsDirty = false;
         }
-
-
 
         public override void Update(RenderContext ctx)
         {
@@ -80,27 +74,24 @@ namespace XrEngine
                 if (e.OldItems != null)
                 {
                     foreach (var item in e.OldItems!.Cast<Material>())
-                        item.Detach(this);
+                        item.Detach(this, false);
+
+                    NotifyChanged(new ObjectChange(ObjectChangeType.MateriaRemove, e.OldItems));
                 }
             }
 
             if (e.NewItems != null)
             {
                 foreach (var item in e.NewItems.Cast<Material>())
-                {
-                    item.EnsureId();
                     item.Attach(this);
-                }
-            }
 
-            NotifyChanged(ObjectChangeType.Render);
+                NotifyChanged(new ObjectChange(ObjectChangeType.MateriaAdd, e.NewItems));
+            }
         }
 
         public void NotifyLoaded()
         {
-            /*
-            if (_geometry!.Is(EngineObjectFlags.Readonly))
-                _geometry!.FreeBuffers();*/
+            _geometry?.NotifyLoaded();
         }
 
         public Geometry3D? Geometry
@@ -117,14 +108,26 @@ namespace XrEngine
                 _geometry = value;
 
                 if (_geometry != null)
-                {
-                    _geometry.EnsureId();
                     _geometry.Attach(this);
-                }
 
                 NotifyChanged(ObjectChangeType.Geometry);
             }
         }
+
+        public override void Dispose()
+        {
+            foreach (var material in Materials)
+                material.Detach(this, true);
+
+            Geometry?.Detach(this, true);
+
+            Geometry = null;
+            Materials.Clear();
+
+            base.Dispose();
+        }
+
+        public int RenderPriority { get; set; }
 
         public IList<Material> Materials => _materials;
 
@@ -138,7 +141,7 @@ namespace XrEngine
 
         VertexComponent IVertexSource.ActiveComponents => _geometry?.ActiveComponents ?? VertexComponent.None;
 
-        DrawPrimitive IVertexSource.Primitive => DrawPrimitive.Triangle;
+        DrawPrimitive IVertexSource.Primitive => _geometry?.Primitive ?? DrawPrimitive.Triangle;
 
         uint[] IVertexSource<VertexData, uint>.Indices => _geometry?.Indices ?? [];
 

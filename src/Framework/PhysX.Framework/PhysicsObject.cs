@@ -10,6 +10,7 @@
         {
             _handle = handle;
             _system = system;
+            _system.RegisterObject(handle, this);
         }
 
         public PhysicsSystem System => _system;
@@ -22,5 +23,7 @@
 
 
         public static implicit operator T*(PhysicsObject<T> self) => self._handle;
+
+
     }
 }

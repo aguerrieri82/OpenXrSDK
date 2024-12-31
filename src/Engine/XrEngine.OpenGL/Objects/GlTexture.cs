@@ -4,6 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using Common.Interop;
 using System.Diagnostics;
 using XrMath;
 
@@ -11,7 +12,7 @@ namespace XrEngine.OpenGL
 {
     public class GlTexture : GlObject, IGlRenderAttachment
     {
-        static readonly Dictionary<uint, GlTexture> _attached = [];
+        static internal readonly Dictionary<uint, GlTexture> _attached = [];
 
 
         protected uint _width;
@@ -58,7 +59,7 @@ namespace XrEngine.OpenGL
 
             Bind();
 
-            bool isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
+            var isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
 
             var levelTarget = Target == TextureTarget.TextureCubeMap ? TextureTarget.TextureCubeMapPositiveX : Target;
 
@@ -70,7 +71,6 @@ namespace XrEngine.OpenGL
 
             _gl.GetTexLevelParameter(levelTarget, 0, GetTextureParameter.TextureDepthExt, out int depth);
             _depth = (uint)depth;
-
 
             //NOTE: sometimes in level 0 sometimes 1, to investigate
             for (var level = 0; level < 2; level++)
@@ -101,6 +101,9 @@ namespace XrEngine.OpenGL
                 _gl.GetTexParameter(Target, GetTextureParameter.TextureMagFilter, out int mag);
                 MagFilter = (TextureMagFilter)mag;
 
+                _gl.GetTexParameter(Target, (GLEnum)TextureParameterName.TextureMaxAnisotropy, out float asin);
+                MaxAnisotropy = asin;
+
                 var color = new float[4];
                 _gl.GetTexParameter(Target, GetTextureParameter.TextureBorderColor, color);
                 BorderColor = new Color(color);
@@ -113,8 +116,14 @@ namespace XrEngine.OpenGL
             _gl.GetTexParameter(Target, GetTextureParameter.TextureMaxLevelSgis, out int ml);
             MaxLevel = (uint)ml;
 
-
-
+#warning IMPROVE
+            if (GlUtils.IsDepth(InternalFormat) && (MinFilter != TextureMinFilter.Nearest || MagFilter != TextureMagFilter.Nearest))
+            {
+                MinFilter = TextureMinFilter.Nearest;
+                MagFilter = TextureMagFilter.Nearest;
+                _gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)MinFilter);
+                _gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
+            }
 
             Unbind();
         }
@@ -123,35 +132,33 @@ namespace XrEngine.OpenGL
         {
             var result = new List<TextureData>();
 
-            void ReadTarget(TextureTarget target, uint mipLevel, uint face = 0)
+            void ReadTarget(TextureTarget target, uint mipLevel, uint face = 0, uint depth = 0)
             {
-                _gl.FramebufferTexture2D(
-                     FramebufferTarget.ReadFramebuffer,
-                     FramebufferAttachment.ColorAttachment0,
-                     target,
-                     _handle, (int)mipLevel);
+                if (target == TextureTarget.Texture2DArray)
+                {
+                    _gl.FramebufferTextureLayer(
+                         FramebufferTarget.ReadFramebuffer,
+                         FramebufferAttachment.ColorAttachment0,
+                         _handle,
+                         (int)mipLevel,
+                         (int)depth);
+                }
+                else
+                {
+                    _gl.FramebufferTexture2D(
+                         FramebufferTarget.ReadFramebuffer,
+                         FramebufferAttachment.ColorAttachment0,
+                         target,
+                         _handle, (int)mipLevel);
+                }
+
 
                 var w = Width >> (int)mipLevel;
                 var h = Height >> (int)mipLevel;
 
-                /*
-                _gl.GetTexLevelParameter(target, (int)mipLevel, GetTextureParameter.TextureWidth, out int w);
-                _gl.GetTexLevelParameter(target, (int)mipLevel, GetTextureParameter.TextureHeight, out int h);
-                */
-
                 GlState.Current!.SetView(new Rect2I(0, 0, w, h));
 
-                var pixelSize = format switch
-                {
-                    TextureFormat.Rg88 => 16,
-                    TextureFormat.Rgba32 => 32,
-                    TextureFormat.Rgb24 => 24,
-                    TextureFormat.SRgb24 => 24,
-                    TextureFormat.RgbFloat32 => 32 * 3,
-                    TextureFormat.RgbaFloat32 => 32 * 4,
-                    TextureFormat.RgbaFloat16 => 16 * 4,
-                    _ => throw new NotSupportedException()
-                };
+                var pixelSize = GlUtils.GetPixelSize(format);
 
                 var item = new TextureData
                 {
@@ -159,13 +166,15 @@ namespace XrEngine.OpenGL
                     Height = h,
                     Format = format,
                     MipLevel = mipLevel,
-                    Face = face
+                    Face = face,
+                    Data = MemoryBuffer.Create<byte>(pixelSize * w * h / 8)
                 };
-                item.Data = new byte[pixelSize * item.Width * item.Height / 8];
 
-                GetPixelFormat(format, out var pixelFormat, out var pixelType);
+                GlUtils.GetPixelFormat(format, out var pixelFormat, out var pixelType);
 
-                _gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, item.Data.Span);
+                using var pData = item.Data.MemoryLock();
+
+                _gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, pData);
 
                 result.Add(item);
             }
@@ -187,6 +196,11 @@ namespace XrEngine.OpenGL
                     for (var face = 0; face < 6; face++)
                         ReadTarget(TextureTarget.TextureCubeMapPositiveX + face, mipLevel, (uint)face);
                 }
+                else if (Target == TextureTarget.Texture2DArray)
+                {
+                    for (uint i = 0; i < _depth; i++)
+                        ReadTarget(Target, mipLevel, 0, i);
+                }
                 else
                     ReadTarget(Target, mipLevel);
             }
@@ -198,130 +212,14 @@ namespace XrEngine.OpenGL
             return result;
         }
 
-        public static void GetPixelFormat(TextureFormat format, out PixelFormat pixelFormat, out PixelType pixelType)
+
+
+        public void Update(uint depth, params TextureData[] data)
         {
-            pixelFormat = format switch
-            {
-                TextureFormat.Depth32Float or
-                TextureFormat.Depth24Float => PixelFormat.DepthComponent,
+            if (data.Length == 0)
+                throw new InvalidOperationException();
 
-                TextureFormat.Depth32Stencil8 or
-                TextureFormat.Depth24Stencil8 => PixelFormat.DepthStencil,
-
-                TextureFormat.SRgba32 or
-                TextureFormat.RgbaFloat32 or
-                TextureFormat.RgbaFloat16 or
-                TextureFormat.Rgba32 => PixelFormat.Rgba,
-
-                TextureFormat.SBgra32 or
-                TextureFormat.Bgra32 => PixelFormat.Bgra,
-
-                TextureFormat.Gray8 => PixelFormat.Red,
-
-                TextureFormat.RgFloat32 or
-                TextureFormat.Rg88 => PixelFormat.RG,
-
-                TextureFormat.RFloat32 => PixelFormat.Red,
-
-                TextureFormat.Rgb24 or
-                TextureFormat.RgbFloat32 or
-                TextureFormat.SRgb24 => PixelFormat.Rgb,
-
-                _ => throw new NotSupportedException(),
-            };
-
-            pixelType = format switch
-            {
-                TextureFormat.Depth32Float or
-                TextureFormat.RgbFloat32 or
-                TextureFormat.RgbaFloat32 or
-                TextureFormat.RgFloat32 or
-                TextureFormat.RFloat32 or
-                TextureFormat.Depth24Float => PixelType.Float,
-
-                TextureFormat.RgbaFloat16 => PixelType.HalfFloat,
-
-                TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
-
-                TextureFormat.Depth32Stencil8 => PixelType.Float32UnsignedInt248Rev,
-
-                TextureFormat.Rgba32 or
-                TextureFormat.Bgra32 or
-                TextureFormat.Gray8 or
-                TextureFormat.Rgb24 or
-                TextureFormat.SRgb24 or
-                TextureFormat.SBgra32 or
-                TextureFormat.Rg88 or
-                TextureFormat.SRgba32 => PixelType.UnsignedByte,
-
-                _ => throw new NotSupportedException(),
-            };
-        }
-
-        public static InternalFormat GetInternalFormat(TextureFormat format, TextureCompressionFormat compression)
-        {
-
-            if (compression == TextureCompressionFormat.Uncompressed)
-            {
-                return format switch
-                {
-                    TextureFormat.Depth32Float => InternalFormat.DepthComponent32f,
-                    TextureFormat.Depth24Float => InternalFormat.DepthComponent24,
-                    TextureFormat.Depth24Stencil8 => InternalFormat.Depth24Stencil8Oes,
-                    TextureFormat.Depth32Stencil8 => InternalFormat.Depth32fStencil8,
-
-                    TextureFormat.SBgra32 or
-                    TextureFormat.SRgba32 => InternalFormat.Srgb8Alpha8,
-
-                    TextureFormat.Rgba32 or
-                    TextureFormat.Bgra32 => InternalFormat.Rgba8,
-
-                    TextureFormat.Gray8 => InternalFormat.R8,
-
-                    TextureFormat.RgbFloat32 => InternalFormat.Rgb32f,
-
-                    TextureFormat.RgbaFloat32 => InternalFormat.Rgba32f,
-
-                    TextureFormat.RgbFloat16 => InternalFormat.Rgb16f,
-
-                    TextureFormat.RgbaFloat16 => InternalFormat.Rgba16f,
-
-                    TextureFormat.RgFloat32 => InternalFormat.RG32f,
-
-                    TextureFormat.RFloat32 => InternalFormat.R32f,
-
-                    TextureFormat.Rgb24 => InternalFormat.Rgb8,
-
-                    TextureFormat.Rg88 => InternalFormat.RG8,
-
-                    _ => throw new NotSupportedException(),
-                };
-            }
-
-            if (compression == TextureCompressionFormat.Etc2)
-            {
-
-                return format switch
-                {
-                    TextureFormat.Rgb24 => InternalFormat.CompressedRgb8Etc2,
-                    TextureFormat.Rgba32 => InternalFormat.CompressedRgba8Etc2EacOes,
-                    TextureFormat.SRgb24 => InternalFormat.CompressedSrgb8Etc2,
-                    TextureFormat.SRgba32 => InternalFormat.CompressedSrgb8Alpha8Etc2EacOes,
-                    _ => throw new NotSupportedException(format.ToString()),
-                };
-            }
-
-            if (compression == TextureCompressionFormat.Etc1)
-            {
-                return InternalFormat.Etc1Rgb8Oes;
-            }
-
-            throw new NotSupportedException();
-        }
-
-        public void Update(uint arraySize, params TextureData[] data)
-        {
-            Update(data[0].Width, data[0].Height, arraySize, data[0].Format, data[0].Compression, data);
+            Update(data[0].Width, data[0].Height, depth, data[0].Format, data[0].Compression, data);
         }
 
         public unsafe void Update(uint width, uint height, uint depth, TextureFormat format, TextureCompressionFormat compression = TextureCompressionFormat.Uncompressed, IList<TextureData>? data = null)
@@ -333,7 +231,12 @@ namespace XrEngine.OpenGL
                 Log.Debug(this, "Update texture '{0}'", _handle);
 
             if (_width != width || _height != height || _depth != depth)
+            {
+                if (!IsMutable && _isAllocated)
+                    throw new InvalidOperationException("Immutable texture size changed");
                 _isAllocated = false;
+            }
+
 
             _width = width;
             _height = height;
@@ -370,9 +273,9 @@ namespace XrEngine.OpenGL
 
             Bind();
 
-            UpdateWork();
+            UpdateSampler();
 
-            _internalFormat = GetInternalFormat(format, compression);
+            _internalFormat = GlUtils.GetInternalFormat(format, compression);
 
             if (compression == TextureCompressionFormat.Uncompressed)
             {
@@ -416,65 +319,95 @@ namespace XrEngine.OpenGL
                         }
                     }
 
-
                     _isAllocated = true;
                 }
 
 
                 if (data != null)
                 {
+                    bool hasOneLevel = data.Count == 1 && data[0].MipLevel == 0;
+
                     foreach (var level in data)
                     {
-                        GetPixelFormat(level.Format, out var pixelFormat, out var pixelType);
+                        GlUtils.GetPixelFormat(level.Format, out var pixelFormat, out var pixelType);
 
                         var realTarget = Target == TextureTarget.TextureCubeMap ?
                                              TextureTarget.TextureCubeMapPositiveX + (int)level.Face : Target;
 
-                        if (level.Data.Length == 0 && !_isAllocated)
-                        {
-                            if (data.Count == 1 && data[0].MipLevel == 0)
-                            {
-                                _gl.TexImage2D(
-                                realTarget,
-                                0,
-                                _internalFormat,
-                                level.Width,
-                                level.Height,
-                                0,
-                                pixelFormat,
-                                pixelType,
-                                null);
+                        byte* pData = null;
 
+                        if (level.Data != null)
+                            pData = level.Data.Lock();
+
+                        if (!_isAllocated || pData != null)
+                        {
+                            if (hasOneLevel && IsMutable)
+                            {
+                                if (_depth > 1)
+                                {
+                                    _gl.TexImage3D(
+                                         realTarget,
+                                         0,
+                                         _internalFormat,
+                                         level.Width,
+                                         level.Height,
+                                         _depth,
+                                         0,
+                                         pixelFormat,
+                                         pixelType,
+                                         pData);
+                                }
+                                else
+                                {
+                                    _gl.TexImage2D(
+                                          realTarget,
+                                          0,
+                                          _internalFormat,
+                                          level.Width,
+                                          level.Height,
+                                          0,
+                                          pixelFormat,
+                                          pixelType,
+                                          pData);
+                                }
                             }
                             else
                             {
-                                _gl.TexSubImage2D(
-                                   realTarget,
-                                   (int)level.MipLevel,
-                                   0,
-                                   0,
-                                   level.Width,
-                                   level.Height,
-                                   pixelFormat,
-                                   pixelType,
-                                   null);
+                                if (_depth > 1)
+                                {
+                                    _gl.TexSubImage3D(
+                                         realTarget,
+                                         (int)level.MipLevel,
+                                         0,
+                                         0,
+                                         0,
+                                         level.Width,
+                                         level.Height,
+                                         level.Depth,
+                                         pixelFormat,
+                                         pixelType,
+                                         pData);
+                                }
+                                else
+                                {
+                                    _gl.TexSubImage2D(
+                                            realTarget,
+                                            (int)level.MipLevel,
+                                            0,
+                                            0,
+                                            level.Width,
+                                            level.Height,
+                                            pixelFormat,
+                                            pixelType,
+                                            pData);
+                                }
+
                             }
 
-                        }
-                        else if (level.Data.Length > 0)
-                        {
-                            _gl.TexSubImage2D(
-                                realTarget,
-                                (int)level.MipLevel,
-                                0,
-                                0,
-                                level.Width,
-                                level.Height,
-                                pixelFormat,
-                                pixelType,
-                                (ReadOnlySpan<byte>)level.Data.Span);
+                            _isAllocated = true;
                         }
 
+                        level.Data?.Unlock();
                     }
                 }
             }
@@ -488,6 +421,10 @@ namespace XrEngine.OpenGL
                                     (TextureTarget.TextureCubeMapPositiveX + (int)level.Face) :
                                     Target;
 
+                    Debug.Assert(level.Data != null);
+
+                    using var pData = level.Data.MemoryLock();
+
                     _gl.CompressedTexImage2D(
                         realTarget,
                         (int)level.MipLevel,
@@ -495,8 +432,9 @@ namespace XrEngine.OpenGL
                         level.Width,
                         level.Height,
                         0,
-                        (uint)level.Data!.Length,
-                        (ReadOnlySpan<byte>)level.Data.Span);
+                        level.Data.Size,
+                        pData);
+
                 }
 
                 _isCompressed = true;
@@ -506,16 +444,21 @@ namespace XrEngine.OpenGL
                 _gl.GenerateMipmap(Target);
         }
 
+        public void UpdateDate(params TextureData[] data)
+        {
+
+        }
+
         public void Update()
         {
             Bind();
 
-            UpdateWork();
+            UpdateSampler();
 
             Unbind();
         }
 
-        protected void UpdateWork()
+        protected internal void UpdateSampler()
         {
             bool isMultiSample = Target == TextureTarget.Texture2DMultisample || Target == TextureTarget.Texture2DMultisampleArray;
 
@@ -526,6 +469,7 @@ namespace XrEngine.OpenGL
                 _gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)MinFilter);
                 _gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
                 _gl.TexParameter(Target, TextureParameterName.TextureBorderColor, BorderColor.ToArray());
+                _gl.TexParameter(Target, TextureParameterName.TextureMaxAnisotropy, MaxAnisotropy);
             }
 
             if (!IsDepth)
@@ -537,7 +481,7 @@ namespace XrEngine.OpenGL
 
         public void Bind()
         {
-            GlState.Current!.SetActiveTexture(this, Slot);
+            GlState.Current!.LoadTexture(this, Slot);
         }
 
         public void Unbind()
@@ -549,12 +493,20 @@ namespace XrEngine.OpenGL
         {
             if (_handle != 0)
             {
+                GlState.Current!.ResetTextures();
                 _gl.DeleteTexture(_handle);
                 _attached.Remove(_handle);
-                _handle = 0;
             }
 
-            GC.SuppressFinalize(this);
+            if (Source is Texture tex)
+            {
+                tex.DeleteProp(OpenGLRender.Props.GlResId);
+                tex.Handle = 0;
+            }
+
+            Source = null;
+
+            base.Dispose();
         }
 
         public static GlTexture Attach(GL gl, uint handle, uint sampleCount = 1, TextureTarget target = 0)
@@ -582,6 +534,8 @@ namespace XrEngine.OpenGL
         public uint BaseLevel { get; set; }
 
         public uint MaxLevel { get; set; }
+
+        public float MaxAnisotropy { get; set; }
 
         public int Slot { get; set; }
 

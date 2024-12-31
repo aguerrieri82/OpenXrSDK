@@ -70,7 +70,11 @@ namespace XrEngine.OpenGL
             {
                 DrawPrimitive.Triangle => PrimitiveType.Triangles,
                 DrawPrimitive.Line => PrimitiveType.Lines,
-                DrawPrimitive.LineLoop => PrimitiveType.Patches,
+                DrawPrimitive.LineLoop => PrimitiveType.LineLoop,
+                DrawPrimitive.Point => PrimitiveType.Points,
+                DrawPrimitive.Patch => PrimitiveType.Patches,
+                DrawPrimitive.Quad => PrimitiveType.Quads,
+
                 _ => throw new NotSupportedException()
             };
         }
@@ -108,7 +112,7 @@ namespace XrEngine.OpenGL
 
         public override IVertexSource Source => _source;
 
-        public override bool NeedUpdate => _source.Object.Version != Version || Version == -1;
+        public override bool NeedUpdate => _source.Object != null && (_source.Object.Version != Version || Version == -1);
 
         public override GlVertexLayout Layout => _vertices.Layout;
     }

@@ -17,7 +17,7 @@ namespace CanvasUI
             return new TextBlock() { Text = text ?? string.Empty };
         }
 
-        protected virtual void OnContentChanged()
+        protected virtual void OnContentChanged(object? value, object? oldValue)
         {
             if (_content != null)
                 _content.Host = null;
@@ -28,13 +28,6 @@ namespace CanvasUI
                 _content.Host = this;
         }
 
-        protected override void OnPropertyChanged(string propName, object? value, object? oldValue)
-        {
-            if (propName == nameof(Content))
-                OnContentChanged();
-
-            base.OnPropertyChanged(propName, value, oldValue);
-        }
 
         protected override Size2 ArrangeWork(Rect2 finalRect)
         {

@@ -3,7 +3,7 @@
 uniform vec2 uOffset;
 uniform vec2 uSize;
 
-out vec4 FragColor;
+layout(location=0) out vec4 FragColor;
 
 void main()
 {

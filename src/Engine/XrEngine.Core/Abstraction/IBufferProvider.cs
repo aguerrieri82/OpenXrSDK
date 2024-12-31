@@ -1,7 +1,14 @@
 ﻿namespace XrEngine
 {
+    public enum BufferStore
+    {
+        Shader,
+        Material,
+        Model
+    }
+
     public interface IBufferProvider
     {
-        IBuffer GetBuffer<T>(string name, bool isGlobal);
+        IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store);
     }
 }

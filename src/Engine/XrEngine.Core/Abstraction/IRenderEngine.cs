@@ -4,7 +4,7 @@ namespace XrEngine
 {
     public interface IRenderEngine : IDisposable
     {
-        void Render(Scene3D scene, Camera camera, Rect2I view, bool flush);
+        void Render(RenderContext ctx, Rect2I view, bool flush);
 
         void SetRenderTarget(Texture2D? texture);
 

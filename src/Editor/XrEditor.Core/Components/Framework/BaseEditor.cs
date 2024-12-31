@@ -8,8 +8,20 @@ namespace XrEditor
     {
         protected TEdit _editValue;
         protected IProperty<TValue>? _binding;
+        protected internal int _isLoading;
 
-        public virtual void NotifyValueChanged()
+        public BaseEditor()
+        {
+
+        }
+
+        public void NotifyBindValueChanged()
+        {
+            if (_binding != null)
+                OnBindValueChanged(_binding.Value);
+        }
+
+        public virtual void NotifyEditValueChanged()
         {
             OnPropertyChanged(nameof(EditValue));
         }
@@ -56,7 +68,6 @@ namespace XrEditor
             return (TEdit)(object)value!;
         }
 
-
         protected virtual TValue EditValueToBind(TEdit value)
         {
             if (value is IConvertible)
@@ -67,15 +78,27 @@ namespace XrEditor
 
         protected virtual void OnEditValueChanged(TEdit newValue)
         {
+            if (_isLoading > 0)
+                return;
+
             if (_binding != null)
                 _binding.Value = EditValueToBind(newValue);
 
             ValueChanged?.Invoke(this);
         }
 
+
         protected virtual void OnBindValueChanged(TValue newValue)
         {
-            EditValue = BindToEditValue(newValue);
+            _isLoading++;
+            try
+            {
+                EditValue = BindToEditValue(newValue);
+            }
+            finally
+            {
+                _isLoading--;
+            }
         }
 
         private void OnBindValueChanged(object? sender, EventArgs e)
@@ -88,7 +111,18 @@ namespace XrEditor
         object IPropertyEditor.Value
         {
             get => EditValue!;
-            set => EditValue = (TEdit)value;
+            set
+            {
+                _isLoading++;
+                try
+                {
+                    EditValue = BindToEditValue((TValue)value);
+                }
+                finally
+                {
+                    _isLoading--;
+                }
+            }
         }
 
         IProperty? IPropertyEditor.Binding

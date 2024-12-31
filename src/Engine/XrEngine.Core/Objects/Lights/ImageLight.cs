@@ -1,12 +1,13 @@
 ﻿
 using System.Diagnostics;
-using XrEngine.Services;
+using XrMath;
 
 namespace XrEngine
 {
     public class ImageLight : Light
     {
         private string? _cacheBasePath;
+
         private static readonly TextureLoadOptions _loaderOptions = new()
         {
             Format = TextureFormat.RgbaFloat32
@@ -15,15 +16,15 @@ namespace XrEngine
         public ImageLight()
         {
             Intensity = 3;
-            UseCache = true;
             Textures = new IBLTextures();
+            LightTransform = Matrix3x3.Identity;
         }
 
         protected bool LoadCacheTexture<T>(string fileName, Action<T> onLoad) where T : Texture
         {
             Debug.Assert(_cacheBasePath != null);
 
-            var fullPath = Path.Combine(_cacheBasePath, fileName);
+            var fullPath = Path.GetFullPath(Path.Combine(_cacheBasePath, fileName));
             if (!File.Exists(fullPath))
                 return false;
             var texture = AssetLoader.Instance.Load<T>(fullPath);
@@ -31,7 +32,7 @@ namespace XrEngine
             return true;
         }
 
-        protected bool SaveCacheTexture<T>(string fileName, Texture? texture) where T : Texture
+        protected bool SaveCacheTexture<T>(string fileName, T? texture) where T : Texture
         {
             if (texture == null || _cacheBasePath == null)
                 return false;
@@ -43,6 +44,9 @@ namespace XrEngine
             var data = EngineApp.Current!.Renderer!.ReadTexture(texture, texture.Format, 0, null);
             if (data == null)
                 return false;
+
+            if (File.Exists(fullPath))
+                File.Delete(fullPath);
 
             using var file = File.OpenWrite(fullPath);
 
@@ -66,7 +70,7 @@ namespace XrEngine
 
                 var info = new FileInfo(hdrUri);
 
-                var baseName = $"{info.Name}_{info.Length}_{info.LastWriteTime:yyyyMMddhhmmss}";
+                var baseName = $"{info.Name}_{info.Length}"; // _{info.LastWriteTime:yyyyMMddhhmmss}";
 
                 _cacheBasePath = Path.Combine(Context.Require<IPlatform>().CachePath, "IBL", baseName);
 
@@ -84,7 +88,7 @@ namespace XrEngine
             }
 
             Panorama = (Texture2D)loader.LoadAsset(uri, typeof(Texture2D), null, _loaderOptions);
-            Panorama.Version = DateTime.Now.Ticks;
+            Panorama.NotifyChanged(ObjectChangeType.Render);
 
             NotifyChanged(ObjectChangeType.Render);
         }
@@ -95,7 +99,7 @@ namespace XrEngine
             {
                 SaveCacheTexture<TextureCube>("lamb.pvr", Textures!.LambertianEnv);
                 SaveCacheTexture<TextureCube>("ggx.pvr", Textures!.GGXEnv);
-                SaveCacheTexture<TextureCube>("ggx_lut.pvr", Textures!.GGXLUT);
+                SaveCacheTexture<Texture2D>("ggx_lut.pvr", Textures!.GGXLUT);
                 SaveCacheTexture<TextureCube>("env.pvr", Textures!.Env);
             }
         }
@@ -103,17 +107,25 @@ namespace XrEngine
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
-            container.Write(nameof(Rotation), Rotation);
+            container.Write(nameof(RotationY), RotationY);
             container.Write("Panorama", Panorama);
         }
 
         protected override void SetStateWork(IStateContainer container)
         {
             base.SetStateWork(container);
-            Rotation = container.Read<float>(nameof(Rotation));
+            RotationY = container.Read<float>(nameof(RotationY));
             Panorama = container.Read("Panorama", Panorama);
             if (Panorama != null)
-                Panorama.Version = DateTime.Now.Ticks;
+                Panorama.NotifyChanged(ObjectChangeType.Render);
+        }
+
+        public override void Dispose()
+        {
+            Textures.Dispose();
+            Panorama?.Dispose();
+            Panorama = null;
+            base.Dispose();
         }
 
         public IBLTextures Textures { get; set; }
@@ -121,8 +133,10 @@ namespace XrEngine
         public Texture2D? Panorama { get; set; }
 
         [ValueType(ValueType.Radiant)]
-        public float Rotation { get; set; }
+        public float RotationY { get; set; }
 
-        public bool UseCache { get; set; }
+        public Matrix3x3 LightTransform { get; set; }
+
+        public static bool UseCache { get; set; }
     }
 }

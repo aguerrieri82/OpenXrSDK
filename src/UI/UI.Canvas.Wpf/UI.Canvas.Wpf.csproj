@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>$(CoreVersion)-windows;$(CoreVersion)-$(WinVersion);</TargetFrameworks>
+	  <UseWPF>true</UseWPF>
+	  <NoWarn>NU1701</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp.Views.WPF" Version="3.118.0-preview.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UI.Canvas\UI.Canvas.csproj" />
+  </ItemGroup>
+
+</Project>

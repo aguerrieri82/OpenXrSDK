@@ -22,7 +22,7 @@ namespace XrEngine
 
         public List<string>? Extensions;
 
-        public long MaterialVersion;
+        public long ShaderVersion;
 
         public string? LightsHash;
 
@@ -33,11 +33,18 @@ namespace XrEngine
 
     public class UpdateShaderContext
     {
-        public Camera? Camera;
+        public UpdateShaderContext()
+        {
+            FrustumPlanes = new Plane[6];
+        }
+
+        public Camera? MainCamera;
+
+        public Camera? PassCamera;
 
         public Shader? Shader;
 
-        public IEnumerable<Light>? Lights;
+        public IList<Light>? Lights;
 
         public Object3D? Model;
 
@@ -51,15 +58,21 @@ namespace XrEngine
 
         public string? LightsHash;
 
-        public uint ProgramInstanceId;
-
-        public IList<Plane>? FrustumPlanes;
+        public readonly Plane[] FrustumPlanes;
 
         public IShadowMapProvider? ShadowMapProvider;
 
+        public IBloomProvider? BloomProvider;
+
         public Texture2D? DepthMap;
 
-        public ShaderUpdate? LastUpdate;
+        public ShaderUpdate? LastGlobalUpdate;
+
+        public IRenderPass? Pass;
+
+        public long ContextVersion;
+
+        public long Frame;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList
@@ -98,30 +111,29 @@ namespace XrEngine
             Update(value, (up, v) => up.SetUniform(name, v, optional));
         }
 
-        public readonly void SetUniformBuffer<T>(string name, UpdateAction<T?> value, int slot, bool isGlobal, bool optional = false) where T : struct
+        public readonly void LoadBuffer<T>(UpdateAction<T?> value, int slot, BufferStore store) where T : struct
         {
-            Log(name, value);
-
             _result.BufferUpdates!.Add((ctx) =>
             {
-                var buffer = ctx.BufferProvider!.GetBuffer<T>(name, isGlobal);
+                var buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store);
 
                 ctx.CurrentBuffer = buffer;
 
                 var curValue = value(ctx);
 
                 if (curValue != null)
-                    buffer.Update(curValue);
+                    buffer.Update(curValue.Value);
 
                 ctx.CurrentBuffer = null;
             });
 
             _result.Actions!.Add((ctx, up) =>
             {
-                var buffer = ctx.BufferProvider!.GetBuffer<T>(name, isGlobal);
-                up.SetUniform(name, buffer, slot, optional);
+                var buffer = ctx.BufferProvider!.GetBuffer<T>(slot, store);
+                up.LoadBuffer(buffer, slot);
             });
         }
+
 
         public readonly void ExecuteAction(UpdateUniformAction action)
         {

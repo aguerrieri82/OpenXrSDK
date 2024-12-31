@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenXr.Framework;
 using XrEngine.OpenGL;
-using XrEngine.Services;
 
 namespace XrEngine.OpenXr.Windows
 {
@@ -46,7 +45,7 @@ namespace XrEngine.OpenXr.Windows
 
             while (engineApp.XrApp.State != XrAppState.Disposed)
             {
-                engineApp.XrApp.RenderFrame(engineApp.XrApp.Stage);
+                engineApp.XrApp.RenderFrame(engineApp.XrApp.ReferenceSpace);
 
                 if (Console.KeyAvailable)
                 {

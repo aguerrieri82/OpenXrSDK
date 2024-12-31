@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using XrEngine;
 using XrInteraction;
 using XrMath;
@@ -70,7 +71,7 @@ namespace XrEditor
             var camera = (PerspectiveCamera)_sceneView.Camera;
             var curDir = (camera.WorldPosition - camera.Target);
             var curLen = curDir.Length();
-            var newLen = curLen + curLen * -ev.WheelDelta * 0.001f;
+            var newLen = curLen + curLen * -ev.WheelDelta * ZoomSpeed;
 
             camera.WorldPosition = camera.Target + curDir.Normalize() * newLen;
         }
@@ -98,6 +99,8 @@ namespace XrEditor
             }
             else if (_action == OrbitAction.Translate)
             {
+                //camera.BeginUpdate();
+
                 camera.WorldMatrix = _startWorld;
 
                 var newPoint = ToWorld(ev, _planeZ);
@@ -105,6 +108,9 @@ namespace XrEditor
                 var deltaW = -(newPoint - _startPoint);
 
                 camera.LookAt(_startWorld.Translation + deltaW, _startTarget + deltaW, new Vector3(0, 1, 0));
+
+
+                //camera.EndUpdate();
             }
         }
 

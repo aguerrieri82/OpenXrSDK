@@ -11,7 +11,8 @@
     {
         None,
         SelfOnly = 0x1,
-        Store = 0x2
+        Store = 0x2,
+        Update = 0x4
     }
 
     public interface IStateContext

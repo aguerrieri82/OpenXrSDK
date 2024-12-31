@@ -1,16 +1,26 @@
-﻿namespace XrEngine
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace XrEngine
 {
 
     public static class Context
     {
         public static T Require<T>() where T : class
         {
-            return (T)Current.Require(typeof(T));
+            if (!TryRequire<T>(out var instance))
+                throw new InvalidOperationException($"Service {typeof(T).Name} not found");
+            return instance;
         }
 
-        public static T RequireInstance<T>() where T : class
+        public static bool TryRequire<T>([NotNullWhen(true)] out T? result) where T : class
         {
-            return (T)Current.RequireInstance(typeof(T));
+            result = (T?)Current.TryRequire(typeof(T));
+            return result != null;
+        }
+
+        public static T RequireNew<T>() where T : class
+        {
+            return (T)Current.RequireNew(typeof(T));
         }
 
 

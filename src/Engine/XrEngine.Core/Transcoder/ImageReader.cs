@@ -1,13 +1,15 @@
 ﻿#pragma warning disable CS0649
 
+using Common.Interop;
 using SkiaSharp;
+using System.Diagnostics;
 using TurboJpeg;
 
 namespace XrEngine
 {
     public class ImageReader : BaseTextureLoader
     {
-        static readonly string[] Extensions = [".png", ".jpg", ".bmp", ".tif"];
+        static readonly string[] Extensions = [".png", ".jpg", ".bmp"];
 
         ImageReader()
         {
@@ -21,12 +23,14 @@ namespace XrEngine
                 stream.ReadExactly(buffer);
 
                 var imgData = TurboJpegLib.Decompress(buffer);
+                Debug.Assert(imgData.Data != null);
+
                 return [new TextureData
                 {
                     Width = (uint)imgData.Width,
                     Height = (uint)imgData.Height,
                     Format = TextureFormat.Rgba32,
-                    Data = imgData.Data
+                    Data = MemoryBuffer.Create(imgData.Data),
                 }];
             }
 
@@ -34,14 +38,14 @@ namespace XrEngine
 
             var outFormat = options?.Format;
             if (outFormat != null)
-                image = ImageUtils.ChangeColorSpace(image, ImageUtils.GetFormat(outFormat.Value));
+                image = ImageUtils.ChangeColorSpace(image, ImageUtils.GetSkFormat(outFormat.Value));
 
 
             var data = new TextureData
             {
                 Compression = TextureCompressionFormat.Uncompressed,
                 Format = ImageUtils.GetFormat(image.ColorType),
-                Data = image.GetPixelSpan().ToArray(),
+                Data = MemoryBuffer.Create(image.Bytes),
                 Height = (uint)image.Height,
                 Width = (uint)image.Width,
             };

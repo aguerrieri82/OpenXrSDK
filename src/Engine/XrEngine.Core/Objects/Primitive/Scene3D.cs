@@ -1,53 +1,76 @@
-﻿using XrEngine.Layers;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class Scene3D : Group3D, IObjectChangeListener
     {
         protected Camera? _activeCamera;
-        protected List<IObjectChangeListener> _changeListener = [];
-        protected readonly LayerManager _layers;
         protected EngineApp? _app;
-        protected UpdateHistory _history;
-        protected Canvas3D _gizmos;
-        protected IDrawGizmos[]? _drawGizmos;
+        protected int _lockCount;
+        protected readonly List<IObjectChangeListener> _changeListener;
+        protected readonly LayerManager _layers;
+        protected readonly Canvas3D _gizmos;
+        protected readonly IList<IDrawGizmos> _drawGizmos;
+        protected readonly RenderUpdateManager _updateManager;
 
         public Scene3D()
         {
+            _drawGizmos = [];
+            _changeListener = [];
             _layers = new LayerManager(this);
-            _history = new UpdateHistory(this);
+            _updateManager = new RenderUpdateManager(this);
             _scene = this;
             _gizmos = new Canvas3D();
             _changeListener.Add(_layers);
 
-            this.AddLayer<CastShadowsLayer>();
-            this.AddLayer<BlendLayer>();
-            this.AddLayer(new DetachedLayer() { Name = "Gizmos" }).Add(_gizmos.Content);
+            this.AddLayer(new DetachedLayer()
+            {
+                Name = "Gizmos",
+                Usage = DetachedLayerUsage.Gizmos
+
+            }).Add(_gizmos.Content);
         }
 
         public void DrawGizmos()
         {
-            if (_drawGizmos == null || _drawGizmos.Length == 0)
+            if (_drawGizmos == null || _drawGizmos.Count == 0)
                 return;
 
             _gizmos.Clear();
 
             foreach (var draw in _drawGizmos)
-                draw.DrawGizmos(_gizmos);
+            {
+                if (draw.IsEnabled)
+                    draw.DrawGizmos(_gizmos);
+            }
 
             _gizmos.Flush();
         }
 
+        public override void Update(RenderContext ctx)
+        {
+            _updateManager.Update(ctx);
+            //base.Update(ctx);
+        }
+
         protected override void UpdateSelf(RenderContext ctx)
         {
-            _layers.Layers.OfType<IRenderUpdate>().Update(ctx);
+            if (!ctx.UpdateOnlySelf)
+                _layers.Layers.OfType<IRenderUpdate>().Update(ctx, false);
 
             base.UpdateSelf(ctx);
         }
 
         protected void UpdateDrawGizmos()
         {
-            _drawGizmos = this.DescendantsOrSelfComponents<IDrawGizmos>().ToArray();
+            _drawGizmos.Clear();
+
+            foreach (var obj in this.DescendantsOrSelf())
+            {
+                if (obj is IDrawGizmos draw)
+                    _drawGizmos.Add(draw);
+
+                foreach (var component in obj.Components<IComponent>().OfType<IDrawGizmos>())
+                    _drawGizmos.Add(component);
+            }
         }
 
         internal void Attach(EngineApp app)
@@ -63,14 +86,14 @@ namespace XrEngine
             Update(ctx);
         }
 
-        public void NotifyChanged(Object3D object3D, ObjectChange change)
+        public void NotifyChanged(Object3D sender, ObjectChange change)
         {
+            //Debug.Assert(_app?.RenderThread == null || Thread.CurrentThread == _app.RenderThread);
 
-            if (change.Target == null)
-                change.Target = object3D;
+            change.Target ??= sender;
 
             if (!change.IsAny(ObjectChangeType.Transform) &&
-                change.Target is not Material &&
+                !change.Targets<object>().All(a => a is Material) &&
                 (change.Target is not Light || !change.IsAny(ObjectChangeType.Render)))
             {
                 Version++;
@@ -78,13 +101,21 @@ namespace XrEngine
                 UpdateDrawGizmos();
             }
 
+            if (change.IsAny(ObjectChangeType.Scene,
+                             ObjectChangeType.MateriaAdd,
+                             ObjectChangeType.MateriaRemove,
+                             ObjectChangeType.Components))
+            {
+                ContentVersion++;
+            }
+
             foreach (var listener in _changeListener)
-                listener.NotifyChanged(object3D, change);
+                listener.NotifyChanged(sender, change);
 
             if (_app != null)
             {
                 foreach (var listener in _app.ChangeListeners)
-                    listener.NotifyChanged(object3D, change);
+                    listener.NotifyChanged(sender, change);
             }
         }
 
@@ -115,9 +146,25 @@ namespace XrEngine
             }
         }
 
-        public Canvas3D Gizmos => _gizmos;
+        public void LockChanges()
+        {
+            _lockCount++;
+        }
 
-        public UpdateHistory History => _history;
+        public void UnlockChanges()
+        {
+            _lockCount--;
+        }
+
+        public void EnsureNotLocked()
+        {
+            if (_lockCount > 0)
+                throw new InvalidOperationException("Scene changes are locked");
+        }
+
+        public long ContentVersion { get; protected set; }
+
+        public Canvas3D Gizmos => _gizmos;
 
         public IList<IObjectChangeListener> ChangeListeners => _changeListener;
 

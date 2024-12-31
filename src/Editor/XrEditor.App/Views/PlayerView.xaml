@@ -1,0 +1,53 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:comp="clr-namespace:XrEditor.Components"
+                    xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+                    xmlns:i="clr-namespace:WPF_Icons;assembly=WPF-Icons"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate DataType="{x:Type local:PlayerView}">
+        <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch">
+            <DockPanel>
+                <comp:FloatEditorControl MinWidth="70" Value="{Binding Position, Mode=TwoWay}" Min="0" Max="{Binding Length}" SmallStep="1" Step="1"/>
+                <Slider Value="{Binding Position, Mode=TwoWay}" Minimum="0" Maximum="{Binding Length}"/>
+            </DockPanel>
+            <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                <StackPanel.Resources>
+                    <SolidColorBrush x:Key="Button.Disabled.Background" Color="Transparent" />
+                    <Style TargetType="Button" BasedOn="{StaticResource ButtonStyle}">
+
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Padding" Value="8,4,8,4"/>
+           
+                    </Style>
+                    <Style TargetType="i:Icon">
+                        <Setter Property="Size" Value="16"/>
+                        <Setter Property="Color" Value="#ccc"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=IsEnabled}" Value="False">
+                                <Setter Property="Color" Value="#444" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Resources>
+                <Button Command="{Binding PlayCommand}">
+                    <i:Icon Kind="icon_play_arrow"/>
+                </Button>
+                <Button Command="{Binding StopCommand}">
+                    <i:Icon Kind="icon_stop"/>
+                </Button>
+                <Button Command="{Binding PauseCommand}">
+                    <i:Icon Kind="icon_pause"/>
+                </Button>
+
+                <Button Command="{Binding PrevFrameCommand}">
+                    <i:Icon Kind="icon_skip_previous"/>
+                </Button>
+                <Button Command="{Binding NextFrameCommand}">
+                    <i:Icon Kind="icon_skip_next"/>
+                </Button>
+            </StackPanel>
+        </StackPanel>
+    </DataTemplate>
+
+</ResourceDictionary>

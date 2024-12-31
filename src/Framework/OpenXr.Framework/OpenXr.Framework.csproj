@@ -4,36 +4,28 @@
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(IsAndroid)' == 'true'">
-
-	</PropertyGroup>
-	
 	<ItemGroup>
 		<Using Remove="Android.Widget" />
 		<Using Remove="Android.App" />
 		<Using Remove="Android" />
 	</ItemGroup>
-	
-	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0-rc.1.24431.7" />
-		<PackageReference Include="Silk.NET.Maths" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.OpenXR" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.OpenXR.Extensions.EXT" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.OpenXR.Extensions.KHR" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.Windowing" Version="2.21.0" />
-		<PackageReference Include="System.Text.Json" Version="9.0.0-rc.1.24431.7" />
-	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
+		<PackageReference Include="Silk.NET.OpenXR" Version="2.22.0" />
+		<PackageReference Include="Silk.NET.OpenXR.Extensions.EXT" Version="2.22.0" />
+		<PackageReference Include="Silk.NET.OpenXR.Extensions.KHR" Version="2.22.0" />
+		<PackageReference Include="Silk.NET.Windowing" Version="2.22.0" />
+		<PackageReference Include="System.Text.Json" Version="9.0.0" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\..\Common\Common.Interop\Common.Interop.csproj" />
 		<ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
 		<ProjectReference Include="..\OpenXr.Entities\OpenXr.Entities.csproj" />
 	</ItemGroup>
-
-	<ItemGroup>
-		<NativeLibrary Include="runtimes/**/*" />
-	</ItemGroup>
 	
-	<ItemGroup>
+	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
 		<Content Include="runtimes/**/*" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 

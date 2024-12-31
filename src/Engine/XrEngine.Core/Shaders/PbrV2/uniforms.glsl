@@ -1,3 +1,5 @@
+#include "../Shared/uniforms.glsl"	
+
 struct Light {
 	uint type;
 	vec3 position;	
@@ -5,14 +7,6 @@ struct Light {
 	vec3 radiance;
 	float radius;
 };
-
-layout(std140, binding=0) uniform Camera
-{
-	mat4 viewProj;
-	vec3 cameraPosition;	
-	float exposure;
-	mat4 lightSpaceMatrix;
-} uCamera;
 
 layout(std140, binding=1) uniform Lights
 {
@@ -30,5 +24,11 @@ layout(std140, binding=2) uniform Material
 	vec4 shadowColor;
 	float normalScale;
 	float alphaCutoff;
+	vec4 emissive;
 } uMaterial;
 
+layout(std140, binding=3) uniform Model
+{
+	mat4 worldMatrix;
+	mat4 normalMatrix;
+} uModel;

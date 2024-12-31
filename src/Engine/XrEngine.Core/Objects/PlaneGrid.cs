@@ -21,20 +21,20 @@ namespace XrEngine
 
         public void Build()
         {
-            var list = new List<LineData>();
+            var list = new List<PointData>();
 
             float subSize = Size / Subs;
 
             void AddLine(Vector3 from, Vector3 to, Color color, float size = 1f)
             {
-                list.Add(new LineData
+                list.Add(new PointData
                 {
                     Color = color,
                     Pos = from,
                     Size = size,
                 });
 
-                list.Add(new LineData
+                list.Add(new PointData
                 {
                     Color = color,
                     Pos = to,
@@ -84,7 +84,7 @@ namespace XrEngine
 
             Vertices = list.ToArray();
 
-            Version++;
+            NotifyChanged(ObjectChangeType.Geometry);
         }
 
         protected override void SetStateWork(IStateContainer container)
@@ -104,6 +104,7 @@ namespace XrEngine
         {
             if (change.Properties != null)
                 Build();
+
             base.OnChanged(change);
         }
 

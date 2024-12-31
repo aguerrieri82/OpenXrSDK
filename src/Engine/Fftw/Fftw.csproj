@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsAndroid)' == 'false'">
+	  <Content Include="$(NativeLibsDir)fftw3\win-x64\fftw3.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+  </ItemGroup>
+
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)fftw3\android-arm64\*.so" />
+	</ItemGroup>
+</Project>

@@ -1,4 +1,4 @@
-﻿using XrEngine.Transcoder;
+﻿using Common.Interop;
 
 namespace XrEngine
 {
@@ -98,9 +98,9 @@ namespace XrEngine
 
                     var size = (Align(item.Width, padding.AlignX) * Align(item.Height, padding.AlignY) * padding.BitPerPixel) / 8;
 
-                    item.Data = new byte[size];
+                    item.Data = MemoryBuffer.Create<byte>(size);
 
-                    stream.ReadExactly(item.Data.Span);
+                    stream.ReadExactly(item.Data.AsSpan());
 
                     results.Add(item);
                 }

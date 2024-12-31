@@ -3,15 +3,15 @@ using XrMath;
 
 namespace XrEngine
 {
-    public class Object3D : EngineObject, ILayer3DItem, IStateManager
+    public class Object3D : EngineObject, ILayer3DItem, IStateManager, IName
     {
-        protected Bounds3 _worldBounds;
+        internal Bounds3 _worldBounds;
         private Matrix4x4 _worldMatrixInverse;
         private Matrix4x4 _worldMatrix;
         private Matrix4x4 _normalMatrix;
         protected Vector3[]? _worldPoints;
 
-        protected bool _worldDirty;
+        protected internal bool _worldDirty;
         protected bool _worldInverseDirty;
         protected bool _boundsDirty;
         protected bool _normalMatrixDirty;
@@ -54,6 +54,13 @@ namespace XrEngine
             _worldInverseDirty = true;
             _normalMatrixDirty = true;
             _worldDirty = false;
+
+            OnWorldChanged();
+        }
+
+        protected virtual void OnWorldChanged()
+        {
+            _transform.Version++;
 
             if (IsNotifyChangedScene())
                 _scene?.NotifyChanged(this, ObjectChangeType.Transform);
@@ -111,7 +118,6 @@ namespace XrEngine
 
         protected override void OnChanged(ObjectChange change)
         {
-
             if (change.IsAny(ObjectChangeType.Transform))
             {
                 InvalidateWorld();
@@ -148,6 +154,7 @@ namespace XrEngine
             _worldInverseDirty = true;
             _boundsDirty = true;
             _normalMatrixDirty = true;
+            _worldPoints = null;
         }
 
         protected internal void InvalidateBounds()
@@ -196,6 +203,18 @@ namespace XrEngine
             NotifyChanged(changeType);
         }
 
+        public override T AddComponent<T>(T component)
+        {
+            _scene?.EnsureNotLocked();
+            return base.AddComponent(component);
+        }
+
+        public override void RemoveComponent(IComponent component)
+        {
+            _scene?.EnsureNotLocked();
+            base.RemoveComponent(component);
+        }
+
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
@@ -229,22 +248,27 @@ namespace XrEngine
 
         public Vector3 Forward
         {
-            get => new Vector3(0f, 0f, -1f).ToDirection(WorldMatrix);
+            get => (-Vector3.UnitZ).Transform(WorldOrientation);
             set
             {
-                Transform.Orientation = -value.ToOrientation();
+                WorldOrientation = value.ToOrientation();
             }
         }
 
         public Vector3 Up
         {
-            get => Vector3.UnitY.ToDirection(WorldMatrix);
+            get => Vector3.UnitY.Transform(WorldOrientation);
+        }
+
+        public Vector3 Right
+        {
+            get => Vector3.UnitX.Transform(WorldOrientation);
         }
 
         public Vector3 WorldPosition
         {
             get => _parent != null && !_parent.WorldMatrix.IsIdentity ?
-                    _transform.Position.Transform(_parent.WorldMatrix) : _transform.Position;
+                   _transform.Position.Transform(_parent.WorldMatrix) : _transform.Position;
             set
             {
                 _transform.Position = _parent != null && !_parent.WorldMatrix.IsIdentity ?
@@ -255,12 +279,12 @@ namespace XrEngine
         public Quaternion WorldOrientation
         {
             get => _parent != null && !_parent.WorldMatrix.IsIdentity ?
-                _parent.WorldOrientation * _transform.Orientation :
-                _transform.Orientation;
+                   _parent.WorldOrientation * _transform.Orientation :
+                   _transform.Orientation;
             set
             {
                 _transform.Orientation = _parent != null && !_parent.WorldMatrix.IsIdentity ?
-                    Quaternion.Inverse(_parent.WorldOrientation) * value :
+                    Quaternion.Conjugate(_parent.WorldOrientation) * value :
                     value;
             }
         }
@@ -296,11 +320,13 @@ namespace XrEngine
             }
             set
             {
+                if (value == WorldMatrix)
+                    return;
 
                 if (_parent == null || _parent.WorldMatrix.IsIdentity)
-                    _transform.SetMatrix(value);
+                    _transform.Set(value);
                 else
-                    _transform.SetMatrix(_parent.WorldMatrixInverse * value);
+                    _transform.Set(value * _parent.WorldMatrixInverse);
 
                 _worldInverseDirty = true;
                 _normalMatrixDirty = true;
@@ -315,6 +341,17 @@ namespace XrEngine
                     UpdateNormalMatrix();
                 return _normalMatrix;
             }
+        }
+
+        public override void GeneratePath(List<string> parts)
+        {
+            if (_parent != null)
+            {
+                _parent.GeneratePath(parts);
+                parts.Add($"{Name ?? GetType().Name}[{_parent.ChildIndex(this)}]");
+            }
+            else
+                parts.Add(Name ?? GetType().Name);
         }
 
         public Group3D? Parent => _parent;

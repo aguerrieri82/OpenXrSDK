@@ -1,16 +1,17 @@
-﻿in vec3 fPos;
+﻿#include "Shared/uniforms.glsl"
+
+in vec3 fPos;
 in vec3 fNormal;
 
 uniform sampler2D uTexture;
 uniform vec3 uCenter;
-uniform vec3 uViewPos;
 uniform float uRadius;
 uniform mat3 uRotation;
 uniform vec2 uTexCenter;
 uniform vec2 uTexRadius;
 uniform float uShift;
 
-out vec4 FragColor;
+layout(location=0) out vec4 FragColor;
 
 const float PI = 3.14159265358979323846;
 
@@ -60,12 +61,13 @@ vec2 sampleFish(vec2 polar, float fov)
 
 void main()
 {
+    vec3 cameraPos = uCamera.pos;
 
-	vec3 viewDir = normalize(uViewPos - fPos);
+	vec3 viewDir = normalize(cameraPos - fPos);
 
     vec2 polar;
 
-    if (raySphereIntersect(uViewPos, viewDir, uCenter, uRadius, polar))
+    if (raySphereIntersect(cameraPos, viewDir, uCenter, uRadius, polar))
     {
     	vec2 pfish = sampleFish(polar, PI);    
 

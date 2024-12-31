@@ -16,5 +16,15 @@ namespace XrEditor
                 node.SetParent(parent);
             return nodes;
         }
+
+        public static Func<Task> ToTask(this Action action)
+        {
+            return () =>
+            {
+                action();
+                return Task.CompletedTask;
+            };
+        }
+
     }
 }

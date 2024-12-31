@@ -75,11 +75,11 @@ namespace XrWebLink
 
             try
             {
-                var location = _app.LocateSpace(_app.Head, _app.Local, 1);
+                var location = _app.SpacesTracker.GetLastLocation(_app.Head);
 
                 var curPose = new Pose3
                 {
-                    Orientation = location.Pose!.Orientation,
+                    Orientation = location!.Pose!.Orientation,
                     Position = location.Pose!.Position,
                 };
 

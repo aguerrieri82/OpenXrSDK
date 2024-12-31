@@ -1,5 +1,24 @@
 ﻿namespace XrEngine
 {
+    public enum Layer3DChangeType
+    {
+        Added,
+        Removed
+    }
+
+    public class Layer3DChange
+    {
+        public Layer3DChange(Layer3DChangeType type, ILayer3DItem item)
+        {
+            Type = type;
+            Item = item;
+        }
+
+        public readonly Layer3DChangeType Type;
+
+        public readonly ILayer3DItem Item;
+    }
+
     public interface ILayer3D : IObjectChangeListener
     {
 
@@ -17,6 +36,9 @@
 
         string Name { get; set; }
 
-        public bool IsEnabled { get; set; }
+        bool IsEnabled { get; set; }
+
+
+        event Action<ILayer3D, Layer3DChange>? Changed;
     }
 }

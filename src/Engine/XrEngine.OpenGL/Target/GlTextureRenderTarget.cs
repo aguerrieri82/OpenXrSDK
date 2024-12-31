@@ -3,6 +3,7 @@ using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
+using XrMath;
 
 namespace XrEngine.OpenGL
 {
@@ -17,18 +18,19 @@ namespace XrEngine.OpenGL
             _frameBuffer = new GlTextureFrameBuffer(_gl);
         }
 
-        public void Begin()
+        public void Begin(Camera camera)
         {
+            camera.ViewSize = _frameBuffer.Size;
+            GlState.Current!.SetView(new Rect2I(camera.ViewSize));
             _frameBuffer.Bind();
         }
 
-        public void End(bool finalPass)
+        public void End(bool discardDepth)
         {
-            if (finalPass && _frameBuffer.Depth != null)
+            if (discardDepth && _frameBuffer.Depth != null)
             {
                 _frameBuffer.Bind();
-                var attach = new InvalidateFramebufferAttachment[] { InvalidateFramebufferAttachment.DepthStencilAttachment };
-                _gl.InvalidateFramebuffer(_frameBuffer.Target, attach.AsSpan());
+                _frameBuffer.Invalidate(InvalidateFramebufferAttachment.DepthAttachment);
             }
             _frameBuffer.Unbind();
         }

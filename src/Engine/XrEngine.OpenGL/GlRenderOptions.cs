@@ -13,8 +13,6 @@ namespace XrEngine.OpenGL
     {
         public bool Use { get; set; }
 
-        public byte ActiveOutlineStencil { get; set; }
-
         public Color Color { get; set; }
 
         public float Size { get; set; }
@@ -33,19 +31,19 @@ namespace XrEngine.OpenGL
             SortByCameraDistance = true;
             UseSRGB = false;
             RequireTextureCompression = false;
+            UseVolume = true;
             ShadowMap = new ShadowMapOptions()
             {
-                Mode = ShadowMapMode.HardSmooth,
+                Mode = ShadowMapMode.PCF,
                 Size = 2048,
             };
-
             Outline = new GlOutlineOptions()
             {
                 Use = false,
                 Color = new Color(1, 1, 0, 0.7f),
-                Size = 2,
-                ActiveOutlineStencil = 1
+                Size = 2
             };
+
             /*
             PbrMaterial.LinearOutput = true;
             PbrMaterial.ToneMap = PbrMaterial.ToneMapType.TONEMAP_KHR_PBR_NEUTRAL;
@@ -66,11 +64,17 @@ namespace XrEngine.OpenGL
 
         public bool UseDepthPass { get; set; }
 
+        public bool UsePlanarReflection { get; set; }
+
+        public bool UseVolume { get; set; }
+
+        public bool UseHitTest { get; set; }
+
         public ShadowMapOptions ShadowMap { get; }
 
         public GlOutlineOptions Outline { get; }
 
-        public bool SortByCameraDistance { get; set; }  
+        public bool SortByCameraDistance { get; set; }
 
         public static GlRenderOptions Default() => new();
 

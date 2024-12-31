@@ -50,6 +50,11 @@ namespace XrEngine
             _version = _geometry.Version;
         }
 
+        public bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f)
+        {
+            throw new NotImplementedException();
+        }
+
         public Collision? CollideWith(Ray3 ray)
         {
             Initialize();
@@ -100,8 +105,8 @@ namespace XrEngine
             return collision;
         }
 
+        public bool UseConvexHull { get; set; }
 
         public Geometry3D? Geometry => _geometry;
-
     }
 }

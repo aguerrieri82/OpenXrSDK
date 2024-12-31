@@ -7,6 +7,10 @@ namespace XrEngine
 
         void Detach();
 
+        void Suspend();
+
+        void Resume();
+
         bool IsEnabled { get; set; }
 
         IComponentHost? Host { get; }

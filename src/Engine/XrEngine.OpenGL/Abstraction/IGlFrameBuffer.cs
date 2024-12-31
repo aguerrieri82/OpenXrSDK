@@ -4,6 +4,8 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using XrMath;
+
 namespace XrEngine.OpenGL
 {
     public interface IGlFrameBuffer : IGlObject
@@ -12,6 +14,10 @@ namespace XrEngine.OpenGL
 
         IGlRenderAttachment? Depth { get; }
 
+        void BindAttachment(IGlRenderAttachment attachment, FramebufferAttachment slot, bool useDraw);
+
+        GlTexture GetOrCreateEffect(FramebufferAttachment slot);
+
         void Bind();
 
         void Unbind();
@@ -19,5 +25,7 @@ namespace XrEngine.OpenGL
         void Check();
 
         void SetDrawBuffers(params DrawBufferMode[] modes);
+
+        Size2I Size { get; }
     }
 }

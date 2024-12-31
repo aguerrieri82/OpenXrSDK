@@ -1,6 +1,4 @@
-﻿using XrEngine.Services;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class TextureAsset : BaseAsset<TextureLoadOptions, BaseTextureLoader>
     {

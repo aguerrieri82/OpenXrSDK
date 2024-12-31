@@ -5,6 +5,7 @@
         protected bool _isEnabled;
         protected T? _host;
         protected ObjectId _id;
+        protected int _suspendCount;
 
         public BaseComponent()
         {
@@ -60,6 +61,16 @@
             IsEnabled = container.Read<bool>(nameof(IsEnabled));
         }
 
+        public void Suspend()
+        {
+            _suspendCount++;
+        }
+
+        public void Resume()
+        {
+            _suspendCount--;
+        }
+
         public bool IsEnabled
         {
             get => _isEnabled;
@@ -68,6 +79,7 @@
                 if (_isEnabled == value)
                     return;
                 _isEnabled = value;
+
                 if (!_isEnabled)
                     OnDisabled();
                 else
@@ -76,7 +88,7 @@
         }
 
 
-        T? IComponent<T>.Host => _host;
+        public T? Host => _host;
 
         public ObjectId Id => _id;
     }

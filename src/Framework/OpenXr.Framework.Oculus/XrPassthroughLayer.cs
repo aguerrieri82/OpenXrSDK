@@ -1,4 +1,5 @@
-﻿using Silk.NET.OpenXR;
+﻿using Common.Interop;
+using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
 using XrMath;
 
@@ -20,9 +21,13 @@ namespace OpenXr.Framework.Oculus
         private PassthroughLayerFB _ptLayer;
         private bool _isStarted;
         private readonly List<XrPassthroughMesh> _meshes = [];
+        private readonly XrEnvironmentDepth _envDepth;
+        private EnvironmentDepthImageMETA? _depthImage;
+        private bool _removeHand;
 
         public XrPassthroughLayer()
         {
+            _envDepth = new XrEnvironmentDepth();
             Purpose = PassthroughLayerPurposeFB.ReconstructionFB;
             Priority = 0;
         }
@@ -31,7 +36,16 @@ namespace OpenXr.Framework.Oculus
         {
             extensions.Add(FBPassthrough.ExtensionName);
             extensions.Add(FBPassthroughKeyboardHands.ExtensionName);
+            extensions.Add(METAEnvironmentDepth.ExtensionName);
+
             base.Initialize(app, extensions);
+        }
+
+        public override void OnBeginFrame(Space space, long displayTime)
+        {
+            if (UseEnvironmentDepth)
+                _depthImage = _envDepth.Acquire(space, displayTime);
+
         }
 
         protected unsafe SystemPassthroughProperties2FB GetPtCapabilities()
@@ -41,7 +55,7 @@ namespace OpenXr.Framework.Oculus
                 Type = StructureType.SystemPassthroughProperties2FB
             };
 
-            _xrApp!.GetSystemProperties(&props);
+            _xrApp!.GetSystemProperties(ref props);
 
             return props;
         }
@@ -104,6 +118,8 @@ namespace OpenXr.Framework.Oculus
 
             }
 
+            _envDepth.Dispose();
+
             _meshes.Clear();
 
             base.Destroy();
@@ -111,6 +127,7 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe override void Create()
         {
+
             var caps = GetPtCapabilities();
 
             if ((caps.Capabilities & PassthroughCapabilityFlagsFB.BitFB) == 0)
@@ -122,7 +139,14 @@ namespace OpenXr.Framework.Oculus
 
             CreatePtLayer(Purpose, PassthroughFlagsFB.IsRunningATCreationBitFB);
 
-            _header->Type = StructureType.CompositionLayerPassthroughFB;
+            _header.ValueRef.Type = StructureType.CompositionLayerPassthroughFB;
+
+            if (UseEnvironmentDepth)
+            {
+                _envDepth.Create(_xrApp!);
+                _envDepth.Start();
+                _envDepth.RemoveHand(_removeHand);
+            }
 
             _isStarted = true;
 
@@ -135,9 +159,18 @@ namespace OpenXr.Framework.Oculus
                 return;
 
             if (isEnabled)
+            {
                 StartPt();
+                if (UseEnvironmentDepth)
+                    _envDepth.Start();
+            }
+
             else
+            {
                 PausePt();
+                if (UseEnvironmentDepth)
+                    _envDepth.Stop();
+            }
         }
 
         protected override bool Update(ref CompositionLayerPassthroughFB layer, ref View[] views, long predTime)
@@ -194,8 +227,29 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
+        public bool UseEnvironmentDepth { get; set; }
+
+        public bool RemoveHand
+        {
+            get => _removeHand;
+            set
+            {
+                if (value == _removeHand)
+                    return;
+                _removeHand = value;
+                if (_envDepth.IsStarted)
+                    _envDepth.RemoveHand(value);
+            }
+        }
+
+
+        public XrEnvironmentDepth EnvironmentDepth => _envDepth;
+
+        public EnvironmentDepthImageMETA? DepthImage => _depthImage;
+
         public override XrLayerFlags Flags => XrLayerFlags.EmptySpace;
 
         public PassthroughLayerPurposeFB Purpose { get; set; }
+
     }
 }

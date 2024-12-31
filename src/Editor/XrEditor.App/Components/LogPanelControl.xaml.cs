@@ -10,6 +10,7 @@ namespace XrEditor.Components
     {
         readonly UIProgressLogger _logger;
 
+
         public LogPanelControl()
         {
             InitializeComponent();
@@ -21,6 +22,7 @@ namespace XrEditor.Components
         {
             _logger.Init(textBox, progressBar);
             Context.Implement<IProgressLogger>(_logger);
+            Loaded -= OnLoaded;
         }
     }
 }

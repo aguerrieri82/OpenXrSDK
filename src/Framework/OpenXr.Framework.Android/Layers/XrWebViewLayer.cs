@@ -7,6 +7,8 @@ using Android.Webkit;
 using Silk.NET.OpenXR;
 using System.Numerics;
 using XrInteraction;
+using static Android.Views.MotionEvent;
+using static Android.Webkit.WebSettings;
 
 namespace OpenXr.Framework.Android
 {
@@ -30,7 +32,7 @@ namespace OpenXr.Framework.Android
 
         class WebClient : WebViewClient
         {
-            const string TAG = "WebClient";
+            const string TAG = nameof(WebClient);
 
             readonly XrWebViewLayer _layer;
 
@@ -49,20 +51,21 @@ namespace OpenXr.Framework.Android
 
             public override bool ShouldOverrideUrlLoading(WebView? view, string? url)
             {
-                view!.LoadUrl(url!);
-                return true;
+                Log.Debug(TAG, "ShouldOverrideUrlLoading");
+                return false;
             }
 
             public override void OnPageFinished(WebView? view, string? url)
             {
-                //_layer.UpdateScale();
+                Log.Debug(TAG, "OnPageFinished");
                 base.OnPageFinished(view, url);
             }
+
         }
 
         class ChromeClient : WebChromeClient
         {
-            const string TAG = "ChromeClient Browser";
+            const string TAG = nameof(WebChromeClient);
 
             public override void OnPermissionRequest(PermissionRequest? request)
             {
@@ -87,14 +90,21 @@ namespace OpenXr.Framework.Android
                 Log.Debug(TAG, "OnHideCustomView");
                 base.OnHideCustomView();
             }
+
+            public override bool OnCreateWindow(WebView? view, bool isDialog, bool isUserGesture, Message? resultMsg)
+            {
+                Log.Debug(TAG, "OnCreateWindow");
+                return base.OnCreateWindow(view, isDialog, isUserGesture, resultMsg);
+            }
         }
 
         protected class InputController
         {
             protected ISurfaceInput _surfaceInput;
-            protected bool _lastPointerDown;
             protected long _lastDownTime;
             protected IXrThread _mainThread;
+            private PointerProperties[]? _pointerProps;
+            private PointerCoords[]? _pointerCoords;
 
             public InputController(ISurfaceInput surfaceInput, IXrThread mainThread)
             {
@@ -104,12 +114,14 @@ namespace OpenXr.Framework.Android
 
             public void Update(WebView webView)
             {
+                if (!_surfaceInput.IsPointerValid)
+                    return;
 
                 var now = SystemClock.UptimeMillis();
 
                 MotionEventActions actions;
 
-                if (_surfaceInput.BackButton.IsChanged && _surfaceInput.BackButton.IsDown)
+                if (_surfaceInput.SecondaryButton.IsChanged && _surfaceInput.SecondaryButton.IsDown)
                 {
                     _ = _mainThread.ExecuteAsync(webView.GoBack);
                 }
@@ -119,27 +131,71 @@ namespace OpenXr.Framework.Android
                     if (_surfaceInput.MainButton.IsDown)
                     {
                         _lastDownTime = now;
-                        if (!_surfaceInput.IsPointerValid)
-                            return;
                         actions = MotionEventActions.Down;
                     }
                     else
                         actions = MotionEventActions.Up;
-
-                    _lastPointerDown = _surfaceInput.MainButton.IsDown;
                 }
                 else
                 {
-                    if (!_surfaceInput.IsPointerValid)
-                        return;
-                    actions = MotionEventActions.Move;
+                    if (_surfaceInput.MainButton.IsDown)
+                        actions = MotionEventActions.Move;
+                    else
+                    {
+                        _lastDownTime = now;
+                        actions = MotionEventActions.HoverMove;
+                    }
                 }
 
                 var pos = _surfaceInput.Pointer * new Vector2(webView.Width, webView.Height);
 
-                var ev = MotionEvent.Obtain(_lastDownTime, now, actions, pos.X, webView.Height - pos.Y, MetaKeyStates.None);
+                _pointerProps ??=
+                [
+                    new()
+                    {
+                        Id = 1,
+                        ToolType = MotionEventToolType.Mouse,
+                    }
+                ];
 
-                webView.DispatchTouchEvent(ev);
+                _pointerCoords ??=
+                [
+                    new()
+                    {
+                        Pressure = _surfaceInput.MainButton.IsDown || _surfaceInput.SecondaryButton.IsDown ? 1 : 0,
+                        Size = 1,
+                    }
+                ];
+
+                _pointerCoords[0].X = pos.X;
+                _pointerCoords[0].Y = webView.Height - pos.Y;
+
+                MotionEventButtonState buttonState = 0;
+                /*
+                if (_surfaceInput.MainButton.IsDown)
+                    buttonState |= MotionEventButtonState.Primary;
+                
+                if (_surfaceInput.SecondaryButton.IsDown)
+                    buttonState |= MotionEventButtonState.Secondary;
+               */
+
+                var ev = MotionEvent.Obtain(
+                    actions == MotionEventActions.Up ? _lastDownTime : now,
+                    now,
+                    actions,
+                    1,
+                    _pointerProps,
+                    _pointerCoords,
+                    MetaKeyStates.None,
+                    buttonState,
+                    1,
+                    1,
+                    0,
+                    0,
+                    InputSourceType.Mouse,
+                    MotionEventFlags.None);
+
+                _ = _mainThread.ExecuteAsync(() => webView.DispatchTouchEvent(ev));
             }
         }
 
@@ -215,8 +271,28 @@ namespace OpenXr.Framework.Android
             return result;
         }
 
+        private string? GetWebViewVersion()
+        {
+            try
+            {
+                var packageInfo = _context.PackageManager!.GetPackageInfo("com.google.android.webview", 0);
+                return packageInfo?.VersionName;
+            }
+            catch (Exception)
+            {
+                return "WebView not found";
+            }
+        }
+
+
         protected void CreateWebView()
         {
+            /*
+            var verName = GetWebViewVersion();
+
+            Log.Debug(nameof(XrWebViewLayer), verName ?? "");
+            */
+
             _webView = new WebView2(this);
             _webView.SetWebViewClient(new WebClient(this));
             _webView.SetWebChromeClient(new ChromeClient());
@@ -231,20 +307,24 @@ namespace OpenXr.Framework.Android
             _webView.Settings.SetSupportMultipleWindows(false);
             _webView.Settings.SetNeedInitialFocus(false);
             _webView.Settings.UserAgentString = "Mozilla/5.0 (Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.0.0 Safari/537.36";
+            _webView.Settings.CacheMode = CacheModes.CacheElseNetwork;
+
+            _webView.Settings.SetSupportZoom(false);
+            _webView.Settings.DefaultZoom = ZoomDensity.Far;
+            _webView.Settings.BuiltInZoomControls = false;
+            //_webView.Settings.UseWideViewPort = true;
+            //_webView.Settings.LoadWithOverviewMode = true;
+
+            _webView.SetLayerType(LayerType.Hardware, null);
+
 
             if (_context is Activity activity)
             {
-                var layout = new ViewGroup.LayoutParams(_size.Width, _size.Height);
+                var layout = new ViewGroup.LayoutParams((int)(_size.Width * 1.3f), (int)(_size.Height * 1.3f));
                 activity.AddContentView(_webView, layout);
-                UpdateScale();
             }
         }
 
-        void UpdateScale()
-        {
-            var density = _webView!.Resources!.DisplayMetrics!.Density;
-            _webView.SetInitialScale((int)(1.8f / density * 100));
-        }
 
         public HandlerXrThread MainThread => _mainThread;
 

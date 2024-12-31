@@ -11,6 +11,7 @@
 
         Task PostMessageAsync(string message);
 
+
         event EventHandler<MessageReceivedArgs> MessageReceived;
 
         IWebRequestHandler? RequestHandler { get; set; }

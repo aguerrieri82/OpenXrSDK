@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Common.Interop;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
@@ -54,6 +55,7 @@ namespace OpenXr.Framework
         protected Space _local;
         protected Space _stage;
 
+
         protected ulong _systemId;
         protected XrViewInfo? _viewInfo;
         protected SessionState _lastSessionState;
@@ -69,6 +71,7 @@ namespace OpenXr.Framework
         protected readonly ILogger _logger;
         protected readonly XrLayerManager _layers;
         protected readonly XrRenderOptions _renderOptions;
+        protected readonly XrSpacesTracker _tracker;
 
         //TODO leave here or move?
         protected ExtPerformanceSettings? _perfSettings;
@@ -89,11 +92,14 @@ namespace OpenXr.Framework
             _lastSessionState = SessionState.Unknown;
             _layers = new XrLayerManager(this);
             _renderOptions = new XrRenderOptions();
+            _tracker = new XrSpacesTracker(this);
 
             _extensions.Add(ExtPerformanceSettings.ExtensionName);
             _extensions.Add(ExtHandTracking.ExtensionName);
+            _extensions.Add("XR_KHR_locate_spaces");
 
             Current = this;
+            ReferenceFrame = Pose3.Identity;
         }
 
         #region START/STOP
@@ -234,6 +240,8 @@ namespace OpenXr.Framework
 
             _logger.LogDebug("Stopping");
 
+            _tracker.Clear();
+
             DisposeSpace(ref _local);
             DisposeSpace(ref _head);
             DisposeSpace(ref _stage);
@@ -252,6 +260,8 @@ namespace OpenXr.Framework
             _lastSessionState = SessionState.Unknown;
 
             PluginInvoke(p => p.OnSessionEnd());
+
+            SessionChanged?.Invoke(this, EventArgs.Empty);
 
             _logger.LogInformation("Stopped");
         }
@@ -326,17 +336,18 @@ namespace OpenXr.Framework
             return _systemId;
         }
 
-        public T* GetSystemProperties<T>(T* other) where T : unmanaged
+        public void GetSystemProperties<T>(ref T other) where T : unmanaged
         {
-            var result = new SystemProperties
+            fixed (T* pProps = &other)
             {
-                Type = StructureType.SystemProperties,
-                Next = other
-            };
+                var result = new SystemProperties
+                {
+                    Type = StructureType.SystemProperties,
+                    Next = pProps
+                };
 
-            CheckResult(_xr!.GetSystemProperties(_instance, _systemId, &result), "GetSystemProperties");
-
-            return other;
+                CheckResult(_xr!.GetSystemProperties(_instance, _systemId, &result), "GetSystemProperties");
+            }
         }
 
         protected SystemProperties GetSystemProperties()
@@ -474,7 +485,7 @@ namespace OpenXr.Framework
             return LocateViews(space, displayTime, _views!);
         }
 
-        public ViewState LocateViews(Space space, long displayTime, View[] views)
+        public unsafe ViewState LocateViews(Space space, long displayTime, View[] views)
         {
             Debug.Assert(_viewInfo != null);
 
@@ -496,15 +507,66 @@ namespace OpenXr.Framework
             fixed (View* pViews = views)
                 CheckResult(_xr!.LocateView(_session, in info, ref state, count, ref count, pViews), "LocateView");
 
+
             return state;
         }
+
 
         public XrSpaceLocation LocateSpace(Space space, Space baseSpace, long time = 0)
         {
             var result = new SpaceLocation();
             result.Type = StructureType.SpaceLocation;
+
+            var vel = new SpaceVelocity();
+            vel.Type = StructureType.SpaceVelocity;
+
+            result.Next = &vel;
+
             CheckResult(_xr!.LocateSpace(space, baseSpace, time, ref result), "LocateSpace");
-            return result.ToXrLocation();
+            return new XrSpaceLocation
+            {
+                Pose = ReferenceFrame.Multiply(result.Pose.ToPose3()),
+                Flags = result.LocationFlags,
+                VelocityFlags = vel.VelocityFlags,
+                LinearVelocity = vel.LinearVelocity.ToVector3(),
+                AngularVelocity = vel.AngularVelocity.ToVector3()
+            };
+        }
+
+        [Obsolete("Oculus throws access violation")]
+        public unsafe XrSpaceLocation[] LocateSpaces(Space[] spaces, Space baseSpace, long time = 0)
+        {
+            var locations = new SpaceLocationData[spaces.Length];
+
+            fixed (Space* pSpaces = spaces)
+            fixed (SpaceLocationData* pLocations = locations)
+            {
+                var result = new SpaceLocations
+                {
+                    Type = StructureType.SpaceLocations,
+                    Locations = pLocations,
+                    Next = null,
+                    LocationCount = (uint)locations.Length
+                };
+
+                var info = new SpacesLocateInfo
+                {
+                    Type = StructureType.SpacesLocateInfo,
+                    BaseSpace = baseSpace,
+                    Spaces = pSpaces,
+                    SpaceCount = (uint)spaces.Length,
+                    Time = time,
+                    Next = null,
+                };
+
+                CheckResult(_xr!.LocateSpaces(_session, &info, &result), "LocateSpaces");
+            }
+
+            return locations.Select(a => new XrSpaceLocation
+            {
+                Pose = a.Pose.ToPose3().Multiply(ReferenceFrame),
+                Flags = a.LocationFlags
+            }).ToArray();
         }
 
         protected void DisposeSpace(ref Space space)
@@ -521,13 +583,12 @@ namespace OpenXr.Framework
         #region SESSION
 
 
-        [MemberNotNull(nameof(_views))]
         [MemberNotNull(nameof(_renderOptions))]
         [MemberNotNull(nameof(_xr))]
         [MemberNotNull(nameof(_viewInfo))]
         protected void AssertSessionCreated()
         {
-            if (_session.Handle == 0)
+            if (_session.Handle == 0 || _renderOptions == null || _xr == null || _viewInfo == null)
                 throw new InvalidOperationException();
         }
 
@@ -578,8 +639,11 @@ namespace OpenXr.Framework
 
             _stage = CreateReferenceSpace(ReferenceSpaceType.Stage);
 
+            _tracker.Add(_head, TimeSpan.Zero);
+
             return _session;
         }
+
         protected virtual void OnSessionChanged(SessionState state, long time)
         {
             _lastSessionState = state;
@@ -602,14 +666,19 @@ namespace OpenXr.Framework
                     break;
             }
 
-
+            SessionChanged?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion
 
         #region SWAPCHAIN
 
-        protected long[] EnumerateSwapchainFormats()
+        public void DestroySwapchain(Swapchain swapchain)
+        {
+            CheckResult(_xr!.DestroySwapchain(swapchain), "DestroySwapchain");
+        }
+
+        public long[] EnumerateSwapchainFormats()
         {
             uint count = 0;
             CheckResult(_xr!.EnumerateSwapchainFormats(Session, 0, ref count, null), "EnumerateSwapchainFormats");
@@ -622,7 +691,7 @@ namespace OpenXr.Framework
             return result;
         }
 
-        protected internal NativeArray<SwapchainImageBaseHeader> EnumerateSwapchainImages(Swapchain swapchain)
+        public NativeArray<SwapchainImageBaseHeader> EnumerateSwapchainImages(Swapchain swapchain)
         {
             uint count = 0;
 
@@ -642,7 +711,7 @@ namespace OpenXr.Framework
             return images;
         }
 
-        protected internal uint AcquireSwapchainImage(Swapchain swapchain)
+        public uint AcquireSwapchainImage(Swapchain swapchain)
         {
             var acquireInfo = new SwapchainImageAcquireInfo()
             {
@@ -656,7 +725,7 @@ namespace OpenXr.Framework
             return imageIndex;
         }
 
-        protected internal void WaitSwapchainImage(Swapchain swapchain, long timeout = DurationInfinite)
+        public void WaitSwapchainImage(Swapchain swapchain, long timeout = DurationInfinite)
         {
             var info = new SwapchainImageWaitInfo()
             {
@@ -668,7 +737,7 @@ namespace OpenXr.Framework
             CheckResult(_xr!.WaitSwapchainImage(swapchain, in info), "WaitSwapchainImage");
         }
 
-        protected internal void ReleaseSwapchainImage(Swapchain swapchain)
+        public void ReleaseSwapchainImage(Swapchain swapchain)
         {
             var info = new SwapchainImageReleaseInfo()
             {
@@ -697,7 +766,7 @@ namespace OpenXr.Framework
             return CreateSwapChain(size, format, arraySize, usage);
         }
 
-        protected internal Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage)
+        public Swapchain CreateSwapChain(Extent2Di size, long format, uint arraySize, SwapchainUsageFlags usage, bool mainSwapChain = true)
         {
             var info = new SwapchainCreateInfo
             {
@@ -712,7 +781,8 @@ namespace OpenXr.Framework
                 UsageFlags = usage
             };
 
-            PluginInvoke(p => p.ConfigureSwapchain(ref info));
+            if (mainSwapChain)
+                PluginInvoke(p => p.ConfigureSwapchain(ref info));
 
             var result = new Swapchain();
             CheckResult(_xr!.CreateSwapchain(Session, in info, ref result), "CreateSwapchain");
@@ -768,6 +838,10 @@ namespace OpenXr.Framework
 
             FramePredictedDisplayTime = frameTime;
 
+            FramePredictedDisplayPeriod = TimeSpan.FromTicks(state.PredictedDisplayPeriod / TimeSpan.NanosecondsPerTick);
+
+            _tracker.Update(space, frameTime);
+
             TrySyncActions(space, frameTime);
 
             foreach (var hand in _hands)
@@ -775,7 +849,7 @@ namespace OpenXr.Framework
 
             BeginFrame();
 
-            ListInvoke<IXrLayer>(_layers.List, a => a.OnBeginFrame());
+            ListInvoke<IXrLayer>(_layers.List, a => a.OnBeginFrame(space, frameTime));
 
             CompositionLayerBaseHeader*[]? layers = null;
 
@@ -792,13 +866,15 @@ namespace OpenXr.Framework
                                      (viewsState.ViewStateFlags & ViewStateFlags.PositionValidBit) != 0;
 
                     if (isPosValid)
-                        layers = _layers.Render(ref _views, space, frameTime, out layerCount);
+                        layers = _layers.Render(ref _views!, space, frameTime, out layerCount);
                 }
             }
             finally
             {
                 ListInvoke<IXrLayer>(_layers.List, a => a.OnEndFrame());
                 EndFrame(frameTime, ref layers, layerCount);
+
+                FramePredictedDisplayTime = 0;
             }
 
             return true;
@@ -906,7 +982,7 @@ namespace OpenXr.Framework
             return builder.Result;
         }
 
-        public T WithInteractionProfile<T>(Action<XrActionsBuilder<T>> build) where T : new()
+        public T WithInteractionProfile<T>(Action<XrActionsBuilder<T>> build) where T : IXrBasicInteractionProfile, new()
         {
             var builder = new XrActionsBuilder<T>(this);
 
@@ -1051,7 +1127,7 @@ namespace OpenXr.Framework
                     SuggestedBindings = pBindings
                 };
 
-                CheckResult(_xr!.SuggestInteractionProfileBinding(_instance, info), "SuggestInteractionProfileBinding");
+                CheckResult(_xr!.SuggestInteractionProfileBinding(_instance, in info), "SuggestInteractionProfileBinding");
             }
         }
 
@@ -1273,7 +1349,8 @@ namespace OpenXr.Framework
 
         protected void LayersInvoke(Action<IXrLayer> action)
         {
-            ListInvoke(_layers.List, action);
+            //Prioriry projection layer
+            ListInvoke(_layers.List.OrderBy(a => a is XrProjectionLayer ? 0 : 1), action);
         }
 
         protected void PluginInvoke(Action<IXrPlugin> action, bool mustSucceed = false)
@@ -1387,9 +1464,13 @@ namespace OpenXr.Framework
 
         public Space Stage => _stage;
 
+        public Space ReferenceSpace => UseLocalSpace ? Local : Stage;
+
         public SessionState SessionState => _lastSessionState;
 
         public ILogger Logger => _logger;
+
+        public XrSpacesTracker SpacesTracker => _tracker;
 
         public IReadOnlyDictionary<string, IXrInput> Inputs => _inputs;
 
@@ -1399,8 +1480,16 @@ namespace OpenXr.Framework
 
         public XR Xr => _xr ?? throw new InvalidOperationException("App not initialized");
 
+        public event EventHandler? SessionChanged;
+
         public static XrApp? Current { get; internal set; }
 
-        public long FramePredictedDisplayTime { get; private set; }
+        public long FramePredictedDisplayTime { get; internal set; }
+
+        public TimeSpan FramePredictedDisplayPeriod { get; internal set; }
+
+        public Pose3 ReferenceFrame { get; set; }
+
+        public bool UseLocalSpace { get; set; }
     }
 }

@@ -6,6 +6,6 @@
 
         void RemoveComponent(IComponent component);
 
-        IEnumerable<T> Components<T>() where T : IComponent;
+        IReadOnlyList<IComponent> Components();
     }
 }

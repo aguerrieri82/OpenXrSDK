@@ -13,7 +13,7 @@ uniform float uLodBias;
 uniform int uDistribution;
 uniform samplerCube uCubeMap;
 
-layout(std140) uniform HammersleyBuffer
+layout(std140, binding 0) uniform HammersleyBuffer
 {
     vec2 data[SAMPLE_COUNT];
 } uHams;

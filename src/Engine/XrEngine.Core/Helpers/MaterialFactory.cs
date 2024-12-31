@@ -18,9 +18,19 @@ namespace XrEngine
             return result;
         }
 
-        static IPbrMaterial CreatePbr(Type type) 
+        public static IPbrMaterial CreatePbr(Texture2D color)
         {
-            return (IPbrMaterial)Activator.CreateInstance(type)!;        
+            var result = CreatePbr(DefaultPbr);
+            result.Color = Color.White;
+            result.ColorMap = color;
+            result.Metalness = 0;
+            result.Roughness = 0.5f;
+            return result;
+        }
+
+        static IPbrMaterial CreatePbr(Type type)
+        {
+            return (IPbrMaterial)Activator.CreateInstance(type)!;
         }
 
         public static T CreatePbr<T>() where T : IPbrMaterial, new()
@@ -29,6 +39,6 @@ namespace XrEngine
         }
 
 
-        public static Type DefaultPbr { get; set; } 
+        public static Type DefaultPbr { get; set; }
     }
 }

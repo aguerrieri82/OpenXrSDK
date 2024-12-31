@@ -22,7 +22,7 @@ namespace XrEngine.OpenGL
         protected readonly Func<string, string> _resolver;
         protected readonly Dictionary<string, object> _values = [];
         protected readonly Dictionary<string, int> _locations = [];
-        protected readonly Dictionary<string, int> _boundBuffers = [];
+        protected readonly int[] _boundBuffers = new int[32];
 
 
         public GlBaseProgram(GL gl, Func<string, string> includeResolver) : base(gl)
@@ -50,7 +50,6 @@ namespace XrEngine.OpenGL
 
             foreach (var shader in shaders.Where(a => a != 0))
                 _gl.DetachShader(_handle, shader);
-
         }
 
         public void Use()
@@ -148,15 +147,39 @@ namespace XrEngine.OpenGL
         {
             var tex2d = value as Texture2D ?? throw new NotSupportedException();
 
-            var glText = tex2d.ToGlTexture();
+            if (tex2d.Type == TextureType.Buffer)
+            {
+                if (!ObjectBinder.TryGet(tex2d, out GlTextureBuffer? glTextBuf))
+                {
+                    glTextBuf = new GlTextureBuffer(_gl);
+                    ObjectBinder.Bind(tex2d, glTextBuf);
+                }
 
-            bool isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
+                bool isUpdate = tex2d.Version != glTextBuf.Version && tex2d.Data != null && tex2d.Data.Count > 0;
 
-            GlState.Current!.SetActiveTexture(glText, slot, isUpdate);
+                if (isUpdate)
+                    glTextBuf.Update(tex2d.Data![0]);
 
-            if (isUpdate)
-                glText.Update(tex2d, false);
+                GlState.Current!.LoadTexture(glTextBuf.Texture, slot);
 
+                glTextBuf.Version = tex2d.Version;
+            }
+            else
+            {
+                if (!ObjectBinder.TryGet(tex2d, out GlTexture? glText))
+                    glText = tex2d.ToGlTexture();
+
+                bool isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
+
+#if GLES
+                GlState.Current!.LoadTexture(glText, slot, true);
+#else
+                GlState.Current!.LoadTexture(glText, slot);
+#endif
+
+                if (isUpdate)
+                    glText.Update(tex2d, false);
+            }
         }
 
         public void SetUniform(string name, int value, bool optional = false)
@@ -203,6 +226,14 @@ namespace XrEngine.OpenGL
             _gl.Uniform2(LocateUniform(name, optional), value.X, value.Y);
         }
 
+
+        public unsafe void SetUniform(string name, Vector4 value, bool optional = false)
+        {
+            if (!IsChanged(name, value))
+                return;
+            _gl.Uniform4(LocateUniform(name, optional), value.X, value.Y, value.Z, value.W);
+        }
+
         public void SetUniform(string name, Vector3 value, bool optional = false)
         {
             if (!IsChanged(name, value))
@@ -217,29 +248,16 @@ namespace XrEngine.OpenGL
             _gl.Uniform4(LocateUniform(name, optional), value.R, value.G, value.B, value.A);
         }
 
-
-        public void SetUniform(string name, IBuffer buffer, int slot = 0, bool optional = false)
+        public void LoadBuffer<T>(IBuffer<T> buffer, int slot = 0)
         {
             var glBuffer = (IGlBuffer)buffer;
 
-            _gl.BindBufferBase(glBuffer.Target, (uint)slot, glBuffer.Handle);
-
-            var index = LocateUniform(name, optional, true);
-
-            if (index == -1)
-                return;
-
-            if (!_boundBuffers.TryGetValue(name, out var curSlot) || slot != curSlot)
-            {
-                _gl.UniformBlockBinding(_handle, (uint)index, (uint)slot);
-                _boundBuffers[name] = slot;
-            }
+            GlState.Current!.SetActiveBuffer(glBuffer, slot);
         }
 
         public unsafe void SetUniform(string name, Texture value, int slot = 0, bool optional = false)
         {
             LoadTexture(value, slot);
-
             SetUniform(name, slot, optional);
         }
 
@@ -285,8 +303,10 @@ namespace XrEngine.OpenGL
             _extensions.Add(name);
         }
 
-        protected string PatchShader(string source, ShaderType shaderType)
+        protected string PatchShader(string sourceName, ShaderType shaderType)
         {
+            var source = _resolver(sourceName);
+
             var builder = new StringBuilder();
 
             builder.Append("#version ")
@@ -326,9 +346,12 @@ namespace XrEngine.OpenGL
                     match.Groups[2].Value :
                     match.Groups[1].Value;
 
+                var incPath = Path.GetRelativePath(".", Path.Join(Path.GetDirectoryName(sourceName) ?? "", incName))
+                             .Replace('\\', '/');
+
                 source = string.Concat(
                     source.AsSpan(0, match.Index),
-                    _resolver(incName),
+                    _resolver(incPath),
                     "\n",
                     source.AsSpan(match.Index + match.Length)
                 );
@@ -346,11 +369,9 @@ namespace XrEngine.OpenGL
         public override void Dispose()
         {
             if (_handle != 0)
-            {
                 _gl.DeleteProgram(_handle);
-                _handle = 0;
-            }
-            GC.SuppressFinalize(this);
+
+            base.Dispose();
         }
 
         [GeneratedRegex("#include\\s(?:(?:\"([^\"]+)\")|(?:<([^>]+)>));?\\s+")]

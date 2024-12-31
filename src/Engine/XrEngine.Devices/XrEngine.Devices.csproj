@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>$(CoreVersion)-$(WinVersion);$(CoreVersion)-android</TargetFrameworks>
+	  <SingleProject>true</SingleProject>
+  </PropertyGroup>
+
+</Project>

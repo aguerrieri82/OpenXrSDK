@@ -18,14 +18,5 @@ namespace XrEditor.Nodes
             Name = "icon_lightbulb"
         };
 
-        protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
-        {
-            base.EditorProperties(binder, curProps);
-
-            PropertyView.CreateProperties(_value, typeof(Light), curProps);
-
-            if (Value is SunLight)
-                PropertyView.CreateProperties(_value, typeof(DirectionalLight), curProps);
-        }
     }
 }

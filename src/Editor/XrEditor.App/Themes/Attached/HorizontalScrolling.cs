@@ -73,22 +73,16 @@ namespace Theme.WPF.Themes.Attached
         {
             if (sender is UIElement element && e.Delta != 0)
             {
-                ScrollViewer scroller = FindVisualChild<ScrollViewer>(element);
+                var scroller = FindVisualChild<ScrollViewer>(element);
                 if (scroller == null)
-                {
                     return;
-                }
 
                 if (GetIsRequireShiftForHorizontalScroll(element) && scroller.HorizontalScrollBarVisibility == ScrollBarVisibility.Disabled)
-                {
                     return;
-                }
 
                 int amount = GetHorizontalScrollingAmount(element);
                 if (amount < 1)
-                {
                     amount = 3;
-                }
 
                 if (Keyboard.Modifiers == ModifierKeys.Shift || Mouse.MiddleButton == MouseButtonState.Pressed || GetForceHorizontalScrolling(element))
                 {
@@ -115,7 +109,7 @@ namespace Theme.WPF.Themes.Attached
 
         // https://github.com/AngryCarrot789/SharpPad/blob/master/SharpPad/Utils/Visuals/VisualTreeUtils.cs
 
-        public static T FindVisualChild<T>(DependencyObject obj, bool includeSelf = true) where T : class
+        public static T? FindVisualChild<T>(DependencyObject obj, bool includeSelf = true) where T : class
         {
             if (obj == null)
                 return null;
@@ -124,20 +118,16 @@ namespace Theme.WPF.Themes.Attached
             return FindVisualChildInternal<T>(obj);
         }
 
-        private static T FindVisualChildInternal<T>(DependencyObject obj) where T : class
+        private static T? FindVisualChildInternal<T>(DependencyObject obj) where T : class
         {
             int count, i;
             if (obj is ContentControl)
             {
-                DependencyObject child = ((ContentControl)obj).Content as DependencyObject;
+                var child = ((ContentControl)obj).Content as DependencyObject;
                 if (child is T t)
-                {
                     return t;
-                }
-                else
-                {
-                    return child != null ? FindVisualChildInternal<T>(child) : null;
-                }
+
+                return child != null ? FindVisualChildInternal<T>(child) : null;
             }
             else if ((obj is Visual || obj is Visual3D) && (count = VisualTreeHelper.GetChildrenCount(obj)) > 0)
             {
@@ -152,11 +142,9 @@ namespace Theme.WPF.Themes.Attached
 
                 for (i = 0; i < count;)
                 {
-                    T child = FindVisualChildInternal<T>(VisualTreeHelper.GetChild(obj, i++));
+                    var child = FindVisualChildInternal<T>(VisualTreeHelper.GetChild(obj, i++));
                     if (child != null)
-                    {
                         return child;
-                    }
                 }
             }
 

@@ -1,6 +1,4 @@
-﻿using XrMath;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class DepthOnlyMaterial : ShaderMaterial
     {
@@ -8,13 +6,10 @@ namespace XrEngine
 
         static DepthOnlyMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "empty.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
-                IsLit = false,
-                UpdateHandler = StandardVertexShaderHandler.Instance
+                IsLit = false
             };
         }
 
@@ -32,7 +27,6 @@ namespace XrEngine
             {
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-                up.SetUniform("uColor", Color.Transparent);
             });
         }
     }

@@ -2,8 +2,14 @@
 {
     public class AudioData
     {
-        public AudioFormat? Format { get; set; }
+        public AudioData(AudioFormat format, byte[] buffer)
+        {
+            Format = format;
+            Buffer = buffer;
+        }
 
-        public byte[]? Buffer { get; set; }
+        public AudioFormat Format { get; set; }
+
+        public byte[] Buffer { get; set; }
     }
 }

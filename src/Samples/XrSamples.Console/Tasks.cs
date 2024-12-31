@@ -1,19 +1,28 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using DotSpatial.Projections;
+using GeoAPI.CoordinateSystems;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OpenXr.Framework;
-using OpenXr.Framework.OpenGL;
+using ProjNet.CoordinateSystems;
+using ProjNet.CoordinateSystems.Transformations;
+using Sfizz;
 using Silk.NET.Assimp;
+using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Text;
+using System.Text.Json;
 using VirtualCamera.IPCamera;
 using XrEngine;
+using XrEngine.AI;
 using XrEngine.Compression;
+using XrEngine.Devices;
+using XrEngine.Devices.Windows;
 using XrEngine.Gltf;
+using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
+using XrEngine.Tiff;
 using XrEngine.Video;
-using static Oculus.XrPlugin.OculusXrPlugin;
-using static OVRPlugin;
+using XrMath;
 using File = System.IO.File;
 
 
@@ -22,6 +31,135 @@ namespace XrSamples
     public class Tasks
     {
         public static IServiceProvider? Services { get; set; }
+
+        public static void ParseGeoTiff()
+        {
+
+            var tile = new GeoTile();
+            tile.LoadGeoTiff(@"C:\Users\aguer\Downloads\w47575_s10.tif");
+
+        }
+
+
+        public static void ParseSfz()
+        {
+            var file = @"D:\SoundFont\WilkinsonAudio.NakedDrums\Wilkinson Audio\Naked Drums\User\Naked Drums GM.sfz";
+            var parser = new SfzParser();
+            parser.Parse(file);
+            var size = parser.SamplesSize();
+            //parser.CopyTo("d:\\test\\");
+
+        }
+
+        public static async Task TestBlePedalAsync()
+        {
+            Context.Implement<ILogger>(Services!.GetService<ILogger<Tasks>>()!);
+            Context.Implement<IProgressLogger>(new ProgressLogger());
+
+            var manager = new WinBleManager();
+
+
+            Log.Info(typeof(Tasks), "Find device...");
+
+            var devices = await manager.FindDevicesAsync(new BleDeviceFilter
+            {
+                Name = "Pedal Controller",
+                MaxDevices = 1,
+                Timeout = TimeSpan.FromSeconds(10)
+            });
+
+            if (devices.Count == 0)
+            {
+                Log.Warn(typeof(Tasks), "No devices found");
+                return;
+            }
+
+
+            var pedal = new BlePedal(manager);
+
+            Log.Info(typeof(Tasks), "Connecting");
+
+            //await pedal.ConnectAsync(devices[0].Address);
+
+            await pedal.ConnectAsync(225243778289514);
+
+            Log.Info(typeof(Tasks), "Read Settings");
+
+            var set = await pedal.ReadSettingsAsync();
+
+            set.RampUp = 900;
+            set.RampHit = 1390;
+            set.RampDown = 1200;
+            set.SampleRate = 100;
+            set.Mode = (byte)'H';
+
+
+            Log.Info(typeof(Tasks), "Update Settings");
+
+            await pedal.UpdateSettingsAsync(set);
+
+            Log.Info(typeof(Tasks), "Wait for data...");
+
+            pedal.Data += (sender, args) =>
+            {
+                Log.Debug("", "Hit: {0}", args.Data.Value);
+            };
+
+            while (pedal.IsConnected)
+            {
+                var bat = await pedal.GetBatteryRawAsync();
+
+                Log.Info("", "Battery: {0}", MathF.Round(bat, 2));
+
+                await Task.Delay(30000);
+            }
+
+            Console.ReadKey();
+        }
+
+
+        public static void TrainPosePredictor()
+        {
+            var options = new JsonSerializerOptions
+            {
+                IncludeFields = true,
+            };
+
+            var json = File.ReadAllText(Path.Join("D:\\Projects\\XrEditor", "inputs.json"));
+
+            var session = JsonSerializer.Deserialize<XrInputRecorder.RecordSession>(json, options);
+
+
+            var data = new List<PoseTrainData>();
+
+            foreach (var frame in session.Frames)
+            {
+                if (!frame.Inputs.TryGetValue("RightGripPose", out var pose))
+                    continue;
+                var value = pose.Value;
+                if (value is JsonElement je)
+                    value = je.Deserialize<Pose3>(new JsonSerializerOptions { IncludeFields = true })!;
+
+                data.Add(new PoseTrainData
+                {
+                    Pose = (Pose3)value,
+                    Time = (float)frame.Time
+                });
+            }
+
+            var pred = new AIPosePredictorModel(7, "d:\\pose_prediction_model");
+            //pred.Train(data);
+            for (var i = 8; i < data.Count; i++)
+            {
+                var slice = data.Skip(i - 8).Take(8).ToArray();
+                var test = pred.Predict(slice);
+                var control = data[i];
+                Console.WriteLine(test.Pose.Position - control.Pose.Position);
+            }
+
+
+
+        }
 
         public static void ReadRtsp()
         {
@@ -63,7 +201,6 @@ namespace XrSamples
             while (true)
             {
                 var res = h264Stream.ReadNalUnit();
-
             }
 
         }
@@ -149,6 +286,85 @@ namespace XrSamples
             ProcessNode(scene->MRootNode, scene);
         }
 
+        public static void TestPivot()
+        {
+            var obj = new Object3D();
+
+            var pivot = new Vector3(10, -3, 2);
+            var pos1 = new Vector3(2, 1, -2);
+            var pos2 = new Vector3(2, -2, 6);
+            var ori = Quaternion.CreateFromYawPitchRoll(0.3f, -2, 3.3f);
+
+            obj.Transform.SetLocalPivot(pivot, true);
+
+            Debug.Assert(obj.WorldPosition.IsSimilar(pivot));
+
+            obj.WorldPosition = pos1;
+
+            var zero = obj.ToWorld(Vector3.Zero);
+            var wordPivot = obj.ToWorld(pivot);
+
+            Debug.Assert(wordPivot.IsSimilar(pos1));
+
+            obj.WorldOrientation = ori;
+
+            wordPivot = obj.ToWorld(pivot);
+
+            Debug.Assert(wordPivot.IsSimilar(pos1));
+
+            obj.MoveLocalToWorld(Vector3.Zero, Vector3.Zero);
+
+            zero = obj.ToWorld(Vector3.Zero);
+
+            Debug.Assert(zero.IsSimilar(Vector3.Zero));
+
+            var parent = new Group3D();
+            parent.Transform.SetScale(1.4f, 1, 2);
+            parent.Transform.Position = new Vector3(10, -2, 4);
+            parent.Transform.Orientation = Quaternion.CreateFromYawPitchRoll(1.3f, 1.2f, -4f);
+            parent.Transform.LocalPivot = new Vector3(-223, 11, 3);
+
+            parent.AddChild(obj, false);
+
+            zero = obj.ToWorld(Vector3.Zero);
+
+            Debug.Assert(!zero.IsSimilar(Vector3.Zero));
+
+            obj.MoveLocalToWorld(Vector3.Zero, Vector3.Zero);
+
+            zero = obj.ToWorld(Vector3.Zero);
+
+            Debug.Assert(zero.IsSimilar(Vector3.Zero));
+
+            var newPose = new Pose3
+            {
+                Position = pos2,
+                Orientation = ori,
+            };
+
+            obj.SetWorldPose(newPose, true);
+
+            wordPivot = obj.ToWorld(pivot);
+            zero = obj.ToWorld(Vector3.Zero);
+
+            Debug.Assert(zero.IsSimilar(pos2));
+
+            Debug.Assert(obj.WorldOrientation.IsSimilar(ori));
+
+            var curPose = obj.GetWorldPose(true);
+
+            Debug.Assert(curPose.IsSimilar(newPose, 1e-5f));
+
+            obj.Transform.SetLocalPivot(Vector3.Zero, true);
+
+            curPose = obj.GetWorldPose(true);
+
+            Debug.Assert(curPose.IsSimilar(newPose, 1e-5f));
+
+            var curPose2 = obj.GetWorldPose(false);
+
+        }
+
 
         public static void LoadModel(string path)
         {
@@ -168,127 +384,6 @@ namespace XrSamples
             reader.LoadTexture(stream);
         }
 
-        public static Task OvrLibTask(ILogger logger)
-        {
-
-            static bool CheckResult(OVRPlugin.Result result)
-            {
-                if (result != OVRPlugin.Result.Success)
-                {
-                    Console.WriteLine("ERR: " + result);
-                    return false;
-                }
-                return true;
-            }
-
-
-
-            Bool boolRes;
-
-            var res2 = LoadOVRPlugin(null);
-
-            boolRes = OVRP_OBSOLETE.ovrp_PreInitialize();
-
-            var isSup = GetIsSupportedDevice();
-
-            var viewManager = new ViewManager();
-            viewManager.Initialize();
-            using var xrApp = new XrApp(logger,
-                    new XrOpenGLGraphicDriver(viewManager.View),
-                    new OpenXr.Framework.Oculus.OculusXrPlugin());
-
-            // xrApp.AttachInstance(inst);
-            xrApp.Start();
-
-            //boolRes = OVRP_OBSOLETE.ovrp_Initialize(5, 0);
-
-            CheckResult(OVRP_1_55_0.ovrp_GetNativeOpenXRHandles(out var inst, out var sess));
-            CheckResult(OVRP_1_55_0.ovrp_GetNativeXrApiType(out var xrApi));
-
-
-
-
-
-
-            var settings = new UserDefinedSettings()
-            {
-
-            };
-
-            SetUserDefinedSettings(settings);
-
-            var headSet = GetSystemHeadsetType();
-
-
-            var isInit = OVRP_1_1_0.ovrp_GetInitialized();
-
-
-
-
-            CheckResult(OVRP_1_15_0.ovrp_InitializeMixedReality());
-
-
-            CheckResult(OVRP_1_15_0.ovrp_InitializeMixedReality());
-            CheckResult(OVRP_1_63_0.ovrp_InitializeInsightPassthrough());
-
-
-            CheckResult(OVRP_1_38_0.ovrp_Media_Initialize());
-            CheckResult(OVRP_1_15_0.ovrp_GetExternalCameraCount(out var cameraCount));
-
-
-            var desc = new LayerDesc();
-
-            var size = new Sizei
-            {
-                h = 100,
-                w = 100
-            };
-
-            int layerId;
-
-            unsafe
-            {
-                CheckResult(OVRP_1_15_0.ovrp_CalculateLayerDesc(OverlayShape.Quad, LayerLayout.Mono, ref size, 1, 1, EyeTextureFormat.R8G8B8A8_sRGB, 0, ref desc));
-
-                CheckResult(OVRP_1_28_0.ovrp_EnqueueSetupLayer2(ref desc, 1, &layerId));
-
-            }
-
-            var x = OVRPlugin.OVRP_1_1_0.ovrp_GetVersion();
-
-            Console.WriteLine(x);
-
-
-            unsafe
-            {
-
-                var info = new SpaceQueryInfo();
-                info.MaxQuerySpaces = 10;
-                info.Location = SpaceStorageLocation.Local;
-                info.ComponentsInfo.Components = new SpaceComponentType[16];
-                info.ComponentsInfo.Components[0] = SpaceComponentType.RoomLayout;
-                info.ComponentsInfo.Components[1] = SpaceComponentType.SemanticLabels;
-                info.ComponentsInfo.Components[2] = SpaceComponentType.TriangleMesh;
-                info.ComponentsInfo.Components[3] = SpaceComponentType.Bounded2D;
-                info.ComponentsInfo.Components[4] = SpaceComponentType.Bounded3D;
-                info.ComponentsInfo.NumComponents = 5;
-
-                CheckResult(OVRP_1_72_0.ovrp_QuerySpaces(ref info, out var reqId));
-
-                uint count = 0;
-                CheckResult(OVRP_1_72_0.ovrp_RetrieveSpaceQueryResults(ref reqId, default, ref count, default));
-
-                var results = new SpaceQueryResult[count];
-
-                fixed (SpaceQueryResult* resultsPtr = results)
-                    CheckResult(OVRP_1_72_0.ovrp_RetrieveSpaceQueryResults(ref reqId, count, ref count, new nint(&resultsPtr)));
-
-                Console.WriteLine("Hello");
-
-            }
-
-            return Task.CompletedTask;
-        }
 
     }
 }

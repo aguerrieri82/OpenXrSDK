@@ -2,7 +2,7 @@
 
 namespace XrEditor
 {
-    public class NodeView : IDisposable
+    public class NodeView : BaseView, IDisposable
     {
         static readonly MenuView _menu = new();
         protected readonly INode _node;
@@ -21,8 +21,16 @@ namespace XrEditor
                 dynamicNode.ChildRemoved += OnChildRemoved;
             }
 
+            if (_node is INodeChanged changed)
+                changed.NodeChanged += OnNodeChanged;
+
             _host.IsLeaf = _node.IsLeaf;
             _host.LoadChildren += OnLoadChildren;
+        }
+
+        private void OnNodeChanged(object? sender, EventArgs e)
+        {
+            OnPropertyChanged(nameof(DisplayName));
         }
 
         public void UpdateMenu()
@@ -80,6 +88,10 @@ namespace XrEditor
                 dynamicNode.ChildAdded -= OnChildAdded;
                 dynamicNode.ChildRemoved -= OnChildRemoved;
             }
+
+            if (_node is INodeChanged changed)
+                changed.NodeChanged -= OnNodeChanged;
+
             GC.SuppressFinalize(this);
         }
 

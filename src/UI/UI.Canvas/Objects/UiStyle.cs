@@ -12,12 +12,10 @@ namespace CanvasUI
             _owner = owner;
         }
 
-        protected override void OnPropertyChanged(string propName, object? value, object? oldValue)
+        protected override void OnPropertyChanged(UiProperty prop, object? value, object? oldValue)
         {
-            _owner.OnStyleChanged(propName, (IStyleValue)value!, (IStyleValue)oldValue!);
+            _owner.OnStyleChanged(prop.Name, (IStyleValue)value!, (IStyleValue)oldValue!);
         }
-
-
 
         [UiProperty(UiStyleMode.NotSet)]
         public StyleValue<Color?> BackgroundColor
@@ -276,11 +274,14 @@ namespace CanvasUI
                 return default;
             }
 
-            var value = BaseStyle().GetValue<T>(propName);
+            var curStyle = BaseStyle();
+
+            var value = curStyle.GetValue<T>(propName);
 
             if (value is IStyleValue styleValue)
             {
-                var curStyle = BaseStyle();
+                if (styleValue.Mode == UiStyleMode.Default)
+                    return (T?)GetProperty<T>(propName, curStyle.GetType()).DefaultValue;
 
                 while (styleValue.Mode == UiStyleMode.NotSet)
                 {

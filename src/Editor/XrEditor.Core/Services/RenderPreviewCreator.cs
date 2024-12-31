@@ -50,9 +50,9 @@ namespace XrEditor.Services
                 _scene.Layers.Remove(_scene.Layers.Layers[0]);
 
             _light = new ImageLight();
-            _light.LoadPanorama("res://asset/pisa.hdr");
+            _light.LoadPanorama("res://asset/Envs/pisa.hdr");
             _light.Intensity = 2.5f;
-            _light.Version = -100;
+            _light.NotifyChanged(ObjectChangeType.Render);
 
             _app = new EngineApp();
             _app.Renderer = _engine;
@@ -67,7 +67,9 @@ namespace XrEditor.Services
 
         public SKBitmap? CreateMaterial(Material material)
         {
-            return CreateMesh(Sphere3D.Default, material);
+            if (material is IVolumeMaterial)
+                return null;
+            return CreateMesh(IsoSphere3D.Default, material);
         }
 
         public SKBitmap? CreateGeometry(Geometry3D geometry)
@@ -77,6 +79,9 @@ namespace XrEditor.Services
 
         public SKBitmap? CreateTexture(Texture2D texture)
         {
+            if (texture.Type == TextureType.Depth)
+                return null;
+
             if (texture.Width == 0 || texture.Height == 0)
             {
                 var src = texture.Component<AssetSource>();
@@ -123,28 +128,13 @@ namespace XrEditor.Services
         {
             _engine.SetRenderTarget(_texture);
 
-            _app.RenderFrame(new Rect2I()
-            {
-                Width = _texture.Width,
-                Height = _texture.Height
-            });
+            _app.RenderFrame();
 
             var data = ((IFrameReader)_app.Renderer!).ReadFrame();
 
             _engine.SetRenderTarget(null);
 
-            var image = new SKBitmap((int)_texture.Width, (int)_texture.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
-
-            var dst = new byte[_texture.Height * _texture.Width * 4];
-
-            fixed (byte* pData = data.Data.Span)
-            fixed (byte* pDst = dst)
-            {
-                EngineNativeLib.ImageFlipY(new nint(pData), new nint(pDst), _texture.Width, _texture.Height, _texture.Width * 4);
-                image.SetPixels(new nint(pDst));
-            }
-
-            return image;
+            return ImageUtils.ToBitmap(data, true);
         }
 
         public IRenderEngine Engine => _engine;

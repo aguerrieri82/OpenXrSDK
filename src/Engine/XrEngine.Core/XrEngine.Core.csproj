@@ -17,31 +17,27 @@
 
 	<ItemGroup>
 		<PackageReference Include="SharpEXR" Version="1.0.0.19" />
-		<PackageReference Include="SkiaSharp" Version="3.0.0-preview.4.1" />
+		<PackageReference Include="SkiaSharp" Version="3.118.0-preview.1.2" />
 		<PackageReference Include="System.Net.Http" Version="4.3.4" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<NativeLibrary Runtime="win-$(NativePlatform)" Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" />
-		<NativeLibrary Runtime="android-arm64" Include="..\XrEngine.Native\libs\arm64-v8a\*" />
+		<NativeLibrary Runtime="android-arm64" Include=".$(NativeLibsDir)xrengine-native\android-arm64\*" />
 	</ItemGroup>
 	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content Include="$(NativeLibsDir)xrengine-native\android-arm64\*.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
 		<Content Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-		<Content Include="..\XrEngine.Native\libs\arm64-v8a\libxrengine-native.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
 		<Content Include="..\XrEngine.Native\bin\$(NativePlatform)\$(NativeFolder)\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
-		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\XrEngine.Native\libs\arm64-v8a\*.so" />
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)xrengine-native\android-arm64\*.so" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="Shaders\PbrV2\uniforms.glsl" />
-	</ItemGroup>
-
-
-	<ItemGroup>
+	  <ProjectReference Include="..\..\Common\Common.Interop\Common.Interop.csproj" />
 	  <ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
 	  <ProjectReference Include="..\..\Common\XrMath\XrMath.csproj" />
 	  <ProjectReference Include="..\MeshOptimizer\MeshOptimizer.csproj" />

@@ -1,8 +1,10 @@
 ﻿namespace XrEngine.OpenGL
 {
-    public interface IGlRenderPass
+    public interface IGlRenderPass : IDisposable, IRenderPass
     {
-        void Render();
+        void Configure(RenderContext ctx);
+
+        void Render(RenderContext ctx);
 
         bool IsEnabled { get; set; }
     }

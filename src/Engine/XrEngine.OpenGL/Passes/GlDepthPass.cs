@@ -15,21 +15,21 @@ namespace XrEngine.OpenGL
             UseOcclusion = true;
         }
 
-        protected override bool BeginRender()
+
+
+        protected override bool BeginRender(Camera camera)
         {
-            _renderer.RenderTarget!.Begin();
-            _renderer.State.SetView(_renderer.RenderView);
-
+            _renderer.RenderTarget!.Begin(camera);
             _renderer.State.SetWriteDepth(true);
-            _renderer.GL.Clear(ClearBufferMask.DepthBufferBit);
-            _renderer.GL.DepthFunc(DepthFunction.Less);
-            return base.BeginRender();
 
+            _gl.Clear(ClearBufferMask.DepthBufferBit);
+            _gl.DepthFunc(DepthFunction.Less);
+
+            return base.BeginRender(camera);
         }
 
         protected override void EndRender()
         {
-
         }
 
         protected override ShaderMaterial CreateMaterial()
@@ -44,19 +44,16 @@ namespace XrEngine.OpenGL
 
         protected override IEnumerable<GlLayer> SelectLayers()
         {
-            yield return _renderer.Layers[0];
+            return _renderer.Layers.Where(a => a.Type == GlLayerType.Opaque).Take(1);
         }
 
         protected override void Draw(DrawContent draw)
         {
             if (UseOcclusion)
             {
-                draw.Query ??= draw.Object!.GetOrCreateProp(OpenGLRender.Props.GlQuery, () => new GlQuery(_renderer.GL));
-
+                draw.Query ??= draw.Object!.GetOrCreateProp(OpenGLRender.Props.GlQuery, () => new GlQuery(_gl));
                 draw.Query!.Begin(QueryTarget.AnySamplesPassed);
-
                 draw.Draw!();
-
                 draw.Query.End();
             }
             else

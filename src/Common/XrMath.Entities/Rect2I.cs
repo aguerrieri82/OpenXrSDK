@@ -7,6 +7,12 @@
 
         }
 
+        public Rect2I(Size2I size)
+        {
+            Width = size.Width;
+            Height = size.Height;
+        }
+
         public Rect2I(int x, int y, uint width, uint height)
         {
             X = x;
@@ -14,6 +20,8 @@
             Width = width;
             Height = height;
         }
+
+        public Size2I Size => new Size2I(Width, Height);
 
         public int X;
 

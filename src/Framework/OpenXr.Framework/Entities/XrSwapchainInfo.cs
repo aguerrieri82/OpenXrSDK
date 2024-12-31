@@ -1,4 +1,5 @@
-﻿using Silk.NET.OpenXR;
+﻿using Common.Interop;
+using Silk.NET.OpenXR;
 
 namespace OpenXr.Framework
 {

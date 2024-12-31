@@ -14,7 +14,7 @@ cmake -G Ninja .. -DCMAKE_TOOLCHAIN_FILE=%NDK_HOME%\build\cmake\android.toolchai
 	 
 ninja install
 
-copy install\lib\libmeshoptimizer.so ..\..\..\libs\meshoptimizer\android-arm64
+copy install\lib\libmeshoptimizer.so ..\..\..\libs\meshoptimizer\android-arm64\libmeshoptimizer-native.so
 	 
 cd..
 md out-win
@@ -30,4 +30,4 @@ cmake -G Ninja .. ^
 ninja install
 
 
-copy install\bin\meshoptimizer.dll ..\..\..\libs\meshoptimizer\win-x64
+copy install\bin\meshoptimizer.dll ..\..\..\libs\meshoptimizer\win-x64\meshoptimizer-native.dll

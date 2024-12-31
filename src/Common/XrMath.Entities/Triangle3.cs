@@ -4,11 +4,17 @@ namespace XrMath
 {
     public struct Triangle3
     {
-        public Vector3 V0;
+        public Triangle3()
+        {
 
-        public Vector3 V1;
+        }
 
-        public Vector3 V2;
+        public Triangle3(Vector3 v0, Vector3 v1, Vector3 v2)
+        {
+            V0 = v0;
+            V1 = v1;
+            V2 = v2;
+        }
 
         public Vector3 this[int index]
         {
@@ -30,5 +36,28 @@ namespace XrMath
                 yield return V2;
             }
         }
+
+        public IEnumerable<uint> Indices
+        {
+            get
+            {
+                yield return I0;
+                yield return I1;
+                yield return I2;
+            }
+        }
+
+        public Vector3 V0;
+
+        public Vector3 V1;
+
+        public Vector3 V2;
+
+        public uint I0;
+
+        public uint I1;
+
+        public uint I2;
+
     }
 }

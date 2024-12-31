@@ -26,7 +26,9 @@ namespace XrEditor
             _sceneView.RenderSurface.PointerDown += OnPointerDown;
             _sceneView.RenderSurface.PointerUp += OnPointerUp;
             _sceneView.RenderSurface.PointerMove += OnPointerMove;
-            _sceneView.RenderSurface.WheelMove += OnWheelMove; ;
+            _sceneView.RenderSurface.WheelMove += OnWheelMove;
+
+
         }
 
 

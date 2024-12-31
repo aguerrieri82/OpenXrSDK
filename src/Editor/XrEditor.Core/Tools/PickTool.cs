@@ -1,4 +1,6 @@
-﻿using XrEngine;
+﻿using OpenXr.Framework;
+using System.Collections.Concurrent;
+using XrEngine;
 using XrInteraction;
 using XrMath;
 
@@ -10,6 +12,14 @@ namespace XrEditor
         protected Color? _oldColor;
         protected Collision? _lastCollision;
         protected RayPointerStatus _lastRay;
+        protected bool _isPicking;
+        protected IViewHitTest? _hitTest;
+        protected readonly ConcurrentBag<Collision> _collisions = [];
+
+        public PickTool()
+        {
+
+        }
 
         public override void NotifySceneChanged()
         {
@@ -22,12 +32,9 @@ namespace XrEditor
         RayPointerStatus IRayPointer.GetPointerStatus()
         {
             var result = _lastRay;
-            //TODO need more handlers, i cannot deactivate
-            //_lastRay.IsActive = false;
+            result.IsActive = XrApp.Current == null || !XrApp.Current.IsStarted;
             return result;
         }
-
-
 
         protected void UpdateRay(Pointer2Event ev)
         {
@@ -55,12 +62,48 @@ namespace XrEditor
 
             UpdateRay(ev);
 
-            _lastCollision = (await AppDispatcher.ExecuteAsync(() => _sceneView.Scene.RayCollisions(_lastRay.Ray)))
-                           .OrderBy(a => a.Distance)
-                           .FirstOrDefault();
+            if (_isPicking)
+                return;
 
+            Context.TryRequire(out _hitTest);
 
-            var newPick = _lastCollision?.Object;
+            _isPicking = true;
+
+            Object3D? newPick = null;
+
+            await AppDispatcher.ExecuteAsync(() =>
+            {
+                if (_hitTest != null)
+                {
+                    var result = _hitTest.HitTest((uint)ev.Position.X, (uint)ev.Position.Y);
+                    if (result.Object == null)
+                        _lastCollision = null;
+                    else
+                    {
+                        _lastCollision = new Collision
+                        {
+                            Object = result.Object,
+                            Normal = result.Normal,
+                            Point = result.Pos,
+                            LocalPoint = result.Object!.ToLocal(result.Pos),
+                        };
+                    }
+
+                }
+                else
+                {
+                    _sceneView.Scene.RayCollisions(_lastRay.Ray, _collisions);
+
+                    _lastCollision = _collisions.OrderBy(a => a.Distance)
+                                                .FirstOrDefault();
+                }
+
+                newPick = _lastCollision?.Object;
+
+                _isPicking = false;
+
+            }).ConfigureAwait(false);
+
 
             if (newPick != null && !CanPick(newPick))
                 newPick = null;
@@ -89,7 +132,6 @@ namespace XrEditor
                 mat.Color = _oldColor.Value;
                 mat.NotifyChanged(ObjectChangeType.Render);
             }
-
         }
 
         protected virtual void OnEnter(Object3D obj)
@@ -119,7 +161,12 @@ namespace XrEditor
                 _sceneView.ActiveTool = null;
         }
 
+        public bool IsCaptured => _sceneView?.ActiveTool == this;
+
         int IRayPointer.PointerId => -100;
 
+        string IRayPointer.Name => "Mouse";
+
+        bool IDrawGizmos.IsEnabled => _isActive;
     }
 }

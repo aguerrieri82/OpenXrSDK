@@ -11,13 +11,23 @@ namespace XrEngine
         protected VertexData[] _vertices;
         protected uint[] _indices;
 
+
         public Geometry3D()
         {
             _boundsDirty = true;
             ActiveComponents = VertexComponent.Position;
+            Primitive = DrawPrimitive.Triangle;
             _indices = [];
             _vertices = [];
 
+        }
+
+        public override void GeneratePath(List<string> parts)
+        {
+            if (_hosts.Count > 0)
+                _hosts.First().GeneratePath(parts);
+            parts.Add("Geometry");
+            base.GeneratePath(parts);
         }
 
         public void Attach(EngineObject host)
@@ -27,7 +37,14 @@ namespace XrEngine
 
         public void Detach(EngineObject host)
         {
+            Detach(host, false);
+        }
+
+        public void Detach(EngineObject host, bool dispose)
+        {
             _hosts.Remove(host);
+            if (dispose && _hosts.Count == 0)
+                Dispose();
         }
 
         protected override void SetStateWork(IStateContainer container)
@@ -72,14 +89,7 @@ namespace XrEngine
                 Vertices[i].Normal = Vertices[i].Normal.Transform(normalMatrix).Normalize();
             }
 
-            Version++;
-        }
-
-        public void FreeBuffers()
-        {
-            UpdateBounds();
-            Indices = [];
-            Vertices = [];
+            NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public void Rebuild()
@@ -95,7 +105,7 @@ namespace XrEngine
             Vertices = vertices;
             Indices = [];
 
-            Version++;
+            NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public void UpdateBounds()
@@ -129,7 +139,8 @@ namespace XrEngine
         {
             for (int i = 0; i < _vertices.Length; i++)
                 _vertices[i].UV *= scale;
-            Version++;
+
+            NotifyChanged(ObjectChangeType.Geometry);
         }
 
         public Bounds3 Bounds
@@ -140,6 +151,40 @@ namespace XrEngine
                     UpdateBounds();
                 return _bounds;
             }
+        }
+
+        protected override void OnChanged(ObjectChange change)
+        {
+            if (change.IsAny(ObjectChangeType.Geometry))
+                _boundsDirty = true;
+
+            base.OnChanged(change);
+        }
+
+        public void NotifyLoaded()
+        {
+            if (!this.Is(EngineObjectFlags.GpuOnly))
+                return;
+
+            if (_boundsDirty)
+                UpdateBounds();
+
+            _indices = [];
+            _vertices = [];
+        }
+
+        public Geometry3D Clone()
+        {
+            var result = new Geometry3D();
+            result.Vertices = new VertexData[_vertices.Length];
+            Array.Copy(_vertices, result.Vertices, _vertices.Length);
+            result.Indices = new uint[_indices.Length];
+            Array.Copy(_indices, result.Indices, _indices.Length);
+            result.ActiveComponents = ActiveComponents;
+            result._bounds = _bounds;
+            result._boundsDirty = _boundsDirty;
+
+            return result;
         }
 
         public IReadOnlySet<EngineObject> Hosts => _hosts;
@@ -157,5 +202,7 @@ namespace XrEngine
             get => _vertices;
             set => _vertices = value;
         }
+
+        public DrawPrimitive Primitive { get; set; }
     }
 }

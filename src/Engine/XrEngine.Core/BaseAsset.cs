@@ -10,8 +10,6 @@
         protected TOptions? _options;
         protected TLoader _loader;
 
-
-
         public BaseAsset(TLoader loader, string name, Type type, Uri source, TOptions? options)
         {
             _loader = loader;

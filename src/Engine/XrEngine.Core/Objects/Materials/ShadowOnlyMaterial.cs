@@ -8,13 +8,10 @@ namespace XrEngine.Objects
 
         static ShadowOnlyMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "shadow_only.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
                 IsLit = false,
-                UpdateHandler = StandardVertexShaderHandler.Instance
             };
         }
 
@@ -30,18 +27,14 @@ namespace XrEngine.Objects
         {
             var mode = bld.Context.ShadowMapProvider!.Options.Mode;
 
-            bld.AddFeature("USE_SHADOW_MAP");
-
-            if (mode == ShadowMapMode.HardSmooth)
-                bld.AddFeature("SMOOTH_SHADOW_MAP");
-
             bld.ExecuteAction((ctx, up) =>
             {
+                if (bld.Context.ShadowMapProvider.ShadowMap != null)
+                    up.LoadTexture(bld.Context.ShadowMapProvider.ShadowMap, 14);
+
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uShadowColor", ShadowColor);
-                up.SetUniform("uShadowMap", ctx.ShadowMapProvider!.ShadowMap!, 14);
-                up.SetUniform("uLightSpaceMatrix", ctx.ShadowMapProvider!.LightCamera!.ViewProjection);
             });
         }
 

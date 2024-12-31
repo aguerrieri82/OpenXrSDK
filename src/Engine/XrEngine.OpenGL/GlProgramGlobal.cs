@@ -7,11 +7,12 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public class GlProgramGlobal : IBufferProvider
+    public class GlProgramGlobal : IBufferProvider, IDisposable
     {
-        protected readonly Dictionary<string, IGlBuffer> _buffers = [];
+        protected readonly GlBufferMap _bufferMap = new(32);
         protected readonly GL _gl;
         protected List<IShaderHandler> _handlers = [];
+        protected IShaderHandler?[] _lastGlobalHandler = [];
 
         public GlProgramGlobal(GL gl, Shader shader)
         {
@@ -22,20 +23,24 @@ namespace XrEngine.OpenGL
         public void UpdateProgram(UpdateShaderContext ctx, params IShaderHandler?[] globalHandlers)
         {
             ctx.BufferProvider = this;
-            ctx.LastUpdate = Update;
+            ctx.LastGlobalUpdate = Update;
 
-            if (Update == null)
+            var handlersChanged = !_lastGlobalHandler.SequenceEqual(globalHandlers);
+
+            if (Update == null || handlersChanged)
             {
+                _lastGlobalHandler = globalHandlers;
+
                 _handlers = [];
 
-                if (Shader.UpdateHandler != null)
-                    _handlers.Add(Shader.UpdateHandler);
+                if (Shader is IShaderHandler shaderHandler)
+                    _handlers.Add(shaderHandler);
 
                 foreach (var handler in globalHandlers.Where(a => a != null))
                     _handlers.Add(handler!);
             }
 
-            var needUpdate = Update == null || _handlers.Any(a => a.NeedUpdateShader(ctx));
+            var needUpdate = Update == null || handlersChanged || _handlers.Any(a => a.NeedUpdateShader(ctx));
 
             if (needUpdate)
             {
@@ -47,6 +52,7 @@ namespace XrEngine.OpenGL
                 Update = globalBuilder.Result;
                 Update.LightsHash = ctx.LightsHash;
                 Update.ShaderHandlers = globalHandlers;
+                Update.ShaderVersion = Shader.Version;
 
                 Version++;
             }
@@ -55,12 +61,16 @@ namespace XrEngine.OpenGL
                 action(ctx);
         }
 
-        public IBuffer GetBuffer<T>(string name, bool isGlobal)
+        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store)
         {
-            if (!_buffers.TryGetValue(name, out var buffer))
+            if (store != BufferStore.Shader)
+                throw new InvalidOperationException("Invalid buffer store");
+
+            var buffer = (IBuffer<T>?)_bufferMap.Buffers[bufferId];
+            if (buffer == null)
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
-                _buffers[name] = buffer;
+                _bufferMap.Buffers[bufferId] = (IGlBuffer)buffer;
             }
             return buffer;
         }
@@ -72,6 +82,10 @@ namespace XrEngine.OpenGL
 
             foreach (var action in Update.Actions!)
                 action(ctx, uniformProvider);
+        }
+
+        public void Dispose()
+        {
         }
 
         public ShaderUpdate? Update { get; set; }

@@ -7,10 +7,20 @@ namespace CanvasUI
 
     public enum UiPointerButton
     {
+        None = 0,
         Left = 0x1,
         Middle = 0x2,
         Right = 0x4
     }
+
+    public enum UiModifier
+    {
+        None = 0,
+        Ctrl = 0x1,
+        Alt = 0x2,
+        Shift = 0x4
+    }
+
 
     public enum UiEventType
     {
@@ -55,6 +65,8 @@ namespace CanvasUI
         public Vector2 WindowPosition;
 
         public UiPointerButton Buttons;
+
+        public UiModifier Modifiers;
 
         public int WheelDelta;
     }

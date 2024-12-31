@@ -23,29 +23,29 @@ namespace XrEngine.Gltf
             return uri.IsAbsoluteUri ? uri.LocalPath : uri.ToString();
         }
 
-        public bool CanHandle(Uri uri, out Type resType)
+        public bool CanHandle(Uri uri, out Type assetType)
         {
             if (uri.Scheme == "res" && uri.Host == "gltf")
             {
                 var seg = uri.Segments.FirstOrDefault();
                 if (seg == "/tex")
                 {
-                    resType = typeof(Texture2D);
+                    assetType = typeof(Texture2D);
                     return true;
                 }
                 if (seg == "/geo")
                 {
-                    resType = typeof(Geometry3D);
+                    assetType = typeof(Geometry3D);
                     return true;
                 }
                 if (seg == "/mat")
                 {
-                    resType = typeof(PbrV1Material);
+                    assetType = MaterialFactory.DefaultPbr;
                     return true;
                 }
                 if (seg == "/mesh")
                 {
-                    resType = typeof(Object3D);
+                    assetType = typeof(Object3D);
                     return true;
                 }
             }
@@ -53,11 +53,11 @@ namespace XrEngine.Gltf
             var ext = Path.GetExtension(uri.ToString());
             if (ext == ".glb" || ext == ".gltf")
             {
-                resType = typeof(Object3D);
+                assetType = typeof(Object3D);
                 return true;
             }
 
-            resType = typeof(object);
+            assetType = typeof(object);
 
             return false;
         }
@@ -100,7 +100,7 @@ namespace XrEngine.Gltf
                     case "tex":
                         var texId = int.Parse(uri.Segments[2].TrimEnd('/'));
                         //TODO pass extensions
-                        result = cache.Loader!.ProcessTexture(cache.Loader.Model!.Textures[texId], texId, null, (Texture2D?)destObj);
+                        result = cache.Loader!.ProcessTextureTask(texId, null, (Texture2D?)destObj).Result;
                         break;
                     case "geo":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
@@ -110,11 +110,11 @@ namespace XrEngine.Gltf
                         break;
                     case "mat":
                         var matId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessMaterialV2(cache.Loader!.Model!.Materials[matId], matId, (PbrV2Material?)destObj);
+                        result = cache.Loader!.ProcessMaterialV2(matId, (PbrV2Material?)destObj);
                         break;
                     case "mesh":
                         meshId = int.Parse(uri.Segments[2].TrimEnd('/'));
-                        result = cache.Loader!.ProcessMesh(cache.Loader!.Model!.Meshes[meshId], meshId, (TriangleMesh?)destObj);
+                        result = cache.Loader!.ProcessMesh(meshId, (TriangleMesh?)destObj);
                         break;
                     default:
                         throw new NotSupportedException();
@@ -138,7 +138,7 @@ namespace XrEngine.Gltf
             cache.Loader!.ExecuteLoadTasks();
 
             if (!UseCache)
-                cache.Loader.Unload();
+                cache.Loader.Dispose();
 
             return result;
         }

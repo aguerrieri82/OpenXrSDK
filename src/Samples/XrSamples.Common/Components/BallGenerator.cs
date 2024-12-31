@@ -41,7 +41,7 @@ namespace XrSamples
 
         protected TriangleMesh NewBall()
         {
-            var ball = new TriangleMesh(Sphere3D.Default, Material);
+            var ball = new TriangleMesh(IsoSphere3D.Default, Material);
             ball.Transform.SetScale(0.02f);
             ball.Name = "Ball " + _balls.Count;
 
@@ -60,7 +60,7 @@ namespace XrSamples
             rigidBody.ContactReportThreshold = PhysicSettings.ContactReportThreshold;
             rigidBody.ContactOffset = PhysicSettings.ContactOffset;
 
-            rigidBody.Material = new PhysicsMaterialInfo
+            rigidBody.MaterialInfo = new PhysicsMaterialInfo
             {
                 Restitution = PhysicSettings.Restitution,
                 StaticFriction = 0.8f,

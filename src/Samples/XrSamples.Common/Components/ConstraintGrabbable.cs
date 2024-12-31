@@ -1,11 +1,11 @@
 ﻿using XrEngine;
 using XrEngine.OpenXr;
 
-namespace XrSamples.Components
+namespace XrSamples
 {
     public class ConstraintGrabbable : BoundsGrabbable
     {
-        public override void OnMove()
+        public override void NotifyMove()
         {
             _host!.Transform.SetPositionY(_host.Transform.LocalPivot.Y * _host.Transform.Scale.Y);
 
@@ -14,7 +14,7 @@ namespace XrSamples.Components
             rot.Z = 0;
             _host.Transform.Rotation = rot;
 
-            base.OnMove();
+            base.NotifyMove();
         }
     }
 }

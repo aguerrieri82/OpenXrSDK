@@ -8,17 +8,19 @@ using Silk.NET.OpenGL;
 namespace XrEngine.OpenGL
 {
 
-    public class GlBuffer<T> : GlObject, IGlBuffer
+    public class GlBuffer<T> : GlObject, IGlBuffer, IBuffer<T>
     {
         protected readonly BufferTargetARB _target;
-        protected uint _length;
+        protected uint _arrayLength;
 
 
         public unsafe GlBuffer(GL gl, BufferTargetARB target)
              : base(gl)
         {
             _target = target;
-            Hash = "";
+            Hash = string.Empty;
+            Version = -1;
+            Slot = 0;
             Create();
         }
 
@@ -33,19 +35,40 @@ namespace XrEngine.OpenGL
             _handle = _gl.GenBuffer();
         }
 
-        public unsafe void Update(IntPtr data, int size, bool wait)
+        public unsafe void Update(nint data, uint sizeBytes, bool wait)
         {
             Bind();
 
-            var byteSpan = new ReadOnlySpan<byte>((byte*)data, size);
+            var newArrayLen = sizeBytes / (uint)sizeof(T);
 
-            var usage = _target == BufferTargetARB.UniformBuffer ? BufferUsageARB.StreamDraw : BufferUsageARB.StaticDraw;
+            if (_arrayLength != newArrayLen || _target == BufferTargetARB.UniformBuffer)
+            {
+                var usage = _target == BufferTargetARB.UniformBuffer ? BufferUsageARB.StreamDraw : BufferUsageARB.StaticDraw;
+                _gl.BufferData(_target, sizeBytes, (void*)data, usage);
+            }
+            else
+            {
+                var pDst = Map(MapBufferAccessMask.WriteBit);
+                EngineNativeLib.CopyMemory(data, (nint)pDst, sizeBytes);
+                Unmap();
+            }
 
-            _gl.BufferData(_target, byteSpan, usage);
-
-            _length = (uint)size;
+            _arrayLength = newArrayLen;
 
             Unbind();
+        }
+
+        public unsafe T* Map(MapBufferAccessMask access)
+        {
+            var ptr = _gl.MapBufferRange(_target, 0, (nuint)(_arrayLength * sizeof(T)), access);
+            if (ptr == null)
+                throw new InvalidOperationException("MapBufferRange return NULL");
+            return (T*)ptr;
+        }
+
+        public void Unmap()
+        {
+            _gl.UnmapBuffer(_target);
         }
 
         public unsafe void Update(ReadOnlySpan<T> data)
@@ -53,13 +76,13 @@ namespace XrEngine.OpenGL
             if (data.Length > 0)
             {
                 fixed (T* pData = &data[0])
-                    Update(new nint(pData), data.Length * sizeof(T), true);
+                    Update((nint)pData, (uint)(data.Length * sizeof(T)), true);
             }
 
-            _length = (uint)data.Length;
+            _arrayLength = (uint)data.Length;
         }
 
-        unsafe void IBuffer.Update(object value)
+        public unsafe void Update(T value)
         {
             if (value is IDynamicBuffer dynamic)
             {
@@ -68,19 +91,23 @@ namespace XrEngine.OpenGL
             }
             else
             {
-                var data = (T)value;
-                Update(new nint(&data), sizeof(T), true);
+                Update((nint)(&value), (uint)sizeof(T), true);
             }
+        }
+
+        unsafe void IBuffer.Update(object value)
+        {
+            Update((T)value);
         }
 
         public void Bind()
         {
-            _gl.BindBuffer(_target, _handle);
+            GlState.Current!.BindBuffer(_target, _handle);
         }
 
         public void Unbind()
         {
-            _gl.BindBuffer(_target, 0);
+            GlState.Current!.BindBuffer(_target, 0);
         }
 
 
@@ -88,17 +115,31 @@ namespace XrEngine.OpenGL
         {
             if (_handle != 0)
             {
+                GlState.Current!.BindBuffer(_target, 0);
                 _gl.DeleteBuffer(_handle);
-                _handle = 0;
             }
-            GC.SuppressFinalize(this);
+
+            base.Dispose();
+        }
+
+        public unsafe void Allocate(uint length)
+        {
+            if (_arrayLength == length)
+                return;
+
+            _gl.BufferData(_target, (nuint)(length * sizeof(T)), null, BufferUsageARB.StreamDraw);
+            _arrayLength = length;
         }
 
         public string Hash { get; set; }
 
+        public long Version { get; set; }
+
+        public int Slot { get; set; }
+
         public BufferTargetARB Target => _target;
 
-        public uint Length => _length;
+        public uint ArrayLength => _arrayLength;
 
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    [AttributeUsage(AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
     public class RangeAttribute : Attribute
     {
         public RangeAttribute(float min, float max, float step)

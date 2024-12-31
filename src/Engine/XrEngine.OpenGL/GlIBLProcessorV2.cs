@@ -49,22 +49,22 @@ namespace XrEngine.OpenGL
                 MipLevelCount = maxMipLevels;
 
             _panToCubeProg = new GlComputeProgram(_gl,
-                shaderResolver("PbrV2/equirect2cube_cs.glsl"),
+                "IblV2/equirect2cube_cs.glsl",
                 shaderResolver);
 
             _panToCubeProg.Build();
 
             void AddFilter(string shader, Distribution distribution)
             {
-                var prog = new GlComputeProgram(_gl, shaderResolver(shader), shaderResolver);
+                var prog = new GlComputeProgram(_gl, shader, shaderResolver);
                 prog.AddFeature($"SAMPLE_COUNT {SampleCount * (distribution == Distribution.Irradiance ? 64 : 1)}u");
                 prog.Build();
                 _filterProg[distribution] = prog;
             }
 
-            AddFilter("PbrV2/irmap_cs.glsl", Distribution.Irradiance);
-            AddFilter("PbrV2/spbrdf_cs.glsl", Distribution.GGXLut);
-            AddFilter("PbrV2/spmap_cs.glsl", Distribution.GGX);
+            AddFilter("IblV2/irmap_cs.glsl", Distribution.Irradiance);
+            AddFilter("IblV2/spbrdf_cs.glsl", Distribution.GGXLut);
+            AddFilter("IblV2/spmap_cs.glsl", Distribution.GGX);
         }
 
         public void PanoramaToCubeMap()
@@ -74,7 +74,7 @@ namespace XrEngine.OpenGL
 
             _panToCubeProg!.Use();
 
-            GlState.Current!.SetActiveTexture(_inputTexture!, 0);
+            GlState.Current!.LoadTexture(_inputTexture!, 0);
 
             _panToCubeProg.SetUniform("inputTexture", 0);
 
@@ -94,7 +94,7 @@ namespace XrEngine.OpenGL
         {
             var program = _filterProg![distribution];
 
-            GlState.Current!.SetActiveTexture(_inputTexture!, 0);
+            GlState.Current!.LoadTexture(_inputTexture!, 0);
 
             var mipCount = distribution == Distribution.GGX ? MipLevelCount : 1;
 
@@ -108,7 +108,7 @@ namespace XrEngine.OpenGL
 
             program.SetUniform("inputTexture", 0);
 
-            GlState.Current.SetActiveTexture(_cubeMapId!, TextureTarget.TextureCubeMap, 0);
+            GlState.Current.LoadTexture(_cubeMapId!, TextureTarget.TextureCubeMap, 0);
 
 
             var res = Resolution;
@@ -169,7 +169,7 @@ namespace XrEngine.OpenGL
             else
                 format = data.Format;
 
-            res.Update(data.Width, data.Height, 1, format, data.Compression, [data]);
+            res.Update(1, data);
 
             return res;
         }

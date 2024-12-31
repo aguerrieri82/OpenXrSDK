@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using XrEngine.Layers;
 
 namespace XrEngine
 {
@@ -31,21 +30,16 @@ namespace XrEngine
             return true;
         }
 
-        public override void NotifyChanged(Object3D obj, ObjectChange change)
+        protected override void NotifyChangedWork(Object3D sender, ObjectChange change)
         {
-            if (!IsEnabled)
-                return;
-
-            
-            if (obj is T tObj && AffectChange(change))
+            if (sender is T tObj && AffectChange(change))
             {
+                EngineApp.Current!.Stats.LayerChanges++;
                 if (change.IsAny(ObjectChangeType.SceneRemove) || !BelongsToLayer(tObj))
                     Remove(tObj);
                 else
                     Add(tObj);
             }
-
-            base.NotifyChanged(obj, change);
         }
 
         protected bool Contains(T obj)
@@ -59,8 +53,8 @@ namespace XrEngine
             if (Contains(obj))
                 return;
             _content.Add(obj);
-            _manager?.NotifyObjectAdded(this, obj);
             _version++;
+            OnAdded(obj);
         }
 
         protected void Remove(T obj)
@@ -68,13 +62,22 @@ namespace XrEngine
             if (!Contains(obj))
                 return;
             _content.Remove(obj);
-            _manager?.NotifyObjectRemoved(this, obj);
             _version++;
+            OnRemoved(obj);
+        }
+
+        protected virtual void OnRemoved(T obj)
+        {
+            _manager?.NotifyObjectRemoved(this, obj);
+            OnChanged(obj, Layer3DChangeType.Removed);
+        }
+
+        protected virtual void OnAdded(T obj)
+        {
+            _manager?.NotifyObjectAdded(this, obj);
+            OnChanged(obj, Layer3DChangeType.Added);
         }
 
         protected abstract bool BelongsToLayer(T obj);
-
-
-
     }
 }

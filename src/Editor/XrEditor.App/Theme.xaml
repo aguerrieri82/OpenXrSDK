@@ -6,7 +6,9 @@
 
     <SolidColorBrush x:Key="Yellow">#FBC02D</SolidColorBrush>
 
-
+    <SolidColorBrush x:Key="PrimaryColor">#303F9F</SolidColorBrush>
+    <SolidColorBrush x:Key="PrimaryColorContrast">#FFFFFF</SolidColorBrush>
+    
     <Style TargetType="Button" x:Key="IconButton">
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Background" Value="Transparent"/>

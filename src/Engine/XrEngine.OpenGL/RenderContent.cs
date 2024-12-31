@@ -9,14 +9,17 @@
 
     public class VertexContent
     {
+        public readonly List<DrawContent> Contents = [];
+
         public GlVertexSourceHandle? VertexHandler;
 
         public VertexComponent ActiveComponents;
 
-
-        public readonly List<DrawContent> Contents = [];
+        public int RenderPriority;
 
         public float AvgDistance;
+
+        public bool IsHidden;
     }
 
     public class DrawContent
@@ -39,16 +42,8 @@
 
     public class RenderContent
     {
-        public IList<Light>? Lights;
-
         public long LayerVersion;
 
-        public long ImageLightVersion = -1;
-
-        public string LightsHash = "";
-
         public readonly Dictionary<Shader, ShaderContent> ShaderContents = [];
-
-        public readonly List<KeyValuePair<Shader, ShaderContent>> ShaderContentsOrder = [];
     }
 }

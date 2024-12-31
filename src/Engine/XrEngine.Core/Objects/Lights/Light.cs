@@ -16,9 +16,6 @@ namespace XrEngine
             if (change.IsAny(ObjectChangeType.Property, ObjectChangeType.Transform))
                 change.Type |= ObjectChangeType.Render;
 
-            if (change.IsAny(ObjectChangeType.Render))
-                Version++;
-
             base.OnChanged(change);
         }
 

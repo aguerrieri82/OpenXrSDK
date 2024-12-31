@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Common.Interop;
+using System.Diagnostics;
 using VirtualCamera.IPCamera;
 using XrEngine.Video.Abstraction;
 using XrMath;
@@ -80,7 +81,7 @@ namespace XrEngine.Video
                     }
                 }
 
-                _videoCodec = Context.RequireInstance<IVideoCodec>();
+                _videoCodec = Context.RequireNew<IVideoCodec>();
                 _videoCodec.OutTexture = OutTexture;
 
                 Log.Debug(this, "Rtsp: Open Codec");
@@ -132,11 +133,11 @@ namespace XrEngine.Video
             {
                 try
                 {
-                    if ((DateTime.Now - _lastPingTime).TotalSeconds > timeout)
+                    if ((DateTime.UtcNow - _lastPingTime).TotalSeconds > timeout)
                     {
                         Log.Debug(this, "Rtsp: Ping");
                         _client?.GetParameter(_streamName!, _session);
-                        _lastPingTime = DateTime.Now;
+                        _lastPingTime = DateTime.UtcNow;
                     }
 
                     var nalData = _h264Stream?.ReadNalUnit();
@@ -150,7 +151,7 @@ namespace XrEngine.Video
 
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //Log.Error(this, ex);
                 }
@@ -177,17 +178,17 @@ namespace XrEngine.Video
                         data.Width = FrameSize.Width;
                         data.Height = FrameSize.Height;
                         data.Format = TextureFormat.Rgba32;
-                        data.Data = new Memory<byte>(_dstBuffer.ByteArray);
+                        data.Data = MemoryBuffer.Create(_dstBuffer.ByteArray);
                     }
 
                     _frameCount++;
 
-                    var time = (DateTime.Now - _frameCountStart).TotalSeconds;
-                    if ((DateTime.Now - _frameCountStart).TotalSeconds > 3)
+                    var time = (DateTime.UtcNow - _frameCountStart).TotalSeconds;
+                    if ((DateTime.UtcNow - _frameCountStart).TotalSeconds > 3)
                     {
                         Log.Info(this, "Fps: {0}", (_frameCount / time));
                         _frameCount = 0;
-                        _frameCountStart = DateTime.Now;
+                        _frameCountStart = DateTime.UtcNow;
                     }
 
                     return true;

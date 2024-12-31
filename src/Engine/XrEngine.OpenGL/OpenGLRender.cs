@@ -6,27 +6,28 @@ using Silk.NET.OpenGL;
 using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 #endif
 
-
 using System.Text;
 using XrMath;
 using SkiaSharp;
 using System.Runtime.InteropServices;
-using XrEngine.Layers;
+using System.Diagnostics;
+using System.Numerics;
 
 namespace XrEngine.OpenGL
 {
-    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, IShadowMapProvider
+    public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, ITextureFilterProvider
     {
         protected Scene3D? _lastScene;
+        protected long _lastLightLayerVersion;
         protected IGlRenderTarget? _target;
         protected Rect2I _view;
-        protected UpdateShaderContext _updateCtx;
-        protected GlLayer? _mainLayer;
+
         protected GRContext? _grContext;
         protected GlTextureRenderTarget? _texRenderTarget = null;
-
+        protected Dictionary<string, GlComputeProgram> _computePrograms = [];
         protected long _lastLayersVersion;
 
+        protected readonly GlUpdateContext _updateCtx;
         protected readonly int _maxTextureUnits;
         protected readonly GL _gl;
         protected readonly GlState _glState;
@@ -36,6 +37,7 @@ namespace XrEngine.OpenGL
         protected readonly IList<IGlRenderPass> _renderPasses = [];
         protected readonly GlDefaultRenderTarget _defaultTarget;
         protected readonly GlShadowPass? _shadowPass;
+        protected readonly Thread _thread;
 
         public static class Props
         {
@@ -69,10 +71,9 @@ namespace XrEngine.OpenGL
             _lastLayersVersion = -1;
             _target = _defaultTarget;
 
-            _updateCtx = new UpdateShaderContext
+            _updateCtx = new GlUpdateContext
             {
                 RenderEngine = this,
-                ShadowMapProvider = this
             };
 
             _dispatcher = new QueueDispatcher();
@@ -81,6 +82,7 @@ namespace XrEngine.OpenGL
             {
                 _shadowPass = new GlShadowPass(this);
                 _renderPasses.Add(_shadowPass);
+                _updateCtx.ShadowMapProvider = _shadowPass;
             }
 
             if (_options.UseDepthPass)
@@ -91,10 +93,22 @@ namespace XrEngine.OpenGL
                 });
             }
 
+            if (_options.UsePlanarReflection)
+                _renderPasses.Add(new GlReflectionPass(this));
+
             _renderPasses.Add(new GlColorPass(this));
 
             if (_options.Outline.Use)
+            {
                 _renderPasses.Add(new GlOutlinePass(this));
+            }
+
+            if (_options.UseHitTest)
+            {
+                var hitTest = new GlHitTestPass(this);
+                _renderPasses.Add(hitTest);
+                Context.Implement<IViewHitTest>(hitTest);
+            }
 
             _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
 
@@ -109,7 +123,7 @@ namespace XrEngine.OpenGL
         {
             _glState.Reset();
 
-            GL.DrawBuffers(GlState.DRAW_COLOR_0);
+            _glState.SetDrawBuffers(GlState.DRAW_COLOR_0);
         }
 
         public unsafe void EnableDebug()
@@ -119,7 +133,7 @@ namespace XrEngine.OpenGL
                if (SuspendErrors > 0)
                    return;
 
-               unsafe
+               try
                {
                    var span = new Span<byte>((void*)msg, len);
                    var text = Encoding.UTF8.GetString(span);
@@ -129,7 +143,12 @@ namespace XrEngine.OpenGL
                    /*
                    Debug.WriteLine($"\n\n\n");
                    Debug.WriteLine($"------ OPENGL: {text}");
-                   Debug.WriteLine($"\n\n\n");*/
+                   Debug.WriteLine($"\n\n\n");
+                   */
+               }
+               catch
+               {
+
                }
            }, null);
 
@@ -144,6 +163,7 @@ namespace XrEngine.OpenGL
             _glState.EnableFeature(EnableCap.Dither, true);
             _glState.EnableFeature(EnableCap.Multisample, true);
             _glState.EnableFeature(EnableCap.ScissorTest, false);
+            _glState.EnableFeature(EnableCap.ProgramPointSize, true);
         }
 
         public void ConfigureCaps(ShaderMaterial material)
@@ -160,7 +180,9 @@ namespace XrEngine.OpenGL
 
             _glState.SetStencilFunc((GlStencilFunction)material.StencilFunction);
             _glState.SetWriteStencil(material.WriteStencil);
-            _glState.SetStencilRef(material.CompareStencil);
+            _glState.SetStencilRef(material.CompareStencilMask);
+
+            _glState.EnableFeature(EnableCap.ClipDistance0, material.UseClipDistance);
 
             _glState.UpdateStencil();
 
@@ -172,34 +194,94 @@ namespace XrEngine.OpenGL
 
         #region RENDER
 
-        public T? Pass<T>() where T : IGlRenderPass
+        public IEnumerable<T> Passes<T>() where T : IGlRenderPass
         {
-            return _renderPasses.OfType<T>().FirstOrDefault();
+            return _renderPasses.OfType<T>();
         }
+
+        public void AddPass(IGlRenderPass pass, int position)
+        {
+            _renderPasses.Insert(position, pass);
+        }
+
+        protected void UpdateLights(Scene3D scene)
+        {
+            var lights = scene.EnsureLayer<LightLayer>();
+
+            if (_lastLightLayerVersion == lights.Version)
+                return;
+
+            _updateCtx.Lights = [];
+            _updateCtx.LightsHash = "";
+
+            foreach (var light in scene.Descendants<Light>().Visible())
+            {
+                _updateCtx.Lights.Add(light);
+
+                if (light is ImageLight imgLight)
+                {
+                    if (imgLight.Panorama?.Data != null && imgLight.Panorama.Version != _updateCtx.ImageLightVersion)
+                    {
+                        var options = PanoramaProcessorOptions.Default();
+
+                        options.SampleCount = 1024;
+                        options.Resolution = 256;
+                        options.Mode = IblProcessMode.GGX | IblProcessMode.Lambertian;
+
+                        imgLight.Textures = ProcessPanoramaIBL(imgLight.Panorama.Data[0], options);
+                        imgLight.Panorama.NotifyLoaded();
+                        imgLight.NotifyIBLCreated();
+
+                        _updateCtx.ImageLightVersion = imgLight.Panorama.Version;
+
+                        ResetState();
+                    }
+                }
+
+                _updateCtx.LightsHash += light.GetType().Name + "|";
+            }
+
+            _lastLightLayerVersion = lights.Version;
+        }
+
 
         protected void UpdateLayers(Scene3D scene)
         {
             if (_lastScene != scene || _lastLayersVersion != scene.Layers.Version)
             {
+                foreach (var layer in _layers)
+                    layer.Dispose();
+
                 _layers.Clear();
 
-                _mainLayer = new GlLayer(this, scene, GlLayerType.Main);
-
-                _layers.Add(_mainLayer);
+                var opaque = scene.EnsureLayer<OpaqueLayer>();
+                _layers.Add(new GlLayer(this, scene, GlLayerType.Opaque, opaque));
 
                 foreach (var layer in scene.Layers.Layers.OfType<DetachedLayer>())
                     _layers.Add(new GlLayer(this, scene, GlLayerType.Custom, layer));
 
-                var blend = scene.Layers.OfType<BlendLayer>().FirstOrDefault();
-                if (blend != null)
-                    _layers.Add(new GlLayer(this, scene, GlLayerType.Blend, blend));
+                var blend = scene.EnsureLayer<BlendLayer>();
+                _layers.Add(new GlLayer(this, scene, GlLayerType.Blend, blend));
 
                 if (_options.ShadowMap.Mode != ShadowMapMode.None)
                 {
-                    var castShadowLayer = scene.Layers.Layers.OfType<CastShadowsLayer>().FirstOrDefault();
-                    if (castShadowLayer != null)
-                        _layers.Add(new GlLayer(this, scene, GlLayerType.CastShadow, castShadowLayer));
+                    var castShadowLayer = scene.EnsureLayer<CastShadowsLayer>();
+                    scene.EnsureLayer<ReceiveShadowsLayer>();
+                    _layers.Add(new GlLayer(this, scene, GlLayerType.CastShadow, castShadowLayer));
                 }
+
+                if (_options.UsePlanarReflection)
+                {
+                    scene.EnsureLayer<HasReflectionLayer>();
+                    _layers.Add(new GlLayer(this, scene, GlLayerType.FullReflection, opaque));
+                }
+
+                if (_options.UseVolume)
+                {
+                    var volume = scene.EnsureLayer<VolumeLayer>();
+                    _layers.Add(new GlLayer(this, scene, GlLayerType.Volume, volume));
+                }
+
 
                 _lastScene = scene;
                 _lastLayersVersion = scene.Layers.Version;
@@ -208,7 +290,7 @@ namespace XrEngine.OpenGL
             foreach (var layer in _layers)
             {
                 if (layer.NeedUpdate)
-                    layer.Update();
+                    layer.Rebuild();
             }
         }
 
@@ -228,33 +310,48 @@ namespace XrEngine.OpenGL
             _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
-        public void Render(Scene3D scene, Camera camera, Rect2I view, bool flush)
+        public void Render(RenderContext ctx, Rect2I view, bool flush)
         {
             if (_target != null)
-                Render(scene, camera, view, _target, flush);
+                Render(ctx, view, _target, flush);
         }
 
-        public void Render(Scene3D scene, Camera camera, Rect2I view, IGlRenderTarget target, bool flush)
+        public void PushGroup(string message)
+        {
+            _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, (uint)message.Length, message);
+
+        }
+
+        public void Render(RenderContext ctx, Rect2I view, IGlRenderTarget target, bool flush)
         {
             EnsureThread();
+
+            Debug.Assert(ctx.Scene != null && ctx.Camera != null);
 
             _target = target;
             _view = view;
 
-            _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin Render {(target == null ? "Default" : target.GetType().Name)}");
+            PushGroup($"Render {(target == null ? "Default" : target.GetType().Name)}");
 
-            UpdateLayers(scene);
+            UpdateLayers(ctx.Scene);
 
-            _updateCtx.Camera = camera;
-            _updateCtx.Lights = _mainLayer!.Content.Lights;
-            _updateCtx.LightsHash = _mainLayer.Content.LightsHash;
-            _updateCtx.FrustumPlanes = camera.FrustumPlanes();
+            UpdateLights(ctx.Scene);
+
+            _updateCtx.PassCamera = ctx.Camera;
+            _updateCtx.MainCamera = ctx.Camera;
+            _updateCtx.Frame = ctx.Frame;
+            _updateCtx.ContextVersion++;
+
+            foreach (var pass in _renderPasses)
+                pass.Configure(ctx);
 
             foreach (var pass in _renderPasses)
             {
-                _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, unchecked((uint)-1), $"Begin Pass {pass.GetType().Name}");
+                _updateCtx.Pass = pass;
 
-                pass.Render();
+                PushGroup($"Pass {pass.GetType().Name}");
+
+                pass.Render(ctx);
 
                 _gl.PopDebugGroup();
             }
@@ -263,11 +360,12 @@ namespace XrEngine.OpenGL
 
             _target.End(true);
 
-           
             if (flush)
-                _gl.Finish();
+                _gl.Flush();
 
             _gl.PopDebugGroup();
+
+            //new GlBenchmark(_gl).Bench();   
         }
 
         public void SetRenderTarget(Texture2D? texture)
@@ -324,8 +422,8 @@ namespace XrEngine.OpenGL
             _glState.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, 0, true);
             _glState.BindFrameBuffer(FramebufferTarget.Framebuffer, 0, true);
 
-            _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
+            _glState.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
+            _glState.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
 
             ConfigureCaps();
         }
@@ -371,7 +469,7 @@ namespace XrEngine.OpenGL
 
             var props = new SKSurfaceProperties(SKPixelGeometry.RgbVertical);
 
-            return SKSurface.Create(_grContext, grTexture, ImageUtils.GetFormat(texture.Format), props);
+            return SKSurface.Create(_grContext, grTexture, ImageUtils.GetSkFormat(texture.Format), props);
         }
 
         #endregion
@@ -455,14 +553,14 @@ namespace XrEngine.OpenGL
 
             result.Env = (TextureCube)_gl.TexIdToEngineTexture(processor.OutCubeMapId);
 
-            if ((options.Mode & IBLProcessMode.Lambertian) == IBLProcessMode.Lambertian)
+            if ((options.Mode & IblProcessMode.Lambertian) == IblProcessMode.Lambertian)
             {
                 var texId = processor.ApplyFilter(GlIBLProcessorV2.Distribution.Irradiance);
 
                 result.LambertianEnv = (TextureCube)_gl.TexIdToEngineTexture(texId);
             }
 
-            if ((options.Mode & IBLProcessMode.GGX) == IBLProcessMode.GGX)
+            if ((options.Mode & IblProcessMode.GGX) == IblProcessMode.GGX)
             {
                 var ggx = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGX);
                 var ggxLut = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGXLut);
@@ -476,18 +574,6 @@ namespace XrEngine.OpenGL
             return result;
         }
 
-
-        #endregion
-
-        #region IShadowMapProvider
-
-        Texture2D? IShadowMapProvider.ShadowMap => _shadowPass?.DepthTexture;
-
-        Camera? IShadowMapProvider.LightCamera => _shadowPass?.LightCamera;
-
-        DirectionalLight? IShadowMapProvider.Light => _shadowPass?.Light;
-
-        ShadowMapOptions IShadowMapProvider.Options => _options.ShadowMap;
 
         #endregion
 
@@ -532,6 +618,7 @@ namespace XrEngine.OpenGL
             {
                 glDepth.MinFilter = TextureMinFilter.Nearest;
                 glDepth.MagFilter = TextureMagFilter.Nearest;
+
                 glDepth.Bind();
                 _gl.TexParameter(glDepth.Target, TextureParameterName.TextureMinFilter, (int)GLEnum.Nearest);
                 _gl.TexParameter(glDepth.Target, TextureParameterName.TextureMagFilter, (int)GLEnum.Nearest);
@@ -552,12 +639,32 @@ namespace XrEngine.OpenGL
             return allExt.Split(' ');
         }
 
-
-
         public void Dispose()
         {
-        }
+            foreach (var pass in _renderPasses)
+                pass.Dispose();
+            _renderPasses.Clear();
 
+            foreach (var program in _computePrograms)
+                program.Value.Dispose();
+
+            _computePrograms.Clear();
+
+            foreach (var layer in _layers)
+                layer.Dispose();
+
+            foreach (var program in GlProgramInstance._programs)
+                program.Value.Dispose();
+            GlProgramInstance._programs.Clear();
+
+            foreach (var texture in GlTexture._attached)
+                texture.Value.Dispose();
+            GlTexture._attached.Clear();
+
+            GlProgramInstance._programs.Clear();
+
+            GC.SuppressFinalize(this);
+        }
 
         public void Suspend()
         {
@@ -567,6 +674,37 @@ namespace XrEngine.OpenGL
         {
         }
 
+        public void Kernel3x3(Texture2D src, Texture2D dst, float[] data)
+        {
+            if (!_computePrograms.TryGetValue("Kernel3x3", out var program))
+            {
+                program = new GlComputeProgram(_gl, "Image/Kernel3x3.glsl", str => Embedded.GetString<Material>(str));
+                program.Build();
+                _computePrograms["Kernel3x3"] = program;
+            }
+
+            var curProgram = _glState.ActiveProgram;
+
+            program.Use();
+
+            program.SetUniform("texelSize", new Vector2(1f / dst.Width, 1f / dst.Height));
+            program.SetUniform("weights", data);
+
+            var dstGl = dst.ToGlTexture();
+
+            program.LoadTexture(src, 10);
+
+            _gl.BindImageTexture(0, dst.ToGlTexture(), 0, true, 0, BufferAccessARB.WriteOnly, dstGl.InternalFormat);
+
+            _gl.DispatchCompute((dst.Width + 15) / 16, (dst.Height + 15) / 16, src.Depth);
+
+            _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
+
+            _glState.SetActiveProgram(curProgram ?? 0);
+        }
+
+
+
         #endregion
 
         public IReadOnlyList<GlLayer> Layers => _layers;
@@ -575,13 +713,11 @@ namespace XrEngine.OpenGL
 
         public GlState State => _glState;
 
-        public UpdateShaderContext UpdateContext => _updateCtx;
+        public GlUpdateContext UpdateContext => _updateCtx;
 
         public IDispatcher Dispatcher => _dispatcher;
 
         public IGlRenderTarget? RenderTarget => _target;
-
-        public Rect2I RenderView => _view;
 
         public GlRenderOptions Options => _options;
 
@@ -590,6 +726,6 @@ namespace XrEngine.OpenGL
 
         [ThreadStatic]
         public static OpenGLRender? Current;
-        private readonly Thread _thread;
+
     }
 }

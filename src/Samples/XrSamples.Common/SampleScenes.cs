@@ -1,4 +1,5 @@
 ﻿using CanvasUI;
+using DrumsVR.Game;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using PhysX;
@@ -7,30 +8,25 @@ using RoomDesigner.Game;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using XrEngine;
+using XrEngine.AI;
 using XrEngine.Audio;
+using XrEngine.Components;
 using XrEngine.Compression;
+using XrEngine.Devices;
 using XrEngine.Gltf;
+using XrEngine.Helpers;
 using XrEngine.Objects;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
-using XrEngine.Services;
 using XrEngine.UI;
-using XrEngine.UI.Web;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
 
-/* Unmerged change from project 'XrSamples.Common (net9.0-android)'
-Removed:
-using Silk.NET.Windowing;
-using static XrEngine.PbrV1Material;
-using XrEngine.OpenGL;
-using XrEngine.Objects;
-*/
-
 
 #if !ANDROID
 using XrEngine.Browser.Win;
+using XrEngine.UI.Web;
 #endif
 
 namespace XrSamples
@@ -67,7 +63,6 @@ namespace XrSamples
             });
 
             var pl1 = scene.AddChild(new PointLight());
-            pl1.Name = "point-light-1";
             pl1.Transform.Position = new Vector3(0, 2, 0);
             pl1.Intensity = 0.3f;
 
@@ -80,7 +75,7 @@ namespace XrSamples
 
             var camera = new PerspectiveCamera
             {
-                Far = 30f,
+                Far = 100f,
                 Near = 0.01f,
                 BackgroundColor = new Color(0, 0, 0, 0),
                 Exposure = 1
@@ -125,7 +120,7 @@ namespace XrSamples
         public static XrEngineAppBuilder UseDefaultHDR(this XrEngineAppBuilder builder)
         {
             if (DefaultHDR == null)
-                DefaultHDR = "res://asset/Envs/footprint_court.hdr";
+                DefaultHDR = "res://asset/Envs/StudioTomoco.hdr";
             return builder.UseEnvironmentHDR(DefaultHDR, DefaultShowHDR);
         }
 
@@ -135,7 +130,6 @@ namespace XrSamples
             {
                 var inputs = e.GetInputs<XrOculusTouchController>();
 
-
                 obj.AddBehavior((_, _) =>
                 {
                     var click = inputs.Right!.Button!.AClick!;
@@ -143,7 +137,7 @@ namespace XrSamples
                     {
                         var scene = obj.Scene!;
                         obj.WorldPosition = scene.ActiveCamera!.WorldPosition + scene.ActiveCamera.Forward * distance;
-                        obj.Transform.Orientation = scene.ActiveCamera!.Transform.Orientation;
+                        obj.WorldOrientation = scene.ActiveCamera!.WorldOrientation;
                     }
                 });
             });
@@ -162,14 +156,10 @@ namespace XrSamples
 
             panel.Size = new Size2(0.8f, 0.5f);
             panel.DpiScale = 1.6f;
-
             panel.Content = uiRoot;
             panel.WorldPosition = new Vector3(0, 1, 0);
 
-            //panel.AddComponent(new FollowCamera() { Offset = new Vector3(0f, -0.0f, -1f) });
-
             return builder
-                .AddRightPointer()
                 .UseClickMoveFront(panel, 0.5f)
                 .ConfigureApp(e =>
                 {
@@ -181,15 +171,15 @@ namespace XrSamples
                 });
         }
 
-        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder, bool showDepth)
+        public static XrEngineAppBuilder AddFloorShadow(this XrEngineAppBuilder builder, float size = 4, bool showDepth = false)
         {
-            var floor = new TriangleMesh(new Cube3D(new Vector3(10, 0.01f, 10)));
+            var floor = new TriangleMesh(new Cube3D(new Vector3(size, 0.01f, size)));
             floor.Name = "Floor";
             floor.Materials.Add(new ShadowOnlyMaterial
             {
                 Name = "FloorMaterial",
+                ShadowColor = new Color(1f, 0.1f, 0.1f, 0.7f),
             });
-
 
             floor.Transform.SetPositionY(-0.01f / 2.0f);
 
@@ -210,12 +200,13 @@ namespace XrSamples
                     if (mat.Texture == null)
                     {
                         mat.Texture = sp.ShadowMap;
-                        mat.Version++;
+                        mat.NotifyChanged(ObjectChangeType.Render);
                     }
+
                     if (mat.Camera == null)
                     {
                         mat.Camera = sp.LightCamera;
-                        mat.Version++;
+                        mat.NotifyChanged(ObjectChangeType.Render);
                     }
 
                 });
@@ -245,18 +236,21 @@ namespace XrSamples
             return builder.AddPanel(new T());
         }
 
-        static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder)
+        static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder, bool usePt = true)
         {
             builder.AddXrRoot()
                    .UseHands()
                    .UseLeftController()
                    .UseRightController()
-                   .UseInputs<XrOculusTouchController>(a => a.AddAction(b => b.Right!.Haptic))
+                   .AddRightPointer()
+                   .UseInputs<XrOculusTouchController>(a => a
+                       .AddAction(b => b.Right!.Haptic)
+                       .AddAction(b => b.Left!.Haptic))
                    .UseRayCollider()
                    .UseGrabbers();
 
-            //if (!IsEditor)
-            builder.AddPassthrough();
+            if (!IsEditor && usePt)
+                builder.AddPassthrough();
             return builder;
         }
 
@@ -286,7 +280,6 @@ namespace XrSamples
 
             return builder.UseApp(app)
               .ConfigureSampleApp()
-              .AddRightPointer()
               .UseClickMoveFront(display, 0.5f);
 #else
             return builder;
@@ -294,6 +287,59 @@ namespace XrSamples
 
         }
 
+
+        [Sample("Throw")]
+        public static XrEngineAppBuilder CreateThrow(this XrEngineAppBuilder builder)
+        {
+            var settings = new ThrowSettings();
+            var app = CreateBaseScene();
+            var scene = app.ActiveScene!;
+
+            var cube = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff00000"));
+            cube.Transform.SetScale(0.1f);
+            cube.AddComponent<BoundsGrabbable>();
+            cube.AddComponent<BoxCollider>();
+            cube.AddComponent<SpeedTracker>();
+
+            var rb = cube.AddComponent(new RigidBody()
+            {
+                Type = PhysicsActorType.Dynamic,
+                ToolMode = RigidBodyToolMode.KinematicTarget,
+                AutoTeleport = false,
+                Density = 100
+            });
+
+            scene.AddChild(cube);
+
+            XrPoseInput? pose = null;
+            XrBoolInput? pick = null;
+
+            cube.AddBehavior((_, _) =>
+            {
+                if (XrApp.Current != null)
+                {
+                    pose ??= (XrPoseInput?)XrApp.Current!.Inputs["RightGripPose"];
+                    pick ??= (XrBoolInput?)XrApp.Current!.Inputs["RightSqueezeClick"];
+                }
+
+                if (pick != null && pick.IsChanged && pick.Value)
+                {
+                    rb.Teleport(pose!.Value.Position);
+                    Context.Require<ITimeLogger>().Clear();
+                }
+            });
+
+            return builder
+              .UseApp(app)
+              .ConfigureSampleApp()
+              .UseDefaultHDR()
+              .UsePhysics(new PhysicsOptions
+              {
+
+              })
+              .AddPanel(new ThrowSettingsPanel(settings, scene))
+              .ConfigureApp(app => settings.Apply(app.App.ActiveScene!));
+        }
 
 
         [Sample("Display")]
@@ -364,11 +410,11 @@ namespace XrSamples
             //Rigid body
             var rigidBody = racket.AddComponent<RigidBody>();
             rigidBody.Type = PhysicsActorType.Kinematic;
-            rigidBody.Material = new PhysicsMaterialInfo();
+            rigidBody.MaterialInfo = new PhysicsMaterialInfo();
 
 
             //Ball generator
-            var bg = scene!.AddComponent(new BallGenerator(sound, 5f));
+            var bg = scene!.AddComponent(new BallGenerator(sound, 0f));
             bg.PhysicSettings = settings.Ball;
 
             //Sample ball
@@ -389,7 +435,7 @@ namespace XrSamples
 
             return builder
                    .UseApp(app)
-                   .UseSceneModel(true, true)
+                   .UseSceneMesh(true, true)
                    .ConfigureSampleApp()
                    .UseDefaultHDR()
                    .UsePhysics(new PhysicsOptions
@@ -404,7 +450,6 @@ namespace XrSamples
         [Sample("Chess")]
         public static XrEngineAppBuilder CreateChess(this XrEngineAppBuilder builder)
         {
-
             var app = CreateBaseScene();
 
             var scene = app.ActiveScene!;
@@ -494,7 +539,7 @@ namespace XrSamples
                 Alpha = AlphaMode.Blend,
             };
 
-            var mesh = new TriangleMesh(new Quad3D(new Size2(1, 1)), mat);
+            var mesh = new TriangleMesh(new Quad3D(), mat);
 
             mesh.Name = "mesh";
 
@@ -513,7 +558,7 @@ namespace XrSamples
                     DateTime lastUpdate = new DateTime();
                     mesh.AddBehavior(async (_, _) =>
                     {
-                        if (!e.XrApp.IsStarted || isLoading || ((DateTime.Now - lastUpdate).TotalSeconds < 1000))
+                        if (!e.XrApp.IsStarted || isLoading || ((DateTime.UtcNow - lastUpdate).TotalSeconds < 1000))
                             return;
 
                         isLoading = true;
@@ -553,7 +598,7 @@ namespace XrSamples
                         finally
                         {
                             isLoading = false;
-                            lastUpdate = DateTime.Now;
+                            lastUpdate = DateTime.UtcNow;
                         }
 
                     });
@@ -612,7 +657,7 @@ namespace XrSamples
 
             var mat2 = new TextureMaterial(videoTex);
 
-            var mesh = new TriangleMesh(new Quad3D(new Size2(1, 1)), mat);
+            var mesh = new TriangleMesh(new Quad3D(), mat);
 
             mesh.Transform.SetScale(1.3f);
             mesh.Transform.SetPosition(0, 1f, 0);
@@ -649,7 +694,7 @@ namespace XrSamples
                         if (window == null)
                             return;
 
-                        var loc = e.XrApp.LocateSpace(new Silk.NET.OpenXR.Space(window.Space), e.XrApp.Stage, e.XrApp.FramePredictedDisplayTime);
+                        var loc = e.XrApp.LocateSpace(new Silk.NET.OpenXR.Space(window.Space), e.XrApp.ReferenceSpace, e.XrApp.FramePredictedDisplayTime);
                         if (loc.IsValid)
                         {
                             var offset = mesh.GetProp<float>("Offset");
@@ -726,13 +771,12 @@ namespace XrSamples
             {
                 foreach (var mat in child.Materials)
                 {
-                    if (mat is IPbrMaterial pbr &&  pbr.Roughness == 0.2f)
+                    if (mat is IPbrMaterial pbr && pbr.Roughness == 0.2f)
                     {
                         //pbr.MetallicRoughness.RoughnessFactor = 0.2f;
-                        // pbr.MetallicRoughness.MetallicFactor = 0f;
+                        //pbr.MetallicRoughness.MetallicFactor = 0f;
                         //pbr.MetallicRoughness.MetallicRoughnessTexture = null;
                     }
-
                 }
             }
 
@@ -740,6 +784,71 @@ namespace XrSamples
 
             scene.PerspectiveCamera().Target = mesh.Transform.Position;
             scene.PerspectiveCamera().Transform.Position = new Vector3(0.2f, 1.4f, 0.2f);
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .ConfigureSampleApp();
+        }
+
+        [Sample("Window/Door")]
+        public static XrEngineAppBuilder CreateWindow(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var mesh = GltfLoader.LoadFile(GetAssetPath("Window.glb"), GltfOptions);
+            mesh.Name = "Window";
+            mesh.AddComponent(new GeometryScale
+            {
+                Min = new Vector3(0.7f, 1.1f, -0.045f),
+                Max = new Vector3(0.9f, 1.5f, -0.00f),
+            });
+
+            IPbrMaterial pbr;
+
+            foreach (var item in mesh.DescendantsOrSelf().OfType<TriangleMesh>())
+            {
+                if (item.Name == "Plane")
+                {
+                    pbr = MaterialFactory.CreatePbr(new Color(1, 1, 1, 0.4f));
+                    pbr.Alpha = AlphaMode.Blend;
+                    pbr.Roughness = 0;
+                    pbr.Metalness = 0;
+                    pbr.DoubleSided = true;
+                    item.Materials.Add((Material)pbr);
+                }
+
+                foreach (var material in item.Materials)
+                {
+                    if (material.Name == "Wood1024")
+                    {
+                        pbr = (IPbrMaterial)material;
+                        pbr.Color = "#96893F";
+                        pbr.Metalness = 0.8f;
+                        pbr.Roughness = 0.25f;
+                    }
+                    if (material.Name == "Metal1024")
+                    {
+                        pbr = (IPbrMaterial)material;
+                        pbr.Metalness = 0.9f;
+                        pbr.Roughness = 0.12f;
+                    }
+                    material.WriteStencil = 2;
+                }
+            }
+
+
+            var door = GltfLoader.LoadFile(GetAssetPath("Door.glb"), GltfOptions);
+            door.Name = "Door";
+            door.AddComponent(new GeometryScale
+            {
+                Min = new Vector3(-0.13f, 0.9f, -0.005f),
+                Max = new Vector3(0f, 1.14f, 0.01f),
+            });
+
+            scene.AddChild(door);
+
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
@@ -773,27 +882,15 @@ namespace XrSamples
                 material.WriteStencil = 1;
             }
 
-            var mesh3 = new TriangleMesh(new Arrow3D(), (Material)MaterialFactory.CreatePbr("#F00"));
-           
-            DirectionalLight? dirLight = null;
-            
-            mesh3.AddBehavior((_, _) =>
-            {
-                dirLight ??= mesh3.Scene!.Descendants<DirectionalLight>().FirstOrDefault();
-                if (dirLight == null)
-                    return;
-                mesh3.Forward = dirLight.Direction;
-            }); 
-
             scene.AddChild(mesh);
             scene.AddChild(mesh2);
-            scene.AddChild(mesh3);
+
 
             return builder
                 .UseApp(app)
                 //.UseSceneModel(false, false)
                 .UseDefaultHDR()
-                .AddFloorShadow(true)
+                .AddFloorShadow(4, true)
                 .UsePhysics(new PhysicsOptions())
                 .ConfigureSampleApp();
         }
@@ -903,12 +1000,20 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateRoomManager(this XrEngineAppBuilder builder)
         {
             builder.Configure(RoomDesignerApp.Build)
+                .UseRayCollider("Mouse")
                 .AddPassthrough()
+
             .ConfigureApp(app =>
             {
-                app.App.ActiveScene!.AddChild(new PlaneGrid(6f, 12f, 2f));
+                var scene = (RoomScene)app.App.ActiveScene!;
+                scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
-                var ui = (app.App as RoomDesignerApp)!.UiPanel!;
+                scene.AddComponent<DebugGizmos>();
+                scene.AddComponent<XrInputRecorder>();
+                scene.AddComponent<XrInputPlayer>();
+                scene.AddChild(new PlaneGrid(6f, 12f, 2f));
+
+                var ui = scene.UiPanel!;
 
 #if !ANDROID
                 var webView = new ChromeWebBrowserView
@@ -928,6 +1033,54 @@ namespace XrSamples
             return builder;
         }
 
+
+        [Sample("CreateDrums")]
+        public static XrEngineAppBuilder CreateDrums(this XrEngineAppBuilder builder)
+        {
+#if WINDOWS
+            Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
+            Context.Implement<IBleManager>(() => new XrEngine.Devices.Windows.WinBleManager());
+#else
+            Context.Implement<IBleManager>(() => new XrEngine.Devices.Android.AndroidBleManager());
+#endif
+            builder.Configure(DrumsVRApp.Build)
+                .UseRayCollider("Mouse")
+                .AddPassthrough()
+
+            .ConfigureApp(app =>
+            {
+                var drumApp = (DrumsVRApp)app.App;
+                var scene = (MainScene)app.App.ActiveScene!;
+                scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
+
+                scene.AddComponent<DebugGizmos>();
+                scene.AddComponent<XrInputRecorder>();
+                scene.AddComponent(new XrInputPlayer(new AIPosePredictor("d:\\pose_prediction_model")));
+                scene.AddChild(new PlaneGrid(6f, 12f, 2f));
+
+
+                var ui = scene.UiPanel!;
+
+#if !__ANDROID__
+                var webView = new ChromeWebBrowserView
+                {
+                    Size = new Size2I((uint)(ui.Transform.Scale.X * 1700), (uint)(ui.Transform.Scale.Y * 1700)),
+                    ZoomLevel = 0,
+                    RequestHandler = new FsWebRequestHandler("main", drumApp.Settings.UiBaseUri)
+                };
+
+                ui.AddComponent<SurfaceController>();
+                ui.AddComponent(webView);
+
+                drumApp.SetUIBrowser(webView.Browser);
+#endif
+            });
+
+
+            return builder;
+        }
+
+
         [Sample("Helmet")]
         public static XrEngineAppBuilder CreateHelmet(this XrEngineAppBuilder builder)
         {
@@ -943,14 +1096,397 @@ namespace XrSamples
             mesh.Transform.SetScale(0.4f);
             mesh.Transform.SetPositionY(1);
             mesh.AddComponent<BoundsGrabbable>();
+            mesh.UseEnvDepth(true);
 
 
             scene.AddChild(mesh);
 
             return builder
                 .UseApp(app)
+                .UseEnvironmentDepth()
                 .UseDefaultHDR()
                 .ConfigureSampleApp();
+        }
+
+        public static Material LoadMaterial(string url)
+        {
+            var gltf = (TriangleMesh)GltfLoader.LoadFile(GetAssetPath(url), GltfOptions);
+            return gltf.Materials[0];
+        }
+
+        [Sample("Scanner")]
+        public static XrEngineAppBuilder CreateScanner(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+            var scene = app.ActiveScene!;
+
+            var panel = new TextPanel();
+
+            var window = new Window3D();
+
+            window.Size = new Size2(0.05f, 0.02f);
+            window.DpiScale = 1.1f;
+            window.Content = panel;
+
+            var mat = new TextureClipMaterial();
+            mat.Alpha = AlphaMode.Blend;
+            window.Materials.Clear();
+            window.Materials.Add(mat);
+
+            bool isInit = false;
+
+            window.AddBehavior((a, b) =>
+            {
+                if (!isInit && window.ActiveTexture != null)
+                {
+                    mat.Texture = window.ActiveTexture;
+                    var size = new Vector2(window.ActiveTexture.Width, window.ActiveTexture.Height);
+                    var viewSize = new Vector2(scene.ActiveCamera!.ViewSize.Width, scene.ActiveCamera.ViewSize.Height);
+                    var relSize = 2 * size / viewSize;
+                    window.Transform.Scale = new Vector3(relSize.X, relSize.Y, 1);
+                    //window.Transform.Position = new Vector3(-1 + 0.2f + relSize.X / 2, 1 - 0.2f - relSize.Y / 2, 0);
+                    isInit = true;
+                }
+
+                if (panel.Text != null)
+                    panel.Text.Text = b.Frame.ToString();
+            });
+
+
+            var points = new PointMesh();
+            var depth = points.AddComponent(new DepthScanner
+            {
+                SavePath = Path.Join(XrPlatform.Current!.PersistentPath, "Scanner"),
+            });
+
+            scene.AddChild(points);
+            scene.AddChild(window);
+
+            return builder
+              .UseApp(app)
+              .UseDefaultHDR()
+              .ConfigureSampleApp(true)
+              .UseEnvironmentDepth()
+              .SetGlOptions(opt =>
+              {
+                  opt.FrustumCulling = false;
+              })
+              .ConfigureApp(a =>
+              {
+                  depth.ScanInput = a.Inputs!.Right!.TriggerClick;
+                  depth.ClearInput = a.Inputs!.Right.Button!.BClick;
+                  depth.HideInput = a.Inputs!.Right.Button!.AClick;
+              });
+        }
+
+
+        public static XrEngineAppBuilder CreateHeightMap(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+            var scene = app.ActiveScene!;
+            var mat = MaterialFactory.CreatePbr("#ffffff");
+            mat.Roughness = 0f;
+
+            /*
+            mat.ColorMap = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/waves.png");
+            mat.ColorMap.Transform = Matrix3x3.CreateScale(-1, 1);
+            mat.ColorMap.WrapS = WrapMode.Repeat;
+            mat.ColorMap.WrapT = WrapMode.Repeat;
+            mat.ColorMap.Format = TextureFormat.SBgra32;
+            */
+
+            if (mat is IHeightMaterial hm)
+            {
+                hm.HeightMap = new HeightMapSettings
+                {
+                    Texture = AssetLoader.Instance.Load<Texture2D>("res://asset/Earth/waves.png"),
+                    ScaleFactor = 0.3f,
+                    TargetTriSize = 5,
+                    DebugTessellation = false,
+                    NormalStrength = new Vector3(20,20,1),
+                    NormalMode = HeightNormalMode.Sobel
+                };
+
+                hm.HeightMap.Texture.WrapS = WrapMode.Repeat;
+                hm.HeightMap.Texture.WrapT = WrapMode.Repeat;
+                hm.HeightMap.Texture.MagFilter = ScaleFilter.Linear;
+                hm.HeightMap.Texture.MinFilter = ScaleFilter.Linear;
+
+                //mat.NormalMap = NormalMap.FromHeightMap(hm.HeightMap, 1f);
+                //mat.NormalMap.SaveAs("d:\\heightmap.png");
+            }
+
+            var quod = new QuadPatch3D(new Vector2(2, 1), 100);
+            //quod.ToTriangles();
+
+            var plane = new TriangleMesh(quod, (Material)mat);
+
+
+            scene.AddChild(plane);
+
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .ConfigureSampleApp();
+
+        }
+
+
+        [Sample("Car")]
+        public static XrEngineAppBuilder CreateCar(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+            var scene = app.ActiveScene!;
+            scene.ActiveCamera!.BackgroundColor = "#7C93DB";
+            scene.Id = Guid.Parse("9692f695-f53c-40c4-900a-d17ac94302d8");
+
+            //Physics
+            var pm = scene.AddComponent(new PhysicsManager(60));
+            pm.SetCollideGroup(RigidBodyGroup.Group1, CollideGroup.Never);
+            pm.SetCollideGroup(RigidBodyGroup.Group2, CollideGroup.Always);
+
+            scene.AddComponent(new InputPhysicsForce
+            {
+                InputName = "RightGripPose",
+                HandlerName = "RightSqueezeClick",
+                HapticName = "RightHaptic",
+                Tollerance = 0.01f,
+                Factor = 0.1f
+            });
+
+            scene.AddComponent(new InputPhysicsForce
+            {
+                InputName = "LeftGripPose",
+                HandlerName = "LeftSqueezeClick",
+                HapticName = "LeftHaptic",
+                Factor = 0.1f
+            });
+
+            //Material
+            var leather = (IPbrMaterial)LoadMaterial("Materials/xjekdbj_tier_2.gltf");
+            leather.Color = "#FF6400FF";
+            leather.DoubleSided = true;
+            leather.Color *= 2f;
+
+
+            var car = (Group3D)GltfLoader.LoadFile(GetAssetPath("car.glb"), GltfOptions, GetAssetPath);
+            car.Name = "car";
+
+            var bodyMeshes = new HashSet<TriangleMesh>();
+
+            //Fix model
+            foreach (var mat in car.DescendantsOrSelf().OfType<TriangleMesh>().SelectMany(a => a.Materials).Distinct())
+            {
+                if (mat is IPbrMaterial pbr)
+                {
+
+                    if (mat.Name!.Contains("glass"))
+                    {
+                        pbr.Color = "#00000020";
+                        pbr.Alpha = AlphaMode.Blend;
+                        pbr.AlphaCutoff = 0.2f;
+                    }
+                    if (mat.Name!.Contains("paint"))
+                    {
+                        pbr.Color = "#FF0100FF";
+                        pbr.Roughness = 0.15f;
+                        foreach (var host in mat.Hosts)
+                            bodyMeshes.Add((TriangleMesh)host);
+                    }
+                }
+            }
+
+            //Optimize  
+            foreach (var mesh in car.DescendantsOrSelf().OfType<TriangleMesh>())
+            {
+                Log.Info(typeof(SampleScenes), $"Optimizing {mesh.Name}");
+
+                if (mesh.Name != "reflect_mirrors.003" && mesh.Name != "reflect_mirror_int.003")
+                    XrEngine.MeshOptimizer.Simplify(mesh.Geometry!, 0.4f, 0.005f);
+
+                XrEngine.MeshOptimizer.OptimizeVertexCache(mesh.Geometry!);
+                XrEngine.MeshOptimizer.OptimizeOverdraw(mesh.Geometry!, 1.05f);
+                XrEngine.MeshOptimizer.OptimizeVertexFetch(mesh.Geometry!);
+
+                if (mesh.Name == "leather_armrest.007")
+                {
+                    mesh.Materials.Clear();
+                    mesh.Materials.Add((Material)leather);
+                }
+            }
+
+            car.UpdateBounds(true);
+
+            var scale = car.FindByName<Object3D>("body.003")!.Transform.Matrix;
+
+            //Simulation
+            var model = new CarModel
+            {
+                WheelFL = car.GroupByName("wheel.Ft.L.003", "wheelbrake.Ft.L.003"),
+                WheelFR = car.GroupByName("wheel.Ft.R.003", "wheelbrake.Ft.R.003"),
+                WheelBL = car.GroupByName("wheel.Bk.L.003", "wheelbrake.Bk.R.003"),
+                WheelBR = car.GroupByName("wheel.Bk.R.003", "wheelbrake.Bk.R.001"),
+                CarBody = car.GroupByName("body.003"),
+                SteeringWheel = car.GroupByName("leatherB_steering.003", "chrome_steering.003", "chrome_logo_steering.003", "texInt_steering.003"),
+                CarBodyCollisionMeshes = bodyMeshes,
+                UseSteeringPhysics = false,
+                GearBoxPose = new Pose3()
+                {
+                    Position = new Vector3(-0.1f, 0.61f, 0.1f),
+                    Orientation = Quaternion.Normalize(new Quaternion(1, 0f, 0f, 0.82f))
+                },
+                SeatLocalPose = new Pose3
+                {
+                    Position = new Vector3(-0.4f, 1.1f, 0.2f),
+                    Orientation = Quaternion.Identity
+                },
+                SteeringLocalPose = new Pose3
+                {
+                    Position = new Vector3(-0.428f, 0.926f, -0.062f),
+                    Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -19f / 180 * MathF.PI)
+                },
+            };
+
+            var mirror = car.FindByName<TriangleMesh>("plasticInt_mirror_int.003")!;
+
+            var splitter = new MeshSplitter(mirror)
+            {
+                SplittedName = "plasticInt_mirror_int_body-mirror",
+                FullIntersection = true,
+                Orientation = new Quaternion(0, 0, 0, 1),
+                Bounds = new Vector3(300, 97, 100),
+                Origin = new Vector3(24, -38, -42f)
+            };
+
+            splitter.ExecuteSplit();
+
+            var mainBody = (TriangleMesh)((Group3D)((Group3D)model.CarBody).Children[0]).Children[0];
+
+            splitter = new MeshSplitter(mainBody)
+            {
+                SplittedName = "mirror_left",
+                FullIntersection = true,
+                Orientation = new Quaternion(0, 0, 0, 1),
+                Bounds = new Vector3(300, 150, 230),
+                Origin = new Vector3(-1028, 470, -390)
+            };
+            splitter.ExecuteSplit();
+
+            splitter = new MeshSplitter(mainBody)
+            {
+                SplittedName = "mirror_right",
+                FullIntersection = true,
+                Orientation = new Quaternion(0, 0, 0, 1),
+                Bounds = new Vector3(300, 150, 230),
+                Origin = new Vector3(940.2f, 470, -390)
+            };
+            splitter.ExecuteSplit();
+
+            mirror = car.FindByName<TriangleMesh>("plastic_mirrors.003")!;
+            splitter = new MeshSplitter(mirror)
+            {
+                SplittedName = "plastic_mirrors_right",
+                FullIntersection = true,
+                Orientation = new Quaternion(0, 0, 0, 1),
+                Bounds = new Vector3(1000, 1000, 1000),
+                Origin = new Vector3(1000, 0, -500)
+            };
+            splitter.ExecuteSplit();
+
+            mirror = car.FindByName<TriangleMesh>("glassClear_mirrors.003")!;
+            splitter.SplittedName = "glassClear_mirrors_right";
+            splitter.Attach(mirror);
+            splitter.ExecuteSplit();
+
+            mirror = car.FindByName<TriangleMesh>("reflect_mirrors.003")!;
+            splitter.SplittedName = "reflect_mirrors_right";
+            splitter.Attach(mirror);
+            splitter.ExecuteSplit();
+
+
+            model.AddMirror(car.GroupByName(scale, "reflect_mirror_int.003", "plasticInt_mirror_int_body-mirror"),
+                new Ray3(new Vector3(-50, 640, -172), new Vector3(0, 0, 1)));
+            model.AddMirror(car.GroupByName(scale, "reflect_mirrors.003", "glassClear_mirrors.003", "plastic_mirrors.003", "mirror_left"),
+                new Ray3(new Vector3(-850, 390, -300), new Vector3(1, -0.87f, 0)));
+            model.AddMirror(car.GroupByName(scale, "reflect_mirrors_right", "glassClear_mirrors_right", "plastic_mirrors_right", "mirror_right"),
+              new Ray3(new Vector3(800, 390, -300), new Vector3(1, 0.87f, 0)));
+
+            car.AddComponent(model);
+
+            var checkerMat = (Material)MaterialFactory.CreatePbr(TextureFactory.CreateChecker());
+            var staticMat = new PhysicsMaterialInfo()
+            {
+                StaticFriction = 1f,
+                DynamicFriction = 1f,
+                Restitution = 0.2f
+            };
+
+            //Floor
+            var floor = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), checkerMat);
+            floor.Name = "floor";
+            floor.Transform.SetPositionY(-0.005f);
+            floor.Geometry!.ScaleUV(new Vector2(20, 20));
+            floor.AddComponent(new RigidBody
+            {
+                Type = PhysicsActorType.Static,
+                MaterialInfo = staticMat
+            });
+
+            //Ramp
+            var ramp = new TriangleMesh(new Cube3D(new Vector3(20, 0.01f, 20)), checkerMat);
+            ramp.Name = "ramp";
+            ramp.SetWorldPoseIfChanged(new Pose3()
+            {
+                Position = new Vector3(0f, 2.565f, -19.36f),
+                Orientation = new Quaternion(0.12981941f, 0f, 0f, 0.99153763f)
+            });
+            ramp.Geometry!.ScaleUV(new Vector2(20, 20));
+            ramp.AddComponent(new RigidBody
+            {
+                Type = PhysicsActorType.Static,
+                MaterialInfo = staticMat
+            });
+
+            //Wall
+            var wall = new TriangleMesh(new Cube3D(new Vector3(5, 3, 0.5f)), checkerMat);
+            wall.Name = "wall";
+            wall.Transform.Position = new Vector3(0, 1.5f, -5f);
+            wall.Geometry!.ScaleUV(new Vector2(5, 3));
+            wall.AddComponent(new RigidBody
+            {
+                Type = PhysicsActorType.Static,
+                MaterialInfo = staticMat
+            });
+
+            //Add children
+            scene.AddChild(floor);
+            scene.AddChild(ramp);
+            scene.AddChild(wall);
+            scene.AddChild(car);
+
+            //Create model
+            model.Create();
+            model.CarBody.Name = "car-body";
+
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .SetGlOptions(opt =>
+                {
+                    opt.UsePlanarReflection = true;
+                })
+                .ConfigureSampleApp(false)
+                .ConfigureApp(a =>
+                {
+                    a.XrApp.UseLocalSpace = true;
+                    model.ConfigureInput(a.Inputs!);
+
+                    //Point light
+                    var pl = scene.Descendants<PointLight>().First();
+                    pl.IsVisible = true;
+                    pl.Specular = new Color(0.1f, 0.1f, 0.1f, 1);
+                    pl.Intensity = 1f;
+                });
         }
 
 

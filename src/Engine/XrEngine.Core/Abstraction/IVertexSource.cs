@@ -4,10 +4,13 @@
     {
         Triangle,
         Line,
-        LineLoop
+        LineLoop,
+        Point,
+        Patch,
+        Quad
     }
 
-    public interface IVertexSource
+    public interface IVertexSource : ILayer3DItem
     {
         DrawPrimitive Primitive { get; }
 
@@ -16,6 +19,8 @@
         VertexComponent ActiveComponents { get; }
 
         EngineObject Object { get; }
+
+        int RenderPriority { get; }
 
         void NotifyLoaded();
     }

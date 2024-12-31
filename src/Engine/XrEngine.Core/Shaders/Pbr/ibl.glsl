@@ -1,13 +1,13 @@
-layout(std140) uniform Ibl {
+layout(std140, binding = 2) uniform Ibl {
     int MipCount;
     mat3 EnvRotation;
     float EnvIntensity;
 } uIBL;
 
+layout(binding=9)  uniform samplerCube uLambertianEnvSampler;
+layout(binding=10) uniform samplerCube uGGXEnvSampler;
+layout(binding=11) uniform sampler2D uGGXLUT;
 
-uniform samplerCube uLambertianEnvSampler;
-uniform samplerCube uGGXEnvSampler;
-uniform sampler2D uGGXLUT;
 uniform samplerCube uCharlieEnvSampler;
 uniform sampler2D uCharlieLUT;
 uniform sampler2D uSheenELUT;

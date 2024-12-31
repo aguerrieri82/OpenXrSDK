@@ -1,23 +1,41 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Common.Interop;
+using Microsoft.Extensions.Logging;
 using Silk.NET.OpenXR;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace OpenXr.Framework
 {
+    public unsafe ref struct RenderViewInfo
+    {
+        public Span<CompositionLayerProjectionView> ProjViews;
 
-    public unsafe delegate void RenderViewDelegate(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader*[] colorImages, SwapchainImageBaseHeader*[]? depthImages, XrRenderMode mode, long predTime);
+        public SwapchainImageBaseHeader*[] ColorImages;
+
+        public SwapchainImageBaseHeader*[]? DepthImages;
+
+        public XrRenderMode Mode;
+
+        public long DisplayTime;
+
+    }
+
+    public unsafe delegate void RenderViewDelegate(ref RenderViewInfo info);
 
     public unsafe class XrProjectionLayer : XrBaseLayer<CompositionLayerProjection>
     {
         protected readonly RenderViewDelegate? _renderView;
         protected XrSwapchainInfo[]? _swapchains;
         protected bool _useDepthSWC = false;
+        protected NativeArray<CompositionLayerDepthInfoKHR> _depthInfo;
+        protected NativeArray<CompositionLayerProjectionView> _projViews;
 
         XrProjectionLayer()
         {
-            _header->Type = StructureType.CompositionLayerProjection;
-            _header->LayerFlags =
+            _depthInfo = new NativeArray<CompositionLayerDepthInfoKHR>(2, typeof(CompositionLayerDepthInfoKHR));
+            _projViews = new NativeArray<CompositionLayerProjectionView>(2, typeof(CompositionLayerProjectionView));
+
+            _header.ValueRef.Type = StructureType.CompositionLayerProjection;
+            _header.ValueRef.LayerFlags =
                 CompositionLayerFlags.CorrectChromaticAberrationBit |
                 CompositionLayerFlags.BlendTextureSourceAlphaBit;
             Priority = 10;
@@ -29,22 +47,15 @@ namespace OpenXr.Framework
             _renderView = renderView;
         }
 
+        public override void Dispose()
+        {
+            _depthInfo.Dispose();
+            _projViews.Dispose();
+            base.Dispose();
+        }
+
         public override void Destroy()
         {
-            if (_header != null && _header->Views != null)
-            {
-                var viewCount = _xrApp?.ViewInfo!.ViewCount;
-
-                for (var i = 0; i < _header->ViewCount; i++)
-                {
-                    if (_header->Views[i].Next != null)
-                        Marshal.FreeHGlobal(new nint(_header->Views[i].Next));
-                }
-
-                Marshal.FreeHGlobal(new nint(_header->Views));
-
-                _header->Views = null;
-            }
 
             if (_swapchains != null)
             {
@@ -62,9 +73,9 @@ namespace OpenXr.Framework
                 _swapchains = null;
             }
 
-            _header->Space.Handle = 0;
-
+            _header.ValueRef.Space.Handle = 0;
         }
+
 
         public override void Create()
         {
@@ -91,14 +102,14 @@ namespace OpenXr.Framework
             base.Create();
         }
 
-        protected override bool Update(ref CompositionLayerProjection layer, ref View[] views, long predTime)
+        protected override bool Update(ref CompositionLayerProjection layer, ref View[] views, long displayTime)
         {
             Debug.Assert(_xrApp != null);
             Debug.Assert(_swapchains != null);
 
             if (layer.Views == null)
             {
-                layer.Views = (CompositionLayerProjectionView*)Marshal.AllocHGlobal(sizeof(CompositionLayerProjectionView) * views.Length);
+                layer.Views = _projViews.ItemPointer(0);
                 layer.ViewCount = (uint)views.Length;
 
                 for (var i = 0; i < views.Length; i++)
@@ -126,7 +137,7 @@ namespace OpenXr.Framework
 
                     if (_useDepthSWC)
                     {
-                        var depthInfo = (CompositionLayerDepthInfoKHR*)Marshal.AllocHGlobal(sizeof(CompositionLayerDepthInfoKHR));
+                        var depthInfo = _depthInfo.ItemPointer(i);
                         depthInfo->Type = StructureType.CompositionLayerDepthInfoKhr;
                         depthInfo->MinDepth = 0;
                         depthInfo->MaxDepth = 1;
@@ -156,18 +167,24 @@ namespace OpenXr.Framework
                     {
                         projView.SubImage.ImageArrayIndex = 0;
                     }
+
+                    UpdateView(ref projView, i);
                 }
             }
 
             var projViews = new Span<CompositionLayerProjectionView>(layer.Views, (int)layer.ViewCount);
 
             if (_renderView != null)
-                return Render(ref projViews, ref views, _swapchains, predTime);
+                return Render(ref projViews, ref views, _swapchains, displayTime);
 
             return false;
         }
 
-        protected bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
+        protected virtual void UpdateView(ref CompositionLayerProjectionView projView, int index)
+        {
+        }
+
+        protected virtual bool Render(ref Span<CompositionLayerProjectionView> projViews, ref View[] views, XrSwapchainInfo[] swapchains, long predTime)
         {
             var colorImages = new SwapchainImageBaseHeader*[swapchains.Length];
             var depthImages = _useDepthSWC ? new SwapchainImageBaseHeader*[swapchains.Length] : null;
@@ -197,7 +214,16 @@ namespace OpenXr.Framework
 
             try
             {
-                _renderView!(ref projViews, colorImages, depthImages, _xrApp!.RenderOptions.RenderMode, predTime);
+                var info = new RenderViewInfo
+                {
+                    ProjViews = projViews,
+                    ColorImages = colorImages,
+                    DepthImages = depthImages,
+                    Mode = _xrApp!.RenderOptions.RenderMode,
+                    DisplayTime = predTime
+                };
+
+                _renderView!(ref info);
             }
             catch (Exception ex)
             {

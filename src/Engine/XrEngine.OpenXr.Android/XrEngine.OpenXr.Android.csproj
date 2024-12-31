@@ -1,14 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	  <TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
-	  <SupportedOSPlatformVersion>$(AndroidPlatform)</SupportedOSPlatformVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>$(CoreVersion)-android</TargetFrameworks>
+		<SupportedOSPlatformVersion>$(AndroidPlatform)</SupportedOSPlatformVersion>
+		<IsTrimmable>false</IsTrimmable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
-    <ProjectReference Include="..\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
-    <ProjectReference Include="..\XrEngine.UI.Web\XrEngine.UI.Web.csproj" />
-  </ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
+		<ProjectReference Include="..\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
+		<ProjectReference Include="..\XrEngine.UI.Web\XrEngine.UI.Web.csproj" />
+	</ItemGroup>
 
 </Project>

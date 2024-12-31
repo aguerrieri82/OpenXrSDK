@@ -10,7 +10,7 @@ namespace XrEngine
         Start
     }
 
-    public class EngineApp
+    public class EngineApp : IAsyncDisposable
     {
         protected readonly HashSet<Scene3D> _scenes = [];
         protected readonly RenderContext _context;
@@ -18,6 +18,7 @@ namespace XrEngine
         protected Scene3D? _activeScene;
         protected readonly EngineAppStats _stats;
         protected PlayState _playState;
+        protected Thread? _renderThread;
         protected readonly QueueDispatcher _dispatcher;
         protected readonly HashSet<IObjectChangeListener> _changeListeners = [];
 
@@ -58,11 +59,13 @@ namespace XrEngine
         {
             if (_playState == PlayState.Start)
                 return;
+
             if (_playState == PlayState.Stop)
             {
-                _context.StartTime = new TimeSpan(DateTime.Now.Ticks);
+                _context.StartTime = new TimeSpan(DateTime.UtcNow.Ticks);
                 _context.Frame = 0;
             }
+
             _playState = PlayState.Start;
 
             OnStarted();
@@ -85,38 +88,61 @@ namespace XrEngine
             _activeScene?.Reset();
         }
 
-        public void RenderFrame(Rect2I view, bool flush = true)
+        public bool BeginFrame()
         {
             if (_activeScene == null || _activeScene.ActiveCamera == null || Renderer == null)
-                return;
+                return false;
 
             _context.Frame++;
             _context.Scene = _activeScene;
+
+            _renderThread = Thread.CurrentThread;
 
             if (_playState == PlayState.Start)
             {
                 var oldTime = _context.Time;
 
-                _context.Time = (new TimeSpan(DateTime.Now.Ticks) - _context.StartTime).TotalSeconds;
+                _context.Time = (new TimeSpan(DateTime.UtcNow.Ticks) - _context.StartTime).TotalSeconds;
                 _context.DeltaTime = _context.Time - oldTime;
-
 
                 _activeScene.Update(_context);
             }
 
+            _dispatcher.ProcessQueue();
+
+            _activeScene.DrawGizmos();
+
             _stats.BeginFrame();
 
+            return true;
+        }
+
+        public void RenderScene(Camera? camera = null, bool flush = true)
+        {
+            if (_activeScene == null || _activeScene.ActiveCamera == null || Renderer == null)
+                return;
+
+            _context.Camera = camera ?? _activeScene.ActiveCamera;
+
+            Renderer.Render(_context, new Rect2I(_context.Camera.ViewSize), flush);
+        }
+
+        public void EndFrame()
+        {
+            _stats.EndFrame();
+        }
+
+        public void RenderFrame(Camera? camera = null, bool flush = true)
+        {
+            if (!BeginFrame())
+                return;
             try
             {
-                _activeScene.DrawGizmos();
-
-                Renderer.Render(_activeScene, _activeScene.ActiveCamera, view, flush);
-
-                _dispatcher.ProcessQueue();
+                RenderScene(camera, flush);
             }
             finally
             {
-                _stats.EndFrame();
+                EndFrame();
             }
         }
 
@@ -124,6 +150,14 @@ namespace XrEngine
         {
 
         }
+
+        public virtual ValueTask DisposeAsync()
+        {
+            GC.SuppressFinalize(this);
+            return ValueTask.CompletedTask;
+        }
+
+        public RenderContext RenderContext => _context;
 
         public IDispatcher Dispatcher => _dispatcher;
 
@@ -136,6 +170,8 @@ namespace XrEngine
         public EngineAppStats Stats => _stats;
 
         public Scene3D? ActiveScene => _activeScene;
+
+        public Thread? RenderThread => _renderThread;
 
         public IRenderEngine? Renderer { get; set; }
 

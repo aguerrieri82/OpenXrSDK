@@ -1,5 +1,4 @@
-﻿using Silk.NET.OpenGL;
-using XrMath;
+﻿using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -7,9 +6,17 @@ namespace XrEngine.OpenGL
     {
         protected GlProgramInstance? _programInstance;
 
+        protected enum UpdateProgramResult
+        {
+            Unchanged,
+            Changed,
+            Skip
+        }
+
         public GlBaseSingleMaterialPass(OpenGLRender renderer)
             : base(renderer)
         {
+            SortByCameraDistance = _renderer.Options.SortByCameraDistance;
         }
 
         protected abstract ShaderMaterial CreateMaterial();
@@ -19,33 +26,39 @@ namespace XrEngine.OpenGL
             _programInstance = CreateProgram(CreateMaterial());
         }
 
-
         protected virtual void Draw(DrawContent draw)
         {
             draw.Draw!();
         }
 
-        protected override bool BeginRender()
+        protected override bool BeginRender(Camera camera)
         {
-            UseProgram(_programInstance!, false);
+            Debug.Assert(_programInstance != null);
+            UseProgram(_programInstance, false);
             return true;
         }
 
 
-        protected override void RenderLayer(GlLayer layer)
+        protected virtual UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
         {
+            if (_programInstance!.UpdateProgram(updateContext))
+                return UpdateProgramResult.Changed;
+
+            return UpdateProgramResult.Unchanged;
+        }
+
+        public override void RenderLayer(GlLayer layer)
+        {
+            Debug.Assert(_programInstance != null);
 
             var updateContext = _renderer.UpdateContext;
-
-            if (_renderer.Options.SortByCameraDistance)
-                layer.ComputeDistance(updateContext.Camera!);
 
             foreach (var shader in layer.Content.ShaderContents)
             {
                 IEnumerable<VertexContent> vertices = shader.Value.Contents.Values;
 
-                if (_renderer.Options.SortByCameraDistance)
-                    vertices = vertices.OrderBy(a => a.AvgDistance); 
+                if (SortByCameraDistance)
+                    vertices = vertices.OrderBy(a => a.AvgDistance);
 
                 foreach (var vertex in vertices)
                 {
@@ -60,23 +73,20 @@ namespace XrEngine.OpenGL
 
                     foreach (var draw in vertex.Contents)
                     {
-                        if (draw.Object is TriangleMesh mesh && _renderer.Options.FrustumCulling)
-                        {
-                            draw.IsHidden = !mesh.WorldBounds.IntersectFrustum(updateContext.FrustumPlanes!);
-                            if (draw.IsHidden)
-                                continue;
-                        }
-                        else
-                            draw.IsHidden = false;
-
-                        var material = draw.ProgramInstance!.Material;
-
-                        if (!material.WriteDepth)
+                        if (!CanDraw(draw))
                             continue;
 
                         updateContext.Model = draw.Object;
 
-                        _programInstance!.UpdateUniforms(updateContext, false);
+                        var drawMaterial = draw.ProgramInstance!.Material;
+
+                        var upRes = UpdateProgram(updateContext, drawMaterial);
+
+                        if (upRes == UpdateProgramResult.Skip)
+                            continue;
+
+                        _programInstance.UpdateUniforms(updateContext, upRes == UpdateProgramResult.Changed);
+                        _programInstance.UpdateBuffers(updateContext);
 
                         Draw(draw);
 
@@ -87,9 +97,24 @@ namespace XrEngine.OpenGL
             }
         }
 
+        protected virtual bool CanDraw(DrawContent draw)
+        {
+            return !draw.IsHidden;
+        }
+
         protected override void EndRender()
         {
             _renderer.State.SetActiveProgram(0);
+            _renderer.UpdateContext.ProgramInstanceId = 0;
         }
+
+        public override void Dispose()
+        {
+            _programInstance?.Dispose();
+            _programInstance = null;
+            base.Dispose();
+        }
+
+        protected bool SortByCameraDistance { get; set; }
     }
 }

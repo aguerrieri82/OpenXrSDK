@@ -8,10 +8,11 @@ namespace XrEditor.Nodes
         public Group3DNode(T value)
             : base(value)
         {
-
+            _keepChangeListener = true;
+            _value.Changed += OnObjectChanged;
         }
 
-        protected override void OnElementChanged(EngineObject element, ObjectChange change)
+        protected override void OnObjectChanged(EngineObject obj, ObjectChange change)
         {
             var node = Context.Require<NodeManager>().CreateNode(change.Target!);
 
@@ -21,7 +22,7 @@ namespace XrEditor.Nodes
             if ((change.Type & ObjectChangeType.ChildRemove) == ObjectChangeType.ChildRemove)
                 ChildRemoved?.Invoke(this, node);
 
-            base.OnElementChanged(element, change);
+            base.OnObjectChanged(obj, change);
         }
 
         public override IEnumerable<INode> Children

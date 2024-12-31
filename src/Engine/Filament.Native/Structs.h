@@ -91,7 +91,7 @@ struct Geometry {
 	IndexBuffer* ib;
 	short4* soBuffer;
 	Box box;
-
+	PrimitiveType primitive;
 };
 
 struct LightInfo {
@@ -192,6 +192,7 @@ struct GeometryInfo {
 	uint32_t verticesCount;
 	VertexLayout layout;
 	Bounds3 bounds;
+	PrimitiveType primitive;
 };
 
 struct ImageData {
@@ -200,6 +201,7 @@ struct ImageData {
 	uint8_t* data;
 	uint32_t dataSize;
 	bool autoFree;
+	bool isBgr;
 };
 
 struct TextureInfo {
@@ -249,6 +251,7 @@ struct MaterialInfo {
 	bool useDepth;
 	bool writeColor;
 	bool isShadowOnly;
+	float lineWidth;
 };
 
 struct GraphicContextInfo {
@@ -283,7 +286,8 @@ struct FilamentApp {
 	std::map<OBJID, MaterialInstance*> materialsInst;
 	std::map<std::string, Material*> materials;
 	std::string materialCachePath;
-	Texture* iblTexture;
+	Texture* iblSpecTexture;
+	Texture* iblIrrTexture;
 	Texture* skyboxTexture;
 	IndirectLight* indirectLight;
 	Skybox* skybox;

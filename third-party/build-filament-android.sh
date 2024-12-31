@@ -4,7 +4,7 @@ export CC=/usr/bin/clang
 export CXX=/usr/bin/clang++
 export CXXFLAGS=-stdlib=libc++
 
-: '
+
 cd $FILAMENT_PATH/out/cmake-release-linux
 
 cmake -G Ninja ../.. \
@@ -13,7 +13,8 @@ cmake -G Ninja ../.. \
 	-DCMAKE_INSTALL_PREFIX=../release-linux/filament 
 
 ninja install
-'
+
+
 cd $FILAMENT_PATH/out/cmake-android-release-aarch64
 
 

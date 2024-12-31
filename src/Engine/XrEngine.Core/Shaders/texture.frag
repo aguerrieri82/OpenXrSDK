@@ -1,18 +1,37 @@
 ﻿in vec2 fUv;
 
 #ifdef EXTERNAL
-    uniform samplerExternalOES uTexture;
+    layout(binding=0) uniform samplerExternalOES uTexture;
 #else
-    uniform sampler2D uTexture;
+    layout(binding=0) uniform sampler2D uTexture;
 #endif
 
+#ifdef USE_TRANSFORM
+    uniform mat3 uUvTransform;
+#endif
 
-uniform vec2 uOffset;
-uniform vec2 uScale;
+#ifdef CHECK_TEXTURE
+    uniform uint uHasTexture;
+#endif
 
-out vec4 FragColor;
+uniform vec4 uColor;
+
+layout(location=0) out vec4 FragColor;
 
 void main()
 {
-    FragColor = texture(uTexture, fUv);
+    vec2 uv = fUv;
+
+    #ifdef USE_TRANSFORM
+        uv = (vec3(uv, 1) * uUvTransform).xy;
+    #endif
+
+    #ifdef CHECK_TEXTURE
+        if (uHasTexture == 1u)
+            FragColor = texture(uTexture, uv) * uColor;
+        else
+            FragColor = uColor;
+    #else
+        FragColor = texture(uTexture, uv) * uColor;
+    #endif
 }

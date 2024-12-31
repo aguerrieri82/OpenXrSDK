@@ -17,9 +17,9 @@ namespace OpenXr.Framework
 
         void Destroy();
 
-        void OnBeginFrame();
+        void OnBeginFrame(Space space, long displayTime);
 
-        bool Update(ref View[] views, long predTime);
+        bool Update(ref View[] views, long displayTime);
 
         void OnEndFrame();
 

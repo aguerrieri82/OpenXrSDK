@@ -6,8 +6,6 @@ using Silk.NET.OpenGL;
 using GlStencilFunction = Silk.NET.OpenGL.StencilFunction;
 #endif
 
-
-
 using XrMath;
 
 namespace XrEngine.OpenGL
@@ -45,8 +43,15 @@ namespace XrEngine.OpenGL
             StencilFunc = null;
             StencilRef = null;
             FrameBufferTargets.Clear();
-            TexturesSlots.Clear();
+            BufferTargets.Clear();
             Features.Clear();
+            DrawBuffers = null;
+
+            for (var i = 0; i < TexturesSlots.Length; i++)
+                TexturesSlots[i] = 0;
+
+            for (var i = 0; i < BufferSlots.Length; i++)
+                BufferSlots[i] = 0;
         }
 
         public void Restore()
@@ -99,6 +104,10 @@ namespace XrEngine.OpenGL
             foreach (var fb in FrameBufferTargets)
                 BindFrameBuffer(fb.Key, fb.Value, true);
 
+            foreach (var fb in BufferTargets)
+                BindBuffer(fb.Key, fb.Value, true);
+
+
             if (WriteStencil.HasValue)
                 SetWriteStencil(WriteStencil.Value, true);
 
@@ -107,6 +116,9 @@ namespace XrEngine.OpenGL
 
             if (StencilFunc.HasValue)
                 SetStencilFunc(StencilFunc.Value, true);
+
+            if (DrawBuffers != null)
+                SetDrawBuffers(DrawBuffers, true);
         }
 
         public void SetClearColor(Color color, bool force = false)
@@ -160,38 +172,42 @@ namespace XrEngine.OpenGL
 
         public void BindTexture(TextureTarget target, uint texId, bool force = false)
         {
-            ActiveTexture ??= _gl.GetInteger(GetPName.ActiveTexture);
+            ActiveTexture ??= (_gl.GetInteger(GetPName.ActiveTexture) - (int)GLEnum.Texture0);
 
-            if (TexturesSlots.TryGetValue(ActiveTexture.Value, out var value) && value == texId && !force)
+            var curSlotValue = TexturesSlots[ActiveTexture.Value];
+
+            if (curSlotValue == texId && !force)
                 return;
 
             _gl.BindTexture(target, texId);
 
             TexturesSlots[ActiveTexture.Value] = texId;
-
-            return;
         }
 
-        public void SetActiveTexture(uint texId, TextureTarget target, int slot, bool force = false)
+        public void SetActiveTexture(int slot, bool force = false)
         {
-            if (TexturesSlots.TryGetValue(slot, out var value) && value == texId && !force)
-                return;
-
-            bool forceBind = force;
-
             if (ActiveTexture != slot || force)
             {
                 _gl.ActiveTexture(TextureUnit.Texture0 + slot);
                 ActiveTexture = slot;
-                forceBind = true;
             }
-
-            BindTexture(target, texId, forceBind);
         }
 
-        public void SetActiveTexture(GlTexture glTex, int slot, bool force = false)
+        public void LoadTexture(uint texId, TextureTarget target, int slot, bool force = false)
         {
-            SetActiveTexture(glTex.Handle, glTex.Target, slot, force);
+            SetActiveTexture(slot, force);
+
+            var curSlotValue = TexturesSlots[slot];
+
+            if (curSlotValue == texId && !force)
+                return;
+
+            BindTexture(target, texId, force);
+        }
+
+        public void LoadTexture(GlTexture glTex, int slot, bool force = false)
+        {
+            LoadTexture(glTex.Handle, glTex.Target, slot, force);
             glTex.Slot = slot;
         }
 
@@ -252,7 +268,7 @@ namespace XrEngine.OpenGL
                     _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
                     _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.Max);
                 }
-           }
+            }
         }
 
         public void SetWriteColor(bool value, bool force = false)
@@ -277,6 +293,7 @@ namespace XrEngine.OpenGL
                 LineWidth = value;
             }
         }
+
 
         public void SetCullFace(TriangleFace value, bool force = false)
         {
@@ -314,6 +331,21 @@ namespace XrEngine.OpenGL
             }
         }
 
+
+        public void SetDrawBuffers(DrawBufferMode[] value, bool force = false)
+        {
+            _gl.DrawBuffers(value);
+            /*
+            var equals = DrawBuffers != null && Utils.ArrayEquals(DrawBuffers, value);
+
+            if (!equals || force)
+            {
+                DrawBuffers = value;   
+                _gl.DrawBuffers(value);
+            }
+            */
+        }
+
         public void BindFrameBuffer(FramebufferTarget target, uint value, bool force = false)
         {
             if (!FrameBufferTargets.TryGetValue(target, out var cur) || cur != value || force)
@@ -329,6 +361,16 @@ namespace XrEngine.OpenGL
                     FrameBufferTargets[FramebufferTarget.Framebuffer] = 0;
 
                 _gl.BindFramebuffer(target, value);
+            }
+        }
+
+        public void BindBuffer(BufferTargetARB target, uint value, bool force = false)
+        {
+            if (!BufferTargets.TryGetValue(target, out var cur) || cur != value || force)
+            {
+                BufferTargets[target] = value;
+
+                _gl.BindBuffer(target, value);
             }
         }
 
@@ -355,11 +397,10 @@ namespace XrEngine.OpenGL
                 else
                 {
                     _gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
-                    _gl.StencilFunc((GLEnum)StencilFunc.Value, StencilRef.Value, 0xFF);
+                    _gl.StencilFunc((GLEnum)StencilFunc.Value, StencilRef.Value, StencilRef.Value);
                 }
             }
         }
-
 
         public void SetWireframe(bool value, bool force = false)
         {
@@ -376,6 +417,27 @@ namespace XrEngine.OpenGL
                 Wireframe = value;
             }
 #endif
+        }
+
+        internal void SetActiveBuffer(IGlBuffer buffer, int slot, bool force = false)
+        {
+            var curSlotValue = BufferSlots[slot];
+
+            if (curSlotValue == buffer.Handle && !force)
+                return;
+
+            _gl.BindBufferBase(buffer.Target, (uint)slot, buffer.Handle);
+            buffer.Slot = slot;
+
+            BufferSlots[slot] = buffer.Handle;
+        }
+
+        public void ResetTextures()
+        {
+            for (var i = 0; i < TexturesSlots.Length; i++)
+                TexturesSlots[i] = 0;
+
+            ActiveTexture = null;
         }
 
         public float? ClearDepth;
@@ -410,19 +472,26 @@ namespace XrEngine.OpenGL
 
         public byte? StencilRef;
 
-        public GlStencilFunction? StencilFunc;
+        public DrawBufferMode[]? DrawBuffers;
 
+        public GlStencilFunction? StencilFunc;
 
         public readonly Dictionary<EnableCap, bool> Features = [];
 
-        public readonly Dictionary<int, uint> TexturesSlots = [];
+        public readonly uint[] TexturesSlots = new uint[32];
+
+        public readonly uint[] BufferSlots = new uint[32];
 
         public readonly Dictionary<FramebufferTarget, uint> FrameBufferTargets = [];
+
+        public readonly Dictionary<BufferTargetARB, uint> BufferTargets = [];
 
         [ThreadStatic]
         public static GlState? Current;
 
         public static readonly DrawBufferMode[] DRAW_COLOR_0 = [DrawBufferMode.ColorAttachment0];
+
+        public static readonly DrawBufferMode[] DRAW_BACK = [DrawBufferMode.Back];
 
         public static readonly DrawBufferMode[] DRAW_NONE = [DrawBufferMode.None];
 

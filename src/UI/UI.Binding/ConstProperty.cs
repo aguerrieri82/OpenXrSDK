@@ -16,7 +16,6 @@
             set => throw new NotSupportedException();
         }
 
-
         public string Name { get; }
 
         public event EventHandler? Changed;

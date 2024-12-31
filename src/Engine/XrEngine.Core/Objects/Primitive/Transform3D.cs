@@ -54,8 +54,8 @@ namespace XrEngine
         {
             if (keepPosition)
             {
-                _position += (value - _localPivot).Transform(
-                    Matrix4x4.CreateScale(_scale) * Matrix4x4.CreateFromQuaternion(_orientation));
+                var localPosAdjusted = (value - _localPivot) * _scale;
+                _position += localPosAdjusted.Transform(_orientation);
             }
             LocalPivot = value;
         }
@@ -65,6 +65,8 @@ namespace XrEngine
             _isDirty = true;
 
             _host?.NotifyChanged(ObjectChangeType.Transform);
+
+            Version++;
         }
 
         public Vector3 Scale
@@ -73,6 +75,8 @@ namespace XrEngine
 
             set
             {
+                if (_scale.IsSimilar(value, SCALE_TOLLERANCE))
+                    return;
                 _scale = value;
                 NotifyChanged();
             }
@@ -84,7 +88,12 @@ namespace XrEngine
 
             set
             {
-                _orientation = Quaternion.Normalize(value);
+                if (value.W == 0)
+                    value.W = 1;
+                value = Quaternion.Normalize(value);
+                if (_orientation.IsSimilar(value, ORIENTATION_TOLLERANCE))
+                    return;
+                _orientation = value;
                 _rotation = _orientation.ToEuler();
                 NotifyChanged();
             }
@@ -96,6 +105,8 @@ namespace XrEngine
 
             set
             {
+                if (_position.IsSimilar(value, POS_TOLLERANCE))
+                    return;
                 _position = value;
                 NotifyChanged();
             }
@@ -106,6 +117,8 @@ namespace XrEngine
             get => _localPivot;
             set
             {
+                if (_localPivot.IsSimilar(value, POS_TOLLERANCE))
+                    return;
                 _localPivot = value;
                 NotifyChanged();
             }
@@ -117,25 +130,42 @@ namespace XrEngine
             set
             {
                 _rotation = value;
-                _orientation = Quaternion.CreateFromYawPitchRoll(value.Y, value.X, value.Z);
+                //_orientation = Quaternion.CreateFromYawPitchRoll(value.Y, value.X, value.Z);
+                _orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, value.Z) *
+                               Quaternion.CreateFromAxisAngle(Vector3.UnitX, value.X) *
+                               Quaternion.CreateFromAxisAngle(Vector3.UnitY, value.Y);
                 NotifyChanged();
             }
         }
 
-        public void SetMatrix(Matrix4x4 matrix)
+        public void Set(Transform3D other)
         {
-            Matrix4x4.Decompose(matrix, out _scale, out _orientation, out _position);
+            _scale = other.Scale;
+            _localPivot = other.LocalPivot;
+            _position = other.Position;
+            _orientation = other.Orientation;
+            _rotation = _orientation.ToEuler();
+            NotifyChanged();
+        }
+
+        public void Set(Matrix4x4 matrix)
+        {
+            if (matrix == _matrix)
+                return;
+
+            matrix.DecomposeDouble(out _scale, out _orientation, out _position);
 
             _rotation = _orientation.ToEuler();
             _matrix = matrix;
 
             _host?.NotifyChanged(ObjectChangeType.Transform);
+            Version++;
         }
 
         public void Reset()
         {
             SetLocalPivot(Vector3.Zero, true);
-            SetMatrix(Matrix4x4.Identity);
+            Set(Matrix4x4.Identity);
         }
 
         public void GetState(IStateContainer container)
@@ -165,5 +195,14 @@ namespace XrEngine
                 return ref _matrix;
             }
         }
+
+        public long Version { get; set; }
+
+        public Object3D Host => _host!;
+
+
+        public const float POS_TOLLERANCE = 0.0001f;
+        public const float SCALE_TOLLERANCE = 0.00001f;
+        public const float ORIENTATION_TOLLERANCE = 0.0001f;
     }
 }

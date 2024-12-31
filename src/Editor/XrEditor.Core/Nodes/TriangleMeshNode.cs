@@ -19,7 +19,7 @@ namespace XrEditor.Nodes
                     yield return factory.CreateNode(material);
 
                 if (_value.Geometry != null)
-                    yield return factory.CreateNode(_value.Geometry);   
+                    yield return factory.CreateNode(_value.Geometry);
             }
         }
 

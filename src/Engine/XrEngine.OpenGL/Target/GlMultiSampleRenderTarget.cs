@@ -3,7 +3,7 @@ using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 #endif
-
+using XrMath;
 
 
 namespace XrEngine.OpenGL
@@ -46,12 +46,14 @@ namespace XrEngine.OpenGL
             _gl = gl;
         }
 
-        public void Begin()
+        public void Begin(Camera camera)
         {
+            camera.ViewSize = _renderFrameBuffer.Size;
+            GlState.Current!.SetView(new Rect2I(camera.ViewSize));
             _renderFrameBuffer.Bind();
         }
 
-        public void End(bool finalPass)
+        public void End(bool discardDepth)
         {
             _renderFrameBuffer.CopyTo(_destFrameBuffer);
             _renderFrameBuffer.Unbind();

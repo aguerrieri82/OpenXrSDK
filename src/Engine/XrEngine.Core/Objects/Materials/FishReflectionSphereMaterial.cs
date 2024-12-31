@@ -19,13 +19,10 @@ namespace XrEngine
 
         static FishReflectionSphereMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "fish_reflection_sphere.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
-                IsLit = false,
-                UpdateHandler = StandardVertexShaderHandler.Instance
+                IsLit = false
             };
         }
 
@@ -100,7 +97,7 @@ namespace XrEngine
 
             bld.ExecuteAction((ctx, up) =>
             {
-                var camera = ((PerspectiveCamera)ctx.Camera!);
+                var camera = ((PerspectiveCamera)ctx.PassCamera!);
 
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
@@ -111,7 +108,7 @@ namespace XrEngine
                 {
                     _lastRotation = ctx.Model!.Transform.Orientation;
                     var newQuat = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI) * _lastRotation;
-                    up.SetUniform("uRotation", newQuat.ToMatrix());
+                    up.SetUniform("uRotation", newQuat.ToMatrix3x3());
                 }
 
 
@@ -128,6 +125,15 @@ namespace XrEngine
                 up.SetUniform("uSurfaceSize", SurfaceSize);
                 up.SetUniform("uFov", Fov);
             });
+        }
+
+        public override void Dispose()
+        {
+            LeftMainTexture?.Dispose();
+            RightTexture?.Dispose();
+            LeftMainTexture = null;
+            RightTexture = null;
+            base.Dispose();
         }
 
         public FishReflectionMode Mode { get; set; }

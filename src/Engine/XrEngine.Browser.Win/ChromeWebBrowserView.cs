@@ -1,4 +1,5 @@
 ﻿using CefSharp;
+using Common.Interop;
 using XrEngine.UI.Web;
 using XrInteraction;
 using XrMath;
@@ -9,7 +10,7 @@ namespace XrEngine.Browser.Win
     {
         protected bool _isInit;
         protected ChromeWebBrowser _browser;
-        protected DateTime _lastUpdateTime;
+        protected DateTime _lastTexUpdateTime;
         protected ISurfaceInput? _input;
         protected string? _source;
 
@@ -30,7 +31,7 @@ namespace XrEngine.Browser.Win
 
                     await _browser.CreateAsync(_source);
 
-                    _browser.ShowDevTools();
+                    //_browser.ShowDevTools();
                     _isInit = true;
                     Log.Info(this, "Browser ready");
                 });
@@ -49,10 +50,7 @@ namespace XrEngine.Browser.Win
                 });
             }
 
-
             _input = _host!.DescendantsOrSelfComponents<ISurfaceInput>().First();
-
-            base.Start(ctx);
         }
 
         protected override void Update(RenderContext ctx)
@@ -65,37 +63,36 @@ namespace XrEngine.Browser.Win
                 return;
 
             texture.SetFlag(EngineObjectFlags.EnableDebug, false);
+            texture.Type = TextureType.Buffer;
 
             var time = _browser.FrameBufferTime;
 
-            if (_browser.FrameBuffer != null && _lastUpdateTime != time)
+            if (_browser.FrameBuffer != null && _lastTexUpdateTime != time)
             {
                 texture.LoadData(new TextureData()
                 {
-                    Data = new Memory<byte>(_browser.FrameBuffer),
+                    Data = MemoryBuffer.Create(_browser.FrameBuffer),
                     Width = _browser.Size.Width,
                     Height = _browser.Size.Height,
                     Format = TextureFormat.Bgra32
                 });
 
-                _lastUpdateTime = time;
+                _lastTexUpdateTime = time;
             }
 
-            if (_input!.IsPointerValid)
+            if (!_input!.IsPointerValid)
+                return;
+
+            if (_input.MainButton.IsChanged)
             {
-                if (_input.MainButton.IsChanged)
-                {
-                    if (_input.MainButton.IsDown)
-                        _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Pressed, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
-
-                    else
-                        _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Released, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
-                }
-
-                _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Moved, _input.MainButton.IsDown ? CefEventFlags.LeftMouseButton | CefEventFlags.IsLeft : CefEventFlags.None);
+                if (_input.MainButton.IsDown)
+                    _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Pressed, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
+                else
+                    _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Released, CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton);
             }
+            else
+                _browser.UpdatePointer(0, _input.Pointer, CefSharp.Enums.TouchEventType.Moved, _input.MainButton.IsDown ? CefEventFlags.IsLeft | CefEventFlags.LeftMouseButton : CefEventFlags.None);
 
-            base.Update(ctx);
         }
 
         [Action]

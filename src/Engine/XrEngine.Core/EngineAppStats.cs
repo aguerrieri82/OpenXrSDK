@@ -1,11 +1,13 @@
-﻿namespace XrEngine
+﻿using System.Diagnostics;
+
+namespace XrEngine
 {
     public class EngineAppStats
     {
         protected int _fpsFrameCount;
         protected int _frameCount;
         protected DateTime _fpsLastTime;
-        protected Dictionary<Type, double> _updateTimes = [];
+        protected Dictionary<string, double> _updateTimes = [];
 
         public void BeginFrame()
         {
@@ -17,33 +19,36 @@
             _fpsFrameCount++;
             _frameCount++;
 
-            var deltaSecs = (DateTime.Now - _fpsLastTime).TotalSeconds;
+            var deltaSecs = (DateTime.UtcNow - _fpsLastTime).TotalSeconds;
 
             if (deltaSecs >= 2)
             {
                 Fps = (int)(_fpsFrameCount / deltaSecs);
                 _fpsFrameCount = 0;
-                _fpsLastTime = DateTime.Now;
+                _fpsLastTime = DateTime.UtcNow;
             }
         }
 
         public void Update(IRenderUpdate renderUpdate, Action action)
         {
-            var start = DateTime.Now;
+            var startTime = Stopwatch.GetTimestamp();
 
             action();
 
-            var total = (DateTime.Now - start).TotalMilliseconds;
+            var total = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
 
             var type = renderUpdate.GetType();
 
-            if (!_updateTimes.TryGetValue(type, out var time))
-                _updateTimes[type] = total;
+            if (!_updateTimes.TryGetValue(type.FullName!, out _))
+                _updateTimes[type.FullName!] = total;
             else
-                _updateTimes[type] += total;
+                _updateTimes[type.FullName!] += total;
         }
 
+        public long LayerChanges;
 
-        public int Fps { get; protected set; }
+        public long Frame => _frameCount;
+
+        public int Fps { get; internal set; }
     }
 }

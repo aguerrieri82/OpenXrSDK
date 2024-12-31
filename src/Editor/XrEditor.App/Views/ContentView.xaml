@@ -1,0 +1,19 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:XrEditor;assembly=XrEditor.Core"
+                    xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate DataType="{x:Type local:ContentView}">
+        <DockPanel>
+            <ItemsControl HorizontalAlignment="Right" Padding="4" DockPanel.Dock="Bottom" ItemsSource="{Binding Actions}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel  Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+            <ContentPresenter Content="{Binding Content}"/>
+        </DockPanel>
+    </DataTemplate>
+
+</ResourceDictionary>

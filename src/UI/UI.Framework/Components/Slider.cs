@@ -34,20 +34,11 @@ namespace CanvasUI
                 ThumbColor = "#ccf",
                 ThumbRadius = 12
             };
-
         }
 
         protected virtual void OnValueChanged(float value, float oldValue)
         {
             ValueChanged?.Invoke(this, value, oldValue);
-        }
-
-        protected override void OnPropertyChanged(string propName, object? value, object? oldValue)
-        {
-            if (propName == nameof(Value))
-                OnValueChanged((float)value!, (float)oldValue!);
-
-            base.OnPropertyChanged(propName, value, oldValue);
         }
 
         protected override Size2 MeasureWork(Size2 availSize)

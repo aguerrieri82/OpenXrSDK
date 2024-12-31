@@ -1,43 +1,31 @@
-﻿in vec2 fUv;
+﻿#include "Shared/depth_sampler.glsl"    
+#include "Shared/uniforms.glsl"    
 
-out vec4 FragColor;
+in vec2 fUv;
 
-uniform sampler2D uTexture0;
-
-#ifdef SAMPLES
-uniform sampler2DMS uTexture0MS;
-#endif
+layout(location=0) out vec4 FragColor;
 
 
-uniform float uNearPlane;
-uniform float uFarPlane;
+
+#ifdef LINEARIZE 
+
 
 
 float linearizeDepth(float depth)
 {
     float z = depth * 2.0 - 1.0;
-    return (2.0 * uNearPlane * uFarPlane) / (uFarPlane + uNearPlane - z * (uFarPlane - uNearPlane));
+    return (2.0 * uCamera.nearPlane * uCamera.farPlane) / (uCamera.farPlane + uCamera.nearPlane - z * (uCamera.farPlane - uCamera.nearPlane));
 }
+
+
+#endif  
 
 void main()
 {   
-    float depthValue;
-
-    #ifdef SAMPLES
-        vec2 texSize = vec2(textureSize(uTexture0MS));
-
-        depthValue = 0.0;
-
-        for (int i = 0; i < SAMPLES; i++)
-            depthValue += texelFetch(uTexture0MS, ivec2(fUv * texSize), i).r;
-
-        depthValue /= float(SAMPLES);
-    #else
-        depthValue = texture(uTexture0, fUv).r;
-    #endif
+    float depthValue = getDepth(fUv);
 
     #ifdef LINEARIZE
-        FragColor = vec4(vec3(linearizeDepth(depthValue) / uFarPlane), 1.0);
+        FragColor = vec4(vec3(linearizeDepth(depthValue) / uCamera.farPlane), 1.0);
     #else
         FragColor = vec4(vec3(depthValue), 1.0);
     #endif

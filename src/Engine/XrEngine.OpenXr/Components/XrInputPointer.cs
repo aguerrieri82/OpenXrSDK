@@ -1,5 +1,4 @@
 ﻿using OpenXr.Framework;
-using System.Numerics;
 using XrInteraction;
 using XrMath;
 
@@ -7,6 +6,13 @@ namespace XrEngine.OpenXr
 {
     public class XrInputPointer : BaseComponent<Object3D>, IRayPointer
     {
+        private int _captureCount;
+
+        public XrInputPointer()
+        {
+            Name = "Controller";
+        }
+
         public RayPointerStatus GetPointerStatus()
         {
             var result = new RayPointerStatus();
@@ -25,14 +31,7 @@ namespace XrEngine.OpenXr
 
             if (PoseInput != null && PoseInput.IsActive)
             {
-                result.Ray = new Ray3
-                {
-                    Origin = PoseInput.Value.Position,
-                    Direction = (PoseInput.Value.Transform(new Vector3(0, 0, -1)) -
-                                 PoseInput.Value.Transform(Vector3.Zero))
-                                 .Normalize()
-                };
-
+                result.Ray = PoseInput.Value.ToRay();
                 result.IsActive = true;
             }
 
@@ -41,11 +40,12 @@ namespace XrEngine.OpenXr
 
         public void CapturePointer()
         {
-
+            _captureCount = 1;
         }
 
         public void ReleasePointer()
         {
+            _captureCount = 0;
         }
 
         public XrInput<Pose3>? PoseInput { get; set; }
@@ -59,5 +59,9 @@ namespace XrEngine.OpenXr
         public XrInput<bool>? BButton { get; set; }
 
         public int PointerId => _host!.Id.Value.GetHashCode();
+
+        public bool IsCaptured => _captureCount > 0;
+
+        public string Name { get; set; }
     }
 }

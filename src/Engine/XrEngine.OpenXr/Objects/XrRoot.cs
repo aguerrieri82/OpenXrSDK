@@ -4,7 +4,6 @@ using Silk.NET.OpenXR;
 using System.Numerics;
 using XrEngine.Audio;
 using XrEngine.Gltf;
-using XrEngine.OpenXr.Components;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -18,7 +17,7 @@ namespace XrEngine.OpenXr
         {
             _xrApp = XrApp.Current ?? throw new InvalidOperationException();
 
-            Flags |= EngineObjectFlags.ChildGenerated | EngineObjectFlags.DisableNotifyChangedScene;
+            Flags |= EngineObjectFlags.ChildrenGenerated | EngineObjectFlags.DisableNotifyChangedScene;
 
             Name = "XrRoot";
 
@@ -41,9 +40,14 @@ namespace XrEngine.OpenXr
                 {
                     Task.Run(async () =>
                     {
+
+                        //var layout = oculus.GetSpaceRoomLayout(_xrApp.Stage);
+
                         var anchors = await oculus.GetAnchorsAsync(new XrAnchorFilter
                         {
-                            Components = XrAnchorComponent.All
+                            Components = XrAnchorComponent.All,
+                            //Ids = [layout.FloorUuid.ToGuid()],
+                            Labels = ["FLOOR"]
                         });
 
                         var floor = anchors.FirstOrDefault(a => a.Labels != null && a.Labels.Contains("FLOOR"));
@@ -56,6 +60,7 @@ namespace XrEngine.OpenXr
                             SceneRoot.AddComponent(new XrAnchorUpdate()
                             {
                                 Space = new Space(floor.Space),
+                                UpdateInterval = TimeSpan.FromMilliseconds(300),
                                 LogChanges = true
                             });
                         });
@@ -138,7 +143,7 @@ namespace XrEngine.OpenXr
             if (File.Exists(fullPath))
             {
                 model = GltfLoader.LoadFile(fullPath);
-                model.Transform.SetMatrix(Matrix4x4.Identity);
+                model.Transform.Set(Matrix4x4.Identity);
                 model.Transform.Orientation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), MathF.PI);
                 model.Transform.Position = new Vector3(-0.002f, 0.001f, 0.05f);
                 model.Transform.SetScale(1.06f);

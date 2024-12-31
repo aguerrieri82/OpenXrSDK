@@ -1,10 +1,12 @@
-﻿using glTFLoader.Schema;
+﻿using Common.Interop;
+using glTFLoader.Schema;
 using Newtonsoft.Json.Linq;
 using SkiaSharp;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using TurboJpeg;
 
@@ -16,19 +18,23 @@ using XrMath;
 namespace XrEngine.Gltf
 {
 
-    public class GltfLoader
+    public class GltfLoader : IDisposable
     {
-        GltfLoaderOptions? _options;
+        GltfLoaderOptions _options;
         glTFLoader.Schema.Gltf? _model;
+
         readonly Dictionary<glTFLoader.Schema.Material, ShaderMaterial> _mats = [];
-        readonly ConcurrentDictionary<glTFLoader.Schema.Image, TextureData> _images = [];
+        readonly ConcurrentDictionary<Image, TextureData> _images = [];
+        readonly ConcurrentDictionary<Image, LoadTask<Texture2D>> _textures = [];
         readonly Dictionary<glTFLoader.Schema.Mesh, Object3D> _meshes = [];
-        readonly List<Action> _tasks = [];
+        readonly List<Task> _tasks = [];
         readonly ConcurrentDictionary<int, byte[]> _buffers = [];
         readonly StringBuilder _log = new();
         readonly Func<string, string> _resourceResolver;
+
         string? _basePath;
         string? _filePath;
+
         static readonly string[] supportedExt = {
             "KHR_texture_transform",
             "KHR_draco_mesh_compression",
@@ -77,6 +83,13 @@ namespace XrEngine.Gltf
             public TextureInfo? sheenRoughnessTexture;
         }
 
+        public struct LoadTask<T>
+        {
+            public T Result;
+
+            public Task Task;
+        }
+
         public GltfLoader()
             : this(a => a)
         {
@@ -86,8 +99,8 @@ namespace XrEngine.Gltf
         public GltfLoader(Func<string, string> resourceResolver)
         {
             _resourceResolver = resourceResolver;
+            _options = new();
         }
-
 
         protected byte[] LoadBuffer(int index)
         {
@@ -114,173 +127,197 @@ namespace XrEngine.Gltf
             return null;
         }
 
-        protected TextureData ProcessImage(glTFLoader.Schema.Image img, bool useSrgb = false)
+        protected TextureData ProcessImage(int imgId, bool useSrgb = false)
         {
+            var img = _model!.Images[imgId];
+
             return _images.GetOrAdd(img, img =>
             {
-                CheckExtensions(img.Extensions);
+                Log.Info(this, "Loading image {0}", img.Uri);
 
-                byte[] data;
-
-                if (img.BufferView != null)
+                try
                 {
-                    var view = _model!.BufferViews[img.BufferView.Value];
-                    var buffer = LoadBuffer(view.Buffer);
-                    data = new Span<byte>(buffer, view.ByteOffset, view.ByteLength).ToArray();
-                }
-                else if (img.Uri != null)
-                {
-                    var imgPath = _resourceResolver(Path.Join(_basePath!, img.Uri));
-                    data = File.OpenRead(imgPath)
-                        .ToMemory()
-                        .ToArray();
-                }
-                else
-                    throw new NotSupportedException();
+                    CheckExtensions(img.Extensions);
 
-                //Debug.Assert(image.ColorSpace.IsSrgb && useSrgb);
+                    byte[] data;
 
-                Log.Info(this, "Loading texture {0} ({1} bytes)", img.Name, data.Length);
-
-                if (img.MimeType == glTFLoader.Schema.Image.MimeTypeEnum.image_jpeg)
-                {
-                    var outImg = TurboJpegLib.Decompress(data);
-
-                    return new TextureData
+                    if (img.BufferView != null)
                     {
-                        Data = outImg.Data,
-                        Width = (uint)outImg.Width,
-                        Height = (uint)outImg.Height,
-                        Format = useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
-                    };
-                }
-
-                else
-                {
-                    using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
-                    return new TextureData
+                        var view = _model!.BufferViews[img.BufferView.Value];
+                        var buffer = LoadBuffer(view.Buffer);
+                        data = new Span<byte>(buffer, view.ByteOffset, view.ByteLength).ToArray();
+                    }
+                    else if (img.Uri != null)
                     {
-                        Data = image.GetPixelSpan().ToArray(),
-                        Width = (uint)image.Width,
-                        Height = (uint)image.Height,
-                        Format = image.ColorType switch
+                        var imgPath = _resourceResolver(Path.Join(_basePath!, img.Uri));
+                        data = File.OpenRead(imgPath)
+                            .ToMemory()
+                            .ToArray();
+                    }
+                    else
+                        throw new NotSupportedException();
+
+                    //Debug.Assert(image.ColorSpace.IsSrgb && useSrgb);
+
+                    Log.Info(this, "Loading texture {0} ({1} bytes)", img.Name, data.Length);
+
+                    if (img.MimeType == glTFLoader.Schema.Image.MimeTypeEnum.image_jpeg)
+                    {
+                        var outImg = TurboJpegLib.Decompress(data);
+
+                        Debug.Assert(outImg.Data != null);
+
+                        return new TextureData
                         {
-                            SKColorType.Srgba8888 => TextureFormat.SRgba32,
-                            SKColorType.Bgra8888 => useSrgb ? TextureFormat.SBgra32 : TextureFormat.Bgra32,
-                            SKColorType.Rgba8888 => useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
-                            SKColorType.Gray8 => TextureFormat.Gray8,
-                            _ => throw new NotSupportedException()
-                        }
-                    };
+                            Data = MemoryBuffer.Create(outImg.Data),
+                            Width = (uint)outImg.Width,
+                            Height = (uint)outImg.Height,
+                            Format = useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
+                        };
+                    }
+
+                    else
+                    {
+                        using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
+                        return new TextureData
+                        {
+                            Data = MemoryBuffer.Create(image.Bytes),
+                            Width = (uint)image.Width,
+                            Height = (uint)image.Height,
+                            Format = image.ColorType switch
+                            {
+                                SKColorType.Srgba8888 => TextureFormat.SRgba32,
+                                SKColorType.Bgra8888 => useSrgb ? TextureFormat.SBgra32 : TextureFormat.Bgra32,
+                                SKColorType.Rgba8888 => useSrgb ? TextureFormat.SRgba32 : TextureFormat.Rgba32,
+                                SKColorType.Gray8 => TextureFormat.GrayInt8,
+                                _ => throw new NotSupportedException()
+                            }
+                        };
+                    }
+
                 }
-
-
+                finally
+                {
+                    Log.Info(this, "Loading image {0} end", img.Uri);
+                }
             });
         }
 
-        public Texture2D ProcessTexture(glTFLoader.Schema.Texture texture, int index, Dictionary<string, object>? extensions, Texture2D? result = null, bool useSrgb = false)
+        protected LoadTask<T> Load<T>(T result, Action action)
         {
+            var task = new LoadTask<T>
+            {
+                Result = result,
+                Task = Task.Run(action)
+            };
+
+            _tasks.Add(task.Task);
+
+            return task;
+        }
+
+        public LoadTask<Texture2D> ProcessTextureTask(int texId, Dictionary<string, object>? extensions, Texture2D? result = null, bool useSrgb = false)
+        {
+            var texture = _model!.Textures[texId];
 
             CheckExtensions(texture.Extensions);
 
             var imageInfo = _model!.Images[texture.Source!.Value];
 
-            result ??= new Texture2D();
-
-            _tasks.Add(() =>
+            return _textures.GetOrAdd(imageInfo, img =>
             {
-                Log.Info(this, "Loading image {0}", imageInfo.Uri);
+                Debug.Assert(result == null);
 
-                var data = ProcessImage(imageInfo, useSrgb);
+                var texResult = new Texture2D();
 
-                Log.Info(this, "Loading image {0} end", imageInfo.Uri);
+                texResult.Flags |= EngineObjectFlags.Readonly;
 
-                result.LoadData([data]);
+                texResult.Name = texture.Name ?? (imageInfo.Name ?? imageInfo.Uri ?? "");
 
-                bool hasMinFilter = false;
+                AssignAsset(texResult, "tex", texId);
 
-                if (texture.Sampler != null)
+                return Load(texResult, () =>
                 {
-                    var sampler = _model!.Samplers[texture.Sampler.Value];
-                    CheckExtensions(sampler.Extensions);
+                    var data = ProcessImage(texture.Source!.Value, useSrgb);
 
-                    result.WrapS = (WrapMode)sampler.WrapS;
-                    result.WrapT = (WrapMode)sampler.WrapT;
+                    texResult.LoadData([data]);
 
-                    if (sampler.MagFilter != null)
-                        result.MagFilter = (ScaleFilter)sampler.MagFilter;
+                    bool hasMinFilter = false;
 
-                    if (sampler.MinFilter != null)
+                    if (texture.Sampler != null)
                     {
-                        hasMinFilter = true;
-                        result.MinFilter = (ScaleFilter)sampler.MinFilter;
+                        var sampler = _model!.Samplers[texture.Sampler.Value];
+                        CheckExtensions(sampler.Extensions);
+
+                        texResult.WrapS = (WrapMode)sampler.WrapS;
+                        texResult.WrapT = (WrapMode)sampler.WrapT;
+
+                        if (sampler.MagFilter != null)
+                            texResult.MagFilter = (ScaleFilter)sampler.MagFilter;
+
+                        if (sampler.MinFilter != null)
+                        {
+                            hasMinFilter = true;
+                            texResult.MinFilter = (ScaleFilter)sampler.MinFilter;
+                        }
                     }
-                }
-                else
-                {
-                    result.WrapS = WrapMode.Repeat;
-                    result.WrapT = WrapMode.Repeat;
-                }
+                    else
+                    {
+                        texResult.WrapS = WrapMode.Repeat;
+                        texResult.WrapT = WrapMode.Repeat;
+                    }
 
-                if (!hasMinFilter)
-                {
-                    result.MinFilter = ScaleFilter.LinearMipmapLinear;
-                    result.MagFilter = ScaleFilter.Linear;
-                }
+                    if (!hasMinFilter)
+                    {
+                        texResult.MinFilter = ScaleFilter.LinearMipmapLinear;
+                        texResult.MagFilter = ScaleFilter.Linear;
+                    }
 
-                var transform = TryLoadExtension<KHR_texture_transform>(extensions);
-                if (transform != null)
-                {
-                    var mat = Matrix3x3.Identity;
+                    var transform = TryLoadExtension<KHR_texture_transform>(extensions);
+                    if (transform != null)
+                    {
+                        var mat = Matrix3x3.Identity;
 
-                    if (transform.Value.offset != null)
-                        mat *= Matrix3x3.CreateTranslation(transform.Value.offset[0], transform.Value.offset[1]);
+                        if (transform.Value.offset != null)
+                            mat *= Matrix3x3.CreateTranslation(transform.Value.offset[0], transform.Value.offset[1]);
 
-                    if (transform.Value.rotation != 0)
-                        mat *= Matrix3x3.CreateRotationZ(transform.Value.rotation);
+                        if (transform.Value.rotation != 0)
+                            mat *= Matrix3x3.CreateRotationZ(transform.Value.rotation);
 
-                    if (transform.Value.scale != null)
-                        mat *= Matrix3x3.CreateScale(transform.Value.scale[0], transform.Value.scale[1]);
+                        if (transform.Value.scale != null)
+                            mat *= Matrix3x3.CreateScale(transform.Value.scale[0], transform.Value.scale[1]);
 
-                    result.Transform = mat;
-                }
+                        texResult.Transform = mat;
+                    }
+                });
             });
-
-            result.Flags |= EngineObjectFlags.Readonly;
-
-            result.Name = texture.Name ?? (imageInfo.Name ?? imageInfo.Uri ?? "");
-
-            result.AddComponent(new AssetSource
-            {
-                Asset = CreateAsset<Texture2D>(result.Name!, "tex", index)
-            });
-
-            return result;
         }
 
-        protected Texture2D DecodeTextureOcclusion(glTFLoader.Schema.MaterialOcclusionTextureInfo info)
+        protected LoadTask<Texture2D> DecodeTextureOcclusionTask(MaterialOcclusionTextureInfo info)
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTexture(_model!.Textures[info.Index], info.Index, info.Extensions);
+            return ProcessTextureTask(info.Index, info.Extensions);
         }
 
-        protected Texture2D DecodeTextureNormal(glTFLoader.Schema.MaterialNormalTextureInfo info)
+        protected LoadTask<Texture2D> DecodeTextureNormalTask(MaterialNormalTextureInfo info)
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTexture(_model!.Textures[info.Index], info.Index, info.Extensions);
+            return ProcessTextureTask(info.Index, info.Extensions);
         }
 
-        protected Texture2D DecodeTextureBase(glTFLoader.Schema.TextureInfo info, bool useSRgb = false)
+        protected LoadTask<Texture2D> DecodeTextureBaseTask(TextureInfo info, bool useSRgb = false)
         {
             CheckExtensions(info.Extensions);
 
-            return ProcessTexture(_model!.Textures[info.Index], info.Index, info.Extensions, null, useSRgb);
+            return ProcessTextureTask(info.Index, info.Extensions, null, useSRgb);
         }
 
-        public PbrV1Material ProcessMaterialV1(glTFLoader.Schema.Material gltMat, int id, PbrV1Material? result = null)
+        public PbrV1Material ProcessMaterialV1(int matId, PbrV1Material? result = null)
         {
+            var gltMat = _model!.Materials[matId];
+
             if (result == null && _mats.TryGetValue(gltMat, out var mat))
                 return (PbrV1Material)mat;
 
@@ -309,13 +346,13 @@ namespace XrEngine.Gltf
 
                 if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
                 {
-                    result.MetallicRoughness.BaseColorTexture = DecodeTextureBase(gltMat.PbrMetallicRoughness.BaseColorTexture, _options!.ConvertColorTextureSRgb);
+                    result.MetallicRoughness.BaseColorTexture = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.BaseColorTexture, _options.ConvertColorTextureSRgb).Result;
                     result.MetallicRoughness.BaseColorUVSet = gltMat.PbrMetallicRoughness.BaseColorTexture.TexCoord;
                 }
 
                 if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
                 {
-                    result.MetallicRoughness.MetallicRoughnessTexture = DecodeTextureBase(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture);
+                    result.MetallicRoughness.MetallicRoughnessTexture = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture).Result;
                     result.MetallicRoughness.MetallicRoughnessUVSet = gltMat.PbrMetallicRoughness.MetallicRoughnessTexture.TexCoord;
                 }
 
@@ -323,18 +360,18 @@ namespace XrEngine.Gltf
             }
 
             if (gltMat.EmissiveTexture != null)
-                result.EmissiveTexture = DecodeTextureBase(gltMat.EmissiveTexture);
+                result.EmissiveTexture = DecodeTextureBaseTask(gltMat.EmissiveTexture).Result;
 
             if (gltMat.NormalTexture != null)
             {
-                result.NormalTexture = DecodeTextureNormal(gltMat.NormalTexture);
+                result.NormalTexture = DecodeTextureNormalTask(gltMat.NormalTexture).Result;
                 result.NormalScale = gltMat.NormalTexture.Scale;
                 result.NormalUVSet = gltMat.NormalTexture.TexCoord;
             }
 
             if (gltMat.OcclusionTexture != null)
             {
-                result.OcclusionTexture = DecodeTextureOcclusion(gltMat.OcclusionTexture);
+                result.OcclusionTexture = DecodeTextureOcclusionTask(gltMat.OcclusionTexture).Result;
                 result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
                 result.OcclusionUVSet = gltMat.OcclusionTexture.TexCoord;
             }
@@ -351,13 +388,13 @@ namespace XrEngine.Gltf
 
                 if (specGloss.Value.diffuseTexture != null)
                 {
-                    result.SpecularGlossiness.DiffuseTexture = DecodeTextureBase(specGloss.Value.diffuseTexture);
+                    result.SpecularGlossiness.DiffuseTexture = DecodeTextureBaseTask(specGloss.Value.diffuseTexture).Result;
                     result.SpecularGlossiness.DiffuseUVSet = specGloss.Value.diffuseTexture.TexCoord;
                 }
 
                 if (specGloss.Value.specularGlossinessTexture != null)
                 {
-                    result.SpecularGlossiness.SpecularGlossinessTexture = DecodeTextureBase(specGloss.Value.specularGlossinessTexture);
+                    result.SpecularGlossiness.SpecularGlossinessTexture = DecodeTextureBaseTask(specGloss.Value.specularGlossinessTexture).Result;
                     result.SpecularGlossiness.SpecularGlossinessUVSet = specGloss.Value.specularGlossinessTexture.TexCoord;
                 }
 
@@ -376,21 +413,17 @@ namespace XrEngine.Gltf
 
                 if (sheen.Value.sheenColorTexture != null)
                 {
-                    result.Sheen.ColorTexture = DecodeTextureBase(sheen.Value.sheenColorTexture);
+                    result.Sheen.ColorTexture = DecodeTextureBaseTask(sheen.Value.sheenColorTexture).Result;
                     result.Sheen.ColorTextureUVSet = sheen.Value.sheenColorTexture.TexCoord;
                 }
                 if (sheen.Value.sheenRoughnessTexture != null)
                 {
-                    result.Sheen.RoughnessTexture = DecodeTextureBase(sheen.Value.sheenRoughnessTexture);
+                    result.Sheen.RoughnessTexture = DecodeTextureBaseTask(sheen.Value.sheenRoughnessTexture).Result;
                     result.Sheen.RoughnessTextureUVSet = sheen.Value.sheenRoughnessTexture.TexCoord;
                 }
             }
 
-            result.AddComponent(new AssetSource
-            {
-                Asset = CreateAsset<PbrV1Material>(gltMat.Name!, "mat", id)
-            });
-
+            AssignAsset(result, "mat", matId);
 
             _mats[gltMat] = result;
 
@@ -398,8 +431,10 @@ namespace XrEngine.Gltf
         }
 
 
-        public PbrV2Material ProcessMaterialV2(glTFLoader.Schema.Material gltMat, int id, PbrV2Material? result = null)
+        public unsafe PbrV2Material ProcessMaterialV2(int matId, PbrV2Material? result = null)
         {
+            var gltMat = _model!.Materials[matId];
+
             if (result == null && _mats.TryGetValue(gltMat, out var mat))
                 return (PbrV2Material)mat;
 
@@ -421,47 +456,37 @@ namespace XrEngine.Gltf
 
             if (gltMat.PbrMetallicRoughness != null)
             {
-
                 if (gltMat.PbrMetallicRoughness.BaseColorTexture != null)
-                {
-                    result.ColorMap = DecodeTextureBase(gltMat.PbrMetallicRoughness.BaseColorTexture, _options!.ConvertColorTextureSRgb);
-                    result.Color = new Color(gltMat.PbrMetallicRoughness.BaseColorFactor);
-                }
+                    result.ColorMap = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.BaseColorTexture, _options.ConvertColorTextureSRgb).Result;
 
                 if (gltMat.PbrMetallicRoughness.MetallicRoughnessTexture != null)
-                {
-                    result.MetallicRoughnessMap = DecodeTextureBase(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture);
-                    result.Metalness = gltMat.PbrMetallicRoughness.MetallicFactor;
-                    result.Roughness = gltMat.PbrMetallicRoughness.RoughnessFactor;
-                }
+                    result.MetallicRoughnessMap = DecodeTextureBaseTask(gltMat.PbrMetallicRoughness.MetallicRoughnessTexture).Result;
+
+                result.Color = new Color(gltMat.PbrMetallicRoughness.BaseColorFactor);
+                result.Metalness = gltMat.PbrMetallicRoughness.MetallicFactor;
+                result.Roughness = gltMat.PbrMetallicRoughness.RoughnessFactor;
             }
 
             if (gltMat.NormalTexture != null)
             {
-                result.NormalMap = DecodeTextureNormal(gltMat.NormalTexture);
+                result.NormalMap = DecodeTextureNormalTask(gltMat.NormalTexture).Result;
                 result.NormalScale = gltMat.NormalTexture.Scale;
-
             }
 
             if (gltMat.OcclusionTexture != null)
             {
-                result.OcclusionMap = DecodeTextureOcclusion(gltMat.OcclusionTexture);
+                result.OcclusionMap = DecodeTextureOcclusionTask(gltMat.OcclusionTexture).Result;
                 result.OcclusionStrength = gltMat.OcclusionTexture.Strength;
             }
 
-
-            result.AddComponent(new AssetSource
-            {
-                Asset = CreateAsset<PbrV2Material>(gltMat.Name!, "mat", id)
-            });
-
+            AssignAsset(result, "mat", matId);
 
             _mats[gltMat] = result;
 
             return result;
         }
 
-        unsafe T[] ConvertBuffer<T>(byte[] buffer, glTFLoader.Schema.BufferView view, glTFLoader.Schema.Accessor acc) where T : unmanaged
+        unsafe T[] ConvertBuffer<T>(byte[] buffer, BufferView view, Accessor acc) where T : unmanaged
         {
             Debug.Assert(acc.Sparse == null);
 
@@ -473,18 +498,21 @@ namespace XrEngine.Gltf
                 {
                     byte* curBuffer = pBuffer + view.ByteOffset + acc.ByteOffset;
                     var array = new T[acc.Count];
-                    for (var i = 0; i < acc.Count; i++)
+
+                    fixed (T* pArray = array)
                     {
-                        array[i] = *(T*)curBuffer;
-                        curBuffer += view.ByteStride.Value;
+                        for (var i = 0; i < acc.Count; i++)
+                        {
+                            pArray[i] = *(T*)curBuffer;
+                            curBuffer += view.ByteStride.Value;
+                        }
                     }
                     return array;
                 }
             }
-
         }
 
-        public Geometry3D ProcessPrimitive(glTFLoader.Schema.MeshPrimitive primitive, Geometry3D? result = null)
+        public Geometry3D ProcessPrimitive(MeshPrimitive primitive, Geometry3D? result = null)
         {
             result ??= new Geometry3D();
 
@@ -492,7 +520,7 @@ namespace XrEngine.Gltf
 
             var draco = TryLoadExtension<KHR_draco_mesh_compression>(primitive.Extensions);
 
-            if (primitive.Mode == glTFLoader.Schema.MeshPrimitive.ModeEnum.TRIANGLES)
+            if (primitive.Mode == MeshPrimitive.ModeEnum.TRIANGLES)
             {
                 int vertexCount = 0;
                 if (draco != null)
@@ -569,38 +597,38 @@ namespace XrEngine.Gltf
                                 result.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
                                 result.ActiveComponents |= VertexComponent.Position;
                                 vertexCount = vValues.Length;
-                                Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC3);
-                                Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
+                                Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
+                                Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "NORMAL":
                                 var nValues = ConvertBuffer<Vector3>(buffer, view, acc);
                                 result.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
                                 result.ActiveComponents |= VertexComponent.Normal;
-                                Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC3);
-                                Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
+                                Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
+                                Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TANGENT":
-                                if (_options != null && _options.DisableTangents)
+                                if (_options.DisableTangents)
                                     break;
                                 var tValues = ConvertBuffer<Vector4>(buffer, view, acc);
                                 result.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
                                 result.ActiveComponents |= VertexComponent.Tangent;
-                                Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC4);
-                                Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
+                                Debug.Assert(acc.Type == Accessor.TypeEnum.VEC4);
+                                Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_0":
                                 var uValues = ConvertBuffer<Vector2>(buffer, view, acc);
                                 result.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
                                 result.ActiveComponents |= VertexComponent.UV0;
-                                Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC2);
-                                Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
+                                Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
+                                Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_1":
                                 var uValues1 = ConvertBuffer<Vector2>(buffer, view, acc);
                                 result.SetVertexData((ref VertexData a, Vector2 b) => a.UV1 = b, uValues1);
                                 result.ActiveComponents |= VertexComponent.UV1;
-                                Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.VEC2);
-                                Debug.Assert(acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.FLOAT);
+                                Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
+                                Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             default:
                                 _log.AppendLine($"{attr.Key} data not supported");
@@ -642,11 +670,16 @@ namespace XrEngine.Gltf
                 result.ComputeTangents();
             }
 
+            if (_options.GeometryGpuOnly)
+                result.Flags |= EngineObjectFlags.GpuOnly;
+
             return result;
         }
 
-        public Object3D ProcessMesh(glTFLoader.Schema.Mesh gltMesh, int id, Object3D? result = null)
+        public Object3D ProcessMesh(int meshId, Object3D? result = null)
         {
+            var gltMesh = _model!.Meshes[meshId];
+
             if (result == null && _meshes.TryGetValue(gltMesh, out result))
                 return new Object3DInstance() { Reference = result };
 
@@ -655,6 +688,7 @@ namespace XrEngine.Gltf
             var group = gltMesh.Primitives.Length > 1 ? new Group3D() : null;
 
             int pIndex = 0;
+
             foreach (var primitive in gltMesh.Primitives)
             {
                 var curMesh = new TriangleMesh();
@@ -662,33 +696,31 @@ namespace XrEngine.Gltf
                 Debug.Assert(primitive.Targets == null);
                 CheckExtensions(primitive.Extensions);
 
-                _tasks.Add(() =>
+                Load(curMesh, () =>
                 {
-                    curMesh.Geometry = ProcessPrimitive(primitive);
-                    curMesh.Geometry.AddComponent(new AssetSource
-                    {
-                        Asset = CreateAsset<Geometry3D>(gltMesh.Name, "geo", id, pIndex)
-                    });
+                    var geo = ProcessPrimitive(primitive);
+
+                    AssignAsset(geo, gltMesh.Name, "geo", meshId, pIndex);
+
+                    curMesh.Geometry = geo;
 
                     Log.Info(this, "Loaded geometry {0} ({1} bytes)", gltMesh.Name, curMesh.Geometry.Vertices.Length * Marshal.SizeOf<VertexData>());
                 });
 
-
                 if (primitive.Material != null)
                 {
-                    var gltfMat = _model!.Materials[primitive.Material.Value];
-
-                    var pbrType = _options!.PbrType ?? MaterialFactory.DefaultPbr;
+                    var pbrType = _options.PbrType ?? MaterialFactory.DefaultPbr;
 
                     if (pbrType == typeof(PbrV2Material))
-                        curMesh.Materials.Add(ProcessMaterialV2(gltfMat, primitive.Material.Value));
+                        curMesh.Materials.Add(ProcessMaterialV2(primitive.Material.Value));
                     else
-                        curMesh.Materials.Add(ProcessMaterialV1(gltfMat, primitive.Material.Value));
+                        curMesh.Materials.Add(ProcessMaterialV1(primitive.Material.Value));
                 }
 
                 if (group == null)
                 {
                     _meshes[gltMesh] = curMesh;
+                    GenerateId(curMesh, "mesh", meshId);
                     return curMesh;
                 }
 
@@ -699,17 +731,23 @@ namespace XrEngine.Gltf
 
             _meshes[gltMesh] = group!;
 
+            GenerateId(group!, "mesh", meshId);
+
             return group!;
         }
 
-        protected Camera ProcessCamera(glTFLoader.Schema.Camera gltCamera)
+        protected Camera ProcessCamera(int cameraId)
         {
-            CheckExtensions(gltCamera.Extensions);
+            var camera = _model!.Cameras[cameraId];
+
+            CheckExtensions(camera.Extensions);
             throw new NotSupportedException();
         }
 
-        protected Object3D ProcessNode(glTFLoader.Schema.Node node, Group3D curGrp)
+        protected Object3D ProcessNode(int nodeId, Group3D curGrp)
         {
+            var node = _model!.Nodes[nodeId];
+
             CheckExtensions(node.Extensions);
 
             Object3D? nodeObj = null;
@@ -723,7 +761,7 @@ namespace XrEngine.Gltf
 
             if (node.Mesh != null)
             {
-                var nodeMesh = ProcessMesh(_model!.Meshes[node.Mesh.Value], node.Mesh.Value);
+                var nodeMesh = ProcessMesh(node.Mesh.Value);
                 if (nodeGrp != null)
                     nodeGrp.AddChild(nodeMesh);
                 else
@@ -731,7 +769,7 @@ namespace XrEngine.Gltf
             }
             else if (node.Camera != null)
             {
-                nodeObj = ProcessCamera(_model!.Cameras[node.Camera.Value]);
+                nodeObj = ProcessCamera(node.Camera.Value);
 
                 Debug.Assert(node.Children == null);
             }
@@ -743,7 +781,7 @@ namespace XrEngine.Gltf
             if (nodeGrp != null)
             {
                 foreach (var childNode in node.Children!)
-                    ProcessNode(_model!.Nodes[childNode], nodeGrp);
+                    ProcessNode(childNode, nodeGrp);
             }
 
             nodeObj!.Name = node.Name;
@@ -780,6 +818,8 @@ namespace XrEngine.Gltf
 
             curGrp.AddChild(nodeObj);
 
+            GenerateId(nodeObj, "node", nodeId);
+
             return nodeObj;
         }
 
@@ -787,24 +827,29 @@ namespace XrEngine.Gltf
         {
             var scene = new Group3D();
 
-            foreach (var node in glScene.Nodes)
-                ProcessNode(_model!.Nodes[node], scene);
+            foreach (var nodeId in glScene.Nodes)
+                ProcessNode(nodeId, scene);
 
             return scene;
         }
 
-        public void Unload()
+        public void Dispose()
         {
             _buffers.Clear();
             _log.Clear();
             _images.Clear();
             _mats.Clear();
             _meshes.Clear();
+            _textures.Clear();
+
+            GC.SuppressFinalize(this);
         }
 
         internal void LoadModel(string filePath, GltfLoaderOptions? options)
         {
-            _options = options;
+            if (options != null)
+                _options = options;
+
             _basePath = Path.GetDirectoryName(filePath)!;
             _filePath = filePath;
             _model = glTFLoader.Interface.LoadModel(filePath);
@@ -844,18 +889,33 @@ namespace XrEngine.Gltf
 
         public void ExecuteLoadTasks()
         {
-            Parallel.ForEach(_tasks, new ParallelOptions { MaxDegreeOfParallelism = 6 }, a => a());
+            Task.WaitAll(_tasks.ToArray());
+
             _tasks.Clear();
         }
 
-        protected IAsset CreateAsset<T>(string name, params object[] parts)
+        protected void GenerateId(EngineObject obj, params object[] parts)
         {
-            return new BaseAsset<GltfLoaderOptions, GltfAssetLoader>(
-                GltfAssetLoader.Instance,
-                name,
-                typeof(T),
-                new Uri("res://gltf/" + string.Join('/', parts) + "?src=" + _filePath),
-                _options);
+            var text = string.Join('|', parts) + "|" + _filePath;
+            var hash = MD5.HashData(Encoding.UTF8.GetBytes(text));
+            //TODO: id must be unqiue per scene, multiple instances can have same id
+            //obj.Id = new Guid(hash);
+        }
+
+
+        protected void AssignAsset<T>(T obj, string name, params object[] parts) where T : EngineObject
+        {
+            obj.AddComponent(new AssetSource
+            {
+                Asset = new BaseAsset<GltfLoaderOptions, GltfAssetLoader>(
+                    GltfAssetLoader.Instance,
+                    name,
+                    typeof(T),
+                    new Uri("res://gltf/" + string.Join('/', parts) + "?src=" + _filePath),
+                    _options)
+            });
+
+            GenerateId(obj, parts);
         }
 
         public static Object3D LoadFile(string filePath)

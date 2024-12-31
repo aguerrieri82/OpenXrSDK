@@ -6,13 +6,10 @@
 
         static EyeTextureMaterial()
         {
-            SHADER = new Shader
+            SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "texture.frag",
-                VertexSourceName = "standard.vert",
-                Resolver = str => Embedded.GetString(str),
-                IsLit = false,
-                UpdateHandler = StandardVertexShaderHandler.Instance
+                IsLit = false
             };
         }
         public EyeTextureMaterial()
@@ -47,12 +44,21 @@
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
 
-                if (((PerspectiveCamera)ctx.Camera!).ActiveEye == 0)
+                if (((PerspectiveCamera)ctx.PassCamera!).ActiveEye == 0)
                     up.SetUniform("uTexture", LeftTexture!, 0);
                 else
                     up.SetUniform("uTexture", RightTexture!, 0);
             });
 
+        }
+
+        public override void Dispose()
+        {
+            LeftTexture?.Dispose();
+            RightTexture?.Dispose();
+            LeftTexture = null;
+            RightTexture = null;
+            base.Dispose();
         }
 
         public Texture2D? LeftTexture { get; set; }

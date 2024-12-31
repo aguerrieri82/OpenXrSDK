@@ -9,7 +9,7 @@ namespace XrEngine.OpenXr
 
         protected override void OnAttach()
         {
-            _local = _host!.Feature<ILocalBounds>();
+            _local = _host?.Feature<ILocalBounds>();
             if (_local != null)
                 _local.BoundUpdateMode = UpdateMode.Automatic;
         }
@@ -17,23 +17,26 @@ namespace XrEngine.OpenXr
         public bool CanGrab(Vector3 position)
         {
             if (_local != null)
-                return _local.LocalBounds.Contains(position.Transform(_host!.WorldMatrixInverse));
+                return _local.LocalBounds.Contains(_host!.ToLocal(position));
 
             return false;
         }
 
-        public virtual void Grab()
+        public virtual void Grab(string grabber)
         {
-
+            Grabber = grabber;
         }
 
         public virtual void Release()
         {
+            Grabber = null;
         }
 
-        public virtual void OnMove()
+        public virtual void NotifyMove()
         {
 
         }
+
+        public string? Grabber { get; protected set; }
     }
 }

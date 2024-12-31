@@ -6,7 +6,6 @@
     },
     "Native": {
       "commandName": "Project",
-      "commandLineArgs": "--trace gl_bleed_gms.json",
       "nativeDebugging": true
     }
   }

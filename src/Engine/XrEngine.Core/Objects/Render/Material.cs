@@ -2,9 +2,10 @@
 {
     public enum AlphaMode
     {
-        Opaque,
-        Mask,
-        Blend
+        Opaque = 0,
+        Mask = 1,
+        Blend = 2,
+        BlendMain = 4 | Blend
     }
 
     public enum StencilFunction
@@ -21,39 +22,46 @@
 
     public abstract class Material : EngineObject, IHosted, IMaterial
     {
-        readonly HashSet<EngineObject> _hosts = [];
+        protected readonly HashSet<EngineObject> _hosts = [];
+        protected bool _isEnabled;
 
         public Material()
         {
             Alpha = AlphaMode.Opaque;
-            Version = 0;
             IsEnabled = true;
             StencilFunction = StencilFunction.Always;
         }
 
-        public void Attach(EngineObject host)
+        public virtual void Attach(EngineObject host)
         {
             _hosts.Add(host);
         }
 
         public void Detach(EngineObject host)
         {
+            Detach(host, false);
+        }
+
+        public void Detach(EngineObject host, bool dispose)
+        {
             _hosts.Remove(host);
+            if (dispose && _hosts.Count == 0)
+                Dispose();
         }
 
         protected override void OnChanged(ObjectChange change)
         {
             foreach (var host in _hosts)
-                host.NotifyChanged(new ObjectChange(ObjectChangeType.Render, this));
+                host.NotifyChanged(new ObjectChange(change.Type, this));
 
-            Version++;
             base.OnChanged(change);
         }
 
         protected override void SetStateWork(IStateContainer container)
         {
+            container.ReadObject(this);
+            NotifyChanged(ObjectChangeType.Render);
             base.SetStateWork(container);
-            container.ReadObject<Material>(this);
         }
 
         public override void GetState(IStateContainer container)
@@ -62,7 +70,25 @@
             container.WriteObject<Material>(this);
         }
 
+        public override void GeneratePath(List<string> parts)
+        {
+            if (_hosts.Count > 0)
+            {
+                var host = _hosts.First();
+                host.GeneratePath(parts);
+                if (host is TriangleMesh mesh)
+                {
+                    var index = mesh.Materials.IndexOf(this);
+                    parts.Add($"Materials[{index}]");
+                }
+            }
+
+            base.GeneratePath(parts);
+        }
+
         public IReadOnlySet<EngineObject> Hosts => _hosts;
+
+        public bool UseClipDistance { get; set; }
 
         public bool WriteDepth { get; set; }
 
@@ -76,14 +102,29 @@
 
         public byte? WriteStencil { get; set; }
 
-        public byte? CompareStencil { get; set; }
+        public byte? CompareStencilMask { get; set; }
 
         public StencilFunction StencilFunction { get; set; }
 
         public AlphaMode Alpha { get; set; }
 
-        public bool IsEnabled { get; set; }
-
         public string? Name { get; set; }
+
+        public bool IsEnabled
+        {
+            get => _isEnabled;
+            set
+            {
+                if (_isEnabled == value)
+                    return;
+                _isEnabled = value;
+                NotifyChanged(ObjectChangeType.MaterialEnabled);
+            }
+        }
+
+        public virtual Material Clone()
+        {
+            return (Material)MemberwiseClone();
+        }
     }
 }

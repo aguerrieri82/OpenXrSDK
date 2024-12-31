@@ -1,5 +1,4 @@
 ﻿using XrEngine;
-using XrEngine.Services;
 
 
 [assembly: Module(typeof(XrEngine.Module))]
@@ -25,6 +24,7 @@ namespace XrEngine
             assetLoader.Register(KtxReader.Instance);
             assetLoader.Register(PkmReader.Instance);
             assetLoader.Register(PvrTranscoder.Instance);
+            assetLoader.Register(new QuixelMaterialReader());
 
             var typeState = TypeStateManager.Instance;
 
@@ -35,9 +35,14 @@ namespace XrEngine
             typeState.Register(ObjectIdStateManager.Instance);
 
             typeState.Register(EngineObjectStateManager.Instance);
-            typeState.Register(StateObjectManager.Instance);
+            typeState.Register(new StateObjectManager<IStateObject>());
             typeState.Register(DefaultStateManager.Instance);
             typeState.Register(ObjectStateManager.Instance);
+        }
+
+        public void Shutdown()
+        {
+
         }
     }
 }

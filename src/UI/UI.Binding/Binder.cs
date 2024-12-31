@@ -4,6 +4,14 @@ namespace UI.Binding
 {
     public delegate void PropertyChangedHandler<T>(T? obj, IProperty property, object? value, object? oldValue);
 
+    public static class Binder
+    {
+        public static Binder<T> Create<T>(T value)
+        {
+            return new Binder<T>(value);
+        }
+    }
+
     public class Binder<T>
     {
         public Binder(T value)

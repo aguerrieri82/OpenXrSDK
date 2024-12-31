@@ -1,13 +1,12 @@
 ﻿using System.Numerics;
 using XrEditor.Services;
 using XrEngine;
-using XrEngine.Layers;
 using XrInteraction;
 using XrMath;
 
 namespace XrEditor
 {
-    public class SelectionTool : PickTool
+    public class SelectionTool : PickTool, IOutlineSource
     {
         private readonly SelectionManager _selection;
         private readonly NodeManager _nodes;
@@ -18,6 +17,8 @@ namespace XrEditor
 
         public SelectionTool()
         {
+            Context.Implement<IOutlineSource>(this);
+
             _selection = Context.Require<SelectionManager>();
             _selection.Changed += OnSelectionChanged;
             _nodes = Context.Require<NodeManager>();
@@ -30,42 +31,29 @@ namespace XrEditor
 
             var layers = _sceneView.Scene.Layers;
 
-            _selectionLayer = layers.Layers
-                .OfType<DetachedLayer>()
-                .Where(a => a.Name == "Selection")
-                .FirstOrDefault();
-
-            _selectionLayer ??= layers.Add(new DetachedLayer() { Name = "Selection" });
+            _selectionLayer ??= layers.Add(new DetachedLayer()
+            {
+                Name = "Selection",
+                IsVisible = false,
+                Usage = DetachedLayerUsage.Selection | DetachedLayerUsage.Outline
+            });
 
             base.NotifySceneChanged();
         }
 
-        private void SetSelected(IEnumerable<TriangleMesh> items, bool selected)
+        bool IOutlineSource.HasOutline(Object3D obj, out Color color)
         {
-            foreach (var item in items)
-            {
-                var outline = item.Materials.OfType<OutlineMaterial>().FirstOrDefault();
-                if (outline == null)
-                {
-                    outline = new OutlineMaterial()
-                    {
-                        Color = new Color(1, 1, 0, 0.7f),
-                        CompareStencil = 1,
-                        StencilFunction = StencilFunction.NotEqual,
-                        Alpha = AlphaMode.Blend,
-                        Size = 5,
-                    };
-                    item.Materials.Add(outline);
-                }
-                outline.IsEnabled = selected;
+            color = new Color(1, 1, 0, 0.7f);
 
-                foreach (var mat in item.Materials)
-                {
-                    if (mat is OutlineMaterial)
-                        continue;
-                    mat.WriteStencil = selected ? 1 : null;
-                }
-            }
+            if (obj is TriangleMesh mesh && mesh.Geometry?.Primitive == DrawPrimitive.Quad)
+                return false;
+
+            return _lastOutline != null && _lastOutline.Contains(obj);
+        }
+
+        bool IOutlineSource.HasOutlines()
+        {
+            return _lastOutline != null && _lastOutline.Length > 0;
         }
 
         private void OnSelectionChanged(IReadOnlyCollection<INode> items)
@@ -80,21 +68,19 @@ namespace XrEditor
                 var outlineMeshes = _lastSelection
                     .Select(a => a.Value)
                     .OfType<Object3D>()
+                    .Where(a => a is not Scene3D)
                     .SelectMany(a => a.DescendantsOrSelf())
                     .OfType<TriangleMesh>();
 
-                if (_lastOutline != null)
-                    SetSelected(_lastOutline, false);
 
                 _lastOutline = outlineMeshes.ToArray();
 
-                SetSelected(_lastOutline, true);
+                foreach (var item in _lastOutline)
+                    _selectionLayer.Add(item);
 
                 _selectionLayer.EndUpdate();
             }
         }
-
-
         protected override void OnPointerDown(Pointer2Event ev)
         {
             _downPos = ev.Position;
@@ -108,7 +94,11 @@ namespace XrEditor
                 if (_currentPick == null)
                     _selection.Clear();
                 else
+                {
                     _selection.Set(_nodes.CreateNode(_currentPick));
+                    Log.Info(this, _lastCollision?.Point.ToString() ?? "");
+                }
+
             }
 
             base.OnPointerUp(ev);
@@ -118,32 +108,46 @@ namespace XrEditor
         {
             canvas.Save();
 
-            canvas.State.Color = new Color(0, 1, 1, 1);
-
             foreach (var item in _lastSelection.Select(a => a.Value).OfType<Object3D>())
             {
+                if (item is Scene3D)
+                    continue;
+
                 var local = item.Feature<ILocalBounds>();
 
                 if (local != null)
                 {
+                    canvas.State.Color = new Color(0, 1, 1, 1);
                     canvas.State.Transform = item.WorldMatrix;
                     canvas.DrawBounds(local.LocalBounds);
                 }
+
+                canvas.State.Transform = Matrix4x4.Identity;
+                canvas.State.Color = new Color(1, 1, 1, 1);
+                canvas.DrawBounds(item.WorldBounds);
+
             }
 
-            if (_lastCollision?.Normal != null)
+            var collision = _lastCollision;
+
+            if (collision != null)
             {
-                canvas.State.Color = new Color(0, 1, 0, 1);
-
-                var normalMatrix = Matrix4x4.Transpose(_lastCollision.Object!.WorldMatrixInverse);
-
-                canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + _lastCollision.Normal.Value.Transform(normalMatrix).Normalize());
-
-                if (_lastCollision.Tangent != null)
+                if (collision.Normal != null)
                 {
                     canvas.State.Color = new Color(0, 1, 1, 1);
-                    var nq = Vector3.Normalize(new Vector3(_lastCollision.Tangent.Value.X, _lastCollision.Tangent.Value.Y, _lastCollision.Tangent.Value.Z));
-                    canvas.DrawLine(_lastCollision.Point, _lastCollision.Point + new Vector3(nq.X, nq.Y, nq.Z));
+                    canvas.State.Transform = Matrix4x4.Identity;
+
+                    canvas.DrawLine(collision.Point, collision.Point + collision.Normal.Value * 0.5f);
+                }
+
+                if (collision.Tangent != null)
+                {
+                    canvas.State.Color = new Color(0, 1, 1, 1);
+                    var tangent = new Vector3(collision.Tangent.Value.X, collision.Tangent.Value.Y, collision.Tangent.Value.Z).Normalize();
+
+                    tangent = tangent.Transform(collision.Object!.NormalMatrix).Normalize();
+
+                    canvas.DrawLine(collision.Point, collision.Point + tangent * 0.5f);
                 }
 
             }
@@ -152,5 +156,6 @@ namespace XrEditor
 
             base.DrawGizmos(canvas);
         }
+
     }
 }

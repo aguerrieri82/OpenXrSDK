@@ -1,5 +1,4 @@
 ﻿using XrEngine;
-using XrEngine.Services;
 
 [assembly: Module(typeof(XrEngine.Gltf.Module))]
 
@@ -10,6 +9,11 @@ namespace XrEngine.Gltf
         public void Load()
         {
             AssetLoader.Instance.Register(GltfAssetLoader.Instance);
+        }
+
+        public void Shutdown()
+        {
+
         }
     }
 }

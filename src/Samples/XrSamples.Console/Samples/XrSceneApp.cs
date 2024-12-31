@@ -4,7 +4,7 @@ using OpenXr.Framework;
 using XrEngine;
 using XrEngine.OpenXr;
 using XrEngine.OpenXr.Windows;
-using XrEngine.Services;
+
 
 namespace XrSamples
 {
@@ -33,7 +33,7 @@ namespace XrSamples
 
             while (true)
             {
-                _game.XrApp.RenderFrame(_game.XrApp.Stage);
+                _game.XrApp.RenderFrame(_game.XrApp.ReferenceSpace);
 
                 if (Console.KeyAvailable)
                 {

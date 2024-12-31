@@ -18,9 +18,7 @@ namespace XrEngine.OpenGL
             : base(gl, resolver)
         {
             _cSource = cSource;
-
         }
-
 
         [MemberNotNull(nameof(Computer))]
         public override void Build()
@@ -35,7 +33,8 @@ namespace XrEngine.OpenGL
 
             _values.Clear();
             _locations.Clear();
-            _boundBuffers.Clear();
+            for (var i = 0; i < _boundBuffers.Length; i++)
+                _boundBuffers[i] = 0;
 
             Log.Debug(this, "Program built");
         }

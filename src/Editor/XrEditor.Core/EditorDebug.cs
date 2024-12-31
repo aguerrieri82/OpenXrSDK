@@ -9,11 +9,23 @@ namespace XrEditor
 
         public static readonly bool AutoStartApp = true;
 
+        public static readonly bool EnableVSync = true;
+
+        public static readonly string[] AssetsPath = [
+            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",
+            @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\"];  
+
         public static XrEngineApp CreateApp() => new XrEngineAppBuilder()
               //.UseMultiView()
               //.UseStereo()
-              .SetRenderQuality(1, Driver == GraphicDriver.FilamentVulkan ? 1u : 1u) ///samples > 1 cause Filament to fuck up
-              .CreateRoomManager()
+              .SetGlOptions(opt =>
+              {
+                  opt.UsePlanarReflection = true;
+                  opt.UseDepthPass = false;
+                  opt.UseHitTest = true;
+              })
+              .SetRenderQuality(1, 2)
+              .CreateEarth()
               .Build();
     }
 }

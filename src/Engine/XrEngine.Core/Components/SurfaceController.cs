@@ -7,15 +7,16 @@ namespace XrEngine
     public class SurfaceController : Behavior<Object3D>, IRayTarget, ISurfaceInput
     {
         protected Dictionary<IRayPointer, RayPointerStatus> _pointerStatus = [];
+
         Vector2 _pointer;
         bool _pointerValid;
         InputButton _mainInBtn;
-        InputButton _backInBtn;
+        InputButton _secInBtn;
         ICollider3D? _collider;
 
         public SurfaceController()
         {
-
+            UpdatePriority = -1;
         }
 
         protected override void Start(RenderContext ctx)
@@ -26,15 +27,11 @@ namespace XrEngine
                 .ToArray();
 
             _collider = _host!.Feature<ICollider3D>();
-
-            base.Start(ctx);
         }
 
         protected override void Update(RenderContext ctx)
         {
             ProcessPointers(ctx);
-
-            base.Update(ctx);
         }
 
         protected void ProcessPointers(RenderContext ctx)
@@ -46,7 +43,7 @@ namespace XrEngine
             bool found = false;
 
             _mainInBtn.IsChanged = false;
-            _backInBtn.IsChanged = false;
+            _secInBtn.IsChanged = false;
 
             foreach (var pointer in Pointers)
             {
@@ -60,7 +57,11 @@ namespace XrEngine
                 if (!status.IsActive)
                     continue;
 
+                if (_collider is QuadCollider quad)
+                    quad.PlaneMode = pointer.IsCaptured;
+
                 var collision = _collider!.CollideWith(status.Ray);
+
                 if (collision != null)
                 {
                     NotifyCollision(ctx, collision);
@@ -73,18 +74,25 @@ namespace XrEngine
                 {
                     _mainInBtn.IsChanged = true;
                     _mainInBtn.IsDown = leftDown;
-                    if (leftDown && collision != null)
-                        pointer.CapturePointer();
+                    if (leftDown)
+                    {
+                        if (collision != null)
+                            pointer.CapturePointer();
+
+                    }
                     else
-                        pointer.ReleasePointer();
+                    {
+                        if (pointer.IsCaptured)
+                            pointer.ReleasePointer();
+                    }
                 }
 
                 var rightDown = (status.Buttons & Pointer2Button.Right) == Pointer2Button.Right;
                 var wasRightDown = (lastStatus.Buttons & Pointer2Button.Left) == Pointer2Button.Left;
                 if (rightDown != wasRightDown)
                 {
-                    _backInBtn.IsChanged = true;
-                    _backInBtn.IsDown = rightDown;
+                    _secInBtn.IsChanged = true;
+                    _secInBtn.IsDown = rightDown;
                 }
             }
 
@@ -92,10 +100,12 @@ namespace XrEngine
                 _pointerValid = false;
         }
 
-        public void NotifyCollision(RenderContext ctx, Collision collision)
+        public void NotifyCollision(RenderContext ctx, Collision? collision)
         {
-            _pointer = new Vector2(collision.LocalPoint.X, collision.LocalPoint.Y) + new Vector2(0.5f, 0.5f);
-            _pointerValid = true;
+            if (collision != null)
+                _pointer = collision.UV ?? new Vector2(collision.LocalPoint.X, collision.LocalPoint.Y) + new Vector2(0.5f, 0.5f);
+
+            _pointerValid = collision != null;
         }
 
         public bool IsPointerValid => _pointerValid;
@@ -104,7 +114,7 @@ namespace XrEngine
 
         public InputButton MainButton => _mainInBtn;
 
-        public InputButton BackButton => _backInBtn;
+        public InputButton SecondaryButton => _secInBtn;
 
         public IList<IRayPointer>? Pointers { get; set; }
     }

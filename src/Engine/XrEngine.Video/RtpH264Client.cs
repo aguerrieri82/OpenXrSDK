@@ -233,7 +233,7 @@ namespace XrEngine.Video
                     break;
             }
             /*
-            if ((DateTime.Now - _lastReportTime).TotalSeconds > 5)
+            if ((DateTime.UtcNow - _lastReportTime).TotalSeconds > 5)
             {
                 byte[] ctrlPacket = new byte[8];
                 // version | padding | RC
@@ -254,7 +254,7 @@ namespace XrEngine.Video
 
                 _client.Send(ctrlPacket, new IPEndPoint(_endPoint.Address, _serverPort));
 
-                _lastReportTime = DateTime.Now; 
+                _lastReportTime = DateTime.UtcNow; 
             }
             */
 

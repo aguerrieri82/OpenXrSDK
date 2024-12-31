@@ -4,81 +4,116 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using XrMath;
+
 
 namespace XrEngine.OpenGL
 {
-    public class GlOutlinePass : GlBaseRenderPass
+    public class GlOutlinePass : GlBaseSingleMaterialPass
     {
-        private uint _fooVa;
-        private GlProgramInstance? _outline;
-        private GlProgramInstance? _clear;
+        protected readonly GlRenderPassTarget _passTarget;
+        protected Size2I _lastSize;
+        protected readonly GlSimpleProgram _outlineProgram;
 
-
-        public GlOutlinePass(OpenGLRender renderer)
+        public GlOutlinePass(OpenGLRender renderer, int boundEye = -1)
             : base(renderer)
         {
+            _passTarget = new GlRenderPassTarget(renderer.GL);
+            _passTarget.BoundEye = boundEye;
+            _passTarget.DepthMode = TargetDepthMode.None;
+
+            _outlineProgram = new GlSimpleProgram(renderer.GL, "fullscreen.vert", "outline.frag", str => Embedded.GetString<Material>(str));
+            _outlineProgram.Build();
         }
 
-        protected override bool BeginRender()
+        protected override IGlRenderTarget? GetRenderTarget()
         {
-            _renderer.RenderTarget!.Begin();
-            return base.BeginRender();
+            return _passTarget.RenderTarget;
+        }
+
+        protected override bool BeginRender(Camera camera)
+        {
+            if (Source == null)
+            {
+                if (!Context.TryRequire<IOutlineSource>(out var source))
+                    return false;
+                Source = source;
+            }
+
+            if (!Source.HasOutlines())
+                return false;
+
+            _lastSize = camera.ViewSize;
+
+            _passTarget.Configure(_lastSize.Width, _lastSize.Height, TextureFormat.Rgba32);
+            _passTarget.RenderTarget!.Begin(camera);
+
+            _renderer.State.SetClearColor(Color.Transparent);
+            _renderer.State.SetWriteDepth(false);
+            _renderer.State.SetWriteColor(true);
+
+            _gl.Clear(ClearBufferMask.ColorBufferBit);
+
+            return base.BeginRender(camera);
+        }
+
+        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
+        {
+            _programInstance!.Material.DoubleSided = drawMaterial.DoubleSided;
+            return base.UpdateProgram(updateContext, drawMaterial);
+        }
+
+
+        protected override bool CanDraw(DrawContent draw)
+        {
+            if (!Source!.HasOutline(draw.Object!, out var color))
+                return false;
+
+            _programInstance!.Material.UpdateColor(color);
+
+            return true;
         }
 
         protected override void EndRender()
         {
-
-        }
-
-        protected override void Initialize()
-        {
-            var options = _renderer.Options.Outline;
-
-            _outline = CreateProgram(new OutlineEffect()
-            {
-                Color = options.Color,
-                Size = options.Size,
-            });
-
-            _clear = CreateProgram(new DepthClearEffect()
-            {
-                StencilFunction = StencilFunction.NotEqual,
-                CompareStencil = options.ActiveOutlineStencil
-            });
+            _passTarget.RenderTarget!.End(true);
 
 
-            _fooVa = _renderer.GL.GenVertexArray();
+            _renderer.RenderTarget!.Begin(_renderer.UpdateContext.PassCamera!);
 
-            base.Initialize();
+            _outlineProgram.Use();
+            _outlineProgram.SetUniform("uSize", (int)_renderer.Options.Outline.Size);
+            _outlineProgram.LoadTexture(_passTarget.ColorTexture!.ToEngineTexture(), 0);
+
+            DrawQuad();
         }
 
         protected override IEnumerable<GlLayer> SelectLayers()
         {
-            return _renderer.Layers.Where(a => a.Type == GlLayerType.Main).Take(1);
+            return _renderer.Layers
+                .Where(a =>
+                (a.SceneLayer is DetachedLayer det) &&
+                (det.Usage & DetachedLayerUsage.Outline) != 0);
         }
 
-        protected override void RenderLayer(GlLayer layer)
+        protected override ShaderMaterial CreateMaterial()
         {
-
-            _renderer.GL.BindVertexArray(_fooVa);
-
-            UseProgram(_clear!, true);
-
-            _renderer.GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
-
-            _renderer.RenderTarget?.CommitDepth();
-
-            _renderer.UpdateContext.DepthMap = _renderer.GetDepth();
-
-            UseProgram(_outline!, true);
-
-            _renderer.GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
-
-            _renderer.GL.BindVertexArray(0);
-
-            _renderer.UpdateContext.DepthMap = null;
+            return new ColorMaterial()
+            {
+                Color = Color.White,
+                WriteDepth = false,
+                UseDepth = false,
+            };
         }
 
+        public override void Dispose()
+        {
+            _outlineProgram.Dispose();
+            _passTarget.Dispose();
+            base.Dispose();
+        }
+
+        public IOutlineSource? Source { get; set; }
 
     }
 }

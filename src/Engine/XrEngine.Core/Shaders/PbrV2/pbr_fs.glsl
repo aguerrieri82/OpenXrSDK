@@ -1,32 +1,36 @@
-#include "PbrV2/uniforms.glsl"
-#include "Pbr/shadow.glsl"
-
-// Physically Based Rendering
-// Copyright (c) 2017-2018 Michał Siejak
-
-// Physically Based shading model: Lambetrtian diffuse BRDF + Cook-Torrance microfacet specular BRDF + IBL for ambient.
-
-// This implementation is based on "Real Shading in Unreal Engine 4" SIGGRAPH 2013 course notes by Epic Games.
-// See: http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
+#include "uniforms.glsl"
+#include "../Shared/shadow.glsl"
+#include "../Shared/env_depth.glsl"
+#include "../Shared/tonemap.glsl"
+#include "../Shared/planar_reflection.glsl"
 
 const float PI = 3.141592;
 const float Epsilon = 0.00001;
-const float gamma      = 2.2;
-const float inv_gamma  = 1.0 / gamma;
-const float pureWhite  = 1.0;
 
-// Constant normal incidence Fresnel factor for all dielectrics.
 const vec3 Fdielectric = vec3(0.04);
 
+#define DEBUG_UV        1
+#define DEBUG_NORMAL    2
+#define DEBUG_TANGENT   3
+#define DEBUG_BITANGENT 4
+#define DEBUG_METALNESS 5
+#define DEBUG_ROUGHNESS 6
 
-layout(location=0) in Vertex
-{
-	vec3 position;
-	vec2 texcoord;
-	mat3 tangentBasis;
-	vec4 posLightSpace;
-	vec3 cameraPos;
-} vin;
+in vec3 fNormal;
+in vec3 fPos;
+in vec2 fUv;
+in vec3 fCameraPos;    
+in mat3 fTangentBasis;
+
+
+#if defined(HAS_UV2) || (defined(ALBEDO_UV_SET) && ALBEDO_UV_SET == 1)
+	in vec2 fUv2;
+#endif
+
+#ifdef USE_SHADOW_MAP
+    in vec4 fPosLightSpace;
+#endif
+
 
 layout(location=0) out vec4 color;
 
@@ -40,8 +44,11 @@ layout(binding=4) uniform samplerCube specularTexture;
 layout(binding=5) uniform samplerCube irradianceTexture;
 layout(binding=6) uniform sampler2D specularBRDF_LUT;
 
+
 uniform float uSpecularTextureLevels;
 uniform float uIblIntensity;
+uniform vec3 uIblColor;
+
 
 #ifdef USE_IBL_TRANSFORM
 uniform mat3 uIblTransform;
@@ -84,27 +91,46 @@ vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
+float rand(vec2 co) {
+    return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+}
 
-vec3 toneMap(vec3 color)
+vec3 addNoise(vec3 color)
 {
+	vec2 seed = vec2(fCameraPos.xy + fUv + vec2(gl_FragCoord));
+	float noise = rand(seed);
+	float linearDepth = (2.0 * uCamera.nearPlane * uCamera.farPlane) / (uCamera.farPlane + uCamera.nearPlane - gl_FragCoord.z * (uCamera.farPlane - uCamera.nearPlane));
+    
+	color += noise * uCamera.depthNoiseFactor * min(linearDepth / uCamera.depthNoiseDistance, 1.0);
 
-	float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
-	float mappedLuminance = (luminance * (1.0 + luminance/(pureWhite*pureWhite))) / (1.0 + luminance);
-
-	// Scale color by ratio of average luminances.
-	vec3 mappedColor = (mappedLuminance / luminance) * color;
-
-	// Gamma correction.
-	return pow(mappedColor, vec3(inv_gamma));
+	return color;
 }
 
 void main()
 {
+
+	#if defined(HAS_ENV_DEPTH) && defined(USE_ENV_DEPTH)
+	    
+		if (!passEnvDepth(fPos, uint(uCamera.activeEye)))
+		{
+			color = vec4(0.0);	
+			return;
+		}
+
+	#endif
+
 	vec3 shadowLightDir;
 
 	// Sample input textures to get shading model params.
 	#ifdef USE_ALBEDO_MAP
-		vec4 baseColor = texture(albedoTexture, vin.texcoord) * uMaterial.color;
+
+		#if ALBEDO_UV_SET == 1
+			vec2 albUv = fUv2;
+		#else
+			vec2 albUv = fUv;
+		#endif
+
+		vec4 baseColor = texture(albedoTexture, albUv) * uMaterial.color;
 	#else
 		vec4 baseColor = uMaterial.color;	
 	#endif
@@ -119,9 +145,9 @@ void main()
 
 	#ifdef USE_METALROUGHNESS_MAP
 
-		vec4 mr = texture(metalroughnessTexture, vin.texcoord);
-		float metalness = mr.b * uMaterial.metalness;
-		float roughness = mr.g * uMaterial.roughness;
+		vec4 mr = texture(metalroughnessTexture, fUv);
+		float metalness = clamp(mr.b * uMaterial.metalness, 0.0, 1.0);
+		float roughness = clamp(mr.g * uMaterial.roughness, 0.0, 1.0);
 
 	#else
 		float metalness = uMaterial.metalness;
@@ -129,15 +155,15 @@ void main()
 	#endif
 
 	// Outgoing light direction (vector from world-space fragment position to the "eye").
-	vec3 Lo = normalize(vin.cameraPos - vin.position);
+	vec3 Lo = normalize(fCameraPos - fPos);
 
 	// Get current fragment's normal and transform to world space.
-	#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
+	#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) 
 
-		vec3 N = normalize(2.0 * texture(normalTexture, vin.texcoord).rgb - 1.0);	
+		vec3 N = normalize(2.0 * texture(normalTexture, fUv).rgb - 1.0);	
 		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
 
-		mat3 TBN = vin.tangentBasis;
+		mat3 TBN = fTangentBasis;
 
 		#ifdef DOUBLE_SIDED
 
@@ -153,7 +179,7 @@ void main()
 		N = normalize(TBN * N);
 
 	#else
-		vec3 N = normalize(vin.tangentBasis[2]);
+		vec3 N = normalize(fNormal);
 		#ifdef DOUBLE_SIDED
 		if (!gl_FrontFacing)
 			N = -N;
@@ -180,7 +206,7 @@ void main()
 		if(uLights.lights[i].type == 0u)
 		{
 			// Point light.
-			vec3 lightDir = uLights.lights[i].position - vin.position;
+			vec3 lightDir = uLights.lights[i].position - fPos;
 			float distance = length(lightDir);
 			Li = normalize(lightDir);
 
@@ -242,7 +268,7 @@ void main()
 			irradianceVec *= uIblTransform;
 		#endif
 
-		vec3 irradiance = texture(irradianceTexture, irradianceVec).rgb * uIblIntensity;
+		vec3 irradiance = texture(irradianceTexture, irradianceVec).rgb * uIblIntensity * uIblColor;
 
 		// Calculate Fresnel term for ambient lighting.
 		// Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
@@ -277,6 +303,12 @@ void main()
 
 	vec3 color3 = (directLighting + ambientLighting);
 
+	
+	#ifdef PLANAR_REFLECTION
+		color3 = planarReflection(color3, fPos, Lr, roughness, cosLo);
+	#endif
+
+
 	//Opaque
 	#if ALPHA_MODE == 0
 		float a = 1.0;	
@@ -286,13 +318,13 @@ void main()
 
 
 	#ifdef USE_OCCLUSION_MAP
-    float ao = texture(occlusionTexture, vin.texcoord).r;
-    color3 *= mix(1.0, ao, uMaterial.occlusionStrength);
+		float ao = texture(occlusionTexture, fUv).r;
+		color3 *= mix(1.0, ao, uMaterial.occlusionStrength);
 	#endif
 
 	#if defined(USE_SHADOW_MAP) && defined(RECEIVE_SHADOWS) && defined(USE_PUNCTUAL)
 
-		float shadow = calculateShadow(vin.posLightSpace, N, shadowLightDir);
+		float shadow = calculateShadow(fPosLightSpace, N, shadowLightDir);
 
 		#ifdef TRANSPARENT
 			color3 = shadow * uMaterial.shadowColor.rgb;
@@ -302,9 +334,13 @@ void main()
 		#endif
 
 	#endif
+
+	#ifdef USE_EMISSIVE
+		color3 += uMaterial.emissive.rgb * uMaterial.emissive.a * cosLo;
+	#endif
 	
 	#ifdef TONEMAP
-	color3 = toneMap(color3);
+		color3 = linearTosRGB(toneMap(color3));
 	#endif
 
 	//Blend
@@ -312,8 +348,40 @@ void main()
 		a = max(uMaterial.alphaCutoff, a);
 	#endif
 
+	#ifdef USE_DEPTH_NOISE
+
+		color3 = addNoise(color3);	
+
+	#endif
+
+
 	// Final fragment color.
 	color = vec4(color3 * uCamera.exposure, a);
 
+#if DEBUG == DEBUG_UV
+
+	color = vec4(fUv.x, fUv.y, 0.0, 1.0);
+
+#elif DEBUG == DEBUG_NORMAL
+
+	color = vec4(N * 0.5 + 0.5, 1.0);
+
+#elif DEBUG == DEBUG_TANGENT
+
+	color = vec4(normalize(fTangentBasis[0]) * 0.5 + 0.5, 1.0);
+
+#elif DEBUG == DEBUG_BITANGENT
+
+	color = vec4(normalize(fTangentBasis[1]) * 0.5 + 0.5, 1.0);
+
+#elif DEBUG == DEBUG_METALNESS
+	
+	color = vec4(vec3(metalness), 1.0);
+
+#elif DEBUG == DEBUG_ROUGHNESS
+	
+	color = vec4(vec3(roughness), 1.0);
+
+#endif
 
 }

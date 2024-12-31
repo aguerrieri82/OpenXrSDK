@@ -6,24 +6,24 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="Silk.NET.OpenAL" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.OpenAL.Extensions.Enumeration" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.OpenAL.Extensions.Soft" Version="2.21.0" />
-		<PackageReference Include="System.Text.Json" Version="9.0.0-rc.1.24431.7" />
+		<PackageReference Include="Silk.NET.OpenAL" Version="2.22.0" />
+		<PackageReference Include="Silk.NET.OpenAL.Extensions.Enumeration" Version="2.22.0" />
+		<PackageReference Include="Silk.NET.OpenAL.Extensions.Soft" Version="2.22.0" />
+		<PackageReference Include="System.Text.Json" Version="9.0.0" />
 	</ItemGroup>
 
 
 	<ItemGroup>
-		<NativeLibrary Include="..\..\..\libs\openal\**\*" />
+		<NativeLibrary Include="$(NativeLibsDir)openal\**\*" />
 	</ItemGroup>
 	
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
-		<Content Include="..\..\..\libs\openal\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
-		<Content Include="..\..\..\libs\openal\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-		<Content Include="..\..\..\libs\openal\android-arm64\*.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
+		<Content Include="$(NativeLibsDir)openal\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
+		<Content Include="$(NativeLibsDir)openal\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+		<Content Include="$(NativeLibsDir)openal\android-arm64\*.so" CopyToOutputDirectory="PreserveNewest" Link="runtimes/android-arm64/native/%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
-		<AndroidNativeLibrary Abi="arm64-v8a" Include="..\..\..\libs\openal\android-arm64\*.so" />
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)openal\android-arm64\*.so" />
 	</ItemGroup>
 </Project>

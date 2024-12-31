@@ -11,11 +11,18 @@ namespace XrEngine
             public TaskCompletionSource<object?>? Completion;
         }
 
-        readonly ConcurrentQueue<QueueTask> _queue = [];
+        protected readonly ConcurrentQueue<QueueTask> _queue = [];
         protected bool _isProcessingQueue;
+        protected Thread? _thread;
 
         public async Task ExecuteAsync(Action action)
         {
+            if (Thread.CurrentThread == _thread)
+            {
+                action();
+                return;
+            }
+
             var task = new QueueTask()
             {
                 Action = () =>
@@ -33,6 +40,9 @@ namespace XrEngine
 
         public async Task<T> ExecuteAsync<T>(Func<T> action)
         {
+            if (Thread.CurrentThread == _thread)
+                return action();
+
             var task = new QueueTask()
             {
                 Action = () => action()!,
@@ -53,6 +63,8 @@ namespace XrEngine
                 return;
 
             _isProcessingQueue = true;
+            _thread = Thread.CurrentThread;
+
             try
             {
                 while (_queue.TryDequeue(out var task))
@@ -60,6 +72,7 @@ namespace XrEngine
                     try
                     {
                         var result = task.Action!();
+
                         task.Completion!.SetResult(result);
                     }
                     catch (Exception ex)

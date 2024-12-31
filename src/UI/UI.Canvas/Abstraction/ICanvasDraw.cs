@@ -2,7 +2,7 @@
 
 namespace CanvasUI
 {
-    public interface ICanvasDraw
+    public interface IDrawGizmos
     {
         void Draw(SKCanvas canvas);
     }

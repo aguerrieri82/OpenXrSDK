@@ -68,9 +68,9 @@ namespace XrSamples
             body.ContactReportThreshold = settings.ContactReportThreshold;
             body.ContactOffset = settings.ContactOffset;
 
-            var curMat = body.Material;
+            var curMat = body.MaterialInfo;
             curMat.Restitution = settings.Restitution;
-            body.Material = curMat;
+            body.MaterialInfo = curMat;
 
             if (body.IsCreated)
             {
@@ -93,7 +93,7 @@ namespace XrSamples
             var system = pyManager.System;
             var racket = scene.FindByName<Object3D>("Racket");
             var generator = scene.FeatureDeep<BallGenerator>()!;
-            var mesh = scene.FindByName<TriangleMesh>("global-mesh");
+            var mesh = scene.FindByName<TriangleMesh>("Mesh");
 
             pyManager.Options.LengthTolerance = LengthToleranceScale;
             pyManager.Options.EnablePCM = EnablePCM;
@@ -177,7 +177,7 @@ namespace XrSamples
                 {
                     var generator = scene.FeatureDeep<BallGenerator>()!;
 
-                    (generator.Material as IPbrMaterial)!.Roughness= obj!.BallMaterial!.Roughness;
+                    (generator.Material as IPbrMaterial)!.Roughness = obj!.BallMaterial!.Roughness;
                     (generator.Material as IPbrMaterial)!.Metalness = obj!.BallMaterial!.Metallic;
                     generator.Material.NotifyChanged(ObjectChangeType.Render);
 

@@ -1,4 +1,7 @@
 ﻿using Silk.NET.OpenXR;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using XrMath;
 
 namespace OpenXr.Framework.Oculus
 {
@@ -50,6 +53,22 @@ namespace OpenXr.Framework.Oculus
                 };
 
                 var result = LocateHandJoints(space, time, &velocities);
+
+                if (!_app.ReferenceFrame.IsIdentity())
+                {
+                    var capsules = capsuleState.Capsules.AsSpan();
+
+                    fixed (HandCapsuleFB* pCap = capsules)
+                    {
+                        for (var i = 0; i < capsules.Length; i++)
+                        {
+                            ref Vector3 v0 = ref Unsafe.AsRef<Vector3>(&pCap->Points.Element0);
+                            ref Vector3 v1 = ref Unsafe.AsRef<Vector3>(&pCap->Points.Element1);
+                            v0 = _app.ReferenceFrame.Transform(v0);
+                            v1 = _app.ReferenceFrame.Transform(v1);
+                        }
+                    }
+                }
 
                 _capsules = capsuleState.Capsules;
 

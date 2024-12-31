@@ -16,6 +16,10 @@ namespace XrEditor.Nodes
         {
             base.EditorProperties(binder, curProps);
 
+            binder.PropertyChanged += (_, _, _, _) =>
+            {
+                binder.Value.UpdatePhysics();
+            };
 
             curProps.Add(new PropertyView
             {
@@ -26,25 +30,48 @@ namespace XrEditor.Nodes
             curProps.Add(new PropertyView
             {
                 Label = "Restitution",
-                Editor = new FloatEditor(binder.Prop(a => a.Material.Restitution), 0, 1)
+                Editor = new FloatEditor(binder.Prop(a => a.MaterialInfo.Restitution), 0, 1)
             });
 
             curProps.Add(new PropertyView
             {
                 Label = "Static Friction",
-                Editor = new FloatEditor(binder.Prop(a => a.Material.StaticFriction), 0, 1)
+                Editor = new FloatEditor(binder.Prop(a => a.MaterialInfo.StaticFriction), 0, 1)
             });
 
             curProps.Add(new PropertyView
             {
                 Label = "Dynamic Friction",
-                Editor = new FloatEditor(binder.Prop(a => a.Material.StaticFriction), 0, 1)
+                Editor = new FloatEditor(binder.Prop(a => a.MaterialInfo.StaticFriction), 0, 1)
             });
 
             curProps.Add(new PropertyView
             {
                 Label = "Density",
                 Editor = new FloatEditor(binder.Prop(a => a.Density), 0, 1)
+            });
+
+            curProps.Add(new PropertyView
+            {
+                Label = "Auto Teleport",
+                Editor = new BoolEditor(binder.Prop(a => a.AutoTeleport))
+            });
+
+            if (binder.Value.Type != PhysicsActorType.Static && binder.Value.IsCreated)
+            {
+                curProps.Add(new PropertyView
+                {
+                    Label = "Mass",
+                    ReadOnly = true,
+                    Editor = new FloatEditor(binder.Prop(a => a.DynamicActor.Mass), 0, 1)
+                });
+            }
+
+            curProps.Add(new PropertyView
+            {
+                Label = "Angular Damping",
+                Category = "Advanced",
+                Editor = new FloatEditor(binder.Prop(a => a.AngularDamping), 0, 1)
             });
 
             curProps.Add(new PropertyView
@@ -68,6 +95,8 @@ namespace XrEditor.Nodes
                 Editor = new BoolEditor(binder.Prop(a => a.EnableCCD))
             });
 
+
+
             curProps.Add(new PropertyView
             {
                 Label = "Length Tolerance Scale",
@@ -78,5 +107,9 @@ namespace XrEditor.Nodes
 
         }
 
+        private void Binder_PropertyChanged(RigidBody? obj, IProperty property, object? value, object? oldValue)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

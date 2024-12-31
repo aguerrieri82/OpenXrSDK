@@ -12,15 +12,10 @@ namespace CanvasUI
         {
         }
 
-        protected override void OnPropertyChanged(string propName, object? value, object? oldValue)
+        protected void OnTextChanged(string? value, string? oldValue)
         {
-            if (propName == nameof(Text))
-            {
-                _lastLayout.CurrentSize.Width = -1;
-                InvalidateLayout();
-            }
-
-            base.OnPropertyChanged(propName, value, oldValue);
+            _lastLayout.CurrentSize.Width = -1;
+            InvalidateLayout();
         }
 
         protected override Size2 MeasureWork(Size2 availSize)

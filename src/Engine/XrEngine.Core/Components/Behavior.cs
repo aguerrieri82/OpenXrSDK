@@ -18,6 +18,7 @@
             _lastUpdateTime = 0;
         }
 
+
         protected virtual void Start(RenderContext ctx)
         {
 
@@ -30,21 +31,31 @@
 
         void IRenderUpdate.Update(RenderContext ctx)
         {
-            if (!_isEnabled)
+            if (!_isEnabled || _suspendCount > 0 || _host == null)
                 return;
 
             if (_startTime == -1)
             {
-                Log.Debug(this, "Starting component {0}", GetType().Name);
                 Start(ctx);
+                Log.Debug(this, "Started component {0}", GetType().Name);
                 _startTime = ctx.Time;
                 Started?.Invoke(this, EventArgs.Empty);
             }
             else
             {
                 _deltaTime = _lastUpdateTime == 0 ? 0 : ctx.Time - _lastUpdateTime;
-
-                EngineApp.Current!.Stats.Update(this, () => Update(ctx));
+                try
+                {
+#if DEBUG
+                    EngineApp.Current!.Stats.Update(this, () => Update(ctx));
+#else
+                    Update(ctx);
+#endif
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(this, ex, "Update error: {0}");
+                }
 
                 _lastUpdateTime = ctx.Time;
             }
@@ -59,6 +70,7 @@
 
         public IUpdateGroup? UpdateGroup { get; set; }
 
+        public int UpdatePriority { get; protected set; }
     }
 
     public class LambdaBehavior<T> : Behavior<T> where T : EngineObject
@@ -73,5 +85,6 @@
         {
             _update(_host!, ctx);
         }
+
     }
 }

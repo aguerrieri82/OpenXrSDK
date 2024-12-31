@@ -11,13 +11,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <EmbeddedResource Include="Shaders\depth_point.frag" />
+	  <EmbeddedResource Include="Shaders\motion_vectors.frag" />
+	  <EmbeddedResource Include="Shaders\motion_vectors.vert" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\Common\XrInteraction\XrInteraction.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
 		<ProjectReference Include="..\XrEngine.Audio\XrEngine.Audio.csproj" />
 		<ProjectReference Include="..\XrEngine.Filament\XrEngine.Filament.csproj" />
 		<ProjectReference Include="..\XrEngine.Glft\XrEngine.Gltf.csproj" />
-		<ProjectReference Include="..\XrEngine.OpenGL.Oculus\XrEngine.OpenGL.Oculus.csproj" />
 		<ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework\OpenXr.Framework.csproj" />
 		<ProjectReference Include="..\XrEngine.Physics\XrEngine.Physics.csproj" />

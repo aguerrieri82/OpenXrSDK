@@ -7,27 +7,43 @@ using Silk.NET.OpenGL;
 
 namespace XrEngine.OpenGL
 {
-    public class GlProgramInstance : IBufferProvider
+    public partial class GlProgramInstance : IBufferProvider, IDisposable
     {
-        static readonly Dictionary<string, GlBaseProgram> _programs = [];
-
+        static internal readonly Dictionary<string, GlBaseProgram> _programs = [];
 
         protected ShaderUpdate? _update;
         protected readonly GL _gl;
+
         protected long _materialVersion = -1;
         protected long _globalVersion = -1;
+        protected long _lastGlobalContextVersion = -1;
 
-        public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global)
+        protected IGlBuffer?[] _materialBuffers;
+        protected IGlBuffer?[] _modelBuffers;
+
+
+        public GlProgramInstance(GL gl, ShaderMaterial material, GlProgramGlobal global, Object3D? model)
         {
             _gl = gl;
             Material = material;
             Global = global;
+
+            var bufferMap = material.GetOrCreateProp("BufferMap", () => new GlBufferMap(10));
+            _materialBuffers = bufferMap.Buffers;
+
+            if (model != null)
+            {
+                bufferMap = model.GetOrCreateProp("BufferMap", () => new GlBufferMap(10));
+                _modelBuffers = bufferMap.Buffers;
+            }
+            else
+                _modelBuffers = [];
         }
 
-        public void UpdateProgram(UpdateShaderContext ctx)
+        public bool UpdateProgram(UpdateShaderContext ctx)
         {
             if (Program != null && _materialVersion == Material!.Version && _globalVersion == Global.Version)
-                return;
+                return false;
 
             ctx.BufferProvider = this;
 
@@ -37,19 +53,39 @@ namespace XrEngine.OpenGL
             foreach (var feature in Global.Update!.Features!)
                 localBuilder.AddFeature(feature);
 
+            if (ExtraFeatures != null)
+            {
+                foreach (var feature in ExtraFeatures)
+                    localBuilder.AddFeature(feature);
+            }
+
+            var shader = Material.Shader!;
+
+            var tesMode = Material is ITessellationMaterial tes ? tes.TessellationMode : TessellationMode.None;
+            var useTess = shader.TessEvalSourceName != null && tesMode != TessellationMode.None;
+            var useGeo = shader.GeometrySourceName != null && 
+                         (shader.TessEvalSourceName == null || tesMode == TessellationMode.Geometry);
+
+            if (useTess)
+                localBuilder.AddFeature("USE_TESS_SHADER");
+            
+            if (useGeo)
+                localBuilder.AddFeature("USE_GEO_SHADER");
+
             localBuilder.ComputeHash(Material.GetType().FullName!);
 
             _update = localBuilder.Result;
 
             if (!_programs.TryGetValue(_update.FeaturesHash!, out var program))
             {
-                var shader = Material.Shader!;
                 var resolver = shader.Resolver!;
 
                 program = new GlSimpleProgram(_gl,
-                    resolver(shader.VertexSourceName!),
-                    resolver(shader.FragmentSourceName!),
-                    shader.GeometrySourceName != null ? resolver(shader.GeometrySourceName!) : null,
+                    shader.VertexSourceName!,
+                    shader.FragmentSourceName!,
+                    useGeo ? shader.GeometrySourceName : null,
+                    useTess ? shader.TessControlSourceName : null,
+                    useTess ? shader.TessEvalSourceName : null,
                     resolver);
 
                 if (shader.GeometrySourceName != null)
@@ -58,6 +94,17 @@ namespace XrEngine.OpenGL
                     program.AddExtension("GL_OES_geometry_shader");
                 }
 
+                if (useTess)
+                {
+                    program.AddExtension("GL_EXT_tessellation_shader");
+                    program.AddExtension("GL_OES_tessellation_shader");
+                }
+
+                if (ExtraExtensions != null)
+                {
+                    foreach (var ext in ExtraExtensions)
+                        program.AddExtension(ext);
+                }
 
                 foreach (var ext in _update.Extensions!)
                     program.AddExtension(ext);
@@ -67,6 +114,7 @@ namespace XrEngine.OpenGL
 
                 foreach (var ext in Global.Update!.Extensions!)
                     program.AddExtension(ext);
+
                 /*
                 foreach (var feature in Global.Update!.Features!)
                     program.AddFeature(feature);
@@ -80,48 +128,80 @@ namespace XrEngine.OpenGL
                 _programs[_update.FeaturesHash!] = program;
             }
 
-            program.Use();
+            var changed = Program == null || program.Handle != Program.Handle;
 
-            foreach (var action in _update!.BufferUpdates!)
-                action(ctx);
+            program.Use();
 
             Program = program;
 
             _materialVersion = Material.Version;
             _globalVersion = Global.Version;
+
+            return changed;
         }
 
-        public IBuffer GetBuffer<T>(string name, bool isGlobal)
+        public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store)
         {
-            if (isGlobal)
-                return Global.GetBuffer<T>(name, true);
+            if (store == BufferStore.Shader)
+                return Global.GetBuffer<T>(bufferId, store);
 
-            var key = "Buffer" + name;
-            var buffer = Material.GetProp<GlBuffer<T>>(key);
+            var storeBuffers = store == BufferStore.Material ? _materialBuffers : _modelBuffers;
+
+            if (storeBuffers.Length == 0)
+                throw new NotSupportedException("Buffer store not supported");
+
+            var buffer = (IBuffer<T>?)storeBuffers[bufferId];
             if (buffer == null)
             {
                 buffer = new GlBuffer<T>(_gl, BufferTargetARB.UniformBuffer);
-                Material.SetProp(key, buffer);
+                storeBuffers[bufferId] = (IGlBuffer)buffer;
             }
             return buffer;
         }
+
+        public void UpdateBuffers(UpdateShaderContext ctx)
+        {
+            foreach (var action in _update!.BufferUpdates!)
+                action(ctx);
+        }
+
 
         public void UpdateUniforms(UpdateShaderContext ctx, bool updateGlobals)
         {
             ctx.BufferProvider = this;
 
             if (updateGlobals)
-                Global.UpdateUniforms(ctx, Program!);
+            {
+                if (ctx.ContextVersion != _lastGlobalContextVersion)
+                {
+                    Global.UpdateUniforms(ctx, Program!);
+                    _lastGlobalContextVersion = ctx.ContextVersion;
+                }
+            }
 
             foreach (var action in _update!.Actions!)
                 action(ctx, Program!);
         }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
+
+        public void Invalidate()
+        {
+            _materialVersion = -1;
+            _globalVersion = -1;
+        }
+
+        public string[]? ExtraFeatures { get; set; }
+
+        public string[]? ExtraExtensions { get; set; }
 
         public GlProgramGlobal Global { get; }
 
         public ShaderMaterial Material { get; }
 
         public GlBaseProgram? Program { get; set; }
-
     }
 }

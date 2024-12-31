@@ -1,36 +1,32 @@
-﻿using System.Numerics;
+﻿using Common.Interop;
+using System.ComponentModel;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 
 namespace XrEngine
 {
-    public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial
+    public enum PbrV2Debug
     {
-        #region CameraUniforms
+        None = 0,
+        Uv = 1,
+        Normal = 2,
+        Tangent = 3,
+        Bitangent = 4,
+        Metalness = 5,
+        Roughness = 6
+    }
 
-        [StructLayout(LayoutKind.Explicit, Size = 128)]
-        public struct CameraUniforms
-        {
-            [FieldOffset(0)]
+    public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial
+    {
+        const int CAMERA_BUF = 1;
+        const int LIGHTS_BUF = 2;
+        const int MATERIAL_BUF = 3;
 
-            public Matrix4x4 ViewProj;
-
-            [FieldOffset(64)]
-
-            public Vector3 Position;
-
-            [FieldOffset(76)]
-            public float Exposure;
-
-            [FieldOffset(80)]
-            public Matrix4x4 LightSpaceMatrix;
-        }
-
-        #endregion
 
         #region MaterialUniforms
 
-        [StructLayout(LayoutKind.Explicit, Size = 128)]
+        [StructLayout(LayoutKind.Explicit, Size = 144)]
         public struct MaterialUniforms
         {
             [FieldOffset(0)]
@@ -58,6 +54,8 @@ namespace XrEngine
             [FieldOffset(116)]
             public float AlphaCutoff;
 
+            [FieldOffset(128)]
+            public Vector4 EmissiveColor;
         }
 
         #endregion
@@ -84,8 +82,8 @@ namespace XrEngine
                     if (_buffer.Data != 0)
                         MemoryManager.Free(_buffer.Data);
 
-                    _buffer.Size = newSize;
-                    _buffer.Data = MemoryManager.Allocate(_buffer.Size, this);
+                    _buffer.Size = (uint)newSize;
+                    _buffer.Data = MemoryManager.Allocate((int)_buffer.Size, this);
                 }
 
                 ((int*)_buffer.Data)[0] = Lights.Length;
@@ -97,7 +95,7 @@ namespace XrEngine
                     srcSpan.CopyTo(dstSpan);
                 }
 
-                Log.Debug(this, "Update light buffer");
+                //Log.Debug(this, "Update light buffer");
 
                 return _buffer;
             }
@@ -126,18 +124,34 @@ namespace XrEngine
             public float Range;
         }
 
-        #endregion  
+        #endregion
 
-        #region GlobalShaderHandler
+        #region ModelUniforms
 
-        class GlobalShaderHandler : IShaderHandler
+        [StructLayout(LayoutKind.Explicit, Size = 128)]
+        public struct ModelUniforms
+        {
+            [FieldOffset(0)]
+            public Matrix4x4 WorldMatrix;
+
+            [FieldOffset(64)]
+            public Matrix4x4 NormalMatrix;
+        }
+
+        #endregion
+
+        #region PbrV2Shader
+
+        public class PbrV2Shader : Shader, IShaderHandler
         {
             long _iblVersion = -1;
+            readonly PerspectiveCamera _depthCamera = new PerspectiveCamera();
 
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
                 var ibl = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
-                return ctx.LastUpdate?.LightsHash != ctx.LightsHash || 
+                return ctx.LastGlobalUpdate?.LightsHash != ctx.LightsHash ||
+                       (ctx.LastGlobalUpdate?.ShaderVersion != Version) ||
                        (ibl?.Version ?? -1) != _iblVersion;
             }
 
@@ -156,6 +170,9 @@ namespace XrEngine
                     bld.AddFeature("USE_IBL");
                 }
 
+                if (DepthNoiseFactor > 0)
+                    bld.AddFeature("USE_DEPTH_NOISE");
+
                 if (bld.Context.ShadowMapProvider != null)
                 {
                     var mode = bld.Context.ShadowMapProvider.Options.Mode;
@@ -163,27 +180,63 @@ namespace XrEngine
                     if (mode != ShadowMapMode.None)
                     {
                         bld.AddFeature("USE_SHADOW_MAP");
-
-                        if (mode == ShadowMapMode.HardSmooth)
-                            bld.AddFeature("SMOOTH_SHADOW_MAP");
+                        bld.AddFeature("SHADOW_MAP_MODE " + (int)mode);
 
                         bld.ExecuteAction((ctx, up) =>
                         {
-                            up.SetUniform("uShadowMap", ctx.ShadowMapProvider!.ShadowMap!, 14);
+                            up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, 14);
                         });
                     }
                 }
 
+                if (bld.Context.BloomProvider != null)
+                    bld.AddFeature("USE_BLOOM");
+
 
                 bld.AddFeature("MAX_LIGHTS " + LightListUniforms.Max);
 
-                bld.SetUniformBuffer("Camera", (ctx) =>
+                var envDepth = bld.Context.MainCamera?.Feature<IEnvDepthProvider>();
+
+                if (envDepth != null)
+                {
+                    bld.AddFeature("HAS_ENV_DEPTH");
+                    bld.ExecuteAction((ctx, up) =>
+                    {
+                        var texture = envDepth.Acquire(_depthCamera);
+                        if (texture != null)
+                            up.LoadTexture(texture, 8);
+
+                        up.SetUniform("envDepthBias", envDepth.Bias);
+
+                        if (_depthCamera.Eyes != null)
+                        {
+                            up.SetUniform("envViewProj[0]", _depthCamera.Eyes[0].ViewProj);
+                            up.SetUniform("envViewProj[1]", _depthCamera.Eyes[1].ViewProj);
+                        }
+                    });
+                }
+
+                bld.LoadBuffer((ctx) =>
                 {
                     var result = new CameraUniforms
                     {
-                        ViewProj = ctx.Camera!.ViewProjection,
-                        Position = ctx.Camera!.WorldPosition,
-                        Exposure = ctx.Camera.Exposure,
+                        ViewProj = ctx.PassCamera!.ViewProjection,
+                        Position = ctx.PassCamera!.WorldPosition,
+                        Exposure = ctx.PassCamera.Exposure,
+                        ActiveEye = ctx.PassCamera.ActiveEye,
+                        ViewSize = ctx.PassCamera.ViewSize,
+                        NearPlane = ctx.PassCamera.Near,
+                        FarPlane = ctx.PassCamera.Far,
+                        DepthNoiseFactor = DepthNoiseFactor,
+                        DepthNoiseDistance = DepthNoiseDistance,
+                        FrustumPlane1 = ctx.FrustumPlanes[0],
+                        FrustumPlane2 = ctx.FrustumPlanes[1],
+                        FrustumPlane3 = ctx.FrustumPlanes[2],
+                        FrustumPlane4 = ctx.FrustumPlanes[3],
+                        FrustumPlane5 = ctx.FrustumPlanes[4],
+                        FrustumPlane6 = ctx.FrustumPlanes[5],
+                        View = ctx.PassCamera.View,
+                        Proj = ctx.PassCamera.Projection,
                     };
 
                     var light = ctx.ShadowMapProvider?.LightCamera?.ViewProjection;
@@ -192,96 +245,113 @@ namespace XrEngine
 
                     return (CameraUniforms?)result;
 
-                }, 0, true);
+                }, 0, BufferStore.Shader);
 
-                if (hasPunctual)
+
+                bld.LoadBuffer((ctx) =>
                 {
-                    bld.SetUniformBuffer("Lights", (ctx) =>
+                    var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
+
+                    if (ctx.CurrentBuffer!.Hash == hash)
+                        return null;
+
+                    ctx.CurrentBuffer!.Hash = hash;
+
+                    //Log.Debug(this, "Build light uniforms");
+
+                    if (!hasPunctual)
                     {
-                        var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
-
-                        if (ctx.CurrentBuffer!.Hash == hash)
-                            return null;
-
-                        ctx.CurrentBuffer!.Hash = hash;
-
-                        Log.Debug(this, "Build light uniforms");
-
-                        var lights = new List<LightUniforms>();
-
-                        foreach (var light in bld.Context.Lights!)
-                        {
-                            if (light is PointLight point)
-                            {
-                                lights.Add(new LightUniforms
-                                {
-                                    Type = 0,
-                                    Color = ((Vector3)point.Color) * point.Intensity,
-                                    Position = point.WorldPosition,
-                                    Range = point.Range
-                                });
-                            }
-                            else if (light is DirectionalLight directional)
-                            {
-                                lights.Add(new LightUniforms
-                                {
-                                    Type = 1,
-                                    Color = ((Vector3)directional.Color) * directional.Intensity,
-                                    Direction = Vector3.Normalize(directional.Direction)
-
-                                });
-                            }
-                        }
-
                         return (LightListUniforms?)new LightListUniforms
                         {
-                            Count = (uint)lights.Count,
-                            Lights = lights.ToArray()
+                            Count = 0,
+                            Lights = []
                         };
-                    }, 1, true);
-                }
+                    }
+
+                    var lights = new List<LightUniforms>();
+
+                    foreach (var light in bld.Context.Lights!)
+                    {
+                        if (light is PointLight point)
+                        {
+                            lights.Add(new LightUniforms
+                            {
+                                Type = 0,
+                                Color = ((Vector3)point.Color) * point.Intensity,
+                                Position = point.WorldPosition,
+                                Range = point.Range
+                            });
+                        }
+                        else if (light is DirectionalLight directional)
+                        {
+                            lights.Add(new LightUniforms
+                            {
+                                Type = 1,
+                                Color = ((Vector3)directional.Color) * directional.Intensity,
+                                Direction = Vector3.Normalize(directional.Direction)
+
+                            });
+                        }
+                    }
+
+                    return (LightListUniforms?)new LightListUniforms
+                    {
+                        Count = (uint)lights.Count,
+                        Lights = lights.ToArray()
+                    };
+                }, 1, BufferStore.Shader);
 
 
                 if (imgLight != null)
                 {
-                    if (imgLight.Rotation != 0)
+                    var hasTransform = ForceIblTransform || imgLight.RotationY != 0 || imgLight.LightTransform != Matrix3x3.Identity;
+
+                    if (hasTransform)
                         bld.AddFeature("USE_IBL_TRANSFORM");
 
                     bld.ExecuteAction((ctx, up) =>
                     {
                         up.SetUniform("uSpecularTextureLevels", (float)imgLight.Textures.MipCount);
                         up.SetUniform("uIblIntensity", (float)imgLight.Intensity);
+                        up.SetUniform("uIblColor", new Vector3(imgLight.Color.R, imgLight.Color.G, imgLight.Color.B));
 
-                        if (imgLight.Rotation > 0)
-                            up.SetUniform("uIblTransform", Matrix3x3.CreateRotationY(imgLight.Rotation));
+                        if (hasTransform)
+                            up.SetUniform("uIblTransform", imgLight.LightTransform * Matrix3x3.CreateRotationY(imgLight.RotationY));
 
                         if (imgLight.Textures?.GGXEnv != null)
-                            up.SetUniform("specularTexture", imgLight.Textures.GGXEnv, 4);
+                            up.LoadTexture(imgLight.Textures.GGXEnv, 4);
 
                         if (imgLight.Textures?.LambertianEnv != null)
-                            up.SetUniform("irradianceTexture", imgLight.Textures.LambertianEnv, 5);
+                            up.LoadTexture(imgLight.Textures.LambertianEnv, 5);
 
                         if (imgLight.Textures?.GGXLUT != null)
-                            up.SetUniform("specularBRDF_LUT", imgLight.Textures.GGXLUT, 6);
+                            up.LoadTexture(imgLight.Textures.GGXLUT, 6);
 
                     });
                 }
             }
+
+            public float DepthNoiseFactor { get; set; }
+
+            public float DepthNoiseDistance { get; set; }
         }
 
         #endregion
 
-        static readonly Shader SHADER;
+
+        public static readonly PbrV2Shader SHADER;
 
         static PbrV2Material()
         {
-            SHADER = new Shader
+            SHADER = new PbrV2Shader
             {
                 FragmentSourceName = "PbrV2/pbr_fs.glsl",
                 VertexSourceName = "PbrV2/pbr_vs.glsl",
+                TessControlSourceName = "Shared/height_map.tesc",
+                TessEvalSourceName = "Shared/height_map.tese",
+                GeometrySourceName = "Shared/height_map.geom",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = true,
-                UpdateHandler = new GlobalShaderHandler()
             };
         }
 
@@ -308,10 +378,18 @@ namespace XrEngine
                 OcclusionStrength = OcclusionStrength,
                 NormalScale = NormalScale,
                 AlphaCutoff = AlphaCutoff,
+                EmissiveColor = EmissiveColor
             };
+
+            bld.AddFeature("PBR_V2");
+
+            bld.AddFeature($"DEBUG {(int)Debug}");
 
             if (ToneMap)
                 bld.AddFeature("TONEMAP");
+
+            if (UseEnvDepth)
+                bld.AddFeature("USE_ENV_DEPTH");
 
             if (ReceiveShadows)
                 bld.AddFeature("RECEIVE_SHADOWS");
@@ -322,55 +400,188 @@ namespace XrEngine
             if (DoubleSided)
                 bld.AddFeature("DOUBLE_SIDED");
 
-            bld.AddFeature($"ALPHA_MODE {(int)Alpha}");
+            bld.AddFeature($"ALPHA_MODE {(int)(Alpha == AlphaMode.BlendMain ? AlphaMode.Blend : Alpha)}");
 
-            bld.SetUniformBuffer("Material", ctx => (MaterialUniforms?)material, 2, false);
+
+            bld.LoadBuffer(ctx =>
+            {
+                var curVersion = ctx.Model!.Transform.Version;
+                if (curVersion == ctx.CurrentBuffer!.Version)
+                    return null;
+                ctx.CurrentBuffer!.Version = curVersion;
+
+                return (ModelUniforms?)new ModelUniforms
+                {
+                    NormalMatrix = ctx.Model.NormalMatrix,
+                    WorldMatrix = ctx.Model.WorldMatrix
+                };
+            }, 3, BufferStore.Model);
+
+
+            bld.LoadBuffer(ctx =>
+            {
+                var curVersion = Version;
+                if (curVersion == ctx.CurrentBuffer!.Version)
+                    return null;
+                ctx.CurrentBuffer!.Version = curVersion;
+
+                return (MaterialUniforms?)material;
+
+            }, 2, BufferStore.Material);
+
+
+            var planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
+
+            if (planar != null)
+            {
+                bld.AddFeature("PLANAR_REFLECTION");
+
+                if (PlanarReflection.IsMultiView)
+                    bld.AddFeature("PLANAR_REFLECTION_MV");
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    if (planar.Texture != null)
+                        up.LoadTexture(planar.Texture, 7);
+
+                    if (PlanarReflection.IsMultiView)
+                    {
+                        if (planar.ReflectionCamera.Eyes != null)
+                        {
+                            up.SetUniform("uReflectMatrix[0]", planar.ReflectionCamera.Eyes[0].ViewProj);
+                            up.SetUniform("uReflectMatrix[1]", planar.ReflectionCamera.Eyes[1].ViewProj);
+                        }
+                    }
+                    else
+                        up.SetUniform("uReflectMatrix", planar.ReflectionCamera.ViewProjection);
+                });
+            }
+
+            if (EmissiveColor != Color.Black)
+                bld.AddFeature("USE_EMISSIVE");
+
+            if (HeightMap?.Texture != null)
+            {
+                bld.AddFeature("USE_HEIGHT_MAP");
+
+                if (HeightMap.NormalMode == HeightNormalMode.Sobel)
+                    bld.AddFeature("NORMAL_SOBEL");
+
+                else if (HeightMap.NormalMode == HeightNormalMode.Geometry)
+                    bld.AddFeature("NORMAL_GEO");
+
+                if (HeightMap.MaskValue != null)
+                    bld.AddFeature($"HEIGHT_MASK_VALUE {HeightMap.MaskValue}.0");
+
+                if (HeightMap.SphereRadius > 0)
+                {
+                    bld.AddFeature("IS_SPHERE");
+                    bld.ExecuteAction((ctx, up) =>
+                    {
+                        up.SetUniform("uSphereRadius", HeightMap.SphereRadius);
+                        up.SetUniform("uSphereCenter", HeightMap.SphereWorldCenter);
+                    });
+                }
+            
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    if (HeightMap != null)
+                    {
+                        up.LoadTexture(HeightMap.Texture!, 8);
+                        up.SetUniform("uHeightTexSize", new Vector2(HeightMap.Texture.Width, HeightMap.Texture.Height));
+                    }
+                    up.SetUniform("uHeightNormalStrength", HeightMap!.NormalStrength);
+                    up.SetUniform("uHeightScale", HeightMap.ScaleFactor);
+                    up.SetUniform("uTargetTriSize", HeightMap.TargetTriSize);
+                });
+            }
+
 
             if (ColorMap != null)
             {
                 bld.AddFeature("USE_ALBEDO_MAP");
-                bld.SetUniform("albedoTexture", ctx => ColorMap, 0);
+                bld.LoadTexture(ctx => ColorMap, 0);
 
                 if (ColorMap.Transform != null)
                 {
                     bld.AddFeature("HAS_TEX_TRANSFORM");
                     material.TexTransform = ColorMap.Transform.Value;
                 }
+
+                bld.AddFeature($"ALBEDO_UV_SET {ColorMapUVSet}");
             }
 
             if (MetallicRoughnessMap != null)
             {
                 bld.AddFeature("USE_METALROUGHNESS_MAP");
-                bld.SetUniform("metalroughnessTexture", ctx => MetallicRoughnessMap, 2);
+                bld.LoadTexture(ctx => MetallicRoughnessMap, 2);
             }
 
             if (NormalMap != null)
             {
                 bld.AddFeature("USE_NORMAL_MAP");
-                bld.SetUniform("normalTexture", ctx => NormalMap, 1);
+                bld.LoadTexture(ctx => NormalMap, 1);
             }
 
             if (OcclusionMap != null)
             {
                 bld.AddFeature("USE_OCCLUSION_MAP");
-                bld.SetUniform("occlusionTexture", ctx => OcclusionMap, 3);
+                bld.LoadTexture(ctx => OcclusionMap, 3);
             }
-
-            bld.ExecuteAction((ctx, up) =>
-            {
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-            });
 
             if ((bld.Context.ActiveComponents & VertexComponent.Tangent) != 0)
                 bld.AddFeature("HAS_TANGENTS");
 
+            if ((bld.Context.ActiveComponents & VertexComponent.UV1) != 0)
+                bld.AddFeature("HAS_UV2");
+
             base.UpdateShader(bld);
         }
+
+        public override void GetState(IStateContainer container)
+        {
+            base.GetState(container);
+
+            container.Write(nameof(Color), Color);
+            container.Write(nameof(ShadowColor), ShadowColor);
+            container.Write(nameof(Metalness), Metalness);
+            container.Write(nameof(Roughness), Roughness);
+            container.Write(nameof(OcclusionStrength), OcclusionStrength);
+            container.Write(nameof(AlphaCutoff), AlphaCutoff);
+            container.Write(nameof(NormalScale), NormalScale);
+            container.Write(nameof(UseEnvDepth), UseEnvDepth);
+        }
+
+        protected override void SetStateWork(IStateContainer container)
+        {
+            UseEnvDepth = container.Read<bool>(nameof(UseEnvDepth));
+            NormalScale = container.Read<float>(nameof(NormalScale));
+            AlphaCutoff = container.Read<float>(nameof(AlphaCutoff));
+            OcclusionStrength = container.Read<float>(nameof(OcclusionStrength));
+            Roughness = container.Read<float>(nameof(Roughness));
+            Metalness = container.Read<float>(nameof(Metalness));
+            ShadowColor = container.Read<Color>(nameof(ShadowColor));
+            Color = container.Read<Color>(nameof(Color));
+
+            base.SetStateWork(container);
+        }
+
+        TessellationMode ITessellationMaterial.TessellationMode => 
+            HeightMap?.Texture != null ? (HeightMap.NormalMode == HeightNormalMode.Geometry ? 
+                                            TessellationMode.Geometry : 
+                                            TessellationMode.Normal)
+                                        : TessellationMode.None;
+
+        bool ITessellationMaterial.DebugTessellation => HeightMap?.DebugTessellation ?? false;
+
+        public HeightMapSettings? HeightMap { get; set; }
 
         public Texture2D? OcclusionMap { get; set; }
 
         public Texture2D? ColorMap { get; set; }
+
+        public uint ColorMapUVSet { get; set; }
 
         public Texture2D? MetallicRoughnessMap { get; set; }
 
@@ -398,5 +609,14 @@ namespace XrEngine
         public float AlphaCutoff { get; set; }
 
         public float NormalScale { get; set; }
+
+        public bool UseEnvDepth { get; set; }
+
+        public Color EmissiveColor { get; set; }
+
+        public PbrV2Debug Debug { get; set; }
+
+        public static bool ForceIblTransform { get; set; }
+
     }
 }

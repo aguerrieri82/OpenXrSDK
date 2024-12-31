@@ -12,7 +12,7 @@ namespace XrEngine
             SHADER = new Shader
             {
                 FragmentSourceName = "outline.frag",
-                VertexSourceName = "Utils/fullscreen.vert",
+                VertexSourceName = "fullscreen.vert",
                 Resolver = str => Embedded.GetString(str),
                 IsLit = false,
                 Priority = -1

@@ -1,19 +1,21 @@
 ﻿
 namespace XrEngine
 {
-    public interface IMaterial
+    public interface IMaterial : IName
     {
+        void NotifyChanged(ObjectChange change);
+
         AlphaMode Alpha { get; set; }
 
         bool CastShadows { get; set; }
 
-        byte? CompareStencil { get; set; }
+        byte? CompareStencilMask { get; set; }
 
         bool DoubleSided { get; set; }
 
         bool IsEnabled { get; set; }
 
-        string? Name { get; set; }
+        new string? Name { get; set; }
 
         StencilFunction StencilFunction { get; set; }
 
@@ -25,6 +27,6 @@ namespace XrEngine
 
         byte? WriteStencil { get; set; }
 
-        long Version { get; set; }
+        long Version { get; }
     }
 }

@@ -5,7 +5,7 @@ namespace OpenAl.Framework
 {
     public class AlSource : AlObject, IDisposable
     {
-        readonly HashSet<AlBuffer> _buffers = [];
+
 
         public AlSource(AL al)
             : base(al, al.GenSource())
@@ -37,21 +37,37 @@ namespace OpenAl.Framework
             _al.SourceRewind(_handle);
         }
 
-        public void DeleteBuffers()
+        public void DeleteBuffer()
         {
-            foreach (var buffer in _buffers)
-            {
-            }
-
             _al.SetSourceProperty(_handle, SourceInteger.Buffer, 0);
-
-            _buffers.Clear();
         }
 
-        public void AddBuffer(AlBuffer buffer)
+        public void SetBuffer(AlBuffer buffer)
         {
             _al.SetSourceProperty(_handle, SourceInteger.Buffer, buffer.Handle);
-            _buffers.Add(buffer);
+
+        }
+
+        public void QueueBuffer(params AlBuffer[] buffers)
+        {
+            _al.SourceQueueBuffers(_handle, buffers.Select(a => a.Handle).ToArray());
+        }
+
+        public IEnumerable<AlBuffer> DequeueBuffers(uint count)
+        {
+            var bufHandles = new uint[count];
+            _al.SourceUnqueueBuffers(_handle, bufHandles);
+            return bufHandles.Select(a => AlBuffer.Attach(_al, a));
+        }
+
+
+        public int BuffersProcessed
+        {
+            get
+            {
+                _al.GetSourceProperty(_handle, GetSourceInteger.BuffersProcessed, out int value);
+                return value;
+            }
         }
 
         public Vector3 Velocity

@@ -5,7 +5,7 @@
 		<RootNamespace>XrSamples</RootNamespace>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<UseOpenGL>true</UseOpenGL>
-		<Configurations>Debug;Release;DebugGL;ReleaseGL</Configurations>
+		<TargetFrameworks>$(CoreVersion)-$(WinVersion)</TargetFrameworks>
 	</PropertyGroup>
 
 
@@ -14,13 +14,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0-rc.1.24431.7" />
-		<PackageReference Include="Silk.NET.Assimp" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.21.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+		<PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.16.0" />
+		<PackageReference Include="Silk.NET.Assimp" Version="2.22.0" />
+		<PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.22.0" />
+		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Engine\XrEngine.AI\XrEngine.AI.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Compression\XrEngine.Compression.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Devices\XrEngine.Devices.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Glft\XrEngine.Gltf.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
@@ -28,9 +32,6 @@
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Physics\XrEngine.Physics.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.OpenGL\OpenXr.Framework.OpenGL.csproj" />
-		<ProjectReference Include="..\..\Oculus\Oculus.OVRPlugin\Oculus.OVRPlugin.csproj" />
-		<ProjectReference Include="..\..\Oculus\Oculus.Platform\Oculus.Platform.csproj" />
-		<ProjectReference Include="..\..\Oculus\Oculus.XrPlugin\Oculus.XrPlugin.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Oculus\OpenXr.Framework.Oculus.csproj" />
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
 		<ProjectReference Include="..\XrSamples.Common\XrSamples.Common.csproj" />

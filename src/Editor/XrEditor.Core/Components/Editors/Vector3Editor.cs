@@ -10,7 +10,7 @@ namespace XrEditor
         private bool _isLocked;
 
         public Vector3Editor()
-            : this(null, new ValueScale() { ScaleStep = 0.1f, ScaleSmallStep = 0.1f })
+            : this(null, new ValueScale() { ScaleStep = 0.1f, ScaleSmallStep = 0.01f })
         {
         }
 
@@ -68,6 +68,11 @@ namespace XrEditor
         protected override void OnEditValueChanged(Vector3 newValue)
         {
             _suspendUpdate++;
+
+            X._isLoading++;
+            Y._isLoading++;
+            Z._isLoading++;
+
             try
             {
                 X.EditValue = newValue.X;
@@ -77,6 +82,9 @@ namespace XrEditor
             finally
             {
                 _suspendUpdate--;
+                X._isLoading--;
+                Y._isLoading--;
+                Z._isLoading--;
             }
 
             base.OnEditValueChanged(newValue);

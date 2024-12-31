@@ -5,11 +5,15 @@
     {
         None = 0,
         Generated = 0x1,
-        ChildGenerated = 0x2,
+        ChildrenGenerated = 0x2,
         Readonly = 0x4,
         EnableDebug = 0x8,
         DisableNotifyChangedScene = 0x10,
-        NotifyChangedScene = 0x20
+        NotifyChangedScene = 0x20,
+        GpuOnly = 0x40,
+        Mutable = 0x60,
+        NotifyChanged = 0x80,
+        NoFrustumCulling = 0x100
     }
 
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject
@@ -22,8 +26,7 @@
 
         public EngineObject()
         {
-            Flags = EngineObjectFlags.EnableDebug;
-            IsNotifyChange = true;
+            Flags = EngineObjectFlags.EnableDebug | EngineObjectFlags.NotifyChanged;
         }
 
         public void SetState(IStateContainer container)
@@ -35,6 +38,8 @@
 
         public virtual void GetState(IStateContainer container)
         {
+            EnsureId();
+
             container.Write(nameof(Id), _id.Value);
 
             if (_components != null)
@@ -67,55 +72,52 @@
 
         public virtual void Update(RenderContext ctx)
         {
-            if (_components == null)
+            if (_components == null || ctx.UpdateOnlySelf)
                 return;
 
-            _components.OfType<IRenderUpdate>().Update(ctx);
+            _components.OfType<IRenderUpdate>().Update(ctx, false);
         }
 
-        public IEnumerable<T> Components<T>() where T : IComponent
+        public IReadOnlyList<IComponent> Components()
         {
             if (_components == null)
                 return [];
-            return _components.OfType<T>();
+            return _components;
         }
 
-        public T AddComponent<T>(T component) where T : IComponent
+        public virtual T AddComponent<T>(T component) where T : IComponent
         {
             if (component.Host == this)
                 return component;
 
-            if (component.Host != null)
-                component.Host.RemoveComponent(component);
+            component.Host?.RemoveComponent(component);
 
             component.EnsureId();
             component.Attach(this);
 
-            if (_components == null)
-                _components = [];
-
+            _components ??= [];
             _components.Add(component);
 
-            NotifyChanged(ObjectChangeType.Components);
+            NotifyChanged(new ObjectChange(ObjectChangeType.ComponentAdd, component));
 
             return component;
         }
 
-        public void RemoveComponent(IComponent component)
+        public virtual void RemoveComponent(IComponent component)
         {
             if (component.Host != this)
                 return;
 
             component.Detach();
 
-            _components!.Remove(component);
+            _components?.Remove(component);
 
-            NotifyChanged(ObjectChangeType.Components);
+            NotifyChanged(new ObjectChange(ObjectChangeType.ComponentRemove, component));
         }
 
         public void NotifyChanged(ObjectChange change)
         {
-            if (!IsNotifyChange)
+            if ((Flags & EngineObjectFlags.NotifyChanged) == 0)
                 return;
 
             if (_updateCount > 0)
@@ -131,14 +133,18 @@
 
         protected virtual void OnChanged(ObjectChange change)
         {
+            Version++;
             Changed?.Invoke(this, change);
+        }
 
+        public void DeleteProp(string name)
+        {
+            _props?.Remove(name);
         }
 
         public void SetProp(string name, object? value)
         {
-            if (_props == null)
-                _props = [];
+            _props ??= [];
             _props[name] = value;
         }
 
@@ -159,7 +165,6 @@
             return null;
         }
 
-
         public virtual void Dispose()
         {
             if (_components != null)
@@ -171,10 +176,14 @@
 
             if (_props != null)
             {
-                foreach (var component in _props.Values.OfType<IDisposable>())
-                    component.Dispose();
+                foreach (var prop in _props.Values.OfType<IDisposable>())
+                    prop.Dispose();
+                foreach (var prop in _props.Values.OfType<IObjectTool>())
+                    prop.Deactivate();
                 _props = null;
             }
+
+            ObjectBinder.Unbind(this);
 
             GC.SuppressFinalize(this);
         }
@@ -182,7 +191,20 @@
         public void EnsureId()
         {
             if (_id.Value == Guid.Empty)
-                _id = ObjectId.New();
+                _id = Utils.HashGuid(GeneratePath());
+
+        }
+
+        public string GeneratePath()
+        {
+            var parts = new List<string>();
+            GeneratePath(parts);
+            return string.Join("/", parts);
+        }
+
+        public virtual void GeneratePath(List<string> parts)
+        {
+
         }
 
         public virtual void Reset(bool onlySelf = false)
@@ -194,11 +216,7 @@
             }
         }
 
-        public bool IsNotifyChange { get; set; }
-
-        public event Action<EngineObject, ObjectChange>? Changed;
-
-        public long Version { get; set; }
+        public long Version { get; protected set; }
 
         public EngineObjectFlags Flags { get; set; }
 
@@ -207,5 +225,9 @@
             get => _id;
             set => _id = value;
         }
+
+        public event Action<EngineObject, ObjectChange>? Changed;
+
+        int IRenderUpdate.UpdatePriority => 0;
     }
 }

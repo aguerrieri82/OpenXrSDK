@@ -11,6 +11,11 @@
         event EventHandler Changed;
     }
 
+    public interface INameEdit
+    {
+        string? Name { get; set; }
+    }
+
     public interface IProperty<T> : IProperty
     {
         new T Value { get; set; }

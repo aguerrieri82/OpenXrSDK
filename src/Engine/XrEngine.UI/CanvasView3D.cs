@@ -30,7 +30,7 @@ namespace XrEngine.UI
             _size = new Size2(1, 1);
             _sizeDirty = true;
 
-            var quad = new Quad3D(new Size2(1, 1));
+            var quad = new Quad3D();
             quad.FlipYUV();
 
             Geometry = quad;
@@ -187,6 +187,8 @@ namespace XrEngine.UI
         public abstract bool NeedDraw { get; }
 
         public Size2I PixelSize => _pixelSize;
+
+        public Texture2D? ActiveTexture => _activeTexture;
 
         public CanvasViewMode Mode
         {

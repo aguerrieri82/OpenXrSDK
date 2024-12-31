@@ -1,11 +1,12 @@
-﻿namespace XrEngine.Layers
+﻿namespace XrEngine
 {
     public abstract class BaseLayer<T> : ILayer3D where T : ILayer3DItem
     {
         protected readonly ObjectId _id;
-        protected readonly HashSet<T> _content = [];
+        protected readonly List<T> _content = [];
         protected LayerManager? _manager;
         protected long _version;
+
         private bool _isEnabled;
 
         public BaseLayer()
@@ -13,6 +14,11 @@
             _id = ObjectId.New();
             _isEnabled = true;
             Name = GetType().Name;
+            IsVisible = true;
+        }
+
+        public void EnsureId()
+        {
         }
 
         public void Attach(LayerManager manager)
@@ -25,21 +31,29 @@
             _manager = null;
         }
 
-        public virtual void NotifyChanged(Object3D object3D, ObjectChange change)
+        public void NotifyChanged(Object3D sender, ObjectChange change)
         {
-            if (object3D is Group3D group && change.IsAny(ObjectChangeType.SceneAdd, ObjectChangeType.SceneRemove))
+            if (!IsEnabled)
+                return;
+
+            if (sender is Group3D group && change.IsAny(ObjectChangeType.Scene))
             {
-                foreach (var child in group.Descendants().OfType<T>())
-                {
-                    if (child is Object3D child3D)
-                        NotifyChanged(child3D, change.Type);
-                }
+                foreach (var child in group.DescendantsOrSelf())
+                    NotifyChangedWork(child, change.Type);
             }
+            else
+                NotifyChangedWork(sender, change);
+        }
+
+        protected virtual void NotifyChangedWork(Object3D sender, ObjectChange change)
+        {
+
         }
 
         protected virtual void OnEnabledChanged()
         {
         }
+
         public bool IsEnabled
         {
             get => _isEnabled;
@@ -52,15 +66,24 @@
             }
         }
 
+        protected virtual void OnChanged(T item, Layer3DChangeType change)
+        {
+            Changed?.Invoke(this, new Layer3DChange(change, item));
+        }
+
+        IEnumerable<ILayer3DItem> ILayer3D.Content => (IEnumerable<ILayer3DItem>)_content;
+
         public bool IsVisible { get; set; }
+
+        public string Name { get; set; }
 
         public ObjectId Id => _id;
 
         public long Version => _version;
 
-        public string Name { get; set; }
+        public IReadOnlyCollection<T> Content => _content;
 
-        public IEnumerable<ILayer3DItem> Content => (IEnumerable<ILayer3DItem>)_content;
+        public event Action<ILayer3D, Layer3DChange>? Changed;
 
     }
 }

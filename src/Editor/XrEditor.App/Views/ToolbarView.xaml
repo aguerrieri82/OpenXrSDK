@@ -29,6 +29,14 @@
             <DataTemplate DataType="{x:Type local:ActionDivider}">
                 <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"/>
             </DataTemplate>
+            
+            <DataTemplate DataType="{x:Type local:SingleSelector}">
+                <ComboBox SelectedValuePath="Value" 
+                          DisplayMemberPath="DisplayName" 
+                          ItemsSource="{Binding Items}" 
+                          SelectedValue="{Binding SelectedValue, Mode=TwoWay}"
+                          IsSynchronizedWithCurrentItem="True" />
+            </DataTemplate>
 
         </Style.Resources>
     </Style>

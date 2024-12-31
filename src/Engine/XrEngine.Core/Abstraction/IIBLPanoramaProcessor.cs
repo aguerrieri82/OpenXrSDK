@@ -1,6 +1,6 @@
 ﻿namespace XrEngine
 {
-    public enum IBLProcessMode
+    public enum IblProcessMode
     {
         None = 0,
         Lambertian = 0x1,
@@ -20,7 +20,7 @@
                 SampleCount = 1024,
                 LodBias = 0f,
                 MipLevelCount = 10,
-                Mode = IBLProcessMode.Lambertian | IBLProcessMode.GGX | IBLProcessMode.Charlie | IBLProcessMode.Sheen,
+                Mode = IblProcessMode.Lambertian | IblProcessMode.GGX | IblProcessMode.Charlie | IblProcessMode.Sheen,
                 ShaderResolver = str => Embedded.GetString(str),
             };
         }
@@ -35,7 +35,7 @@
 
         public uint MipLevelCount { get; set; }
 
-        public IBLProcessMode Mode { get; set; }
+        public IblProcessMode Mode { get; set; }
     }
 
     public interface IIBLPanoramaProcessor

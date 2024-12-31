@@ -1,4 +1,5 @@
-﻿using Silk.NET.Core;
+﻿using Common.Interop;
+using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.OpenXR;
@@ -64,6 +65,12 @@ namespace OpenXr.Framework.Oculus
 
         #endregion
 
+        #region DEPTH
+
+
+
+        #endregion
+
         protected class ActiveQuery
         {
             public string? Hash { get; set; }
@@ -85,6 +92,8 @@ namespace OpenXr.Framework.Oculus
         protected FBSwapchainUpdateState? _swapChainUpdate;
         protected FBHandTrackingMesh? _handMesh;
         protected FBSpatialEntityStorage? _spatialStorage;
+
+
         protected readonly Dictionary<string, ActiveQuery> _queries = [];
 
 
@@ -116,14 +125,15 @@ namespace OpenXr.Framework.Oculus
             extensions.Add(FBFoveation.ExtensionName);
             extensions.Add(FBSwapchainUpdateState.ExtensionName);
             extensions.Add(FBHandTrackingMesh.ExtensionName);
-
+            extensions.Add(METAEnvironmentDepth.ExtensionName);
 
             extensions.Add("XR_FB_hand_tracking_capsules");
             extensions.Add("XR_FB_hand_tracking_aim");
             extensions.Add("XR_META_spatial_entity_mesh");
             extensions.Add("XR_META_touch_controller_plus");
             extensions.Add("XR_FB_foveation_configuration");
-
+            extensions.Add("XR_FB_space_warp");
+            extensions.Add("XR_FB_swapchain_update_state_opengl_es");
         }
 
         public unsafe override void OnInstanceCreated()
@@ -222,7 +232,6 @@ namespace OpenXr.Framework.Oculus
 
         public Task EraseSpaceAsync(Space space, bool isLocal)
         {
-
             throw new NotImplementedException();
         }
 
@@ -322,7 +331,6 @@ namespace OpenXr.Framework.Oculus
 
                 return (TaskCompletionSource<T>?)query.Completion;
             }
-
         }
 
         public unsafe SpaceComponentTypeFB[] EnumerateSpaceSupportedComponentsFB(Space space)
@@ -338,23 +346,37 @@ namespace OpenXr.Framework.Oculus
             return result;
         }
 
-        protected unsafe ulong QueryAllAnchorsRequest()
+        protected unsafe ulong QueryAllAnchorsRequest(Guid[]? ids)
         {
-            //SpaceUuidFilterInfoFB x;
+            var hasIds = ids != null && ids.Length > 0;
 
-            var query = new SpaceQueryInfoFB()
+            ids ??= new Guid[1];
+
+            fixed (Guid* uuids = &ids[0])
             {
-                Type = StructureType.SpaceQueryInfoFB,
-                QueryAction = SpaceQueryActionFB.LoadFB,
-                MaxResultCount = 100,
+                var filter = new SpaceUuidFilterInfoFB();
 
-            };
+                if (hasIds)
+                {
+                    filter.Uuids = (UuidEXT*)uuids;
+                    filter.UuidCount = (uint)ids.Length;
+                    filter.Type = StructureType.SpaceUuidFilterInfoFB;
+                }
 
-            ulong reqId = (ulong)new DateTime().Ticks;
+                var query = new SpaceQueryInfoFB()
+                {
+                    Type = StructureType.SpaceQueryInfoFB,
+                    QueryAction = SpaceQueryActionFB.LoadFB,
+                    Filter = hasIds ? (SpaceFilterInfoBaseHeaderFB*)&filter : null,
+                    MaxResultCount = 100,
+                };
 
-            _app!.CheckResult(_spatialQuery!.QuerySpacesFB(_app!.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref reqId), "QuerySpacesFB");
+                ulong reqId = (ulong)new DateTime().Ticks;
 
-            return reqId;
+                _app!.CheckResult(_spatialQuery!.QuerySpacesFB(_app!.Session, (SpaceQueryInfoBaseHeaderFB*)&query, ref reqId), "QuerySpacesFB");
+
+                return reqId;
+            }
         }
 
         protected unsafe SpaceQueryResultFB[] GetSpaceQueryResults(ulong reqId)
@@ -455,9 +477,9 @@ namespace OpenXr.Framework.Oculus
                        SetSpaceComponentStatusRequest(space, componentType, enabled));
         }
 
-        public Task<SpaceQueryResultFB[]> QueryAllAnchorsAsync()
+        public Task<SpaceQueryResultFB[]> QueryAllAnchorsAsync(Guid[]? ids = null)
         {
-            return SubmitQuery<SpaceQueryResultFB[]>("AllAnchors", QueryAllAnchorsRequest);
+            return SubmitQuery<SpaceQueryResultFB[]>("AllAnchors", () => QueryAllAnchorsRequest(ids));
         }
 
         public override void HandleEvent(ref EventDataBuffer buffer)

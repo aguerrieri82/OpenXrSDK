@@ -16,7 +16,7 @@ namespace OpenXr.Framework
     }
 
 
-    public class XrActionsBuilder<TProfile> : IXrActionBuilder where TProfile : new()
+    public class XrActionsBuilder<TProfile> : IXrActionBuilder where TProfile : IXrBasicInteractionProfile, new()
     {
         readonly List<IXrInput> _inputs = [];
         readonly TProfile _result;

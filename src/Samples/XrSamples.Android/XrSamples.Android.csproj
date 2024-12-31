@@ -14,30 +14,17 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<RunAOTCompilation>True</RunAOTCompilation>
-		<PublishTrimmed>True</PublishTrimmed>
-		<EnableLLVM>False</EnableLLVM>
-		<Optimize>True</Optimize>
-		<EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
-		<DebugSymbols>True</DebugSymbols>
-		<AndroidManagedSymbols>True</AndroidManagedSymbols> 
-		<AndroidLinkTool>r8</AndroidLinkTool>
-		<AndroidEnableProfiledAot>False</AndroidEnableProfiledAot>
-		<AndroidPackageFormat>apk</AndroidPackageFormat>
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<PublishTrimmed>false</PublishTrimmed>
+		<EnableLLVM>false</EnableLLVM>
+		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
+		<DebugSymbols>true</DebugSymbols>
+		<AndroidManagedSymbols>true</AndroidManagedSymbols> 
 	</PropertyGroup>
 
 	<ItemGroup>
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="../../../libs/*.so" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="Env.txt" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <AndroidEnvironment Include="Env.txt" />
-	</ItemGroup>
-
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Engine\XrEngine.Filament\XrEngine.Filament.csproj" />
@@ -51,9 +38,9 @@
 	<Import Project="..\..\AspNetCoreMini.props" />
 
 	<ItemGroup>
-	  <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0-rc.1.24431.7" />
-	  <PackageReference Update="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0-rc.1.24431.7" />
-	  <PackageReference Update="Microsoft.Extensions.Logging" Version="9.0.0-rc.1.24431.7" />
+	  <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
+	  <PackageReference Update="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0" />
+	  <PackageReference Update="Microsoft.Extensions.Logging" Version="9.0.0" />
 	</ItemGroup>
 
 </Project>

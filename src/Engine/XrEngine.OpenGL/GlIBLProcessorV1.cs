@@ -4,6 +4,7 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
+using System.Diagnostics;
 using System.Numerics;
 
 
@@ -55,8 +56,8 @@ namespace XrEngine.OpenGL
                 MipLevelCount = maxMipLevels;
 
             _panToCubeProg = new GlSimpleProgram(_gl,
-                shaderResolver("Utils/fullscreen.vert"),
-                shaderResolver("Ibl/panorama_to_cubemap.frag"),
+                "Utils/fullscreen.vert",
+                "Ibl/panorama_to_cubemap.frag",
                 shaderResolver);
 
 
@@ -64,8 +65,8 @@ namespace XrEngine.OpenGL
             _panToCubeProg.Build();
 
             _filterProg = new GlSimpleProgram(_gl,
-                shaderResolver("Utils/fullscreen.vert"),
-                shaderResolver("Ibl/filter_cubemap.frag"),
+                "Utils/fullscreen.vert",
+                "Ibl/filter_cubemap.frag",
                 shaderResolver);
 
             _filterProg.AddFeature("SAMPLE_COUNT " + SampleCount);
@@ -75,7 +76,7 @@ namespace XrEngine.OpenGL
             _filterProg.SetUniform("uCubeMap", 0);
             _filterProg.SetUniform("uLodBias", (float)LodBias);
             _filterProg.SetUniform("uWidth", (float)Resolution);
-            _filterProg.SetUniform("HammersleyBuffer", (IBuffer)_hams);
+            _filterProg.LoadBuffer(_hams, 0);
 
 
             _gl.BindVertexArray(_fooVa);
@@ -92,12 +93,14 @@ namespace XrEngine.OpenGL
 
         public void ApplyFilter(Distribution distribution, out uint envTexId, out uint lutTexId)
         {
+            Debug.Assert(GlState.Current != null);
+
             var mipCount = distribution == Distribution.Lambertian ? 1 : MipLevelCount;
 
             envTexId = CreateCubeMap(mipCount > 1);
             lutTexId = CreateLutTexture();
 
-            GlState.Current.SetActiveTexture(_cubeMapId!, TextureTarget.TextureCubeMap, 0);
+            GlState.Current.LoadTexture(_cubeMapId, TextureTarget.TextureCubeMap, 0);
 
             _filterProg!.Use();
             _filterProg.SetUniform("uDistribution", (int)distribution);
@@ -118,7 +121,7 @@ namespace XrEngine.OpenGL
 
             _gl.ClearColor(0, 0, 0, 1);
 
-            GlState.Current!.SetActiveTexture(_inputTexture!, 0);
+            GlState.Current!.LoadTexture(_inputTexture!, 0);
 
             GlState.Current!.SetActiveProgram(_panToCubeProg!.Handle);
 
@@ -152,9 +155,7 @@ namespace XrEngine.OpenGL
             if (mipLevel == 0)
                 targets.Add(DrawBufferMode.ColorAttachment6);
 
-
-            var buffers = new ReadOnlySpan<DrawBufferMode>(targets.ToArray());
-            _gl.DrawBuffers(buffers);
+            GlState.Current.SetDrawBuffers(targets.ToArray());
         }
 
 
@@ -227,7 +228,7 @@ namespace XrEngine.OpenGL
             else
                 format = data.Format;
 
-            res.Update(data.Width, data.Height, 1, format, data.Compression, [data]);
+            res.Update(1, data);
 
             return res;
         }

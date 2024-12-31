@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+
+	</PropertyGroup>
+	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<Content Include="$(NativeLibsDir)libtiff\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="runtimes/win-x64/native/%(Filename)%(Extension)" />
+		<Content Include="$(NativeLibsDir)libtiff\win-x64\*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+		<Content Include="$(NativeLibsDir)libtiff\win-x64\*.pdb" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="DotSpatial.Projections" Version="4.0.656" />
+	  <PackageReference Include="ProjNET4GeoAPI" Version="1.4.1" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+	</ItemGroup>
+</Project>

@@ -4,16 +4,15 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class Object3DNode<T> : EngineObjectNode<T> where T : Object3D
+    public class Object3DNode<T> : EngineObjectNode<T>, INameEdit where T : Object3D
     {
         readonly NodeDictionary _components = [];
 
         public Object3DNode(T value)
             : base(value)
         {
-            _components.Add(new Transform3DNode(value.Transform));
-            _autoGenProps = true;
-            value.Changed += OnElementChanged;
+            _components.Add(new Transform3DNode(value.Transform, this));
+            _autoGenProps = false;
         }
 
         public override void Actions(IList<ActionView> result)
@@ -30,10 +29,6 @@ namespace XrEditor.Nodes
             base.Actions(result);
         }
 
-        protected virtual void OnElementChanged(EngineObject element, ObjectChange change)
-        {
-
-        }
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
@@ -44,6 +39,14 @@ namespace XrEditor.Nodes
                 Label = "Visible",
                 Editor = new BoolEditor(binder.Prop(a => a.IsVisible))
             });
+
+            var curType = _value.GetType()!;
+
+            while (curType != typeof(Object3D))
+            {
+                PropertyView.CreateProperties(_value, curType, curProps);
+                curType = curType.BaseType!;
+            }
         }
 
         protected INode GetNode(object value)
@@ -69,5 +72,14 @@ namespace XrEditor.Nodes
 
         public override string DisplayName => _value.Name ?? _value.GetType().Name;
 
+        string? INameEdit.Name
+        {
+            get => DisplayName;
+            set
+            {
+                _value.Name = value;
+                OnNodeChanged();
+            }
+        }
     }
 }

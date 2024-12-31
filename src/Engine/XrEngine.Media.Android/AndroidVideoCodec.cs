@@ -1,7 +1,6 @@
 ﻿using Android.Graphics;
 using Android.Media;
 using Android.Views;
-using System.Collections.Concurrent;
 using XrEngine.OpenGL;
 using XrEngine.Video;
 using XrEngine.Video.Abstraction;
@@ -12,19 +11,12 @@ namespace XrEngine.Media.Android
 
     public class AndroidVideoCodec : IVideoCodec
     {
-        struct ConvertData
-        {
-            public FrameBuffer Src;
-            public FrameBuffer Dst;
-        }
-
         private MediaCodec? _codec;
         private VideoFormat _outFormat;
         private string? _mimeType;
         private bool _isCodecInit;
         private SurfaceTexture? _surfaceTex;
         private readonly long _timeout;
-        private readonly ConcurrentQueue<ConvertData> _convertQueue = new ConcurrentQueue<ConvertData>();
 
         public AndroidVideoCodec()
         {
@@ -135,8 +127,6 @@ namespace XrEngine.Media.Android
 
             _outFormat = outFormat;
             _mimeType = mimeType;
-            _convertQueue.Clear();
-
         }
 
         public Texture2D? OutTexture { get; set; }

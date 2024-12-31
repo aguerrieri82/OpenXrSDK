@@ -16,15 +16,15 @@
 
 precision highp float;
 
-#include <Pbr/uniforms.glsl>
-#include <tonemapping.glsl>
-#include <textures.glsl>
-#include <functions.glsl>
-#include <brdf.glsl>
-#include <punctual.glsl>
-#include <ibl.glsl>
-#include <material_info.glsl>
-#include <shadow.glsl>
+#include "uniforms.glsl"
+#include "tonemapping.glsl"
+#include "textures.glsl"
+#include "functions.glsl"
+#include "brdf.glsl"
+#include "punctual.glsl"
+#include "ibl.glsl"
+#include "material_info.glsl"
+#include "../Shared/shadow.glsl"
 
 #ifdef MATERIAL_IRIDESCENCE
 #include <iridescence.glsl>

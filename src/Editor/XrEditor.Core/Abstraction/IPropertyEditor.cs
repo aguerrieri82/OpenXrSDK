@@ -10,7 +10,9 @@ namespace XrEditor
 
         IProperty? Binding { get; set; }
 
-        void NotifyValueChanged();
+        void NotifyEditValueChanged();
+
+        void NotifyBindValueChanged();
 
 
         event Action<IPropertyEditor>? ValueChanged;
