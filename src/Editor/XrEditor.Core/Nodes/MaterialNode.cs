@@ -6,18 +6,22 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class MaterialNode<T> : EngineObjectNode<T>, IItemPreview where T : Material
+    public class MaterialNode<T> : EngineObjectNode<T>, IItemPreview, IEditorActions where T : Material
     {
         public MaterialNode(T value) : base(value)
         {
-            _autoGenProps = true;
+            _autoGenProps = false;
+        }
+
+        public void EditorActions(IList<ActionView> result)
+        {
+            ActionView.CreateActions(_value, typeof(Material), null, result);
         }
 
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
-            base.EditorProperties(binder, curProps);
-            PropertyView.CreateProperties(_value, typeof(Material), curProps);
+            PropertyView.CreateProperties(_value, null, curProps);
         }
 
         public async Task<SKBitmap?> CreatePreviewAsync()

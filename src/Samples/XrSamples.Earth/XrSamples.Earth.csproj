@@ -11,7 +11,8 @@
 
 
 	<ItemGroup>
-	  <EmbeddedResource Include="Components\star_dome.frag" />
+	  <EmbeddedResource Include="Shaders\atmosphere.frag" />
+	  <EmbeddedResource Include="Shaders\star_dome.frag" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\XrSamples.Common\XrSamples.Common.csproj" />

@@ -14,6 +14,7 @@ namespace XrSamples.Earth
     public class Planet : Group3D
     {
         protected TriangleMesh? _sphere;
+        private AtmosphereMaterial _atmoMat;
 
         public Planet()
         {
@@ -60,18 +61,18 @@ namespace XrSamples.Earth
         {
             var mesh = new TriangleMesh();
 
-            mesh.Geometry = new Cube3D();
-            mesh.Name = "Atmosphere";   
-            mesh.Materials.Add(new GlowVolumeMaterial()
+            _atmoMat = new AtmosphereMaterial()
             {
                 SphereRadius = SphereRadius,
-                HaloWidth = AtmosphereHeight,
-                HaloColor = AtmosphereColor,
                 UseDepthCulling = true,
-                BlendColor = true,
-                FadeMode = GlowFadeMode.Exp,
+                HaloColor = AtmosphereColor,
+                HaloWidth = AtmosphereHeight,
                 StepSize = SphereRadius / 1000
-            });
+            };
+
+            mesh.Geometry = new Cube3D();
+            mesh.Name = "Atmosphere";   
+            mesh.Materials.Add(_atmoMat);
 
             mesh.Transform.SetScale(SphereRadius * 2);   
 
@@ -130,12 +131,13 @@ namespace XrSamples.Earth
             foreach (var tile in Children.OfType<GeoTile>())
                 tile.SphereWorldCenter = WorldPosition;
 
+            if (_atmoMat != null)
+                _atmoMat.SunPosition = ((EarthScene)_scene!).Sun.WorldPosition;  
+
             base.Update(ctx);
         }
 
-      
-
-
+     
         public float AtmosphereHeight { get; set; }
 
         public Color AtmosphereColor { get; set; }

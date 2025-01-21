@@ -25,7 +25,7 @@ namespace XrEditor
                   opt.UseHitTest = true;
               })
               .SetRenderQuality(1, 2)
-              .CreateEarth()
+              .CreatePortalVideo()
               .Build();
     }
 }

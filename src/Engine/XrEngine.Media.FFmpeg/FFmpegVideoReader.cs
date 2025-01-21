@@ -47,6 +47,14 @@ namespace XrEngine.Video
             Open(source.LocalPath, AVHWDeviceType.AV_HWDEVICE_TYPE_NONE);
         }
 
+        public void Rewind()
+        {
+            CheckResult(av_seek_frame(_pFormatContext, _streamIndex, 0, AVSEEK_FLAG_BACKWARD), "Failed to rewind video");
+
+
+            avcodec_flush_buffers(_pCodecContext);
+        }
+
         public unsafe void Open(string filename, AVHWDeviceType deviceType)
         {
             _pFormatContext = avformat_alloc_context();
@@ -118,6 +126,7 @@ namespace XrEngine.Video
                         if (result == AVERROR_EOF)
                         {
                             frame = *_pFrame;
+                            Rewind();
                             return false;
                         }
 

@@ -22,5 +22,7 @@
         public int Priority { get; set; }
 
         public DrawPrimitive? ForcePrimitive { get; set; }
+
+        public string[]? SourcePaths { get; set; }
     }
 }

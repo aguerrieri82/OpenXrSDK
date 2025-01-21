@@ -665,12 +665,12 @@ namespace XrSamples
             mesh.AddComponent(new VideoTexturePlayer()
             {
                 Texture = videoTex,
-                //Source = new Uri(GetAssetPath("Fish/fish_new.mp4")),
+                Source = new Uri(GetAssetPath("Fish/bandicam 2025-01-21 00-44-12-973.mp4")),
                 //Source = new Uri("rtsp://admin:123@192.168.1.60:8554/live"),
-                Source = new Uri("rtsp://admin:123@192.168.1.148:8554/live"),
+                //Source = new Uri("rtsp://admin:123@192.168.1.148:8554/live"),
                 //Source = new Uri("rtsp://192.168.1.89:554/videodevice"),
                 //Source = new Uri("rtsp://192.168.1.97:554/onvif1"),
-                Reader = new RtspVideoReader()
+                //Reader = new RtspVideoReader()
             });
 
             mesh.Name = "mesh";

@@ -86,6 +86,14 @@
             base.GeneratePath(parts);
         }
 
+        [Action]
+        public virtual void Reload()
+        {
+
+            this.OnChanged(ObjectChangeType.Material);
+
+        }
+
         public IReadOnlySet<EngineObject> Hosts => _hosts;
 
         public bool UseClipDistance { get; set; }

@@ -59,6 +59,7 @@ namespace XrEngine.OpenGL
                     localBuilder.AddFeature(feature);
             }
 
+
             var shader = Material.Shader!;
 
             var tesMode = Material is ITessellationMaterial tes ? tes.TessellationMode : TessellationMode.None;
@@ -72,13 +73,27 @@ namespace XrEngine.OpenGL
             if (useGeo)
                 localBuilder.AddFeature("USE_GEO_SHADER");
 
+            localBuilder.AddFeature($"SHADER_VER {shader.Version}");
+
             localBuilder.ComputeHash(Material.GetType().FullName!);
 
             _update = localBuilder.Result;
 
             if (!_programs.TryGetValue(_update.FeaturesHash!, out var program))
             {
-                var resolver = shader.Resolver!;
+                Func<string, string> resolver = name =>
+                {
+                    if (shader.SourcePaths != null && shader.SourcePaths.Length > 0)
+                    {
+                        var fullPath = shader.SourcePaths.
+                                       Select(a=> Path.Combine(a, name))
+                                       .Where(File.Exists)
+                                        .FirstOrDefault();
+                        if (fullPath != null)
+                            return File.ReadAllText(fullPath);  
+                    }
+                    return shader.Resolver!(name);
+                };
 
                 program = new GlSimpleProgram(_gl,
                     shader.VertexSourceName!,

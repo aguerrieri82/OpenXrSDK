@@ -30,6 +30,12 @@
             }
         }
 
+        public override void Reload()
+        {
+            _shader?.NotifyChanged(ObjectChangeType.Material);     
+            base.Reload();
+        }
+
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
         {
             return false;

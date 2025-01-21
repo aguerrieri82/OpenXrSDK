@@ -87,7 +87,7 @@ namespace XrSamples.Earth
             float z = radius * MathF.Cos(latRad) * MathF.Sin(lonRad);
 
 
-            return new Vector3(x, y, z).Transform(_host.Earth.WorldMatrix);
+            return new Vector3(x, y, -z).Transform(_host.Earth.WorldMatrix);
         }
 
         protected override void Update(RenderContext ctx)
