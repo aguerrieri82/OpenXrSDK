@@ -18,9 +18,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Fluent.Ribbon" Version="11.0.0-rc0249" />
+	  <PackageReference Include="Fluent.Ribbon" Version="11.0.0" />
 	  <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
-	  <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.1" />
+	  <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2" />
 	  <PackageReference Include="System.Private.Uri" Version="4.3.2" />
 	  <PackageReference Include="WPF-Icons" Version="2.0.0" />
 	</ItemGroup>

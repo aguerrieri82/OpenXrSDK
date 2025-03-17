@@ -125,20 +125,29 @@ namespace XrEngine.OpenGL
                     var curArray = (Array)value;
 
                     if (lastArray.Length != curArray.Length)
-                        return true;
+                        isChanged = true;
+                    else
+                    {
+                        var elSize = Marshal.SizeOf(lastArray.GetType()!.GetElementType()!);
+                        var b1 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetArrayDataReference(lastArray), lastArray.Length * elSize);
+                        var b2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetArrayDataReference(curArray), curArray.Length * elSize);
 
-                    var elSize = Marshal.SizeOf(lastArray.GetType()!.GetElementType()!);
-                    var b1 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetArrayDataReference(lastArray), lastArray.Length * elSize);
-                    var b2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetArrayDataReference(curArray), curArray.Length * elSize);
-
-                    isChanged = !b1.SequenceEqual(b2);
+                        isChanged = !b1.SequenceEqual(b2);
+                    }
+    
+                    if (isChanged)
+                        _values[name] = curArray.Clone();
                 }
                 else
+                {
                     isChanged = !Equals(value, lastValue);
+                    if (isChanged)
+                        _values[name] = value;
+                }
+
             }
 
-            if (isChanged)
-                _values[name] = value;
+
 
             return isChanged;
         }

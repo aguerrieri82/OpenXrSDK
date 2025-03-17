@@ -20,6 +20,7 @@
                 <ResourceDictionary Source="/Views/SceneView.xaml"/>
                 <ResourceDictionary Source="/Views/FloatEditor.xaml"/>
                 <ResourceDictionary Source="/Views/Vector3Editor.xaml"/>
+                <ResourceDictionary Source="/Views/Vector2Editor.xaml"/>
                 <ResourceDictionary Source="/Views/PropertyView.xaml"/>
                 <ResourceDictionary Source="/Views/MainView.xaml"/>
                 <ResourceDictionary Source="/Views/OutlinePanel.xaml"/>

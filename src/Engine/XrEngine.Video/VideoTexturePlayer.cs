@@ -10,6 +10,7 @@
         public VideoTexturePlayer()
         {
             _data = new TextureData();
+            IsPlaying = true;
         }
 
         protected override void Start(RenderContext ctx)
@@ -36,7 +37,7 @@
 
         protected override void Update(RenderContext ctx)
         {
-            if (Texture == null || !_isInit)
+            if (Texture == null || !_isInit || !IsPlaying)
                 return;
 
             if (_lastFrameTime == 0 || Reader!.FrameRate == 0 || (ctx.Time - _lastFrameTime) >= 1.0 / Reader!.FrameRate)
@@ -62,6 +63,8 @@
 
             base.Reset(onlySelf);
         }
+
+        public bool IsPlaying { get; set; }
 
         public IVideoReader? Reader { get; set; }
 

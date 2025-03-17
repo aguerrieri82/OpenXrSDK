@@ -3,7 +3,7 @@
 <Project>
 
 	<PropertyGroup>
-		<AspNetRoot>$(NetCoreTargetingPackRoot)\..\shared\Microsoft.AspNetCore.App\9.0.0\</AspNetRoot>
+		<AspNetRoot>$(NetCoreTargetingPackRoot)\..\shared\Microsoft.AspNetCore.App\9.0.3\</AspNetRoot>
 	</PropertyGroup>
 
 	<ItemGroup>

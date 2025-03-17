@@ -22,6 +22,7 @@ namespace XrEngine
             SHADER = new StandardVertexShader
             {
                 FragmentSourceName = "fish_reflection_sphere.frag",
+                SourcePaths = ["D:\\Development\\Personal\\Git\\XrSDK\\src\\Engine\\XrEngine.Core\\Shaders\\"],
                 IsLit = false
             };
         }
@@ -95,6 +96,9 @@ namespace XrEngine
                     RightTexture.Type = TextureType.External;
             }
 
+            if (DebugMode)
+                bld.AddFeature("DEBUG");
+
             bld.ExecuteAction((ctx, up) =>
             {
                 var camera = ((PerspectiveCamera)ctx.PassCamera!);
@@ -102,7 +106,7 @@ namespace XrEngine
                 up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uSphereCenter", SphereCenter);
-                up.SetUniform("uSphereRadius", SpherRadius);
+                up.SetUniform("uSphereRadius", SphereRadius);
 
                 if (_lastRotation != ctx.Model!.Transform.Orientation)
                 {
@@ -124,6 +128,7 @@ namespace XrEngine
                 up.SetUniform("uBorder", Border);
                 up.SetUniform("uSurfaceSize", SurfaceSize);
                 up.SetUniform("uFov", Fov);
+
             });
         }
 
@@ -142,9 +147,11 @@ namespace XrEngine
 
         public Texture2D? RightTexture { get; set; }
 
+        public bool DebugMode { get; set; }   
+
 
         [Range(0, 10, 0.1f)]
-        public float SpherRadius { get; set; }
+        public float SphereRadius { get; set; }
 
         public Vector3 SphereCenter { get; set; }
 
@@ -159,6 +166,34 @@ namespace XrEngine
         public Vector2[] TextureCenter { get; set; }
 
         public Vector2[] TextureRadius { get; set; }
+
+
+        public Vector2 TextureCenterLeft
+        {
+            get => TextureCenter[0];
+            set => TextureCenter[0] = value;    
+        }
+
+
+        public Vector2 TextureCenterRight
+        {
+            get => TextureCenter[1];
+            set => TextureCenter[1] = value;
+        }
+
+
+        public Vector2 TextureRadiusLeft
+        {
+            get => TextureRadius[0];
+            set => TextureRadius[0] = value;
+        }
+
+
+        public Vector2 TextureRadiusRight
+        {
+            get => TextureRadius[1];
+            set => TextureRadius[1] = value;
+        }
 
     }
 }

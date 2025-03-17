@@ -1,0 +1,289 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/#Build/">
+    <File Path="../third-party/build-etcpak.cmd" />
+    <File Path="../third-party/build-filament-android.sh" />
+    <File Path="../third-party/build-filament.cmd" />
+    <File Path="../third-party/build-MagicPhysX.cmd" />
+    <File Path="../third-party/build-meshoptimizer.cmd" />
+    <File Path="../third-party/build-openal.cmd" />
+    <File Path="../third-party/build-turbo-jpeg.cmd" />
+    <File Path="../third-party/vars.cmd" />
+    <Project Path="../build/XrBuild/XrBuild.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/#Filament/">
+    <File Path="../third-party/filament/filament/backend/include/backend/platforms/PlatformWGL.h" />
+    <File Path="../third-party/filament/filament/backend/src/opengl/platforms/PlatformWGL.cpp" />
+    <File Path="../third-party/filament/filament/backend/src/vulkan/VulkanDriver.cpp" />
+    <File Path="../third-party/filament/filament/backend/src/vulkan/VulkanHandles.cpp" />
+    <File Path="../third-party/filament/filament/backend/src/vulkan/VulkanTexture.cpp" />
+    <File Path="../third-party/filament/filament/backend/src/vulkan/VulkanTexture.h" />
+  </Folder>
+  <Folder Name="/#Global/">
+    <File Path="../.gitattributes" />
+    <File Path="../.gitignore" />
+    <File Path="../readme.md" />
+    <File Path="../ToDo.docx" />
+    <File Path="AspNetCoreMini.props" />
+    <File Path="Directory.Build.props" />
+    <File Path="XrSDK.vsext" />
+  </Folder>
+  <Folder Name="/#Third/">
+    <Project Path="../third-party/etcpak/EtcPack.vcxproj" Id="151a0d98-7e72-4d78-8c7e-c2bbdba4d75d" />
+    <Project Path="../third-party/MagicPhysX/src/MagicPhysX/PhysX.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/Common/">
+    <Project Path="Common/Common.Interop/Common.Interop.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Common/XrInteraction/XrInteraction.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Common/XrMath.Entities/XrMath.Entities.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Common/XrMath/XrMath.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/Editor/">
+    <Project Path="Editor/XrEditor.App/XrEditor.App.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Editor/XrEditor.Audio/XrEditor.Audio.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Editor/XrEditor.Core/XrEditor.Core.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Editor/XrEditor.Plot/XrEditor.Plot.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/Engine/">
+    <Project Path="Engine/Draco.Native/Draco.Native.vcxproj" Id="7637ab55-a272-4390-8222-8397150fe18f" />
+    <Project Path="Engine/Fftw/Fftw.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/Filament.Native/Filament.Native.vcxproj" Id="4ff56f83-7124-4975-b086-2f9c4fcc59e4" />
+    <Project Path="Engine/MeshOptimizer/MeshOptimizer.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/Sfizz/Sfizz.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/TurboJpeg/TurboJpeg.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.AI/XrEngine.AI.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Audio.Win/XrEngine.Audio.Win.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Audio/XrEngine.Audio.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Browser.Win/XrEngine.Browser.Win.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Compression/XrEngine.Compression.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Core/XrEngine.Core.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Devices/XrEngine.Devices.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Filament/XrEngine.Filament.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Glft/XrEngine.Gltf.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Media.Android/XrEngine.Media.Android.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Media.FFmpeg/XrEngine.Media.FFmpeg.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Native/XrEngine.Native.vcxproj" Id="842c66e7-4d5d-4b95-b704-a99a18bcfaf3">
+      <BuildType Solution="Debug|x64" Project="Release" />
+    </Project>
+    <Project Path="Engine/XrEngine.OpenGL/XrEngine.OpenGL.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.OpenXr.Android/XrEngine.OpenXr.Android.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.OpenXr.Windows/XrEngine.OpenXr.Windows.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.OpenXr/XrEngine.OpenXr.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Physics/XrEngine.Physics.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Tiff/XrEngine.Tiff.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.UI.Web/XrEngine.UI.Web.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.UI/XrEngine.UI.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Video/XrEngine.Video.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/Framework/">
+    <Project Path="Framework/OpenAl.Framework/OpenAl.Framework.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Framework/OpenXr.Entities/OpenXr.Entities.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Framework/OpenXr.Framework.Android/OpenXr.Framework.Android.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Framework/OpenXr.Framework.Oculus/OpenXr.Framework.Oculus.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Framework/OpenXr.Framework.OpenGL/OpenXr.Framework.OpenGL.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Framework/OpenXr.Framework.Vulkan/OpenXr.Framework.Vulkan.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Framework/OpenXr.Framework/OpenXr.Framework.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Framework/PhysX.Framework/PhysX.Framework.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="Samples/XrSamples.Android/XrSamples.Android.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+      <Deploy Solution="*|x64" />
+    </Project>
+    <Project Path="Samples/XrSamples.Common/XrSamples.Common.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Samples/XrSamples.Console/XrSamples.Console.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Samples/XrSamples.Earth/XrSamples.Earth.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/Samples/DrumsVR/" Id="02c59d5c-d1ec-7edc-ea66-a7642184d594">
+    <File Path="../../DrumsVR/src/Directory.Build.props" />
+    <Project Path="../../DrumsVR/src/DrumsVR.Game.Android/DrumsVR.Game.Android.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+      <Deploy Solution="*|x64" />
+    </Project>
+    <Project Path="../../DrumsVR/src/DrumsVR.Game.UI/DrumsVR.Game.UI.esproj">
+      <Platform Project="AnyCPU" />
+      <Build />
+      <Deploy />
+    </Project>
+    <Project Path="../../DrumsVR/src/DrumsVR.Game.Windows/DrumsVR.Game.Windows.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="../../DrumsVR/src/DrumsVR.Game/DrumsVR.Game.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/Samples/RoomDesigner/" Id="a65e2411-4b12-1cff-6310-fa1df72e2291">
+    <File Path="../../RoomDesigner/src/Directory.Build.props" />
+    <Project Path="../../RoomDesigner/src/RoomDesigner.Game.Android/RoomDesigner.Game.Android.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+      <Deploy Solution="*|x64" />
+    </Project>
+    <Project Path="../../RoomDesigner/src/RoomDesigner.Game.UI/RoomDesigner.Game.UI.esproj">
+      <Build />
+      <Deploy />
+    </Project>
+    <Project Path="../../RoomDesigner/src/RoomDesigner.Game.Windows/RoomDesigner.Game.Windows.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="../../RoomDesigner/src/RoomDesigner.Game/RoomDesigner.Game.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/Samples/RoomDesigner/Server/" Id="b5ef0d00-d88f-d865-6812-d3482f7d2ff2">
+    <Project Path="../../RoomDesigner/src/Oculus.GraphApiClient/Oculus.GraphApiClient.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="../../RoomDesigner/src/RoomDesigner.Abstraction/RoomDesigner.Abstraction.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="../../RoomDesigner/src/RoomDesigner.Api/RoomDesigner.Api.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="../../RoomDesigner/src/RoomDesigner.ApiClient/RoomDesigner.ApiClient.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="../../RoomDesigner/src/RoomDesigner.Entities/RoomDesigner.Entities.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="../../RoomDesigner/src/RoomDesigner.Ikea/RoomDesigner.Ikea.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="../../RoomDesigner/src/RoomDesigner.Server/RoomDesigner.Server.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="../../RoomDesigner/src/RoomDesigner.WebApp/RoomDesigner.WebApp.esproj">
+      <Platform Project="AnyCPU" />
+      <Build />
+      <Deploy />
+    </Project>
+  </Folder>
+  <Folder Name="/UI/">
+    <Project Path="UI/UI.Binding/UI.Binding.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="UI/UI.Canvas.Wpf/UI.Canvas.Wpf.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="UI/UI.Canvas/UI.Canvas.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="UI/UI.Framework/UI.Framework.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="UI/UI.WebLib/UI.WebLib.esproj">
+      <Platform Project="AnyCPU" />
+      <Build />
+      <Deploy />
+    </Project>
+  </Folder>
+  <Folder Name="/WebLink/">
+    <Project Path="WebLink/XrWebLink.Android/XrWebLink.Android.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="WebLink/XrWebLink.Client/XrWebLink.Client.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="WebLink/XrWebLink.Entities/XrWebLink.Entities.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="WebLink/XrWebLink.Server/XrWebLink.Server.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="WebLink/XrWebLink/XrWebLink.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+</Solution>

@@ -1,6 +1,8 @@
 ﻿using CanvasUI;
 using UI.Binding;
 using XrEngine;
+using XrEngine.Video;
+using CheckBox = CanvasUI.CheckBox;
 
 namespace XrSamples
 {
@@ -19,11 +21,13 @@ namespace XrSamples
         {
             var mesh = scene.FindByName<TriangleMesh>("mesh")!;
             var mat = ((FishReflectionSphereMaterial)mesh.Materials[0])!;
+            var player = mesh.Component<VideoTexturePlayer>();
 
-            mat.SpherRadius = Radius;
+            mat.SphereRadius = Radius;
             mat.Border = Border;
             mesh.SetProp("Offset", Offset);
             mesh.SetProp("SphereY", SphereY);
+            player.IsPlaying = IsPlaying;
 
             if (_filePath != null)
             {
@@ -39,6 +43,8 @@ namespace XrSamples
         public float SphereY { get; set; }
 
         public float Border { get; set; }
+
+        public bool IsPlaying { get; set; }
     }
 
     public class PortalSettingsPanel : UIRoot
@@ -66,6 +72,8 @@ namespace XrSamples
                 .AddInputRange("Wall Offset", 0f, 3f, binder.Prop(a => a.Offset))
                 .AddInputRange("Sphere Y", 0f, 2f, binder.Prop(a => a.SphereY))
                 .AddInputRange("Border", 0f, 0.2f, binder.Prop(a => a.Border))
+                .AddInput("Play", new CheckBox(), binder.Prop(a => a.IsPlaying))
+
             .EndChild();
         }
 

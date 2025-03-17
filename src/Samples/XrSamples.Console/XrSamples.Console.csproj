@@ -14,7 +14,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
 		<PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.16.0" />
 		<PackageReference Include="Silk.NET.Assimp" Version="2.22.0" />
 		<PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.22.0" />
@@ -36,6 +36,7 @@
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Vulkan\OpenXr.Framework.Vulkan.csproj" />
 		<ProjectReference Include="..\XrSamples.Common\XrSamples.Common.csproj" />
 		<ProjectReference Include="..\..\WebLink\XrWebLink.Client\XrWebLink.Client.csproj" />
+		<ProjectReference Include="..\XrSamples.Earth\XrSamples.Earth.csproj" />
 	</ItemGroup>
 	
 	<ItemGroup>

@@ -19,12 +19,14 @@ namespace XrSamples
 
         public bool UsePbrV2 { get; set; }
 
+        public bool UseSpaceWarp { get; set; }
+
 
         public static GameSettings Helmet()
         {
             return new GameSettings
             {
-                SampleName = "Car",
+                //SampleName = "Car",
                 Msaa = 2,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,

@@ -532,7 +532,7 @@ namespace XrSamples
 
             var mat = new FishReflectionSphereMaterial(left, right)
             {
-                SpherRadius = 6,
+                SphereRadius = 6,
                 SphereCenter = new Vector3(0, 1.5f, 0),
                 Border = 0.1f,
                 SurfaceSize = new Vector2(1.3f, 1.3f),
@@ -627,6 +627,18 @@ namespace XrSamples
             var s1u = (s1 / size);
             var s2u = (s2 / size);
 
+            c2u.X = 0.76f;
+            c2u.Y = 0.525f;
+
+            c1u.X = 0.24f;
+            c1u.Y = 0.49f;
+
+            s1u.X = 0.411f;
+            s1u.Y = 0.826f;
+
+            s2u.X = 0.408f;
+            s2u.Y = 0.804f;
+
 
             var app = CreateBaseScene();
 
@@ -646,7 +658,7 @@ namespace XrSamples
 
             var mat = new FishReflectionSphereMaterial(videoTex, FishReflectionMode.Stereo)
             {
-                SpherRadius = 10f,
+                SphereRadius = 10f,
                 SphereCenter = new Vector3(0, 0.68f, 0),
                 Border = 0.1f,
                 SurfaceSize = new Vector2(1.3f, 1.3f),

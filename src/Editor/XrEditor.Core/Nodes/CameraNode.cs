@@ -54,6 +54,15 @@ namespace XrEditor.Nodes
                     Label = "Fov",
                     Editor = new FloatEditor(binder.Prop(a => (a as PerspectiveCamera)!.FovDegree), 0, 360, 1),
                 });
+
+                curProps.Add(new PropertyView
+                {
+                    Label = "ActiveEye",
+                    Editor = new TextEditor<int>(a => int.Parse(a), a=> a.ToString())
+                    {
+                        Binding = binder.Prop(a => (a as PerspectiveCamera)!.ActiveEye)
+                    }
+                });
             }
 
         }

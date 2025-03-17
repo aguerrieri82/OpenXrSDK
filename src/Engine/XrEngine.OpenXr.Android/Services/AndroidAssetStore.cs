@@ -14,6 +14,12 @@ namespace XrEngine.OpenXr.Android
             _basePath = basePath;
         }
 
+        public bool Contains(string name)
+        {
+            var result = _context.Assets!.List(Path.Join(_basePath, name));
+            return result != null && result.Length > 0;   
+        }
+
         public string GetPath(string name)
         {
             var cacheBase = Path.Join(_context.CacheDir!.Path, _basePath);

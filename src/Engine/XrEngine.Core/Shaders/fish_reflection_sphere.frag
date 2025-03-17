@@ -24,6 +24,8 @@ uniform vec2 uSurfaceSize;
 uniform float uBorder;
 
 uniform uint uActiveEye;
+uniform uint uDebug;
+
 uint activeEye;
 
 layout(location=0) out vec4 FragColor;
@@ -71,6 +73,11 @@ vec2 sampleFish(vec2 polar, float fov)
     return uTexCenter[activeEye] + result * uTexRadius[activeEye];
 }
 
+vec2 mapCircularUV(vec2 uv, vec2 center, vec2 radius) {
+
+    return center - radius / 2.0 + uv * (radius);
+}
+
 void main()
 {
     #ifdef MULTI_VIEW
@@ -103,4 +110,12 @@ void main()
         FragColor.a = min(min(left, right), min(top, bottom));
     }
 
+    #ifdef DEBUG
+
+
+    vec2 tex = mapCircularUV(fUv, uTexCenter[activeEye], uTexRadius[activeEye]);
+    
+    FragColor = vec4(texture(uTexture, tex).rgb, 1.0);
+
+    #endif
 }
