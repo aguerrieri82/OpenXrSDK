@@ -974,6 +974,9 @@ namespace XrEngine
 
         public static ToneMapType ToneMap { get; set; }
 
+
+        NormalMapFormat IPbrMaterial.NormalMapFormat { get; set; }
+
         Texture2D? IPbrMaterial.ColorMap
         {
             get => MetallicRoughness?.BaseColorTexture;

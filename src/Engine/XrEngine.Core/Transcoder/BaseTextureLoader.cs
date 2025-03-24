@@ -41,6 +41,18 @@ namespace XrEngine
                 result.AlignY = 4;
                 result.BitPerPixel = 4;
             }
+            else if (comp == TextureCompressionFormat.Bc3)
+            {
+                result.AlignX = 4;
+                result.AlignY = 4;
+                result.BitPerPixel = 8;
+            }
+            else if (comp == TextureCompressionFormat.Bc1)
+            {
+                result.AlignX = 4;
+                result.AlignY = 4;
+                result.BitPerPixel = 4;
+            }
             else if (comp == TextureCompressionFormat.Uncompressed)
             {
                 result.AlignX = 1;
@@ -61,6 +73,10 @@ namespace XrEngine
                 else if (format == TextureFormat.Rgb24)
                 {
                     result.BitPerPixel = 24;
+                }
+                else if (format == TextureFormat.SRgba32)
+                {
+                    result.BitPerPixel = 32;
                 }
                 else
                     throw new NotSupportedException();

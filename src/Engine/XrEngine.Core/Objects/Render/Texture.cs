@@ -41,7 +41,10 @@ namespace XrEngine
     {
         Uncompressed = 0,
         Etc2 = 0x32435445,
-        Etc1 = 0x31435445
+        Etc1 = 0x31435445,
+        Bc3 = 0x35545844,
+        Bc1 = 0x31545844
+
     }
 
     public enum WrapMode

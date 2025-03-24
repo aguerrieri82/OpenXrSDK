@@ -149,7 +149,13 @@ void main()
 		float metalness = clamp(mr.b * uMaterial.metalness, 0.0, 1.0);
 		float roughness = clamp(mr.g * uMaterial.roughness, 0.0, 1.0);
 
+	#elif defined(USE_SPECULAR_MAP)
+
+		vec4 sp = texture(metalroughnessTexture, fUv);
+		float roughness = clamp((1.0 - sp.r) * uMaterial.roughness, 0.0, 1.0);
+		float metalness = uMaterial.metalness;
 	#else
+
 		float metalness = uMaterial.metalness;
 		float roughness = uMaterial.roughness;
 	#endif
@@ -160,7 +166,29 @@ void main()
 	// Get current fragment's normal and transform to world space.
 	#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) 
 
-		vec3 N = normalize(2.0 * texture(normalTexture, fUv).rgb - 1.0);	
+		#ifdef NORMAL_MAP_BC3
+
+			vec4 packedNormal = texture(normalTexture, fUv);
+
+			packedNormal.x = packedNormal.w * packedNormal.x;
+			vec2 normalXY = packedNormal.xy * 2.0 - 1.0;
+			float lenSq = dot(normalXY, normalXY);
+			lenSq = min(lenSq, 1.0);
+			float zComponentSq = 1.0 - lenSq;
+			float normalZ = sqrt(zComponentSq);
+			vec3 N;
+			N.xy = normalXY;
+			N.z = normalZ;
+
+			//vec2 normalXY = packedNormal.wy * 2.0 - 1.0;
+			//float normalZ = sqrt(max(1.0 - dot(normalXY, normalXY), 0.0));
+			//vec3 N = vec3(normalXY, normalZ);
+
+		#else
+		
+			vec3 N = normalize(2.0 * texture(normalTexture, fUv).rgb - 1.0);	
+		#endif
+
 		N *= vec3(uMaterial.normalScale, uMaterial.normalScale, 1.0);
 
 		mat3 TBN = fTangentBasis;

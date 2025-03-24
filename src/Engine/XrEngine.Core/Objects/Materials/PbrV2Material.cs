@@ -518,9 +518,19 @@ namespace XrEngine
                 bld.LoadTexture(ctx => MetallicRoughnessMap, 2);
             }
 
+            else if (SpecularMap != null)
+            {
+                bld.AddFeature("USE_SPECULAR_MAP");
+                bld.LoadTexture(ctx => SpecularMap, 2);
+            }
+
             if (NormalMap != null)
             {
                 bld.AddFeature("USE_NORMAL_MAP");
+
+                if (NormalMapFormat== NormalMapFormat.UnityBc3)
+                    bld.AddFeature("NORMAL_MAP_BC3");
+
                 bld.LoadTexture(ctx => NormalMap, 1);
             }
 
@@ -585,7 +595,13 @@ namespace XrEngine
 
         public Texture2D? MetallicRoughnessMap { get; set; }
 
+        public Texture2D? SpecularMap { get; set; }
+
         public Texture2D? NormalMap { get; set; }
+
+
+        public NormalMapFormat NormalMapFormat { get; set; }
+
 
         public bool ReceiveShadows { get; set; }
 

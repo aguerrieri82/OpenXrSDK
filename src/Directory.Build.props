@@ -3,7 +3,7 @@
 <Project>
 
 	<PropertyGroup>
-		<CoreVersion>net9.0</CoreVersion>
+		<CoreVersion>net10.0</CoreVersion>
 		<WinVersion>windows10.0.26100.0</WinVersion>
 		<TargetFrameworks>$(CoreVersion)</TargetFrameworks>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>

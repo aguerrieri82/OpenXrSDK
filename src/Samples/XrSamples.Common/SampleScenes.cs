@@ -22,6 +22,8 @@ using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
 using XrSamples.Components;
+using Silk.NET.Maths;
+
 
 
 #if !ANDROID
@@ -1520,6 +1522,22 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
+                .ConfigureSampleApp();
+        }
+
+
+        [Sample("DnD")]
+        public static XrEngineAppBuilder CreateDnD(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var imp = new DndImporter();
+            var res = imp.Import(@"D:\Projects\DndRip\out2");
+            app.ActiveScene!.AddChild(res);
+
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
                 .ConfigureSampleApp();
         }
 

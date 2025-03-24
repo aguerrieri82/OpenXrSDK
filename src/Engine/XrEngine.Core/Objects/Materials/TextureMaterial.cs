@@ -52,7 +52,8 @@ namespace XrEngine
                 bld.AddFeature("USE_TRANSFORM");
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    up.SetUniform("uUvTransform", Texture.Transform.Value);
+                    if (Texture?.Transform != null)
+                        up.SetUniform("uUvTransform", Texture.Transform.Value);
                 });
             }
 

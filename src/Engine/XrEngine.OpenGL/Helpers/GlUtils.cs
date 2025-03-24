@@ -158,6 +158,25 @@ namespace XrEngine.OpenGL
                 return InternalFormat.Etc1Rgb8Oes;
             }
 
+
+            if (compression == TextureCompressionFormat.Bc3)
+            {
+                return format switch
+                {
+                    TextureFormat.SRgb24 => InternalFormat.CompressedSrgbAlphaS3TCDxt5Ext,
+                    TextureFormat.Rgb24 => InternalFormat.CompressedRgbaS3TCDxt5Ext,
+                    _ => throw new NotSupportedException(format.ToString()),
+                };
+            }
+            if (compression == TextureCompressionFormat.Bc1)
+            {
+                return format switch
+                {
+                    TextureFormat.SRgb24 => InternalFormat.CompressedSrgbAlphaS3TCDxt1Ext,
+                    TextureFormat.Rgb24 => InternalFormat.CompressedRgbaS3TCDxt1Ext,
+                    _ => throw new NotSupportedException(format.ToString()),
+                };
+            }
             throw new NotSupportedException();
         }
 

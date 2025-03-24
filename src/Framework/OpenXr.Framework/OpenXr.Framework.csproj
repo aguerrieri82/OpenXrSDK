@@ -16,7 +16,7 @@
 		<PackageReference Include="Silk.NET.OpenXR.Extensions.EXT" Version="2.22.0" />
 		<PackageReference Include="Silk.NET.OpenXR.Extensions.KHR" Version="2.22.0" />
 		<PackageReference Include="Silk.NET.Windowing" Version="2.22.0" />
-		<PackageReference Include="System.Text.Json" Version="9.0.3" />
+
 	</ItemGroup>
 	
 	<ItemGroup>

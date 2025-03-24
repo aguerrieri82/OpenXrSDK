@@ -18,7 +18,7 @@
 		<PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.16.0" />
 		<PackageReference Include="Silk.NET.Assimp" Version="2.22.0" />
 		<PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.22.0" />
-		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
+
 	</ItemGroup>
 
 	<ItemGroup>
