@@ -908,7 +908,7 @@ bool UpdateTexture(FilamentApp* app, OBJID textId, const ImageData& data) {
 		texture->setImage(*app->engine, 0, std::move(buffer));
 	}
 
-	if (texture->getLevels() > 1)
+	if (texture->getLevels() > 1 && data.type != Texture::Type::COMPRESSED)
 		texture->generateMipmaps(*app->engine);
 
 	return true;

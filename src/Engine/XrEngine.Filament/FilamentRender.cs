@@ -233,53 +233,106 @@ namespace XrEngine.Filament
                 result.Levels = 100;
                 result.TextureId = texture.Id;
 
-                result.InternalFormat = texture.Format switch
+                if (texture.Compression == TextureCompressionFormat.Uncompressed)
                 {
-                    TextureFormat.Rgba32 => FlTextureInternalFormat.RGBA8,
-                    TextureFormat.SRgba32 => FlTextureInternalFormat.SRGB8_A8,
-                    TextureFormat.RgbFloat32 => FlTextureInternalFormat.RGB32F,
-                    TextureFormat.RgbaFloat32 => FlTextureInternalFormat.RGBA32F,
-                    TextureFormat.RgbFloat16 => FlTextureInternalFormat.RGB16F,
-                    TextureFormat.Bgra32 => FlTextureInternalFormat.RGBA8,
-                    TextureFormat.GrayInt8 => FlTextureInternalFormat.R8,
-                    _ => throw new NotSupportedException(),
-                };
+                    result.InternalFormat = texture.Format switch
+                    {
+                        TextureFormat.Rgba32 => FlTextureInternalFormat.RGBA8,
+                        TextureFormat.SRgba32 => FlTextureInternalFormat.SRGB8_A8,
+                        TextureFormat.RgbFloat32 => FlTextureInternalFormat.RGB32F,
+                        TextureFormat.RgbaFloat32 => FlTextureInternalFormat.RGBA32F,
+                        TextureFormat.RgbFloat16 => FlTextureInternalFormat.RGB16F,
+                        TextureFormat.Bgra32 => FlTextureInternalFormat.RGBA8,
+                        TextureFormat.GrayInt8 => FlTextureInternalFormat.R8,
+                        TextureFormat.Rgb24 => FlTextureInternalFormat.RGB8,
+                        _ => throw new NotSupportedException(),
+                    };
+                }
+                else
+                {
+                    if (texture.Compression == TextureCompressionFormat.Bc1)
+                    {
+                        result.InternalFormat = texture.Format switch
+                        {
+                            TextureFormat.Rgb24 => FlTextureInternalFormat.DXT1_RGB,
+                            TextureFormat.SRgb24 => FlTextureInternalFormat.DXT1_SRGB,
+                            _ => throw new NotSupportedException(),
+                        };
+                    }
+                    else if (texture.Compression == TextureCompressionFormat.Bc3)
+                    {
+                        result.InternalFormat = texture.Format switch
+                        {
+                            TextureFormat.Rgb24 => FlTextureInternalFormat.DXT3_RGBA,
+                            TextureFormat.SRgb24 => FlTextureInternalFormat.DXT3_SRGBA,
+                            _ => throw new NotSupportedException(),
+                        };
+                    }
+                    else if (texture.Compression == TextureCompressionFormat.Bc7)
+                    {
+                        result.InternalFormat = texture.Format switch
+                        {
+                            TextureFormat.Rgb24 => FlTextureInternalFormat.RGBA_BPTC_UNORM,
+                            TextureFormat.SRgb24 => FlTextureInternalFormat.SRGB_ALPHA_BPTC_UNORM,
+                            _ => throw new NotSupportedException(),
+                        };
+                    }
+                    else
+                        throw new NotSupportedException();
+                }
+
+
 
                 if (texture.Data != null)
                 {
                     var mainData = texture.Data[0];
 
-                    result.Data.Format = mainData.Format switch
+                    if (mainData.Compression != TextureCompressionFormat.Uncompressed)
                     {
-                        TextureFormat.Rgba32 or
-                        TextureFormat.SRgba32 => FlPixelFormat.RGBA,
-
-                        TextureFormat.RgbFloat32 => FlPixelFormat.RGB,
-                        TextureFormat.RgbaFloat32 => FlPixelFormat.RGBA,
-
-                        TextureFormat.Bgra32 => FlPixelFormat.RGBA,
-
-                        TextureFormat.GrayInt8 => FlPixelFormat.R,
-
-                        _ => throw new NotSupportedException(),
-                    };
-
-                    result.Data.Type = mainData.Format switch
+                        result.Data.Format = FlPixelFormat.UNUSED;
+                        result.Data.Type = FlPixelType.COMPRESSED;
+                    }
+                    else
                     {
-                        TextureFormat.RgbFloat32 or
-                        TextureFormat.RgbFloat16 or
-                        TextureFormat.RgbaFloat16 or
-                        TextureFormat.RgbaFloat32
-                            => FlPixelType.FLOAT,
+                        result.Data.Format = mainData.Format switch
+                        {
+                            TextureFormat.Rgb24 or
+                            TextureFormat.SRgb24 => FlPixelFormat.RGB,
 
-                        TextureFormat.Rgba32 or
-                        TextureFormat.Bgra32 or
-                        TextureFormat.SRgba32 or
-                        TextureFormat.GrayInt8
-                            => FlPixelType.UBYTE,
+                            TextureFormat.Rgba32 or
+                            TextureFormat.SRgba32 => FlPixelFormat.RGBA,
 
-                        _ => throw new NotSupportedException(),
-                    };
+                            TextureFormat.RgbFloat32 => FlPixelFormat.RGB,
+                            TextureFormat.RgbaFloat32 => FlPixelFormat.RGBA,
+
+                            TextureFormat.Bgra32 => FlPixelFormat.RGBA,
+
+                            TextureFormat.GrayInt8 => FlPixelFormat.R,
+
+                            _ => throw new NotSupportedException(),
+                        };
+
+                        result.Data.Type = mainData.Format switch
+                        {
+                            TextureFormat.RgbFloat32 or
+                            TextureFormat.RgbFloat16 or
+                            TextureFormat.RgbaFloat16 or
+                            TextureFormat.RgbaFloat32
+                                => FlPixelType.FLOAT,
+
+                            TextureFormat.Rgba32 or
+                            TextureFormat.Bgra32 or
+                            TextureFormat.SRgba32 or
+                            TextureFormat.Rgb24 or
+                            TextureFormat.SRgb24 or
+                            TextureFormat.GrayInt8
+                                => FlPixelType.UBYTE,
+
+                            _ => throw new NotSupportedException(),
+                        };
+
+                    }
+
 
                     result.Data.DataSize = mainData.Data!.Size;
                     result.Data.Data = Allocate(result.Data.DataSize);
@@ -598,6 +651,9 @@ namespace XrEngine.Filament
 
         protected unsafe void Create(Guid id, LineMesh mesh)
         {
+            if (mesh.Vertices.Length == 0)
+                return;
+
             var matId = GetOrCreate(mesh.Material, matId => Create(matId, mesh.Material));
 
             void CreateGeometry(bool isUpdate)
@@ -623,6 +679,7 @@ namespace XrEngine.Filament
                 fixed (VertexAttribute* pAttr = attributes)
                 fixed (PointData* pVert = mesh.Vertices)
                 {
+
                     var layout = new VertexLayout
                     {
                         SizeByte = (uint)Marshal.SizeOf<PointData>(),

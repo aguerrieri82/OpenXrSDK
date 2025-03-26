@@ -112,6 +112,12 @@ namespace XrEngine.OpenGL
 
             _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
 
+
+            var exts = GetExtensions();
+            foreach (var ex in exts)
+                Debug.WriteLine(ex);
+
+
             ConfigureCaps();
         }
 
@@ -316,10 +322,18 @@ namespace XrEngine.OpenGL
                 Render(ctx, view, _target, flush);
         }
 
+        [Conditional("DEBUG")]
         public void PushGroup(string message)
         {
+
             _gl.PushDebugGroup(DebugSource.DebugSourceApplication, 0, (uint)message.Length, message);
 
+        }
+
+        [Conditional("DEBUG")]
+        public void PopGroup()
+        {
+            _gl.PopDebugGroup();
         }
 
         public void Render(RenderContext ctx, Rect2I view, IGlRenderTarget target, bool flush)
@@ -353,17 +367,17 @@ namespace XrEngine.OpenGL
 
                 pass.Render(ctx);
 
-                _gl.PopDebugGroup();
+                PopGroup();
             }
 
             _dispatcher.ProcessQueue();
 
             _target.End(true);
-
+  
             if (flush)
                 _gl.Flush();
 
-            _gl.PopDebugGroup();
+            PopGroup();
 
             //new GlBenchmark(_gl).Bench();   
         }
@@ -389,7 +403,7 @@ namespace XrEngine.OpenGL
         }
 
 
-        #endregion
+#endregion
 
         #region ISurfaceProvider
 
@@ -636,6 +650,8 @@ namespace XrEngine.OpenGL
         {
             var data = _gl.GetString(StringName.Extensions);
             var allExt = Marshal.PtrToStringAuto(new nint(data))!;
+            if (string.IsNullOrWhiteSpace(allExt))
+                return [];
             return allExt.Split(' ');
         }
 

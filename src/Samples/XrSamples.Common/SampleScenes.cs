@@ -26,6 +26,8 @@ using Silk.NET.Maths;
 
 
 
+
+
 #if !ANDROID
 using XrEngine.Browser.Win;
 using XrEngine.UI.Web;
@@ -1531,13 +1533,47 @@ namespace XrSamples
         {
             var app = CreateBaseScene();
 
+            var path = GetAssetPath("Dnd/tavern/draws.json");
+
             var imp = new DndImporter();
-            var res = imp.Import(@"D:\Projects\DndRip\out2");
-            app.ActiveScene!.AddChild(res);
+            var mesh = imp.Import(Path.GetDirectoryName(path)!);
+
+            foreach (var item in mesh.Children.OfType<TriangleMesh>())
+            {
+              //item.AddComponent(new GeometryLod());
+            }
+
+  
+            mesh.AddComponent<BoundsGrabbable>();
+            mesh.Transform.SetPosition(-13, 0, -9);
+
+            app.ActiveScene!.AddChild(mesh);
 
             return builder
                 .UseApp(app)
                 .UseDefaultHDR()
+                .ConfigureApp(e =>
+                {
+                    var inputs = e.GetInputs<XrOculusTouchController>();
+
+                    mesh.AddBehavior((_, _) =>
+                    {
+                        var aButton = inputs.Right!.Button!.AClick!;
+                        var bButton = inputs.Right!.Button!.BClick!;
+                        if (aButton.IsChanged && aButton.Value)
+                        {
+                            var scale = mesh.Transform.Scale.X;
+                            scale *= 0.8f;
+                            mesh.Transform.SetScale(scale);
+                        }
+                        if (bButton.IsChanged && bButton.Value)
+                        {
+                            var scale = mesh.Transform.Scale.X;
+                            scale /= 0.8f;
+                            mesh.Transform.SetScale(scale);
+                        }
+                    });
+                })
                 .ConfigureSampleApp();
         }
 

@@ -35,24 +35,18 @@ namespace XrEngine
                 else
                     result.BitPerPixel = 4; ;
             }
-            else if (comp == TextureCompressionFormat.Etc1)
+            else if (comp == TextureCompressionFormat.Etc1 || comp == TextureCompressionFormat.Bc1)
             {
                 result.AlignX = 4;
                 result.AlignY = 4;
                 result.BitPerPixel = 4;
             }
-            else if (comp == TextureCompressionFormat.Bc3)
+            else if (comp == TextureCompressionFormat.Bc3 || comp == TextureCompressionFormat.Bc7)
             {
                 result.AlignX = 4;
                 result.AlignY = 4;
                 result.BitPerPixel = 8;
-            }
-            else if (comp == TextureCompressionFormat.Bc1)
-            {
-                result.AlignX = 4;
-                result.AlignY = 4;
-                result.BitPerPixel = 4;
-            }
+            }          
             else if (comp == TextureCompressionFormat.Uncompressed)
             {
                 result.AlignX = 1;

@@ -177,6 +177,15 @@ namespace XrEngine.OpenGL
                     _ => throw new NotSupportedException(format.ToString()),
                 };
             }
+            if (compression == TextureCompressionFormat.Bc7)
+            {
+                return format switch
+                {
+                    TextureFormat.SRgb24 => InternalFormat.CompressedSrgbAlphaBptcUnormArb,
+                    TextureFormat.Rgb24 => InternalFormat.CompressedRgbaBptcUnormArb,
+                    _ => throw new NotSupportedException(format.ToString()),
+                };
+            }
             throw new NotSupportedException();
         }
 

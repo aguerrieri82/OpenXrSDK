@@ -79,6 +79,60 @@ namespace XrEngine.Filament
 
             // 128-bits per element
             RGBA32F, RGBA32UI, RGBA32I,
+
+            // compressed formats
+
+            // Mandatory in GLES 3.0 and GL 4.3
+            EAC_R11, EAC_R11_SIGNED, EAC_RG11, EAC_RG11_SIGNED,
+            ETC2_RGB8, ETC2_SRGB8,
+            ETC2_RGB8_A1, ETC2_SRGB8_A1,
+            ETC2_EAC_RGBA8, ETC2_EAC_SRGBA8,
+
+            // Available everywhere except Android/iOS
+            DXT1_RGB, DXT1_RGBA, DXT3_RGBA, DXT5_RGBA,
+            DXT1_SRGB, DXT1_SRGBA, DXT3_SRGBA, DXT5_SRGBA,
+
+            // ASTC formats are available with a GLES extension
+            RGBA_ASTC_4x4,
+            RGBA_ASTC_5x4,
+            RGBA_ASTC_5x5,
+            RGBA_ASTC_6x5,
+            RGBA_ASTC_6x6,
+            RGBA_ASTC_8x5,
+            RGBA_ASTC_8x6,
+            RGBA_ASTC_8x8,
+            RGBA_ASTC_10x5,
+            RGBA_ASTC_10x6,
+            RGBA_ASTC_10x8,
+            RGBA_ASTC_10x10,
+            RGBA_ASTC_12x10,
+            RGBA_ASTC_12x12,
+            SRGB8_ALPHA8_ASTC_4x4,
+            SRGB8_ALPHA8_ASTC_5x4,
+            SRGB8_ALPHA8_ASTC_5x5,
+            SRGB8_ALPHA8_ASTC_6x5,
+            SRGB8_ALPHA8_ASTC_6x6,
+            SRGB8_ALPHA8_ASTC_8x5,
+            SRGB8_ALPHA8_ASTC_8x6,
+            SRGB8_ALPHA8_ASTC_8x8,
+            SRGB8_ALPHA8_ASTC_10x5,
+            SRGB8_ALPHA8_ASTC_10x6,
+            SRGB8_ALPHA8_ASTC_10x8,
+            SRGB8_ALPHA8_ASTC_10x10,
+            SRGB8_ALPHA8_ASTC_12x10,
+            SRGB8_ALPHA8_ASTC_12x12,
+
+            // RGTC formats available with a GLES extension
+            RED_RGTC1,              // BC4 unsigned
+            SIGNED_RED_RGTC1,       // BC4 signed
+            RED_GREEN_RGTC2,        // BC5 unsigned
+            SIGNED_RED_GREEN_RGTC2, // BC5 signed
+
+            // BPTC formats available with a GLES extension
+            RGB_BPTC_SIGNED_FLOAT,  // BC6H signed
+            RGB_BPTC_UNSIGNED_FLOAT,// BC6H unsigned
+            RGBA_BPTC_UNORM,        // BC7
+            SRGB_ALPHA_BPTC_UNORM,  // BC7 sRGB
         }
 
         public enum FlPixelFormat : byte

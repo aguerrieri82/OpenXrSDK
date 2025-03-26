@@ -239,6 +239,10 @@ namespace XrEngine
                         comp = TextureCompressionFormat.Bc1;
                         format = TextureFormat.SRgb24;
                         break;
+                    case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM:
+                        comp = TextureCompressionFormat.Bc7;
+                        format = TextureFormat.Rgb24;
+                        break;
                     default:
                         throw new NotSupportedException();
 

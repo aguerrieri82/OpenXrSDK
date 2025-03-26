@@ -63,9 +63,10 @@ namespace XrEngine.OpenGL
 
             var name = draw.Object!.Name;
 
+#if DEBUG
             if (name != null)
                 _gl.DebugMessageInsert(DebugSource.DebugSourceApplication, DebugType.DebugTypeMarker, 0, DebugSeverity.DebugSeverityNotification, (uint)name.Length, name);
-
+#endif
         
         }
 
@@ -147,7 +148,7 @@ namespace XrEngine.OpenGL
                 }
             }
 
-            _gl.PopDebugGroup();
+            _renderer.PopGroup();
         }
 
         public bool WriteDepth { get; set; }

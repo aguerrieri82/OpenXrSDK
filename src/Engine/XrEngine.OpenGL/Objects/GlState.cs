@@ -195,12 +195,12 @@ namespace XrEngine.OpenGL
 
         public void LoadTexture(uint texId, TextureTarget target, int slot, bool force = false)
         {
-            SetActiveTexture(slot, force);
-
             var curSlotValue = TexturesSlots[slot];
 
             if (curSlotValue == texId && !force)
                 return;
+
+            SetActiveTexture(slot, force);
 
             BindTexture(target, texId, force);
         }

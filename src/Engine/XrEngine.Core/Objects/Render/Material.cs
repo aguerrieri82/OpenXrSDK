@@ -22,7 +22,7 @@
 
     public abstract class Material : EngineObject, IHosted, IMaterial
     {
-        protected readonly HashSet<EngineObject> _hosts = [];
+        protected HashSet<EngineObject> _hosts = [];
         protected bool _isEnabled;
 
         public Material()
@@ -132,7 +132,14 @@
 
         public virtual Material Clone()
         {
-            return (Material)MemberwiseClone();
+            var newMat = (Material)MemberwiseClone();
+
+            newMat._hosts = [];
+            if (newMat._props != null)  
+                newMat._props = [];
+
+            return newMat;
+
         }
     }
 }

@@ -28,5 +28,7 @@ namespace XrEngine
         byte? WriteStencil { get; set; }
 
         long Version { get; }
+
+        Material Clone();
     }
 }

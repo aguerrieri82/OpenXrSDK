@@ -22,9 +22,10 @@ namespace XrSamples
     public class DndImporter
     {
         Dictionary<string, ShaderMaterial> _materials = [];
-        Dictionary<string, Texture> _textures = [];
+        Dictionary<string, Texture2D> _textures = [];
         Dictionary<string, Geometry3D> _geos = [];
         private string _basePath = ".";
+        private HashSet<string> _unusedTex = [];
 
         #region STRUCTS
 
@@ -58,7 +59,7 @@ namespace XrSamples
             public Half Z;
             public Half W;
 
-            public Vector4 ToVecto4()
+            public Vector4 ToVector4()
             {
                 return new Vector4((float)X, (float)Y, (float)Z, (float)W);
             }
@@ -68,11 +69,23 @@ namespace XrSamples
 
         #region Data
 
+        public class ImpConst
+        {
+            public string name { get; set; }    
+
+            public float[][] values { get; set; }
+        }
+
         public class ImpMaterial
         {
             public ImpPixelShader ps { get; set; }
+            
             public ImpTexture[] textures { get; set; }
+            
             public string id { get; set; }
+
+            public ImpConst[] cbs { get; set; }
+
         }
 
         public class ImpPixelShader
@@ -132,7 +145,7 @@ namespace XrSamples
 
         #endregion
 
-        ShaderMaterial ProcesssMaterial(string matId)
+        ShaderMaterial ProcessMaterial(string matId)
         {
             if (!_materials.TryGetValue(matId, out var mat))
             {
@@ -140,51 +153,91 @@ namespace XrSamples
 
 
                 var pbr = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
-                pbr.Alpha = AlphaMode.Blend;
+                //pbr.Alpha = AlphaMode.Blend;
 
-                foreach (var impTex in impMat.textures)
+                if (impMat.ps.name == "glTF/PbrMetallicRoughness")
                 {
-                    var tex = ProcesssTexture(impTex.resId);
-                    if (tex == null)
-                        continue;
-                    var name = impTex.name.ToLower();
-                    var isDif = name.EndsWith("dif") ||
-                                name.EndsWith("diff") ||
-                                name.Contains("albedo") ||
-                                name.Contains("diffuse") ||
-                                name.Contains("basecolor") ||
-                                name.Contains("_diff");
 
-                    var isNormal = name.EndsWith("nrm") ||
-                       name.Contains("normal");
-
-
-                    var isSpec = name.EndsWith("smt") ||
-                                  name.Contains("specular");
-
-
-                    var isAO = name.EndsWith("ao") ||
-                               name.Contains("occlusion");
-
-                    if (isDif)
-                        pbr.ColorMap = (Texture2D)tex;
-
-                    else if (isNormal)
+                    pbr.ColorMap = (Texture2D)ProcesssTexture(impMat.textures[0].resId)!;
+                    pbr.MetallicRoughnessMap = (Texture2D)ProcesssTexture(impMat.textures[1].resId)!;
+                    pbr.NormalMap = (Texture2D)ProcesssTexture(impMat.textures[2].resId)!;
+                }
+                else if (impMat.ps.name == "Custom Image Shader")
+                {
+                    pbr.ColorMap = (Texture2D)ProcesssTexture(impMat.textures[1].resId)!;
+                }
+                else
+                {
+                    foreach (var impTex in impMat.textures)
                     {
-                        pbr.NormalMap = (Texture2D)tex;
-                        pbr.NormalMapFormat = NormalMapFormat.UnityBc3;
-                    }
-                    else if (isSpec)
-                    {
-                        pbr.SpecularMap = (Texture2D)tex;
-                        pbr.Roughness = 0.4f;
-                        pbr.Metalness = 0f;
-                    }
-                    else if (isAO)
-                    {
-                        pbr.OcclusionMap = (Texture2D)tex;
+                        var tex = ProcesssTexture(impTex.resId);
+                        if (tex == null)
+                            continue;
+                        var name = impTex.name.ToLower();
+                        var isDif = name.EndsWith("dif") ||
+                                    name.EndsWith("diff") ||
+                                    name.Contains("albedo") ||
+                                    name.Contains("diffuse") ||
+                                    name.Contains("basecolor") ||
+                                    name.Contains("_diff");
+
+                        var isNormal = name.EndsWith("nrm") ||
+                           name.Contains("normal") ||
+                           name.EndsWith("-nml") ||
+                           name.EndsWith("_n");
+
+
+                        var isSpec = name.EndsWith("smt") ||
+                                      name.EndsWith("smooth") ||
+                                      name.Contains("specular");
+
+
+                        var isAO = name.EndsWith("ao") ||
+                                   name.Contains("occlusion");
+
+                        var isRough = name.Contains("roughness") ||
+                                      name.EndsWith("-r") ||
+                                      name.EndsWith("_rgh");
+
+                        var isMetal = name.EndsWith("_mtl") ||
+                          name.EndsWith("-m");
+
+
+                        if (isDif)
+                            pbr.ColorMap = (Texture2D)tex;
+
+                        else if (isNormal)
+                        {
+                            if (pbr.NormalMap != null)
+                                continue;
+                            pbr.NormalMap = (Texture2D)tex;
+                            pbr.NormalMapFormat = NormalMapFormat.UnityBc3;
+                            pbr.NormalScale = 1.0f;
+                        }
+                        else if (isSpec)
+                        {
+                            pbr.SpecularMap = (Texture2D)tex;
+                            pbr.Roughness = 0.5f;
+                            pbr.Metalness = 0f;
+                        }
+                        else if (isRough)
+                        {
+                            pbr.MetallicRoughnessMap = (Texture2D)tex;
+                            pbr.Roughness = 0.5f;
+                            pbr.Metalness = 0f;
+                        }
+                        else if (isAO)
+                        {
+                            pbr.OcclusionMap = (Texture2D)tex;
+                        }
+                        else
+                        {
+                            _unusedTex.Add(impTex.name);
+                        }
                     }
                 }
+
+                    
 
                 mat = (ShaderMaterial)pbr;
 
@@ -284,7 +337,7 @@ namespace XrSamples
                     else if (attr.name == "TANGENT")
                     {
                         if (attr.format.byteWidth == 2)
-                            Unpack<Vector4H>(buffer, attr.byteOffset, attr.byteStride, data.Length, (v, i) => data[i].Tangent = v.ToVecto4());
+                            Unpack<Vector4H>(buffer, attr.byteOffset, attr.byteStride, data.Length, (v, i) => data[i].Tangent = v.ToVector4());
                         else
                             Unpack<Vector4>(buffer, attr.byteOffset, attr.byteStride, data.Length, (v, i) => data[i].Tangent = v);
                         geo.ActiveComponents |= VertexComponent.Tangent;
@@ -326,7 +379,10 @@ namespace XrSamples
                 try
                 {
                     text = AssetLoader.Instance.Load<Texture2D>(fileName);
-
+                    text.WrapS = WrapMode.Repeat;
+                    text.WrapT = WrapMode.Repeat;
+                    if (text.Data!.Count > 1)
+                        text.MinFilter = ScaleFilter.LinearMipmapLinear;
                     _textures[texId] = text;
                 }
                 catch
@@ -342,7 +398,7 @@ namespace XrSamples
         {
 
             var mesh = ProcesssMesh(draw.meshId);
-            var mat = ProcesssMaterial(draw.matId);
+            var mat = ProcessMaterial(draw.matId);
 
             mesh.WorldMatrix = MathUtils.CreateMatrix(draw.world);
             mesh.Materials.Add(mat);

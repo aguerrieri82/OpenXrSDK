@@ -110,6 +110,14 @@ namespace XrSamples.Android.Activities
             {
                 _settings.UsePbrV2 = e.IsChecked;
             };
+
+            //Pbr
+            var sw = FindViewById<CheckBox>(ResourceConstant.Id.space_warp)!;
+            sw.Checked = _settings.UseSpaceWarp;
+            sw.CheckedChange += (s, e) =>
+            {
+                _settings.UseSpaceWarp = e.IsChecked;
+            };
         }
 
         protected void StartGame()

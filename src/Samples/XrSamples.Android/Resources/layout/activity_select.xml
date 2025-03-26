@@ -64,6 +64,11 @@
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:text="Use PBR V2"/>
+			<CheckBox
+				android:id="@+id/space_warp"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="Use Space Warp"/>
 
 			<TextView
 				android:layout_width="match_parent"
@@ -73,7 +78,7 @@
 			<ListView
 				  android:id="@+id/listView"
 				  android:layout_width="match_parent"
-				  android:layout_height="400px"
+				  android:layout_height="340px"
 				  android:choiceMode="singleChoice" />
 		</LinearLayout>
 	</ScrollView>
