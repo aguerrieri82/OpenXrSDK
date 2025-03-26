@@ -53,9 +53,9 @@ namespace XrEngine.OpenGL
 
             var updateContext = _renderer.UpdateContext;
 
-            foreach (var shader in layer.Content.ShaderContents)
+            foreach (var shader in layer.Content.ShaderContentsSorted!)
             {
-                IEnumerable<VertexContent> vertices = shader.Value.Contents.Values;
+                IEnumerable<VertexContent> vertices = shader.Value.ContentsSorted!;
 
                 if (SortByCameraDistance)
                     vertices = vertices.OrderBy(a => a.AvgDistance);

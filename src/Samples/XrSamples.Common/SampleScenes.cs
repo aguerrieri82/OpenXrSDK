@@ -1545,7 +1545,7 @@ namespace XrSamples
 
   
             mesh.AddComponent<BoundsGrabbable>();
-            mesh.Transform.SetPosition(-13, 0, -9);
+            mesh.Transform.SetPosition(-9, 0, 9);
 
             app.ActiveScene!.AddChild(mesh);
 

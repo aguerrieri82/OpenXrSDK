@@ -31,8 +31,9 @@ namespace XrEngine.OpenGL
         protected readonly GlLayerType _type;
         protected long _lastUpdateVersion;
         protected long _lastFrame;
-        private Camera? _lastCamera;
-        private int _lastDrawId;
+        protected Camera? _lastCamera;
+        protected int _lastDrawId;
+        protected bool _isContentDirty;
 
         public GlLayer(OpenGLRender render, Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
         {
@@ -144,6 +145,8 @@ namespace XrEngine.OpenGL
 
             foreach (var action in clean)
                 action();
+
+            _isContentDirty = true;
         }
 
         protected void AddContent(Object3D obj3d)
@@ -215,6 +218,8 @@ namespace XrEngine.OpenGL
                     Object = obj3d
                 });
             }
+
+            _isContentDirty = true;
         }
 
         protected virtual void ConfigureProgramInstance(GlProgramInstance instance)
@@ -229,7 +234,8 @@ namespace XrEngine.OpenGL
             if (ctx.Frame == _lastFrame && curCamera == _lastCamera)
                 return;
 
-            curCamera.FrustumPlanes(_render.UpdateContext.FrustumPlanes);
+            if (_render.Options.FrustumCulling)
+                curCamera.FrustumPlanes(_render.UpdateContext.FrustumPlanes);
 
             ComputeVisibility();
 
@@ -238,8 +244,24 @@ namespace XrEngine.OpenGL
 
             UpdateVertexHandlers();
 
+            SortContent();
+
             _lastFrame = ctx.Frame;
             _lastCamera = curCamera;
+        }
+
+
+        protected void SortContent()
+        {
+            if (!_isContentDirty)
+                return;
+
+            _content.ShaderContentsSorted = _content.ShaderContents.OrderBy(a => a.Key.Priority).ToArray();
+
+            foreach (var shader in _content.ShaderContents.Values)
+                shader.ContentsSorted = shader.Contents.Values.OrderBy(a => a.RenderPriority).ToArray();
+
+            _isContentDirty = false;
         }
 
         protected void UpdateVertexHandlers()

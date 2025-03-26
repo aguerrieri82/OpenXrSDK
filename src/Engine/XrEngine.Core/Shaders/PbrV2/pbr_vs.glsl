@@ -29,6 +29,10 @@ void main()
 {
 	vec4 pos = uModel.worldMatrix * vec4(position, 1.0);
 
+#ifdef USE_BOUNDS
+
+#endif
+
 	fPos = pos.xyz; 
 
 	fUv = texcoord;

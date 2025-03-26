@@ -61,13 +61,12 @@ namespace XrEngine.OpenGL
         {
             draw.Draw!();
 
-            var name = draw.Object!.Name;
-
 #if DEBUG
+            var name = draw.Object!.Name;
             if (name != null)
                 _gl.DebugMessageInsert(DebugSource.DebugSourceApplication, DebugType.DebugTypeMarker, 0, DebugSeverity.DebugSeverityNotification, (uint)name.Length, name);
 #endif
-        
+
         }
 
         protected virtual bool UpdateProgram(UpdateShaderContext updateContext, GlProgramInstance progInst)
@@ -86,7 +85,9 @@ namespace XrEngine.OpenGL
 
             var useDepthPass = _renderer.Options.UseDepthPass;
 
-            foreach (var shader in layer.Content.ShaderContents.OrderBy(a => a.Key.Priority))
+            var useOcclusion = _renderer.Options.UseOcclusionQuery;
+
+            foreach (var shader in layer.Content.ShaderContentsSorted)
             {
                 var progGlobal = shader.Value!.ProgramGlobal;
 
@@ -94,19 +95,17 @@ namespace XrEngine.OpenGL
 
                 progGlobal!.UpdateProgram(updateContext, GetRenderTarget() as IShaderHandler);
 
-                IEnumerable<VertexContent> vertices = shader.Value.Contents.Values;
+                IEnumerable<VertexContent> vertices = shader.Value.ContentsSorted;
 
                 if (_renderer.Options.SortByCameraDistance)
                     vertices = vertices.OrderBy(a => a.RenderPriority).ThenBy(a => a.AvgDistance);
-                else
-                    vertices = vertices.OrderBy(a => a.RenderPriority);
 
                 foreach (var vertex in vertices)
                 {
-                    if (vertex.IsHidden && false)
+                    if (vertex.IsHidden)
                         continue;
 
-                    if (useDepthPass && vertex.Contents.All(a => a.Query != null && a.Query.GetResult() == 0))
+                    if (useOcclusion && vertex.Contents.All(a => a.Query != null && a.Query.GetResult() == 0))
                         continue;
 
                     var vHandler = vertex.VertexHandler!;

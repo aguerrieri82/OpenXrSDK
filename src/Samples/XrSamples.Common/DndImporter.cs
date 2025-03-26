@@ -1,19 +1,10 @@
-﻿using Common.Interop;
-using Silk.NET.Maths;
-using System;
-using System.Collections.Generic;
+﻿using Newtonsoft.Json.Linq;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using XrEngine;
 using XrMath;
-using static System.Net.Mime.MediaTypeNames;
+
 
 #pragma warning disable 8618
 
@@ -26,6 +17,7 @@ namespace XrSamples
         Dictionary<string, Geometry3D> _geos = [];
         private string _basePath = ".";
         private HashSet<string> _unusedTex = [];
+        private List<string> _psNames = [];
 
         #region STRUCTS
 
@@ -110,9 +102,9 @@ namespace XrSamples
             public int id { get; set; }
             public string meshId { get; set; }
             public string matId { get; set; }
+            public string psId { get; set; }
             public float[] world { get; set; }
         }
-
 
 
         public class ImpMesh
@@ -151,6 +143,8 @@ namespace XrSamples
             {
                 var impMat = Read<ImpMaterial>($"mat_{matId}.json");
 
+                _psNames.Add(impMat.ps.name);
+
 
                 var pbr = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
                 //pbr.Alpha = AlphaMode.Blend;
@@ -158,19 +152,19 @@ namespace XrSamples
                 if (impMat.ps.name == "glTF/PbrMetallicRoughness")
                 {
 
-                    pbr.ColorMap = (Texture2D)ProcesssTexture(impMat.textures[0].resId)!;
-                    pbr.MetallicRoughnessMap = (Texture2D)ProcesssTexture(impMat.textures[1].resId)!;
-                    pbr.NormalMap = (Texture2D)ProcesssTexture(impMat.textures[2].resId)!;
+                    pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[0].resId)!;
+                    pbr.MetallicRoughnessMap = (Texture2D)ProcessTexture(impMat.textures[1].resId)!;
+                    pbr.NormalMap = (Texture2D)ProcessTexture(impMat.textures[2].resId)!;
                 }
                 else if (impMat.ps.name == "Custom Image Shader")
                 {
-                    pbr.ColorMap = (Texture2D)ProcesssTexture(impMat.textures[1].resId)!;
+                    pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[1].resId)!;
                 }
                 else
                 {
                     foreach (var impTex in impMat.textures)
                     {
-                        var tex = ProcesssTexture(impTex.resId);
+                        var tex = ProcessTexture(impTex.resId);
                         if (tex == null)
                             continue;
                         var name = impTex.name.ToLower();
@@ -271,7 +265,7 @@ namespace XrSamples
             }
         }
 
-        unsafe TriangleMesh ProcesssMesh(string meshId)
+        unsafe TriangleMesh ProcessMesh(string meshId)
         {
 
             var mesh = new TriangleMesh();
@@ -308,6 +302,13 @@ namespace XrSamples
                     else
                         throw new NotSupportedException();
 
+                    //Flip indices
+                    for (int i = 0; i < geo.Indices.Length; i += 3)
+                    {
+                        var tmp = geo.Indices[i + 1];
+                        geo.Indices[i + 1] = geo.Indices[i + 2];
+                        geo.Indices[i + 2] = tmp;
+                    }
                 }
 
 
@@ -362,6 +363,10 @@ namespace XrSamples
                 }
                 geo.Vertices = data;
                 _geos[meshId] = geo;
+
+                //Flip normals
+                for (var i = 0; i < data.Length; i++)
+                    geo.Vertices[i].Normal.Z *= -1;
             }
 
             mesh.Geometry = geo;
@@ -370,7 +375,7 @@ namespace XrSamples
 
         }
 
-        Texture? ProcesssTexture(string texId)
+        Texture? ProcessTexture(string texId)
         {
             if (!_textures.TryGetValue(texId, out var text))
             {
@@ -394,13 +399,17 @@ namespace XrSamples
             return text;
         }
 
-        Object3D ProcesssDraw(ImpDraw draw)
+        Object3D ProcessDraw(ImpDraw draw)
         {
 
-            var mesh = ProcesssMesh(draw.meshId);
+
+            var mesh = ProcessMesh(draw.meshId);
             var mat = ProcessMaterial(draw.matId);
 
-            mesh.WorldMatrix = MathUtils.CreateMatrix(draw.world);
+            var word = MathUtils.CreateMatrix(draw.world);
+            word *= Matrix4x4.CreateScale(1, 1, -1);
+
+            mesh.WorldMatrix = word;
             mesh.Materials.Add(mat);
             mesh.Name = "#" + draw.id;
             return mesh;
@@ -411,6 +420,22 @@ namespace XrSamples
             return JsonSerializer.Deserialize<T>(File.ReadAllText(Path.Combine(_basePath, path)))!;
         }
 
+        public void GroupDraws(Group3D main)
+        {
+            var walls = new Group3D();
+            for (var i = main.Children.Count-1; i>= 0; i--)
+            {
+                if (main.Children[i] is not TriangleMesh item)
+                    continue;
+
+                var bounds = item.LocalBounds;
+                if (bounds.Size.IsSimilar(new Vector3(1, 1.8f, 0.14f), 0.1f))
+                    walls.AddChild(item, true);
+            }
+
+            main.AddChild(walls);
+        }
+
         public Group3D Import(string path)
         {
             _basePath = path;
@@ -418,7 +443,9 @@ namespace XrSamples
             var draws = Read<ImpDraw[]>("draws.json");
             var res = new Group3D();
             foreach (var draw in draws!)
-                res.AddChild(ProcesssDraw(draw));
+                res.AddChild(ProcessDraw(draw));
+
+            GroupDraws(res);
 
             return res;
         }

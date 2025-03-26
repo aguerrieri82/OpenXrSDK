@@ -15,8 +15,6 @@ namespace XrEngine.OpenGL
             UseOcclusion = true;
         }
 
-
-
         protected override bool BeginRender(Camera camera)
         {
             _renderer.RenderTarget!.Begin(camera);

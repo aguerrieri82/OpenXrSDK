@@ -26,7 +26,7 @@ namespace XrEngine.OpenGL
             FloatPrecision = ShaderPrecision.High;
             ShaderVersion = "320 es";
             FrustumCulling = true;
-            UseOcclusionQuery = true;
+            UseOcclusionQuery = false;
             UseDepthPass = false;
             SortByCameraDistance = true;
             UseSRGB = false;

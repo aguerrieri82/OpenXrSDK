@@ -31,4 +31,6 @@ layout(std140, binding=3) uniform Model
 {
 	mat4 worldMatrix;
 	mat4 normalMatrix;
+	vec3 boundsMin;
+	vec3 boundsMax;
 } uModel;

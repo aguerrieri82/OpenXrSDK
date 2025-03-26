@@ -78,6 +78,8 @@ namespace XrSamples.Android.Activities
                 builder.UseOpenGL(opt =>
                 {
                     opt.UseDepthPass = _settings.EnableDepthPass;
+                    opt.UseOcclusionQuery = false;
+                    opt.SortByCameraDistance = !_settings.EnableDepthPass;
                 });
 
             if (_settings.Driver == GraphicDriver.OpenGL && _settings.IsMultiView)

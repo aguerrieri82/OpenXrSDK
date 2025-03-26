@@ -1,10 +1,14 @@
-﻿namespace XrEngine.OpenGL
+﻿using System.Collections;
+
+namespace XrEngine.OpenGL
 {
     public class ShaderContent
     {
         public GlProgramGlobal? ProgramGlobal;
 
         public readonly Dictionary<EngineObject, VertexContent> Contents = [];
+
+        public IList<VertexContent> ContentsSorted = [];
     }
 
     public class VertexContent
@@ -45,5 +49,7 @@
         public long LayerVersion;
 
         public readonly Dictionary<Shader, ShaderContent> ShaderContents = [];
+
+        public IList<KeyValuePair<Shader, ShaderContent>> ShaderContentsSorted = [];
     }
 }
