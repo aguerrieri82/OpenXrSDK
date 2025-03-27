@@ -63,7 +63,7 @@ namespace XrSamples
 
         public class ImpConst
         {
-            public string name { get; set; }    
+            public string name { get; set; }
 
             public float[][] values { get; set; }
         }
@@ -71,9 +71,9 @@ namespace XrSamples
         public class ImpMaterial
         {
             public ImpPixelShader ps { get; set; }
-            
+
             public ImpTexture[] textures { get; set; }
-            
+
             public string id { get; set; }
 
             public ImpConst[] cbs { get; set; }
@@ -152,19 +152,19 @@ namespace XrSamples
                 if (impMat.ps.name == "glTF/PbrMetallicRoughness")
                 {
 
-                    pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[0].resId)!;
-                    pbr.MetallicRoughnessMap = (Texture2D)ProcessTexture(impMat.textures[1].resId)!;
-                    pbr.NormalMap = (Texture2D)ProcessTexture(impMat.textures[2].resId)!;
+                    pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[0])!;
+                    pbr.MetallicRoughnessMap = (Texture2D)ProcessTexture(impMat.textures[1])!;
+                    pbr.NormalMap = (Texture2D)ProcessTexture(impMat.textures[2])!;
                 }
                 else if (impMat.ps.name == "Custom Image Shader")
                 {
-                    pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[1].resId)!;
+                    pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[1])!;
                 }
                 else
                 {
                     foreach (var impTex in impMat.textures)
                     {
-                        var tex = ProcessTexture(impTex.resId);
+                        var tex = ProcessTexture(impTex);
                         if (tex == null)
                             continue;
                         var name = impTex.name.ToLower();
@@ -231,9 +231,31 @@ namespace XrSamples
                     }
                 }
 
-                    
+
+                if (impMat.ps.name == "Dungeon Alchemist/likeCharlie/TreeLeaves")
+                {
+                    pbr.AlphaCutoff = 0.5f;
+                    pbr.Alpha = AlphaMode.Mask;
+                    pbr.DoubleSided = true;
+                    pbr.Roughness = 1f;
+                }
+                else if (impMat.ps.name == "Standard")
+                {
+                    var alphaCut = impMat.cbs[0].values[5][1];
+                    var alphaMul = impMat.cbs[0].values[4][3];
+                    if (alphaCut > 0)
+                    {
+                        pbr.AlphaCutoff = 0.5f;
+                        pbr.Alpha = AlphaMode.Mask;
+                        //pbr.Roughness = 1f;
+                        //pbr.DoubleSided = true;
+                        Debug.WriteLine($"####### Alpha {alphaCut} {pbr.ColorMap?.Name}");
+                    }
+                }
+
 
                 mat = (ShaderMaterial)pbr;
+                mat.SetProp("ps_name", impMat.ps.name);
 
                 _materials[matId] = mat;
             }
@@ -302,13 +324,7 @@ namespace XrSamples
                     else
                         throw new NotSupportedException();
 
-                    //Flip indices
-                    for (int i = 0; i < geo.Indices.Length; i += 3)
-                    {
-                        var tmp = geo.Indices[i + 1];
-                        geo.Indices[i + 1] = geo.Indices[i + 2];
-                        geo.Indices[i + 2] = tmp;
-                    }
+
                 }
 
 
@@ -355,18 +371,34 @@ namespace XrSamples
                     else if (attr.name == "TEXCOORD1")
                     {
                         if (attr.format.byteWidth == 2)
-                            Unpack<Vector2H>(buffer, attr.byteOffset, attr.byteStride, data.Length, (v, i) => data[i].UV = v.ToVector2());
+                            Unpack<Vector2H>(buffer, attr.byteOffset, attr.byteStride, data.Length, (v, i) => data[i].UV1 = v.ToVector2());
                         else
-                            Unpack<Vector2>(buffer, attr.byteOffset, attr.byteStride, data.Length, (v, i) => data[i].UV = v);
+                            Unpack<Vector2>(buffer, attr.byteOffset, attr.byteStride, data.Length, (v, i) => data[i].UV1 = v);
                         geo.ActiveComponents |= VertexComponent.UV1;
                     }
                 }
                 geo.Vertices = data;
                 _geos[meshId] = geo;
 
-                //Flip normals
-                for (var i = 0; i < data.Length; i++)
-                    geo.Vertices[i].Normal.Z *= -1;
+                if (FlipZ)
+                {
+
+                    //Flip normals
+                    for (var i = 0; i < data.Length; i++)
+                        geo.Vertices[i].Normal.Z *= -1;
+
+
+
+                    //Flip indices
+                    for (int i = 0; i < geo.Indices.Length; i += 3)
+                    {
+                        var tmp = geo.Indices[i + 1];
+                        geo.Indices[i + 1] = geo.Indices[i + 2];
+                        geo.Indices[i + 2] = tmp;
+                    }
+                }
+
+
             }
 
             mesh.Geometry = geo;
@@ -374,8 +406,11 @@ namespace XrSamples
             return mesh;
 
         }
-
-        Texture? ProcessTexture(string texId)
+        Texture? ProcessTexture(ImpTexture tex)
+        {
+            return ProcessTexture(tex.resId, tex.name);
+        }
+        Texture? ProcessTexture(string texId, string name)
         {
             if (!_textures.TryGetValue(texId, out var text))
             {
@@ -386,6 +421,7 @@ namespace XrSamples
                     text = AssetLoader.Instance.Load<Texture2D>(fileName);
                     text.WrapS = WrapMode.Repeat;
                     text.WrapT = WrapMode.Repeat;
+                    text.Name = name;
                     if (text.Data!.Count > 1)
                         text.MinFilter = ScaleFilter.LinearMipmapLinear;
                     _textures[texId] = text;
@@ -401,17 +437,28 @@ namespace XrSamples
 
         Object3D ProcessDraw(ImpDraw draw)
         {
-
+            if (draw.id == 11629)
+            {
+                //Debugger.Break();
+            }
 
             var mesh = ProcessMesh(draw.meshId);
             var mat = ProcessMaterial(draw.matId);
 
             var word = MathUtils.CreateMatrix(draw.world);
-            word *= Matrix4x4.CreateScale(1, 1, -1);
+            if (FlipZ)
+                word *= Matrix4x4.CreateScale(1, 1, -1);
 
             mesh.WorldMatrix = word;
             mesh.Materials.Add(mat);
             mesh.Name = "#" + draw.id;
+
+            var name = mat.GetProp<string>("ps_name");
+
+            if (name == "Dungeon Alchemist/likeCharlie/TreeLeaves")
+            {
+                mesh.Geometry!.ComputeNormals();
+            }
             return mesh;
         }
 
@@ -423,14 +470,17 @@ namespace XrSamples
         public void GroupDraws(Group3D main)
         {
             var walls = new Group3D();
-            for (var i = main.Children.Count-1; i>= 0; i--)
+            for (var i = main.Children.Count - 1; i >= 0; i--)
             {
                 if (main.Children[i] is not TriangleMesh item)
                     continue;
 
                 var bounds = item.LocalBounds;
                 if (bounds.Size.IsSimilar(new Vector3(1, 1.8f, 0.14f), 0.1f))
+                {
+                    item.Flags |= EngineObjectFlags.LargeOccluder;
                     walls.AddChild(item, true);
+                }
             }
 
             main.AddChild(walls);
@@ -449,5 +499,8 @@ namespace XrSamples
 
             return res;
         }
+
+
+        public bool FlipZ { get; set; }
     }
 }

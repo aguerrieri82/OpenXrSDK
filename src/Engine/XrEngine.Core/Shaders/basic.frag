@@ -44,7 +44,7 @@ void main()
     vec3 diffuse = light.diffuse * (diff * material.diffuse.rgb);
 
     #ifdef TEXTURE
-    diffuse = diffuse * texture(uTexture, fUv).rgb;
+        diffuse = diffuse * texture(uTexture, fUv).rgb;
     #endif
 
     vec3 viewDirection = normalize(uCamera.position - fPos);

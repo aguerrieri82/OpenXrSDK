@@ -9,19 +9,24 @@ const float Epsilon = 0.00001;
 
 const vec3 Fdielectric = vec3(0.04);
 
-#define DEBUG_UV        1
-#define DEBUG_NORMAL    2
-#define DEBUG_TANGENT   3
-#define DEBUG_BITANGENT 4
-#define DEBUG_METALNESS 5
-#define DEBUG_ROUGHNESS 6
+#define DEBUG_UV         1
+#define DEBUG_NORMAL     2
+#define DEBUG_TANGENT    3
+#define DEBUG_BITANGENT  4
+#define DEBUG_METALNESS  5
+#define DEBUG_ROUGHNESS  6
+#define DEBUG_IRRADIANCE 7
 
 in vec3 fNormal;
 in vec3 fPos;
 in vec2 fUv;
 in vec3 fCameraPos;    
+
+#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) 
+
 in mat3 fTangentBasis;
 
+#endif
 
 #if defined(HAS_UV2) || (defined(ALBEDO_UV_SET) && ALBEDO_UV_SET == 1)
 	in vec2 fUv2;
@@ -216,7 +221,7 @@ void main()
 
 
 	// Angle between surface normal and outgoing light direction.
-	float cosLo = max(0.0, dot(N, Lo));
+	float cosLo = clamp(dot(N, Lo), 0.0, 1.0);
 		
 	// Specular reflection vector.
 	vec3 Lr = reflect(-Lo, N);
@@ -410,6 +415,9 @@ void main()
 	
 	color = vec4(vec3(roughness), 1.0);
 
+#elif DEBUG == DEBUG_IRRADIANCE
+
+	color = vec4(texture(irradianceTexture, N).rgb * uIblIntensity * uIblColor, 1.0);
 #endif
 
 }

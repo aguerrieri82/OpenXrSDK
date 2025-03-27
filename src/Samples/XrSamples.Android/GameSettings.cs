@@ -26,13 +26,13 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                //SampleName = "Helmet",
-                Msaa = 2,
+               // SampleName = "Helmet",
+                Msaa = 1,
                 UsePbrV2 = true,
-                Driver = GraphicDriver.OpenGL,
-                IsMultiView = true,
+                Driver = GraphicDriver.FilamentVulkan,
+                IsMultiView = false,
                 UseSpaceWarp = false, 
-                EnableDepthPass = false
+                EnableDepthPass = true
             };
         }
 

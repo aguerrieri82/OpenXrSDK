@@ -13,6 +13,7 @@ namespace XrEngine.OpenGL
             : base(renderer)
         {
             UseOcclusion = true;
+            OnlyLargeOccluder = true;
         }
 
         protected override bool BeginRender(Camera camera)
@@ -28,6 +29,13 @@ namespace XrEngine.OpenGL
 
         protected override void EndRender()
         {
+        }
+
+        protected override bool CanDraw(DrawContent draw)
+        {
+            if (OnlyLargeOccluder && !draw.Object!.Is(EngineObjectFlags.LargeOccluder))
+                return false;
+            return base.CanDraw(draw);
         }
 
         protected override ShaderMaterial CreateMaterial()
@@ -57,6 +65,8 @@ namespace XrEngine.OpenGL
             else
                 draw.Draw!();
         }
+
+        public bool OnlyLargeOccluder { get; set; }
 
         public bool UseOcclusion { get; set; }
     }

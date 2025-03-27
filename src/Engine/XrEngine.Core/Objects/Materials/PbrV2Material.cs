@@ -14,7 +14,8 @@ namespace XrEngine
         Tangent = 3,
         Bitangent = 4,
         Metalness = 5,
-        Roughness = 6
+        Roughness = 6,
+        Irradiance = 7,
     }
 
     public class PbrV2Material : ShaderMaterial, IColorSource, IShadowMaterial, IPbrMaterial, IEnvDepthMaterial, IHeightMaterial

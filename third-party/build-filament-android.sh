@@ -4,6 +4,7 @@ export CC=/usr/bin/clang
 export CXX=/usr/bin/clang++
 export CXXFLAGS=-stdlib=libc++
 
+mkdir -p $FILAMENT_PATH/out/cmake-release-linux
 
 cd $FILAMENT_PATH/out/cmake-release-linux
 
@@ -14,6 +15,7 @@ cmake -G Ninja ../.. \
 
 ninja install
 
+mkdir -p $FILAMENT_PATH/out/cmake-android-release-aarch64
 
 cd $FILAMENT_PATH/out/cmake-android-release-aarch64
 

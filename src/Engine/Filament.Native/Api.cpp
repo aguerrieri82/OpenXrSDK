@@ -3,6 +3,8 @@
 const uint8_t INVISIBLE_LAYER = 0x2;
 const uint8_t MAIN_LAYER = 0x1;
 
+#define MAT_VERSION "2025.3"
+
 #ifdef _WINDOWS
 
 class PlatformWGL2 : public PlatformWGL {
@@ -1142,6 +1144,7 @@ void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcep
 	if (info.lineWidth > 0)
 		hash += "_l";
 
+	hash += MAT_VERSION;
 
 	Material* flMat;
 

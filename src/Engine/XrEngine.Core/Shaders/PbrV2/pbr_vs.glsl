@@ -14,8 +14,10 @@ layout(location=2) in vec2 texcoord;
 out vec3 fNormal;
 out vec3 fPos;
 out vec2 fUv;
-out vec3 fCameraPos;    
+out vec3 fCameraPos;   
+#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) 
 out mat3 fTangentBasis;
+#endif
 
 #ifdef USE_SHADOW_MAP
     out vec4 fPosLightSpace;
@@ -53,16 +55,14 @@ void main()
 
     vec3 N = normalize(vec3(uModel.normalMatrix * vec4(normal, 0.0)));
 
-    fNormal = N;
-
-    #ifdef HAS_TANGENTS
-        vec3 T = normalize(vec3(uModel.worldMatrix * vec4(tangent.xyz, 0.0)));
+    #if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
+        vec3 T = normalize(vec3(uModel.normalMatrix * vec4(tangent.xyz, 0.0)));
 	    vec3 B = normalize(cross(T, N) * tangent.w);
 
         fTangentBasis = mat3(T, B, N);
 
     #else
-        fTangentBasis = mat3(N, N, N);
+        fNormal = N;
     #endif
 
     #ifdef USE_CLIP_PLANE 

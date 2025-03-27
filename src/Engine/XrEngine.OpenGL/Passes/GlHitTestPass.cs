@@ -75,6 +75,8 @@ namespace XrEngine.OpenGL
             effect.DoubleSided = drawMaterial.DoubleSided;
             effect.DrawId = objId;
 
+            _renderer.ConfigureCaps(effect);
+
             return base.UpdateProgram(updateContext, drawMaterial);
         }
 
@@ -98,11 +100,15 @@ namespace XrEngine.OpenGL
             if (_renderer.RenderTarget is not GlDefaultRenderTarget)
                 return false;
 
+
             _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.Rgba32);
+
+            if (_passTarget.RenderTarget == null)
+                return false;
 
             _lastSize = camera.ViewSize;
 
-            _passTarget.RenderTarget!.Begin(camera);
+            _passTarget.RenderTarget.Begin(camera);
 
             _renderer.State.SetClearColor(Color.Transparent);
             _renderer.State.SetWriteDepth(true);

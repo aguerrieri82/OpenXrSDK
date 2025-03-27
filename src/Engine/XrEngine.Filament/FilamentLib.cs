@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
 
@@ -237,6 +238,12 @@ namespace XrEngine.Filament
             public nint LogicalDevice;
             public uint GraphicsQueueFamilyIndex;
             public uint GraphicsQueueIndex;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool DebugUtilsSupported;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool DebugMarkersSupported;
+            [MarshalAs(UnmanagedType.U1)]
+            public bool MultiviewSupported;
         };
 
         public struct InitializeOptions

@@ -26,7 +26,8 @@ namespace XrEditor
                 GraphicsQueueIndex = 0,
                 Instance = _device.Instance.Handle,
                 LogicalDevice = _device.LogicalDevice.Handle,
-                PhysicalDevice = _device.PhysicalDevice.Handle
+                PhysicalDevice = _device.PhysicalDevice.Handle,
+                MultiviewSupported = true
             };
 
             _render = new FilamentRender(new FilamentOptions

@@ -13,7 +13,8 @@
         GpuOnly = 0x40,
         Mutable = 0x60,
         NotifyChanged = 0x80,
-        NoFrustumCulling = 0x100
+        NoFrustumCulling = 0x100,
+        LargeOccluder = 0x200
     }
 
     public abstract class EngineObject : IComponentHost, IRenderUpdate, IDisposable, IStateObject

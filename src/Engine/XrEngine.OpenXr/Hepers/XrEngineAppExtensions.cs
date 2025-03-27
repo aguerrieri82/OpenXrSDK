@@ -225,6 +225,9 @@ namespace XrEngine.OpenXr
         {
             self.ConfigureApp(e =>
             {
+                if (e.App.Renderer is not OpenGLRender openGl)
+                    return;
+
                 var passTh = e.XrApp.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
                 if (passTh == null)
                 {
