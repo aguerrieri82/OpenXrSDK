@@ -9,7 +9,7 @@ namespace XrEngine.OpenGL
 {
     public static class GlUtils
     {
-        public static uint GetPixelSize(TextureFormat format)
+        public static uint GetPixelSizeBit(TextureFormat format)
         {
             return format switch
             {

@@ -39,15 +39,19 @@ namespace XrEngine
             FadeMode = GlowFadeMode.Linear;
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("sphereCenter", ctx.Model!.WorldPosition);
+            });
+        }
+
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
+        {
+            bld.ExecuteAction((ctx, up) =>
+            {
                 up.SetUniform("sphereRadius", SphereRadius);
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("haloWidth", HaloWidth);
                 up.SetUniform("haloColor", HaloColor);
                 up.SetUniform("stepSize", StepSize);

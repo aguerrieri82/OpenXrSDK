@@ -252,7 +252,38 @@ namespace XrEngine
             else
             {
                 comp = (TextureCompressionFormat)file.header.ddspf.dwFourCC;
-                format = TextureFormat.Rgb24;
+
+                if (comp == TextureCompressionFormat.Uncompressed)
+                {
+                    switch (file.header.ddspf.dwRGBBitCount)
+                    {
+                        case 32:
+                            format = TextureFormat.Rgba32;
+                            break;
+                        case 24:
+                            format = TextureFormat.Rgb24;
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    }
+                }
+                else{
+
+                    switch (comp)
+                    {
+                        case TextureCompressionFormat.Bc3:
+                        case TextureCompressionFormat.Bc7:
+                        case TextureCompressionFormat.Bc1:
+                            format = TextureFormat.Rgb24;
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    }
+
+                }
+
+
+
             }
 
 

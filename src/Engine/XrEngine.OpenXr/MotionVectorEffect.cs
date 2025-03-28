@@ -49,9 +49,8 @@ namespace XrEngine.OpenXr
             };
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-
             bld.ExecuteAction((ctx, up) =>
             {
                 var camera = ctx.PassCamera;
@@ -68,8 +67,9 @@ namespace XrEngine.OpenXr
                     _models[ctx.Model] = ctx.Model.WorldMatrix;
             });
 
-            base.UpdateShader(bld);
         }
+
+
 
 
         public static readonly MotionVectorEffect Instance = new MotionVectorEffect();

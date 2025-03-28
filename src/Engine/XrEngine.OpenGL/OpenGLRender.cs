@@ -33,7 +33,7 @@ namespace XrEngine.OpenGL
         protected readonly GlState _glState;
         protected readonly GlRenderOptions _options;
         protected readonly QueueDispatcher _dispatcher;
-        protected readonly List<GlLayer> _layers = [];
+        protected readonly List<IGlLayer> _layers = [];
         protected readonly IList<IGlRenderPass> _renderPasses = [];
         protected readonly GlDefaultRenderTarget _defaultTarget;
         protected readonly GlShadowPass? _shadowPass;
@@ -261,7 +261,7 @@ namespace XrEngine.OpenGL
                 _layers.Clear();
 
                 var opaque = scene.EnsureLayer<OpaqueLayer>();
-                _layers.Add(new GlLayer(this, scene, GlLayerType.Opaque, opaque));
+                _layers.Add(new GlLayerV2(this, scene, GlLayerType.Opaque, opaque));
 
                 foreach (var layer in scene.Layers.Layers.OfType<DetachedLayer>())
                     _layers.Add(new GlLayer(this, scene, GlLayerType.Custom, layer));
@@ -723,7 +723,7 @@ namespace XrEngine.OpenGL
 
         #endregion
 
-        public IReadOnlyList<GlLayer> Layers => _layers;
+        public IReadOnlyList<IGlLayer> Layers => _layers;
 
         public GL GL => _gl;
 

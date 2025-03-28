@@ -48,20 +48,17 @@ namespace XrSamples.Earth
             SunColor = new Color(1.0f, 0.8f, 0.6f);      
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-
             bld.ExecuteAction((ctx, up) =>
             {
- 
                 up.SetUniform("uSunPosition", SunPosition);
                 up.SetUniform("uSunIntensity", SunIntensity);
                 up.SetUniform("uSunColor", (Vector3)SunColor);
             });
 
-            base.UpdateShader(bld);
+            base.UpdateShaderMaterial(bld);
         }
-
 
 
         [Range(1, 10, 0.1f)]

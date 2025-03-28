@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using SkiaSharp;
+using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
@@ -47,6 +48,76 @@ namespace XrEngine.OpenGL
             return UpdateProgramResult.Unchanged;
         }
 
+
+        protected virtual UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Object3D model)
+        {
+            return UpdateProgramResult.Unchanged;
+        }
+
+
+        public override void RenderLayer(GlLayerV2 layer)
+        {
+            Debug.Assert(_programInstance != null);
+
+            var updateContext = _renderer.UpdateContext;
+
+            foreach (var shader in layer.Content.Contents)
+            {
+                var shaderContent = shader.Value;
+
+                foreach (var material in shaderContent.Contents)
+                {
+                    var matContent = material.Value;
+                    if (matContent.IsHidden)
+                        continue;
+
+                    updateContext.Stage = UpdateShaderStage.Material;
+
+                    var drawMaterial = matContent.ProgramInstance!.Material;
+
+                    var upRes = UpdateProgram(updateContext, drawMaterial);
+
+                    if (upRes == UpdateProgramResult.Skip)
+                        continue;
+
+                    _programInstance.UpdateUniforms(updateContext, upRes == UpdateProgramResult.Changed);
+                    _programInstance.UpdateBuffers(updateContext);
+
+                    foreach (var vertex in matContent.Contents)
+                    {
+                        var verContent = vertex.Value;
+                        if (verContent.IsHidden)
+                            continue;
+
+                        var vHandler = verContent.VertexHandler!;
+
+                        updateContext.ActiveComponents = verContent.ActiveComponents;
+
+                        vHandler.Bind();
+
+                        updateContext.Stage = UpdateShaderStage.Model;
+
+                        foreach (var draw in verContent.Contents)
+                        {
+                            if (!CanDraw(draw))
+                                continue;
+
+                            updateContext.Model = draw.Object;
+
+                            UpdateProgram(updateContext, draw.Object!);
+
+                            _programInstance.UpdateModel(updateContext);
+
+                            Draw(draw);
+                        }
+
+                        vHandler.Unbind();
+                    }
+                }
+            }
+        }
+
+
         public override void RenderLayer(GlLayer layer)
         {
             Debug.Assert(_programInstance != null);
@@ -84,6 +155,8 @@ namespace XrEngine.OpenGL
 
                         if (upRes == UpdateProgramResult.Skip)
                             continue;
+
+                        UpdateProgram(updateContext, draw.Object!);
 
                         _programInstance.UpdateUniforms(updateContext, upRes == UpdateProgramResult.Changed);
                         _programInstance.UpdateBuffers(updateContext);

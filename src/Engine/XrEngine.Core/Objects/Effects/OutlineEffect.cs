@@ -50,7 +50,7 @@ namespace XrEngine
             container.ReadObject(this);
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             var depthTex = bld.Context.DepthMap;
 
@@ -68,8 +68,10 @@ namespace XrEngine
                 up.SetUniform("uDepth", ctx.DepthMap!, 10);
                 up.SetUniform("uSize", Size);
                 up.SetUniform("uColor", Color);
-            });
+            }); ;
         }
+
+
 
         public float Size { get; set; }
 

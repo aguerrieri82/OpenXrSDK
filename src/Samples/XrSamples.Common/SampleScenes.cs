@@ -124,7 +124,7 @@ namespace XrSamples
         public static XrEngineAppBuilder UseDefaultHDR(this XrEngineAppBuilder builder)
         {
             if (DefaultHDR == null)
-                DefaultHDR = "res://asset/Envs/pisa.hdr";
+                DefaultHDR = "res://asset/Envs/neutral.hdr";
             return builder.UseEnvironmentHDR(DefaultHDR, DefaultShowHDR);
         }
 
@@ -1545,7 +1545,7 @@ namespace XrSamples
 
   
             mesh.AddComponent<BoundsGrabbable>();
-            mesh.Transform.SetPosition(-14, 0, -9);
+            mesh.Transform.SetPosition(-9, 0, 9);
 
             app.ActiveScene!.AddChild(mesh);
 

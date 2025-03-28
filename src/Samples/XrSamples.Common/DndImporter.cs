@@ -155,6 +155,12 @@ namespace XrSamples
                     pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[0])!;
                     pbr.MetallicRoughnessMap = (Texture2D)ProcessTexture(impMat.textures[1])!;
                     pbr.NormalMap = (Texture2D)ProcessTexture(impMat.textures[2])!;
+                    pbr.OcclusionMap = (Texture2D)ProcessTexture(impMat.textures[3])!;
+                    pbr.NormalScale = impMat.cbs[0].values[10][3];
+                    pbr.Color = new Color(impMat.cbs[0].values[4][0], impMat.cbs[0].values[4][1], impMat.cbs[0].values[4][1], 1);
+                    pbr.Metalness = impMat.cbs[0].values[15][3];
+                    pbr.Roughness = impMat.cbs[0].values[16][1];
+                    pbr.OcclusionStrength = impMat.cbs[0].values[18][3];
                 }
                 else if (impMat.ps.name == "Custom Image Shader")
                 {
@@ -207,6 +213,20 @@ namespace XrSamples
                             pbr.NormalMap = (Texture2D)tex;
                             pbr.NormalMapFormat = NormalMapFormat.UnityBc3;
                             pbr.NormalScale = 1.0f;
+                            if (impMat.ps.name == "Standard")
+                            {
+                                pbr.NormalScale = impMat.cbs[0].values[8][0];
+                            }
+                            else if (impMat.ps.name == "Dungeon Alchemist/Standard Shader")
+                            {
+                                pbr.NormalScale = impMat.cbs[0].values[5][1];
+                            }
+                            else if (impMat.ps.name == "Dungeon Alchemist/Floor Tile Standard Shader")
+                            {
+                                pbr.NormalScale = impMat.cbs[0].values[4][0];
+                            }
+                            else
+                                Debugger.Break();
                         }
                         else if (isSpec)
                         {
@@ -287,7 +307,7 @@ namespace XrSamples
             }
         }
 
-        unsafe TriangleMesh ProcessMesh(string meshId)
+        unsafe TriangleMesh ProcessMesh(string meshId, bool rebuildNormals = false)
         {
 
             var mesh = new TriangleMesh();
@@ -380,13 +400,16 @@ namespace XrSamples
                 geo.Vertices = data;
                 _geos[meshId] = geo;
 
+                if (rebuildNormals)
+                    geo.ComputeNormals();
+
                 if (FlipZ)
                 {
-
+                    /*
                     //Flip normals
                     for (var i = 0; i < data.Length; i++)
                         geo.Vertices[i].Normal.Z *= -1;
-
+                    */
 
 
                     //Flip indices
@@ -437,13 +460,17 @@ namespace XrSamples
 
         Object3D ProcessDraw(ImpDraw draw)
         {
-            if (draw.id == 11629)
+            if (draw.id == 7548)
             {
                 //Debugger.Break();
             }
-
-            var mesh = ProcessMesh(draw.meshId);
+            
             var mat = ProcessMaterial(draw.matId);
+
+            var name = mat.GetProp<string>("ps_name");
+            bool rebuildNormals = name == "Dungeon Alchemist/likeCharlie/TreeLeaves";
+
+            var mesh = ProcessMesh(draw.meshId, rebuildNormals);
 
             var word = MathUtils.CreateMatrix(draw.world);
             if (FlipZ)
@@ -453,12 +480,6 @@ namespace XrSamples
             mesh.Materials.Add(mat);
             mesh.Name = "#" + draw.id;
 
-            var name = mat.GetProp<string>("ps_name");
-
-            if (name == "Dungeon Alchemist/likeCharlie/TreeLeaves")
-            {
-                mesh.Geometry!.ComputeNormals();
-            }
             return mesh;
         }
 
@@ -495,12 +516,33 @@ namespace XrSamples
             foreach (var draw in draws!)
                 res.AddChild(ProcessDraw(draw));
 
+            var stats = res.Children.OfType<TriangleMesh>()
+                .GroupBy(a => a.Geometry)
+                .Select(a => new
+                {
+                    geo = a.Key,
+                    count = a.Count(),
+                    Mats = a.GroupBy(b => b.Materials[0])
+                           .Select(b => 
+                           new { 
+                               mat = b.Key, 
+                               count = b.Count() 
+                           })
+                           .OrderByDescending(a=> a.count)
+                           .ToArray()
+                })
+                .OrderByDescending(a => a.count)
+                .ToArray();
+
             GroupDraws(res);
+
+
+            
 
             return res;
         }
 
 
-        public bool FlipZ { get; set; }
+        public bool FlipZ { get; set; } = true;
     }
 }

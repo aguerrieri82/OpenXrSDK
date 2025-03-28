@@ -39,7 +39,8 @@ namespace XrEngine
 
         public class EnvViewMaterial : CubeMapMaterial
         {
-            public override void UpdateShader(ShaderUpdateBuilder bld)
+
+            protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
             {
                 bld.AddFeature("UNIFORM_EXP");
 

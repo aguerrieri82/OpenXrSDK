@@ -82,7 +82,20 @@ namespace XrEngine
             container.ReadObject<FishReflectionSphereMaterial>(this);
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
+        {
+            bld.ExecuteAction((ctx, up) =>
+            {
+                if (_lastRotation != ctx.Model!.Transform.Orientation)
+                {
+                    _lastRotation = ctx.Model!.Transform.Orientation;
+                    var newQuat = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI) * _lastRotation;
+                    up.SetUniform("uRotation", newQuat.ToMatrix3x3());
+                }
+            });
+        }
+
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             if (OperatingSystem.IsAndroid())
             {
@@ -103,24 +116,13 @@ namespace XrEngine
             {
                 var camera = ((PerspectiveCamera)ctx.PassCamera!);
 
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uSphereCenter", SphereCenter);
                 up.SetUniform("uSphereRadius", SphereRadius);
-
-                if (_lastRotation != ctx.Model!.Transform.Orientation)
-                {
-                    _lastRotation = ctx.Model!.Transform.Orientation;
-                    var newQuat = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI) * _lastRotation;
-                    up.SetUniform("uRotation", newQuat.ToMatrix3x3());
-                }
-
 
                 if (Mode == FishReflectionMode.Eye && camera.ActiveEye == 1)
                     up.SetUniform("uTexture", RightTexture!, 0);
                 else
                     up.SetUniform("uTexture", LeftMainTexture!, 0);
-
 
                 up.SetUniform("uActiveEye", (uint)camera.ActiveEye);
                 up.SetUniform("uTexCenter", TextureCenter);
@@ -131,6 +133,7 @@ namespace XrEngine
 
             });
         }
+
 
         public override void Dispose()
         {

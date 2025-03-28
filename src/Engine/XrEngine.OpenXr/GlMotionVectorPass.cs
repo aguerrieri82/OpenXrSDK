@@ -109,7 +109,7 @@ namespace XrEngine.OpenXr
             return MotionVectorEffect.Instance;
         }
 
-        protected override IEnumerable<GlLayer> SelectLayers()
+        protected override IEnumerable<IGlLayer> SelectLayers()
         {
             return _renderer.Layers.Where(a => a.Type == GlLayerType.Opaque).Take(1);
         }

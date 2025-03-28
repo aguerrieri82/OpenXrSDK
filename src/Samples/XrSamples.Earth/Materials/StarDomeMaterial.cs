@@ -45,7 +45,7 @@ namespace XrSamples.Earth
             return texture;
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             if (ShowGrid)
             {
@@ -61,8 +61,6 @@ namespace XrSamples.Earth
             bld.ExecuteAction((ctx, up) =>
             {
                 up.LoadTexture(Stars, 0);
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 up.SetUniform("uExposure", Exposure);
                 up.SetUniform("uOffset", Offset);
                 up.SetUniform("uTransparency", Transparency);

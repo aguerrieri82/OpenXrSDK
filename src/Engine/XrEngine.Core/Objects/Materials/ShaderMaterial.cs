@@ -41,7 +41,24 @@
             return false;
         }
 
-        public virtual void UpdateShader(ShaderUpdateBuilder bld)
+        public void UpdateShader(ShaderUpdateBuilder bld)
+        {
+            var stage = bld.Context.Stage;
+            
+            if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Model)
+                UpdateShaderModel(bld);
+
+            if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Material)
+                UpdateShaderMaterial(bld);  
+        }
+
+
+        protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
+        {
+
+        }
+
+        protected virtual void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
 
         }

@@ -37,20 +37,19 @@
             container.ReadObject<EyeTextureMaterial>(this);
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+
+
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             bld.ExecuteAction((ctx, up) =>
             {
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-
                 if (((PerspectiveCamera)ctx.PassCamera!).ActiveEye == 0)
                     up.SetUniform("uTexture", LeftTexture!, 0);
                 else
                     up.SetUniform("uTexture", RightTexture!, 0);
             });
-
         }
+
 
         public override void Dispose()
         {

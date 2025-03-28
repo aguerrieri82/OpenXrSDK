@@ -649,7 +649,13 @@ namespace XrEngine
             container.ReadObject<PbrV1Material>(this);
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
+        {
+            bld.SetUniform("uModelMatrix", (ctx) => ctx.Model!.WorldMatrix);
+            bld.SetUniform("uNormalMatrix", (ctx) => ctx.Model!.NormalMatrix);
+        }
+
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             var material = new MaterialUniforms();
 
@@ -845,9 +851,6 @@ namespace XrEngine
                 bld.AddFeature("RECEIVE_SHADOWS");
                 material.ShadowColor = ShadowColor;
             }
-
-            bld.SetUniform("uModelMatrix", (ctx) => ctx.Model!.WorldMatrix);
-            bld.SetUniform("uNormalMatrix", (ctx) => ctx.Model!.NormalMatrix);
 
             bld.AddFeature("ALPHAMODE_OPAQUE 0");
             bld.AddFeature("ALPHAMODE_MASK 1");

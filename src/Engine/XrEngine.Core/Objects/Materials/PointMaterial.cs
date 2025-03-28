@@ -21,7 +21,7 @@
             _shader = SHADER;
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
             bld.ExecuteAction((ctx, bld) =>
             {

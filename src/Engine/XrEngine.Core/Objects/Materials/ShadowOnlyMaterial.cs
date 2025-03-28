@@ -23,7 +23,7 @@ namespace XrEngine.Objects
             ShadowColor = new Color(0, 0, 0, 0.7f);
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             var mode = bld.Context.ShadowMapProvider!.Options.Mode;
 
@@ -32,8 +32,6 @@ namespace XrEngine.Objects
                 if (bld.Context.ShadowMapProvider.ShadowMap != null)
                     up.LoadTexture(bld.Context.ShadowMapProvider.ShadowMap, 14);
 
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uShadowColor", ShadowColor);
             });
         }

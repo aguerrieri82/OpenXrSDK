@@ -88,7 +88,7 @@ namespace XrEngine.OpenGL
             DrawQuad();
         }
 
-        protected override IEnumerable<GlLayer> SelectLayers()
+        protected override IEnumerable<IGlLayer> SelectLayers()
         {
             return _renderer.Layers
                 .Where(a =>

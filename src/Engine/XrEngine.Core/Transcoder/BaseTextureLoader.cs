@@ -68,7 +68,7 @@ namespace XrEngine
                 {
                     result.BitPerPixel = 24;
                 }
-                else if (format == TextureFormat.SRgba32)
+                else if (format == TextureFormat.SRgba32 || format == TextureFormat.Rgba32)
                 {
                     result.BitPerPixel = 32;
                 }

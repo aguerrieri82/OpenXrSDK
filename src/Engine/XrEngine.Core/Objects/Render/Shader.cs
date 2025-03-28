@@ -12,12 +12,13 @@
 
         public string? TessEvalSourceName { get; set; }
 
-
         public Func<string, string>? Resolver { get; set; }
 
         public bool IsLit { get; set; }
 
         public bool IsEffect { get; set; }
+
+        public bool VaryByModel { get; set; }   
 
         public int Priority { get; set; }
 

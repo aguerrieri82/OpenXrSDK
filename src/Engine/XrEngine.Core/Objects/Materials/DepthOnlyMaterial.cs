@@ -21,13 +21,6 @@
             WriteDepth = true;
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
-        {
-            bld.ExecuteAction((ctx, up) =>
-            {
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-            });
-        }
+
     }
 }

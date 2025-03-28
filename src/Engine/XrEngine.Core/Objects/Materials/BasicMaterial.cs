@@ -13,7 +13,7 @@ namespace XrEngine
         {
             string? _lightHash;
 
-            public override void UpdateShader(ShaderUpdateBuilder bld)
+            protected override void UpdateShaderGlobal(ShaderUpdateBuilder bld)
             {
                 bld.ExecuteAction((ctx, up) =>
                 {
@@ -78,7 +78,16 @@ namespace XrEngine
             container.ReadObject<BasicMaterial>(this);
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
+        {
+            bld.ExecuteAction((ctx, up) =>
+            {
+                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
+                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
+            });
+        }
+
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             if (DiffuseTexture != null)
             {
@@ -91,15 +100,14 @@ namespace XrEngine
 
             bld.ExecuteAction((ctx, up) =>
             {
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
+
                 up.SetUniform("material.ambient", (Vector3)Ambient);
                 up.SetUniform("material.diffuse", Color);
                 up.SetUniform("material.specular", (Vector3)Specular);
                 up.SetUniform("material.shininess", Shininess);
             });
-
         }
+
 
         public Texture2D? DiffuseTexture { get; set; }
 

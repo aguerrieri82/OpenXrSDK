@@ -20,11 +20,9 @@
             _shader = SHADER;
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
-        {
-            bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
-            bld.SetUniform("uNormalMatrix", (ctx) => ctx.Model!.NormalMatrix);
 
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
+        {
             if (Texture != null)
             {
                 bld.ExecuteAction((ctx, up) =>
@@ -41,6 +39,7 @@
                 bld.SetUniform("uFarPlane", ctx => Camera.Far);
             }
         }
+
 
         public Texture2D? Texture { get; set; }
 

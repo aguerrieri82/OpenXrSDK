@@ -5,6 +5,7 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Numerics;
+using System.Security.Cryptography;
 using XrMath;
 
 
@@ -66,18 +67,23 @@ namespace XrEngine.OpenGL
 
         protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
         {
-            var objId = (uint)_objects.Count;
-
             var effect = (HitTestEffect)_programInstance!.Material;
 
             effect.WriteDepth = drawMaterial.WriteDepth;
             effect.UseDepth = drawMaterial.UseDepth;
             effect.DoubleSided = drawMaterial.DoubleSided;
-            effect.DrawId = objId;
 
             _renderer.ConfigureCaps(effect);
 
             return base.UpdateProgram(updateContext, drawMaterial);
+        }
+
+        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Object3D model)
+        {
+            var objId = (uint)_objects.Count;
+            var effect = (HitTestEffect)_programInstance!.Material;
+            effect.DrawId = objId;
+            return UpdateProgramResult.Changed;
         }
 
         protected override void Draw(DrawContent draw)
@@ -135,7 +141,7 @@ namespace XrEngine.OpenGL
             return new HitTestEffect();
         }
 
-        protected override IEnumerable<GlLayer> SelectLayers()
+        protected override IEnumerable<IGlLayer> SelectLayers()
         {
             return _renderer.Layers.Where(a => a.Type == GlLayerType.Opaque || a.Type == GlLayerType.Blend);
         }

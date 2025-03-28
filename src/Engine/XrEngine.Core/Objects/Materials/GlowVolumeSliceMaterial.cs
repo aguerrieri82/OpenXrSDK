@@ -31,15 +31,19 @@ namespace XrEngine
             WriteDepth = false;
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uSphereCenter", ctx.Model!.WorldPosition);
+            });
+        }
+
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
+        {
+            bld.ExecuteAction((ctx, up) =>
+            {
                 up.SetUniform("uSphereRadius", SphereRadius);
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uHaloWidth", HaloWidth);
                 up.SetUniform("uHaloColor", HaloColor);
                 up.SetUniform("uNumSlices", Slices);

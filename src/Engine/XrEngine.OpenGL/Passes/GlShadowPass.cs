@@ -101,7 +101,7 @@ namespace XrEngine.OpenGL
             return new DepthOnlyMaterial();
         }
 
-        protected override IEnumerable<GlLayer> SelectLayers()
+        protected override IEnumerable<IGlLayer> SelectLayers()
         {
             return _renderer.Layers.Where(a => a.Type == GlLayerType.CastShadow);
         }
@@ -150,7 +150,7 @@ namespace XrEngine.OpenGL
         protected override bool BeginRender(Camera camera)
         {
             //Debug.Assert(camera.Scene != null);
-            var shadowRenderLayer = SelectLayers().First();
+            var shadowRenderLayer = (GlLayer)SelectLayers().First();
             var scene = shadowRenderLayer.Scene!;
             var recLayer = scene.EnsureLayer<ReceiveShadowsLayer>();
             var castLayer = scene.EnsureLayer<CastShadowsLayer>();

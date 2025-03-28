@@ -41,15 +41,14 @@ namespace XrEngine
             container.ReadObject<ColorMaterial>(this);
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             bld.ExecuteAction((ctx, up) =>
             {
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uColor", Color);
             });
         }
+
 
         public Color ShadowColor { get; set; }
 

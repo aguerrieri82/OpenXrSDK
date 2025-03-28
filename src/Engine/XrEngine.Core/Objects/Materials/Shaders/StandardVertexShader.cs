@@ -10,7 +10,29 @@ namespace XrEngine
             Resolver = str => Embedded.GetString(str);
         }
 
-        public virtual void UpdateShader(ShaderUpdateBuilder bld)
+
+        public void UpdateShader(ShaderUpdateBuilder bld)
+        {
+            var stage = bld.Context.Stage;
+
+            if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Model)
+                UpdateShaderModel(bld);
+
+            if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader)
+                UpdateShaderGlobal(bld);
+        }
+
+
+        protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
+        {
+            bld.ExecuteAction((ctx, up) =>
+            {
+                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
+                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
+            });
+        }
+
+        protected virtual void UpdateShaderGlobal(ShaderUpdateBuilder bld)
         {
             var shadowMode = bld.Context.ShadowMapProvider?.Options.Mode ?? ShadowMapMode.None;
 
@@ -58,6 +80,7 @@ namespace XrEngine
 
             }, 0, BufferStore.Shader);
         }
+
 
         public virtual bool NeedUpdateShader(UpdateShaderContext ctx)
         {

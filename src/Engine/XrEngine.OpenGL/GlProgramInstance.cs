@@ -1,4 +1,6 @@
-﻿#if GLES
+﻿using System.Diagnostics;
+
+#if GLES
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
@@ -11,7 +13,8 @@ namespace XrEngine.OpenGL
     {
         static internal readonly Dictionary<string, GlBaseProgram> _programs = [];
 
-        protected ShaderUpdate? _update;
+        protected ShaderUpdate? _materialUpdate;
+        protected ShaderUpdate? _modelUpdate;
         protected readonly GL _gl;
 
         protected long _materialVersion = -1;
@@ -38,6 +41,32 @@ namespace XrEngine.OpenGL
             }
             else
                 _modelBuffers = [];
+
+        }
+
+        public void UpdateModel(UpdateShaderContext ctx)
+        {
+            Debug.Assert(ctx.Stage == UpdateShaderStage.Model);
+
+            var bufferMap = ctx.Model!.GetOrCreateProp("BufferMap", () => new GlBufferMap(10));
+
+            _modelBuffers = bufferMap.Buffers;
+
+            if (_modelUpdate == null)
+            {
+                var localBuilder = new ShaderUpdateBuilder(ctx);
+
+                Material!.UpdateShader(localBuilder);
+
+                if (Global.Shader is IShaderHandler handler)
+                    handler.UpdateShader(localBuilder);
+
+                _modelUpdate = localBuilder.Result;
+            }
+
+            UpdateBuffers(ctx);
+
+            UpdateUniforms(ctx, false);
         }
 
         public bool UpdateProgram(UpdateShaderContext ctx)
@@ -50,7 +79,7 @@ namespace XrEngine.OpenGL
             var localBuilder = new ShaderUpdateBuilder(ctx);
             Material!.UpdateShader(localBuilder);
 
-            foreach (var feature in Global.Update!.Features!)
+            foreach (var feature in Global.ShaderUpdate!.Features!)
                 localBuilder.AddFeature(feature);
 
             if (ExtraFeatures != null)
@@ -77,9 +106,9 @@ namespace XrEngine.OpenGL
 
             localBuilder.ComputeHash(Material.GetType().FullName!);
 
-            _update = localBuilder.Result;
+            _materialUpdate = localBuilder.Result;
 
-            if (!_programs.TryGetValue(_update.FeaturesHash!, out var program))
+            if (!_programs.TryGetValue(_materialUpdate.FeaturesHash!, out var program))
             {
                 Func<string, string> resolver = name =>
                 {
@@ -121,13 +150,13 @@ namespace XrEngine.OpenGL
                         program.AddExtension(ext);
                 }
 
-                foreach (var ext in _update.Extensions!)
+                foreach (var ext in _materialUpdate.Extensions!)
                     program.AddExtension(ext);
 
-                foreach (var feature in _update.Features!)
+                foreach (var feature in _materialUpdate.Features!)
                     program.AddFeature(feature);
 
-                foreach (var ext in Global.Update!.Extensions!)
+                foreach (var ext in Global.ShaderUpdate!.Extensions!)
                     program.AddExtension(ext);
 
                 /*
@@ -140,7 +169,7 @@ namespace XrEngine.OpenGL
 
                 program.Build();
 
-                _programs[_update.FeaturesHash!] = program;
+                _programs[_materialUpdate.FeaturesHash!] = program;
             }
 
             var changed = Program == null || program.Handle != Program.Handle;
@@ -176,13 +205,27 @@ namespace XrEngine.OpenGL
 
         public void UpdateBuffers(UpdateShaderContext ctx)
         {
-            foreach (var action in _update!.BufferUpdates!)
+            var update = ctx.Stage == UpdateShaderStage.Any ||
+                         ctx.Stage == UpdateShaderStage.Material ? _materialUpdate : _modelUpdate;
+
+            if (update == null)
+                return;
+
+            ctx.BufferProvider = this;
+
+            foreach (var action in update.BufferUpdates!)
                 action(ctx);
         }
 
 
         public void UpdateUniforms(UpdateShaderContext ctx, bool updateGlobals)
         {
+            var update = ctx.Stage == UpdateShaderStage.Any ||
+                         ctx.Stage == UpdateShaderStage.Material ? _materialUpdate : _modelUpdate;
+
+            if (update == null)
+                return;
+
             ctx.BufferProvider = this;
 
             if (updateGlobals)
@@ -194,7 +237,7 @@ namespace XrEngine.OpenGL
                 }
             }
 
-            foreach (var action in _update!.Actions!)
+            foreach (var action in update.Actions!)
                 action(ctx, Program!);
         }
 

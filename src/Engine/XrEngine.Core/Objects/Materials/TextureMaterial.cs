@@ -39,7 +39,8 @@ namespace XrEngine
             container.ReadObject<TextureMaterial>(this);
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             if (Texture?.Type == TextureType.External)
             {
@@ -68,8 +69,6 @@ namespace XrEngine
 
             bld.ExecuteAction((ctx, up) =>
             {
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
                 if (Texture != null)
                     up.LoadTexture(Texture, 0);
 

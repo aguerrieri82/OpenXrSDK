@@ -23,10 +23,10 @@
         }
 
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-            if (bld.Context.Model != null)
-                bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
+            bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
+
         }
 
         public float LineWidth { get; set; }

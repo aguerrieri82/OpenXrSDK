@@ -31,12 +31,22 @@ namespace XrEngine
         public IShaderHandler?[]? ShaderHandlers;
     }
 
+    public enum UpdateShaderStage
+    {
+        Any,
+        Shader,
+        Material,
+        Model
+    }
+
     public class UpdateShaderContext
     {
         public UpdateShaderContext()
         {
             FrustumPlanes = new Plane[6];
         }
+
+        public UpdateShaderStage Stage;
 
         public Camera? MainCamera;
 

@@ -23,15 +23,14 @@ namespace XrEngine
         }
 
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
             bld.ExecuteAction((ctx, up) =>
             {
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
                 up.SetUniform("uColor", UIntToRGBA(DrawId));
             });
         }
+
 
         static Color UIntToRGBA(uint color)
         {

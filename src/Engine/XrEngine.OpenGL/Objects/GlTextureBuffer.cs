@@ -11,6 +11,7 @@ namespace XrEngine.OpenGL
     {
         readonly GlBuffer<byte> _buffer;
         readonly GlTexture _texture;
+        int _pixelSize;
         uint _width;
         uint _height;
         private InternalFormat _format;
@@ -45,6 +46,8 @@ namespace XrEngine.OpenGL
             {
                 _buffer.Allocate(data.Data!.Size);
 
+                _pixelSize = (int)GlUtils.GetPixelSizeBit(data.Format) / 4;     
+
                 _width = data.Width;
                 _height = data.Height;
                 _format = GlUtils.GetInternalFormat(data.Format, TextureCompressionFormat.Uncompressed);
@@ -58,7 +61,7 @@ namespace XrEngine.OpenGL
                        _height);
             }
 
-            var pDst = _buffer.Map(MapBufferAccessMask.WriteBit);
+            var pDst = _buffer.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
 
             using var pSrc = data.Data!.MemoryLock();
 
@@ -71,6 +74,8 @@ namespace XrEngine.OpenGL
             _buffer.Unmap();
 
             Bind();
+            
+            _gl.PixelStore(PixelStoreParameter.UnpackAlignment, _pixelSize);
 
             _gl.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, data.Width, data.Height, pixelFormat, pixelType, null);
 

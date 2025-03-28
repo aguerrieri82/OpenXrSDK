@@ -25,14 +25,14 @@ namespace XrSamples
         public static GameSettings Helmet()
         {
             return new GameSettings
-            {
-               // SampleName = "Helmet",
+            { 
+                SampleName = "DnD",
                 Msaa = 1,
                 UsePbrV2 = true,
-                Driver = GraphicDriver.FilamentVulkan,
+                Driver = GraphicDriver.OpenGL,
                 IsMultiView = false,
                 UseSpaceWarp = false, 
-                EnableDepthPass = true
+                EnableDepthPass = false
             };
         }
 

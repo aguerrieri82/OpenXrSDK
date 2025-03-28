@@ -1,5 +1,6 @@
 ﻿using Common.Interop;
 using System.ComponentModel;
+using System.Net;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
@@ -148,6 +149,7 @@ namespace XrEngine
             long _iblVersion = -1;
             readonly PerspectiveCamera _depthCamera = new PerspectiveCamera();
 
+
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
                 var ibl = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
@@ -158,6 +160,11 @@ namespace XrEngine
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
+                var stage = bld.Context.Stage;
+                
+                if (!(stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader))
+                    return;
+
                 var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
 
                 var hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
@@ -352,6 +359,7 @@ namespace XrEngine
                 TessEvalSourceName = "Shared/height_map.tese",
                 GeometrySourceName = "Shared/height_map.geom",
                 Resolver = str => Embedded.GetString(str),
+                VaryByModel = true,
                 IsLit = true,
             };
         }
@@ -368,7 +376,54 @@ namespace XrEngine
         }
 
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
+        {
+            bld.LoadBuffer(ctx =>
+            {
+                var curVersion = ctx.Model!.Transform.Version;
+                if (curVersion == ctx.CurrentBuffer!.Version)
+                    return null;
+
+                ctx.CurrentBuffer!.Version = curVersion;
+
+                return (ModelUniforms?)new ModelUniforms
+                {
+                    NormalMatrix = ctx.Model.NormalMatrix,
+                    WorldMatrix = ctx.Model.WorldMatrix
+                };
+            }, 3, BufferStore.Model);
+
+
+            var planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
+
+            if (planar != null)
+            {
+                bld.AddFeature("PLANAR_REFLECTION");
+
+                if (PlanarReflection.IsMultiView)
+                    bld.AddFeature("PLANAR_REFLECTION_MV");
+
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    if (planar.Texture != null)
+                        up.LoadTexture(planar.Texture, 7);
+
+                    if (PlanarReflection.IsMultiView)
+                    {
+                        if (planar.ReflectionCamera.Eyes != null)
+                        {
+                            up.SetUniform("uReflectMatrix[0]", planar.ReflectionCamera.Eyes[0].ViewProj);
+                            up.SetUniform("uReflectMatrix[1]", planar.ReflectionCamera.Eyes[1].ViewProj);
+                        }
+                    }
+                    else
+                        up.SetUniform("uReflectMatrix", planar.ReflectionCamera.ViewProjection);
+                });
+            }
+
+        }
+
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             var material = new MaterialUniforms
             {
@@ -404,20 +459,6 @@ namespace XrEngine
             bld.AddFeature($"ALPHA_MODE {(int)(Alpha == AlphaMode.BlendMain ? AlphaMode.Blend : Alpha)}");
 
 
-            bld.LoadBuffer(ctx =>
-            {
-                var curVersion = ctx.Model!.Transform.Version;
-                if (curVersion == ctx.CurrentBuffer!.Version)
-                    return null;
-                ctx.CurrentBuffer!.Version = curVersion;
-
-                return (ModelUniforms?)new ModelUniforms
-                {
-                    NormalMatrix = ctx.Model.NormalMatrix,
-                    WorldMatrix = ctx.Model.WorldMatrix
-                };
-            }, 3, BufferStore.Model);
-
 
             bld.LoadBuffer(ctx =>
             {
@@ -431,34 +472,8 @@ namespace XrEngine
             }, 2, BufferStore.Material);
 
 
-            var planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
 
-            if (planar != null)
-            {
-                bld.AddFeature("PLANAR_REFLECTION");
-
-                if (PlanarReflection.IsMultiView)
-                    bld.AddFeature("PLANAR_REFLECTION_MV");
-
-                bld.ExecuteAction((ctx, up) =>
-                {
-                    if (planar.Texture != null)
-                        up.LoadTexture(planar.Texture, 7);
-
-                    if (PlanarReflection.IsMultiView)
-                    {
-                        if (planar.ReflectionCamera.Eyes != null)
-                        {
-                            up.SetUniform("uReflectMatrix[0]", planar.ReflectionCamera.Eyes[0].ViewProj);
-                            up.SetUniform("uReflectMatrix[1]", planar.ReflectionCamera.Eyes[1].ViewProj);
-                        }
-                    }
-                    else
-                        up.SetUniform("uReflectMatrix", planar.ReflectionCamera.ViewProjection);
-                });
-            }
-
-            if (EmissiveColor != Color.Black)
+            if (EmissiveColor != Color.Transparent)
                 bld.AddFeature("USE_EMISSIVE");
 
             if (HeightMap?.Texture != null)
@@ -525,7 +540,7 @@ namespace XrEngine
                 bld.LoadTexture(ctx => SpecularMap, 2);
             }
 
-            if (NormalMap != null)
+            if (NormalMap != null && NormalScale != 0)
             {
                 bld.AddFeature("USE_NORMAL_MAP");
 
@@ -547,7 +562,6 @@ namespace XrEngine
             if ((bld.Context.ActiveComponents & VertexComponent.UV1) != 0)
                 bld.AddFeature("HAS_UV2");
 
-            base.UpdateShader(bld);
         }
 
         public override void GetState(IStateContainer container)

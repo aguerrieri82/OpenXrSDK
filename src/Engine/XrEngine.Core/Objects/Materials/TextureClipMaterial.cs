@@ -24,12 +24,18 @@ namespace XrEngine
             WriteDepth = true;
         }
 
-
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
             bld.ExecuteAction((ctx, up) =>
             {
                 up.SetUniform("uModel", ctx.Model!.WorldMatrix);
+            });
+        }
+
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
+        {
+            bld.ExecuteAction((ctx, up) =>
+            {
                 up.SetUniform("uColor", Color.White);
                 if (Texture != null)
                     up.LoadTexture(Texture, 0);

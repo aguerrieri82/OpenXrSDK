@@ -153,7 +153,7 @@ namespace XrEngine.OpenGL
             base.EndRender();
         }
 
-        protected override IEnumerable<GlLayer> SelectLayers()
+        protected override IEnumerable<IGlLayer> SelectLayers()
         {
             return _renderer.Layers.Where(a => a.Type == GlLayerType.Opaque).Take(1);
         }

@@ -26,7 +26,15 @@ namespace XrEngine
             Width = 0.01f;
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
+        {
+            bld.ExecuteAction((ctx, up) =>
+            {
+                up.SetUniform("uCenter", ctx.Model!.WorldPosition);
+            });
+        }
+
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
             bld.ExecuteAction((ctx, up) =>
             {

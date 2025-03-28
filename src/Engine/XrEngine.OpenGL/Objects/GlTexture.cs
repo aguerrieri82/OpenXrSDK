@@ -158,7 +158,7 @@ namespace XrEngine.OpenGL
 
                 GlState.Current!.SetView(new Rect2I(0, 0, w, h));
 
-                var pixelSize = GlUtils.GetPixelSize(format);
+                var pixelSize = GlUtils.GetPixelSizeBit(format);
 
                 var item = new TextureData
                 {

@@ -19,6 +19,7 @@ namespace XrEngine
                 FragmentSourceName = "mirror.frag",
                 VertexSourceName = "standard.vert",
                 Resolver = str => Embedded.GetString(str),
+                VaryByModel = true,
                 IsLit = false
             };
         }
@@ -42,7 +43,7 @@ namespace XrEngine
                 });
         }
 
-        public override void UpdateShader(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
             var planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
 
@@ -76,13 +77,10 @@ namespace XrEngine
                 else
                     up.SetUniform("uReflectMatrix", planar.ReflectionCamera.ViewProjection);
 
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-
             });
-
-            base.UpdateShader(bld);
         }
+
+
 
         public uint TextureSize { get; set; }
 
