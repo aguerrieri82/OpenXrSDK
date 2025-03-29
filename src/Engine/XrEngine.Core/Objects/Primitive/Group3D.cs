@@ -20,6 +20,16 @@ namespace XrEngine
             base.Dispose();
         }
 
+        protected override void OnChanged(ObjectChange change)
+        {
+            if (change.IsAny(ObjectChangeType.Visibility))
+            {
+                foreach (var child in this.Descendants())
+                    child._visibleDirty = true;
+            }
+            base.OnChanged(change);
+        }
+
         public override void GetState(IStateContainer container)
         {
             base.GetState(container);
@@ -162,9 +172,6 @@ namespace XrEngine
         {
             return _children.IndexOf(object3D);
         }
-
-
-
         public Bounds3 LocalBounds
         {
             get

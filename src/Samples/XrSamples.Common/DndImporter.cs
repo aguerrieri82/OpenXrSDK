@@ -214,7 +214,22 @@ namespace XrSamples
                     pbr.Roughness = impMat.cbs[0].values[16][1];
                     pbr.OcclusionStrength = impMat.cbs[0].values[18][3];
                 }
-                else if (impMat.ps.name == "Custom Image Shader")
+
+                if (matId == "f54acfc201032560348210eaa944d71c___")
+                {
+                    var height = AssetLoader.Instance.Load<Texture2D>("res://asset/Untitled material_Height.png");
+                    pbr.HeightMap = new HeightMapSettings
+                    {
+                        Texture = height,
+                        ScaleFactor = 0.01f,
+                        TargetTriSize = 10,
+                        DebugTessellation = false,
+                        NormalStrength = new Vector3(0.2f, 0.2f, 1),
+                        NormalMode = HeightNormalMode.Geometry
+                    };
+                }
+
+                if (impMat.ps.name == "Custom Image Shader")
                 {
                     pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[1])!;
                 }
@@ -282,8 +297,14 @@ namespace XrSamples
                         }
                         else if (isSpec)
                         {
+                            if (impMat.ps.name == "Dungeon Alchemist/Standard Shader")
+                            {
+                                pbr.Roughness = impMat.cbs[0].values[6][0];
+                            }
+                            else 
+                                pbr.Roughness = 1.0f;
+
                             pbr.SpecularMap = (Texture2D)tex;
-                            pbr.Roughness = 0.5f;
                             pbr.Metalness = 0f;
                         }
                         else if (isRough)
@@ -510,19 +531,28 @@ namespace XrSamples
             return text;
         }
 
+        Geometry3D? patch;
+
         Object3D ProcessDraw(ImpDraw draw)
         {
-            if (draw.id == 11577 || draw.id == 5387 || draw.id == 11634)
-            {
-                //Debugger.Break();
-            }
-            
             var mat = ProcessMaterial(draw.matId);
 
             var name = mat.GetProp<string>("ps_name");
             bool rebuildNormals = name == "Dungeon Alchemist/likeCharlie/TreeLeaves";
 
             var mesh = ProcessMesh(draw.meshId, rebuildNormals);
+
+            if (draw.matId == "f54acfc201032560348210eaa944d71c__")
+            {
+                if (patch == null)
+                {
+                    var size = mesh.Geometry!.Bounds.Size;
+                    patch = new QuadPatch3D(new Vector2(size.X, size.Y));
+                }
+ 
+                mesh.Geometry = patch;
+                //Debugger.Break();
+            }
 
             var word = MathUtils.CreateMatrix(draw.world);
             if (FlipZ)

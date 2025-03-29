@@ -18,8 +18,8 @@
 		<PublishTrimmed>false</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
 		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
-		<DebugSymbols>true</DebugSymbols>
-		<AndroidManagedSymbols>true</AndroidManagedSymbols> 
+		<DebugSymbols>false</DebugSymbols>
+		<AndroidManagedSymbols>false</AndroidManagedSymbols> 
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -132,7 +132,7 @@ namespace XrEngine.OpenGL
                     useTess ? shader.TessEvalSourceName : null,
                     resolver);
 
-                if (shader.GeometrySourceName != null)
+                if (useGeo)
                 {
                     program.AddExtension("GL_EXT_geometry_shader");
                     program.AddExtension("GL_OES_geometry_shader");

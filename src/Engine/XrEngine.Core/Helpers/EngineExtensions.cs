@@ -1331,6 +1331,12 @@ namespace XrEngine
 
         #region MISC
 
+        public static unsafe void UpdateElement<T>(this IBuffer<T> self, T element, int index)
+        {
+            var span = new ReadOnlySpan<T>(&element, 1);
+            self.UpdateRange(span, index);
+        }
+
         public static void SaveAs(this Texture2D self, string path, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100)
         {
             using var bmp = ImageUtils.ToBitmap(self.Data![0], false);

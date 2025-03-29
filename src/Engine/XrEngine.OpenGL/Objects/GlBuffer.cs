@@ -2,6 +2,7 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+
 #endif
 
 
@@ -20,8 +21,9 @@ namespace XrEngine.OpenGL
     public class GlBuffer<T> : GlObject, IGlBuffer, IBuffer<T>
     {
         protected readonly BufferTargetARB _target;
-        protected uint _arrayLength;
+        protected uint _sizeBytes;
         protected BufferUsageARB _usage;
+        protected int _updateCount;
 
         public unsafe GlBuffer(GL gl, BufferTargetARB target)
              : base(gl)
@@ -33,10 +35,10 @@ namespace XrEngine.OpenGL
             Create();
         }
 
-        public unsafe GlBuffer(GL gl, Span<T> data, BufferTargetARB target)
+        public unsafe GlBuffer(GL gl, ReadOnlySpan<T> data, BufferTargetARB target)
             : this(gl, target)
         {
-            Update(data);
+            UpdateRange(data);
         }
 
         protected void Create()
@@ -51,26 +53,51 @@ namespace XrEngine.OpenGL
             };
         }
 
-        public unsafe void Update(nint data, uint sizeBytes, bool wait)
+        public unsafe void Update(void* data, uint sizeBytes, bool wait)
         {
-            Bind();
+            BeginUpdate();
 
-            var newArrayLen = sizeBytes / (uint)sizeof(T);
-
-            if (_arrayLength != newArrayLen || _target == BufferTargetARB.UniformBuffer)
+            if (_sizeBytes != sizeBytes || _target == BufferTargetARB.UniformBuffer)
             {
-                _gl.BufferData(_target, sizeBytes, (void*)data, _usage);
+                _gl.BufferData(_target, sizeBytes, data, _usage);
+                _sizeBytes = sizeBytes;
             }
             else
             {
                 var pDst = Map(MapBufferAccessMask.WriteBit);
-                EngineNativeLib.CopyMemory(data, (nint)pDst, sizeBytes);
+                EngineNativeLib.CopyMemory((nint)data, (nint)pDst, sizeBytes);
                 Unmap();
             }
 
-            _arrayLength = newArrayLen;
+            EndUpdate();
+        }
 
-            Unbind();
+        public void BeginUpdate()
+        {
+            if (_updateCount == 0)
+                Bind();
+            _updateCount++;
+        }
+
+        public void EndUpdate()
+        {
+            _updateCount--;
+            if (_updateCount == 0)
+                Unbind();
+        }
+
+        public unsafe void UpdateRange(void* data, uint sizeBytes, int offsetBytes, bool wait)
+        {
+            BeginUpdate();
+
+            if (offsetBytes == 0 && sizeBytes >= _sizeBytes)
+                _gl.BufferData(_target, sizeBytes, data, _usage);
+            else
+                _gl.BufferSubData(_target, offsetBytes, sizeBytes, data);
+
+            _sizeBytes = sizeBytes + (uint)offsetBytes;
+
+            EndUpdate();
         }
 
         unsafe byte* IBuffer.Lock(BufferAccessMode mode)
@@ -84,76 +111,64 @@ namespace XrEngine.OpenGL
                 _ => throw new NotSupportedException()
             };
 
-            Bind();
             return (byte*)Map(mask);
         }
 
         void IBuffer.Unlock()
         {
             Unmap();
-            Unbind();
         }
 
-        public unsafe void Resize(uint sizeInByte)
+        public unsafe void Allocate(uint sizeInByte)
         {
-            var newArrayLen = sizeInByte / (uint)sizeof(T);
-
-            if (_arrayLength == newArrayLen)
-                return;
-
             Bind();
+
             _gl.BufferData(_target, sizeInByte, null, _usage);
-            _arrayLength = newArrayLen;
-            Unbind();
+
+            _sizeBytes = sizeInByte;
         }
-
-        //TODO: duplicated
-
-        public unsafe void Allocate(uint length)
-        {
-            if (_arrayLength == length)
-                return;
-
-            _gl.BufferData(_target, (nuint)(length * sizeof(T)), null, _usage);
-            _arrayLength = length;
-        }
-
 
         public unsafe T* Map(MapBufferAccessMask access)
         {
-            var ptr = _gl.MapBufferRange(_target, 0, (nuint)(_arrayLength * sizeof(T)), access);
+            BeginUpdate();
+
+            var ptr = _gl.MapBufferRange(_target, 0, _sizeBytes, access);
             if (ptr == null)
                 throw new InvalidOperationException("MapBufferRange return NULL");
+
             return (T*)ptr;
         }
 
         public void Unmap()
         {
             _gl.UnmapBuffer(_target);
+
+            EndUpdate();
         }
 
-        public unsafe void Update(ReadOnlySpan<T> data)
-        {
-            if (data.Length > 0)
-            {
-                fixed (T* pData = &data[0])
-                    Update((nint)pData, (uint)(data.Length * sizeof(T)), true);
-            }
-
-            _arrayLength = (uint)data.Length;
-        }
 
         public unsafe void Update(T value)
         {
             if (value is IDynamicBuffer dynamic)
             {
                 using var dynBuffer = dynamic.GetBuffer();
-                Update(dynBuffer.Data, dynBuffer.Size, false);
+                Update((void*)dynBuffer.Data, dynBuffer.Size, false);
             }
             else
             {
-                Update((nint)(&value), (uint)sizeof(T), true);
+                Update(&value, (uint)sizeof(T), true);
             }
+        }
+
+        public unsafe void UpdateRange(ReadOnlySpan<T> value, int dstIndex = 0)
+        {
+            if (value.Length == 0)
+                return;
+            
+            var sizeBytes = (uint)(value.Length * sizeof(T));
+
+            fixed (T* pData = &value[0])
+                UpdateRange(pData, sizeBytes, dstIndex * sizeof(T), true);
         }
 
         unsafe void IBuffer.Update(object value)
@@ -162,6 +177,12 @@ namespace XrEngine.OpenGL
                 Update(tValue);
             else
                 throw new NotSupportedException();
+        }
+
+        unsafe void IBuffer.UpdateRange(ReadOnlySpan<byte> value, int dstIndex = 0)
+        {
+            fixed (byte* pData = &value[0])
+                UpdateRange(pData, (uint)value.Length, dstIndex * sizeof(T), true);
         }
 
         public void Bind()
@@ -174,12 +195,11 @@ namespace XrEngine.OpenGL
             GlState.Current!.BindBuffer(_target, 0);
         }
 
-
         public override void Dispose()
         {
             if (_handle != 0)
             {
-                GlState.Current!.BindBuffer(_target, 0);
+                Unbind();
                 _gl.DeleteBuffer(_handle);
             }
 
@@ -187,7 +207,6 @@ namespace XrEngine.OpenGL
         }
 
 
-  
         public string Hash { get; set; }
 
         public long Version { get; set; }
@@ -196,7 +215,8 @@ namespace XrEngine.OpenGL
 
         public BufferTargetARB Target => _target;
 
-        public uint ArrayLength => _arrayLength;
+        public unsafe uint ArrayLength =>  (uint)(_sizeBytes / sizeof(T));
 
+        public uint SizeBytes => _sizeBytes;
     }
 }

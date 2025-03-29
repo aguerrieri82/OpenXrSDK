@@ -15,11 +15,13 @@ namespace XrEngine
         protected bool _worldInverseDirty;
         protected bool _boundsDirty;
         protected bool _normalMatrixDirty;
+        protected internal bool _visibleDirty;
 
         protected Transform3D _transform;
         protected Group3D? _parent;
         protected internal Scene3D? _scene;
         protected bool _isVisible;
+        protected bool _isVisibleCache;
 
         private double _creationTime;
         private double _lastUpdateTime;
@@ -236,12 +238,21 @@ namespace XrEngine
 
         public bool IsVisible
         {
-            get => _isVisible && (_parent == null || _parent.IsVisible);
+            get
+            {
+                if (_visibleDirty)
+                {
+                    _isVisibleCache = _isVisible && (_parent == null || _parent.IsVisible);
+                    _visibleDirty = false;
+                }
+                return _isVisibleCache;
+            }
             set
             {
                 if (_isVisible == value)
                     return;
                 _isVisible = value;
+                _visibleDirty = true;
                 NotifyChanged(ObjectChangeType.Visibility);
             }
         }

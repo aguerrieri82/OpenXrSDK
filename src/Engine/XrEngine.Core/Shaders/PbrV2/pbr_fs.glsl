@@ -28,9 +28,14 @@ in mat3 fTangentBasis;
 
 #endif
 
-#if defined(HAS_UV2) || (defined(ALBEDO_UV_SET) && ALBEDO_UV_SET == 1)
+#ifndef ALBEDO_UV_SET
+	#define ALBEDO_UV_SET 0
+#endif
+
+#if defined(HAS_UV2) || (ALBEDO_UV_SET == 1)
 	in vec2 fUv2;
 #endif
+
 
 #ifdef USE_SHADOW_MAP
     in vec4 fPosLightSpace;

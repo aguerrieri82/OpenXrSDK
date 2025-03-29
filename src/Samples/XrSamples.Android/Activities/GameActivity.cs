@@ -80,6 +80,7 @@ namespace XrSamples.Android.Activities
                     opt.UseDepthPass = _settings.EnableDepthPass;
                     opt.UseOcclusionQuery = false;
                     opt.SortByCameraDistance = !_settings.EnableDepthPass;
+                    opt.FrustumCulling = _settings.FrustumCulling;
                 });
 
             if (_settings.Driver == GraphicDriver.OpenGL && _settings.IsMultiView)

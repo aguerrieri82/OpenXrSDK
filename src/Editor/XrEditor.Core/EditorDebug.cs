@@ -23,12 +23,12 @@ namespace XrEditor
               {
                   opt.UsePlanarReflection = true;
                   opt.UseDepthPass = false;
-                  opt.UseHitTest = false;
+                  opt.UseHitTest = true;
                   opt.FrustumCulling = true;
                   opt.UseLayerV2 = true;
               })
               .SetRenderQuality(1, 2)
-              .CreateChess()
+              .CreateDnD()
               .Build();
     }
 }

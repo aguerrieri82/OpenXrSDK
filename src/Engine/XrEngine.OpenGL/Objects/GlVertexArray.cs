@@ -56,7 +56,6 @@ namespace XrEngine.OpenGL
             _vBuf.Unbind();
 
             _iBuf?.Unbind();
-
         }
 
         protected void Create()
@@ -91,8 +90,8 @@ namespace XrEngine.OpenGL
 
         public void Update(TVertexType[] vertices, TIndexType[]? indices = null)
         {
-            _vBuf.Update(vertices);
-            _iBuf?.Update(indices);
+            _vBuf.UpdateRange(vertices);
+            _iBuf?.UpdateRange(indices);
         }
 
         public void Bind()

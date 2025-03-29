@@ -11,9 +11,15 @@
 
     public unsafe interface IBuffer
     {
+        void BeginUpdate();
+
+        void EndUpdate();
+
         void Update(object value);
 
-        void Resize(uint sizeInByte);
+        void UpdateRange(ReadOnlySpan<byte> value, int dstIndex = 0);
+
+        void Allocate(uint sizeInByte);
 
         byte* Lock(BufferAccessMode mode);
 
@@ -22,13 +28,15 @@
         string Hash { get; set; }
 
         long Version { get; set; }
+
+        uint SizeBytes { get; }  
     }
 
     public interface IBuffer<T> : IBuffer
     {
         void Update(T value);
 
-
+        void UpdateRange(ReadOnlySpan<T> value, int dstIndex);
     }
 
 }

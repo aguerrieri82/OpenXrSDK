@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Formats.Tar;
+using System.Runtime.InteropServices;
 
 #if GLES
 using Silk.NET.OpenGLES;
@@ -7,9 +8,18 @@ using Silk.NET.OpenGL;
 #endif
 
 using XrMath;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace XrEngine.OpenGL
 {
+
+    public enum InstanceBufferMode
+    {
+        Auto,
+        UpdateAlways,
+        UpdateIncremental,
+        UpdateAllWhenChanged
+    }
 
     public class GlLayerV2 : IDisposable, IGlLayer
     {
@@ -235,80 +245,134 @@ namespace XrEngine.OpenGL
 
                 var instanceShader = shader as IInstanceShader;
 
-                foreach (var verContent in shaderEntry.Value.Contents.Values.SelectMany(a => a.Contents.Values))
+                foreach (var matEntry in shaderEntry.Value.Contents)
                 {
-                    var vHandler = verContent.VertexHandler!;
-
-                    if (vHandler.NeedUpdate)
-                        vHandler.Update();
-
-                    if (instanceShader != null && instanceShader.UseInstanceDraw)
+                    foreach (var verContent in matEntry.Value.Contents.Values)
                     {
-                        var changed = false; 
+                        var vHandler = verContent.VertexHandler!;
 
-                        if (verContent.InstanceBuffer == null || verContent.InstanceBuffer.Version != verContent.ContentVersion)
-                        {
-                            //TODO: store in somewhere safe, is unique for material+geometry
-                            verContent.InstanceBuffer ??= GlBuffer.Create(_render.GL, BufferTargetARB.ShaderStorageBuffer, instanceShader.InstanceBufferType);
+                        if (vHandler.NeedUpdate)
+                            vHandler.Update();
 
-                            var elSize = Marshal.SizeOf(instanceShader.InstanceBufferType);
-
-                            verContent.InstanceBuffer.Resize((uint)(elSize * verContent.Contents.Count));
-
-                            verContent.InstanceVersions = new long[verContent.Contents.Count];
-
-                            verContent.InstanceBuffer.Version = verContent.ContentVersion;
-
-                            changed = true;
-                        }
-
-                        if (!changed)
-                        {
-                            for (var i = 0; i < verContent.Contents.Count; i++)
-                            {
-                                var obj = verContent.Contents[i].Object!;
-                                if (instanceShader.NeedUpdate(obj, verContent.InstanceVersions![i]))
-                                {
-                                    changed = true;
-                                    break;
-                                }
-                            }
-                        }
-                  
-                        if (changed)
-                        {
-                            var elSize = Marshal.SizeOf(instanceShader.InstanceBufferType);
-
-                            var data = verContent.InstanceBuffer.Lock(BufferAccessMode.Write);
-
-                            for (var i = 0; i < verContent.Contents.Count; i++)
-                            {
-                                var obj = verContent.Contents[i].Object!;
-                                if (!instanceShader.NeedUpdate(obj, verContent.InstanceVersions![i]))
-                                    continue;
-                                var elData = data + i * elSize;
-                                verContent.InstanceVersions[i] = instanceShader.Update(elData, obj);
-                            }
-
-                            verContent.InstanceBuffer.Unlock();
-                        }
-
-                        if (verContent.Draw == null)
-                        {
-                            verContent.Draw = () =>
-                            {
-                                _render.GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 4, ((GlObject)verContent.InstanceBuffer).Handle);
-
-                                vHandler.DrawInstances(verContent.Contents.Count);
-                            };
-                        }
-             
+                        if (instanceShader != null && instanceShader.UseInstanceDraw)
+                            UpdateInstanceDraws(instanceShader, verContent, matEntry.Key);
+                        else
+                            verContent.Draw = null;
                     }
-                    else
-                        verContent.Draw = null;
+                }
+            }
+        }
+
+
+        protected unsafe void UpdateInstanceDraws(IInstanceShader instanceShader, VertexContentV2 verContent, Material material)
+        {
+            var vHandler = verContent.VertexHandler!;
+
+            var mode = InstanceBufferMode.Auto;
+
+            int changedCount = 0;
+
+            var elSize = Marshal.SizeOf(instanceShader.InstanceBufferType);
+
+            if (verContent.InstanceBuffer == null || verContent.InstanceBuffer.Version != verContent.ContentVersion)
+            {
+                //TODO: store in somewhere safe, is unique for material+geometry
+                verContent.InstanceBuffer ??= GlBuffer.Create(_render.GL, BufferTargetARB.ShaderStorageBuffer, instanceShader.InstanceBufferType);
+
+                verContent.InstanceBuffer.Allocate((uint)(elSize * verContent.Contents.Count));
+                verContent.InstanceBuffer.Version = verContent.ContentVersion;
+
+                verContent.InstanceData = new VertexInstanceData[verContent.Contents.Count];
+                
+                mode = InstanceBufferMode.UpdateAlways;
+            }
+
+            if (mode != InstanceBufferMode.UpdateAlways)
+            {
+                for (var i = 0; i < verContent.Contents.Count; i++)
+                {
+                    var obj = verContent.Contents[i].Object!;
+                    if (instanceShader.NeedUpdate(obj, verContent.InstanceData![i].Version))
+                    {
+                        verContent.InstanceData![i].IsChanged = true;
+                        changedCount++;
+                        if (mode == InstanceBufferMode.UpdateAllWhenChanged)
+                            break;
+                    }
+                }
+                if (changedCount == 0)
+                    return;
+            }
+
+            if (mode == InstanceBufferMode.Auto)
+            {
+                var ratio = (float)changedCount / verContent.Contents.Count;   
+                if (ratio < 0.3 && changedCount < 5)
+                    mode = InstanceBufferMode.UpdateIncremental;
+                else
+                    mode = InstanceBufferMode.UpdateAlways; 
+            }
+    
+            if (mode == InstanceBufferMode.UpdateAlways || mode == InstanceBufferMode.UpdateAllWhenChanged)
+            {
+                var data = verContent.InstanceBuffer!.Lock(BufferAccessMode.Replace);
+
+                for (var i = 0; i < verContent.Contents.Count; i++)
+                {
+                    var obj = verContent.Contents[i].Object!;
+                    verContent.InstanceData![i].Version = instanceShader.Update(data, obj);
+                    data += elSize;
                 }
 
+                verContent.InstanceBuffer.Unlock();
             }
+            else
+            {
+
+                verContent.InstanceBuffer!.BeginUpdate();
+                var buffer = stackalloc byte[elSize];
+
+                for (var i = 0; i < verContent.Contents.Count; i++)
+                {
+                    if (!verContent.InstanceData![i].IsChanged)
+                        continue;
+
+                    var obj = verContent.Contents[i].Object!;
+
+                    verContent.InstanceData![i].Version = instanceShader.Update(buffer, obj);
+                    verContent.InstanceBuffer!.UpdateRange(new ReadOnlySpan<byte>(buffer, elSize), i);
+                }
+
+                verContent.InstanceBuffer!.EndUpdate();
+            }
+
+            if (verContent.Draw == null)
+            {
+                if (material is ITessellationMaterial tes && tes.TessellationMode != TessellationMode.None)
+                {
+                    var size = vHandler.Source.Primitive == DrawPrimitive.Quad ? 4 : 3;
+
+                    verContent.Draw = () =>
+                    {
+                        _render.GL.PatchParameter(PatchParameterName.Vertices, size);
+                        _render.State.SetWireframe(tes.DebugTessellation);
+                        _render.State.SetLineWidth(0.5f);
+
+                        _render.GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 4, ((GlObject)verContent.InstanceBuffer).Handle);
+                        vHandler.DrawInstances(verContent.Contents.Count, DrawPrimitive.Patch);
+                    };
+                }
+                else
+                {
+                    verContent.Draw = () =>
+                    {
+                        _render.GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 4, ((GlObject)verContent.InstanceBuffer).Handle);
+
+                        vHandler.DrawInstances(verContent.Contents.Count);
+                    };
+                }
+            }
+
 
         }
 

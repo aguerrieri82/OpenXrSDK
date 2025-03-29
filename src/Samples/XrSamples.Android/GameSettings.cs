@@ -22,6 +22,9 @@ namespace XrSamples
         public bool UseSpaceWarp { get; set; }
 
 
+        public bool FrustumCulling { get; set; }
+
+
         public static GameSettings Helmet()
         {
             return new GameSettings
@@ -32,7 +35,8 @@ namespace XrSamples
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = false,
                 UseSpaceWarp = false, 
-                EnableDepthPass = false
+                EnableDepthPass = false,
+                FrustumCulling = false   
             };
         }
 
@@ -44,7 +48,8 @@ namespace XrSamples
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
                 EnableDepthPass = false,
-                UsePbrV2 = true
+                UsePbrV2 = true,
+                FrustumCulling = true
             };
         }
     }

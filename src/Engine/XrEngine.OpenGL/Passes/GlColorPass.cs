@@ -195,12 +195,10 @@ namespace XrEngine.OpenGL
                             }
                         }
 
-                        vHandler.Unbind();
-
+                        //vHandler.Unbind();
                     }
                 }
             }
-
             _renderer.PopGroup();
         }
 

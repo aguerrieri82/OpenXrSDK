@@ -40,8 +40,6 @@ namespace XrEngine.OpenGL
         {
             GlUtils.GetPixelFormat(data.Format, out var pixelFormat, out var pixelType);
 
-            _buffer.Bind();
-
             if (_width != data.Width || _height != data.Height)
             {
                 _buffer.Allocate(data.Data!.Size);
@@ -80,8 +78,6 @@ namespace XrEngine.OpenGL
             _gl.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, data.Width, data.Height, pixelFormat, pixelType, null);
 
             Unbind();
-
-            _buffer.Unbind();
         }
 
         public void Bind()
