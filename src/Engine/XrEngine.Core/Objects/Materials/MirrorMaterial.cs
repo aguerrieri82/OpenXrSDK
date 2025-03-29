@@ -43,13 +43,12 @@ namespace XrEngine
                 });
         }
 
-        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
+        protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            var planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
-
-            Debug.Assert(planar != null);
-
             bld.AddFeature("PLANAR_REFLECTION");
+            bld.AddFeature("PURE_REFLECTION");
+
+            bld.AddFeature($"MIRROR_MODE {(int)Mode}");
 
             if (DoubleSided)
                 bld.AddFeature("DOUBLE_SIDED");
@@ -57,9 +56,14 @@ namespace XrEngine
             if (PlanarReflection.IsMultiView)
                 bld.AddFeature("PLANAR_REFLECTION_MV");
 
-            bld.AddFeature("PURE_REFLECTION");
+            base.UpdateShaderMaterial(bld);
+        }
 
-            bld.AddFeature($"MIRROR_MODE {(int)Mode}");
+        protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
+        {
+            var planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
+
+            Debug.Assert(planar != null);
 
             bld.ExecuteAction((ctx, up) =>
             {

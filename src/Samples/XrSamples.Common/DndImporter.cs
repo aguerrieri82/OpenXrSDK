@@ -137,6 +137,58 @@ namespace XrSamples
 
         #endregion
 
+        ShaderMaterial ProcessMaterialV2(string matId)
+        {
+            if (!_materials.TryGetValue(matId, out var mat))
+            {
+                var impMat = Read<ImpMaterial>($"mat_{matId}.json");
+
+                _psNames.Add(impMat.ps.name);
+
+                var basMat = new BasicMaterial();
+
+                if (impMat.ps.name == "glTF/PbrMetallicRoughness")
+                {
+                    basMat.DiffuseTexture = (Texture2D)ProcessTexture(impMat.textures[0])!;
+
+                }
+                else if (impMat.ps.name == "Custom Image Shader")
+                {
+                    basMat.DiffuseTexture = (Texture2D)ProcessTexture(impMat.textures[1])!;
+                }
+                else
+                {
+                    foreach (var impTex in impMat.textures)
+                    {
+                        var tex = ProcessTexture(impTex);
+                        if (tex == null)
+                            continue;
+                        var name = impTex.name.ToLower();
+                        var isDif = name.EndsWith("dif") ||
+                                    name.EndsWith("diff") ||
+                                    name.Contains("albedo") ||
+                                    name.Contains("diffuse") ||
+                                    name.Contains("basecolor") ||
+                                    name.Contains("_diff");
+                        if (isDif)
+                        {
+                            basMat.DiffuseTexture = (Texture2D)tex;
+                            break;
+                        }
+
+                    }
+                }
+
+                basMat.SetProp("ps_name", impMat.ps.name);
+
+                _materials[matId] = basMat;
+
+                mat = basMat;
+            }
+
+            return mat;
+        }
+
         ShaderMaterial ProcessMaterial(string matId)
         {
             if (!_materials.TryGetValue(matId, out var mat))
@@ -261,11 +313,11 @@ namespace XrSamples
                 }
                 else if (impMat.ps.name == "Standard")
                 {
-                    var alphaCut = impMat.cbs[0].values[5][1];
+                    var alphaCut = impMat.cbs[0].values[5][0];
                     var alphaMul = impMat.cbs[0].values[4][3];
-                    if (alphaCut > 0)
+                    if (alphaCut > 0 && alphaCut < 1)
                     {
-                        pbr.AlphaCutoff = 0.5f;
+                        pbr.AlphaCutoff = alphaCut;
                         pbr.Alpha = AlphaMode.Mask;
                         //pbr.Roughness = 1f;
                         //pbr.DoubleSided = true;
@@ -460,7 +512,7 @@ namespace XrSamples
 
         Object3D ProcessDraw(ImpDraw draw)
         {
-            if (draw.id == 7548)
+            if (draw.id == 11577 || draw.id == 5387 || draw.id == 11634)
             {
                 //Debugger.Break();
             }
@@ -515,6 +567,9 @@ namespace XrSamples
             var res = new Group3D();
             foreach (var draw in draws!)
                 res.AddChild(ProcessDraw(draw));
+
+            var totIdex = res.Children.OfType<TriangleMesh>().Sum(a => a.Geometry.Indices.Length);  
+
 
             var stats = res.Children.OfType<TriangleMesh>()
                 .GroupBy(a => a.Geometry)

@@ -250,6 +250,15 @@ namespace XrEngine.OpenGL
             _lastLightLayerVersion = lights.Version;
         }
 
+        public IGlLayer AddLayer(Scene3D scene, GlLayerType type, ILayer3D? sceneLayer = null)
+        {
+            IGlLayer layer = _options.UseLayerV2 ?
+                new GlLayerV2(this, scene, type, sceneLayer) :
+                new GlLayer(this, scene, type, sceneLayer);
+
+            _layers.Add(layer);
+            return layer;
+        }
 
         protected void UpdateLayers(Scene3D scene)
         {
@@ -261,31 +270,31 @@ namespace XrEngine.OpenGL
                 _layers.Clear();
 
                 var opaque = scene.EnsureLayer<OpaqueLayer>();
-                _layers.Add(new GlLayerV2(this, scene, GlLayerType.Opaque, opaque));
+                AddLayer(scene, GlLayerType.Opaque, opaque);
 
                 foreach (var layer in scene.Layers.Layers.OfType<DetachedLayer>())
-                    _layers.Add(new GlLayer(this, scene, GlLayerType.Custom, layer));
+                    AddLayer(scene, GlLayerType.Custom, layer);
 
                 var blend = scene.EnsureLayer<BlendLayer>();
-                _layers.Add(new GlLayer(this, scene, GlLayerType.Blend, blend));
+                AddLayer(scene, GlLayerType.Blend, blend);
 
                 if (_options.ShadowMap.Mode != ShadowMapMode.None)
                 {
                     var castShadowLayer = scene.EnsureLayer<CastShadowsLayer>();
                     scene.EnsureLayer<ReceiveShadowsLayer>();
-                    _layers.Add(new GlLayer(this, scene, GlLayerType.CastShadow, castShadowLayer));
+                    AddLayer(scene, GlLayerType.CastShadow, castShadowLayer);
                 }
 
                 if (_options.UsePlanarReflection)
                 {
                     scene.EnsureLayer<HasReflectionLayer>();
-                    _layers.Add(new GlLayer(this, scene, GlLayerType.FullReflection, opaque));
+                    AddLayer(scene, GlLayerType.FullReflection, opaque);
                 }
 
                 if (_options.UseVolume)
                 {
                     var volume = scene.EnsureLayer<VolumeLayer>();
-                    _layers.Add(new GlLayer(this, scene, GlLayerType.Volume, volume));
+                    AddLayer(scene, GlLayerType.Volume, volume);
                 }
 
 

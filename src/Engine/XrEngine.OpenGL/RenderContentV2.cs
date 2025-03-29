@@ -21,6 +21,8 @@ namespace XrEngine.OpenGL
 
     public class VertexContentV2
     {
+        public IBuffer? InstanceBuffer;
+
         public readonly List<DrawContent> Contents = [];
 
         public GlVertexSourceHandle? VertexHandler;
@@ -28,10 +30,13 @@ namespace XrEngine.OpenGL
         public VertexComponent ActiveComponents;
 
         public bool IsHidden;
+
+        public long ContentVersion;
+
+        public Action? Draw;
+
+        public long[]? InstanceVersions;
     }
-
-
-
 
     public class RenderContentV2
     {

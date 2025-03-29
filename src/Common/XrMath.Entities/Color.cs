@@ -25,11 +25,15 @@ namespace XrMath
             A = a;
         }
 
-        public void Rgb(float value)
+        public static Color Rgb(float value)
         {
-            R = value;
-            G = value;
-            B = value;
+            return new Color()
+            {
+                R = value,
+                G = value,
+                B = value,
+                A = 1f
+            };    
         }
 
         public static explicit operator Vector3(Color color)

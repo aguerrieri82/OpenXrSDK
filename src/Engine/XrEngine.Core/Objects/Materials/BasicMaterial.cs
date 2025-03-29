@@ -36,7 +36,6 @@ namespace XrEngine
                     _lightHash = ctx.LightsHash!;
                 });
 
-                base.UpdateShader(bld);
             }
 
             public override bool NeedUpdateShader(UpdateShaderContext ctx)
@@ -60,8 +59,9 @@ namespace XrEngine
 
         public BasicMaterial()
         {
-            Specular.Rgb(0.5f);
+            Specular = Color.Rgb(0.5f);
             Ambient = Color.White;
+            Color = Color.White;
             Shininess = 32f;
             Shader = SHADER;
         }
@@ -100,7 +100,6 @@ namespace XrEngine
 
             bld.ExecuteAction((ctx, up) =>
             {
-
                 up.SetUniform("material.ambient", (Vector3)Ambient);
                 up.SetUniform("material.diffuse", Color);
                 up.SetUniform("material.specular", (Vector3)Specular);

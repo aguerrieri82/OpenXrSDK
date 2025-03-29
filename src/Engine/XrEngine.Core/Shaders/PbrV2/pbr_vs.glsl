@@ -6,6 +6,23 @@ layout(location=1) in vec3 normal;
 layout(location=4) in vec4 tangent;
 layout(location=2) in vec2 texcoord;
 
+#ifdef USE_CLIP_PLANE 
+    uniform vec4 uClipPlane;
+#endif
+
+#ifdef USE_INSTANCE
+
+struct ModelInstance {
+    mat4 worldMatrix;
+    mat4 normalMatrix;
+};
+
+layout(std430, binding = 4) buffer InstanceData {
+    ModelInstance data[];
+};
+
+#endif
+
 #ifdef HAS_UV2
     layout(location=3) in vec2 texcoord2;
     out vec2 fUv2;
@@ -15,8 +32,9 @@ out vec3 fNormal;
 out vec3 fPos;
 out vec2 fUv;
 out vec3 fCameraPos;   
+
 #if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) 
-out mat3 fTangentBasis;
+    out mat3 fTangentBasis;
 #endif
 
 #ifdef USE_SHADOW_MAP
@@ -29,11 +47,17 @@ out mat3 fTangentBasis;
 
 void main()
 {
-	vec4 pos = uModel.worldMatrix * vec4(position, 1.0);
 
-#ifdef USE_BOUNDS
+    #ifdef USE_INSTANCE
+        mat4 worldMatrix = data[gl_InstanceID].worldMatrix;
+        mat4 normalMatrix = data[gl_InstanceID].normalMatrix;
+    #else
+        mat4 worldMatrix = uModel.worldMatrix;
+        mat4 normalMatrix = uModel.normalMatrix;
+    #endif
 
-#endif
+    vec4 pos = worldMatrix * vec4(position, 1.0);
+    vec3 N = normalize(vec3(normalMatrix * vec4(normal, 0.0)));
 
 	fPos = pos.xyz; 
 
@@ -53,10 +77,8 @@ void main()
 	    fPosLightSpace = uCamera.lightSpaceMatrix * pos;
 	#endif
 
-    vec3 N = normalize(vec3(uModel.normalMatrix * vec4(normal, 0.0)));
-
     #if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
-        vec3 T = normalize(vec3(uModel.normalMatrix * vec4(tangent.xyz, 0.0)));
+        vec3 T = normalize(vec3(normalMatrix * vec4(tangent.xyz, 0.0)));
 	    vec3 B = normalize(cross(T, N) * tangent.w);
 
         fTangentBasis = mat3(T, B, N);

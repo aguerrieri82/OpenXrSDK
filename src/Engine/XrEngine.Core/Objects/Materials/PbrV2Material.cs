@@ -144,11 +144,15 @@ namespace XrEngine
 
         #region PbrV2Shader
 
-        public class PbrV2Shader : Shader, IShaderHandler
+        public class PbrV2Shader : Shader, IShaderHandler, IInstanceShader
         {
             long _iblVersion = -1;
             readonly PerspectiveCamera _depthCamera = new PerspectiveCamera();
 
+            public PbrV2Shader()
+            {
+                UseInstanceDraw = true; 
+            }
 
             public bool NeedUpdateShader(UpdateShaderContext ctx)
             {
@@ -168,6 +172,9 @@ namespace XrEngine
                 var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
 
                 var hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
+
+                if (UseInstanceDraw && bld.Context.UseInstanceDraw)
+                    bld.AddFeature("USE_INSTANCE");
 
                 if (hasPunctual)
                     bld.AddFeature("USE_PUNCTUAL");
@@ -339,6 +346,25 @@ namespace XrEngine
                 }
             }
 
+            public bool NeedUpdate(Object3D model, long curVersion)
+            {
+                return model.Transform.Version != curVersion;
+            }
+
+            public unsafe long Update(byte* destData, Object3D model)
+            {
+                *(ModelUniforms*)destData =  new ModelUniforms
+                {
+                    NormalMatrix = model.NormalMatrix,
+                    WorldMatrix = model.WorldMatrix
+                };
+                return model.Transform.Version; 
+            }
+
+            public Type InstanceBufferType => typeof(ModelUniforms);
+
+            public bool UseInstanceDraw { get; set; }
+
             public float DepthNoiseFactor { get; set; }
 
             public float DepthNoiseDistance { get; set; }
@@ -378,20 +404,25 @@ namespace XrEngine
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-            bld.LoadBuffer(ctx =>
+            var shader = (PbrV2Shader)_shader!;
+
+            if (!shader.UseInstanceDraw || !bld.Context.UseInstanceDraw)
             {
-                var curVersion = ctx.Model!.Transform.Version;
-                if (curVersion == ctx.CurrentBuffer!.Version)
-                    return null;
-
-                ctx.CurrentBuffer!.Version = curVersion;
-
-                return (ModelUniforms?)new ModelUniforms
+                bld.LoadBuffer(ctx =>
                 {
-                    NormalMatrix = ctx.Model.NormalMatrix,
-                    WorldMatrix = ctx.Model.WorldMatrix
-                };
-            }, 3, BufferStore.Model);
+                    var curVersion = ctx.Model!.Transform.Version;
+                    if (curVersion == ctx.CurrentBuffer!.Version)
+                        return null;
+
+                    ctx.CurrentBuffer!.Version = curVersion;
+
+                    return (ModelUniforms?)new ModelUniforms
+                    {
+                        NormalMatrix = ctx.Model.NormalMatrix,
+                        WorldMatrix = ctx.Model.WorldMatrix
+                    };
+                }, 3, BufferStore.Model);
+            }
 
 
             var planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
@@ -458,8 +489,6 @@ namespace XrEngine
 
             bld.AddFeature($"ALPHA_MODE {(int)(Alpha == AlphaMode.BlendMain ? AlphaMode.Blend : Alpha)}");
 
-
-
             bld.LoadBuffer(ctx =>
             {
                 var curVersion = Version;
@@ -470,7 +499,6 @@ namespace XrEngine
                 return (MaterialUniforms?)material;
 
             }, 2, BufferStore.Material);
-
 
 
             if (EmissiveColor != Color.Transparent)

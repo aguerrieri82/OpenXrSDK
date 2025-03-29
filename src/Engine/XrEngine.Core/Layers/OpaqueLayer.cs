@@ -11,7 +11,7 @@
         {
             return obj.Materials.
                     OfType<ShaderMaterial>().
-                    Any(a => a.Alpha != AlphaMode.Blend);
+                    Any(a => a.Alpha != AlphaMode.Blend && a.Alpha != AlphaMode.Mask);
         }
 
         protected override bool AffectChange(ObjectChange change)

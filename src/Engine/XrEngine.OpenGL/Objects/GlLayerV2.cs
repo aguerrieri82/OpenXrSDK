@@ -1,4 +1,6 @@
-﻿#if GLES
+﻿using System.Runtime.InteropServices;
+
+#if GLES
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
@@ -168,8 +170,9 @@ namespace XrEngine.OpenGL
                     materialContent.Contents[vrtSrc.Object] = vertexContent;
                 }
 
-                Action draw;
+                vertexContent.ContentVersion++;
 
+                Action draw;
 
                 if (material is ITessellationMaterial tes && tes.TessellationMode != TessellationMode.None  )
                 {
@@ -222,19 +225,83 @@ namespace XrEngine.OpenGL
         }
 
 
-        protected void UpdateVertexHandlers()
+        protected unsafe void UpdateVertexHandlers()
         {
-            var items = _content.Contents
-                .SelectMany(a => a.Value.Contents.Values)
-                .SelectMany(a => a.Contents.Values);
 
-            foreach (var content in items)
+            foreach (var shaderEntry in _content.Contents)
             {
-                var vHandler = content.VertexHandler!;
+                var shader = shaderEntry.Key;
 
-                if (vHandler.NeedUpdate)
-                    vHandler.Update();
+                var instanceShader = shader as IInstanceShader;
+
+                foreach (var verContent in shaderEntry.Value.Contents.Values.SelectMany(a => a.Contents.Values))
+                {
+                    var vHandler = verContent.VertexHandler!;
+
+                    if (vHandler.NeedUpdate)
+                        vHandler.Update();
+
+                    if (instanceShader != null && instanceShader.UseInstanceDraw)
+                    {
+                        if (verContent.InstanceBuffer == null || verContent.InstanceBuffer.Version != verContent.ContentVersion)
+                        {
+                            //TODO: store in somewhere safe, is unique for material+geometry
+                            verContent.InstanceBuffer ??= GlBuffer.Create(_render.GL, BufferTargetARB.ShaderStorageBuffer, instanceShader.InstanceBufferType);
+
+                            var elSize = Marshal.SizeOf(instanceShader.InstanceBufferType);
+
+                            verContent.InstanceBuffer.Resize((uint)(elSize * verContent.Contents.Count));
+
+                            verContent.InstanceVersions = new long[verContent.Contents.Count];
+
+                            verContent.InstanceBuffer.Version = verContent.ContentVersion;
+                        }
+
+                        var changed = false;
+                        for (var i = 0; i < verContent.Contents.Count; i++)
+                        {
+                            var obj = verContent.Contents[i].Object!;
+                            if (instanceShader.NeedUpdate(obj, verContent.InstanceVersions[i]))
+                            {
+                                changed = true;
+                                break;
+                            }
+                        }
+
+                        if (changed)
+                        {
+                            var elSize = Marshal.SizeOf(instanceShader.InstanceBufferType);
+
+                            var data = verContent.InstanceBuffer.Lock(BufferAccessMode.Replace);
+                            for (var i = 0; i < verContent.Contents.Count; i++)
+                            {
+                                var obj = verContent.Contents[i].Object!;
+                                if (!instanceShader.NeedUpdate(obj, verContent.InstanceVersions[i]))
+                                    continue;
+                                var elData = data + i * elSize;
+                                verContent.InstanceVersions[i] = instanceShader.Update(elData, obj);
+                            }
+
+                            verContent.InstanceBuffer.Unlock();
+                        }
+
+                        if (verContent.Draw == null)
+                        {
+                            verContent.Draw = () =>
+                            {
+                                _render.GL.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 4, ((GlObject)verContent.InstanceBuffer).Handle);
+
+                                vHandler.DrawInstances(verContent.Contents.Count);
+                            };
+                        }
+             
+                    }
+                    else
+                        verContent.Draw = null;
+                }
+
             }
+
         }
 
         protected int ComputeVisibility()

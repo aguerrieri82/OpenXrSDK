@@ -77,10 +77,11 @@ namespace XrEngine.OpenGL
             return upRes;
         }
 
-        protected override void Draw(DrawContent draw)
+
+        protected override void ConfigureCaps(ShaderMaterial material)
         {
+            base.ConfigureCaps(material);
             _renderer.State.EnableFeature(EnableCap.ClipDistance0, true);
-            base.Draw(draw);
         }
 
         protected override bool BeginRender(Camera camera)

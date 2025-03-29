@@ -64,6 +64,14 @@ namespace XrEngine.OpenGL
             _handle = _gl.GenVertexArray();
         }
 
+        public unsafe void DrawInstances(PrimitiveType primitive, int count)
+        {
+            if (_iBuf != null)
+                _gl.DrawElementsInstanced(primitive, _iBuf.ArrayLength, _drawType, null, (uint)count);
+            else
+                _gl.DrawArraysInstanced(primitive, 0, _vBuf.ArrayLength, (uint)count);
+        }
+
         public unsafe void Draw(PrimitiveType primitive = PrimitiveType.Triangles)
         {
             if (_iBuf != null)

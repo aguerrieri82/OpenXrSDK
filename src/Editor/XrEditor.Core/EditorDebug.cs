@@ -9,7 +9,7 @@ namespace XrEditor
 
         public static readonly bool AutoStartApp = true;
 
-        public static readonly bool EnableVSync = true;
+        public static readonly bool EnableVSync = false;
 
         public static readonly string[] AssetsPath = [
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",
@@ -24,9 +24,10 @@ namespace XrEditor
                   opt.UsePlanarReflection = true;
                   opt.UseDepthPass = false;
                   opt.UseHitTest = true;
+                  opt.FrustumCulling = true;
               })
               .SetRenderQuality(1, 2)
-              .CreateDnD()
+              .CreateCar()
               .Build();
     }
 }

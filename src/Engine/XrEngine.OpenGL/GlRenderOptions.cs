@@ -30,6 +30,7 @@ namespace XrEngine.OpenGL
             UseDepthPass = false;
             SortByCameraDistance = true;
             UseSRGB = false;
+            UseLayerV2 = true;
             RequireTextureCompression = false;
             UseVolume = true;
             ShadowMap = new ShadowMapOptions()
@@ -75,6 +76,8 @@ namespace XrEngine.OpenGL
         public GlOutlineOptions Outline { get; }
 
         public bool SortByCameraDistance { get; set; }
+
+        public bool UseLayerV2 { get; set; }
 
         public static GlRenderOptions Default() => new();
 

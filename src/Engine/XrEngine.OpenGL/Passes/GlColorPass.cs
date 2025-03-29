@@ -67,7 +67,7 @@ namespace XrEngine.OpenGL
             return true;
         }
 
-        protected virtual void Draw(DrawContent draw)
+        protected void Draw(DrawContent draw)
         {
             draw.Draw!();
 
@@ -98,6 +98,14 @@ namespace XrEngine.OpenGL
 
         }
 
+        protected virtual void ConfigureCaps(ShaderMaterial material)
+        {
+            _renderer.ConfigureCaps(material);
+
+            if (!WriteDepth)
+                _renderer.State.SetWriteDepth(false);
+        }
+
         public override void RenderLayer(GlLayerV2 layer)
         {
             if (layer.SceneLayer != null && !layer.SceneLayer.IsVisible)
@@ -111,6 +119,8 @@ namespace XrEngine.OpenGL
 
             var useOcclusion = _renderer.Options.UseOcclusionQuery;
 
+            updateContext.UseInstanceDraw = true;
+
             foreach (var shader in layer.Content.Contents)
             {
                 var progGlobal = shader.Value!.ProgramGlobal;
@@ -120,9 +130,10 @@ namespace XrEngine.OpenGL
 
                 progGlobal!.UpdateProgram(updateContext, GetRenderTarget() as IShaderHandler);
 
-                bool updateGlobals = true;
+                bool firstMaterial = true;
 
-                foreach (var material in shader.Value.Contents)
+                foreach (var material in shader.Value.Contents
+                                        .OrderBy(a=> a.Value.ProgramInstance?.Program?.Handle ?? 0))
                 {
                     var matContent = material.Value;
 
@@ -143,14 +154,11 @@ namespace XrEngine.OpenGL
 
                     progInst.UpdateBuffers(updateContext);
 
-                    progInst.UpdateUniforms(updateContext, updateGlobals || programChanged);
+                    progInst.UpdateUniforms(updateContext, firstMaterial || programChanged);
 
-                    updateGlobals = false;
+                    firstMaterial = false;
 
-                    _renderer.ConfigureCaps(progInst.Material!);
-
-                    if (!WriteDepth)
-                        _renderer.State.SetWriteDepth(false);
+                    ConfigureCaps(progInst.Material!);
 
                     foreach (var vertex in matContent.Contents)
                     {
@@ -166,9 +174,9 @@ namespace XrEngine.OpenGL
 
                         updateContext.Stage = UpdateShaderStage.Model;
 
-                        if (vertexContent.Contents.Count > 1 && false)
+                        if (vertexContent.Draw != null)
                         {
-
+                            vertexContent.Draw();     
                         }
                         else
                         {
@@ -209,6 +217,8 @@ namespace XrEngine.OpenGL
             var useDepthPass = _renderer.Options.UseDepthPass;
 
             var useOcclusion = _renderer.Options.UseOcclusionQuery;
+
+            updateContext.UseInstanceDraw = false;
 
             updateContext.Stage = UpdateShaderStage.Any; 
 
@@ -260,10 +270,9 @@ namespace XrEngine.OpenGL
 
                         progInst.UpdateBuffers(updateContext);
 
-                        _renderer.ConfigureCaps(draw.ProgramInstance!.Material!);
+                        ConfigureCaps(draw.ProgramInstance!.Material!);
 
-                        if (!WriteDepth)
-                            _renderer.State.SetWriteDepth(false);
+
 
                         SetBounds(updateContext.PassCamera!, draw.Object!);
 

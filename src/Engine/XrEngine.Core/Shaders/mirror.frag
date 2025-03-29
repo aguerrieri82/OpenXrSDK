@@ -2,8 +2,10 @@
 #define PLANAR_REFLECTION
 #define FRAGMENT_SHADER
 
+#include "Shared/uniforms.glsl"
 #include "Shared/planar_reflection.glsl"
 #include "Shared/position.glsl"
+
 
 in vec3 fPos;
 in vec3 fNormal;

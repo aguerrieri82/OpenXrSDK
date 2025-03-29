@@ -1547,7 +1547,10 @@ namespace XrSamples
             mesh.AddComponent<BoundsGrabbable>();
             mesh.Transform.SetPosition(-9, 0, 9);
 
+            mesh.Transform.SetPosition(-0.91999996f, 1.2399999f, 0.35000038f);
+            mesh.Transform.SetScale(0.1f);
             app.ActiveScene!.AddChild(mesh);
+
 
             return builder
                 .UseApp(app)
@@ -1573,6 +1576,21 @@ namespace XrSamples
                             mesh.Transform.SetScale(scale);
                         }
                     });
+                    /*
+                    app.ActiveScene!.AddChild(new PointLight
+                    {
+                        Intensity = 3,
+                        Color = Color.White,
+                        WorldPosition = new Vector3(0, 2, 0)
+                    });
+
+                    app.ActiveScene!.AddChild(new AmbientLight
+                    {
+                        Intensity = 0.2f,
+                        Color = Color.White,
+                    });
+                    */
+
                 })
                 .ConfigureSampleApp();
         }

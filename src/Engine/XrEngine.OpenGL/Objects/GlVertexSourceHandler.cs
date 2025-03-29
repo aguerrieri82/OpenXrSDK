@@ -2,6 +2,7 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+using SkiaSharp;
 #endif
 
 
@@ -17,6 +18,8 @@ namespace XrEngine.OpenGL
 
         public abstract void Update();
 
+        public abstract void DrawInstances(int count, DrawPrimitive? forcePrimitive = null);
+
         public abstract void Draw(DrawPrimitive? forcePrimitive = null);
 
         public abstract void Dispose();
@@ -28,6 +31,7 @@ namespace XrEngine.OpenGL
         public abstract IVertexSource Source { get; }
 
         public long Version { get; protected set; }
+
 
         public static GlVertexSourceHandle Create(GL gl, IVertexSource obj)
         {
@@ -87,6 +91,11 @@ namespace XrEngine.OpenGL
         public override void Unbind()
         {
             _vertices.Unbind();
+        }
+
+        public override void DrawInstances(int count, DrawPrimitive? forcePrimitive = null)
+        {
+            _vertices.DrawInstances(forcePrimitive != null ? GlPrimitive(forcePrimitive.Value) : _primitive, count);
         }
 
         public override void Draw(DrawPrimitive? forcePrimitive = null)

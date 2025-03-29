@@ -23,6 +23,10 @@ namespace XrEngine.OpenXr
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
+                var stage = bld.Context.Stage;
+                if (stage == UpdateShaderStage.Model)
+                    return;
+
                 bld.ExecuteAction((ctx, up) =>
                 {
                     var camera = ctx.PassCamera;
@@ -66,11 +70,7 @@ namespace XrEngine.OpenXr
                 if (camera.ActiveEye == 1)
                     _models[ctx.Model] = ctx.Model.WorldMatrix;
             });
-
         }
-
-
-
 
         public static readonly MotionVectorEffect Instance = new MotionVectorEffect();
 

@@ -61,6 +61,8 @@ namespace XrEngine.OpenGL
 
             var updateContext = _renderer.UpdateContext;
 
+            updateContext.UseInstanceDraw = false;
+
             foreach (var shader in layer.Content.Contents)
             {
                 var shaderContent = shader.Value;
@@ -123,6 +125,8 @@ namespace XrEngine.OpenGL
             Debug.Assert(_programInstance != null);
 
             var updateContext = _renderer.UpdateContext;
+
+            updateContext.UseInstanceDraw = false;
 
             foreach (var shader in layer.Content.ShaderContentsSorted!)
             {

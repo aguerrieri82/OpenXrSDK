@@ -155,7 +155,6 @@ namespace XrEngine.OpenGL
 
         protected void DrawQuad()
         {
-
             if (_emptyVertexArray == 0)
                 _emptyVertexArray = _gl.GenVertexArray();
 

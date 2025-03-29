@@ -8,11 +8,20 @@ using Silk.NET.OpenGL;
 namespace XrEngine.OpenGL
 {
 
+    public static class GlBuffer
+    {
+        public static IBuffer Create(GL gl, BufferTargetARB target, Type contentType)
+        {
+            var type = typeof(GlBuffer<>).MakeGenericType(contentType);
+            return (IBuffer)Activator.CreateInstance(type, gl, target)!; 
+        }
+    }
+
     public class GlBuffer<T> : GlObject, IGlBuffer, IBuffer<T>
     {
         protected readonly BufferTargetARB _target;
         protected uint _arrayLength;
-
+        protected BufferUsageARB _usage;
 
         public unsafe GlBuffer(GL gl, BufferTargetARB target)
              : base(gl)
@@ -33,6 +42,13 @@ namespace XrEngine.OpenGL
         protected void Create()
         {
             _handle = _gl.GenBuffer();
+
+            _usage = _target switch
+            {
+                BufferTargetARB.UniformBuffer => BufferUsageARB.StreamDraw,
+                BufferTargetARB.ShaderStorageBuffer => BufferUsageARB.DynamicDraw,
+                _ => BufferUsageARB.StaticDraw
+            };
         }
 
         public unsafe void Update(nint data, uint sizeBytes, bool wait)
@@ -43,8 +59,7 @@ namespace XrEngine.OpenGL
 
             if (_arrayLength != newArrayLen || _target == BufferTargetARB.UniformBuffer)
             {
-                var usage = _target == BufferTargetARB.UniformBuffer ? BufferUsageARB.StreamDraw : BufferUsageARB.StaticDraw;
-                _gl.BufferData(_target, sizeBytes, (void*)data, usage);
+                _gl.BufferData(_target, sizeBytes, (void*)data, _usage);
             }
             else
             {
@@ -57,6 +72,52 @@ namespace XrEngine.OpenGL
 
             Unbind();
         }
+
+        unsafe byte* IBuffer.Lock(BufferAccessMode mode)
+        {
+            var mask = mode switch
+            {
+                BufferAccessMode.Read => MapBufferAccessMask.ReadBit,
+                BufferAccessMode.Write => MapBufferAccessMask.WriteBit,
+                BufferAccessMode.Replace => MapBufferAccessMask.WriteBit| MapBufferAccessMask.InvalidateBufferBit,
+                BufferAccessMode.ReadWrite => MapBufferAccessMask.ReadBit | MapBufferAccessMask.WriteBit,
+                _ => throw new NotSupportedException()
+            };
+
+            Bind();
+            return (byte*)Map(mask);
+        }
+
+        void IBuffer.Unlock()
+        {
+            Unmap();
+            Unbind();
+        }
+
+        public unsafe void Resize(uint sizeInByte)
+        {
+            var newArrayLen = sizeInByte / (uint)sizeof(T);
+
+            if (_arrayLength == newArrayLen)
+                return;
+
+            Bind();
+            _gl.BufferData(_target, sizeInByte, null, _usage);
+            _arrayLength = newArrayLen;
+            Unbind();
+        }
+
+        //TODO: duplicated
+
+        public unsafe void Allocate(uint length)
+        {
+            if (_arrayLength == length)
+                return;
+
+            _gl.BufferData(_target, (nuint)(length * sizeof(T)), null, _usage);
+            _arrayLength = length;
+        }
+
 
         public unsafe T* Map(MapBufferAccessMask access)
         {
@@ -97,7 +158,10 @@ namespace XrEngine.OpenGL
 
         unsafe void IBuffer.Update(object value)
         {
-            Update((T)value);
+            if (value is T tValue)
+                Update(tValue);
+            else
+                throw new NotSupportedException();
         }
 
         public void Bind()
@@ -122,15 +186,8 @@ namespace XrEngine.OpenGL
             base.Dispose();
         }
 
-        public unsafe void Allocate(uint length)
-        {
-            if (_arrayLength == length)
-                return;
 
-            _gl.BufferData(_target, (nuint)(length * sizeof(T)), null, BufferUsageARB.StreamDraw);
-            _arrayLength = length;
-        }
-
+  
         public string Hash { get; set; }
 
         public long Version { get; set; }

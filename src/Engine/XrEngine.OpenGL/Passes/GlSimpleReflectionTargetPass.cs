@@ -27,7 +27,7 @@ namespace XrEngine.OpenGL
             };
         }
 
-        protected GlLayer CreateEnvLayer(Scene3D scene)
+        protected IGlLayer CreateEnvLayer(Scene3D scene)
         {
             var layer = new DetachedLayer();
 
@@ -42,7 +42,7 @@ namespace XrEngine.OpenGL
             scene.AddChild(env);
 
             layer.Add(env);
-            var glLayer = new GlLayer(_renderer, scene, GlLayerType.Custom, layer);
+            var glLayer = _renderer.AddLayer(scene, GlLayerType.Custom, layer);
             glLayer.Rebuild();
             return glLayer;
         }

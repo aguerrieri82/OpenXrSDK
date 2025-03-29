@@ -83,6 +83,8 @@ namespace XrEngine
         public long ContextVersion;
 
         public long Frame;
+
+        public bool UseInstanceDraw;
     }
 
     public readonly struct ShaderUpdateBuilder : IFeatureList

@@ -47,7 +47,7 @@ void main()
         diffuse = diffuse * texture(uTexture, fUv).rgb;
     #endif
 
-    vec3 viewDirection = normalize(uCamera.position - fPos);
+    vec3 viewDirection = normalize(uCamera.pos - fPos);
     vec3 reflectDirection = reflect(-lightDirection, norm);
     float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);
