@@ -2,7 +2,7 @@
 
 namespace XrEngine
 {
-    public abstract class BaseAutoLayer<T> : BaseLayer<T> where T : ILayer3DItem
+    public abstract class BaseAutoLayer<T> : BaseLayer<T> where T : class, ILayer3DItem
     {
 
         protected void Rebuild()
@@ -12,8 +12,8 @@ namespace XrEngine
 
             foreach (var obj in _manager!.Scene!.Descendants().OfType<T>())
             {
-                if (obj is T tObj && BelongsToLayer(tObj))
-                    Add(tObj);
+                if (BelongsToLayer(obj))
+                    Add(obj);
             }
         }
 

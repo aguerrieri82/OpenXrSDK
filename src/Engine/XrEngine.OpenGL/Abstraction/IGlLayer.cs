@@ -35,5 +35,7 @@ namespace XrEngine.OpenGL
         Scene3D Scene { get; }
 
         long Version { get; }
+
+        bool IsEmpty { get; }
     }
 }

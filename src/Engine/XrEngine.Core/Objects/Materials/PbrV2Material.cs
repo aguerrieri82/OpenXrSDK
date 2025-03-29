@@ -1,5 +1,6 @@
 ﻿using Common.Interop;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Net;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -348,6 +349,8 @@ namespace XrEngine
 
             public bool NeedUpdate(Object3D model, long curVersion)
             {
+                //Get the word matrix trigger the update;
+                var wordMatrix = model.WorldMatrix;
                 return model.Transform.Version != curVersion;
             }
 
@@ -410,6 +413,9 @@ namespace XrEngine
             {
                 bld.LoadBuffer(ctx =>
                 {
+                    //Get the word matrix trigger the update
+                    var modelWord = ctx.Model!.WorldMatrix;
+
                     var curVersion = ctx.Model!.Transform.Version;
                     if (curVersion == ctx.CurrentBuffer!.Version)
                         return null;
@@ -419,7 +425,7 @@ namespace XrEngine
                     return (ModelUniforms?)new ModelUniforms
                     {
                         NormalMatrix = ctx.Model.NormalMatrix,
-                        WorldMatrix = ctx.Model.WorldMatrix
+                        WorldMatrix = modelWord
                     };
                 }, 3, BufferStore.Model);
             }

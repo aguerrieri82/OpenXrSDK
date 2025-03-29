@@ -177,6 +177,7 @@ namespace XrEngine.OpenGL
                 if (material is ITessellationMaterial tes && tes.TessellationMode != TessellationMode.None  )
                 {
                     var size = vrtSrc.Primitive == DrawPrimitive.Quad ? 4 : 3;
+                    //TODO: disbale instance draw
                     draw = () =>
                     {
                         _render.GL.PatchParameter(PatchParameterName.Vertices, size);
@@ -243,6 +244,8 @@ namespace XrEngine.OpenGL
 
                     if (instanceShader != null && instanceShader.UseInstanceDraw)
                     {
+                        var changed = false; 
+
                         if (verContent.InstanceBuffer == null || verContent.InstanceBuffer.Version != verContent.ContentVersion)
                         {
                             //TODO: store in somewhere safe, is unique for material+geometry
@@ -255,28 +258,33 @@ namespace XrEngine.OpenGL
                             verContent.InstanceVersions = new long[verContent.Contents.Count];
 
                             verContent.InstanceBuffer.Version = verContent.ContentVersion;
+
+                            changed = true;
                         }
 
-                        var changed = false;
-                        for (var i = 0; i < verContent.Contents.Count; i++)
+                        if (!changed)
                         {
-                            var obj = verContent.Contents[i].Object!;
-                            if (instanceShader.NeedUpdate(obj, verContent.InstanceVersions[i]))
+                            for (var i = 0; i < verContent.Contents.Count; i++)
                             {
-                                changed = true;
-                                break;
+                                var obj = verContent.Contents[i].Object!;
+                                if (instanceShader.NeedUpdate(obj, verContent.InstanceVersions![i]))
+                                {
+                                    changed = true;
+                                    break;
+                                }
                             }
                         }
-
+                  
                         if (changed)
                         {
                             var elSize = Marshal.SizeOf(instanceShader.InstanceBufferType);
 
-                            var data = verContent.InstanceBuffer.Lock(BufferAccessMode.Replace);
+                            var data = verContent.InstanceBuffer.Lock(BufferAccessMode.Write);
+
                             for (var i = 0; i < verContent.Contents.Count; i++)
                             {
                                 var obj = verContent.Contents[i].Object!;
-                                if (!instanceShader.NeedUpdate(obj, verContent.InstanceVersions[i]))
+                                if (!instanceShader.NeedUpdate(obj, verContent.InstanceVersions![i]))
                                     continue;
                                 var elData = data + i * elSize;
                                 verContent.InstanceVersions[i] = instanceShader.Update(elData, obj);
@@ -367,6 +375,8 @@ namespace XrEngine.OpenGL
         public ILayer3D? SceneLayer => _sceneLayer;
 
         public Scene3D Scene => _scene;
+
+        public bool IsEmpty => _content.Contents.Count == 0;    
 
         public long Version => _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
     }

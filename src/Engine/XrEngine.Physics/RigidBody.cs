@@ -122,7 +122,7 @@ namespace XrEngine.Physics
 
                 result = _system.CreateBox(local.LocalBounds.Size / 2 * scale);
 
-                pose.Position = local.LocalBounds.Center;
+                pose.Position = local.LocalBounds.Center * scale;
             }
             else
             {
@@ -178,7 +178,7 @@ namespace XrEngine.Physics
                 else if (collider is SphereCollider sphere)
                 {
                     result = _system.CreateSphere(sphere.Radius * scale.X);
-                    pose.Position = sphere.Center;
+                    pose.Position = sphere.Center * scale;
                 }
                 else if (collider is CylinderCollider cyl)
                 {
@@ -205,7 +205,7 @@ namespace XrEngine.Physics
                 else if (collider is BoxCollider box)
                 {
                     result = _system.CreateBox(box.Size / 2 * scale);
-                    pose.Position = box.Center;
+                    pose.Position = box.Center * scale;
                 }
             }
 

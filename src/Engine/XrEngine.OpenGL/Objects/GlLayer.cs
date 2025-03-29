@@ -342,6 +342,8 @@ namespace XrEngine.OpenGL
 
         public Scene3D Scene => _scene;
 
+        public bool IsEmpty => _content.ShaderContents.Count == 0;
+
         public long Version => _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
     }
 }

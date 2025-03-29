@@ -1,17 +1,19 @@
 ﻿namespace XrEngine
 {
-    public class OpaqueLayer : BaseAutoLayer<IVertexSource>
+    public class OpaqueLayer : BaseAutoLayer<Object3D>
     {
         public OpaqueLayer()
         {
             Name = "Opaque";
         }
 
-        protected override bool BelongsToLayer(IVertexSource obj)
+        protected override bool BelongsToLayer(Object3D obj)
         {
-            return obj.Materials.
-                    OfType<ShaderMaterial>().
-                    Any(a => a.Alpha != AlphaMode.Blend && a.Alpha != AlphaMode.Mask);
+            var vertSrc = obj.Feature<IVertexSource>(); 
+            return vertSrc != null &&
+                   vertSrc.Materials.
+                        OfType<ShaderMaterial>().
+                        Any(a => a.Alpha != AlphaMode.Blend && a.Alpha != AlphaMode.Mask);
         }
 
         protected override bool AffectChange(ObjectChange change)

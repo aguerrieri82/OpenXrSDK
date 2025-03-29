@@ -23,11 +23,12 @@ namespace XrEditor
               {
                   opt.UsePlanarReflection = true;
                   opt.UseDepthPass = false;
-                  opt.UseHitTest = true;
+                  opt.UseHitTest = false;
                   opt.FrustumCulling = true;
+                  opt.UseLayerV2 = true;
               })
               .SetRenderQuality(1, 2)
-              .CreateCar()
+              .CreateChess()
               .Build();
     }
 }

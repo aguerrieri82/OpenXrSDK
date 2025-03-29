@@ -35,7 +35,11 @@ namespace XrEngine.OpenGL
         protected override bool BeginRender(Camera camera)
         {
             Debug.Assert(_programInstance != null);
+            
+            _renderer.UpdateContext.Stage = UpdateShaderStage.Shader;
+
             UseProgram(_programInstance, false);
+
             return true;
         }
 
