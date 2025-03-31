@@ -21,6 +21,7 @@ namespace XrMath
                 yield return new Vector3(Max.X, Max.Y, Max.Z);
                 yield return new Vector3(Max.X, Min.Y, Max.Z);
             }
+
         }
 
         public readonly Vector3 Size => Max - Min;

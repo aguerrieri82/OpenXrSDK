@@ -13,13 +13,13 @@ namespace XrEngine.OpenGL
         static GlTextureFrameBuffer? _dstFB;
         static GlTextureFrameBuffer? _srcFB;
 
-        static GlTexture GetDepthTexture(GL gl, uint width, uint height, uint arraySize, bool mutable)
+        static GlTexture GetDepthTexture(GL gl, uint width, uint height, uint arraySize, bool mutable, TextureFormat format = TextureFormat.Depth32Stencil8)
         {
             string key;
             if (width == 0 || height == 0)
                 key = "mutable";
             else
-                key = $"{width}x{height}x{arraySize}";
+                key = $"{width}x{height}x{arraySize}x{format}";
 
             if (!_depthTextures.TryGetValue(key, out var tex))
             {
@@ -35,7 +35,7 @@ namespace XrEngine.OpenGL
                 {
                     Width = width,
                     Height = height,
-                    Format = TextureFormat.Depth32Stencil8,
+                    Format = format,
                 };
 
                 tex = new GlTexture(gl)
@@ -117,13 +117,11 @@ namespace XrEngine.OpenGL
 
             var depth = GetDepthTexture(gl, src.Depth!.Width, src.Depth.Height, 1, false);
 
-            _dstFB.Configure(null, depth, 1);
-
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, src.Handle);
             GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, _dstFB.Handle);
 
             gl.BlitFramebuffer(0, 0, (int)src.Depth!.Width, (int)src.Depth.Height,
-                                0, 0, (int)_dstFB.Depth!.Width, (int)_dstFB.Depth.Height,
+                                0, 0, (int)depth.Width, (int)depth.Height,
                                 ClearBufferMask.DepthBufferBit, BlitFramebufferFilter.Nearest);
 
 

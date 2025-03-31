@@ -46,6 +46,7 @@ namespace XrEngine.OpenGL
             BufferTargets.Clear();
             Features.Clear();
             DrawBuffers = null;
+            VertexArray = null;
 
             for (var i = 0; i < TexturesSlots.Length; i++)
                 TexturesSlots[i] = 0;
@@ -97,6 +98,9 @@ namespace XrEngine.OpenGL
 
             if (ClearColor.HasValue)
                 SetClearColor(ClearColor.Value, true);
+
+            if (VertexArray.HasValue)
+                BindVertexArray(VertexArray.Value, true);
 
             foreach (var feature in Features)
                 EnableFeature(feature.Key, feature.Value, true);
@@ -167,6 +171,15 @@ namespace XrEngine.OpenGL
                 _gl.Scissor(value.X, value.Y, value.Width, value.Height);
 
                 View = value;
+            }
+        }
+
+        public void BindVertexArray(uint value, bool force = false)
+        {
+            if (VertexArray != value || force)
+            {
+                _gl.BindVertexArray(value);
+                VertexArray = value;
             }
         }
 
@@ -348,17 +361,20 @@ namespace XrEngine.OpenGL
 
         public void BindFrameBuffer(FramebufferTarget target, uint value, bool force = false)
         {
+      
             if (!FrameBufferTargets.TryGetValue(target, out var cur) || cur != value || force)
             {
                 FrameBufferTargets[target] = value;
-
+                
+       
                 if (target == FramebufferTarget.Framebuffer)
                 {
                     FrameBufferTargets[FramebufferTarget.ReadFramebuffer] = value;
                     FrameBufferTargets[FramebufferTarget.DrawFramebuffer] = value;
                 }
-                else if (FrameBufferTargets.TryGetValue(FramebufferTarget.Framebuffer, out var curValue) && curValue == value)
+                else if (FrameBufferTargets.TryGetValue(FramebufferTarget.Framebuffer, out var curValue) && curValue != value)
                     FrameBufferTargets[FramebufferTarget.Framebuffer] = 0;
+      
 
                 _gl.BindFramebuffer(target, value);
             }
@@ -475,6 +491,8 @@ namespace XrEngine.OpenGL
         public DrawBufferMode[]? DrawBuffers;
 
         public GlStencilFunction? StencilFunc;
+
+        public uint? VertexArray;
 
         public readonly Dictionary<EnableCap, bool> Features = [];
 

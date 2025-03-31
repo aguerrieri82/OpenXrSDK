@@ -54,7 +54,7 @@ namespace XrEngine.OpenGL
 
         protected virtual bool CanDraw(DrawContent draw)
         {
-            if (draw.IsHidden)
+            if (draw.IsHidden || draw.IsClipped)
                 return false;
 
             if (draw.Query != null)
@@ -166,6 +166,9 @@ namespace XrEngine.OpenGL
                         if (vertexContent.IsHidden)
                             continue;
 
+                        if (vertexContent.Contents.All(a => a.IsClipped))
+                            continue;
+
                         var vHandler = vertexContent.VertexHandler!;
 
                         updateContext.ActiveComponents = vertexContent.ActiveComponents;
@@ -199,6 +202,7 @@ namespace XrEngine.OpenGL
                     }
                 }
             }
+            _renderer.State.BindVertexArray(0);
             _renderer.PopGroup();
         }
 

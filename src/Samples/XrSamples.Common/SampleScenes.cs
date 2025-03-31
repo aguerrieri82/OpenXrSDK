@@ -1545,12 +1545,12 @@ namespace XrSamples
 
   
             mesh.AddComponent<BoundsGrabbable>();
-            mesh.Transform.SetPosition(-9, 0, 9);
+            mesh.Transform.SetPosition(-9, 1, 9);
 
-            mesh.Transform.SetPosition(-0.91999996f, 1.2399999f, 0.35000038f);
+            mesh.Transform.SetPosition(-0.91999996f, 0, 0.35000038f);
             mesh.Transform.SetScale(0.1f);
             app.ActiveScene!.AddChild(mesh);
-
+            //app.ActiveScene.AddComponent<DepthMapDebug>();
 
             return builder
                 .UseApp(app)

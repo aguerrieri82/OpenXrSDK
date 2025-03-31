@@ -29,13 +29,13 @@ namespace XrSamples
         {
             return new GameSettings
             { 
-               // SampleName = "DnD",
+                //SampleName = "DnD",
                 Msaa = 1,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = false,
                 UseSpaceWarp = false, 
-                EnableDepthPass = false,
+                EnableDepthPass = true,
                 FrustumCulling = false   
             };
         }

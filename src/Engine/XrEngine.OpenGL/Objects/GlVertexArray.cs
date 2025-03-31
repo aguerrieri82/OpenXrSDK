@@ -96,12 +96,12 @@ namespace XrEngine.OpenGL
 
         public void Bind()
         {
-            _gl.BindVertexArray(_handle);
+            GlState.Current!.BindVertexArray(_handle);
         }
 
         public void Unbind()
         {
-            _gl.BindVertexArray(0);
+            GlState.Current!.BindVertexArray(0);
         }
 
         public override void Dispose()

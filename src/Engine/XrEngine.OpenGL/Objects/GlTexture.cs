@@ -152,6 +152,9 @@ namespace XrEngine.OpenGL
                          _handle, (int)mipLevel);
                 }
 
+                var status = _gl.CheckFramebufferStatus(FramebufferTarget.ReadFramebuffer);
+                if (status != GLEnum.FramebufferComplete)
+                    throw new Exception($"Framebuffer incomplete at mip {mipLevel}: {status}");
 
                 var w = Width >> (int)mipLevel;
                 var h = Height >> (int)mipLevel;
@@ -174,6 +177,8 @@ namespace XrEngine.OpenGL
 
                 using var pData = item.Data.MemoryLock();
 
+                GlState.Current.BindBuffer(BufferTargetARB.PixelPackBuffer, 0);
+
                 _gl.ReadPixels(0, 0, item.Width, item.Height, pixelFormat, pixelType, pData);
 
                 result.Add(item);
@@ -185,6 +190,7 @@ namespace XrEngine.OpenGL
                 _texReadFbId = _gl.GenFramebuffer();
 
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, _texReadFbId);
+            _gl.ReadBuffer(GLEnum.ColorAttachment0);
 
             if (endMipLevel == null)
                 endMipLevel = MaxLevel;
@@ -265,7 +271,7 @@ namespace XrEngine.OpenGL
             {
                 if (MaxLevel > 0)
                 {
-                    var realMax = (uint)MathF.Floor(MathF.Log2(width)) - 1;
+                    var realMax = (uint)MathF.Floor(MathF.Log2(Math.Max(_width, _height)));
                     if (MaxLevel > realMax)
                         MaxLevel = realMax;
                 }
@@ -329,8 +335,7 @@ namespace XrEngine.OpenGL
 
                     foreach (var level in data)
                     {
-                        GlUtils.GetPixelFormat(level.Format, out var pixelFormat, out var pixelType);
-
+         
                         var realTarget = Target == TextureTarget.TextureCubeMap ?
                                              TextureTarget.TextureCubeMapPositiveX + (int)level.Face : Target;
 
@@ -341,6 +346,8 @@ namespace XrEngine.OpenGL
 
                         if (!_isAllocated || pData != null)
                         {
+                            GlUtils.GetPixelFormat(level.Format, out var pixelFormat, out var pixelType);
+
                             if (hasOneLevel && IsMutable)
                             {
                                 if (_depth > 1)
@@ -479,6 +486,8 @@ namespace XrEngine.OpenGL
                 _gl.TexParameter(Target, TextureParameterName.TextureMaxLevel, MaxLevel);
             }
         }
+
+
 
         public void Bind()
         {

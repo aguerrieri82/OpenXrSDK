@@ -28,6 +28,8 @@ namespace XrEngine.OpenGL
 
     public class DrawContent
     {
+        public int Id;
+
         public Object3D? Object;
 
         public Action? Draw;
@@ -40,7 +42,15 @@ namespace XrEngine.OpenGL
 
         public bool IsHidden;
 
+        public bool IsClipped;
+
         public float Distance;
+
+        public long InstanceVersion;
+
+        public bool InstanceChanged;
+
+        public DepthObjectData DepthData;
     }
 
 

@@ -6,6 +6,7 @@ namespace XrEngine.OpenGL
     public abstract class GlBaseSingleMaterialPass : GlBaseRenderPass
     {
         protected GlProgramInstance? _programInstance;
+        protected bool _useInstanceDraw;    
 
         protected enum UpdateProgramResult
         {
@@ -67,6 +68,8 @@ namespace XrEngine.OpenGL
 
             updateContext.UseInstanceDraw = false;
 
+            bool firstUpdate = true;
+
             foreach (var shader in layer.Content.Contents)
             {
                 var shaderContent = shader.Value;
@@ -74,7 +77,8 @@ namespace XrEngine.OpenGL
                 foreach (var material in shaderContent.Contents)
                 {
                     var matContent = material.Value;
-                    if (matContent.IsHidden)
+
+                    if (matContent.IsHidden || !material.Key.WriteDepth)
                         continue;
 
                     updateContext.Stage = UpdateShaderStage.Material;
@@ -86,8 +90,12 @@ namespace XrEngine.OpenGL
                     if (upRes == UpdateProgramResult.Skip)
                         continue;
 
-                    _programInstance.UpdateUniforms(updateContext, upRes == UpdateProgramResult.Changed);
-                    _programInstance.UpdateBuffers(updateContext);
+                    if (firstUpdate || upRes == UpdateProgramResult.Changed)
+                    {
+                        _programInstance.UpdateUniforms(updateContext, upRes == UpdateProgramResult.Changed);
+                        _programInstance.UpdateBuffers(updateContext);
+                        firstUpdate = false;
+                    }
 
                     foreach (var vertex in matContent.Contents)
                     {
@@ -103,24 +111,30 @@ namespace XrEngine.OpenGL
 
                         updateContext.Stage = UpdateShaderStage.Model;
 
-                        foreach (var draw in verContent.Contents)
+                        if (_useInstanceDraw && verContent.Draw != null && verContent.Contents.Any(CanDraw))
+                            verContent.Draw();
+                        else
                         {
-                            if (!CanDraw(draw))
-                                continue;
+                            foreach (var draw in verContent.Contents)
+                            {
+                                if (!CanDraw(draw))
+                                    continue;
 
-                            updateContext.Model = draw.Object;
+                                updateContext.Model = draw.Object;
 
-                            UpdateProgram(updateContext, draw.Object!);
+                                UpdateProgram(updateContext, draw.Object!);
 
-                            _programInstance.UpdateModel(updateContext);
+                                _programInstance.UpdateModel(updateContext);
 
-                            Draw(draw);
+                                Draw(draw);
+                            }
                         }
 
-                        vHandler.Unbind();
+                       //vHandler.Unbind();
                     }
                 }
             }
+            _renderer.State.BindVertexArray(0); 
         }
 
 
@@ -197,5 +211,6 @@ namespace XrEngine.OpenGL
         }
 
         protected bool SortByCameraDistance { get; set; }
+
     }
 }

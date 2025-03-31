@@ -29,6 +29,8 @@ namespace XrEngine.OpenGL
 
         }
 
+
+
         public static void GetPixelFormat(TextureFormat format, out PixelFormat pixelFormat, out PixelType pixelType)
         {
             pixelFormat = format switch
@@ -208,6 +210,14 @@ namespace XrEngine.OpenGL
                 InternalFormat.DepthComponent32 => TextureFormat.Depth32Float,
                 _ => throw new NotSupportedException(),
             };
+        }
+
+        public static bool IsDepthStencil(TextureFormat format)
+        {
+            return format == TextureFormat.Depth24Float ||
+                   format == TextureFormat.Depth32Float ||
+                   format == TextureFormat.Depth24Stencil8 ||
+                   format == TextureFormat.Depth32Stencil8;
         }
 
         public static bool IsDepthStencil(InternalFormat format)

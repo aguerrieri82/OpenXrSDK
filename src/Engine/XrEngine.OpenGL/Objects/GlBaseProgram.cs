@@ -247,6 +247,7 @@ namespace XrEngine.OpenGL
         {
             if (!IsChanged(name, value))
                 return;
+
             _gl.Uniform3(LocateUniform(name, optional), value.X, value.Y, value.Z);
         }
 
@@ -287,6 +288,22 @@ namespace XrEngine.OpenGL
                 _gl.Uniform2(LocateUniform(name, optional), (uint)value.Length, (float*)data);
 
         }
+
+        public unsafe void SetUniform(string name, Vector4[] value, bool optional = false)
+        {
+
+            fixed (Vector4* data = value)
+                _gl.Uniform4(LocateUniform(name, optional), (uint)value.Length, (float*)data);
+        }
+
+        public unsafe void SetUniform(string name, Plane[] value, bool optional = false)
+        {
+
+            fixed (Plane* data = value)
+                _gl.Uniform4(LocateUniform(name, optional), (uint)value.Length, (float*)data);
+        }
+
+
         public void SetUniform(string name, int[] value, bool optional = false)
         {
             if (!IsChanged(name, value))

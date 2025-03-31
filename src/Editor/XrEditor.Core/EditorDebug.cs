@@ -22,9 +22,9 @@ namespace XrEditor
               .SetGlOptions(opt =>
               {
                   opt.UsePlanarReflection = true;
-                  opt.UseDepthPass = false;
+                  opt.UseDepthPass = true;
                   opt.UseHitTest = true;
-                  opt.FrustumCulling = true;
+                  opt.FrustumCulling = false;
                   opt.UseLayerV2 = true;
               })
               .SetRenderQuality(1, 2)

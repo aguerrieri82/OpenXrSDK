@@ -8,7 +8,7 @@ namespace XrEngine
     {
         bool NeedUpdate(Object3D model, long curVersion);
 
-        unsafe long Update(byte* dstData, Object3D model);
+        unsafe long Update(byte* dstData, Object3D model, int drawId);
 
         public Type InstanceBufferType { get; }
 

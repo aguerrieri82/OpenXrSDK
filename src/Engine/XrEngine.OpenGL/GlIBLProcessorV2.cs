@@ -49,7 +49,7 @@ namespace XrEngine.OpenGL
                 MipLevelCount = maxMipLevels;
 
             _panToCubeProg = new GlComputeProgram(_gl,
-                "IblV2/equirect2cube_cs.glsl",
+                "IblV2/equirect2cube_cs.comp",
                 shaderResolver);
 
             _panToCubeProg.Build();
@@ -62,9 +62,9 @@ namespace XrEngine.OpenGL
                 _filterProg[distribution] = prog;
             }
 
-            AddFilter("IblV2/irmap_cs.glsl", Distribution.Irradiance);
-            AddFilter("IblV2/spbrdf_cs.glsl", Distribution.GGXLut);
-            AddFilter("IblV2/spmap_cs.glsl", Distribution.GGX);
+            AddFilter("IblV2/irmap_cs.comp", Distribution.Irradiance);
+            AddFilter("IblV2/spbrdf_cs.comp", Distribution.GGXLut);
+            AddFilter("IblV2/spmap_cs.comp", Distribution.GGX);
         }
 
         public void PanoramaToCubeMap()
@@ -140,7 +140,7 @@ namespace XrEngine.OpenGL
 
                 _gl.DispatchCompute(steps, steps, distribution == Distribution.GGXLut ? 1u : 6u);
 
-                _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit);
+                _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit | MemoryBarrierMask.FramebufferBarrierBit);
 
                 res = res >> 1;
 

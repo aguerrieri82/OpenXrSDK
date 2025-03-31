@@ -1,0 +1,17 @@
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(binding = 0, r32f) uniform highp image2D src;
+layout(binding = 1, r32f) restrict writeonly uniform highp image2D dst;
+
+void main() {
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 base = gid * 2;
+
+    float d0 = imageLoad(src, base + ivec2(0, 0)).r;
+    float d1 = imageLoad(src, base + ivec2(1, 0)).r;
+    float d2 = imageLoad(src, base + ivec2(0, 1)).r;
+    float d3 = imageLoad(src, base + ivec2(1, 1)).r;
+
+    float maxDepth = max(max(d0, d1), max(d2, d3));
+    imageStore(dst, gid, vec4(maxDepth));
+}

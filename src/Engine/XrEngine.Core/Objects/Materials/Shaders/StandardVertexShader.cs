@@ -1,7 +1,10 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace XrEngine
 {
+
     public class StandardVertexShader : Shader, IShaderHandler
     {
         public StandardVertexShader()
@@ -25,11 +28,23 @@ namespace XrEngine
 
         protected virtual void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-            bld.ExecuteAction((ctx, up) =>
+            bld.LoadBuffer(ctx =>
             {
-                up.SetUniform("uNormalMatrix", ctx.Model!.NormalMatrix);
-                up.SetUniform("uModel", ctx.Model!.WorldMatrix);
-            });
+                //Get the word matrix trigger the update
+                var modelWord = ctx.Model!.WorldMatrix;
+
+                var curVersion = ctx.Model!.Transform.Version;
+                if (curVersion == ctx.CurrentBuffer!.Version)
+                    return null;
+
+                ctx.CurrentBuffer!.Version = curVersion;
+
+                return (ModelUniforms?)new ModelUniforms
+                {
+                    NormalMatrix = ctx.Model.NormalMatrix,
+                    WorldMatrix = modelWord
+                };
+            }, 3, BufferStore.Model);
         }
 
         protected virtual void UpdateShaderGlobal(ShaderUpdateBuilder bld)

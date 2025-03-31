@@ -158,7 +158,7 @@ namespace XrEngine.OpenGL
             if (_emptyVertexArray == 0)
                 _emptyVertexArray = _gl.GenVertexArray();
 
-            _gl.BindVertexArray(_emptyVertexArray);
+            _renderer.State.BindVertexArray(_emptyVertexArray);
             _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
         }
 

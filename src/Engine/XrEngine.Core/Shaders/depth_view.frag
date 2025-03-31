@@ -5,18 +5,13 @@ in vec2 fUv;
 
 layout(location=0) out vec4 FragColor;
 
-
-
 #ifdef LINEARIZE 
-
-
 
 float linearizeDepth(float depth)
 {
     float z = depth * 2.0 - 1.0;
     return (2.0 * uCamera.nearPlane * uCamera.farPlane) / (uCamera.farPlane + uCamera.nearPlane - z * (uCamera.farPlane - uCamera.nearPlane));
 }
-
 
 #endif  
 

@@ -1,0 +1,105 @@
+layout(local_size_x = 64) in;
+
+struct ObjectData {
+    vec3 bboxMax;
+    vec3 bboxMin;
+    vec2 extent;
+    bool visibility;
+    bool culled;
+    vec3 depthSample;
+    uint drawId;
+};
+
+layout(std430, binding = 0) buffer ObjectBuffer {
+    ObjectData objects[];
+};
+
+layout(binding = 0) uniform sampler2D depthPyramid; // mip level sampled via LOD
+
+
+uniform mat4 viewProj;
+uniform vec2 screenSize;
+uniform int maxMip;
+uniform vec4 planes[6];
+
+bool aabbOutsideFrustum(vec3 minB, vec3 maxB) {
+  for (int i = 0; i < 6; ++i) {
+        vec3 n = planes[i].xyz;
+        float d = planes[i].w;
+
+        // Most positive vertex in the direction of the plane normal
+        vec3 pVertex = vec3(
+            n.x >= 0.0 ? maxB.x : minB.x,
+            n.y >= 0.0 ? maxB.y : minB.y,
+            n.z >= 0.0 ? maxB.z : minB.z
+        );
+
+        // If this vertex is outside, the whole box is outside
+        if (dot(n, pVertex) + d < 0.0)
+            return true;
+    }
+    return false;
+}
+
+
+bool isVisible(uint id, vec3 bboxMin, vec3 bboxMax){
+
+
+    vec3 corners[8];
+
+    corners[0] = vec3(bboxMin.x, bboxMin.y, bboxMin.z);
+    corners[1] = vec3(bboxMax.x, bboxMin.y, bboxMin.z);
+    corners[2] = vec3(bboxMin.x, bboxMax.y, bboxMin.z);
+    corners[3] = vec3(bboxMax.x, bboxMax.y, bboxMin.z);
+    corners[4] = vec3(bboxMin.x, bboxMin.y, bboxMax.z);
+    corners[5] = vec3(bboxMax.x, bboxMin.y, bboxMax.z);
+    corners[6] = vec3(bboxMin.x, bboxMax.y, bboxMax.z);
+    corners[7] = vec3(bboxMax.x, bboxMax.y, bboxMax.z);
+
+    vec2 minUV = vec2(1.0), maxUV = vec2(0.0);
+    float minZ = 1.0;
+
+    for (int i = 0; i < 8; ++i) {
+        vec4 clip = viewProj * vec4(corners[i], 1.0);
+        vec3 ndc = clip.xyz / clip.w;
+        vec3 norm = ndc * 0.5 + 0.5;
+        minUV = min(minUV, norm.xy);
+        maxUV = max(maxUV, norm.xy);
+        minZ = min(minZ, norm.z); 
+    }
+
+    // Choose mip level based on projected size
+    vec2 extent = maxUV - minUV;
+    float maxExtent = max(extent.x * screenSize.x, extent.y * screenSize.y);
+    float mip = floor(log2(maxExtent));
+    mip = clamp(mip, 0.0, float(maxMip));
+    vec2 sampleUV =  0.5 * (minUV + maxUV);
+
+    // Sample max depth in region
+    float maxDepth = textureLod(depthPyramid, sampleUV, mip).r;
+    
+    objects[id].extent = extent * screenSize;
+    objects[id].depthSample = vec3(sampleUV, mip);
+
+    return (minZ < maxDepth);
+}
+
+void main() {
+
+    uint id = gl_GlobalInvocationID.x;
+    
+    objects[id].drawId = id;
+
+    if (id >= uint(objects.length())) 
+        return;    
+        
+    vec3 bboxMin = objects[id].bboxMin;
+    vec3 bboxMax = objects[id].bboxMax;
+
+    bool culled = aabbOutsideFrustum(bboxMin, bboxMax);
+    bool visible = isVisible(id, bboxMin, bboxMax);
+
+    objects[id].culled = culled;
+    objects[id].visibility = visible;
+
+}

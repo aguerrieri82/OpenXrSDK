@@ -18,11 +18,7 @@ namespace XrEngine.OpenGL
         public bool IsHidden;
     }
 
-    public struct VertexInstanceData
-    {
-        public long Version;    
-        public bool IsChanged;  
-    }
+
 
     public class VertexContentV2
     {
@@ -39,8 +35,6 @@ namespace XrEngine.OpenGL
         public long ContentVersion;
 
         public Action? Draw;
-
-        public VertexInstanceData[]? InstanceData;
     }
 
     public class RenderContentV2

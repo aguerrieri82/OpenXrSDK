@@ -129,19 +129,6 @@ namespace XrEngine
 
         #endregion
 
-        #region ModelUniforms
-
-        [StructLayout(LayoutKind.Explicit, Size = 128)]
-        public struct ModelUniforms
-        {
-            [FieldOffset(0)]
-            public Matrix4x4 WorldMatrix;
-
-            [FieldOffset(64)]
-            public Matrix4x4 NormalMatrix;
-        }
-
-        #endregion
 
         #region PbrV2Shader
 
@@ -152,7 +139,8 @@ namespace XrEngine
 
             public PbrV2Shader()
             {
-                UseInstanceDraw = true; 
+                UseInstanceDraw = true;
+                UseDepthCulling = true;
             }
 
             public bool NeedUpdateShader(UpdateShaderContext ctx)
@@ -176,6 +164,19 @@ namespace XrEngine
 
                 if (UseInstanceDraw && bld.Context.UseInstanceDraw)
                     bld.AddFeature("USE_INSTANCE");
+
+                if (UseDepthCulling && bld.Context.DepthCullProvider?.IsActive == true)
+                {
+                    bld.AddFeature("USE_DEPTH_CULL");
+
+                    bld.ExecuteAction((ctx, up) =>
+                    {
+                        up.LoadBuffer(ctx.DepthCullProvider!.DepthCullBuffer, 0);
+                    });
+                }
+
+                bld.AddFeature("USE_CAMERA_POS");
+
 
                 if (hasPunctual)
                     bld.AddFeature("USE_PUNCTUAL");
@@ -354,12 +355,13 @@ namespace XrEngine
                 return model.Transform.Version != curVersion;
             }
 
-            public unsafe long Update(byte* destData, Object3D model)
+            public unsafe long Update(byte* destData, Object3D model, int drawId)
             {
                 *(ModelUniforms*)destData =  new ModelUniforms
                 {
                     NormalMatrix = model.NormalMatrix,
-                    WorldMatrix = model.WorldMatrix
+                    WorldMatrix = model.WorldMatrix,
+                    DrawId = drawId
                 };
                 return model.Transform.Version; 
             }
@@ -367,6 +369,8 @@ namespace XrEngine
             public Type InstanceBufferType => typeof(ModelUniforms);
 
             public bool UseInstanceDraw { get; set; }
+
+            public bool UseDepthCulling { get; set; }
 
             public float DepthNoiseFactor { get; set; }
 
@@ -383,7 +387,7 @@ namespace XrEngine
             SHADER = new PbrV2Shader
             {
                 FragmentSourceName = "PbrV2/pbr_fs.glsl",
-                VertexSourceName = "PbrV2/pbr_vs.glsl",
+                VertexSourceName = "standard.vert",
                 TessControlSourceName = "Shared/height_map.tesc",
                 TessEvalSourceName = "Shared/height_map.tese",
                 GeometrySourceName = "Shared/height_map.geom",

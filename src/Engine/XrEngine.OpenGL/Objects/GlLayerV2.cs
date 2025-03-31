@@ -281,8 +281,6 @@ namespace XrEngine.OpenGL
 
                 verContent.InstanceBuffer.Allocate((uint)(elSize * verContent.Contents.Count));
                 verContent.InstanceBuffer.Version = verContent.ContentVersion;
-
-                verContent.InstanceData = new VertexInstanceData[verContent.Contents.Count];
                 
                 mode = InstanceBufferMode.UpdateAlways;
             }
@@ -291,10 +289,10 @@ namespace XrEngine.OpenGL
             {
                 for (var i = 0; i < verContent.Contents.Count; i++)
                 {
-                    var obj = verContent.Contents[i].Object!;
-                    if (instanceShader.NeedUpdate(obj, verContent.InstanceData![i].Version))
+                    var draw = verContent.Contents[i]!;
+                    if (instanceShader.NeedUpdate(draw.Object!, draw.InstanceVersion))
                     {
-                        verContent.InstanceData![i].IsChanged = true;
+                        draw.InstanceChanged = true;
                         changedCount++;
                         if (mode == InstanceBufferMode.UpdateAllWhenChanged)
                             break;
@@ -319,8 +317,8 @@ namespace XrEngine.OpenGL
 
                 for (var i = 0; i < verContent.Contents.Count; i++)
                 {
-                    var obj = verContent.Contents[i].Object!;
-                    verContent.InstanceData![i].Version = instanceShader.Update(data, obj);
+                    var draw = verContent.Contents[i];
+                    draw.InstanceVersion = instanceShader.Update(data, draw.Object!, draw.Id);
                     data += elSize;
                 }
 
@@ -334,12 +332,12 @@ namespace XrEngine.OpenGL
 
                 for (var i = 0; i < verContent.Contents.Count; i++)
                 {
-                    if (!verContent.InstanceData![i].IsChanged)
+                    var draw = verContent.Contents[i];
+
+                    if (!draw.InstanceChanged)
                         continue;
 
-                    var obj = verContent.Contents[i].Object!;
-
-                    verContent.InstanceData![i].Version = instanceShader.Update(buffer, obj);
+                    draw.InstanceVersion = instanceShader.Update(buffer, draw.Object!, draw.Id);
                     verContent.InstanceBuffer!.UpdateRange(new ReadOnlySpan<byte>(buffer, elSize), i);
                 }
 

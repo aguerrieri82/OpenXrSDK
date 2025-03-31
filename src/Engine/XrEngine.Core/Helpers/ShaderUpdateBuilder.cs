@@ -80,6 +80,8 @@ namespace XrEngine
 
         public IRenderPass? Pass;
 
+        public IDepthCullProvider? DepthCullProvider;
+
         public long ContextVersion;
 
         public long Frame;

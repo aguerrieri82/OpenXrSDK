@@ -61,7 +61,8 @@ namespace XrEngine.OpenGL
                 else
                 {
                     var singleView = new GlTextureRenderTarget(_gl);
-                    if (sampleCount > 0)
+
+                    if (sampleCount == 1 && !OpenGLRender.Current!.Options.UseDepthPass)
                     {
                         var renderBuf = new GlRenderBuffer(_gl);
                         var intFormat = GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);

@@ -67,7 +67,7 @@ namespace XrEngine.OpenGL
             _glState = state;
             _gl = gl;
             _options = options;
-            _defaultTarget = new GlDefaultRenderTarget(gl);
+            _defaultTarget = new GlDefaultRenderTarget(gl,!options.UseDepthPass);
             _lastLayersVersion = -1;
             _target = _defaultTarget;
 
@@ -87,10 +87,12 @@ namespace XrEngine.OpenGL
 
             if (_options.UseDepthPass)
             {
-                _renderPasses.Add(new GlDepthPass(this)
+                var depthPass = new GlDepthPass(this)
                 {
-                    UseOcclusion = _options.UseOcclusionQuery
-                });
+                    UseOcclusionQuery = _options.UseOcclusionQuery
+                };
+                _renderPasses.Add(depthPass);
+                _updateCtx.DepthCullProvider = depthPass;   
             }
 
             if (_options.UsePlanarReflection)
@@ -146,11 +148,11 @@ namespace XrEngine.OpenGL
 
                    if (sev == GLEnum.DebugSeverityNotification)
                        return;
-               
-                   Debug.WriteLine($"\n\n\n");
-                   Debug.WriteLine($"------ OPENGL: {text}");
-                   Debug.WriteLine($"\n\n\n");
-            
+
+                   // Debug.WriteLine($"\n\n\n");
+                   // Debug.WriteLine($"------ OPENGL: {text}");
+                   //Debug.WriteLine($"\n\n\n");
+
                }
                catch
                {
@@ -436,7 +438,7 @@ namespace XrEngine.OpenGL
             _glState.EnableFeature(EnableCap.ProgramPointSize, false, true);
             _glState.BindTexture(TextureTarget.Texture2D, 0, true);
 
-            _gl.BindVertexArray(0);
+            _glState.BindVertexArray(0);
 
             _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
             _gl.BindSampler(0, 0);
@@ -620,7 +622,11 @@ namespace XrEngine.OpenGL
             EnsureThread();
 
             var glTex = texture.ToGlTexture();
-            return glTex.Read(format, startMipLevel, endMipLevel);
+            
+            PushGroup($"ReadTexture {glTex.Handle}");
+            var data = glTex.Read(format, startMipLevel, endMipLevel);
+            PopGroup();
+            return data;
         }
 
         public Texture2D? GetShadowMap()
@@ -703,7 +709,7 @@ namespace XrEngine.OpenGL
         {
             if (!_computePrograms.TryGetValue("Kernel3x3", out var program))
             {
-                program = new GlComputeProgram(_gl, "Image/Kernel3x3.glsl", str => Embedded.GetString<Material>(str));
+                program = new GlComputeProgram(_gl, "Image/Kernel3x3.comp", str => Embedded.GetString<Material>(str));
                 program.Build();
                 _computePrograms["Kernel3x3"] = program;
             }

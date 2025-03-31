@@ -16,3 +16,8 @@ layout(std140, binding=0) uniform Camera
 	mat4 proj;
 } uCamera;
 
+layout(std140, binding = 3) uniform Model
+{
+	mat4 worldMatrix;
+	mat4 normalMatrix;
+} uModel;

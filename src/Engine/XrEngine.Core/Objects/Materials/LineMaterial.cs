@@ -25,7 +25,7 @@
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-            bld.SetUniform("uModel", (ctx) => ctx.Model!.WorldMatrix);
+            bld.SetUniform("uWorldMatrix", (ctx) => ctx.Model!.WorldMatrix);
 
         }
 

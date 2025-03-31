@@ -80,7 +80,7 @@ namespace XrEngine.OpenXr
             glState.SetWriteDepth(false);
             glState.SetAlphaMode(AlphaMode.Opaque);
 
-            _gl.BindVertexArray(_emptyVertexArray);
+            glState.BindVertexArray(_emptyVertexArray);
             _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
 
             var fb = (GlTextureFrameBuffer)((IGlFrameBufferProvider)_target.RenderTarget).FrameBuffer;
