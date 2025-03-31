@@ -199,6 +199,7 @@ namespace XrSamples
 
 
                 var pbr = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+                pbr.Simplified = true;
                 //pbr.Alpha = AlphaMode.Blend;
 
                 if (impMat.ps.name == "glTF/PbrMetallicRoughness")
@@ -598,6 +599,7 @@ namespace XrSamples
             foreach (var draw in draws!)
                 res.AddChild(ProcessDraw(draw));
 
+            /*
             var totIdex = res.Children.OfType<TriangleMesh>().Sum(a => a.Geometry.Indices.Length);  
 
 
@@ -618,15 +620,14 @@ namespace XrSamples
                 })
                 .OrderByDescending(a => a.count)
                 .ToArray();
+            */
 
             GroupDraws(res);
-
-
-            
 
             return res;
         }
 
+        public IEnumerable<PbrV2Material> Materials => _materials.Values.OfType<PbrV2Material>();   
 
         public bool FlipZ { get; set; } = true;
     }

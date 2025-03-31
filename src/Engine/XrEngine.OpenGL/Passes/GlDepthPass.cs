@@ -19,13 +19,14 @@ namespace XrEngine.OpenGL
         GlComputeProgram _depthPyramid;
         GlComputeProgram _depthCull;
         GlTexture? _depthTexture;
-        GlBuffer<DepthObjectData> _depthData;    
+        GlBuffer<DepthObjectData> _depthData;
+        private long _lastContentVersion;
 
         public GlDepthPass(OpenGLRender renderer)
             : base(renderer)
         {
             UseOcclusionQuery = true;
-            UseDepthCull = true;
+            UseDepthCull = false;
             OnlyLargeOccluder = true;
 
             _useInstanceDraw = true;
@@ -37,6 +38,8 @@ namespace XrEngine.OpenGL
             _depthCull.Build();
 
             _depthData = new GlBuffer<DepthObjectData>(renderer.GL, BufferTargetARB.ShaderStorageBuffer);
+
+            _lastContentVersion = -1;
         }
 
         protected override bool BeginRender(Camera camera)
@@ -163,38 +166,46 @@ namespace XrEngine.OpenGL
 
         protected unsafe void UpdateVisibility()
         {
-            var draws = SelectLayers().OfType<GlLayerV2>()
-            .SelectMany(a => a.Content.Contents.Values)
-            .SelectMany(a => a.Contents.Values)
-            .SelectMany(a => a.Contents.Values)
-            .SelectMany(a => a.Contents);
+            var contVersion = SelectLayers().OfType<GlLayerV2>().Sum(a => a.Version);
 
-            var count = draws.Count();
-            if (count != _depthData.ArrayLength)
-                _depthData.Allocate((uint)(sizeof(DepthObjectData) * count));
-            
-            var pData = _depthData.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
-            
-            var i = 0;
-            foreach (var draw in draws)
+            if (contVersion != _lastContentVersion)
             {
-                var bounds = draw.Object!.WorldBounds;
-                pData[i].BoundsMin = bounds.Min;
-                pData[i].BoundsMax = bounds.Max;
-                pData[i].IsVisible = true;
-                pData[i].IsCulled = false;
-                pData[i].Extent = Vector2.One;
+                var draws = SelectLayers().OfType<GlLayerV2>()
+                   .SelectMany(a => a.Content.Contents.Values)
+                   .SelectMany(a => a.Contents.Values)
+                   .SelectMany(a => a.Contents.Values)
+                   .SelectMany(a => a.Contents);
 
-                if (draw.Id != i)
+                var count = draws.Count();
+                if (count != _depthData.ArrayLength)
+                    _depthData.Allocate((uint)(sizeof(DepthObjectData) * count));
+
+                var pData = _depthData.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+
+                var i = 0;
+                foreach (var draw in draws)
                 {
-                    draw.Id = i;
-                    draw.InstanceVersion = -1;
+                    var bounds = draw.Object!.WorldBounds;
+                    pData[i].BoundsMin = bounds.Min;
+                    pData[i].BoundsMax = bounds.Max;
+                    pData[i].IsVisible = true;
+                    pData[i].IsCulled = false;
+                    pData[i].Extent = Vector2.One;
+
+                    if (draw.Id != i)
+                    {
+                        draw.Id = i;
+                        draw.InstanceVersion = -1;
+                    }
+
+                    i++;
                 }
 
-                i++;
-            }
+                _depthData.Unmap();
 
-            _depthData.Unmap();
+                _lastContentVersion = contVersion;  
+            }
+           
 
             _depthCull.Use();
 
@@ -209,12 +220,14 @@ namespace XrEngine.OpenGL
             _depthCull.SetUniform("screenSize", new Vector2(camera.ViewSize.Width, camera.ViewSize.Height));
             _depthCull.SetUniform("maxMip", (int)_depthTexture!.MaxLevel);
             _depthCull.SetUniform("planes", planes);
-            var groupsX = (count + 63) / 64;
+
+            var groupsX = (_depthData.ArrayLength + 63) / 64;
 
             _gl.DispatchCompute((uint)groupsX, 1, 1);
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit);
 
+            /*
             pData = _depthData.Map(MapBufferAccessMask.ReadBit);
 
             i = -1;
@@ -230,6 +243,8 @@ namespace XrEngine.OpenGL
             }
 
             _depthData.Unmap();
+            */
+
             _renderer.State.SetActiveProgram(0);
         }
 

@@ -61,7 +61,7 @@ uniform vec3 uIblColor;
 
 
 #ifdef USE_IBL_TRANSFORM
-uniform mat3 uIblTransform;
+	uniform mat3 uIblTransform;
 #endif
 
 
@@ -153,28 +153,31 @@ void main()
 
 	vec3 albedo = baseColor.rgb;
 
-	#ifdef USE_METALROUGHNESS_MAP
+	#ifndef SIMPLIFIED
 
-		vec4 mr = texture(metalroughnessTexture, fUv);
-		float metalness = clamp(mr.b * uMaterial.metalness, 0.0, 1.0);
-		float roughness = clamp(mr.g * uMaterial.roughness, 0.0, 1.0);
+		#ifdef USE_METALROUGHNESS_MAP
 
-	#elif defined(USE_SPECULAR_MAP)
+			vec4 mr = texture(metalroughnessTexture, fUv);
+			float metalness = clamp(mr.b * uMaterial.metalness, 0.0, 1.0);
+			float roughness = clamp(mr.g * uMaterial.roughness, 0.0, 1.0);
 
-		vec4 sp = texture(metalroughnessTexture, fUv);
-		float roughness = clamp((1.0 - sp.r) * uMaterial.roughness, 0.0, 1.0);
-		float metalness = uMaterial.metalness;
-	#else
+		#elif defined(USE_SPECULAR_MAP)
 
-		float metalness = uMaterial.metalness;
-		float roughness = uMaterial.roughness;
+			vec4 sp = texture(metalroughnessTexture, fUv);
+			float roughness = clamp((1.0 - sp.r) * uMaterial.roughness, 0.0, 1.0);
+			float metalness = uMaterial.metalness;
+		#else
+
+			float metalness = uMaterial.metalness;
+			float roughness = uMaterial.roughness;
+		#endif
 	#endif
 
 	// Outgoing light direction (vector from world-space fragment position to the "eye").
 	vec3 Lo = normalize(fCameraPos - fPos);
 
 	// Get current fragment's normal and transform to world space.
-	#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) 
+	#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) && !defined(SIMPLIFIED)
 
 		#ifdef NORMAL_MAP_BC3
 
@@ -195,7 +198,6 @@ void main()
 			//vec3 N = vec3(normalXY, normalZ);
 
 		#else
-		
 			vec3 N = normalize(2.0 * texture(normalTexture, fUv).rgb - 1.0);	
 		#endif
 
@@ -205,22 +207,27 @@ void main()
 
 		#ifdef DOUBLE_SIDED
 
-		if (!gl_FrontFacing) 
-		{
-			TBN[0] = -TBN[0]; // Flip tangent
-			TBN[1] = -TBN[1]; // Flip bitangent
-			TBN[2] = -TBN[2]; // Flip normal
-		}
+			if (!gl_FrontFacing) 
+			{
+				TBN[0] = -TBN[0]; // Flip tangent
+				TBN[1] = -TBN[1]; // Flip bitangent
+				TBN[2] = -TBN[2]; // Flip normal
+			}
 		
 		#endif
 
 		N = normalize(TBN * N);
 
 	#else
-		vec3 N = normalize(fNormal);
+		#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
+			vec3 N = fTangentBasis[0];
+		#else	
+			vec3 N = normalize(fNormal);
+		#endif
+
 		#ifdef DOUBLE_SIDED
-		if (!gl_FrontFacing)
-			N = -N;
+			if (!gl_FrontFacing)
+				N = -N;
 		#endif
 	#endif
 
@@ -231,68 +238,80 @@ void main()
 	// Specular reflection vector.
 	vec3 Lr = reflect(-Lo, N);
 
+#ifndef SIMPLIFIED
 	// Fresnel reflectance at normal incidence (for metals use albedo color).
 	vec3 F0 = mix(Fdielectric, albedo, metalness);
+#endif
 
 	// Direct lighting calculation for analytical lights.
 	vec3 directLighting = vec3(0);
-	for(uint i = 0u; i < uLights.count; ++i)
-	{
-		vec3 Li;
-		float attenuation = 1.0; // Default attenuation
 
-		if(uLights.lights[i].type == 0u)
+	#ifdef USE_PUNCTUAL
+
+		for(uint i = 0u; i < uLights.count; ++i)
 		{
-			// Point light.
-			vec3 lightDir = uLights.lights[i].position - fPos;
-			float distance = length(lightDir);
-			Li = normalize(lightDir);
+			vec3 Li;
+			float attenuation = 1.0; // Default attenuation
 
-			float range = uLights.lights[i].radius;
-		    float smoothFactor = clamp((range - distance) / range, 0.0, 1.0);
-			attenuation = smoothFactor * smoothFactor;
-		}
-		else
-		{
-			// Directional light.
-			Li = -uLights.lights[i].direction;
-			shadowLightDir = Li;
-		}
+			if (uLights.lights[i].type == 0u)
+			{
+				// Point light.
+				vec3 lightDir = uLights.lights[i].position - fPos;
+				float distance = length(lightDir);
+				Li = normalize(lightDir);
 
-		vec3 Lradiance = uLights.lights[i].radiance * attenuation;
+				// Optional smooth range falloff to 0
+				float range = uLights.lights[i].radius;
+				float smoothFactor = clamp((range - distance) / range, 0.0, 1.0);
+				attenuation = smoothFactor * smoothFactor;
+			}
+			else
+			{
+				// Directional light.
+				Li = -uLights.lights[i].direction;
+				shadowLightDir = Li;
+			}
 
-		// Half-vector between Li and Lo.
-		vec3 Lh = normalize(Li + Lo);
+			vec3 Lradiance = uLights.lights[i].radiance * attenuation;
 
-		// Calculate angles between surface normal and various light vectors.
-		float cosLi = max(0.0, dot(N, Li));
-		float cosLh = max(0.0, dot(N, Lh));
+			// Calculate angles between surface normal and various light vectors.
+			float cosLi = max(0.0, dot(N, Li));
 
-		// Calculate Fresnel term for direct lighting. 
-		float cosTheta = clamp(dot(Lh, Lo), 0.0, 1.0);
-		vec3 F  = fresnelSchlickRoughness(F0, cosTheta, roughness);
+			#ifdef SIMPLIFIED
+				directLighting += albedo * Lradiance * cosLi;
+			#else
 
-		// Calculate normal distribution for specular BRDF.
+				// Half-vector between Li and Lo.
+				vec3 Lh = normalize(Li + Lo);
+				float cosLh = max(0.0, dot(N, Lh));
+
+				// Calculate Fresnel term for direct lighting. 
+				float cosTheta = clamp(dot(Lh, Lo), 0.0, 1.0);
+				vec3 F  = fresnelSchlickRoughness(F0, cosTheta, roughness);
+
+				// Calculate normal distribution for specular BRDF.
 		
-		float D = ndfGGX(cosLh, roughness);
+				float D = ndfGGX(cosLh, roughness);
 		
-		// Calculate geometric attenuation for specular BRDF.
-		float G = gaSchlickGGX(cosLi, cosLo, roughness);
+				// Calculate geometric attenuation for specular BRDF.
+				float G = gaSchlickGGX(cosLi, cosLo, roughness);
 
-		// Diffuse scattering happens due to light being refracted multiple times by a dielectric medium.
-		// Metals on the other hand either reflect or absorb energy, so diffuse contribution is always zero.
-		// To be energy conserving we must scale diffuse BRDF contribution based on Fresnel factor & metalness.
-		vec3 kd = mix(vec3(1.0) - F, vec3(0.0), metalness);
+				// Diffuse scattering happens due to light being refracted multiple times by a dielectric medium.
+				// Metals on the other hand either reflect or absorb energy, so diffuse contribution is always zero.
+				// To be energy conserving we must scale diffuse BRDF contribution based on Fresnel factor & metalness.
+				vec3 kd = mix(vec3(1.0) - F, vec3(0.0), metalness);
 
-		// Lambert diffuse BRDF.
-		vec3 diffuseBRDF = kd * albedo;
+				// Lambert diffuse BRDF.
+				vec3 diffuseBRDF = kd * albedo;
 
-		// Cook-Torrance specular microfacet BRDF.
-		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * cosLo);
+				// Cook-Torrance specular microfacet BRDF.
+				vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * cosLo);
 
-		// Total contribution for this light.
-		directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
-	}
+				// Total contribution for this light.
+				directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
+			#endif
+		}
+	#endif	
 
 	// Ambient lighting (IBL).
 	vec3 ambientLighting;
@@ -308,35 +327,44 @@ void main()
 
 		vec3 irradiance = texture(irradianceTexture, irradianceVec).rgb * uIblIntensity * uIblColor;
 
-		// Calculate Fresnel term for ambient lighting.
-		// Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
-		// use cosLo instead of angle with light's half-vector (cosLh above).
-		// See: https://seblagarde.wordpress.com/2011/08/17/hello-world/
-		vec3 F = fresnelSchlick(F0, cosLo);
+		#ifdef SIMPLIFIED
 
-		// Get diffuse contribution factor (as with direct lighting).
-		vec3 kd = mix(vec3(1.0) - F, vec3(0.0), metalness);
+			vec3 diffuseIBL = albedo * irradiance;
+			ambientLighting = diffuseIBL;
 
-		// Irradiance map contains exitant radiance assuming Lambertian BRDF, no need to scale by 1/PI here either.
-		vec3 diffuseIBL = kd * albedo * irradiance;
+		#else
+			// Calculate Fresnel term for ambient lighting.
+			// Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
+			// use cosLo instead of angle with light's half-vector (cosLh above).
+			// See: https://seblagarde.wordpress.com/2011/08/17/hello-world/
+			vec3 F = fresnelSchlick(F0, cosLo);
 
-		// Sample pre-filtered specular reflection environment at correct mipmap level.
-		//int specularTextureLevels = textureQueryLevels(specularTexture);
-		vec3 specularVec = Lr;
-		#ifdef USE_IBL_TRANSFORM
-			specularVec *= uIblTransform;
-		#endif
-		vec3 specularIrradiance = textureLod(specularTexture, specularVec, roughness * uSpecularTextureLevels).rgb * uIblIntensity;
+			// Get diffuse contribution factor (as with direct lighting).
+			vec3 kd = mix(vec3(1.0) - F, vec3(0.0), metalness);
 
-		// Split-sum approximation factors for Cook-Torrance specular BRDF.
-		vec2 specularBRDF = texture(specularBRDF_LUT, vec2(cosLo, roughness)).rg;
+			// Irradiance map contains exitant radiance assuming Lambertian BRDF, no need to scale by 1/PI here either.
+			vec3 diffuseIBL = kd * albedo * irradiance;
 
-		// Total specular IBL contribution.
-		vec3 specularIBL = (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;
+			// Sample pre-filtered specular reflection environment at correct mipmap level.
+			//int specularTextureLevels = textureQueryLevels(specularTexture);
+			vec3 specularVec = Lr;
+			#ifdef USE_IBL_TRANSFORM
+				specularVec *= uIblTransform;
+			#endif
+			vec3 specularIrradiance = textureLod(specularTexture, specularVec, roughness * uSpecularTextureLevels).rgb * uIblIntensity;
 
-		// Total ambient lighting contribution.
-		ambientLighting = diffuseIBL + specularIBL;
+			// Split-sum approximation factors for Cook-Torrance specular BRDF.
+			vec2 specularBRDF = texture(specularBRDF_LUT, vec2(cosLo, roughness)).rg;
+
+			// Total specular IBL contribution.
+			vec3 specularIBL = (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;
+
+			// Total ambient lighting contribution.
+			ambientLighting = diffuseIBL + specularIBL;
+
+		#endif 
 	}
+
 	#endif
 
 	vec3 color3 = (directLighting + ambientLighting);

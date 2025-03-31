@@ -482,6 +482,9 @@ namespace XrEngine
 
             bld.AddFeature($"DEBUG {(int)Debug}");
 
+            if (Simplified)
+                bld.AddFeature("SIMPLIFIED");
+
             if (ToneMap)
                 bld.AddFeature("TONEMAP");
 
@@ -682,6 +685,8 @@ namespace XrEngine
         public bool UseEnvDepth { get; set; }
 
         public Color EmissiveColor { get; set; }
+
+        public bool Simplified { get; set; }    
 
         public PbrV2Debug Debug { get; set; }
 

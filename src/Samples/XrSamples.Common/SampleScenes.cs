@@ -1563,6 +1563,7 @@ namespace XrSamples
                     {
                         var aButton = inputs.Right!.Button!.AClick!;
                         var bButton = inputs.Right!.Button!.BClick!;
+                        var xButton = inputs.Left!.Button!.XClick!;
                         if (aButton.IsChanged && aButton.Value)
                         {
                             var scale = mesh.Transform.Scale.X;
@@ -1574,6 +1575,14 @@ namespace XrSamples
                             var scale = mesh.Transform.Scale.X;
                             scale /= 0.8f;
                             mesh.Transform.SetScale(scale);
+                        }
+                        if (xButton.IsChanged && xButton.Value)
+                        {
+                            foreach (var material in imp.Materials)
+                            {
+                                material.Simplified = !material.Simplified;
+                                material.NotifyChanged(ObjectChangeType.Property);
+                            }
                         }
                     });
                     /*
