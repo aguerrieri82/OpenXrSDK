@@ -187,7 +187,7 @@ namespace XrEngine.OpenGL
                 if (material is ITessellationMaterial tes && tes.TessellationMode != TessellationMode.None  )
                 {
                     var size = vrtSrc.Primitive == DrawPrimitive.Quad ? 4 : 3;
-                    //TODO: disbale instance draw
+                    //TODO: disable instance draw
                     draw = () =>
                     {
                         _render.GL.PatchParameter(PatchParameterName.Vertices, size);
@@ -227,14 +227,24 @@ namespace XrEngine.OpenGL
             if (ctx.Frame == _lastFrame && curCamera == _lastCamera)
                 return;
 
+            if (_isContentDirty)
+                SortMaterials();
+
             ComputeVisibility();
 
             UpdateVertexHandlers();
 
             _lastFrame = ctx.Frame;
             _lastCamera = curCamera;
+
+            _isContentDirty = false;
         }
 
+        protected void SortMaterials()
+        {
+            foreach (var shaderCont in _content.Contents.Values)
+                shaderCont.SortedContent = shaderCont.Contents.OrderBy(a => a.Key.Priority).ToArray();
+        }
 
         protected unsafe void UpdateVertexHandlers()
         {
@@ -247,6 +257,11 @@ namespace XrEngine.OpenGL
 
                 foreach (var matEntry in shaderEntry.Value.Contents)
                 {
+                    var verContentList = matEntry.Value.Contents.Values;
+
+                    matEntry.Value.UseInstanceDraw = _render.Options.UseInstanceDraw && instanceShader != null && 
+                                                     verContentList.Any(a => a.Contents.Count > 1);
+
                     foreach (var verContent in matEntry.Value.Contents.Values)
                     {
                         var vHandler = verContent.VertexHandler!;
@@ -254,11 +269,12 @@ namespace XrEngine.OpenGL
                         if (vHandler.NeedUpdate)
                             vHandler.Update();
 
-                        if (instanceShader != null && instanceShader.UseInstanceDraw)
-                            UpdateInstanceDraws(instanceShader, verContent, matEntry.Key);
+                        if (matEntry.Value.UseInstanceDraw)
+                            UpdateInstanceDraws(instanceShader!, verContent, matEntry.Key);
                         else
                             verContent.Draw = null;
                     }
+
                 }
             }
         }

@@ -331,7 +331,6 @@ namespace XrEngine.OpenGL
 
         protected string PatchShader(string sourceName, ShaderType shaderType)
         {
-            var source = _resolver(sourceName);
 
             var builder = new StringBuilder();
 
@@ -362,28 +361,47 @@ namespace XrEngine.OpenGL
 
             var incRe = IncludeRegex();
 
-            while (true)
+            var included = new HashSet<string>();
+
+            string ReplaceIncludes(string path)
             {
-                var match = incRe.Match(source);
-                if (!match.Success)
-                    break;
+                var source = _resolver(path);
 
-                var incName = match.Groups.Count == 3 && match.Groups[2].Length > 0 ?
-                    match.Groups[2].Value :
-                    match.Groups[1].Value;
+                while (true)
+                {
+                    var match = incRe.Match(source);
+                    if (!match.Success)
+                        break;
 
-                var incPath = Path.GetRelativePath(".", Path.Join(Path.GetDirectoryName(sourceName) ?? "", incName))
-                             .Replace('\\', '/');
+                    var incName = match.Groups.Count == 3 && match.Groups[2].Length > 0 ?
+                        match.Groups[2].Value :
+                        match.Groups[1].Value;
 
-                source = string.Concat(
-                    source.AsSpan(0, match.Index),
-                    _resolver(incPath),
-                    "\n",
-                    source.AsSpan(match.Index + match.Length)
-                );
+                    var incPath = Path.GetRelativePath(".", Path.Join(Path.GetDirectoryName(path) ?? "", incName))
+                                 .Replace('\\', '/');
+
+                    string replace;
+                    if (included.Contains(incPath))
+                        replace = "";
+                    else
+                    {
+                        included.Add(incPath);
+                        replace = ReplaceIncludes(incPath);
+                    }
+
+
+                    source = string.Concat(
+                        source.AsSpan(0, match.Index),
+                        replace,
+                        "\n",
+                        source.AsSpan(match.Index + match.Length)
+                    );
+                }
+
+                return source;
             }
-
-            builder.Append("\n\n").Append(source);
+         
+            builder.Append("\n\n").Append(ReplaceIncludes(sourceName));
 
             return builder.ToString();
         }

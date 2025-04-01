@@ -23,9 +23,7 @@ in vec2 fUv;
 in vec3 fCameraPos;    
 
 #if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS) 
-
-in mat3 fTangentBasis;
-
+	in mat3 fTangentBasis;
 #endif
 
 #ifndef ALBEDO_UV_SET
@@ -118,7 +116,6 @@ vec3 addNoise(vec3 color)
 
 void main()
 {
-
 	#if defined(HAS_ENV_DEPTH) && defined(USE_ENV_DEPTH)
 	    
 		if (!passEnvDepth(fPos, uint(uCamera.activeEye)))
@@ -220,7 +217,7 @@ void main()
 
 	#else
 		#if defined(USE_NORMAL_MAP) && defined(HAS_TANGENTS)
-			vec3 N = fTangentBasis[0];
+			vec3 N = fTangentBasis[2];
 		#else	
 			vec3 N = normalize(fNormal);
 		#endif
@@ -260,10 +257,11 @@ void main()
 				float distance = length(lightDir);
 				Li = normalize(lightDir);
 
-				// Optional smooth range falloff to 0
 				float range = uLights.lights[i].radius;
-				float smoothFactor = clamp((range - distance) / range, 0.0, 1.0);
-				attenuation = smoothFactor * smoothFactor;
+
+				float falloff = 1.0 / max(distance * distance, 0.01);
+				float rangeFalloff = clamp(1.0 - (distance / range), 0.0, 1.0);
+				attenuation = falloff * rangeFalloff * rangeFalloff;
 			}
 			else
 			{
@@ -287,7 +285,7 @@ void main()
 
 				// Calculate Fresnel term for direct lighting. 
 				float cosTheta = clamp(dot(Lh, Lo), 0.0, 1.0);
-				vec3 F  = fresnelSchlickRoughness(F0, cosTheta, roughness);
+				vec3 F = fresnelSchlickRoughness(F0, cosTheta, roughness);
 
 				// Calculate normal distribution for specular BRDF.
 		
@@ -415,9 +413,7 @@ void main()
 	#endif
 
 	#ifdef USE_DEPTH_NOISE
-
 		color3 = addNoise(color3);	
-
 	#endif
 
 

@@ -231,7 +231,7 @@ namespace XrMath
 
         #endregion
 
-        #region BOUNDS
+        #region BOUNDS3
 
         public static CubeFaces Faces(this Bounds3 self)
         {
@@ -1211,6 +1211,18 @@ namespace XrMath
                 area += (current.X * next.Y - next.X * current.Y);
             }
             return area * 0.5f;
+        }
+
+        #endregion
+
+
+        #region BOUNDS2 
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Contains(this Bounds2 self, Vector2 point)
+        {
+            return point.X >= self.Min.X && point.X <= self.Max.X &&
+                   point.Y >= self.Min.Y && point.Y <= self.Max.Y;
         }
 
         #endregion

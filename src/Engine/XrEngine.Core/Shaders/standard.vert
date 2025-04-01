@@ -107,7 +107,7 @@ void main()
     #endif
 
 	#ifdef HAS_TEX_TRANSFORM
-	    fUv = (vec3(texcoord.xy, 1) * uMaterial.texTransform).xy;
+	    fUv = (vec3(texcoord.xy, 1) * HAS_TEX_TRANSFORM).xy;
 	#endif
 
 	#ifdef USE_SHADOW_MAP

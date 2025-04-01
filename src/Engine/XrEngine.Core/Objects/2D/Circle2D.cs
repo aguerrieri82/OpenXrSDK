@@ -22,6 +22,8 @@ namespace XrEngine
             return length / Length;
         }
 
+
+
         public IEnumerable<CurvePoint> Sample(float tolerance, int maxPoints)
         {
             double angle = Math.Acos(1 - tolerance / Radius);

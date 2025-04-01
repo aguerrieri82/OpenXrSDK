@@ -26,7 +26,7 @@ namespace XrEngine
             foreach (var item in _host!.DescendantsOrSelf().OfType<TriangleMesh>())
             {
                 _geometries[item] = item.Geometry!.Clone();
-                item.Geometry.Flags = EngineObjectFlags.None;
+                item.Geometry.Flags = EngineObjectFlags.NotifyChanged;
             }
 
             base.OnAttach();

@@ -139,7 +139,6 @@ namespace XrEngine
 
             public PbrV2Shader()
             {
-                UseInstanceDraw = true;
                 UseDepthCulling = true;
             }
 
@@ -162,8 +161,6 @@ namespace XrEngine
 
                 var hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
 
-                if (UseInstanceDraw && bld.Context.UseInstanceDraw)
-                    bld.AddFeature("USE_INSTANCE");
 
                 if (UseDepthCulling && bld.Context.DepthCullProvider?.IsActive == true)
                 {
@@ -368,8 +365,6 @@ namespace XrEngine
 
             public Type InstanceBufferType => typeof(ModelUniforms);
 
-            public bool UseInstanceDraw { get; set; }
-
             public bool UseDepthCulling { get; set; }
 
             public float DepthNoiseFactor { get; set; }
@@ -386,8 +381,8 @@ namespace XrEngine
         {
             SHADER = new PbrV2Shader
             {
-                FragmentSourceName = "PbrV2/pbr_fs.glsl",
-                VertexSourceName = "standard.vert",
+                FragmentSourceName = "PbrV2/pbr.frag",
+                VertexSourceName = "PbrV2/pbr.vert",
                 TessControlSourceName = "Shared/height_map.tesc",
                 TessEvalSourceName = "Shared/height_map.tese",
                 GeometrySourceName = "Shared/height_map.geom",
@@ -406,14 +401,14 @@ namespace XrEngine
             OcclusionStrength = 1.0f;
             NormalScale = 1;
             ToneMap = true;
+            UseInstanceDraw = true;
         }
 
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-            var shader = (PbrV2Shader)_shader!;
 
-            if (!shader.UseInstanceDraw || !bld.Context.UseInstanceDraw)
+            if (!bld.Context.UseInstanceDraw)
             {
                 bld.LoadBuffer(ctx =>
                 {
@@ -435,32 +430,6 @@ namespace XrEngine
             }
 
 
-            var planar = bld.Context.Model!.Components<PlanarReflection>().FirstOrDefault();
-
-            if (planar != null)
-            {
-                bld.AddFeature("PLANAR_REFLECTION");
-
-                if (PlanarReflection.IsMultiView)
-                    bld.AddFeature("PLANAR_REFLECTION_MV");
-
-                bld.ExecuteAction((ctx, up) =>
-                {
-                    if (planar.Texture != null)
-                        up.LoadTexture(planar.Texture, 7);
-
-                    if (PlanarReflection.IsMultiView)
-                    {
-                        if (planar.ReflectionCamera.Eyes != null)
-                        {
-                            up.SetUniform("uReflectMatrix[0]", planar.ReflectionCamera.Eyes[0].ViewProj);
-                            up.SetUniform("uReflectMatrix[1]", planar.ReflectionCamera.Eyes[1].ViewProj);
-                        }
-                    }
-                    else
-                        up.SetUniform("uReflectMatrix", planar.ReflectionCamera.ViewProjection);
-                });
-            }
 
         }
 
@@ -481,6 +450,9 @@ namespace XrEngine
             bld.AddFeature("PBR_V2");
 
             bld.AddFeature($"DEBUG {(int)Debug}");
+
+            if (UseInstanceDraw && bld.Context.UseInstanceDraw)
+                bld.AddFeature("USE_INSTANCE");
 
             if (Simplified)
                 bld.AddFeature("SIMPLIFIED");
@@ -516,6 +488,38 @@ namespace XrEngine
 
             if (EmissiveColor != Color.Transparent)
                 bld.AddFeature("USE_EMISSIVE");
+
+
+            if (_hosts.Count == 1)
+            {
+                var planar = _hosts.First().Components<PlanarReflection>().FirstOrDefault();
+
+                if (planar != null)
+                {
+                    bld.AddFeature("PLANAR_REFLECTION");
+
+                    if (PlanarReflection.IsMultiView)
+                        bld.AddFeature("PLANAR_REFLECTION_MV");
+
+                    bld.ExecuteAction((ctx, up) =>
+                    {
+                        if (planar.Texture != null)
+                            up.LoadTexture(planar.Texture, 7);
+
+                        if (PlanarReflection.IsMultiView)
+                        {
+                            if (planar.ReflectionCamera.Eyes != null)
+                            {
+                                up.SetUniform("uReflectMatrix[0]", planar.ReflectionCamera.Eyes[0].ViewProj);
+                                up.SetUniform("uReflectMatrix[1]", planar.ReflectionCamera.Eyes[1].ViewProj);
+                            }
+                        }
+                        else
+                            up.SetUniform("uReflectMatrix", planar.ReflectionCamera.ViewProjection);
+                    });
+                }
+
+            }
 
             if (HeightMap?.Texture != null)
             {
@@ -562,7 +566,7 @@ namespace XrEngine
 
                 if (ColorMap.Transform != null)
                 {
-                    bld.AddFeature("HAS_TEX_TRANSFORM");
+                    bld.AddFeature("HAS_TEX_TRANSFORM uMaterial.texTransform");
                     material.TexTransform = ColorMap.Transform.Value;
                 }
 
@@ -692,5 +696,6 @@ namespace XrEngine
 
         public static bool ForceIblTransform { get; set; }
 
+        public bool UseInstanceDraw { get; set; }
     }
 }

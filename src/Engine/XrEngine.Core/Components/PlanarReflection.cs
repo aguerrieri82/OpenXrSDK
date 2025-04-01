@@ -68,8 +68,14 @@ namespace XrEngine
 
                 if (MaterialOverride is TextureMaterial tex)
                 {
+                    var texChanged = (tex.Texture == null && pbr.ColorMap != null ||
+                                      tex.Texture != null && pbr.ColorMap == null);
+
                     tex.Texture = pbr.ColorMap;
                     tex.Color = pbr.Color * MathF.Min(1, _lightIntensity * 0.5f);
+
+                    if (texChanged)
+                        tex.NotifyChanged(ObjectChangeType.Render);
                 }
                 else if (MaterialOverride is BasicMaterial bsc)
                 {

@@ -57,8 +57,7 @@ namespace XrEngine.OpenGL
                 Version++;
             }
 
-            foreach (var action in _shaderUpdate!.BufferUpdates!)
-                action(ctx);
+            UpdateBuffers(ctx);
         }
 
         public IBuffer<T> GetBuffer<T>(int bufferId, BufferStore store)
@@ -73,6 +72,16 @@ namespace XrEngine.OpenGL
                 _bufferMap.Buffers[bufferId] = (IGlBuffer)buffer;
             }
             return buffer;
+        }
+
+
+        public void UpdateBuffers(UpdateShaderContext ctx)
+        {
+            if (_shaderUpdate == null)
+                return;
+
+            foreach (var action in _shaderUpdate!.BufferUpdates!)
+                action(ctx);
         }
 
         public void UpdateUniforms(UpdateShaderContext ctx, IUniformProvider uniformProvider)

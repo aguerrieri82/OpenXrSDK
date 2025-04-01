@@ -119,7 +119,6 @@ namespace XrEngine.OpenGL
 
             var useOcclusion = _renderer.Options.UseOcclusionQuery;
 
-            updateContext.UseInstanceDraw = true;
 
             foreach (var shader in layer.Content.Contents)
             {
@@ -130,15 +129,17 @@ namespace XrEngine.OpenGL
 
                 progGlobal!.UpdateProgram(updateContext, GetRenderTarget() as IShaderHandler);
 
-                bool firstMaterial = true;
 
-                foreach (var material in shader.Value.Contents
-                                        .OrderBy(a=> a.Value.ProgramInstance?.Program?.Handle ?? 0))
+                foreach (var material in shader.Value.Contents!
+                                        .OrderBy(a=> a.Key.Priority)
+                                        .ThenBy(a=> a.Value.ProgramInstance?.Program?.Handle ?? 0))
                 {
                     var matContent = material.Value;
 
                     if (material.Value.IsHidden)
                         continue;
+
+                    updateContext.UseInstanceDraw = matContent.UseInstanceDraw;
 
                     var progInst = matContent.ProgramInstance!;
                     
@@ -154,9 +155,7 @@ namespace XrEngine.OpenGL
 
                     progInst.UpdateBuffers(updateContext);
 
-                    progInst.UpdateUniforms(updateContext, firstMaterial || programChanged);
-
-                    firstMaterial = false;
+                    progInst.UpdateUniforms(updateContext, programChanged);
 
                     ConfigureCaps(progInst.Material!);
 
@@ -201,8 +200,12 @@ namespace XrEngine.OpenGL
                         //vHandler.Unbind();
                     }
                 }
+
+                _renderer.State.SetActiveProgram(0);
             }
+
             _renderer.State.BindVertexArray(0);
+            
             _renderer.PopGroup();
         }
 
@@ -274,8 +277,6 @@ namespace XrEngine.OpenGL
 
                         ConfigureCaps(draw.ProgramInstance!.Material!);
 
-
-
                         SetBounds(updateContext.PassCamera!, draw.Object!);
 
                         Draw(draw);
@@ -283,6 +284,8 @@ namespace XrEngine.OpenGL
 
                     vHandler.Unbind();
                 }
+
+
             }
 
             _renderer.PopGroup();

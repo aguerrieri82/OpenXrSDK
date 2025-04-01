@@ -11,8 +11,6 @@ namespace XrEngine
         unsafe long Update(byte* dstData, Object3D model, int drawId);
 
         public Type InstanceBufferType { get; }
-
-        public bool UseInstanceDraw { get; }
     }
 
 }

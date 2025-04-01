@@ -33,6 +33,7 @@ namespace XrEngine.OpenGL
             UseLayerV2 = true;
             RequireTextureCompression = false;
             UseVolume = true;
+            UseInstanceDraw = true;
             ShadowMap = new ShadowMapOptions()
             {
                 Mode = ShadowMapMode.PCF,
@@ -78,6 +79,8 @@ namespace XrEngine.OpenGL
         public bool SortByCameraDistance { get; set; }
 
         public bool UseLayerV2 { get; set; }
+
+        public bool UseInstanceDraw { get; set; }
 
         public static GlRenderOptions Default() => new();
 

@@ -9,12 +9,24 @@ namespace XrEngine.OpenGL
 {
     public static class GlUtils
     {
+        public static int CalculateUnpackAlignment(uint width, uint bytesPerPixel)
+        {
+            var rowSize = width * bytesPerPixel;
+
+            // OpenGL allows 1, 2, 4, or 8
+            if (rowSize % 8 == 0) return 8;
+            if (rowSize % 4 == 0) return 4;
+            if (rowSize % 2 == 0) return 2;
+            return 1;
+        }
+
         public static uint GetPixelSizeBit(TextureFormat format)
         {
             return format switch
             {
                 TextureFormat.Rg88 => 16,
                 TextureFormat.Rgba32 => 32,
+                TextureFormat.Bgra32 => 32,
                 TextureFormat.Rgb24 => 24,
                 TextureFormat.SRgb24 => 24,
                 TextureFormat.RgbFloat32 => 32 * 3,

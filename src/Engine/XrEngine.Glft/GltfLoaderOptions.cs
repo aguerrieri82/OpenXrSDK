@@ -19,6 +19,9 @@
         public bool GeometryGpuOnly { get; set; }
 
 
+        public bool UseCache { get; set; }
+
+
         public static readonly GltfLoaderOptions Default = new();
     }
 }

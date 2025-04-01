@@ -11,7 +11,7 @@ namespace XrEngine.OpenGL
     {
         readonly GlBuffer<byte> _buffer;
         readonly GlTexture _texture;
-        int _pixelSize;
+        int _alignment;
         uint _width;
         uint _height;
         private InternalFormat _format;
@@ -36,15 +36,19 @@ namespace XrEngine.OpenGL
             _handle = _texture.Handle;
         }
 
+
+
         public unsafe void Update(TextureData data)
         {
             GlUtils.GetPixelFormat(data.Format, out var pixelFormat, out var pixelType);
+
+            _buffer.BeginUpdate();
 
             if (_width != data.Width || _height != data.Height)
             {
                 _buffer.Allocate(data.Data!.Size);
 
-                _pixelSize = (int)GlUtils.GetPixelSizeBit(data.Format) / 4;     
+                _alignment = GlUtils.CalculateUnpackAlignment(data.Width, GlUtils.GetPixelSizeBit(data.Format) / 8);
 
                 _width = data.Width;
                 _height = data.Height;
@@ -73,11 +77,13 @@ namespace XrEngine.OpenGL
 
             Bind();
             
-            _gl.PixelStore(PixelStoreParameter.UnpackAlignment, _pixelSize);
+            _gl.PixelStore(PixelStoreParameter.UnpackAlignment, _alignment);
 
             _gl.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, data.Width, data.Height, pixelFormat, pixelType, null);
 
             Unbind();
+
+            _buffer.EndUpdate();
         }
 
         public void Bind()

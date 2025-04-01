@@ -1331,6 +1331,21 @@ namespace XrEngine
 
         #region MISC
 
+
+        public static Poly2 ToPoly2(this ICurve2D curve, int numPoints, bool isClosed)
+        { 
+            var points = new Vector2[numPoints];
+            
+            for (var i = 0; i < numPoints; i++)
+                points[i] = curve.GetPointAtTime(1f / numPoints * i);
+
+            return new Poly2
+            {
+                Points = points,
+                IsClosed = isClosed
+            };
+        }
+
         public static unsafe void UpdateElement<T>(this IBuffer<T> self, T element, int index)
         {
             var span = new ReadOnlySpan<T>(&element, 1);

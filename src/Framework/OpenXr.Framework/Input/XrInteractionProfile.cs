@@ -1,6 +1,6 @@
 ﻿namespace OpenXr.Framework
 {
-    public class XrInteractionProfileHand<THand>
+    public class XrInteractionProfileHand
     {
         [XrPath("/input/squeeze")]
         public XrBoolInput? SqueezeClick;
@@ -44,8 +44,12 @@
         [XrPath("/output/haptic")]
         public XrHaptic? Haptic;
 
-        public THand? Button;
 
+    }
+
+    public class XrInteractionProfileHand<THand> : XrInteractionProfileHand
+    {
+        public THand? Button;
     }
 
     public class XrInteractionProfileHandLeft

@@ -138,5 +138,10 @@ namespace XrMath
         {
             return new Plane(normal, -Vector3.Dot(normal, point));
         }
+
+        public static float Smooth(float prev, float current, float alpha)
+        {
+            return alpha * current + (1 - alpha) * prev;
+        }
     }
 }

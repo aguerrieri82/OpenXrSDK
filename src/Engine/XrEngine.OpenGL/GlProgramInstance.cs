@@ -203,7 +203,7 @@ namespace XrEngine.OpenGL
             return buffer;
         }
 
-        public void UpdateBuffers(UpdateShaderContext ctx)
+        public void UpdateBuffers(UpdateShaderContext ctx, bool updateGlobals = false)
         {
             var update = ctx.Stage == UpdateShaderStage.Any ||
                          ctx.Stage == UpdateShaderStage.Material ? _materialUpdate : _modelUpdate;
@@ -212,6 +212,9 @@ namespace XrEngine.OpenGL
                 return;
 
             ctx.BufferProvider = this;
+
+            if (updateGlobals)
+                Global.UpdateBuffers(ctx);
 
             foreach (var action in update.BufferUpdates!)
                 action(ctx);

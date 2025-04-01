@@ -29,6 +29,8 @@ namespace XrEngine
 
         long Version { get; }
 
+        int Priority { get; set; }
+
         Material Clone();
     }
 }

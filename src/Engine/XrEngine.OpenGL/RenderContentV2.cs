@@ -7,6 +7,8 @@ namespace XrEngine.OpenGL
         public GlProgramGlobal? ProgramGlobal;
 
         public readonly Dictionary<Material, MaterialContentV2> Contents = [];
+
+        public KeyValuePair<Material, MaterialContentV2>[]? SortedContent = [];
     }
 
     public class MaterialContentV2
@@ -16,6 +18,8 @@ namespace XrEngine.OpenGL
         public GlProgramInstance? ProgramInstance;
 
         public bool IsHidden;
+
+        public bool UseInstanceDraw;
     }
 
 

@@ -19,12 +19,14 @@
 
         public EngineObject Load(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
-            if (destObj == null && _cache.TryGetValue(uri, out var obj))
+            bool useCache = destObj == null && (options == null || options.UseCache);
+
+            if (useCache && _cache.TryGetValue(uri, out var obj))
                 return obj;
 
             obj = GetLoader(uri).LoadAsset(uri, resType, destObj, options);
 
-            if (destObj == null)
+            if (destObj == null && useCache)
                 _cache[uri] = obj;
 
             return obj;

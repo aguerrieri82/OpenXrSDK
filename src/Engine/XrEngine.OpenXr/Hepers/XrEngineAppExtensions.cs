@@ -8,6 +8,12 @@ using XrEngine.Physics;
 
 namespace XrEngine.OpenXr
 {
+    public enum ControllerHand
+    {
+        Left,
+        Right
+    }
+
     public static class XrEngineAppExtensions
     {
 
@@ -45,6 +51,44 @@ namespace XrEngine.OpenXr
                 .AddAction(a => a.Right!.TriggerClick)
                 .AddAction(a => a.Right!.TriggerValue));
 
+            return self;
+        }
+
+        public static XrEngineAppBuilder UseTeleport(this XrEngineAppBuilder self, ControllerHand hand, Object3D dest, ITeleportTarget? target = null)
+        {
+            self.UseInputs<XrOculusTouchController>(bld =>
+            {
+                if (hand == ControllerHand.Left)
+                    bld.AddAction(a => a.Left!.ThumbstickY);
+                else
+                    bld.AddAction(a => a.Right!.ThumbstickY);
+            });
+
+            self.ConfigureApp(e =>
+             {
+                 var inputs = e.GetInputs<IXrBasicInteractionProfile>();
+                 XrInteractionProfileHand curHand = hand == ControllerHand.Left ? inputs.Left! : inputs.Right!;
+
+                 var pointer = new XrInputPointer
+                 {
+                     PoseInput = curHand.AimPose,
+                     RightButton = curHand.SqueezeClick!,
+                     LeftButton = curHand.TriggerClick!,
+                 };
+
+                 var trigger = () => curHand.ThumbstickY!.IsActive && curHand.ThumbstickY!.Value < -0.8f;
+
+                 target ??= e.App.ActiveScene!.AddComponent<SceneTeleportTarget>();
+
+                 var teleport = new InputTeleport()
+                 {
+                     Pointer = pointer,
+                     IsTriggerActive = trigger,
+                     Target = target
+                 };
+
+                 dest!.AddComponent(teleport);
+             });
             return self;
         }
 
