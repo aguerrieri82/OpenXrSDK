@@ -12,7 +12,7 @@
 
         public bool Contains(string name)
         {
-            return File.Exists(GetPath(name));  
+            return File.Exists(GetPath(name));
         }
 
         public Stream Open(string name)

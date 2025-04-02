@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
 using System.Text.Json;
 using XrEngine;
@@ -12,12 +11,12 @@ namespace XrSamples
 {
     public class DndImporter
     {
-        Dictionary<string, ShaderMaterial> _materials = [];
-        Dictionary<string, Texture2D> _textures = [];
-        Dictionary<string, Geometry3D> _geos = [];
+        readonly Dictionary<string, ShaderMaterial> _materials = [];
+        readonly Dictionary<string, Texture2D> _textures = [];
+        readonly Dictionary<string, Geometry3D> _geos = [];
         private string _basePath = ".";
-        private HashSet<string> _unusedTex = [];
-        private List<string> _psNames = [];
+        private readonly HashSet<string> _unusedTex = [];
+        private readonly List<string> _psNames = [];
 
         #region STRUCTS
 
@@ -302,7 +301,7 @@ namespace XrSamples
                             {
                                 pbr.Roughness = impMat.cbs[0].values[6][0];
                             }
-                            else 
+                            else
                                 pbr.Roughness = 1.0f;
 
                             pbr.SpecularMap = (Texture2D)tex;
@@ -348,7 +347,7 @@ namespace XrSamples
                 }
 
 
-                mat = (ShaderMaterial)pbr;
+                mat = pbr;
                 mat.SetProp("ps_name", impMat.ps.name);
 
                 _materials[matId] = mat;
@@ -550,7 +549,7 @@ namespace XrSamples
                     var size = mesh.Geometry!.Bounds.Size;
                     patch = new QuadPatch3D(new Vector2(size.X, size.Y));
                 }
- 
+
                 mesh.Geometry = patch;
                 //Debugger.Break();
             }
@@ -627,7 +626,7 @@ namespace XrSamples
             return res;
         }
 
-        public IEnumerable<PbrV2Material> Materials => _materials.Values.OfType<PbrV2Material>();   
+        public IEnumerable<PbrV2Material> Materials => _materials.Values.OfType<PbrV2Material>();
 
         public bool FlipZ { get; set; } = true;
     }

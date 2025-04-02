@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace XrEngine
 {
@@ -20,7 +15,7 @@ namespace XrEngine
 
         public float SphereRadius { get; set; }
 
-        public Vector3 SphereWorldCenter { get; set; }  
+        public Vector3 SphereWorldCenter { get; set; }
 
         public Vector3 NormalStrength { get; set; }
 

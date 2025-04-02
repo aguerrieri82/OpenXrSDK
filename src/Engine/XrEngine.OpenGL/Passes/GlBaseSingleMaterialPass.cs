@@ -1,12 +1,11 @@
-﻿using SkiaSharp;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace XrEngine.OpenGL
 {
     public abstract class GlBaseSingleMaterialPass : GlBaseRenderPass
     {
         protected GlProgramInstance? _programInstance;
-        protected bool _useInstanceDraw;    
+        protected bool _useInstanceDraw;
 
         protected enum UpdateProgramResult
         {
@@ -36,7 +35,7 @@ namespace XrEngine.OpenGL
         protected override bool BeginRender(Camera camera)
         {
             Debug.Assert(_programInstance != null);
-            
+
             _renderer.UpdateContext.Stage = UpdateShaderStage.Shader;
 
             UseProgram(_programInstance, false);
@@ -130,11 +129,11 @@ namespace XrEngine.OpenGL
                             }
                         }
 
-                       //vHandler.Unbind();
+                        //vHandler.Unbind();
                     }
                 }
             }
-            _renderer.State.BindVertexArray(0); 
+            _renderer.State.BindVertexArray(0);
         }
 
 

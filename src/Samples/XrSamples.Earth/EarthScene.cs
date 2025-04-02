@@ -1,7 +1,4 @@
-﻿using CanvasUI;
-using System.Numerics;
-using XrEngine;
-using XrEngine.OpenXr;
+﻿using XrEngine;
 using XrMath;
 using static XrSamples.Earth.SceneConst;
 
@@ -9,11 +6,11 @@ namespace XrSamples.Earth
 {
     public class EarthScene : Scene3D
     {
-        private PerspectiveCamera _camera;
-        private PointLight _sunLight;
-        private Earth _earth;
-        private Sun _sun;
-        private Moon _moon;
+        private readonly PerspectiveCamera _camera;
+        private readonly PointLight _sunLight;
+        private readonly Earth _earth;
+        private readonly Sun _sun;
+        private readonly Moon _moon;
 
         public EarthScene()
         {
@@ -49,7 +46,7 @@ namespace XrSamples.Earth
                           "viz.SRTMGL1_roughness.png",
                           "2024-11-23-00_00_2024-11-23-23_59_Sentinel-2_L1C_True_color.jpg");
 
-            AddChild(new StarDome());   
+            AddChild(new StarDome());
 
             this.AddComponent<CameraControl>();
 

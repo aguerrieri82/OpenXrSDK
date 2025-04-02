@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using XrEngine;
-
-namespace XrEditor
+﻿namespace XrEditor
 {
     public class SelectorItem
     {
@@ -76,7 +73,7 @@ namespace XrEditor
             }
         }
 
-        public Type ValueType { get; set; } 
+        public Type ValueType { get; set; }
 
         public bool AllowNull { get; set; }
     }

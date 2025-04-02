@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace XrEngine.OpenGL
+﻿namespace XrEngine.OpenGL
 {
     public class ShaderContent
     {

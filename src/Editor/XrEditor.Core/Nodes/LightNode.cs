@@ -1,5 +1,4 @@
-﻿using UI.Binding;
-using XrEngine;
+﻿using XrEngine;
 
 namespace XrEditor.Nodes
 {

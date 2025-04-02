@@ -1,8 +1,4 @@
 ﻿using OpenXr.Framework;
-using Silk.NET.OpenXR;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using XrMath;
 
 namespace XrEngine.OpenXr
@@ -15,7 +11,7 @@ namespace XrEngine.OpenXr
         {
             if (XrApp.Current == null)
                 return;
-            
+
             var newPose = _host!.GetWorldPose();
             newPose.Position.Y += Height;
 
@@ -35,7 +31,7 @@ namespace XrEngine.OpenXr
                             local.Pose.Position.Y = 0;
                         newPose.Position -= local.Pose.Position;
                     }
-     
+
 
                     XrApp.Current.ReferenceFrame = newPose;
                 }

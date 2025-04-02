@@ -4,7 +4,7 @@
     {
         Stream Open(string name);
 
-        bool Contains(string name); 
+        bool Contains(string name);
 
         string GetPath(string name);
 

@@ -16,10 +16,10 @@ namespace XrEngine.OpenGL
 
     public class GlDepthPass : GlBaseSingleMaterialPass, IDepthCullProvider
     {
-        GlComputeProgram _depthPyramid;
-        GlComputeProgram _depthCull;
+        readonly GlComputeProgram _depthPyramid;
+        readonly GlComputeProgram _depthCull;
         GlTexture? _depthTexture;
-        GlBuffer<DepthObjectData> _depthData;
+        readonly GlBuffer<DepthObjectData> _depthData;
         private long _lastContentVersion;
 
         public GlDepthPass(OpenGLRender renderer)
@@ -105,15 +105,15 @@ namespace XrEngine.OpenGL
             var curDepth = provider.FrameBuffer.Depth!;
             if (curDepth == null)
                 return false;
-    
+
             _depthTexture ??= new GlTexture(_gl)
             {
                 IsMutable = true,
                 MaxLevel = 20,
                 MagFilter = TextureMagFilter.Linear,
-                MinFilter = TextureMinFilter.Linear,    
+                MinFilter = TextureMinFilter.Linear,
                 WrapS = TextureWrapMode.ClampToBorder,
-                WrapT  = TextureWrapMode.ClampToBorder,
+                WrapT = TextureWrapMode.ClampToBorder,
                 BorderColor = Color.White
             };
 
@@ -142,7 +142,7 @@ namespace XrEngine.OpenGL
             {
                 _gl.BindImageTexture(0, _depthTexture, level - 1, false, 0, BufferAccessARB.ReadOnly, _depthTexture.InternalFormat);
                 _gl.BindImageTexture(1, _depthTexture, level, false, 0, BufferAccessARB.WriteOnly, _depthTexture.InternalFormat);
-                
+
                 w = Math.Max(1, w / 2);
                 h = Math.Max(1, h / 2);
 
@@ -203,9 +203,9 @@ namespace XrEngine.OpenGL
 
                 _depthData.Unmap();
 
-                _lastContentVersion = contVersion;  
+                _lastContentVersion = contVersion;
             }
-           
+
 
             _depthCull.Use();
 
@@ -223,7 +223,7 @@ namespace XrEngine.OpenGL
 
             var groupsX = (_depthData.ArrayLength + 63) / 64;
 
-            _gl.DispatchCompute((uint)groupsX, 1, 1);
+            _gl.DispatchCompute(groupsX, 1, 1);
 
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit);
 

@@ -9,7 +9,7 @@
 
         protected override bool BelongsToLayer(Object3D obj)
         {
-            var vertSrc = obj.Feature<IVertexSource>(); 
+            var vertSrc = obj.Feature<IVertexSource>();
             return vertSrc != null &&
                    vertSrc.Materials.
                         OfType<ShaderMaterial>().

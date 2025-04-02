@@ -150,7 +150,7 @@ namespace XrEngine
 
         public Texture2D? RightTexture { get; set; }
 
-        public bool DebugMode { get; set; }   
+        public bool DebugMode { get; set; }
 
 
         [Range(0, 10, 0.1f)]
@@ -174,7 +174,7 @@ namespace XrEngine
         public Vector2 TextureCenterLeft
         {
             get => TextureCenter[0];
-            set => TextureCenter[0] = value;    
+            set => TextureCenter[0] = value;
         }
 
 

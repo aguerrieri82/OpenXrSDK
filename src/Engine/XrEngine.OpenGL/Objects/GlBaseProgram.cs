@@ -134,7 +134,7 @@ namespace XrEngine.OpenGL
 
                         isChanged = !b1.SequenceEqual(b2);
                     }
-    
+
                     if (isChanged)
                         _values[name] = curArray.Clone();
                 }
@@ -409,7 +409,7 @@ namespace XrEngine.OpenGL
 
                 return source;
             }
-         
+
             builder.Append("\n\n").Append(ReplaceIncludes(sourceName));
 
             return builder.ToString();

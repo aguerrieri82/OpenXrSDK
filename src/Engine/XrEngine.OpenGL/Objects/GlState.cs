@@ -361,12 +361,12 @@ namespace XrEngine.OpenGL
 
         public void BindFrameBuffer(FramebufferTarget target, uint value, bool force = false)
         {
-      
+
             if (!FrameBufferTargets.TryGetValue(target, out var cur) || cur != value || force)
             {
                 FrameBufferTargets[target] = value;
-                
-       
+
+
                 if (target == FramebufferTarget.Framebuffer)
                 {
                     FrameBufferTargets[FramebufferTarget.ReadFramebuffer] = value;
@@ -374,7 +374,7 @@ namespace XrEngine.OpenGL
                 }
                 else if (FrameBufferTargets.TryGetValue(FramebufferTarget.Framebuffer, out var curValue) && curValue != value)
                     FrameBufferTargets[FramebufferTarget.Framebuffer] = 0;
-      
+
 
                 _gl.BindFramebuffer(target, value);
             }

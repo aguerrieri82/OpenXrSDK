@@ -1,6 +1,6 @@
 ﻿namespace XrEngine.OpenGL
 {
-    public struct ReflectionTarget
+    public readonly struct ReflectionTarget
     {
         public ReflectionTarget(PlanarReflection planarReflection, int boundEye = -1)
         {

@@ -17,7 +17,7 @@ namespace XrEngine.OpenXr.Android
         public bool Contains(string name)
         {
             var result = _context.Assets!.List(Path.Join(_basePath, name));
-            return result != null && result.Length > 0;   
+            return result != null && result.Length > 0;
         }
 
         public string GetPath(string name)

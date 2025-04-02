@@ -15,7 +15,7 @@ namespace UI.Canvas.Wpf
 
         readonly UIRoot _root;
 
-        struct Pointer : IUiPointer
+        readonly struct Pointer : IUiPointer
         {
             readonly UiElementView _element;
 

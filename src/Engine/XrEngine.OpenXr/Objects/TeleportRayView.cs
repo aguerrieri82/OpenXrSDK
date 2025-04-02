@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
-using XrMath;
+﻿using System.Numerics;
 
 namespace XrEngine.OpenXr
 {
     public class TeleportRayView : TriangleMesh
     {
-        Vector3[] _points = [];
-        PathMaterial _material;
-
-        private Vector3[]? _vertices;
+         readonly PathMaterial _material;
 
         public TeleportRayView()
         {
@@ -21,7 +14,7 @@ namespace XrEngine.OpenXr
             {
                 DoubleSided = false,
                 Alpha = AlphaMode.Blend,
-                UseVertexColor = true   
+                UseVertexColor = true
             };
 
             Materials.Add(_material);
@@ -100,7 +93,7 @@ namespace XrEngine.OpenXr
 
             for (var i = 0; i < Geometry.Vertices.Length; i++)
             {
-                var uv = Geometry.Vertices[i].UV; 
+                var uv = Geometry.Vertices[i].UV;
                 Geometry.Vertices[i].Tangent = new Vector4(1, 1, 1, uv.Y);
             }
         }

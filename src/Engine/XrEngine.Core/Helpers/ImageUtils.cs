@@ -1,11 +1,9 @@
 ﻿using Common.Interop;
 using SkiaSharp;
 using System.Diagnostics;
-using System.Runtime.Intrinsics.X86;
-using System.Runtime.Intrinsics;
 using System.Runtime.CompilerServices;
-using System.Diagnostics.Metrics;
-using static System.Net.Mime.MediaTypeNames;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 
 namespace XrEngine
 {
@@ -159,7 +157,7 @@ namespace XrEngine
 
             using var src = data.MemoryLock();
             using var dst = result.MemoryLock();
- 
+
             var dstFloat = (float*)dst.Data;
             var srcShort = (short*)src.Data;
 

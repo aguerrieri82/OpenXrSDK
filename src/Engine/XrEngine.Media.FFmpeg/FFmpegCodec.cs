@@ -4,7 +4,6 @@ using XrEngine.Video.Abstraction;
 using static FFmpeg.AutoGen.ffmpeg;
 
 
-
 namespace XrEngine.Video
 {
     public unsafe class FFmpegCodec : IVideoCodec

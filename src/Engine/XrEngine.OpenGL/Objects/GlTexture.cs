@@ -335,7 +335,7 @@ namespace XrEngine.OpenGL
 
                     foreach (var level in data)
                     {
-         
+
                         var realTarget = Target == TextureTarget.TextureCubeMap ?
                                              TextureTarget.TextureCubeMapPositiveX + (int)level.Face : Target;
 

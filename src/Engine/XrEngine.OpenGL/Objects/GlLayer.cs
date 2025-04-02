@@ -179,7 +179,7 @@ namespace XrEngine.OpenGL
 
                 Action draw;
 
-                if (material is ITessellationMaterial tes && tes.TessellationMode != TessellationMode.None  )
+                if (material is ITessellationMaterial tes && tes.TessellationMode != TessellationMode.None)
                 {
                     var size = vrtSrc.Primitive == DrawPrimitive.Quad ? 4 : 3;
                     draw = () =>

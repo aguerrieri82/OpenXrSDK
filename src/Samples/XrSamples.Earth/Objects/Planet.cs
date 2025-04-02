@@ -1,13 +1,6 @@
-﻿using Silk.NET.Maths;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using XrEngine;
 using XrMath;
-using static XrSamples.Earth.SceneConst;
 
 namespace XrSamples.Earth
 {
@@ -48,13 +41,13 @@ namespace XrSamples.Earth
 
             }
 
-            Geometry3D sphere = HeightMap != null ? 
-                new QuadSphere3D(SphereRadius, SubLevels) : 
+            Geometry3D sphere = HeightMap != null ?
+                new QuadSphere3D(SphereRadius, SubLevels) :
                 new Sphere3D(SphereRadius, 50);
             var mesh = new TriangleMesh(sphere, (Material)mat);
             mesh.Name = "Planet";
 
-            return AddChild(mesh);    
+            return AddChild(mesh);
         }
 
         protected void AddAtmosphere()
@@ -71,10 +64,10 @@ namespace XrSamples.Earth
             };
 
             mesh.Geometry = new Cube3D();
-            mesh.Name = "Atmosphere";   
+            mesh.Name = "Atmosphere";
             mesh.Materials.Add(_atmoMat);
 
-            mesh.Transform.SetScale(SphereRadius * 2);   
+            mesh.Transform.SetScale(SphereRadius * 2);
 
             AddChild(mesh);
 
@@ -88,13 +81,13 @@ namespace XrSamples.Earth
 
             tile.SphereRadius = SphereRadius;
 
-            if (roughPath!= null)
+            if (roughPath != null)
             {
                 tile.Roughness = AssetLoader.Instance.Load<Texture2D>(store.GetPath(roughPath));
                 tile.Roughness.MipLevelCount = 20;
                 tile.Roughness.MinFilter = ScaleFilter.LinearMipmapLinear;
             }
-        
+
             if (colorPath != null)
             {
                 tile.Color = AssetLoader.Instance.Load<Texture2D>(store.GetPath(colorPath));
@@ -110,7 +103,7 @@ namespace XrSamples.Earth
             if (colorPath == null && Albedo != null)
                 tile.LoadAlbedoSlice(Albedo);
 
-            AddChild(tile); 
+            AddChild(tile);
         }
 
         public virtual float RotationAngle(DateTime utcTime)
@@ -132,12 +125,12 @@ namespace XrSamples.Earth
                 tile.SphereWorldCenter = WorldPosition;
 
             if (_atmoMat != null)
-                _atmoMat.SunPosition = ((EarthScene)_scene!).Sun.WorldPosition;  
+                _atmoMat.SunPosition = ((EarthScene)_scene!).Sun.WorldPosition;
 
             base.Update(ctx);
         }
 
-     
+
         public float AtmosphereHeight { get; set; }
 
         public Color AtmosphereColor { get; set; }
@@ -147,7 +140,7 @@ namespace XrSamples.Earth
 
 
         [ValueType(XrEngine.ValueType.Radiant)]
-        public float AxisTilt { get; set; } 
+        public float AxisTilt { get; set; }
 
         public Texture2D? Albedo { get; set; }
 
@@ -155,7 +148,7 @@ namespace XrSamples.Earth
 
         public HeightMapSettings? HeightMap { get; set; }
 
-        public Orbit? Orbit { get; set; }    
+        public Orbit? Orbit { get; set; }
 
         public Color BaseColor { get; set; }
 

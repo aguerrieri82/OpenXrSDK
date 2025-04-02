@@ -469,12 +469,12 @@ namespace XrEngine
             Matrix4x4 Transform(Vector3 position, Vector3 tangent)
             {
                 tangent = Vector3.Normalize(tangent);
-                var up = new Vector3(0, 1, 0); 
-                var right = Vector3.Cross(up, tangent); 
-                if (right.LengthSquared() < 1e-6) 
+                var up = new Vector3(0, 1, 0);
+                var right = Vector3.Cross(up, tangent);
+                if (right.LengthSquared() < 1e-6)
                     right = Vector3.UnitX;
 
-                up = Vector3.Cross(tangent, right); 
+                up = Vector3.Cross(tangent, right);
 
                 return new Matrix4x4(
                     right.X, right.Y, right.Z, 0,

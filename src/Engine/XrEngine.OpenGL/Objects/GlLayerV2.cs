@@ -1,5 +1,4 @@
-﻿using System.Formats.Tar;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 #if GLES
 using Silk.NET.OpenGLES;
@@ -8,7 +7,6 @@ using Silk.NET.OpenGL;
 #endif
 
 using XrMath;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace XrEngine.OpenGL
 {
@@ -163,7 +161,7 @@ namespace XrEngine.OpenGL
 
                     shaderContent.Contents[material] = materialContent;
                 }
-                
+
                 var vertexHandler = vrtSrc.Object.GetGlResource(a => GlVertexSourceHandle.Create(_render.GL, vrtSrc));
 
                 if (!materialContent.Contents.TryGetValue(vrtSrc.Object, out var vertexContent))
@@ -184,7 +182,7 @@ namespace XrEngine.OpenGL
 
                 Action draw;
 
-                if (material is ITessellationMaterial tes && tes.TessellationMode != TessellationMode.None  )
+                if (material is ITessellationMaterial tes && tes.TessellationMode != TessellationMode.None)
                 {
                     var size = vrtSrc.Primitive == DrawPrimitive.Quad ? 4 : 3;
                     //TODO: disable instance draw
@@ -201,7 +199,7 @@ namespace XrEngine.OpenGL
                     var primitive = material.Shader.ForcePrimitive;
                     draw = () => vertexContent!.VertexHandler!.Draw(primitive);
                 }
- 
+
 
                 vertexContent.Contents.Add(new DrawContent
                 {
@@ -259,7 +257,7 @@ namespace XrEngine.OpenGL
                 {
                     var verContentList = matEntry.Value.Contents.Values;
 
-                    matEntry.Value.UseInstanceDraw = _render.Options.UseInstanceDraw && instanceShader != null && 
+                    matEntry.Value.UseInstanceDraw = _render.Options.UseInstanceDraw && instanceShader != null &&
                                                      verContentList.Any(a => a.Contents.Count > 1);
 
                     foreach (var verContent in matEntry.Value.Contents.Values)
@@ -297,7 +295,7 @@ namespace XrEngine.OpenGL
 
                 verContent.InstanceBuffer.Allocate((uint)(elSize * verContent.Contents.Count));
                 verContent.InstanceBuffer.Version = verContent.ContentVersion;
-                
+
                 mode = InstanceBufferMode.UpdateAlways;
             }
 
@@ -320,13 +318,13 @@ namespace XrEngine.OpenGL
 
             if (mode == InstanceBufferMode.Auto)
             {
-                var ratio = (float)changedCount / verContent.Contents.Count;   
+                var ratio = (float)changedCount / verContent.Contents.Count;
                 if (ratio < 0.3 && changedCount < 5)
                     mode = InstanceBufferMode.UpdateIncremental;
                 else
-                    mode = InstanceBufferMode.UpdateAlways; 
+                    mode = InstanceBufferMode.UpdateAlways;
             }
-    
+
             if (mode == InstanceBufferMode.UpdateAlways || mode == InstanceBufferMode.UpdateAllWhenChanged)
             {
                 var data = verContent.InstanceBuffer!.Lock(BufferAccessMode.Replace);
@@ -424,9 +422,9 @@ namespace XrEngine.OpenGL
                         {
                             allVertexHidden = false;
                             allMatHidden = false;
-                        }            
+                        }
                     }
-                    vertex.IsHidden = allVertexHidden;  
+                    vertex.IsHidden = allVertexHidden;
                 }
                 material.IsHidden = allMatHidden;
             }
@@ -454,7 +452,7 @@ namespace XrEngine.OpenGL
 
         public Scene3D Scene => _scene;
 
-        public bool IsEmpty => _content.Contents.Count == 0;    
+        public bool IsEmpty => _content.Contents.Count == 0;
 
         public long Version => _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
     }

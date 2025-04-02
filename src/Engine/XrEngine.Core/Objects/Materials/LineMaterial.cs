@@ -1,12 +1,10 @@
-﻿using System.Diagnostics;
-
-namespace XrEngine
+﻿namespace XrEngine
 {
     public class LineMaterial : ShaderMaterial, ILineMaterial
     {
         static readonly Shader SHADER;
 
-        
+
         static LineMaterial()
         {
             SHADER = new CameraOnlyVertexShader

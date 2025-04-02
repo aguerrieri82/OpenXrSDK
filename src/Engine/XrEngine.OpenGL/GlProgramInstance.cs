@@ -93,12 +93,12 @@ namespace XrEngine.OpenGL
 
             var tesMode = Material is ITessellationMaterial tes ? tes.TessellationMode : TessellationMode.None;
             var useTess = shader.TessEvalSourceName != null && tesMode != TessellationMode.None;
-            var useGeo = shader.GeometrySourceName != null && 
+            var useGeo = shader.GeometrySourceName != null &&
                          (shader.TessEvalSourceName == null || tesMode == TessellationMode.Geometry);
 
             if (useTess)
                 localBuilder.AddFeature("USE_TESS_SHADER");
-            
+
             if (useGeo)
                 localBuilder.AddFeature("USE_GEO_SHADER");
 
@@ -115,11 +115,11 @@ namespace XrEngine.OpenGL
                     if (shader.SourcePaths != null && shader.SourcePaths.Length > 0)
                     {
                         var fullPath = shader.SourcePaths.
-                                       Select(a=> Path.Combine(a, name))
+                                       Select(a => Path.Combine(a, name))
                                        .Where(File.Exists)
                                         .FirstOrDefault();
                         if (fullPath != null)
-                            return File.ReadAllText(fullPath);  
+                            return File.ReadAllText(fullPath);
                     }
                     return shader.Resolver!(name);
                 };

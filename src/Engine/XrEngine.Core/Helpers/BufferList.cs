@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XrEngine.Helpers
+﻿namespace XrEngine.Helpers
 {
-    public class BufferList<T> : IDisposable where T : unmanaged    
+    public class BufferList<T> : IDisposable where T : unmanaged
     {
         readonly IBuffer<T> _buffer;
         readonly Stack<int> _freeIndices = [];
@@ -14,7 +10,7 @@ namespace XrEngine.Helpers
         public BufferList(IBuffer<T> buffer, int blockSize = 64)
         {
             _buffer = buffer;
-            _blockSize = blockSize; 
+            _blockSize = blockSize;
         }
 
         public unsafe int Add(T value)
@@ -27,15 +23,15 @@ namespace XrEngine.Helpers
             }
             return index;
         }
-        
-        
+
+
         public unsafe bool Remove(int index)
         {
             if (index < 0 || index >= _capacity)
                 return false;
 
             if (_freeIndices.Contains(index))
-                return false;   
+                return false;
 
             _freeIndices.Push(index);
 
@@ -46,7 +42,7 @@ namespace XrEngine.Helpers
         {
             if (_buffer is IDisposable disposable)
                 disposable.Dispose();
-            GC.SuppressFinalize(this);  
+            GC.SuppressFinalize(this);
         }
     }
 }

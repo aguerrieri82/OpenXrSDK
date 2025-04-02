@@ -64,10 +64,10 @@ namespace XrEngine
             });
         }
 
-        public Vector3[] Points { get; set; }   
+        public Vector3[] Points { get; set; }
 
         public Color Color { get; set; }
 
-        public bool UseVertexColor { get; set; }    
+        public bool UseVertexColor { get; set; }
     }
 }

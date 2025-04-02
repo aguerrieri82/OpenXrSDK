@@ -1,11 +1,4 @@
-﻿using glTFLoader.Schema;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Tensorflow.Keras.Engine;
-using XrEngine;
+﻿using XrEngine;
 using XrEngine.OpenXr;
 using XrSamples.Earth;
 
@@ -17,7 +10,7 @@ namespace XrSamples
         {
             var app = new EngineApp();
 
-            app.OpenScene(new EarthScene()); 
+            app.OpenScene(new EarthScene());
 
             return builder.UseApp(app)
                            .ConfigureApp(a =>

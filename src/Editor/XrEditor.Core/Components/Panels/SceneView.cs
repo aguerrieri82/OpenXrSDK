@@ -115,7 +115,7 @@ namespace XrEditor
             _stopButton = ToolBar.AddButton("icon_stop", StopApp);
             ToolBar.AddDivider();
             _cameraList = ToolBar.AddSelect(ListCameras(), _camera, c => Camera = c);
-            _cameraList.ValueType = typeof(Camera); 
+            _cameraList.ValueType = typeof(Camera);
 
         }
 

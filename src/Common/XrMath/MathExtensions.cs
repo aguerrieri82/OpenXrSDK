@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace XrMath
@@ -1017,7 +1016,7 @@ namespace XrMath
 
         public static Vector3 Forward(this Quaternion q)
         {
-            return - new Vector3(
+            return -new Vector3(
                 2 * (q.X * q.Z + q.W * q.Y),
                 2 * (q.Y * q.Z - q.W * q.X),
                 1 - 2 * (q.X * q.X + q.Y * q.Y)
@@ -1217,7 +1216,7 @@ namespace XrMath
 
 
         #region BOUNDS2 
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Contains(this Bounds2 self, Vector2 point)
         {

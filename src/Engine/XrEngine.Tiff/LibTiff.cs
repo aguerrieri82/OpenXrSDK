@@ -35,7 +35,7 @@ namespace XrEngine.Tiff
             GeoKeyDirectory = 34735,
             GeoAsciiParamsTag = 34737,
             GeoDoubleParamsTag = 34736,
- 
+
         }
 
         public enum GeoTag
@@ -362,7 +362,7 @@ namespace XrEngine.Tiff
 
             var ps = (bps / 8);
             var lineSize = w * ps;
-            
+
             var buffer = MemoryBuffer.Create<byte>((uint)(lineSize * h));
             result.Data = buffer;
 
@@ -388,7 +388,7 @@ namespace XrEngine.Tiff
                             var curTh = Math.Min(h - y, th);
                             var mainBufOfs = data.Data + (x * ps) + ((h - y - 1) * lineSize);
                             var tileBufOfs = tileBufData.Data;
-                            var cutTLineSize = Math.Min(tLineSize, (w - x) * ps);    
+                            var cutTLineSize = Math.Min(tLineSize, (w - x) * ps);
 
                             for (uint y1 = 0; y1 < curTh; y1++)
                             {
@@ -405,7 +405,7 @@ namespace XrEngine.Tiff
                     for (var y = 0; y < h; y++)
                         TIFFReadScanline(tiff, data.Data + ((h - y - 1) * lineSize), y, 0);
                 }
-            
+
             }
             else
             {
@@ -470,10 +470,10 @@ namespace XrEngine.Tiff
             {
                 if (entry.TagLocation == 0)
                     return entry.ValueOffset;
-                
+
                 if (entry.TagLocation == (ushort)TiffTag.GeoAsciiParamsTag)
                     return ascii.Substring(entry.ValueOffset, entry.ValueCount - 1);
-                
+
                 if (entry.TagLocation == (ushort)TiffTag.GeoDoubleParamsTag)
                 {
                     if (entry.ValueCount == 1)

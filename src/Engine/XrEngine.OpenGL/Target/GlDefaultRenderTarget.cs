@@ -37,7 +37,7 @@ namespace XrEngine.OpenGL
                     IsMutable = true,
                     MaxLevel = 0,
                     MinFilter = TextureMinFilter.Nearest,
-                    MagFilter = TextureMagFilter.Nearest,   
+                    MagFilter = TextureMagFilter.Nearest,
                 };
 
             SetSize(new Size2I(16, 16));
@@ -60,7 +60,7 @@ namespace XrEngine.OpenGL
             };
 
             _color.Update(1, data);
-            
+
             if (_depth is GlRenderBuffer renderBuffer)
                 renderBuffer.Update(realSize.Width, realSize.Height, 1, InternalFormat.Depth24Stencil8);
 
@@ -69,7 +69,7 @@ namespace XrEngine.OpenGL
                 {
                     Width = realSize.Width,
                     Height = realSize.Height,
-                    Format = TextureFormat.Depth24Stencil8,                    
+                    Format = TextureFormat.Depth24Stencil8,
                 });
         }
 

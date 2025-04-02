@@ -46,7 +46,7 @@ namespace XrEngine
                 result.AlignX = 4;
                 result.AlignY = 4;
                 result.BitPerPixel = 8;
-            }          
+            }
             else if (comp == TextureCompressionFormat.Uncompressed)
             {
                 result.AlignX = 1;

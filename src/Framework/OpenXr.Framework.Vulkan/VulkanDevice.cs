@@ -115,9 +115,9 @@ namespace OpenXr.Framework.Vulkan
             ApplicationInfo appInfo = new()
             {
                 SType = StructureType.ApplicationInfo,
-                PApplicationName = (byte*)Marshal.StringToHGlobalAnsi("Hello Triangle"),
+                PApplicationName = (byte*)Marshal.StringToHGlobalAnsi("Unknown"),
                 ApplicationVersion = new Version32(1, 0, 0),
-                PEngineName = (byte*)Marshal.StringToHGlobalAnsi("No Engine"),
+                PEngineName = (byte*)Marshal.StringToHGlobalAnsi("XrEngine"),
                 EngineVersion = new Version32(1, 0, 0),
                 ApiVersion = Vk.Version11
             };
@@ -128,7 +128,7 @@ namespace OpenXr.Framework.Vulkan
                 PApplicationInfo = &appInfo
             };
 
-            List<string> extensions = new(_instanceExtensions!);
+            List<string> extensions = [.. _instanceExtensions!];
 
             if (_window != null)
                 GetRequiredExtensions(extensions);
@@ -246,9 +246,7 @@ namespace OpenXr.Framework.Vulkan
             foreach (var availableFormat in availableFormats)
             {
                 if (availableFormat.Format == Format.B8G8R8A8Srgb && availableFormat.ColorSpace == ColorSpaceKHR.SpaceSrgbNonlinearKhr)
-                {
                     return availableFormat;
-                }
             }
 
             return availableFormats[0];
@@ -259,9 +257,7 @@ namespace OpenXr.Framework.Vulkan
             foreach (var availablePresentMode in availablePresentModes)
             {
                 if (availablePresentMode == PresentModeKHR.MailboxKhr)
-                {
                     return availablePresentMode;
-                }
             }
 
             return PresentModeKHR.FifoKhr;
@@ -270,24 +266,20 @@ namespace OpenXr.Framework.Vulkan
         private Extent2D ChooseSwapExtent(SurfaceCapabilitiesKHR capabilities)
         {
             if (capabilities.CurrentExtent.Width != uint.MaxValue)
-            {
                 return capabilities.CurrentExtent;
-            }
-            else
+
+            var framebufferSize = _window!.FramebufferSize;
+
+            Extent2D actualExtent = new()
             {
-                var framebufferSize = _window!.FramebufferSize;
+                Width = (uint)framebufferSize.X,
+                Height = (uint)framebufferSize.Y
+            };
 
-                Extent2D actualExtent = new()
-                {
-                    Width = (uint)framebufferSize.X,
-                    Height = (uint)framebufferSize.Y
-                };
+            actualExtent.Width = Math.Clamp(actualExtent.Width, capabilities.MinImageExtent.Width, capabilities.MaxImageExtent.Width);
+            actualExtent.Height = Math.Clamp(actualExtent.Height, capabilities.MinImageExtent.Height, capabilities.MaxImageExtent.Height);
 
-                actualExtent.Width = Math.Clamp(actualExtent.Width, capabilities.MinImageExtent.Width, capabilities.MaxImageExtent.Width);
-                actualExtent.Height = Math.Clamp(actualExtent.Height, capabilities.MinImageExtent.Height, capabilities.MaxImageExtent.Height);
-
-                return actualExtent;
-            }
+            return actualExtent;
         }
 
         private SwapChainSupportDetails QuerySwapChainSupport(PhysicalDevice physicalDevice)
@@ -309,7 +301,7 @@ namespace OpenXr.Framework.Vulkan
             }
             else
             {
-                details.Formats = Array.Empty<SurfaceFormatKHR>();
+                details.Formats = [];
             }
 
             uint presentModeCount = 0;
@@ -326,7 +318,7 @@ namespace OpenXr.Framework.Vulkan
             }
             else
             {
-                details.PresentModes = Array.Empty<PresentModeKHR>();
+                details.PresentModes = [];
             }
 
             return details;
@@ -346,10 +338,11 @@ namespace OpenXr.Framework.Vulkan
 
         private void SetupDebugMessenger()
         {
-            if (!_enableValidationLayers) return;
+            if (!_enableValidationLayers)
+                return;
 
-            //TryGetInstanceExtension equivilant to method CreateDebugUtilsMessengerEXT from original tutorial.
-            if (!_vk!.TryGetInstanceExtension(_instance, out _debugUtils)) return;
+            if (!_vk!.TryGetInstanceExtension(_instance, out _debugUtils))
+                return;
 
             DebugUtilsMessengerCreateInfoEXT createInfo = new();
             PopulateDebugMessengerCreateInfo(ref createInfo);
@@ -366,10 +359,7 @@ namespace OpenXr.Framework.Vulkan
             _vk!.EnumeratePhysicalDevices(_instance, ref deviceCount, null);
 
             if (deviceCount == 0)
-            {
                 throw new Exception("failed to find GPUs with Vulkan support!");
-            }
-
 
             var devices = new PhysicalDevice[deviceCount];
             fixed (PhysicalDevice* devicesPtr = devices)
@@ -465,9 +455,7 @@ namespace OpenXr.Framework.Vulkan
         private void CreateSurface()
         {
             if (!_vk!.TryGetInstanceExtension<KhrSurface>(_instance, out _khrSurface))
-            {
                 throw new NotSupportedException("KHR_surface extension not found.");
-            }
 
             _surface = _window!.VkSurface!.Create<AllocationCallbacks>(_instance.ToHandle(), null).ToSurface();
         }
@@ -569,7 +557,6 @@ namespace OpenXr.Framework.Vulkan
 
             if (_swapChain.Handle != 0)
             {
-
                 _khrSwapChain!.DestroySwapchain(_device, _swapChain, null);
 
                 _swapChain.Handle = 0;
@@ -598,7 +585,6 @@ namespace OpenXr.Framework.Vulkan
                 _debugUtils!.DestroyDebugUtilsMessenger(_instance, _debugMessenger, null);
                 _debugMessenger.Handle = 0;
             }
-
 
             _vk.Dispose();
             _vk = null;

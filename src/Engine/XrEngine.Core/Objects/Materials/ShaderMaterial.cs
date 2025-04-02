@@ -32,7 +32,7 @@
 
         public override void Reload()
         {
-            _shader?.NotifyChanged(ObjectChangeType.Material);     
+            _shader?.NotifyChanged(ObjectChangeType.Material);
             base.Reload();
         }
 
@@ -44,12 +44,12 @@
         public void UpdateShader(ShaderUpdateBuilder bld)
         {
             var stage = bld.Context.Stage;
-            
+
             if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Model)
                 UpdateShaderModel(bld);
 
             if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Material)
-                UpdateShaderMaterial(bld);  
+                UpdateShaderMaterial(bld);
         }
 
 

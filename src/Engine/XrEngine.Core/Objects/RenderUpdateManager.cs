@@ -105,7 +105,8 @@
                         foreach (var item in grp.Items)
                             item.Update(ctx);
                     }
-                };
+                }
+                ;
             }
             finally
             {

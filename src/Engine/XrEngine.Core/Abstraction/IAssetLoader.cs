@@ -2,7 +2,7 @@
 {
     public interface IAssetLoaderOptions
     {
-        bool UseCache { get;  }
+        bool UseCache { get; }
     }
 
     public interface IAssetLoader

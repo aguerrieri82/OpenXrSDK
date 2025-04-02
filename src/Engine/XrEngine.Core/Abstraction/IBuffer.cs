@@ -5,7 +5,7 @@
     {
         Read = 0x1,
         Write = 0x2,
-        Replace = 0x4 | Write,  
+        Replace = 0x4 | Write,
         ReadWrite = Read | Write
     }
 
@@ -23,13 +23,13 @@
 
         byte* Lock(BufferAccessMode mode);
 
-        void Unlock();  
+        void Unlock();
 
         string Hash { get; set; }
 
         long Version { get; set; }
 
-        uint SizeBytes { get; }  
+        uint SizeBytes { get; }
     }
 
     public interface IBuffer<T> : IBuffer

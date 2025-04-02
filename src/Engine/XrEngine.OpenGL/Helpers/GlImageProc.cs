@@ -4,15 +4,12 @@ using Silk.NET.OpenGLES;
 using Silk.NET.OpenGL;
 #endif
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace XrEngine.OpenGL
 {
     public class GlImageProc
     {
-        Dictionary<string, GlSimpleProgram> _programs = [];
+        readonly Dictionary<string, GlSimpleProgram> _programs = [];
         uint _emptyVertexArray;
         GlTextureFrameBuffer? _frameBuffer;
 
@@ -43,14 +40,14 @@ namespace XrEngine.OpenGL
         {
             _frameBuffer ??= new GlTextureFrameBuffer(gl);
             _frameBuffer.Configure(color, depth, 1);
-            _frameBuffer.Bind();    
-        }   
+            _frameBuffer.Bind();
+        }
 
         public void CopyDepth(IGlFrameBuffer src, GlTexture dst)
         {
             LoadProgram(src.GL, "copy_red.frag");
 
-            GlState.Current!.LoadTexture((GlTexture)src.Depth!, 0);    
+            GlState.Current!.LoadTexture((GlTexture)src.Depth!, 0);
 
             GlState.Current!.SetWriteDepth(false);
             GlState.Current!.SetUseDepth(false);
@@ -62,6 +59,6 @@ namespace XrEngine.OpenGL
         }
 
 
-        public static readonly GlImageProc Instance = new GlImageProc();    
+        public static readonly GlImageProc Instance = new GlImageProc();
     }
 }

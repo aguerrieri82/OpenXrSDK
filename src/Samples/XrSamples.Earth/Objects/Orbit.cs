@@ -152,11 +152,11 @@ namespace XrSamples.Earth
             return new Orbit
             {
                 Eccentricity = 0.0167,
-                SemiMajorAxis = 1.0,  
+                SemiMajorAxis = 1.0,
                 MeanAnomalyAtEpoch = DegreesToRadians(357.529),
                 MeanMotion = DegreesToRadians(0.985608),
                 ArgumentOfPerihelion = DegreesToRadians(102.937),
-                OrbitScale = new Vector3(1, 1,-1)
+                OrbitScale = new Vector3(1, 1, -1)
             };
         }
 
@@ -175,13 +175,13 @@ namespace XrSamples.Earth
                 OrbitOffset = (float)DegreesToRadians(0),
             };
         }
-        
+
         public double LongitudeOfAscendingNode { get; set; }
 
         public double Inclination { get; set; }
 
         public double Eccentricity { get; set; }
-        
+
         public double SemiMajorAxis { get; set; }
 
 

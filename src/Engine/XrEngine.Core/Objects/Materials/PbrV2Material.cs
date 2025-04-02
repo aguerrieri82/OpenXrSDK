@@ -1,7 +1,4 @@
 ﻿using Common.Interop;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Net;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using XrMath;
@@ -153,7 +150,7 @@ namespace XrEngine
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
                 var stage = bld.Context.Stage;
-                
+
                 if (!(stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Shader))
                     return;
 
@@ -354,13 +351,13 @@ namespace XrEngine
 
             public unsafe long Update(byte* destData, Object3D model, int drawId)
             {
-                *(ModelUniforms*)destData =  new ModelUniforms
+                *(ModelUniforms*)destData = new ModelUniforms
                 {
                     NormalMatrix = model.NormalMatrix,
                     WorldMatrix = model.WorldMatrix,
                     DrawId = drawId
                 };
-                return model.Transform.Version; 
+                return model.Transform.Version;
             }
 
             public Type InstanceBufferType => typeof(ModelUniforms);
@@ -543,7 +540,7 @@ namespace XrEngine
                         up.SetUniform("uSphereCenter", HeightMap.SphereWorldCenter);
                     });
                 }
-            
+
 
                 bld.ExecuteAction((ctx, up) =>
                 {
@@ -589,7 +586,7 @@ namespace XrEngine
             {
                 bld.AddFeature("USE_NORMAL_MAP");
 
-                if (NormalMapFormat== NormalMapFormat.UnityBc3)
+                if (NormalMapFormat == NormalMapFormat.UnityBc3)
                     bld.AddFeature("NORMAL_MAP_BC3");
 
                 bld.LoadTexture(ctx => NormalMap, 1);
@@ -637,9 +634,9 @@ namespace XrEngine
             base.SetStateWork(container);
         }
 
-        TessellationMode ITessellationMaterial.TessellationMode => 
-            HeightMap?.Texture != null ? (HeightMap.NormalMode == HeightNormalMode.Geometry ? 
-                                            TessellationMode.Geometry : 
+        TessellationMode ITessellationMaterial.TessellationMode =>
+            HeightMap?.Texture != null ? (HeightMap.NormalMode == HeightNormalMode.Geometry ?
+                                            TessellationMode.Geometry :
                                             TessellationMode.Normal)
                                         : TessellationMode.None;
 
@@ -690,7 +687,7 @@ namespace XrEngine
 
         public Color EmissiveColor { get; set; }
 
-        public bool Simplified { get; set; }    
+        public bool Simplified { get; set; }
 
         public PbrV2Debug Debug { get; set; }
 

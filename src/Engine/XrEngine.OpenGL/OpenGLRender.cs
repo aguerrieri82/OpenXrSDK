@@ -67,7 +67,7 @@ namespace XrEngine.OpenGL
             _glState = state;
             _gl = gl;
             _options = options;
-            _defaultTarget = new GlDefaultRenderTarget(gl,!options.UseDepthPass);
+            _defaultTarget = new GlDefaultRenderTarget(gl, !options.UseDepthPass);
             _lastLayersVersion = -1;
             _target = _defaultTarget;
 
@@ -92,7 +92,7 @@ namespace XrEngine.OpenGL
                     UseOcclusionQuery = _options.UseOcclusionQuery
                 };
                 _renderPasses.Add(depthPass);
-                _updateCtx.DepthCullProvider = depthPass;   
+                _updateCtx.DepthCullProvider = depthPass;
             }
 
             if (_options.UsePlanarReflection)
@@ -384,7 +384,7 @@ namespace XrEngine.OpenGL
             _dispatcher.ProcessQueue();
 
             _target.End(true);
-  
+
             if (flush)
                 _gl.Flush();
 
@@ -414,7 +414,7 @@ namespace XrEngine.OpenGL
         }
 
 
-#endregion
+        #endregion
 
         #region ISurfaceProvider
 
@@ -622,7 +622,7 @@ namespace XrEngine.OpenGL
             EnsureThread();
 
             var glTex = texture.ToGlTexture();
-            
+
             PushGroup($"ReadTexture {glTex.Handle}");
             var data = glTex.Read(format, startMipLevel, endMipLevel);
             PopGroup();

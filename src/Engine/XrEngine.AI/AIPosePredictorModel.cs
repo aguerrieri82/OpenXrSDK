@@ -70,7 +70,7 @@ namespace XrEngine.AI
                 keras.layers.Dense(_featureSize)
             ]);
 
-            _model?.compile(
+            _model.compile(
                     optimizer: keras.optimizers.Adam(learning_rate: 0.001f),
                     loss: keras.losses.MeanAbsoluteError(),
                     metrics: ["mean_absolute_error"]

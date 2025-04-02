@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using XrEngine;
 using XrInteraction;
 using XrMath;

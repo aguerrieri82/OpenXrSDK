@@ -1,10 +1,4 @@
-﻿
-using SharpEXR.ColorSpace;
-using Silk.NET.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using System.Text.Json;
 using XrEngine;
 using XrEngine.OpenGL;
@@ -35,12 +29,12 @@ namespace XrSamples.Components
             lock (this)
             {
                 while (_suspendRender && _leftFrames == 0)
-                    Monitor.Wait(this); 
+                    Monitor.Wait(this);
 
                 if (_leftFrames > 0)
                     _leftFrames--;
             }
-            
+
             ActiveFrame = (uint)ctx.Frame;
 
             _depthPass!.UseDepthCull = UseDepthCull;
@@ -60,7 +54,7 @@ namespace XrSamples.Components
                 .SelectMany(a => a.Contents);
 
             var draw = draws.FirstOrDefault(a => a.Object!.Name == ActiveObject);
-      
+
             if (draw == null)
                 Log.Warn(this, $"Draw '{ActiveObject}' not found");
             else
@@ -127,12 +121,12 @@ namespace XrSamples.Components
             {
                 if (_suspendRender == value)
                     return;
-                
+
                 _suspendRender = value;
 
                 lock (this)
                     Monitor.PulseAll(this);
-            }   
+            }
         }
     }
 }

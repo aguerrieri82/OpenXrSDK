@@ -1,10 +1,4 @@
-﻿using MeshOptimizer;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Numerics;
-using System.Text;
-using Tensorflow;
+﻿using System.Numerics;
 using XrEngine;
 using XrMath;
 
@@ -27,7 +21,7 @@ namespace XrSamples.Components
             if (_host?.Geometry == null || _host.Geometry.Indices.Length < MinVertices)
                 return;
 
-            _curGeo = _host.Geometry;  
+            _curGeo = _host.Geometry;
             _lowGeo = _host.Geometry.Clone();
 
             _host.Flags &= ~EngineObjectFlags.NotifyChanged;
@@ -90,7 +84,7 @@ namespace XrSamples.Components
 
         public float CutSize { get; set; }
 
-        public float Factor { get; set; }   
+        public float Factor { get; set; }
 
         public int MinVertices { get; set; }
     }

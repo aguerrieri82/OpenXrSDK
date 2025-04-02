@@ -14,7 +14,7 @@ namespace XrEngine.OpenGL
         public static IBuffer Create(GL gl, BufferTargetARB target, Type contentType)
         {
             var type = typeof(GlBuffer<>).MakeGenericType(contentType);
-            return (IBuffer)Activator.CreateInstance(type, gl, target)!; 
+            return (IBuffer)Activator.CreateInstance(type, gl, target)!;
         }
     }
 
@@ -106,7 +106,7 @@ namespace XrEngine.OpenGL
             {
                 BufferAccessMode.Read => MapBufferAccessMask.ReadBit,
                 BufferAccessMode.Write => MapBufferAccessMask.WriteBit,
-                BufferAccessMode.Replace => MapBufferAccessMask.WriteBit| MapBufferAccessMask.InvalidateBufferBit,
+                BufferAccessMode.Replace => MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit,
                 BufferAccessMode.ReadWrite => MapBufferAccessMask.ReadBit | MapBufferAccessMask.WriteBit,
                 _ => throw new NotSupportedException()
             };
@@ -164,7 +164,7 @@ namespace XrEngine.OpenGL
         {
             if (value.Length == 0)
                 return;
-            
+
             var sizeBytes = (uint)(value.Length * sizeof(T));
 
             fixed (T* pData = &value[0])
@@ -215,7 +215,7 @@ namespace XrEngine.OpenGL
 
         public BufferTargetARB Target => _target;
 
-        public unsafe uint ArrayLength =>  (uint)(_sizeBytes / sizeof(T));
+        public unsafe uint ArrayLength => (uint)(_sizeBytes / sizeof(T));
 
         public uint SizeBytes => _sizeBytes;
     }

@@ -18,7 +18,7 @@
 
         public bool IsEffect { get; set; }
 
-        public bool VaryByModel { get; set; }   
+        public bool VaryByModel { get; set; }
 
         public int Priority { get; set; }
 

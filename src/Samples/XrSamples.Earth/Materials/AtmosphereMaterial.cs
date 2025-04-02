@@ -1,14 +1,6 @@
-﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using XrEngine;
 using XrMath;
-using static XrSamples.Earth.SceneConst;    
 
 namespace XrSamples.Earth
 {
@@ -23,7 +15,7 @@ namespace XrSamples.Earth
             {
                 FragmentSourceName = "atmosphere.frag",
                 IsLit = false,
-                SourcePaths = ["D:\\Development\\Personal\\Git\\XrSDK\\src\\Samples\\XrSamples.Earth\\Shaders\\"],     
+                SourcePaths = ["D:\\Development\\Personal\\Git\\XrSDK\\src\\Samples\\XrSamples.Earth\\Shaders\\"],
                 Resolver = str =>
                 {
                     if (str.EndsWith(".frag"))
@@ -45,7 +37,7 @@ namespace XrSamples.Earth
             UseDepth = false;
             WriteDepth = false;
             SunIntensity = 22;
-            SunColor = new Color(1.0f, 0.8f, 0.6f);      
+            SunColor = new Color(1.0f, 0.8f, 0.6f);
         }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)

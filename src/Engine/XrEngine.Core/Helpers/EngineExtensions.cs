@@ -1333,9 +1333,9 @@ namespace XrEngine
 
 
         public static Poly2 ToPoly2(this ICurve2D curve, int numPoints, bool isClosed)
-        { 
+        {
             var points = new Vector2[numPoints];
-            
+
             for (var i = 0; i < numPoints; i++)
                 points[i] = curve.GetPointAtTime(1f / numPoints * i);
 

@@ -12,7 +12,7 @@ namespace XrEditor.Nodes
 
         protected override void EditorProperties(Binder<T> binder, IList<PropertyView> curProps)
         {
-           // base.EditorProperties(binder, curProps);
+            // base.EditorProperties(binder, curProps);
 
             binder.PropertyChanged += (_, prop, _, _) =>
             {
@@ -58,7 +58,7 @@ namespace XrEditor.Nodes
                 curProps.Add(new PropertyView
                 {
                     Label = "ActiveEye",
-                    Editor = new TextEditor<int>(a => int.Parse(a), a=> a.ToString())
+                    Editor = new TextEditor<int>(a => int.Parse(a), a => a.ToString())
                     {
                         Binding = binder.Prop(a => (a as PerspectiveCamera)!.ActiveEye)
                     }

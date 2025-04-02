@@ -76,7 +76,7 @@ namespace XrEngine.OpenGL
             _buffer.Unmap();
 
             Bind();
-            
+
             _gl.PixelStore(PixelStoreParameter.UnpackAlignment, _alignment);
 
             _gl.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, data.Width, data.Height, pixelFormat, pixelType, null);

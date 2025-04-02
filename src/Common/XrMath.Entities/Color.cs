@@ -33,7 +33,7 @@ namespace XrMath
                 G = value,
                 B = value,
                 A = 1f
-            };    
+            };
         }
 
         public static explicit operator Vector3(Color color)

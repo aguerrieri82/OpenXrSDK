@@ -137,7 +137,7 @@
             var newMat = (Material)MemberwiseClone();
 
             newMat._hosts = [];
-            if (newMat._props != null)  
+            if (newMat._props != null)
                 newMat._props = [];
 
             return newMat;

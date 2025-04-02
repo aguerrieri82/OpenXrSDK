@@ -1,7 +1,6 @@
 ﻿using OpenXr.Framework;
 using System.ComponentModel;
 using System.Numerics;
-using System.Runtime.InteropServices.JavaScript;
 using XrEngine;
 using XrMath;
 using static XrSamples.Earth.SceneConst;
@@ -13,7 +12,7 @@ namespace XrSamples.Earth
         Free,
         Earth,
         Moon,
-        Sun 
+        Sun
     }
 
 
@@ -21,7 +20,7 @@ namespace XrSamples.Earth
     {
         DateTime _dateTime;
         bool _posDirty;
-        private bool _sunAtOrigin;
+        private readonly bool _sunAtOrigin;
 
         public CameraControl()
         {
@@ -133,10 +132,10 @@ namespace XrSamples.Earth
 
                 foreach (var item in _host.Children)
                 {
-                    if (item == _host.Earth || 
-                        item is Camera || 
+                    if (item == _host.Earth ||
+                        item is Camera ||
                         item is StarDome ||
-                        item is Moon || 
+                        item is Moon ||
                         item.Name == "Orbit Moon")
                         continue;
 
@@ -226,7 +225,7 @@ namespace XrSamples.Earth
         public float Longitude { get; set; }
 
         [Range(0, 1000, 0.5f)]
-        public float Altitude { get; set; } 
+        public float Altitude { get; set; }
 
         public float Speed { get; set; }
 

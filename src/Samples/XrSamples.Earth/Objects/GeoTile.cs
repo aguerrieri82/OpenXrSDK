@@ -1,12 +1,6 @@
-﻿
-using Common.Interop;
-using DotSpatial.Projections;
+﻿using DotSpatial.Projections;
 
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using Tensorflow;
-using Tensorflow.Gradients;
 using XrEngine;
 using XrEngine.Tiff;
 using XrMath;
@@ -61,8 +55,8 @@ namespace XrSamples.Earth
             var len = Geometry!.Vertices.Length;
 
 
-            var trans = Matrix3x2.CreateScale(p1.X - p0.X, p2.Y - p0.Y) * 
-                        Matrix3x2.CreateTranslation(p0.X, p0.Y);           
+            var trans = Matrix3x2.CreateScale(p1.X - p0.X, p2.Y - p0.Y) *
+                        Matrix3x2.CreateTranslation(p0.X, p0.Y);
 
 
             for (var i = 0; i < len; i++)
@@ -82,8 +76,8 @@ namespace XrSamples.Earth
 
             if (texData.Format == TextureFormat.GrayRawSInt16)
             {
-                texData.Data = ImageUtils.ConvertShortToFloat(texData.Data!);    
-                texData.Format = TextureFormat.GrayFloat32; 
+                texData.Data = ImageUtils.ConvertShortToFloat(texData.Data!);
+                texData.Format = TextureFormat.GrayFloat32;
             }
 
             var w = texData.Width;
@@ -181,14 +175,14 @@ namespace XrSamples.Earth
             Transform.Position = center;
 
             Geometry = new QuadPatch3D(new Vector2(ww, hh), 100);
-         
+
             var pbr = MaterialFactory.CreatePbr("#ffffff");
             pbr.Roughness = 1f;
 
             if (Roughness != null)
                 pbr.MetallicRoughnessMap = ImageUtils.MergeMetalRaugh(Roughness);
 
-            pbr.ColorMap = Color;   
+            pbr.ColorMap = Color;
 
             if (pbr is IHeightMaterial hm)
             {
@@ -215,7 +209,7 @@ namespace XrSamples.Earth
                     HeightMap.MagFilter = ScaleFilter.Nearest;
                     HeightMap.MinFilter = ScaleFilter.Nearest;
                 }
-          
+
             }
 
             Materials.Add((Material)pbr);
@@ -227,7 +221,7 @@ namespace XrSamples.Earth
             {
                 hm.HeightMap!.SphereWorldCenter = SphereWorldCenter;
                 hm.HeightMap!.SphereRadius = SphereRadius;
-            }   
+            }
 
             base.Update(ctx);
         }

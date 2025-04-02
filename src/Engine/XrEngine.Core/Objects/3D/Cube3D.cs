@@ -5,7 +5,7 @@ namespace XrEngine
     public class Cube3D : Geometry3D, IGeneratedContent
     {
         public Cube3D()
-            : this(Vector3.One) 
+            : this(Vector3.One)
         {
 
         }

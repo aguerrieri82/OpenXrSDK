@@ -1,8 +1,5 @@
-﻿using Silk.NET.Maths;
-using System;
-using System.Collections.Generic;
+﻿using System.Diagnostics;
 using System.Numerics;
-using System.Text;
 using XrInteraction;
 using XrMath;
 
@@ -26,9 +23,9 @@ namespace XrEngine.OpenXr
         }
 
 
-        public Bounds2? Bounds { get; set; }  
-        
-        public float Y  { get; set; }
+        public Bounds2? Bounds { get; set; }
+
+        public float Y { get; set; }
     }
 
 
@@ -36,6 +33,7 @@ namespace XrEngine.OpenXr
     {
         protected IEnumerable<ITeleportTarget> Targets()
         {
+            Debug.Assert(_host != null);
             return _host!.DescendantsWithFeature<ITeleportTarget>().Select(a => a.Feature);
         }
 
@@ -53,13 +51,12 @@ namespace XrEngine.OpenXr
 
     public class InputTeleport : Behavior<Object3D>, IDrawGizmos
     {
-        TeleportRayView _rayView;
+        readonly TeleportRayView _rayView;
         Ray3 _lastRay;
         Vector3 _hitDest;
         Vector3 _lastIntPoint;
         bool _lastIntValid;
         bool _isTeleportStart;
-
         float _lastElev;
         float _lastMaxT;
 
@@ -86,7 +83,6 @@ namespace XrEngine.OpenXr
             if (Target == null || Pointer == null || IsTriggerActive == null)
                 return;
 
-
             if (IsSimulation)
             {
                 var obj = _host!.Scene!.Children.OfType<XrRoot>().First().LeftController!;
@@ -94,7 +90,6 @@ namespace XrEngine.OpenXr
                 _lastRay = obj.GetWorldPose().ToRay();
                 _lastRay.Origin = _host!.WorldPosition;
             }
-    
             else
             {
                 var isActive = IsTriggerActive();
@@ -128,7 +123,7 @@ namespace XrEngine.OpenXr
 
             _lastIntValid = false;
 
-            foreach (var yPlane in Target.GetYPlanes().OrderByDescending(a=> a))
+            foreach (var yPlane in Target.GetYPlanes().OrderByDescending(a => a))
             {
                 var intPoint = RayIntersection(_lastRay, yPlane);
 
@@ -152,7 +147,7 @@ namespace XrEngine.OpenXr
 
         protected virtual void Teleport(Vector3 position)
         {
-            _host!.WorldPosition = position; 
+            _host!.WorldPosition = position;
         }
 
         [Action]
@@ -163,11 +158,11 @@ namespace XrEngine.OpenXr
 
         public Vector3 RayIntersection(Ray3 ray, float yPlane)
         {
-
             var cos = Math.Clamp(ray.Direction.Dot(Vector3.UnitY), 0, 1);
             var curElev = 1 - (MathF.Acos(cos) / (MathF.PI / 2));
-            curElev = MathF.Pow(curElev, Exponent) + 0.05f; 
-            _lastElev = MathUtils.Smooth(_lastElev, curElev, SmoothFactor);   
+            curElev = MathF.Pow(curElev, Exponent) + 0.05f;
+
+            _lastElev = MathUtils.Smooth(_lastElev, curElev, SmoothFactor);
 
             var yMax = MinY +
                 (MathF.Pow(MathF.E, ElevationFactor * _lastElev) - 1) / (MathF.Pow(MathF.E, ElevationFactor) - 1) *
@@ -193,9 +188,9 @@ namespace XrEngine.OpenXr
         protected IEnumerable<Vector3> Sample(int numPoints)
         {
             var part = _lastMaxT / (numPoints - 1);
-            for (var i = 0; i < numPoints; i++)    
+            for (var i = 0; i < numPoints; i++)
             {
-                var t = i == numPoints - 1 ? _lastMaxT : part * i;  
+                var t = i == numPoints - 1 ? _lastMaxT : part * i;
                 var p0 = SamplePoint(t);
                 yield return p0;
             }
@@ -203,7 +198,6 @@ namespace XrEngine.OpenXr
 
         protected Vector3 SamplePoint(float t)
         {
-   
             var yMax = MinY +
                 (MathF.Pow(MathF.E, ElevationFactor * _lastElev) - 1) / (MathF.Pow(MathF.E, ElevationFactor) - 1) *
                 (MaxRange.Y - MinY);
@@ -213,7 +207,7 @@ namespace XrEngine.OpenXr
             var x = t * xMax;
             var y = 4 * yMax * t * (1 - t);
 
-            var res = new Vector3(_lastRay.Direction.X, 0, _lastRay.Direction.Z).Normalize() * x + 
+            var res = new Vector3(_lastRay.Direction.X, 0, _lastRay.Direction.Z).Normalize() * x +
                       new Vector3(_lastRay.Origin.X, _lastRay.Origin.Y + y, _lastRay.Origin.Z);
 
             return res;
@@ -222,13 +216,13 @@ namespace XrEngine.OpenXr
 
         public void DrawGizmos(Canvas3D canvas)
         {
-            if (!_isTeleportStart || !IsSimulation)
+            if (!_isTeleportStart && !IsSimulation)
                 return;
 
             canvas.Save();
             canvas.State.Color = "#00FFFF";
             //canvas.DrawLine(_lastRay.PointAt(0), _lastRay.PointAt(2f));
-            
+
             if (!_lastIntValid)
                 canvas.State.Color = "#FF0000";
 

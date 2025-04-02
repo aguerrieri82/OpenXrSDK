@@ -1215,7 +1215,7 @@ namespace XrSamples
                     ScaleFactor = 0.3f,
                     TargetTriSize = 5,
                     DebugTessellation = false,
-                    NormalStrength = new Vector3(20,20,1),
+                    NormalStrength = new Vector3(20, 20, 1),
                     NormalMode = HeightNormalMode.Sobel
                 };
 
@@ -1252,7 +1252,7 @@ namespace XrSamples
 
             var mat = MaterialFactory.CreatePbr("#ffffff");
             mat.ColorMap = TextureFactory.CreateChecker();
-            mat.ColorMap.Transform = Matrix3x3.CreateScale(10, 10); 
+            mat.ColorMap.Transform = Matrix3x3.CreateScale(10, 10);
             var floor = new TriangleMesh(Quad3D.Default, (Material)mat);
             floor.Transform.SetScale(10, 10, 1);
             floor.Transform.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -MathF.PI / 2);
@@ -1292,7 +1292,7 @@ namespace XrSamples
                         Position = new Vector3(0f, 0.22f, 0f),
                         Orientation = new Quaternion(0.47238404f, -0.19674662f, -0.10905845f, 0.8522032f)
                     });
-                });  
+                });
         }
 
 
@@ -1588,10 +1588,10 @@ namespace XrSamples
 
             foreach (var item in mesh.Children.OfType<TriangleMesh>())
             {
-              //item.AddComponent(new GeometryLod());
+                //item.AddComponent(new GeometryLod());
             }
 
-  
+
             mesh.AddComponent<BoundsGrabbable>();
             mesh.Transform.SetPosition(-9, 1, 9);
 

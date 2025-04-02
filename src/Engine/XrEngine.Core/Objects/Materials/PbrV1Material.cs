@@ -1055,7 +1055,7 @@ namespace XrEngine
             get => new Color(EmissiveFactor.X, EmissiveFactor.Y, EmissiveFactor.Z, 1f);
             set
             {
-                EmissiveFactor = new Vector3(value.R, value.G, value.B);    
+                EmissiveFactor = new Vector3(value.R, value.G, value.B);
             }
         }
     }

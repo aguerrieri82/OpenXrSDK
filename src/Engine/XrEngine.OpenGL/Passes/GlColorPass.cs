@@ -12,7 +12,7 @@ namespace XrEngine.OpenGL
     {
 
 #if GLES
-        Silk.NET.OpenGLES.Extensions.EXT.ExtPrimitiveBoundingBox _bounds;
+        readonly Silk.NET.OpenGLES.Extensions.EXT.ExtPrimitiveBoundingBox _bounds;
 #endif
 
         public GlColorPass(OpenGLRender renderer)
@@ -92,7 +92,7 @@ namespace XrEngine.OpenGL
 
             var min = Vector4.Transform(new Vector4(bounds.Min, 1.0f), camera.ViewProjection);
             var max = Vector4.Transform(new Vector4(bounds.Max, 1.0f), camera.ViewProjection);
-            
+
             _bounds.PrimitiveBoundingBox(min.X, min.Y, min.Z, min.W, max.X, max.Y, max.Z, max.W);
 #endif
 
@@ -130,14 +130,14 @@ namespace XrEngine.OpenGL
                 if (shader.Value.Contents.Keys.OfType<PathMaterial>().Any())
                 {
                     int x = 0;
-                }    
+                }
 
                 progGlobal!.UpdateProgram(updateContext, GetRenderTarget() as IShaderHandler);
 
 
                 foreach (var material in shader.Value.Contents!
-                                        .OrderBy(a=> a.Key.Priority)
-                                        .ThenBy(a=> a.Value.ProgramInstance?.Program?.Handle ?? 0))
+                                        .OrderBy(a => a.Key.Priority)
+                                        .ThenBy(a => a.Value.ProgramInstance?.Program?.Handle ?? 0))
                 {
                     var matContent = material.Value;
 
@@ -147,7 +147,7 @@ namespace XrEngine.OpenGL
                     updateContext.UseInstanceDraw = matContent.UseInstanceDraw;
 
                     var progInst = matContent.ProgramInstance!;
-                    
+
                     updateContext.Stage = UpdateShaderStage.Material;
 
                     UpdateProgram(updateContext, progInst);
@@ -183,7 +183,7 @@ namespace XrEngine.OpenGL
 
                         if (vertexContent.Draw != null)
                         {
-                            vertexContent.Draw();     
+                            vertexContent.Draw();
                         }
                         else
                         {
@@ -191,9 +191,9 @@ namespace XrEngine.OpenGL
                             {
                                 if (!CanDraw(draw))
                                     continue;
-        
+
                                 updateContext.Model = draw.Object;
-   
+
                                 progInst.UpdateModel(updateContext);
 
                                 SetBounds(updateContext.PassCamera!, draw.Object!);
@@ -210,7 +210,7 @@ namespace XrEngine.OpenGL
             }
 
             _renderer.State.BindVertexArray(0);
-            
+
             _renderer.PopGroup();
         }
 
@@ -230,7 +230,7 @@ namespace XrEngine.OpenGL
 
             updateContext.UseInstanceDraw = false;
 
-            updateContext.Stage = UpdateShaderStage.Any; 
+            updateContext.Stage = UpdateShaderStage.Any;
 
             foreach (var shader in layer.Content.ShaderContentsSorted)
             {

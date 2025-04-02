@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace XrSamples.Earth
 {
@@ -16,7 +11,7 @@ namespace XrSamples.Earth
 
         public static Vector3 Unit(Vector3 value)
         {
-            return new Vector3(Unit(value.X), Unit(value.Y), Unit(value.Z));    
+            return new Vector3(Unit(value.X), Unit(value.Y), Unit(value.Z));
         }
 
 

@@ -5,7 +5,6 @@ using Silk.NET.OpenGL;
 #endif
 
 using System.Numerics;
-using System.Security.Cryptography;
 using XrMath;
 
 

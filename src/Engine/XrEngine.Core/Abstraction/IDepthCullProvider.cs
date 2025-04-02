@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Text;
-using XrMath;
 
 namespace XrEngine
 {
@@ -35,8 +31,8 @@ namespace XrEngine
 
     public interface IDepthCullProvider
     {
-        IBuffer<DepthObjectData> DepthCullBuffer { get; }    
+        IBuffer<DepthObjectData> DepthCullBuffer { get; }
 
-        bool IsActive { get; }  
+        bool IsActive { get; }
     }
 }

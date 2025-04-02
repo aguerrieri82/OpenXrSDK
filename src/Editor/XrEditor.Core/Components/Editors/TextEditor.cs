@@ -45,7 +45,7 @@ namespace XrEditor
         public Func<TValue, string>? Formatter { get; set; }
     }
 
-    public struct TextEditorFactory<T> : IPropertyEditorFactory
+    public readonly struct TextEditorFactory<T> : IPropertyEditorFactory
     {
         readonly Func<string, T> _parser;
         readonly Func<T, string> _formatter;

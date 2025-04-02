@@ -64,7 +64,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.GrayInt8 or
                 TextureFormat.GrayInt16 => PixelFormat.Red,
 
-                TextureFormat.GrayRawSInt16 => PixelFormat.RedInteger,  
+                TextureFormat.GrayRawSInt16 => PixelFormat.RedInteger,
 
                 TextureFormat.RgFloat32 or
                 TextureFormat.Rg88 => PixelFormat.RG,

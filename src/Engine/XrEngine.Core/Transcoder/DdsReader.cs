@@ -267,7 +267,8 @@ namespace XrEngine
                             throw new NotSupportedException();
                     }
                 }
-                else{
+                else
+                {
 
                     switch (comp)
                     {
