@@ -140,7 +140,7 @@ namespace XrEngine.OpenXr
                 }
             }
 
-            if (_isTeleportStart)
+            if (_isTeleportStart || IsSimulation)
             {
                 _rayView.Update(Sample(_rayView.Segments), _lastIntValid);
                 _rayView.IsVisible = true;
@@ -222,6 +222,9 @@ namespace XrEngine.OpenXr
 
         public void DrawGizmos(Canvas3D canvas)
         {
+            if (!_isTeleportStart || !IsSimulation)
+                return;
+
             canvas.Save();
             canvas.State.Color = "#00FFFF";
             //canvas.DrawLine(_lastRay.PointAt(0), _lastRay.PointAt(2f));
@@ -229,6 +232,7 @@ namespace XrEngine.OpenXr
             if (!_lastIntValid)
                 canvas.State.Color = "#FF0000";
 
+            /*
             canvas.DrawCircle(new Pose3
             {
                 Position = _hitDest,
@@ -245,6 +249,7 @@ namespace XrEngine.OpenXr
                 canvas.DrawLine(p0, p1);
                 curT += part;
             }
+            */
 
             canvas.Restore();
 

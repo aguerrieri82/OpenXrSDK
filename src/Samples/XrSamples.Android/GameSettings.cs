@@ -35,7 +35,7 @@ namespace XrSamples
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = false,
                 UseSpaceWarp = false, 
-                EnableDepthPass = true,
+                EnableDepthPass = false,
                 FrustumCulling = false   
             };
         }

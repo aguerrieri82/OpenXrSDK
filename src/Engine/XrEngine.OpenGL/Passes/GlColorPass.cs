@@ -127,6 +127,11 @@ namespace XrEngine.OpenGL
                 updateContext.Shader = shader.Key;
                 updateContext.Stage = UpdateShaderStage.Shader;
 
+                if (shader.Value.Contents.Keys.OfType<PathMaterial>().Any())
+                {
+                    int x = 0;
+                }    
+
                 progGlobal!.UpdateProgram(updateContext, GetRenderTarget() as IShaderHandler);
 
 

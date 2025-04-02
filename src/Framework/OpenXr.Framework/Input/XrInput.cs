@@ -97,7 +97,7 @@ namespace OpenXr.Framework
 
         public DateTime LastChangeTime => _lastChangeTime;
 
-        public bool IsActive => _isActive;
+        public bool IsActive => _isActive && _action.Handle != 0;
 
         public bool IsChanged => _isChanged;
 

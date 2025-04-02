@@ -289,9 +289,18 @@ namespace XrEngine.OpenGL
 
         }
 
+        public unsafe void SetUniform(string name, Vector3[] value, bool optional = false)
+        {
+            if (value.Length < 5 && !IsChanged(name, value))
+                return;
+
+            fixed (Vector3* data = value)
+                _gl.Uniform3(LocateUniform(name, optional), (uint)value.Length, (float*)data);
+
+        }
+
         public unsafe void SetUniform(string name, Vector4[] value, bool optional = false)
         {
-
             fixed (Vector4* data = value)
                 _gl.Uniform4(LocateUniform(name, optional), (uint)value.Length, (float*)data);
         }

@@ -9,7 +9,7 @@ namespace XrEngine.OpenXr
     public class TeleportRayView : TriangleMesh
     {
         Vector3[] _points = [];
-        ColorMaterial _material;
+        PathMaterial _material;
 
         private Vector3[]? _vertices;
 
@@ -17,10 +17,11 @@ namespace XrEngine.OpenXr
         {
             Segments = 20;
             Radius = 0.01f;
-            _material = new ColorMaterial("#0000ffA0")
+            _material = new PathMaterial("#0000ff")
             {
                 DoubleSided = false,
-                Alpha = AlphaMode.Blend
+                Alpha = AlphaMode.Blend,
+                UseVertexColor = true   
             };
 
             Materials.Add(_material);
@@ -46,11 +47,14 @@ namespace XrEngine.OpenXr
 
         public void Update(IEnumerable<Vector3> points, bool isActive)
         {
-            if (_vertices == null || Geometry == null)
-                return;
+            var oldCount = _material.Points.Length;
 
-            _points = points.ToArray();
+            _material.Points = points.ToArray();
 
+            if (oldCount != _material.Points.Length)
+                _material.NotifyChanged(ObjectChangeType.Material);
+
+            /*
             for (var i = 0; i < _vertices.Length; i++)
             {   
                 var v = _vertices![i];
@@ -70,7 +74,7 @@ namespace XrEngine.OpenXr
             }
 
             Geometry.NotifyChanged(ObjectChangeType.Geometry);
-      
+            */
         }
 
         protected void Build()
@@ -92,7 +96,13 @@ namespace XrEngine.OpenXr
 
             Geometry = builder.ToGeometry();
 
-            _vertices = Geometry.Vertices.Select(a => a.Pos).ToArray();
+            Geometry.ActiveComponents |= VertexComponent.Tangent;
+
+            for (var i = 0; i < Geometry.Vertices.Length; i++)
+            {
+                var uv = Geometry.Vertices[i].UV; 
+                Geometry.Vertices[i].Tangent = new Vector4(1, 1, 1, uv.Y);
+            }
         }
 
         public float Radius { get; set; }

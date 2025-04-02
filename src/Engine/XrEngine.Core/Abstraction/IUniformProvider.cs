@@ -35,6 +35,8 @@ namespace XrEngine
 
         void SetUniform(string name, Vector2[] value, bool optional = false);
 
+        void SetUniform(string name, Vector3[] value, bool optional = false);
+
         void LoadBuffer<T>(IBuffer<T> value, int slot = 0);
 
         void SetLineSize(float size);

@@ -1248,6 +1248,7 @@ namespace XrSamples
         {
             var app = CreateBaseScene();
             var scene = app.ActiveScene!;
+            scene.ActiveCamera!.BackgroundColor = "#7C93DB";
 
             var mat = MaterialFactory.CreatePbr("#ffffff");
             mat.ColorMap = TextureFactory.CreateChecker();
@@ -1266,8 +1267,12 @@ namespace XrSamples
 
             var player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"));
             player.Transform.SetScale(0.3f, 1.7f, 0.3f);
-            player.AddComponent<XrPlayer>();
+            player.AddComponent(new XrPlayer
+            {
+                Height = 0f
+            });
             player.Name = "Player";
+
 
             scene.AddChild(floor);
             scene.AddChild(player);
@@ -1279,6 +1284,8 @@ namespace XrSamples
                 .UseTeleport(ControllerHand.Left, player)
                 .ConfigureApp(e =>
                 {
+                    e.XrApp.UseLocalSpace = false;
+
                     var root = e.App.ActiveScene!.Children.OfType<XrRoot>().First();
                     root.LeftController!.SetWorldPose(new Pose3()
                     {
