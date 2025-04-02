@@ -33,6 +33,7 @@
 		<ProjectReference Include="..\..\Framework\OpenXr.Framework.Android\OpenXr.Framework.Android.csproj" />
 		<ProjectReference Include="..\XrSamples.Common\XrSamples.Common.csproj" />
 		<ProjectReference Include="..\..\WebLink\XrWebLink.Android\XrWebLink.Android.csproj" />
+		<ProjectReference Include="..\XrSamples.Dnd\XrSamples.Dnd.csproj" />
 	</ItemGroup>
 
 	<Import Project="..\..\AspNetCoreMini.props" />

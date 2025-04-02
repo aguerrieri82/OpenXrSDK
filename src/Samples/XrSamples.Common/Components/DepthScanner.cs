@@ -5,7 +5,7 @@ using System.Numerics;
 using XrEngine;
 using XrMath;
 
-namespace XrSamples.Components
+namespace XrSamples
 {
     public class DepthScanner : Behavior<Object3D>
     {

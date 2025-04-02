@@ -121,9 +121,10 @@ namespace XrEngine.OpenXr
             e.App.ActiveScene!.AddChild(new OculusHandView() { HandType = HandEXT.LeftExt });
         });
 
-        public static XrEngineAppBuilder UseGrabbers(this XrEngineAppBuilder self) => self.UseLeftController().
-                                                   UseRightController().
-                                                   ConfigureApp(e =>
+        public static XrEngineAppBuilder UseGrabbers(this XrEngineAppBuilder self) => self.
+            UseLeftController().
+            UseRightController().
+            ConfigureApp(e =>
         {
             var inputs = e.GetInputs<XrOculusTouchController>();
 

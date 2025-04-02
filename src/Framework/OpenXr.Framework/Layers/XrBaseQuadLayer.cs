@@ -32,7 +32,7 @@ namespace OpenXr.Framework
 
             layer.Size.Width = quad.Size.X;
             layer.Size.Height = quad.Size.Y;
-            layer.Pose = quad.Pose.ToPoseF();
+            layer.Pose = _xrApp!.ReferenceFrame.Inverse().Multiply(quad.Pose).ToPoseF();
 
             return true;
         }

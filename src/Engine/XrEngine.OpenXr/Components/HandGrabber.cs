@@ -67,7 +67,6 @@ namespace XrEngine.OpenXr
 
         protected override void Update(RenderContext ctx)
         {
-
             if (!_isInit && _host?.HandInput.Mesh != null)
             {
                 var index = 0;
@@ -86,6 +85,7 @@ namespace XrEngine.OpenXr
                 }
                 _isInit = _distalIndices.Count > 0;
             }
+            base.Update(ctx);
         }
     }
 }

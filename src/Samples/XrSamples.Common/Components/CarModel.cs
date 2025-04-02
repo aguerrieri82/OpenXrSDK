@@ -10,7 +10,7 @@ using XrEngine.Physics;
 using XrMath;
 using IDrawGizmos = XrEngine.IDrawGizmos;
 
-namespace XrSamples.Components
+namespace XrSamples
 {
     public class EngineModel
     {
@@ -698,7 +698,12 @@ namespace XrSamples.Components
         protected void SyncInput()
         {
             var dir = BackInput != null && (BackInput.IsActive && BackInput.Value || _curGear == "R") ? -1 : 1;
+
+            if (AccInput != null && AccInput.IsActive)
+                WheelSpeedRad = AccInput.Value * 10f * dir;
+            /*
             WheelSpeedRad = _engine.OmegaWheel * dir;
+            */
 
             if (ShowHideBodyInput != null && ShowHideBodyInput.IsActive && ShowHideBodyInput.IsChanged && ShowHideBodyInput.Value)
                 CarBody!.IsVisible = !CarBody!.IsVisible;
@@ -1137,7 +1142,6 @@ namespace XrSamples.Components
 
         [Range(0, 100, 0.5f)]
         public float AccInputSim { get; set; }
-
 
         public bool UseDifferential { get; set; }
 

@@ -21,7 +21,7 @@ using XrEngine.Physics;
 using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
-using XrSamples.Components;
+
 
 
 #if !ANDROID
@@ -236,7 +236,7 @@ namespace XrSamples
             return builder.AddPanel(new T());
         }
 
-        static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder, bool usePt = true)
+        public static XrEngineAppBuilder ConfigureSampleApp(this XrEngineAppBuilder builder, bool usePt = true)
         {
             builder.AddXrRoot()
                    .UseHands()
@@ -1576,81 +1576,7 @@ namespace XrSamples
         }
 
 
-        [Sample("DnD")]
-        public static XrEngineAppBuilder CreateDnD(this XrEngineAppBuilder builder)
-        {
-            var app = CreateBaseScene();
 
-            var path = GetAssetPath("Dnd/tavern/draws.json");
-
-            var imp = new DndImporter();
-            var mesh = imp.Import(Path.GetDirectoryName(path)!);
-
-            foreach (var item in mesh.Children.OfType<TriangleMesh>())
-            {
-                //item.AddComponent(new GeometryLod());
-            }
-
-
-            mesh.AddComponent<BoundsGrabbable>();
-            mesh.Transform.SetPosition(-9, 1, 9);
-
-            mesh.Transform.SetPosition(-0.91999996f, 0, 0.35000038f);
-            mesh.Transform.SetScale(0.1f);
-            app.ActiveScene!.AddChild(mesh);
-            //app.ActiveScene.AddComponent<DepthMapDebug>();
-
-            return builder
-                .UseApp(app)
-                .UseDefaultHDR()
-                .ConfigureApp(e =>
-                {
-                    var inputs = e.GetInputs<XrOculusTouchController>();
-
-                    mesh.AddBehavior((_, _) =>
-                    {
-                        var aButton = inputs.Right!.Button!.AClick!;
-                        var bButton = inputs.Right!.Button!.BClick!;
-                        var xButton = inputs.Left!.Button!.XClick!;
-                        if (aButton.IsChanged && aButton.Value)
-                        {
-                            var scale = mesh.Transform.Scale.X;
-                            scale *= 0.8f;
-                            mesh.Transform.SetScale(scale);
-                        }
-                        if (bButton.IsChanged && bButton.Value)
-                        {
-                            var scale = mesh.Transform.Scale.X;
-                            scale /= 0.8f;
-                            mesh.Transform.SetScale(scale);
-                        }
-                        if (xButton.IsChanged && xButton.Value)
-                        {
-                            foreach (var material in imp.Materials)
-                            {
-                                material.Simplified = !material.Simplified;
-                                material.NotifyChanged(ObjectChangeType.Property);
-                            }
-                        }
-                    });
-                    /*
-                    app.ActiveScene!.AddChild(new PointLight
-                    {
-                        Intensity = 3,
-                        Color = Color.White,
-                        WorldPosition = new Vector3(0, 2, 0)
-                    });
-
-                    app.ActiveScene!.AddChild(new AmbientLight
-                    {
-                        Intensity = 0.2f,
-                        Color = Color.White,
-                    });
-                    */
-
-                })
-                .ConfigureSampleApp();
-        }
 
         [Sample("Animated Cubes")]
 

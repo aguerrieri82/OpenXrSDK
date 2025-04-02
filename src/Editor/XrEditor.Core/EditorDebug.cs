@@ -1,4 +1,5 @@
 ﻿using XrEngine.OpenXr;
+using XrSamples.Dnd;
 using XrSamples;
 
 namespace XrEditor
@@ -26,9 +27,10 @@ namespace XrEditor
                   opt.UseHitTest = true;
                   opt.FrustumCulling = false;
                   opt.UseLayerV2 = true;
+                  //opt.UseInstanceDraw = false;        
               })
               .SetRenderQuality(1, 2)
-              .CreateTeleport()
+              .CreateDnd()
               .Build();
     }
 }

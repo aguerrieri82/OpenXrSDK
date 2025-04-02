@@ -1,43 +1,63 @@
 ﻿using OpenXr.Framework;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine.OpenXr
 {
-    public class XrPlayer : Behavior<Object3D>
+    public class XrPlayer : Behavior<Object3D>, ITeleportHandler
     {
         Pose3 _lastPose;
 
         protected override void Update(RenderContext ctx)
         {
-            if (XrApp.Current == null)
+            if (XrApp.Current == null || !XrApp.Current.IsStarted) 
                 return;
 
-            var newPose = _host!.GetWorldPose();
-            newPose.Position.Y += Height;
+            var local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
 
-            if (!_lastPose.IsSimilar(newPose))
+            if (local != null)
             {
-                _lastPose = newPose;
+                if (Height == 0)
+                    local.Pose.Position.Y = 0;
 
-                if (XrApp.Current != null && XrApp.Current.IsStarted)
-                {
-                    XrApp.Current.ReferenceFrame = Pose3.Identity;
+                //_host!.Transform.Position = local.Pose.Position;
+                //_host.Transform.Orientation = local.Pose.Orientation;
 
-                    var local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
+                local.Pose.Orientation = local.Pose.Orientation.KeepYawOnly();
 
-                    if (local != null)
-                    {
-                        if (Height == 0)
-                            local.Pose.Position.Y = 0;
-                        newPose.Position -= local.Pose.Position;
-                    }
-
-
-                    XrApp.Current.ReferenceFrame = newPose;
-                }
+                _host!.SetWorldPose(local.Pose, false);
+                _lastPose = local.Pose;
             }
         }
 
+        public void Teleport(Vector3 position)
+        {
+            if (XrApp.Current == null || !XrApp.Current.IsStarted)
+                return;
+
+            var newRef = new Pose3()
+            {
+                Position = position,
+                Orientation = Quaternion.Identity
+            };
+
+            newRef.Position.Y += Height;
+
+            XrApp.Current.ReferenceFrame = Pose3.Identity;
+
+            var local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
+
+            if (local != null)
+            {
+                if (Height == 0)
+                    local.Pose.Position.Y = 0;
+                newRef.Position -= local.Pose.Position;
+            }
+
+            XrApp.Current.ReferenceFrame = newRef;
+
+            _host!.WorldPosition = position;
+        }
 
         public float Height { get; set; }
     }

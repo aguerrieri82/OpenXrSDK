@@ -38,6 +38,21 @@ namespace XrMath
             return Quaternion.CreateFromRotationMatrix(rotMatrix);
         }
 
+        public static Quaternion QuatAlignTangent(Vector3 tangent, Vector3 up)
+        {
+            var right = Vector3.Normalize(Vector3.Cross(up, tangent));
+            var correctedUp = Vector3.Cross(tangent, right);
+
+            var rotationMatrix = new Matrix4x4(
+                right.X, right.Y, right.Z, 0,
+                correctedUp.X, correctedUp.Y, correctedUp.Z, 0,
+                tangent.X, tangent.Y, tangent.Z, 0,
+                0, 0, 0, 1
+            );
+
+            return Quaternion.CreateFromRotationMatrix(rotationMatrix);
+        }
+
         public static Quad3 QuadFromEdges(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4)
         {
             var result = new Quad3();
@@ -52,43 +67,6 @@ namespace XrMath
             result.Size = new Vector2(edge1.Length(), edge2.Length());
 
             return result;
-        }
-
-
-        public static Quaternion AlignVectors(Vector3 normal1, Vector3 tangent1, Vector3 normal2, Vector3 tangent2, float epsilon = MathExtensions.EPSILON)
-        {
-            // Normalize input vectors
-            normal1 = Vector3.Normalize(normal1);
-            tangent1 = Vector3.Normalize(tangent1);
-            normal2 = Vector3.Normalize(normal2);
-            tangent2 = Vector3.Normalize(tangent2);
-
-            // Step 1: Rotate normal1 to normal2
-            Vector3 rotationAxis1 = Vector3.Cross(normal1, normal2);
-            float angle1 = MathF.Acos(Vector3.Dot(normal1, normal2));
-
-            Quaternion rotationToAlignNormals = Quaternion.Identity;
-            if (rotationAxis1.Length() > epsilon) // avoid division by zero
-            {
-                rotationAxis1 = Vector3.Normalize(rotationAxis1);
-                rotationToAlignNormals = Quaternion.CreateFromAxisAngle(rotationAxis1, angle1);
-            }
-
-            // Step 2: Rotate tangent1 to tangent2 around normal2 (now aligned with normal1)
-            Vector3 rotatedTangent1 = Vector3.Transform(tangent1, rotationToAlignNormals);
-
-            Vector3 rotationAxis2 = normal2; // This is the axis to rotate around to adjust the tangent
-            float angle2 = MathF.Acos(Vector3.Dot(rotatedTangent1, tangent2));
-
-            Quaternion rotationToAlignTangents = Quaternion.Identity;
-            if (angle2 > epsilon) // avoid zero rotation
-            {
-                rotationToAlignTangents = Quaternion.CreateFromAxisAngle(rotationAxis2, angle2);
-            }
-
-            // Final rotation is the combination of the two rotations
-            Quaternion finalRotation = Quaternion.Concatenate(rotationToAlignTangents, rotationToAlignNormals);
-            return finalRotation;
         }
 
 

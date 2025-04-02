@@ -167,6 +167,7 @@ namespace XrEngine
             if (!curPose.IsSimilar(pose))
                 SetWorldPose(self, pose, fromOrigin);
         }
+
         public static void SetWorldPose(this Object3D self, Pose3 pose, bool fromOrigin = false)
         {
             self.WorldOrientation = pose.Orientation;
@@ -175,21 +176,14 @@ namespace XrEngine
             else
                 self.WorldPosition = pose.Position;
 
-
             /*
              WORKING 
             pose.Position -= Vector3.Transform(self.Transform.LocalPivot, pose.Orientation);
-
 
             self.WorldMatrix = Matrix4x4.CreateScale(self.Transform.Scale) *
                          Matrix4x4.CreateFromQuaternion(pose.Orientation) *
                          Matrix4x4.CreateTranslation(pose.Position);
 
-            */
-
-
-
-            /*
 
             var curPivot = Vector3.Zero;
 
@@ -1253,6 +1247,8 @@ namespace XrEngine
         {
             self.Scale = new Vector3(x, y, z);
         }
+
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetScale(this Transform3D self, float value)

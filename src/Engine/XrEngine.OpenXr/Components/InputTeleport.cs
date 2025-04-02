@@ -147,7 +147,12 @@ namespace XrEngine.OpenXr
 
         protected virtual void Teleport(Vector3 position)
         {
-            _host!.WorldPosition = position;
+            var handler = _host!.Feature<ITeleportHandler>();
+
+            if (handler != null)
+                handler.Teleport(position);
+            else
+                _host.WorldPosition = position;
         }
 
         [Action]
@@ -226,24 +231,23 @@ namespace XrEngine.OpenXr
             if (!_lastIntValid)
                 canvas.State.Color = "#FF0000";
 
-            /*
             canvas.DrawCircle(new Pose3
             {
                 Position = _hitDest,
                 Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -MathF.PI / 2)
             }, 0.2f);
+            /*
 
-
-            var part = _lastMaxT / 20f;
-            var curT = 0.0f;
-            while (curT < _lastMaxT)
-            {
-                var p0 = SamplePoint(curT);
-                var p1 = SamplePoint(curT + part);
-                canvas.DrawLine(p0, p1);
-                curT += part;
-            }
-            */
+          var part = _lastMaxT / 20f;
+          var curT = 0.0f;
+          while (curT < _lastMaxT)
+          {
+              var p0 = SamplePoint(curT);
+              var p1 = SamplePoint(curT + part);
+              canvas.DrawLine(p0, p1);
+              curT += part;
+          }
+          */
 
             canvas.Restore();
 

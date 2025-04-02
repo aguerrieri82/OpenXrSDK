@@ -233,6 +233,7 @@ namespace XrEngine.OpenGL
 
             if (updateGlobals)
             {
+                //TODO: unsure that ContextVersion change when Camera or Lights changes
                 if (ctx.ContextVersion != _lastGlobalContextVersion)
                 {
                     Global.UpdateUniforms(ctx, Program!);

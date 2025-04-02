@@ -106,6 +106,7 @@ namespace XrEngine.OpenGL
             _oldCamera = camera;
 
             _renderer.UpdateContext.PassCamera = _reflection.ReflectionCamera;
+            _renderer.UpdateContext.ContextVersion++;
 
             _passTarget.Configure(_reflection.Texture!);
             _passTarget.RenderTarget!.Begin(_reflection.ReflectionCamera);

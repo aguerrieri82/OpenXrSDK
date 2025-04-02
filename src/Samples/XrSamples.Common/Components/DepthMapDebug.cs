@@ -4,7 +4,7 @@ using XrEngine;
 using XrEngine.OpenGL;
 using XrMath;
 
-namespace XrSamples.Components
+namespace XrSamples
 {
     public class DepthMapDebug : Behavior<Scene3D>
     {

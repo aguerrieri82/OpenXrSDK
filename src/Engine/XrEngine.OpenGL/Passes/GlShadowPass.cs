@@ -191,6 +191,8 @@ namespace XrEngine.OpenGL
 
             _oldCamera = _renderer.UpdateContext.PassCamera;
             _renderer.UpdateContext.PassCamera = _lightCamera;
+            _renderer.UpdateContext.ContextVersion++;
+
             _layerVersion = shadowRenderLayer.Version;
 
             return base.BeginRender(camera);

@@ -37,6 +37,7 @@ namespace XrSamples.Android.Activities
 
             //Samples
             var manager = XrEngine.Context.Require<SampleManager>();
+            manager.AddType(typeof(XrSamples.Dnd.Builder));  
 
             _samples = manager.List();
 

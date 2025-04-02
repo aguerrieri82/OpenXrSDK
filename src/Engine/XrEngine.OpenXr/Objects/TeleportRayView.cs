@@ -23,20 +23,6 @@ namespace XrEngine.OpenXr
         }
 
 
-        static Quaternion AlignTangent(Vector3 tangent, Vector3 up)
-        {
-            var right = Vector3.Normalize(Vector3.Cross(up, tangent));
-            var correctedUp = Vector3.Cross(tangent, right);
-
-            var rotationMatrix = new Matrix4x4(
-                right.X, right.Y, right.Z, 0,
-                correctedUp.X, correctedUp.Y, correctedUp.Z, 0,
-                tangent.X, tangent.Y, tangent.Z, 0,
-                0, 0, 0, 1
-            );
-
-            return Quaternion.CreateFromRotationMatrix(rotationMatrix);
-        }
 
         public void Update(IEnumerable<Vector3> points, bool isActive)
         {

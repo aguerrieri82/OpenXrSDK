@@ -1,6 +1,13 @@
 ﻿#include "Shared/uniforms.glsl"
 #include "Shared/position.glsl"
 
+
+#ifdef PLANAR_REFLECTION
+    #include "Shared/planar_reflection.glsl"
+    out vec2 fPlanarUv;
+#endif
+
+
 layout(location=0) in vec3 position;
 layout(location=1) in vec3 normal;
 layout(location=2) in vec2 texcoord;
@@ -12,6 +19,8 @@ layout(location=2) in vec2 texcoord;
 #ifdef USE_CLIP_PLANE 
     uniform vec4 uClipPlane;
 #endif
+
+
 
 #ifdef USE_DEPTH_CULL
 
@@ -104,6 +113,10 @@ void main()
 
     #ifdef HAS_UV2
         fUv2 = texcoord2;
+    #endif
+    
+    #ifdef PLANAR_REFLECTION
+        fPlanarUv = planarUV(pos);
     #endif
 
 	#ifdef HAS_TEX_TRANSFORM

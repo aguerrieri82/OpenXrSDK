@@ -2,7 +2,7 @@
 using XrEngine;
 using XrMath;
 
-namespace XrSamples.Components
+namespace XrSamples
 {
     public class GeometryLod : Behavior<TriangleMesh>
     {

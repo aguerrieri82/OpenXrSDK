@@ -39,6 +39,10 @@ namespace XrEngine
 
         public class EnvViewMaterial : CubeMapMaterial
         {
+            public EnvViewMaterial()
+            {
+                UseDepth = true;
+            }
 
             protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
             {

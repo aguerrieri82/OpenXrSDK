@@ -459,13 +459,6 @@ namespace XrMath
             return self.Position + Vector3.Transform(other, self.Orientation);
         }
 
-        /*
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Pose3 Transform(this Pose3 pose, Pose3 other)
-        {
-            return other.Multiply(pose);
-        }
-        */
 
         public static bool IsIdentity(this Pose3 self)
         {
@@ -1023,6 +1016,16 @@ namespace XrMath
             );
         }
 
+        public static Quaternion KeepYawOnly(this Quaternion self)
+        {
+            self = Quaternion.Normalize(self);
+
+            var siny_cosp = 2f * (self.W * self.Y + self.X * self.Z);
+            var cosy_cosp = 1f - 2f * (self.Y * self.Y + self.Z * self.Z);
+            var yaw = MathF.Atan2(siny_cosp, cosy_cosp);
+
+            return Quaternion.CreateFromAxisAngle(Vector3.UnitY, yaw);
+        }
         #endregion
 
         #region COLOR

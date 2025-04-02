@@ -20,6 +20,17 @@ namespace XrSamples
     public class SampleManager
     {
         protected IList<AppSample>? _samples;
+        protected HashSet<Type> _types = [];
+
+        public SampleManager()
+        {
+            _types.Add(typeof(SampleScenes));
+        }
+
+        public void AddType(Type type)
+        {
+            _types.Add(type);   
+        }
 
         public IEnumerable<HDRInfo> GetHDRs()
         {
@@ -56,21 +67,25 @@ namespace XrSamples
             if (_samples == null)
             {
                 _samples = new List<AppSample>();
-                foreach (var method in typeof(SampleScenes).GetMethods(BindingFlags.Static | BindingFlags.Public))
+                foreach (var type in _types)
                 {
-                    var sample = method.GetCustomAttribute<SampleAttribute>();
-                    if (sample == null)
-                        continue;
-                    _samples.Add(new AppSample
+                    foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
                     {
-                        Name = sample.Name,
-                        Build = (XrEngineAppBuilder builder) =>
+                        var sample = method.GetCustomAttribute<SampleAttribute>();
+                        if (sample == null)
+                            continue;
+                        _samples.Add(new AppSample
                         {
-                            method.Invoke(null, [builder]);
-                            return builder;
-                        }
-                    });
+                            Name = sample.Name,
+                            Build = (XrEngineAppBuilder builder) =>
+                            {
+                                method.Invoke(null, [builder]);
+                                return builder;
+                            }
+                        });
+                    }
                 }
+         
             }
 
             return _samples;

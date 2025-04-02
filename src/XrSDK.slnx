@@ -183,6 +183,9 @@
     <Project Path="Samples/XrSamples.Console/XrSamples.Console.csproj">
       <Platform Solution="*|x64" Project="x64" />
     </Project>
+    <Project Path="Samples/XrSamples.Dnd/XrSamples.Dnd.csproj" Id="a322bf9e-d39c-43a2-9374-4103545a5c08">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
     <Project Path="Samples/XrSamples.Earth/XrSamples.Earth.csproj">
       <Platform Solution="*|x64" Project="x64" />
     </Project>

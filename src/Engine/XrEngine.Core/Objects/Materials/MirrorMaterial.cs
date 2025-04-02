@@ -56,6 +56,12 @@ namespace XrEngine
             if (PlanarReflection.IsMultiView)
                 bld.AddFeature("PLANAR_REFLECTION_MV");
 
+            if (bld.Context.UseInstanceDraw && _hosts.Count == 1)
+            {
+                bld.Context.Model = (Object3D)_hosts.First();
+                UpdateShaderModel(bld);
+            }
+
             base.UpdateShaderMaterial(bld);
         }
 

@@ -7,7 +7,7 @@ using XrMath;
 
 #pragma warning disable 8618
 
-namespace XrSamples
+namespace XrSamples.Dnd
 {
     public class DndImporter
     {
@@ -196,10 +196,8 @@ namespace XrSamples
 
                 _psNames.Add(impMat.ps.name);
 
-
                 var pbr = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
-                pbr.Simplified = true;
-                //pbr.Alpha = AlphaMode.Blend;
+                pbr.Simplified = SimpleMaterials;
 
                 if (impMat.ps.name == "glTF/PbrMetallicRoughness")
                 {
@@ -629,5 +627,7 @@ namespace XrSamples
         public IEnumerable<PbrV2Material> Materials => _materials.Values.OfType<PbrV2Material>();
 
         public bool FlipZ { get; set; } = true;
+
+        public bool SimpleMaterials { get; set; }
     }
 }
