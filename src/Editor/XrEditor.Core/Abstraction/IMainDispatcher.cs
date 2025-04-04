@@ -1,4 +1,6 @@
-﻿namespace XrEditor
+﻿using XrEngine;
+
+namespace XrEditor
 {
     public interface IMainDispatcher
     {

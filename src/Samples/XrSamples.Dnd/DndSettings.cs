@@ -13,6 +13,8 @@ namespace XrSamples.Dnd
         public DndSettings()
         {
             Zoom = 1f;
+            ImageInt = 1f;
+            PointRange = 50f;
         }
 
         public override void Apply(Scene3D scene)
@@ -29,6 +31,17 @@ namespace XrSamples.Dnd
             else
                 scene.ActiveCamera!.BackgroundColor = Color.Transparent;
 
+            var image = scene.Children.OfType<ImageLight>().First();
+            var point = scene.Descendants<PointLight>().First();
+
+            point.IsVisible = PointInt > 0;
+            point.Intensity = PointInt;
+            point.Range = PointRange;   
+            point.NotifyChanged(ObjectChangeType.Property);
+
+            //image.IsVisible = ImageInt > 0;
+            image.Intensity = ImageInt;
+
 
             if (_filePath != null)
             {
@@ -42,6 +55,12 @@ namespace XrSamples.Dnd
         public bool DisableMove { get; set; }
 
         public bool ShowSKy { get; set; }
+
+        public float PointInt { get; set; }
+
+        public float PointRange { get; set; }
+
+        public float ImageInt { get; set; }
     }
 
     public class DndSettingsPanel : UIRoot
@@ -68,6 +87,9 @@ namespace XrSamples.Dnd
                 .AddInputRange("Zoom", 0.05f, 1f, binder.Prop(a => a.Zoom))
                 .AddInput("Disable Move", new CheckBox(), binder.Prop(a => a.DisableMove))
                 .AddInput("Show Sky", new CheckBox(), binder.Prop(a => a.ShowSKy))
+                .AddInputRange("Image Light", 0f, 2f, binder.Prop(a => a.ImageInt))
+                .AddInputRange("Point Light", 0, 15f, binder.Prop(a => a.PointInt))
+                .AddInputRange("Point Light Range", 1, 50f, binder.Prop(a => a.PointRange))
                 .BeginRow(s => s.RowGap(16))
                     .AddButton("Reset", scene.ResetPose, s => s.Padding(8, 16).BackgroundColor("#1565C0"))
                 .EndChild()

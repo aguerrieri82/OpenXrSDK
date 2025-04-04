@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿
+using OpenXr.Framework;
+using System.Numerics;
 using XrEngine;
 using XrEngine.Audio;
 using XrEngine.OpenXr;
@@ -33,7 +35,7 @@ namespace XrSamples.Dnd
             this.AddComponent<DebugGizmos>();
 
             _player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"));
-            _player.Transform.SetScale(0.3f, 1.7f, 0.3f);
+            _player.Transform.SetScale(0.3f, 1.0f, 0.3f);
             _player.Transform.LocalPivot = new Vector3(0, -0.5f, 0);
 
             _player.AddComponent(new XrPlayer
@@ -63,6 +65,7 @@ namespace XrSamples.Dnd
 
             _map.AddComponent<BoundsGrabbable>();
 
+
             /*
             _map.Transform.SetPosition(-9, 1, 9);
             _map.Transform.SetPosition(-0.91999996f, 0, 0.35000038f);
@@ -74,10 +77,10 @@ namespace XrSamples.Dnd
             _map.UpdateBounds();
 
             var size = _map.WorldBounds.Size;
-            var floor = new TriangleMesh(Quad3D.Default, new ColorMaterial());
+            var floor = new TriangleMesh(Quad3D.Default);
             floor.Name = "Floor";
             floor.Transform.Scale = new Vector3(size.X, size.Z, 0.01f);
-            floor.Transform.Position = new Vector3(_map.WorldBounds.Center.X, 0, _map.WorldBounds.Center.Z);
+            floor.Transform.Position = new Vector3(_map.WorldBounds.Center.X, imp.MapY, _map.WorldBounds.Center.Z);
             floor.Transform.Orientation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, -MathF.PI / 2); 
 
             floor.AddComponent<TeleportTarget>();
@@ -86,6 +89,14 @@ namespace XrSamples.Dnd
                 Type = PhysX.Framework.PhysicsActorType.Static,
                 IsEnabled = false
             });
+
+
+            var pl1 = _map.AddChild(new PointLight());
+            pl1.Transform.Position = new Vector3(0, 1.8f, 0);
+            pl1.Intensity = 10f;
+            pl1.CastShadows = false;
+            pl1.Range = 50;
+            pl1.WorldPosition = new Vector3(15.109999f, 4.0699997f, -5.85f);
 
             _map.AddChild(floor);
 
@@ -103,8 +114,15 @@ namespace XrSamples.Dnd
 
         public void ResetPose()
         {
-            Map!.Transform.Reset();
-            Player.Component<XrPlayer>().Teleport(Vector3.Zero);   
+            _map!.Transform.Reset();
+            _map.Transform.SetPosition(0, 0, 0);
+
+            if (XrApp.Current != null)
+                XrApp.Current.ReferenceFrame = Pose3.Identity;
+
+            _player.WorldPosition = Vector3.Zero;
+
+            //Player.Component<XrPlayer>().Teleport(Vector3.Zero);
         }
 
         public DndSettings Settings { get; } = new();

@@ -49,26 +49,25 @@ namespace XrEngine.OpenGL
 
         protected void SetSize(Size2I size)
         {
-            var realSize = new Size2I((uint)Math.Ceiling(size.Width / 2.0f) * 2,
-                                      (uint)Math.Ceiling(size.Height / 2.0f) * 2);
+
 
             var data = new TextureData
             {
-                Width = realSize.Width,
-                Height = realSize.Height,
+                Width = size.Width,
+                Height = size.Height,
                 Format = TextureFormat.Rgba32
             };
 
             _color.Update(1, data);
 
             if (_depth is GlRenderBuffer renderBuffer)
-                renderBuffer.Update(realSize.Width, realSize.Height, 1, InternalFormat.Depth24Stencil8);
+                renderBuffer.Update(size.Width, size.Height, 1, InternalFormat.Depth24Stencil8);
 
             else if (_depth is GlTexture texture)
                 texture.Update(1, new TextureData
                 {
-                    Width = realSize.Width,
-                    Height = realSize.Height,
+                    Width = size.Width,
+                    Height = size.Height,
                     Format = TextureFormat.Depth24Stencil8,
                 });
         }

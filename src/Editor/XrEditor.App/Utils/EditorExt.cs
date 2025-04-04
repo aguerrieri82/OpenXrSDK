@@ -9,7 +9,7 @@ namespace XrEditor
         public static readonly DependencyProperty ControlProperty =
             DependencyProperty.RegisterAttached(
                 "Container",
-                typeof(IEditorUIElementContainer),
+                typeof(IEditorUIElementHost),
                 typeof(EditorExt),
                 new PropertyMetadata(null, OnContainerChanged)); // Default value and callback
 
@@ -17,8 +17,8 @@ namespace XrEditor
         {
             if (e.NewValue != null && d is FrameworkElement uiElement)
             {
-                var container = (IEditorUIElementContainer)e.NewValue;
-                container.UIElement = new WpfUIElement(uiElement);
+                var container = (IEditorUIElementHost)e.NewValue;
+                container.UIElement = WpfUIElement.Create(uiElement);
             }
         }
 

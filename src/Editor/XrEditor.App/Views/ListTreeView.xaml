@@ -7,7 +7,13 @@
     <app:DoubleToThicknessLeft x:Key="DoubleToThicknessLeft"/>
     
     <DataTemplate DataType="{x:Type local:ListTreeView}">
-        <ListView VirtualizingStackPanel.IsVirtualizing="False" BorderThickness="0" Background="Transparent" ItemsSource="{Binding Items}" SelectionMode="Extended" >
+        <ListView app:EditorExt.Container="{Binding}" 
+                  VirtualizingStackPanel.IsVirtualizing="True" 
+                                    VirtualizingPanel.VirtualizationMode="Recycling"
+                  BorderThickness="0" 
+                  Background="Transparent" 
+                  ItemsSource="{Binding Items}" 
+                  SelectionMode="Extended" >
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>

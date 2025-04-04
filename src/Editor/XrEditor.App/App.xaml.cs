@@ -34,6 +34,7 @@ namespace XrEditor
             Context.Implement<IVideoCodec>(() => new FFmpegCodec());
             Context.Implement<IWindowManager>(() => new WpfWindowManager());
             Context.Implement<IClipboard>(() => new WpfClipboard());
+            Context.Implement<IProgressLogger>(new NullProgressLogger());
 
             ModuleManager.Instance.Init();
 

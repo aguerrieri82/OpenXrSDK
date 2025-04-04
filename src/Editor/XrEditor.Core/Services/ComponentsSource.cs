@@ -4,8 +4,11 @@ namespace XrEditor
 {
     public class ComponentsSource : BaseItemsSource<TypeInfo, TypeInfo>
     {
-        ComponentsSource()
+        IComponentHost _target;
+
+        public ComponentsSource(IComponentHost target)
         {
+            _target = target;   
         }
 
         public override string? GetText(TypeInfo item)
@@ -15,10 +18,20 @@ namespace XrEditor
 
         protected override IEnumerable<TypeInfo> GetItems()
         {
-            return TypeUtils.GetTypes(typeof(IComponent));
+            var comps = TypeUtils.GetTypes(typeof(IComponent));
+            return comps.Where(a =>
+            {
+                var spec = a.Type.GetInterfaces()
+                                .FirstOrDefault(a=> a.IsGenericType && a.GetGenericTypeDefinition() == typeof(IComponent<>));  
+                if (spec != null)
+                {
+                    var arg = spec.GetGenericArguments()[0];    
+                    return arg.IsAssignableFrom(_target.GetType());
+                }
+
+                return true;
+            });
         }
 
-
-        public static readonly ComponentsSource Instance = new();
     }
 }

@@ -16,7 +16,7 @@ namespace XrEditor
 
         protected void OnSKSourceChanged(SKBitmap? value)
         {
-            return;
+            //return;
 
             if (value != null)
             {

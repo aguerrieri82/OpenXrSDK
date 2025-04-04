@@ -12,11 +12,21 @@ using SkiaSharp;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Numerics;
+using System.Collections.ObjectModel;
 
 namespace XrEngine.OpenGL
 {
+
+
     public class OpenGLRender : IRenderEngine, ISurfaceProvider, IIBLPanoramaProcessor, IFrameReader, ITextureFilterProvider
     {
+        protected class LayersCache
+        {
+            public long Version = -1;
+
+            public List<IGlLayer> Layers = [];
+        }
+
         protected Scene3D? _lastScene;
         protected long _lastLightLayerVersion;
         protected IGlRenderTarget? _target;
@@ -25,7 +35,6 @@ namespace XrEngine.OpenGL
         protected GRContext? _grContext;
         protected GlTextureRenderTarget? _texRenderTarget = null;
         protected Dictionary<string, GlComputeProgram> _computePrograms = [];
-        protected long _lastLayersVersion;
 
         protected readonly GlUpdateContext _updateCtx;
         protected readonly int _maxTextureUnits;
@@ -33,11 +42,13 @@ namespace XrEngine.OpenGL
         protected readonly GlState _glState;
         protected readonly GlRenderOptions _options;
         protected readonly QueueDispatcher _dispatcher;
-        protected readonly List<IGlLayer> _layers = [];
+
         protected readonly IList<IGlRenderPass> _renderPasses = [];
         protected readonly GlDefaultRenderTarget _defaultTarget;
         protected readonly GlShadowPass? _shadowPass;
         protected readonly Thread _thread;
+        protected readonly Dictionary<Scene3D, LayersCache> _layersCache =[];
+        protected List<IGlLayer> _activeLayers = [];
 
         public static class Props
         {
@@ -68,7 +79,6 @@ namespace XrEngine.OpenGL
             _gl = gl;
             _options = options;
             _defaultTarget = new GlDefaultRenderTarget(gl, !options.UseDepthPass);
-            _lastLayersVersion = -1;
             _target = _defaultTarget;
 
             _updateCtx = new GlUpdateContext
@@ -258,18 +268,26 @@ namespace XrEngine.OpenGL
                 new GlLayerV2(this, scene, type, sceneLayer) :
                 new GlLayer(this, scene, type, sceneLayer);
 
-            _layers.Add(layer);
+            _activeLayers.Add(layer);
             return layer;
         }
 
         protected void UpdateLayers(Scene3D scene)
         {
-            if (_lastScene != scene || _lastLayersVersion != scene.Layers.Version)
+            if (!_layersCache.TryGetValue(scene, out var cache))
             {
-                foreach (var layer in _layers)
+                cache = new LayersCache();
+                _layersCache[scene] = cache;
+            }
+
+            _activeLayers = cache.Layers;
+
+            if (cache.Version != scene.Layers.Version)
+            {
+                foreach (var layer in _activeLayers)
                     layer.Dispose();
 
-                _layers.Clear();
+                _activeLayers.Clear();
 
                 var opaque = scene.EnsureLayer<OpaqueLayer>();
                 AddLayer(scene, GlLayerType.Opaque, opaque);
@@ -301,10 +319,10 @@ namespace XrEngine.OpenGL
 
 
                 _lastScene = scene;
-                _lastLayersVersion = scene.Layers.Version;
+                cache.Version = scene.Layers.Version;
             }
 
-            foreach (var layer in _layers)
+            foreach (var layer in _activeLayers)
             {
                 if (layer.NeedUpdate)
                     layer.Rebuild();
@@ -681,7 +699,7 @@ namespace XrEngine.OpenGL
 
             _computePrograms.Clear();
 
-            foreach (var layer in _layers)
+            foreach (var layer in _activeLayers)
                 layer.Dispose();
 
             foreach (var program in GlProgramInstance._programs)
@@ -738,7 +756,7 @@ namespace XrEngine.OpenGL
 
         #endregion
 
-        public IReadOnlyList<IGlLayer> Layers => _layers;
+        public IReadOnlyList<IGlLayer> Layers => _activeLayers;
 
         public GL GL => _gl;
 

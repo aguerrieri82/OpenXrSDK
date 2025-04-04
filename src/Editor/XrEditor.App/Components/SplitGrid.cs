@@ -44,8 +44,6 @@ namespace XrEditor
             DataContextChanged += OnDataContextChanged;
         }
 
-
-
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             UpdateSplitters();

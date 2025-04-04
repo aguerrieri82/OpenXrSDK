@@ -194,7 +194,7 @@ namespace XrEditor
                 ToolBar.AddButton("icon_add", async () =>
                 {
                     var picker = new ItemPickerView();
-                    picker.ItemsSource = ComponentsSource.Instance;
+                    picker.ItemsSource = new ComponentsSource(obj);
 
                     var selItem = await picker.ShowAsync("Add component");
 

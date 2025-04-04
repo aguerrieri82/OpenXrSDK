@@ -31,10 +31,18 @@ namespace XrEngine.OpenXr
 
     public class SceneTeleportTarget : BaseComponent<Scene3D>, ITeleportTarget
     {
+        protected ITeleportTarget[] _lastTargets =[];
+        protected long _lastTargetsVersion = -1; 
+
         protected IEnumerable<ITeleportTarget> Targets()
         {
             Debug.Assert(_host != null);
-            return _host!.DescendantsWithFeature<ITeleportTarget>().Select(a => a.Feature);
+            if (_lastTargetsVersion != _host.ContentVersion)
+            {
+                _lastTargets = _host!.DescendantsWithFeature<ITeleportTarget>().Select(a => a.Feature).ToArray();
+                _lastTargetsVersion = _host.ContentVersion; 
+            }
+            return _lastTargets;
         }
 
         public bool CanTeleport(Vector3 point)
@@ -123,17 +131,21 @@ namespace XrEngine.OpenXr
 
             _lastIntValid = false;
 
-            foreach (var yPlane in Target.GetYPlanes().OrderByDescending(a => a))
+            if (_isTeleportStart)
             {
-                var intPoint = RayIntersection(_lastRay, yPlane);
-
-                if (Target.CanTeleport(intPoint))
+                foreach (var yPlane in Target.GetYPlanes().OrderByDescending(a => a))
                 {
-                    _lastIntPoint = intPoint;
-                    _lastIntValid = true;
-                    break;
+                    var intPoint = RayIntersection(_lastRay, yPlane);
+
+                    if (Target.CanTeleport(intPoint))
+                    {
+                        _lastIntPoint = intPoint;
+                        _lastIntValid = true;
+                        break;
+                    }
                 }
             }
+
 
             if (_isTeleportStart || IsSimulation)
             {

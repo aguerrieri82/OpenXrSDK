@@ -571,6 +571,11 @@ namespace XrSamples.Dnd
         public void GroupDraws(Group3D main)
         {
             var walls = new Group3D();
+            walls.Name = "Walls";
+
+            var tiles = new Group3D();
+            tiles.Name = "Tiles";
+
             for (var i = main.Children.Count - 1; i >= 0; i--)
             {
                 if (main.Children[i] is not TriangleMesh item)
@@ -582,9 +587,15 @@ namespace XrSamples.Dnd
                     item.Flags |= EngineObjectFlags.LargeOccluder;
                     walls.AddChild(item, true);
                 }
+                if (bounds.Size.IsSimilar(new Vector3(1, 0, 1f), 0.1f))
+                {
+                    tiles.AddChild(item, true);
+                    MapY = bounds.Min.Y;
+                }
             }
-
+           
             main.AddChild(walls);
+            main.AddChild(tiles);
         }
 
         public Group3D Import(string path)
@@ -593,6 +604,8 @@ namespace XrSamples.Dnd
 
             var draws = Read<ImpDraw[]>("draws.json");
             var res = new Group3D();
+            res.Name = "Map";
+
             foreach (var draw in draws!)
                 res.AddChild(ProcessDraw(draw));
 
@@ -623,6 +636,8 @@ namespace XrSamples.Dnd
 
             return res;
         }
+
+        public float MapY { get; set; }
 
         public IEnumerable<PbrV2Material> Materials => _materials.Values.OfType<PbrV2Material>();
 

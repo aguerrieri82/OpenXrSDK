@@ -9,8 +9,6 @@ namespace XrEditor.Components
 
         public TaskCompletionSource? _onClosed;
 
-
-
         public WindowPopup()
         {
             Style = Application.Current.Resources["CustomWindowStyle"] as Style;

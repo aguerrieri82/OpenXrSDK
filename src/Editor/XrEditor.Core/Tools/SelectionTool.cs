@@ -13,7 +13,7 @@ namespace XrEditor
         private INode[] _lastSelection = [];
         private Vector2 _downPos;
         private DetachedLayer? _selectionLayer;
-        private TriangleMesh[]? _lastOutline;
+        private HashSet<TriangleMesh> _lastOutline = [];
 
         public SelectionTool()
         {
@@ -45,15 +45,18 @@ namespace XrEditor
         {
             color = new Color(1, 1, 0, 0.7f);
 
-            if (obj is TriangleMesh mesh && mesh.Geometry?.Primitive == DrawPrimitive.Quad)
+            if (obj is not TriangleMesh mesh)
                 return false;
 
-            return _lastOutline != null && _lastOutline.Contains(obj);
+            if (mesh.Geometry?.Primitive == DrawPrimitive.Quad)
+                return false;
+
+            return _lastOutline.Contains(mesh);
         }
 
         bool IOutlineSource.HasOutlines()
         {
-            return _lastOutline != null && _lastOutline.Length > 0;
+            return  _lastOutline.Count > 0;
         }
 
         private void OnSelectionChanged(IReadOnlyCollection<INode> items)
@@ -73,7 +76,7 @@ namespace XrEditor
                     .OfType<TriangleMesh>();
 
 
-                _lastOutline = outlineMeshes.ToArray();
+                _lastOutline = outlineMeshes.ToHashSet();
 
                 foreach (var item in _lastOutline)
                     _selectionLayer.Add(item);

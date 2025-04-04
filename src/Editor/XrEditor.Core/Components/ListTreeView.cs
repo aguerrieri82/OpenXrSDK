@@ -1,11 +1,12 @@
-﻿using System.Collections.ObjectModel;
+﻿using CanvasUI;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using XrEditor.Abstraction;
 
 
 namespace XrEditor
 {
-    public class ListTreeNodeView : BaseView, IEditorUIElementContainer
+    public class ListTreeNodeView : BaseView, IEditorUIElementHost
     {
         protected ListTreeNodeView? _parent;
         protected ListTreeView _host;
@@ -25,6 +26,7 @@ namespace XrEditor
             _host = host;
             _parent = parent;
             _childInsertIndex = -1;
+            _index = -1;
             ToggleCommand = new Command(Toggle);
         }
 
@@ -47,14 +49,16 @@ namespace XrEditor
             {
                 _children ??= [];
 
-                if (_childInsertIndex == -1)
-                    _childInsertIndex = DescendantsOrSelf().Select(a => a._index).Max() + 1;
-
                 child._level = _level + 1;
                 child._parent = this;
-                child._index = _childInsertIndex++;
 
-                _host._items.Insert(child._index, child);
+                if (_isExpanded)
+                {
+                    if (_childInsertIndex == -1)
+                        _childInsertIndex = LastDescendant()!._index + 1;
+                    child._index = _childInsertIndex++;
+                    _host._items.Insert(child._index, child);
+                }
 
                 _children.Add(child);
 
@@ -98,10 +102,13 @@ namespace XrEditor
 
             try
             {
-                Clear();
+                if (_isExpanded)
+                    Collapse();
 
                 if (_isSelected)
                     IsSelected = false;
+
+                Clear();
 
                 if (_index != -1)
                     _host.Items.RemoveAt(_index);
@@ -125,7 +132,7 @@ namespace XrEditor
             try
             {
                 Clear();
-                OnLoadChildren();
+                LoadChildrenWork();
                 _childrenLoaded = true;
                 IsLeaf = _children == null || _children.Count == 0;
             }
@@ -135,14 +142,29 @@ namespace XrEditor
             }
         }
 
-        protected virtual void OnLoadChildren()
+        protected virtual void LoadChildrenWork()
         {
             if (LoadChildren == null)
                 return;
+
             var result = new List<ListTreeNodeView>();
+            
             LoadChildren(this, result);
-            foreach (var child in result)
-                AddChild(child);
+
+            var isMassive = result.Count > 0;
+
+            _host.BeginUpdate(this, isMassive);
+
+            try
+            {
+                foreach (var child in result)
+                    AddChild(child);
+            }
+            finally
+            {
+                _host.EndUpdate(isMassive);
+            }
+
         }
 
         public IEnumerable<ListTreeNodeView> DescendantsOrSelf()
@@ -165,19 +187,54 @@ namespace XrEditor
             return Visit(this);
         }
 
+
+        protected ListTreeNodeView? LastDescendant(bool includeSelf = false)
+        {
+            if (_children == null || _children.Count == 0)
+                return includeSelf ? this : null;
+
+            return _children[_children.Count - 1].LastDescendant(true);
+        }
+
         protected void Expand()
         {
             if (!_childrenLoaded)
                 Refresh();
 
+            var items = DescendantsOrSelf().Skip(1).ToArray();
+            _host._items.InsertRange(_index + 1, items);
+            _host.RebuildIndexes(_index);
+            /*
             foreach (var item in DescendantsOrSelf())
                 item.OnPropertyChanged(nameof(IsVisible));
+            */
         }
 
         protected void Collapse()
         {
+            if (_children == null || _children.Count == 0)
+                return;
+
+            if (_index == -1)
+                return;
+
+            var startIndex = _children[0]._index;
+            var endIndex = LastDescendant()!._index;
+
+            _host._items.RemoveRange(startIndex, endIndex - startIndex + 1);
+
+            foreach (var child in DescendantsOrSelf().Skip(1))
+            {
+                child._index = -1;
+                child._childInsertIndex = -1;
+            }
+            
+            _host.RebuildIndexes(_index);
+
+            /*
             foreach (var item in DescendantsOrSelf())
                 item.OnPropertyChanged(nameof(IsVisible));
+            */
         }
 
         protected virtual void OnSelectionChanged()
@@ -219,11 +276,14 @@ namespace XrEditor
             {
                 if (_isExpanded == value)
                     return;
-                _isExpanded = value;
-                if (_isExpanded)
+
+                if (value)
                     Expand();
                 else
                     Collapse();
+                
+                _isExpanded = value;
+
                 OnPropertyChanged(nameof(IsExpanded));
             }
         }
@@ -259,14 +319,13 @@ namespace XrEditor
             {
                 _uiElement = value;
                 if (ScrollOnCreate)
-                    _uiElement?.ScrollToView();
+                    _host.ScrollIntoView(this);
             }
         }
 
         public bool ScrollOnCreate { get; set; }
 
         public event Action<ListTreeNodeView, IList<ListTreeNodeView>>? LoadChildren;
-
 
         public event Action<ListTreeNodeView>? SelectionChanged;
 
@@ -288,9 +347,9 @@ namespace XrEditor
     }
 
 
-    public class ListTreeView : BaseView
+    public class ListTreeView : BaseView, IEditorUIElementHost
     {
-        protected internal ObservableCollection<ListTreeNodeView> _items;
+        protected internal BulkObservableCollection<ListTreeNodeView> _items;
         protected internal HashSet<ListTreeNodeView> _selectedItems;
 
         private int _updateCount;
@@ -302,8 +361,11 @@ namespace XrEditor
             _selectedItems = [];
         }
 
-        public void BeginUpdate(ListTreeNodeView? refItem = null)
+        public void BeginUpdate(ListTreeNodeView? refItem = null, bool isMassive =false)
         {
+            if (isMassive)
+                _items.BeginUpdate();   
+
             _updateCount++;
 
             if (refItem != null && refItem._index != -1)
@@ -311,14 +373,18 @@ namespace XrEditor
 
         }
 
-        public void EndUpdate()
+        public void EndUpdate(bool isMassive = false)
         {
             _updateCount--;
+
             if (_updateCount == 0)
             {
                 RebuildIndexes(_minUpdateIndex ?? 0);
                 _minUpdateIndex = null;
             }
+
+            if (isMassive)
+                _items.EndUpdate();
 
         }
 
@@ -330,6 +396,21 @@ namespace XrEditor
                 _items[i]._childInsertIndex = -1;
             }
         }
+
+        public void ScrollIntoView(ListTreeNodeView node)
+        {
+            if (UIElement is IEditorUIContainer container)
+                container.ScrollToView(node);
+            else
+            {
+                if (node.UIElement == null)
+                    node.ScrollOnCreate = true;
+                else
+                    node.UIElement.ScrollToView();
+            }
+        }
+
+        public IEditorUIElement? UIElement { get; set; }
 
         public IReadOnlySet<ListTreeNodeView> SelectedItems => _selectedItems;
 

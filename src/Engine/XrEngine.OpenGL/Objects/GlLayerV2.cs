@@ -52,7 +52,7 @@ namespace XrEngine.OpenGL
             else if (change.Type == Layer3DChangeType.Removed)
                 RemoveContent((Object3D)change.Item);
 
-            _lastUpdateVersion = layer.Version;
+            _lastUpdateVersion = _sceneLayer != null ? _sceneLayer.Version : _scene.Version;
         }
 
         protected virtual ShaderMaterial ReplaceMaterial(ShaderMaterial material)

@@ -15,12 +15,12 @@ namespace XrEditor
             _isEnabled = true;
         }
 
-        public ActionView(Action action)
-            : this(action.ToTask())
+        public ActionView(Action action, IDispatcher? dispatcher = null)
+            : this(action.ToTask(), dispatcher)
         {
         }
 
-        public ActionView(Func<Task> action)
+        public ActionView(Func<Task> action, IDispatcher? dispatcher = null)
         {
             ExecuteCommand = new Command(async () =>
             {
@@ -28,7 +28,10 @@ namespace XrEditor
                 IsActive = true;
                 try
                 {
-                    await action();
+                    if (dispatcher != null)
+                        await dispatcher.ExecuteAsync(action);
+                    else
+                        await action();
                 }
                 finally
                 {

@@ -48,10 +48,7 @@ namespace XrEditor
                 }
                 else
                 {
-                    if (listNode.UIElement == null)
-                        listNode.ScrollOnCreate = true;
-                    else
-                        listNode.UIElement?.ScrollToView();
+                    _treeView.ScrollIntoView(listNode);
                 }
             }
 

@@ -281,6 +281,11 @@ namespace XrEditor
             var width = (uint)(_renderSurface!.Size.X);
             var height = (uint)(_renderSurface.Size.Y);
 
+            Log.Info(this, "New render size: {0}x{1}", width, height);
+
+            width = (uint)Math.Ceiling(width / 2.0f) * 2;
+            height = (uint)Math.Ceiling(height / 2.0f) * 2;
+
             if (_camera is PerspectiveCamera persp)
             {
                 if (persp.FovDegree == 0)

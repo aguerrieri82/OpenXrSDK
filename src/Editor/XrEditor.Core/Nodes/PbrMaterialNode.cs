@@ -5,9 +5,9 @@ using XrEngine;
 
 namespace XrEditor.Nodes
 {
-    public class PbrMaterialNode : MaterialNode<PbrV1Material>
+    public class PbrMaterialNode : MaterialNode<PbrV2Material>
     {
-        public PbrMaterialNode(PbrV1Material value) : base(value)
+        public PbrMaterialNode(PbrV2Material value) : base(value)
         {
         }
 
@@ -17,21 +17,21 @@ namespace XrEditor.Nodes
             {
                 var factory = Context.Require<NodeManager>();
 
-                if (_value.MetallicRoughness?.BaseColorTexture != null)
-                    yield return factory.CreateNode(_value.MetallicRoughness.BaseColorTexture);
+                if (_value.ColorMap != null)
+                    yield return factory.CreateNode(_value.ColorMap);
 
-                if (_value.MetallicRoughness?.MetallicRoughnessTexture != null)
-                    yield return factory.CreateNode(_value.MetallicRoughness.MetallicRoughnessTexture);
+                if (_value.MetallicRoughnessMap != null)
+                    yield return factory.CreateNode(_value.MetallicRoughnessMap);
 
-                if (_value.NormalTexture != null)
-                    yield return factory.CreateNode(_value.NormalTexture);
+                if (_value.NormalMap != null)
+                    yield return factory.CreateNode(_value.NormalMap);
 
-                if (_value.OcclusionTexture != null)
-                    yield return factory.CreateNode(_value.OcclusionTexture);
+                if (_value.OcclusionMap != null)
+                    yield return factory.CreateNode(_value.OcclusionMap);
             }
         }
 
-        protected override void EditorProperties(Binder<PbrV1Material> binder, IList<PropertyView> curProps)
+        protected override void EditorProperties(Binder<PbrV2Material> binder, IList<PropertyView> curProps)
         {
             base.EditorProperties(binder, curProps);
         }
