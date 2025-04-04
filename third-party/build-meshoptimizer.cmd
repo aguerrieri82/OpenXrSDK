@@ -14,13 +14,15 @@ cmake -G Ninja .. -DCMAKE_TOOLCHAIN_FILE=%NDK_HOME%\build\cmake\android.toolchai
 	 
 ninja install
 
+%LLVM_STRIP% --strip-unneeded install\lib\libmeshoptimizer.so
+
 copy install\lib\libmeshoptimizer.so ..\..\..\libs\meshoptimizer\android-arm64\libmeshoptimizer-native.so
 	 
 cd..
 md out-win
 cd out-win
 
-call "%VC_HOME%\Auxiliary\Build\vcvars64.bat"
+del CMakeCache.txt
 
 cmake -G Ninja .. ^
 	-DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^

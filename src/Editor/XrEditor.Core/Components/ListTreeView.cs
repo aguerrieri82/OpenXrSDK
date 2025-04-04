@@ -1,7 +1,7 @@
-﻿using CanvasUI;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using XrEditor.Abstraction;
+using XrEngine;
 
 
 namespace XrEditor
@@ -19,7 +19,8 @@ namespace XrEditor
         protected object? _header;
         protected bool _isSelected;
         protected bool _isLeaf;
-        private IEditorUIElement? _uiElement;
+        protected IEditorUIElement? _uiElement;
+
 
         public ListTreeNodeView(ListTreeView host, ListTreeNodeView? parent)
         {
@@ -260,6 +261,8 @@ namespace XrEditor
             {
                 if (_isSelected == value)
                     return;
+
+                Log.Debug(this, "Sel: {0} ({1})", value, this.Header);
 
                 _isSelected = value;
 

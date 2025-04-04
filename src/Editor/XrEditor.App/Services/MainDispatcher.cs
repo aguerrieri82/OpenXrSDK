@@ -4,6 +4,8 @@ namespace XrEditor
 {
     public class MainDispatcher : IMainDispatcher
     {
+        public bool IsCurrentThread => Application.Current.Dispatcher.Thread == Thread.CurrentThread;
+
         public async Task ExecuteAsync(Action action)
         {
             if (Application.Current == null)

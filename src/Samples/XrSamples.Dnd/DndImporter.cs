@@ -590,7 +590,7 @@ namespace XrSamples.Dnd
                 if (bounds.Size.IsSimilar(new Vector3(1, 0, 1f), 0.1f))
                 {
                     tiles.AddChild(item, true);
-                    MapY = bounds.Min.Y;
+                    MapY = MathF.Max(MapY, item.WorldPosition.Y);
                 }
             }
            
@@ -603,8 +603,11 @@ namespace XrSamples.Dnd
             _basePath = path;
 
             var draws = Read<ImpDraw[]>("draws.json");
-            var res = new Group3D();
-            res.Name = "Map";
+
+            var res = new Group3D
+            {
+                Name = "Map"
+            };
 
             foreach (var draw in draws!)
                 res.AddChild(ProcessDraw(draw));

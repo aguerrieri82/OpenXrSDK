@@ -72,7 +72,7 @@ namespace XrEngine.OpenGL
                 _frameBuffer.Bind();
                 _gl.InvalidateFramebuffer(_frameBuffer.Target, DepthStencilAttachment);
             }
-
+            
             _frameBuffer.Unbind();
         }
 
@@ -93,7 +93,8 @@ namespace XrEngine.OpenGL
 
             bld.AddFeature("MULTI_VIEW");
 
-            bld.LoadBuffer(ctx => (SceneMatrices?)_matrices, 10, BufferStore.Shader);
+            if (bld.Context.Stage == UpdateShaderStage.Shader)
+                bld.LoadBuffer(ctx => (SceneMatrices?)_matrices, 10, BufferStore.Shader);
         }
 
         public bool NeedUpdateShader(UpdateShaderContext ctx)

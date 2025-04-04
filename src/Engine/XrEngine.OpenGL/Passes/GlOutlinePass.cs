@@ -2,6 +2,8 @@
 using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
+
+
 #endif
 
 using XrMath;
@@ -12,7 +14,6 @@ namespace XrEngine.OpenGL
     public class GlOutlinePass : GlBaseSingleMaterialPass
     {
         protected readonly GlRenderPassTarget _passTarget;
-        protected Size2I _lastSize;
         protected readonly GlSimpleProgram _outlineProgram;
 
         public GlOutlinePass(OpenGLRender renderer, int boundEye = -1)
@@ -43,9 +44,7 @@ namespace XrEngine.OpenGL
             if (!Source.HasOutlines())
                 return false;
 
-            _lastSize = camera.ViewSize;
-
-            _passTarget.Configure(_lastSize.Width, _lastSize.Height, TextureFormat.Rgba32);
+            _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.Rgba32);
             _passTarget.RenderTarget!.Begin(camera);
 
             _renderer.State.SetClearColor(Color.Transparent);
@@ -60,24 +59,24 @@ namespace XrEngine.OpenGL
         protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
         {
             _programInstance!.Material.DoubleSided = drawMaterial.DoubleSided;
+
             return base.UpdateProgram(updateContext, drawMaterial);
         }
 
-
-        protected override bool CanDraw(DrawContent draw)
+        protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Object3D model)
         {
-            if (!Source!.HasOutline(draw.Object!, out var color))
-                return false;
+            if (!Source!.HasOutline(model, out var color))
+                return UpdateProgramResult.Skip;
 
-            _programInstance!.Material.UpdateColor(color);
+            if (_programInstance!.Material.UpdateColor(color))
+                UpdateMaterial(updateContext);
 
-            return true;
+            return UpdateProgramResult.Unchanged;
         }
 
         protected override void EndRender()
         {
             _passTarget.RenderTarget!.End(true);
-
 
             _renderer.RenderTarget!.Begin(_renderer.UpdateContext.PassCamera!);
 

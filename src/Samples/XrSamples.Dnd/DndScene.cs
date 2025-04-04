@@ -53,28 +53,18 @@ namespace XrSamples.Dnd
         {
             var path = Context.Require<IAssetStore>().GetPath(Path.Join(assetDir, "draws.json"));
 
-            var imp = new DndImporter();
-            imp.SimpleMaterials = false;
+            var imp = new DndImporter
+            {
+                SimpleMaterials = false
+            };
 
             _map = imp.Import(Path.GetDirectoryName(path)!);
 
-            foreach (var item in _map.Children.OfType<TriangleMesh>())
-            {
-                //item.AddComponent(new GeometryLod());
-            }
-
             _map.AddComponent<BoundsGrabbable>();
-
-
-            /*
-            _map.Transform.SetPosition(-9, 1, 9);
-            _map.Transform.SetPosition(-0.91999996f, 0, 0.35000038f);
-            _map.Transform.SetScale(1f);
-            */
 
             AddChild(_map);
 
-            _map.UpdateBounds();
+            _map.Transform.SetPosition(0, -imp.MapY, 0);
 
             var size = _map.WorldBounds.Size;
             var floor = new TriangleMesh(Quad3D.Default);
@@ -90,15 +80,15 @@ namespace XrSamples.Dnd
                 IsEnabled = false
             });
 
-
-            var pl1 = _map.AddChild(new PointLight());
-            pl1.Transform.Position = new Vector3(0, 1.8f, 0);
-            pl1.Intensity = 10f;
-            pl1.CastShadows = false;
-            pl1.Range = 50;
-            pl1.WorldPosition = new Vector3(15.109999f, 4.0699997f, -5.85f);
+            var light = new PointLight();
+            light.Transform.Position = new Vector3(0, 1.8f, 0);
+            light.Intensity = 10f;
+            light.CastShadows = false;
+            light.Range = 50;
+            light.WorldPosition = new Vector3(15.109999f, 4.0699997f, -5.85f);
 
             _map.AddChild(floor);
+            _map.AddChild(light);
 
             return _map;
         }
@@ -115,6 +105,7 @@ namespace XrSamples.Dnd
         public void ResetPose()
         {
             _map!.Transform.Reset();
+
             _map.Transform.SetPosition(0, 0, 0);
 
             if (XrApp.Current != null)

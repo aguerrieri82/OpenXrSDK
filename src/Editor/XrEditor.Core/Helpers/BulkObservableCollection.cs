@@ -3,7 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Text;
+using XrEngine;
+
 
 namespace XrEditor
 {
@@ -11,7 +14,12 @@ namespace XrEditor
     {
         int _updateCount = 0;
         bool _isChanged;
+        private readonly IMainDispatcher _dispatcher;
 
+        public BulkObservableCollection()
+        {
+            _dispatcher = Context.Require<IMainDispatcher>();
+        }
 
         public void InsertRange(int startIndex, IList<T> items)
         {
@@ -54,12 +62,16 @@ namespace XrEditor
 
         protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
+            Debug.Assert(_dispatcher.IsCurrentThread);
+
             if (_updateCount > 0)
             {
                 _isChanged = true;
                 return;
-            }   
+            }
+
             base.OnCollectionChanged(e);
+
         }
     }
 }

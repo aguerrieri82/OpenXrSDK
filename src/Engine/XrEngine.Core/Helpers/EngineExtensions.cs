@@ -1311,7 +1311,7 @@ namespace XrEngine
 
         }
 
-        public static void UpdateColor(this Material self, Color color)
+        public static bool UpdateColor(this Material self, Color color)
         {
             var src = (IColorSource)self;
 
@@ -1319,8 +1319,9 @@ namespace XrEngine
             {
                 ((IColorSource)self).Color = color;
                 self.NotifyChanged(ObjectChangeType.Render);
+                return true;
             }
-
+            return false;
         }
 
         #endregion

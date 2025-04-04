@@ -23,13 +23,15 @@ cmake -G Ninja .. -DCMAKE_TOOLCHAIN_FILE=%NDK_HOME%\build\cmake\android.toolchai
 
 ninja install
 	 
+%LLVM_STRIP% --strip-unneeded install\lib\libopenal.so
+
 copy install\lib\libopenal.so ..\..\..\libs\openal\android-arm64
 	
 cd..
 md out-win
 cd out-win
 
-call "%VC_HOME%\Auxiliary\Build\vcvars64.bat"
+del CMakeCache.txt
 
 cmake -G Ninja .. ^
 	-DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^

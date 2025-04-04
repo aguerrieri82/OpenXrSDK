@@ -1,6 +1,5 @@
 call vars.cmd
 
-call "%VC_HOME%\Auxiliary\Build\vcvars64.bat"
 
 SET OUT_PATH=%CD%\..\libs
 

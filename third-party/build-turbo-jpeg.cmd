@@ -11,8 +11,10 @@ cmake -G Ninja .. -DCMAKE_TOOLCHAIN_FILE=%NDK_HOME%\build\cmake\android.toolchai
 		 -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
 		 -DCMAKE_INSTALL_PREFIX=%INSTALL_PEFIX% ^
 		 -DANDROID=1
-	 
+	  
 ninja install
+
+%LLVM_STRIP% --strip-unneeded install\lib\libturbojpeg.so
 	 
 copy install\lib\libturbojpeg.so ..\..\..\libs\turbo-jpeg\android-arm64\libturbojpeg-native.so
 
@@ -20,8 +22,7 @@ cd..
 md out-win
 cd out-win
 
-call "%VC_HOME%\Auxiliary\Build\vcvars64.bat"
-
+del CMakeCache.txt
  
 cmake -G Ninja .. ^
 	 -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^

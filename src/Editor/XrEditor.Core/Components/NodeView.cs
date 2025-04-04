@@ -118,6 +118,12 @@ namespace XrEditor
             }
         }
 
+
+        public override string ToString()
+        {
+            return DisplayName;
+        }
+
         public MenuView Menu => _menu;
 
         public INode Node => _node;

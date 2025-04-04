@@ -5,7 +5,7 @@ namespace XrEditor.Services
 {
     public class SelectionManager
     {
-        protected ObservableCollection<INode> _items = [];
+        protected BulkObservableCollection<INode> _items = [];
         protected bool _isChanged;
         protected int _update;
         protected readonly IMainDispatcher _main;

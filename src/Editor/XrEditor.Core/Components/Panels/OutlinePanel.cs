@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using XrEditor.Services;
 using XrEngine;
 
@@ -56,6 +57,8 @@ namespace XrEditor
 
         private void OnSelectionChanged(ListTreeNodeView obj)
         {
+            Debug.Assert(_mainDispatcher.IsCurrentThread);
+
             var node = ((NodeView)obj.Header!).Node;
 
             bool curSelected = _selection.IsSelected(node);

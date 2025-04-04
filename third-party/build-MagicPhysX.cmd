@@ -1,6 +1,5 @@
 call vars.cmd
 
-call "%VC_HOME%\Auxiliary\Build\vcvars64.bat"
 
 cd MagicPhysX\src\libmagicphysx
 
@@ -14,6 +13,8 @@ SET ANDROID_NDK_ROOT=%NDK_HOME%
 SET NDK_PROJECT_PATH=%CD%
 
 cargo ndk --platform 29 --target arm64-v8a build --release 
+
+%LLVM_STRIP% --strip-unneeded target\aarch64-linux-android\release\libphysxnative.so
 
 copy target\aarch64-linux-android\release\libphysxnative.so ..\..\..\..\libs\physxnative\android-arm64
 

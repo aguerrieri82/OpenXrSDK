@@ -7,8 +7,10 @@
     <File Path="../third-party/build-etcpak.cmd" />
     <File Path="../third-party/build-filament-android.sh" />
     <File Path="../third-party/build-filament.cmd" />
+    <File Path="../third-party/build-libtiff.cmd" />
     <File Path="../third-party/build-MagicPhysX.cmd" />
     <File Path="../third-party/build-meshoptimizer.cmd" />
+    <File Path="../third-party/build-oboe.cmd" />
     <File Path="../third-party/build-openal.cmd" />
     <File Path="../third-party/build-turbo-jpeg.cmd" />
     <File Path="../third-party/vars.cmd" />

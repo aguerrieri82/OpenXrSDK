@@ -56,6 +56,12 @@ namespace XrEditor
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            DispatcherUnhandledException += (sender, e) =>
+            {
+                Log.Warn(sender, e.Exception.Message);
+                e.Handled = true; // Prevent crash
+            };
+
             foreach (var res in _viewManager.Resources)
                 Resources.MergedDictionaries.Add(res);
 

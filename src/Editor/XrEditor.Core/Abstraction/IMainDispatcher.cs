@@ -7,5 +7,7 @@ namespace XrEditor
         Task ExecuteAsync(Action action);
 
         void Execute(Action action);
+
+        bool IsCurrentThread { get; }
     }
 }

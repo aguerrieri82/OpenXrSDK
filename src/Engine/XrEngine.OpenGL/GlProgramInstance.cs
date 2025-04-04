@@ -88,7 +88,6 @@ namespace XrEngine.OpenGL
                     localBuilder.AddFeature(feature);
             }
 
-
             var shader = Material.Shader!;
 
             var tesMode = Material is ITessellationMaterial tes ? tes.TessellationMode : TessellationMode.None;

@@ -48,7 +48,7 @@
             if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Model)
                 UpdateShaderModel(bld);
 
-            if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Material)
+            if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Material || stage == UpdateShaderStage.Shader)
                 UpdateShaderMaterial(bld);
         }
 

@@ -43,6 +43,17 @@ namespace XrEngine.OpenGL
             return true;
         }
 
+        protected void UpdateMaterial(UpdateShaderContext ctx)
+        {
+            var curStage = ctx.Stage;
+
+            ctx.Stage = UpdateShaderStage.Material;
+
+            _programInstance!.UpdateUniforms(ctx, false);
+            _programInstance!.UpdateBuffers(ctx);
+
+            ctx.Stage = curStage;
+        }
 
         protected virtual UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
         {
@@ -121,7 +132,10 @@ namespace XrEngine.OpenGL
 
                                 updateContext.Model = draw.Object;
 
-                                UpdateProgram(updateContext, draw.Object!);
+                                upRes = UpdateProgram(updateContext, draw.Object!);
+
+                                if (upRes == UpdateProgramResult.Skip)
+                                    continue;
 
                                 _programInstance.UpdateModel(updateContext);
 
@@ -131,6 +145,8 @@ namespace XrEngine.OpenGL
 
                         //vHandler.Unbind();
                     }
+
+         
                 }
             }
             _renderer.State.BindVertexArray(0);
