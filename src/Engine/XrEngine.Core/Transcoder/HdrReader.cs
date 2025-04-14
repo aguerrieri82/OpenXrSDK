@@ -10,7 +10,6 @@ namespace XrEngine
 {
     public class HdrReader : BaseTextureLoader
     {
-
         HdrReader()
         {
         }

@@ -27,6 +27,7 @@ namespace XrEngine.UI
         public CanvasView3D()
         {
             _dpi = 72;
+            _dpiScale = 1;
             _size = new Size2(1, 1);
             _sizeDirty = true;
 
@@ -56,6 +57,8 @@ namespace XrEngine.UI
 
         public override void Update(RenderContext ctx)
         {
+            base.Update(ctx);
+
             if (_activeTexture != null && NeedDraw && _mode == CanvasViewMode.Texture)
             {
                 if (_sizeDirty)
@@ -63,8 +66,6 @@ namespace XrEngine.UI
 
                 Draw();
             }
-
-            base.Update(ctx);
         }
 
         public void Draw()

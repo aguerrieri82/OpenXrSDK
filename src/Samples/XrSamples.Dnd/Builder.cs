@@ -15,7 +15,10 @@ namespace XrSamples.Dnd
             var scene = new DndScene();
 
             var map = scene.LoadMap("Dnd/tavern");
-            scene.AddToken("#6265");
+
+            scene.LoadAsync("65718833435872349").Wait();
+
+            scene.AddToken("#6265", Guid.Parse("7fddd04d-39df-4b3b-8615-276ae3af2662"));
 
             app.OpenScene(scene);
 

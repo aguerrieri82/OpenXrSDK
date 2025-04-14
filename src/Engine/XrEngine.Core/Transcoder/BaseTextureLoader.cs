@@ -13,11 +13,7 @@ namespace XrEngine
             public uint BitPerPixel;
         }
 
-        public IList<TextureData> Read(string fileName, TextureLoadOptions? options = null)
-        {
-            using var stream = File.OpenRead(fileName);
-            return LoadTexture(stream, options);
-        }
+
 
         public abstract IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null);
 
