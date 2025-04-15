@@ -13,104 +13,9 @@ using XrMath;
 
 namespace XrSamples.Dnd
 {
-    public class Token : Group3D
+    public partial class Token : Group3D
     {
         Group3D _tokenSet;
-
-        public class TokenPicture : CanvasView3D
-        {
-            SKBitmap? _image;
-            VttToken? _vttToken;
-            bool _isDirty;
-            SKFont? _font1;
-            SKFont? _font2;
-            SKPaint? _white;
-
-            public TokenPicture()
-            {
-                _dpi = UnitConv.InchesToMeter * 256;
-                Size = new Size2(1f, 1f);
-
-            }
-
-            internal void Update(VttToken vttToken)
-            {
-                _vttToken = vttToken;
-                _isDirty = true;
-
-            }
-
-            protected override void Start(RenderContext ctx)
-            {
-                
-                base.Start(ctx);
-            }
-
-            protected override void Draw(SKCanvas canvas)
-            {
-                canvas.Clear();
-                
-                _image ??= ((DndScene?)Scene)!.VttClient.DownloadImageAsync(_vttToken!.Imgsrc!).Result;
-
-                var height = (int)(PixelSize.Height * 0.1);
-                var barHeight = (int)(PixelSize.Height * 0.05);
-
-                canvas.Save();
-
-
-                if (_vttToken!.TokenStyleSelect == "circle")
-                {
-                    using var path = new SKPath();
-                    var radius = height / 2;
-                    path.AddOval(new SKRect(0, 0, PixelSize.Width, PixelSize.Height - height - barHeight));
-                    canvas.ClipPath(path);
-                }
-
-                canvas.DrawBitmap(_image, new SKRect(0, 0, PixelSize.Width, PixelSize.Height - height - barHeight));
-
-                canvas.Restore();
-
-                if (_font1 == null)
-                {
-                    using var tf = SKTypeface.FromFamilyName("Arial", SKFontStyle.Normal);
-                    _font1 = new SKFont(tf, height);
-                    _font2 = new SKFont(tf, barHeight - 2);
-                }
-
-                if (_white == null)
-                {
-                    _white = new SKPaint();
-                    _white.Color = SKColor.Parse("FFFFFF");
-                }
-
-                var size = _font1.MeasureText(_vttToken!.Name);
-
-                canvas.DrawText(_vttToken!.Name,(_pixelSize.Width - size) / 2, _pixelSize.Height - _font1.Metrics.Descent, _font1, _white);
-
-                var max = int.Parse(_vttToken.HitPointInfo?.Maximum?.ToString() ?? "0");
-                var cur = _vttToken.HitPointInfo?.Current ?? 0;
-
-                using var color = new SKPaint()
-                {
-                    Color = SKColor.Parse("1A6AFF")
-                };
-
-                var barWidth = _pixelSize.Width * (cur / (float)max);
-
-                canvas.DrawRect(0, _pixelSize.Height - height - barHeight, barWidth, barHeight, color);
-                var hp = $"{cur} / {max}";
-                size = _font2!.MeasureText(hp);
-
-                canvas.DrawText(hp, (barWidth - size) / 2, _pixelSize.Height - height - _font2.Metrics.Bottom, _font2, _white);
-
-                _isDirty = false;
-
-                base.Draw(canvas);
-            }
-
-            public override bool NeedDraw => _isDirty;
-
-        }
 
         TokenPicture _picture;
         TriangleMesh _box;
@@ -134,12 +39,10 @@ namespace XrSamples.Dnd
 
             _mesh = mesh;
 
-
             AddChild(_tokenSet);
             AddChild(_mesh);
 
-
-            _mesh.AddComponent<BoundsGrabbable>();
+            this.AddComponent<TokenGrabbable>();
 
             var curPose = _mesh.GetWorldPose();
             _mesh.SetWorldPose(new Pose3
@@ -156,9 +59,13 @@ namespace XrSamples.Dnd
 
         public override void Update(RenderContext ctx)
         {
-            var camera = ctx.Camera!;
-            var forward = camera.Forward;
-            _tokenSet.Forward = new Vector3(forward.X, 0, forward.Z).Normalize();
+            var camera = ctx.Camera ?? _scene?.ActiveCamera;
+            if (camera != null)
+            {
+                var forward = camera.Forward;
+                _tokenSet.Forward = new Vector3(forward.X, 0, forward.Z).Normalize();
+            }
+
             base.Update(ctx);
         }
 
@@ -176,6 +83,34 @@ namespace XrSamples.Dnd
 
             var localPos = pos / mapSize * new Vector2(bounds.Size.X, bounds.Size.Z);
             Transform.Position = new Vector3(localPos.X + 0.5f, Transform.Position.Y, - (bounds.Size.Z - localPos.Y - 0.5f));
+
+            //SendPosition();
+        }
+
+        [Action]
+        public void SendPosition()
+        {
+            var scene = (DndScene)_scene!;
+            var padding = 200;
+            var mapSize = new Vector2(scene.VttScene!.Width - padding * 2.2f, scene.VttScene.Height - padding * 2.2f);
+
+            var tiles = scene.Map!.Children.OfType<Group3D>().First(a => a.Name == "Tiles");
+
+            tiles.UpdateBounds();
+            var bounds = tiles.LocalBounds;
+
+            var position = Transform.Position;
+
+            var localPosX = position.X - 0.5f;
+            var localPosY = bounds.Size.Z - (-position.Z) - 0.5f;
+
+            var mapCoord = new Vector2(localPosX / bounds.Size.X, localPosY / bounds.Size.Z);
+            var pos = mapCoord * mapSize + new Vector2(padding, padding);
+
+            _vttToken!.Left = $"{(int)Math.Round(pos.X)}px";
+            _vttToken!.Top = $"{(int)Math.Round(pos.Y)}px";
+
+            _ = scene.VttClient.UpdateTokenAsync(scene.VttScene.Id, _vttToken);
         }
 
         public VttToken? VttToken

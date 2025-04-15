@@ -41,6 +41,7 @@ namespace XrSamples.Dnd
             _player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"));
             _player.Transform.SetScale(0.3f, 1.0f, 0.3f);
             _player.Transform.LocalPivot = new Vector3(0, -0.5f, 0);
+            _player.Materials[0].IsEnabled = false;
 
             _player.AddComponent(new XrPlayer
             {
@@ -128,7 +129,12 @@ namespace XrSamples.Dnd
             return _map;
         }
 
+        public override void Dispose()
+        {
+            _ = _client.DisconnectAsync();
 
+            base.Dispose();
+        }
 
         public void ResetPose()
         {

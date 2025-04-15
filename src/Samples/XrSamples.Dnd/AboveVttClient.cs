@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using Tensorflow.Keras;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
@@ -165,15 +166,18 @@ namespace XrSamples.Dnd
     {
         static readonly JsonSerializerOptions JSON_OPT = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        ClientWebSocket _socketClient;
-        HttpClient _httpClient;
+        readonly ClientWebSocket _socketClient;
+        readonly HttpClient _httpClient;
+        readonly IAboveVttListener _listener;
+
+        Guid _clientId;
         Thread? _receiveThread;
         string? _campaignId;
-        IAboveVttListener _listener;
-
+        int _sequence;
 
         public AboveVttClient(IAboveVttListener listener)
         {
@@ -184,7 +188,9 @@ namespace XrSamples.Dnd
 
         public async Task ConnectAsync(string campaignId)
         {
+            _clientId = Guid.NewGuid();
             _campaignId = campaignId;
+            _sequence = 1;
 
             await _socketClient.ConnectAsync(new Uri($"wss://blackjackandhookers.abovevtt.net/v1?campaign={campaignId}&DM=1"), CancellationToken.None);
 
@@ -206,13 +212,9 @@ namespace XrSamples.Dnd
             throw new Exception($"Failed to download image from {uri}");
         }
 
-        public async void DisconnectAsync()
+        public async Task DisconnectAsync()
         {
-            if (_socketClient == null)
-                return;
-
             await _socketClient.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
-
         }
 
         public async Task<VttCurrentSceneResponse> GetCurrentSceneAsync()
@@ -227,6 +229,25 @@ namespace XrSamples.Dnd
             return result!;
         }
 
+
+        public async Task UpdateTokenAsync(Guid sceneId, VttToken token)
+        {
+            var action = new VttAction();
+            action.Sender = _clientId;
+            action.SceneId = sceneId;
+            action.PlayersSceneId = sceneId;
+            action.EventType = "custom/myVTT/token";
+            action.Data = token;
+            action.Cloud = 1;
+            action.Sequence = _sequence++;
+            action.CampaignId = _campaignId;
+            action.Action = "sendmessage";
+
+            var json = JsonSerializer.Serialize(action, JSON_OPT);
+            var buffer = Encoding.UTF8.GetBytes(json);
+
+            await _socketClient.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+        }
 
 
         protected async void ReceiveLoop()

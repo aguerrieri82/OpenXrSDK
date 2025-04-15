@@ -1,4 +1,6 @@
-﻿using CanvasUI;
+﻿
+using CanvasUI;
+using System.Numerics;
 using UI.Binding;
 using XrEngine;
 using XrEngine.OpenXr;
@@ -15,6 +17,7 @@ namespace XrSamples.Dnd
             Zoom = 1f;
             ImageInt = 1f;
             PointRange = 50f;
+            MapTransform = Matrix4x4.Identity;  
         }
 
         public override void Apply(Scene3D scene)
@@ -42,13 +45,8 @@ namespace XrSamples.Dnd
             //image.IsVisible = ImageInt > 0;
             image.Intensity = ImageInt;
 
-
-            if (_filePath != null)
-            {
-                Save();
-                Log.Info(this, "Settings SAVED");
-            }
         }
+
 
         public float Zoom { get; set; }
 
@@ -61,6 +59,9 @@ namespace XrSamples.Dnd
         public float PointRange { get; set; }
 
         public float ImageInt { get; set; }
+
+
+        public Matrix4x4 MapTransform { get; set; }
     }
 
     public class DndSettingsPanel : UIRoot
@@ -68,6 +69,12 @@ namespace XrSamples.Dnd
         public DndSettingsPanel(DndSettings settings, DndScene scene)
         {
             var binder = new Binder<DndSettings>(settings);
+
+            void Save()
+            {
+                settings.MapTransform = scene.Map!.WorldMatrix;
+                settings.Save();
+            }
 
             void Binder_PropertyChanged(DndSettings? obj, IProperty property, object? value, object? oldValue)
             {
@@ -92,6 +99,7 @@ namespace XrSamples.Dnd
                 .AddInputRange("Point Light Range", 1, 50f, binder.Prop(a => a.PointRange))
                 .BeginRow(s => s.RowGap(16))
                     .AddButton("Reset", scene.ResetPose, s => s.Padding(8, 16).BackgroundColor("#1565C0"))
+                    .AddButton("Save", Save, s => s.Padding(8, 16).BackgroundColor("#1565C0"))
                 .EndChild()
             .EndChild();
         }

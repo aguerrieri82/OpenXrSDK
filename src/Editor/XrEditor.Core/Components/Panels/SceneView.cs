@@ -112,7 +112,7 @@ namespace XrEditor
             ToolBar.AddDivider();
             _playButton = ToolBar.AddButton("icon_play_arrow", StartApp);
             _pauseButton = ToolBar.AddButton("icon_pause", PauseApp);
-            _stopButton = ToolBar.AddButton("icon_stop", StopApp);
+            _stopButton = ToolBar.AddButton("icon_stop", () => StopApp());
             ToolBar.AddDivider();
             _cameraList = ToolBar.AddSelect(ListCameras(), _camera, c => Camera = c);
             _cameraList.ValueType = typeof(Camera);
@@ -320,13 +320,13 @@ namespace XrEditor
             UpdateControls();
         });
 
-        public Task StopApp() => RenderDispatcher.ExecuteAsync(() =>
+        public Task StopApp(bool restore = true) => RenderDispatcher.ExecuteAsync(() =>
         {
             if (_engine?.App == null || _engine.App.PlayState == PlayState.Stop)
                 return;
 
             _engine!.App.Stop();
-            if (_sceneState != null)
+            if (_sceneState != null && restore)
             {
                 _scene!.SetState(_sceneState);
                 _sceneState = null;
@@ -363,7 +363,7 @@ namespace XrEditor
 
         public override Task CloseAsync()
         {
-            StopApp();
+            StopApp(false);
 
             StopXr();
 

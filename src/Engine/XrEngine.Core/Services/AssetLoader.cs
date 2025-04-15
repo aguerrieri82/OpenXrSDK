@@ -21,13 +21,23 @@
         {
             bool useCache = destObj == null && (options == null || options.UseCache);
 
-            if (useCache && _cache.TryGetValue(uri, out var obj))
-                return obj;
+
+            EngineObject obj;
+
+            lock (_cache)
+            {
+                if (useCache && _cache.TryGetValue(uri, out obj!))
+                    return obj;
+
+            }
 
             obj = GetLoader(uri).LoadAsset(uri, resType, destObj, options);
 
-            if (destObj == null && useCache)
-                _cache[uri] = obj;
+            lock (_cache)
+            {
+                if (destObj == null && useCache)
+                    _cache[uri] = obj;
+            }
 
             return obj;
         }

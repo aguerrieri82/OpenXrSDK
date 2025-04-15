@@ -22,6 +22,9 @@ namespace XrSamples.Dnd
 
             app.OpenScene(scene);
 
+            scene.Settings.Load(Path.Join(XrPlatform.Current!.PersistentPath, "dnd_settings.json"));
+            map.WorldMatrix = scene.Settings.MapTransform; 
+
             return builder.UseApp(app)
                     .AddPanel(new DndSettingsPanel(scene.Settings, scene))
                     .UseDefaultHDR()
