@@ -6,6 +6,7 @@
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<UseOpenGL>true</UseOpenGL>
 		<TargetFrameworks>$(CoreVersion)-$(WinVersion)</TargetFrameworks>
+		<UserSecretsId>130226c4-4660-4680-9632-051e005023d9</UserSecretsId>
 	</PropertyGroup>
 
 
@@ -14,7 +15,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.3.25171.5" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.6.25358.103" />
 		<PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.16.0" />
 		<PackageReference Include="Silk.NET.Assimp" Version="2.22.0" />
 		<PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.22.0" />
