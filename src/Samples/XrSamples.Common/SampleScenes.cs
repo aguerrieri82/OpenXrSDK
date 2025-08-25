@@ -21,6 +21,8 @@ using XrEngine.Physics;
 using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
+using System;
+
 
 
 
@@ -1119,6 +1121,65 @@ namespace XrSamples
                 .UseDefaultHDR()
                 .ConfigureSampleApp();
         }
+
+
+        [Sample("Helmet")]
+        public static XrEngineAppBuilder CreateTac(this XrEngineAppBuilder builder)
+        {
+
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var mesh1 = (TriangleMesh)AssetLoader.Instance.Load(new Uri("D:\\Misc\\TAC\\Head-Skin.obj"), typeof(TriangleMesh), null);
+            var mesh2 = (TriangleMesh)AssetLoader.Instance.Load(new Uri("D:\\Misc\\TAC\\Head-Bone.obj"), typeof(TriangleMesh), null);
+
+            var mat1 = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+
+            mat1.ClipVolume = new Bounds3()
+            {
+                Min = new Vector3(0, float.NegativeInfinity, float.NegativeInfinity),
+                Max = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity),
+            };
+
+            mesh1.Materials.Add(mat1);
+
+            var mat2 = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+
+            mat2.ClipVolume = new Bounds3()
+            {
+                Min = new Vector3(0, float.NegativeInfinity, float.NegativeInfinity),
+                Max = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity),
+            };
+
+            mesh2.Materials.Add(mat2);
+
+            var grp = new Group3D();
+            grp.Name = "Tac";
+            grp.Transform.SetScale(0.001f);
+            grp.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
+            /*
+            grp.SetWorldPose(new Pose3()
+            {
+                Position = new Vector3(-0.26f, 7.25f, -1.2300003f),
+                Orientation = new Quaternion(-0.70710677f, 0f, 0f, 0.70710677f)
+            });
+            */
+            grp.AddComponent<BoundsGrabbable>();
+            //mesh.UseEnvDepth(true);
+
+            grp.AddChild(mesh1);
+            grp.AddChild(mesh2);
+
+            scene.AddChild(grp);
+
+            return builder
+                .UseApp(app)
+                //.UseEnvironmentDepth()
+                .UseDefaultHDR()
+                .ConfigureSampleApp();
+        }
+
 
         public static Material LoadMaterial(string url)
         {

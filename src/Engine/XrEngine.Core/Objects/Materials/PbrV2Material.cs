@@ -518,6 +518,16 @@ namespace XrEngine
 
             }
 
+            if (ClipVolume != null)
+            {
+                bld.AddFeature("HAS_CLIP_VOLUME");
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform("uClipMin", ClipVolume.Value.Min);
+                    up.SetUniform("uClipMax", ClipVolume.Value.Max);
+                });
+            }
+
             if (HeightMap?.Texture != null)
             {
                 bld.AddFeature("USE_HEIGHT_MAP");
@@ -643,6 +653,8 @@ namespace XrEngine
         bool ITessellationMaterial.DebugTessellation => HeightMap?.DebugTessellation ?? false;
 
         public HeightMapSettings? HeightMap { get; set; }
+
+        public Bounds3? ClipVolume { get; set; }
 
         public Texture2D? OcclusionMap { get; set; }
 

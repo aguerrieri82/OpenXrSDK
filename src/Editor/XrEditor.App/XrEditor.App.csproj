@@ -7,11 +7,16 @@
 		<TargetFrameworks>$(CoreVersion)-$(WinVersion)</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<XamlDebuggingInformation>True</XamlDebuggingInformation>
-		<RuntimeIdentifier>win-$(Platform)</RuntimeIdentifier>
+		<RuntimeIdentifier>win-$(NativePlatform)</RuntimeIdentifier>
 		<UseOpenGL>true</UseOpenGL>
 		<ApplicationIcon>XrEditor.ico</ApplicationIcon>
 		<NoWarn>MC3066</NoWarn>
 	</PropertyGroup>
+	<Target BeforeTargets="Build" Name="DumpProperties">
+		<Message Importance="High" Text="--- MSBuild Properties ---" />
+		<Message Importance="High" Text="@(AllProperties)" Condition="'@(AllProperties)' != ''"/>
+		<Message Importance="High" Text="--------------------------" />
+	</Target>
 
 	<ItemGroup>
 	  <Resource Include="XrEditor.ico" />

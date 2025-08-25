@@ -63,6 +63,12 @@ uniform vec3 uIblColor;
 #endif
 
 
+#ifdef HAS_CLIP_VOLUME
+	uniform vec3 uClipMin;
+	uniform vec3 uClipMax;
+#endif
+
+
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2.
 float ndfGGX(float cosLh, float roughness)
@@ -114,6 +120,12 @@ vec3 addNoise(vec3 color)
 	return color;
 }
 
+bool pointInsideVolume(vec3 p, vec3 minV, vec3 maxV)
+{
+    return all(greaterThanEqual(p, minV)) &&
+           all(lessThanEqual(p, maxV));
+}
+
 void main()
 {
 	#if defined(HAS_ENV_DEPTH) && defined(USE_ENV_DEPTH)
@@ -124,6 +136,11 @@ void main()
 			return;
 		}
 
+	#endif
+
+	#ifdef HAS_CLIP_VOLUME
+		if (!pointInsideVolume(fPos, uClipMin, uClipMax))
+			discard;
 	#endif
 
 	vec3 shadowLightDir;

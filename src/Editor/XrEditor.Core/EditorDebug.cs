@@ -30,7 +30,7 @@ namespace XrEditor
                   //opt.UseInstanceDraw = false;        
               })
               .SetRenderQuality(1, 2)
-              .CreateDnd()
+              .CreateTac()
               .Build();
     }
 }
