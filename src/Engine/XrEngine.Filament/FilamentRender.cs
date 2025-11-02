@@ -89,10 +89,6 @@ namespace XrEngine.Filament
                 UseSrgb = options.UseSrgb
             };
 
-#if __ANDROID__
-            initInfo.JNIEnv = Android.Runtime.JNIEnv.Handle;
-#endif
-
             _options = options;
             _renderTargetDepth = 1;
 

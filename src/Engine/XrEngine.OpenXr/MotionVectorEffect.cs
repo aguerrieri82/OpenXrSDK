@@ -34,8 +34,6 @@ namespace XrEngine.OpenXr
 
                     Debug.Assert(camera?.Eyes != null);
 
-                    Debug.WriteLine("Test"); 
-
                     up.SetUniform($"uMatrices.prev.viewProj", _prevViewProj[camera.ActiveEye]);
                     up.SetUniform($"uMatrices.current.viewProj", camera.Eyes[camera.ActiveEye].ViewProj);
 

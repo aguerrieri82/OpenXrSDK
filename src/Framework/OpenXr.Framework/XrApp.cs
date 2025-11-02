@@ -112,7 +112,8 @@ namespace OpenXr.Framework
             {
                 if (_xr == null)
                 {
-                    _xr = XR.GetApi();
+                    //_xr = XR.GetApi();
+                    _xr = new XR(XR.CreateDefaultContext(new OpenXRLibraryNameContainer2().GetLibraryNames()));
 
                     PluginInvoke(a => a.Initialize(this, _extensions));
 

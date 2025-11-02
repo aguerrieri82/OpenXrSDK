@@ -17,7 +17,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="SharpEXR" Version="1.0.0.19" />
-		<PackageReference Include="SkiaSharp" Version="3.119.0" />
+		<PackageReference Include="SkiaSharp" Version="3.119.2-preview.1" />
 
 	</ItemGroup>
 

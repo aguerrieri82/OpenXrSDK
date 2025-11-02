@@ -1,4 +1,5 @@
-﻿using Silk.NET.OpenAL;
+﻿using Microsoft.DotNet.PlatformAbstractions;
+using Silk.NET.OpenAL;
 using Silk.NET.OpenAL.Extensions.Enumeration;
 using System.Runtime.InteropServices;
 
@@ -24,14 +25,21 @@ namespace OpenAl.Framework
         private readonly AL _al;
         private static readonly ALContext _alc;
 
+#if __ANDROID__
+    const bool useSoft = true;  
+#else
+    const bool useSoft = false;
+#endif
+
+
         static AlDevice()
         {
-            _alc = ALContext.GetApi();
+            _alc = ALContext.GetApi(useSoft);
         }
 
         public AlDevice(string? deviceName = null)
         {
-            _al = AL.GetApi();
+            _al = AL.GetApi(useSoft);
 
             CreateContext(deviceName);
 

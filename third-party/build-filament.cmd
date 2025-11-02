@@ -43,6 +43,8 @@ ninja install
 xcopy %FILAMENT_PATH%\out\debug-win\filament\include %OUT_PATH%\filament-windows\include /S /Y
 xcopy %FILAMENT_PATH%\out\debug-win\filament\lib\x86_64 %OUT_PATH%\filament-windows\lib\x86_64\mtd /S /Y
 
+REM to build android on windows, git must be configured to run .sh scripts
+
 cd %FILAMENT_PATH%
 
 md %FILAMENT_PATH%\out\cmake-debug-android
