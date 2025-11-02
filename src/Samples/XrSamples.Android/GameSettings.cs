@@ -29,12 +29,12 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                //SampleName = "DnD",
+                SampleName = "Helmet",
                 Msaa = 1,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = false,
-                UseSpaceWarp = false,
+                UseSpaceWarp = true,
                 EnableDepthPass = false,
                 FrustumCulling = false
             };
@@ -47,6 +47,7 @@ namespace XrSamples
                 Msaa = 1,
                 Driver = GraphicDriver.OpenGL,
                 IsMultiView = true,
+                UseSpaceWarp = true,
                 EnableDepthPass = false,
                 UsePbrV2 = true,
                 FrustumCulling = true

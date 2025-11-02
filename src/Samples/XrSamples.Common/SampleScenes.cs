@@ -122,7 +122,7 @@ namespace XrSamples
         public static XrEngineAppBuilder UseDefaultHDR(this XrEngineAppBuilder builder)
         {
             if (DefaultHDR == null)
-                DefaultHDR = "res://asset/Envs/neutral.hdr";
+                DefaultHDR = "res://asset/Envs/pisa.hdr";
             return builder.UseEnvironmentHDR(DefaultHDR, DefaultShowHDR);
         }
 
@@ -1123,7 +1123,7 @@ namespace XrSamples
         }
 
 
-        [Sample("Helmet")]
+        [Sample("Tac")]
         public static XrEngineAppBuilder CreateTac(this XrEngineAppBuilder builder)
         {
 
@@ -1158,16 +1158,8 @@ namespace XrSamples
             grp.Name = "Tac";
             grp.Transform.SetScale(0.001f);
             grp.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
-            /*
-            grp.SetWorldPose(new Pose3()
-            {
-                Position = new Vector3(-0.26f, 7.25f, -1.2300003f),
-                Orientation = new Quaternion(-0.70710677f, 0f, 0f, 0.70710677f)
-            });
-            */
-            grp.AddComponent<BoundsGrabbable>();
-            //mesh.UseEnvDepth(true);
 
+            grp.AddComponent<BoundsGrabbable>();
             grp.AddChild(mesh1);
             grp.AddChild(mesh2);
 
@@ -1175,7 +1167,6 @@ namespace XrSamples
 
             return builder
                 .UseApp(app)
-                //.UseEnvironmentDepth()
                 .UseDefaultHDR()
                 .ConfigureSampleApp();
         }
@@ -1620,7 +1611,7 @@ namespace XrSamples
         {
             var app = CreateBaseScene();
 
-            var cube = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
+            var cube = new TriangleMesh(Sphere3D.Default, (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
             {
                 Name = "mesh"
             };

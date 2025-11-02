@@ -16,6 +16,17 @@ namespace XrMath
             return Matrix4x4.Decompose(matrix, out scale, out rotation, out translation);
         }
 
+        public static bool IsValid(this Matrix4x4 matrix)
+        {
+            for (var i = 0; i < 16; i++)
+            {
+                var value = matrix[i / 4, i % 4];
+                if (float.IsNaN(value) || float.IsInfinity(value))
+                    return false;
+            }
+            return true;
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 ToPose(this Matrix4x4 self)

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using XrMath;
 
 namespace XrEngine.OpenXr
 {
@@ -33,6 +34,8 @@ namespace XrEngine.OpenXr
 
                     Debug.Assert(camera?.Eyes != null);
 
+                    Debug.WriteLine("Test"); 
+
                     up.SetUniform($"uMatrices.prev.viewProj", _prevViewProj[camera.ActiveEye]);
                     up.SetUniform($"uMatrices.current.viewProj", camera.Eyes[camera.ActiveEye].ViewProj);
 
@@ -62,13 +65,17 @@ namespace XrEngine.OpenXr
                 if (ctx.Model == null || camera == null)
                     return;
 
+                var word = ctx.Model.WorldMatrix;
+                if (!word.IsValid())
+                    word = Matrix4x4.Identity;
+
                 if (_models.TryGetValue(ctx.Model, out var prevModel))
                     up.SetUniform("uMatrices.prev.model", prevModel);
 
-                up.SetUniform("uMatrices.current.model", ctx.Model.WorldMatrix);
+                up.SetUniform("uMatrices.current.model", word);
 
                 if (camera.ActiveEye == 1)
-                    _models[ctx.Model] = ctx.Model.WorldMatrix;
+                    _models[ctx.Model] = word;
             });
         }
 

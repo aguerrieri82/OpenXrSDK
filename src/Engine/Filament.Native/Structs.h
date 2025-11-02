@@ -83,6 +83,7 @@ struct InitializeOptions {
 	bool enableStereo;
 	bool oneViewPerTarget;
 	bool useSrgb;
+	void* jniEnv;
 };
 
 

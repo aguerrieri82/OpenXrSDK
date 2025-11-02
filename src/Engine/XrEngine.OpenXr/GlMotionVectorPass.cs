@@ -29,7 +29,7 @@ namespace XrEngine.OpenXr
         }
 
 
-        public unsafe void SetTarget(SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg)
+        public unsafe void SetTargets(SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg)
         {
             var sampleCount = _xrApp.RenderOptions.SampleCount;
 

@@ -3,7 +3,7 @@
 const uint8_t INVISIBLE_LAYER = 0x2;
 const uint8_t MAIN_LAYER = 0x1;
 
-#define MAT_VERSION "2025.3"
+#define MAT_VERSION "2025.4"
 
 #ifdef _WINDOWS
 
@@ -47,16 +47,29 @@ static inline mat4 MatFromArray(const Matrix4x4 array) {
 
 
 #ifdef _WINDOWS
-static void LogOut(void* caller, char const* msg) {
-	OutputDebugStringA(msg);
-}
+	static void LogOut(void* caller, char const* msg) {
+		OutputDebugStringA(msg);
+	}
+#endif
+
+#ifdef __ANDROID__	
+
+	JavaVM* curVm;
+
+	JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+		__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "JNI INIT");
+		curVm = vm;	
+		VirtualMachineEnv::JNI_OnLoad(curVm);
+		return JNI_VERSION_1_6;
+	}
+
 #endif
 
 FilamentApp* Initialize(const InitializeOptions& options) {
 
-#ifdef _WINDOWS
-	slog.e.setConsumer(LogOut, nullptr);
-#endif
+	#ifdef _WINDOWS
+		slog.e.setConsumer(LogOut, nullptr);
+	#endif
 
 	auto app = new FilamentApp();
 	app->iblSpecTexture = nullptr;
@@ -181,6 +194,12 @@ void UpdateView(FilamentApp* app, VIEWID viewId, const ViewOptions& options)
 
 RTID AddRenderTarget(FilamentApp* app, const RenderTargetOptions& options)
 {
+
+#ifdef __ANDROID__
+	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "AddRenderTarget");
+#endif
+
+
 	auto sampler = options.depth > 1 ? Texture::Sampler::SAMPLER_2D_ARRAY : Texture::Sampler::SAMPLER_2D;
 
 	auto baseColorFactor = Texture::Builder()
@@ -202,7 +221,7 @@ RTID AddRenderTarget(FilamentApp* app, const RenderTargetOptions& options)
 		.levels(1)
 		.sampler(sampler)
 		.depth(options.depth)
-		.usage(filament::Texture::Usage::DEPTH_ATTACHMENT)
+		.usage(filament::Texture::Usage::DEPTH_ATTACHMENT | filament::Texture::Usage::SAMPLEABLE)
 		.format(filament::Texture::InternalFormat::DEPTH24)
 		.build(*app->engine);
 
@@ -302,6 +321,23 @@ void Render(FilamentApp* app, const ::RenderTarget targets[], uint32_t count, bo
 		app->engine->flushAndWait();
 }
 
+
+void UpdateLight(FilamentApp* app, OBJID id, const LightInfo& info) {
+	auto& lcm = app->engine->getLightManager();
+
+	auto light = app->entities[id];
+	auto instance = lcm.getInstance(light);
+
+	lcm.setIntensity(instance, info.intensity * 100000);
+	lcm.setDirection(instance, { info.direction.x, info.direction.y, info.direction.z });
+	lcm.setColor(instance, { info.color.r ,info.color.g, info.color.b });
+	lcm.setSunAngularRadius(instance, info.sun.angularRadius);
+	lcm.setSunHaloSize(instance, info.sun.haloSize);
+	lcm.setShadowCaster(instance, info.castShadows);
+	lcm.setPosition(instance, { info.position.x, info.position.y, info.position.z });
+	lcm.setFalloff(instance, info.falloffRadius);
+}
+
 void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 {
 
@@ -329,6 +365,8 @@ void AddLight(FilamentApp* app, OBJID id, const LightInfo& info)
 		.falloff(info.falloffRadius)
 		.castLight(info.castLight)
 		.build(*app->engine, light);
+
+
 
 	app->scene->addEntity(light);
 	app->entities[id] = light;
@@ -844,11 +882,21 @@ void SetObjVisible(FilamentApp* app, const OBJID id, const bool visible)
 
 static Texture* CreateTexture(FilamentApp* app, const TextureInfo& info) {
 
+	auto usage = info.levels > 1 && info.data.type != Texture::Type::COMPRESSED ?
+		Texture::Usage::DEFAULT | Texture::Usage::GEN_MIPMAPPABLE :
+		Texture::Usage::DEFAULT;
+
+	#ifdef __ANDROID__
+		__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "width=%u height=%u fmt=%d levels=%u texId=%u",
+			info.width, info.height, (int)info.internalFormat, info.levels, info.textureId);
+	#endif
+
 	auto texture = Texture::Builder()
 		.width(info.width)
 		.height(info.height)
 		.levels(info.levels)
 		.format(info.internalFormat)
+		.usage(usage | Texture::Usage::UPLOADABLE)
 		.sampler(Texture::Sampler::SAMPLER_2D)
 		.build(*app->engine);
 
@@ -1102,7 +1150,7 @@ static Package BuildMaterial(FilamentApp* app, const ::MaterialInfo& info) {
 
 void AddMaterial(FilamentApp* app, OBJID id, const ::MaterialInfo& info) noexcept(false)
 {
-	std::string hash("pbr_v3_p");
+	std::string hash("pbr_v4_p");
 
 	hash += std::to_string((int)app->engine->getBackend());
 
@@ -1258,6 +1306,8 @@ void AddImageLight(FilamentApp* app, const ImageLightInfo& info) {
 	texture.internalFormat = Texture::InternalFormat::R11F_G11F_B10F;
 	texture.levels = 0xFF;
 
+
+
 	/*
 	if (info.texture.filePath != null) {
 		int w, h;
@@ -1273,13 +1323,16 @@ void AddImageLight(FilamentApp* app, const ImageLightInfo& info) {
 	}
 	*/
 
+#ifdef __ANDROID__
+	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "AddImageLight");
+#endif
+
 	auto equirectTxt = CreateTexture(app, texture);
 	
 	IBLPrefilterContext context(*app->engine);	
 	IBLPrefilterContext::EquirectangularToCubemap equirectangularToCubemap(context, { .mirror = false });
 	IBLPrefilterContext::SpecularFilter specularFilter(context);
 	IBLPrefilterContext::IrradianceFilter irradianceFilter(context);
-
 
 	app->skyboxTexture = equirectangularToCubemap(equirectTxt);
 
@@ -1311,7 +1364,7 @@ void UpdateImageLight(FilamentApp* app, const ImageLightInfo& info) {
 	auto rotMat = mat3f::rotation(info.rotation, vec3<float>(0.0f, 1.0f, 0.0f));
 
 	app->indirectLight->setRotation(rotMat);
-	app->indirectLight->setIntensity(info.intensity * 10000);
+	app->indirectLight->setIntensity(info.intensity * 30000);
 	app->scene->setSkybox(info.showSkybox ? app->skybox : nullptr);
 }
 

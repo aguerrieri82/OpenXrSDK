@@ -5,7 +5,6 @@
   </Configurations>
   <Folder Name="/#Build/">
     <File Path="../third-party/build-etcpak.cmd" />
-    <File Path="../third-party/build-filament-android.sh" />
     <File Path="../third-party/build-filament.cmd" />
     <File Path="../third-party/build-libtiff.cmd" />
     <File Path="../third-party/build-MagicPhysX.cmd" />
@@ -74,7 +73,9 @@
     <Project Path="Engine/Fftw/Fftw.csproj">
       <Platform Solution="*|x64" Project="x64" />
     </Project>
-    <Project Path="Engine/Filament.Native/Filament.Native.vcxproj" Id="4ff56f83-7124-4975-b086-2f9c4fcc59e4" />
+    <Project Path="Engine/Filament.Native/Filament.Native.vcxproj" Id="4ff56f83-7124-4975-b086-2f9c4fcc59e4">
+      <BuildType Solution="Debug|x64" Project="Release" />
+    </Project>
     <Project Path="Engine/MeshOptimizer/MeshOptimizer.csproj">
       <Platform Solution="*|x64" Project="x64" />
     </Project>
@@ -177,7 +178,7 @@
   <Folder Name="/Samples/">
     <Project Path="Samples/XrSamples.Android/XrSamples.Android.csproj">
       <Platform Solution="*|x64" Project="x64" />
-      <Deploy Solution="*|x64" />
+      <Deploy />
     </Project>
     <Project Path="Samples/XrSamples.Common/XrSamples.Common.csproj">
       <Platform Solution="*|x64" Project="x64" />
@@ -192,7 +193,7 @@
       <Platform Solution="*|x64" Project="x64" />
     </Project>
   </Folder>
-  <Folder Name="/Samples/DrumsVR/" Id="02c59d5c-d1ec-7edc-ea66-a7642184d594">
+  <Folder Name="/Samples/DrumsVR/">
     <File Path="../../DrumsVR/src/Directory.Build.props" />
     <Project Path="../../DrumsVR/src/DrumsVR.Game.Android/DrumsVR.Game.Android.csproj">
       <Platform Solution="*|x64" Project="x64" />
@@ -210,7 +211,7 @@
       <Platform Solution="*|x64" Project="x64" />
     </Project>
   </Folder>
-  <Folder Name="/Samples/RoomDesigner/" Id="a65e2411-4b12-1cff-6310-fa1df72e2291">
+  <Folder Name="/Samples/RoomDesigner/">
     <File Path="../../RoomDesigner/src/Directory.Build.props" />
     <Project Path="../../RoomDesigner/src/RoomDesigner.Game.Android/RoomDesigner.Game.Android.csproj">
       <Platform Solution="*|x64" Project="x64" />
@@ -227,7 +228,7 @@
       <Platform Solution="*|x64" Project="x64" />
     </Project>
   </Folder>
-  <Folder Name="/Samples/RoomDesigner/Server/" Id="b5ef0d00-d88f-d865-6812-d3482f7d2ff2">
+  <Folder Name="/Samples/RoomDesigner/Server/">
     <Project Path="../../RoomDesigner/src/Oculus.GraphApiClient/Oculus.GraphApiClient.csproj">
       <Platform Solution="*|x64" Project="x64" />
     </Project>

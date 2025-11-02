@@ -10,12 +10,11 @@
 
 #ifdef _WINDOWS
 
-#define WIN32_LEAN_AND_MEAN             
+	#define WIN32_LEAN_AND_MEAN             
 
-#include <windows.h>
-#include <gl/gl.h>
-#include <backend/platforms/PlatformWGL.h>
-
+	#include <windows.h>
+	#include <gl/gl.h>
+	#include <backend/platforms/PlatformWGL.h>
 #else
 
 int fopen_s(FILE** _Stream, char const* _FileName, char const* _Mode) {
@@ -29,6 +28,9 @@ int fopen_s(FILE** _Stream, char const* _FileName, char const* _Mode) {
 #ifdef __ANDROID__
 #include <backend/platforms/PlatformEGLAndroid.h>
 #include <backend/platforms/PlatformEGLHeadless.h>
+#include <backend/private/VirtualMachineEnv.h>
+#include <android/log.h>
+#define LOG_TAG "FilamentApi"
 #endif
 
 

@@ -138,7 +138,7 @@ namespace OpenXr.Framework.Oculus
                     info->AppSpaceDeltaPose = lastPose.Inverse().Multiply(curPose).ToPoseF();
                     _lastPose[i] = curPose;
                 }
-
+          
                 if (!base.Render(ref projViews, ref views, swapchains, displayTime))
                     return false;
 

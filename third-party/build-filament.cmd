@@ -45,8 +45,40 @@ xcopy %FILAMENT_PATH%\out\debug-win\filament\lib\x86_64 %OUT_PATH%\filament-wind
 
 cd %FILAMENT_PATH%
 
-bash -c ../build-filament-android.sh
+md %FILAMENT_PATH%\out\cmake-debug-android
 
-xcopy %FILAMENT_PATH%\out\android-release\filament\include %OUT_PATH%\filament-android\include /S /Y
-xcopy %FILAMENT_PATH%\out\android-release\filament\lib\arm64-v8a %OUT_PATH%\filament-android\lib\arm64-v8a /S /Y
+cd %FILAMENT_PATH%\out\cmake-debug-android
+cmake -G Ninja ..\.. ^
+    -DCMAKE_INSTALL_PREFIX=..\android-debug\filament  ^
+	-DFILAMENT_SKIP_SAMPLES=ON ^
+    -DCMAKE_BUILD_TYPE=Debug ^
+	-DFILAMENT_ENABLE_MULTIVIEW=ON ^
+	-DFILAMENT_SUPPORTS_VULKAN=ON ^
+	-DFILAMENT_SUPPORTS_OPENGL=ON ^
+	-DCMAKE_TOOLCHAIN_FILE=%FILAMENT_PATH%\build\toolchain-aarch64-linux-android.cmake 
+    
+ninja install
+
+
+cd %FILAMENT_PATH%
+
+md %FILAMENT_PATH%\out\cmake-release-android
+
+cd %FILAMENT_PATH%\out\cmake-release-android
+cmake -G Ninja ..\.. ^
+    -DCMAKE_INSTALL_PREFIX=..\android-release\filament  ^
+	-DFILAMENT_SKIP_SAMPLES=ON ^
+    -DCMAKE_BUILD_TYPE=Release ^
+	-DFILAMENT_ENABLE_MULTIVIEW=ON ^
+	-DFILAMENT_SUPPORTS_VULKAN=ON ^
+	-DFILAMENT_SUPPORTS_OPENGL=ON ^
+	-DCMAKE_TOOLCHAIN_FILE=%FILAMENT_PATH%\build\toolchain-aarch64-linux-android.cmake 
+    
+ninja install
+
+
+REM bash -c ../build-filament-android.sh
+
+xcopy %FILAMENT_PATH%\out\android-debug\filament\include %OUT_PATH%\filament-android\include /S /Y
+xcopy %FILAMENT_PATH%\out\android-debug\filament\lib\arm64-v8a %OUT_PATH%\filament-android\lib\arm64-v8a /S /Y
 

@@ -29,8 +29,9 @@ namespace XrEditor
                   opt.UseLayerV2 = true;
                   //opt.UseInstanceDraw = false;        
               })
+              //.UseSpaceWarp()
               .SetRenderQuality(1, 2)
-              .CreateTac()
+              .CreateHelmet()
               .Build();
     }
 }

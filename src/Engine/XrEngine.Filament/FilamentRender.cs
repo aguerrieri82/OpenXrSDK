@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using XrEngine.Objects;
 using XrMath;
 using static XrEngine.Filament.FilamentLib;
@@ -87,6 +88,10 @@ namespace XrEngine.Filament
                 OneViewPerTarget = options.OneViewPerTarget,
                 UseSrgb = options.UseSrgb
             };
+
+#if __ANDROID__
+            initInfo.JNIEnv = Android.Runtime.JNIEnv.Handle;
+#endif
 
             _options = options;
             _renderTargetDepth = 1;
@@ -349,21 +354,33 @@ namespace XrEngine.Filament
 
         protected void Create(Guid id, SunLight sun)
         {
-            var info = new LightInfo
+            LightInfo GetInfo()
             {
-                Type = FlLightType.Sun,
-                Direction = sun.Direction,
-                Intensity = sun.Intensity,
-                Color = sun.Color,
-                Sun = new FilamentLib.SunLight
+                return new LightInfo
                 {
-                    HaloSize = sun.HaloSize,
-                    AngularRadius = sun.SunRadius,
-                    HaloFalloff = sun.HaloFallOff,
-                },
-                CastShadows = sun.CastShadows,
-            };
+                    Type = FlLightType.Sun,
+                    Direction = sun.Direction,
+                    Intensity = sun.Intensity,
+                    Color = sun.Color,
+                    Sun = new FilamentLib.SunLight
+                    {
+                        HaloSize = sun.HaloSize,
+                        AngularRadius = sun.SunRadius,
+                        HaloFalloff = sun.HaloFallOff,
+                    },
+                    CastShadows = sun.CastShadows,
+                };
+            }
+            
+            var info = GetInfo();   
+
             AddLight(_app, id, ref info);
+
+            sun.Changed += (s, e) =>
+            {
+                info = GetInfo();
+                UpdateLight(_app, id, ref info);
+            };
         }
 
         protected void Create(Guid id, DirectionalLight dir)
@@ -383,12 +400,13 @@ namespace XrEngine.Filament
         {
             var info = new ImageLightInfo
             {
-                Intensity = img.Intensity * 1,
+                Intensity = img.Intensity,
                 Rotation = img.RotationY,
                 ShowSkybox = false,
                 Texture = AllocateTexture(img.Panorama)
             };
 
+            Debug.WriteLine("Create Image Light");
 
             AddImageLight(_app, ref info);
 
@@ -396,9 +414,9 @@ namespace XrEngine.Filament
             {
                 info = new ImageLightInfo
                 {
-                    Intensity = img.Intensity * 1,
+                    Intensity = img.Intensity,
                     Rotation = img.RotationY,
-                    ShowSkybox = false,
+                    ShowSkybox = true,
                 };
 
                 UpdateImageLight(_app, ref info);

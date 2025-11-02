@@ -139,6 +139,8 @@ namespace XrEditor
 
         protected async Task CreateAppAsync()
         {
+            ImageLight.UseCache = EditorDebug.Driver == GraphicDriver.OpenGL;
+
             _engine = EditorDebug.CreateApp();
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
