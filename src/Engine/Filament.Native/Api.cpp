@@ -194,12 +194,6 @@ void UpdateView(FilamentApp* app, VIEWID viewId, const ViewOptions& options)
 
 RTID AddRenderTarget(FilamentApp* app, const RenderTargetOptions& options)
 {
-
-#ifdef __ANDROID__
-	__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "AddRenderTarget");
-#endif
-
-
 	auto sampler = options.depth > 1 ? Texture::Sampler::SAMPLER_2D_ARRAY : Texture::Sampler::SAMPLER_2D;
 
 	auto baseColorFactor = Texture::Builder()
