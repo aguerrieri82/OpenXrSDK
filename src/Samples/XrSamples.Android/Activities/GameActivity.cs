@@ -32,8 +32,8 @@ namespace XrSamples.Android.Activities
 
         protected override void OnLoad()
         {
-            _settings = GameSettings.Helmet();
-            /*
+            //_settings = GameSettings.Helmet();
+            
             var settingsJson = Intent?.GetStringExtra("Settings");
 
             if (settingsJson == null)
@@ -45,7 +45,7 @@ namespace XrSamples.Android.Activities
             }
 
             _settings = JsonSerializer.Deserialize<GameSettings>(settingsJson);
-            */
+
             base.OnLoad();
         }
 

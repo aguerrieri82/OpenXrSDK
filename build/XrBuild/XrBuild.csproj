@@ -5,6 +5,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
+		<Configurations>Debug;Release;ReleaseSign;DebugSign;ReleaseStore</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Build.Framework" Version="17.15.0-preview-25277-114" />

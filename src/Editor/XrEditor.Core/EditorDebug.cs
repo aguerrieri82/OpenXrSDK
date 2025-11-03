@@ -6,7 +6,7 @@ namespace XrEditor
 {
     public static class EditorDebug
     {
-        public static readonly GraphicDriver Driver = GraphicDriver.OpenGL;
+        public static readonly GraphicDriver Driver = GraphicDriver.FilamentVulkan;
 
         public static readonly bool AutoStartApp = true;
 
@@ -31,7 +31,7 @@ namespace XrEditor
               })
               //.UseSpaceWarp()
               .SetRenderQuality(1, 2)
-              .CreateHelmet()
+              .CreateDrums()
               .Build();
     }
 }

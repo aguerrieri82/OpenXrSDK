@@ -29,7 +29,7 @@ namespace XrSamples
         {
             return new GameSettings
             {
-                SampleName = "Helmet",
+                //SampleName = "Helmet",
                 Msaa = 1,
                 UsePbrV2 = true,
                 Driver = GraphicDriver.OpenGL,

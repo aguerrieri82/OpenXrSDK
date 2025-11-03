@@ -9,7 +9,7 @@
 		<ApplicationVersion>1</ApplicationVersion>
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
-	    <DebugSymbols>True</DebugSymbols>
+	    <DebugSymbols>true</DebugSymbols>
 		<UseOpenGL>true</UseOpenGL>
 	</PropertyGroup>
 
@@ -17,10 +17,10 @@
 		<RunAOTCompilation>true</RunAOTCompilation>
 		<PublishTrimmed>true</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
+		<AndroidPackageFormat>apk</AndroidPackageFormat>
 		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
-		<DebugSymbols>true</DebugSymbols>
+		<DebugSymbols>false</DebugSymbols>
 		<AndroidManagedSymbols>false</AndroidManagedSymbols>
-		<AndroidIncludeDebugSymbols>true</AndroidIncludeDebugSymbols>
 	</PropertyGroup>
 
 	<ItemGroup>
