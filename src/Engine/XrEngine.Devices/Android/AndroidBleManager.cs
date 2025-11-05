@@ -68,7 +68,8 @@ namespace XrEngine.Devices.Android
                 result.Add(new BleDeviceInfo
                 {
                     Address = ulong.Parse(device.Address!.Replace(":", ""), System.Globalization.NumberStyles.HexNumber),
-                    Name = device.Name
+                    Name = device.Name,
+                    
                 });
             }
 

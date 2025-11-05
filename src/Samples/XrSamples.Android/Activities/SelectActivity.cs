@@ -1,6 +1,7 @@
 using _Microsoft.Android.Resource.Designer;
 using Android.Content;
 using Android.Content.PM;
+
 using System.Text.Json;
 using XrEngine.OpenXr;
 
@@ -24,6 +25,8 @@ namespace XrSamples.Android.Activities
 
         protected unsafe override void OnCreate(Bundle? savedInstanceState)
         {
+            System.Diagnostics.Debug.WriteLine("Hello from SelectActivity.OnCreate");
+
             base.OnCreate(savedInstanceState);
 
             if (!string.IsNullOrWhiteSpace(_settings.SampleName) && savedInstanceState == null)

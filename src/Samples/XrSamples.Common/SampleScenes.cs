@@ -21,8 +21,8 @@ using XrEngine.Physics;
 using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
-using System;
-
+using XrEngine.Audio.Midi;
+using System.Threading.Tasks;
 
 
 
@@ -1345,6 +1345,47 @@ namespace XrSamples
                         Orientation = new Quaternion(0.47238404f, -0.19674662f, -0.10905845f, 0.8522032f)
                     });
                 });
+        }
+
+        [Sample("Midi")]
+        public static XrEngineAppBuilder CreateMidi(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+#if __ANDROID__
+            var manager = new XrEngine.Devices.Android.AndroidMidiManager();
+#else
+            var manager = new XrEngine.Devices.Windows.WinMidiManager();
+#endif
+            var devices = manager.FindDevices();
+
+            var usb = devices.FirstOrDefault(a => a.Name == "USB MIDI Interface" && a.Id!.StartsWith("in"));
+            if (usb == null)
+                usb = devices[0];
+
+            var device = manager.GetDevice(usb.Id);
+
+            device.OpenAsync().Wait();
+
+            var inPort = device.OpenInput(0);
+            inPort.DataReceived += (sender, e) =>
+            {
+                var span = new ReadOnlySpan<byte>(e.Data, e.Offset, e.Count);
+                var msg = MidiMessageDecoder.Decode(span);
+                if (msg is ActiveSensingMessage)
+                    return;
+                if (msg != null)
+                    Log.Info(typeof(SampleScenes), $"MIDI Message: {msg}");
+            };
+
+
+            return builder
+                .UseApp(app)
+                //.UseEnvironmentDepth()
+                //.UseDefaultHDR()
+                .ConfigureSampleApp();
         }
 
 
