@@ -120,6 +120,10 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
     </Project>
+    <Project Path="Engine/XrEngine.Bullet/XrEngine.Bullet.csproj" Id="f7b59f46-9789-4a87-abed-4007380893ff">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Project="x64" />
+    </Project>
     <Project Path="Engine/XrEngine.Compression/XrEngine.Compression.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
@@ -186,6 +190,9 @@
     <Project Path="Engine/XrEngine.Video/XrEngine.Video.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
+    </Project>
+    <Project Path="Engine/XrEngine.Bullet.Native/XrEngine.Bullet.Native.vcxproj" Id="0208e53b-0e5c-4d0c-99c6-f3874e844e1d">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
     </Project>
   </Folder>
   <Folder Name="/Framework/">

@@ -23,6 +23,8 @@ using XrEngine.Video;
 using XrMath;
 using XrEngine.Audio.Midi;
 using System.Threading.Tasks;
+using XrSamples.Components;
+
 
 
 
@@ -1346,6 +1348,47 @@ namespace XrSamples
                     });
                 });
         }
+
+        [Sample("IK")]
+        public static XrEngineAppBuilder CreateIk(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var viewer = scene.AddComponent<IkViewer>();
+
+            var sphere1 = new TriangleMesh(Sphere3D.Default, 
+                (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
+            {
+                Name = "mesh"
+            };
+
+            var sphere2 = new TriangleMesh(Sphere3D.Default,
+                (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
+            {
+                Name = "mesh"
+            };
+
+            sphere1.Transform.SetScale(0.05f);
+            sphere2.Transform.SetScale(0.05f);
+
+            scene.AddChild(sphere1);
+            scene.AddChild(sphere2);
+
+
+            viewer.SetTarget(0, sphere1);
+            viewer.SetTarget(1, sphere2);
+
+
+            return builder
+                .UseApp(app)
+                //.UseEnvironmentDepth()
+                //.UseDefaultHDR()
+                .ConfigureSampleApp();
+        }
+
+
 
         [Sample("Midi")]
         public static XrEngineAppBuilder CreateMidi(this XrEngineAppBuilder builder)

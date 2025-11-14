@@ -163,6 +163,8 @@ namespace XrEngine.Audio
 
             source.Play();
 
+            Log.Info(this, "AL Stream Source Play");
+
             _curSource = source;
 
             while (stream.IsStreaming && !control.IsStopped)
