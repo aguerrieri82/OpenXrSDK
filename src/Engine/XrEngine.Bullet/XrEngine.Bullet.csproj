@@ -13,6 +13,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\XrEngine.Bullet.Native\XrEngine.Bullet.Native.vcxproj" />
+		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -8,35 +8,6 @@ using static XrEngine.Bullet.BulletLib;
 namespace XrEngine.Bullet
 {
 
-    public class IkNode
-    {
-        public Vector3 Attach;
-        
-        public Vector3 Axis;
-        
-        public float Size;
-        
-        public Purpose Purpose;
-        
-        public float MinTheta;
-        
-        public float MaxTheta;
-
-        public float RestAngle;
-
-        public float Theta;
-
-        public IkNode? Left;
-
-        public IkNode? Right;
-
-        public IkNode? Parent;
-
-        public Vector3 RelPos => Parent == null ? Attach : (Attach - Parent.Attach);
-
-        public string? Name { get; set; }
-    }
-
     public class IkSolver
     {
         Dictionary<IkNode, uint> _nodeMap = [];
@@ -107,6 +78,11 @@ namespace XrEngine.Bullet
             _root = root;
         }
 
+        public void Reset()
+        {
+            _ctx.IkReset();
+        }
+
         public void Update(IkUpdateMethod method, bool updateTheta = true)
         {
             _ctx.IkUpdate(method, updateTheta);
@@ -128,5 +104,7 @@ namespace XrEngine.Bullet
         public IkNode? Root => _root;
 
         public IEnumerable<IkNode> Effectors => _targetMap.Keys;
+
+        public IEnumerable<IkNode> Nodes => _nodeMap.Keys;
     }
 }
