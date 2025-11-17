@@ -121,5 +121,13 @@ namespace XrMath
         {
             return alpha * current + (1 - alpha) * prev;
         }
+
+        public static float SmoothStep(float from, float to, float t)
+        {
+            t = Math.Clamp(t, 0f, 1f);
+
+            var s = t * t * (3f - 2f * t);  
+            return from + (to - from) * s;  
+        }
     }
 }

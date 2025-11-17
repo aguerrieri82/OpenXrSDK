@@ -1228,7 +1228,6 @@ namespace XrMath
 
         #endregion
 
-
         #region BOUNDS2 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1241,6 +1240,8 @@ namespace XrMath
         #endregion
 
         #region MISC
+
+
 
         public static Vector2 ToVector2(this Size2I self)
         {

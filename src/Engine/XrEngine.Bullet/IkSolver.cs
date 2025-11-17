@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 using System.Xml.Linq;
+using XrMath;
 using static XrEngine.Bullet.BulletLib;
 
 namespace XrEngine.Bullet
@@ -14,6 +15,11 @@ namespace XrEngine.Bullet
         Dictionary<IkNode, uint> _targetMap = [];
         IkContext _ctx;
         IkNode? _root;
+
+        public IkSolver()
+        {
+            WorldPose = Pose3.Identity; 
+        }
 
         public void Build(IkNode root)
         {
@@ -93,7 +99,10 @@ namespace XrEngine.Bullet
         public void SetTarget(IkNode node, Vector3 pos)
         {
             var ix = _targetMap[node];
-            _ctx.IkSetTarget(ix, pos);  
+
+            var localPos = WorldPose.Inverse().Transform(pos);
+
+            _ctx.IkSetTarget(ix, localPos);  
         }                
 
         public IkNode? FindNode(string name)
@@ -106,5 +115,7 @@ namespace XrEngine.Bullet
         public IEnumerable<IkNode> Effectors => _targetMap.Keys;
 
         public IEnumerable<IkNode> Nodes => _nodeMap.Keys;
+
+        public Pose3 WorldPose { get; set; }
     }
 }

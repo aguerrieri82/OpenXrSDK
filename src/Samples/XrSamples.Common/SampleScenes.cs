@@ -22,16 +22,7 @@ using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
 using XrEngine.Audio.Midi;
-using System.Threading.Tasks;
-using XrSamples.Components;
-using Tensorflow.Keras.Engine;
-using System.Diagnostics;
 using XrEngine.Bullet;
-
-
-
-
-
 
 
 #if !ANDROID
@@ -1415,7 +1406,7 @@ namespace XrSamples
             scene.AddChild(grp);
 
             var solver = new IkSolver();
-            solver.Build(IkTest.CreateArms());
+            solver.Build(IkBodies.CreateArms());
 
             var updated = grp.AddComponent<IkUpdater>();
             var viewer = grp.AddComponent<IkViewer>();
@@ -1439,6 +1430,8 @@ namespace XrSamples
 
                     scene.AddBehavior((scene, ctx) =>
                     {
+                        solver.WorldPose = grp.GetWorldPose();
+
                         if (XrApp.Current?.IsStarted == false)
                             return;
 

@@ -1,22 +1,10 @@
 ﻿
-using OpenXr.Framework;
-using Silk.NET.OpenXR;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
-using Tensorflow;
-using Tensorflow.Operations.Initializers;
-using XrEngine;
-using XrEngine.Bullet;
-using XrMath;
-using static Tensorflow.ApiDef.Types;
 using static XrEngine.Bullet.BulletLib;
 
-namespace XrSamples.Components
+namespace XrEngine.Bullet
 {
-    public static class IkTest
+    public static class IkBodies
     {
         public static IkNode CreateArm()
         {
@@ -67,9 +55,9 @@ namespace XrSamples.Components
             var Y = Vector3.UnitY;
             var Z = Vector3.UnitZ;
 
-            const float SHOULDER_SIZE = 0.2f;
-            const float LOW_ARM_SIZE = 0.18f;
-            const float UP_ARM_SIZE = 0.18f;
+            const float SHOULDER_SIZE = 0.22f;
+            const float LOW_ARM_SIZE = 0.24f;
+            const float UP_ARM_SIZE = 0.24f;
 
             var pelvisPos = new Vector3(0.0f, 0.9f, 0.0f);
             var spine1Pos = pelvisPos + new Vector3(0, 0.20f, 0);
@@ -82,17 +70,17 @@ namespace XrSamples.Components
             var lShoulderPitchPos = lShoulderPos + new Vector3(-0.02f, 0, 0);
             var lUpArmPos = lShoulderPitchPos + new Vector3(-UP_ARM_SIZE, 0, 0);
             var lLowArmPos = lUpArmPos + new Vector3(-LOW_ARM_SIZE, 0, 0);
-            var lHandPos = lLowArmPos + new Vector3(-0.10f, 0, 0);
+            var lHandPos = lLowArmPos + new Vector3(-0.02f, 0, 0);
 
             // ----- Right arm (mirrored)
             var rShoulderPos = spine2Pos + new Vector3(SHOULDER_SIZE, 0, 0);
             var rShoulderPitchPos = rShoulderPos + new Vector3(0.02f, 0, 0);
             var rUpArmPos = rShoulderPitchPos + new Vector3(UP_ARM_SIZE, 0, 0);
             var rLowArmPos = rUpArmPos + new Vector3(LOW_ARM_SIZE, 0, 0);
-            var rHandPos = rLowArmPos + new Vector3(0.10f, 0, 0);
+            var rHandPos = rLowArmPos + new Vector3(0.02f, 0, 0);
 
             // ----- Spine
-            var pelvis = Joint(pelvisPos, Y, 0.10f, -180, 180, 0, "Pelvis");
+            var pelvis = Joint(pelvisPos, Y, 0.10f, -30, 30, 0, "Pelvis");
             var spine1 = Joint(spine1Pos, X, 0.10f, -10, 10, 0, "Spine1");
             var spine2 = Joint(spine2Pos, X, 0.10f, -10, 10, 0, "Spine2");
             var spine3 = Joint(spine3Pos, X, 0.10f, -10, 10, 0, "Spine3");
@@ -102,14 +90,14 @@ namespace XrSamples.Components
             var lShoulder = Joint(lShoulderPos, Y, 0.10f, -90, 0, 0, "Shoulder-L");
             var lShoulderPitch = Joint(lShoulderPitchPos, -Z, 0.10f, -90, 90, 0, "Shoulder-Pitch-L");
             var lUpArm = Joint(lUpArmPos, Y, 0.10f, -90, 0, 0, "UpArm-L");
-            var lLowArm = Joint(lLowArmPos, Y, 0.10f, -90, 0, 0, "LowArm-L");
+            var lLowArm = Joint(lLowArmPos, Y, 0.10f, -90, 30, 0, "LowArm-L");
             var lHand = Effector(lHandPos, "Hand-L");
 
             // ----- Right arm joints (mirrored)
             var rShoulder = Joint(rShoulderPos, Y, 0.10f, 0, 90, 0, "Shoulder-R");
             var rShoulderPitch = Joint(rShoulderPitchPos, Z, 0.10f, -90, 90, 0, "Shoulder-Pitch-R");
             var rUpArm = Joint(rUpArmPos, Y, 0.10f, 0, 90, 0, "UpArm-R");
-            var rLowArm = Joint(rLowArmPos, Y, 0.10f, 0, 90, 0, "LowArm-R");
+            var rLowArm = Joint(rLowArmPos, Y, 0.10f, -30, 90, 0, "LowArm-R");
             var rHand = Effector(rHandPos, "Hand-R");
 
             // ----- Hierarchy

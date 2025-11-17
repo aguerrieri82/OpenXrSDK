@@ -120,6 +120,9 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
     </Project>
+    <Project Path="Engine/XrEngine.Bullet.Native/XrEngine.Bullet.Native.vcxproj" Id="0208e53b-0e5c-4d0c-99c6-f3874e844e1d">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+    </Project>
     <Project Path="Engine/XrEngine.Bullet/XrEngine.Bullet.csproj" Id="f7b59f46-9789-4a87-abed-4007380893ff">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
@@ -191,9 +194,6 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
     </Project>
-    <Project Path="Engine/XrEngine.Bullet.Native/XrEngine.Bullet.Native.vcxproj" Id="0208e53b-0e5c-4d0c-99c6-f3874e844e1d">
-      <BuildType Solution="ReleaseStore|*" Project="Release" />
-    </Project>
   </Folder>
   <Folder Name="/Framework/">
     <Project Path="Framework/OpenAl.Framework/OpenAl.Framework.csproj">
@@ -254,6 +254,9 @@
   </Folder>
   <Folder Name="/Samples/DrumsVR/">
     <File Path="../../DrumsVR/src/Directory.Build.props" />
+    <Project Path="../../DrumsVR/src/DrumsVR.Entities/DrumsVR.Entities.csproj">
+      <Platform Project="x64" />
+    </Project>
     <Project Path="../../DrumsVR/src/DrumsVR.Game.Android/DrumsVR.Game.Android.csproj">
       <Platform Project="x64" />
       <Deploy />

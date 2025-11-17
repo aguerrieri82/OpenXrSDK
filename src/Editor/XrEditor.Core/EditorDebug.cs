@@ -31,7 +31,7 @@ namespace XrEditor
               })
               //.UseSpaceWarp()
               .SetRenderQuality(1, 2)
-              .CreateIk()
+              .CreateDrums()
               .Build();
     }
 }

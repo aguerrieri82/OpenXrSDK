@@ -26,6 +26,10 @@ namespace XrEngine.Bullet
             if (!_isMeshCreated)
                 CreateMesh();
 
+            var wordTransform = Solver.WorldPose.ToMatrix();
+
+            //UpdateMesh(Solver.Root, Solver.Root.GetLocalTransform() * wordTransform, wordTransform);
+
             UpdateMesh(Solver.Root, Solver.Root.GetLocalTransform(), Matrix4x4.Identity);
         }
 
@@ -79,7 +83,7 @@ namespace XrEngine.Bullet
 
                 var axis = (p1 - p0).Normalize();
 
-                var size = node.Size * 0.1f;
+                var size = node.Size * 0.3f;
 
                 mesh.Transform.Position = p0;
                 mesh.Transform.Scale = new Vector3(size, size, len);
@@ -162,8 +166,10 @@ namespace XrEngine.Bullet
         {
             if (Solver?.Root == null || !EnableGizmos)
                 return;
+            
+            var wordTransform = Solver.WorldPose.ToMatrix();
 
-            DrawWork(canvas, Solver.Root, Solver.Root.GetLocalTransform(), Matrix4x4.Identity);
+            DrawWork(canvas, Solver.Root, Solver.Root.GetLocalTransform() * wordTransform, wordTransform);
         }
 
 

@@ -15,7 +15,7 @@ namespace XrEngine.Bullet
 
         public IkUpdater()
         {
-            Method = IkUpdateMethod.IK_SDLS;
+            Method = IkUpdateMethod.IK_DLS;
         }
 
         protected override void Update(RenderContext ctx)
@@ -45,6 +45,13 @@ namespace XrEngine.Bullet
         public void SetTarget(IkNode effector, Object3D obj)
         {
             _targets[effector] = obj;   
+        }
+
+
+        [Action]
+        public void Reset()
+        {
+            Solver?.Reset();
         }
 
         public IkUpdateMethod Method { get; set; }
