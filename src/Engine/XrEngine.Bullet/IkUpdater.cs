@@ -35,6 +35,7 @@ namespace XrEngine.Bullet
             Solver.Update(Method, true);
 
         }
+
         public void SetTarget(string name, Object3D obj)
         {
             var effector = Solver?.Effectors.First(a => a.Name == name);

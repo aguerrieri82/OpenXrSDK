@@ -30,6 +30,9 @@ namespace XrEngine.Bullet
 
             //UpdateMesh(Solver.Root, Solver.Root.GetLocalTransform() * wordTransform, wordTransform);
 
+            //TODO: we should take wordTransform and multiply the host word transform inverse,
+            //now we assume that Solver.WorldPose = _host.WordPose;
+
             UpdateMesh(Solver.Root, Solver.Root.GetLocalTransform(), Matrix4x4.Identity);
         }
 

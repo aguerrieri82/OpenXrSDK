@@ -1,11 +1,12 @@
 ﻿using Common.Interop;
-using OpenAl.Framework;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using XrEngine.Media;
 
-namespace XrEngine.Audio
+namespace XrEngine.Devices.Windows
 {
+
     public unsafe class Win32WaveOut : IAudioOut, IDisposable
     {
         #region WIN32
@@ -149,7 +150,7 @@ namespace XrEngine.Audio
             var buffer = new StringBuilder(512);
             _ = waveOutGetErrorText(res, buffer, (uint)buffer.Capacity);
 
-            Log.Warn(this, buffer.ToString());
+            //Log.Warn(this, buffer.ToString());
         }
 
         public byte[]? Dequeue(int timeoutMs)

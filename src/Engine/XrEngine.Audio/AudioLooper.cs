@@ -1,5 +1,6 @@
 ﻿using OpenAl.Framework;
 using System.Diagnostics;
+using XrEngine.Media;
 
 
 namespace XrEngine.Audio
@@ -96,7 +97,8 @@ namespace XrEngine.Audio
 
         public float Length => 0;
 
-        public AudioFormat Format => Loop?.Format ?? throw new NullReferenceException();
+        public AudioFormat Format => Loop?.Format == null ? throw new NullReferenceException() :
+                                     AudioFormatConverter.ToAudioFormat(Loop.Format);
 
         public bool IsStreaming => _isStreaming;
 

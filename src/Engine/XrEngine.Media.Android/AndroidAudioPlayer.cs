@@ -28,8 +28,14 @@ namespace XrEngine.Media.Android
          
             _audioFormat = new global::Android.Media.AudioFormat.Builder()
                 .SetSampleRate(format.SampleRate)!
-                .SetEncoding(format.SampleFormat)!
-                .SetChannelMask(format.ChannelCount == 1 ? ChannelOut.Mono : ChannelOut.Stereo)
+                .SetEncoding(format.SampleType switch
+                {
+                    AudioSampleType.Float => Encoding.PcmFloat,
+                    AudioSampleType.Byte => Encoding.Pcm8bit,
+                    AudioSampleType.Short => Encoding.Pcm16bit,
+                    _ => throw new NotSupportedException()
+                })!
+                .SetChannelMask(format.Channels == 1 ? ChannelOut.Mono : ChannelOut.Stereo)
                 .Build()!;
 
             _attributes = new AudioAttributes.Builder()!
@@ -149,7 +155,7 @@ namespace XrEngine.Media.Android
                 }
             }
 
-            var result = DecodeToPCM(path, out format);
+            var result = new AndroidAudioDecoder().DecodeToPCM(path, out format);
 
             Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
 
@@ -159,118 +165,7 @@ namespace XrEngine.Media.Android
             return result;
         }
 
-        static AudioFormat GetFormat(MediaFormat format)
-        {
-            var res = new AudioFormat
-            {
-                SampleRate = format.GetInteger(MediaFormat.KeySampleRate),
 
-                ChannelCount = format.GetInteger(MediaFormat.KeyChannelCount),
-
-                SampleFormat = format.ContainsKey(MediaFormat.KeyPcmEncoding)
-                    ? (Encoding)format.GetInteger(MediaFormat.KeyPcmEncoding)
-                    : Encoding.Pcm16bit
-            };
-
-            /*
-            res.SampleFormat = encoding switch
-            {
-                Encoding.Pcm16bit => AudioSampleFormat.Pcm16,
-                Encoding.Pcm8bit => AudioSampleFormat.Pcm8,
-                Encoding.PcmFloat => AudioSampleFormat.Float,
-                _ => throw new NotSupportedException()
-            };
-            */
-            return res;
-        }
-
-        static byte[] DecodeToPCM(string path, out AudioFormat format)
-        {
-            using var extractor = new MediaExtractor();
-            extractor.SetDataSource(path);
-
-            int trackIndex = -1;
-            MediaFormat? inFormat = null;
-            for (int i = 0; i < extractor.TrackCount; i++)
-            {
-                var f = extractor.GetTrackFormat(i);
-                string mime = f.GetString(MediaFormat.KeyMime)!;
-                if (mime.StartsWith("audio/"))
-                {
-                    trackIndex = i;
-                    inFormat = f;
-                    break;
-                }
-            }
-
-            if (trackIndex < 0 || inFormat == null)
-                throw new InvalidOperationException("No audio track found");
-
-            extractor.SelectTrack(trackIndex);
-
-            string mimeType = inFormat.GetString(MediaFormat.KeyMime)!;
-            using var codec = MediaCodec.CreateDecoderByType(mimeType);
-            codec.Configure(inFormat, null, null, 0);
-            codec.Start();
-
-            format = GetFormat(codec.OutputFormat);
-
-            var info = new MediaCodec.BufferInfo();
-            using var pcmStream = new MemoryStream(10 * 1024 * 1024);
-
-            bool endOfStream = false;
-
-            while (!endOfStream)
-            {
-
-                int inputIndex = codec.DequeueInputBuffer(10_000);
-                if (inputIndex >= 0)
-                {
-                    var inputBuffer = codec.GetInputBuffer(inputIndex)!;
-                    int sampleSize = extractor.ReadSampleData(inputBuffer, 0);
-
-                    if (sampleSize < 0)
-                    {
-                        codec.QueueInputBuffer(inputIndex, 0, 0, 0, MediaCodecBufferFlags.EndOfStream);
-                        endOfStream = true;
-                    }
-                    else
-                    {
-                        long presentationTimeUs = extractor.SampleTime;
-                        codec.QueueInputBuffer(inputIndex, 0, sampleSize, presentationTimeUs, 0);
-                        extractor.Advance();
-                    }
-                }
-
-
-                int outputIndex = codec.DequeueOutputBuffer(info, 10_000);
-                if (outputIndex >= 0)
-                {
-                    var outputBuffer = codec.GetOutputBuffer(outputIndex);
-                    if (outputBuffer != null && info.Size > 0)
-                    {
-                        var chunk = new byte[info.Size];
-                        outputBuffer.Position(info.Offset);
-                        outputBuffer.Get(chunk, 0, info.Size);
-                        pcmStream.Write(chunk, 0, info.Size);
-                    }
-
-                    codec.ReleaseOutputBuffer(outputIndex, false);
-
-                    if ((info.Flags & MediaCodecBufferFlags.EndOfStream) != 0)
-                        break;
-                }
-                else if (outputIndex == (int)MediaCodecInfoState.OutputFormatChanged)
-                {
-                    format = GetFormat(codec.OutputFormat);
-                }
-            }
-
-            codec.Stop();
-            codec.Release();
-
-            return pcmStream.ToArray();
-        }
 
         public void OnAudioFocusChange([GeneratedEnum] AudioFocus focusChange)
         {

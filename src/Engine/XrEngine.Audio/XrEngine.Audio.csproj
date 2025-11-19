@@ -8,6 +8,7 @@
 		<ProjectReference Include="..\..\Framework\OpenAl.Framework\OpenAl.Framework.csproj" />
 		<ProjectReference Include="..\Fftw\Fftw.csproj" />
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+		<ProjectReference Include="..\XrEngine.Media.Abstraction\XrEngine.Media.Abstraction.csproj" />
 	</ItemGroup>
 
 </Project>

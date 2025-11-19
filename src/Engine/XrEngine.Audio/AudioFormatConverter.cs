@@ -1,0 +1,31 @@
+﻿using OpenAl.Framework;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using XrEngine.Media;
+
+namespace XrEngine.Audio
+{
+    public static class AudioFormatConverter
+    {
+        public static AudioFormat ToAudioFormat(AlAudioFormat alFormat)
+        {
+            return new AudioFormat
+            {
+                Channels = alFormat.Channels,
+                SampleRate = alFormat.SampleRate,
+                SampleType = (AudioSampleType)alFormat.SampleType
+            };
+        }
+
+        public static AlAudioFormat ToAlAudioFormat(AudioFormat alFormat)
+        {
+            return new AlAudioFormat
+            {
+                Channels = alFormat.Channels,
+                SampleRate = alFormat.SampleRate,
+                SampleType = (AlAudioSampleType)alFormat.SampleType
+            };
+        }
+    }
+}

@@ -4,12 +4,12 @@ namespace XrEngine.Audio
 {
     public class AudioRange
     {
-        readonly AudioFormat _format;
+        readonly AlAudioFormat _format;
         int _startSample;
         int _endSample;
         readonly int _channel;
 
-        public AudioRange(AudioFormat format, int channel = 0)
+        public AudioRange(AlAudioFormat format, int channel = 0)
         {
             _format = format;
             _channel = 0;

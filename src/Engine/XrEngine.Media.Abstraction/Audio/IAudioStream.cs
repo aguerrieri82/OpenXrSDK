@@ -1,6 +1,5 @@
-﻿using OpenAl.Framework;
-
-namespace XrEngine.Audio
+﻿
+namespace XrEngine.Media
 {
     public interface IAudioStream
     {

@@ -1,16 +1,11 @@
 ﻿#if ANDROID23_0_OR_GREATER
 
-using Android.Bluetooth;
-using Android.Content;
 using Android.Media.Midi;
-using System;
-using System.Collections.Generic;
+
 using System.Collections.Immutable;
 using System.Runtime.Versioning;
-using System.Text;
-using XrEngine.Devices;
 using MidiDeviceInfo2 = Android.Media.Midi.MidiDeviceInfo;
-
+using ContextA = global::Android.Content.Context;
 
 namespace XrEngine.Devices.Android
 {
@@ -21,7 +16,7 @@ namespace XrEngine.Devices.Android
 
         public AndroidMidiManager()
         {
-            _manager = (MidiManager)Application.Context.GetSystemService(Context.MidiService)!;
+            _manager = (MidiManager)Application.Context.GetSystemService(ContextA.MidiService)!;
         }
 
 

@@ -2,7 +2,7 @@
 
 using Android.Bluetooth;
 using Android.Bluetooth.LE;
-using Android.Content;
+using ContextA = global::Android.Content.Context;
 
 namespace XrEngine.Devices.Android
 {
@@ -52,7 +52,7 @@ namespace XrEngine.Devices.Android
 
         public AndroidBleManager()
         {
-            _bltManager = (BluetoothManager)Application.Context.GetSystemService(Context.BluetoothService)!;
+            _bltManager = (BluetoothManager)Application.Context.GetSystemService(ContextA.BluetoothService)!;
             _adapter = _bltManager.Adapter!;
         }
 

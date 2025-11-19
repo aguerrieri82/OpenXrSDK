@@ -1,6 +1,7 @@
 ﻿using OpenAl.Framework;
 using Silk.NET.OpenAL;
 using System.Numerics;
+using XrEngine.Media;
 
 namespace XrEngine.Audio
 {
@@ -70,7 +71,7 @@ namespace XrEngine.Audio
 
             var control = new StreamControl();
 
-            buffer.SetCallback(stream.Format, data =>
+            buffer.SetCallback(AudioFormatConverter.ToAlAudioFormat(stream.Format), data =>
             {
                 if (!stream.IsStreaming || control.IsStopped)
                 {
@@ -143,7 +144,7 @@ namespace XrEngine.Audio
             {
                 var totSamples = stream.Fill(bufferData, curSamples / (float)stream.Format.SampleRate);
 
-                toFill.SetData(bufferData, stream.Format);
+                toFill.SetData(bufferData, AudioFormatConverter.ToAlAudioFormat(stream.Format));
 
                 curSamples += totSamples;
             }

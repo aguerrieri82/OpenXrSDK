@@ -1,7 +1,7 @@
 ﻿using Common.Interop;
 using System.Diagnostics;
 using VirtualCamera.IPCamera;
-using XrEngine.Video.Abstraction;
+using XrEngine.Media;
 using XrMath;
 
 namespace XrEngine.Video

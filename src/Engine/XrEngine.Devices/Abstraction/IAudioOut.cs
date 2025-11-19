@@ -1,7 +1,10 @@
-﻿using OpenAl.Framework;
+﻿
+using XrEngine.Media;
 
-namespace XrEngine.Audio
+namespace XrEngine.Devices
 {
+
+
     public interface IAudioOut
     {
         void Open(AudioFormat format);

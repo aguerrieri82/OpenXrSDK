@@ -2,8 +2,6 @@
 using Android.Media;
 using Android.Views;
 using XrEngine.OpenGL;
-using XrEngine.Video;
-using XrEngine.Video.Abstraction;
 
 
 namespace XrEngine.Media.Android

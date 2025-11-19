@@ -47,26 +47,26 @@ namespace OpenAl.Framework
             if (header.riff_header != RIFF || header.wave_header != WAVE)
                 throw new InvalidOperationException();
 
-            AudioSampleType sampleType;
+            AlAudioSampleType sampleType;
 
             if (header.audio_format == 1)
                 sampleType = header.bit_depth switch
                 {
-                    8 => AudioSampleType.Byte,
-                    16 => AudioSampleType.Short,
+                    8 => AlAudioSampleType.Byte,
+                    16 => AlAudioSampleType.Short,
                     _ => throw new NotSupportedException()
                 };
             else if (header.audio_format == 3)
                 sampleType = header.bit_depth switch
                 {
-                    32 => AudioSampleType.Float,
+                    32 => AlAudioSampleType.Float,
                     _ => throw new NotSupportedException()
                 };
             else
                 throw new NotSupportedException();
 
             var result = new AudioData(
-                new AudioFormat
+                new AlAudioFormat
                 {
                     SampleType = sampleType,
                     Channels = header.num_channels,

@@ -1,4 +1,4 @@
-﻿namespace XrEngine.Audio
+﻿namespace XrEngine.Media
 {
     public interface IAudioBuffer
     {
