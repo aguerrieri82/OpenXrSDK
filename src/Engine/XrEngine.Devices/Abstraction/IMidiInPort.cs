@@ -17,6 +17,8 @@ namespace XrEngine.Devices
     {
         void Close();
 
+        ulong RefTime { get; }    
+
         event EventHandler<MidiData> DataReceived;
     }
 }

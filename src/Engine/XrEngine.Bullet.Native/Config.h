@@ -34,4 +34,5 @@
 #else
 	#define EXPORT __attribute__((visibility("default")))
 	#define APIENTRY
+	#define UINT unsigned int
 #endif

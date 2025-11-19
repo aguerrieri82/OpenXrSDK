@@ -46,6 +46,9 @@ namespace XrEngine.Devices.Windows
         [DllImport("winmm.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern int midiInGetErrorText(int mmrError, StringBuilder pszText, uint cchText);
 
+        [DllImport("winmm.dll")]
+        public static extern uint timeGetTime();
+
 
         // MIDIOUTCAPS (rough mapping based on Windows SDK)
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]

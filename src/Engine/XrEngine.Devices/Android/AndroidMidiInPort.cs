@@ -1,12 +1,9 @@
 ﻿#if ANDROID23_0_OR_GREATER
 
 using Android.Media.Midi;
-using Android.Net.IpSec.Ike.Exceptions;
 using Java.Lang;
-using System;
-using System.Collections.Generic;
 using System.Runtime.Versioning;
-using System.Text;
+using XrEngine.Devices.Windows;
 
 namespace XrEngine.Devices.Android
 {
@@ -55,6 +52,8 @@ namespace XrEngine.Devices.Android
         {
             _port.Close();
         }
+
+        public ulong RefTime => (ulong)JavaSystem.NanoTime();
 
 
         public event EventHandler<MidiData>? DataReceived;

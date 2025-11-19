@@ -16,4 +16,8 @@
 		<ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
+		<AndroidNativeLibrary Abi="arm64-v8a" Include="$(NativeLibsDir)bullet3-native\android-arm64\*" />
+	</ItemGroup>
+
 </Project>

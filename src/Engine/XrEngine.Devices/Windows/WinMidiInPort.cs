@@ -88,11 +88,12 @@ namespace XrEngine.Devices.Windows
                             byte b2 = (byte)((packed >> 16) & 0xFF);
 
                             int count = GetShortMessageLength(b0);
+                            byte[] bytes = [b0, b1, b2];
                             var data = count switch
                             {
-                                1 => new byte[] { b0 },
-                                2 => new byte[] { b0, b1 },
-                                _ => new byte[] { b0, b1, b2 },
+                                1 => [b0],
+                                2 => [b0, b1],
+                                _ => bytes,
                             };
 
                             var timestamp = dwParam2.ToInt64();
@@ -166,6 +167,8 @@ namespace XrEngine.Devices.Windows
             _proc = null;
             _opened = false;
         }
+
+        public ulong RefTime => Win32.timeGetTime();
 
         static string GetInError(int code)
         {
