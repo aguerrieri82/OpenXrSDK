@@ -81,6 +81,6 @@ ninja install
 
 REM bash -c ../build-filament-android.sh
 
-xcopy %FILAMENT_PATH%\out\android-debug\filament\include %OUT_PATH%\filament-android\include /S /Y
-xcopy %FILAMENT_PATH%\out\android-debug\filament\lib\arm64-v8a %OUT_PATH%\filament-android\lib\arm64-v8a /S /Y
+xcopy %FILAMENT_PATH%\out\android-release\filament\include %OUT_PATH%\filament-android\include /S /Y
+xcopy %FILAMENT_PATH%\out\android-release\filament\lib\arm64-v8a %OUT_PATH%\filament-android\lib\arm64-v8a /S /Y
 
