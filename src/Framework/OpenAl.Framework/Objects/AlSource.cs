@@ -17,6 +17,23 @@ namespace OpenAl.Framework
         {
         }
 
+        public void DisableSpatialization()
+        {
+            _al.SetSourceProperty(_handle, SourceBoolean.SourceRelative, true);
+
+            Position = Vector3.Zero;
+            Velocity = Vector3.Zero;
+            Direction = Vector3.Zero;
+
+            RolloffFactor = 0f;
+            ReferenceDistance = 1f;
+            MaxDistance = float.MaxValue;
+
+            ConeInnerAngleDeg = 360f;
+            ConeOuterAngleDeg = 360f;
+        }
+
+
         public void Play()
         {
             _al.SourcePlay(_handle);
@@ -103,7 +120,7 @@ namespace OpenAl.Framework
         public int PlayPositionSamples
         {
             get
-            {
+            {                
                 _al.GetSourceProperty(_handle, GetSourceInteger.SampleOffset, out int value);
                 return value;
             }
@@ -228,6 +245,17 @@ namespace OpenAl.Framework
             }
             set => _al.SetSourceProperty(_handle, SourceFloat.ConeOuterAngle, value);
         }
+
+        public bool SourceRelative
+        {
+            get
+            {
+                _al.GetSourceProperty(_handle, SourceBoolean.SourceRelative, out bool value);
+                return value;
+            }
+            set => _al.SetSourceProperty(_handle, SourceBoolean.SourceRelative, value);
+        }
+
 
         public float ReferenceDistance
         {

@@ -58,7 +58,7 @@ namespace XrEngine.Audio
             return _curSource;
         }
 
-        public unsafe IAudioControl PlayRT(IAudioStream stream, Func<Vector3> getDirection)
+        public IAudioControl PlayRT(IAudioStream stream, Func<Vector3> getDirection)
         {
             var al = AlDevice.Current!.Al;
 
@@ -156,6 +156,7 @@ namespace XrEngine.Audio
             }
 
             var source = new AlSource(al);
+
             source.QueueBuffer(buffers);
 
             _activeStreams.Add(stream);
@@ -178,6 +179,7 @@ namespace XrEngine.Audio
 
                     source.Direction = getDirection();
                     source.Position = Position ?? _host!.WorldPosition;
+
                     source.QueueBuffer(buffer);
 
                     if (source.State == SourceState.Stopped)

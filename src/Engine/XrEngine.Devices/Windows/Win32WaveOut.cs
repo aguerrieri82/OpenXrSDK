@@ -32,6 +32,8 @@ namespace XrEngine.Devices.Windows
         [DllImport("winmm.dll", SetLastError = true)]
         private static extern int waveOutGetErrorText(int mmrError, StringBuilder pszText, uint cchText);
 
+        [DllImport("winmm.dll")]
+        static extern int waveOutSetVolume(IntPtr hwo, uint dwVolume);
 
         private delegate void WaveOutProcDelegate(IntPtr hWaveOut, uint uMsg, IntPtr dwInstance, IntPtr dwParam1, IntPtr dwParam2);
 
@@ -112,8 +114,10 @@ namespace XrEngine.Devices.Windows
         uint _lastBufId;
         GCHandle _procGCHandle;
 
-        public unsafe void Enqueue(byte[] buffer)
+        public void Enqueue(byte[] buffer)
         {
+           // waveOutSetVolume(_hWaveOut, (0x1000u | (0x1000u << 16)));
+
             var aBuffer = _buffers.FirstOrDefault(a => a.Buffer?.Data == buffer);
 
             if (aBuffer == null)
@@ -241,6 +245,8 @@ namespace XrEngine.Devices.Windows
                 aBuffer?.Event.Set();
             }
         }
+
+
 
         public void Close()
         {

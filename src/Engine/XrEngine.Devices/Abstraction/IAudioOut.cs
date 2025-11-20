@@ -3,8 +3,6 @@ using XrEngine.Media;
 
 namespace XrEngine.Devices
 {
-
-
     public interface IAudioOut
     {
         void Open(AudioFormat format);

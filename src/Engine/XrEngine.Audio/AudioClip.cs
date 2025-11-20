@@ -8,8 +8,6 @@ namespace XrEngine.Audio
         readonly byte[] _buffer;
         readonly AlAudioFormat _format;
 
-
-
         public AudioClip(byte[] buffer, AlAudioFormat format)
         {
             Range = new AudioRange(format);
@@ -68,7 +66,7 @@ namespace XrEngine.Audio
             }
         }
 
-        public unsafe void CopyTo(Vector2[] outData, float baseTime = 0)
+        public void CopyTo(Vector2[] outData, float baseTime = 0)
         {
             var floats = new float[outData.Length];
             CopyTo(floats);
