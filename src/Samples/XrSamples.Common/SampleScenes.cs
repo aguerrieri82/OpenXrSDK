@@ -1,5 +1,6 @@
 ﻿using CanvasUI;
 using DrumsVR.Game;
+using OpenAl.Framework;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using PhysX;
@@ -7,24 +8,24 @@ using PhysX.Framework;
 using RoomDesigner.Game;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using XrEngine;
 using XrEngine.AI;
 using XrEngine.Audio;
+using XrEngine.Audio.Midi;
+using XrEngine.Bullet;
 using XrEngine.Components;
 using XrEngine.Compression;
 using XrEngine.Devices;
 using XrEngine.Gltf;
 using XrEngine.Helpers;
+using XrEngine.Media;
 using XrEngine.Objects;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
 using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
-using XrEngine.Audio.Midi;
-using XrEngine.Bullet;
-using OpenAl.Framework;
-using XrEngine.Media;
 
 
 
@@ -1456,6 +1457,7 @@ namespace XrSamples
 
 
         [Sample("Midi")]
+        [SupportedOSPlatform("android23.0")]
         public static XrEngineAppBuilder CreateMidi(this XrEngineAppBuilder builder)
         {
             var app = CreateBaseScene();
@@ -1470,12 +1472,13 @@ namespace XrSamples
             var devices = manager.FindDevices();
 
             var usb = devices.FirstOrDefault(a => a.Name == "USB MIDI Interface" && a.Id!.StartsWith("in"));
+
             if (usb == null)
                 usb = devices[0];
 
-            var device = manager.GetDevice(usb.Id);
+            var device = manager.GetDevice(usb.Id!);
 
-            device.OpenAsync().Wait();
+            device!.OpenAsync().Wait();
 
             var inPort = device.OpenInput(0);
             inPort.DataReceived += (sender, e) =>

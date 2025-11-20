@@ -1,15 +1,16 @@
 ﻿using OpenAl.Framework;
+using XrEngine.Media;
 
 namespace XrEngine.Audio
 {
     public class AudioRange
     {
-        readonly AlAudioFormat _format;
+        readonly AudioFormat _format;
         int _startSample;
         int _endSample;
         readonly int _channel;
 
-        public AudioRange(AlAudioFormat format, int channel = 0)
+        public AudioRange(AudioFormat format, int channel = 0)
         {
             _format = format;
             _channel = 0;

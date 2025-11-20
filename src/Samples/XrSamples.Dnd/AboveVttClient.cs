@@ -52,7 +52,7 @@ namespace XrSamples.Dnd
 
     public class VttHitPointInfo
     {
-        public object Maximum { get; set; }
+        public object? Maximum { get; set; }
         public int Current { get; set; }
         public int Temp { get; set; }
     }

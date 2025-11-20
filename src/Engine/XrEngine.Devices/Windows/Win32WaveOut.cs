@@ -33,7 +33,11 @@ namespace XrEngine.Devices.Windows
         private static extern int waveOutGetErrorText(int mmrError, StringBuilder pszText, uint cchText);
 
         [DllImport("winmm.dll")]
-        static extern int waveOutSetVolume(IntPtr hwo, uint dwVolume);
+        private static extern int waveOutSetVolume(IntPtr hWaveOut, uint dwVolume);
+
+        [DllImport("winmm.dll")]
+        private static extern int waveOutGetVolume(IntPtr hWaveOut, out uint dwVolume);
+
 
         private delegate void WaveOutProcDelegate(IntPtr hWaveOut, uint uMsg, IntPtr dwInstance, IntPtr dwParam1, IntPtr dwParam2);
 
@@ -113,6 +117,12 @@ namespace XrEngine.Devices.Windows
         nint _hWaveOut;
         uint _lastBufId;
         GCHandle _procGCHandle;
+        float _volume;
+
+        public Win32WaveOut()
+        {
+            _volume = 1f;
+        }
 
         public void Enqueue(byte[] buffer)
         {
@@ -223,6 +233,8 @@ namespace XrEngine.Devices.Windows
             _procGCHandle = GCHandle.Alloc(del);
 
             CheckError(waveOutOpen(out _hWaveOut, WAVE_MAPPER, ref wFormat, Marshal.GetFunctionPointerForDelegate(del), 0, CALLBACK_FUNCTION));
+
+            Volume = _volume;
         }
 
         unsafe void WaveOutProc(IntPtr hWaveOut, uint uMsg, IntPtr dwInstance, IntPtr dwParam1, IntPtr dwParam2)
@@ -264,5 +276,28 @@ namespace XrEngine.Devices.Windows
                 Close();
             GC.SuppressFinalize(this);
         }
+
+        public float Volume
+        {
+            get
+            {
+                if (_hWaveOut != 0)
+                {
+                    waveOutGetVolume(_hWaveOut, out var compVol);
+                    _volume = (compVol & 0xFFFF) / (float)ushort.MaxValue;
+                }
+                return _volume;
+            }
+            set
+            {
+                _volume = value;
+                if (_hWaveOut != 0)
+                {
+                    int int16 = (int)(Math.Min(Math.Max(0, _volume), 1) * ushort.MaxValue);
+                    waveOutSetVolume(_hWaveOut, (uint)(int16 | int16 << 16));
+                }
+            }
+        }
+
     }
 }

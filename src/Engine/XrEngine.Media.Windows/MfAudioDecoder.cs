@@ -1,4 +1,4 @@
-﻿using System.Reflection.PortableExecutable;
+﻿
 using System.Runtime.InteropServices;
 
 namespace XrEngine.Media.Windows

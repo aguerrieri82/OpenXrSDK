@@ -14,5 +14,7 @@ namespace XrEngine.Devices
         void Enqueue(byte[] buffer);
 
         byte[]? Dequeue(int timeoutMs);
+
+        float Volume { get; set; }
     }
 }

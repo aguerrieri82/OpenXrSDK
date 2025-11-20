@@ -298,7 +298,7 @@ namespace XrEditor.Audio
 
         protected void PlayWork()
         {
-            _audioOut.Open(AudioFormatConverter.ToAudioFormat(_clip!.Format));
+            _audioOut.Open(_clip!.Format);
 
             List<byte[]> buffers = [[], []];
 
@@ -364,7 +364,7 @@ namespace XrEditor.Audio
 
         public void Load(AudioData data)
         {
-            _clip = new AudioClip(data.Buffer, data.Format);
+            _clip = new AudioClip(data.Buffer, AudioFormatConverter.ToAudioFormat(data.Format));
 
             _mainAudio.Points = _clip.ToVector();
             _mainAudio.NotifyChanged();

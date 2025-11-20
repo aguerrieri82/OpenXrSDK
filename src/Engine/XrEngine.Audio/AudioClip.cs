@@ -1,14 +1,15 @@
 ﻿using OpenAl.Framework;
 using System.Numerics;
+using XrEngine.Media;
 
 namespace XrEngine.Audio
 {
     public class AudioClip
     {
         readonly byte[] _buffer;
-        readonly AlAudioFormat _format;
+        readonly AudioFormat _format;
 
-        public AudioClip(byte[] buffer, AlAudioFormat format)
+        public AudioClip(byte[] buffer, AudioFormat format)
         {
             Range = new AudioRange(format);
             Range.Size = buffer.Length;
@@ -119,7 +120,7 @@ namespace XrEngine.Audio
             return result;
         }
 
-        public static AudioClip FromFloats(float[] data, AlAudioFormat format)
+        public static AudioClip FromFloats(float[] data, AudioFormat format)
         {
             var bufSize = data.Length * (format.BitsPerSample / 8) * format.Channels;
             var buffer = new byte[bufSize];
@@ -128,7 +129,7 @@ namespace XrEngine.Audio
             return result;
         }
 
-        public AlAudioFormat Format => _format;
+        public AudioFormat Format => _format;
 
         public byte[] Buffer => _buffer;
 
