@@ -53,7 +53,7 @@ namespace XrEngine.Devices.Android
             _port.Close();
         }
 
-        public ulong RefTime => (ulong)JavaSystem.NanoTime();
+        public ulong RefTimeMs => (ulong)JavaSystem.NanoTime() / 1000000;
 
 
         public event EventHandler<MidiData>? DataReceived;

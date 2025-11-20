@@ -168,7 +168,7 @@ namespace XrEngine.Devices.Windows
             _opened = false;
         }
 
-        public ulong RefTime => Win32.timeGetTime();
+        public ulong RefTimeMs => Win32.timeGetTime();
 
         static string GetInError(int code)
         {

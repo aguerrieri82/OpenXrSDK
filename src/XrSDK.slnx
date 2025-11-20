@@ -155,6 +155,10 @@
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
     </Project>
+    <Project Path="Engine/XrEngine.Media.Windows/XrEngine.Media.Windows.csproj" Id="14e7bcb3-ee41-4b9b-8416-5ef9e40d5180">
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
+      <Platform Project="x64" />
+    </Project>
     <Project Path="Engine/XrEngine.Native/XrEngine.Native.vcxproj" Id="842c66e7-4d5d-4b95-b704-a99a18bcfaf3">
       <BuildType Project="Release" />
     </Project>
@@ -254,6 +258,9 @@
   </Folder>
   <Folder Name="/Samples/DrumsVR/">
     <File Path="../../DrumsVR/src/Directory.Build.props" />
+    <Project Path="../../DrumsVR/src/DrumsVR.Encoder/DrumsVR.Encoder.csproj">
+      <Platform Project="x64" />
+    </Project>
     <Project Path="../../DrumsVR/src/DrumsVR.Entities/DrumsVR.Entities.csproj">
       <Platform Project="x64" />
     </Project>

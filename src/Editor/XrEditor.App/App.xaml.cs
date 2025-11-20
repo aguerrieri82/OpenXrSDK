@@ -5,6 +5,7 @@ using XrEditor.Audio;
 using XrEditor.Plot;
 using XrEditor.Services;
 using XrEngine;
+using XrEngine.Media;
 using XrEngine.OpenXr;
 using XrEngine.Video;
 

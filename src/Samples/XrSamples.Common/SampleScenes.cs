@@ -23,6 +23,10 @@ using XrEngine.Video;
 using XrMath;
 using XrEngine.Audio.Midi;
 using XrEngine.Bullet;
+using OpenAl.Framework;
+using XrEngine.Media;
+
+
 
 
 #if !ANDROID
@@ -1053,6 +1057,7 @@ namespace XrSamples
 #if WINDOWS
             Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
             Context.Implement<IBleManager>(() => new XrEngine.Devices.Windows.WinBleManager());
+            Context.Implement<IAudioDecoder>(() => new XrEngine.Media.Windows.MfAudioDecoder());
 #else
             Context.Implement<IBleManager>(() => new XrEngine.Devices.Android.AndroidBleManager());
 #endif

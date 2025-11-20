@@ -9,6 +9,8 @@ using System.Windows.Controls;
 using XrEditor.Services;
 using XrEngine;
 using XrEngine.Audio;
+using XrEngine.Devices;
+using XrEngine.Devices.Windows;
 
 namespace XrEditor.Audio
 {
@@ -296,7 +298,7 @@ namespace XrEditor.Audio
 
         protected void PlayWork()
         {
-            _audioOut.Open(_clip!.Format);
+            _audioOut.Open(AudioFormatConverter.ToAudioFormat(_clip!.Format));
 
             List<byte[]> buffers = [[], []];
 
