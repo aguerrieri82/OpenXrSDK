@@ -6,14 +6,15 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0-rc.2.25502.107" />
-		<PackageReference Include="NAudio.Core" Version="2.2.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'true'">
 		<AndroidNativeLibrary Abi="arm64-v8a" Include="libs/arm64-v8a/libsfizz_api.so" />
+		<Compile Remove="SfizzSampleProvider.cs"/>
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(IsAndroid)' == 'false'">
+		<PackageReference Include="NAudio.Core" Version="2.2.1" />
 		<Content Include="sfizz_api.dll" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
