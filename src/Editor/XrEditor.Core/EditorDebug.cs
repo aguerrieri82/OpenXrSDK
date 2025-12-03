@@ -13,6 +13,7 @@ namespace XrEditor
         public static readonly bool EnableVSync = true;
 
         public static readonly string[] AssetsPath = [
+            @"Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
             @"D:\Projects\"];

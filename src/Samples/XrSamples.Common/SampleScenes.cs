@@ -1056,7 +1056,7 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateDrums(this XrEngineAppBuilder builder)
         {
 #if WINDOWS
-            Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
+            //Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
             Context.Implement<IBleManager>(() => new XrEngine.Devices.Windows.WinBleManager());
             Context.Implement<IAudioDecoder>(() => new XrEngine.Media.Windows.MfAudioDecoder());
 #else

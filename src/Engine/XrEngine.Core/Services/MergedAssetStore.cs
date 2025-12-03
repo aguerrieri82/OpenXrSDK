@@ -4,9 +4,9 @@
     {
         readonly List<IAssetStore> _stores;
 
-        public MergedAssetStore()
+        public MergedAssetStore(params IAssetStore[] stores)
         {
-            _stores = [];
+            _stores = [..stores];
         }
 
         public bool Contains(string name)

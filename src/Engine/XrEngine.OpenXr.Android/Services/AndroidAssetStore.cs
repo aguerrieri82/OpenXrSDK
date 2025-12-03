@@ -16,8 +16,15 @@ namespace XrEngine.OpenXr.Android
 
         public bool Contains(string name)
         {
-            var result = _context.Assets!.List(Path.Join(_basePath, name));
-            return result != null && result.Length > 0;
+            var path = Path.GetDirectoryName(name);
+            var file = Path.GetFileName(name);
+            var fullPath = Path.Join(_basePath, path);
+            if (fullPath.Length > 0 && fullPath[0] == '/')
+                fullPath = fullPath.Substring(1);
+            var result = _context.Assets!.List(fullPath);
+            if (result == null)
+                return false;
+            return result.Contains(file);
         }
 
         public string GetPath(string name)
@@ -31,10 +38,8 @@ namespace XrEngine.OpenXr.Android
             if (_loadedFiles.Contains(cachePath))
                 return cachePath;
 
-            /*
             if (File.Exists(cachePath))
                 return cachePath;
-            */
 
             Directory.CreateDirectory(Path.GetDirectoryName(cachePath)!);
 
