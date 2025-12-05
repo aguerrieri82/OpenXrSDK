@@ -6,7 +6,11 @@
     },
     "Native": {
       "commandName": "Project",
-      "nativeDebugging": true
+      "nativeDebugging": true,
+      "environmentVariables": {
+        "ALSOFT_LOGLEVEL": "3",
+        "ALSOFT_LOGFILE": "d:\\al.txt"
+      }
     }
   }
 }

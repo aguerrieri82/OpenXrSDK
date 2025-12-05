@@ -134,6 +134,7 @@
     <Project Path="Engine/XrEngine.Devices/XrEngine.Devices.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
+      <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Engine/XrEngine.Filament/XrEngine.Filament.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -150,6 +151,7 @@
     <Project Path="Engine/XrEngine.Media.Android/XrEngine.Media.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
+      <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Engine/XrEngine.Media.FFmpeg/XrEngine.Media.FFmpeg.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -160,7 +162,7 @@
       <Platform Project="x64" />
     </Project>
     <Project Path="Engine/XrEngine.Native/XrEngine.Native.vcxproj" Id="842c66e7-4d5d-4b95-b704-a99a18bcfaf3">
-      <BuildType Project="Release" />
+      <BuildType Solution="ReleaseStore|*" Project="Release" />
     </Project>
     <Project Path="Engine/XrEngine.OpenGL/XrEngine.OpenGL.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -169,6 +171,7 @@
     <Project Path="Engine/XrEngine.OpenXr.Android/XrEngine.OpenXr.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
+      <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Engine/XrEngine.OpenXr.Windows/XrEngine.OpenXr.Windows.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -211,6 +214,7 @@
     <Project Path="Framework/OpenXr.Framework.Android/OpenXr.Framework.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
+      <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Framework/OpenXr.Framework.Oculus/OpenXr.Framework.Oculus.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -242,6 +246,7 @@
     <Project Path="Samples/XrSamples.Common/XrSamples.Common.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
+      <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Samples/XrSamples.Console/XrSamples.Console.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
@@ -250,10 +255,12 @@
     <Project Path="Samples/XrSamples.Dnd/XrSamples.Dnd.csproj" Id="a322bf9e-d39c-43a2-9374-4103545a5c08">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
+      <Deploy Solution="Release|*" />
     </Project>
     <Project Path="Samples/XrSamples.Earth/XrSamples.Earth.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
+      <Deploy Solution="Release|*" />
     </Project>
   </Folder>
   <Folder Name="/Samples/DrumsVR/">
@@ -281,6 +288,7 @@
     <Project Path="../../DrumsVR/src/DrumsVR.Game/DrumsVR.Game.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
+      <Deploy Solution="Release|*" />
     </Project>
   </Folder>
   <Folder Name="/Samples/RoomDesigner/">
@@ -368,6 +376,7 @@
     <Project Path="WebLink/XrWebLink.Android/XrWebLink.Android.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />
       <Platform Project="x64" />
+      <Deploy Solution="Release|*" />
     </Project>
     <Project Path="WebLink/XrWebLink.Client/XrWebLink.Client.csproj">
       <BuildType Solution="ReleaseStore|*" Project="Release" />

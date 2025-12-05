@@ -10,7 +10,7 @@ namespace XrEngine
         [DllImport("xrengine-native")]
         public static extern void ImageCopyChannel(nint src, nint dst, uint width, uint height, uint srcRowSize, uint dstRowSize, uint srcOfs, uint dstOfs, uint cSize);
 
-        [DllImport("xrengine-native")]
+        [DllImport("xrengine-native", EntryPoint = "CopyMemory2")]
         public static extern void CopyMemory(nint src, nint dst, uint size);
 
         [DllImport("xrengine-native")]

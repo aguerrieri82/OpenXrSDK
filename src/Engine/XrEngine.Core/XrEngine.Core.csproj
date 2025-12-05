@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>$(CoreVersion);$(CoreVersion)-android</TargetFrameworks>
 		<RootNamespace>XrEngine</RootNamespace>
-		<NativeFolder>Release</NativeFolder>
+		<NativeFolder>$(Configuration)</NativeFolder>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -1,6 +1,6 @@
 if "%XR_BUILD_VARS%" == "1" exit /b
 
-SET NDK_HOME=c:\Android\ndk\29.0.14033849\
+SET NDK_HOME=c:\Android\Sdk\ndk\29.0.14206865\
 SET VC_HOME=C:\Program Files\Microsoft Visual Studio\18\Insiders\VC
 
 SET ANDROID_ABI=arm64-v8a

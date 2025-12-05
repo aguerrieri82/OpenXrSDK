@@ -153,8 +153,8 @@ namespace OpenXr.Framework.Oculus
             _app.Xr.TryGetInstanceExtension<FBSpatialEntityStorage>(null, _app.Instance, out _spatialStorage);
 
             var func = new PfnVoidFunction();
-            _app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
-            GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));
+            //_app.CheckResult(_app.Xr.GetInstanceProcAddr(_app.Instance, "xrGetSpaceTriangleMeshMETA", &func), "Bind xrGetSpaceTriangleMeshMETA");
+            //GetSpaceTriangleMeshMETA = Marshal.GetDelegateForFunctionPointer<GetSpaceTriangleMeshMETADelegate>(new nint(func.Handle));
         }
 
         public unsafe string[] GetSpaceSemanticLabels(Space space)

@@ -1,4 +1,6 @@
 #include "pch.h"
+#include "Devpkey.h"
+
 
 EXPORT IkContext* IkCreate(UINT nodeCount, UINT targetCount)
 {

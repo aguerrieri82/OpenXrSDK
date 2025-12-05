@@ -77,6 +77,16 @@ namespace OpenAl.Framework
             return bufHandles.Select(a => AlBuffer.Attach(_al, a));
         }
 
+        public float Latency
+        {
+            get
+            {
+
+                _al.GetSourceProperty(_handle, (SourceVector3) 0x1201, out var data);
+                return data.X;
+            }
+        }
+
 
         public int BuffersProcessed
         {

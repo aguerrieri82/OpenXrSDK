@@ -1,4 +1,5 @@
 ﻿using Microsoft.DotNet.PlatformAbstractions;
+using OpenAl.Framework.Helpers;
 using Silk.NET.OpenAL;
 using Silk.NET.OpenAL.Extensions.Enumeration;
 using System.Runtime.InteropServices;
@@ -46,6 +47,8 @@ namespace OpenAl.Framework
             GetInteger64 = Marshal.GetDelegateForFunctionPointer<alcGetInteger64vSOFTDelegate>((nint)_alc.GetProcAddress(_device, "alcGetInteger64vSOFT"));
 
             Current = this;
+
+            SourceSoftExt.Init(_alc, _device);
         }
 
         public ulong Latency
@@ -96,10 +99,13 @@ namespace OpenAl.Framework
                 result.AddRange(enumeration.GetStringList(devType));
             }
 
+
             return result;
         }
 
         public AL Al => _al;
+
+        public static ALContext Context => _alc;
 
         public static AlDevice? Current { get; internal set; }
     }

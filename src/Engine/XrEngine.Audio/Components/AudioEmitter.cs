@@ -2,6 +2,7 @@
 using Silk.NET.OpenAL;
 using System.Numerics;
 using XrEngine.Media;
+using static XrEngine.Ktx2Reader;
 
 namespace XrEngine.Audio
 {
@@ -71,16 +72,20 @@ namespace XrEngine.Audio
 
             var control = new StreamControl();
 
+            var SAMPLE_SIZE = stream.Format.BitsPerSample / 8;
+
             buffer.SetCallback(AudioFormatConverter.ToAlAudioFormat(stream.Format), data =>
             {
                 if (!stream.IsStreaming || control.IsStopped)
                 {
-                    _activeStreams.Remove(stream);
+                    Task.Run(() =>
+                    {
+                        _activeStreams.Remove(stream);
 
-                    source.Stop();
-                    source.Dispose();
-
-                    buffer.Dispose();
+                        source.Stop();
+                        source.Dispose();
+                        buffer.Dispose();
+                    });
 
                     return 0;
                 }
@@ -91,9 +96,15 @@ namespace XrEngine.Audio
                 {
                     var res = stream.Fill(data.Slice(curSize), curSamples / (float)stream.Format.SampleRate);
 
+                    if (res == 0)
+                    {
+                        control.Stop();
+                        return 0;
+                    }
+           
                     curSamples += res;
 
-                    curSize += res;
+                    curSize += res * SAMPLE_SIZE;
                 }
 
                 return curSize;
@@ -116,6 +127,7 @@ namespace XrEngine.Audio
         {
             var thread = new Thread(p => PlayWork(stream, getDirection, (StreamControl)p!));
             thread.Name = "Audio Stream Player";
+            thread.Priority = ThreadPriority.Highest;
             var control = new StreamControl(thread);
             thread.Start(control);
             return control;
