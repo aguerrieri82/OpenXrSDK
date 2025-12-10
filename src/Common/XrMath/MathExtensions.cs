@@ -1201,6 +1201,12 @@ namespace XrMath
                 Array.Reverse(self.Points);
         }
 
+        public static void EnsureCW(this Poly2 self)
+        {
+            if (self.SignedArea() > 0)
+                Array.Reverse(self.Points);
+        }
+
         public static float Length(this Poly2 self)
         {
             var length = 0f;

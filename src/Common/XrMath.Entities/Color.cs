@@ -14,7 +14,9 @@ namespace XrMath
             R = array[0];
             G = array[1];
             B = array[2];
-            A = array[3];
+
+            if (array.Length == 4)
+                A = array[3];
         }
 
         public Color(float r, float g, float b, float a = 1f)

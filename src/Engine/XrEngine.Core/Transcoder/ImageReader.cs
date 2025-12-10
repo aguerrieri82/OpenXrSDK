@@ -15,7 +15,7 @@ namespace XrEngine
         {
         }
 
-        public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
+        public override IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
             if (options?.MimeType == "image/jpeg" && (options?.Format == null || options.Format == TextureFormat.Rgba32))
             {

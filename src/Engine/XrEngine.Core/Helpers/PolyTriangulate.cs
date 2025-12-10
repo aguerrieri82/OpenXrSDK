@@ -3,108 +3,63 @@ using XrMath;
 
 namespace XrEngine
 {
+
+    public static class PolyTriangulateV2
+    {
+        public static IList<Triangle3> TriangulateWithHoles(
+            IList<Vector2> outerBoundary,
+            IList<IList<Vector2>> holes)
+        {
+            var data = new List<IList<Vector2>>
+            {
+                outerBoundary
+            };
+
+            var allVertices = new List<Vector2>(outerBoundary.Count + (holes?.Count * 4 ?? 0));
+
+            allVertices.AddRange(outerBoundary);
+
+            if (holes != null)
+            {
+                foreach (var hole in holes)
+                {
+                    data.Add(hole);
+                    allVertices.AddRange(hole);
+                }
+            }
+
+            var indices = Mapbox.Earcut.Triangulate(data);
+
+            var results = new List<Triangle3>(indices.Count / 3);
+
+            for (int i = 0; i < indices.Count; i += 3)
+            {
+                int i0 = indices[i];
+                int i1 = indices[i + 1];
+                int i2 = indices[i + 2];
+
+                var p0 = allVertices[i0];
+                var p1 = allVertices[i1];
+                var p2 = allVertices[i2];
+
+                var tri = new Triangle3
+                {
+                    V0 = new Vector3(p0.X, p0.Y, 0),
+                    V1 = new Vector3(p1.X, p1.Y, 0),
+                    V2 = new Vector3(p2.X, p2.Y, 0)
+                };
+
+                results.Add(tri);
+            }
+
+            return results;
+        }
+    }
+
+
     public static class PolyTriangulate
     {
-        public static List<Triangle3> TriangulateWithHoles(
-              IList<Vector2> outerBoundary,
-              IList<IList<Vector2>> holes)
-        {
-            // 1. Ensure orientation of outer boundary is CCW
-            if (!IsCounterClockwise(outerBoundary))
-            {
-                var reversed = outerBoundary.Reverse().ToList();
-                outerBoundary = reversed;
-            }
-
-            // 2. Ensure each hole is CW
-            for (int i = 0; i < holes.Count; i++)
-            {
-                if (IsCounterClockwise(holes[i]))
-                {
-                    holes[i] = holes[i].Reverse().ToList();
-                }
-            }
-
-            // 3. Merge holes into outer boundary by adding "bridge" edges.
-            // This is a conceptual approach: we pick a vertex from each hole and connect it
-            // to a suitable vertex on the outer polygon. For simplicity, we pick the leftmost
-            // vertex of the hole and connect it to a vertex on the outer polygon that is horizontally closest.
-            // A more robust approach would involve using a proper polygon clipping library.
-            List<Vector2> mergedPolygon = outerBoundary.ToList();
-
-            foreach (var hole in holes)
-            {
-                // Find leftmost vertex in hole
-                var holeLeftmost = hole.Aggregate((curMin, v) => (v.X < curMin.X) ? v : curMin);
-
-                // Find a vertex on outer boundary to connect to. For simplicity,
-                // choose the vertex on the outer boundary that is closest horizontally to the holeLeftmost.
-                Vector2 bestOuter = mergedPolygon[0];
-                float bestDist = float.MaxValue;
-                foreach (var v in mergedPolygon)
-                {
-                    float dist = Math.Abs(v.X - holeLeftmost.X);
-                    if (dist < bestDist)
-                    {
-                        bestDist = dist;
-                        bestOuter = v;
-                    }
-                }
-
-                // Create a connection: bestOuter -> holeLeftmost
-                // Insert the hole polygon into the merged polygon by cutting at bestOuter
-                // and weaving in the hole + these two bridge edges.
-
-                // Find index of bestOuter
-                int idx = mergedPolygon.IndexOf(bestOuter);
-                if (idx < 0) { throw new Exception("Internal error: bestOuter not found."); }
-
-                // The merged polygon: outer[0..idx], hole vertices, outer[idx..end]
-                // with a bridge: bestOuter->holeLeftmost and holeLeftmost->bestOuter.
-                // Actually, to keep polygon simple, we do something like:
-                // Insert the hole polygon in reverse order (except the chosen vertex),
-                // forming a "detour" that includes the hole.
-
-                // We'll connect bestOuter to holeLeftmost and then proceed around the hole, 
-                // and then back to bestOuter.
-
-                List<Vector2> newPolygon = new List<Vector2>();
-                // Keep outer from start to idx:
-                for (int iO = 0; iO <= idx; iO++)
-                    newPolygon.Add(mergedPolygon[iO]);
-
-                // Add bridge from bestOuter to holeLeftmost
-                newPolygon.Add(holeLeftmost);
-
-                // Add the hole polygon (note: hole is in CW order, we want to move along it
-                // so that it remains inside. We might simply follow hole order as is.)
-                // Start from holeLeftmost index to the end and then from start to holeLeftmost index:
-                int hlIdx = hole.IndexOf(holeLeftmost);
-                for (int h_i = 1; h_i < hole.Count; h_i++)
-                {
-                    int h_idx = (hlIdx + h_i) % hole.Count;
-                    newPolygon.Add(hole[h_idx]);
-                }
-
-                // Add bridge from last hole vertex back to bestOuter
-                newPolygon.Add(bestOuter);
-
-                // Now continue outer from idx+1 to the end
-                for (int iO = idx + 1; iO < mergedPolygon.Count; iO++)
-                    newPolygon.Add(mergedPolygon[iO]);
-
-                mergedPolygon = newPolygon;
-            }
-
-            // Now we have a single polygon without holes (but possibly with extra edges).
-            // 4. Triangulate this merged polygon.
-            return TriangulateSimplePolygon(mergedPolygon);
-        }
-
-        /// <summary>
-        /// Triangulate a simple polygon (no holes) using ear clipping.
-        /// Polygon is assumed to be in CCW order and simple (no self-intersections).
-        /// </summary>
+      
         public static List<Triangle3> TriangulateSimplePolygon(IList<Vector2> polygon)
         {
             List<Triangle3> triangles = new List<Triangle3>();
@@ -137,11 +92,7 @@ namespace XrEngine
                 }
 
                 if (!earFound)
-                {
-                    // No ear found, polygon might be invalid or have colinear points causing issues.
-                    // Implement a fallback or debugging here.
                     break;
-                }
             }
 
             if (indices.Count == 3)
@@ -193,25 +144,11 @@ namespace XrEngine
             return (u >= 0) && (v >= 0) && (u + v < 1);
         }
 
-        private static float Area(IList<Vector2> polygon)
-        {
-            float area = 0;
-            for (int i = 0; i < polygon.Count; i++)
-            {
-                int j = (i + 1) % polygon.Count;
-                area += polygon[i].X * polygon[j].Y - polygon[j].X * polygon[i].Y;
-            }
-            return area * 0.5f;
-        }
 
         private static float Area(Vector2 a, Vector2 b, Vector2 c)
         {
             return ((b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X)) * 0.5f;
         }
 
-        private static bool IsCounterClockwise(IList<Vector2> polygon)
-        {
-            return Area(polygon) > 0;
-        }
     }
 }

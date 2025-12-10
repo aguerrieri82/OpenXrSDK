@@ -26,6 +26,12 @@ using XrEngine.Physics;
 using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
+using RoomDesigner.Ikea;
+using Tensorflow.Keras.Engine;
+using RoomDesigner.Game.Ikea;
+using Microsoft.VisualBasic;
+
+
 
 
 
@@ -1031,6 +1037,62 @@ namespace XrSamples
                 scene.AddComponent<XrInputPlayer>();
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
 
+
+
+                var service = new IkeaKitchenService();
+
+                service.Authorize(
+                    "eyJ0eXAiOiJqd3QifQ==.eyJ1c2VySUQiOiJpY21fNjk1ZjI4ZjAtY2ViMi0xMWYwLWE2ODQtOGRjZDZhZWNmMTNmIiwiY2xpZW50IjoiUHJvZHVjdGlvblJhbmdlIiwiaWF0IjoiMjAyNTEyMDlUMTA0OTQwWiIsImV4cCI6IjIwMjUxMjA5VDIwMjgxOFoiLCJpc3MiOiJwbGF0Zm9ybS5pa2VhLXByb2QuYnkubWUifQ==.75394d4454374a6e732b4b354f75666b5158574f75646c55555356504547473363514f646a6b68733141453d");
+                service.CachePath = "d:\\Projects\\Ikea";
+
+                Task.Run(async () =>
+                {
+                    var proj = await service.OpenProjectAsync(Guid.Parse("45FF36DE-5698-4E1A-83C5-233389A72787"));
+                    var bmaLoader = new IkeaKitchenBmaLoader(service);
+                    await bmaLoader.InitAsync(proj);
+
+                    var kitchen = new Group3D();
+                    kitchen.Transform.SetScale(0.001f);
+
+                    var solver = new BmaSolver(bmaLoader);
+
+                    var fornitures = proj.core.buildingDocument.buildings[0].levels[0].furnitures;
+
+                    foreach (var forn in fornitures)
+                    {
+                        var item = solver.Compose(forn);
+
+                        if (item != null)
+                        {
+                            var matrix = MathUtils.CreateMatrix(forn.transfo);
+                            item.WorldMatrix = matrix;
+                            kitchen.AddChild(item);
+                        }
+                    }
+
+                    scene.AddChild(kitchen);
+
+                    var worktops = proj.linkedStacks[0].linkedApps[0].linkedDistribs[0].data.linears?.worktops;
+
+                    var topFurn = fornitures.Where(a => a.embedResourceInfo?.designTree != null).First();
+
+                    var generator = new IkeaWorktopMeshGenerator();
+                    var solids = generator.BuildGeometry(topFurn.embedResourceInfo!.designTree);
+
+                    File.WriteAllText("d:\\out.svg", WorktopSvgExporter.ToSvg(solids));
+
+                    foreach (var solid in solids)
+                    {
+                        var geo = generator.BuildGeometry(solid, worktops[0].thickness);
+                        var mesh = new TriangleMesh(geo, (Material)MaterialFactory.CreatePbr(Color.Parse("#00ff00")));
+                        mesh.Transform.Position = new Vector3(0, 0, worktops[0].altitude);
+                        kitchen.AddChild(mesh);
+                    }
+
+          
+
+                }).Wait();
+
                 var ui = scene.UiPanel!;
 
 #if !ANDROID
@@ -1359,7 +1421,7 @@ namespace XrSamples
 
             var scene = app.ActiveScene!;
 
-            var sphere1 = new TriangleMesh(Sphere3D.Default, 
+            var sphere1 = new TriangleMesh(Sphere3D.Default,
                 (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
             {
                 Name = "right"
@@ -1450,7 +1512,7 @@ namespace XrSamples
                         sphere1.WorldPosition = rightPos;
                         sphere2.WorldPosition = leftPos;
                         sphere3.WorldPosition = ofs;
-                    });     
+                    });
                 });
         }
 
