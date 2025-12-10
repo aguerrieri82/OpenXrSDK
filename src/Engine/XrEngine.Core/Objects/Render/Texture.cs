@@ -53,6 +53,7 @@ namespace XrEngine
         ClampToEdge = 33071,
         Repeat = 10497,
         ClampToBorder = 33069,
+        MirrorRepeat = 33648,
     }
 
     public enum ScaleFilter

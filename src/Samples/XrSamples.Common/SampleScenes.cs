@@ -1053,43 +1053,49 @@ namespace XrSamples
 
                     var kitchen = new Group3D();
                     kitchen.Transform.SetScale(0.001f);
+                    kitchen.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
 
                     var solver = new BmaSolver(bmaLoader);
 
                     var fornitures = proj.core.buildingDocument.buildings[0].levels[0].furnitures;
 
+                    var worktops = proj.linkedStacks[0].linkedApps[0].linkedDistribs[0].data.linears?.worktops;
+
                     foreach (var forn in fornitures)
                     {
                         var item = solver.Compose(forn);
 
+                        var matrix = MathUtils.CreateMatrix(forn.transfo);
+
                         if (item != null)
                         {
-                            var matrix = MathUtils.CreateMatrix(forn.transfo);
                             item.WorldMatrix = matrix;
                             kitchen.AddChild(item);
+                        }
+
+                        if (forn.embedResourceInfo?.designTree!= null)
+                        {
+                            var generator = new IkeaWorktopMeshBuilder();
+
+                            var mat = bmaLoader.GetModel(worktops![0].productInfoDbId);
+
+                            var mat3d = solver.LoadMaterial(mat);
+
+                            var solids = generator.BuildGeometry(forn.embedResourceInfo!.designTree);
+
+                            foreach (var solid in solids)
+                            {
+                                var geo = generator.BuildGeometry(solid, worktops![0].thickness);
+                                var mesh = new TriangleMesh(geo, mat3d);
+                                mesh.Name = "Worktop";
+                                mesh.WorldMatrix = matrix;
+                                kitchen.AddChild(mesh);
+                            }
                         }
                     }
 
                     scene.AddChild(kitchen);
 
-                    var worktops = proj.linkedStacks[0].linkedApps[0].linkedDistribs[0].data.linears?.worktops;
-
-                    var topFurn = fornitures.Where(a => a.embedResourceInfo?.designTree != null).First();
-
-                    var generator = new IkeaWorktopMeshGenerator();
-                    var solids = generator.BuildGeometry(topFurn.embedResourceInfo!.designTree);
-
-                    File.WriteAllText("d:\\out.svg", WorktopSvgExporter.ToSvg(solids));
-
-                    foreach (var solid in solids)
-                    {
-                        var geo = generator.BuildGeometry(solid, worktops[0].thickness);
-                        var mesh = new TriangleMesh(geo, (Material)MaterialFactory.CreatePbr(Color.Parse("#00ff00")));
-                        mesh.Transform.Position = new Vector3(0, 0, worktops[0].altitude);
-                        kitchen.AddChild(mesh);
-                    }
-
-          
 
                 }).Wait();
 
