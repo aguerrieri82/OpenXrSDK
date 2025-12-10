@@ -230,6 +230,8 @@ namespace XrEditor
 
             _renderSurface.EnableVSync(EditorDebug.EnableVSync);
 
+            Context.Implement<IOutlineSource>(_tools.OfType<IOutlineSource>().First());
+
             while (_isStarted)
             {
                 _fpsLabel.Text = _engine!.App.Stats.Fps.ToString();

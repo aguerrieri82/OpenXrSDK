@@ -17,6 +17,8 @@ namespace XrEngine.Video
         private VideoFormat _outFormat;
         private SwsContext* _swsContext;
 
+        const int SWS_BILINEAR = 2;
+
         /*
         Silk.NET.Direct3D11.ID3D11Texture2D* _dxText = null;
         private Texture2DDesc _dxTexDesc;

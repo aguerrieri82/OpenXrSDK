@@ -1048,14 +1048,14 @@ namespace XrSamples
                 Task.Run(async () =>
                 {
                     var proj = await service.OpenProjectAsync(Guid.Parse("45FF36DE-5698-4E1A-83C5-233389A72787"));
-                    var bmaLoader = new IkeaKitchenBmaLoader(service);
+                    var bmaLoader = new IkeaKitchenCatalog(service);
                     await bmaLoader.InitAsync(proj);
 
                     var kitchen = new Group3D();
                     kitchen.Transform.SetScale(0.001f);
                     kitchen.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
 
-                    var solver = new BmaSolver(bmaLoader);
+                    var solver = new BmaLoader(bmaLoader);
 
                     var fornitures = proj.core.buildingDocument.buildings[0].levels[0].furnitures;
 
@@ -1063,7 +1063,7 @@ namespace XrSamples
 
                     foreach (var forn in fornitures)
                     {
-                        var item = solver.Compose(forn);
+                        var item = solver.Load(forn);
 
                         var matrix = MathUtils.CreateMatrix(forn.transfo);
 
