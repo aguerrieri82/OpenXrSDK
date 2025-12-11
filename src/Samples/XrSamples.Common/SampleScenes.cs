@@ -1085,7 +1085,7 @@ namespace XrSamples
 
                             foreach (var solid in solids)
                             {
-                                var geo = generator.BuildGeometry(solid, worktops![0].thickness);
+                                var geo = generator.BuildGeometry(solid);
                                 var mesh = new TriangleMesh(geo, mat3d);
                                 mesh.Name = "Worktop";
                                 mesh.WorldMatrix = matrix;
@@ -1093,6 +1093,8 @@ namespace XrSamples
                             }
                         }
                     }
+
+                    kitchen.AddComponent(new BmaAnimator());
 
                     scene.AddChild(kitchen);
 
