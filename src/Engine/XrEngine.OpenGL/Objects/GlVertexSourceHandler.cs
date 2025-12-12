@@ -49,6 +49,7 @@ namespace XrEngine.OpenGL
         readonly GlVertexArray<TVert, TInd> _vertices;
         readonly PrimitiveType _primitive;
         readonly IVertexSource<TVert, TInd> _source;
+        EngineObject? _sourceObject;
 
         public GlVertexSourceHandler(GL gl, IVertexSource<TVert, TInd> source)
         {
@@ -105,7 +106,10 @@ namespace XrEngine.OpenGL
 
         public override void Update()
         {
+
             _vertices.Update(_source.Vertices, _source.Indices);
+
+            _sourceObject = _source.Object;
 
             Version = _source.Object.Version;
 
@@ -121,7 +125,7 @@ namespace XrEngine.OpenGL
 
         public override IVertexSource Source => _source;
 
-        public override bool NeedUpdate => _source.Object != null && (_source.Object.Version != Version || Version == -1);
+        public override bool NeedUpdate => _source.Object != null && (_source.Object.Version != Version || Version == -1 || _sourceObject != _source.Object);
 
         public override GlVertexLayout Layout => _vertices.Layout;
     }

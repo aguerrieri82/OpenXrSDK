@@ -19,7 +19,7 @@ namespace XrEngine
 
                 if (local != null)
                 {
-                    local.UpdateBounds();
+                    local.UpdateBounds(true);
                     Size = local.LocalBounds.Size;
                     Center = local.LocalBounds.Center;
                 }

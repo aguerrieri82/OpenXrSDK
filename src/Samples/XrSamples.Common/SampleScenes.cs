@@ -1036,71 +1036,29 @@ namespace XrSamples
                 scene.AddComponent<XrInputRecorder>();
                 scene.AddComponent<XrInputPlayer>();
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
-
-
-
-                var service = new IkeaKitchenService();
-
-                service.Authorize(
-                    "eyJ0eXAiOiJqd3QifQ==.eyJ1c2VySUQiOiJpY21fNjk1ZjI4ZjAtY2ViMi0xMWYwLWE2ODQtOGRjZDZhZWNmMTNmIiwiY2xpZW50IjoiUHJvZHVjdGlvblJhbmdlIiwiaWF0IjoiMjAyNTEyMDlUMTA0OTQwWiIsImV4cCI6IjIwMjUxMjA5VDIwMjgxOFoiLCJpc3MiOiJwbGF0Zm9ybS5pa2VhLXByb2QuYnkubWUifQ==.75394d4454374a6e732b4b354f75666b5158574f75646c55555356504547473363514f646a6b68733141453d");
-                service.CachePath = "d:\\Projects\\Ikea";
-
+           
                 Task.Run(async () =>
                 {
-                    var proj = await service.OpenProjectAsync(Guid.Parse("45FF36DE-5698-4E1A-83C5-233389A72787"));
-                    var bmaLoader = new IkeaKitchenCatalog(service);
-                    await bmaLoader.InitAsync(proj);
+                    var service = new IkeaKitchenService();
+                    service.CachePath = "d:\\Projects\\Ikea";
 
-                    var kitchen = new Group3D();
-                    kitchen.Transform.SetScale(0.001f);
-                    kitchen.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
+                    var catalog = new IkeaKitchenCatalog(service);
+                    var solver = new BmaLoader(catalog);
 
-                    var solver = new BmaLoader(bmaLoader);
+                    var proj = await service.OpenProjectAsync(Guid.Parse("45FF36DE-5698-4E1A-83C5-233389A72787"), true);
 
-                    var fornitures = proj.core.buildingDocument.buildings[0].levels[0].furnitures;
+                    await catalog.InitAsync(proj);
 
-                    var worktops = proj.linkedStacks[0].linkedApps[0].linkedDistribs[0].data.linears?.worktops;
+                    var kitchen = solver.Load(proj);
 
-                    foreach (var forn in fornitures)
-                    {
-                        var item = solver.Load(forn);
-
-                        var matrix = MathUtils.CreateMatrix(forn.transfo);
-
-                        if (item != null)
-                        {
-                            item.WorldMatrix = matrix;
-                            kitchen.AddChild(item);
-                        }
-
-                        if (forn.embedResourceInfo?.designTree!= null)
-                        {
-                            var generator = new IkeaWorktopMeshBuilder();
-
-                            var mat = bmaLoader.GetModel(worktops![0].productInfoDbId);
-
-                            var mat3d = solver.LoadMaterial(mat);
-
-                            var solids = generator.BuildGeometry(forn.embedResourceInfo!.designTree);
-
-                            foreach (var solid in solids)
-                            {
-                                var geo = generator.BuildGeometry(solid);
-                                var mesh = new TriangleMesh(geo, mat3d);
-                                mesh.Name = "Worktop";
-                                mesh.WorldMatrix = matrix;
-                                kitchen.AddChild(mesh);
-                            }
-                        }
-                    }
-
-                    kitchen.AddComponent(new BmaAnimator());
+                    var prod = solver.LoadProduct("ASM-42460037-IT")!;
+                    prod.Transform.SetScale(0.001f);
+                    prod.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
 
                     scene.AddChild(kitchen);
 
-
                 }).Wait();
-
+          
                 var ui = scene.UiPanel!;
 
 #if !ANDROID

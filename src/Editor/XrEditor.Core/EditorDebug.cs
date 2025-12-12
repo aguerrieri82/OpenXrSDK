@@ -31,7 +31,7 @@ namespace XrEditor
                   //opt.UseInstanceDraw = false;        
               })
               //.UseSpaceWarp()
-              .SetRenderQuality(1, 2)
+              .SetRenderQuality(1f, 2)
               .CreateRoomManager()
               .Build();
     }

@@ -114,6 +114,32 @@ namespace XrMath
             dst[3] = (byte)(A * 255);
         }
 
+        public readonly Color ToSrgb()
+        {
+            static float LinearToSrgb(float c)
+            {
+                if (c <= 0.0031308f)
+                    return 12.92f * c;
+           
+                return 1.055f * MathF.Pow(c, 1f / 2.4f) - 0.055f;
+            }
+
+            return new Color(LinearToSrgb(R), LinearToSrgb(G), LinearToSrgb(B), A);
+        }
+
+        public readonly Color ToLinear()
+        {
+            static float SrgbToLinear(float c)
+            {
+                if (c <= 0.04045f)
+                    return c / 12.92f;
+                else
+                    return MathF.Pow((c + 0.055f) / 1.055f, 2.4f);
+            }
+
+            return new Color(SrgbToLinear(R), SrgbToLinear(G), SrgbToLinear(B), A);
+        }
+
 
         public static Color operator *(Color a, float v)
         {
