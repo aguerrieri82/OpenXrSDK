@@ -1045,16 +1045,16 @@ namespace XrSamples
                     var catalog = new IkeaKitchenCatalog(service);
                     var solver = new BmaLoader(catalog);
 
-                    var proj = await service.OpenProjectAsync(Guid.Parse("45FF36DE-5698-4E1A-83C5-233389A72787"), true);
+                    var proj = await service.OpenProjectAsync(Guid.Parse("1eeabf5f-727b-469f-9d4f-39946630344d"), false);
 
                     await catalog.InitAsync(proj);
 
                     var kitchen = solver.Load(proj);
 
-                    var prod = solver.LoadProduct("ASM-42460037-IT")!;
+                    var prod = solver.LoadProduct("ASL-42460167-IT")!;
                     prod.Transform.SetScale(0.001f);
                     prod.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
-
+                   
                     scene.AddChild(kitchen);
 
                 }).Wait();

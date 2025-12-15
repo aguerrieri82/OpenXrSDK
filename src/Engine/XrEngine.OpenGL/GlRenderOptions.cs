@@ -24,6 +24,7 @@ namespace XrEngine.OpenGL
         public GlRenderOptions()
         {
             FloatPrecision = ShaderPrecision.High;
+            IntPrecision = ShaderPrecision.Medium;
             ShaderVersion = "320 es";
             FrustumCulling = true;
             UseOcclusionQuery = false;
@@ -57,6 +58,8 @@ namespace XrEngine.OpenGL
         public string? ShaderVersion { get; set; }
 
         public ShaderPrecision FloatPrecision { get; set; }
+
+        public ShaderPrecision IntPrecision { get; set; }
 
         public bool RequireTextureCompression { get; set; }
 

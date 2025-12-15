@@ -120,7 +120,7 @@ namespace XrEngine
             return format;
         }
 
-        public static unsafe SKBitmap ToBitmap(TextureData data, bool flipY)
+        public static SKBitmap ToBitmap(TextureData data, bool flipY)
         {
 
             var pixelSize = GetPixelSizeByte(data.Format);
