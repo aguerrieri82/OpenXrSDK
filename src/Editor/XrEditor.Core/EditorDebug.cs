@@ -27,8 +27,7 @@ namespace XrEditor
                   opt.UseDepthPass = false;
                   opt.UseHitTest = true;
                   opt.FrustumCulling = false;
-                  opt.UseLayerV2 = true;
-                  //opt.UseInstanceDraw = false;        
+                  opt.UseLayerV2 = true;     
               })
               //.UseSpaceWarp()
               .SetRenderQuality(1f, 2)

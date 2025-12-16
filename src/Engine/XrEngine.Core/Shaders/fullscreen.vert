@@ -1,5 +1,11 @@
 precision highp float;
 
+#ifdef MULTI_VIEW
+
+    layout(num_views=2) in;
+
+#endif  
+
 out vec2 inUV;
 
 void main()

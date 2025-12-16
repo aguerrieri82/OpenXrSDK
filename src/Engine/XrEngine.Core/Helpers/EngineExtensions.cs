@@ -974,13 +974,13 @@ namespace XrEngine
             var hasesh = new Dictionary<Vector512<float>, uint>();
             var newVertices = new List<VertexData>(self.Vertices.Length);
 
-            Vector512<float> Hash(VertexData vert)
+            Vector512<float> Hash(in VertexData vert)
             {
                 var pos2 = vert.Pos.Round(decimals);
                 return Vector512.Create(pos2.X, pos2.Y, pos2.Z, vert.Normal.X, vert.Normal.Y, vert.Normal.Z, vert.UV.X, vert.UV.Y, 0, 0, 0, 0, 0, 0, 0, 0);
             }
 
-            foreach (var vert in self.Vertices)
+            foreach (ref var vert in self.Vertices.AsSpan())
             {
                 var hash = Hash(vert);
                 if (!hasesh.ContainsKey(hash))
@@ -988,7 +988,6 @@ namespace XrEngine
                     hasesh[hash] = (uint)newVertices.Count;
                     newVertices.Add(vert);
                 }
-
             }
 
             var indices = new uint[self.Vertices.Length];

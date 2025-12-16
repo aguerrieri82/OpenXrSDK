@@ -823,7 +823,7 @@ namespace XrEngine.Gltf
             return nodeObj;
         }
 
-        protected Group3D ProcessScene(glTFLoader.Schema.Scene glScene)
+        protected Group3D ProcessScene(Scene glScene)
         {
             var scene = new Group3D();
 
@@ -901,7 +901,6 @@ namespace XrEngine.Gltf
             //TODO: id must be unqiue per scene, multiple instances can have same id
             //obj.Id = new Guid(hash);
         }
-
 
         protected void AssignAsset<T>(T obj, string name, params object[] parts) where T : EngineObject
         {

@@ -3,11 +3,10 @@ using Silk.NET.OpenGLES;
 #else
 using Silk.NET.OpenGL;
 
-
 #endif
 
 using XrMath;
-
+using System.Numerics;
 
 namespace XrEngine.OpenGL
 {
@@ -15,15 +14,24 @@ namespace XrEngine.OpenGL
     {
         protected readonly GlRenderPassTarget _passTarget;
         protected readonly GlSimpleProgram _outlineProgram;
+        protected Bounds2 _bounds;
 
-        public GlOutlinePass(OpenGLRender renderer, int boundEye = -1)
+        public GlOutlinePass(OpenGLRender renderer, int boundEye = -1, bool isMultiView = false)
             : base(renderer)
         {
             _passTarget = new GlRenderPassTarget(renderer.GL);
             _passTarget.BoundEye = boundEye;
             _passTarget.DepthMode = TargetDepthMode.None;
+            _passTarget.IsMultiView = isMultiView;
+            _passTarget.UseMultiViewTarget = true;
 
             _outlineProgram = new GlSimpleProgram(renderer.GL, "fullscreen.vert", "outline.frag", str => Embedded.GetString<Material>(str));
+            if (isMultiView)
+            {
+                _outlineProgram.AddExtension("GL_OVR_multiview2");
+                _outlineProgram.AddFeature("MULTI_VIEW");
+            }
+
             _outlineProgram.Build();
         }
 
@@ -52,6 +60,10 @@ namespace XrEngine.OpenGL
             _renderer.State.SetWriteColor(true);
 
             _gl.Clear(ClearBufferMask.ColorBufferBit);
+
+            _bounds = new Bounds2();
+            _bounds.Min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+            _bounds.Max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
 
             return base.BeginRender(camera);
         }
@@ -84,7 +96,17 @@ namespace XrEngine.OpenGL
             _outlineProgram.SetUniform("uSize", (int)_renderer.Options.Outline.Size);
             _outlineProgram.LoadTexture(_passTarget.ColorTexture!.ToEngineTexture(), 0);
 
+            int padding = (int)_renderer.Options.Outline.Size + 2;
+            _bounds.Min -= new Vector2(padding, padding);
+            _bounds.Max += new Vector2(padding, padding);
+
+            _renderer.State.EnableFeature(EnableCap.ScissorTest, true);
+  
+            _gl.Scissor((int)_bounds.Min.X, (int)_bounds.Min.Y, (uint)_bounds.Size.X, (uint)_bounds.Size.Y);
+
             DrawQuad();
+
+            _renderer.State.EnableFeature(EnableCap.ScissorTest, false);
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()
@@ -112,7 +134,60 @@ namespace XrEngine.OpenGL
             base.Dispose();
         }
 
+        static bool TryGetScreenPoint(Vector3 worldPos, Camera cam, out Vector2 screenPos)
+        {
+            var clipPos = Vector4.Transform(new Vector4(worldPos, 1), cam.ViewProjection);
+
+            if (clipPos.W <= 0.001f)
+            {
+                screenPos = Vector2.Zero;
+                return false; 
+            }
+
+            var ndc = new Vector3(clipPos.X, clipPos.Y, clipPos.Z) / clipPos.W;
+
+            var viewSize = cam.ViewSize;
+            screenPos = new Vector2(
+                (ndc.X + 1.0f) * 0.5f * viewSize.Width,
+                (ndc.Y + 1.0f) * 0.5f * viewSize.Height 
+            );
+
+            return true;
+        }
+
+
+
+        protected override void Draw(DrawContent draw)
+        {
+            var bound = draw.Object!.WorldBounds;
+
+            var objectClipping = false;
+
+            foreach (var corner in bound.Points)
+            {
+                if (!TryGetScreenPoint(corner, _renderer.UpdateContext.PassCamera!, out var screen))
+                {
+                    objectClipping = true;
+                    break;
+                }
+
+                _bounds.Min = Vector2.Min(_bounds.Min, screen);
+                _bounds.Max = Vector2.Max(_bounds.Max, screen);
+            }
+
+            if (objectClipping)
+            {
+                var size = _renderer.UpdateContext.PassCamera!.ViewSize;
+                _bounds.Min = Vector2.Zero;
+                _bounds.Max = new Vector2(size.Width, size.Height);
+            }
+
+            base.Draw(draw);
+        }
+
         public IOutlineSource? Source { get; set; }
+
+        public GlRenderPassTarget PassTarget => _passTarget;    
 
     }
 }

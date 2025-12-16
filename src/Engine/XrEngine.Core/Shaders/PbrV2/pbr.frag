@@ -307,7 +307,7 @@ void main()
 				float cosVh  = max(0.0, dot(Lo, Lh));
 
 				// --- FIX 2: standard Fresnel for direct ---
-				vec3 F = fresnelSchlick(F0, cosVh);
+				vec3 F = fresnelSchlickRoughness(F0, cosVh, roughness);
 
 				// GGX NDF with clamped alpha
 				float denom = (cosLh * cosLh) * (a2 - 1.0) + 1.0;
@@ -355,7 +355,7 @@ void main()
 			// Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
 			// use cosLo instead of angle with light's half-vector (cosLh above).
 			// See: https://seblagarde.wordpress.com/2011/08/17/hello-world/
-			vec3 F = fresnelSchlick(F0, cosLo);
+			vec3 F = fresnelSchlickRoughness(F0, cosLo, roughness);
 
 			// Get diffuse contribution factor (as with direct lighting).
 			vec3 kd = mix(vec3(1.0) - F, vec3(0.0), metalness);

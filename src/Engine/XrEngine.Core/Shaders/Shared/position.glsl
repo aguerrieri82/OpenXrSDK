@@ -1,6 +1,4 @@
 ﻿
-out uint fViewIndex;
-
 #ifdef MULTI_VIEW
 
     #define NUM_VIEWS 2
@@ -56,11 +54,6 @@ out uint fViewIndex;
 
 void computePos(vec4 pos) 
 {
-    #ifdef MULTI_VIEW
-        fViewIndex = gl_ViewID_OVR;
-    #else
-        fViewIndex = uint(uCamera.activeEye);
-    #endif
 
     #ifdef USE_HEIGHT_MAP
 

@@ -49,14 +49,16 @@ namespace XrEngine
         {
             var shadowMode = bld.Context.ShadowMapProvider?.Options.Mode ?? ShadowMapMode.None;
 
-            if (shadowMode != ShadowMapMode.None)
+            if (shadowMode != ShadowMapMode.None && bld.Context.ShadowMapProvider?.ShadowMap != null)
             {
                 bld.AddFeature("USE_SHADOW_MAP");
                 bld.AddFeature("SHADOW_MAP_MODE " + (int)shadowMode);
 
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, 14);
+                    if (ctx.ShadowMapProvider.ShadowMap != null)
+                        up.LoadTexture(ctx.ShadowMapProvider!.ShadowMap!, 14);
+
                     if (ctx.ShadowMapProvider.Light != null)
                         up.SetUniform("uLightDirection", ctx.ShadowMapProvider.Light.Direction);
                 });

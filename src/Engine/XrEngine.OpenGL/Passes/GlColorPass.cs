@@ -43,7 +43,7 @@ namespace XrEngine.OpenGL
         protected override IEnumerable<IGlLayer> SelectLayers()
         {
             return _renderer.Layers.Where(a => (a.Type & GlLayerType.Color) == GlLayerType.Color ||
-                                               (a.SceneLayer is DetachedLayer det));
+                                               (a.SceneLayer is DetachedLayer det && det.Usage != DetachedLayerUsage.Outline));
         }
 
         protected override void EndRender()

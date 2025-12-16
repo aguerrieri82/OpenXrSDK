@@ -147,8 +147,6 @@ namespace XrEngine.OpenGL
 
             }
 
-
-
             return isChanged;
         }
 

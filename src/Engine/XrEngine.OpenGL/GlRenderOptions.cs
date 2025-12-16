@@ -16,6 +16,8 @@ namespace XrEngine.OpenGL
         public Color Color { get; set; }
 
         public float Size { get; set; }
+
+        public bool IsMultiView { get; set; }
     }
 
 

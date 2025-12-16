@@ -184,7 +184,7 @@ namespace XrEngine
                 if (DepthNoiseFactor > 0)
                     bld.AddFeature("USE_DEPTH_NOISE");
 
-                if (bld.Context.ShadowMapProvider != null)
+                if (bld.Context.ShadowMapProvider?.ShadowMap != null)
                 {
                     var mode = bld.Context.ShadowMapProvider.Options.Mode;
 

@@ -1,6 +1,5 @@
 ﻿using CanvasUI;
 using DrumsVR.Game;
-using OpenAl.Framework;
 using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using PhysX;
@@ -19,7 +18,6 @@ using XrEngine.Compression;
 using XrEngine.Devices;
 using XrEngine.Gltf;
 using XrEngine.Helpers;
-using XrEngine.Media;
 using XrEngine.Objects;
 using XrEngine.OpenXr;
 using XrEngine.Physics;
@@ -27,11 +25,8 @@ using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
 using RoomDesigner.Ikea;
-using Tensorflow.Keras.Engine;
 using RoomDesigner.Game.Ikea;
-using Microsoft.VisualBasic;
-
-
+using XrEngine.Media;
 
 
 
@@ -204,7 +199,7 @@ namespace XrSamples
                 depth.Transform.SetPositionY(1);
 
                 depth.Name = "Depth";
-
+                /*
                 depth.AddBehavior((_, _) =>
                 {
                     var sp = ((IShadowMapProvider)depth.Scene!.App!.Renderer!);
@@ -222,6 +217,7 @@ namespace XrSamples
                     }
 
                 });
+                */
             }
 
 
@@ -1030,13 +1026,17 @@ namespace XrSamples
             .ConfigureApp(app =>
             {
                 var scene = (RoomScene)app.App.ActiveScene!;
+
+                scene.AddChild<EnvironmentView>();
+
+
                 scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
                 scene.AddComponent<DebugGizmos>();
                 scene.AddComponent<XrInputRecorder>();
                 scene.AddComponent<XrInputPlayer>();
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
-           
+       
                 Task.Run(async () =>
                 {
                     var service = new IkeaKitchenService();
@@ -1058,7 +1058,7 @@ namespace XrSamples
                     scene.AddChild(kitchen);
 
                 }).Wait();
-          
+        
                 var ui = scene.UiPanel!;
 
 #if !ANDROID

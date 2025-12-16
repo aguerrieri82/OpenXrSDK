@@ -74,21 +74,25 @@ namespace XrEngine.OpenGL
         }
 
 
-        public void Configure(GlTexture colorTex, GlTexture depthTex, uint sampleCount)
+        public void Configure(GlTexture colorTex, GlTexture? depthTex, uint sampleCount)
         {
             _color = colorTex;
             _depth = depthTex;
             _sampleCount = sampleCount;
 
-            var depthAtt = GlUtils.IsDepthStencil(_depth.InternalFormat) ?
-                FramebufferAttachment.DepthStencilAttachment :
-                FramebufferAttachment.DepthAttachment;
 
             Bind();
 
             BindAttachment(_color, FramebufferAttachment.ColorAttachment0, true);
 
-            BindAttachment(_depth, depthAtt, false);
+            if (_depth != null)
+            {
+                var depthAtt = GlUtils.IsDepthStencil(_depth.InternalFormat) ?
+                    FramebufferAttachment.DepthStencilAttachment :
+                    FramebufferAttachment.DepthAttachment;
+
+                BindAttachment(_depth, depthAtt, false);
+            }
 
             Check();
 

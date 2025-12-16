@@ -133,6 +133,7 @@ namespace XrEngine.OpenXr
 
                 if (model != null)
                     model.IsVisible = input.IsActive;
+
             });
 
 
@@ -149,6 +150,17 @@ namespace XrEngine.OpenXr
                 model.Transform.SetScale(1.06f);
                 model.Name = "Controller";
 
+                var tex = AssetLoader.Instance.Load<Texture2D>(Path.Combine(Path.GetDirectoryName(fullPath)!, "MetaQuestTouchPlus_ORM.png"));
+                foreach (var mat in model.MaterialsDeep<IPbrMaterial>())
+                {
+                    if (mat.Name?.Contains("phong") == true)
+                    {
+                        mat.MetallicRoughnessMap = tex;
+                        mat.OcclusionMap = tex;
+                        mat.Roughness = 1;
+                    }
+                
+                }
                 group.AddChild(model);
             }
 
