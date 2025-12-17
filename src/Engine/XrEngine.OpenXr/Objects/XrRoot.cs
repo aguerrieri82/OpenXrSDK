@@ -150,7 +150,8 @@ namespace XrEngine.OpenXr
                 model.Transform.SetScale(1.06f);
                 model.Name = "Controller";
 
-                var tex = AssetLoader.Instance.Load<Texture2D>(Path.Combine(Path.GetDirectoryName(fullPath)!, "MetaQuestTouchPlus_ORM.png"));
+                var texPath = assets.GetPath("Models/MetaQuestTouchPlus_ORM.png");
+                var tex = AssetLoader.Instance.Load<Texture2D>(texPath);
                 foreach (var mat in model.MaterialsDeep<IPbrMaterial>())
                 {
                     if (mat.Name?.Contains("phong") == true)

@@ -17,6 +17,11 @@ namespace XrEngine.OpenXr
             _renderer = renderer;
             _app = app;
             _passes = _renderer.Passes<GlMotionVectorPass>().ToArray();
+
+            if (XrPlatform.Current?.Name == "Editor")
+                MotionVectorFormat = (long)InternalFormat.Rgb16f;    
+            else
+                MotionVectorFormat = (long)InternalFormat.Rgba16f;
         }
 
         public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader*[] colorImgs, SwapchainImageBaseHeader*[] depthImgs, XrRenderMode mode)
@@ -41,7 +46,7 @@ namespace XrEngine.OpenXr
             }
         }
 
-        public long MotionVectorFormat => (long)InternalFormat.Rgba16f;
+        public long MotionVectorFormat { get; }
 
         public long DepthFormat => (long)InternalFormat.DepthComponent16; //If we use DepthComponent24, doesn't work in Quest 3.
 

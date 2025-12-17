@@ -25,6 +25,7 @@ namespace XrEngine.OpenXr
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
                 var stage = bld.Context.Stage;
+
                 if (stage == UpdateShaderStage.Model)
                     return;
 
@@ -34,10 +35,21 @@ namespace XrEngine.OpenXr
 
                     Debug.Assert(camera?.Eyes != null);
 
-                    up.SetUniform($"uMatrices.prev.viewProj", _prevViewProj[camera.ActiveEye]);
-                    up.SetUniform($"uMatrices.current.viewProj", camera.Eyes[camera.ActiveEye].ViewProj);
+                    up.SetUniform("uActiveEye", (uint)camera.ActiveEye);
 
-                    _prevViewProj[camera.ActiveEye] = camera.Eyes[camera.ActiveEye].ViewProj;
+                    up.SetUniform($"uMatrices.prev.viewProj[0]", _prevViewProj[0]);
+                    up.SetUniform($"uMatrices.prev.viewProj[1]", _prevViewProj[1]);
+
+                    up.SetUniform($"uMatrices.current.viewProj[0]", camera.Eyes[0].ViewProj);
+                    up.SetUniform($"uMatrices.current.viewProj[1]", camera.Eyes[1].ViewProj);
+
+                    if (camera.ActiveEye == -1)
+                    {
+                        _prevViewProj[0] = camera.Eyes[0].ViewProj;
+                        _prevViewProj[1] = camera.Eyes[1].ViewProj;
+                    }
+                    else
+                        _prevViewProj[camera.ActiveEye] = camera.Eyes[camera.ActiveEye].ViewProj;
                 });
 
             }
@@ -72,7 +84,7 @@ namespace XrEngine.OpenXr
 
                 up.SetUniform("uMatrices.current.model", word);
 
-                if (camera.ActiveEye == 1)
+                if (camera.ActiveEye == 1 || camera.ActiveEye == -1)
                     _models[ctx.Model] = word;
             });
         }

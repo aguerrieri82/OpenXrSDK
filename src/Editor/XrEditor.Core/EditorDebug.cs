@@ -29,7 +29,7 @@ namespace XrEditor
                   opt.FrustumCulling = false;
                   opt.UseLayerV2 = true;     
               })
-              //.UseSpaceWarp()
+              .UseSpaceWarp()
               .SetRenderQuality(1f, 2)
               .CreateRoomManager()
               .Build();

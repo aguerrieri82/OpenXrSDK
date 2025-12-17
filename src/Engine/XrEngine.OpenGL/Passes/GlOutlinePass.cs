@@ -19,6 +19,8 @@ namespace XrEngine.OpenGL
         public GlOutlinePass(OpenGLRender renderer, int boundEye = -1, bool isMultiView = false)
             : base(renderer)
         {
+            UseScissor = true;
+
             _passTarget = new GlRenderPassTarget(renderer.GL);
             _passTarget.BoundEye = boundEye;
             _passTarget.DepthMode = TargetDepthMode.None;
@@ -26,6 +28,7 @@ namespace XrEngine.OpenGL
             _passTarget.UseMultiViewTarget = true;
 
             _outlineProgram = new GlSimpleProgram(renderer.GL, "fullscreen.vert", "outline.frag", str => Embedded.GetString<Material>(str));
+
             if (isMultiView)
             {
                 _outlineProgram.AddExtension("GL_OVR_multiview2");
@@ -96,17 +99,21 @@ namespace XrEngine.OpenGL
             _outlineProgram.SetUniform("uSize", (int)_renderer.Options.Outline.Size);
             _outlineProgram.LoadTexture(_passTarget.ColorTexture!.ToEngineTexture(), 0);
 
-            int padding = (int)_renderer.Options.Outline.Size + 2;
-            _bounds.Min -= new Vector2(padding, padding);
-            _bounds.Max += new Vector2(padding, padding);
+            if (UseScissor)
+            {
+                int padding = (int)_renderer.Options.Outline.Size + 2;
+                _bounds.Min -= new Vector2(padding, padding);
+                _bounds.Max += new Vector2(padding, padding);
 
-            _renderer.State.EnableFeature(EnableCap.ScissorTest, true);
-  
-            _gl.Scissor((int)_bounds.Min.X, (int)_bounds.Min.Y, (uint)_bounds.Size.X, (uint)_bounds.Size.Y);
+                _renderer.State.EnableFeature(EnableCap.ScissorTest, true);
+
+                _gl.Scissor((int)_bounds.Min.X, (int)_bounds.Min.Y, (uint)_bounds.Size.X, (uint)_bounds.Size.Y);
+            }
 
             DrawQuad();
 
-            _renderer.State.EnableFeature(EnableCap.ScissorTest, false);
+            if (UseScissor)
+                _renderer.State.EnableFeature(EnableCap.ScissorTest, false);
         }
 
         protected override IEnumerable<IGlLayer> SelectLayers()
@@ -159,35 +166,40 @@ namespace XrEngine.OpenGL
 
         protected override void Draw(DrawContent draw)
         {
-            var bound = draw.Object!.WorldBounds;
-
-            var objectClipping = false;
-
-            foreach (var corner in bound.Points)
+            if (UseScissor)
             {
-                if (!TryGetScreenPoint(corner, _renderer.UpdateContext.PassCamera!, out var screen))
+                var bound = draw.Object!.WorldBounds;
+
+                var objectClipping = false;
+
+                foreach (var corner in bound.Points)
                 {
-                    objectClipping = true;
-                    break;
+                    if (!TryGetScreenPoint(corner, _renderer.UpdateContext.PassCamera!, out var screen))
+                    {
+                        objectClipping = true;
+                        break;
+                    }
+
+                    _bounds.Min = Vector2.Min(_bounds.Min, screen);
+                    _bounds.Max = Vector2.Max(_bounds.Max, screen);
                 }
 
-                _bounds.Min = Vector2.Min(_bounds.Min, screen);
-                _bounds.Max = Vector2.Max(_bounds.Max, screen);
+                if (objectClipping)
+                {
+                    var size = _renderer.UpdateContext.PassCamera!.ViewSize;
+                    _bounds.Min = Vector2.Zero;
+                    _bounds.Max = new Vector2(size.Width, size.Height);
+                }
             }
-
-            if (objectClipping)
-            {
-                var size = _renderer.UpdateContext.PassCamera!.ViewSize;
-                _bounds.Min = Vector2.Zero;
-                _bounds.Max = new Vector2(size.Width, size.Height);
-            }
-
+           
             base.Draw(draw);
         }
 
         public IOutlineSource? Source { get; set; }
 
         public GlRenderPassTarget PassTarget => _passTarget;    
+
+        public bool UseScissor { get; set; }
 
     }
 }
