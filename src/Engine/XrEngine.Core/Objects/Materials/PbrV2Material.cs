@@ -263,14 +263,12 @@ namespace XrEngine
 
                 bld.LoadBuffer((ctx) =>
                 {
-                    var hash = bld.Context.Lights!.Sum(a => a.Version + a.ContentVersion).ToString();
+                    var curHash = (int)(bld.Context.Lights?.Sum(a => a.Version + a.ContentVersion) ?? -1);
 
-                    if (ctx.CurrentBuffer!.Hash == hash)
+                    if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
                         return null;
 
-                    ctx.CurrentBuffer!.Hash = hash;
-
-                    //Log.Debug(this, "Build light uniforms");
+                    ctx.CurrentBuffer!.Hash = curHash;
 
                     if (!hasPunctual)
                     {
@@ -410,14 +408,18 @@ namespace XrEngine
             {
                 bld.LoadBuffer(ctx =>
                 {
-                    //Get the word matrix trigger the update
-                    var modelWord = ctx.Model!.WorldMatrix;
-
-                    var curVersion = ctx.Model!.Transform.Version;
-                    if (curVersion == ctx.CurrentBuffer!.Version)
+                    if (ctx.Model == null || ctx.CurrentBuffer == null)
                         return null;
 
-                    ctx.CurrentBuffer!.Version = curVersion;
+                    //Get the word matrix trigger the update
+                    var modelWord = ctx.Model.WorldMatrix;
+
+                    var curVersion = ctx.Model.Transform.Version;
+
+                    if (curVersion == ctx.CurrentBuffer.Version)
+                        return null;
+
+                    ctx.CurrentBuffer.Version = curVersion;
 
                     return (ModelUniforms?)new ModelUniforms
                     {
@@ -473,10 +475,10 @@ namespace XrEngine
             {
                 var curVersion = ContentVersion + Version;
 
-                if (curVersion == ctx.CurrentBuffer!.Version)
+                if (ctx.CurrentBuffer == null || curVersion == ctx.CurrentBuffer.Version)
                     return null;
 
-                ctx.CurrentBuffer!.Version = curVersion;
+                ctx.CurrentBuffer.Version = curVersion;
 
                 return (MaterialUniforms?)material;
 
@@ -703,8 +705,8 @@ namespace XrEngine
 
         public PbrV2Debug Debug { get; set; }
 
-        public static bool ForceIblTransform { get; set; }
-
         public bool UseInstanceDraw { get; set; }
+
+        public static bool ForceIblTransform { get; set; } = true;
     }
 }

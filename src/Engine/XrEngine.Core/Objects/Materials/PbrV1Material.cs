@@ -484,12 +484,12 @@ namespace XrEngine
                 {
                     bld.LoadBuffer((ctx) =>
                     {
-                        var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
+                        var curHash = bld.Context.Lights!.Sum(a => a.Version + a.ContentVersion);
 
-                        if (ctx.CurrentBuffer!.Hash == hash)
+                        if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
                             return null;
 
-                        ctx.CurrentBuffer!.Hash = hash;
+                        ctx.CurrentBuffer.Hash = (int)curHash;
 
                         Log.Debug(this, "Build light uniforms");
 
@@ -569,12 +569,12 @@ namespace XrEngine
                 {
                     bld.LoadBuffer((ctx) =>
                     {
-                        var curHash = imgLight.Version.ToString();
+                        var curHash = (int)imgLight.Version;
 
-                        if (ctx.CurrentBuffer!.Hash == curHash)
+                        if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
                             return null;
 
-                        ctx.CurrentBuffer!.Hash = imgLight.Version.ToString();
+                        ctx.CurrentBuffer.Hash = curHash;
 
                         return (IBLUniforms?)new IBLUniforms
                         {

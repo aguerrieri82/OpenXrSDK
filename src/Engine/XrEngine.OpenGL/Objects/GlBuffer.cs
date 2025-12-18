@@ -25,17 +25,17 @@ namespace XrEngine.OpenGL
         protected BufferUsageARB _usage;
         protected int _updateCount;
 
-        public unsafe GlBuffer(GL gl, BufferTargetARB target)
+        public GlBuffer(GL gl, BufferTargetARB target)
              : base(gl)
         {
             _target = target;
-            Hash = string.Empty;
+            Hash = -1;
             Version = -1;
             Slot = 0;
             Create();
         }
 
-        public unsafe GlBuffer(GL gl, ReadOnlySpan<T> data, BufferTargetARB target)
+        public GlBuffer(GL gl, ReadOnlySpan<T> data, BufferTargetARB target)
             : this(gl, target)
         {
             UpdateRange(data);
@@ -174,7 +174,7 @@ namespace XrEngine.OpenGL
                 UpdateRange(pData, sizeBytes, dstIndex * sizeof(T), true);
         }
 
-        unsafe void IBuffer.Update(object value)
+        void IBuffer.Update(object value)
         {
             if (value is T tValue)
                 Update(tValue);
@@ -210,7 +210,7 @@ namespace XrEngine.OpenGL
         }
 
 
-        public string Hash { get; set; }
+        public int Hash { get; set; }
 
         public long Version { get; set; }
 

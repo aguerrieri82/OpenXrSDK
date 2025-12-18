@@ -25,7 +25,7 @@
 
         void Unlock();
 
-        string Hash { get; set; }
+        int Hash { get; set; }
 
         long Version { get; set; }
 

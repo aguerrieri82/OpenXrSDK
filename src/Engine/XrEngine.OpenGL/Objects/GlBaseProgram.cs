@@ -98,7 +98,7 @@ namespace XrEngine.OpenGL
                 if (result == -1 && !optional) //TODO uncomment
                 {
                     Log.Warn(this, "Uniform {0} not found", name);
-                    Debug.WriteLine($"--- WARN --- {name} NOT FOUND");
+                    //Debug.WriteLine($"--- WARN --- {name} NOT FOUND");
                     //throw new Exception($"{name} uniform not found on shader.");
                 }
 
@@ -114,16 +114,17 @@ namespace XrEngine.OpenGL
 
         protected bool IsChanged(string name, object value)
         {
-            bool isChanged;
+            bool isChanged = false;
 
             if (!_values.TryGetValue(name, out var lastValue))
                 isChanged = true;
-            else
-            {
-                if (lastValue is Array lastArray)
-                {
-                    var curArray = (Array)value;
 
+            if (lastValue is Array lastArray)
+            {
+                var curArray = (Array)value;
+
+                if (!isChanged)
+                {
                     if (lastArray.Length != curArray.Length)
                         isChanged = true;
                     else
@@ -134,19 +135,19 @@ namespace XrEngine.OpenGL
 
                         isChanged = !b1.SequenceEqual(b2);
                     }
-
-                    if (isChanged)
-                        _values[name] = curArray.Clone();
-                }
-                else
-                {
-                    isChanged = !Equals(value, lastValue);
-                    if (isChanged)
-                        _values[name] = value;
                 }
 
+                if (isChanged)
+                    _values[name] = curArray.Clone();
             }
+            else
+            {
+                if (!isChanged)
+                    isChanged = !Equals(value, lastValue);
 
+                if (isChanged)
+                    _values[name] = value;
+            }
             return isChanged;
         }
 
