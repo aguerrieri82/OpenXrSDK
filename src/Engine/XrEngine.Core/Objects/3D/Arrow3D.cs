@@ -17,11 +17,11 @@ namespace XrEngine
 
         public void Build()
         {
-            MeshBuilder builder = new MeshBuilder();
+            var builder = new MeshBuilder();
 
             builder.AddCircle(Vector3.Zero, BaseDiameter / 2, Subs);
             builder.AddCircle(new Vector3(0, 0, BaseLength), ArrowDiameter / 2, Subs);
-            int smoothStart = builder.Vertices.Count;
+            var smoothStart = builder.Vertices.Count;
             builder.AddCylinder(Vector3.Zero, BaseDiameter / 2, BaseLength, Subs, UVMode.Normalized);
             builder.AddCone(new Vector3(0, 0, BaseLength), ArrowDiameter / 2, ArrowLength, Subs);
 

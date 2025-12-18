@@ -39,11 +39,11 @@ namespace XrEngine.OpenGL
         {
             Log.Debug(this, "Building program {0}...", _handle);
 
-            string vSource = PatchShader(_vSourceName, ShaderType.VertexShader);
-            string fSource = PatchShader(_fSourceName, ShaderType.FragmentShader);
-            string? gSource = _gSourceName != null ? PatchShader(_gSourceName, ShaderType.GeometryShader) : null;
-            string? tcSource = _tcSourceName != null ? PatchShader(_tcSourceName, ShaderType.TessControlShader) : null;
-            string? teSource = _teSourceName != null ? PatchShader(_teSourceName, ShaderType.TessEvaluationShader) : null;
+            var vSource = PatchShader(_vSourceName, ShaderType.VertexShader);
+            var fSource = PatchShader(_fSourceName, ShaderType.FragmentShader);
+            var gSource = _gSourceName != null ? PatchShader(_gSourceName, ShaderType.GeometryShader) : null;
+            var tcSource = _tcSourceName != null ? PatchShader(_tcSourceName, ShaderType.TessControlShader) : null;
+            var teSource = _teSourceName != null ? PatchShader(_teSourceName, ShaderType.TessEvaluationShader) : null;
 
             Vertex = GlShader.GetOrCreate(_gl, ShaderType.VertexShader, vSource);
             Fragment = GlShader.GetOrCreate(_gl, ShaderType.FragmentShader, fSource);
@@ -62,7 +62,7 @@ namespace XrEngine.OpenGL
             _values.Clear();
             _locations.Clear();
 
-            for (int i = 0; i < _boundBuffers.Length; i++)
+            for (var i = 0; i < _boundBuffers.Length; i++)
                 _boundBuffers[i] = 0;
 
             Log.Debug(this, "Program built");

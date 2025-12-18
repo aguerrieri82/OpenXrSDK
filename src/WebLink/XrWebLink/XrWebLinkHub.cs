@@ -43,7 +43,7 @@ namespace XrWebLink
 
         public async Task TrackObject(TrackObjectType type, Guid? anchorId, bool enabled)
         {
-            string groupId = "track/" + type.ToString().ToLower();
+            var groupId = "track/" + type.ToString().ToLower();
             if (anchorId != null)
                 groupId += "/" + anchorId;
 

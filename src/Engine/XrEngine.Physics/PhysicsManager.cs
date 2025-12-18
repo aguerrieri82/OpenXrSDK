@@ -40,7 +40,7 @@ namespace XrEngine.Physics
 
             Configure?.Invoke(_system);
 
-            foreach (Joint joint in _joints)
+            foreach (var joint in _joints)
                 joint.Create(ctx);
 
             if (IsMultiThread)
@@ -53,7 +53,7 @@ namespace XrEngine.Physics
 
         public void SetCollideGroup(RigidBodyGroup group, CollideGroup grp)
         {
-            int index = (int)MathF.Log2((int)group);
+            var index = (int)MathF.Log2((int)group);
 
             while (index >= _collideGroups.Count)
                 _collideGroups.Add(CollideGroup.Always);
@@ -80,7 +80,7 @@ namespace XrEngine.Physics
 
         protected void Destroy()
         {
-            foreach (Joint joint in _joints)
+            foreach (var joint in _joints)
                 joint.Destroy();
 
             if (_system != null)
@@ -92,17 +92,17 @@ namespace XrEngine.Physics
 
         void SimulateLoop()
         {
-            double lastStepTime = _lastUpdateTime;
+            var lastStepTime = _lastUpdateTime;
 
             while (IsStarted)
             {
-                double curTime = _lastUpdateTime;
+                var curTime = _lastUpdateTime;
 
-                double delta = curTime - lastStepTime;
+                var delta = curTime - lastStepTime;
 
                 if (delta > 0)
                 {
-                    while (_queue.TryDequeue(out Action? action))
+                    while (_queue.TryDequeue(out var action))
                         action();
 
                     _system?.Simulate((float)delta, StepSizeSecs);
@@ -118,16 +118,16 @@ namespace XrEngine.Physics
         {
             while (IsStarted)
             {
-                long startTime = Stopwatch.GetTimestamp();
+                var startTime = Stopwatch.GetTimestamp();
 
-                while (_queue.TryDequeue(out Action? action))
+                while (_queue.TryDequeue(out var action))
                     action();
 
                 _system?.Simulate((float)StepSizeSecs, StepSizeSecs);
 
-                int ellapsed = Stopwatch.GetElapsedTime(startTime).Seconds;
+                var ellapsed = Stopwatch.GetElapsedTime(startTime).Seconds;
 
-                float wait = StepSizeSecs - ellapsed;
+                var wait = StepSizeSecs - ellapsed;
 
                 if (wait > 0)
                     Thread.Sleep(TimeSpan.FromSeconds(wait));
@@ -140,7 +140,7 @@ namespace XrEngine.Physics
         {
             if (_jointToCreate.Count > 0)
             {
-                foreach (Joint joint in _jointToCreate)
+                foreach (var joint in _jointToCreate)
                     joint.Create(ctx);
 
                 _jointToCreate.Clear();
@@ -169,7 +169,7 @@ namespace XrEngine.Physics
 
         public Joint AddJoint(JointType type, Object3D object0, Pose3 pose0, Object3D object1, Pose3 pose1)
         {
-            Joint joint = new Joint
+            var joint = new Joint
             {
                 Type = type,
                 Object0 = object0,

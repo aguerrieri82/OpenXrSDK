@@ -18,14 +18,14 @@ namespace XrEditor
 
         protected override IEnumerable<TypeInfo> GetItems()
         {
-            IEnumerable<TypeInfo> comps = TypeUtils.GetTypes(typeof(IComponent));
+            var comps = TypeUtils.GetTypes(typeof(IComponent));
             return comps.Where(a =>
             {
-                Type? spec = a.Type.GetInterfaces()
+                var spec = a.Type.GetInterfaces()
                                 .FirstOrDefault(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(IComponent<>));
                 if (spec != null)
                 {
-                    Type arg = spec.GetGenericArguments()[0];
+                    var arg = spec.GetGenericArguments()[0];
                     return arg.IsAssignableFrom(_target.GetType());
                 }
 

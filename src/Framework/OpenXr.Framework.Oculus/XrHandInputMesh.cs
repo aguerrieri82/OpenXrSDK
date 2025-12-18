@@ -21,7 +21,7 @@ namespace OpenXr.Framework.Oculus
 
         public unsafe override HandJointLocationEXT[] LocateHandJoints(Space space, long time)
         {
-            HandTrackingScaleFB scale = new HandTrackingScaleFB
+            var scale = new HandTrackingScaleFB
             {
                 Type = StructureType.HandTrackingScaleFB,
                 SensorOutput = 1,
@@ -30,13 +30,13 @@ namespace OpenXr.Framework.Oculus
                 OverrideHandScale = 0,
             };
 
-            HandTrackingCapsulesStateFB capsuleState = new HandTrackingCapsulesStateFB
+            var capsuleState = new HandTrackingCapsulesStateFB
             {
                 Type = StructureType.HandTrackingCapsulesStateFB,
                 Next = &scale,
             };
 
-            HandTrackingAimStateFB aimState = new HandTrackingAimStateFB
+            var aimState = new HandTrackingAimStateFB
             {
                 Type = StructureType.HandTrackingAimStateFB,
                 Next = &capsuleState
@@ -44,7 +44,7 @@ namespace OpenXr.Framework.Oculus
 
             fixed (HandJointVelocityEXT* pVelo = _velocities)
             {
-                HandJointVelocitiesEXT velocities = new HandJointVelocitiesEXT
+                var velocities = new HandJointVelocitiesEXT
                 {
                     Type = StructureType.HandJointVelocitiesExt,
                     Next = &aimState,
@@ -52,18 +52,18 @@ namespace OpenXr.Framework.Oculus
                     JointVelocities = pVelo
                 };
 
-                HandJointLocationEXT[] result = LocateHandJoints(space, time, &velocities);
+                var result = LocateHandJoints(space, time, &velocities);
 
                 if (!_app.ReferenceFrame.IsIdentity())
                 {
-                    Span<HandCapsuleFB> capsules = capsuleState.Capsules.AsSpan();
+                    var capsules = capsuleState.Capsules.AsSpan();
 
                     fixed (HandCapsuleFB* pCap = capsules)
                     {
-                        for (int i = 0; i < capsules.Length; i++)
+                        for (var i = 0; i < capsules.Length; i++)
                         {
-                            ref Vector3 v0 = ref Unsafe.AsRef<Vector3>(&pCap->Points.Element0);
-                            ref Vector3 v1 = ref Unsafe.AsRef<Vector3>(&pCap->Points.Element1);
+                            ref var v0 = ref Unsafe.AsRef<Vector3>(&pCap->Points.Element0);
+                            ref var v1 = ref Unsafe.AsRef<Vector3>(&pCap->Points.Element1);
                             v0 = _app.ReferenceFrame.Transform(v0);
                             v1 = _app.ReferenceFrame.Transform(v1);
                         }

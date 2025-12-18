@@ -34,11 +34,11 @@ namespace XrEngine.Devices.Windows
 
             _gch = GCHandle.Alloc(_proc, GCHandleType.Normal);
 
-            int res = Win32.midiInOpen(out _hIn, _deviceIndex, _proc, IntPtr.Zero, Win32.CALLBACK_FUNCTION);
+            var res = Win32.midiInOpen(out _hIn, _deviceIndex, _proc, IntPtr.Zero, Win32.CALLBACK_FUNCTION);
             if (res != 0)
                 throw new InvalidOperationException($"midiInOpen failed: {GetInError(res)}");
 
-            int r2 = Win32.midiInStart(_hIn);
+            var r2 = Win32.midiInStart(_hIn);
             if (r2 != 0)
             {
                 _gch.Free();
@@ -60,7 +60,7 @@ namespace XrEngine.Devices.Windows
             if (status >= 0xF0)
                 return 1;
 
-            byte m = (byte)(status & 0xF0);
+            var m = (byte)(status & 0xF0);
 
             // Program Change (0xC0) and Channel Pressure (0xD0) are 2 bytes
             if (m == 0xC0 || m == 0xD0)
@@ -79,21 +79,21 @@ namespace XrEngine.Devices.Windows
                     case MIM_DATA:
                         {
                             // dwParam1 contains packed short message (DWORD)
-                            uint packed = (uint)dwParam1.ToInt64();
-                            byte b0 = (byte)(packed & 0xFF);
-                            byte b1 = (byte)((packed >> 8) & 0xFF);
-                            byte b2 = (byte)((packed >> 16) & 0xFF);
+                            var packed = (uint)dwParam1.ToInt64();
+                            var b0 = (byte)(packed & 0xFF);
+                            var b1 = (byte)((packed >> 8) & 0xFF);
+                            var b2 = (byte)((packed >> 16) & 0xFF);
 
-                            int count = GetShortMessageLength(b0);
+                            var count = GetShortMessageLength(b0);
                             byte[] bytes = [b0, b1, b2];
-                            byte[] data = count switch
+                            var data = count switch
                             {
                                 1 => [b0],
                                 2 => [b0, b1],
                                 _ => bytes,
                             };
 
-                            long timestamp = dwParam2.ToInt64();
+                            var timestamp = dwParam2.ToInt64();
 
                             OnDataReceived(new MidiData
                             {
@@ -108,14 +108,14 @@ namespace XrEngine.Devices.Windows
                     case MIM_LONGDATA:
                         {
                             // dwParam1 -> pointer to MIDIHDR
-                            Win32.MidiHdr hdr = Marshal.PtrToStructure<Win32.MidiHdr>(dwParam1);
+                            var hdr = Marshal.PtrToStructure<Win32.MidiHdr>(dwParam1);
                             if (hdr.dwBytesRecorded > 0 && hdr.lpData != IntPtr.Zero)
                             {
-                                int count = (int)hdr.dwBytesRecorded;
-                                byte[] data = new byte[count];
+                                var count = (int)hdr.dwBytesRecorded;
+                                var data = new byte[count];
                                 Marshal.Copy(hdr.lpData, data, 0, count);
 
-                                long timestamp = dwParam2.ToInt64();
+                                var timestamp = dwParam2.ToInt64();
 
                                 OnDataReceived(new MidiData
                                 {
@@ -154,7 +154,7 @@ namespace XrEngine.Devices.Windows
                 return;
 
             _ = Win32.midiInStop(_hIn);
-            int res = Win32.midiInClose(_hIn);
+            var res = Win32.midiInClose(_hIn);
             if (res != 0)
                 throw new InvalidOperationException($"midiInClose failed: {GetInError(res)}");
 
@@ -169,7 +169,7 @@ namespace XrEngine.Devices.Windows
 
         static string GetInError(int code)
         {
-            StringBuilder sb = new StringBuilder(512);
+            var sb = new StringBuilder(512);
             _ = Win32.midiInGetErrorText(code, sb, (uint)sb.Capacity);
             return sb.ToString();
         }

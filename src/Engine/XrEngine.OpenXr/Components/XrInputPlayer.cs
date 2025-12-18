@@ -47,14 +47,14 @@ namespace XrEngine.OpenXr
 
             _frame = _session.Frames[Frame];
 
-            foreach (KeyValuePair<string, XrInputState> input in _frame.Inputs)
+            foreach (var input in _frame.Inputs)
             {
-                IXrInput xrInput = XrApp.Current.Inputs[input.Key];
+                var xrInput = XrApp.Current.Inputs[input.Key];
                 xrInput?.SetState(input.Value);
 
                 if (input.Key == "RightGripPose")
                 {
-                    Pose3 pose = ((XrPoseInput)xrInput!).Value;
+                    var pose = ((XrPoseInput)xrInput!).Value;
                     Log.Value("Pose-X", MathF.Round(pose.Position.X, 5));
                 }
             }
@@ -63,14 +63,14 @@ namespace XrEngine.OpenXr
         [Action]
         public async Task LoadAsync()
         {
-            JsonSerializerOptions options = new JsonSerializerOptions
+            var options = new JsonSerializerOptions
             {
                 IncludeFields = true,
             };
 
-            string path = Context.Require<IPlatform>().PersistentPath;
+            var path = Context.Require<IPlatform>().PersistentPath;
 
-            using FileStream stream = File.OpenRead(Path.Join(path, SourceFile));
+            using var stream = File.OpenRead(Path.Join(path, SourceFile));
 
             _session = await JsonSerializer.DeserializeAsync<XrInputRecorder.RecordSession>(stream, options);
 
@@ -112,29 +112,29 @@ namespace XrEngine.OpenXr
             if (_session?.Frames == null || !ShowTrail)
                 return;
 
-            int DELTA = 10;
+            var DELTA = 10;
 
-            int min = Math.Max(0, _frameNum - DELTA);
-            int max = Math.Min(Length - 1, _frameNum + DELTA);
+            var min = Math.Max(0, _frameNum - DELTA);
+            var max = Math.Min(Length - 1, _frameNum + DELTA);
 
-            Vector3 prevPoint = Vector3.Zero;
+            var prevPoint = Vector3.Zero;
 
             canvas.Save();
 
             AdvancePosePredictor pre0 = new();
 
-            for (int i = min; i <= max; i++)
+            for (var i = min; i <= max; i++)
             {
-                XrInputRecorder.RecordFrame frame = _session.Frames[i];
-                float alpha = 1 - (Math.Abs(i - _frameNum) / (float)DELTA);
+                var frame = _session.Frames[i];
+                var alpha = 1 - (Math.Abs(i - _frameNum) / (float)DELTA);
 
-                if (!frame.Inputs.TryGetValue("RightGripPose", out XrInputState pose))
+                if (!frame.Inputs.TryGetValue("RightGripPose", out var pose))
                     continue;
-                object value = pose.Value;
+                var value = pose.Value;
                 if (value is JsonElement je)
                     value = je.Deserialize<Pose3>(new JsonSerializerOptions { IncludeFields = true })!;
 
-                Pose3 curPose = (Pose3)value;
+                var curPose = (Pose3)value;
 
                 if (prevPoint != Vector3.Zero)
                 {
@@ -155,10 +155,10 @@ namespace XrEngine.OpenXr
 
                 if (i == _frameNum && i > 10)
                 {
-                    double maxTime = _session.Frames[i + 5].Time;
-                    double pdt = maxTime - (float)frame.Time;
-                    Pose3 pp0 = _predictor.Predict((float)pdt);
-                    Pose3 pp1 = pre0.Predict((float)pdt);
+                    var maxTime = _session.Frames[i + 5].Time;
+                    var pdt = maxTime - (float)frame.Time;
+                    var pp0 = _predictor.Predict((float)pdt);
+                    var pp1 = pre0.Predict((float)pdt);
 
                     canvas.State.Color = new Color(1, 1, 0);
                     canvas.DrawCircle(pp0, 0.002f, 10);

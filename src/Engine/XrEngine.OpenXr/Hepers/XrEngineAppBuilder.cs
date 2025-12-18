@@ -60,17 +60,17 @@ namespace XrEngine.OpenXr
             if (_platform == null)
                 throw new ArgumentNullException("Platform not specified");
 
-            XrEngineApp engine = new XrEngineApp(_options, _platform);
+            var engine = new XrEngineApp(_options, _platform);
 
             engine.Create(_app ?? new EngineApp());
 
             IXrActionBuilder? actionBuilder = null;
 
-            foreach (Action<XrEngineApp> config in _configurations)
+            foreach (var config in _configurations)
             {
                 if (_inputProfile != null && actionBuilder == null)
                 {
-                    Type builderType = typeof(XrActionsBuilder<>).MakeGenericType(_inputProfile);
+                    var builderType = typeof(XrActionsBuilder<>).MakeGenericType(_inputProfile);
 
                     actionBuilder = (IXrActionBuilder)Activator.CreateInstance(builderType, engine.XrApp)!;
 
@@ -81,7 +81,7 @@ namespace XrEngine.OpenXr
 
                 while (_inputs.Count > 0)
                 {
-                    foreach (Action<IXrActionBuilder> input in _inputs)
+                    foreach (var input in _inputs)
                         input(actionBuilder!);
 
                     _inputs.Clear();

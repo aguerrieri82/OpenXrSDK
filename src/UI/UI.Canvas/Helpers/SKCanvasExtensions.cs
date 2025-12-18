@@ -12,32 +12,32 @@ namespace CanvasUI
 
         public static void DrawRect(this SKCanvas canvas, Rect2 rect, UiStyle style)
         {
-            Color? bkColor = style.BackgroundColor.Value;
+            var bkColor = style.BackgroundColor.Value;
             if (bkColor != null)
             {
-                SKPaint paint = SKResources.FillColor(bkColor.Value);
+                var paint = SKResources.FillColor(bkColor.Value);
                 canvas.DrawRect(rect.X, rect.Y, rect.Width, rect.Height, paint);
             }
 
-            BorderRectValue border = style.Border.Value;
+            var border = style.Border.Value;
             if (border.Top.HasValue)
             {
-                SKPaint paint = SKResources.Stroke(border.Top.Color, border.Top.Width.ToPixel(style.Owner, UiValueReference.ParentWidth));
+                var paint = SKResources.Stroke(border.Top.Color, border.Top.Width.ToPixel(style.Owner, UiValueReference.ParentWidth));
                 canvas.DrawLine(rect.X, rect.Y, rect.Right, rect.Y, paint);
             }
             if (border.Bottom.HasValue)
             {
-                SKPaint paint = SKResources.Stroke(border.Bottom.Color, border.Bottom.Width.ToPixel(style.Owner, UiValueReference.ParentWidth));
+                var paint = SKResources.Stroke(border.Bottom.Color, border.Bottom.Width.ToPixel(style.Owner, UiValueReference.ParentWidth));
                 canvas.DrawLine(rect.X, rect.Bottom, rect.Right, rect.Bottom, paint);
             }
             if (border.Left.HasValue)
             {
-                SKPaint paint = SKResources.Stroke(border.Left.Color, border.Left.Width.ToPixel(style.Owner, UiValueReference.ParentHeight));
+                var paint = SKResources.Stroke(border.Left.Color, border.Left.Width.ToPixel(style.Owner, UiValueReference.ParentHeight));
                 canvas.DrawLine(rect.X, rect.Y, rect.X, rect.Bottom, paint);
             }
             if (border.Right.HasValue)
             {
-                SKPaint paint = SKResources.Stroke(border.Right.Color, border.Right.Width.ToPixel(style.Owner, UiValueReference.ParentHeight));
+                var paint = SKResources.Stroke(border.Right.Color, border.Right.Width.ToPixel(style.Owner, UiValueReference.ParentHeight));
                 canvas.DrawLine(rect.Right, rect.Y, rect.Right, rect.Bottom, paint);
             }
         }

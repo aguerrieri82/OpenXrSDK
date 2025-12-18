@@ -35,16 +35,16 @@ namespace PhysX.Framework
 
         public IList<PhysicsShape> GetShapes()
         {
-            uint size = RigidActor.GetNbShapes();
+            var size = RigidActor.GetNbShapes();
 
-            PxShape** shapes = stackalloc PxShape*[(int)size];
+            var shapes = stackalloc PxShape*[(int)size];
 
             RigidActor.GetShapes(shapes, size, 0);
 
-            List<PhysicsShape> result = new List<PhysicsShape>();
-            for (int i = 0; i < size; i++)
+            var result = new List<PhysicsShape>();
+            for (var i = 0; i < size; i++)
             {
-                PhysicsShape shape = _system.GetObject<PhysicsShape>(shapes[i]);
+                var shape = _system.GetObject<PhysicsShape>(shapes[i]);
                 if (shape != null)
                     result.Add(shape);
             }
@@ -61,7 +61,7 @@ namespace PhysX.Framework
         {
             if (!_system.IsDisposed)
             {
-                foreach (PhysicsShape shape in GetShapes())
+                foreach (var shape in GetShapes())
                     RemoveShape(shape);
             }
 
@@ -73,7 +73,7 @@ namespace PhysX.Framework
             get => RigidActor.GetGlobalPose().ToPose3();
             set
             {
-                PxTransform newValue = value.ToPxTransform();
+                var newValue = value.ToPxTransform();
                 RigidActor.SetGlobalPoseMut(&newValue, true);
             }
         }

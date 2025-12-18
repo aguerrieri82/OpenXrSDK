@@ -52,7 +52,7 @@ namespace XrEngine.OpenGL
             if (!BeginRender(ctx.Camera!))
                 return;
 
-            foreach (IGlLayer layer in SelectLayers())
+            foreach (var layer in SelectLayers())
             {
                 layer.Prepare(ctx);
 
@@ -86,13 +86,13 @@ namespace XrEngine.OpenGL
 
         protected GlProgramInstance CreateProgram(ShaderMaterial material)
         {
-            GlProgramGlobal global = material.Shader!.GetGlResource(gl => new GlProgramGlobal(_gl, material.Shader!));
+            var global = material.Shader!.GetGlResource(gl => new GlProgramGlobal(_gl, material.Shader!));
             return new GlProgramInstance(_gl, material, global, null);
         }
 
         protected void UseProgram(GlProgramInstance instance, bool updateUniforms)
         {
-            GlUpdateContext updateContext = _renderer.UpdateContext;
+            var updateContext = _renderer.UpdateContext;
 
             updateContext.Shader = instance.Material.Shader;
 
@@ -100,7 +100,7 @@ namespace XrEngine.OpenGL
 
             instance.UpdateProgram(updateContext);
 
-            bool programChanged = updateContext.ProgramInstanceId != instance.Program!.Handle;
+            var programChanged = updateContext.ProgramInstanceId != instance.Program!.Handle;
 
             updateContext.ProgramInstanceId = instance.Program!.Handle;
 

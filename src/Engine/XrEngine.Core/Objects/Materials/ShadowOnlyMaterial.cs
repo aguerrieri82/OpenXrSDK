@@ -25,7 +25,7 @@ namespace XrEngine.Objects
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            ShadowMapMode mode = bld.Context.ShadowMapProvider!.Options.Mode;
+            var mode = bld.Context.ShadowMapProvider!.Options.Mode;
 
             bld.ExecuteAction((ctx, up) =>
             {

@@ -22,7 +22,7 @@ namespace XrSamples.Dnd
 
             AddChild(new PlaneGrid(6f, 12f, 2f));
 
-            PerspectiveCamera camera = new PerspectiveCamera
+            var camera = new PerspectiveCamera
             {
                 Far = 100f,
                 Near = 0.01f,
@@ -58,14 +58,14 @@ namespace XrSamples.Dnd
         {
             await _client.ConnectAsync(campaignId);
 
-            VttCurrentSceneResponse scenes = await _client.GetCurrentSceneAsync();
+            var scenes = await _client.GetCurrentSceneAsync();
 
             _vttScene = (await _client.GetSceneAsync(scenes.DmScene)).Data;
         }
 
         public Token? AddToken(string name, Guid vttTokenId)
         {
-            Object3D? mesh = _map!.Children.FirstOrDefault(a => a.Name == name);
+            var mesh = _map!.Children.FirstOrDefault(a => a.Name == name);
             if (mesh == null)
                 return null;
 
@@ -74,7 +74,7 @@ namespace XrSamples.Dnd
 
         public Token AddToken(Object3D mesh, Guid vttTokenId)
         {
-            Token token = new Token(mesh);
+            var token = new Token(mesh);
 
             _map!.AddChild(token);
 
@@ -87,9 +87,9 @@ namespace XrSamples.Dnd
 
         public Group3D LoadMap(string assetDir)
         {
-            string path = Context.Require<IAssetStore>().GetPath(Path.Join(assetDir, "draws.json"));
+            var path = Context.Require<IAssetStore>().GetPath(Path.Join(assetDir, "draws.json"));
 
-            DndImporter imp = new DndImporter
+            var imp = new DndImporter
             {
                 SimpleMaterials = false
             };
@@ -102,8 +102,8 @@ namespace XrSamples.Dnd
 
             _map.Transform.SetPosition(0, -imp.MapY, 0);
 
-            Vector3 size = _map.WorldBounds.Size;
-            TriangleMesh floor = new TriangleMesh(Quad3D.Default);
+            var size = _map.WorldBounds.Size;
+            var floor = new TriangleMesh(Quad3D.Default);
             floor.Name = "Floor";
             floor.Transform.Scale = new Vector3(size.X, size.Z, 0.01f);
             floor.Transform.Position = new Vector3(_map.WorldBounds.Center.X, imp.MapY, _map.WorldBounds.Center.Z);
@@ -116,7 +116,7 @@ namespace XrSamples.Dnd
                 IsEnabled = false
             });
 
-            PointLight light = new PointLight();
+            var light = new PointLight();
             light.Transform.Position = new Vector3(0, 1.8f, 0);
             light.Intensity = 10f;
             light.CastShadows = false;
@@ -152,7 +152,7 @@ namespace XrSamples.Dnd
 
         public void OnTokenUpdate(VttToken token)
         {
-            Token? gameToken = _map?.Children.OfType<Token>().Where(a => a.VttToken?.Id == token.Id).FirstOrDefault();
+            var gameToken = _map?.Children.OfType<Token>().Where(a => a.VttToken?.Id == token.Id).FirstOrDefault();
             if (gameToken != null)
                 gameToken.VttToken = token;
 

@@ -20,8 +20,8 @@ namespace XrEngine.Audio
 
         private static double[] HannWindow(int size)
         {
-            double[] window = new double[size];
-            for (int i = 0; i < size; i++)
+            var window = new double[size];
+            for (var i = 0; i < size; i++)
                 window[i] = 0.5 * (1 - Math.Cos(2 * Math.PI * i / (size - 1)));
 
             return window;
@@ -32,7 +32,7 @@ namespace XrEngine.Audio
             if (inputLen == _inputLen && sampleRate == _sampleRate)
                 return;
 
-            int windowSize = FFtSize;
+            var windowSize = FFtSize;
 
             _hopSize = windowSize / 4;
             _numFrames = (inputLen - windowSize) / _hopSize + 1;
@@ -57,7 +57,7 @@ namespace XrEngine.Audio
         {
             Debug.Assert(_fftIn != null && _fftOut != null && _prevPhase != null && _shiftedSpectrum != null && _phaseAccum != null);
 
-            int windowSize = FFtSize;
+            var windowSize = FFtSize;
 
             if (_numFrames > 1)
             {
@@ -67,18 +67,18 @@ namespace XrEngine.Audio
 
             _shiftedSpectrum.ToSpan().Fill(0);
 
-            for (int frame = 0; frame < _numFrames; frame++)
+            for (var frame = 0; frame < _numFrames; frame++)
             {
-                int frameOfs = frame * _hopSize;
+                var frameOfs = frame * _hopSize;
 
-                for (int i = 0; i < _fftIn.Length; i++)
+                for (var i = 0; i < _fftIn.Length; i++)
                     _fftIn.Pointer[i] = input[frameOfs + i];
 
                 FftwLib.Dft(_fftIn, _fftOut);
 
-                for (int i = 0; i < _shiftedSpectrum.Length; i++)
+                for (var i = 0; i < _shiftedSpectrum.Length; i++)
                 {
-                    int shiftedIndex = (int)(i * Factor);
+                    var shiftedIndex = (int)(i * Factor);
                     if (shiftedIndex < _shiftedSpectrum.Length && shiftedIndex >= 0)
                         _shiftedSpectrum.Pointer[shiftedIndex] = _fftOut.Pointer[i];
                 }
@@ -86,17 +86,17 @@ namespace XrEngine.Audio
                 // Phase vocoder adjustment
                 if (_numFrames > 1)
                 {
-                    double phaseFactor = (2.0 * Math.PI * _hopSize / _sampleRate);
+                    var phaseFactor = (2.0 * Math.PI * _hopSize / _sampleRate);
 
-                    for (int i = 0; i < _shiftedSpectrum.Length; i++)
+                    for (var i = 0; i < _shiftedSpectrum.Length; i++)
                     {
-                        double magnitude = _shiftedSpectrum.Pointer[i].Magnitude;
-                        double phase = _shiftedSpectrum.Pointer[i].Phase;
+                        var magnitude = _shiftedSpectrum.Pointer[i].Magnitude;
+                        var phase = _shiftedSpectrum.Pointer[i].Phase;
 
-                        double deltaPhase = phase - _prevPhase[i];
+                        var deltaPhase = phase - _prevPhase[i];
                         _prevPhase[i] = phase;
 
-                        double trueFreq = deltaPhase / phaseFactor;
+                        var trueFreq = deltaPhase / phaseFactor;
                         _phaseAccum[i] += trueFreq;
 
                         _shiftedSpectrum.Pointer[i] = Complex.FromPolarCoordinates(magnitude, _phaseAccum[i]);
@@ -108,7 +108,7 @@ namespace XrEngine.Audio
                 FftwLib.Dft(_shiftedSpectrum, _fftIn);
 
                 // Overlap-add
-                for (int i = 0; i < windowSize; i++)
+                for (var i = 0; i < windowSize; i++)
                     output[frameOfs + i] += (float)(_fftIn.Pointer[i] / _fftIn.Length);
             }
         }

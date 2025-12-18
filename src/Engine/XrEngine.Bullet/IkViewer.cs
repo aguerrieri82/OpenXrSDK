@@ -22,7 +22,7 @@ namespace XrEngine.Bullet
             if (!_isMeshCreated)
                 CreateMesh();
 
-            Matrix4x4 wordTransform = Solver.WorldPose.ToMatrix();
+            var wordTransform = Solver.WorldPose.ToMatrix();
 
             //UpdateMesh(Solver.Root, Solver.Root.GetLocalTransform() * wordTransform, wordTransform);
 
@@ -40,10 +40,10 @@ namespace XrEngine.Bullet
 
             TriangleMesh Create(IkNode node)
             {
-                IPbrMaterial mat = MaterialFactory.CreatePbr(new Color(1f, 1, 0, 0.8f));
+                var mat = MaterialFactory.CreatePbr(new Color(1f, 1, 0, 0.8f));
                 mat.Alpha = AlphaMode.Blend;
 
-                TriangleMesh box = new TriangleMesh(Cube3D.Default, (Material)mat)
+                var box = new TriangleMesh(Cube3D.Default, (Material)mat)
                 {
                     Name = node.Name
                 };
@@ -59,7 +59,7 @@ namespace XrEngine.Bullet
 
             _host.Clear();
 
-            foreach (IkNode node in Solver.Nodes)
+            foreach (var node in Solver.Nodes)
             {
                 if (node.Parent == null)
                     continue;
@@ -74,15 +74,15 @@ namespace XrEngine.Bullet
         {
             void Update(IkNode newNode, Matrix4x4 newBase, Vector3 p0)
             {
-                TriangleMesh mesh = _meshMap[newNode];
+                var mesh = _meshMap[newNode];
 
-                Vector3 p1 = newBase.Translation;
+                var p1 = newBase.Translation;
 
-                float len = (p1 - p0).Length();
+                var len = (p1 - p0).Length();
 
-                Vector3 axis = (p1 - p0).Normalize();
+                var axis = (p1 - p0).Normalize();
 
-                float size = node.Size * 0.3f;
+                var size = node.Size * 0.3f;
 
                 mesh.Transform.Position = p0;
                 mesh.Transform.Scale = new Vector3(size, size, len);
@@ -93,7 +93,7 @@ namespace XrEngine.Bullet
 
             if (node.Right != null)
             {
-                Matrix4x4 trSibling = node.Right.GetLocalTransform() * parentTransform;
+                var trSibling = node.Right.GetLocalTransform() * parentTransform;
 
                 Update(node.Right, trSibling, parentTransform.Translation);
 
@@ -102,7 +102,7 @@ namespace XrEngine.Bullet
 
             if (node.Left != null)
             {
-                Matrix4x4 trChild = node.Left.GetLocalTransform() * baseTransform;
+                var trChild = node.Left.GetLocalTransform() * baseTransform;
                 Update(node.Left, trChild, baseTransform.Translation);
 
                 UpdateMesh(node.Left, trChild, baseTransform);
@@ -114,11 +114,11 @@ namespace XrEngine.Bullet
             if (node == null)
                 return;
 
-            Vector3 pos = baseTransform.Translation;
+            var pos = baseTransform.Translation;
 
-            Vector3 bx = new Vector3(baseTransform.M11, baseTransform.M12, baseTransform.M13);
-            Vector3 by = new Vector3(baseTransform.M21, baseTransform.M22, baseTransform.M23);
-            Vector3 bz = new Vector3(baseTransform.M31, baseTransform.M32, baseTransform.M33);
+            var bx = new Vector3(baseTransform.M11, baseTransform.M12, baseTransform.M13);
+            var by = new Vector3(baseTransform.M21, baseTransform.M22, baseTransform.M23);
+            var bz = new Vector3(baseTransform.M31, baseTransform.M32, baseTransform.M33);
 
             canvas.State.Color = new Color(1, 0, 0, 1);  // X
             canvas.DrawLine(pos, pos + bx * 0.05f);
@@ -129,7 +129,7 @@ namespace XrEngine.Bullet
             canvas.State.Color = new Color(0, 0, 1, 1);  // Z
             canvas.DrawLine(pos, pos + bz * 0.05f);
 
-            Vector3 axisWorld = Vector3.TransformNormal(node.Axis, baseTransform);
+            var axisWorld = Vector3.TransformNormal(node.Axis, baseTransform);
 
             canvas.State.Color = new Color(0.2f, 0.2f, 0.7f, 1);
             canvas.DrawLine(pos, pos + axisWorld * 0.1f);
@@ -142,7 +142,7 @@ namespace XrEngine.Bullet
 
             if (node.Right != null)
             {
-                Matrix4x4 trSibling = node.Right.GetLocalTransform() * parentTransform;
+                var trSibling = node.Right.GetLocalTransform() * parentTransform;
 
                 canvas.State.Color = new Color(0, 1, 1, 1); // green
                 canvas.DrawLine(parentTransform.Translation, trSibling.Translation);
@@ -152,7 +152,7 @@ namespace XrEngine.Bullet
 
             if (node.Left != null)
             {
-                Matrix4x4 trChild = node.Left.GetLocalTransform() * baseTransform;
+                var trChild = node.Left.GetLocalTransform() * baseTransform;
 
                 canvas.State.Color = new Color(1, 0, 1, 1); // red
                 canvas.DrawLine(pos, trChild.Translation);
@@ -166,7 +166,7 @@ namespace XrEngine.Bullet
             if (Solver?.Root == null || !EnableGizmos)
                 return;
 
-            Matrix4x4 wordTransform = Solver.WorldPose.ToMatrix();
+            var wordTransform = Solver.WorldPose.ToMatrix();
 
             DrawWork(canvas, Solver.Root, Solver.Root.GetLocalTransform() * wordTransform, wordTransform);
         }

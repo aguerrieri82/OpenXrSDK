@@ -68,7 +68,7 @@ namespace XrEngine
 
                 if (MaterialOverride is TextureMaterial tex)
                 {
-                    bool texChanged = (tex.Texture == null && pbr.ColorMap != null ||
+                    var texChanged = (tex.Texture == null && pbr.ColorMap != null ||
                                       tex.Texture != null && pbr.ColorMap == null);
 
                     tex.Texture = pbr.ColorMap;
@@ -79,7 +79,7 @@ namespace XrEngine
                 }
                 else if (MaterialOverride is BasicMaterial bsc)
                 {
-                    bool texChanged = (bsc.DiffuseTexture == null && pbr.ColorMap != null ||
+                    var texChanged = (bsc.DiffuseTexture == null && pbr.ColorMap != null ||
                                       bsc.DiffuseTexture != null && pbr.ColorMap == null);
 
                     bsc.Shininess = 10;
@@ -105,11 +105,11 @@ namespace XrEngine
 
         protected void AdjustFov()
         {
-            float scaleRatio = 2.0f / MathF.Max(_clipBounds.Size.X, _clipBounds.Size.Y);
+            var scaleRatio = 2.0f / MathF.Max(_clipBounds.Size.X, _clipBounds.Size.Y);
             if (scaleRatio < 1)
                 return;
 
-            float newFovRadians = 2.0f * MathF.Atan(MathF.Tan(FovDegree / 2.0f) / scaleRatio);
+            var newFovRadians = 2.0f * MathF.Atan(MathF.Tan(FovDegree / 2.0f) / scaleRatio);
 
             if (float.IsNaN(newFovRadians))
                 return;
@@ -117,11 +117,11 @@ namespace XrEngine
             _refCamera.FovDegree = newFovRadians * 180.0f / MathF.PI;
             _refCamera.UpdateProjection();
 
-            Bounds3 newBounds = _host!.WorldBounds!.Points.Select(a => _refCamera.Project(a)).ComputeBounds();
+            var newBounds = _host!.WorldBounds!.Points.Select(a => _refCamera.Project(a)).ComputeBounds();
 
-            Matrix4x4 proj = _refCamera.Projection;
+            var proj = _refCamera.Projection;
 
-            float regionDistance = Math.Abs(newBounds.Center.Z);
+            var regionDistance = Math.Abs(newBounds.Center.Z);
 
             proj.M31 = newBounds.Center.X / regionDistance;
             proj.M32 = newBounds.Center.Y / regionDistance;
@@ -142,11 +142,11 @@ namespace XrEngine
             if (_host == null)
                 return;
 
-            Vector3 normal = _host.Forward.Normalize();
+            var normal = _host.Forward.Normalize();
 
             _host.UpdateBounds(true);
 
-            Vector3 pos = _host.WorldBounds.Center;
+            var pos = _host.WorldBounds.Center;
 
             _plane = new Plane(normal, -Vector3.Dot(normal, pos) + Offset);
 
@@ -154,9 +154,9 @@ namespace XrEngine
             _refCamera.Near = mainCamera.Near;
             _refCamera.BackgroundColor = mainCamera.BackgroundColor;
 
-            float ratio = mainCamera.ViewSize.Width / (float)mainCamera.ViewSize.Height;
+            var ratio = mainCamera.ViewSize.Width / (float)mainCamera.ViewSize.Height;
 
-            Size2 curSize = new Size2
+            var curSize = new Size2
             {
                 Width = TextureSize,
                 Height = (int)(TextureSize / ratio)
@@ -194,26 +194,26 @@ namespace XrEngine
 
                 _refCamera.Eyes ??= new CameraEye[2];
 
-                for (int i = 0; i < 2; i++)
+                for (var i = 0; i < 2; i++)
                 {
-                    Matrix4x4 curWorld = mainCamera.Eyes[i].World;
+                    var curWorld = mainCamera.Eyes[i].World;
 
-                    Vector3 cameraPos = curWorld.Translation;
+                    var cameraPos = curWorld.Translation;
 
-                    float distance = Vector3.Dot(normal, cameraPos - pos);
+                    var distance = Vector3.Dot(normal, cameraPos - pos);
 
-                    Vector3 forward = -Vector3.UnitZ.ToDirection(curWorld);
-                    Vector3 up = Vector3.UnitY.ToDirection(curWorld);
+                    var forward = -Vector3.UnitZ.ToDirection(curWorld);
+                    var up = Vector3.UnitY.ToDirection(curWorld);
 
-                    Vector3 refPos = cameraPos - 2 * distance * normal;
+                    var refPos = cameraPos - 2 * distance * normal;
 
-                    Matrix4x4 refView = Matrix4x4.CreateLookAt(
+                    var refView = Matrix4x4.CreateLookAt(
                         refPos,
                         refPos + Vector3.Reflect(forward, normal),
                         Vector3.Reflect(up, normal)
                     );
 
-                    Matrix4x4.Invert(refView, out Matrix4x4 world);
+                    Matrix4x4.Invert(refView, out var world);
 
                     _refCamera.Eyes[i].World = world;
                     _refCamera.Eyes[i].Projection = _refCamera.Projection;
@@ -225,13 +225,13 @@ namespace XrEngine
             }
             else
             {
-                Vector3 cameraPos = mainCamera.WorldPosition;
+                var cameraPos = mainCamera.WorldPosition;
 
-                float distance = Vector3.Dot(normal, cameraPos - pos);
+                var distance = Vector3.Dot(normal, cameraPos - pos);
 
-                Vector3 refPos = cameraPos - 2 * distance * normal;
+                var refPos = cameraPos - 2 * distance * normal;
 
-                Matrix4x4 refView = Matrix4x4.CreateLookAt(
+                var refView = Matrix4x4.CreateLookAt(
                     refPos,
                     refPos + Vector3.Reflect(mainCamera.Forward, normal),
                     Vector3.Reflect(mainCamera.Up, normal)
@@ -261,8 +261,8 @@ namespace XrEngine
         public void DrawGizmos(Canvas3D canvas)
         {
             return;
-            Bounds3 bounds = _host!.WorldBounds;
-            Vector3 pos = bounds.Center;
+            var bounds = _host!.WorldBounds;
+            var pos = bounds.Center;
             canvas.Save();
             canvas.State.Color = "#00ff00";
             canvas.DrawPlane(_plane, pos, 1, 2, 0.1f);

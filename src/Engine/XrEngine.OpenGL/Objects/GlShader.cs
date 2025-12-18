@@ -45,7 +45,7 @@ namespace XrEngine.OpenGL
 
             _gl.CompileShader(_handle);
 
-            string infoLog = _gl.GetShaderInfoLog(_handle);
+            var infoLog = _gl.GetShaderInfoLog(_handle);
 
             if (!string.IsNullOrWhiteSpace(infoLog))
                 throw new Exception($"Error compiling shader of type {Type}, failed with error {infoLog}");
@@ -59,7 +59,7 @@ namespace XrEngine.OpenGL
             {
                 _gl.DeleteShader(_handle);
 
-                KeyValuePair<string, GlShader> cache = _shaders.First(a => a.Value == this);
+                var cache = _shaders.First(a => a.Value == this);
                 _shaders.Remove(cache.Key);
 
                 base.Dispose();
@@ -68,9 +68,9 @@ namespace XrEngine.OpenGL
 
         public static GlShader GetOrCreate(GL gl, ShaderType type, string source)
         {
-            string sourceHash = Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(source)));
+            var sourceHash = Convert.ToBase64String(MD5.HashData(Encoding.UTF8.GetBytes(source)));
 
-            if (!_shaders.TryGetValue(sourceHash, out GlShader? shader))
+            if (!_shaders.TryGetValue(sourceHash, out var shader))
             {
                 shader = new GlShader(gl, type, source);
                 _shaders[sourceHash] = shader;

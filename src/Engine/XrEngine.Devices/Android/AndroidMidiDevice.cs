@@ -44,7 +44,7 @@ namespace XrEngine.Devices.Android
 
         public async Task OpenAsync()
         {
-            OnDeviceOpenedListener listener = new OnDeviceOpenedListener();
+            var listener = new OnDeviceOpenedListener();
             _manager.OpenDevice(_info, listener, new Handler(Looper.MainLooper!));
             _device = await listener.Task;
             if (_device == null)
@@ -59,7 +59,7 @@ namespace XrEngine.Devices.Android
 
         public IMidiOutPort OpenOutput(int index)
         {
-            MidiInputPort? port = _device?.OpenInputPort(index);
+            var port = _device?.OpenInputPort(index);
             if (port == null)
                 throw new Exception("Failed to open MIDI output port.");
             return new AndroidMidiOutPort(port);
@@ -67,7 +67,7 @@ namespace XrEngine.Devices.Android
 
         public IMidiInPort OpenInput(int index)
         {
-            MidiOutputPort? port = _device?.OpenOutputPort(index);
+            var port = _device?.OpenOutputPort(index);
             if (port == null)
                 throw new Exception("Failed to open MIDI output port.");
             return new AndroidMidiInPort(port);

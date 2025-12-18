@@ -16,7 +16,7 @@
 
         public TextureAsset FromFile(string filePath, TextureLoadOptions? options = null)
         {
-            BaseTextureLoader loader = (BaseTextureLoader)AssetLoader.Instance.GetLoader(new Uri(filePath));
+            var loader = (BaseTextureLoader)AssetLoader.Instance.GetLoader(new Uri(filePath));
             return new TextureAsset(loader, filePath, options);
         }
     }

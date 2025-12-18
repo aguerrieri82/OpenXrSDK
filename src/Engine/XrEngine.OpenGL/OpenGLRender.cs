@@ -98,7 +98,7 @@ namespace XrEngine.OpenGL
 
             if (_options.UseDepthPass)
             {
-                GlDepthPass depthPass = new GlDepthPass(this)
+                var depthPass = new GlDepthPass(this)
                 {
                     UseOcclusionQuery = _options.UseOcclusionQuery
                 };
@@ -113,13 +113,13 @@ namespace XrEngine.OpenGL
 
             if (_options.Outline.Use)
             {
-                GlOutlinePass outline = new GlOutlinePass(this, -1, _options.Outline.IsMultiView);
+                var outline = new GlOutlinePass(this, -1, _options.Outline.IsMultiView);
                 _renderPasses.Add(outline);
             }
 
             if (_options.UseHitTest)
             {
-                GlHitTestPass hitTest = new GlHitTestPass(this);
+                var hitTest = new GlHitTestPass(this);
                 _renderPasses.Add(hitTest);
                 Context.Implement<IViewHitTest>(hitTest);
             }
@@ -127,8 +127,8 @@ namespace XrEngine.OpenGL
             _gl.GetInteger(GetPName.MaxTextureImageUnits, out _maxTextureUnits);
 
 
-            string[] exts = GetExtensions();
-            foreach (string ex in exts)
+            var exts = GetExtensions();
+            foreach (var ex in exts)
                 Debug.WriteLine(ex);
 
 
@@ -155,8 +155,8 @@ namespace XrEngine.OpenGL
 
                try
                {
-                   Span<byte> span = new Span<byte>((void*)msg, len);
-                   string text = Encoding.UTF8.GetString(span);
+                   var span = new Span<byte>((void*)msg, len);
+                   var text = Encoding.UTF8.GetString(span);
 
                    if (sev == GLEnum.DebugSeverityNotification)
                        return;
@@ -228,7 +228,7 @@ namespace XrEngine.OpenGL
 
         protected void UpdateLights(Scene3D scene)
         {
-            LightLayer lights = scene.EnsureLayer<LightLayer>();
+            var lights = scene.EnsureLayer<LightLayer>();
 
             if (_lastLightLayerVersion == lights.Version)
                 return;
@@ -236,7 +236,7 @@ namespace XrEngine.OpenGL
             _updateCtx.Lights = [];
             _updateCtx.LightsHash = "";
 
-            foreach (Light light in scene.Descendants<Light>().Visible())
+            foreach (var light in scene.Descendants<Light>().Visible())
             {
                 _updateCtx.Lights.Add(light);
 
@@ -244,7 +244,7 @@ namespace XrEngine.OpenGL
                 {
                     if (imgLight.Panorama?.Data != null && imgLight.Panorama.Version != _updateCtx.ImageLightVersion)
                     {
-                        PanoramaProcessorOptions options = PanoramaProcessorOptions.Default();
+                        var options = PanoramaProcessorOptions.Default();
 
                         options.SampleCount = 1024;
                         options.Resolution = 256;
@@ -278,7 +278,7 @@ namespace XrEngine.OpenGL
 
         protected void UpdateLayers(Scene3D scene)
         {
-            if (!_layersCache.TryGetValue(scene, out LayersCache? cache))
+            if (!_layersCache.TryGetValue(scene, out var cache))
             {
                 cache = new LayersCache();
                 _layersCache[scene] = cache;
@@ -288,23 +288,23 @@ namespace XrEngine.OpenGL
 
             if (cache.Version != scene.Layers.Version)
             {
-                foreach (IGlLayer layer in _activeLayers)
+                foreach (var layer in _activeLayers)
                     layer.Dispose();
 
                 _activeLayers.Clear();
 
-                OpaqueLayer opaque = scene.EnsureLayer<OpaqueLayer>();
+                var opaque = scene.EnsureLayer<OpaqueLayer>();
                 AddLayer(scene, GlLayerType.Opaque, opaque);
 
-                foreach (DetachedLayer layer in scene.Layers.Layers.OfType<DetachedLayer>())
+                foreach (var layer in scene.Layers.Layers.OfType<DetachedLayer>())
                     AddLayer(scene, GlLayerType.Custom, layer);
 
-                BlendLayer blend = scene.EnsureLayer<BlendLayer>();
+                var blend = scene.EnsureLayer<BlendLayer>();
                 AddLayer(scene, GlLayerType.Blend, blend);
 
                 if (_options.ShadowMap.Mode != ShadowMapMode.None)
                 {
-                    CastShadowsLayer castShadowLayer = scene.EnsureLayer<CastShadowsLayer>();
+                    var castShadowLayer = scene.EnsureLayer<CastShadowsLayer>();
                     scene.EnsureLayer<ReceiveShadowsLayer>();
                     AddLayer(scene, GlLayerType.CastShadow, castShadowLayer);
                 }
@@ -317,7 +317,7 @@ namespace XrEngine.OpenGL
 
                 if (_options.UseVolume)
                 {
-                    VolumeLayer volume = scene.EnsureLayer<VolumeLayer>();
+                    var volume = scene.EnsureLayer<VolumeLayer>();
                     AddLayer(scene, GlLayerType.Volume, volume);
                 }
 
@@ -326,7 +326,7 @@ namespace XrEngine.OpenGL
                 cache.Version = scene.Layers.Version;
             }
 
-            foreach (IGlLayer layer in _activeLayers)
+            foreach (var layer in _activeLayers)
             {
                 if (layer.NeedUpdate)
                     layer.Rebuild();
@@ -389,10 +389,10 @@ namespace XrEngine.OpenGL
             _updateCtx.Frame = ctx.Frame;
             _updateCtx.ContextVersion++;
 
-            foreach (IGlRenderPass pass in _renderPasses)
+            foreach (var pass in _renderPasses)
                 pass.Configure(ctx);
 
-            foreach (IGlRenderPass pass in _renderPasses)
+            foreach (var pass in _renderPasses)
             {
                 _updateCtx.Pass = pass;
 
@@ -423,7 +423,7 @@ namespace XrEngine.OpenGL
                 _target = _defaultTarget;
             else
             {
-                GlTexture glTexture = texture.ToGlTexture(false);
+                var glTexture = texture.ToGlTexture(false);
                 _texRenderTarget ??= new GlTextureRenderTarget(_gl);
                 _texRenderTarget.FrameBuffer.Configure(glTexture, null, glTexture.SampleCount);
                 _target = _texRenderTarget;
@@ -444,7 +444,7 @@ namespace XrEngine.OpenGL
         {
             EnsureThread();
 
-            nint fence = _gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, SyncBehaviorFlags.None);
+            var fence = _gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, SyncBehaviorFlags.None);
             _gl.WaitSync(fence, SyncBehaviorFlags.None, unchecked((ulong)-1));
             _grContext!.ResetContext(GRGlBackendState.All);
         }
@@ -479,7 +479,7 @@ namespace XrEngine.OpenGL
         {
             EnsureThread();
 
-            GlTexture glTexture = texture.GetGlResource(a =>
+            var glTexture = texture.GetGlResource(a =>
             {
                 if (handle == 0)
                     return texture.ToGlTexture(false);
@@ -492,12 +492,12 @@ namespace XrEngine.OpenGL
             if (_grContext == null)
             {
 #if GLES
-                GRGlInterface grInterface = GRGlInterface.CreateGles(name =>
+                var grInterface = GRGlInterface.CreateGles(name =>
                 {
                     return _gl.Context.GetProcAddress(name);
                 });
 #else
-                GRGlInterface grInterface = GRGlInterface.CreateOpenGl(name =>
+                var grInterface = GRGlInterface.CreateOpenGl(name =>
                 {
                     return _gl.Context.GetProcAddress(name);
                 });
@@ -505,16 +505,16 @@ namespace XrEngine.OpenGL
                 _grContext = GRContext.CreateGl(grInterface);
             }
 
-            InternalFormat format = glTexture.InternalFormat;
+            var format = glTexture.InternalFormat;
 
             if (format == InternalFormat.Rgba || format == 0)
                 format = InternalFormat.Rgba8;
 
-            GRGlTextureInfo gerTextInfo = new GRGlTextureInfo((uint)glTexture.Target, glTexture.Handle, (uint)format);
+            var gerTextInfo = new GRGlTextureInfo((uint)glTexture.Target, glTexture.Handle, (uint)format);
 
-            GRBackendTexture grTexture = new GRBackendTexture((int)glTexture.Width, (int)glTexture.Height, true, gerTextInfo);
+            var grTexture = new GRBackendTexture((int)glTexture.Width, (int)glTexture.Height, true, gerTextInfo);
 
-            SKSurfaceProperties props = new SKSurfaceProperties(SKPixelGeometry.RgbVertical);
+            var props = new SKSurfaceProperties(SKPixelGeometry.RgbVertical);
 
             return SKSurface.Create(_grContext, grTexture, ImageUtils.GetSkFormat(texture.Format), props);
         }
@@ -583,7 +583,7 @@ namespace XrEngine.OpenGL
 
             Log.Info(this, "Processing IBL Panorama");
 
-            using GlIBLProcessorV2 processor = new GlIBLProcessorV2(_gl);
+            using var processor = new GlIBLProcessorV2(_gl);
 
             processor.Resolution = options.Resolution;
             processor.MipLevelCount = options.MipLevelCount;
@@ -593,7 +593,7 @@ namespace XrEngine.OpenGL
 
             processor.PanoramaToCubeMap();
 
-            IBLTextures result = new IBLTextures
+            var result = new IBLTextures
             {
                 MipCount = processor.MipLevelCount
             };
@@ -602,15 +602,15 @@ namespace XrEngine.OpenGL
 
             if ((options.Mode & IblProcessMode.Lambertian) == IblProcessMode.Lambertian)
             {
-                uint texId = processor.ApplyFilter(GlIBLProcessorV2.Distribution.Irradiance);
+                var texId = processor.ApplyFilter(GlIBLProcessorV2.Distribution.Irradiance);
 
                 result.LambertianEnv = (TextureCube)_gl.TexIdToEngineTexture(texId);
             }
 
             if ((options.Mode & IblProcessMode.GGX) == IblProcessMode.GGX)
             {
-                uint ggx = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGX);
-                uint ggxLut = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGXLut);
+                var ggx = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGX);
+                var ggxLut = processor.ApplyFilter(GlIBLProcessorV2.Distribution.GGXLut);
 
                 result.GGXEnv = (TextureCube)_gl.TexIdToEngineTexture(ggx);
                 result.GGXLUT = (Texture2D)_gl.TexIdToEngineTexture(ggxLut);
@@ -643,10 +643,10 @@ namespace XrEngine.OpenGL
         {
             EnsureThread();
 
-            GlTexture glTex = texture.ToGlTexture();
+            var glTex = texture.ToGlTexture();
 
             PushGroup($"ReadTexture {glTex.Handle}");
-            IList<TextureData>? data = glTex.Read(format, startMipLevel, endMipLevel);
+            var data = glTex.Read(format, startMipLevel, endMipLevel);
             PopGroup();
             return data;
         }
@@ -658,7 +658,7 @@ namespace XrEngine.OpenGL
 
         public Texture2D? GetDepth()
         {
-            GlTexture? glDepth = _target?.QueryTexture(FramebufferAttachment.DepthAttachment);
+            var glDepth = _target?.QueryTexture(FramebufferAttachment.DepthAttachment);
 
             if (glDepth == null)
                 return null;
@@ -685,8 +685,8 @@ namespace XrEngine.OpenGL
 
         public unsafe string[] GetExtensions()
         {
-            byte* data = _gl.GetString(StringName.Extensions);
-            string allExt = Marshal.PtrToStringAuto(new nint(data))!;
+            var data = _gl.GetString(StringName.Extensions);
+            var allExt = Marshal.PtrToStringAuto(new nint(data))!;
             if (string.IsNullOrWhiteSpace(allExt))
                 return [];
             return allExt.Split(' ');
@@ -694,23 +694,23 @@ namespace XrEngine.OpenGL
 
         public void Dispose()
         {
-            foreach (IGlRenderPass pass in _renderPasses)
+            foreach (var pass in _renderPasses)
                 pass.Dispose();
             _renderPasses.Clear();
 
-            foreach (KeyValuePair<string, GlComputeProgram> program in _computePrograms)
+            foreach (var program in _computePrograms)
                 program.Value.Dispose();
 
             _computePrograms.Clear();
 
-            foreach (IGlLayer layer in _activeLayers)
+            foreach (var layer in _activeLayers)
                 layer.Dispose();
 
-            foreach (KeyValuePair<string, GlBaseProgram> program in GlProgramInstance._programs)
+            foreach (var program in GlProgramInstance._programs)
                 program.Value.Dispose();
             GlProgramInstance._programs.Clear();
 
-            foreach (KeyValuePair<uint, GlTexture> texture in GlTexture._attached)
+            foreach (var texture in GlTexture._attached)
                 texture.Value.Dispose();
             GlTexture._attached.Clear();
 
@@ -729,21 +729,21 @@ namespace XrEngine.OpenGL
 
         public void Kernel3x3(Texture2D src, Texture2D dst, float[] data)
         {
-            if (!_computePrograms.TryGetValue("Kernel3x3", out GlComputeProgram? program))
+            if (!_computePrograms.TryGetValue("Kernel3x3", out var program))
             {
                 program = new GlComputeProgram(_gl, "Image/Kernel3x3.comp", str => Embedded.GetString<Material>(str));
                 program.Build();
                 _computePrograms["Kernel3x3"] = program;
             }
 
-            uint? curProgram = _glState.ActiveProgram;
+            var curProgram = _glState.ActiveProgram;
 
             program.Use();
 
             program.SetUniform("texelSize", new Vector2(1f / dst.Width, 1f / dst.Height));
             program.SetUniform("weights", data);
 
-            GlTexture dstGl = dst.ToGlTexture();
+            var dstGl = dst.ToGlTexture();
 
             program.LoadTexture(src, 10);
 

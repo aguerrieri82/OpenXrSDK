@@ -7,7 +7,7 @@ namespace XrEditor
     {
         public IPopup CreatePopup(ContentView content, Size2I size)
         {
-            WindowPopup result = new WindowPopup
+            var result = new WindowPopup
             {
                 Content = content,
                 Width = size.Width,

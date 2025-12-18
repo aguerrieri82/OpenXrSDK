@@ -1,5 +1,4 @@
-﻿using OpenXr.Framework;
-using OpenXr.Framework.Oculus;
+﻿using OpenXr.Framework.Oculus;
 using System.Numerics;
 using XrEngine;
 using XrEngine.OpenXr;
@@ -31,8 +30,8 @@ namespace XrSamples.Dnd
 
         public void Scale(float value)
         {
-            Vector3 center = Player!.WorldPosition;
-            Matrix4x4 newTrans = Map!.Transform.Matrix *
+            var center = Player!.WorldPosition;
+            var newTrans = Map!.Transform.Matrix *
                 Matrix4x4.CreateTranslation(-center) *
                 Matrix4x4.CreateScale(new Vector3(value)) *
                 Matrix4x4.CreateTranslation(center);
@@ -45,12 +44,12 @@ namespace XrSamples.Dnd
         [Action]
         public void ToggleSimplified()
         {
-            IEnumerable<PbrV2Material> materials = Map!.Descendants<TriangleMesh>()
+            var materials = Map!.Descendants<TriangleMesh>()
                                .SelectMany(a => a.Materials)
                                .OfType<PbrV2Material>()
                                .Distinct();
 
-            foreach (PbrV2Material? material in materials)
+            foreach (var material in materials)
             {
                 material.Simplified = !material.Simplified;
                 material.NotifyChanged(ObjectChangeType.Property);
@@ -59,10 +58,10 @@ namespace XrSamples.Dnd
 
         protected override void Update(RenderContext ctx)
         {
-            XrBoolInput aButton = _inputs!.Right!.Button!.AClick!;
-            XrBoolInput bButton = _inputs.Right!.Button!.BClick!;
-            XrBoolInput xButton = _inputs.Left!.Button!.XClick!;
-            XrFloatInput rTrigger = _inputs.Right!.TriggerValue!;
+            var aButton = _inputs!.Right!.Button!.AClick!;
+            var bButton = _inputs.Right!.Button!.BClick!;
+            var xButton = _inputs.Left!.Button!.XClick!;
+            var rTrigger = _inputs.Right!.TriggerValue!;
 
             if (bButton.IsChanged && bButton.Value)
             {

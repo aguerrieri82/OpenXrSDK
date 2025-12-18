@@ -40,7 +40,7 @@ namespace XrEngine.Gltf
 
         public unsafe static uint[] ReadIndices(MeshData data)
         {
-            uint[] buffer = new uint[data.IndicesSize];
+            var buffer = new uint[data.IndicesSize];
             fixed (uint* pBuf = buffer)
                 ReadIndices(data.Mesh, pBuf, (int)data.IndicesSize);
             return buffer;
@@ -48,7 +48,7 @@ namespace XrEngine.Gltf
 
         public unsafe static T[] ReadAttribute<T>(MeshData data, int index) where T : unmanaged
         {
-            T[] buffer = new T[data.VerticesSize];
+            var buffer = new T[data.VerticesSize];
             fixed (T* pBuf = buffer)
                 ReadAttribute(data.Mesh, index, pBuf, sizeof(T), (int)data.VerticesSize);
             return buffer;
@@ -61,7 +61,7 @@ namespace XrEngine.Gltf
 
         public unsafe static MeshData DecodeBuffer(byte[] buffer, int offset, int size)
         {
-            MeshData data = new MeshData();
+            var data = new MeshData();
             fixed (byte* pBuf = buffer)
             {
                 DecodeBuffer(pBuf + offset, (ulong)size, ref data);

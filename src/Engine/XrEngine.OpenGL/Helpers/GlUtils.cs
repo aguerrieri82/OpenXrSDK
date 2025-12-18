@@ -11,7 +11,7 @@ namespace XrEngine.OpenGL
     {
         public static int CalculateUnpackAlignment(uint width, uint bytesPerPixel)
         {
-            uint rowSize = width * bytesPerPixel;
+            var rowSize = width * bytesPerPixel;
 
             // OpenGL allows 1, 2, 4, or 8
             if (rowSize % 8 == 0) return 8;

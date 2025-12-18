@@ -67,7 +67,7 @@ namespace XrEngine
 
         public unsafe void SaveTexture(Stream stream, IList<TextureData> images)
         {
-            PvrHeader header = new PvrHeader
+            var header = new PvrHeader
             {
                 Version = Version,
                 Width = images[0].Width,
@@ -130,7 +130,7 @@ namespace XrEngine
 
             stream.WriteStruct(header);
 
-            foreach (TextureData? img in images.OrderBy(a => a.MipLevel).ThenBy(a => a.Face))
+            foreach (var img in images.OrderBy(a => a.MipLevel).ThenBy(a => a.Face))
             {
                 Debug.Assert(img.Data != null);
                 stream.Write(img.Data.AsSpan());
@@ -142,21 +142,21 @@ namespace XrEngine
 
         public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
-            using Stream seekStream = stream.EnsureSeek();
+            using var seekStream = stream.EnsureSeek();
 
-            PvrHeader header = seekStream.ReadStruct<PvrHeader>();
+            var header = seekStream.ReadStruct<PvrHeader>();
 
             if (header.Version != Version)
                 throw new InvalidOperationException();
 
             if (header.MetaDataSize > 0)
             {
-                PvrMeta meta = seekStream.ReadStruct<PvrMeta>();
+                var meta = seekStream.ReadStruct<PvrMeta>();
                 if (meta.DataSize > 0)
                     seekStream.Position += (header.MetaDataSize - sizeof(PvrMeta));
             }
 
-            ulong test = (ulong)header.PixelFormat >> 32;
+            var test = (ulong)header.PixelFormat >> 32;
 
             if (header.NumSurfaces != 1 ||
                 header.Depth != 1)
@@ -164,7 +164,7 @@ namespace XrEngine
                 throw new NotSupportedException();
             }
 
-            TextureCompressionFormat comp = TextureCompressionFormat.Uncompressed;
+            var comp = TextureCompressionFormat.Uncompressed;
             TextureFormat format;
 
             switch (header.PixelFormat)

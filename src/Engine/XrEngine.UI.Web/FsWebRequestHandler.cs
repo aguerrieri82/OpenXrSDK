@@ -18,15 +18,15 @@
 
         public WebResponse? HandleRequest(WebRequest request)
         {
-            string fullPath = Path.Join(_basePath, request.Uri!.LocalPath);
+            var fullPath = Path.Join(_basePath, request.Uri!.LocalPath);
 
             if (!File.Exists(fullPath))
                 fullPath = Path.Join(_basePath, "index.html");
 
-            string ext = Path.GetExtension(fullPath).ToLower();
-            string mimeType = MimeMapper.GetMimeType(ext);
+            var ext = Path.GetExtension(fullPath).ToLower();
+            var mimeType = MimeMapper.GetMimeType(ext);
 
-            byte[] data = File.ReadAllBytes(fullPath);
+            var data = File.ReadAllBytes(fullPath);
 
             return new WebResponse
             {

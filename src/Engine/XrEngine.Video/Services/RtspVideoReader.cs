@@ -41,7 +41,7 @@ namespace XrEngine.Video
 
             if (!string.IsNullOrWhiteSpace(uri.UserInfo))
             {
-                string[] parts = uri.UserInfo.Split(':');
+                var parts = uri.UserInfo.Split(':');
                 _client.Authenticate(_streamName, parts[0], parts[1]);
             }
 
@@ -50,7 +50,7 @@ namespace XrEngine.Video
 
             Log.Debug(this, "Rtsp: Describe");
 
-            IList<RtspStream> streams = _client.Describe(_streamName);
+            var streams = _client.Describe(_streamName);
 
             _videoStream = streams.FirstOrDefault(a => a.Type == RtspStreamType.Video);
 
@@ -67,14 +67,14 @@ namespace XrEngine.Video
 
             if (_videoStream.Format == "H264")
             {
-                MemoryStream extraData = new MemoryStream();
+                var extraData = new MemoryStream();
 
                 if (_videoStream.Data != null && _videoStream.Data.Count > 0)
                 {
-                    VideoFormat format = new VideoFormat();
+                    var format = new VideoFormat();
                     SpsDecoder.Decode(_videoStream.Data[0], ref format);
                     FrameSize = new Size2I((uint)format.Width, (uint)format.Height);
-                    foreach (byte[] item in _videoStream.Data)
+                    foreach (var item in _videoStream.Data)
                     {
                         extraData.Write(RtpH264Client.NAL_START);
                         extraData.Write(item);
@@ -112,7 +112,7 @@ namespace XrEngine.Video
         {
             Log.Debug(this, "Rtsp: Read Thread Started");
 
-            double timeout = _session!.SessionTimeout.TotalSeconds * 0.5;
+            var timeout = _session!.SessionTimeout.TotalSeconds * 0.5;
             if (timeout == 0)
                 timeout = 20;
 
@@ -140,12 +140,12 @@ namespace XrEngine.Video
                         _lastPingTime = DateTime.UtcNow;
                     }
 
-                    byte[]? nalData = _h264Stream?.ReadNalUnit();
+                    var nalData = _h264Stream?.ReadNalUnit();
                     if (nalData != null)
                     {
                         //_out.Write(nalData);    
                         //_out.Flush();   
-                        FrameBuffer buffer = new FrameBuffer() { ByteArray = nalData };
+                        var buffer = new FrameBuffer() { ByteArray = nalData };
                         _videoCodec!.EnqueueBuffer(buffer);
                         //_videoCodec!.DequeueBuffer(ref _dstBuffer);
 
@@ -183,7 +183,7 @@ namespace XrEngine.Video
 
                     _frameCount++;
 
-                    double time = (DateTime.UtcNow - _frameCountStart).TotalSeconds;
+                    var time = (DateTime.UtcNow - _frameCountStart).TotalSeconds;
                     if ((DateTime.UtcNow - _frameCountStart).TotalSeconds > 3)
                     {
                         Log.Info(this, "Fps: {0}", (_frameCount / time));

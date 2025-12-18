@@ -54,7 +54,7 @@ namespace XrEditor.Services
             BeginUpdate();
 
             _items.Clear();
-            foreach (INode item in items)
+            foreach (var item in items)
                 _items.Add(item);
 
             EndUpdate();

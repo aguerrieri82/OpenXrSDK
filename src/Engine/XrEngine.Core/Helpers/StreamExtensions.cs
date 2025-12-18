@@ -4,9 +4,9 @@
     {
         public unsafe static T ReadStruct<T>(this Stream stream) where T : unmanaged
         {
-            T* buffer = stackalloc T[1];
+            var buffer = stackalloc T[1];
 
-            Span<byte> span = new Span<byte>((byte*)buffer, sizeof(T));
+            var span = new Span<byte>((byte*)buffer, sizeof(T));
 
             stream.ReadExactly(span);
 
@@ -15,7 +15,7 @@
 
         public unsafe static void WriteStruct<T>(this Stream stream, T value) where T : unmanaged
         {
-            Span<byte> span = new Span<byte>((byte*)&value, sizeof(T));
+            var span = new Span<byte>((byte*)&value, sizeof(T));
             stream.Write(span);
         }
 
@@ -23,7 +23,7 @@
         {
             if (stream is MemoryStream memory)
                 return memory;
-            MemoryStream result = new MemoryStream();
+            var result = new MemoryStream();
             stream.CopyTo(result);
             result.Position = 0;
             stream.Dispose();

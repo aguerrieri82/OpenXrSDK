@@ -33,7 +33,7 @@ namespace XrSamples
         {
             _sound = sound;
             _maxTtl = maxTtl;
-            IPbrMaterial pbrMat = MaterialFactory.CreatePbr("#EF6C00");
+            var pbrMat = MaterialFactory.CreatePbr("#EF6C00");
             pbrMat.Roughness = 0.45f;
             pbrMat.Metalness = 0.0f;
             Material = (Material)pbrMat;
@@ -41,18 +41,18 @@ namespace XrSamples
 
         protected TriangleMesh NewBall()
         {
-            TriangleMesh ball = new TriangleMesh(IsoSphere3D.Default, Material);
+            var ball = new TriangleMesh(IsoSphere3D.Default, Material);
             ball.Transform.SetScale(0.02f);
             ball.Name = "Ball " + _balls.Count;
 
             ball.AddComponent<BoundsGrabbable>();
 
-            AudioEmitter audioEmitter = ball.AddComponent<AudioEmitter>();
+            var audioEmitter = ball.AddComponent<AudioEmitter>();
 
-            SphereCollider collider = ball.AddComponent<SphereCollider>();
+            var collider = ball.AddComponent<SphereCollider>();
             collider.Radius = 1;
 
-            RigidBody rigidBody = ball.AddComponent<RigidBody>();
+            var rigidBody = ball.AddComponent<RigidBody>();
 
             rigidBody.Type = PhysicsActorType.Dynamic;
             rigidBody.Density = 100;
@@ -72,7 +72,7 @@ namespace XrSamples
                 rigidBody.DynamicActor.ContactReportThreshold = PhysicSettings.ContactReportThreshold;
             };
 
-            Vector3 lastSpeed = Vector3.Zero;
+            var lastSpeed = Vector3.Zero;
 
 
             Object3D? lastContact = null;
@@ -82,7 +82,7 @@ namespace XrSamples
                 if (me.LifeTime < 0.1f || rigidBody.Type == PhysicsActorType.Static)
                     return;
 
-                Vector3 deltaSpeed = (rigidBody.DynamicActor.LinearVelocity - lastSpeed) / (float)ctx.DeltaTime;
+                var deltaSpeed = (rigidBody.DynamicActor.LinearVelocity - lastSpeed) / (float)ctx.DeltaTime;
 
                 if (deltaSpeed.Length() > 50)
                 {
@@ -91,7 +91,7 @@ namespace XrSamples
 
                     if (lastContact?.Name == "Racket")
                     {
-                        XrHaptic haptic = XrApp.Current!.Haptics["RightHaptic"];
+                        var haptic = XrApp.Current!.Haptics["RightHaptic"];
                         haptic.VibrateStart(200, 1, TimeSpan.FromMilliseconds(50));
                         lastContact = null;
                     }
@@ -100,9 +100,9 @@ namespace XrSamples
 
                     if (audioReceiver != null)
                     {
-                        float force = MathUtils.MapRange(deltaSpeed.Length(), 100, 500);
+                        var force = MathUtils.MapRange(deltaSpeed.Length(), 100, 500);
 
-                        Vector3 dir = (ball.WorldPosition - audioReceiver.WorldPosition).Normalize();
+                        var dir = (ball.WorldPosition - audioReceiver.WorldPosition).Normalize();
 
                         audioEmitter.Play(_sound.Buffer(force), dir);
                     }
@@ -114,17 +114,17 @@ namespace XrSamples
             rigidBody.Contact += (me, other, otherIndex, data) =>
             {
 
-                int meIndex = otherIndex == 0 ? 1 : 0;
+                var meIndex = otherIndex == 0 ? 1 : 0;
 
-                float maxDv = data.Select(a =>
+                var maxDv = data.Select(a =>
                 {
-                    ContactPairItem me = a.GetItem(meIndex);
+                    var me = a.GetItem(meIndex);
                     return (me.PostVelocity.Linear - me.PreVelocity.Linear).Length();
                 }).Max();
 
-                float minSep = data.Where(a => a.Points != null).SelectMany(a => a.Points!.Select(b => b.Separation)).Min();
+                var minSep = data.Where(a => a.Points != null).SelectMany(a => a.Points!.Select(b => b.Separation)).Min();
 
-                float maxImpulse = data.Where(a => a.Points != null).SelectMany(a => a.Points!.Select(b => b.Impulse.Length())).Max();
+                var maxImpulse = data.Where(a => a.Points != null).SelectMany(a => a.Points!.Select(b => b.Impulse.Length())).Max();
 
                 Log.Info(this, "COLL: '{0}' '{1}' - Imp: {2} - dv: {3} - sep: {4}", me.Name, other.Name, Math.Round(maxImpulse, 4), Math.Round(maxDv, 4), Math.Round(minSep, 4));
 
@@ -137,11 +137,11 @@ namespace XrSamples
 
         public Object3D PickBall(Vector3 worldPos)
         {
-            IEnumerable<TriangleMesh> expired = _balls.Where(a => a.LifeTime > _maxTtl);
+            var expired = _balls.Where(a => a.LifeTime > _maxTtl);
 
-            TriangleMesh? ball = expired.FirstOrDefault();
+            var ball = expired.FirstOrDefault();
 
-            foreach (TriangleMesh? item in expired.Skip(1).ToArray())
+            foreach (var item in expired.Skip(1).ToArray())
             {
                 item.Dispose();
                 _balls.Remove(item);
@@ -149,7 +149,7 @@ namespace XrSamples
 
             if (ball != null)
             {
-                RigidBody rigid = ball.Component<RigidBody>();
+                var rigid = ball.Component<RigidBody>();
                 rigid.DynamicActor.Stop();
                 rigid.Teleport(worldPos);
             }

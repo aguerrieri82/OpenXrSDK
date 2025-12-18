@@ -36,7 +36,7 @@
 
         public EngineObject Load()
         {
-            EngineObject result = _loader.LoadAsset(Source, Type, null, Options);
+            var result = _loader.LoadAsset(Source, Type, null, Options);
             result.AddComponent(new AssetSource { Asset = this });
             return result;
         }

@@ -21,17 +21,17 @@ namespace XrEngine.OpenGL
             else
                 key = $"{width}x{height}x{arraySize}x{format}";
 
-            if (!_depthTextures.TryGetValue(key, out GlTexture? tex))
+            if (!_depthTextures.TryGetValue(key, out var tex))
             {
                 if (width == 0 || height == 0)
                 {
-                    int[] view = new int[4];
+                    var view = new int[4];
                     gl.GetInteger(GetPName.Viewport, view);
                     width = (uint)view[2];
                     height = (uint)view[3];
                 }
 
-                TextureData data = new TextureData
+                var data = new TextureData
                 {
                     Width = width,
                     Height = height,
@@ -74,13 +74,13 @@ namespace XrEngine.OpenGL
                 _srcFB.SetDrawBuffers();
             }
 
-            GlTexture depth = GetDepthTexture(gl, src.Depth!.Width, src.Depth.Height, arraySize, false);
+            var depth = GetDepthTexture(gl, src.Depth!.Width, src.Depth.Height, arraySize, false);
 
             _dstFB.Bind();
 
             _srcFB.Bind();
 
-            for (int i = 0; i < arraySize; i++)
+            for (var i = 0; i < arraySize; i++)
             {
                 gl.FramebufferTextureLayer(
                     FramebufferTarget.ReadFramebuffer,
@@ -115,7 +115,7 @@ namespace XrEngine.OpenGL
                 _dstFB.SetDrawBuffers();
             }
 
-            GlTexture depth = GetDepthTexture(gl, src.Depth!.Width, src.Depth.Height, 1, false);
+            var depth = GetDepthTexture(gl, src.Depth!.Width, src.Depth.Height, 1, false);
 
             GlState.Current!.BindFrameBuffer(FramebufferTarget.ReadFramebuffer, src.Handle);
             GlState.Current!.BindFrameBuffer(FramebufferTarget.DrawFramebuffer, _dstFB.Handle);
@@ -132,7 +132,7 @@ namespace XrEngine.OpenGL
 
         public static GlTexture GetDepthUsingCopy(GL gl, object src)
         {
-            GlTexture depth = GetDepthTexture(gl, 0, 0, 1, true);
+            var depth = GetDepthTexture(gl, 0, 0, 1, true);
 
             depth.Bind();
 

@@ -14,15 +14,15 @@ namespace XrEngine
 
         public unsafe static bool ArrayEquals<T>(T[] a, T[] b) where T : unmanaged
         {
-            int len = a.Length;
+            var len = a.Length;
             if (len != b.Length)
                 return false;
 
-            int nint = len * sizeof(T) / 4;
+            var nint = len * sizeof(T) / 4;
             fixed (T* pa = a, pb = b)
             {
-                int* intA = (int*)pa;
-                int* intB = (int*)pb;
+                var intA = (int*)pa;
+                var intB = (int*)pb;
                 while (nint > 0)
                 {
                     if (*intA != *intB)
@@ -37,11 +37,11 @@ namespace XrEngine
 
         public unsafe static bool ArrayEquals(int[] a, int[] b)
         {
-            int len = a.Length;
+            var len = a.Length;
             if (len != b.Length)
                 return false;
 
-            for (int i = 0; i < len; i++)
+            for (var i = 0; i < len; i++)
                 if (a[i] != b[i])
                     return false;
             return true;

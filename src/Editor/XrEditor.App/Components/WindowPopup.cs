@@ -26,13 +26,13 @@ namespace XrEditor.Components
 
         public async Task<ActionView?> ShowAsync()
         {
-            ContentView body = (ContentView)Content;
+            var body = (ContentView)Content;
 
             if (body.Actions != null)
             {
-                foreach (ActionView action in body.Actions)
+                foreach (var action in body.Actions)
                 {
-                    Command? oldCommand = action.ExecuteCommand;
+                    var oldCommand = action.ExecuteCommand;
                     action.ExecuteCommand = new Command(() =>
                     {
                         oldCommand?.Execute(null);

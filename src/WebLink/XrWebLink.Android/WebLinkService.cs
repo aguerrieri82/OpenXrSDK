@@ -49,7 +49,7 @@ namespace XrWebLink.Android
         {
             base.OnCreate();
 
-            WebApplicationBuilder builder = WebApplication.CreateBuilder();
+            var builder = WebApplication.CreateBuilder();
 
             builder.Logging.AddProvider(new AndroidLoggerFactory());
 

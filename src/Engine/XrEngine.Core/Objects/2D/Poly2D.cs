@@ -36,14 +36,14 @@ namespace XrEngine
         {
             float curLen = 0;
 
-            float totLen = Length;
+            var totLen = Length;
 
-            int pCount = IsClosed ? Points.Length : Points.Length - 1;
+            var pCount = IsClosed ? Points.Length : Points.Length - 1;
 
-            for (int i = 0; i < pCount; i++)
+            for (var i = 0; i < pCount; i++)
             {
-                Vector2 p1 = Points[i];
-                Vector2 p2 = Points[(i + 1) % Points.Length];
+                var p1 = Points[i];
+                var p2 = Points[(i + 1) % Points.Length];
 
                 yield return new CurvePoint
                 {
@@ -95,7 +95,7 @@ namespace XrEngine
         {
             _length = 0;
 
-            for (int i = 0; i < Points.Length - 1; i++)
+            for (var i = 0; i < Points.Length - 1; i++)
                 _length += Vector2.Distance(Points[i], Points[i + 1]);
 
             if (IsClosed)

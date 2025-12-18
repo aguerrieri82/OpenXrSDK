@@ -49,7 +49,7 @@ namespace XrWebLink
 
         void StartServiceLoop(Func<CancellationToken, Task> action, int delayMs)
         {
-            Task task = Task.Run(async () =>
+            var task = Task.Run(async () =>
             {
                 try
                 {
@@ -75,9 +75,9 @@ namespace XrWebLink
 
             try
             {
-                XrSpaceLocation? location = _app.SpacesTracker.GetLastLocation(_app.Head);
+                var location = _app.SpacesTracker.GetLastLocation(_app.Head);
 
-                Pose3 curPose = new Pose3
+                var curPose = new Pose3
                 {
                     Orientation = location!.Pose!.Orientation,
                     Position = location.Pose!.Position,
@@ -88,7 +88,7 @@ namespace XrWebLink
 
                 _lastPose = curPose;
 
-                TrackInfo info = new TrackInfo
+                var info = new TrackInfo
                 {
                     ObjectType = TrackObjectType.Head,
                     Pose = curPose

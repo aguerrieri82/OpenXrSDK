@@ -199,10 +199,10 @@ namespace XrSamples.Dnd
 
         public async Task<SKBitmap> DownloadImageAsync(string uri)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync(uri);
+            var response = await _httpClient.GetAsync(uri);
             if (response.IsSuccessStatusCode)
             {
-                Stream stream = await response.Content.ReadAsStreamAsync();
+                var stream = await response.Content.ReadAsStreamAsync();
                 return SKBitmap.Decode(stream);
             }
             throw new Exception($"Failed to download image from {uri}");
@@ -215,20 +215,20 @@ namespace XrSamples.Dnd
 
         public async Task<VttCurrentSceneResponse> GetCurrentSceneAsync()
         {
-            VttCurrentSceneResponse? result = await _httpClient.GetFromJsonAsync<VttCurrentSceneResponse>($"https://services.abovevtt.net/services?action=getCurrentScene&campaign={_campaignId}");
+            var result = await _httpClient.GetFromJsonAsync<VttCurrentSceneResponse>($"https://services.abovevtt.net/services?action=getCurrentScene&campaign={_campaignId}");
             return result!;
         }
 
         public async Task<VttSceneReesponse> GetSceneAsync(Guid sceneId)
         {
-            VttSceneReesponse? result = await _httpClient.GetFromJsonAsync<VttSceneReesponse>($"https://services.abovevtt.net/services?action=getScene&campaign={_campaignId}&scene={sceneId}");
+            var result = await _httpClient.GetFromJsonAsync<VttSceneReesponse>($"https://services.abovevtt.net/services?action=getScene&campaign={_campaignId}&scene={sceneId}");
             return result!;
         }
 
 
         public async Task UpdateTokenAsync(Guid sceneId, VttToken token)
         {
-            VttAction action = new VttAction();
+            var action = new VttAction();
             action.Sender = _clientId;
             action.SceneId = sceneId;
             action.PlayersSceneId = sceneId;
@@ -239,8 +239,8 @@ namespace XrSamples.Dnd
             action.CampaignId = _campaignId;
             action.Action = "sendmessage";
 
-            string json = JsonSerializer.Serialize(action, JSON_OPT);
-            byte[] buffer = Encoding.UTF8.GetBytes(json);
+            var json = JsonSerializer.Serialize(action, JSON_OPT);
+            var buffer = Encoding.UTF8.GetBytes(json);
 
             await _socketClient.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
         }
@@ -248,18 +248,18 @@ namespace XrSamples.Dnd
 
         protected async void ReceiveLoop()
         {
-            Memory<byte> buffer = new Memory<byte>(new byte[1024 * 1024]);
+            var buffer = new Memory<byte>(new byte[1024 * 1024]);
 
             while (_socketClient.State == WebSocketState.Open)
             {
-                ValueWebSocketReceiveResult res = await _socketClient.ReceiveAsync(buffer, CancellationToken.None);
+                var res = await _socketClient.ReceiveAsync(buffer, CancellationToken.None);
                 if (res.MessageType == WebSocketMessageType.Text)
                 {
-                    string json = Encoding.UTF8.GetString(buffer.ToArray(), 0, res.Count);
-                    VttAction action = JsonSerializer.Deserialize<VttAction>(json, JSON_OPT)!;
+                    var json = Encoding.UTF8.GetString(buffer.ToArray(), 0, res.Count);
+                    var action = JsonSerializer.Deserialize<VttAction>(json, JSON_OPT)!;
                     if (action.EventType == "custom/myVTT/token")
                     {
-                        VttToken token = ((JsonElement)action.Data!).Deserialize<VttToken>(JSON_OPT)!;
+                        var token = ((JsonElement)action.Data!).Deserialize<VttToken>(JSON_OPT)!;
                         _listener.OnTokenUpdate(token);
                     }
                 }

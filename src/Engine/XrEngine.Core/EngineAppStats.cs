@@ -19,7 +19,7 @@ namespace XrEngine
             _fpsFrameCount++;
             _frameCount++;
 
-            double deltaSecs = (DateTime.UtcNow - _fpsLastTime).TotalSeconds;
+            var deltaSecs = (DateTime.UtcNow - _fpsLastTime).TotalSeconds;
 
             if (deltaSecs >= 2)
             {
@@ -31,13 +31,13 @@ namespace XrEngine
 
         public void Update(IRenderUpdate renderUpdate, Action action)
         {
-            long startTime = Stopwatch.GetTimestamp();
+            var startTime = Stopwatch.GetTimestamp();
 
             action();
 
-            double total = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
+            var total = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
 
-            Type type = renderUpdate.GetType();
+            var type = renderUpdate.GetType();
 
             if (!_updateTimes.TryGetValue(type.FullName!, out _))
                 _updateTimes[type.FullName!] = total;

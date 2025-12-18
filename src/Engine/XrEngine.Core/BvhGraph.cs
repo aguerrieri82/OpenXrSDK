@@ -53,27 +53,27 @@ namespace XrEngine
 
             // Find the longest axis and sort objects by their centroid along this axis
             Vector3 min = Vector3.Zero, max = Vector3.Zero;
-            foreach (T obj in objects)
+            foreach (var obj in objects)
             {
                 min = Vector3.Min(min, obj.WorldBounds.Min);
                 max = Vector3.Max(max, obj.WorldBounds.Max);
             }
-            Vector3 size = max - min;
-            int axis = (size.X > size.Y && size.X > size.Z) ? 0 : (size.Y > size.Z ? 1 : 2);
+            var size = max - min;
+            var axis = (size.X > size.Y && size.X > size.Z) ? 0 : (size.Y > size.Z ? 1 : 2);
 
             objects = objects.OrderBy(o => o.WorldBounds.Min[axis]).ToList();
 
             // Split objects into two groups and recurse
-            int mid = objects.Count / 2;
-            BvhNode<T> left = Build(objects.Take(mid).ToList());
-            BvhNode<T> right = Build(objects.Skip(mid).ToList());
+            var mid = objects.Count / 2;
+            var left = Build(objects.Take(mid).ToList());
+            var right = Build(objects.Skip(mid).ToList());
 
             return new BvhNode<T>(left, right);
         }
 
         public List<T> Query(Bounds3 range)
         {
-            List<T> results = new List<T>();
+            var results = new List<T>();
             QueryRecursive(Root, range, results);
             return results;
         }
@@ -113,18 +113,18 @@ namespace XrEngine
             if (node.IsLeaf)
                 return node.Value;
 
-            float leftDist = node.Left != null ? node.Left.Bounds.DistanceTo(point) : float.MaxValue;
-            float rightDist = node.Right != null ? node.Right.Bounds.DistanceTo(point) : float.MaxValue;
+            var leftDist = node.Left != null ? node.Left.Bounds.DistanceTo(point) : float.MaxValue;
+            var rightDist = node.Right != null ? node.Right.Bounds.DistanceTo(point) : float.MaxValue;
 
-            BvhNode<T>? first = leftDist < rightDist ? node.Left : node.Right;
-            BvhNode<T>? second = leftDist < rightDist ? node.Right : node.Left;
+            var first = leftDist < rightDist ? node.Left : node.Right;
+            var second = leftDist < rightDist ? node.Right : node.Left;
 
-            T? closestObject = FindClosestRecursive(first, point, out float firstDist);
+            var closestObject = FindClosestRecursive(first, point, out var firstDist);
             closestDist = firstDist;
 
             if (second != null && second.Bounds.DistanceTo(point) < closestDist)
             {
-                T? secondClosest = FindClosestRecursive(second, point, out float secondDist);
+                var secondClosest = FindClosestRecursive(second, point, out var secondDist);
                 if (secondDist < closestDist)
                 {
                     closestObject = secondClosest;
@@ -137,7 +137,7 @@ namespace XrEngine
 
         public void Insert(T value)
         {
-            BvhNode<T> newNode = new BvhNode<T>(value);
+            var newNode = new BvhNode<T>(value);
 
             if (Root == null)
             {
@@ -146,18 +146,18 @@ namespace XrEngine
             else
             {
                 // Find the best place to insert the new node
-                BvhNode<T> current = Root!;
+                var current = Root!;
                 while (!current.IsLeaf)
                 {
-                    float enlargementLeft = current.Left.Bounds.Merge(value.WorldBounds).Volume() - current.Left.Bounds.Volume();
-                    float enlargementRight = current.Right.Bounds.Merge(value.WorldBounds).Volume() - current.Right.Bounds.Volume();
+                    var enlargementLeft = current.Left.Bounds.Merge(value.WorldBounds).Volume() - current.Left.Bounds.Volume();
+                    var enlargementRight = current.Right.Bounds.Merge(value.WorldBounds).Volume() - current.Right.Bounds.Volume();
 
                     current = (enlargementLeft < enlargementRight) ? current.Left : current.Right;
                 }
 
                 // Create a new parent node
-                BvhNode<T>? oldParent = current.Parent;
-                BvhNode<T> newParent = new BvhNode<T>(current, newNode);
+                var oldParent = current.Parent;
+                var newParent = new BvhNode<T>(current, newNode);
                 newParent.Parent = oldParent;
 
                 if (oldParent == null)
@@ -178,18 +178,18 @@ namespace XrEngine
 
         public void Remove(T obj)
         {
-            BvhNode<T>? node = FindNode(Root, obj);
+            var node = FindNode(Root, obj);
             if (node == null)
                 return;
 
-            BvhNode<T>? parent = node.Parent;
+            var parent = node.Parent;
             if (parent == null)
             {
                 Root = null;
                 return;
             }
 
-            BvhNode<T> sibling = (parent.Left == node ? parent.Right : parent.Left)!;
+            var sibling = (parent.Left == node ? parent.Right : parent.Left)!;
 
             if (parent.Parent == null)
             {
@@ -199,7 +199,7 @@ namespace XrEngine
             else
             {
 
-                BvhNode<T> grandParent = parent.Parent;
+                var grandParent = parent.Parent;
                 if (grandParent.Left == parent)
                     grandParent.Left = sibling;
                 else
@@ -227,7 +227,7 @@ namespace XrEngine
             if (node.IsLeaf && node.Value == obj)
                 return node;
 
-            BvhNode<T>? foundInLeft = FindNode(node.Left, obj);
+            var foundInLeft = FindNode(node.Left, obj);
             return foundInLeft ?? FindNode(node.Right, obj);
         }
 

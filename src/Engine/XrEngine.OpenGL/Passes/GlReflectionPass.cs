@@ -40,14 +40,14 @@
 
         protected override IEnumerable<ReflectionTarget> GetPasses(RenderContext ctx)
         {
-            HasReflectionLayer layer = ctx.Scene!.EnsureLayer<HasReflectionLayer>();
+            var layer = ctx.Scene!.EnsureLayer<HasReflectionLayer>();
 
-            foreach (Object3D content in layer.Content)
+            foreach (var content in layer.Content)
             {
                 if (!content.IsVisible)
                     continue;
 
-                PlanarReflection reflection = content.Component<PlanarReflection>();
+                var reflection = content.Component<PlanarReflection>();
                 if (!reflection.IsEnabled)
                     continue;
 

@@ -32,7 +32,7 @@ namespace UI.Binding
 
         public static IValueConverter<TSrc, TDst> Get<TSrc, TDst>()
         {
-            IValueConverter<TSrc, TDst>? result = _converters.OfType<IValueConverter<TSrc, TDst>>().FirstOrDefault();
+            var result = _converters.OfType<IValueConverter<TSrc, TDst>>().FirstOrDefault();
             if (result == null)
                 throw new InvalidCastException();
             return result;

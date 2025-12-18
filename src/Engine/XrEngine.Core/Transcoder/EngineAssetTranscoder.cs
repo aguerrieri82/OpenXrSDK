@@ -15,18 +15,18 @@ namespace XrEngine
 
         public void SaveAsset(EngineObject obj, Stream stream)
         {
-            JsonStateContainer state = new JsonStateContainer();
+            var state = new JsonStateContainer();
             obj.GetState(state);
-            using StreamWriter writer = new StreamWriter(stream);
+            using var writer = new StreamWriter(stream);
             writer.Write(state.AsJson());
         }
 
         public override EngineObject LoadAsset(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
-            string path = GetFilePath(uri);
-            string json = File.ReadAllText(path);
-            JsonStateContainer state = new JsonStateContainer(json);
-            EngineObject obj = (EngineObject)ObjectManager.Instance.CreateObject(state.ReadTypeName()!);
+            var path = GetFilePath(uri);
+            var json = File.ReadAllText(path);
+            var state = new JsonStateContainer(json);
+            var obj = (EngineObject)ObjectManager.Instance.CreateObject(state.ReadTypeName()!);
             obj.SetState(state);
             return obj;
         }
@@ -34,11 +34,11 @@ namespace XrEngine
         public override bool CanHandle(Uri uri, out Type resType)
         {
             resType = typeof(void);
-            string path = GetFilePath(uri);
+            var path = GetFilePath(uri);
             if (Path.GetExtension(path) == ".eobj")
             {
-                using FileStream stream = File.OpenRead(path);
-                EngineObjectHeader? header = JsonSerializer.Deserialize<EngineObjectHeader>(stream);
+                using var stream = File.OpenRead(path);
+                var header = JsonSerializer.Deserialize<EngineObjectHeader>(stream);
                 if (header?.TypeName == null)
                     return false;
                 resType = ObjectManager.Instance.FindType(header.TypeName)!;

@@ -24,7 +24,7 @@ namespace OpenAl.Framework
 
             if (Mode == AlSourcePoolMode.CreateNew)
             {
-                for (int i = _sources.Count - 1; i >= 0; i--)
+                for (var i = _sources.Count - 1; i >= 0; i--)
                 {
                     if (_sources[i].State != SourceState.Playing)
                     {

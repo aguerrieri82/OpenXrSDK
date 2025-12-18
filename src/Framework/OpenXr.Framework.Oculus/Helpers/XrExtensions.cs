@@ -11,7 +11,7 @@ namespace OpenXr.Framework
     {
         public unsafe static UuidEXT[] GetWalls(this RoomLayoutFB layout)
         {
-            Span<UuidEXT> span = new Span<UuidEXT>(layout.WallUuids, (int)layout.WallUuidCountOutput);
+            var span = new Span<UuidEXT>(layout.WallUuids, (int)layout.WallUuidCountOutput);
             return span.ToArray();
         }
 
@@ -24,13 +24,13 @@ namespace OpenXr.Framework
 
         public static async Task<List<XrAnchor>> GetAnchorsAsync(this OculusXrPlugin xrOculus, XrAnchorFilter filter)
         {
-            List<XrAnchor> result = new List<XrAnchor>();
+            var result = new List<XrAnchor>();
 
-            SpaceQueryResultFB[] anchors = await xrOculus.QueryAllAnchorsAsync(filter.Ids?.ToArray());
+            var anchors = await xrOculus.QueryAllAnchorsAsync(filter.Ids?.ToArray());
 
-            foreach (SpaceQueryResultFB space in anchors)
+            foreach (var space in anchors)
             {
-                bool hasLabel = filter.Labels != null || (filter.Components & XrAnchorComponent.Label) != 0;
+                var hasLabel = filter.Labels != null || (filter.Components & XrAnchorComponent.Label) != 0;
 
                 string[] labels = [];
 
@@ -43,9 +43,9 @@ namespace OpenXr.Framework
                 if (filter.Labels != null && !labels.Any(filter.Labels.Contains))
                     continue;
 
-                SpaceComponentTypeFB[] supported = xrOculus.EnumerateSpaceSupportedComponentsFB(space.Space);
+                var supported = xrOculus.EnumerateSpaceSupportedComponentsFB(space.Space);
 
-                XrAnchor item = new XrAnchor
+                var item = new XrAnchor
                 {
                     Id = space.Uuid.ToGuid(),
                     Space = space.Space.Handle,
@@ -57,7 +57,7 @@ namespace OpenXr.Framework
                     if ((filter.Components & XrAnchorComponent.Bounds) != 0 &&
                         xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.Bounded2DFB))
                     {
-                        Rect2Df bounds = xrOculus.GetSpaceBoundingBox2D(space.Space);
+                        var bounds = xrOculus.GetSpaceBoundingBox2D(space.Space);
                         item.Bounds2D = bounds.Convert().To<Rect2>();
                     }
 
@@ -69,7 +69,7 @@ namespace OpenXr.Framework
                             if (!xrOculus.GetSpaceComponentEnabled(space.Space, SpaceComponentTypeFB.LocatableFB))
                                 await xrOculus.SetSpaceComponentStatusAsync(space.Space, SpaceComponentTypeFB.LocatableFB, true);
 
-                            XrSpaceLocation local = xrOculus.App.LocateSpace(space.Space, xrOculus.App.ReferenceSpace, 1);
+                            var local = xrOculus.App.LocateSpace(space.Space, xrOculus.App.ReferenceSpace, 1);
                             item.Pose = local.Pose;
 
                         }
@@ -82,7 +82,7 @@ namespace OpenXr.Framework
                     if ((filter.Components & XrAnchorComponent.Mesh) != 0 &&
                         xrOculus.GetSpaceComponentEnabled(space.Space, OculusXrPlugin.XR_SPACE_COMPONENT_TYPE_TRIANGLE_MESH_META))
                     {
-                        Mesh mesh = xrOculus.GetSpaceTriangleMesh(space.Space);
+                        var mesh = xrOculus.GetSpaceTriangleMesh(space.Space);
                         item.Mesh = new Mesh
                         {
                             Indices = mesh.Indices,

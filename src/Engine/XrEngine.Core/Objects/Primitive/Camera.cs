@@ -72,7 +72,7 @@ namespace XrEngine
 
         public Camera Clone()
         {
-            Camera camera = (Camera)Activator.CreateInstance(GetType())!;
+            var camera = (Camera)Activator.CreateInstance(GetType())!;
             camera.CopyFrom(this);
             return camera;
         }
@@ -105,7 +105,7 @@ namespace XrEngine
             get => WorldMatrixInverse;
             set
             {
-                Matrix4x4.Invert(value, out Matrix4x4 inverse);
+                Matrix4x4.Invert(value, out var inverse);
                 WorldMatrix = inverse;
                 _viewProjDirty = true;
             }

@@ -33,15 +33,15 @@ namespace XrEngine.Physics
 
             Initialize();
 
-            foreach (Object3D item in MeshObjects())
+            foreach (var item in MeshObjects())
             {
-                Geometry3D? geo = item.Feature<Geometry3D>();
+                var geo = item.Feature<Geometry3D>();
                 if (geo == null)
                     continue;
 
-                PhysicsGeometry pyGeo = geo.GetProp<PhysicsGeometry>(PyGeo)!;
+                var pyGeo = geo.GetProp<PhysicsGeometry>(PyGeo)!;
 
-                float distance = pyGeo.DistanceFrom(globalPoint, item.WorldMatrix.ToPose(), 0, out Vector3 _);
+                var distance = pyGeo.DistanceFrom(globalPoint, item.WorldMatrix.ToPose(), 0, out var _);
 
                 if (pyGeo.Type == PhysX.PxGeometryType.Trianglemesh)
                     distance *= pyGeo.TriangleMesh.scale.scale.x;
@@ -60,27 +60,27 @@ namespace XrEngine.Physics
 
             Initialize();
 
-            foreach (Object3D item in MeshObjects())
+            foreach (var item in MeshObjects())
             {
-                Geometry3D? geo = item.Feature<Geometry3D>();
+                var geo = item.Feature<Geometry3D>();
                 if (geo == null)
                     continue;
 
-                PhysicsGeometry pyGeo = geo.GetProp<PhysicsGeometry>(PyGeo)!;
+                var pyGeo = geo.GetProp<PhysicsGeometry>(PyGeo)!;
 
-                Ray3 localRay = ray.Transform(item.WorldMatrixInverse);
+                var localRay = ray.Transform(item.WorldMatrixInverse);
 
                 if (!geo.Bounds.Intersects(localRay.ToLine(1000f), out _))
                     continue;
 
-                RaycastHit[] result = pyGeo.Raycast(ray, item.WorldMatrix.ToPose(), 1000, PhysX.PxHitFlags.Normal, 2);
+                var result = pyGeo.Raycast(ray, item.WorldMatrix.ToPose(), 1000, PhysX.PxHitFlags.Normal, 2);
 
                 if (result.Length == 0)
                     continue;
 
-                float min = result.Min(a => a.Distance);
+                var min = result.Min(a => a.Distance);
 
-                RaycastHit minRes = result.FirstOrDefault(a => a.Distance == min);
+                var minRes = result.FirstOrDefault(a => a.Distance == min);
 
                 return new Collision
                 {
@@ -104,9 +104,9 @@ namespace XrEngine.Physics
         {
             if (_isInit)
                 return;
-            foreach (Object3D item in MeshObjects())
+            foreach (var item in MeshObjects())
             {
-                Geometry3D? geo = item.Feature<Geometry3D>();
+                var geo = item.Feature<Geometry3D>();
                 if (geo == null)
                     continue;
 
@@ -114,7 +114,7 @@ namespace XrEngine.Physics
                 {
                     geo.EnsureIndices();
 
-                    Matrix4x4.Decompose(item.WorldMatrix, out Vector3 scale, out _, out _);
+                    Matrix4x4.Decompose(item.WorldMatrix, out var scale, out _, out _);
 
                     if (UseConvexMesh)
                     {

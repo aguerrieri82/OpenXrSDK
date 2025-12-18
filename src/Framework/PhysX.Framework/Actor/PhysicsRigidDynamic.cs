@@ -78,7 +78,7 @@ namespace PhysX.Framework
             }
             set
             {
-                PxTransform newValue = value.ToPxTransform();
+                var newValue = value.ToPxTransform();
                 RigidDynamic.SetKinematicTargetMut(&newValue);
             }
         }

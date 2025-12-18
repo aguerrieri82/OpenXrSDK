@@ -1,6 +1,4 @@
-﻿
-using Common.Interop;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using OpenXr.Framework;
 using System.Numerics;
 using XrEngine;
@@ -63,11 +61,11 @@ namespace XrSamples
 
         unsafe void Scan(RenderContext ctx)
         {
-            IEnvDepthProvider? depth = _host?.Scene?.ActiveCamera?.Feature<IEnvDepthProvider>();
+            var depth = _host?.Scene?.ActiveCamera?.Feature<IEnvDepthProvider>();
             if (depth == null)
                 return;
 
-            Texture2D? texture = depth.Acquire(_depthCamera);
+            var texture = depth.Acquire(_depthCamera);
             if (texture == null)
                 return;
 
@@ -79,27 +77,27 @@ namespace XrSamples
                 return;
             }
 
-            TextureData texData = _host!.Scene!.App!.Renderer!.ReadTexture(texture, texture.Format)![0];
+            var texData = _host!.Scene!.App!.Renderer!.ReadTexture(texture, texture.Format)![0];
 
-            using MemoryLock<byte> data = texData.Data!.MemoryLock();
+            using var data = texData.Data!.MemoryLock();
 
-            ushort* fData = (ushort*)data.Data;
+            var fData = (ushort*)data.Data;
 
-            List<Vector3> curPoints = new List<Vector3>();
+            var curPoints = new List<Vector3>();
 
-            for (int x = 2; x < texture.Width - 4; x++)
+            for (var x = 2; x < texture.Width - 4; x++)
             {
-                for (int y = 2; y < texture.Height - 4; y++)
+                for (var y = 2; y < texture.Height - 4; y++)
                 {
-                    float z = fData[y * texture.Width + x] / (float)ushort.MaxValue;
+                    var z = fData[y * texture.Width + x] / (float)ushort.MaxValue;
 
-                    Vector3 pos = new Vector3(
+                    var pos = new Vector3(
                            2.0f * x / texture.Width - 1.0f,
                            2.0f * y / texture.Height - 1.0f,
                            2f * z - 1f
                        );
 
-                    Vector3 worldPos = _depthCamera.Unproject(pos);
+                    var worldPos = _depthCamera.Unproject(pos);
 
                     curPoints.Add(worldPos);
                 }
@@ -107,7 +105,7 @@ namespace XrSamples
 
             if (_host is PointMesh pm)
             {
-                foreach (Vector3 point in curPoints)
+                foreach (var point in curPoints)
                     _points.Add(new PointData
                     {
                         Color = Color,
@@ -123,14 +121,14 @@ namespace XrSamples
             {
                 _sessionName ??= $"Scan_{DateTime.Now.Ticks}";
 
-                string baseDir = Path.Join(SavePath, _sessionName);
+                var baseDir = Path.Join(SavePath, _sessionName);
 
                 Directory.CreateDirectory(baseDir);
 
-                CameraEye eye = _depthCamera.Eyes![0];
-                Matrix4x4.Decompose(eye.World, out Vector3 scale, out Quaternion rotation, out Vector3 translation);
+                var eye = _depthCamera.Eyes![0];
+                Matrix4x4.Decompose(eye.World, out var scale, out var rotation, out var translation);
 
-                CameraInfo camera = new CameraInfo
+                var camera = new CameraInfo
                 {
                     Orientation = rotation,
                     Position = translation,
@@ -138,15 +136,15 @@ namespace XrSamples
                     View = eye.View,
                 };
 
-                Vector3[] array = curPoints.ToArray();
+                var array = curPoints.ToArray();
 
                 fixed (Vector3* pPoints = array)
                 {
-                    Span<byte> span = new Span<byte>(pPoints, sizeof(Vector3) * array.Length);
+                    var span = new Span<byte>(pPoints, sizeof(Vector3) * array.Length);
                     File.WriteAllBytes(Path.Join(baseDir, $"{ctx.Frame}-points.bin"), span);
                 }
 
-                string json = JsonConvert.SerializeObject(camera);
+                var json = JsonConvert.SerializeObject(camera);
 
                 File.WriteAllText(Path.Join(baseDir, $"{ctx.Frame}-camera.json"), json);
             }

@@ -35,27 +35,27 @@ namespace XrEngine.OpenXr
 
         public unsafe void SetTargets(SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg)
         {
-            uint sampleCount = _xrApp.RenderOptions.SampleCount;
+            var sampleCount = _xrApp.RenderOptions.SampleCount;
 
-            uint colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
-            uint depthTex = ((SwapchainImageOpenGLKHR*)depthImg)->Image;
+            var colorTex = ((SwapchainImageOpenGLKHR*)colorImg)->Image;
+            var depthTex = ((SwapchainImageOpenGLKHR*)depthImg)->Image;
 
             _glColorImage = GlTexture.Attach(_gl, colorTex, sampleCount);
             _glDepthImage = GlTexture.Attach(_gl, depthTex, sampleCount);
 
 
-            uint targetId = colorTex + depthTex << 16;
+            var targetId = colorTex + depthTex << 16;
             if (!_targets.TryGetValue(targetId, out _renderTarget))
             {
                 if (_multiView)
                 {
-                    GlMultiViewRenderTarget mv = new GlMultiViewRenderTarget(_gl);
+                    var mv = new GlMultiViewRenderTarget(_gl);
                     mv.FrameBuffer.Configure(_glColorImage, _glDepthImage, 1);
                     _renderTarget = mv;
                 }
                 else
                 {
-                    GlTextureRenderTarget tex = new GlTextureRenderTarget(_gl);
+                    var tex = new GlTextureRenderTarget(_gl);
                     if (_glColorImage.Depth > 1)
                         tex.FrameBuffer.Configure(_glColorImage, (uint)_activeEye, _glDepthImage!, (uint)_activeEye, 1);
                     else
@@ -73,7 +73,7 @@ namespace XrEngine.OpenXr
 
         protected override UpdateProgramResult UpdateProgram(UpdateShaderContext updateContext, Material drawMaterial)
         {
-            MotionVectorEffect effect = MotionVectorEffect.Instance;
+            var effect = MotionVectorEffect.Instance;
             effect.WriteDepth = drawMaterial.WriteDepth;
             effect.UseDepth = drawMaterial.UseDepth;
             effect.DoubleSided = drawMaterial.DoubleSided;

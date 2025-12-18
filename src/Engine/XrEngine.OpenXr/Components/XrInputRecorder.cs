@@ -47,14 +47,14 @@ namespace XrEngine.OpenXr
 
             lock (this)
             {
-                RecordFrame frame = new RecordFrame
+                var frame = new RecordFrame
                 {
                     Time = ctx.Time,
                     XrTime = XrApp.Current.FramePredictedDisplayTime,
                     Inputs = []
                 };
 
-                foreach (IXrInput input in XrApp.Current.Inputs.Values)
+                foreach (var input in XrApp.Current.Inputs.Values)
                 {
                     frame.Inputs[input.Name] = input.GetState();
 
@@ -66,12 +66,12 @@ namespace XrEngine.OpenXr
         [Action]
         public void Save()
         {
-            JsonSerializerOptions options = new JsonSerializerOptions
+            var options = new JsonSerializerOptions
             {
                 IncludeFields = true,
             };
 
-            string path = Context.Require<IPlatform>().PersistentPath;
+            var path = Context.Require<IPlatform>().PersistentPath;
 
             string json;
 

@@ -63,7 +63,7 @@
                     return;
                 _items = value;
 
-                object? curSelection = _selectedValue;
+                var curSelection = _selectedValue;
 
                 OnPropertyChanged(nameof(Items));
 

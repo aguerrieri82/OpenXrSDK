@@ -14,7 +14,7 @@ namespace XrSamples.Earth
 
             Create();
 
-            IPbrMaterial pbr = (IPbrMaterial)_sphere!.Materials[0];
+            var pbr = (IPbrMaterial)_sphere!.Materials[0];
             pbr.EmissiveColor = new Color(1, 1, 0.5f);
         }
     }

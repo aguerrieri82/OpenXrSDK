@@ -4,11 +4,11 @@
     {
         public virtual IEnumerable<TItem> Filter(string? query)
         {
-            IEnumerable<TItem> items = GetItems();
+            var items = GetItems();
 
             if (!string.IsNullOrWhiteSpace(query))
             {
-                IEnumerable<string> parts = query.ToLower().Split(' ').Select(a => a.Trim());
+                var parts = query.ToLower().Split(' ').Select(a => a.Trim());
                 items = items.Where(a => parts.All(p => (GetText(a) ?? "").ToLower().Contains(p)));
             }
 

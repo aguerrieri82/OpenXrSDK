@@ -7,7 +7,7 @@ namespace XrEngine.OpenXr
     {
         public bool CanTeleport(Vector3 point)
         {
-            Bounds2 bounds2 = new Bounds2()
+            var bounds2 = new Bounds2()
             {
                 Min = new Vector2(_host!.WorldBounds.Min.X, _host.WorldBounds.Min.Z),
                 Max = new Vector2(_host.WorldBounds.Max.X, _host.WorldBounds.Max.Z)

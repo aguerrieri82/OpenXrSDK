@@ -40,7 +40,7 @@ namespace XrEngine.Devices.Windows
 
             if (_services != null)
             {
-                foreach (GattDeviceService? service in _services.Services)
+                foreach (var service in _services.Services)
                     service.Dispose();
                 _services = null;
             }
@@ -52,11 +52,11 @@ namespace XrEngine.Devices.Windows
 
         public async Task<IEnumerable<BleCharacteristicInfo>> GetCharacteristicsAsync(BleServiceInfo serviceInfo, int timeoutMs)
         {
-            GattDeviceService service = _services!.Services.Single(a => a.Uuid == serviceInfo.Id);
+            var service = _services!.Services.Single(a => a.Uuid == serviceInfo.Id);
 
-            if (!_characteristics.TryGetValue(serviceInfo.Id, out GattCharacteristicsResult? chars))
+            if (!_characteristics.TryGetValue(serviceInfo.Id, out var chars))
             {
-                DateTime startTime = DateTime.UtcNow;
+                var startTime = DateTime.UtcNow;
 
                 while (true)
                 {
@@ -95,7 +95,7 @@ namespace XrEngine.Devices.Windows
         {
             if (_services == null)
             {
-                DateTime startTime = DateTime.UtcNow;
+                var startTime = DateTime.UtcNow;
 
                 while (true)
                 {
@@ -127,35 +127,35 @@ namespace XrEngine.Devices.Windows
 
         public async Task<byte[]> ReadCharacteristicAsync(BleCharacteristicInfo characteristicInfo)
         {
-            GattCharacteristic cts = GetCharacteristicInternal(characteristicInfo);
-            GattReadResult buffer = await cts.ReadValueAsync(BluetoothCacheMode.Uncached);
+            var cts = GetCharacteristicInternal(characteristicInfo);
+            var buffer = await cts.ReadValueAsync(BluetoothCacheMode.Uncached);
             return buffer.Value.ToArray();
         }
 
 
         public async Task WriteCharacteristicAsync(BleCharacteristicInfo characteristicInfo, byte[] data)
         {
-            GattCharacteristic cts = GetCharacteristicInternal(characteristicInfo);
+            var cts = GetCharacteristicInternal(characteristicInfo);
             await cts.WriteValueAsync(CryptographicBuffer.CreateFromByteArray(data));
         }
 
         public async Task WriteCharacteristicConfigurationAsync(BleCharacteristicInfo characteristicInfo, BleCharacteristicConfig value)
         {
-            GattCharacteristic cts = GetCharacteristicInternal(characteristicInfo);
+            var cts = GetCharacteristicInternal(characteristicInfo);
             await cts.WriteClientCharacteristicConfigurationDescriptorAsync((GattClientCharacteristicConfigurationDescriptorValue)value);
         }
 
         public void RemoveCharacteristicValueChangedHandler(BleCharacteristicInfo characteristicInfo, BleCharacteristicValueChangedDelegate handler)
         {
-            GattCharacteristic cts = GetCharacteristicInternal(characteristicInfo);
-            TypedEventHandler<GattCharacteristic, GattValueChangedEventArgs> changed = _valueChanged[handler];
+            var cts = GetCharacteristicInternal(characteristicInfo);
+            var changed = _valueChanged[handler];
             cts.ValueChanged -= changed;
             _valueChanged.Remove(handler);
         }
 
         public void AddCharacteristicValueChangedHandler(BleCharacteristicInfo characteristicInfo, BleCharacteristicValueChangedDelegate handler)
         {
-            GattCharacteristic cts = GetCharacteristicInternal(characteristicInfo);
+            var cts = GetCharacteristicInternal(characteristicInfo);
 
             _valueChanged[handler] = (sender, args) =>
             {

@@ -8,7 +8,7 @@ namespace XrEngine
 
         public Vector3 Read(string key, Vector3 destObj, Type objType, IStateContainer container)
         {
-            float[] parts = container.Read<float[]>(key);
+            var parts = container.Read<float[]>(key);
             return new Vector3(parts[0], parts[1], parts[2]);
         }
 

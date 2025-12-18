@@ -25,7 +25,7 @@ namespace OpenXr.Framework
 
         public void Add(Space space, TimeSpan updateInterval)
         {
-            if (!_trackData.TryGetValue(space, out XrSpaceTrackInfo? info))
+            if (!_trackData.TryGetValue(space, out var info))
             {
                 info = new XrSpaceTrackInfo
                 {
@@ -45,7 +45,7 @@ namespace OpenXr.Framework
 
         public void Update(Space baseSpace, long time)
         {
-            DateTime now = DateTime.UtcNow;
+            var now = DateTime.UtcNow;
 
             /*
             var spaces = _trackData.Values
@@ -63,7 +63,7 @@ namespace OpenXr.Framework
             }
             */
 
-            foreach (XrSpaceTrackInfo item in _trackData.Values)
+            foreach (var item in _trackData.Values)
             {
                 if (now < item.LastUpdateTime + item.Interval)
                     continue;
@@ -76,7 +76,7 @@ namespace OpenXr.Framework
 
         public XrSpaceLocation? GetLastLocation(Space space)
         {
-            if (_trackData.TryGetValue(space, out XrSpaceTrackInfo? info))
+            if (_trackData.TryGetValue(space, out var info))
                 return info.LastLocation;
             return null;
         }

@@ -19,7 +19,7 @@ namespace XrEngine
 
         public void Build()
         {
-            Vector2 halfSize = new Vector2(Size.X, Size.Y) / 2;
+            var halfSize = new Vector2(Size.X, Size.Y) / 2;
 
             Vertices = VertexData.FromPosNormalUV(
             [
@@ -42,7 +42,7 @@ namespace XrEngine
 
         public void FlipYUV()
         {
-            for (int i = 0; i < _vertices.Length; i++)
+            for (var i = 0; i < _vertices.Length; i++)
                 _vertices[i].UV.Y = _vertices[i].UV.Y == 0 ? 1 : 0;
         }
 

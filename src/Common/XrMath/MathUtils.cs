@@ -8,7 +8,7 @@ namespace XrMath
         {
             fixed (float* pData = array)
             {
-                Span<Vector3> span = new Span<Vector3>(pData, array.Length / 3);
+                var span = new Span<Vector3>(pData, array.Length / 3);
                 return span.ToArray();
             }
         }
@@ -33,17 +33,17 @@ namespace XrMath
 
         public static Quaternion QuatFromForwardUp(Vector3 forward, Vector3 up)
         {
-            Matrix4x4 lookAt = Matrix4x4.CreateLookAt(Vector3.Zero, forward, up);
-            Matrix4x4.Invert(lookAt, out Matrix4x4 rotMatrix);
+            var lookAt = Matrix4x4.CreateLookAt(Vector3.Zero, forward, up);
+            Matrix4x4.Invert(lookAt, out var rotMatrix);
             return Quaternion.CreateFromRotationMatrix(rotMatrix);
         }
 
         public static Quaternion QuatAlignTangent(Vector3 tangent, Vector3 up)
         {
-            Vector3 right = Vector3.Normalize(Vector3.Cross(up, tangent));
-            Vector3 correctedUp = Vector3.Cross(tangent, right);
+            var right = Vector3.Normalize(Vector3.Cross(up, tangent));
+            var correctedUp = Vector3.Cross(tangent, right);
 
-            Matrix4x4 rotationMatrix = new Matrix4x4(
+            var rotationMatrix = new Matrix4x4(
                 right.X, right.Y, right.Z, 0,
                 correctedUp.X, correctedUp.Y, correctedUp.Z, 0,
                 tangent.X, tangent.Y, tangent.Z, 0,
@@ -55,12 +55,12 @@ namespace XrMath
 
         public static Quad3 QuadFromEdges(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4)
         {
-            Quad3 result = new Quad3();
+            var result = new Quad3();
 
-            Vector3 edge1 = p2 - p1;
-            Vector3 edge2 = p4 - p1;
+            var edge1 = p2 - p1;
+            var edge2 = p4 - p1;
 
-            Vector3 normal = -Vector3.Normalize(Vector3.Cross(edge1, edge2));
+            var normal = -Vector3.Normalize(Vector3.Cross(edge1, edge2));
 
             result.Pose.Position = (p1 + p2 + p3 + p4) / 4;
             result.Pose.Orientation = normal.ToOrientation();
@@ -76,13 +76,13 @@ namespace XrMath
             normal = Vector3.Normalize(normal);
 
             // Project the tangent onto the normal
-            Vector3 proj = normal * Vector3.Dot(tangent, normal);
+            var proj = normal * Vector3.Dot(tangent, normal);
 
             // Subtract the projection from the tangent to make it orthogonal to the normal
             tangent -= proj;
 
             // Normalize the tangent vector
-            float tangentLength = tangent.Length();
+            var tangentLength = tangent.Length();
             if (tangentLength > epsilon) // Avoid division by zero
             {
                 tangent /= tangentLength;
@@ -99,10 +99,10 @@ namespace XrMath
 
         public static Matrix4x4 CreateReflectionMatrix(Plane plane)
         {
-            float x = plane.Normal.X;
-            float y = plane.Normal.Y;
-            float z = plane.Normal.Z;
-            float d = plane.D;
+            var x = plane.Normal.X;
+            var y = plane.Normal.Y;
+            var z = plane.Normal.Z;
+            var d = plane.D;
 
             return new Matrix4x4(
                 1 - 2 * x * x, -2 * x * y, -2 * x * z, 0,
@@ -126,7 +126,7 @@ namespace XrMath
         {
             t = Math.Clamp(t, 0f, 1f);
 
-            float s = t * t * (3f - 2f * t);
+            var s = t * t * (3f - 2f * t);
             return from + (to - from) * s;
         }
     }

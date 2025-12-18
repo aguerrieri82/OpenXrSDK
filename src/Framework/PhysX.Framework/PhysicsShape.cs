@@ -37,15 +37,15 @@ namespace PhysX.Framework
 
         public unsafe RaycastHit[] Raycast(PhysicsActor owner, Ray3 ray, float maxDistance, PxHitFlags flags, int maxHits)
         {
-            PxRaycastHit[] result = new PxRaycastHit[maxHits];
+            var result = new PxRaycastHit[maxHits];
             uint count;
 
             fixed (PxRaycastHit* pResult = result)
                 count = _handle->ExtRaycast((PxRigidActor*)owner.Handle, (PxVec3*)&ray.Origin, (PxVec3*)&ray.Direction, maxDistance, flags, (uint)maxHits, pResult);
 
-            RaycastHit[] newResults = new RaycastHit[count];
+            var newResults = new RaycastHit[count];
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 newResults[i] = new RaycastHit
                 {
@@ -81,7 +81,7 @@ namespace PhysX.Framework
 
         public Bounds3 WorldBounds(PhysicsActor actor)
         {
-            PxBounds3 bounds = _handle->ExtGetWorldBounds((PxRigidActor*)actor.Handle, 0);
+            var bounds = _handle->ExtGetWorldBounds((PxRigidActor*)actor.Handle, 0);
             return new Bounds3
             {
                 Min = bounds.minimum,
@@ -91,8 +91,8 @@ namespace PhysX.Framework
 
         public unsafe void SetMaterials(IList<PhysicsMaterial> materials)
         {
-            PxMaterial** handles = stackalloc PxMaterial*[materials.Count];
-            for (int i = 0; i < materials.Count; i++)
+            var handles = stackalloc PxMaterial*[materials.Count];
+            for (var i = 0; i < materials.Count; i++)
                 handles[i] = materials[i];
 
             _handle->SetMaterialsMut(handles, (ushort)materials.Count);
@@ -100,15 +100,15 @@ namespace PhysX.Framework
 
         public unsafe PhysicsMaterial[] GetMaterials()
         {
-            ushort size = _handle->GetNbMaterials();
+            var size = _handle->GetNbMaterials();
 
-            PxMaterial** materials = stackalloc PxMaterial*[size];
+            var materials = stackalloc PxMaterial*[size];
 
             _handle->GetMaterials(materials, size, 0);
 
-            PhysicsMaterial[] result = new PhysicsMaterial[size];
+            var result = new PhysicsMaterial[size];
 
-            for (int i = 0; i < size; i++)
+            for (var i = 0; i < size; i++)
                 result[i] = _system.GetObject<PhysicsMaterial>(materials[i]);
 
             return result;
@@ -119,7 +119,7 @@ namespace PhysX.Framework
             get => _name;
             set
             {
-                byte[] data = Encoding.UTF8.GetBytes(value);
+                var data = Encoding.UTF8.GetBytes(value);
                 fixed (byte* pData = data)
                     _handle->SetNameMut(pData);
                 _name = value;
@@ -137,7 +137,7 @@ namespace PhysX.Framework
             get => _handle->GetLocalPose().ToPose3();
             set
             {
-                PxTransform newValue = value.ToPxTransform();
+                var newValue = value.ToPxTransform();
                 _handle->SetLocalPoseMut(&newValue);
             }
         }
@@ -202,7 +202,7 @@ namespace PhysX.Framework
             get => SimulationFilterData.word1;
             set
             {
-                PxFilterData curData = SimulationFilterData;
+                var curData = SimulationFilterData;
                 curData.word1 = value;
                 SimulationFilterData = curData;
             }

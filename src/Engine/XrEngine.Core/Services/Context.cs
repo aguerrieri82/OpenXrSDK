@@ -7,7 +7,7 @@ namespace XrEngine
     {
         public static T Require<T>() where T : class
         {
-            if (!TryRequire<T>(out T? instance))
+            if (!TryRequire<T>(out var instance))
                 throw new InvalidOperationException($"Service {typeof(T).Name} not found");
             return instance;
         }

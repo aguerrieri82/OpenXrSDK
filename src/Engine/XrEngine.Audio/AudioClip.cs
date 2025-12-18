@@ -18,7 +18,7 @@ namespace XrEngine.Audio
 
         public AudioClip SubClipTime(float startTime, float endTime)
         {
-            AudioClip result = new AudioClip(_buffer, _format);
+            var result = new AudioClip(_buffer, _format);
             result.Range.StartTime = startTime;
             result.Range.EndTime = endTime;
             return result;
@@ -26,7 +26,7 @@ namespace XrEngine.Audio
 
         public AudioClip SubClipDuration(float startTime, float duration)
         {
-            AudioClip result = new AudioClip(_buffer, _format);
+            var result = new AudioClip(_buffer, _format);
             result.Range.StartTime = startTime;
             result.Range.Duration = duration;
             return result;
@@ -39,15 +39,15 @@ namespace XrEngine.Audio
 
         public unsafe void CopyTo(float[] outData)
         {
-            int dPos = _format.Channels;
+            var dPos = _format.Channels;
 
             fixed (byte* pBuf = _buffer)
             fixed (float* pFloat = outData)
             {
                 if (_format.BitsPerSample == 8)
                 {
-                    sbyte* curPos = (sbyte*)(pBuf + Range.StartOffset);
-                    for (int i = 0; i < outData.Length; i++)
+                    var curPos = (sbyte*)(pBuf + Range.StartOffset);
+                    for (var i = 0; i < outData.Length; i++)
                     {
                         pFloat[i] = *curPos / (float)sbyte.MaxValue;
                         curPos += dPos;
@@ -56,8 +56,8 @@ namespace XrEngine.Audio
                 if (_format.BitsPerSample == 16)
                 {
 
-                    short* curPos = (short*)(pBuf + Range.StartOffset);
-                    for (int i = 0; i < outData.Length; i++)
+                    var curPos = (short*)(pBuf + Range.StartOffset);
+                    for (var i = 0; i < outData.Length; i++)
                     {
                         pFloat[i] = *curPos / (float)short.MaxValue;
                         curPos += dPos;
@@ -68,9 +68,9 @@ namespace XrEngine.Audio
 
         public void CopyTo(Vector2[] outData, float baseTime = 0)
         {
-            float[] floats = new float[outData.Length];
+            var floats = new float[outData.Length];
             CopyTo(floats);
-            for (int i = 0; i < outData.Length; i++)
+            for (var i = 0; i < outData.Length; i++)
             {
                 outData[i].Y = floats[i];
                 outData[i].X = baseTime + ((Range.StartSample + i) / (float)_format.SampleRate);
@@ -79,15 +79,15 @@ namespace XrEngine.Audio
 
         public unsafe void CopyFrom(float[] data)
         {
-            int dPos = _format.Channels;
+            var dPos = _format.Channels;
 
             fixed (byte* pBuf = _buffer)
             fixed (float* pFloat = data)
             {
                 if (_format.BitsPerSample == 8)
                 {
-                    sbyte* curPos = (sbyte*)(pBuf + Range.StartOffset);
-                    for (int i = 0; i < data.Length; i++)
+                    var curPos = (sbyte*)(pBuf + Range.StartOffset);
+                    for (var i = 0; i < data.Length; i++)
                     {
                         *curPos = (sbyte)(pFloat[i] * sbyte.MaxValue);
                         curPos += dPos;
@@ -95,8 +95,8 @@ namespace XrEngine.Audio
                 }
                 if (_format.BitsPerSample == 16)
                 {
-                    short* curPos = (short*)(pBuf + Range.StartOffset);
-                    for (int i = 0; i < data.Length; i++)
+                    var curPos = (short*)(pBuf + Range.StartOffset);
+                    for (var i = 0; i < data.Length; i++)
                     {
                         *curPos = (short)(pFloat[i] * short.MaxValue);
                         curPos += dPos;
@@ -107,23 +107,23 @@ namespace XrEngine.Audio
 
         public float[] ToFloat()
         {
-            float[] result = new float[Range.Length];
+            var result = new float[Range.Length];
             CopyTo(result);
             return result;
         }
 
         public Vector2[] ToVector(float baseTime = 0)
         {
-            Vector2[] result = new Vector2[Range.Length];
+            var result = new Vector2[Range.Length];
             CopyTo(result, baseTime);
             return result;
         }
 
         public static AudioClip FromFloats(float[] data, AudioFormat format)
         {
-            int bufSize = data.Length * (format.BitsPerSample / 8) * format.Channels;
-            byte[] buffer = new byte[bufSize];
-            AudioClip result = new AudioClip(buffer, format);
+            var bufSize = data.Length * (format.BitsPerSample / 8) * format.Channels;
+            var buffer = new byte[bufSize];
+            var result = new AudioClip(buffer, format);
             result.CopyFrom(data);
             return result;
         }

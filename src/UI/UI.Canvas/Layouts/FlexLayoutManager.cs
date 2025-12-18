@@ -82,16 +82,16 @@ namespace CanvasUI
         {
             availSize = Convert(availSize, lp.Orientation);
 
-            Size2 curRowSize = Size2.Zero;
-            Size2 curSize = Size2.Zero;
-            Size2 leftRowSize = availSize;
+            var curRowSize = Size2.Zero;
+            var curSize = Size2.Zero;
+            var leftRowSize = availSize;
 
-            MeasureResult result = new MeasureResult();
-            List<List<Size2>> items = new List<List<Size2>>();
+            var result = new MeasureResult();
+            var items = new List<List<Size2>>();
 
-            Vector2 gap = Convert(lp.Gap, lp.Orientation);
+            var gap = Convert(lp.Gap, lp.Orientation);
 
-            List<Size2> curRow = new List<Size2>();
+            var curRow = new List<Size2>();
 
             void NewRow(bool lastRow)
             {
@@ -103,7 +103,7 @@ namespace CanvasUI
 
                 curRowSize.Width -= gap.X;
 
-                float occupyHeight = curRowSize.Height + gap.Y;
+                var occupyHeight = curRowSize.Height + gap.Y;
 
                 curSize.Width = Math.Max(curRowSize.Width, curSize.Width);
                 curSize.Height += occupyHeight;
@@ -120,23 +120,23 @@ namespace CanvasUI
                 }
             }
 
-            foreach (ChildParams child in lp.Children)
+            foreach (var child in lp.Children)
             {
                 result.Basis += child.Basis;
                 result.Shrink += child.Basis;
                 result.Grow += child.Basis;
             }
 
-            float availWidthWithGap = availSize.Width - gap.X * (lp.Children.Length - 1);
+            var availWidthWithGap = availSize.Width - gap.X * (lp.Children.Length - 1);
 
-            foreach (ChildParams child in lp.Children)
+            foreach (var child in lp.Children)
             {
-                Size2 childAvailSize = leftRowSize;
+                var childAvailSize = leftRowSize;
 
                 if (child.Basis != 0)
                     childAvailSize.Width = availWidthWithGap * child.Basis / result.Basis;
 
-                Size2 childSize = Convert(isArrange ?
+                var childSize = Convert(isArrange ?
                         child.Item.DesiredSize :
                         child.Item.Measure(Convert(childAvailSize, lp.Orientation)), lp.Orientation);
 
@@ -151,7 +151,7 @@ namespace CanvasUI
                 if (child.Basis != 0 && childSize.Width < childAvailSize.Width)
                     childSize.Width = childAvailSize.Width;
 
-                float occupyWidth = childSize.Width + gap.X;
+                var occupyWidth = childSize.Width + gap.X;
 
                 curRowSize.Width += occupyWidth;
                 curRowSize.Height = Math.Max(curRowSize.Height, childSize.Height);
@@ -181,23 +181,23 @@ namespace CanvasUI
 
         static Size2 Measure(Size2 availSize, LayoutParams lp)
         {
-            MeasureResult result = MeasureWork(availSize, lp, false);
+            var result = MeasureWork(availSize, lp, false);
             return Convert(result.FinalSize, lp.Orientation);
         }
 
         static void Arrange(Rect2 finalRect, LayoutParams lp)
         {
-            MeasureResult measure = MeasureWork(finalRect.Size, lp, true);
+            var measure = MeasureWork(finalRect.Size, lp, true);
 
             finalRect = Convert(finalRect, lp.Orientation);
 
-            int childIndex = 0;
+            var childIndex = 0;
 
-            Vector2 curPos = finalRect.Position;
+            var curPos = finalRect.Position;
 
-            Vector2 overflow = new Vector2();
+            var overflow = new Vector2();
 
-            Vector2 gap = Convert(lp.Gap, lp.Orientation);
+            var gap = Convert(lp.Gap, lp.Orientation);
 
             overflow.Y = finalRect.Height - measure.FinalSize.Height;
 
@@ -222,16 +222,16 @@ namespace CanvasUI
             }
 
             //Process rows
-            foreach (Size2[] row in measure.Items)
+            foreach (var row in measure.Items)
             {
-                Size2 rowSize = new Size2
+                var rowSize = new Size2
                 {
                     Width = row.Sum(a => a.Width),
                     Height = row.Max(a => a.Height),
                 };
 
-                float rowShrink = lp.Children.Skip(childIndex).Take(row.Length).Sum(a => a.Shrink);
-                float rowGrow = lp.Children.Skip(childIndex).Take(row.Length).Sum(a => a.Grow);
+                var rowShrink = lp.Children.Skip(childIndex).Take(row.Length).Sum(a => a.Shrink);
+                var rowGrow = lp.Children.Skip(childIndex).Take(row.Length).Sum(a => a.Grow);
 
                 overflow.X = finalRect.Width - (rowSize.Width + gap.X * (row.Length - 1));
 
@@ -257,20 +257,20 @@ namespace CanvasUI
                         throw new NotSupportedException();
                 }
 
-                for (int i = 0; i < row.Length; i++)
+                for (var i = 0; i < row.Length; i++)
                 {
-                    ref Size2 childSize = ref row[i];
-                    ChildParams child = lp.Children[childIndex];
+                    ref var childSize = ref row[i];
+                    var child = lp.Children[childIndex];
 
                     if (rowShrink > 0 && overflow.X < 0)
                         childSize.Width += overflow.X * (child.Shrink / rowShrink);
                     if (rowGrow > 0 && overflow.X > 0)
                         childSize.Width += overflow.X * (child.Grow / rowGrow);
 
-                    UiAlignment align = child.Align ?? lp.AlignItems;
+                    var align = child.Align ?? lp.AlignItems;
 
 
-                    Rect2 childRect = new Rect2
+                    var childRect = new Rect2
                     {
                         X = curPos.X,
                         Y = curPos.Y,
@@ -287,7 +287,7 @@ namespace CanvasUI
                     else if (align == UiAlignment.Center)
                         childRect.Y += (rowSize.Height - childSize.Height) / 2;
 
-                    Size2 newSize = child.Item.Arrange(Convert(childRect, lp.Orientation));
+                    var newSize = child.Item.Arrange(Convert(childRect, lp.Orientation));
 
                     curPos.X += childRect.Width + gap.X;
 
@@ -320,7 +320,7 @@ namespace CanvasUI
 
         public object? ExtractLayoutParams(UiContainer container)
         {
-            LayoutParams result = new LayoutParams
+            var result = new LayoutParams
             {
                 AlignContent = container.ActualStyle.AlignContent.Value,
                 AlignItems = container.ActualStyle.AlignItems.Value,
@@ -332,9 +332,9 @@ namespace CanvasUI
                 Name = container.Name
             };
 
-            for (int i = 0; i < container.Children.Count; i++)
+            for (var i = 0; i < container.Children.Count; i++)
             {
-                UiElement child = container.Children[i];
+                var child = container.Children[i];
 
                 result.Children[i] = new ChildParams
                 {

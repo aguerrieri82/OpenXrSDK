@@ -49,9 +49,9 @@ namespace XrEngine
 
         public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
-            using Stream seekStream = stream.EnsureSeek();
-            KtxHeader header = seekStream.ReadStruct<KtxHeader>();
-            string magic = Encoding.ASCII.GetString(new Span<byte>(header.identifier, 12));
+            using var seekStream = stream.EnsureSeek();
+            var header = seekStream.ReadStruct<KtxHeader>();
+            var magic = Encoding.ASCII.GetString(new Span<byte>(header.identifier, 12));
             if (!magic.Contains("KTX 11"))
                 throw new NotSupportedException();
 
@@ -63,7 +63,7 @@ namespace XrEngine
                 throw new NotSupportedException();
             }
 
-            uint imageSize = seekStream.ReadStruct<uint>();
+            var imageSize = seekStream.ReadStruct<uint>();
 
             TextureCompressionFormat comp;
             TextureFormat format;

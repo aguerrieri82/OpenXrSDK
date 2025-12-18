@@ -51,14 +51,14 @@ namespace XrSamples
     {
         public ThrowSettingsPanel(ThrowSettings settings, Scene3D scene)
         {
-            Binder<ThrowSettings> binder = new Binder<ThrowSettings>(settings);
+            var binder = new Binder<ThrowSettings>(settings);
 
             void Binder_PropertyChanged(ThrowSettings? obj, IProperty property, object? value, object? oldValue)
             {
                 obj!.Apply(scene);
             }
 
-            Plotter plotter = new Plotter();
+            var plotter = new Plotter();
 
 
             binder.PropertyChanged += Binder_PropertyChanged;

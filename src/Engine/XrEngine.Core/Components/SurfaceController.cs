@@ -40,16 +40,16 @@ namespace XrEngine
             if (Pointers == null)
                 return;
 
-            bool found = false;
+            var found = false;
 
             _mainInBtn.IsChanged = false;
             _secInBtn.IsChanged = false;
 
-            foreach (IRayPointer pointer in Pointers)
+            foreach (var pointer in Pointers)
             {
-                RayPointerStatus status = pointer.GetPointerStatus();
+                var status = pointer.GetPointerStatus();
 
-                if (!_pointerStatus.TryGetValue(pointer, out RayPointerStatus lastStatus))
+                if (!_pointerStatus.TryGetValue(pointer, out var lastStatus))
                     lastStatus = new RayPointerStatus();
 
                 _pointerStatus[pointer] = status;
@@ -60,7 +60,7 @@ namespace XrEngine
                 if (_collider is QuadCollider quad)
                     quad.PlaneMode = pointer.IsCaptured;
 
-                Collision? collision = _collider!.CollideWith(status.Ray);
+                var collision = _collider!.CollideWith(status.Ray);
 
                 if (collision != null)
                 {
@@ -68,8 +68,8 @@ namespace XrEngine
                     found = true;
                 }
 
-                bool leftDown = (status.Buttons & Pointer2Button.Left) == Pointer2Button.Left;
-                bool wasLeftDown = (lastStatus.Buttons & Pointer2Button.Left) == Pointer2Button.Left;
+                var leftDown = (status.Buttons & Pointer2Button.Left) == Pointer2Button.Left;
+                var wasLeftDown = (lastStatus.Buttons & Pointer2Button.Left) == Pointer2Button.Left;
                 if (leftDown != wasLeftDown)
                 {
                     _mainInBtn.IsChanged = true;
@@ -87,8 +87,8 @@ namespace XrEngine
                     }
                 }
 
-                bool rightDown = (status.Buttons & Pointer2Button.Right) == Pointer2Button.Right;
-                bool wasRightDown = (lastStatus.Buttons & Pointer2Button.Left) == Pointer2Button.Left;
+                var rightDown = (status.Buttons & Pointer2Button.Right) == Pointer2Button.Right;
+                var wasRightDown = (lastStatus.Buttons & Pointer2Button.Left) == Pointer2Button.Left;
                 if (rightDown != wasRightDown)
                 {
                     _secInBtn.IsChanged = true;

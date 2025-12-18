@@ -35,7 +35,7 @@ namespace XrSamples.Dnd
 
             this.AddComponent<TokenGrabbable>();
 
-            Pose3 curPose = _mesh.GetWorldPose();
+            var curPose = _mesh.GetWorldPose();
             _mesh.SetWorldPose(new Pose3
             {
                 Orientation = curPose.Orientation,
@@ -44,16 +44,16 @@ namespace XrSamples.Dnd
 
             WorldPosition = curPose.Position;
 
-            float y = _mesh.WorldBounds.Max.Y;
+            var y = _mesh.WorldBounds.Max.Y;
             _tokenSet.Transform.Position = new Vector3(0, y + 0.2f, 0);
         }
 
         public override void Update(RenderContext ctx)
         {
-            Camera? camera = ctx.Camera ?? _scene?.ActiveCamera;
+            var camera = ctx.Camera ?? _scene?.ActiveCamera;
             if (camera != null)
             {
-                Vector3 forward = camera.Forward;
+                var forward = camera.Forward;
                 _tokenSet.Forward = new Vector3(forward.X, 0, forward.Z).Normalize();
             }
 
@@ -62,17 +62,17 @@ namespace XrSamples.Dnd
 
         protected void UpdatePosition()
         {
-            DndScene scene = (DndScene)_scene!;
-            int padding = 200;
-            Vector2 mapSize = new Vector2(scene.VttScene!.Width - padding * 2.2f, scene.VttScene.Height - padding * 2.2f);
-            Vector2 pos = new Vector2(int.Parse(_vttToken!.Left![..^2]), int.Parse(_vttToken.Top![..^2]));
+            var scene = (DndScene)_scene!;
+            var padding = 200;
+            var mapSize = new Vector2(scene.VttScene!.Width - padding * 2.2f, scene.VttScene.Height - padding * 2.2f);
+            var pos = new Vector2(int.Parse(_vttToken!.Left![..^2]), int.Parse(_vttToken.Top![..^2]));
             pos -= new Vector2(padding, padding);
 
-            Group3D tiles = scene.Map!.Children.OfType<Group3D>().First(a => a.Name == "Tiles");
+            var tiles = scene.Map!.Children.OfType<Group3D>().First(a => a.Name == "Tiles");
             tiles.UpdateBounds();
-            Bounds3 bounds = tiles.LocalBounds;
+            var bounds = tiles.LocalBounds;
 
-            Vector2 localPos = pos / mapSize * new Vector2(bounds.Size.X, bounds.Size.Z);
+            var localPos = pos / mapSize * new Vector2(bounds.Size.X, bounds.Size.Z);
             Transform.Position = new Vector3(localPos.X + 0.5f, Transform.Position.Y, -(bounds.Size.Z - localPos.Y - 0.5f));
 
             //SendPosition();
@@ -81,22 +81,22 @@ namespace XrSamples.Dnd
         [Action]
         public void SendPosition()
         {
-            DndScene scene = (DndScene)_scene!;
-            int padding = 200;
-            Vector2 mapSize = new Vector2(scene.VttScene!.Width - padding * 2.2f, scene.VttScene.Height - padding * 2.2f);
+            var scene = (DndScene)_scene!;
+            var padding = 200;
+            var mapSize = new Vector2(scene.VttScene!.Width - padding * 2.2f, scene.VttScene.Height - padding * 2.2f);
 
-            Group3D tiles = scene.Map!.Children.OfType<Group3D>().First(a => a.Name == "Tiles");
+            var tiles = scene.Map!.Children.OfType<Group3D>().First(a => a.Name == "Tiles");
 
             tiles.UpdateBounds();
-            Bounds3 bounds = tiles.LocalBounds;
+            var bounds = tiles.LocalBounds;
 
-            Vector3 position = Transform.Position;
+            var position = Transform.Position;
 
-            float localPosX = position.X - 0.5f;
-            float localPosY = bounds.Size.Z - (-position.Z) - 0.5f;
+            var localPosX = position.X - 0.5f;
+            var localPosY = bounds.Size.Z - (-position.Z) - 0.5f;
 
-            Vector2 mapCoord = new Vector2(localPosX / bounds.Size.X, localPosY / bounds.Size.Z);
-            Vector2 pos = mapCoord * mapSize + new Vector2(padding, padding);
+            var mapCoord = new Vector2(localPosX / bounds.Size.X, localPosY / bounds.Size.Z);
+            var pos = mapCoord * mapSize + new Vector2(padding, padding);
 
             _vttToken!.Left = $"{(int)Math.Round(pos.X)}px";
             _vttToken!.Top = $"{(int)Math.Round(pos.Y)}px";

@@ -40,8 +40,8 @@ namespace XrEngine.OpenXr
             if (!Input.IsActive || !Click.IsActive)
                 return;
 
-            Matrix4x4 curInverse = _status.IsMoving ? _status.WorldInverse : _host!.WorldMatrixInverse;
-            Vector3 curPos = Input.Value.Position.Transform(curInverse);
+            var curInverse = _status.IsMoving ? _status.WorldInverse : _host!.WorldMatrixInverse;
+            var curPos = Input.Value.Position.Transform(curInverse);
 
             _status.LastInputPos = curPos;
 
@@ -50,7 +50,7 @@ namespace XrEngine.OpenXr
                 if (!Click.Value)
                     return;
 
-                foreach (ICollider3D? collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
+                foreach (var collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
                 {
                     if (collider.ContainsPoint(Input.Value.Position, 0.04f))
                     {
@@ -70,12 +70,12 @@ namespace XrEngine.OpenXr
                 return;
             }
 
-            Vector3 handDelta = curPos - _status.StartInputPos;
-            float deltaLen = Vector3.Dot(handDelta, Axis);
+            var handDelta = curPos - _status.StartInputPos;
+            var deltaLen = Vector3.Dot(handDelta, Axis);
 
-            float startLen = (_status.StartPos - _startPosition).Length();
+            var startLen = (_status.StartPos - _startPosition).Length();
 
-            float absLen = startLen + deltaLen;
+            var absLen = startLen + deltaLen;
 
             absLen = Math.Clamp(absLen, MinDistance, MaxDistance);
 

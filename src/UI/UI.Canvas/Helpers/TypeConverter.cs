@@ -18,23 +18,23 @@ namespace CanvasUI
                 return true;
             }
 
-            IEnumerable<MethodBase> methods = type.GetMethods(BindingFlags.Static | BindingFlags.Public)
+            var methods = type.GetMethods(BindingFlags.Static | BindingFlags.Public)
                               .Where(a => a.Name == "op_Implicit")
                               .Cast<MethodBase>()
                               .Union(type.GetConstructors());
 
-            foreach (MethodBase? op in methods)
+            foreach (var op in methods)
             {
                 if ((op is MethodInfo mi && mi.ReturnType == type) || op.IsConstructor)
                 {
-                    ParameterInfo[] args = op.GetParameters();
+                    var args = op.GetParameters();
 
                     if (args.Length != 1)
                         continue;
 
-                    Type argType = op.GetParameters()[0].ParameterType;
+                    var argType = op.GetParameters()[0].ParameterType;
 
-                    object? argValue = value;
+                    var argValue = value;
 
                     if (!argType.IsAssignableFrom(value.GetType()))
                     {

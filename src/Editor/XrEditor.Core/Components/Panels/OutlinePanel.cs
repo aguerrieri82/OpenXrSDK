@@ -28,19 +28,19 @@ namespace XrEditor
 
         public void ExpandNode(INode target)
         {
-            List<INode> nodeList = new List<INode>();
-            INode? curNode = target;
+            var nodeList = new List<INode>();
+            var curNode = target;
             while (curNode != null)
             {
                 nodeList.Insert(0, curNode);
                 curNode = curNode.Parent;
             }
 
-            INode lastNode = nodeList[^1];
+            var lastNode = nodeList[^1];
 
-            foreach (INode node in nodeList)
+            foreach (var node in nodeList)
             {
-                if (!_listNodeMap.TryGetValue(node, out ListTreeNodeView? listNode))
+                if (!_listNodeMap.TryGetValue(node, out var listNode))
                     continue;
 
                 if (node != lastNode)
@@ -59,9 +59,9 @@ namespace XrEditor
         {
             Debug.Assert(_mainDispatcher.IsCurrentThread);
 
-            INode node = ((NodeView)obj.Header!).Node;
+            var node = ((NodeView)obj.Header!).Node;
 
-            bool curSelected = _selection.IsSelected(node);
+            var curSelected = _selection.IsSelected(node);
 
             if (!obj.IsSelected && curSelected)
                 _selection.Items.Remove(node);
@@ -72,16 +72,16 @@ namespace XrEditor
 
         private void OnSelectionChanged(IReadOnlyCollection<INode> newSelection)
         {
-            foreach (ListTreeNodeView? curSel in _treeView.SelectedItems.ToArray())
+            foreach (var curSel in _treeView.SelectedItems.ToArray())
             {
-                INode node = ((NodeView)curSel.Header!).Node;
+                var node = ((NodeView)curSel.Header!).Node;
                 if (!newSelection.Contains(node))
                     curSel.IsSelected = false;
             }
 
-            foreach (INode item in newSelection)
+            foreach (var item in newSelection)
             {
-                if (_listNodeMap.TryGetValue(item, out ListTreeNodeView? listNode))
+                if (_listNodeMap.TryGetValue(item, out var listNode))
                     listNode.IsSelected = true;
             }
 
@@ -94,9 +94,9 @@ namespace XrEditor
             if (value == null)
                 return null;
 
-            INode node = _nodeFactory.CreateNode(value);
+            var node = _nodeFactory.CreateNode(value);
 
-            if (!_listNodeMap.TryGetValue(node, out ListTreeNodeView? listNode))
+            if (!_listNodeMap.TryGetValue(node, out var listNode))
             {
                 listNode = new ListTreeNodeView(_treeView, parent);
                 listNode.SelectionChanged += OnSelectionChanged;
@@ -134,7 +134,7 @@ namespace XrEditor
 
         protected void LoadScene()
         {
-            ListTreeNodeView? root = CreateNode(_sceneView?.Scene, null);
+            var root = CreateNode(_sceneView?.Scene, null);
             _treeView.Items.Clear();
             if (root != null)
                 _treeView.Items.Add(root!);

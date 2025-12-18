@@ -20,7 +20,7 @@ namespace XrEditor
                  ["VK_KHR_swapchain", "VK_KHR_external_memory", "VK_KHR_external_memory_win32", "VK_KHR_external_fence", "VK_KHR_external_fence_win32", "VK_KHR_external_semaphore", "VK_KHR_external_semaphore_win32", "VK_KHR_get_memory_requirements2", "VK_KHR_dedicated_allocation"]
             );
 
-            FilamentLib.VulkanSharedContext ctx = new FilamentLib.VulkanSharedContext()
+            var ctx = new FilamentLib.VulkanSharedContext()
             {
                 GraphicsQueueFamilyIndex = 0,
                 GraphicsQueueIndex = 0,

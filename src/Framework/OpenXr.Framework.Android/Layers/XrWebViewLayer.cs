@@ -1,5 +1,4 @@
 ﻿using Android.Content;
-using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
 using Android.Util;
@@ -8,7 +7,6 @@ using Android.Webkit;
 using Silk.NET.OpenXR;
 using System.Numerics;
 using XrInteraction;
-using XrMath;
 using static Android.Views.MotionEvent;
 using static Android.Webkit.WebSettings;
 
@@ -119,7 +117,7 @@ namespace OpenXr.Framework.Android
                 if (!_surfaceInput.IsPointerValid)
                     return;
 
-                long now = SystemClock.UptimeMillis();
+                var now = SystemClock.UptimeMillis();
 
                 MotionEventActions actions;
 
@@ -149,7 +147,7 @@ namespace OpenXr.Framework.Android
                     }
                 }
 
-                Vector2 pos = _surfaceInput.Pointer * new Vector2(webView.Width, webView.Height);
+                var pos = _surfaceInput.Pointer * new Vector2(webView.Width, webView.Height);
 
                 _pointerProps ??=
                 [
@@ -181,7 +179,7 @@ namespace OpenXr.Framework.Android
                     buttonState |= MotionEventButtonState.Secondary;
                */
 
-                MotionEvent? ev = MotionEvent.Obtain(
+                var ev = MotionEvent.Obtain(
                     actions == MotionEventActions.Up ? _lastDownTime : now,
                     now,
                     actions,
@@ -211,7 +209,7 @@ namespace OpenXr.Framework.Android
         public XrWebViewLayer(Context context, GetQuadDelegate getQuad, ISurfaceInput surfaceInput)
             : base(getQuad)
         {
-            Quad3 quad = getQuad();
+            var quad = getQuad();
 
             _size.Width = AlignToMultiple((int)(quad.Size.X * 1700), 32);
             _size.Height = AlignToMultiple((int)(quad.Size.Y * 1700), 32);
@@ -225,7 +223,7 @@ namespace OpenXr.Framework.Android
 
         public static int AlignToMultiple(int number, int bitSize)
         {
-            int mask = (1 << bitSize) - 1; // Create a mask with the bit size
+            var mask = (1 << bitSize) - 1; // Create a mask with the bit size
             return (number + mask) & ~mask; // Align the number to the nearest multiple
         }
 
@@ -238,13 +236,13 @@ namespace OpenXr.Framework.Android
         {
             if (_surface == null)
                 return;
-            Canvas? newCanvas = _surface.LockHardwareCanvas();
+            var newCanvas = _surface.LockHardwareCanvas();
             try
             {
                 if (newCanvas != null)
                 {
-                    float scaleX = _size.Width / (float)_webView!.Width;
-                    float scaleY = _size.Height / (float)_webView!.Height;
+                    var scaleX = _size.Width / (float)_webView!.Width;
+                    var scaleY = _size.Height / (float)_webView!.Height;
 
                     newCanvas.DrawColor(global::Android.Graphics.Color.Transparent, PorterDuff.Mode.Clear!);
                     newCanvas.Translate(-_webView.ScrollX, -_webView.ScrollY);
@@ -263,7 +261,7 @@ namespace OpenXr.Framework.Android
 
         protected override bool Update(ref CompositionLayerQuad layer, ref Silk.NET.OpenXR.View[] views, long predTime)
         {
-            bool result = base.Update(ref layer, ref views, predTime);
+            var result = base.Update(ref layer, ref views, predTime);
 
             layer.Size.Height *= -1;
 
@@ -277,7 +275,7 @@ namespace OpenXr.Framework.Android
         {
             try
             {
-                PackageInfo? packageInfo = _context.PackageManager!.GetPackageInfo("com.google.android.webview", 0);
+                var packageInfo = _context.PackageManager!.GetPackageInfo("com.google.android.webview", 0);
                 return packageInfo?.VersionName;
             }
             catch (Exception)
@@ -322,7 +320,7 @@ namespace OpenXr.Framework.Android
 
             if (_context is Activity activity)
             {
-                ViewGroup.LayoutParams layout = new ViewGroup.LayoutParams((int)(_size.Width * 1.3f), (int)(_size.Height * 1.3f));
+                var layout = new ViewGroup.LayoutParams((int)(_size.Width * 1.3f), (int)(_size.Height * 1.3f));
                 activity.AddContentView(_webView, layout);
             }
         }

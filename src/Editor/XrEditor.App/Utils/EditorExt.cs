@@ -17,7 +17,7 @@ namespace XrEditor
         {
             if (e.NewValue != null && d is FrameworkElement uiElement)
             {
-                IEditorUIElementHost container = (IEditorUIElementHost)e.NewValue;
+                var container = (IEditorUIElementHost)e.NewValue;
                 container.UIElement = WpfUIElement.Create(uiElement);
             }
         }

@@ -15,7 +15,7 @@ namespace XrEngine.OpenXr
 
         public RayPointerStatus GetPointerStatus()
         {
-            RayPointerStatus result = new RayPointerStatus();
+            var result = new RayPointerStatus();
 
             if (LeftButton != null && LeftButton.IsActive && LeftButton.Value)
                 result.Buttons |= Pointer2Button.Left;

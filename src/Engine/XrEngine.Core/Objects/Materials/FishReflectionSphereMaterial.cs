@@ -89,7 +89,7 @@ namespace XrEngine
                 if (_lastRotation != ctx.Model!.Transform.Orientation)
                 {
                     _lastRotation = ctx.Model!.Transform.Orientation;
-                    Quaternion newQuat = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI) * _lastRotation;
+                    var newQuat = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI) * _lastRotation;
                     up.SetUniform("uRotation", newQuat.ToMatrix3x3());
                 }
             });
@@ -114,7 +114,7 @@ namespace XrEngine
 
             bld.ExecuteAction((ctx, up) =>
             {
-                PerspectiveCamera camera = ((PerspectiveCamera)ctx.PassCamera!);
+                var camera = ((PerspectiveCamera)ctx.PassCamera!);
 
                 up.SetUniform("uSphereCenter", SphereCenter);
                 up.SetUniform("uSphereRadius", SphereRadius);

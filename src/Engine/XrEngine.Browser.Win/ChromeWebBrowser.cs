@@ -32,7 +32,7 @@ namespace XrEngine.Browser.Win
         {
             await InitAsync();
 
-            BrowserSettings browserSettings = new BrowserSettings
+            var browserSettings = new BrowserSettings
             {
                 WebGl = CefState.Enabled,
                 Javascript = CefState.Enabled,
@@ -41,7 +41,7 @@ namespace XrEngine.Browser.Win
                 WindowlessFrameRate = FrameRate,
             };
 
-            RequestContextSettings requestContextSettings = new RequestContextSettings
+            var requestContextSettings = new RequestContextSettings
             {
                 CachePath = Path.GetFullPath(CachePath),
             };
@@ -72,7 +72,7 @@ namespace XrEngine.Browser.Win
         {
             pos.Y = 1 - pos.Y;
 
-            Vector2 viewPos = pos * new Vector2(Size.Width, Size.Height);
+            var viewPos = pos * new Vector2(Size.Width, Size.Height);
 
             if (eventType == TouchEventType.Moved)
             {
@@ -100,7 +100,7 @@ namespace XrEngine.Browser.Win
 
         private unsafe void OnPaint(object? sender, OnPaintEventArgs e)
         {
-            int bufSize = e.Width * e.Height * 4;
+            var bufSize = e.Width * e.Height * 4;
 
             if (_buffer == null || _buffer.Length != bufSize)
                 _buffer = new byte[bufSize];
@@ -114,7 +114,7 @@ namespace XrEngine.Browser.Win
         async Task InitAsync()
         {
             Log.Info(this, "Init Browser");
-            CefSettings settings = new CefSettings()
+            var settings = new CefSettings()
             {
                 CachePath = CachePath,
                 Locale = "it",
@@ -141,7 +141,7 @@ namespace XrEngine.Browser.Win
 
             Cef.EnableWaitForBrowsersToClose();
 
-            bool success = await Cef.InitializeAsync(settings);
+            var success = await Cef.InitializeAsync(settings);
             if (!success)
                 throw new Exception();
         }

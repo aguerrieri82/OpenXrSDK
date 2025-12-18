@@ -18,7 +18,7 @@ namespace XrEngine
 
         public override T? Feature<T>() where T : class
         {
-            T? result = base.Feature<T>();
+            var result = base.Feature<T>();
             if (result != null)
                 return result;
             return Reference?.Feature<T>();

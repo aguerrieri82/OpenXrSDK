@@ -10,7 +10,7 @@ namespace CanvasUI
 
         protected IUiLayoutManager GetLayoutManager()
         {
-            UiLayoutType layout = ActualStyle.Layout.Value;
+            var layout = ActualStyle.Layout.Value;
 
             if (layout == UiLayoutType.Flex)
                 return FlexLayoutManager.Instance;
@@ -29,7 +29,7 @@ namespace CanvasUI
 
         protected override Size2 MeasureWork(Size2 availSize)
         {
-            IUiLayoutManager manager = GetLayoutManager();
+            var manager = GetLayoutManager();
 
             _layoutParams = manager.ExtractLayoutParams(this);
 
@@ -38,14 +38,14 @@ namespace CanvasUI
 
         protected override Size2 ArrangeWork(Rect2 finalRect)
         {
-            IUiLayoutManager manager = GetLayoutManager();
+            var manager = GetLayoutManager();
 
             return manager.Arrange(finalRect, _layoutParams);
         }
 
         protected override void DrawWork(SKCanvas canvas)
         {
-            foreach (UiElement child in _children)
+            foreach (var child in _children)
                 child.Draw(canvas);
         }
 
@@ -77,7 +77,7 @@ namespace CanvasUI
 
         public void Clear()
         {
-            foreach (UiElement child in _children)
+            foreach (var child in _children)
                 child.Parent = null;
 
             _children.Clear();
@@ -88,9 +88,9 @@ namespace CanvasUI
 
         public override void Dispose()
         {
-            for (int i = _children.Count - 1; i >= 0; i--)
+            for (var i = _children.Count - 1; i >= 0; i--)
             {
-                UiElement child = _children[i];
+                var child = _children[i];
                 _children.RemoveAt(i);
                 child.Dispose();
             }

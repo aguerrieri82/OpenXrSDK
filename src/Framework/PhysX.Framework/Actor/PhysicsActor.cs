@@ -62,7 +62,7 @@ namespace PhysX.Framework
             get => _name;
             set
             {
-                byte[] data = Encoding.UTF8.GetBytes(value);
+                var data = Encoding.UTF8.GetBytes(value);
                 fixed (byte* pData = data)
                     Actor.SetNameMut(pData);
                 _name = value;

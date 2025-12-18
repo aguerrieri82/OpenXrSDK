@@ -175,7 +175,7 @@ namespace XrEditor
 
         protected unsafe virtual void CreateContext(HandleRef handle)
         {
-            PIXELFORMATDESCRIPTOR pfd = new PIXELFORMATDESCRIPTOR
+            var pfd = new PIXELFORMATDESCRIPTOR
             {
                 nSize = (ushort)Marshal.SizeOf<PIXELFORMATDESCRIPTOR>(),
                 nVersion = 1,
@@ -191,7 +191,7 @@ namespace XrEditor
 
             _hdc = GetDC(handle.Handle);
 
-            int pfIndex = ChoosePixelFormat(_hdc, pfd);
+            var pfIndex = ChoosePixelFormat(_hdc, pfd);
             if (pfIndex <= 0)
                 throw new Win32Exception();
 
@@ -207,10 +207,10 @@ namespace XrEditor
 
             // EnableVSync(false);
 
-            nint pointer = GetProcAddress("wglCreateContextAttribsARB");
+            var pointer = GetProcAddress("wglCreateContextAttribsARB");
             wglCreateContextAttribsARB = Marshal.GetDelegateForFunctionPointer<wglCreateContextAttribsARBPtr>(pointer);
 
-            int* attr = stackalloc int[11];
+            var attr = stackalloc int[11];
 
             attr[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
             attr[1] = 4;
@@ -239,7 +239,7 @@ namespace XrEditor
 
         protected override HandleRef BuildWindowCore(HandleRef hwndParent)
         {
-            HandleRef handle = base.BuildWindowCore(hwndParent);
+            var handle = base.BuildWindowCore(hwndParent);
 
             if (_createContext)
                 CreateContext(handle);
@@ -251,12 +251,12 @@ namespace XrEditor
 
         public override IRenderEngine CreateRenderEngine(object? driverOptions)
         {
-            GlRenderOptions glOptions = driverOptions as GlRenderOptions ?? new GlRenderOptions();
+            var glOptions = driverOptions as GlRenderOptions ?? new GlRenderOptions();
 
             glOptions.FloatPrecision = ShaderPrecision.High;
             glOptions.Outline.Use = true;
 
-            OpenGLRender render = new OpenGLRender(_gl!, glOptions);
+            var render = new OpenGLRender(_gl!, glOptions);
 
             TakeContext();
 
@@ -270,11 +270,11 @@ namespace XrEditor
         {
             if (wglSwapIntervalEXT == null)
             {
-                nint addr = GetProcAddress("wglSwapIntervalEXT");
+                var addr = GetProcAddress("wglSwapIntervalEXT");
                 wglSwapIntervalEXT = Marshal.GetDelegateForFunctionPointer<wglSwapIntervalEXTPtr>(addr);
             }
 
-            bool res = wglSwapIntervalEXT(enable ? 1 : 0);
+            var res = wglSwapIntervalEXT(enable ? 1 : 0);
         }
 
         public override void SwapBuffers()
@@ -298,7 +298,7 @@ namespace XrEditor
 
         public nint GetProcAddress(string proc, int? slot = null)
         {
-            nint addr = GetProcAddress(_hLib, proc);
+            var addr = GetProcAddress(_hLib, proc);
 
             if (addr == 0)
             {

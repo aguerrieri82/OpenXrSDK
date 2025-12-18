@@ -8,7 +8,7 @@ namespace XrEngine
     {
         public static string Generate<T>()
         {
-            StringBuilder writer = new StringBuilder();
+            var writer = new StringBuilder();
 
 
             void WriteTypeName(Type type)
@@ -22,7 +22,7 @@ namespace XrEngine
                     writer.Append("void");
                 else
                 {
-                    string name = type.Name;
+                    var name = type.Name;
                     if (name.EndsWith('&'))
                         name = name.Substring(0, name.Length - 1);
 
@@ -37,8 +37,8 @@ namespace XrEngine
                     if (type.IsGenericType)
                     {
                         writer.Append("<");
-                        int i = 0;
-                        foreach (Type arg in type.GetGenericArguments())
+                        var i = 0;
+                        foreach (var arg in type.GetGenericArguments())
                         {
                             if (i > 0)
                                 writer.Append(", ");
@@ -84,7 +84,7 @@ namespace XrEngine
 
             void WriteRefType(ParameterInfo value)
             {
-                bool isRef = value.ParameterType.Name.EndsWith('&');
+                var isRef = value.ParameterType.Name.EndsWith('&');
                 if (isRef)
                 {
                     if (value.IsOut)
@@ -124,8 +124,8 @@ namespace XrEngine
                 writer.Append(value);
             }
 
-            int count = 0;
-            foreach (MethodInfo method in typeof(T).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.InvokeMethod))
+            var count = 0;
+            foreach (var method in typeof(T).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.InvokeMethod))
             {
                 writer.Append("public ");
 
@@ -135,12 +135,12 @@ namespace XrEngine
 
                 writer.Append(method.Name);
 
-                int i = 0;
+                var i = 0;
 
                 if (method.IsGenericMethod)
                 {
                     writer.Append('<');
-                    foreach (Type arg in method.GetGenericArguments())
+                    foreach (var arg in method.GetGenericArguments())
                     {
                         if (i > 0)
                             writer.Append(", ");
@@ -151,7 +151,7 @@ namespace XrEngine
                 }
                 writer.Append("(");
                 i = 0;
-                foreach (ParameterInfo arg in method.GetParameters())
+                foreach (var arg in method.GetParameters())
                 {
                     if (i > 0)
                         writer.Append(", ");
@@ -162,7 +162,7 @@ namespace XrEngine
                 writer.Append(method.Name);
                 writer.Append("(");
                 i = 0;
-                foreach (ParameterInfo arg in method.GetParameters())
+                foreach (var arg in method.GetParameters())
                 {
                     if (i > 0)
                         writer.Append(", ");

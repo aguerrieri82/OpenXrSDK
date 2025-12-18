@@ -49,7 +49,7 @@ namespace OpenXr.Framework.Android
         {
             System.Diagnostics.Debug.Assert(viewInfo.SwapChainFormats != null);
 
-            string[] cast = viewInfo.SwapChainFormats!.Select(a => ((GLEnum)(int)a).ToString()).ToArray();
+            var cast = viewInfo.SwapChainFormats!.Select(a => ((GLEnum)(int)a).ToString()).ToArray();
 
             result.ColorFormat = (long)_validFormats.First(a => viewInfo.SwapChainFormats.Contains((long)a));
             result.DepthFormat = (long)InternalFormat.Depth32fStencil8;
@@ -58,14 +58,14 @@ namespace OpenXr.Framework.Android
 
         public GraphicsBinding CreateBinding()
         {
-            GraphicsRequirementsOpenGLESKHR req = new GraphicsRequirementsOpenGLESKHR
+            var req = new GraphicsRequirementsOpenGLESKHR
             {
                 Type = StructureType.GraphicsRequirementsOpenglESKhr
             };
 
             _app!.CheckResult(_openGlEs!.GetOpenGlesgraphicsRequirements(_app!.Instance, _app.SystemId, ref req), "GetOpenGlesgraphicsRequirements");
 
-            GraphicsBinding result = new GraphicsBinding();
+            var result = new GraphicsBinding();
             result.Type = StructureType.GraphicsBindingOpenglESAndroidKhr;
             result.OpenGLESAndroidKhr.Display = ((IJavaObject)_context.Display!).Handle;
             result.OpenGLESAndroidKhr.Config = ((IJavaObject)_context.Config!).Handle;

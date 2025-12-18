@@ -35,8 +35,8 @@ namespace XrEngine
 
         public MeshBuilder AddTriangle(Vector3 a, Vector3 b, Vector3 c, Vector2 uvA, Vector2 uvB, Vector2 uvC)
         {
-            Triangle3 triangle = new Triangle3 { V0 = a, V1 = b, V2 = c };
-            Vector3 normal = triangle.Normal();
+            var triangle = new Triangle3 { V0 = a, V1 = b, V2 = c };
+            var normal = triangle.Normal();
 
             if (!normal.IsFinite())
                 return this;
@@ -77,12 +77,12 @@ namespace XrEngine
 
         public MeshBuilder AddCircle(Vector3 center, float radius, float subs, bool reverse = false, UVMode uvMode = UVMode.Normalized)
         {
-            for (int i = 0; i < subs; i++)
+            for (var i = 0; i < subs; i++)
             {
-                float a1 = MathF.PI * 2 * i / subs;
-                float a2 = MathF.PI * 2 * (i + 1) / subs;
-                Vector3 v1 = center + new Vector3(MathF.Cos(a1), MathF.Sin(a1), 0) * radius;
-                Vector3 v2 = center + new Vector3(MathF.Cos(a2), MathF.Sin(a2), 0) * radius;
+                var a1 = MathF.PI * 2 * i / subs;
+                var a2 = MathF.PI * 2 * (i + 1) / subs;
+                var v1 = center + new Vector3(MathF.Cos(a1), MathF.Sin(a1), 0) * radius;
+                var v2 = center + new Vector3(MathF.Cos(a2), MathF.Sin(a2), 0) * radius;
 
                 Vector2 uv0, uv1, uv2;
 
@@ -123,16 +123,16 @@ namespace XrEngine
                 vv2 = height;
             }
 
-            for (int i = 0; i < subs; i++)
+            for (var i = 0; i < subs; i++)
             {
-                float a1 = MathF.PI * 2 * i / subs;
-                float a2 = MathF.PI * 2 * (i + 1) / subs;
+                var a1 = MathF.PI * 2 * i / subs;
+                var a2 = MathF.PI * 2 * (i + 1) / subs;
 
-                Vector3 v1 = center + new Vector3(MathF.Cos(a1) * radius, MathF.Sin(a1) * radius, 0);
-                Vector3 v2 = center + new Vector3(MathF.Cos(a2) * radius, MathF.Sin(a2) * radius, 0);
+                var v1 = center + new Vector3(MathF.Cos(a1) * radius, MathF.Sin(a1) * radius, 0);
+                var v2 = center + new Vector3(MathF.Cos(a2) * radius, MathF.Sin(a2) * radius, 0);
 
-                Vector3 v3 = new Vector3(v1.X, v1.Y, v1.Z + height);
-                Vector3 v4 = new Vector3(v2.X, v2.Y, v2.Z + height);
+                var v3 = new Vector3(v1.X, v1.Y, v1.Z + height);
+                var v4 = new Vector3(v2.X, v2.Y, v2.Z + height);
 
 
                 if (uvMode == UVMode.Normalized)
@@ -170,14 +170,14 @@ namespace XrEngine
 
         public MeshBuilder AddCone(Vector3 center, float radius, float height, float subs)
         {
-            Vector3 top = center + new Vector3(0, 0, height);
-            for (int i = 0; i < subs; i++)
+            var top = center + new Vector3(0, 0, height);
+            for (var i = 0; i < subs; i++)
             {
-                float a1 = MathF.PI * 2 * i / subs;
-                float a2 = MathF.PI * 2 * (i + 1) / subs;
+                var a1 = MathF.PI * 2 * i / subs;
+                var a2 = MathF.PI * 2 * (i + 1) / subs;
 
-                Vector3 v1 = center + new Vector3(MathF.Cos(a1) * radius, MathF.Sin(a1) * radius, 0);
-                Vector3 v2 = center + new Vector3(MathF.Cos(a2) * radius, MathF.Sin(a2) * radius, 0);
+                var v1 = center + new Vector3(MathF.Cos(a1) * radius, MathF.Sin(a1) * radius, 0);
+                var v2 = center + new Vector3(MathF.Cos(a2) * radius, MathF.Sin(a2) * radius, 0);
                 AddTriangle(v2, top, v1);
             }
             return this;
@@ -185,22 +185,22 @@ namespace XrEngine
 
         public MeshBuilder AddRevolve(ICurve2D curve, float subs, UVMode uvMode, bool reverse = false, float startAngle = 0f, float endAngle = MathF.PI * 2)
         {
-            float step = (endAngle - startAngle) / subs;
+            var step = (endAngle - startAngle) / subs;
 
 
-            CurvePoint[] samples = curve
+            var samples = curve
                 .Sample(0.001f, 1000)
                 .ToArray();
 
             float v1 = 0, v2 = 0, u1, u2;
 
-            for (int i = 0; i < subs; i++)
+            for (var i = 0; i < subs; i++)
             {
-                float a1 = startAngle + step * i;
-                float a2 = startAngle + step * (i + 1);
+                var a1 = startAngle + step * i;
+                var a2 = startAngle + step * (i + 1);
 
-                Quaternion q1 = Quaternion.CreateFromAxisAngle(Vector3.UnitY, a1);
-                Quaternion q2 = Quaternion.CreateFromAxisAngle(Vector3.UnitY, a2);
+                var q1 = Quaternion.CreateFromAxisAngle(Vector3.UnitY, a1);
+                var q2 = Quaternion.CreateFromAxisAngle(Vector3.UnitY, a2);
 
                 if (uvMode == UVMode.Normalized)
                 {
@@ -208,15 +208,15 @@ namespace XrEngine
                     v2 = a2 / (MathF.PI * 2);
                 }
 
-                for (int j = 0; j < samples.Length - 1; j++)
+                for (var j = 0; j < samples.Length - 1; j++)
                 {
-                    Vector3 s1 = samples[j].Position.ToVector3();
-                    Vector3 s2 = samples[j + 1].Position.ToVector3();
+                    var s1 = samples[j].Position.ToVector3();
+                    var s2 = samples[j + 1].Position.ToVector3();
 
-                    Vector3 vr0 = Vector3.Transform(s1, q1);
-                    Vector3 vr1 = Vector3.Transform(s2, q1);
-                    Vector3 vr2 = Vector3.Transform(s1, q2);
-                    Vector3 vr3 = Vector3.Transform(s2, q2);
+                    var vr0 = Vector3.Transform(s1, q1);
+                    var vr1 = Vector3.Transform(s2, q1);
+                    var vr2 = Vector3.Transform(s1, q2);
+                    var vr3 = Vector3.Transform(s2, q2);
 
                     Vector2 uv0, uv1, uv2, uv3;
 
@@ -233,8 +233,8 @@ namespace XrEngine
                     {
                         u1 = samples[j].Length * 6;
                         u2 = samples[j + 1].Length * 6;
-                        float r1 = samples[j].Position.Length();
-                        float r2 = samples[j + 1].Position.Length();
+                        var r1 = samples[j].Position.Length();
+                        var r2 = samples[j + 1].Position.Length();
                         uv0 = new Vector2(u1, r1 * a1);
                         uv1 = new Vector2(u2, r2 * a1);
                         uv2 = new Vector2(u1, r1 * a2);
@@ -259,25 +259,25 @@ namespace XrEngine
 
         public MeshBuilder AddSphere(Vector3 center, float radius, int subs)
         {
-            List<VertexData> vertices = new List<VertexData>();
+            var vertices = new List<VertexData>();
 
-            for (int lat = 0; lat <= subs; lat++)
+            for (var lat = 0; lat <= subs; lat++)
             {
-                float theta = lat * MathF.PI / subs;
-                float sinTheta = MathF.Sin(theta);
-                float cosTheta = MathF.Cos(theta);
+                var theta = lat * MathF.PI / subs;
+                var sinTheta = MathF.Sin(theta);
+                var cosTheta = MathF.Cos(theta);
 
-                for (int lon = 0; lon <= subs; lon++)
+                for (var lon = 0; lon <= subs; lon++)
                 {
-                    float phi = lon * 2 * MathF.PI / subs;
-                    float sinPhi = MathF.Sin(phi);
-                    float cosPhi = MathF.Cos(phi);
+                    var phi = lon * 2 * MathF.PI / subs;
+                    var sinPhi = MathF.Sin(phi);
+                    var cosPhi = MathF.Cos(phi);
 
-                    float x = sinTheta * cosPhi;
-                    float y = cosTheta;
-                    float z = sinTheta * sinPhi;
+                    var x = sinTheta * cosPhi;
+                    var y = cosTheta;
+                    var z = sinTheta * sinPhi;
 
-                    Vector3 tangent = new Vector3(-sinPhi, 0, cosPhi).Normalize();
+                    var tangent = new Vector3(-sinPhi, 0, cosPhi).Normalize();
 
                     vertices.Add(new VertexData
                     {
@@ -289,14 +289,14 @@ namespace XrEngine
                 }
             }
 
-            List<uint> indices = new List<uint>();
+            var indices = new List<uint>();
 
-            for (int lat = 0; lat < subs; lat++)
+            for (var lat = 0; lat < subs; lat++)
             {
-                for (int lon = 0; lon < subs; lon++)
+                for (var lon = 0; lon < subs; lon++)
                 {
-                    int first = lat * (subs + 1) + lon;
-                    int second = first + subs + 1;
+                    var first = lat * (subs + 1) + lon;
+                    var second = first + subs + 1;
 
                     AddVertices(
                         vertices[first + 1],
@@ -320,9 +320,9 @@ namespace XrEngine
 
         public MeshBuilder AddCube(Vector3 center, Vector3 size)
         {
-            Vector3 halfSize = size / 2;
+            var halfSize = size / 2;
 
-            VertexData[] vertices = VertexData.FromPosNormalUV(
+            var vertices = VertexData.FromPosNormalUV(
             [
                 //X    Y      Z       Normals UV
                 halfSize.X, halfSize.Y, -halfSize.Z, -0f, 1f, -0f, 1f, 1f,
@@ -367,9 +367,9 @@ namespace XrEngine
                  20,22,23,
              ];
 
-            foreach (uint idx in indices)
+            foreach (var idx in indices)
             {
-                VertexData vrt = vertices[idx];
+                var vrt = vertices[idx];
                 vrt.Pos += center;
                 Vertices.Add(vrt);
             }
@@ -385,7 +385,7 @@ namespace XrEngine
 
         public MeshBuilder FillCurve(ICurve2D curve, float tolerance = 0.001f, int maxPoints = 1000)
         {
-            CurvePoint[] samples = curve
+            var samples = curve
                 .Sample(tolerance, maxPoints)
                 .ToArray();
 
@@ -394,8 +394,8 @@ namespace XrEngine
 
         public MeshBuilder FillPoly(Vector2[] points)
         {
-            List<Triangle3> triangles = PolyTriangulate.TriangulateSimplePolygon(points);
-            foreach (Triangle3 triangle in triangles)
+            var triangles = PolyTriangulate.TriangulateSimplePolygon(points);
+            foreach (var triangle in triangles)
                 AddTriangle(triangle.V0, triangle.V1, triangle.V2);
             return this;
         }
@@ -408,36 +408,36 @@ namespace XrEngine
 
         public MeshBuilder ExtrudePoly(Vector2[] points, float length, Vector3 axis, UVMode uvMode, bool addCaps)
         {
-            Vector3 ofs = axis * length;
+            var ofs = axis * length;
 
-            for (int i = 0; i < points.Length; i++)
+            for (var i = 0; i < points.Length; i++)
             {
-                Vector3 a = points[i].ToVector3();
-                Vector3 b = points[(i + 1) % points.Length].ToVector3();
-                Vector3 c = a + ofs;
-                Vector3 d = b + ofs;
+                var a = points[i].ToVector3();
+                var b = points[(i + 1) % points.Length].ToVector3();
+                var c = a + ofs;
+                var d = b + ofs;
                 AddFace(a, b, d, c);
             }
 
             if (addCaps)
             {
-                List<Triangle3> triangles = PolyTriangulate.TriangulateSimplePolygon(points);
+                var triangles = PolyTriangulate.TriangulateSimplePolygon(points);
 
-                Bounds2 bounds = points.Bounds();
+                var bounds = points.Bounds();
 
                 Vector2 BoundsUV(Vector3 point)
                 {
-                    Vector2 xy = point.ToVector2() - bounds.Min;
+                    var xy = point.ToVector2() - bounds.Min;
                     if (uvMode == UVMode.Normalized)
                         xy /= bounds.Size;
                     return xy;
                 }
 
-                foreach (Triangle3 triangle in triangles)
+                foreach (var triangle in triangles)
                     AddTriangle(triangle.V2, triangle.V1, triangle.V0,
                                BoundsUV(triangle.V2), BoundsUV(triangle.V1), BoundsUV(triangle.V0));
 
-                foreach (Triangle3 triangle in triangles)
+                foreach (var triangle in triangles)
                     AddTriangle(triangle.V0 + ofs, triangle.V1 + ofs, triangle.V2 + ofs,
                                BoundsUV(triangle.V0), BoundsUV(triangle.V1), BoundsUV(triangle.V2));
             }
@@ -452,7 +452,7 @@ namespace XrEngine
 
         public MeshBuilder LoftPoly(Poly2 profile, ICurve2D path, UVMode uvMode, float tolerance = 0.001f, int maxPoints = 1000)
         {
-            CurvePoint[] pathPoints = path
+            var pathPoints = path
                 .Sample(tolerance, maxPoints)
                 .ToArray();
 
@@ -469,8 +469,8 @@ namespace XrEngine
             Matrix4x4 Transform(Vector3 position, Vector3 tangent)
             {
                 tangent = Vector3.Normalize(tangent);
-                Vector3 up = new Vector3(0, 1, 0);
-                Vector3 right = Vector3.Cross(up, tangent);
+                var up = new Vector3(0, 1, 0);
+                var right = Vector3.Cross(up, tangent);
                 if (right.LengthSquared() < 1e-6)
                     right = Vector3.UnitX;
 
@@ -484,42 +484,42 @@ namespace XrEngine
                 );
             }
 
-            float profLen = profile.Length();
+            var profLen = profile.Length();
 
-            for (int j = 0; j < pathPoints.Length - 1; j++)
+            for (var j = 0; j < pathPoints.Length - 1; j++)
             {
-                (Vector3 p0, Vector3 t0) = Convert(pathPoints[j]);
-                (Vector3 p1, Vector3 t1) = Convert(pathPoints[j + 1]);
+                (var p0, var t0) = Convert(pathPoints[j]);
+                (var p1, var t1) = Convert(pathPoints[j + 1]);
 
                 t1 = (t0 + t1) / 2;
 
                 if (j > 0)
                 {
-                    (Vector3 p2, Vector3 t2) = Convert(pathPoints[j - 1]);
+                    (var p2, var t2) = Convert(pathPoints[j - 1]);
                     t0 = (t0 + t2) / 2;
                 }
 
 
-                int len = profile.Points.Length;
+                var len = profile.Points.Length;
                 if (!profile.IsClosed)
                     len--;
 
-                Matrix4x4 matrix0 = Transform(p0, t0);
-                Matrix4x4 matrix1 = Transform(p1, t1);
+                var matrix0 = Transform(p0, t0);
+                var matrix1 = Transform(p1, t1);
 
-                float curLen = 0f;
-                for (int i = 0; i < len; i++)
+                var curLen = 0f;
+                for (var i = 0; i < len; i++)
                 {
-                    Vector2 a = profile.Points[i];
-                    Vector2 b = profile.Points[(i + 1) % profile.Points.Length];
+                    var a = profile.Points[i];
+                    var b = profile.Points[(i + 1) % profile.Points.Length];
 
-                    float ab = Vector2.Distance(a, b);
+                    var ab = Vector2.Distance(a, b);
 
-                    Vector3 a0 = Vector3.Transform(new Vector3(a.X, a.Y, 0), matrix0);
-                    Vector3 b0 = Vector3.Transform(new Vector3(b.X, b.Y, 0), matrix0);
+                    var a0 = Vector3.Transform(new Vector3(a.X, a.Y, 0), matrix0);
+                    var b0 = Vector3.Transform(new Vector3(b.X, b.Y, 0), matrix0);
 
-                    Vector3 a1 = Vector3.Transform(new Vector3(a.X, a.Y, 0), matrix1);
-                    Vector3 b1 = Vector3.Transform(new Vector3(b.X, b.Y, 0), matrix1);
+                    var a1 = Vector3.Transform(new Vector3(a.X, a.Y, 0), matrix1);
+                    var b1 = Vector3.Transform(new Vector3(b.X, b.Y, 0), matrix1);
 
                     Vector2 uva0, uvb0, uva1, uvb1;
                     if (uvMode == UVMode.Normalized)
@@ -551,9 +551,9 @@ namespace XrEngine
 
         public MeshBuilder Transform(Matrix4x4 matrix)
         {
-            Span<VertexData> span = CollectionsMarshal.AsSpan(Vertices);
+            var span = CollectionsMarshal.AsSpan(Vertices);
 
-            foreach (ref VertexData item in span)
+            foreach (ref var item in span)
             {
                 item.Pos = Vector3.Transform(item.Pos, matrix);
                 item.Normal = Vector3.TransformNormal(item.Normal, matrix);
@@ -564,7 +564,7 @@ namespace XrEngine
 
         public Geometry3D ToGeometry()
         {
-            Geometry3D geo = new Geometry3D();
+            var geo = new Geometry3D();
             geo.Vertices = Vertices.ToArray();
             geo.ActiveComponents |= VertexComponent.UV0;
             geo.ComputeIndices();
@@ -574,7 +574,7 @@ namespace XrEngine
 
         public void AddColliders(Object3D obj)
         {
-            foreach (ICollider3D collider in Colliders)
+            foreach (var collider in Colliders)
                 obj.AddComponent((IComponent)collider);
         }
 

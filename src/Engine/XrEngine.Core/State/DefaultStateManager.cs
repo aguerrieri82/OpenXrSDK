@@ -6,7 +6,7 @@
 
         public IStateManager Read(string key, IStateManager? destObj, Type objType, IStateContainer container)
         {
-            IStateManager obj = destObj ?? (IStateManager)Activator.CreateInstance(objType)!;
+            var obj = destObj ?? (IStateManager)Activator.CreateInstance(objType)!;
             obj.SetState(container.Enter(key));
             return obj;
         }

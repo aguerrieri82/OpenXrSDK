@@ -49,13 +49,13 @@ namespace XrSamples.Earth
 
         public override float RotationAngle(DateTime utcTime)
         {
-            double julianDate = ToJulianDate(utcTime);
+            var julianDate = ToJulianDate(utcTime);
 
             // Adjust Julian Date for UT1 if needed
-            double dUT1 = julianDate - 2451545.0;
+            var dUT1 = julianDate - 2451545.0;
 
             // Calculate Earth Rotation Angle (ERA) in radians
-            double eraRadians = 2.0 * Math.PI * (0.7790572732640 + 1.00273781191135448 * dUT1);
+            var eraRadians = 2.0 * Math.PI * (0.7790572732640 + 1.00273781191135448 * dUT1);
             eraRadians %= 2.0 * Math.PI; // Normalize to [0, 2π)
 
             if (eraRadians < 0)

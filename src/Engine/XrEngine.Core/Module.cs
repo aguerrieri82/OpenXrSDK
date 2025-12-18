@@ -14,7 +14,7 @@ namespace XrEngine
             Context.Implement(ObjectManager.Instance);
             Context.Implement(TypeStateManager.Instance);
 
-            AssetLoader assetLoader = AssetLoader.Instance;
+            var assetLoader = AssetLoader.Instance;
 
             assetLoader.Register(DdsReader.Instance);
             assetLoader.Register(ExrReader.Instance);
@@ -27,7 +27,7 @@ namespace XrEngine
             assetLoader.Register(ObjReader.Instance);
             assetLoader.Register(new QuixelMaterialReader());
 
-            TypeStateManager typeState = TypeStateManager.Instance;
+            var typeState = TypeStateManager.Instance;
 
             typeState.Register(Vector3StateManager.Instance);
             typeState.Register(ColorStateManager.Instance);

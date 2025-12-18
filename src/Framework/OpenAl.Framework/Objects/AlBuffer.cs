@@ -85,7 +85,7 @@ namespace OpenAl.Framework
 
         public unsafe void Samples(uint sampleRate, InternalFormat internalFormat, uint samples, Channels channels, SampleType type, void* data)
         {
-            Span<byte> data2 = new Span<byte>(new byte[samples * 2 * 2]);
+            var data2 = new Span<byte>(new byte[samples * 2 * 2]);
             alBufferSamplesSOFT!(_handle, samples, (uint)internalFormat, samples, (uint)channels, (uint)type, &data2);
             _al.CheckError("alBufferSamplesSOFT");
         }
@@ -94,7 +94,7 @@ namespace OpenAl.Framework
         {
             _callback!.BufferCallback(_handle, GetBufferFormat(format), format.SampleRate, new PfnBufferCallback((user, samplerData, numBytes) =>
             {
-                Span<byte> span = new Span<byte>(samplerData, numBytes);
+                var span = new Span<byte>(samplerData, numBytes);
                 return callback(span);
             }), null);
 
@@ -170,7 +170,7 @@ namespace OpenAl.Framework
 
         public static AlBuffer Attach(AL al, uint handle)
         {
-            if (!_attached.TryGetValue(handle, out AlBuffer? result))
+            if (!_attached.TryGetValue(handle, out var result))
                 result = new AlBuffer(al, handle);
             return result;
         }

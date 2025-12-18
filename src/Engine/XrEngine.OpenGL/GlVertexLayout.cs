@@ -30,7 +30,7 @@ namespace XrEngine.OpenGL
     {
         public static GlVertexLayout FromType<T>(VertexComponent activeComponents) where T : unmanaged
         {
-            FieldInfo[] fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
+            var fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
 
             var infos = fields.Select(a => new
             {
@@ -41,20 +41,20 @@ namespace XrEngine.OpenGL
             .OrderBy(a => a.Ref!.Location)
             .ToArray();
 
-            List<GlVertexAttribute> attrbs = new List<GlVertexAttribute>();
+            var attrbs = new List<GlVertexAttribute>();
 
-            GlVertexLayout res = new GlVertexLayout
+            var res = new GlVertexLayout
             {
                 Attributes = new GlVertexAttribute[infos.Length]
             };
 
             uint curOfs = 0;
-            for (int i = 0; i < infos.Length; i++)
+            for (var i = 0; i < infos.Length; i++)
             {
                 var info = infos[i];
 
 
-                GlVertexAttribute item = new GlVertexAttribute();
+                var item = new GlVertexAttribute();
 
                 item.Name = info.Ref!.Name;
                 item.Location = info.Ref.Location;

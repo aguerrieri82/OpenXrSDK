@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using XrEngine;
+﻿using XrEngine;
 using XrEngine.OpenXr;
 
 namespace XrSamples
@@ -10,7 +9,7 @@ namespace XrSamples
         {
             _host!.Transform.SetPositionY(_host.Transform.LocalPivot.Y * _host.Transform.Scale.Y);
 
-            Vector3 rot = _host!.Transform.Rotation;
+            var rot = _host!.Transform.Rotation;
             rot.X = 0;
             rot.Z = 0;
             _host.Transform.Rotation = rot;

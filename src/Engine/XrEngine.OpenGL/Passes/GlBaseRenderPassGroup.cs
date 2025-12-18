@@ -32,11 +32,11 @@
             if (!IsEnabled)
                 return;
 
-            IEnumerable<TOptions> passOptions = GetPasses(ctx);
+            var passOptions = GetPasses(ctx);
 
-            foreach (TOptions? opt in passOptions)
+            foreach (var opt in passOptions)
             {
-                TPass pass = ConfigurePass(opt);
+                var pass = ConfigurePass(opt);
                 pass.Render(ctx);
             }
         }

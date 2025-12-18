@@ -18,18 +18,18 @@ namespace XrEngine.Audio
             Debug.Assert(Data != null);
             Debug.Assert(Function != null);
 
-            Bounds1 rangeX = Function.RangeX;
+            var rangeX = Function.RangeX;
 
-            float xt = (value - MinValue) / (MaxValue - MinValue);
+            var xt = (value - MinValue) / (MaxValue - MinValue);
 
             if (Function == null)
                 return Data.Duration() * xt;
 
-            float curX = rangeX.Min + xt * (rangeX.Size);
+            var curX = rangeX.Min + xt * (rangeX.Size);
 
-            float curY = Function.Value(curX);
+            var curY = Function.Value(curX);
 
-            float timeT = (curY - StartTime) / (EndTime - StartTime);
+            var timeT = (curY - StartTime) / (EndTime - StartTime);
 
             return Data.Duration() * timeT;
         }
@@ -40,27 +40,27 @@ namespace XrEngine.Audio
 
             _floatBuffer ??= Data.ToFloat();
 
-            int minSamples = 0;
-            int maxSamples = (int)(Data.Format!.SampleRate * length) / 2;
+            var minSamples = 0;
+            var maxSamples = (int)(Data.Format!.SampleRate * length) / 2;
 
             fixed (float* pFloat = _floatBuffer)
             {
-                int startSample = (int)(Data.Format!.SampleRate * time);
-                int endSample = (int)(Data.Format!.SampleRate * (time + length));
+                var startSample = (int)(Data.Format!.SampleRate * time);
+                var endSample = (int)(Data.Format!.SampleRate * (time + length));
 
 
-                int bestOfs = -1;
-                float bestValue = float.NegativeInfinity;
+                var bestOfs = -1;
+                var bestValue = float.NegativeInfinity;
 
-                int len = (endSample - startSample + 1);
+                var len = (endSample - startSample + 1);
 
-                for (int ofs = minSamples; ofs <= maxSamples; ofs++)
+                for (var ofs = minSamples; ofs <= maxSamples; ofs++)
                 {
                     float sum = 0;
-                    for (int j = 0; j < len; j++)
+                    for (var j = 0; j < len; j++)
                     {
-                        int s1 = endSample - ofs + j;
-                        int s2 = startSample + j;
+                        var s1 = endSample - ofs + j;
+                        var s2 = startSample + j;
 
                         sum += pFloat[s1] * pFloat[s2];
                     }
@@ -81,16 +81,16 @@ namespace XrEngine.Audio
             Debug.Assert(Data?.Buffer != null);
             Debug.Assert(Data?.Format != null);
 
-            float time = TimeForValue(value);
-            string key = $"{value}|{length}";
-            if (!OffsetMap.TryGetValue(key, out int ofs))
+            var time = TimeForValue(value);
+            var key = $"{value}|{length}";
+            if (!OffsetMap.TryGetValue(key, out var ofs))
             {
                 ofs = BestLoopOffset(time, length);
                 OffsetMap[key] = ofs;
             }
 
-            int startSample = Data.Format.TimeToSample(time) * (Data.Format.BitsPerSample / 8);
-            int endSample = (Data.Format.TimeToSample(time + length) - ofs) * (Data.Format.BitsPerSample / 8);
+            var startSample = Data.Format.TimeToSample(time) * (Data.Format.BitsPerSample / 8);
+            var endSample = (Data.Format.TimeToSample(time + length) - ofs) * (Data.Format.BitsPerSample / 8);
 
             Array.Resize(ref buffer, endSample - startSample);
 

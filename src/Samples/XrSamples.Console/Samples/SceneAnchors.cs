@@ -10,13 +10,13 @@ namespace XrSamples
     {
         public static async Task Run(IServiceProvider services, ILogger logger)
         {
-            ViewManager viewManager = new ViewManager();
+            var viewManager = new ViewManager();
             viewManager.Initialize();
 
 
-            OculusXrPlugin xrOculus = new OculusXrPlugin();
+            var xrOculus = new OculusXrPlugin();
 
-            XrApp app = new XrApp(services!.GetRequiredService<ILogger<XrApp>>(),
+            var app = new XrApp(services!.GetRequiredService<ILogger<XrApp>>(),
                       new XrOpenGLGraphicDriver(viewManager.View),
                 xrOculus);
 
@@ -26,7 +26,7 @@ namespace XrSamples
 
                 app.Start(XrAppStartMode.Query);
 
-                List<XrAnchor> res = await xrOculus.GetAnchorsAsync(new XrAnchorFilter
+                var res = await xrOculus.GetAnchorsAsync(new XrAnchorFilter
                 {
                     Components = XrAnchorComponent.All
                 });

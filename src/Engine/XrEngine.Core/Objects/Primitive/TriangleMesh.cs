@@ -73,7 +73,7 @@ namespace XrEngine
             {
                 if (e.OldItems != null)
                 {
-                    foreach (Material item in e.OldItems!.Cast<Material>())
+                    foreach (var item in e.OldItems!.Cast<Material>())
                         item.Detach(this, false);
 
                     NotifyChanged(new ObjectChange(ObjectChangeType.MateriaRemove, e.OldItems));
@@ -82,7 +82,7 @@ namespace XrEngine
 
             if (e.NewItems != null)
             {
-                foreach (Material item in e.NewItems.Cast<Material>())
+                foreach (var item in e.NewItems.Cast<Material>())
                     item.Attach(this);
 
                 NotifyChanged(new ObjectChange(ObjectChangeType.MateriaAdd, e.NewItems));
@@ -116,7 +116,7 @@ namespace XrEngine
 
         public override void Dispose()
         {
-            foreach (Material material in Materials)
+            foreach (var material in Materials)
                 material.Detach(this, true);
 
             Geometry?.Detach(this, true);

@@ -37,10 +37,10 @@ namespace XrEngine.OpenXr
             }
 
 
-            float? a1 = Process(Left, LeftClick, LeftHaptic, ref _left);
-            float? a2 = Process(Right, RightClick, RightHaptic, ref _right);
+            var a1 = Process(Left, LeftClick, LeftHaptic, ref _left);
+            var a2 = Process(Right, RightClick, RightHaptic, ref _right);
 
-            float curRot = MathF.Min(a1 ?? float.PositiveInfinity, a2 ?? float.PositiveInfinity);
+            var curRot = MathF.Min(a1 ?? float.PositiveInfinity, a2 ?? float.PositiveInfinity);
 
             if (float.IsFinite(curRot))
                 ApplyRotation(curRot);
@@ -63,10 +63,10 @@ namespace XrEngine.OpenXr
             if (!pose.IsActive || !click.IsActive)
                 return null;
 
-            Plane plane = RotationAxis.ToPlane();
-            Vector3 curPos = _host!.ToLocal(pose.Value.Position);
-            Vector3 planePos = plane.Project(curPos);
-            Vector3 curDir = (planePos - RotationAxis.Origin).Normalize();
+            var plane = RotationAxis.ToPlane();
+            var curPos = _host!.ToLocal(pose.Value.Position);
+            var planePos = plane.Project(curPos);
+            var curDir = (planePos - RotationAxis.Origin).Normalize();
 
             status.LastPos = curPos;
 
@@ -75,7 +75,7 @@ namespace XrEngine.OpenXr
                 if (!click.Value)
                     return null;
 
-                foreach (ICollider3D? collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
+                foreach (var collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
                 {
                     if (collider.ContainsPoint(pose.Value.Position, 0.04f))
                     {
@@ -99,7 +99,7 @@ namespace XrEngine.OpenXr
                 return null;
             }
 
-            float distance = Vector3.Distance(_host!.ToWorld(status.StartPos), pose.Value.Position);
+            var distance = Vector3.Distance(_host!.ToWorld(status.StartPos), pose.Value.Position);
             if (distance > MaxDistance && MaxDistance > 0)
                 return null;
 

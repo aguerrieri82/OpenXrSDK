@@ -25,7 +25,7 @@ namespace OpenXr.Framework
         {
             Debug.Assert(_xrApp != null);
 
-            Extent2Di extent = new Extent2Di((int)_size.Width, (int)_size.Height);
+            var extent = new Extent2Di((int)_size.Width, (int)_size.Height);
 
             _swapchain = _xrApp!.CreateSwapChain(extent, _xrApp.RenderOptions.ColorFormat, 1, SwapchainUsageFlags.SampledBit | SwapchainUsageFlags.ColorAttachmentBit);
 
@@ -52,7 +52,7 @@ namespace OpenXr.Framework
             if (!_renderQuad(null, new Size2I(), 0))
                 return true;
 
-            uint index = _xrApp.AcquireSwapchainImage(_swapchain);
+            var index = _xrApp.AcquireSwapchainImage(_swapchain);
 
             _xrApp.WaitSwapchainImage(_swapchain);
 

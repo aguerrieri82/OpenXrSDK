@@ -7,17 +7,17 @@ namespace OpenXr.Framework.Android
     {
         public static OpenGLESContext Create(bool debugMode)
         {
-            int[] numConfigs = new int[1];
-            int[] value = new int[1];
-            int[] maj = new int[1];
-            int[] min = new int[1];
+            var numConfigs = new int[1];
+            var value = new int[1];
+            var maj = new int[1];
+            var min = new int[1];
 
 
-            EGLDisplay? display = EGL14.EglGetDisplay(EGL14.EglDefaultDisplay);
+            var display = EGL14.EglGetDisplay(EGL14.EglDefaultDisplay);
 
             EGL14.EglInitialize(display, maj, 0, min, 0);
 
-            EGLConfig[] configs = new EGLConfig[1024];
+            var configs = new EGLConfig[1024];
 
             if (!EGL14.EglGetConfigs(display, configs, 0, 1024, numConfigs, 0))
             {
@@ -38,9 +38,9 @@ namespace OpenXr.Framework.Android
 
             EGLConfig? config = null;
 
-            bool isConfigValid = false;
+            var isConfigValid = false;
 
-            for (int i = 0; i < numConfigs[0]; i++)
+            for (var i = 0; i < numConfigs[0]; i++)
             {
                 EGL14.EglGetConfigAttrib(display, configs[i], EGL14.EglRenderableType, value, 0);
                 if ((value[0] & EGL15.EglOpenglEs3Bit) != EGL15.EglOpenglEs3Bit)
@@ -50,7 +50,7 @@ namespace OpenXr.Framework.Android
                 if ((value[0] & (EGL14.EglWindowBit | EGL14.EglPbufferBit)) != (EGL14.EglWindowBit | EGL14.EglPbufferBit))
                     continue;
 
-                int j = 0;
+                var j = 0;
                 for (j = 0; configAttribs[j] != EGL14.EglNone; j += 2)
                 {
                     EGL14.EglGetConfigAttrib(display, configs[i], configAttribs[j], value, 0);
@@ -70,7 +70,7 @@ namespace OpenXr.Framework.Android
                 throw new Exception("config not found");
 
 
-            EGLContext? context = EGL14.EglCreateContext(
+            var context = EGL14.EglCreateContext(
                 display,
                 config,
                 EGL14.EglNoContext,
@@ -86,7 +86,7 @@ namespace OpenXr.Framework.Android
             if (context == EGL14.EglNoContext)
                 throw new Exception("EglCreateContext");
 
-            EGLSurface? surface = EGL14.EglCreatePbufferSurface(
+            var surface = EGL14.EglCreatePbufferSurface(
                 display,
                 config,
                 [
@@ -110,7 +110,7 @@ namespace OpenXr.Framework.Android
                 throw new Exception("EglMakeCurrent");
             }
 
-            string? exts = GLES32.GlGetString(GLES32.GlExtensions);
+            var exts = GLES32.GlGetString(GLES32.GlExtensions);
 
             Log.Info("EGL Extensions", exts ?? "");
 

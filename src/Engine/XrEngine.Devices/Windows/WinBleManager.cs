@@ -9,13 +9,13 @@ namespace XrEngine.Devices.Windows
     {
         public async Task<IList<BleDeviceInfo>> FindDevicesAsync(BleDeviceFilter filter)
         {
-            List<BleDeviceInfo> result = new List<BleDeviceInfo>();
+            var result = new List<BleDeviceInfo>();
 
-            CancellationTokenSource cancel = new CancellationTokenSource();
+            var cancel = new CancellationTokenSource();
 
-            BluetoothLEAdvertisementFilter filter2 = new BluetoothLEAdvertisementFilter();
+            var filter2 = new BluetoothLEAdvertisementFilter();
 
-            BluetoothLEAdvertisementWatcher watcher = new BluetoothLEAdvertisementWatcher(filter2)
+            var watcher = new BluetoothLEAdvertisementWatcher(filter2)
             {
                 ScanningMode = BluetoothLEScanningMode.Active
             };
@@ -28,7 +28,7 @@ namespace XrEngine.Devices.Windows
                     return;
 
 
-                BleDeviceInfo? curDev = result.FirstOrDefault(a => a.Address.Value == e.BluetoothAddress);
+                var curDev = result.FirstOrDefault(a => a.Address.Value == e.BluetoothAddress);
 
                 if (curDev == null)
                 {

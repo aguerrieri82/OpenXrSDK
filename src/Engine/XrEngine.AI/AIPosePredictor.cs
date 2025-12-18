@@ -17,7 +17,7 @@ namespace XrEngine.AI
         {
             if (_data.Count < 8)
                 throw new InvalidOperationException("Not enough data to predict");
-            PoseTrainData pred = _core.Predict(_data);
+            var pred = _core.Predict(_data);
             return pred.Pose;
         }
 

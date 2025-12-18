@@ -34,8 +34,8 @@ namespace XrEngine.OpenXr
             container.Write(nameof(Input), Input);
             if (Handlers != null)
             {
-                IStateContainer handlers = container.Enter(nameof(Handlers));
-                for (int i = 0; i < Handlers.Count; i++)
+                var handlers = container.Enter(nameof(Handlers));
+                for (var i = 0; i < Handlers.Count; i++)
                     handlers.Write(i.ToString(), Handlers[i]);
             }
         }
@@ -49,8 +49,8 @@ namespace XrEngine.OpenXr
 
             if (container.Contains(nameof(Handlers)))
             {
-                IStateContainer handlersState = container.Enter(nameof(Handlers));
-                for (int i = 0; i < handlersState.Count; i++)
+                var handlersState = container.Enter(nameof(Handlers));
+                for (var i = 0; i < handlersState.Count; i++)
                     Handlers.Add(handlersState.Read<XrFloatInput>(i.ToString()));
             }
         }

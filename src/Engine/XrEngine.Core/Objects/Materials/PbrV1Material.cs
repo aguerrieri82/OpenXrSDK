@@ -334,7 +334,7 @@ namespace XrEngine
 
             public unsafe DynamicBuffer GetBuffer()
             {
-                int newSize = (sizeof(LightUniforms) * Max) + 16;
+                var newSize = (sizeof(LightUniforms) * Max) + 16;
 
                 if (_buffer.Size != newSize)
                 {
@@ -349,8 +349,8 @@ namespace XrEngine
 
                 fixed (LightUniforms* pArray = Lights)
                 {
-                    Span<LightUniforms> srcSpan = new Span<LightUniforms>(pArray, Lights.Length);
-                    Span<LightUniforms> dstSpan = new Span<LightUniforms>((LightUniforms*)(_buffer.Data + 16), Lights.Length);
+                    var srcSpan = new Span<LightUniforms>(pArray, Lights.Length);
+                    var dstSpan = new Span<LightUniforms>((LightUniforms*)(_buffer.Data + 16), Lights.Length);
                     srcSpan.CopyTo(dstSpan);
                 }
 
@@ -455,9 +455,9 @@ namespace XrEngine
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
-                ImageLight? imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
+                var imgLight = bld.Context.Lights?.OfType<ImageLight>().FirstOrDefault();
 
-                bool hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
+                var hasPunctual = bld.Context.Lights!.Any(a => a != imgLight);
 
                 if (hasPunctual)
                     bld.AddFeature("USE_PUNCTUAL");
@@ -484,7 +484,7 @@ namespace XrEngine
                 {
                     bld.LoadBuffer((ctx) =>
                     {
-                        long curHash = bld.Context.Lights!.Sum(a => a.Version + a.ContentVersion);
+                        var curHash = bld.Context.Lights!.Sum(a => a.Version + a.ContentVersion);
 
                         if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
                             return null;
@@ -493,9 +493,9 @@ namespace XrEngine
 
                         Log.Debug(this, "Build light uniforms");
 
-                        List<LightUniforms> lights = new List<LightUniforms>();
+                        var lights = new List<LightUniforms>();
 
-                        foreach (Light light in bld.Context.Lights!)
+                        foreach (var light in bld.Context.Lights!)
                         {
                             if (light is PointLight point)
                             {
@@ -549,7 +549,7 @@ namespace XrEngine
 
                 if (bld.Context.ShadowMapProvider != null)
                 {
-                    ShadowMapMode mode = bld.Context.ShadowMapProvider.Options.Mode;
+                    var mode = bld.Context.ShadowMapProvider.Options.Mode;
 
                     if (mode != ShadowMapMode.None)
                     {
@@ -569,7 +569,7 @@ namespace XrEngine
                 {
                     bld.LoadBuffer((ctx) =>
                     {
-                        int curHash = (int)imgLight.Version;
+                        var curHash = (int)imgLight.Version;
 
                         if (ctx.CurrentBuffer == null || ctx.CurrentBuffer.Hash == curHash)
                             return null;
@@ -657,11 +657,11 @@ namespace XrEngine
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
         {
-            MaterialUniforms material = new MaterialUniforms();
+            var material = new MaterialUniforms();
 
             bld.LoadBuffer(ctx =>
             {
-                long curVersion = Version;
+                var curVersion = Version;
 
                 if (curVersion == ctx.CurrentBuffer!.Version)
                     return null;
@@ -858,7 +858,7 @@ namespace XrEngine
 
             bld.AddFeature($"DEBUG {Debug}");
 
-            foreach (DebugFlags value in Enum.GetValues<DebugFlags>())
+            foreach (var value in Enum.GetValues<DebugFlags>())
                 bld.AddFeature($"{value} {(int)value}");
 
             if ((bld.Context.ActiveComponents & VertexComponent.Normal) != 0)

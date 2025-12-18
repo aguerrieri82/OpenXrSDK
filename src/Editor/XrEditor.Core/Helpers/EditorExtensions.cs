@@ -12,7 +12,7 @@ namespace XrEditor
 
         public static T SetParent<T>(this T nodes, INode? parent) where T : IEnumerable<INode>
         {
-            foreach (IEditableNode node in nodes.OfType<IEditableNode>())
+            foreach (var node in nodes.OfType<IEditableNode>())
                 node.SetParent(parent);
             return nodes;
         }

@@ -11,16 +11,16 @@ namespace XrEngine.OpenXr.Android
             builder.UseRightController().
                     ConfigureApp(e =>
         {
-            TriangleMesh? display = getDisplay(e.App);
+            var display = getDisplay(e.App);
 
             if (display == null)
                 return;
 
             if (display != null)
             {
-                IXrBasicInteractionProfile? inputs = e.Inputs;
+                var inputs = e.Inputs;
 
-                XrInputPointer? xrInput = display.Scene?.Components<XrInputPointer>().FirstOrDefault();
+                var xrInput = display.Scene?.Components<XrInputPointer>().FirstOrDefault();
 
                 if (xrInput == null)
                 {
@@ -32,7 +32,7 @@ namespace XrEngine.OpenXr.Android
                     });
                 }
 
-                SurfaceController controller = display.AddComponent<SurfaceController>();
+                var controller = display.AddComponent<SurfaceController>();
 
                 e.XrApp.Layers.AddWebView(context, display.BindToQuad(), controller);
             }

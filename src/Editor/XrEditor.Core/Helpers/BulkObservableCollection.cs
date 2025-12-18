@@ -19,8 +19,8 @@ namespace XrEditor
 
         public void InsertRange(int startIndex, IList<T> items)
         {
-            int curI = startIndex;
-            foreach (T? item in items)
+            var curI = startIndex;
+            foreach (var item in items)
             {
                 Insert(curI, item);
                 curI++;
@@ -32,7 +32,7 @@ namespace XrEditor
         {
             //var removed = new List<T>(count);
 
-            for (int i = startIndex + count - 1; i >= startIndex; i--)
+            for (var i = startIndex + count - 1; i >= startIndex; i--)
             {
                 //removed.Insert(0, Items[i]);
                 RemoveAt(i);

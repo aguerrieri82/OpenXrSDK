@@ -17,7 +17,7 @@ namespace XrEngine
             {
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    foreach (Light light in bld.Context.Lights!)
+                    foreach (var light in bld.Context.Lights!)
                     {
                         if (light is AmbientLight ambient)
                             up.SetUniform("light.ambient", (Vector3)ambient.Color * ambient.Intensity);

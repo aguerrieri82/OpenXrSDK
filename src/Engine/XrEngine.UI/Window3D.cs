@@ -39,30 +39,30 @@ namespace XrEngine.UI
             if (Pointers == null)
                 return;
 
-            foreach (IRayPointer pointer in Pointers)
+            foreach (var pointer in Pointers)
             {
-                RayPointerStatus status = pointer.GetPointerStatus();
+                var status = pointer.GetPointerStatus();
 
                 if (!status.IsActive)
                     continue;
 
-                Collision? collision = _collider.CollideWith(status.Ray);
+                var collision = _collider.CollideWith(status.Ray);
 
                 //TODO infinite plane collision
 
                 if (collision != null)
                 {
-                    Vector2 pos = new Vector2(collision.LocalPoint.X + 0.5f, 1 - (collision.LocalPoint.Y + 0.5f));
+                    var pos = new Vector2(collision.LocalPoint.X + 0.5f, 1 - (collision.LocalPoint.Y + 0.5f));
 
                     DispatchPointerEvent(pos, status.Buttons, UiEventType.PointerMove, pointer);
 
                     _lastPosition = pos;
                 }
 
-                foreach (Pointer2Button button in BUTTONS)
+                foreach (var button in BUTTONS)
                 {
-                    bool isOn = (status.Buttons & button) == button;
-                    bool wasOn = (_lastStatus.Buttons & button) == button;
+                    var isOn = (status.Buttons & button) == button;
+                    var wasOn = (_lastStatus.Buttons & button) == button;
 
                     if (isOn && !wasOn)
                         DispatchPointerEvent(_lastPosition, button, UiEventType.PointerDown, pointer);
@@ -81,16 +81,16 @@ namespace XrEngine.UI
             if (Content == null)
                 return;
 
-            Vector2 pos = new Vector2(
+            var pos = new Vector2(
                 _pixelSize.Width / _dpiScale * surfacePos.X,
                 _pixelSize.Height / _dpiScale * surfacePos.Y
             );
 
-            UiElement? capture = UiManager.GetPointerCapture(pointer.PointerId);
+            var capture = UiManager.GetPointerCapture(pointer.PointerId);
 
             if (capture != null)
             {
-                UiPointerEvent uiEv = UiManager.AcquireEvent<UiPointerEvent>();
+                var uiEv = UiManager.AcquireEvent<UiPointerEvent>();
 
                 uiEv.Buttons = (UiPointerButton)buttons;
                 uiEv.Pointer = new UiRayPointer(pointer);
@@ -103,13 +103,13 @@ namespace XrEngine.UI
             }
             else
             {
-                UiElement? hitTest = Content.HitTest(pos);
+                var hitTest = Content.HitTest(pos);
 
                 UiManager.SetHoverElement(hitTest, pos, (UiPointerButton)buttons);
 
                 if (hitTest != null)
                 {
-                    UiPointerEvent uiEv = UiManager.AcquireEvent<UiPointerEvent>();
+                    var uiEv = UiManager.AcquireEvent<UiPointerEvent>();
 
                     uiEv.Buttons = (UiPointerButton)buttons;
                     uiEv.Pointer = new UiRayPointer(pointer);

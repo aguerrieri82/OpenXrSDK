@@ -13,7 +13,7 @@ namespace XrEngine.OpenXr
             if (XrApp.Current == null || !XrApp.Current.IsStarted)
                 return;
 
-            XrSpaceLocation local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
+            var local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
 
             if (local != null)
             {
@@ -35,7 +35,7 @@ namespace XrEngine.OpenXr
             if (XrApp.Current == null || !XrApp.Current.IsStarted)
                 return;
 
-            Pose3 newRef = new Pose3()
+            var newRef = new Pose3()
             {
                 Position = position,
                 Orientation = Quaternion.Identity
@@ -45,7 +45,7 @@ namespace XrEngine.OpenXr
 
             XrApp.Current.ReferenceFrame = Pose3.Identity;
 
-            XrSpaceLocation local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
+            var local = XrApp.Current.LocateSpace(XrApp.Current.Head, XrApp.Current.ReferenceSpace, XrApp.Current.FramePredictedDisplayTime);
 
             if (local != null)
             {

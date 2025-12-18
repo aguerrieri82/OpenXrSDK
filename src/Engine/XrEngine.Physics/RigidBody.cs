@@ -113,7 +113,7 @@ namespace XrEngine.Physics
 
             if (collider == null)
             {
-                ILocalBounds? local = _host.Feature<ILocalBounds>();
+                var local = _host.Feature<ILocalBounds>();
 
                 if (local == null)
                     return null;
@@ -131,9 +131,9 @@ namespace XrEngine.Physics
 
                 collider.Initialize();
 
-                Object3D host = (collider.Host as Object3D)!;
+                var host = (collider.Host as Object3D)!;
 
-                Geometry3D? geo = host.Feature<Geometry3D>();
+                var geo = host.Feature<Geometry3D>();
 
                 if (collider is MeshCollider mc && mc.Geometry != null)
                 {
@@ -159,7 +159,7 @@ namespace XrEngine.Physics
                     if (collider.Host is not TriangleMesh mesh)
                         mesh = py.MeshObjects().OfType<TriangleMesh>().FirstOrDefault()!;
 
-                    Geometry3D? geo3d = mesh?.Geometry;
+                    var geo3d = mesh?.Geometry;
 
                     if (geo3d != null)
                         result = geo3d.GetProp<PhysicsGeometry>(PyMeshCollider.PyGeo);
@@ -182,17 +182,17 @@ namespace XrEngine.Physics
                 }
                 else if (collider is CylinderCollider cyl)
                 {
-                    List<Vector3> points = new List<Vector3>();
+                    var points = new List<Vector3>();
 
-                    float halfHeight = cyl.Height / 2;
+                    var halfHeight = cyl.Height / 2;
 
-                    float numSegments = (cyl.Radius * 2 * MathF.PI) / 0.01f; //1cm
+                    var numSegments = (cyl.Radius * 2 * MathF.PI) / 0.01f; //1cm
 
-                    for (int i = 0; i < numSegments; i++)
+                    for (var i = 0; i < numSegments; i++)
                     {
-                        float angle = (2f * MathF.PI * i / numSegments);
-                        float x = cyl.Radius * MathF.Cos(angle);
-                        float z = cyl.Radius * MathF.Sin(angle);
+                        var angle = (2f * MathF.PI * i / numSegments);
+                        var x = cyl.Radius * MathF.Cos(angle);
+                        var z = cyl.Radius * MathF.Sin(angle);
 
                         points.Add(new Vector3(x, halfHeight, z));
                         points.Add(new Vector3(x, -halfHeight, z));
@@ -218,9 +218,9 @@ namespace XrEngine.Physics
             Debug.Assert(_host != null);
 
             PhysicsShape? shape = null;
-            Pose3 pose = Pose3.Identity;
+            var pose = Pose3.Identity;
 
-            PhysicsGeometry? pyGeo = CreateGeometry(collider, ref pose, scale);
+            var pyGeo = CreateGeometry(collider, ref pose, scale);
 
             if (pyGeo != null)
             {
@@ -303,7 +303,7 @@ namespace XrEngine.Physics
             if (_system == null)
                 throw new NotSupportedException("Add PhysicsManager to the scene");
 
-            Matrix4x4.Decompose(_host.WorldMatrix, out Vector3 scale, out Quaternion _, out Vector3 _);
+            Matrix4x4.Decompose(_host.WorldMatrix, out var scale, out var _, out var _);
 
             if (!scale.IsSameValue(10e-5f))
                 throw new NotSupportedException("Not uniform scale is not supported");
@@ -315,9 +315,9 @@ namespace XrEngine.Physics
                 Restitution = MaterialInfo.Restitution,
             });
 
-            List<PhysicsShape> shapes = new List<PhysicsShape>();
+            var shapes = new List<PhysicsShape>();
 
-            foreach (ICollider3D collider in _host.Components<ICollider3D>())
+            foreach (var collider in _host.Components<ICollider3D>())
             {
                 if (!collider.IsEnabled)
                     continue;
@@ -325,14 +325,14 @@ namespace XrEngine.Physics
                 if (collider is IRenderUpdate update)
                     update.Update(ctx);
 
-                PhysicsShape? shape = CreateShape(collider, scale);
+                var shape = CreateShape(collider, scale);
                 if (shape != null)
                     shapes.Add(shape);
             }
 
             if (shapes.Count == 0)
             {
-                PhysicsShape? boxShape = CreateShape(null, scale);
+                var boxShape = CreateShape(null, scale);
                 if (boxShape == null)
                     throw new NotSupportedException("Object has no collider or local bounds");
                 shapes.Add(boxShape);
@@ -382,7 +382,7 @@ namespace XrEngine.Physics
                 Restitution = MaterialInfo.Restitution,
             });
 
-            foreach (PhysicsShape shape in _actor.GetShapes())
+            foreach (var shape in _actor.GetShapes())
             {
                 shape.SetMaterials([_material]);
                 shape.ContactOffset = ContactOffset;
@@ -445,14 +445,14 @@ namespace XrEngine.Physics
             Debug.Assert(_host != null);
             Debug.Assert(_actor != null);
 
-            Pose3 curPose = GetHostPose();
+            var curPose = GetHostPose();
 
             if (!curPose.IsFinite())
                 return;
 
             if (Type == PhysicsActorType.Dynamic)
             {
-                IObjectTool? tool = _host.GetActiveTool();
+                var tool = _host.GetActiveTool();
 
                 if (DynamicActor.IsSleeping)
                     DynamicActor.IsSleeping = false;

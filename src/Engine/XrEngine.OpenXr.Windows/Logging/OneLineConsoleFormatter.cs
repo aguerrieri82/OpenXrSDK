@@ -21,15 +21,15 @@ namespace XrEngine.OpenXr.Windows
 
         public override void Write<TState>(in LogEntry<TState> logEntry, IExternalScopeProvider? scopeProvider, TextWriter textWriter)
         {
-            string? message = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
+            var message = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
 
             if (message is null)
                 return;
 
-            int index = logEntry.Category.LastIndexOf(".");
-            string category = index == -1 ? logEntry.Category : logEntry.Category.Substring(index + 1);
+            var index = logEntry.Category.LastIndexOf(".");
+            var category = index == -1 ? logEntry.Category : logEntry.Category.Substring(index + 1);
 
-            ConsoleColor color = GetLogLevelConsoleColors(logEntry.LogLevel);
+            var color = GetLogLevelConsoleColors(logEntry.LogLevel);
 
             textWriter.WriteColoredMessage(string.Format("{0:HH:mm:ss.fff}", DateTime.Now), null, ConsoleColor.Gray);
             textWriter.WriteColoredMessage($" [{category}] ", null, ConsoleColor.Blue);

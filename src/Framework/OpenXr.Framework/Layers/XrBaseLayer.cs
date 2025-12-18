@@ -42,7 +42,7 @@ namespace OpenXr.Framework
 
         public bool Update(ref View[] views, long predTime)
         {
-            Span<T> span = new Span<T>(_header.Pointer, 1);
+            var span = new Span<T>(_header.Pointer, 1);
             return Update(ref span[0], ref views, predTime);
         }
 

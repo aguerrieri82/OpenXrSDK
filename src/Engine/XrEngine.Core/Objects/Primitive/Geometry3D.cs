@@ -79,11 +79,11 @@ namespace XrEngine
 
         public void ApplyTransform(Matrix4x4 matrix)
         {
-            Matrix4x4.Invert(matrix, out Matrix4x4 inverse);
+            Matrix4x4.Invert(matrix, out var inverse);
 
-            Matrix4x4 normalMatrix = Matrix4x4.Transpose(inverse);
+            var normalMatrix = Matrix4x4.Transpose(inverse);
 
-            for (int i = 0; i < Vertices.Length; i++)
+            for (var i = 0; i < Vertices.Length; i++)
             {
                 Vertices[i].Pos = Vertices[i].Pos.Transform(matrix);
                 Vertices[i].Normal = Vertices[i].Normal.Transform(normalMatrix).Normalize();
@@ -97,9 +97,9 @@ namespace XrEngine
             if (Indices.Length == 0)
                 return;
 
-            VertexData[] vertices = new VertexData[Indices.Length];
+            var vertices = new VertexData[Indices.Length];
 
-            for (int i = 0; i < Indices.Length; i++)
+            for (var i = 0; i < Indices.Length; i++)
                 vertices[i] = Vertices![Indices[i]];
 
             Vertices = vertices;
@@ -116,7 +116,7 @@ namespace XrEngine
 
         public unsafe void Serialize(Stream stream)
         {
-            using BinaryWriter writer = new BinaryWriter(stream);
+            using var writer = new BinaryWriter(stream);
 
             writer.Write("GEOM");
             writer.Write((int)ActiveComponents);
@@ -137,7 +137,7 @@ namespace XrEngine
 
         public void ScaleUV(Vector2 scale)
         {
-            for (int i = 0; i < _vertices.Length; i++)
+            for (var i = 0; i < _vertices.Length; i++)
                 _vertices[i].UV *= scale;
 
             NotifyChanged(ObjectChangeType.Geometry);
@@ -175,7 +175,7 @@ namespace XrEngine
 
         public Geometry3D Clone()
         {
-            Geometry3D result = new Geometry3D();
+            var result = new Geometry3D();
             result.Vertices = new VertexData[_vertices.Length];
             Array.Copy(_vertices, result.Vertices, _vertices.Length);
             result.Indices = new uint[_indices.Length];

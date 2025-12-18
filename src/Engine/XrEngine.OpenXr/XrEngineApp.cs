@@ -39,7 +39,7 @@ namespace XrEngine.OpenXr
 
         public void Create(EngineApp app)
         {
-            _platform.CreateDrivers(_options, out IRenderEngine? renderEngine, out IXrGraphicDriver? xrDriver);
+            _platform.CreateDrivers(_options, out var renderEngine, out var xrDriver);
 
             _app = app;
             _app.Renderer = renderEngine;

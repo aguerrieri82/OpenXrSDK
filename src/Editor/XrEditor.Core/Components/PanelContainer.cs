@@ -18,7 +18,7 @@ namespace XrEditor
         {
             Panels = [];
             Panels.CollectionChanged += OnPanelsChanged;
-            foreach (IPanel panel in panels)
+            foreach (var panel in panels)
                 Panels.Add(panel);
             ActivePanel = panels.FirstOrDefault();
             Menu = new MenuView();
@@ -28,13 +28,13 @@ namespace XrEditor
 
         private void FillMenu()
         {
-            MenuView addGrp = Menu.AddGroup("Add");
-            PanelManager pm = Context.Require<PanelManager>();
-            foreach (PanelInfo info in pm.PanelsInfo)
+            var addGrp = Menu.AddGroup("Add");
+            var pm = Context.Require<PanelManager>();
+            foreach (var info in pm.PanelsInfo)
             {
                 addGrp.AddButton("", () =>
                 {
-                    IPanel? instance = pm.Panel(info.PanelId);
+                    var instance = pm.Panel(info.PanelId);
                     if (instance == null)
                         return;
 
@@ -55,14 +55,14 @@ namespace XrEditor
         {
             if (e.NewItems != null)
             {
-                foreach (IPanel item in e.NewItems.OfType<IPanel>())
+                foreach (var item in e.NewItems.OfType<IPanel>())
                     item.Attach(this);
 
             }
 
             if (e.OldItems != null)
             {
-                foreach (IPanel item in e.OldItems.OfType<IPanel>())
+                foreach (var item in e.OldItems.OfType<IPanel>())
                 {
                     if (_activePanel == item)
                         ActivePanel = Panels.FirstOrDefault();
@@ -72,11 +72,11 @@ namespace XrEditor
 
         public void GetState(IStateContainer container)
         {
-            IStateContainer panels = container.Enter("Panels");
-            int i = 0;
-            foreach (IPanel panel in Panels)
+            var panels = container.Enter("Panels");
+            var i = 0;
+            foreach (var panel in Panels)
             {
-                IStateContainer panelState = panels.Enter(i.ToString());
+                var panelState = panels.Enter(i.ToString());
                 panelState.Write("PanelId", panel.PanelId);
                 if (panel is IStateManager state)
                     state.GetState(panelState);
@@ -100,14 +100,14 @@ namespace XrEditor
         {
             Panels.Clear();
 
-            PanelManager manager = Context.Require<PanelManager>();
-            IStateContainer panels = container.Enter("Panels");
+            var manager = Context.Require<PanelManager>();
+            var panels = container.Enter("Panels");
 
-            foreach (string key in panels.Keys)
+            foreach (var key in panels.Keys)
             {
-                IStateContainer panelState = panels.Enter(key);
-                Guid panelId = panelState.Read<Guid>("PanelId");
-                IPanel? panel = manager.Panel(panelId);
+                var panelState = panels.Enter(key);
+                var panelId = panelState.Read<Guid>("PanelId");
+                var panel = manager.Panel(panelId);
                 if (panel == null)
                     throw new Exception("");
                 if (panel is IStateManager state)
@@ -115,7 +115,7 @@ namespace XrEditor
                 Panels.Add(panel);
             }
 
-            int activePanel = container.Read<int>("ActivePanel");
+            var activePanel = container.Read<int>("ActivePanel");
 
             if (activePanel == -1 && Panels.Count > 0)
                 activePanel = 0;

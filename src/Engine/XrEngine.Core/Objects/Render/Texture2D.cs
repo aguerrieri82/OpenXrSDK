@@ -9,7 +9,7 @@ namespace XrEngine
     {
         public static Texture2D FromImage(string fileName)
         {
-            using FileStream stream = File.OpenRead(fileName);
+            using var stream = File.OpenRead(fileName);
             return FromImage(stream);
         }
 
@@ -20,14 +20,14 @@ namespace XrEngine
 
         public static Texture2D FromImage(Stream stream)
         {
-            Texture2D result = FromImage(SKBitmap.Decode(stream));
+            var result = FromImage(SKBitmap.Decode(stream));
             stream.Dispose();
             return result;
         }
 
         public static Texture2D FromImage(SKBitmap image)
         {
-            TextureData data = new TextureData
+            var data = new TextureData
             {
                 Compression = TextureCompressionFormat.Uncompressed,
                 Format = ImageUtils.GetFormat(image.ColorType),

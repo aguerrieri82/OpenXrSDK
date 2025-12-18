@@ -14,9 +14,9 @@ namespace XrEditor.Nodes
 
         protected virtual string[] ComputeType(object value)
         {
-            List<string> result = new List<string>();
+            var result = new List<string>();
 
-            Type? curType = value.GetType()!;
+            var curType = value.GetType()!;
 
             while (curType != typeof(object))
             {

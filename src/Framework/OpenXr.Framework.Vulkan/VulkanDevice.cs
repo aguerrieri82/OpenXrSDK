@@ -72,7 +72,7 @@ namespace OpenXr.Framework.Vulkan
         private void InitWindow()
         {
             //Create a window.
-            WindowOptions options = WindowOptions.DefaultVulkan with
+            var options = WindowOptions.DefaultVulkan with
             {
                 Size = new Vector2D<int>(WIDTH, HEIGHT),
                 Title = "Vulkan",
@@ -168,13 +168,13 @@ namespace OpenXr.Framework.Vulkan
 
         private void CreateSwapChain()
         {
-            SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(_physicalDevice);
+            var swapChainSupport = QuerySwapChainSupport(_physicalDevice);
 
-            SurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats);
-            PresentModeKHR presentMode = ChoosePresentMode(swapChainSupport.PresentModes);
-            Extent2D extent = ChooseSwapExtent(swapChainSupport.Capabilities);
+            var surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats);
+            var presentMode = ChoosePresentMode(swapChainSupport.PresentModes);
+            var extent = ChooseSwapExtent(swapChainSupport.Capabilities);
 
-            uint imageCount = swapChainSupport.Capabilities.MinImageCount + 1;
+            var imageCount = swapChainSupport.Capabilities.MinImageCount + 1;
             if (swapChainSupport.Capabilities.MaxImageCount > 0 && imageCount > swapChainSupport.Capabilities.MaxImageCount)
             {
                 imageCount = swapChainSupport.Capabilities.MaxImageCount;
@@ -193,8 +193,8 @@ namespace OpenXr.Framework.Vulkan
                 ImageUsage = ImageUsageFlags.ColorAttachmentBit,
             };
 
-            QueueFamilyIndices indices = FindQueueFamilies(_physicalDevice);
-            uint* queueFamilyIndices = stackalloc[] { indices.GraphicsFamily!.Value, indices.PresentFamily!.Value };
+            var indices = FindQueueFamilies(_physicalDevice);
+            var queueFamilyIndices = stackalloc[] { indices.GraphicsFamily!.Value, indices.PresentFamily!.Value };
 
             if (indices.GraphicsFamily != indices.PresentFamily)
             {
@@ -243,7 +243,7 @@ namespace OpenXr.Framework.Vulkan
 
         private SurfaceFormatKHR ChooseSwapSurfaceFormat(IReadOnlyList<SurfaceFormatKHR> availableFormats)
         {
-            foreach (SurfaceFormatKHR availableFormat in availableFormats)
+            foreach (var availableFormat in availableFormats)
             {
                 if (availableFormat.Format == Format.B8G8R8A8Srgb && availableFormat.ColorSpace == ColorSpaceKHR.SpaceSrgbNonlinearKhr)
                     return availableFormat;
@@ -254,7 +254,7 @@ namespace OpenXr.Framework.Vulkan
 
         private PresentModeKHR ChoosePresentMode(IReadOnlyList<PresentModeKHR> availablePresentModes)
         {
-            foreach (PresentModeKHR availablePresentMode in availablePresentModes)
+            foreach (var availablePresentMode in availablePresentModes)
             {
                 if (availablePresentMode == PresentModeKHR.MailboxKhr)
                     return availablePresentMode;
@@ -268,7 +268,7 @@ namespace OpenXr.Framework.Vulkan
             if (capabilities.CurrentExtent.Width != uint.MaxValue)
                 return capabilities.CurrentExtent;
 
-            Vector2D<int> framebufferSize = _window!.FramebufferSize;
+            var framebufferSize = _window!.FramebufferSize;
 
             Extent2D actualExtent = new()
             {
@@ -284,7 +284,7 @@ namespace OpenXr.Framework.Vulkan
 
         private SwapChainSupportDetails QuerySwapChainSupport(PhysicalDevice physicalDevice)
         {
-            SwapChainSupportDetails details = new SwapChainSupportDetails();
+            var details = new SwapChainSupportDetails();
 
             _khrSurface!.GetPhysicalDeviceSurfaceCapabilities(physicalDevice, _surface, out details.Capabilities);
 
@@ -361,13 +361,13 @@ namespace OpenXr.Framework.Vulkan
             if (deviceCount == 0)
                 throw new Exception("failed to find GPUs with Vulkan support!");
 
-            PhysicalDevice[] devices = new PhysicalDevice[deviceCount];
+            var devices = new PhysicalDevice[deviceCount];
             fixed (PhysicalDevice* devicesPtr = devices)
             {
                 _vk!.EnumeratePhysicalDevices(_instance, ref deviceCount, devicesPtr);
             }
 
-            foreach (PhysicalDevice device in devices)
+            foreach (var device in devices)
             {
                 if (IsDeviceSuitable(device))
                 {
@@ -385,16 +385,16 @@ namespace OpenXr.Framework.Vulkan
 
         private void CreateLogicalDevice()
         {
-            QueueFamilyIndices indices = FindQueueFamilies(_physicalDevice);
+            var indices = FindQueueFamilies(_physicalDevice);
 
-            uint[] uniqueQueueFamilies = new[] { indices.GraphicsFamily!.Value, indices.PresentFamily!.Value };
+            var uniqueQueueFamilies = new[] { indices.GraphicsFamily!.Value, indices.PresentFamily!.Value };
             uniqueQueueFamilies = uniqueQueueFamilies.Distinct().ToArray();
 
-            using GlobalMemory mem = GlobalMemory.Allocate(uniqueQueueFamilies.Length * sizeof(DeviceQueueCreateInfo));
-            DeviceQueueCreateInfo* queueCreateInfos = (DeviceQueueCreateInfo*)Unsafe.AsPointer(ref mem.GetPinnableReference());
+            using var mem = GlobalMemory.Allocate(uniqueQueueFamilies.Length * sizeof(DeviceQueueCreateInfo));
+            var queueCreateInfos = (DeviceQueueCreateInfo*)Unsafe.AsPointer(ref mem.GetPinnableReference());
 
-            float queuePriority = 1.0f;
-            for (int i = 0; i < uniqueQueueFamilies.Length; i++)
+            var queuePriority = 1.0f;
+            for (var i = 0; i < uniqueQueueFamilies.Length; i++)
             {
                 queueCreateInfos[i] = new()
                 {
@@ -448,7 +448,7 @@ namespace OpenXr.Framework.Vulkan
 
         private bool IsDeviceSuitable(PhysicalDevice device)
         {
-            QueueFamilyIndices indices = FindQueueFamilies(device);
+            var indices = FindQueueFamilies(device);
 
             return indices.IsComplete();
         }
@@ -463,12 +463,12 @@ namespace OpenXr.Framework.Vulkan
 
         private QueueFamilyIndices FindQueueFamilies(PhysicalDevice device)
         {
-            QueueFamilyIndices indices = new QueueFamilyIndices();
+            var indices = new QueueFamilyIndices();
 
             uint queueFamilyCount = 0;
             _vk!.GetPhysicalDeviceQueueFamilyProperties(device, ref queueFamilyCount, null);
 
-            QueueFamilyProperties[] queueFamilies = new QueueFamilyProperties[queueFamilyCount];
+            var queueFamilies = new QueueFamilyProperties[queueFamilyCount];
             fixed (QueueFamilyProperties* queueFamiliesPtr = queueFamilies)
             {
                 _vk!.GetPhysicalDeviceQueueFamilyProperties(device, ref queueFamilyCount, queueFamiliesPtr);
@@ -476,7 +476,7 @@ namespace OpenXr.Framework.Vulkan
 
 
             uint i = 0;
-            foreach (QueueFamilyProperties queueFamily in queueFamilies)
+            foreach (var queueFamily in queueFamilies)
             {
                 if (queueFamily.QueueFlags.HasFlag(QueueFlags.GraphicsBit))
                 {
@@ -485,7 +485,7 @@ namespace OpenXr.Framework.Vulkan
 
                 if (_surface.Handle != 0)
                 {
-                    _khrSurface!.GetPhysicalDeviceSurfaceSupport(device, i, _surface, out Bool32 presentSupport);
+                    _khrSurface!.GetPhysicalDeviceSurfaceSupport(device, i, _surface, out var presentSupport);
 
                     if (presentSupport)
                     {
@@ -508,14 +508,14 @@ namespace OpenXr.Framework.Vulkan
 
         private void GetRequiredExtensions(IList<string> result)
         {
-            byte** glfwExtensions = _window!.VkSurface!.GetRequiredExtensions(out uint glfwExtensionCount);
-            string[] extensions = SilkMarshal.PtrToStringArray((nint)glfwExtensions, (int)glfwExtensionCount);
+            var glfwExtensions = _window!.VkSurface!.GetRequiredExtensions(out var glfwExtensionCount);
+            var extensions = SilkMarshal.PtrToStringArray((nint)glfwExtensions, (int)glfwExtensionCount);
 
             if (_enableValidationLayers)
                 result.Add(ExtDebugUtils.ExtensionName);
             else
             {
-                foreach (string? item in extensions)
+                foreach (var item in extensions)
                     result.Add(item);
             }
         }
@@ -524,13 +524,13 @@ namespace OpenXr.Framework.Vulkan
         {
             uint layerCount = 0;
             _vk!.EnumerateInstanceLayerProperties(ref layerCount, null);
-            LayerProperties[] availableLayers = new LayerProperties[layerCount];
+            var availableLayers = new LayerProperties[layerCount];
             fixed (LayerProperties* availableLayersPtr = availableLayers)
             {
                 _vk!.EnumerateInstanceLayerProperties(ref layerCount, availableLayersPtr);
             }
 
-            HashSet<string?> availableLayerNames = availableLayers.Select(layer => Marshal.PtrToStringAnsi((IntPtr)layer.LayerName)).ToHashSet();
+            var availableLayerNames = availableLayers.Select(layer => Marshal.PtrToStringAnsi((IntPtr)layer.LayerName)).ToHashSet();
 
             return validationLayers.All(availableLayerNames.Contains);
         }
@@ -550,7 +550,7 @@ namespace OpenXr.Framework.Vulkan
 
             if (_swapChainImages != null)
             {
-                foreach (Image image in _swapChainImages)
+                foreach (var image in _swapChainImages)
                     _vk.DestroyImage(_device, image, null);
                 _swapChainImages = null;
             }

@@ -113,7 +113,7 @@ namespace XrEngine.Gltf
         {
             if (ext == null)
                 return;
-            foreach (string key in ext.Keys)
+            foreach (var key in ext.Keys)
             {
                 if (!supportedExt.Contains(key))
                     _log.AppendLine($"Extensions '{key}' not supported");
@@ -122,14 +122,14 @@ namespace XrEngine.Gltf
 
         protected static T? TryLoadExtension<T>(Dictionary<string, object>? ext) where T : struct
         {
-            if (ext != null && ext.TryGetValue(typeof(T).Name, out object? extension))
+            if (ext != null && ext.TryGetValue(typeof(T).Name, out var extension))
                 return ((JObject)extension).ToObject<T>();
             return null;
         }
 
         protected TextureData ProcessImage(int imgId, bool useSrgb = false)
         {
-            Image img = _model!.Images[imgId];
+            var img = _model!.Images[imgId];
 
             return _images.GetOrAdd(img, img =>
             {
@@ -143,13 +143,13 @@ namespace XrEngine.Gltf
 
                     if (img.BufferView != null)
                     {
-                        BufferView view = _model!.BufferViews[img.BufferView.Value];
-                        byte[] buffer = LoadBuffer(view.Buffer);
+                        var view = _model!.BufferViews[img.BufferView.Value];
+                        var buffer = LoadBuffer(view.Buffer);
                         data = new Span<byte>(buffer, view.ByteOffset, view.ByteLength).ToArray();
                     }
                     else if (img.Uri != null)
                     {
-                        string imgPath = _resourceResolver(Path.Join(_basePath!, img.Uri));
+                        var imgPath = _resourceResolver(Path.Join(_basePath!, img.Uri));
                         data = File.OpenRead(imgPath)
                             .ToMemory()
                             .ToArray();
@@ -163,7 +163,7 @@ namespace XrEngine.Gltf
 
                     if (img.MimeType == glTFLoader.Schema.Image.MimeTypeEnum.image_jpeg)
                     {
-                        TurboJpegLib.ImageData outImg = TurboJpegLib.Decompress(data);
+                        var outImg = TurboJpegLib.Decompress(data);
 
                         Debug.Assert(outImg.Data != null);
 
@@ -178,7 +178,7 @@ namespace XrEngine.Gltf
 
                     else
                     {
-                        using SKBitmap image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
+                        using var image = ImageUtils.ChangeColorSpace(SKBitmap.Decode(data), SKColorType.Rgba8888);
                         return new TextureData
                         {
                             Data = MemoryBuffer.Create(image.Bytes),
@@ -205,7 +205,7 @@ namespace XrEngine.Gltf
 
         protected LoadTask<T> Load<T>(T result, Action action)
         {
-            LoadTask<T> task = new LoadTask<T>
+            var task = new LoadTask<T>
             {
                 Result = result,
                 Task = Task.Run(action)
@@ -218,17 +218,17 @@ namespace XrEngine.Gltf
 
         public LoadTask<Texture2D> ProcessTextureTask(int texId, Dictionary<string, object>? extensions, Texture2D? result = null, bool useSrgb = false)
         {
-            glTFLoader.Schema.Texture texture = _model!.Textures[texId];
+            var texture = _model!.Textures[texId];
 
             CheckExtensions(texture.Extensions);
 
-            Image imageInfo = _model!.Images[texture.Source!.Value];
+            var imageInfo = _model!.Images[texture.Source!.Value];
 
             return _textures.GetOrAdd(imageInfo, img =>
             {
                 Debug.Assert(result == null);
 
-                Texture2D texResult = new Texture2D();
+                var texResult = new Texture2D();
 
                 texResult.Flags |= EngineObjectFlags.Readonly;
 
@@ -238,15 +238,15 @@ namespace XrEngine.Gltf
 
                 return Load(texResult, () =>
                 {
-                    TextureData data = ProcessImage(texture.Source!.Value, useSrgb);
+                    var data = ProcessImage(texture.Source!.Value, useSrgb);
 
                     texResult.LoadData([data]);
 
-                    bool hasMinFilter = false;
+                    var hasMinFilter = false;
 
                     if (texture.Sampler != null)
                     {
-                        Sampler sampler = _model!.Samplers[texture.Sampler.Value];
+                        var sampler = _model!.Samplers[texture.Sampler.Value];
                         CheckExtensions(sampler.Extensions);
 
                         texResult.WrapS = (WrapMode)sampler.WrapS;
@@ -273,10 +273,10 @@ namespace XrEngine.Gltf
                         texResult.MagFilter = ScaleFilter.Linear;
                     }
 
-                    KHR_texture_transform? transform = TryLoadExtension<KHR_texture_transform>(extensions);
+                    var transform = TryLoadExtension<KHR_texture_transform>(extensions);
                     if (transform != null)
                     {
-                        Matrix3x3 mat = Matrix3x3.Identity;
+                        var mat = Matrix3x3.Identity;
 
                         if (transform.Value.offset != null)
                             mat *= Matrix3x3.CreateTranslation(transform.Value.offset[0], transform.Value.offset[1]);
@@ -316,9 +316,9 @@ namespace XrEngine.Gltf
 
         public PbrV1Material ProcessMaterialV1(int matId, PbrV1Material? result = null)
         {
-            glTFLoader.Schema.Material gltMat = _model!.Materials[matId];
+            var gltMat = _model!.Materials[matId];
 
-            if (result == null && _mats.TryGetValue(gltMat, out ShaderMaterial? mat))
+            if (result == null && _mats.TryGetValue(gltMat, out var mat))
                 return (PbrV1Material)mat;
 
             result ??= MaterialFactory.CreatePbr<PbrV1Material>();
@@ -376,7 +376,7 @@ namespace XrEngine.Gltf
                 result.OcclusionUVSet = gltMat.OcclusionTexture.TexCoord;
             }
 
-            KHR_materials_pbrSpecularGlossiness? specGloss = TryLoadExtension<KHR_materials_pbrSpecularGlossiness>(gltMat.Extensions);
+            var specGloss = TryLoadExtension<KHR_materials_pbrSpecularGlossiness>(gltMat.Extensions);
             if (specGloss != null)
             {
                 result.SpecularGlossiness = new PbrV1Material.SpecularGlossinessData
@@ -401,7 +401,7 @@ namespace XrEngine.Gltf
                 result.Type = PbrV1Material.MaterialType.Specular;
             }
 
-            KHR_materials_sheen? sheen = TryLoadExtension<KHR_materials_sheen>(gltMat.Extensions);
+            var sheen = TryLoadExtension<KHR_materials_sheen>(gltMat.Extensions);
             if (sheen != null)
             {
                 result.Sheen = new PbrV1Material.SheenData();
@@ -433,9 +433,9 @@ namespace XrEngine.Gltf
 
         public unsafe PbrV2Material ProcessMaterialV2(int matId, PbrV2Material? result = null)
         {
-            glTFLoader.Schema.Material gltMat = _model!.Materials[matId];
+            var gltMat = _model!.Materials[matId];
 
-            if (result == null && _mats.TryGetValue(gltMat, out ShaderMaterial? mat))
+            if (result == null && _mats.TryGetValue(gltMat, out var mat))
                 return (PbrV2Material)mat;
 
             result ??= new PbrV2Material();
@@ -496,12 +496,12 @@ namespace XrEngine.Gltf
                     return new Span<T>((T*)(pBuffer + view.ByteOffset + acc.ByteOffset), acc.Count).ToArray();
                 else
                 {
-                    byte* curBuffer = pBuffer + view.ByteOffset + acc.ByteOffset;
-                    T[] array = new T[acc.Count];
+                    var curBuffer = pBuffer + view.ByteOffset + acc.ByteOffset;
+                    var array = new T[acc.Count];
 
                     fixed (T* pArray = array)
                     {
-                        for (int i = 0; i < acc.Count; i++)
+                        for (var i = 0; i < acc.Count; i++)
                         {
                             pArray[i] = *(T*)curBuffer;
                             curBuffer += view.ByteStride.Value;
@@ -518,53 +518,53 @@ namespace XrEngine.Gltf
 
             result.Flags |= EngineObjectFlags.Readonly;
 
-            KHR_draco_mesh_compression? draco = TryLoadExtension<KHR_draco_mesh_compression>(primitive.Extensions);
+            var draco = TryLoadExtension<KHR_draco_mesh_compression>(primitive.Extensions);
 
             if (primitive.Mode == MeshPrimitive.ModeEnum.TRIANGLES)
             {
-                int vertexCount = 0;
+                var vertexCount = 0;
                 if (draco != null)
                 {
-                    BufferView view = _model!.BufferViews[draco.Value.BufferView];
-                    byte[] buffer = LoadBuffer(view.Buffer);
-                    DracoDecoder.MeshData mesh = DracoDecoder.DecodeBuffer(buffer, view.ByteOffset, view.ByteLength);
+                    var view = _model!.BufferViews[draco.Value.BufferView];
+                    var buffer = LoadBuffer(view.Buffer);
+                    var mesh = DracoDecoder.DecodeBuffer(buffer, view.ByteOffset, view.ByteLength);
 
                     try
                     {
                         result.Indices = DracoDecoder.ReadIndices(mesh);
                         result.Vertices = new VertexData[mesh.VerticesSize];
 
-                        foreach (KeyValuePair<string, int> attr in draco.Value.Attributes)
+                        foreach (var attr in draco.Value.Attributes)
                         {
-                            Accessor acc = _model!.Accessors[attr.Value];
+                            var acc = _model!.Accessors[attr.Value];
 
                             switch (attr.Key)
                             {
                                 case "POSITION":
-                                    Vector3[] vValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
+                                    var vValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
                                     result.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
                                     result.ActiveComponents |= VertexComponent.Position;
                                     vertexCount = vValues.Length;
                                     break;
                                 case "NORMAL":
-                                    Vector3[] nValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
+                                    var nValues = DracoDecoder.ReadAttribute<Vector3>(mesh, attr.Value);
                                     result.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
                                     result.ActiveComponents |= VertexComponent.Normal;
                                     break;
                                 case "TANGENT":
                                     if (_options != null && _options.DisableTangents)
                                         break;
-                                    Vector4[] tValues = DracoDecoder.ReadAttribute<Vector4>(mesh, attr.Value);
+                                    var tValues = DracoDecoder.ReadAttribute<Vector4>(mesh, attr.Value);
                                     result.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
                                     result.ActiveComponents |= VertexComponent.Tangent;
                                     break;
                                 case "TEXCOORD_0":
-                                    Vector2[] uValues = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
+                                    var uValues = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
                                     result.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
                                     result.ActiveComponents |= VertexComponent.UV0;
                                     break;
                                 case "TEXCOORD_1":
-                                    Vector2[] uValues1 = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
+                                    var uValues1 = DracoDecoder.ReadAttribute<Vector2>(mesh, attr.Value);
                                     result.SetVertexData((ref VertexData a, Vector2 b) => a.UV1 = b, uValues1);
                                     result.ActiveComponents |= VertexComponent.UV1;
                                     break;
@@ -582,18 +582,18 @@ namespace XrEngine.Gltf
                 }
                 else
                 {
-                    foreach (KeyValuePair<string, int> attr in primitive.Attributes)
+                    foreach (var attr in primitive.Attributes)
                     {
-                        Accessor acc = _model!.Accessors[attr.Value];
+                        var acc = _model!.Accessors[attr.Value];
 
-                        BufferView view = _model.BufferViews[acc.BufferView!.Value];
+                        var view = _model.BufferViews[acc.BufferView!.Value];
 
-                        byte[] buffer = LoadBuffer(view.Buffer);
+                        var buffer = LoadBuffer(view.Buffer);
 
                         switch (attr.Key)
                         {
                             case "POSITION":
-                                Vector3[] vValues = ConvertBuffer<Vector3>(buffer, view, acc);
+                                var vValues = ConvertBuffer<Vector3>(buffer, view, acc);
                                 result.SetVertexData((ref VertexData a, Vector3 b) => a.Pos = b, vValues);
                                 result.ActiveComponents |= VertexComponent.Position;
                                 vertexCount = vValues.Length;
@@ -601,7 +601,7 @@ namespace XrEngine.Gltf
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "NORMAL":
-                                Vector3[] nValues = ConvertBuffer<Vector3>(buffer, view, acc);
+                                var nValues = ConvertBuffer<Vector3>(buffer, view, acc);
                                 result.SetVertexData((ref VertexData a, Vector3 b) => a.Normal = b, nValues);
                                 result.ActiveComponents |= VertexComponent.Normal;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC3);
@@ -610,21 +610,21 @@ namespace XrEngine.Gltf
                             case "TANGENT":
                                 if (_options.DisableTangents)
                                     break;
-                                Vector4[] tValues = ConvertBuffer<Vector4>(buffer, view, acc);
+                                var tValues = ConvertBuffer<Vector4>(buffer, view, acc);
                                 result.SetVertexData((ref VertexData a, Vector4 b) => a.Tangent = b, tValues);
                                 result.ActiveComponents |= VertexComponent.Tangent;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC4);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_0":
-                                Vector2[] uValues = ConvertBuffer<Vector2>(buffer, view, acc);
+                                var uValues = ConvertBuffer<Vector2>(buffer, view, acc);
                                 result.SetVertexData((ref VertexData a, Vector2 b) => a.UV = b, uValues);
                                 result.ActiveComponents |= VertexComponent.UV0;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
                                 Debug.Assert(acc.ComponentType == Accessor.ComponentTypeEnum.FLOAT);
                                 break;
                             case "TEXCOORD_1":
-                                Vector2[] uValues1 = ConvertBuffer<Vector2>(buffer, view, acc);
+                                var uValues1 = ConvertBuffer<Vector2>(buffer, view, acc);
                                 result.SetVertexData((ref VertexData a, Vector2 b) => a.UV1 = b, uValues1);
                                 result.ActiveComponents |= VertexComponent.UV1;
                                 Debug.Assert(acc.Type == Accessor.TypeEnum.VEC2);
@@ -639,13 +639,13 @@ namespace XrEngine.Gltf
 
                     if (primitive.Indices != null)
                     {
-                        Accessor acc = _model!.Accessors[primitive.Indices.Value];
+                        var acc = _model!.Accessors[primitive.Indices.Value];
 
                         Debug.Assert(acc.Type == glTFLoader.Schema.Accessor.TypeEnum.SCALAR);
 
-                        BufferView view = _model.BufferViews[acc.BufferView!.Value];
+                        var view = _model.BufferViews[acc.BufferView!.Value];
 
-                        byte[] buffer = LoadBuffer(view.Buffer);
+                        var buffer = LoadBuffer(view.Buffer);
 
                         if (acc.ComponentType == glTFLoader.Schema.Accessor.ComponentTypeEnum.UNSIGNED_SHORT)
                             result.Indices = ConvertBuffer<ushort>(buffer, view, acc)
@@ -678,27 +678,27 @@ namespace XrEngine.Gltf
 
         public Object3D ProcessMesh(int meshId, Object3D? result = null)
         {
-            glTFLoader.Schema.Mesh gltMesh = _model!.Meshes[meshId];
+            var gltMesh = _model!.Meshes[meshId];
 
             if (result == null && _meshes.TryGetValue(gltMesh, out result))
                 return new Object3DInstance() { Reference = result };
 
             CheckExtensions(gltMesh.Extensions);
 
-            Group3D? group = gltMesh.Primitives.Length > 1 ? new Group3D() : null;
+            var group = gltMesh.Primitives.Length > 1 ? new Group3D() : null;
 
-            int pIndex = 0;
+            var pIndex = 0;
 
-            foreach (MeshPrimitive? primitive in gltMesh.Primitives)
+            foreach (var primitive in gltMesh.Primitives)
             {
-                TriangleMesh curMesh = new TriangleMesh();
+                var curMesh = new TriangleMesh();
 
                 Debug.Assert(primitive.Targets == null);
                 CheckExtensions(primitive.Extensions);
 
                 Load(curMesh, () =>
                 {
-                    Geometry3D geo = ProcessPrimitive(primitive);
+                    var geo = ProcessPrimitive(primitive);
 
                     AssignAsset(geo, gltMesh.Name, "geo", meshId, pIndex);
 
@@ -709,7 +709,7 @@ namespace XrEngine.Gltf
 
                 if (primitive.Material != null)
                 {
-                    Type pbrType = _options.PbrType ?? MaterialFactory.DefaultPbr;
+                    var pbrType = _options.PbrType ?? MaterialFactory.DefaultPbr;
 
                     if (pbrType == typeof(PbrV2Material))
                         curMesh.Materials.Add(ProcessMaterialV2(primitive.Material.Value));
@@ -738,7 +738,7 @@ namespace XrEngine.Gltf
 
         protected Camera ProcessCamera(int cameraId)
         {
-            glTFLoader.Schema.Camera camera = _model!.Cameras[cameraId];
+            var camera = _model!.Cameras[cameraId];
 
             CheckExtensions(camera.Extensions);
             throw new NotSupportedException();
@@ -746,7 +746,7 @@ namespace XrEngine.Gltf
 
         protected Object3D ProcessNode(int nodeId, Group3D curGrp)
         {
-            Node node = _model!.Nodes[nodeId];
+            var node = _model!.Nodes[nodeId];
 
             CheckExtensions(node.Extensions);
 
@@ -761,7 +761,7 @@ namespace XrEngine.Gltf
 
             if (node.Mesh != null)
             {
-                Object3D nodeMesh = ProcessMesh(node.Mesh.Value);
+                var nodeMesh = ProcessMesh(node.Mesh.Value);
                 if (nodeGrp != null)
                     nodeGrp.AddChild(nodeMesh);
                 else
@@ -780,16 +780,16 @@ namespace XrEngine.Gltf
 
             if (nodeGrp != null)
             {
-                foreach (int childNode in node.Children!)
+                foreach (var childNode in node.Children!)
                     ProcessNode(childNode, nodeGrp);
             }
 
             nodeObj!.Name = node.Name;
 
-            bool transformSet = false;
+            var transformSet = false;
             if (node.Matrix != null)
             {
-                Matrix4x4 matrix = MathUtils.CreateMatrix(node.Matrix);
+                var matrix = MathUtils.CreateMatrix(node.Matrix);
                 if (!matrix.IsIdentity)
                 {
                     nodeObj.Transform.Matrix = matrix;
@@ -825,9 +825,9 @@ namespace XrEngine.Gltf
 
         protected Group3D ProcessScene(Scene glScene)
         {
-            Group3D scene = new Group3D();
+            var scene = new Group3D();
 
-            foreach (int nodeId in glScene.Nodes)
+            foreach (var nodeId in glScene.Nodes)
                 ProcessNode(nodeId, scene);
 
             return scene;
@@ -859,16 +859,16 @@ namespace XrEngine.Gltf
         public Object3D Load(string filePath, GltfLoaderOptions options)
         {
             LoadModel(filePath, options);
-            Object3D result = LoadScene();
+            var result = LoadScene();
             ExecuteLoadTasks();
             return result;
         }
 
         public Object3D LoadScene()
         {
-            Group3D root = new Group3D();
+            var root = new Group3D();
 
-            foreach (Scene? scene in _model!.Scenes)
+            foreach (var scene in _model!.Scenes)
                 root.AddChild(ProcessScene(scene));
 
             Object3D curRoot = root;
@@ -896,8 +896,8 @@ namespace XrEngine.Gltf
 
         protected void GenerateId(EngineObject obj, params object[] parts)
         {
-            string text = string.Join('|', parts) + "|" + _filePath;
-            byte[] hash = MD5.HashData(Encoding.UTF8.GetBytes(text));
+            var text = string.Join('|', parts) + "|" + _filePath;
+            var hash = MD5.HashData(Encoding.UTF8.GetBytes(text));
             //TODO: id must be unqiue per scene, multiple instances can have same id
             //obj.Id = new Guid(hash);
         }
@@ -929,7 +929,7 @@ namespace XrEngine.Gltf
 
         public static Object3D LoadFile(string filePath, GltfLoaderOptions options, Func<string, string> resourceResolver)
         {
-            GltfLoader loader = new GltfLoader(resourceResolver);
+            var loader = new GltfLoader(resourceResolver);
             return loader.Load(filePath, options);
         }
 

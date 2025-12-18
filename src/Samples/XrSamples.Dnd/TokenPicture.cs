@@ -44,16 +44,16 @@ namespace XrSamples.Dnd
 
                 _image ??= ((DndScene?)Scene)!.VttClient.DownloadImageAsync(_vttToken!.Imgsrc!).Result;
 
-                int height = (int)(PixelSize.Height * 0.1);
-                int barHeight = (int)(PixelSize.Height * 0.05);
+                var height = (int)(PixelSize.Height * 0.1);
+                var barHeight = (int)(PixelSize.Height * 0.05);
 
                 canvas.Save();
 
 
                 if (_vttToken!.TokenStyleSelect == "circle")
                 {
-                    using SKPath path = new SKPath();
-                    int radius = height / 2;
+                    using var path = new SKPath();
+                    var radius = height / 2;
                     path.AddOval(new SKRect(0, 0, PixelSize.Width, PixelSize.Height - height - barHeight));
                     canvas.ClipPath(path);
                 }
@@ -64,7 +64,7 @@ namespace XrSamples.Dnd
 
                 if (_font1 == null)
                 {
-                    using SKTypeface tf = SKTypeface.FromFamilyName("Arial", SKFontStyle.Normal);
+                    using var tf = SKTypeface.FromFamilyName("Arial", SKFontStyle.Normal);
                     _font1 = new SKFont(tf, height);
                     _font2 = new SKFont(tf, barHeight - 2);
                 }
@@ -75,22 +75,22 @@ namespace XrSamples.Dnd
                     _white.Color = SKColor.Parse("FFFFFF");
                 }
 
-                float size = _font1.MeasureText(_vttToken!.Name);
+                var size = _font1.MeasureText(_vttToken!.Name);
 
                 canvas.DrawText(_vttToken!.Name, (_pixelSize.Width - size) / 2, _pixelSize.Height - _font1.Metrics.Descent, _font1, _white);
 
-                int max = int.Parse(_vttToken.HitPointInfo?.Maximum?.ToString() ?? "0");
-                int cur = _vttToken.HitPointInfo?.Current ?? 0;
+                var max = int.Parse(_vttToken.HitPointInfo?.Maximum?.ToString() ?? "0");
+                var cur = _vttToken.HitPointInfo?.Current ?? 0;
 
-                using SKPaint color = new SKPaint()
+                using var color = new SKPaint()
                 {
                     Color = SKColor.Parse("1A6AFF")
                 };
 
-                float barWidth = _pixelSize.Width * (cur / (float)max);
+                var barWidth = _pixelSize.Width * (cur / (float)max);
 
                 canvas.DrawRect(0, _pixelSize.Height - height - barHeight, barWidth, barHeight, color);
-                string hp = $"{cur} / {max}";
+                var hp = $"{cur} / {max}";
                 size = _font2!.MeasureText(hp);
 
                 canvas.DrawText(hp, (barWidth - size) / 2, _pixelSize.Height - height - _font2.Metrics.Bottom, _font2, _white);

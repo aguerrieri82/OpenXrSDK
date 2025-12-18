@@ -27,7 +27,7 @@ namespace XrEditor.Services
 
         public IPropertyEditor? CreateEditor(Type type, IEnumerable<Attribute> attributes)
         {
-            IPropertyEditorFactory? factory = _factories.FirstOrDefault(a => a.CanHandle(type));
+            var factory = _factories.FirstOrDefault(a => a.CanHandle(type));
             return factory?.CreateEditor(type, attributes);
         }
 

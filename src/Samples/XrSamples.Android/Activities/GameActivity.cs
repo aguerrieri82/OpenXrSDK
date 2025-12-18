@@ -34,11 +34,11 @@ namespace XrSamples.Android.Activities
         {
             //_settings = GameSettings.Helmet();
 
-            string? settingsJson = Intent?.GetStringExtra("Settings");
+            var settingsJson = Intent?.GetStringExtra("Settings");
 
             if (settingsJson == null)
             {
-                Intent intent = new Intent(this, typeof(SelectActivity));
+                var intent = new Intent(this, typeof(SelectActivity));
                 StartActivity(intent);
                 Finish();
                 return;
@@ -71,7 +71,7 @@ namespace XrSamples.Android.Activities
 
         protected override void BuildApp(XrEngineAppBuilder builder)
         {
-            string external = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
+            var external = global::Android.OS.Environment.ExternalStorageDirectory!.AbsolutePath;
             XrEngine.Context.Implement<IAssetStore>(new LocalAssetStore(Path.Combine(external, "Assets")));
 
             builder.Options.Driver = _settings!.Driver;
@@ -105,8 +105,8 @@ namespace XrSamples.Android.Activities
 
             SampleScenes.DefaultHDR = _settings.Hdri;
 
-            SampleManager manager = XrEngine.Context.Require<SampleManager>();
-            AppSample sample = manager.GetSample(_settings.SampleName!);
+            var manager = XrEngine.Context.Require<SampleManager>();
+            var sample = manager.GetSample(_settings.SampleName!);
 
             sample.Build!(builder);
 

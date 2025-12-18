@@ -23,14 +23,14 @@ namespace XrSamples.Earth
 
         public Object3D CreateOrbit(Color color)
         {
-            LineMesh mesh = Orbit!.CreateGeometry(color, 0.0001f);
+            var mesh = Orbit!.CreateGeometry(color, 0.0001f);
             mesh.Name = "Orbit " + Name;
             return mesh;
         }
 
         protected TriangleMesh AddSphere()
         {
-            IPbrMaterial mat = MaterialFactory.CreatePbr(BaseColor);
+            var mat = MaterialFactory.CreatePbr(BaseColor);
             mat.ColorMap = Albedo;
 
             if (mat is IHeightMaterial heightMat)
@@ -44,7 +44,7 @@ namespace XrSamples.Earth
             Geometry3D sphere = HeightMap != null ?
                 new QuadSphere3D(SphereRadius, SubLevels) :
                 new Sphere3D(SphereRadius, 50);
-            TriangleMesh mesh = new TriangleMesh(sphere, (Material)mat);
+            var mesh = new TriangleMesh(sphere, (Material)mat);
             mesh.Name = "Planet";
 
             return AddChild(mesh);
@@ -52,7 +52,7 @@ namespace XrSamples.Earth
 
         protected void AddAtmosphere()
         {
-            TriangleMesh mesh = new TriangleMesh();
+            var mesh = new TriangleMesh();
 
             _atmoMat = new AtmosphereMaterial()
             {
@@ -75,9 +75,9 @@ namespace XrSamples.Earth
 
         public void AddTile(string heightPath, string? roughPath, string? colorPath)
         {
-            IAssetStore store = Context.Require<IAssetStore>();
+            var store = Context.Require<IAssetStore>();
 
-            GeoTile tile = new GeoTile();
+            var tile = new GeoTile();
 
             tile.SphereRadius = SphereRadius;
 
@@ -121,7 +121,7 @@ namespace XrSamples.Earth
             if (_sphere!.Materials[0] is IHeightMaterial hm && hm.HeightMap != null)
                 hm.HeightMap!.SphereWorldCenter = WorldPosition;
 
-            foreach (GeoTile tile in Children.OfType<GeoTile>())
+            foreach (var tile in Children.OfType<GeoTile>())
                 tile.SphereWorldCenter = WorldPosition;
 
             if (_atmoMat != null)

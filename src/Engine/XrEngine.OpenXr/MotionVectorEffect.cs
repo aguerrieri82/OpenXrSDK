@@ -24,14 +24,14 @@ namespace XrEngine.OpenXr
 
             public void UpdateShader(ShaderUpdateBuilder bld)
             {
-                UpdateShaderStage stage = bld.Context.Stage;
+                var stage = bld.Context.Stage;
 
                 if (stage == UpdateShaderStage.Model)
                     return;
 
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    Camera? camera = ctx.PassCamera;
+                    var camera = ctx.PassCamera;
 
                     Debug.Assert(camera?.Eyes != null);
 
@@ -70,16 +70,16 @@ namespace XrEngine.OpenXr
         {
             bld.ExecuteAction((ctx, up) =>
             {
-                Camera? camera = ctx.PassCamera;
+                var camera = ctx.PassCamera;
 
                 if (ctx.Model == null || camera == null)
                     return;
 
-                Matrix4x4 word = ctx.Model.WorldMatrix;
+                var word = ctx.Model.WorldMatrix;
                 if (!word.IsValid())
                     word = Matrix4x4.Identity;
 
-                if (_models.TryGetValue(ctx.Model, out Matrix4x4 prevModel))
+                if (_models.TryGetValue(ctx.Model, out var prevModel))
                     up.SetUniform("uMatrices.prev.model", prevModel);
 
                 up.SetUniform("uMatrices.current.model", word);

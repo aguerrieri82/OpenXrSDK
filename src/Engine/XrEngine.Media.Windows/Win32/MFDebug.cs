@@ -6,10 +6,10 @@ namespace XrEngine.Media.Windows
     {
         public static void DumpMediaType(IMFMediaType mt)
         {
-            mt.GetCount(out uint count);
+            mt.GetCount(out var count);
             for (uint i = 0; i < count; i++)
             {
-                PropVariant value = new PropVariant();
+                var value = new PropVariant();
                 //mt.GetItemByIndex(i, out var key, ref value);
                 //Debug.WriteLine(key);
             }
@@ -22,25 +22,25 @@ namespace XrEngine.Media.Windows
             }
 
             // Fetch values safely (no PROPVARIANT needed)
-            if (TryGetGUID(mt, MFAttributesGuid.MajorType, out Guid major))
+            if (TryGetGUID(mt, MFAttributesGuid.MajorType, out var major))
                 Debug.WriteLine($"MajorType: {MajorTypeToString(major)}");
 
-            if (TryGetGUID(mt, MFAttributesGuid.Subtype, out Guid subtype))
+            if (TryGetGUID(mt, MFAttributesGuid.Subtype, out var subtype))
                 Debug.WriteLine($"Subtype: {SubtypeToString(subtype)}");
 
-            if (TryGetUINT32(mt, MFAttributesGuid.AudioNumChannels, out uint ch))
+            if (TryGetUINT32(mt, MFAttributesGuid.AudioNumChannels, out var ch))
                 Debug.WriteLine($"Channels: {ch}");
 
-            if (TryGetUINT32(mt, MFAttributesGuid.AudioSamplesPerSecond, out uint rate))
+            if (TryGetUINT32(mt, MFAttributesGuid.AudioSamplesPerSecond, out var rate))
                 Debug.WriteLine($"SampleRate: {rate}");
 
-            if (TryGetUINT32(mt, MFAttributesGuid.AudioBitsPerSample, out uint bps))
+            if (TryGetUINT32(mt, MFAttributesGuid.AudioBitsPerSample, out var bps))
                 Debug.WriteLine($"BitsPerSample: {bps}");
 
-            if (TryGetUINT32(mt, MFAttributesGuid.AudioAvgBytesPerSecond, out uint avg))
+            if (TryGetUINT32(mt, MFAttributesGuid.AudioAvgBytesPerSecond, out var avg))
                 Debug.WriteLine($"AvgBytesPerSec: {avg}");
 
-            if (TryGetUINT32(mt, MFAttributesGuid.AudioBlockAlignment, out uint align))
+            if (TryGetUINT32(mt, MFAttributesGuid.AudioBlockAlignment, out var align))
                 Debug.WriteLine($"BlockAlign: {align}");
         }
 

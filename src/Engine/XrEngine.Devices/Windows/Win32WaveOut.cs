@@ -128,7 +128,7 @@ namespace XrEngine.Devices.Windows
         {
             // waveOutSetVolume(_hWaveOut, (0x1000u | (0x1000u << 16)));
 
-            AudioBuffer? aBuffer = _buffers.FirstOrDefault(a => a.Buffer?.Data == buffer);
+            var aBuffer = _buffers.FirstOrDefault(a => a.Buffer?.Data == buffer);
 
             if (aBuffer == null)
             {
@@ -161,7 +161,7 @@ namespace XrEngine.Devices.Windows
             if (res == 0)
                 return;
 
-            StringBuilder buffer = new StringBuilder(512);
+            var buffer = new StringBuilder(512);
             _ = waveOutGetErrorText(res, buffer, (uint)buffer.Capacity);
 
             //Log.Warn(this, buffer.ToString());
@@ -187,9 +187,9 @@ namespace XrEngine.Devices.Windows
                 lock (_buffers)
                     buffers = [.. _buffers];
 
-                ManualResetEvent[] events = buffers.Select(a => a.Event).ToArray();
+                var events = buffers.Select(a => a.Event).ToArray();
 
-                int index = WaitHandle.WaitAny(events, timeoutMs);
+                var index = WaitHandle.WaitAny(events, timeoutMs);
 
                 if (index == WaitHandle.WaitTimeout)
                     return null;
@@ -206,7 +206,7 @@ namespace XrEngine.Devices.Windows
 
             lock (_buffers)
             {
-                foreach (AudioBuffer buffer in _buffers)
+                foreach (var buffer in _buffers)
                 {
                     Debug.Assert((buffer.Header.ValueRef.dwFlags & WaveHeaderFlags.InQueue) == 0);
                     CheckError(waveOutUnprepareHeader(_hWaveOut, buffer.Header, (uint)Marshal.SizeOf<WaveHeader>()));
@@ -218,7 +218,7 @@ namespace XrEngine.Devices.Windows
 
         public void Open(AudioFormat format)
         {
-            WaveFormat wFormat = new WaveFormat
+            var wFormat = new WaveFormat
             {
                 cbSize = (ushort)Marshal.SizeOf<WaveFormat>(),
                 nChannels = (ushort)format.Channels,
@@ -241,8 +241,8 @@ namespace XrEngine.Devices.Windows
         {
             if (uMsg == WOM_DONE)
             {
-                WaveHeader* header = (WaveHeader*)dwParam1;
-                nint bufId = header->dwUser;
+                var header = (WaveHeader*)dwParam1;
+                var bufId = header->dwUser;
 
                 //Log.Debug(this, $"DONE {bufId} {header->dwFlags}");
 
@@ -283,7 +283,7 @@ namespace XrEngine.Devices.Windows
             {
                 if (_hWaveOut != 0)
                 {
-                    waveOutGetVolume(_hWaveOut, out uint compVol);
+                    waveOutGetVolume(_hWaveOut, out var compVol);
                     _volume = (compVol & 0xFFFF) / (float)ushort.MaxValue;
                 }
                 return _volume;
@@ -293,7 +293,7 @@ namespace XrEngine.Devices.Windows
                 _volume = value;
                 if (_hWaveOut != 0)
                 {
-                    int int16 = (int)(Math.Min(Math.Max(0, _volume), 1) * ushort.MaxValue);
+                    var int16 = (int)(Math.Min(Math.Max(0, _volume), 1) * ushort.MaxValue);
                     waveOutSetVolume(_hWaveOut, (uint)(int16 | int16 << 16));
                 }
             }

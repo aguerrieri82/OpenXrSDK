@@ -60,24 +60,24 @@ namespace XrEngine.OpenXr
         {
             Debug.Assert(_host != null);
 
-            RayPointerStatus? status = Pointer?.GetPointerStatus();
+            var status = Pointer?.GetPointerStatus();
 
             if (status == null || !status.Value.IsActive)
                 return;
 
-            Ray3 ray = status.Value.Ray;
+            var ray = status.Value.Ray;
 
             _rayView.SetWorldPoseIfChanged(ray.ToPose());
 
             Collision? result = null;
 
-            IEnumerable<ICollider3D>? colliders = Handler != null && Handler.IsActive ? Handler.GetColliders() : null;
+            var colliders = Handler != null && Handler.IsActive ? Handler.GetColliders() : null;
 
             _host.RayCollisions(ray, _collisions, colliders);
 
             if (_collisions.Count > 0)
             {
-                float minDistance = _collisions.Min(a => a.Distance);
+                var minDistance = _collisions.Min(a => a.Distance);
                 result = _collisions.Where(a => a.Distance == minDistance).FirstOrDefault();
             }
 
@@ -87,7 +87,7 @@ namespace XrEngine.OpenXr
 
                 _rayView.UpdateColor(new Color(0, 1, 0));
 
-                bool mustUpdate = true;
+                var mustUpdate = true;
 
                 if (Handler != null && Handler.IsActive)
                 {
@@ -122,11 +122,11 @@ namespace XrEngine.OpenXr
 
         protected void NotifyCollision(RenderContext ctx, Collision? collision)
         {
-            IRayTarget? rayTarget = collision?.Object?.Feature<IRayTarget>();
+            var rayTarget = collision?.Object?.Feature<IRayTarget>();
 
             rayTarget?.NotifyCollision(ctx, collision);
 
-            foreach (IRayTarget target in _sceneTargets)
+            foreach (var target in _sceneTargets)
                 target.NotifyCollision(ctx, collision);
         }
 

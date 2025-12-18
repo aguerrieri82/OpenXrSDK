@@ -24,7 +24,7 @@ namespace XrEngine.Media.Android
 
         public void Open(string path)
         {
-            byte[] pcmData = DecodeToPCMCache(path, out AudioFormat? format);
+            var pcmData = DecodeToPCMCache(path, out var format);
 
             _audioFormat = new global::Android.Media.AudioFormat.Builder()
                 .SetSampleRate(format.SampleRate)!
@@ -55,8 +55,8 @@ namespace XrEngine.Media.Android
 
             _durationSamples = pcmData.Length;
 
-            int bytesPerSample = _audioFormat.Encoding == global::Android.Media.Encoding.PcmFloat ? 4 : 2;
-            int frames = _durationSamples / (_audioFormat.ChannelCount * bytesPerSample);
+            var bytesPerSample = _audioFormat.Encoding == global::Android.Media.Encoding.PcmFloat ? 4 : 2;
+            var frames = _durationSamples / (_audioFormat.ChannelCount * bytesPerSample);
             _duration = FrameToTime(frames);
 
             _track.SetVolume(_volume);
@@ -64,13 +64,13 @@ namespace XrEngine.Media.Android
 
         protected void Focus()
         {
-            AudioManager am = (AudioManager)Application.Context.GetSystemService(global::Android.Content.Context.AudioService)!;
-            AudioFocusRequestClass req = new AudioFocusRequestClass.Builder(AudioFocus.Gain)
+            var am = (AudioManager)Application.Context.GetSystemService(global::Android.Content.Context.AudioService)!;
+            var req = new AudioFocusRequestClass.Builder(AudioFocus.Gain)
                 .SetAudioAttributes(_attributes!)
                 .SetOnAudioFocusChangeListener(this)
                 .Build()!;
 
-            bool ok = am.RequestAudioFocus(req) == AudioFocusRequest.Granted;
+            var ok = am.RequestAudioFocus(req) == AudioFocusRequest.Granted;
             Log.Info(this, $"Focus {ok}");
         }
 
@@ -137,25 +137,25 @@ namespace XrEngine.Media.Android
 
         static byte[] DecodeToPCMCache(string path, out AudioFormat format)
         {
-            string cachePath = Context.Require<IPlatform>().CachePath;
+            var cachePath = Context.Require<IPlatform>().CachePath;
 
-            string cacheFile = Path.Combine(cachePath, "Audio", Path.GetFileName(path) + ".pcm");
-            string formatFile = Path.Combine(cachePath, "Audio", Path.GetFileName(path) + ".frm");
+            var cacheFile = Path.Combine(cachePath, "Audio", Path.GetFileName(path) + ".pcm");
+            var formatFile = Path.Combine(cachePath, "Audio", Path.GetFileName(path) + ".frm");
 
-            DateTime curEditTime = File.GetLastWriteTime(path);
+            var curEditTime = File.GetLastWriteTime(path);
 
             if (File.Exists(cacheFile) && File.Exists(formatFile))
             {
-                DateTime cacheEditTime = File.GetLastWriteTime(cacheFile);
+                var cacheEditTime = File.GetLastWriteTime(cacheFile);
                 //if (cacheEditTime >= curEditTime)
                 {
-                    string formatStr = File.ReadAllText(formatFile);
+                    var formatStr = File.ReadAllText(formatFile);
                     format = JsonSerializer.Deserialize<AudioFormat>(formatStr)!;
                     return File.ReadAllBytes(cacheFile);
                 }
             }
 
-            byte[] result = new AndroidAudioDecoder().DecodeToPCM(path, out format);
+            var result = new AndroidAudioDecoder().DecodeToPCM(path, out format);
 
             Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
 

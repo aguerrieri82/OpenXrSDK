@@ -42,7 +42,7 @@ namespace XrEngine.OpenGL
 
         public unsafe void Update(TextureData data)
         {
-            GlUtils.GetPixelFormat(data.Format, out PixelFormat pixelFormat, out PixelType pixelType);
+            GlUtils.GetPixelFormat(data.Format, out var pixelFormat, out var pixelType);
 
             _buffer.BeginUpdate();
 
@@ -65,9 +65,9 @@ namespace XrEngine.OpenGL
                        _height);
             }
 
-            byte* pDst = _buffer.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+            var pDst = _buffer.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
 
-            using MemoryLock<byte> pSrc = data.Data!.MemoryLock();
+            using var pSrc = data.Data!.MemoryLock();
 
             EngineNativeLib.CopyMemory(pSrc, (nint)pDst, data.Data.Size);
 

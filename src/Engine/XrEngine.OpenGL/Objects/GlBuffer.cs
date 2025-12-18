@@ -13,7 +13,7 @@ namespace XrEngine.OpenGL
     {
         public static IBuffer Create(GL gl, BufferTargetARB target, Type contentType)
         {
-            Type type = typeof(GlBuffer<>).MakeGenericType(contentType);
+            var type = typeof(GlBuffer<>).MakeGenericType(contentType);
             return (IBuffer)Activator.CreateInstance(type, gl, target)!;
         }
     }
@@ -65,7 +65,7 @@ namespace XrEngine.OpenGL
             }
             else
             {
-                T* pDst = Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+                var pDst = Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
                 EngineNativeLib.CopyMemory((nint)data, (nint)pDst, sizeBytes);
                 Unmap();
             }
@@ -91,7 +91,7 @@ namespace XrEngine.OpenGL
         {
             BeginUpdate();
 
-            uint newSizeBytes = sizeBytes + (uint)offsetBytes;
+            var newSizeBytes = sizeBytes + (uint)offsetBytes;
 
             if (newSizeBytes >= _sizeBytes)
                 _gl.BufferData(_target, newSizeBytes, null, _usage);
@@ -105,7 +105,7 @@ namespace XrEngine.OpenGL
 
         unsafe byte* IBuffer.Lock(BufferAccessMode mode)
         {
-            MapBufferAccessMask mask = mode switch
+            var mask = mode switch
             {
                 BufferAccessMode.Read => MapBufferAccessMask.ReadBit,
                 BufferAccessMode.Write => MapBufferAccessMask.WriteBit,
@@ -135,7 +135,7 @@ namespace XrEngine.OpenGL
         {
             BeginUpdate();
 
-            void* ptr = _gl.MapBufferRange(_target, 0, _sizeBytes, access);
+            var ptr = _gl.MapBufferRange(_target, 0, _sizeBytes, access);
             if (ptr == null)
                 throw new InvalidOperationException("MapBufferRange return NULL");
 
@@ -154,7 +154,7 @@ namespace XrEngine.OpenGL
         {
             if (value is IDynamicBuffer dynamic)
             {
-                using DynamicBuffer dynBuffer = dynamic.GetBuffer();
+                using var dynBuffer = dynamic.GetBuffer();
                 Update((void*)dynBuffer.Data, dynBuffer.Size, false);
             }
             else
@@ -168,7 +168,7 @@ namespace XrEngine.OpenGL
             if (value.Length == 0)
                 return;
 
-            uint sizeBytes = (uint)(value.Length * sizeof(T));
+            var sizeBytes = (uint)(value.Length * sizeof(T));
 
             fixed (T* pData = &value[0])
                 UpdateRange(pData, sizeBytes, dstIndex * sizeof(T), true);

@@ -23,7 +23,7 @@ namespace XrEditor
 
         public override void NotifySceneChanged()
         {
-            DebugGizmos? debug = _sceneView?.Scene?.Components<DebugGizmos>().FirstOrDefault();
+            var debug = _sceneView?.Scene?.Components<DebugGizmos>().FirstOrDefault();
 
             if (debug != null)
                 debug.Debuggers.Add(this);
@@ -31,7 +31,7 @@ namespace XrEditor
 
         RayPointerStatus IRayPointer.GetPointerStatus()
         {
-            RayPointerStatus result = _lastRay;
+            var result = _lastRay;
             result.IsActive = XrApp.Current == null || !XrApp.Current.IsStarted;
             return result;
         }
@@ -75,7 +75,7 @@ namespace XrEditor
             {
                 if (_hitTest != null)
                 {
-                    HitTestResult result = _hitTest.HitTest((uint)ev.Position.X, (uint)ev.Position.Y);
+                    var result = _hitTest.HitTest((uint)ev.Position.X, (uint)ev.Position.Y);
                     if (result.Object == null)
                         _lastCollision = null;
                     else

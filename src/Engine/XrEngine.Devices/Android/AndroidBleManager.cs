@@ -58,7 +58,7 @@ namespace XrEngine.Devices.Android
 
         public async Task<IList<BleDeviceInfo>> FindDevicesAsync(BleDeviceFilter filter)
         {
-            List<BleDeviceInfo> result = new List<BleDeviceInfo>();
+            var result = new List<BleDeviceInfo>();
 
             void AddDevice(BluetoothDevice device)
             {
@@ -73,26 +73,26 @@ namespace XrEngine.Devices.Android
                 });
             }
 
-            foreach (BluetoothDevice device in _adapter.BondedDevices!)
+            foreach (var device in _adapter.BondedDevices!)
                 AddDevice(device);
 
 
             if (filter.MaxDevices > 0 && result.Count >= filter.MaxDevices)
                 return result;
 
-            BluetoothLeScanner scanner = _adapter.BluetoothLeScanner!;
+            var scanner = _adapter.BluetoothLeScanner!;
 
-            ScanSettings scanSettings = new ScanSettings.Builder()
+            var scanSettings = new ScanSettings.Builder()
                 .SetScanMode(global::Android.Bluetooth.LE.ScanMode.LowLatency)!
                 .Build()!;
 
 
-            BleScanCallback scanCallback = new BleScanCallback(filter);
+            var scanCallback = new BleScanCallback(filter);
             scanner.StartScan(null, scanSettings, scanCallback);
 
             try
             {
-                BluetoothDevice? device = await scanCallback.Task.WaitAsync(filter.Timeout);
+                var device = await scanCallback.Task.WaitAsync(filter.Timeout);
 
                 if (device != null)
                     AddDevice(device);
@@ -106,7 +106,7 @@ namespace XrEngine.Devices.Android
 
         public Task<IBleDevice> GetDeviceAsync(BleAddress address)
         {
-            BluetoothDevice? device = _adapter.GetRemoteDevice(BitConverter.GetBytes(address.Value).Take(6).Reverse().ToArray());
+            var device = _adapter.GetRemoteDevice(BitConverter.GetBytes(address.Value).Take(6).Reverse().ToArray());
 
             if (device == null)
                 throw new InvalidOperationException();

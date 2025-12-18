@@ -17,11 +17,11 @@ namespace XrEngine.Bullet
             if (Solver?.Root == null)
                 return;
 
-            int i = 0;
+            var i = 0;
 
-            foreach (IkNode effector in Solver.Effectors)
+            foreach (var effector in Solver.Effectors)
             {
-                if (_targets.TryGetValue(effector, out Object3D? obj))
+                if (_targets.TryGetValue(effector, out var obj))
                     Solver.SetTarget(effector, obj.WorldPosition);
                 i++;
             }
@@ -32,7 +32,7 @@ namespace XrEngine.Bullet
 
         public void SetTarget(string name, Object3D obj)
         {
-            IkNode? effector = Solver?.Effectors.First(a => a.Name == name);
+            var effector = Solver?.Effectors.First(a => a.Name == name);
             if (effector != null)
                 SetTarget(effector, obj);
         }

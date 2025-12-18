@@ -3266,12 +3266,12 @@ namespace CanvasUI
 
         protected SKFont GetFont()
         {
-            SKTypeface typeface = SKResources.TypefaceFromRes("GoogleSymblIcons.Outline");
+            var typeface = SKResources.TypefaceFromRes("GoogleSymblIcons.Outline");
 
-            SKFontStyle style = new SKFontStyle(SKFontStyleWeight.Medium, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
+            var style = new SKFontStyle(SKFontStyleWeight.Medium, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
 
 
-            SKFont font = SKResources.Font(typeface,
+            var font = SKResources.Font(typeface,
                                        ActualStyle.FontSize.ToPixel(this, UiValueReference.ParentFontSize));
 
             return font;
@@ -3279,10 +3279,10 @@ namespace CanvasUI
 
         protected override Size2 MeasureWork(Size2 availSize)
         {
-            SKFont font = GetFont();
-            string text = new string((char)(int)IconName, 1);
-            float width = font.MeasureText(text);
-            float lineSize = Style.LineSize.ToPixel(this, UiValueReference.FontSize);
+            var font = GetFont();
+            var text = new string((char)(int)IconName, 1);
+            var width = font.MeasureText(text);
+            var lineSize = Style.LineSize.ToPixel(this, UiValueReference.FontSize);
 
             return new Size2(width, lineSize);
         }
@@ -3294,12 +3294,12 @@ namespace CanvasUI
 
         protected override void DrawWork(SKCanvas canvas)
         {
-            Color? color = ActualStyle.Color.Value;
-            SKPaint paint = SKResources.FillColor(color!.Value);
+            var color = ActualStyle.Color.Value;
+            var paint = SKResources.FillColor(color!.Value);
 
-            SKFont font = GetFont();
+            var font = GetFont();
 
-            string text = new string((char)(int)IconName, 1);
+            var text = new string((char)(int)IconName, 1);
             canvas.DrawText(text, _contentRect.X, _contentRect.Y + _contentRect.Height, font, paint);
         }
 

@@ -100,9 +100,9 @@ namespace XrEngine.OpenGL
 
         protected bool UpdateDepthPyramid()
         {
-            IGlFrameBufferProvider provider = (IGlFrameBufferProvider)_renderer.RenderTarget!;
+            var provider = (IGlFrameBufferProvider)_renderer.RenderTarget!;
 
-            IGlRenderAttachment curDepth = provider.FrameBuffer.Depth!;
+            var curDepth = provider.FrameBuffer.Depth!;
             if (curDepth == null)
                 return false;
 
@@ -132,9 +132,9 @@ namespace XrEngine.OpenGL
 
             GlImageProc.Instance.CopyDepth(provider.FrameBuffer, _depthTexture);
 
-            uint w = _depthTexture.Width;
-            uint h = _depthTexture.Height;
-            int level = 1;
+            var w = _depthTexture.Width;
+            var h = _depthTexture.Height;
+            var level = 1;
 
             _depthPyramid.Use();
 
@@ -146,8 +146,8 @@ namespace XrEngine.OpenGL
                 w = Math.Max(1, w / 2);
                 h = Math.Max(1, h / 2);
 
-                uint groupsX = (w + 7) / 8;
-                uint groupsY = (h + 7) / 8;
+                var groupsX = (w + 7) / 8;
+                var groupsY = (h + 7) / 8;
 
                 _gl.DispatchCompute(groupsX, groupsY, 1);
                 _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
@@ -166,26 +166,26 @@ namespace XrEngine.OpenGL
 
         protected unsafe void UpdateVisibility()
         {
-            long contVersion = SelectLayers().OfType<GlLayerV2>().Sum(a => a.Version);
+            var contVersion = SelectLayers().OfType<GlLayerV2>().Sum(a => a.Version);
 
             if (contVersion != _lastContentVersion)
             {
-                IEnumerable<DrawContent> draws = SelectLayers().OfType<GlLayerV2>()
+                var draws = SelectLayers().OfType<GlLayerV2>()
                    .SelectMany(a => a.Content.Contents.Values)
                    .SelectMany(a => a.Contents.Values)
                    .SelectMany(a => a.Contents.Values)
                    .SelectMany(a => a.Contents);
 
-                int count = draws.Count();
+                var count = draws.Count();
                 if (count != _depthData.ArrayLength)
                     _depthData.Allocate((uint)(sizeof(DepthObjectData) * count));
 
-                DepthObjectData* pData = _depthData.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
+                var pData = _depthData.Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
 
-                int i = 0;
-                foreach (DrawContent? draw in draws)
+                var i = 0;
+                foreach (var draw in draws)
                 {
-                    Bounds3 bounds = draw.Object!.WorldBounds;
+                    var bounds = draw.Object!.WorldBounds;
                     pData[i].BoundsMin = bounds.Min;
                     pData[i].BoundsMax = bounds.Max;
                     pData[i].IsVisible = true;
@@ -211,8 +211,8 @@ namespace XrEngine.OpenGL
 
             _gl.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, 0, _depthData);
 
-            Camera camera = _renderer.UpdateContext.PassCamera!;
-            Plane[] planes = new Plane[6];
+            var camera = _renderer.UpdateContext.PassCamera!;
+            var planes = new Plane[6];
             camera.FrustumPlanes(planes);
 
             _renderer.State.LoadTexture(_depthTexture!, 0);
@@ -221,7 +221,7 @@ namespace XrEngine.OpenGL
             _depthCull.SetUniform("maxMip", (int)_depthTexture!.MaxLevel);
             _depthCull.SetUniform("planes", planes);
 
-            uint groupsX = (_depthData.ArrayLength + 63) / 64;
+            var groupsX = (_depthData.ArrayLength + 63) / 64;
 
             _gl.DispatchCompute(groupsX, 1, 1);
 

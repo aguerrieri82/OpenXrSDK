@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using XrMath;
 
 namespace XrEngine.OpenXr
 {
@@ -27,7 +26,7 @@ namespace XrEngine.OpenXr
 
         public void Update(IEnumerable<Vector3> points, bool isActive)
         {
-            int oldCount = _material.Points.Length;
+            var oldCount = _material.Points.Length;
 
             _material.Points = points.ToArray();
 
@@ -59,15 +58,15 @@ namespace XrEngine.OpenXr
 
         protected void Build()
         {
-            MeshBuilder builder = new MeshBuilder();
+            var builder = new MeshBuilder();
 
-            Vector2[] path = new Vector2[Segments];
-            for (int i = 0; i < Segments; i++)
+            var path = new Vector2[Segments];
+            for (var i = 0; i < Segments; i++)
                 path[i] = new Vector2(0, i);
 
-            Poly2D pathPoly = new Poly2D() { Points = path };
+            var pathPoly = new Poly2D() { Points = path };
 
-            Poly2 circle = new Circle2D()
+            var circle = new Circle2D()
             {
                 Radius = Radius
             }.ToPoly2(10, true);
@@ -78,9 +77,9 @@ namespace XrEngine.OpenXr
 
             Geometry.ActiveComponents |= VertexComponent.Tangent;
 
-            for (int i = 0; i < Geometry.Vertices.Length; i++)
+            for (var i = 0; i < Geometry.Vertices.Length; i++)
             {
-                Vector2 uv = Geometry.Vertices[i].UV;
+                var uv = Geometry.Vertices[i].UV;
                 Geometry.Vertices[i].Tangent = new Vector4(1, 1, 1, uv.Y);
             }
         }

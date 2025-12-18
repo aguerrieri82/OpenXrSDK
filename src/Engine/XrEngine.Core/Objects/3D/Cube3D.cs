@@ -20,9 +20,9 @@ namespace XrEngine
         public void Build()
         {
 
-            MeshBuilder builder = new MeshBuilder();
+            var builder = new MeshBuilder();
             builder.AddCube(Center, Size);
-            Vector3 halfSize = Size / 2;
+            var halfSize = Size / 2;
 
             Vertices = VertexData.FromPosNormalUV(
             [
@@ -55,7 +55,7 @@ namespace XrEngine
 
             if (Center != Vector3.Zero)
             {
-                for (int i = 0; i < Vertices.Length; i++)
+                for (var i = 0; i < Vertices.Length; i++)
                     _vertices[i].Pos += Center;
             }
 

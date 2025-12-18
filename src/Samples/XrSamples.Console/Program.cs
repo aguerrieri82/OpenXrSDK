@@ -6,7 +6,7 @@ using OpenXr.Framework;
 using XrSamples;
 
 
-IHost host = Host.CreateDefaultBuilder(args)
+var host = Host.CreateDefaultBuilder(args)
     .ConfigureLogging((ctx, logging) =>
     {
         logging.AddConfiguration(ctx.Configuration)
@@ -14,7 +14,7 @@ IHost host = Host.CreateDefaultBuilder(args)
     })
     .ConfigureServices((ctx, services) =>
     {
-        string envName = ctx.HostingEnvironment.EnvironmentName;
+        var envName = ctx.HostingEnvironment.EnvironmentName;
 
     })
     .Build();

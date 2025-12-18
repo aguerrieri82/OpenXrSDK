@@ -31,7 +31,7 @@ namespace OpenXr.Framework.Android
             extensions.Add(KhrAndroidSurfaceSwapchain.ExtensionName);
             extensions.Add("XR_FB_android_surface_swapchain_create");
 
-            StructureType driver = app.Plugin<IXrGraphicDriver>().SwapChainImageType.StructureType;
+            var driver = app.Plugin<IXrGraphicDriver>().SwapChainImageType.StructureType;
 
             if (driver == StructureType.SwapchainImageVulkanKhr)
             {
@@ -65,14 +65,14 @@ namespace OpenXr.Framework.Android
         {
             _xrApp!.Xr.TryGetInstanceExtension<KhrAndroidSurfaceSwapchain>(null, _xrApp!.Instance, out _androidSurface);
 
-            SwapchainCreateInfo info = new SwapchainCreateInfo()
+            var info = new SwapchainCreateInfo()
             {
                 Type = StructureType.SwapchainCreateInfo,
                 Width = (uint)_size.Width,
                 Height = (uint)_size.Height,
             };
 
-            AndroidSurfaceSwapchainCreateInfoFB fbInfo = new AndroidSurfaceSwapchainCreateInfoFB
+            var fbInfo = new AndroidSurfaceSwapchainCreateInfoFB
             {
                 Type = StructureType.AndroidSurfaceSwapchainCreateInfoFB,
                 CreateFlags = AndroidSurfaceSwapchainFlagsFB.None,

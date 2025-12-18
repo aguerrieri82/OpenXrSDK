@@ -17,7 +17,7 @@ namespace XrEngine
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public unsafe override IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
-            StringBuilder buffer = new StringBuilder(256);
+            var buffer = new StringBuilder(256);
 
             string ReadLine()
             {
@@ -28,14 +28,14 @@ namespace XrEngine
                 return buffer.ToString();
             }
 
-            string line = ReadLine();
+            var line = ReadLine();
             if (line != "#?RADIANCE")
                 throw new FormatException();
 
-            string format = "";
+            var format = "";
             float exposure;
-            int width = 0;
-            int height = 0;
+            var width = 0;
+            var height = 0;
 
             while ((line = ReadLine()) != "")
             {
@@ -47,13 +47,13 @@ namespace XrEngine
 
             line = ReadLine();
 
-            string[] parts = line.Split(' ');
+            var parts = line.Split(' ');
 
             //bool flipY = false;
 
-            for (int i = 0; i < parts.Length; i += 2)
+            for (var i = 0; i < parts.Length; i += 2)
             {
-                int value = int.Parse(parts[i + 1]);
+                var value = int.Parse(parts[i + 1]);
                 if (parts[i] == "-Y")
                 {
                     //flipY = true;
@@ -72,30 +72,30 @@ namespace XrEngine
             if (format != "32-bit_rle_rgbe")
                 throw new NotSupportedException();
 
-            byte[] block4 = new byte[4];
-            byte[] block2 = new byte[2];
-            byte[] blockWidth = new byte[width * 4];
-            byte[] blockImg = new byte[width * height * 4];
+            var block4 = new byte[4];
+            var block2 = new byte[2];
+            var blockWidth = new byte[width * 4];
+            var blockImg = new byte[width * height * 4];
 
-            Span<byte> rgbe = new Span<byte>(block4);
-            Span<byte> scanline = new Span<byte>(blockWidth);
-            Span<byte> img = new Span<byte>(blockImg);
-            Span<byte> buf2 = new Span<byte>(block2);
+            var rgbe = new Span<byte>(block4);
+            var scanline = new Span<byte>(blockWidth);
+            var img = new Span<byte>(blockImg);
+            var buf2 = new Span<byte>(block2);
 
-            int ipos = 0;
+            var ipos = 0;
 
             for (uint j = 0; j < height; j++)
             {
                 stream.ReadExactly(rgbe);
 
-                bool isNewRLE = (rgbe[0] == 2 && rgbe[1] == 2 && rgbe[2] == ((width >> 8) & 0xFF) && rgbe[3] == (width & 0xFF));
+                var isNewRLE = (rgbe[0] == 2 && rgbe[1] == 2 && rgbe[2] == ((width >> 8) & 0xFF) && rgbe[3] == (width & 0xFF));
 
                 if (isNewRLE && (width >= 8) && (width < 32768))
                 {
-                    for (int i = 0; i < 4; i++)
+                    for (var i = 0; i < 4; i++)
                     {
-                        int ptr = i * width;
-                        int ptr_end = (i + 1) * width;
+                        var ptr = i * width;
+                        var ptr_end = (i + 1) * width;
                         int count;
                         while (ptr < ptr_end)
                         {
@@ -115,7 +115,7 @@ namespace XrEngine
                             }
                         }
                     }
-                    for (int i = 0; i < width; i++)
+                    for (var i = 0; i < width; i++)
                     {
                         img[ipos++] = scanline[i + 0 * width];
                         img[ipos++] = scanline[i + 1 * width];
@@ -130,7 +130,7 @@ namespace XrEngine
                     img[ipos++] = rgbe[2];
                     img[ipos++] = rgbe[3];
 
-                    for (int i = 1; i < width; i++)
+                    for (var i = 1; i < width; i++)
                     {
                         stream.ReadExactly(rgbe);
 
@@ -145,8 +145,8 @@ namespace XrEngine
             }
 
 
-            float[] dst = new float[width * height * 3];
-            Span<float> dstSpan = new Span<float>(dst);
+            var dst = new float[width * height * 3];
+            var dstSpan = new Span<float>(dst);
 
             int i1 = 0, i2 = 0;
 

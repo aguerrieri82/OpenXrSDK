@@ -7,13 +7,13 @@ namespace XrEngine
 
         public Vector2 GetPointAtTime(float t)
         {
-            float angle = MathF.PI * 2 * t;
+            var angle = MathF.PI * 2 * t;
             return new Vector2(Center.X + MathF.Cos(angle) * Radius, Center.Y + MathF.Sin(angle) * Radius);
         }
 
         public Vector2 GetTangentAtTime(float t)
         {
-            float angle = MathF.PI * 2 * t;
+            var angle = MathF.PI * 2 * t;
             return Vector2.Normalize(new Vector2(-MathF.Sin(angle), MathF.Cos(angle)));
         }
 
@@ -26,12 +26,12 @@ namespace XrEngine
 
         public IEnumerable<CurvePoint> Sample(float tolerance, int maxPoints)
         {
-            double angle = Math.Acos(1 - tolerance / Radius);
-            int steps = (int)Math.Ceiling(Math.PI / angle);
+            var angle = Math.Acos(1 - tolerance / Radius);
+            var steps = (int)Math.Ceiling(Math.PI / angle);
 
-            for (int i = 0; i <= steps; i++)
+            for (var i = 0; i <= steps; i++)
             {
-                float t = (float)((1d / steps) * i);
+                var t = (float)((1d / steps) * i);
                 if (i == steps)
                     t = 1f;
                 yield return new CurvePoint

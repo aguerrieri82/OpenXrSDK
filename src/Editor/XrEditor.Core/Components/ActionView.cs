@@ -24,7 +24,7 @@ namespace XrEditor
         {
             ExecuteCommand = new Command(async () =>
             {
-                bool wasActive = _isActive;
+                var wasActive = _isActive;
                 IsActive = true;
                 try
                 {
@@ -50,17 +50,17 @@ namespace XrEditor
 
         public static void CreateActions(object obj, Type objType, object? host, IList<ActionView> actions)
         {
-            foreach (MethodInfo method in objType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+            foreach (var method in objType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
-                ActionAttribute? action = method.GetCustomAttribute<ActionAttribute>();
+                var action = method.GetCustomAttribute<ActionAttribute>();
                 if (action == null)
                     continue;
 
-                string name = method.Name;
+                var name = method.Name;
                 if (name.EndsWith("Async"))
                     name = name[..^5];
 
-                ActionView propView = new ActionView
+                var propView = new ActionView
                 {
                     DisplayName = name,
                     ExecuteCommand = new Command(() => method.Invoke(obj, null)),

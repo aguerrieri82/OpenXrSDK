@@ -44,7 +44,7 @@ namespace OpenXr.Framework.Oculus
 
             Debug.Assert(_xrApp != null);
 
-            SystemSpaceWarpPropertiesFB spaceWarpProperties = new SystemSpaceWarpPropertiesFB()
+            var spaceWarpProperties = new SystemSpaceWarpPropertiesFB()
             {
                 Type = StructureType.SystemSpaceWarpPropertiesFB
             };
@@ -60,7 +60,7 @@ namespace OpenXr.Framework.Oculus
             if (_motionImageSize.Width == 0 || _motionImageSize.Height == 0)
                 _motionImageSize = _xrApp.RenderOptions.Size;
 
-            for (int i = 0; i < _spaceWarpData.Length; i++)
+            for (var i = 0; i < _spaceWarpData.Length; i++)
             {
                 _spaceWarpData[i].ColorSwapchain = _xrApp.CreateSwapChain(
                     _motionImageSize,
@@ -85,7 +85,7 @@ namespace OpenXr.Framework.Oculus
         {
             base.Destroy();
 
-            foreach (SpaceWarpData data in _spaceWarpData)
+            foreach (var data in _spaceWarpData)
             {
                 _xrApp?.DestroySwapchain(data.DepthSwapchain);
                 _xrApp?.DestroySwapchain(data.ColorSwapchain);
@@ -96,7 +96,7 @@ namespace OpenXr.Framework.Oculus
         {
             if (_motionProvider.IsActive != _lastSpaceWarpActive)
             {
-                for (int i = 0; i < _spaceWarpInfo.Length; i++)
+                for (var i = 0; i < _spaceWarpInfo.Length; i++)
                 {
                     if (_motionProvider.IsActive)
                         StructChain.AddNextStruct(ref projViews[i], _spaceWarpInfo.ItemPointer(i));
@@ -111,12 +111,12 @@ namespace OpenXr.Framework.Oculus
 
             Debug.Assert(_xrApp != null);
 
-            for (int i = 0; i < _spaceWarpData.Length; i++)
+            for (var i = 0; i < _spaceWarpData.Length; i++)
             {
-                uint colorIndex = _xrApp.AcquireSwapchainImage(_spaceWarpData[i].ColorSwapchain);
+                var colorIndex = _xrApp.AcquireSwapchainImage(_spaceWarpData[i].ColorSwapchain);
                 _xrApp.WaitSwapchainImage(_spaceWarpData[i].ColorSwapchain);
 
-                uint depthIndex = _xrApp.AcquireSwapchainImage(_spaceWarpData[i].DepthSwapchain);
+                var depthIndex = _xrApp.AcquireSwapchainImage(_spaceWarpData[i].DepthSwapchain);
                 _xrApp.WaitSwapchainImage(_spaceWarpData[i].DepthSwapchain);
 
                 _spColorImages[i] = _spaceWarpData[i].ColorImages!.ItemPointer((int)colorIndex);
@@ -130,11 +130,11 @@ namespace OpenXr.Framework.Oculus
                 _motionProvider.UpdateMotionVectors(ref projViews, _spColorImages, _spDepthImages, _xrApp!.RenderOptions.RenderMode);
 
 
-                for (int i = 0; i < projViews.Length; i++)
+                for (var i = 0; i < projViews.Length; i++)
                 {
-                    CompositionLayerSpaceWarpInfoFB* info = _spaceWarpInfo.ItemPointer(i);
-                    Pose3 curPose = _xrApp.ReferenceFrame.Multiply(projViews[i].Pose.ToPose3());
-                    Pose3 lastPose = _lastPose[i];
+                    var info = _spaceWarpInfo.ItemPointer(i);
+                    var curPose = _xrApp.ReferenceFrame.Multiply(projViews[i].Pose.ToPose3());
+                    var lastPose = _lastPose[i];
                     info->AppSpaceDeltaPose = lastPose.Inverse().Multiply(curPose).ToPoseF();
                     _lastPose[i] = curPose;
                 }
@@ -150,7 +150,7 @@ namespace OpenXr.Framework.Oculus
             }
             finally
             {
-                for (int i = 0; i < _spaceWarpData.Length; i++)
+                for (var i = 0; i < _spaceWarpData.Length; i++)
                 {
                     _xrApp.ReleaseSwapchainImage(_spaceWarpData[i].ColorSwapchain);
                     _xrApp.ReleaseSwapchainImage(_spaceWarpData[i].DepthSwapchain);
@@ -162,10 +162,10 @@ namespace OpenXr.Framework.Oculus
 
         protected unsafe override void UpdateView(ref CompositionLayerProjectionView projView, int index)
         {
-            CompositionLayerSpaceWarpInfoFB* info = _spaceWarpInfo.ItemPointer(index);
+            var info = _spaceWarpInfo.ItemPointer(index);
 
-            int dataIndex = _warpTexArray ? 0 : index;
-            int arrayIndex = _warpTexArray ? index : 0;
+            var dataIndex = _warpTexArray ? 0 : index;
+            var arrayIndex = _warpTexArray ? index : 0;
 
             info->Type = StructureType.CompositionLayerSpaceWarpInfoFB;
             info->Next = null;
@@ -201,7 +201,7 @@ namespace OpenXr.Framework.Oculus
 
         public override void Dispose()
         {
-            foreach (SpaceWarpData data in _spaceWarpData)
+            foreach (var data in _spaceWarpData)
             {
                 data.DepthImages?.Dispose();
                 data.ColorImages?.Dispose();

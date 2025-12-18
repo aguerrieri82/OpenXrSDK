@@ -12,18 +12,18 @@ namespace XrEngine
             if (!_isInit)
                 Initialize();
 
-            Ray3 localRay = ray.Transform(_host!.WorldMatrixInverse);
+            var localRay = ray.Transform(_host!.WorldMatrixInverse);
 
-            Plane plane = Quad.ToPlane();
+            var plane = Quad.ToPlane();
 
-            if (localRay.Intersects(plane, out Vector3 localPoint))
+            if (localRay.Intersects(plane, out var localPoint))
             {
-                Vector2 uv = Quad.LocalPointAt(localPoint);
+                var uv = Quad.LocalPointAt(localPoint);
 
                 if (!PlaneMode && !uv.InRange(Vector2.Zero, Quad.Size))
                     return null;
 
-                Vector3 point = localPoint.Transform(_host.WorldMatrix);
+                var point = localPoint.Transform(_host.WorldMatrix);
 
                 return new Collision
                 {

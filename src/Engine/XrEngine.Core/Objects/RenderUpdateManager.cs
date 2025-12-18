@@ -24,14 +24,14 @@
 
         protected void Build()
         {
-            UpdateGroup objGroup = new UpdateGroup()
+            var objGroup = new UpdateGroup()
             {
                 Name = "Objects",
                 IsParallel = false,
                 Priority = 0
             };
 
-            UpdateGroup leafGroup = new UpdateGroup()
+            var leafGroup = new UpdateGroup()
             {
                 Name = "Leafs",
                 IsParallel = true,
@@ -45,10 +45,10 @@
             {
                 if (obj is EngineObject engObj)
                 {
-                    foreach (IRenderUpdate comp in engObj.Components<IComponent>().OfType<IRenderUpdate>())
+                    foreach (var comp in engObj.Components<IComponent>().OfType<IRenderUpdate>())
                     {
-                        int priority = comp.UpdatePriority + 100;
-                        UpdateGroup? compGroup = _groups.FirstOrDefault(a => a.Priority == priority);
+                        var priority = comp.UpdatePriority + 100;
+                        var compGroup = _groups.FirstOrDefault(a => a.Priority == priority);
                         if (compGroup == null)
                         {
                             compGroup = new UpdateGroup()
@@ -67,7 +67,7 @@
                     {
                         if (obj is not Scene3D)
                             objGroup.Items.Add(grp);
-                        foreach (Object3D child in grp.Children)
+                        foreach (var child in grp.Children)
                             Visit(child);
                     }
                     else if (obj is Object3D obj3d)
@@ -88,7 +88,7 @@
 
             try
             {
-                bool isParallel = false;
+                var isParallel = false;
 
                 if (_scene.ContentVersion != _lastVersion)
                 {
@@ -96,13 +96,13 @@
                     isParallel = false;
                 }
 
-                foreach (UpdateGroup grp in _groups)
+                foreach (var grp in _groups)
                 {
                     if (grp.IsParallel && isParallel)
                         Parallel.ForEach(grp.Items, item => item.Update(ctx));
                     else
                     {
-                        foreach (IRenderUpdate item in grp.Items)
+                        foreach (var item in grp.Items)
                             item.Update(ctx);
                     }
                 }

@@ -53,7 +53,7 @@ namespace XrEngine.OpenGL
 
         public int AddExtra(TextureFormat format, FramebufferAttachment? attachment, bool isMutable)
         {
-            ExtraTexture extra = new ExtraTexture()
+            var extra = new ExtraTexture()
             {
                 Format = format,
                 Attachment = attachment,
@@ -85,11 +85,11 @@ namespace XrEngine.OpenGL
             if (width == 0 || height == 0)
                 return;
 
-            bool updateTarget = BoundEye != -1;
+            var updateTarget = BoundEye != -1;
 
-            bool isColorChanged = _colorTexture != _lastColorTexture;
+            var isColorChanged = _colorTexture != _lastColorTexture;
 
-            uint depth = IsMultiView ? 2u : 1u;
+            var depth = IsMultiView ? 2u : 1u;
 
             if (_renderTarget == null)
             {
@@ -170,7 +170,7 @@ namespace XrEngine.OpenGL
             {
                 FrameBuffer!.Bind();
 
-                foreach (ExtraTexture extra in _extras)
+                foreach (var extra in _extras)
                 {
                     if (!extra.IsMutable)
                     {
@@ -228,7 +228,7 @@ namespace XrEngine.OpenGL
             if (DepthMode == TargetDepthMode.Create)
                 _depthBuffer?.Dispose();
 
-            foreach (ExtraTexture extra in _extras)
+            foreach (var extra in _extras)
                 extra.Texture?.Dispose();
 
             _renderTarget?.Dispose();

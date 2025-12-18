@@ -7,7 +7,7 @@ namespace XrEditor
 
         public ActionView AddToggle(string iconName, bool isActive, Action<bool>? onChanged = null)
         {
-            ActionView action = new ActionView();
+            var action = new ActionView();
             action.IsActive = isActive;
 
             action.ExecuteCommand = new Command(() =>
@@ -30,7 +30,7 @@ namespace XrEditor
 
         public ActionView AddButton(string iconName, Func<Task> action, string? displayName = null)
         {
-            ActionView result = new ActionView(action)
+            var result = new ActionView(action)
             {
                 Icon = new IconView()
                 {
@@ -57,7 +57,7 @@ namespace XrEditor
 
         public TextView AddText(string text)
         {
-            TextView result = new TextView();
+            var result = new TextView();
             result.Text = text;
             Items.Add(result);
             return result;
@@ -65,13 +65,13 @@ namespace XrEditor
 
         public SingleSelector AddEnumSelect<T>(T value, Action<T> setValue) where T : struct, Enum
         {
-            SelectorItem[] items = Enum.GetValues<T>().Select(x => new SelectorItem(x)).ToArray();
+            var items = Enum.GetValues<T>().Select(x => new SelectorItem(x)).ToArray();
             return AddSelect(items, value, setValue);
         }
 
         public SingleSelector AddSelect<T>(IList<SelectorItem> items, T value, Action<T> setValue)
         {
-            SingleSelector result = new SingleSelector
+            var result = new SingleSelector
             {
                 Items = items,
                 SelectedValue = value

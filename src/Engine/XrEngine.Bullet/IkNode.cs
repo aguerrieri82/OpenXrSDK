@@ -33,16 +33,16 @@ namespace XrEngine.Bullet
 
         public Matrix4x4 GetLocalTransform()
         {
-            Vector3 axis = Axis;
+            var axis = Axis;
 
             if (axis.LengthSquared() > 0f)
                 axis = Vector3.Normalize(axis);
             else
                 axis = Vector3.Zero;
 
-            float theta = Theta;
+            var theta = Theta;
 
-            Quaternion rot = axis == Vector3.Zero
+            var rot = axis == Vector3.Zero
                 ? Quaternion.Identity
                 : Quaternion.CreateFromAxisAngle(axis, theta);
 

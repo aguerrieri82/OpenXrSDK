@@ -34,9 +34,9 @@ namespace XrEditor
             if (_sceneView?.Camera == null || _sceneView?.RenderSurface == null)
                 return;
 
-            PerspectiveCamera camera = (PerspectiveCamera)_sceneView.Camera;
+            var camera = (PerspectiveCamera)_sceneView.Camera;
 
-            Vector3 relPos = (camera.WorldPosition - camera.Target);
+            var relPos = (camera.WorldPosition - camera.Target);
 
             _startMouse = ev.Position;
 
@@ -67,10 +67,10 @@ namespace XrEditor
             if (_sceneView?.Camera == null)
                 return;
 
-            PerspectiveCamera camera = (PerspectiveCamera)_sceneView.Camera;
-            Vector3 curDir = (camera.WorldPosition - camera.Target);
-            float curLen = curDir.Length();
-            float newLen = curLen + curLen * -ev.WheelDelta * ZoomSpeed;
+            var camera = (PerspectiveCamera)_sceneView.Camera;
+            var curDir = (camera.WorldPosition - camera.Target);
+            var curLen = curDir.Length();
+            var newLen = curLen + curLen * -ev.WheelDelta * ZoomSpeed;
 
             camera.WorldPosition = camera.Target + curDir.Normalize() * newLen;
         }
@@ -83,16 +83,16 @@ namespace XrEditor
             if (_sceneView.ActiveTool != this)
                 return;
 
-            PerspectiveCamera camera = (PerspectiveCamera)_sceneView.Camera;
+            var camera = (PerspectiveCamera)_sceneView.Camera;
 
             if (_action == OrbitAction.Rotate)
             {
-                Spherical newPos = _startPos;
+                var newPos = _startPos;
 
                 newPos.Azm = MathF.Max(0.0001f, MathF.Min(MathF.PI, newPos.Azm - (ev.Position.Y - _startMouse.Y) * RotationSpeed));
                 newPos.Pol += (ev.Position.X - _startMouse.X) * RotationSpeed;
 
-                Vector3 newPosVec = camera.Target + newPos.ToCartesian();
+                var newPosVec = camera.Target + newPos.ToCartesian();
 
                 camera.LookAt(newPosVec, camera.Target, new Vector3(0, 1, 0));
             }
@@ -102,9 +102,9 @@ namespace XrEditor
 
                 camera.WorldMatrix = _startWorld;
 
-                Vector3 newPoint = ToWorld(ev, _planeZ);
+                var newPoint = ToWorld(ev, _planeZ);
 
-                Vector3 deltaW = -(newPoint - _startPoint);
+                var deltaW = -(newPoint - _startPoint);
 
                 camera.LookAt(_startWorld.Translation + deltaW, _startTarget + deltaW, new Vector3(0, 1, 0));
 

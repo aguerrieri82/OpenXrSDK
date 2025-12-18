@@ -39,7 +39,7 @@ namespace XrEditor
 
         private async void OnSelectionChanged(IReadOnlyCollection<INode> items)
         {
-            EngineObject? obj = items.Select(a => a.Value).OfType<EngineObject>().FirstOrDefault();
+            var obj = items.Select(a => a.Value).OfType<EngineObject>().FirstOrDefault();
 
             ActiveNode = obj != null ? Context.Require<NodeManager>().CreateNode(obj) : null;
 
@@ -60,7 +60,7 @@ namespace XrEditor
             if (node is INodeChanged changed)
                 changed.NodeChanged += OnNodeChanged;
 
-            PropertiesGroupView result = new PropertiesGroupView(PropertiesGroupType.Main)
+            var result = new PropertiesGroupView(PropertiesGroupType.Main)
             {
                 Node = node
             };
@@ -84,15 +84,15 @@ namespace XrEditor
             if (editorProps.AutoGenerate)
                 PropertyView.CreateProperties(node.Value, node.Value.GetType(), _props, node as INotifyPropertyChanged);
 
-            IEnumerable<IGrouping<string?, PropertyView>> propsCats = _props.GroupBy(a => a.Category);
+            var propsCats = _props.GroupBy(a => a.Category);
 
-            foreach (IGrouping<string?, PropertyView> cat in propsCats)
+            foreach (var cat in propsCats)
             {
                 if (string.IsNullOrEmpty(cat.Key))
                     result.Properties = cat.ToArray();
                 else
                 {
-                    PropertiesGroupView catGrp = new PropertiesGroupView(PropertiesGroupType.Inner)
+                    var catGrp = new PropertiesGroupView(PropertiesGroupType.Inner)
                     {
                         Header = cat.Key,
                         Properties = cat.ToArray(),
@@ -104,10 +104,10 @@ namespace XrEditor
                 }
             }
 
-            foreach (PropertyView prop in _props)
+            foreach (var prop in _props)
                 prop.Editor!.ValueChanged += OnValueChanged;
 
-            List<ActionView> actions = new List<ActionView>();
+            var actions = new List<ActionView>();
             if (node is IEditorActions nodeActions)
                 nodeActions.EditorActions(actions);
 
@@ -126,11 +126,11 @@ namespace XrEditor
 
         protected IEnumerable<PropertyView> EnumProps(INode? target = null)
         {
-            IEnumerable<PropertyView> result = Enumerable.Empty<PropertyView>();
+            var result = Enumerable.Empty<PropertyView>();
 
             void Visit(IEnumerable<PropertiesGroupView> groups)
             {
-                foreach (PropertiesGroupView grp in groups)
+                foreach (var grp in groups)
                 {
                     if (target != null && grp.Node != target && grp.Node?.Parent != target)
                         continue;
@@ -153,16 +153,16 @@ namespace XrEditor
 
             if (_activeNode != null)
             {
-                PropertiesGroupView? mainGrp = CreateProps(_activeNode);
+                var mainGrp = CreateProps(_activeNode);
                 if (mainGrp != null && mainGrp.Properties.Count > 0)
                 {
                     mainGrp.Header = _activeNode.Types.First();
                     _groups.Add(mainGrp);
                 }
 
-                foreach (INode compo in _activeNode.Components)
+                foreach (var compo in _activeNode.Components)
                 {
-                    PropertiesGroupView? group = CreateProps(compo);
+                    var group = CreateProps(compo);
                     if (group != null)
                         _groups.Add(group);
                 }
@@ -173,7 +173,7 @@ namespace XrEditor
         {
             void Visit(IEnumerable<PropertiesGroupView> groups)
             {
-                foreach (PropertiesGroupView grp in groups)
+                foreach (var grp in groups)
                 {
                     if (grp.Node is INodeChanged changed)
                         changed.NodeChanged -= OnNodeChanged;
@@ -193,10 +193,10 @@ namespace XrEditor
                 ToolBar = new ToolbarView();
                 ToolBar.AddButton("icon_add", async () =>
                 {
-                    ItemPickerView picker = new ItemPickerView();
+                    var picker = new ItemPickerView();
                     picker.ItemsSource = new ComponentsSource(obj);
 
-                    object? selItem = await picker.ShowAsync("Add component");
+                    var selItem = await picker.ShowAsync("Add component");
 
                     if (selItem != null)
                         await AddComponentAsync((TypeInfo)selItem);
@@ -208,13 +208,13 @@ namespace XrEditor
 
         protected async Task AddComponentAsync(TypeInfo type)
         {
-            IComponent comp = (IComponent)type.CreateInstance()!;
+            var comp = (IComponent)type.CreateInstance()!;
 
-            EngineObject obj = (EngineObject)_activeNode!.Value;
+            var obj = (EngineObject)_activeNode!.Value;
 
             await EngineApp.Current!.Dispatcher.ExecuteAsync(() => obj.AddComponent(comp));
 
-            PropertiesGroupView? grp = CreateProps(comp.GetNode());
+            var grp = CreateProps(comp.GetNode());
 
             if (grp != null)
                 _groups.Add(grp);
@@ -225,15 +225,15 @@ namespace XrEditor
             if (_isUpdatingProps > 0)
                 return;
 
-            IEnumerable<PropertyView> props = EnumProps((INode)sender!);
+            var props = EnumProps((INode)sender!);
 
-            List<Action> updates = new List<Action>();
+            var updates = new List<Action>();
 
-            foreach (PropertyView prop in props)
+            foreach (var prop in props)
             {
                 if (prop.Editor?.Binding == null)
                     continue;
-                object? newValue = prop.Editor.Binding.Value;
+                var newValue = prop.Editor.Binding.Value;
                 if (!Equals(newValue, prop.Editor.Value))
                     updates.Add(() => prop.Editor.Value = newValue!);
             }
@@ -247,7 +247,7 @@ namespace XrEditor
 
             _renderDispatcher.ExecuteAsync(() =>
             {
-                foreach (Action update in updates)
+                foreach (var update in updates)
                     update();
                 _isUpdatingProps--;
             });

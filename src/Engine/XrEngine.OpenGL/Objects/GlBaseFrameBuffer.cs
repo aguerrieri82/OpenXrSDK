@@ -22,7 +22,7 @@ namespace XrEngine.OpenGL
             if (!_isDirty && !force)
                 return;
 
-            GLEnum status = _gl.CheckFramebufferStatus(Target);
+            var status = _gl.CheckFramebufferStatus(Target);
 
             if (status != GLEnum.FramebufferComplete)
             {

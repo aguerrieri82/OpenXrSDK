@@ -135,7 +135,7 @@ namespace XrEngine
 
                 ctx.CurrentBuffer = buffer;
 
-                T? curValue = value(ctx);
+                var curValue = value(ctx);
 
                 if (curValue != null)
                     buffer.Update(curValue.Value);
@@ -207,17 +207,17 @@ namespace XrEngine
 
         public readonly void SetUniformConstStruct(string name, object obj, bool optional = false)
         {
-            foreach (FieldInfo field in obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
+            foreach (var field in obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
             {
-                string fullName = $"{name}.{field.Name}";
+                var fullName = $"{name}.{field.Name}";
                 SetUniformConst(fullName, () => field.GetValue(obj)!, field.FieldType, optional);
             }
         }
 
         public readonly void SetUniformConstStructArray(string name, ICollection collection, bool optional = false)
         {
-            int i = 0;
-            foreach (object? item in collection)
+            var i = 0;
+            foreach (var item in collection)
             {
                 SetUniformConstStruct($"{name}[{i}]", item, optional);
                 i++;
@@ -254,10 +254,10 @@ namespace XrEngine
 
                 else if (typeof(ICollection).IsAssignableFrom(objType))
                 {
-                    Type gen = objType.GetInterfaces()
+                    var gen = objType.GetInterfaces()
                             .First(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(ICollection<>));
 
-                    Type elType = gen.GetGenericArguments()[0];
+                    var elType = gen.GetGenericArguments()[0];
 
                     if (elType.IsValueType && !elType.IsEnum && !elType.IsPrimitive)
                         SetUniformConstStructArray(name, (ICollection)getValue(), optional);

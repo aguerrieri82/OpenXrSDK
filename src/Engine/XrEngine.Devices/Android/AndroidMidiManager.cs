@@ -21,7 +21,7 @@ namespace XrEngine.Devices.Android
 
         public IList<MidiDeviceInfo> FindDevices()
         {
-            MidiDeviceInfo2[]? devices = _manager.GetDevices();
+            var devices = _manager.GetDevices();
 
             if (devices == null || devices.Length == 0)
                 return Array.Empty<MidiDeviceInfo>();
@@ -37,9 +37,9 @@ namespace XrEngine.Devices.Android
 
         public IMidiDevice? GetDevice(string id)
         {
-            if (int.TryParse(id, out int deviceId))
+            if (int.TryParse(id, out var deviceId))
             {
-                MidiDeviceInfo2? deviceInfo = _manager.GetDevices()?.FirstOrDefault(d => d.Id == deviceId);
+                var deviceInfo = _manager.GetDevices()?.FirstOrDefault(d => d.Id == deviceId);
                 if (deviceInfo != null)
                     return new AndroidMidiDevice(deviceInfo, _manager);
             }

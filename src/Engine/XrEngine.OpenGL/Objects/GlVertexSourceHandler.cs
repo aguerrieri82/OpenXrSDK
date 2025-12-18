@@ -35,10 +35,10 @@ namespace XrEngine.OpenGL
 
         public static GlVertexSourceHandle Create(GL gl, IVertexSource obj)
         {
-            Type srcInterface = obj.GetType().GetInterfaces()
+            var srcInterface = obj.GetType().GetInterfaces()
                 .First(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(IVertexSource<,>));
 
-            Type type = typeof(GlVertexSourceHandler<,>).MakeGenericType(srcInterface.GetGenericArguments());
+            var type = typeof(GlVertexSourceHandler<,>).MakeGenericType(srcInterface.GetGenericArguments());
 
             return (GlVertexSourceHandle)Activator.CreateInstance(type, [gl, obj])!;
         }
@@ -53,9 +53,9 @@ namespace XrEngine.OpenGL
 
         public GlVertexSourceHandler(GL gl, IVertexSource<TVert, TInd> source)
         {
-            string lKey = string.Concat(typeof(TVert).FullName, source.ActiveComponents);
+            var lKey = string.Concat(typeof(TVert).FullName, source.ActiveComponents);
 
-            if (!_layouts.TryGetValue(lKey, out GlVertexLayout? layout))
+            if (!_layouts.TryGetValue(lKey, out var layout))
             {
                 layout = GlVertexLayout.FromType<TVert>(source.ActiveComponents);
                 _layouts[lKey] = layout;

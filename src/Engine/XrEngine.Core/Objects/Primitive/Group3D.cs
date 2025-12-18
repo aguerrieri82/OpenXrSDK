@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using XrMath;
+﻿using XrMath;
 
 namespace XrEngine
 {
@@ -15,7 +14,7 @@ namespace XrEngine
 
         public override void Dispose()
         {
-            for (int i = _children.Count - 1; i >= 0; i--)
+            for (var i = _children.Count - 1; i >= 0; i--)
                 _children[i].Dispose();
 
             base.Dispose();
@@ -25,7 +24,7 @@ namespace XrEngine
         {
             if (change.IsAny(ObjectChangeType.Visibility))
             {
-                foreach (Object3D child in this.Descendants())
+                foreach (var child in this.Descendants())
                     child._visibleDirty = true;
             }
             base.OnChanged(change);
@@ -64,7 +63,7 @@ namespace XrEngine
 
             base.InvalidateWorld();
 
-            foreach (Object3D child in _children)
+            foreach (var child in _children)
                 child.InvalidateWorld();
         }
 
@@ -74,7 +73,7 @@ namespace XrEngine
 
             if (!onlySelf)
             {
-                foreach (Object3D child in _children)
+                foreach (var child in _children)
                     child.Reset();
             }
         }
@@ -101,7 +100,7 @@ namespace XrEngine
             if (preserveTransform && child.Parent != null && child.Parent.WorldMatrix == WorldMatrix)
                 preserveTransform = false;
 
-            Matrix4x4 curWorldMatrix = child.WorldMatrix;
+            var curWorldMatrix = child.WorldMatrix;
 
             child.Parent?.RemoveChild(child);
 
@@ -127,20 +126,20 @@ namespace XrEngine
             if (!_boundsDirty && !force)
                 return;
 
-            Bounds3Builder builder = new Bounds3Builder();
+            var builder = new Bounds3Builder();
 
             if (_children.Count > 0)
             {
-                foreach (Object3D child in _children)
+                foreach (var child in _children)
                 {
                     if (force)
                         child.UpdateBounds(true);
 
-                    ILocalBounds? childLocal = child.Feature<ILocalBounds>();
+                    var childLocal = child.Feature<ILocalBounds>();
 
                     if (childLocal != null)
                     {
-                        Bounds3 childLocalBounds = childLocal.LocalBounds.Transform(child.Transform.Matrix);
+                        var childLocalBounds = childLocal.LocalBounds.Transform(child.Transform.Matrix);
 
                         builder.Add(childLocalBounds);
                     }

@@ -3,7 +3,7 @@ using OpenXr.Framework;
 using OpenXr.Framework.Oculus;
 using OpenXr.Framework.Vulkan;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddSingleton<IXrThread, XrCurrentThread>();
@@ -12,7 +12,7 @@ builder.Services.AddSingleton(new XrApp(
     new OculusXrPlugin()));
 builder.Services.AddOpenXrWebLink();
 
-WebApplication app = builder.Build();
+var app = builder.Build();
 
 app.UseOpenXrWebLink();
 

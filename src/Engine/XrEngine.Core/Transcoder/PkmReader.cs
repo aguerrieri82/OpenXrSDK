@@ -27,12 +27,12 @@ namespace XrEngine
 
         public override unsafe IList<TextureData> LoadTexture(Stream stream, TextureLoadOptions? options = null)
         {
-            using Stream seekStream = stream.EnsureSeek();
+            using var seekStream = stream.EnsureSeek();
 
-            Etc2Header header = seekStream.ReadStruct<Etc2Header>();
+            var header = seekStream.ReadStruct<Etc2Header>();
 
-            TextureData result = new TextureData();
-            string magic = Encoding.ASCII.GetString(new Span<byte>(header.magic, 6));
+            var result = new TextureData();
+            var magic = Encoding.ASCII.GetString(new Span<byte>(header.magic, 6));
             if (magic != "PKM 20")
                 throw new InvalidOperationException();
 

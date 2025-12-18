@@ -21,7 +21,7 @@
 
             layer.Attach(this);
 
-            foreach (ILayer3DItem obj in layer.Content)
+            foreach (var obj in layer.Content)
                 NotifyObjectAdded(layer, obj);
 
             layer.NotifyChanged(_scene, ObjectChangeType.SceneAdd);
@@ -38,7 +38,7 @@
 
         public void Remove(ILayer3D layer)
         {
-            foreach (ILayer3DItem obj in layer.Content)
+            foreach (var obj in layer.Content)
                 NotifyObjectRemoved(layer, obj);
 
             _layers.Remove(layer);
@@ -50,7 +50,7 @@
 
         void IObjectChangeListener.NotifyChanged(Object3D sender, ObjectChange change)
         {
-            foreach (ILayer3D? layer in _layers.Where(a => a.IsEnabled))
+            foreach (var layer in _layers.Where(a => a.IsEnabled))
                 layer.NotifyChanged(sender, change);
         }
 

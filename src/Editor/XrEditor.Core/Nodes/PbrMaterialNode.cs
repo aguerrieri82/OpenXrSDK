@@ -15,7 +15,7 @@ namespace XrEditor.Nodes
         {
             get
             {
-                NodeManager factory = Context.Require<NodeManager>();
+                var factory = Context.Require<NodeManager>();
 
                 if (_value.ColorMap != null)
                     yield return factory.CreateNode(_value.ColorMap);

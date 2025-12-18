@@ -76,7 +76,7 @@ namespace XrEditor.Plot
         static uint HashString(string str)
         {
             uint hash = 5381;
-            foreach (char c in str)
+            foreach (var c in str)
                 hash = ((hash << 5) + hash) + c;
             return hash;
         }
@@ -98,11 +98,11 @@ namespace XrEditor.Plot
 
         public void LogValue(string name, float value)
         {
-            DiscretePlotterSerie? serie = (DiscretePlotterSerie?)Plotter.Series.FirstOrDefault(a => a.Name == name);
+            var serie = (DiscretePlotterSerie?)Plotter.Series.FirstOrDefault(a => a.Name == name);
 
             if (serie == null)
             {
-                long index = HashString(name) % PALETTE.Length;
+                var index = HashString(name) % PALETTE.Length;
 
                 serie = new DiscretePlotterSerie()
                 {
@@ -117,7 +117,7 @@ namespace XrEditor.Plot
 
             _lastValueTime = DateTime.UtcNow;
 
-            bool isNotify = (_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs;
+            var isNotify = (_lastValueTime - _lastNotifyTime).TotalMilliseconds > RetainTimeMs;
 
             serie.AppendValue(EngineApp.Current!.Stats.Frame, value, isNotify);
 

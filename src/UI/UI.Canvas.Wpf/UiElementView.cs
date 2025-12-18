@@ -4,7 +4,6 @@ using SkiaSharp.Views.WPF;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace UI.Canvas.Wpf
@@ -65,7 +64,7 @@ namespace UI.Canvas.Wpf
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            Size curSize = base.MeasureOverride(availableSize);
+            var curSize = base.MeasureOverride(availableSize);
 
             if (HorizontalAlignment == HorizontalAlignment.Stretch)
                 curSize.Width = availableSize.Width;
@@ -78,7 +77,7 @@ namespace UI.Canvas.Wpf
 
         public static void OnContentChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            UiElementView view = (UiElementView)d;
+            var view = (UiElementView)d;
             view.OnContentChanged(e.NewValue as UiElement, e.OldValue as UiElement);
         }
 
@@ -92,10 +91,10 @@ namespace UI.Canvas.Wpf
         {
             EnsureContent();
 
-            Window curWindow = Application.Current.MainWindow;
+            var curWindow = Application.Current.MainWindow;
 
-            Matrix m = PresentationSource.FromVisual(this).CompositionTarget.TransformToDevice;
-            float scaleY = (float)m.M22;
+            var m = PresentationSource.FromVisual(this).CompositionTarget.TransformToDevice;
+            var scaleY = (float)m.M22;
 
             _root.Style.FontFamily = curWindow.FontFamily.ToString();
             _root.Style.FontSize = new StyleValue<UnitValue>() { Value = (float)curWindow.FontSize * scaleY };
@@ -132,7 +131,7 @@ namespace UI.Canvas.Wpf
 
         protected override void OnMouseDown(MouseButtonEventArgs e)
         {
-            UiPointerButton button = e.ChangedButton switch
+            var button = e.ChangedButton switch
             {
                 MouseButton.Left => UiPointerButton.Left,
                 MouseButton.Right => UiPointerButton.Right,
@@ -148,7 +147,7 @@ namespace UI.Canvas.Wpf
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            UiPointerButton buttons = UiPointerButton.None;
+            var buttons = UiPointerButton.None;
 
             if (e.MiddleButton == MouseButtonState.Pressed)
                 buttons |= UiPointerButton.Middle;
@@ -166,7 +165,7 @@ namespace UI.Canvas.Wpf
 
         protected override void OnMouseUp(MouseButtonEventArgs e)
         {
-            UiPointerButton button = e.ChangedButton switch
+            var button = e.ChangedButton switch
             {
                 MouseButton.Left => UiPointerButton.Left,
                 MouseButton.Right => UiPointerButton.Right,
@@ -185,15 +184,15 @@ namespace UI.Canvas.Wpf
             if (Content == null)
                 return;
 
-            Vector2 scale = new Vector2(_root.ActualWidth / (float)ActualWidth, _root.ActualHeight / (float)ActualHeight);
+            var scale = new Vector2(_root.ActualWidth / (float)ActualWidth, _root.ActualHeight / (float)ActualHeight);
 
-            Point relPos = args.GetPosition(this);
+            var relPos = args.GetPosition(this);
 
-            Vector2 pos = new Vector2((float)relPos.X, (float)relPos.Y) * scale;
+            var pos = new Vector2((float)relPos.X, (float)relPos.Y) * scale;
 
-            UiElement? capture = UiManager.GetPointerCapture(0);
+            var capture = UiManager.GetPointerCapture(0);
 
-            UiModifier mod = UiModifier.None;
+            var mod = UiModifier.None;
 
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
                 mod |= UiModifier.Ctrl;
@@ -207,7 +206,7 @@ namespace UI.Canvas.Wpf
 
             if (capture != null)
             {
-                UiPointerEvent uiEv = UiManager.AcquireEvent<UiPointerEvent>();
+                var uiEv = UiManager.AcquireEvent<UiPointerEvent>();
 
                 uiEv.Buttons = buttons;
                 uiEv.Pointer = new Pointer(this, 0);
@@ -221,13 +220,13 @@ namespace UI.Canvas.Wpf
             }
             else
             {
-                UiElement? hitTest = Content.HitTest(pos);
+                var hitTest = Content.HitTest(pos);
 
                 UiManager.SetHoverElement(hitTest, pos, buttons);
 
                 if (hitTest != null)
                 {
-                    UiPointerEvent uiEv = UiManager.AcquireEvent<UiPointerEvent>();
+                    var uiEv = UiManager.AcquireEvent<UiPointerEvent>();
 
                     uiEv.Buttons = buttons;
                     uiEv.Pointer = new Pointer(this, 0);

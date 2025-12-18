@@ -13,13 +13,13 @@ namespace XrEngine
 
         public bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f)
         {
-            Vector3 localPoint = _host!.ToLocal(worldPoint);
-            Vector3 invPos = Pose.Inverse().Transform(localPoint);
+            var localPoint = _host!.ToLocal(worldPoint);
+            var invPos = Pose.Inverse().Transform(localPoint);
 
             if (invPos.Y < -Height / 2 - tolerance || invPos.Y > Height / 2 + tolerance)
                 return false;
 
-            float radius = new Vector2(invPos.X, invPos.Z).Length();
+            var radius = new Vector2(invPos.X, invPos.Z).Length();
 
             return radius + tolerance <= Radius;
         }
@@ -28,20 +28,20 @@ namespace XrEngine
 
         public float Distance(Vector3 worldPoint)
         {
-            Vector3 localPoint = _host!.ToLocal(worldPoint);
-            Vector3 invPos = Pose.Inverse().Transform(localPoint);
+            var localPoint = _host!.ToLocal(worldPoint);
+            var invPos = Pose.Inverse().Transform(localPoint);
 
-            float dist = 0f;
+            var dist = 0f;
 
             if (invPos.Y > Height / 2)
                 dist = invPos.Y - Height / 2;
             else if (invPos.Y < -Height / 2)
                 dist = -Height / 2 - invPos.Y;
 
-            float radius = new Vector2(invPos.X, invPos.Z).Length();
+            var radius = new Vector2(invPos.X, invPos.Z).Length();
             if (radius > Radius)
             {
-                float rDist = radius - Radius;
+                var rDist = radius - Radius;
                 if (dist > 0)
                     dist = MathF.Min(rDist, dist);
                 else

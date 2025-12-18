@@ -55,7 +55,7 @@ namespace XrEngine.OpenXr.Android
 
             if (options.Driver == GraphicDriver.FilamentVulkan || options.Driver == GraphicDriver.FilamentOpenGL)
             {
-                FilamentOptions filamentOptions = new FilamentOptions
+                var filamentOptions = new FilamentOptions
                 {
                     Driver = options.Driver == GraphicDriver.FilamentVulkan ? FilamentLib.FlBackend.Vulkan : FilamentLib.FlBackend.OpenGL,
                     MaterialCachePath = _context.GetExternalCacheDirs()![0].AbsolutePath,
@@ -72,7 +72,7 @@ namespace XrEngine.OpenXr.Android
                         ["VK_KHR_swapchain", "VK_KHR_external_memory", "VK_KHR_get_memory_requirements2"]
                     );
 
-                    FilamentLib.VulkanSharedContext ctx = new FilamentLib.VulkanSharedContext
+                    var ctx = new FilamentLib.VulkanSharedContext
                     {
                         GraphicsQueueFamilyIndex = _vkDevice.QueueFamilyIndex,
                         GraphicsQueueIndex = _vkDevice.QueueIndex,
@@ -90,7 +90,7 @@ namespace XrEngine.OpenXr.Android
                 }
                 else
                 {
-                    AndroidXrOpenGLESGraphicDriver glDriver = new AndroidXrOpenGLESGraphicDriver();
+                    var glDriver = new AndroidXrOpenGLESGraphicDriver();
 
                     filamentOptions.Context = (IntPtr)glDriver.Context.Context!.NativeHandle;
 
@@ -101,9 +101,9 @@ namespace XrEngine.OpenXr.Android
             }
             else
             {
-                AndroidXrOpenGLESGraphicDriver glDriver = new AndroidXrOpenGLESGraphicDriver();
+                var glDriver = new AndroidXrOpenGLESGraphicDriver();
 
-                GlRenderOptions glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
+                var glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
 
                 renderEngine = new OpenGLRender(glDriver.GetApi<GL>(), glOptions);
 

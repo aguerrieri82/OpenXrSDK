@@ -83,13 +83,13 @@ namespace XrEngine
 
         public void DrawMesh(Geometry3D geometry)
         {
-            foreach (Triangle3 triangle in geometry.Triangles())
+            foreach (var triangle in geometry.Triangles())
                 DrawTriangle(triangle);
         }
 
         public void DrawQuad(Quad3 quad, bool drawNormal = true)
         {
-            Vector3[] corners = quad.Corners().ToArray();
+            var corners = quad.Corners().ToArray();
 
             DrawLine(corners[0], corners[1]);
             DrawLine(corners[1], corners[2]);
@@ -98,7 +98,7 @@ namespace XrEngine
 
             if (drawNormal)
             {
-                Vector2 center = quad.Size / 2;
+                var center = quad.Size / 2;
                 DrawLine(quad.PointAt(center), quad.PointAt(center) + quad.Normal() * 0.5f);
                 DrawLine(quad.PointAt(center), quad.PointAt(center) + quad.Tangent() * 0.5f);
             }
@@ -112,20 +112,20 @@ namespace XrEngine
 
         public void DrawPlane(Plane p, Vector3 planeOrigin, float width = 10, float height = 10, float span = 1)
         {
-            Vector3 u = Vector3.Normalize(Vector3.Cross(p.Normal, new Vector3(1, 0, 0)));
-            Vector3 v = Vector3.Normalize(Vector3.Cross(p.Normal, u));
+            var u = Vector3.Normalize(Vector3.Cross(p.Normal, new Vector3(1, 0, 0)));
+            var v = Vector3.Normalize(Vector3.Cross(p.Normal, u));
 
-            for (float x = -width / 2; x <= width / 2; x += span)
+            for (var x = -width / 2; x <= width / 2; x += span)
             {
-                Vector3 p1 = planeOrigin + x * u + -height / 2 * v;
-                Vector3 p2 = planeOrigin + x * u + height / 2 * v;
+                var p1 = planeOrigin + x * u + -height / 2 * v;
+                var p2 = planeOrigin + x * u + height / 2 * v;
                 DrawLine(p1, p2);
             }
 
-            for (float y = -height / 2; y <= height / 2; y += span)
+            for (var y = -height / 2; y <= height / 2; y += span)
             {
-                Vector3 p1 = planeOrigin + -width / 2 * u + y * v;
-                Vector3 p2 = planeOrigin + width / 2 * u + y * v;
+                var p1 = planeOrigin + -width / 2 * u + y * v;
+                var p2 = planeOrigin + width / 2 * u + y * v;
                 DrawLine(p1, p2);
             }
         }
@@ -153,16 +153,16 @@ namespace XrEngine
 
         public void DrawCircle(Pose3 pose, float radius, int segments = 30)
         {
-            Vector3[] circlePoints = new Vector3[segments];
-            for (int i = 0; i < segments; i++)
+            var circlePoints = new Vector3[segments];
+            for (var i = 0; i < segments; i++)
             {
-                float angle = (float)(i * 2 * Math.PI / segments);
+                var angle = (float)(i * 2 * Math.PI / segments);
                 circlePoints[i] = new Vector3((float)Math.Cos(angle) * radius, (float)Math.Sin(angle) * radius, 0);
                 circlePoints[i] = Vector3.Transform(circlePoints[i], pose.Orientation) + pose.Position;
 
             }
 
-            for (int i = 0; i < segments; i++)
+            for (var i = 0; i < segments; i++)
                 DrawLine(circlePoints[i], circlePoints[(i + 1) % segments]);
         }
 

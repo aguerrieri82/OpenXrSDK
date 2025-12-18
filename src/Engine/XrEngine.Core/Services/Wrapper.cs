@@ -23,7 +23,7 @@
 
         public void Execute()
         {
-            foreach (Action action in _actions)
+            foreach (var action in _actions)
                 action();
         }
 

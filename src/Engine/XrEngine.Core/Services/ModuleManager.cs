@@ -14,16 +14,16 @@ namespace XrEngine
         {
             AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
 
-            Assembly? entry = Assembly.GetEntryAssembly();
+            var entry = Assembly.GetEntryAssembly();
 
             if (entry != null)
             {
-                foreach (AssemblyName assemblyRef in entry.GetReferencedAssemblies())
+                foreach (var assemblyRef in entry.GetReferencedAssemblies())
                     LoadAssembly(Assembly.Load(assemblyRef));
             }
 
 
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 LoadAssembly(assembly);
         }
 
@@ -34,7 +34,7 @@ namespace XrEngine
 
             IModule? module = null;
 
-            ModuleAttribute? moduleAttr = assembly.GetCustomAttribute<ModuleAttribute>();
+            var moduleAttr = assembly.GetCustomAttribute<ModuleAttribute>();
             if (moduleAttr != null)
             {
                 module = (IModule)Activator.CreateInstance(moduleAttr.ModuleType)!;
@@ -46,7 +46,7 @@ namespace XrEngine
 
         public void Shutdown()
         {
-            foreach (IModule? module in _loaded.Values.Where(a => a != null))
+            foreach (var module in _loaded.Values.Where(a => a != null))
                 module?.Shutdown();
         }
 

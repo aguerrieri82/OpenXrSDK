@@ -44,7 +44,7 @@ namespace OpenXr.Framework
 
         public XrActionsBuilder(XrApp app)
         {
-            foreach (XrPathAttribute path in typeof(TProfile).GetCustomAttributes<XrPathAttribute>())
+            foreach (var path in typeof(TProfile).GetCustomAttributes<XrPathAttribute>())
                 _profiles.Add(path.Value);
 
             if (_profiles.Count == 0)
@@ -56,7 +56,7 @@ namespace OpenXr.Framework
 
         public XrActionsBuilder<TProfile> AddAction(Expression<Func<TProfile, IXrAction?>> selector)
         {
-            ProcessExpression(selector, out string? path, out string? name);
+            ProcessExpression(selector, out var path, out var name);
             return this;
         }
 
@@ -69,9 +69,9 @@ namespace OpenXr.Framework
             {
                 if (exp is MemberExpression me)
                 {
-                    object curObj = Visit(ref curPath, ref curName, me.Expression!);
+                    var curObj = Visit(ref curPath, ref curName, me.Expression!);
 
-                    PropOrField member = GetMember(curObj, me.Member);
+                    var member = GetMember(curObj, me.Member);
 
                     curName += member.Name;
                     curPath += member.Path;
@@ -112,9 +112,9 @@ namespace OpenXr.Framework
 
             if (type.IsGenericType)
             {
-                Type arg = type.GetGenericArguments()[0];
-                Type resultType = typeof(XrInput<>).MakeGenericType(arg);
-                MethodInfo? factory = resultType.GetMethod("Create", BindingFlags.Static | BindingFlags.Public);
+                var arg = type.GetGenericArguments()[0];
+                var resultType = typeof(XrInput<>).MakeGenericType(arg);
+                var factory = resultType.GetMethod("Create", BindingFlags.Static | BindingFlags.Public);
                 result = (IXrInput)factory!.Invoke(null, [_app, path, name])!;
             }
             else
@@ -131,7 +131,7 @@ namespace OpenXr.Framework
             if (type.IsAbstract)
                 throw new NotSupportedException();
 
-            XrHaptic result = (XrHaptic)Activator.CreateInstance(type, _app, path, name)!;
+            var result = (XrHaptic)Activator.CreateInstance(type, _app, path, name)!;
 
             _haptics.Add(result);
 
@@ -140,7 +140,7 @@ namespace OpenXr.Framework
 
         protected PropOrField GetMember(object obj, MemberInfo member)
         {
-            PropOrField result = new PropOrField();
+            var result = new PropOrField();
             result.Name = member.Name;
 
             if (member is FieldInfo fi)
@@ -172,7 +172,7 @@ namespace OpenXr.Framework
 
         public XrActionsBuilder<TProfile> AddAll(Expression<Func<TProfile, object?>> selector)
         {
-            object rootObj = ProcessExpression(selector, out string? rootPath, out string? rootName);
+            var rootObj = ProcessExpression(selector, out var rootPath, out var rootName);
 
             void Visit(object curObj, string curPath, string curName)
             {
@@ -182,7 +182,7 @@ namespace OpenXr.Framework
                     {
                         if (member.Value == null)
                         {
-                            IXrInput value = CreateInput(member.Type!, curPath + member.Path, curName + member.Name);
+                            var value = CreateInput(member.Type!, curPath + member.Path, curName + member.Name);
                             member.SetValue!(value);
                         }
                     }
@@ -190,7 +190,7 @@ namespace OpenXr.Framework
                     {
                         if (member.Value == null)
                         {
-                            XrHaptic value = CreateHaptic(member.Type!, curPath + member.Path, curName + member.Name);
+                            var value = CreateHaptic(member.Type!, curPath + member.Path, curName + member.Name);
                             member.SetValue!(value);
                         }
                     }
@@ -206,10 +206,10 @@ namespace OpenXr.Framework
                     }
                 }
 
-                foreach (PropertyInfo prop in curObj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                foreach (var prop in curObj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
                     ProcessMember(GetMember(curObj, prop));
 
-                foreach (FieldInfo field in curObj.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
+                foreach (var field in curObj.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
                     ProcessMember(GetMember(curObj, field));
             }
 

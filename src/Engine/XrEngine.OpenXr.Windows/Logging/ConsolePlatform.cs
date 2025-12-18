@@ -23,14 +23,14 @@ namespace XrEngine.OpenXr.Windows
 
         static string GetMacAddress()
         {
-            NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+            var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
 
-            foreach (NetworkInterface netInterface in networkInterfaces)
+            foreach (var netInterface in networkInterfaces)
             {
                 if (netInterface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 &&
                     netInterface.OperationalStatus == OperationalStatus.Up)
                 {
-                    string macAddress = netInterface.GetPhysicalAddress().ToString();
+                    var macAddress = netInterface.GetPhysicalAddress().ToString();
                     return macAddress;
                 }
             }
@@ -56,7 +56,7 @@ namespace XrEngine.OpenXr.Windows
 
         public void CreateDrivers(XrEngineAppOptions options, out IRenderEngine renderEngine, out IXrGraphicDriver xrDriver)
         {
-            GlRenderOptions glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
+            var glOptions = options.DriverOptions as GlRenderOptions ?? new GlRenderOptions();
 
             renderEngine = new OpenGLRender(_viewManager.View.CreateOpenGL(), glOptions);
             xrDriver = new XrOpenGLGraphicDriver(_viewManager.View);

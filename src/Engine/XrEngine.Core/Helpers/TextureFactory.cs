@@ -12,7 +12,7 @@ namespace XrEngine.Helpers
 
         public unsafe static Texture2D CreateChecker(uint sizeX, uint sizeY, Color color1, Color color2)
         {
-            TextureData textureData = new TextureData
+            var textureData = new TextureData
             {
                 Width = sizeX * 2,
                 Height = sizeY * 2,
@@ -21,20 +21,20 @@ namespace XrEngine.Helpers
 
             textureData.Data = MemoryBuffer.Create<byte>(textureData.Width * textureData.Height * 4);
 
-            using MemoryLock<byte> dataLock = textureData.Data.MemoryLock();
+            using var dataLock = textureData.Data.MemoryLock();
 
-            uint lineSize = textureData.Width * 4;
+            var lineSize = textureData.Width * 4;
 
-            for (int y = 0; y < textureData.Height; y++)
+            for (var y = 0; y < textureData.Height; y++)
             {
-                for (int x = 0; x < textureData.Width; x++)
+                for (var x = 0; x < textureData.Width; x++)
                 {
-                    Color color = (x < sizeX && y < sizeY) || (x >= sizeX && y >= sizeY) ? color1 : color2;
+                    var color = (x < sizeX && y < sizeY) || (x >= sizeX && y >= sizeY) ? color1 : color2;
                     color.ToBytes(&dataLock.Data[y * lineSize + (x * 4)]);
                 }
             }
 
-            Texture2D texture = new Texture2D();
+            var texture = new Texture2D();
             texture.LoadData(textureData);
             texture.WrapS = WrapMode.Repeat;
             texture.WrapT = WrapMode.Repeat;

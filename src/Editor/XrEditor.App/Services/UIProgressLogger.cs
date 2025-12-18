@@ -36,9 +36,9 @@ namespace XrEditor
 
             //_textBox.Document.Blocks.Remove(_textBox.Document.Blocks.FirstBlock);
 
-            while (_messages.TryDequeue(out LogMessage msg))
+            while (_messages.TryDequeue(out var msg))
             {
-                Paragraph paragraph = new Paragraph
+                var paragraph = new Paragraph
                 {
                     Margin = new Thickness(0)
                 };

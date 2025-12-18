@@ -10,11 +10,11 @@ namespace XrSamples.Dnd
         [Sample("DnD")]
         public static XrEngineAppBuilder CreateDnd(this XrEngineAppBuilder builder)
         {
-            EngineApp app = new EngineApp();
+            var app = new EngineApp();
 
-            DndScene scene = new DndScene();
+            var scene = new DndScene();
 
-            Group3D map = scene.LoadMap("Dnd/tavern");
+            var map = scene.LoadMap("Dnd/tavern");
 
             scene.LoadAsync("65718833435872349").Wait();
 

@@ -55,8 +55,8 @@ namespace XrEngine
 
                 bld.ExecuteAction((ctx, up) =>
                 {
-                    ImageLight? image = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
-                    IBLTextures? textures = image?.Textures;
+                    var image = ctx.Lights?.OfType<ImageLight>().FirstOrDefault();
+                    var textures = image?.Textures;
 
                     if (image != null && textures != null && ctx.PassCamera != null)
                     {

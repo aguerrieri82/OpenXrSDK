@@ -12,8 +12,8 @@ namespace XrEngine.UI
 
         public static void SetInches(this CanvasView3D canvas, float diagonal, float ratio)
         {
-            float height = diagonal / MathF.Sqrt(ratio * ratio + 1);
-            float width = ratio * height;
+            var height = diagonal / MathF.Sqrt(ratio * ratio + 1);
+            var width = ratio * height;
 
             canvas.Size = new Size2(width * UnitConv.InchesToMeter, height * UnitConv.InchesToMeter);
         }

@@ -19,7 +19,7 @@ namespace OpenXr.Framework
 
         protected internal void Initialize(HandEXT hand)
         {
-            HandTrackerCreateInfoEXT info = new HandTrackerCreateInfoEXT
+            var info = new HandTrackerCreateInfoEXT
             {
                 Type = StructureType.HandTrackerCreateInfoExt,
                 Hand = hand,
@@ -37,16 +37,16 @@ namespace OpenXr.Framework
 
         protected unsafe HandJointLocationEXT[] LocateHandJoints(Space space, long time, void* next)
         {
-            HandJointsLocateInfoEXT info = new HandJointsLocateInfoEXT()
+            var info = new HandJointsLocateInfoEXT()
             {
                 Type = StructureType.HandJointsLocateInfoExt,
                 BaseSpace = space,
                 Time = time
             };
 
-            HandJointLocationEXT[] data = new HandJointLocationEXT[XR_HAND_JOINT_COUNT_EXT];
+            var data = new HandJointLocationEXT[XR_HAND_JOINT_COUNT_EXT];
 
-            HandJointLocationsEXT result = new HandJointLocationsEXT()
+            var result = new HandJointLocationsEXT()
             {
                 Type = StructureType.HandJointLocationsExt,
                 JointCount = XR_HAND_JOINT_COUNT_EXT,

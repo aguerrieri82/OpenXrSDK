@@ -25,12 +25,12 @@ namespace OpenXr.Framework
 
             layerCount = 0;
 
-            foreach (IXrLayer layer in _layers)
+            foreach (var layer in _layers)
             {
                 if (!layer.IsEnabled)
                     continue;
 
-                bool result = layer.Update(ref views, predTime);
+                var result = layer.Update(ref views, predTime);
                 if (result)
                 {
                     _layersPointers[layerCount] = layer.Header;
@@ -58,7 +58,7 @@ namespace OpenXr.Framework
 
         public void Dispose()
         {
-            foreach (IXrLayer layer in _layers)
+            foreach (var layer in _layers)
                 layer.Dispose();
 
             _layers.Clear();

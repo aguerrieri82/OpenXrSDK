@@ -47,17 +47,17 @@ namespace XrEngine.OpenXr
 
             if (depthCamera.ActiveEye == 0)
             {
-                EnvironmentDepthImageMETA data = _passTh.DepthImage.Value;
+                var data = _passTh.DepthImage.Value;
 
                 depthCamera.Far = float.IsInfinity(data.FarZ) ? 0 : data.FarZ;
                 depthCamera.Near = data.NearZ;
 
-                for (int i = 0; i < 2; i++)
+                for (var i = 0; i < 2; i++)
                 {
-                    EnvironmentDepthImageViewMETA view = data.Views[i];
-                    XrCameraTransform transform = XrCameraTransform.FromView(view.Pose.ToPose3(), view.Fov, depthCamera.Near, depthCamera.Far);
+                    var view = data.Views[i];
+                    var transform = XrCameraTransform.FromView(view.Pose.ToPose3(), view.Fov, depthCamera.Near, depthCamera.Far);
 
-                    Matrix4x4 cameraView = new Matrix4x4();
+                    var cameraView = new Matrix4x4();
 
                     Matrix4x4.Invert(transform.Transform, out cameraView);
 
@@ -70,15 +70,15 @@ namespace XrEngine.OpenXr
                     };
                 }
 
-                SwapchainImageBaseHeader* img = _passTh.EnvironmentDepth.Images!.ItemPointer((int)data.SwapchainIndex);
-                StructureType type = img->Type;
+                var img = _passTh.EnvironmentDepth.Images!.ItemPointer((int)data.SwapchainIndex);
+                var type = img->Type;
 
                 if (type == StructureType.SwapchainImageOpenglKhr ||
                     type == StructureType.SwapchainImageOpenglESKhr)
                 {
-                    SwapchainImageOpenGLKHR glImg = *(SwapchainImageOpenGLKHR*)img;
+                    var glImg = *(SwapchainImageOpenGLKHR*)img;
 
-                    if (!_textures.TryGetValue(glImg.Image, out Texture2D? texture))
+                    if (!_textures.TryGetValue(glImg.Image, out var texture))
                     {
                         texture = new Texture2D
                         {

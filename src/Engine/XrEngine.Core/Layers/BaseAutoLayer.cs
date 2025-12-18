@@ -10,7 +10,7 @@ namespace XrEngine
             while (_content.Count > 0)
                 Remove(_content.First());
 
-            foreach (T obj in _manager!.Scene!.Descendants().OfType<T>())
+            foreach (var obj in _manager!.Scene!.Descendants().OfType<T>())
             {
                 if (BelongsToLayer(obj))
                     Add(obj);

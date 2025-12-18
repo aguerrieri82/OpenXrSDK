@@ -9,7 +9,7 @@ namespace XrEngine.Tiff
     {
         public void Load()
         {
-            AssetLoader assetLoader = AssetLoader.Instance;
+            var assetLoader = AssetLoader.Instance;
 
             assetLoader.Register(TiffReader.Instance);
         }

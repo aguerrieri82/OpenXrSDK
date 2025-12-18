@@ -48,7 +48,7 @@ namespace XrEngine.OpenGL
             if (draw.ProgramInstance!.Material.Shader!.IsEffect)
                 return false;
 
-            PlanarReflectionTarget? target = draw.Object?.Components<PlanarReflectionTarget>().FirstOrDefault();
+            var target = draw.Object?.Components<PlanarReflectionTarget>().FirstOrDefault();
             if (target?.IncludeReflection != null && !target.IncludeReflection(_reflection))
                 return false;
 
@@ -67,9 +67,9 @@ namespace XrEngine.OpenGL
                 progInst.Invalidate();
             }
 
-            bool upRes = base.UpdateProgram(updateContext, progInst);
+            var upRes = base.UpdateProgram(updateContext, progInst);
 
-            Vector4 newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
+            var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
 
             progInst.Program!.Use();
             progInst.Program!.SetUniform("uClipPlane", newPlane);
@@ -94,7 +94,7 @@ namespace XrEngine.OpenGL
 
             _reflection.Update(camera, _passTarget.BoundEye);
 
-            Vector2 clipSize = _reflection.ClipBounds.Size.ToVector2() *
+            var clipSize = _reflection.ClipBounds.Size.ToVector2() *
                            _reflection.ReflectionCamera.ViewSize.ToVector2() / 2;
 
             if (Math.Max(clipSize.X, clipSize.Y) < 20)
@@ -133,11 +133,11 @@ namespace XrEngine.OpenGL
                 {
                     _oldImageLightTransform = _imageLight.LightTransform;
 
-                    Vector3 normal = _reflection.Plane.Normal;
+                    var normal = _reflection.Plane.Normal;
 
                     float nx = normal.X, ny = normal.Y, nz = normal.Z;
 
-                    Matrix3x3 refMatrix = new Matrix3x3(
+                    var refMatrix = new Matrix3x3(
                         1 - 2 * nx * nx, -2 * nx * ny, -2 * nx * nz,
                         -2 * ny * nx, 1 - 2 * ny * ny, -2 * ny * nz,
                         -2 * nz * nx, -2 * nz * ny, 1 - 2 * nz * nz

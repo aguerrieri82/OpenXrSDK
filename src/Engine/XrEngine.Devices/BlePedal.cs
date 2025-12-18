@@ -71,7 +71,7 @@ namespace XrEngine.Devices
             value.Size = (uint)Marshal.SizeOf<BlePedalSettings>();
             value.Key = 1397052500;
 
-            byte[] buf = StructToBytes(value);
+            var buf = StructToBytes(value);
 
             await _device.WriteCharacteristicAsync(_settingsChar, buf);
         }
@@ -91,11 +91,11 @@ namespace XrEngine.Devices
 
             await _device.ConnectAsync();
 
-            IEnumerable<BleServiceInfo> services = await _device.GetServicesAsync(timeoutMs);
+            var services = await _device.GetServicesAsync(timeoutMs);
 
             _mainService = services.Single(a => a.Id == MAIN_SERVICE);
 
-            IEnumerable<BleCharacteristicInfo> chars = await _device.GetCharacteristicsAsync(_mainService, timeoutMs);
+            var chars = await _device.GetCharacteristicsAsync(_mainService, timeoutMs);
 
             _valueChar = chars.Single(a => a.Id == VALUE_UUID);
             _settingsChar = chars.Single(a => a.Id == SETTINGS_UUID);
@@ -109,19 +109,19 @@ namespace XrEngine.Devices
         public async Task<float> GetBatteryAsync()
         {
 
-            float raw = await GetBatteryRawAsync();
+            var raw = await GetBatteryRawAsync();
 
-            float voltageADC = (raw / 4095f) * 3.3f;
-            float batteryVoltage = voltageADC * (100000f + 100000f) / 100000f;
+            var voltageADC = (raw / 4095f) * 3.3f;
+            var batteryVoltage = voltageADC * (100000f + 100000f) / 100000f;
 
             return batteryVoltage;
         }
 
         public async Task<float> GetBatteryRawAsync()
         {
-            byte[] data = await _device!.ReadCharacteristicAsync(_batteryChar!);
+            var data = await _device!.ReadCharacteristicAsync(_batteryChar!);
 
-            uint raw = BytesToStruct<uint>(data);
+            var raw = BytesToStruct<uint>(data);
 
             return raw;
         }
@@ -129,7 +129,7 @@ namespace XrEngine.Devices
 
         public async Task<BlePedalSettings> ReadSettingsAsync()
         {
-            byte[] data = await _device!.ReadCharacteristicAsync(_settingsChar!);
+            var data = await _device!.ReadCharacteristicAsync(_settingsChar!);
             return BytesToStruct<BlePedalSettings>(data);
         }
 
@@ -148,7 +148,7 @@ namespace XrEngine.Devices
         {
             fixed (byte* pData = value)
             {
-                BlePedalData pedalData = *(BlePedalData*)pData;
+                var pedalData = *(BlePedalData*)pData;
                 Data?.Invoke(this, new DataEventArgs<BlePedalData>(pedalData));
             }
         }

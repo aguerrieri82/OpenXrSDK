@@ -22,7 +22,7 @@ namespace XrEngine.Bullet
             uint ix = 0;
             uint targetIx = 0;
 
-            List<IkNode> nodes = new List<IkNode>();
+            var nodes = new List<IkNode>();
 
             void Collect(IkNode node)
             {
@@ -54,11 +54,11 @@ namespace XrEngine.Bullet
 
             Collect(root);
 
-            int targetsCount = nodes.Where(a => a.Purpose == Purpose.Effector).Count();
+            var targetsCount = nodes.Where(a => a.Purpose == Purpose.Effector).Count();
 
             _ctx = IkCreate((uint)nodes.Count, (uint)targetsCount);
 
-            foreach (IkNode node in nodes)
+            foreach (var node in nodes)
             {
                 _nodeMap[node] = ix;
                 _ctx.IkCreateNode(ix, node.Attach, node.Axis, node.Size, node.Purpose, node.MinTheta, node.MaxTheta, node.RestAngle);
@@ -88,15 +88,15 @@ namespace XrEngine.Bullet
         public void Update(IkUpdateMethod method, bool updateTheta = true)
         {
             _ctx.IkUpdate(method, updateTheta);
-            foreach (KeyValuePair<IkNode, uint> item in _nodeMap)
+            foreach (var item in _nodeMap)
                 item.Key.Theta = _ctx.IkGetNodeTheta(item.Value);
         }
 
         public void SetTarget(IkNode node, Vector3 pos)
         {
-            uint ix = _targetMap[node];
+            var ix = _targetMap[node];
 
-            Vector3 localPos = WorldPose.Inverse().Transform(pos);
+            var localPos = WorldPose.Inverse().Transform(pos);
 
             _ctx.IkSetTarget(ix, localPos);
         }

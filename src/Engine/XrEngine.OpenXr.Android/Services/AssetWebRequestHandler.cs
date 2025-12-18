@@ -26,23 +26,23 @@ namespace XrEngine.OpenXr.Android
         {
             Log.Info(this, "Browser Handle Request: {0}", request.Uri);
 
-            if (!_context.TryGetTarget(out Context2? context))
+            if (!_context.TryGetTarget(out var context))
                 return null;
 
-            string path = request.Uri!.LocalPath;
+            var path = request.Uri!.LocalPath;
             if (path == "/")
                 path = "index.html";
 
-            string fullPath = Path.Join(_basePath, path);
+            var fullPath = Path.Join(_basePath, path);
 
             try
             {
-                using Stream srcStream = context.Assets!.Open(fullPath);
-                using MemoryStream memStream = new MemoryStream();
+                using var srcStream = context.Assets!.Open(fullPath);
+                using var memStream = new MemoryStream();
                 srcStream.CopyTo(memStream);
 
-                string ext = Path.GetExtension(path).ToLower();
-                string mimeType = MimeMapper.GetMimeType(ext);
+                var ext = Path.GetExtension(path).ToLower();
+                var mimeType = MimeMapper.GetMimeType(ext);
 
                 return new WebResponse
                 {

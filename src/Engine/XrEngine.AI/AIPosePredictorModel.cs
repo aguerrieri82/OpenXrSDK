@@ -32,8 +32,8 @@ namespace XrEngine.AI
 
         public void Train(List<PoseTrainData> poses, int epochs = 20, int batchSize = 32)
         {
-            (NDArray? xTrain, NDArray? yTrain) = PrepareDataset(poses);
-            (NDArray? xVal, NDArray? yVal) = PrepareDataset(poses.GetRange(poses.Count - 60, 60));
+            (var xTrain, var yTrain) = PrepareDataset(poses);
+            (var xVal, var yVal) = PrepareDataset(poses.GetRange(poses.Count - 60, 60));
 
             if (File.Exists($"{_modelPath}/saved_model.pb"))
             {
@@ -102,14 +102,14 @@ namespace XrEngine.AI
             if (_model == null)
                 LoadModel();
 
-            NDArray xInput = PrepareInputForPrediction(poseSequence);
-            PoseTrainData lastPose = poseSequence[^1];
+            var xInput = PrepareInputForPrediction(poseSequence);
+            var lastPose = poseSequence[^1];
 
-            Tensor prediction = _model.predict(xInput).First()[0];
+            var prediction = _model.predict(xInput).First()[0];
 
-            Vector3 deltaPos = new Vector3((float)prediction[0], (float)prediction[1], (float)prediction[2]);
-            Quaternion deltaOrient = new Quaternion((float)prediction[3], (float)prediction[4], (float)prediction[5], (float)prediction[6]);
-            float deltaTime = (float)prediction[7];
+            var deltaPos = new Vector3((float)prediction[0], (float)prediction[1], (float)prediction[2]);
+            var deltaOrient = new Quaternion((float)prediction[3], (float)prediction[4], (float)prediction[5], (float)prediction[6]);
+            var deltaTime = (float)prediction[7];
 
             return new PoseTrainData
             {
@@ -124,21 +124,21 @@ namespace XrEngine.AI
 
         private (NDArray, NDArray) PrepareDataset(List<PoseTrainData> poses)
         {
-            int batchSize = poses.Count - _sequenceLength - 1;
-            float[,,] xData = new float[batchSize, _sequenceLength, _featureSize];
-            float[,] yData = new float[batchSize, _featureSize];
+            var batchSize = poses.Count - _sequenceLength - 1;
+            var xData = new float[batchSize, _sequenceLength, _featureSize];
+            var yData = new float[batchSize, _featureSize];
 
-            for (int i = 0; i < batchSize; i++)
+            for (var i = 0; i < batchSize; i++)
             {
                 int poseIdx;
 
-                for (int j = 0; j < _sequenceLength; j++)
+                for (var j = 0; j < _sequenceLength; j++)
                 {
                     poseIdx = i + j;
 
-                    Vector3 deltaPosition = poses[poseIdx + 1].Pose.Position - poses[poseIdx].Pose.Position;
-                    float deltaTime = poses[poseIdx + 1].Time - poses[poseIdx].Time;
-                    Quaternion deltaOrientation = Quaternion.Inverse(poses[poseIdx].Pose.Orientation) * poses[poseIdx + 1].Pose.Orientation;
+                    var deltaPosition = poses[poseIdx + 1].Pose.Position - poses[poseIdx].Pose.Position;
+                    var deltaTime = poses[poseIdx + 1].Time - poses[poseIdx].Time;
+                    var deltaOrientation = Quaternion.Inverse(poses[poseIdx].Pose.Orientation) * poses[poseIdx + 1].Pose.Orientation;
 
                     xData[i, j, 0] = deltaPosition.X;
                     xData[i, j, 1] = deltaPosition.Y;
@@ -152,9 +152,9 @@ namespace XrEngine.AI
 
                 poseIdx = i + _sequenceLength;
 
-                Vector3 targetDeltaPos = poses[poseIdx + 1].Pose.Position - poses[poseIdx].Pose.Position;
-                float targetDeltaTime = poses[poseIdx + 1].Time - poses[poseIdx].Time;
-                Quaternion targetDeltaOrientation = Quaternion.Inverse(poses[poseIdx].Pose.Orientation) * poses[poseIdx + 1].Pose.Orientation;
+                var targetDeltaPos = poses[poseIdx + 1].Pose.Position - poses[poseIdx].Pose.Position;
+                var targetDeltaTime = poses[poseIdx + 1].Time - poses[poseIdx].Time;
+                var targetDeltaOrientation = Quaternion.Inverse(poses[poseIdx].Pose.Orientation) * poses[poseIdx + 1].Pose.Orientation;
 
                 yData[i, 0] = targetDeltaPos.X;
                 yData[i, 1] = targetDeltaPos.Y;
@@ -171,13 +171,13 @@ namespace XrEngine.AI
 
         private NDArray PrepareInputForPrediction(IList<PoseTrainData> poseSequence)
         {
-            float[,,] xInput = new float[1, _sequenceLength, _featureSize];
+            var xInput = new float[1, _sequenceLength, _featureSize];
 
-            for (int j = 0; j < _sequenceLength; j++)
+            for (var j = 0; j < _sequenceLength; j++)
             {
-                Vector3 deltaPosition = poseSequence[j + 1].Pose.Position - poseSequence[j].Pose.Position;
-                float deltaTime = poseSequence[j + 1].Time - poseSequence[j].Time;
-                Quaternion deltaOrientation = Quaternion.Inverse(poseSequence[j].Pose.Orientation) * poseSequence[j + 1].Pose.Orientation;
+                var deltaPosition = poseSequence[j + 1].Pose.Position - poseSequence[j].Pose.Position;
+                var deltaTime = poseSequence[j + 1].Time - poseSequence[j].Time;
+                var deltaOrientation = Quaternion.Inverse(poseSequence[j].Pose.Orientation) * poseSequence[j + 1].Pose.Orientation;
 
                 xInput[0, j, 0] = deltaPosition.X;
                 xInput[0, j, 1] = deltaPosition.Y;

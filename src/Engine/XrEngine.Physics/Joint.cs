@@ -101,13 +101,13 @@ namespace XrEngine.Physics
             if (Object0 == null || Object1 == null)
                 return;
 
-            PhysicsManager? manager = Object0.Scene?.Component<PhysicsManager>();
-            PhysicsSystem? system = manager?.System;
+            var manager = Object0.Scene?.Component<PhysicsManager>();
+            var system = manager?.System;
             if (system == null)
                 throw new InvalidOperationException("Physics system is not initialized");
 
-            RigidBody rb0 = Object0.Component<RigidBody>();
-            RigidBody rb1 = Object1.Component<RigidBody>();
+            var rb0 = Object0.Component<RigidBody>();
+            var rb1 = Object1.Component<RigidBody>();
 
             rb0.EnsureCreated(ctx);
             rb1.EnsureCreated(ctx);
@@ -161,7 +161,7 @@ namespace XrEngine.Physics
 
         protected void SetOptions(SphericalJointOptions options)
         {
-            PhysicsSphericalJoint target = SphericalJoint;
+            var target = SphericalJoint;
 
             if (options.Limit != null)
                 target.LimitCone = options.Limit.Value;
@@ -171,7 +171,7 @@ namespace XrEngine.Physics
 
         protected void SetOptions(RevoluteJointOptions options)
         {
-            PhysicsRevoluteJoint target = RevoluteJoint;
+            var target = RevoluteJoint;
 
             if (options.Limit != null)
                 target.Limit = options.Limit.Value;
@@ -184,7 +184,7 @@ namespace XrEngine.Physics
 
         protected void SetOptions(D6JointOptions options)
         {
-            PhysicsD6Joint target = D6Joint;
+            var target = D6Joint;
 
             if (options.TwistLimit != null)
                 target.TwistLimit = options.TwistLimit.Value;

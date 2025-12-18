@@ -29,9 +29,9 @@ namespace XrEngine.OpenGL
 
         protected IGlLayer CreateEnvLayer(Scene3D scene)
         {
-            DetachedLayer layer = new DetachedLayer();
+            var layer = new DetachedLayer();
 
-            TriangleMesh env = new TriangleMesh(new IsoSphere3D(2, 3), new TextureMaterial
+            var env = new TriangleMesh(new IsoSphere3D(2, 3), new TextureMaterial
             {
                 UseDepth = true,
                 WriteDepth = false,
@@ -42,7 +42,7 @@ namespace XrEngine.OpenGL
             scene.AddChild(env);
 
             layer.Add(env);
-            IGlLayer glLayer = _renderer.AddLayer(scene, GlLayerType.Custom, layer);
+            var glLayer = _renderer.AddLayer(scene, GlLayerType.Custom, layer);
             glLayer.Rebuild();
             return glLayer;
         }
@@ -68,13 +68,13 @@ namespace XrEngine.OpenGL
                     _programInstance.Invalidate();
                 }
 
-                UpdateProgramResult upRes = base.UpdateProgram(updateContext, drawMaterial);
+                var upRes = base.UpdateProgram(updateContext, drawMaterial);
 
                 _programInstance.Program!.Use();
 
                 _renderer.ConfigureCaps(_programInstance.Material);
 
-                Vector4 newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
+                var newPlane = new Vector4(_reflection.Plane.Normal, _reflection.Plane.D);
                 _programInstance.Program!.SetUniform("uClipPlane", newPlane);
 
                 return UpdateProgramResult.Changed;
@@ -88,7 +88,7 @@ namespace XrEngine.OpenGL
                     _programInstance.Invalidate();
                 }
 
-                UpdateProgramResult upRes = base.UpdateProgram(updateContext, drawMaterial);
+                var upRes = base.UpdateProgram(updateContext, drawMaterial);
 
                 _programInstance.Program!.Use();
 
@@ -105,7 +105,7 @@ namespace XrEngine.OpenGL
             if (draw.Object == _reflection.Host)
                 return false;
 
-            PlanarReflectionTarget? target = draw.Object?.Components<PlanarReflectionTarget>().FirstOrDefault();
+            var target = draw.Object?.Components<PlanarReflectionTarget>().FirstOrDefault();
             if (target?.IncludeReflection != null && !target.IncludeReflection(_reflection))
                 return false;
 

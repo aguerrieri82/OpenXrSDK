@@ -25,15 +25,15 @@ namespace XrEngine
 
         public override EngineObject LoadAsset(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
-            string path = GetFilePath(uri);
-            using FileStream stream = File.OpenRead(path);
-            using StreamReader reader = new StreamReader(stream);
+            var path = GetFilePath(uri);
+            using var stream = File.OpenRead(path);
+            using var reader = new StreamReader(stream);
 
             string? line;
 
-            List<VertexData> data = new List<VertexData>();
-            List<uint> indexes = new List<uint>();
-            int vni = 0;
+            var data = new List<VertexData>();
+            var indexes = new List<uint>();
+            var vni = 0;
 
             float Parse(string num)
             {
@@ -42,7 +42,7 @@ namespace XrEngine
 
             while ((line = reader.ReadLine()) != null)
             {
-                string[] parts = line.Split(' ');
+                var parts = line.Split(' ');
                 if (parts.Length < 2)
                     continue;
                 if (parts[0] == "v")
@@ -63,9 +63,9 @@ namespace XrEngine
                 }
                 else if (parts[0] == "f")
                 {
-                    uint ix0 = uint.Parse(parts[1].Split('/')[0]);
-                    uint ix1 = uint.Parse(parts[2].Split('/')[0]);
-                    uint ix2 = uint.Parse(parts[3].Split('/')[0]);
+                    var ix0 = uint.Parse(parts[1].Split('/')[0]);
+                    var ix1 = uint.Parse(parts[2].Split('/')[0]);
+                    var ix2 = uint.Parse(parts[3].Split('/')[0]);
 
                     indexes.Add(ix0 - 1);
                     indexes.Add(ix1 - 1);
@@ -73,14 +73,14 @@ namespace XrEngine
                 }
             }
 
-            Geometry3D geo = new Geometry3D()
+            var geo = new Geometry3D()
             {
                 Indices = indexes.ToArray(),
                 Vertices = data.ToArray(),
                 ActiveComponents = VertexComponent.Position | VertexComponent.Normal
             };
 
-            TriangleMesh mesh = new TriangleMesh(geo);
+            var mesh = new TriangleMesh(geo);
             return mesh;
         }
 

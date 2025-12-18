@@ -6,11 +6,11 @@ namespace XrEngine
     {
         public unsafe static uint[] GenerateVertexRemap(Geometry3D geometry)
         {
-            int indexCount = geometry.Indices.Length == 0 ? geometry.Vertices.Length : geometry.Indices.Length;
-            uint[] remap = new uint[indexCount];
+            var indexCount = geometry.Indices.Length == 0 ? geometry.Vertices.Length : geometry.Indices.Length;
+            var remap = new uint[indexCount];
             fixed (VertexData* pData = geometry.Vertices)
             {
-                long total = MeshOptimizerLib.meshopt_generateVertexRemap(
+                var total = MeshOptimizerLib.meshopt_generateVertexRemap(
                     remap,
                     geometry.Indices,
                     geometry.Indices.Length,
@@ -25,8 +25,8 @@ namespace XrEngine
 
         public static unsafe void OptimizeOverdraw(Geometry3D geometry, float threshold)
         {
-            int indexCount = geometry.Indices.Length;
-            uint[] result = new uint[indexCount];
+            var indexCount = geometry.Indices.Length;
+            var result = new uint[indexCount];
 
             fixed (VertexData* pData = geometry.Vertices)
             {
@@ -45,13 +45,13 @@ namespace XrEngine
 
         public static unsafe void OptimizeVertexFetch(Geometry3D geometry)
         {
-            int indexCount = geometry.Indices.Length;
-            VertexData[] result = new VertexData[geometry.Vertices.Length];
+            var indexCount = geometry.Indices.Length;
+            var result = new VertexData[geometry.Vertices.Length];
 
             fixed (VertexData* pData = geometry.Vertices)
             fixed (VertexData* pResult = result)
             {
-                long count = MeshOptimizerLib.meshopt_optimizeVertexFetch(
+                var count = MeshOptimizerLib.meshopt_optimizeVertexFetch(
                   pResult,
                   geometry.Indices,
                   geometry.Indices.Length,
@@ -68,8 +68,8 @@ namespace XrEngine
 
         public static void OptimizeVertexCache(Geometry3D geometry)
         {
-            int indexCount = geometry.Indices.Length;
-            uint[] result = new uint[indexCount];
+            var indexCount = geometry.Indices.Length;
+            var result = new uint[indexCount];
 
             MeshOptimizerLib.meshopt_optimizeVertexCache(
                   result,
@@ -83,19 +83,19 @@ namespace XrEngine
 
         public unsafe static void Simplify(Geometry3D geometry, float targetIndicesFactor = 0.5f, float targetError = 0.01f)
         {
-            uint targetIndices = (uint)(geometry.Indices!.Length * targetIndicesFactor);
+            var targetIndices = (uint)(geometry.Indices!.Length * targetIndicesFactor);
 
             geometry.EnsureIndices();
 
-            uint[] dest = new uint[geometry.Indices!.Length];
+            var dest = new uint[geometry.Indices!.Length];
 
-            float[] weights = new float[5];
-            for (int i = 0; i < 5; i++)
+            var weights = new float[5];
+            for (var i = 0; i < 5; i++)
                 weights[i] = 0.1f;
 
             fixed (VertexData* pVert = geometry.Vertices)
             {
-                long count = MeshOptimizerLib.meshopt_simplifyWithAttributes(
+                var count = MeshOptimizerLib.meshopt_simplifyWithAttributes(
                      dest,
                      geometry.Indices,
                      geometry.Indices.Length,
@@ -110,7 +110,7 @@ namespace XrEngine
                      targetIndices,
                      targetError,
                      0,
-                     out float error);
+                     out var error);
 
                 Array.Resize(ref dest, (int)count);
             }

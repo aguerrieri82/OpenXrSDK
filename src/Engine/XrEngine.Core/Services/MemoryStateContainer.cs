@@ -29,7 +29,7 @@
 
         public IStateContainer Enter(string key, bool resolveRef = false)
         {
-            if (!_state.TryGetValue(key, out object? value))
+            if (!_state.TryGetValue(key, out var value))
             {
                 value = new MemoryStateContainer(_context, []);
                 _state[key] = value;
@@ -37,7 +37,7 @@
 
             if (resolveRef && IsRef(key))
             {
-                Guid id = (Guid)_state[key]!;
+                var id = (Guid)_state[key]!;
                 return _context.RefTable.Container!.Enter(id.ToString());
             }
 
@@ -47,9 +47,9 @@
 
         public object? Read(string key, object? curObj, Type type)
         {
-            object? value = _state[key];
+            var value = _state[key];
 
-            ITypeStateManager? manager = TypeStateManager.Instance.Get(type);
+            var manager = TypeStateManager.Instance.Get(type);
             if (manager != null)
                 return manager.Read(key, curObj, type, this);
 
@@ -60,7 +60,7 @@
         {
             if (value != null)
             {
-                ITypeStateManager? manager = TypeStateManager.Instance.Get(value.GetType());
+                var manager = TypeStateManager.Instance.Get(value.GetType());
                 if (manager != null)
                 {
                     manager.Write(key, value, this);

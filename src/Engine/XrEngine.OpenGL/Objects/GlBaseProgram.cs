@@ -36,18 +36,18 @@ namespace XrEngine.OpenGL
             _handle = _gl.CreateProgram();
             GlDebug.Log($"CreateProgram {_handle}");
 
-            foreach (uint shader in shaders.Where(a => a != 0))
+            foreach (var shader in shaders.Where(a => a != 0))
                 _gl.AttachShader(_handle, shader);
 
             _gl.LinkProgram(_handle);
 
             if (_gl.GetProgram(_handle, ProgramPropertyARB.LinkStatus) == 0)
             {
-                string log = _gl.GetProgramInfoLog(_handle);
+                var log = _gl.GetProgramInfoLog(_handle);
                 throw new Exception(log);
             }
 
-            foreach (uint shader in shaders.Where(a => a != 0))
+            foreach (var shader in shaders.Where(a => a != 0))
                 _gl.DetachShader(_handle, shader);
         }
 
@@ -71,14 +71,14 @@ namespace XrEngine.OpenGL
 #if GLES
             return [];
 #else
-            _gl.GetProgram(_handle, ProgramPropertyARB.ActiveUniforms, out int count);
+            _gl.GetProgram(_handle, ProgramPropertyARB.ActiveUniforms, out var count);
 
             uint i = 0;
 
             while (i < count)
             {
-                string? buf = new string('\0', 256);
-                _gl.GetActiveUniformName(_handle, i, (uint)buf.Length, out uint len, out buf);
+                var buf = new string('\0', 256);
+                _gl.GetActiveUniformName(_handle, i, (uint)buf.Length, out var len, out buf);
                 yield return buf;
                 i++;
             }
@@ -87,7 +87,7 @@ namespace XrEngine.OpenGL
 
         public int LocateUniform(string name, bool optional = false, bool isBlock = false)
         {
-            if (!_locations.TryGetValue(name, out int result))
+            if (!_locations.TryGetValue(name, out var result))
             {
                 if (isBlock)
                     result = (int)_gl.GetUniformBlockIndex(_handle, name);
@@ -113,14 +113,14 @@ namespace XrEngine.OpenGL
 
         protected bool IsChanged(string name, object value)
         {
-            bool isChanged = false;
+            var isChanged = false;
 
-            if (!_values.TryGetValue(name, out object? lastValue))
+            if (!_values.TryGetValue(name, out var lastValue))
                 isChanged = true;
 
             if (lastValue is Array lastArray)
             {
-                Array curArray = (Array)value;
+                var curArray = (Array)value;
 
                 if (!isChanged)
                 {
@@ -128,9 +128,9 @@ namespace XrEngine.OpenGL
                         isChanged = true;
                     else
                     {
-                        int elSize = Marshal.SizeOf(lastArray.GetType()!.GetElementType()!);
-                        ReadOnlySpan<byte> b1 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetArrayDataReference(lastArray), lastArray.Length * elSize);
-                        ReadOnlySpan<byte> b2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetArrayDataReference(curArray), curArray.Length * elSize);
+                        var elSize = Marshal.SizeOf(lastArray.GetType()!.GetElementType()!);
+                        var b1 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetArrayDataReference(lastArray), lastArray.Length * elSize);
+                        var b2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetArrayDataReference(curArray), curArray.Length * elSize);
 
                         isChanged = !b1.SequenceEqual(b2);
                     }
@@ -152,7 +152,7 @@ namespace XrEngine.OpenGL
 
         public void LoadTexture(Texture value, int slot = 0)
         {
-            Texture2D tex2d = value as Texture2D ?? throw new NotSupportedException();
+            var tex2d = value as Texture2D ?? throw new NotSupportedException();
 
             if (tex2d.Type == TextureType.Buffer)
             {
@@ -162,7 +162,7 @@ namespace XrEngine.OpenGL
                     ObjectBinder.Bind(tex2d, glTextBuf);
                 }
 
-                bool isUpdate = tex2d.Version != glTextBuf.Version && tex2d.Data != null && tex2d.Data.Count > 0;
+                var isUpdate = tex2d.Version != glTextBuf.Version && tex2d.Data != null && tex2d.Data.Count > 0;
 
                 if (isUpdate)
                     glTextBuf.Update(tex2d.Data![0]);
@@ -176,7 +176,7 @@ namespace XrEngine.OpenGL
                 if (!ObjectBinder.TryGet(tex2d, out GlTexture? glText))
                     glText = tex2d.ToGlTexture();
 
-                bool isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
+                var isUpdate = tex2d.Version != glText.Version && tex2d.Width > 0 && tex2d.Height > 0;
 
 #if GLES
                 GlState.Current!.LoadTexture(glText, slot, false);
@@ -258,7 +258,7 @@ namespace XrEngine.OpenGL
 
         public void LoadBuffer<T>(IBuffer<T> buffer, int slot = 0)
         {
-            IGlBuffer glBuffer = (IGlBuffer)buffer;
+            var glBuffer = (IGlBuffer)buffer;
 
             GlState.Current!.SetActiveBuffer(glBuffer, slot);
         }
@@ -273,7 +273,7 @@ namespace XrEngine.OpenGL
         {
             if (!IsChanged(name, value))
                 return;
-            Span<float> span = value.AsSpan();
+            var span = value.AsSpan();
             _gl.Uniform1(LocateUniform(name, optional), span);
         }
 
@@ -315,7 +315,7 @@ namespace XrEngine.OpenGL
         {
             if (!IsChanged(name, value))
                 return;
-            Span<int> span = value.AsSpan();
+            var span = value.AsSpan();
             _gl.Uniform1(LocateUniform(name, optional), span);
         }
 
@@ -339,13 +339,13 @@ namespace XrEngine.OpenGL
         protected string PatchShader(string sourceName, ShaderType shaderType)
         {
 
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
 
             builder.Append("#version ")
                .Append(OpenGLRender.Current!.Options.ShaderVersion!)
                .Append('\n');
 
-            foreach (string ext in _extensions)
+            foreach (var ext in _extensions)
                 builder.Append($"#extension {ext} : require\n");
 
             string GetPrecision(ShaderPrecision precision) => precision switch
@@ -360,7 +360,7 @@ namespace XrEngine.OpenGL
             builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.FloatPrecision)).Append(" float;\n");
             builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.IntPrecision)).Append(" int;\n");
 
-            foreach (string feature in _features)
+            foreach (var feature in _features)
                 builder.Append("#define ").Append(feature).Append('\n');
 
             if (shaderType == ShaderType.VertexShader)
@@ -368,25 +368,25 @@ namespace XrEngine.OpenGL
 
             PatchShader(shaderType, builder);
 
-            Regex incRe = IncludeRegex();
+            var incRe = IncludeRegex();
 
-            HashSet<string> included = new HashSet<string>();
+            var included = new HashSet<string>();
 
             string ReplaceIncludes(string path)
             {
-                string source = _resolver(path);
+                var source = _resolver(path);
 
                 while (true)
                 {
-                    Match match = incRe.Match(source);
+                    var match = incRe.Match(source);
                     if (!match.Success)
                         break;
 
-                    string incName = match.Groups.Count == 3 && match.Groups[2].Length > 0 ?
+                    var incName = match.Groups.Count == 3 && match.Groups[2].Length > 0 ?
                         match.Groups[2].Value :
                         match.Groups[1].Value;
 
-                    string incPath = Path.GetRelativePath(".", Path.Join(Path.GetDirectoryName(path) ?? "", incName))
+                    var incPath = Path.GetRelativePath(".", Path.Join(Path.GetDirectoryName(path) ?? "", incName))
                                  .Replace('\\', '/');
 
                     string replace;

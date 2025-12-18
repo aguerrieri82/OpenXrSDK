@@ -84,7 +84,7 @@ namespace PhysX.Framework
             get => D6Joint.GetDrivePosition().ToPose3();
             set
             {
-                PxTransform tx = value.ToPxTransform();
+                var tx = value.ToPxTransform();
                 D6Joint.SetDrivePositionMut(&tx, true);
             }
         }
@@ -93,7 +93,7 @@ namespace PhysX.Framework
         {
             get
             {
-                VelocityVector result = new VelocityVector();
+                var result = new VelocityVector();
                 D6Joint.GetDriveVelocity((PxVec3*)&result.Linear, (PxVec3*)&result.Angular);
                 return result;
             }

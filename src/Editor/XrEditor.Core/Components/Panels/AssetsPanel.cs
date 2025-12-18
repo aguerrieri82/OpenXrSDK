@@ -88,18 +88,18 @@ namespace XrEditor
 
         protected void UpdateNav()
         {
-            string[] parts = _curPath.Replace('\\', '/')
+            var parts = _curPath.Replace('\\', '/')
                 .Split('/')
                 .Select(a => a.Trim())
                 .Where(a => a != "")
                 .ToArray();
 
-            string curPath = "";
+            var curPath = "";
 
             _navItems.Clear();
             _navItems.Add(new NavItemView(this, curPath));
 
-            foreach (string? part in parts)
+            foreach (var part in parts)
             {
                 curPath = Path.Join(curPath, part);
                 _navItems.Add(new NavItemView(this, curPath));
@@ -133,7 +133,7 @@ namespace XrEditor
         {
             _folderItems.Clear();
 
-            foreach (string dirName in _store.ListDirectories(_curPath))
+            foreach (var dirName in _store.ListDirectories(_curPath))
                 _folderItems.Add(new FolderItemView(this, dirName, "icon_folder", "#ffff00"));
 
             return Task.CompletedTask;

@@ -27,10 +27,10 @@ namespace XrEngine.Video
 
         static unsafe string av_strerror(int error)
         {
-            int bufferSize = 1024;
-            byte* buffer = stackalloc byte[bufferSize];
+            var bufferSize = 1024;
+            var buffer = stackalloc byte[bufferSize];
             ffmpeg.av_strerror(error, buffer, (ulong)bufferSize);
-            string message = Marshal.PtrToStringAnsi((IntPtr)buffer)!;
+            var message = Marshal.PtrToStringAnsi((IntPtr)buffer)!;
             return message;
         }
 
@@ -61,7 +61,7 @@ namespace XrEngine.Video
         {
             _pFormatContext = avformat_alloc_context();
             _receivedFrame = av_frame_alloc();
-            AVFormatContext* pFormatContext = _pFormatContext;
+            var pFormatContext = _pFormatContext;
             CheckResult(avformat_open_input(&pFormatContext, filename, null, null), "");
             CheckResult(avformat_find_stream_info(_pFormatContext, null), "");
             AVCodec* codec = null;
@@ -92,17 +92,17 @@ namespace XrEngine.Video
 
         public bool TryDecodeNextFrame(TextureData data)
         {
-            if (!TryDecodeNextFrame(out AVFrame frame))
+            if (!TryDecodeNextFrame(out var frame))
                 return false;
 
             data.Width = (uint)_pCodecContext->width;
             data.Height = (uint)_pCodecContext->height;
             data.Format = TextureFormat.Rgba32;
 
-            uint size = data.Width * data.Height * 4;
+            var size = data.Width * data.Height * 4;
             data.Data = MemoryBuffer.CreateOrResize(data.Data, size);
 
-            using MemoryLock<byte> pData = data.Data.MemoryLock();
+            using var pData = data.Data.MemoryLock();
 
             sws_scale(_swsContext, frame.data, frame.linesize, 0,
                 _pCodecContext->height, [pData], [(int)data.Width * 4]);
@@ -162,16 +162,16 @@ namespace XrEngine.Video
 
         public void Close()
         {
-            AVFrame* pFrame = _pFrame;
+            var pFrame = _pFrame;
             av_frame_free(&pFrame);
 
-            AVPacket* pPacket = _pPacket;
+            var pPacket = _pPacket;
             av_packet_free(&pPacket);
 
-            AVCodecContext* pCodecContext = _pCodecContext;
+            var pCodecContext = _pCodecContext;
             avcodec_free_context(&pCodecContext);
 
-            AVFormatContext* pFormatContext = _pFormatContext;
+            var pFormatContext = _pFormatContext;
             avformat_close_input(&pFormatContext);
 
         }

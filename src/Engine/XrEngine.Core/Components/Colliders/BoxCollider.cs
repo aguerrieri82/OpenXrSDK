@@ -15,7 +15,7 @@ namespace XrEngine
         {
             if (Size.Length() == 0)
             {
-                ILocalBounds? local = _host?.Feature<ILocalBounds>();
+                var local = _host?.Feature<ILocalBounds>();
 
                 if (local != null)
                 {
@@ -32,20 +32,20 @@ namespace XrEngine
             if (!_isInit)
                 Initialize();
 
-            Ray3 localRay = ray.Transform(_host!.WorldMatrixInverse);
+            var localRay = ray.Transform(_host!.WorldMatrixInverse);
 
-            Bounds3 bounds = new Bounds3
+            var bounds = new Bounds3
             {
                 Min = Center - Size / 2,
                 Max = Center + Size / 2
             };
 
-            if (bounds.Intersects(localRay.ToLine(10000), out float localDistance))
+            if (bounds.Intersects(localRay.ToLine(10000), out var localDistance))
             {
-                Vector3 localPoint = localRay.PointAt(localDistance);
-                Vector3 wordPoint = _host.ToWorld(localPoint);
+                var localPoint = localRay.PointAt(localDistance);
+                var wordPoint = _host.ToWorld(localPoint);
 
-                Vector3 normal = Vector3.Zero;
+                var normal = Vector3.Zero;
 
                 const float epsilon = 0.0001f;
 
@@ -98,9 +98,9 @@ namespace XrEngine
             if (!_isInit)
                 Initialize();
 
-            Vector3 localPoint = _host!.ToLocal(worldPoint);
+            var localPoint = _host!.ToLocal(worldPoint);
 
-            Bounds3 bounds = new Bounds3
+            var bounds = new Bounds3
             {
                 Min = Center - Size / 2,
                 Max = Center + Size / 2

@@ -43,7 +43,7 @@
 
         public void UpdateShader(ShaderUpdateBuilder bld)
         {
-            UpdateShaderStage stage = bld.Context.Stage;
+            var stage = bld.Context.Stage;
 
             if (stage == UpdateShaderStage.Any || stage == UpdateShaderStage.Model)
                 UpdateShaderModel(bld);

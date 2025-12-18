@@ -1,7 +1,6 @@
 ﻿using Android.Graphics;
 using Android.Media;
 using Android.Views;
-using Java.Nio;
 using XrEngine.OpenGL;
 using XrMath;
 
@@ -65,13 +64,13 @@ namespace XrEngine.Media.Android
             _mediaExtractor = new MediaExtractor();
             _mediaExtractor.SetDataSource(source.LocalPath);
 
-            int tracks = _mediaExtractor.TrackCount;
+            var tracks = _mediaExtractor.TrackCount;
 
             string? mimeType = null;
 
-            for (int i = 0; i < tracks; ++i)
+            for (var i = 0; i < tracks; ++i)
             {
-                MediaFormat format = _mediaExtractor.GetTrackFormat(i);
+                var format = _mediaExtractor.GetTrackFormat(i);
 
                 mimeType = format.GetString(MediaFormat.KeyMime);
 
@@ -114,7 +113,7 @@ namespace XrEngine.Media.Android
 
                 if (OutTexture != null)
                 {
-                    GlTexture? glText = OutTexture!.GetProp<GlTexture>(OpenGLRender.Props.GlResId);
+                    var glText = OutTexture!.GetProp<GlTexture>(OpenGLRender.Props.GlResId);
                     if (glText == null)
                         return false;
 
@@ -130,14 +129,14 @@ namespace XrEngine.Media.Android
             if (_eos)
                 return false;
 
-            int inBufferIndex = _decoder.DequeueInputBuffer(_timeout);
+            var inBufferIndex = _decoder.DequeueInputBuffer(_timeout);
 
             if (inBufferIndex < 0)
                 return false;
 
-            ByteBuffer? inputBuffer = _decoder.GetInputBuffer(inBufferIndex);
+            var inputBuffer = _decoder.GetInputBuffer(inBufferIndex);
 
-            int sampleSize = _mediaExtractor.ReadSampleData(inputBuffer!, 0);
+            var sampleSize = _mediaExtractor.ReadSampleData(inputBuffer!, 0);
 
             if (sampleSize > 0)
             {
@@ -156,9 +155,9 @@ namespace XrEngine.Media.Android
                 _eos = true;
             }
 
-            MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+            var bufferInfo = new MediaCodec.BufferInfo();
 
-            int outBufferIndex = _decoder.DequeueOutputBuffer(bufferInfo, _timeout);
+            var outBufferIndex = _decoder.DequeueOutputBuffer(bufferInfo, _timeout);
 
             if (outBufferIndex > 0)
             {

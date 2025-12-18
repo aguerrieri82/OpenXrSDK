@@ -69,7 +69,7 @@
 
         public static IUiBuilder<UiContainer> EndChild<T>(this IUiBuilder<T> builder) where T : UiContainer
         {
-            IUiChildBuilder<T, UiContainer>? childBuild = builder as IUiChildBuilder<T, UiContainer>;
+            var childBuild = builder as IUiChildBuilder<T, UiContainer>;
 
             if (childBuild == null)
                 throw new InvalidOperationException("Invalid call, missing BeginChild");
@@ -88,7 +88,7 @@
 
         public static IUiBuilder<TCont> AddChild<TCont, TChild>(this IUiBuilder<TCont> builder, TChild child, Action<IUiBuilder<TChild>> build) where TCont : UiContainer where TChild : UiElement
         {
-            UiBuilder<TChild> childBuilder = UiBuilder.From(child);
+            var childBuilder = UiBuilder.From(child);
             build(childBuilder);
 
             builder.Element.AddChild(child);
@@ -97,11 +97,11 @@
 
         public static IUiBuilder<TCont> AddChild<TCont, TChild>(this IUiBuilder<TCont> builder, Action<IUiBuilder<TChild>>? build = null) where TChild : UiElement, new() where TCont : UiContainer
         {
-            TChild child = new TChild();
+            var child = new TChild();
 
             if (build != null)
             {
-                UiBuilder<TChild> childBuilder = UiBuilder.From(child);
+                var childBuilder = UiBuilder.From(child);
                 build(childBuilder);
             }
 
@@ -126,7 +126,7 @@
         {
             if (build != null)
             {
-                UiStyleBuilder sb = new UiStyleBuilder(builder.Element.Style);
+                var sb = new UiStyleBuilder(builder.Element.Style);
                 build(sb);
             }
             return builder;

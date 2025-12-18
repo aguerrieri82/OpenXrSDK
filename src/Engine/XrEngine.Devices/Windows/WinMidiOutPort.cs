@@ -19,7 +19,7 @@ namespace XrEngine.Devices.Windows
             if (_opened)
                 return;
 
-            int res = Win32.midiOutOpen(out _hOut, _deviceIndex, null, IntPtr.Zero, 0);
+            var res = Win32.midiOutOpen(out _hOut, _deviceIndex, null, IntPtr.Zero, 0);
             if (res != 0)
                 throw new InvalidOperationException($"midiOutOpen failed: {GetOutError(res)}");
 
@@ -35,10 +35,10 @@ namespace XrEngine.Devices.Windows
                 throw new ArgumentOutOfRangeException();
 
             uint msg = 0;
-            for (int i = 0; i < Math.Min(3, count); ++i)
+            for (var i = 0; i < Math.Min(3, count); ++i)
                 msg |= (uint)data[offset + i] << (8 * i);
 
-            int r = Win32.midiOutShortMsg(_hOut, msg);
+            var r = Win32.midiOutShortMsg(_hOut, msg);
             if (r != 0)
                 throw new InvalidOperationException($"midiOutShortMsg failed: {GetOutError(r)}");
         }
@@ -48,7 +48,7 @@ namespace XrEngine.Devices.Windows
             if (!_opened)
                 return;
 
-            int res = Win32.midiOutClose(_hOut);
+            var res = Win32.midiOutClose(_hOut);
             if (res != 0)
                 throw new InvalidOperationException($"midiOutClose failed: {GetOutError(res)}");
 
@@ -58,7 +58,7 @@ namespace XrEngine.Devices.Windows
 
         static string GetOutError(int code)
         {
-            StringBuilder sb = new StringBuilder(512);
+            var sb = new StringBuilder(512);
             _ = Win32.midiOutGetErrorText(code, sb, (uint)sb.Capacity);
             return sb.ToString();
         }

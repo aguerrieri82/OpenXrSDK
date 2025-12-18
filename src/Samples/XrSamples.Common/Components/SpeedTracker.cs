@@ -26,7 +26,7 @@ namespace XrSamples
 
         public void DrawGizmos(Canvas3D canvas)
         {
-            Vector3 vector = _lastPivotGlobal + (_lastRefSpeed / 2f);
+            var vector = _lastPivotGlobal + (_lastRefSpeed / 2f);
             canvas.Save();
             canvas.State.Color = "#0000FF";
             canvas.State.LineWidth = 2f;
@@ -37,21 +37,21 @@ namespace XrSamples
         public static Vector3 CalculateAngularVelocity(Quaternion q1, Quaternion q2, float deltaTime)
         {
             // Step 1: Compute the relative quaternion (difference)
-            Quaternion deltaQ = q2 * Quaternion.Inverse(q1);
+            var deltaQ = q2 * Quaternion.Inverse(q1);
 
             // Step 2: Calculate the angle of rotation (in radians)
-            float angle = 2.0f * (float)Math.Acos(deltaQ.W);
+            var angle = 2.0f * (float)Math.Acos(deltaQ.W);
 
             // Check for small angle to avoid division by zero
             if (angle < 1e-6)
                 return Vector3.Zero;
 
             // Step 3: Calculate the axis of rotation
-            float sinHalfAngle = (float)Math.Sqrt(1.0 - deltaQ.W * deltaQ.W);
-            Vector3 axis = new Vector3(deltaQ.X, deltaQ.Y, deltaQ.Z) / sinHalfAngle;
+            var sinHalfAngle = (float)Math.Sqrt(1.0 - deltaQ.W * deltaQ.W);
+            var axis = new Vector3(deltaQ.X, deltaQ.Y, deltaQ.Z) / sinHalfAngle;
 
             // Step 4: Calculate angular velocity vector
-            Vector3 angularVelocity = (angle / deltaTime) * axis;
+            var angularVelocity = (angle / deltaTime) * axis;
 
             return angularVelocity;
         }
@@ -60,7 +60,7 @@ namespace XrSamples
         {
             Debug.Assert(_host != null);
 
-            IObjectTool? tool = _host.GetActiveTool();
+            var tool = _host.GetActiveTool();
 
             if (tool != null && _lastTool != tool)
             {
@@ -70,10 +70,10 @@ namespace XrSamples
 
             _lastPivotGlobal = _host.ToWorld(_curPivot);
 
-            if (!_host.TryComponent<RigidBody>(out RigidBody? rigidBody))
+            if (!_host.TryComponent<RigidBody>(out var rigidBody))
                 return;
 
-            bool mustThrow = false;
+            var mustThrow = false;
 
             if (rigidBody.DynamicActor.IsKinematic != _lastKinematic)
             {
@@ -82,7 +82,7 @@ namespace XrSamples
                 mustThrow = _lastKinematic == false && _lastTool is InputGrabber;
             }
 
-            float c = SmoothFactor;
+            var c = SmoothFactor;
 
             if (!_lastPos.IsFinite())
                 _lastPos = Vector3.Zero;
@@ -95,19 +95,19 @@ namespace XrSamples
 
             _manager ??= _host.Scene!.Component<PhysicsManager>();
 
-            double curTime = _manager.Time;
+            var curTime = _manager.Time;
 
-            Vector3 curPos = Vector3.Lerp(_lastPivotGlobal, _lastPos, c);
+            var curPos = Vector3.Lerp(_lastPivotGlobal, _lastPos, c);
 
-            Quaternion curOri = Quaternion.Slerp(_host.WorldOrientation, _lastOri, c);
+            var curOri = Quaternion.Slerp(_host.WorldOrientation, _lastOri, c);
 
-            double dt = curTime - _lastUpdateSpeedTime;
+            var dt = curTime - _lastUpdateSpeedTime;
 
             if (dt > MinDeltaTime)
             {
-                Vector3 curSpeed = (curPos - _lastRefPos) / (float)dt;
-                Vector3 curAcc = (curSpeed - _lastRefSpeed) / (float)dt;
-                Vector3 curAngSpeed = CalculateAngularVelocity(_lastRefOri, curOri, (float)dt);
+                var curSpeed = (curPos - _lastRefPos) / (float)dt;
+                var curAcc = (curSpeed - _lastRefSpeed) / (float)dt;
+                var curAngSpeed = CalculateAngularVelocity(_lastRefOri, curOri, (float)dt);
 
                 _lastRefPos = curPos;
                 _lastRefAcc = curAcc;
@@ -133,7 +133,7 @@ namespace XrSamples
                 Log.Checkpoint($"Throw: {Math.Round(_lastRefAcc.Length(), 3)}", "#00ff00");
             }
 
-            Vector3 velocity = rigidBody.DynamicActor.LinearVelocity;
+            var velocity = rigidBody.DynamicActor.LinearVelocity;
 
             Log.Value($"{_host.Name}.Velocity", velocity.Length());
 

@@ -18,7 +18,7 @@ namespace OpenXr.Framework.Android
             if (Looper.MyLooper() == Looper.MainLooper)
                 return Task.FromResult(action());
 
-            TaskCompletionSource<T> source = new TaskCompletionSource<T>();
+            var source = new TaskCompletionSource<T>();
 
             _handler.Post(() =>
             {
@@ -40,7 +40,7 @@ namespace OpenXr.Framework.Android
             if (Looper.MyLooper() == Looper.MainLooper)
                 return action();
 
-            TaskCompletionSource<T> source = new TaskCompletionSource<T>();
+            var source = new TaskCompletionSource<T>();
 
             _handler.Post(() =>
             {

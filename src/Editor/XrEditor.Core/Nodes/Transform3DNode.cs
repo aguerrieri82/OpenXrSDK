@@ -13,7 +13,7 @@ namespace XrEditor.Nodes
 
         public void EditorProperties(IList<PropertyView> curProps)
         {
-            Binder<Transform3D> binder = new Binder<Transform3D>(_value);
+            var binder = new Binder<Transform3D>(_value);
 
             curProps.Add(new PropertyView
             {
@@ -50,9 +50,9 @@ namespace XrEditor.Nodes
                 Name = "copy-pose",
                 ExecuteCommand = new Command(() =>
                 {
-                    Pose3 pose = _value.ToPose();
-                    IClipboard clip = Context.Require<IClipboard>();
-                    string code = FormattableString.Invariant($"new Pose3()\n{{\n    Position = new Vector3({pose.Position.X}f, {pose.Position.Y}f, {pose.Position.Z}f),\n    Orientation=new Quaternion({pose.Orientation.X}f,{pose.Orientation.Y}f,{pose.Orientation.Z}f,{pose.Orientation.W}f)\n}};");
+                    var pose = _value.ToPose();
+                    var clip = Context.Require<IClipboard>();
+                    var code = FormattableString.Invariant($"new Pose3()\n{{\n    Position = new Vector3({pose.Position.X}f, {pose.Position.Y}f, {pose.Position.Z}f),\n    Orientation=new Quaternion({pose.Orientation.X}f,{pose.Orientation.Y}f,{pose.Orientation.Z}f,{pose.Orientation.W}f)\n}};");
                     clip.Copy(code, "text/plain");
                 })
             });

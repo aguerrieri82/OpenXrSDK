@@ -198,13 +198,13 @@ namespace TurboJpeg
 
         public static ImageData Decompress(byte[] data)
         {
-            ImageData res = new ImageData();
+            var res = new ImageData();
 
-            nint handler = tjInitDecompress();
+            var handler = tjInitDecompress();
 
             fixed (byte* pIn = data)
             {
-                tjDecompressHeader2(handler, pIn, (ulong)data.Length, out int width, out int height, out TJSAMP subSamp);
+                tjDecompressHeader2(handler, pIn, (ulong)data.Length, out var width, out var height, out var subSamp);
                 res.Width = width;
                 res.Height = height;
                 res.Data = new byte[width * height * 4];

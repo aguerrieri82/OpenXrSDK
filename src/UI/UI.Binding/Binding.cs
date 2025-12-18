@@ -19,16 +19,16 @@
 
         private void OnDestChanged(object? sender, EventArgs e)
         {
-            object? srcValue = Source.Value;
-            object? dstValue = Dest.Value;
+            var srcValue = Source.Value;
+            var dstValue = Dest.Value;
             if (!Equals(srcValue, dstValue))
                 Source.Value = dstValue;
         }
 
         private void OnSourceChanged(object? sender, EventArgs e)
         {
-            object? srcValue = Source.Value;
-            object? dstValue = Dest.Value;
+            var srcValue = Source.Value;
+            var dstValue = Dest.Value;
             if (!Equals(srcValue, dstValue))
                 Dest.Value = srcValue;
         }

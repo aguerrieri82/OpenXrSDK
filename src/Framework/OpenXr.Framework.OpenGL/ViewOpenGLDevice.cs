@@ -15,7 +15,7 @@ namespace OpenXr.Framework.OpenGL
         {
             _view = view;
 
-            GraphicsBinding binding = _view.CreateOpenGLBinding();
+            var binding = _view.CreateOpenGLBinding();
             if (binding.Type == StructureType.GraphicsBindingOpenglWin32Khr)
             {
                 _hdc = binding.OpenGLWin32Khr.HDC;

@@ -34,7 +34,7 @@ namespace XrEditor
             {
                 if (_suspendUpdate > 0 || Binding == null)
                     return;
-                Vector3 curValue = Binding.Value;
+                var curValue = Binding.Value;
                 if (_isLocked)
                     EditValue = new Vector3(X.EditValue, X.EditValue, X.EditValue);
                 else
@@ -45,7 +45,7 @@ namespace XrEditor
             {
                 if (_suspendUpdate > 0 || Binding == null)
                     return;
-                Vector3 curValue = Binding.Value;
+                var curValue = Binding.Value;
                 if (_isLocked)
                     EditValue = new Vector3(Y.EditValue, Y.EditValue, Y.EditValue);
                 else
@@ -56,7 +56,7 @@ namespace XrEditor
             {
                 if (_suspendUpdate > 0 || Binding == null)
                     return;
-                Vector3 curValue = Binding.Value;
+                var curValue = Binding.Value;
                 if (_isLocked)
                     EditValue = new Vector3(Z.EditValue, Z.EditValue, Z.EditValue);
                 else

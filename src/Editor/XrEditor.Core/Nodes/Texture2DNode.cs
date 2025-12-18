@@ -27,7 +27,7 @@ namespace XrEditor.Nodes
 
             try
             {
-                RenderPreviewCreator preview = Context.Require<RenderPreviewCreator>();
+                var preview = Context.Require<RenderPreviewCreator>();
 
                 return await preview.Engine.Dispatcher.ExecuteAsync(() => preview.CreateTexture(_value));
             }
@@ -46,10 +46,10 @@ namespace XrEditor.Nodes
                 IsEnabled = true,
                 ExecuteCommand = new Command(async () =>
                 {
-                    SKBitmap? preview = await CreatePreviewAsync();
+                    var preview = await CreatePreviewAsync();
                     if (preview != null)
                     {
-                        using FileStream file = File.OpenWrite("d:\\out.png");
+                        using var file = File.OpenWrite("d:\\out.png");
                         preview.Encode(SKEncodedImageFormat.Png, 100).SaveTo(file);
                     }
                 })

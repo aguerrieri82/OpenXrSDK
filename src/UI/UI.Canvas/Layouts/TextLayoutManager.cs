@@ -51,23 +51,23 @@ namespace CanvasUI
 
         public static Layout Arrange(Size2 availSize, LayoutParams lp, string textStr)
         {
-            Layout result = new Layout
+            var result = new Layout
             {
                 Font = lp.Font,
                 LineSize = lp.LineSize,
                 AvailSize = availSize
             };
 
-            int i = 0;
-            ReadOnlySpan<char> text = textStr.AsSpan();
+            var i = 0;
+            var text = textStr.AsSpan();
 
-            StringBuilder curLine = new StringBuilder();
+            var curLine = new StringBuilder();
 
-            int lastBreakPoint = -1;
+            var lastBreakPoint = -1;
 
             float curY = 0;
 
-            List<LayoutLine> lines = new List<LayoutLine>();
+            var lines = new List<LayoutLine>();
 
             void NewLine()
             {
@@ -76,7 +76,7 @@ namespace CanvasUI
                 if (curLine.Length > 0 && curLine[^1] == ' ')
                     curLine.Length--;
 
-                LayoutLine newLine = new LayoutLine
+                var newLine = new LayoutLine
                 {
                     Text = curLine.ToString(),
                     Position = new Vector2(0, curY),
@@ -94,9 +94,9 @@ namespace CanvasUI
 
             while (i < text.Length)
             {
-                char c = text[i];
+                var c = text[i];
 
-                bool isWhite = char.IsWhiteSpace(c);
+                var isWhite = char.IsWhiteSpace(c);
 
                 switch (c)
                 {
@@ -116,7 +116,7 @@ namespace CanvasUI
 
                 if (isWhite || lp.Wrap == UiTextWrap.BreakWord)
                 {
-                    float curWidth = lp.Font.MeasureText(curLine.ToString());
+                    var curWidth = lp.Font.MeasureText(curLine.ToString());
 
                     if (curWidth > availSize.Width)
                     {
@@ -124,7 +124,7 @@ namespace CanvasUI
                             NewLine();
                         else if (lp.Wrap == UiTextWrap.Whitespaces)
                         {
-                            string missText = string.Empty;
+                            var missText = string.Empty;
                             if (lastBreakPoint != -1)
                             {
                                 missText = curLine.ToString().Substring(lastBreakPoint);
@@ -151,7 +151,7 @@ namespace CanvasUI
 
             if (lp.Alignment != UiAlignment.Start)
             {
-                foreach (ref LayoutLine line in result.Lines.AsSpan())
+                foreach (ref var line in result.Lines.AsSpan())
                 {
                     if (lp.Alignment == UiAlignment.Center)
                         line.Position.X = (result.CurrentSize.Width - line.Width) / 2;

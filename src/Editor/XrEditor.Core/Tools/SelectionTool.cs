@@ -29,7 +29,7 @@ namespace XrEditor
             if (_sceneView?.Scene == null)
                 return;
 
-            LayerManager layers = _sceneView.Scene.Layers;
+            var layers = _sceneView.Scene.Layers;
 
             _selectionLayer ??= layers.Add(new DetachedLayer()
             {
@@ -68,7 +68,7 @@ namespace XrEditor
                 _selectionLayer.BeginUpdate();
                 _selectionLayer.Clear();
 
-                IEnumerable<TriangleMesh> outlineMeshes = _lastSelection
+                var outlineMeshes = _lastSelection
                     .Select(a => a.Value)
                     .OfType<Object3D>()
                     .Where(a => a is not Scene3D)
@@ -78,7 +78,7 @@ namespace XrEditor
 
                 _lastOutline = outlineMeshes.ToHashSet();
 
-                foreach (TriangleMesh item in _lastOutline)
+                foreach (var item in _lastOutline)
                     _selectionLayer.Add(item);
 
                 _selectionLayer.EndUpdate();
@@ -111,12 +111,12 @@ namespace XrEditor
         {
             canvas.Save();
 
-            foreach (Object3D item in _lastSelection.Select(a => a.Value).OfType<Object3D>())
+            foreach (var item in _lastSelection.Select(a => a.Value).OfType<Object3D>())
             {
                 if (item is Scene3D)
                     continue;
 
-                ILocalBounds? local = item.Feature<ILocalBounds>();
+                var local = item.Feature<ILocalBounds>();
 
                 if (local != null)
                 {
@@ -131,7 +131,7 @@ namespace XrEditor
 
             }
 
-            Collision? collision = _lastCollision;
+            var collision = _lastCollision;
 
             if (collision != null)
             {
@@ -146,7 +146,7 @@ namespace XrEditor
                 if (collision.Tangent != null)
                 {
                     canvas.State.Color = new Color(0, 1, 1, 1);
-                    Vector3 tangent = new Vector3(collision.Tangent.Value.X, collision.Tangent.Value.Y, collision.Tangent.Value.Z).Normalize();
+                    var tangent = new Vector3(collision.Tangent.Value.X, collision.Tangent.Value.Y, collision.Tangent.Value.Z).Normalize();
 
                     tangent = tangent.Transform(collision.Object!.NormalMatrix).Normalize();
 

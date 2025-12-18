@@ -15,7 +15,7 @@ namespace XrEngine
 
         public static Texture2D FromHeightMap(TextureData data, float strength)
         {
-            using SKBitmap? skImage = ImageUtils.ToBitmap(data, false);
+            using var skImage = ImageUtils.ToBitmap(data, false);
 
             if (skImage == null)
                 throw new InvalidOperationException();
@@ -25,39 +25,39 @@ namespace XrEngine
 
         public static unsafe Texture2D FromHeightMap(SKBitmap img, float strength)
         {
-            using SKBitmap blurred = ImageUtils.ApplyGaussianBlur(img, 5);
+            using var blurred = ImageUtils.ApplyGaussianBlur(img, 5);
 
-            int width = blurred.Width;
-            int height = blurred.Height;
-            int pixelSize = blurred.BytesPerPixel;
+            var width = blurred.Width;
+            var height = blurred.Height;
+            var pixelSize = blurred.BytesPerPixel;
 
-            IMemoryBuffer<byte> res = MemoryBuffer.Create<byte>((uint)(width * height * 4));
+            var res = MemoryBuffer.Create<byte>((uint)(width * height * 4));
 
             fixed (byte* srcData = blurred.Bytes)
             {
-                byte* dstData = res.Lock();
+                var dstData = res.Lock();
 
 
-                for (int y = 1; y < height - 1; y++)
+                for (var y = 1; y < height - 1; y++)
                 {
-                    for (int x = 1; x < width - 1; x++)
+                    for (var x = 1; x < width - 1; x++)
                     {
-                        float tl = srcData[((y - 1) * width + (x - 1)) * pixelSize] / 255f;
-                        float t = srcData[((y - 1) * width + x) * pixelSize] / 255f;
-                        float tr = srcData[((y - 1) * width + (x + 1)) * pixelSize] / 255f;
-                        float l = srcData[(y * width + (x - 1)) * pixelSize] / 255f;
-                        float r = srcData[(y * width + (x + 1)) * pixelSize] / 255f;
-                        float bl = srcData[((y + 1) * width + (x - 1)) * pixelSize] / 255f;
-                        float b = srcData[((y + 1) * width + x) * pixelSize] / 255f;
-                        float br = srcData[((y + 1) * width + (x + 1)) * pixelSize] / 255f;
+                        var tl = srcData[((y - 1) * width + (x - 1)) * pixelSize] / 255f;
+                        var t = srcData[((y - 1) * width + x) * pixelSize] / 255f;
+                        var tr = srcData[((y - 1) * width + (x + 1)) * pixelSize] / 255f;
+                        var l = srcData[(y * width + (x - 1)) * pixelSize] / 255f;
+                        var r = srcData[(y * width + (x + 1)) * pixelSize] / 255f;
+                        var bl = srcData[((y + 1) * width + (x - 1)) * pixelSize] / 255f;
+                        var b = srcData[((y + 1) * width + x) * pixelSize] / 255f;
+                        var br = srcData[((y + 1) * width + (x + 1)) * pixelSize] / 255f;
 
                         // Compute gradients dx and dy using Sobel operator
-                        float dX = (tl + 2 * l + bl) - (tr + 2 * r + br);
-                        float dY = (tl + 2 * t + tr) - (bl + 2 * b + br);
+                        var dX = (tl + 2 * l + bl) - (tr + 2 * r + br);
+                        var dY = (tl + 2 * t + tr) - (bl + 2 * b + br);
 
-                        Vector3 normal = Vector3.Normalize(new Vector3(dX, dY, strength));
+                        var normal = Vector3.Normalize(new Vector3(dX, dY, strength));
 
-                        int dstOfs = (y * width + x) * 4;
+                        var dstOfs = (y * width + x) * 4;
 
                         dstData[dstOfs] = (byte)((normal.X * 0.5f + 0.5f) * 255);
                         dstData[dstOfs + 1] = (byte)((normal.Y * 0.5f + 0.5f) * 255);

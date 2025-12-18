@@ -20,7 +20,7 @@ namespace XrEditor.Services
             if (value is INodeProvider provider)
                 return provider.Node;
 
-            INodeHandler handler = _handlers.First(a => a.CanHandle(value));
+            var handler = _handlers.First(a => a.CanHandle(value));
             if (handler != null)
                 return handler.CreateNode(value);
 

@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Reflection;
 
 namespace XrEngine
 {
@@ -13,7 +12,7 @@ namespace XrEngine
         {
             Debug.WriteLine($"Create new {typeName}");
 
-            Type? type = FindType(typeName);
+            var type = FindType(typeName);
 
             if (type == null)
                 throw new NotSupportedException($"Type '{typeName}' not found");
@@ -23,9 +22,9 @@ namespace XrEngine
 
         public Type? FindType(string typeName)
         {
-            if (!_typeMap.TryGetValue(typeName, out Type? type))
+            if (!_typeMap.TryGetValue(typeName, out var type))
             {
-                foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 {
                     type = assembly.GetType(typeName);
                     if (type != null)

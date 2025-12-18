@@ -71,15 +71,15 @@ namespace XrMath
                 colorString = $"{colorString[0]}{colorString[0]}{colorString[1]}{colorString[1]}{colorString[2]}{colorString[2]}";
             }
 
-            int r = Convert.ToInt32(colorString.Substring(0, 2), 16);
-            int g = Convert.ToInt32(colorString.Substring(2, 2), 16);
-            int b = Convert.ToInt32(colorString.Substring(4, 2), 16);
-            int a = colorString.Length == 8 ? Convert.ToInt32(colorString.Substring(6, 2), 16) : 255;
+            var r = Convert.ToInt32(colorString.Substring(0, 2), 16);
+            var g = Convert.ToInt32(colorString.Substring(2, 2), 16);
+            var b = Convert.ToInt32(colorString.Substring(4, 2), 16);
+            var a = colorString.Length == 8 ? Convert.ToInt32(colorString.Substring(6, 2), 16) : 255;
 
-            float rf = r / 255f;
-            float gf = g / 255f;
-            float bf = b / 255f;
-            float af = a / 255f;
+            var rf = r / 255f;
+            var gf = g / 255f;
+            var bf = b / 255f;
+            var af = a / 255f;
 
             return new Color(rf, gf, bf, af);
         }

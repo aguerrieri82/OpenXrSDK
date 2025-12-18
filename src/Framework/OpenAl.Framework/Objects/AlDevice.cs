@@ -88,11 +88,11 @@ namespace OpenAl.Framework
 
         public static IList<string> ListDevices(bool onlyDefault)
         {
-            List<string> result = new List<string>();
+            var result = new List<string>();
 
-            if (_alc.TryGetExtension<Enumeration>(null, out Enumeration? enumeration))
+            if (_alc.TryGetExtension<Enumeration>(null, out var enumeration))
             {
-                GetEnumerationContextStringList devType = onlyDefault ? GetEnumerationContextStringList.DeviceSpecifiers :
+                var devType = onlyDefault ? GetEnumerationContextStringList.DeviceSpecifiers :
                               (GetEnumerationContextStringList)ALC_ALL_DEVICES_SPECIFIER;
 
                 result.AddRange(enumeration.GetStringList(devType));

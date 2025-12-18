@@ -20,7 +20,7 @@ namespace XrEngine
 
         public void Build()
         {
-            List<VertexData> vertices = new List<VertexData>();
+            var vertices = new List<VertexData>();
 
             void AddVertex(float x, float y)
             {
@@ -33,15 +33,15 @@ namespace XrEngine
                 });
             }
 
-            float step = 1f / Patches;
-            for (int x = 0; x < Patches; x++)
+            var step = 1f / Patches;
+            for (var x = 0; x < Patches; x++)
             {
-                float x1 = step * x;
-                float x2 = x1 + step;
-                for (int y = 0; y < Patches; y++)
+                var x1 = step * x;
+                var x2 = x1 + step;
+                for (var y = 0; y < Patches; y++)
                 {
-                    float y1 = step * y;
-                    float y2 = y1 + step;
+                    var y1 = step * y;
+                    var y2 = y1 + step;
                     AddVertex(x1, y1);
                     AddVertex(x2, y1);
                     AddVertex(x2, y2);

@@ -33,7 +33,7 @@ namespace XrEngine.UI
             _size = new Size2(1, 1);
             _sizeDirty = true;
 
-            Quad3D quad = new Quad3D();
+            var quad = new Quad3D();
             quad.FlipYUV();
 
             Geometry = quad;
@@ -42,7 +42,7 @@ namespace XrEngine.UI
 
         public void SetRenderTarget(nint imageId, uint width, uint height)
         {
-            if (!_targets.TryGetValue(imageId, out Texture2D? texture))
+            if (!_targets.TryGetValue(imageId, out var texture))
             {
                 texture = new Texture2D
                 {
@@ -74,16 +74,16 @@ namespace XrEngine.UI
         {
             Debug.Assert(_activeTexture != null);
 
-            SKSurface? surface = GetSurface(_activeTexture);
+            var surface = GetSurface(_activeTexture);
 
-            float scaleX = (_activeTexture.Width / _pixelSize.Width) * _dpiScale;
-            float scaleY = (_activeTexture.Height / _pixelSize.Height) * _dpiScale;
+            var scaleX = (_activeTexture.Width / _pixelSize.Width) * _dpiScale;
+            var scaleY = (_activeTexture.Height / _pixelSize.Height) * _dpiScale;
 
-            SKCanvas canvas = surface!.Canvas;
+            var canvas = surface!.Canvas;
 
             canvas.SetMatrix(SKMatrix.CreateScale(scaleX, scaleY));
 
-            ISurfaceProvider? surfaceProvider = _scene?.App?.Renderer as ISurfaceProvider;
+            var surfaceProvider = _scene?.App?.Renderer as ISurfaceProvider;
 
             surfaceProvider!.BeginDrawSurface();
 
@@ -103,10 +103,10 @@ namespace XrEngine.UI
 
         protected SKSurface CreateSurface(Texture2D texture, nint imageId = 0)
         {
-            SKSurface? surface = GetSurface(texture);
+            var surface = GetSurface(texture);
             surface?.Dispose();
 
-            ISurfaceProvider? surfaceProvider = _scene?.App?.Renderer as ISurfaceProvider;
+            var surfaceProvider = _scene?.App?.Renderer as ISurfaceProvider;
 
             if (surfaceProvider == null)
                 throw new NotSupportedException();

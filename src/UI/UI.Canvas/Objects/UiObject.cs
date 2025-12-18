@@ -19,23 +19,23 @@ namespace CanvasUI
 
         public static Dictionary<string, UiProperty> RegisterType(Type compType)
         {
-            if (_props.TryGetValue(compType, out Dictionary<string, UiProperty>? props))
+            if (_props.TryGetValue(compType, out var props))
                 return props;
 
             props = [];
 
-            foreach (PropertyInfo typeProp in compType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            foreach (var typeProp in compType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
             {
                 if (!typeProp.CanRead || !typeProp.CanWrite)
                     continue;
 
-                UiPropertyAttribute? propDesc = typeProp.GetCustomAttribute<UiPropertyAttribute>();
+                var propDesc = typeProp.GetCustomAttribute<UiPropertyAttribute>();
                 if (propDesc == null)
                     continue;
 
-                Type propType = typeof(UiProperty<>).MakeGenericType(typeProp.PropertyType);
+                var propType = typeof(UiProperty<>).MakeGenericType(typeProp.PropertyType);
 
-                UiProperty prop = (UiProperty)Activator.CreateInstance(propType, typeProp.Name, compType)!;
+                var prop = (UiProperty)Activator.CreateInstance(propType, typeProp.Name, compType)!;
 
                 prop.Flags = propDesc.Flags;
 
@@ -43,7 +43,7 @@ namespace CanvasUI
                     throw new InvalidCastException();
 
 
-                MethodInfo? onChanged = compType.GetMethod($"On{typeProp.Name}Changed", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, [typeProp.PropertyType, typeProp.PropertyType]);
+                var onChanged = compType.GetMethod($"On{typeProp.Name}Changed", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, [typeProp.PropertyType, typeProp.PropertyType]);
                 if (onChanged != null)
                     prop.OnChangedMethod = onChanged;
 
@@ -52,13 +52,13 @@ namespace CanvasUI
 
             }
 
-            Type? curBase = compType.BaseType;
+            var curBase = compType.BaseType;
 
             while (curBase != null && curBase != typeof(object))
             {
-                Dictionary<string, UiProperty> baseProps = RegisterType(curBase);
+                var baseProps = RegisterType(curBase);
 
-                foreach (KeyValuePair<string, UiProperty> prop in baseProps)
+                foreach (var prop in baseProps)
                     props[prop.Key] = prop.Value;
 
                 curBase = curBase.BaseType;
@@ -76,7 +76,7 @@ namespace CanvasUI
 
         public static UiProperty GetProperty(string name, Type ownerType)
         {
-            if (!_props.TryGetValue(ownerType, out Dictionary<string, UiProperty>? props))
+            if (!_props.TryGetValue(ownerType, out var props))
                 props = RegisterType(ownerType);
             return props[name];
         }
@@ -93,14 +93,14 @@ namespace CanvasUI
 
         public virtual void SetValue<T>(string propName, T? value)
         {
-            UiProperty<T> prop = GetProperty<T>(propName, GetType());
+            var prop = GetProperty<T>(propName, GetType());
 
             if (value != null && !prop.Type.IsAssignableFrom(value.GetType()))
                 throw new ArgumentException();
 
             _values ??= [];
 
-            T? oldValue = GetValue<T>(propName);
+            var oldValue = GetValue<T>(propName);
 
             _values[prop] = value;
 
@@ -113,9 +113,9 @@ namespace CanvasUI
 
         public virtual T? GetValue<T>(string propName)
         {
-            UiProperty<T> prop = GetProperty<T>(propName, GetType());
+            var prop = GetProperty<T>(propName, GetType());
 
-            if (_values != null && _values.TryGetValue(prop, out object? value))
+            if (_values != null && _values.TryGetValue(prop, out var value))
                 return (T?)value;
 
             if (prop.DefaultValue != null)
@@ -133,7 +133,7 @@ namespace CanvasUI
         {
             _bindings ??= [];
 
-            Binding result = new Binding(other, new UiPropertyInstance<TValue>(this, propName), mode);
+            var result = new Binding(other, new UiPropertyInstance<TValue>(this, propName), mode);
             _bindings.Add(result);
             return result;
         }
@@ -142,7 +142,7 @@ namespace CanvasUI
         {
             if (_bindings != null)
             {
-                foreach (Binding binding in _bindings)
+                foreach (var binding in _bindings)
                     binding.Dispose();
             }
 

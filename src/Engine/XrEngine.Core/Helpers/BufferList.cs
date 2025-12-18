@@ -15,7 +15,7 @@
 
         public unsafe int Add(T value)
         {
-            int index = _freeIndices.Count > 0 ? _freeIndices.Pop() : (int)_buffer.SizeBytes;
+            var index = _freeIndices.Count > 0 ? _freeIndices.Pop() : (int)_buffer.SizeBytes;
             if (index >= _capacity)
             {
                 _capacity += _blockSize;

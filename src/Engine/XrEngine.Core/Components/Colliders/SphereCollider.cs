@@ -17,23 +17,23 @@ namespace XrEngine
 
         public bool ContainsPoint(Vector3 worldPoint, float tolerance = 0f)
         {
-            Vector3 localPoint = _host!.ToLocal(worldPoint);
+            var localPoint = _host!.ToLocal(worldPoint);
 
             return Vector3.Distance(localPoint, Center) <= Radius;
         }
 
         public Collision? CollideWith(Ray3 ray)
         {
-            Ray3 localRay = ray.Transform(_host!.WorldMatrixInverse);
+            var localRay = ray.Transform(_host!.WorldMatrixInverse);
 
-            Sphere sphere = new Sphere(Center, Radius);
+            var sphere = new Sphere(Center, Radius);
 
-            Vector3? point = localRay.Intersects(sphere, out _);
+            var point = localRay.Intersects(sphere, out _);
 
             if (point == null)
                 return null;
 
-            Vector3 worldPoint = _host.ToWorld(point.Value);
+            var worldPoint = _host.ToWorld(point.Value);
 
             return new Collision
             {

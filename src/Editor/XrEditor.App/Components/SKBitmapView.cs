@@ -19,14 +19,14 @@ namespace XrEditor
 
             if (value != null)
             {
-                MemoryStream stream = new MemoryStream();
+                var stream = new MemoryStream();
 
                 lock (_encodeLock)
                     value.Encode(stream, SKEncodedImageFormat.Png, 100);
 
                 stream.Position = 0;
 
-                BitmapImage bitmap = new BitmapImage();
+                var bitmap = new BitmapImage();
 
                 bitmap.BeginInit();
                 bitmap.StreamSource = stream;

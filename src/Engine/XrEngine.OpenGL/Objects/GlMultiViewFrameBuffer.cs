@@ -59,7 +59,7 @@ namespace XrEngine.OpenGL
 
         static void BindFunctions(GL gl)
         {
-            gl.Context.TryGetProcAddress("glFramebufferTextureMultiviewOVR", out nint addr);
+            gl.Context.TryGetProcAddress("glFramebufferTextureMultiviewOVR", out var addr);
             FramebufferTextureMultiviewOVR = Marshal.GetDelegateForFunctionPointer<FramebufferTextureMultiviewOVRDelegate>(addr);
 
             gl.Context.TryGetProcAddress("glFramebufferTextureMultisampleMultiviewOVR", out addr);
@@ -87,7 +87,7 @@ namespace XrEngine.OpenGL
 
             if (_depth != null)
             {
-                FramebufferAttachment depthAtt = GlUtils.IsDepthStencil(_depth.InternalFormat) ?
+                var depthAtt = GlUtils.IsDepthStencil(_depth.InternalFormat) ?
                     FramebufferAttachment.DepthStencilAttachment :
                     FramebufferAttachment.DepthAttachment;
 
@@ -166,7 +166,7 @@ namespace XrEngine.OpenGL
                 _gl.CheckError();
             }
 
-            GLEnum status = _gl.CheckFramebufferStatus(Target);
+            var status = _gl.CheckFramebufferStatus(Target);
 
             if (status != GLEnum.FramebufferComplete)
             {
@@ -179,9 +179,9 @@ namespace XrEngine.OpenGL
             if (Color == null)
                 throw new NotSupportedException();
 
-            if (!_attachments.TryGetValue(slot, out IGlRenderAttachment? obj))
+            if (!_attachments.TryGetValue(slot, out var obj))
             {
-                GlTexture glTex = Color.Clone(false);
+                var glTex = Color.Clone(false);
 
                 Bind();
                 BindAttachment(glTex, slot, true);

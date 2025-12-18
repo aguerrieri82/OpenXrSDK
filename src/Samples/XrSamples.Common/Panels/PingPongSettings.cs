@@ -1,7 +1,6 @@
 ﻿using CanvasUI;
 using Microsoft.Extensions.Logging;
 using PhysX;
-using PhysX.Framework;
 using UI.Binding;
 using XrEngine;
 using XrEngine.Physics;
@@ -62,14 +61,14 @@ namespace XrSamples
 
         public void Apply(Object3D obj, PhysicSettings settings)
         {
-            RigidBody body = obj.Component<RigidBody>();
+            var body = obj.Component<RigidBody>();
 
             body.LengthToleranceScale = settings.LengthToleranceScale;
             body.EnableCCD = settings.EnableCCD;
             body.ContactReportThreshold = settings.ContactReportThreshold;
             body.ContactOffset = settings.ContactOffset;
 
-            PhysicsMaterialInfo curMat = body.MaterialInfo;
+            var curMat = body.MaterialInfo;
             curMat.Restitution = settings.Restitution;
             body.MaterialInfo = curMat;
 
@@ -78,9 +77,9 @@ namespace XrSamples
                 if (body.Type != PhysX.Framework.PhysicsActorType.Static)
                     body.DynamicActor.ContactReportThreshold = settings.ContactReportThreshold;
 
-                foreach (PhysicsShape shape in body.Actor.GetShapes())
+                foreach (var shape in body.Actor.GetShapes())
                 {
-                    PhysicsMaterial mat = shape.GetMaterials()[0];
+                    var mat = shape.GetMaterials()[0];
                     mat.Restitution = settings.Restitution;
                     shape.ContactOffset = settings.ContactOffset;
                 }
@@ -90,11 +89,11 @@ namespace XrSamples
 
         public override void Apply(Scene3D scene)
         {
-            PhysicsManager pyManager = scene.FeatureDeep<PhysicsManager>()!;
-            PhysicsSystem? system = pyManager.System;
-            Object3D? racket = scene.FindByName<Object3D>("Racket");
-            BallGenerator generator = scene.FeatureDeep<BallGenerator>()!;
-            TriangleMesh? mesh = scene.FindByName<TriangleMesh>("Mesh");
+            var pyManager = scene.FeatureDeep<PhysicsManager>()!;
+            var system = pyManager.System;
+            var racket = scene.FindByName<Object3D>("Racket");
+            var generator = scene.FeatureDeep<BallGenerator>()!;
+            var mesh = scene.FindByName<TriangleMesh>("Mesh");
 
             pyManager.Options.LengthTolerance = LengthToleranceScale;
             pyManager.Options.EnablePCM = EnablePCM;
@@ -116,7 +115,7 @@ namespace XrSamples
             Apply(racket!, Racket);
 
             generator.PhysicSettings = Ball;
-            foreach (TriangleMesh ball in generator.Balls)
+            foreach (var ball in generator.Balls)
                 Apply(ball, Ball);
 
 
@@ -129,7 +128,7 @@ namespace XrSamples
 
             scene.PerspectiveCamera().Exposure = Exposure;
 
-            ImageLight? light = scene.Descendants<ImageLight>().FirstOrDefault();
+            var light = scene.Descendants<ImageLight>().FirstOrDefault();
             if (light != null)
             {
                 light.Intensity = LightIntensity;
@@ -170,13 +169,13 @@ namespace XrSamples
     {
         public PingPongSettingsPanel(PingPongSettings settings, Scene3D scene)
         {
-            Binder<PingPongSettings> binder = new Binder<PingPongSettings>(settings);
+            var binder = new Binder<PingPongSettings>(settings);
 
             void Binder_PropertyChanged(PingPongSettings? obj, IProperty property, object? value, object? oldValue)
             {
                 if (property.Name!.Contains("BallMaterial"))
                 {
-                    BallGenerator generator = scene.FeatureDeep<BallGenerator>()!;
+                    var generator = scene.FeatureDeep<BallGenerator>()!;
 
                     (generator.Material as IPbrMaterial)!.Roughness = obj!.BallMaterial!.Roughness;
                     (generator.Material as IPbrMaterial)!.Metalness = obj!.BallMaterial!.Metallic;
@@ -189,7 +188,7 @@ namespace XrSamples
                 }
                 if (property.Name!.Contains("Light"))
                 {
-                    ImageLight light = scene.Descendants<ImageLight>().First();
+                    var light = scene.Descendants<ImageLight>().First();
                     light.Intensity = obj!.LightIntensity;
                     light.NotifyChanged(ObjectChangeType.Render);
                 }

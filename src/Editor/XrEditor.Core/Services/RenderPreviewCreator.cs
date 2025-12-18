@@ -35,7 +35,7 @@ namespace XrEditor.Services
 
 
             _scene = new Scene3D();
-            PerspectiveCamera camera = new PerspectiveCamera()
+            var camera = new PerspectiveCamera()
             {
                 Near = 0.01f,
                 Far = 5f,
@@ -84,12 +84,12 @@ namespace XrEditor.Services
 
             if (texture.Width == 0 || texture.Height == 0)
             {
-                AssetSource src = texture.Component<AssetSource>();
+                var src = texture.Component<AssetSource>();
                 if (src?.Asset != null)
                     src.Asset.Update(texture);
             }
 
-            Matrix3x3? curTransform = texture.Transform;
+            var curTransform = texture.Transform;
 
             try
             {
@@ -123,9 +123,9 @@ namespace XrEditor.Services
             _mesh.Materials.Add(material.Clone());
             _mesh.NotifyChanged(ObjectChangeType.Render);
 
-            float diagonal = geometry.Bounds.Size.Length();
-            float distance = diagonal / (2 * MathF.Tan((45f / 180f * MathF.PI) / 2));
-            Vector3 pos = geometry.Bounds.Center + distance * new Vector3(1, 1, 1).Normalize();
+            var diagonal = geometry.Bounds.Size.Length();
+            var distance = diagonal / (2 * MathF.Tan((45f / 180f * MathF.PI) / 2));
+            var pos = geometry.Bounds.Center + distance * new Vector3(1, 1, 1).Normalize();
             _scene.PerspectiveCamera().LookAt(pos, geometry.Bounds.Center, Vector3.UnitY);
 
             _app.ActiveScene!.Clear();
@@ -142,7 +142,7 @@ namespace XrEditor.Services
 
             _app.RenderFrame();
 
-            TextureData data = ((IFrameReader)_app.Renderer!).ReadFrame();
+            var data = ((IFrameReader)_app.Renderer!).ReadFrame();
 
             _engine.SetRenderTarget(null);
 

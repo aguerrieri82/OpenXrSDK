@@ -40,7 +40,7 @@ namespace XrEditor.Nodes
                 Editor = new BoolEditor(binder.Prop(a => a.IsVisible))
             });
 
-            Type curType = _value.GetType()!;
+            var curType = _value.GetType()!;
 
             while (curType != typeof(Object3D))
             {
@@ -51,7 +51,7 @@ namespace XrEditor.Nodes
 
         protected INode GetNode(object value)
         {
-            if (!_components.TryGetValue(value, out INode? node))
+            if (!_components.TryGetValue(value, out var node))
             {
                 node = Context.Require<NodeManager>().CreateNode(value);
                 _components.Add(node);
@@ -65,7 +65,7 @@ namespace XrEditor.Nodes
             {
                 yield return _components[Value.Transform];
 
-                foreach (IComponent component in _value.Components<IComponent>())
+                foreach (var component in _value.Components<IComponent>())
                     yield return GetNode(component);
             }
         }

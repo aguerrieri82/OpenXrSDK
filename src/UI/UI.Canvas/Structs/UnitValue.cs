@@ -22,9 +22,9 @@ namespace CanvasUI
 
         public UnitValue(string value)
         {
-            int unitIndex = -1;
+            var unitIndex = -1;
 
-            for (int i = 0; i < value.Length; i++)
+            for (var i = 0; i < value.Length; i++)
             {
                 if (!char.IsNumber(value[i]))
                 {
@@ -35,7 +35,7 @@ namespace CanvasUI
 
             if (unitIndex != -1)
             {
-                ReadOnlySpan<char> unit = value.AsSpan(unitIndex);
+                var unit = value.AsSpan(unitIndex);
                 Unit = unit switch
                 {
                     "dp" => Unit.Dp,

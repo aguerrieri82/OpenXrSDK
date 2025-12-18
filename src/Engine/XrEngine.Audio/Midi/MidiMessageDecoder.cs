@@ -7,7 +7,7 @@
             if (data.Length == 0)
                 return null;
 
-            byte status = data[0];
+            var status = data[0];
 
             return status switch
             {

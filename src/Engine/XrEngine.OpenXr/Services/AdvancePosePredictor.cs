@@ -20,18 +20,18 @@ namespace XrEngine.OpenXr
             if (_lastPose == null || _prevPose == null)
                 throw new InvalidOperationException("Not enough data to predict.");
 
-            Pose3 lastPose = _lastPose.Value;
+            var lastPose = _lastPose.Value;
 
             // Predict Position: Use velocity and acceleration
-            Vector3 predictedPosition = lastPose.Position +
+            var predictedPosition = lastPose.Position +
                                     _velocity * dt +
                                     0.5f * _acceleration * dt * dt;
 
             // Predict Orientation: Use angular velocity and acceleration
-            Vector3 angularDisplacement = _angularVelocity * dt +
+            var angularDisplacement = _angularVelocity * dt +
                                        0.5f * _angularAcceleration * dt * dt;
 
-            Quaternion predictedOrientation = lastPose.Orientation *
+            var predictedOrientation = lastPose.Orientation *
                 Quaternion.CreateFromAxisAngle(Vector3.Normalize(angularDisplacement), angularDisplacement.Length());
 
             return new Pose3
@@ -53,17 +53,17 @@ namespace XrEngine.OpenXr
             // Calculate velocity and acceleration only if there is enough data
             if (_prevPose.HasValue)
             {
-                float deltaTime = _lastTime - _prevTime;
+                var deltaTime = _lastTime - _prevTime;
                 if (deltaTime > 0)
                 {
                     // Linear velocity and acceleration
-                    Vector3 newVelocity = (_lastPose.Value.Position - _prevPose.Value.Position) / deltaTime;
+                    var newVelocity = (_lastPose.Value.Position - _prevPose.Value.Position) / deltaTime;
                     _acceleration = (_velocity == Vector3.Zero) ? Vector3.Zero : (newVelocity - _velocity) / deltaTime;
                     _velocity = newVelocity;
 
                     // Angular velocity and acceleration
-                    Quaternion deltaRotation = Quaternion.Conjugate(_prevPose.Value.Orientation) * _lastPose.Value.Orientation;
-                    Vector3 angularVelocity = QuaternionToAxisAngle(deltaRotation).Axis *
+                    var deltaRotation = Quaternion.Conjugate(_prevPose.Value.Orientation) * _lastPose.Value.Orientation;
+                    var angularVelocity = QuaternionToAxisAngle(deltaRotation).Axis *
                                           (QuaternionToAxisAngle(deltaRotation).Angle / deltaTime);
                     _angularAcceleration = (_angularVelocity == Vector3.Zero) ? Vector3.Zero : (angularVelocity - _angularVelocity) / deltaTime;
                     _angularVelocity = angularVelocity;
@@ -77,11 +77,11 @@ namespace XrEngine.OpenXr
             q = Quaternion.Normalize(q);
 
             // Calculate the angle (acos of w gives half the angle)
-            float angle = 2.0f * MathF.Acos(q.W);
-            float sinHalfAngle = MathF.Sqrt(1.0f - q.W * q.W);
+            var angle = 2.0f * MathF.Acos(q.W);
+            var sinHalfAngle = MathF.Sqrt(1.0f - q.W * q.W);
 
             // Avoid division by zero for very small angles
-            Vector3 axis = sinHalfAngle > 0.001f
+            var axis = sinHalfAngle > 0.001f
                 ? new Vector3(q.X, q.Y, q.Z) / sinHalfAngle
                 : Vector3.UnitX; // Default axis if no significant rotation
 

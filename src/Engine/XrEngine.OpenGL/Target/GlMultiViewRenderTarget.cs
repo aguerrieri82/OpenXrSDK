@@ -52,7 +52,7 @@ namespace XrEngine.OpenGL
 
         public void SetCamera(Camera camera)
         {
-            CameraEye[]? eyes = camera.Eyes;
+            var eyes = camera.Eyes;
 
             if (eyes == null)
                 return;

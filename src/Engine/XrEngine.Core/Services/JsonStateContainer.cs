@@ -35,7 +35,7 @@ namespace XrEngine
         {
             _context = new StateContext(new JsonObject());
             _state = [];
-            JsonObject refs = new JsonObject();
+            var refs = new JsonObject();
             _context.Main["Root"] = _state;
             _context.Main["Refs"] = refs;
             _context.RefTable.Container = new JsonStateContainer(_context, refs);
@@ -66,7 +66,7 @@ namespace XrEngine
 
             if (resolveRef && IsRef(key))
             {
-                ObjectId id = this.Read<ObjectId>(key);
+                var id = this.Read<ObjectId>(key);
                 return _context.RefTable.Container!.Enter(id.ToString());
             }
 
@@ -79,7 +79,7 @@ namespace XrEngine
             if (_state[key] == null)
                 return null;
 
-            ITypeStateManager? manager = TypeStateManager.Instance.Get(type);
+            var manager = TypeStateManager.Instance.Get(type);
             if (manager != null)
                 return manager.Read(key, curObj, type, this);
 
@@ -88,11 +88,11 @@ namespace XrEngine
 
         public readonly void Write(string key, object? value)
         {
-            bool mustSerialize = true;
+            var mustSerialize = true;
 
             if (value != null)
             {
-                ITypeStateManager? manager = TypeStateManager.Instance.Get(value.GetType());
+                var manager = TypeStateManager.Instance.Get(value.GetType());
                 if (manager != null)
                 {
                     manager.Write(key, value, this);
@@ -106,7 +106,7 @@ namespace XrEngine
 
         public readonly bool IsRef(string key)
         {
-            JsonNode? item = _state[key];
+            var item = _state[key];
             return item is JsonValue obj;
         }
 

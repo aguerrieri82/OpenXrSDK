@@ -18,7 +18,7 @@ namespace XrMath
 
         public static Spherical FromCartesian(Vector3 vector)
         {
-            Spherical res = new Spherical
+            var res = new Spherical
             {
                 R = vector.Length(),
                 Pol = MathF.Atan2(vector.Z, vector.X)

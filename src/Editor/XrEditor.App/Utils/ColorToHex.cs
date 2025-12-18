@@ -14,7 +14,7 @@ namespace XrEditor
 
             if (value is XrMath.Color color)
             {
-                System.Windows.Media.Color res = System.Windows.Media.Color.FromArgb((byte)(color.A * 255), (byte)(color.R * 255), (byte)(color.G * 255), (byte)(color.B * 255));
+                var res = System.Windows.Media.Color.FromArgb((byte)(color.A * 255), (byte)(color.R * 255), (byte)(color.G * 255), (byte)(color.B * 255));
                 if (typeof(Brush).IsAssignableFrom(targetType))
                     return new SolidColorBrush(res);
                 return res;

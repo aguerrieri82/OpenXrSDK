@@ -39,12 +39,12 @@ namespace XrSamples.Android.Activities
             SetContentView(ResourceConstant.Layout.activity_select);
 
             //Samples
-            SampleManager manager = XrEngine.Context.Require<SampleManager>();
+            var manager = XrEngine.Context.Require<SampleManager>();
             manager.AddType(typeof(XrSamples.Dnd.Builder));
 
             _samples = manager.List();
 
-            ListView listView = FindViewById<ListView>(ResourceConstant.Id.listView)!;
+            var listView = FindViewById<ListView>(ResourceConstant.Id.listView)!;
 
             listView.Adapter = new ArrayAdapter<string>(this,
                 global::Android.Resource.Layout.SimpleListItemSingleChoice,
@@ -53,7 +53,7 @@ namespace XrSamples.Android.Activities
             listView.ItemClick += OnSampleSelected;
 
             //MSAA
-            Spinner mssa = FindViewById<Spinner>(ResourceConstant.Id.msaa)!;
+            var mssa = FindViewById<Spinner>(ResourceConstant.Id.msaa)!;
             mssa.Adapter = new ArrayAdapter<int>(this,
                 global::Android.Resource.Layout.SimpleSpinnerItem,
                 [1, 2, 4]);
@@ -64,9 +64,9 @@ namespace XrSamples.Android.Activities
             };
 
             //HDRI
-            HDRInfo[] images = manager.GetHDRs().ToArray();
+            var images = manager.GetHDRs().ToArray();
 
-            Spinner hdris = FindViewById<Spinner>(ResourceConstant.Id.hdri)!;
+            var hdris = FindViewById<Spinner>(ResourceConstant.Id.hdri)!;
             hdris.Adapter = new ArrayAdapter<string>(this,
                 global::Android.Resource.Layout.SimpleSpinnerItem,
                 images.Select(a => a.Name!).ToArray());
@@ -80,7 +80,7 @@ namespace XrSamples.Android.Activities
             //Engine
             GraphicDriver[] engines = [GraphicDriver.OpenGL, GraphicDriver.FilamentVulkan, GraphicDriver.FilamentOpenGL];
 
-            Spinner engine = FindViewById<Spinner>(ResourceConstant.Id.engine)!;
+            var engine = FindViewById<Spinner>(ResourceConstant.Id.engine)!;
             engine.Adapter = new ArrayAdapter<GraphicDriver>(this,
                 global::Android.Resource.Layout.SimpleSpinnerItem,
                 engines);
@@ -92,7 +92,7 @@ namespace XrSamples.Android.Activities
 
             //MultiView
 
-            CheckBox mw = FindViewById<CheckBox>(ResourceConstant.Id.multi_view)!;
+            var mw = FindViewById<CheckBox>(ResourceConstant.Id.multi_view)!;
             mw.Checked = _settings.IsMultiView;
             mw.CheckedChange += (s, e) =>
             {
@@ -100,7 +100,7 @@ namespace XrSamples.Android.Activities
             };
 
             //Depth
-            CheckBox depth = FindViewById<CheckBox>(ResourceConstant.Id.depth)!;
+            var depth = FindViewById<CheckBox>(ResourceConstant.Id.depth)!;
             depth.Checked = _settings.EnableDepthPass;
             depth.CheckedChange += (s, e) =>
             {
@@ -108,7 +108,7 @@ namespace XrSamples.Android.Activities
             };
 
             //Pbr
-            CheckBox pbr = FindViewById<CheckBox>(ResourceConstant.Id.pbr2)!;
+            var pbr = FindViewById<CheckBox>(ResourceConstant.Id.pbr2)!;
             pbr.Checked = _settings.UsePbrV2;
             pbr.CheckedChange += (s, e) =>
             {
@@ -116,7 +116,7 @@ namespace XrSamples.Android.Activities
             };
 
             //Pbr
-            CheckBox sw = FindViewById<CheckBox>(ResourceConstant.Id.space_warp)!;
+            var sw = FindViewById<CheckBox>(ResourceConstant.Id.space_warp)!;
             sw.Checked = _settings.UseSpaceWarp;
             sw.CheckedChange += (s, e) =>
             {
@@ -126,7 +126,7 @@ namespace XrSamples.Android.Activities
 
         protected void StartGame()
         {
-            Intent intent = new Intent(this, typeof(GameActivity));
+            var intent = new Intent(this, typeof(GameActivity));
             intent.PutExtra("Settings", JsonSerializer.Serialize(_settings));
             StartActivity(intent);
         }

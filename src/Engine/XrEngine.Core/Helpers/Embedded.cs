@@ -21,10 +21,10 @@ namespace XrEngine
             if (!resName.StartsWith('/'))
                 resName = "." + resName;
 
-            string fullName = ctx.GetManifestResourceNames().Single(a => a.Contains(resName, StringComparison.CurrentCultureIgnoreCase));
+            var fullName = ctx.GetManifestResourceNames().Single(a => a.Contains(resName, StringComparison.CurrentCultureIgnoreCase));
 
-            using Stream? stream = ctx.GetManifestResourceStream(fullName);
-            using StreamReader reader = new StreamReader(stream!);
+            using var stream = ctx.GetManifestResourceStream(fullName);
+            using var reader = new StreamReader(stream!);
             return reader.ReadToEnd();
         }
     }

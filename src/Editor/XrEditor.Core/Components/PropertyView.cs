@@ -21,35 +21,35 @@ namespace XrEditor
 
         public static void CreateProperties(object obj, Type? objType, object? host, IList<PropertyView> result, INotifyPropertyChanged? propertyChanged)
         {
-            BindingFlags binding = BindingFlags.Public | BindingFlags.Instance;
+            var binding = BindingFlags.Public | BindingFlags.Instance;
 
             if (objType == null)
                 objType = obj.GetType();
             else
                 binding |= BindingFlags.DeclaredOnly;
 
-            PropertyEditorManager manager = Context.Require<PropertyEditorManager>();
+            var manager = Context.Require<PropertyEditorManager>();
 
-            foreach (FieldInfo field in objType.GetFields(binding))
+            foreach (var field in objType.GetFields(binding))
             {
                 if (!typeof(IProperty).IsAssignableFrom(field.FieldType))
                     continue;
 
-                Type? propType = field.FieldType
+                var propType = field.FieldType
                     .GetInterfaces()
                     .FirstOrDefault(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(IProperty<>));
 
                 if (propType == null)
                     continue;
 
-                Type valueType = propType.GetGenericArguments()[0];
+                var valueType = propType.GetGenericArguments()[0];
 
-                IPropertyEditor? editor = manager.CreateEditor(valueType, field.GetCustomAttributes());
+                var editor = manager.CreateEditor(valueType, field.GetCustomAttributes());
 
                 if (editor == null)
                     continue;
 
-                IProperty? fieldProp = (IProperty?)field.GetValue(obj);
+                var fieldProp = (IProperty?)field.GetValue(obj);
                 if (fieldProp == null)
                     continue;
 
@@ -61,7 +61,7 @@ namespace XrEditor
                 if (propertyChanged != null)
                     editor.Binding.Changed += (s, e) => propertyChanged.NotifyPropertyChanged(editor.Binding);
 
-                PropertyView propView = new PropertyView
+                var propView = new PropertyView
                 {
                     Label = field.Name,
                     Category = host != null ? obj.GetType().Name : null,
@@ -72,18 +72,18 @@ namespace XrEditor
             }
 
 
-            foreach (PropertyInfo prop in objType.GetProperties(binding))
+            foreach (var prop in objType.GetProperties(binding))
             {
                 if (!prop.CanWrite || !prop.CanRead)
                     continue;
 
-                IPropertyEditor? editor = manager.CreateEditor(prop.PropertyType, prop.GetCustomAttributes());
+                var editor = manager.CreateEditor(prop.PropertyType, prop.GetCustomAttributes());
 
                 if (editor == null)
                 {
                     if (prop.PropertyType.IsClass && prop.PropertyType != typeof(string))
                     {
-                        object? value = prop.GetValue(obj);
+                        var value = prop.GetValue(obj);
                         if (value != null)
                             CreateProperties(value, null, host ?? obj, result, propertyChanged);
                     }
@@ -91,14 +91,14 @@ namespace XrEditor
                     continue;
                 }
 
-                Type bindType = typeof(NotifyReflectionProperty<>).MakeGenericType(editor.ValueType);
+                var bindType = typeof(NotifyReflectionProperty<>).MakeGenericType(editor.ValueType);
 
                 editor.Binding = (IProperty)Activator.CreateInstance(bindType, prop, obj, host)!;
 
                 if (propertyChanged != null)
                     editor.Binding.Changed += (s, e) => propertyChanged.NotifyPropertyChanged(editor.Binding);
 
-                PropertyView propView = new PropertyView
+                var propView = new PropertyView
                 {
                     Label = prop.Name,
                     Category = host != null ? obj.GetType().Name : null,

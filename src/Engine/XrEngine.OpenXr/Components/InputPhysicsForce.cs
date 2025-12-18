@@ -67,7 +67,7 @@ namespace XrEngine.Physics
                 {
                     _host!.Scene!.ContainsPoint(Input.Value.Position, _checkObjects, null, Tollerance);
 
-                    foreach (Object3D obj in _checkObjects)
+                    foreach (var obj in _checkObjects)
                     {
                         if (!obj.TryComponent(out _rigidBody))
                             continue;
@@ -75,7 +75,7 @@ namespace XrEngine.Physics
                         if (_rigidBody.Type == PhysicsActorType.Static)
                             continue;
 
-                        IForceTarget? target = obj.Feature<IForceTarget>();
+                        var target = obj.Feature<IForceTarget>();
                         if (target == null)
                             continue;
 
@@ -100,9 +100,9 @@ namespace XrEngine.Physics
                 {
                     Debug.Assert(_object != null && _rigidBody != null);
 
-                    Vector3 startWorld = _object.ToWorld(_startDragLocal);
-                    Vector3 curWorlds = Input.Value.Position;
-                    Vector3 force = (curWorlds - startWorld) * Factor;
+                    var startWorld = _object.ToWorld(_startDragLocal);
+                    var curWorlds = Input.Value.Position;
+                    var force = (curWorlds - startWorld) * Factor;
 
                     _rigidBody.DynamicActor.AddForce(force, startWorld, PhysX.PxForceMode.Force);
 

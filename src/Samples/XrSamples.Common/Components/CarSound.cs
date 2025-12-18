@@ -40,22 +40,22 @@ namespace XrSamples
 
         public unsafe int Fill(Span<byte> data, float timeSec)
         {
-            int samplesProvided = 0;
+            var samplesProvided = 0;
 
             fixed (byte* pData = data)
             {
-                short* pShort = (short*)pData;
+                var pShort = (short*)pData;
 
                 while (samplesProvided < data.Length / 2)
                 {
                     _lastRpm += (Rpm - _lastRpm) * SmoothFactor;
 
-                    float curTime = timeSec + (samplesProvided / (float)Format.SampleRate);
+                    var curTime = timeSec + (samplesProvided / (float)Format.SampleRate);
 
-                    float frequency = 30 + _lastRpm * FrequencyFactor;
+                    var frequency = 30 + _lastRpm * FrequencyFactor;
 
                     // Generate the engine sound using a sawtooth wave (richer harmonics)
-                    float sampleValue = GenerateSawtoothWave(frequency, curTime);
+                    var sampleValue = GenerateSawtoothWave(frequency, curTime);
 
                     // Apply low-pass filter to simulate engine load
                     sampleValue = ApplyLowPassFilter(sampleValue);
@@ -74,15 +74,15 @@ namespace XrSamples
 
         private float GenerateSawtoothWave(float frequency, float time)
         {
-            float period = 1f / frequency;
-            float t = time % period;
+            var period = 1f / frequency;
+            var t = time % period;
             return 2f * (t / period) - 1f;
         }
 
         private float ApplyLowPassFilter(float input)
         {
             // Simple single-pole low-pass filter
-            float output = LowPassAlpha * input + (1f - LowPassAlpha) * _lastSample;
+            var output = LowPassAlpha * input + (1f - LowPassAlpha) * _lastSample;
             _lastSample = output;
             return output;
         }
@@ -134,19 +134,19 @@ namespace XrSamples
 
         public CarSoundV2()
         {
-            Path2 path = new Path2();
+            var path = new Path2();
             path.ParseSvgPath("M94.92343,327.20377c0,0 49.25465,-0.47464 58.92396,-1.38418c9.66931,-0.90954 19.87223,-4.79691 31.45914,-9.92189c30.0538,-13.29304 123.65848,-49.52857 146.03591,-56.0304c22.37742,-6.50183 78.53462,-16.79634 116.31143,-19.88525c16.26465,-1.32992 50.68774,-3.56868 58.35304,-3.85481c7.6653,-0.28614 16.32354,0.02712 19.03093,1.30367c2.70739,1.27655 6.71171,5.9732 9.356,10.02931c2.64429,4.05611 20.62308,30.88793 21.98103,40.79565");
 
-            Bounds2 pathBounds = path.Bounds();
+            var pathBounds = path.Bounds();
 
-            DiscreteFunction func = path.ToFunctionY(0.1f, -1);
+            var func = path.ToFunctionY(0.1f, -1);
 
-            IAssetStore asset = Context.Require<IAssetStore>();
+            var asset = Context.Require<IAssetStore>();
 
-            string soundPath = asset.GetPath("CarSound.wav");
-            WavReader reader = new WavReader();
-            using FileStream stream = File.OpenRead(soundPath);
-            AudioData data = reader.Decode(stream);
+            var soundPath = asset.GetPath("CarSound.wav");
+            var reader = new WavReader();
+            using var stream = File.OpenRead(soundPath);
+            var data = reader.Decode(stream);
 
             /*
             if (XrPlatform.IsEditor)
@@ -167,7 +167,7 @@ namespace XrSamples
                 //OffsetMap = JsonSerializer.Deserialize<Dictionary<string, int>>(File.ReadAllText(asset.GetPath("loops.json")).Replace("0,2","0.2"))!
             };
 
-            float time = _slicer.TimeForValue(100);
+            var time = _slicer.TimeForValue(100);
 
             Loop = new AudioData(data.Format, _buffer);
             SmoothFactor = 0.02f;
@@ -179,7 +179,7 @@ namespace XrSamples
 
         protected override void LoadNextBuffer()
         {
-            int rnd = (int)(10 * new Random().NextSingle());
+            var rnd = (int)(10 * new Random().NextSingle());
             _slicer.FillBuffer(Rpm + 0, SliceLen, ref _buffer);
             LoadBuffer(_buffer);
         }

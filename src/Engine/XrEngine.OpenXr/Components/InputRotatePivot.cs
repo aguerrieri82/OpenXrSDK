@@ -29,7 +29,7 @@ namespace XrEngine.OpenXr
 
             Process(Left, LeftClick, LeftHaptic, ref _left);
             Process(Right, RightClick, RightHaptic, ref _right);
-            Vector3 cart = new Spherical() { Azm = MathF.PI / 2, Pol = MathF.PI / 2, R = 1 }.ToCartesian();
+            var cart = new Spherical() { Azm = MathF.PI / 2, Pol = MathF.PI / 2, R = 1 }.ToCartesian();
 
         }
 
@@ -39,15 +39,15 @@ namespace XrEngine.OpenXr
             if (!pose.IsActive || !click.IsActive || pose.Value.Orientation.W == 0)
                 return false;
 
-            Vector3 wordPivot = _host!.ToWorld(LocalPivot);
+            var wordPivot = _host!.ToWorld(LocalPivot);
 
-            Vector3 curDir = (pose.Value.Position - wordPivot).Normalize();
+            var curDir = (pose.Value.Position - wordPivot).Normalize();
 
-            pose.Value.Orientation.AxisAndAngle(out Vector3 inputDir, out float curAngleUnsigned);
+            pose.Value.Orientation.AxisAndAngle(out var inputDir, out var curAngleUnsigned);
 
-            int curSign = MathF.Sign(Vector3.Dot(curDir, inputDir));
+            var curSign = MathF.Sign(Vector3.Dot(curDir, inputDir));
 
-            float curAngle = curAngleUnsigned * (status.IsMoving ? status.StartAngleSign : curSign);
+            var curAngle = curAngleUnsigned * (status.IsMoving ? status.StartAngleSign : curSign);
 
             status.LastPos = pose.Value.Position;
 
@@ -65,7 +65,7 @@ namespace XrEngine.OpenXr
                 if (!click.Value)
                     return false;
 
-                foreach (ICollider3D? collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
+                foreach (var collider in _host!.Components<ICollider3D>().Where(a => a.IsEnabled))
                 {
                     if (collider.ContainsPoint(pose.Value.Position, 0.04f))
                     {
@@ -85,22 +85,22 @@ namespace XrEngine.OpenXr
                 return false;
             }
 
-            float movAngle = MathF.Acos(status.StartDir.DotNormal(curDir));
+            var movAngle = MathF.Acos(status.StartDir.DotNormal(curDir));
             if (movAngle >= MathF.PI / 5 || curSign != status.StartAngleSign)
             {
                 Checkpoint(ref status);
                 return true;
             }
 
-            float deltaAng = (curAngle - status.StartAngle);
+            var deltaAng = (curAngle - status.StartAngle);
 
-            Quaternion rollRot = MathF.Abs(deltaAng) < 0.0001f ? Quaternion.Identity :
+            var rollRot = MathF.Abs(deltaAng) < 0.0001f ? Quaternion.Identity :
                           Quaternion.CreateFromAxisAngle(curDir, deltaAng);
 
 
             _host!.Transform.SetLocalPivot(LocalPivot, true);
 
-            Quaternion newOri = rollRot *
+            var newOri = rollRot *
                                 status.StartDir.RotationTowards(curDir, Normal) *
                                 status.StartOrientation;
 
@@ -125,7 +125,7 @@ namespace XrEngine.OpenXr
        
             canvas.State.Color = "#0000FF";
                */
-            Vector3 wordPivot = _host!.ToWorld(LocalPivot);
+            var wordPivot = _host!.ToWorld(LocalPivot);
 
 
             if (_left.IsMoving)
@@ -149,15 +149,15 @@ namespace XrEngine.OpenXr
         [Action]
         public void StartMove()
         {
-            Vector3 wordPivot = _host!.ToWorld(LocalPivot);
+            var wordPivot = _host!.ToWorld(LocalPivot);
 
-            Vector3 curPos = wordPivot + Vector3.UnitX.Transform(_host!.WorldOrientation).Normalize() * 0.3f;
+            var curPos = wordPivot + Vector3.UnitX.Transform(_host!.WorldOrientation).Normalize() * 0.3f;
 
-            Vector3 axis = (curPos - wordPivot).Normalize();
+            var axis = (curPos - wordPivot).Normalize();
 
-            Vector3 direction = axis.Normalize();
+            var direction = axis.Normalize();
 
-            Spherical curDir = Spherical.FromCartesian(direction);
+            var curDir = Spherical.FromCartesian(direction);
 
             _left.IsMoving = true;
             _left.StartOrientation = _host!.WorldOrientation;

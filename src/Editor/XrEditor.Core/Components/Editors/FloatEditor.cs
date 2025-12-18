@@ -87,11 +87,11 @@ namespace XrEditor
 
         public IPropertyEditor CreateEditor(Type type, IEnumerable<Attribute> attributes)
         {
-            RangeAttribute? range = attributes.OfType<RangeAttribute>().FirstOrDefault();
+            var range = attributes.OfType<RangeAttribute>().FirstOrDefault();
 
-            ValueType valueType = attributes.OfType<ValueTypeAttribute>().FirstOrDefault()?.Type ?? ValueType.None;
+            var valueType = attributes.OfType<ValueTypeAttribute>().FirstOrDefault()?.Type ?? ValueType.None;
 
-            FloatEditor result = new FloatEditor();
+            var result = new FloatEditor();
 
             if (range != null)
             {

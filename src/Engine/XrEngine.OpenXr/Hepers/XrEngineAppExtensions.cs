@@ -66,10 +66,10 @@ namespace XrEngine.OpenXr
 
             self.ConfigureApp(e =>
              {
-                 IXrBasicInteractionProfile inputs = e.GetInputs<IXrBasicInteractionProfile>();
+                 var inputs = e.GetInputs<IXrBasicInteractionProfile>();
                  XrInteractionProfileHand curHand = hand == ControllerHand.Left ? inputs.Left! : inputs.Right!;
 
-                 XrInputPointer pointer = new XrInputPointer
+                 var pointer = new XrInputPointer
                  {
                      PoseInput = curHand.AimPose,
                      RightButton = curHand.SqueezeClick!,
@@ -80,7 +80,7 @@ namespace XrEngine.OpenXr
 
                  target ??= e.App.ActiveScene!.AddComponent<SceneTeleportTarget>();
 
-                 InputTeleport teleport = new InputTeleport()
+                 var teleport = new InputTeleport()
                  {
                      Pointer = pointer,
                      IsTriggerActive = trigger,
@@ -94,7 +94,7 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder AddRightPointer(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
         {
-            IXrBasicInteractionProfile? inputs = e.Inputs;
+            var inputs = e.Inputs;
 
             e.App.ActiveScene!.AddComponent(new XrInputPointer
             {
@@ -110,9 +110,9 @@ namespace XrEngine.OpenXr
 
         public static XrEngineAppBuilder UseRayCollider(this XrEngineAppBuilder self, string pointerName = "RightController") => self.ConfigureApp(e =>
         {
-            XrOculusTouchController inputs = e.GetInputs<XrOculusTouchController>();
+            var inputs = e.GetInputs<XrOculusTouchController>();
 
-            RayPointerCollider rayCol = e.App!.ActiveScene!.AddComponent(new RayPointerCollider() { PointerName = pointerName });
+            var rayCol = e.App!.ActiveScene!.AddComponent(new RayPointerCollider() { PointerName = pointerName });
         });
 
         public static XrEngineAppBuilder UseHands(this XrEngineAppBuilder self) => self.ConfigureApp(e =>
@@ -126,7 +126,7 @@ namespace XrEngine.OpenXr
             UseRightController().
             ConfigureApp(e =>
         {
-            XrOculusTouchController inputs = e.GetInputs<XrOculusTouchController>();
+            var inputs = e.GetInputs<XrOculusTouchController>();
 
             e.App!.ActiveScene!.AddComponent(new InputGrabber(
                 inputs.Right!.GripPose!,
@@ -140,16 +140,16 @@ namespace XrEngine.OpenXr
                 inputs.Left!.SqueezeValue!,
                 inputs.Left!.TriggerValue!));
 
-            foreach (OculusHandView hand in e.App.ActiveScene.Descendants<OculusHandView>())
+            foreach (var hand in e.App.ActiveScene.Descendants<OculusHandView>())
                 hand.AddComponent(new HandGrabber());
         });
 
 
         public static XrEngineAppBuilder UseSceneMesh(this XrEngineAppBuilder self, bool arMode, bool addPhysics = true) => self.ConfigureApp(e =>
         {
-            OculusSceneView sceneView = new OculusSceneView();
+            var sceneView = new OculusSceneView();
 
-            DefaultSceneModelFactory factory = (DefaultSceneModelFactory)sceneView.Factory;
+            var factory = (DefaultSceneModelFactory)sceneView.Factory;
 
             Material? material = null;
             if (arMode)
@@ -267,14 +267,14 @@ namespace XrEngine.OpenXr
                 if (e.App.Renderer is not OpenGLRender openGl)
                     return;
 
-                XrPassthroughLayer? passTh = e.XrApp.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
+                var passTh = e.XrApp.Layers.List.OfType<XrPassthroughLayer>().FirstOrDefault();
                 if (passTh == null)
                 {
                     passTh = new XrPassthroughLayer();
                     e.XrApp.Layers.List.Insert(0, passTh);
                 }
 
-                Camera? camera = e.App.ActiveScene?.ActiveCamera;
+                var camera = e.App.ActiveScene?.ActiveCamera;
                 camera?.AddComponent(new OculusEnvDepthProvider(e.XrApp));
             });
             return self;

@@ -24,7 +24,7 @@ namespace XrEditor
                 MaterialCachePath = "d:\\Materials",
             });
 
-            FilamentLib.GraphicContextInfo ctx = _render.GetContext();
+            var ctx = _render.GetContext();
 
             _hdc = ctx.WinGl.HDc;
             _glCtx = ctx.WinGl.GlCTx;

@@ -52,14 +52,14 @@ namespace OpenXr.Framework.OpenGL
 
         public GraphicsBinding CreateBinding()
         {
-            GraphicsRequirementsOpenGLKHR req = new GraphicsRequirementsOpenGLKHR
+            var req = new GraphicsRequirementsOpenGLKHR
             {
                 Type = StructureType.GraphicsRequirementsOpenglKhr
             };
 
             _app!.CheckResult(_openGl!.GetOpenGlgraphicsRequirements(_app!.Instance, _app.SystemId, ref req), "GetOpenGlgraphicsRequirements");
 
-            GraphicsBinding binding = new GraphicsBinding
+            var binding = new GraphicsBinding
             {
                 OpenGLWin32Khr = new GraphicsBindingOpenGLWin32KHR
                 {

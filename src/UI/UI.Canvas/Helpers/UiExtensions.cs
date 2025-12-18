@@ -44,7 +44,7 @@ namespace CanvasUI
 
         public static IEnumerable<UiElement> VisualAncestorsAndSelf(this UiElement? self)
         {
-            UiElement? curElement = self;
+            var curElement = self;
 
             while (curElement != null)
             {
@@ -65,9 +65,9 @@ namespace CanvasUI
                 if (curItem.ActualStyle.Visibility == UiVisibility.Visible &&
                     curItem.ClientRect.Contains(point))
                 {
-                    foreach (UiElement child in curItem.VisualChildren)
+                    foreach (var child in curItem.VisualChildren)
                     {
-                        UiElement? childRes = Visit(child);
+                        var childRes = Visit(child);
                         if (childRes != null)
                             return childRes;
                     }
@@ -113,7 +113,7 @@ namespace CanvasUI
         }
         public static T AddChild<T>(this UiContainer self) where T : UiElement, new()
         {
-            T res = new T();
+            var res = new T();
             self.AddChild(res);
             return res;
         }

@@ -25,10 +25,10 @@ namespace XrEngine
         {
             Debug.Assert(_cacheBasePath != null);
 
-            string fullPath = Path.GetFullPath(Path.Combine(_cacheBasePath, fileName));
+            var fullPath = Path.GetFullPath(Path.Combine(_cacheBasePath, fileName));
             if (!File.Exists(fullPath))
                 return false;
-            T texture = AssetLoader.Instance.Load<T>(fullPath);
+            var texture = AssetLoader.Instance.Load<T>(fullPath);
             onLoad(texture);
             return true;
         }
@@ -40,16 +40,16 @@ namespace XrEngine
 
             Directory.CreateDirectory(_cacheBasePath!);
 
-            string fullPath = Path.Combine(_cacheBasePath, fileName);
+            var fullPath = Path.Combine(_cacheBasePath, fileName);
 
-            IList<TextureData>? data = EngineApp.Current!.Renderer!.ReadTexture(texture, texture.Format, 0, null);
+            var data = EngineApp.Current!.Renderer!.ReadTexture(texture, texture.Format, 0, null);
             if (data == null)
                 return false;
 
             if (File.Exists(fullPath))
                 File.Delete(fullPath);
 
-            using FileStream file = File.OpenWrite(fullPath);
+            using var file = File.OpenWrite(fullPath);
 
             PvrTranscoder.Instance.SaveTexture(file, data!);
 
@@ -58,24 +58,24 @@ namespace XrEngine
 
         public void LoadPanorama(string hdrUri)
         {
-            Uri uri = new Uri(hdrUri);
-            BaseTextureLoader loader = (BaseTextureLoader)AssetLoader.Instance.GetLoader(uri);
+            var uri = new Uri(hdrUri);
+            var loader = (BaseTextureLoader)AssetLoader.Instance.GetLoader(uri);
 
             if (UseCache)
             {
                 if (hdrUri.StartsWith("res://asset/"))
                 {
-                    string localPath = new Uri(hdrUri).LocalPath;
+                    var localPath = new Uri(hdrUri).LocalPath;
                     hdrUri = Context.Require<IAssetStore>().GetPath(localPath);
                 }
 
-                FileInfo info = new FileInfo(hdrUri);
+                var info = new FileInfo(hdrUri);
 
-                string baseName = $"{info.Name}_{info.Length}"; // _{info.LastWriteTime:yyyyMMddhhmmss}";
+                var baseName = $"{info.Name}_{info.Length}"; // _{info.LastWriteTime:yyyyMMddhhmmss}";
 
                 _cacheBasePath = Path.Combine(Context.Require<IPlatform>().CachePath, "IBL", baseName);
 
-                bool cacheValid = LoadCacheTexture<TextureCube>("lamb.pvr", a => Textures.LambertianEnv = a) &&
+                var cacheValid = LoadCacheTexture<TextureCube>("lamb.pvr", a => Textures.LambertianEnv = a) &&
                                  LoadCacheTexture<TextureCube>("ggx.pvr", a => Textures.GGXEnv = a) &&
                                  LoadCacheTexture<TextureCube>("env.pvr", a => Textures.Env = a) &&
                                  LoadCacheTexture<Texture2D>("ggx_lut.pvr", a => Textures.GGXLUT = a);

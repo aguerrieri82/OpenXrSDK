@@ -21,7 +21,7 @@
 
         public string GetPath(string name)
         {
-            IAssetStore store = FindStore(name);
+            var store = FindStore(name);
             return store.GetPath(name);
         }
 
@@ -37,13 +37,13 @@
 
         public Stream Open(string name)
         {
-            IAssetStore store = FindStore(name);
+            var store = FindStore(name);
             return store.Open(name);
         }
 
         public static MergedAssetStore FromLocalPaths(params string[] paths)
         {
-            MergedAssetStore store = new MergedAssetStore();
+            var store = new MergedAssetStore();
             store._stores.AddRange(paths.Select(a => new LocalAssetStore(a)));
             return store;
         }

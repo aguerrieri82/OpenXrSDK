@@ -68,13 +68,13 @@ namespace CanvasUI
                 return;
             }
 
-            bool hasFixedSize = ActualStyle.Width.HasValue && ActualStyle.Height.HasValue;
+            var hasFixedSize = ActualStyle.Width.HasValue && ActualStyle.Height.HasValue;
 
-            UnitRectValue padding = ActualStyle.Padding.Value;
-            UnitRectValue margin = ActualStyle.Margin.Value;
-            BorderRectValue border = ActualStyle.Border.Value;
+            var padding = ActualStyle.Padding.Value;
+            var margin = ActualStyle.Margin.Value;
+            var border = ActualStyle.Border.Value;
 
-            Rect2 measureRect = new Rect2(0, 0, availSize.Width, availSize.Height);
+            var measureRect = new Rect2(0, 0, availSize.Width, availSize.Height);
 
             ApplySizeLimit(ref measureRect);
 
@@ -179,7 +179,7 @@ namespace CanvasUI
             }
             else if (ev.Dispatch == UiEventDispatch.Tunnel)
             {
-                foreach (UiElement child in VisualChildren)
+                foreach (var child in VisualChildren)
                     child.DispatchEvent(ev);
             }
 
@@ -259,7 +259,7 @@ namespace CanvasUI
 
         protected internal void OnStyleChanged(string propName, IStyleValue value, IStyleValue oldValue)
         {
-            UiProperty prop = GetProperty(propName, typeof(UiStyle));
+            var prop = GetProperty(propName, typeof(UiStyle));
             if ((prop.Flags & UiPropertyFlags.Layout) == UiPropertyFlags.Layout)
                 InvalidateLayout();
             IsDirty = true;
@@ -318,13 +318,13 @@ namespace CanvasUI
 
         public UiStyle StateActualStyle(UiControlState state)
         {
-            string propName = string.Concat("_ActualStyle", state);
-            UiStyle? value = GetValue<UiStyle>(propName);
+            var propName = string.Concat("_ActualStyle", state);
+            var value = GetValue<UiStyle>(propName);
             if (value == null)
             {
-                string stylePropName = string.Concat("_Style", state);
+                var stylePropName = string.Concat("_Style", state);
 
-                UiStyle? styleValue = GetValue<UiStyle>(stylePropName);
+                var styleValue = GetValue<UiStyle>(stylePropName);
                 if (styleValue == null)
                     return _actualStyle;
 
@@ -338,8 +338,8 @@ namespace CanvasUI
 
         public UiStyle StateStyle(UiControlState state)
         {
-            string propName = string.Concat("_Style", state);
-            UiStyle? value = GetValue<UiStyle>(propName);
+            var propName = string.Concat("_Style", state);
+            var value = GetValue<UiStyle>(propName);
             if (value == null)
             {
                 value = new UiStyle(this) { BaseStyle = () => Style };
@@ -356,7 +356,7 @@ namespace CanvasUI
             if (_parent != null)
                 _parent.RemoveChild(this);
 
-            foreach (UiElement child in VisualChildren)
+            foreach (var child in VisualChildren)
             {
                 child.Host = null;
                 child.Dispose();

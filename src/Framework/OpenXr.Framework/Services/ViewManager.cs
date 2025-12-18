@@ -26,7 +26,7 @@ namespace OpenXr.Framework
         [MemberNotNull(nameof(_view))]
         protected void CreateWindow()
         {
-            WindowOptions options = WindowOptions.Default;
+            var options = WindowOptions.Default;
             options.IsVisible = false;
             _view = Window.Create(options);
         }

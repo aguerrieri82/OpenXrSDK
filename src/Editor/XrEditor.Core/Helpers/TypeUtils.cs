@@ -17,17 +17,17 @@ namespace XrEditor
 
         public static IEnumerable<TypeInfo> GetTypes(Type baseType)
         {
-            AssemblyName curAss = baseType.Assembly.GetName();
+            var curAss = baseType.Assembly.GetName();
 
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                AssemblyName[] refAss = assembly.GetReferencedAssemblies();
+                var refAss = assembly.GetReferencedAssemblies();
 
                 if (baseType.Assembly != assembly && (refAss == null ||
                     !refAss.Any(a => a.FullName == curAss.FullName)))
                     continue;
 
-                foreach (Type type in assembly.GetTypes())
+                foreach (var type in assembly.GetTypes())
                 {
                     if (!baseType.IsAssignableFrom(type))
                         continue;
@@ -35,11 +35,11 @@ namespace XrEditor
                     if (type.IsAbstract)
                         continue;
 
-                    ConstructorInfo? constr = type.GetConstructor([]);
+                    var constr = type.GetConstructor([]);
                     if (constr == null)
                         continue;
 
-                    DisplayNameAttribute? dispName = type.GetCustomAttribute<DisplayNameAttribute>();
+                    var dispName = type.GetCustomAttribute<DisplayNameAttribute>();
 
                     yield return new TypeInfo
                     {

@@ -39,21 +39,21 @@ namespace Fftw
 
         public static void Dft(FftwBuffer<double> inData, FftwBuffer<Complex> outData, DftFlags flags = DftFlags.FFTW_ESTIMATE)
         {
-            nint result = fftw_plan_dft_r2c_1d(inData.Length, inData.Pointer, outData.Pointer, flags);
+            var result = fftw_plan_dft_r2c_1d(inData.Length, inData.Pointer, outData.Pointer, flags);
             fftw_execute(result);
             fftw_destroy_plan(result);
         }
 
         public static void Dft(FftwBuffer<Complex> inData, FftwBuffer<double> outData, DftFlags flags = DftFlags.FFTW_ESTIMATE)
         {
-            nint result = fftw_plan_dft_c2r_1d(outData.Length, inData.Pointer, outData.Pointer, flags);
+            var result = fftw_plan_dft_c2r_1d(outData.Length, inData.Pointer, outData.Pointer, flags);
             fftw_execute(result);
             fftw_destroy_plan(result);
         }
 
         public static FftwPlan DftPlan(FftwBuffer<double> inData, FftwBuffer<Complex> outData, DftFlags flags = DftFlags.FFTW_ESTIMATE)
         {
-            nint result = fftw_plan_dft_r2c_1d(inData.Length, inData.Pointer, outData.Pointer, flags);
+            var result = fftw_plan_dft_r2c_1d(inData.Length, inData.Pointer, outData.Pointer, flags);
             return new FftwPlan(result);
         }
     }

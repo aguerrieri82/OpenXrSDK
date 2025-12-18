@@ -6,12 +6,12 @@ namespace XrEngine.Devices.Windows
     {
         public IList<MidiDeviceInfo> FindDevices()
         {
-            List<MidiDeviceInfo> list = new List<MidiDeviceInfo>();
+            var list = new List<MidiDeviceInfo>();
 
-            int outCount = (int)Win32.midiOutGetNumDevs();
+            var outCount = (int)Win32.midiOutGetNumDevs();
             for (uint i = 0; i < (uint)outCount; ++i)
             {
-                Win32.midiOutGetDevCaps(i, out Win32.MidiOutCaps caps, (uint)Marshal.SizeOf<Win32.MidiOutCaps>());
+                Win32.midiOutGetDevCaps(i, out var caps, (uint)Marshal.SizeOf<Win32.MidiOutCaps>());
 
                 list.Add(new MidiDeviceInfo
                 {
@@ -21,10 +21,10 @@ namespace XrEngine.Devices.Windows
                 });
             }
 
-            int inCount = (int)Win32.midiInGetNumDevs();
+            var inCount = (int)Win32.midiInGetNumDevs();
             for (uint i = 0; i < (uint)inCount; ++i)
             {
-                Win32.midiInGetDevCaps(i, out Win32.MidiInCaps caps, (uint)Marshal.SizeOf<Win32.MidiInCaps>());
+                Win32.midiInGetDevCaps(i, out var caps, (uint)Marshal.SizeOf<Win32.MidiInCaps>());
 
                 list.Add(new MidiDeviceInfo
                 {
@@ -42,14 +42,14 @@ namespace XrEngine.Devices.Windows
             if (string.IsNullOrEmpty(id))
                 return null;
 
-            string[] parts = id.Split(':', 2);
+            var parts = id.Split(':', 2);
             if (parts.Length != 2)
                 return null;
 
-            if (!uint.TryParse(parts[1], out uint index))
+            if (!uint.TryParse(parts[1], out var index))
                 return null;
 
-            string kind = parts[0].ToLowerInvariant();
+            var kind = parts[0].ToLowerInvariant();
 
             if (kind == "out")
                 return new WinMidiDevice(isOutput: true, index, id);

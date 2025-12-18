@@ -23,14 +23,14 @@ namespace XrSamples.Earth
         public static Vector2 NormalToUV(Vector3 normal)
         {
             // Compute longitude (λ) and latitude (φ) from the normalized vector
-            double longitude = Math.Atan2(normal.Z, normal.X); // Range: -π to π
-            double latitude = Math.Asin(normal.Y);            // Range: -π/2 to π/2
+            var longitude = Math.Atan2(normal.Z, normal.X); // Range: -π to π
+            var latitude = Math.Asin(normal.Y);            // Range: -π/2 to π/2
 
             // Convert longitude to UV's u (range: 0 to 1)
-            float u = (float)((longitude / (2 * Math.PI)) + 0.5);
+            var u = (float)((longitude / (2 * Math.PI)) + 0.5);
 
             // Convert latitude to UV's v (range: 0 to 1)
-            float v = (float)((latitude / Math.PI) + 0.5);
+            var v = (float)((latitude / Math.PI) + 0.5);
 
             // Return the UV coordinates
             return new Vector2(1 - u, 1 - v);
@@ -42,9 +42,9 @@ namespace XrSamples.Earth
 
             // Adapted from astronomical formulas
             // integer day, month, year
-            int year = utc.Year;
-            int month = utc.Month;
-            int day = utc.Day;
+            var year = utc.Year;
+            var month = utc.Month;
+            var day = utc.Day;
 
             // If Jan or Feb, treat them as months 13,14 of previous year
             if (month <= 2)
@@ -53,16 +53,16 @@ namespace XrSamples.Earth
                 month += 12;
             }
 
-            int A = year / 100;
-            int B = 2 - A + (A / 4);
+            var A = year / 100;
+            var B = 2 - A + (A / 4);
 
             // integer day count
-            double dayCount = Math.Floor(365.25 * (year + 4716))
+            var dayCount = Math.Floor(365.25 * (year + 4716))
                             + Math.Floor(30.6001 * (month + 1))
                             + day + B - 1524.5; // note the .5 offset to start day at noon
 
             // fraction of the day
-            double fractionOfDay =
+            var fractionOfDay =
                 (utc.Hour * 3600.0 + utc.Minute * 60.0 + utc.Second + utc.Millisecond / 1000.0)
                 / 86400.0;
 

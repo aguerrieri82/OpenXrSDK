@@ -13,7 +13,7 @@ namespace XrEngine.UI
 
         public IUiWindow CreateWindow(Size2 size, Vector3 position, UiElement content)
         {
-            Window3D result = new Window3D();
+            var result = new Window3D();
 
             _host!.AddChild(result);
 

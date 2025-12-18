@@ -11,7 +11,7 @@
 
         public IAssetLoader GetLoader(Uri uri)
         {
-            IAssetLoader? loader = _loaders.FirstOrDefault(a => a.CanHandle(uri, out Type? resType));
+            var loader = _loaders.FirstOrDefault(a => a.CanHandle(uri, out var resType));
             if (loader == null)
                 throw new NotSupportedException();
             return loader;
@@ -19,7 +19,7 @@
 
         public EngineObject Load(Uri uri, Type resType, EngineObject? destObj, IAssetLoaderOptions? options = null)
         {
-            bool useCache = destObj == null && (options == null || options.UseCache);
+            var useCache = destObj == null && (options == null || options.UseCache);
 
 
             EngineObject obj;

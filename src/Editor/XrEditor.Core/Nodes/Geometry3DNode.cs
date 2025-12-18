@@ -17,7 +17,7 @@ namespace XrEditor.Nodes
 
         public async Task<SKBitmap?> CreatePreviewAsync()
         {
-            RenderPreviewCreator preview = Context.Require<RenderPreviewCreator>();
+            var preview = Context.Require<RenderPreviewCreator>();
 
             return await preview.Engine.Dispatcher.ExecuteAsync(() => preview.CreateGeometry(_value));
         }

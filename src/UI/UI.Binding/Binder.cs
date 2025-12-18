@@ -21,20 +21,20 @@ namespace UI.Binding
 
         public IProperty<TVal> Prop<TVal>(Expression<Func<T, TVal>> exp)
         {
-            Func<T, TVal> getter = exp.Compile();
+            var getter = exp.Compile();
 
             if (exp is not LambdaExpression lambda)
                 throw new Exception();
 
-            Expression body = exp.Body;
-            ParameterExpression param = Expression.Parameter(typeof(TVal), "v");
-            BinaryExpression assign = Expression.Assign(body, param);
-            Expression<Action<T, TVal>> setExp = Expression.Lambda<Action<T, TVal>>(assign, lambda.Parameters[0], param);
-            Action<T, TVal> setter = setExp.Compile();
-            string name = body.ToString();
+            var body = exp.Body;
+            var param = Expression.Parameter(typeof(TVal), "v");
+            var assign = Expression.Assign(body, param);
+            var setExp = Expression.Lambda<Action<T, TVal>>(assign, lambda.Parameters[0], param);
+            var setter = setExp.Compile();
+            var name = body.ToString();
             name = name.Substring(name.IndexOf('.') + 1);
 
-            SimpleProperty<TVal> result = new SimpleProperty<TVal>(() => getter(Value), v => setter(Value, v), name!);
+            var result = new SimpleProperty<TVal>(() => getter(Value), v => setter(Value, v), name!);
 
             result.Changed += (s, e) =>
             {

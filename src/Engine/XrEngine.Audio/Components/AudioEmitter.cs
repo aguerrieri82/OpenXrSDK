@@ -45,7 +45,7 @@ namespace XrEngine.Audio
         {
             if (_pool == null)
             {
-                AudioSystem system = _host!.Scene!.Component<AudioSystem>();
+                var system = _host!.Scene!.Component<AudioSystem>();
                 _pool = new AlSourcePool(system.Device.Al);
             }
 
@@ -60,18 +60,18 @@ namespace XrEngine.Audio
 
         public IAudioControl PlayRT(IAudioStream stream, Func<Vector3> getDirection)
         {
-            AL al = AlDevice.Current!.Al;
+            var al = AlDevice.Current!.Al;
 
-            AlBuffer buffer = new AlBuffer(al);
-            AlSource source = new AlSource(al);
+            var buffer = new AlBuffer(al);
+            var source = new AlSource(al);
 
             long curSamples = 0;
 
             al.GetError();
 
-            StreamControl control = new StreamControl();
+            var control = new StreamControl();
 
-            int SAMPLE_SIZE = stream.Format.BitsPerSample / 8;
+            var SAMPLE_SIZE = stream.Format.BitsPerSample / 8;
 
             buffer.SetCallback(AudioFormatConverter.ToAlAudioFormat(stream.Format), data =>
             {
@@ -89,11 +89,11 @@ namespace XrEngine.Audio
                     return 0;
                 }
 
-                int curSize = 0;
+                var curSize = 0;
 
                 while (curSize < data.Length)
                 {
-                    int res = stream.Fill(data.Slice(curSize), curSamples / (float)stream.Format.SampleRate);
+                    var res = stream.Fill(data.Slice(curSize), curSamples / (float)stream.Format.SampleRate);
 
                     if (res == 0)
                     {
@@ -124,49 +124,49 @@ namespace XrEngine.Audio
 
         public IAudioControl Play(IAudioStream stream, Func<Vector3> getDirection)
         {
-            Thread thread = new Thread(p => PlayWork(stream, getDirection, (StreamControl)p!));
+            var thread = new Thread(p => PlayWork(stream, getDirection, (StreamControl)p!));
             thread.Name = "Audio Stream Player";
             thread.Priority = ThreadPriority.Highest;
-            StreamControl control = new StreamControl(thread);
+            var control = new StreamControl(thread);
             thread.Start(control);
             return control;
         }
 
         protected void PlayWork(IAudioStream stream, Func<Vector3> getDirection, StreamControl control)
         {
-            AL al = AlDevice.Current!.Al;
+            var al = AlDevice.Current!.Al;
 
             double bufferTime = 0.05f;
 
-            int sampleSize = (stream.Format.BitsPerSample / 8);
-            int bufferCount = Math.Max(1, stream.PrefBufferCount);
-            int bufferSizeBytes = (int)(bufferTime * stream.Format.SampleRate * sampleSize);
+            var sampleSize = (stream.Format.BitsPerSample / 8);
+            var bufferCount = Math.Max(1, stream.PrefBufferCount);
+            var bufferSizeBytes = (int)(bufferTime * stream.Format.SampleRate * sampleSize);
 
             if (stream.PrefBufferSizeSamples > 0)
                 bufferSizeBytes = stream.PrefBufferSizeSamples * sampleSize;
 
-            AlBuffer[] buffers = new AlBuffer[bufferCount];
+            var buffers = new AlBuffer[bufferCount];
 
-            byte[] bufferData = new byte[bufferSizeBytes];
+            var bufferData = new byte[bufferSizeBytes];
 
             long curSamples = 0;
 
             void FillBuffer(AlBuffer toFill)
             {
-                int totSamples = stream.Fill(bufferData, curSamples / (float)stream.Format.SampleRate);
+                var totSamples = stream.Fill(bufferData, curSamples / (float)stream.Format.SampleRate);
 
                 toFill.SetData(bufferData, AudioFormatConverter.ToAlAudioFormat(stream.Format));
 
                 curSamples += totSamples;
             }
 
-            for (int i = 0; i < bufferCount; i++)
+            for (var i = 0; i < bufferCount; i++)
             {
                 buffers[i] = new AlBuffer(al);
                 FillBuffer(buffers[i]);
             }
 
-            AlSource source = new AlSource(al);
+            var source = new AlSource(al);
 
             source.QueueBuffer(buffers);
 
@@ -184,7 +184,7 @@ namespace XrEngine.Audio
             {
                 while (source.BuffersProcessed > 0)
                 {
-                    AlBuffer buffer = source.DequeueBuffers(1).First();
+                    var buffer = source.DequeueBuffers(1).First();
 
                     FillBuffer(buffer);
 
@@ -208,7 +208,7 @@ namespace XrEngine.Audio
             source.Stop();
             source.Dispose();
 
-            foreach (AlBuffer buffer in buffers)
+            foreach (var buffer in buffers)
                 buffer.Dispose();
         }
 
@@ -217,7 +217,7 @@ namespace XrEngine.Audio
             if (_activeStreams.Count == 0)
                 return;
 
-            foreach (IAudioStream? stream in _activeStreams.ToArray())
+            foreach (var stream in _activeStreams.ToArray())
                 stream.Stop();
         }
 

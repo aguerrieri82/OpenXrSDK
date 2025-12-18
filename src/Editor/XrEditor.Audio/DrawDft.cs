@@ -24,19 +24,19 @@ namespace XrEditor.Audio
         {
             _sampleRate = sampleRate;
 
-            using FftwBuffer<double> aData = new FftwBuffer<double>(data.Length);
-            using FftwBuffer<double> aIn = new FftwBuffer<double>((int)dftSize);
-            using FftwBuffer<Complex> aOut = new FftwBuffer<Complex>((int)dftSize / 2 + 1);
-            using FftwPlan plan = FftwLib.DftPlan(aIn, aOut);
+            using var aData = new FftwBuffer<double>(data.Length);
+            using var aIn = new FftwBuffer<double>((int)dftSize);
+            using var aOut = new FftwBuffer<Complex>((int)dftSize / 2 + 1);
+            using var plan = FftwLib.DftPlan(aIn, aOut);
 
 
             fixed (float* pData = data)
             {
-                for (int j = 0; j < data.Length; j++)
+                for (var j = 0; j < data.Length; j++)
                     aData.Pointer[j] = pData[j];
             }
 
-            int i = 0;
+            var i = 0;
             while (i < data.Length)
             {
                 if (data.Length - i < dftSize)
@@ -60,15 +60,15 @@ namespace XrEditor.Audio
             _max = float.NegativeInfinity;
             _avg = 0;
 
-            int count = 0;
+            var count = 0;
 
-            IEnumerable<float> values = _dft.SelectMany(a => a.Skip(_minIndex)
+            var values = _dft.SelectMany(a => a.Skip(_minIndex)
                 .Take(_maxIndex - _minIndex)
                 .Select(a => (float)Math.Log10(a.Magnitude)));
 
-            foreach (float item in values)
+            foreach (var item in values)
             {
-                float realItem = float.IsInfinity(item) ? 0 : item;
+                var realItem = float.IsInfinity(item) ? 0 : item;
                 _min = MathF.Min(_min, item);
                 _max = MathF.Max(_max, item);
                 _avg += item;
@@ -79,7 +79,7 @@ namespace XrEditor.Audio
 
             _sigma = 0;
 
-            foreach (float item in values)
+            foreach (var item in values)
                 _sigma += (item - _avg) * (item - _avg);
 
             _sigma = MathF.Sqrt(_sigma / count);
@@ -90,10 +90,10 @@ namespace XrEditor.Audio
 
             if (_image == null)
             {
-                int groupSize = 1;
+                var groupSize = 1;
 
-                float min = _avg - _sigma * 3;
-                float max = _avg + _sigma * 3;
+                var min = _avg - _sigma * 3;
+                var max = _avg + _sigma * 3;
 
                 //min = _min;
                 //max = _max;
@@ -104,20 +104,20 @@ namespace XrEditor.Audio
 
                 fixed (byte* pBytes = _image.GetPixelSpan())
                 {
-                    for (int x = 0; x < _image.Width; x++)
+                    for (var x = 0; x < _image.Width; x++)
                     {
-                        Complex[] dft = _dft[x];
-                        for (int y = 0; y < _image.Height; y++)
+                        var dft = _dft[x];
+                        for (var y = 0; y < _image.Height; y++)
                         {
-                            int index = _minIndex + y * groupSize;
+                            var index = _minIndex + y * groupSize;
 
                             float value = 0;
-                            for (int k = 0; k < groupSize; k++)
+                            for (var k = 0; k < groupSize; k++)
                                 value += (float)dft[index + k].Magnitude;
 
                             value /= groupSize;
 
-                            float alpha = (MathF.Log10(value) - min) / (max - min);
+                            var alpha = (MathF.Log10(value) - min) / (max - min);
 
                             Color c;
                             if (alpha >= 1)
@@ -126,12 +126,12 @@ namespace XrEditor.Audio
                                 c = colors[0];
                             else
                             {
-                                float cSize = 1f / (colors.Length - 1);
-                                float cOfs = alpha / cSize;
-                                int cIndex = (int)Math.Floor(cOfs);
-                                float cAlpha = (alpha - (cIndex * cSize)) / cSize;
-                                Color c1 = colors[cIndex];
-                                Color c2 = colors[cIndex + 1];
+                                var cSize = 1f / (colors.Length - 1);
+                                var cOfs = alpha / cSize;
+                                var cIndex = (int)Math.Floor(cOfs);
+                                var cAlpha = (alpha - (cIndex * cSize)) / cSize;
+                                var c1 = colors[cIndex];
+                                var c2 = colors[cIndex + 1];
                                 c = new Color(
                                     c1.R * (1 - cAlpha) + c2.R * cAlpha,
                                     c1.G * (1 - cAlpha) + c2.G * cAlpha,
@@ -139,7 +139,7 @@ namespace XrEditor.Audio
                                 );
                             }
 
-                            int px = (y * _image.Width * 4) + (x * 4);
+                            var px = (y * _image.Width * 4) + (x * 4);
                             pBytes[px] = (byte)(c.R * 255);
                             pBytes[px + 1] = (byte)(c.G * 255);
                             pBytes[px + 2] = (byte)(c.B * 255);

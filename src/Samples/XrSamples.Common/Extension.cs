@@ -55,7 +55,7 @@ namespace XrSamples
                       s.Value = scale.ToScale(binding.Value);
                       s.ValueChanged += (_, v, _) =>
                       {
-                          float value = scale.FromScale(v);
+                          var value = scale.FromScale(v);
                           text!.Text = value.ToString();
                           binding.Value = value;
                       };

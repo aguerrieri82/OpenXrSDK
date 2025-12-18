@@ -48,43 +48,43 @@ namespace XrSamples
         {
             _opaque = (GlLayerV2)_renderer!.Layers.First(a => a.Type == GlLayerType.Opaque);
 
-            IEnumerable<DrawContent> draws = _opaque!.Content.Contents.Values
+            var draws = _opaque!.Content.Contents.Values
                 .SelectMany(a => a.Contents.Values)
                 .SelectMany(a => a.Contents.Values)
                 .SelectMany(a => a.Contents);
 
-            DrawContent? draw = draws.FirstOrDefault(a => a.Object!.Name == ActiveObject);
+            var draw = draws.FirstOrDefault(a => a.Object!.Name == ActiveObject);
 
             if (draw == null)
                 Log.Warn(this, $"Draw '{ActiveObject}' not found");
             else
             {
-                Bounds3 bounds = draw.Object!.WorldBounds;
-                Camera camera = _host!.Scene!.ActiveCamera!;
+                var bounds = draw.Object!.WorldBounds;
+                var camera = _host!.Scene!.ActiveCamera!;
 
-                Vector2 minUV = Vector2.One;
-                Vector2 maxUV = Vector2.Zero;
-                float minZ = 1.0f;
+                var minUV = Vector2.One;
+                var maxUV = Vector2.Zero;
+                var minZ = 1.0f;
 
-                Vector3[] corners = bounds.Points.ToArray();
+                var corners = bounds.Points.ToArray();
 
-                for (int i = 0; i < 8; ++i)
+                for (var i = 0; i < 8; ++i)
                 {
-                    Vector4 clip = Vector4.Transform(new Vector4(corners[i], 1), camera.ViewProjection);
-                    Vector4 ndc = clip / clip.W;
-                    Vector4 norm = (ndc * 0.5f) + new Vector4(0.5f);
+                    var clip = Vector4.Transform(new Vector4(corners[i], 1), camera.ViewProjection);
+                    var ndc = clip / clip.W;
+                    var norm = (ndc * 0.5f) + new Vector4(0.5f);
                     minUV = Vector2.Min(minUV, new Vector2(norm.X, norm.Y));
                     maxUV = Vector2.Max(maxUV, new Vector2(norm.X, norm.Y));
                     minZ = Math.Min(minZ, norm.Z);
                 }
 
-                Vector2 extent = (maxUV - minUV) * camera.ViewSize.ToVector2();
+                var extent = (maxUV - minUV) * camera.ViewSize.ToVector2();
 
-                int clipped = draws.Where(a => a.DepthData.IsCulled).Count();
-                int hidden = draws.Where(a => !a.DepthData.IsVisible).Count();
+                var clipped = draws.Where(a => a.DepthData.IsCulled).Count();
+                var hidden = draws.Where(a => !a.DepthData.IsVisible).Count();
 
 
-                string data = JsonSerializer.Serialize(draw.DepthData, new JsonSerializerOptions { WriteIndented = true, IncludeFields = true });
+                var data = JsonSerializer.Serialize(draw.DepthData, new JsonSerializerOptions { WriteIndented = true, IncludeFields = true });
                 Log.Info(this, "Draw Id: {0}\n{1}", draw.Id, data);
 
                 Log.Info(this, "extent: {0}", extent);
