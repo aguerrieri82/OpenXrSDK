@@ -122,7 +122,7 @@ namespace XrEditor
         protected IList<SelectorItem> ListCameras()
         {
             var result = new List<SelectorItem>();
-            result.Add(new SelectorItem { DisplayName = "Scene", Value = _sceneCamera });
+            //result.Add(new SelectorItem { DisplayName = "Scene", Value = _sceneCamera });
             if (_scene != null)
             {
                 foreach (var camera in _scene.Descendants<PerspectiveCamera>())
