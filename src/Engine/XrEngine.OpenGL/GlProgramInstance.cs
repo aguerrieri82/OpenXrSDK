@@ -91,7 +91,9 @@ namespace XrEngine.OpenGL
             var shader = Material.Shader!;
 
             var tesMode = Material is ITessellationMaterial tes ? tes.TessellationMode : TessellationMode.None;
+
             var useTess = shader.TessEvalSourceName != null && tesMode != TessellationMode.None;
+
             var useGeo = shader.GeometrySourceName != null &&
                          (shader.TessEvalSourceName == null || tesMode == TessellationMode.Geometry);
 

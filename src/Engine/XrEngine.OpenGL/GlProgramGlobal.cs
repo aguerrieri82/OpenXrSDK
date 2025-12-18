@@ -14,6 +14,7 @@ namespace XrEngine.OpenGL
         protected List<IShaderHandler> _handlers = [];
         protected IShaderHandler?[] _lastGlobalHandler = [];
         protected ShaderUpdate? _shaderUpdate;
+
         public GlProgramGlobal(GL gl, Shader shader)
         {
             Shader = shader;

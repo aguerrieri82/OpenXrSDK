@@ -15,9 +15,10 @@ namespace XrEngine
 
         public static Texture2D FromHeightMap(TextureData data, float strength)
         {
-            var pixelSize = ImageUtils.GetPixelSizeByte(data.Format);
-
             using var skImage = ImageUtils.ToBitmap(data, false);
+
+            if (skImage == null)
+                throw new InvalidOperationException();
 
             return FromHeightMap(skImage, strength);
         }

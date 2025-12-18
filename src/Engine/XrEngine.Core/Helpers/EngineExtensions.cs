@@ -1351,6 +1351,8 @@ namespace XrEngine
         public static void SaveAs(this Texture2D self, string path, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100)
         {
             using var bmp = ImageUtils.ToBitmap(self.Data![0], false);
+            if (bmp == null)
+                return;
             using var enc = bmp.Encode(format, quality);
             if (File.Exists(path))
                 File.Delete(path);

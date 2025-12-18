@@ -21,7 +21,7 @@ namespace XrEngine.OpenXr
             if (XrPlatform.Current?.Name == "Editor")
                 MotionVectorFormat = (long)InternalFormat.Rgb16f;    
             else
-                MotionVectorFormat = (long)InternalFormat.Rgba16f;
+                MotionVectorFormat = (long)InternalFormat.RG16f;
         }
 
         public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader*[] colorImgs, SwapchainImageBaseHeader*[] depthImgs, XrRenderMode mode)

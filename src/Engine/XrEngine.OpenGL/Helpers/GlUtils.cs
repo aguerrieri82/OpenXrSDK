@@ -33,6 +33,7 @@ namespace XrEngine.OpenGL
                 TextureFormat.RgbaFloat32 => 32 * 4,
                 TextureFormat.RgbaFloat16 => 16 * 4,
                 TextureFormat.Depth24Float => 24,
+                TextureFormat.Depth16 => 16,
                 TextureFormat.GrayInt8 => 8,
                 TextureFormat.GrayInt16 => 16,
                 TextureFormat.GrayRawSInt16 => 16,
@@ -48,6 +49,7 @@ namespace XrEngine.OpenGL
             pixelFormat = format switch
             {
                 TextureFormat.Depth32Float or
+                TextureFormat.Depth16 or
                 TextureFormat.Depth24Float => PixelFormat.DepthComponent,
 
                 TextureFormat.Depth32Stencil8 or
@@ -91,6 +93,9 @@ namespace XrEngine.OpenGL
                 TextureFormat.RgbFloat16 => PixelType.HalfFloat,
                 TextureFormat.RgbaFloat16 => PixelType.HalfFloat,
 
+
+                TextureFormat.Depth16 => PixelType.Short,
+
                 TextureFormat.Depth24Stencil8 => PixelType.UnsignedInt248Oes,
 
                 TextureFormat.Depth32Stencil8 => PixelType.Float32UnsignedInt248Rev,
@@ -123,6 +128,7 @@ namespace XrEngine.OpenGL
                     TextureFormat.Depth24Float => InternalFormat.DepthComponent24,
                     TextureFormat.Depth24Stencil8 => InternalFormat.Depth24Stencil8Oes,
                     TextureFormat.Depth32Stencil8 => InternalFormat.Depth32fStencil8,
+                    TextureFormat.Depth16 => InternalFormat.DepthComponent16,
 
                     TextureFormat.SBgra32 or
                     TextureFormat.SRgba32 => InternalFormat.Srgb8Alpha8,
@@ -213,24 +219,18 @@ namespace XrEngine.OpenGL
                 InternalFormat.Rgba8 => TextureFormat.Rgba32,
                 InternalFormat.Srgb8Alpha8 => TextureFormat.SRgba32,
                 InternalFormat.R16 => TextureFormat.GrayInt16,
-                InternalFormat.DepthComponent16 => TextureFormat.GrayInt16,
+                //InternalFormat.DepthComponent16 => TextureFormat.GrayInt16,
                 InternalFormat.R8 => TextureFormat.GrayInt8,
                 InternalFormat.Depth24Stencil8 => TextureFormat.Depth24Stencil8,
                 InternalFormat.DepthComponent24 => TextureFormat.Depth24Float,
                 InternalFormat.Depth32fStencil8 => TextureFormat.Depth32Stencil8,
                 InternalFormat.DepthComponent32f => TextureFormat.Depth32Float,
                 InternalFormat.DepthComponent32 => TextureFormat.Depth32Float,
+                InternalFormat.DepthComponent16 => TextureFormat.Depth16,
                 _ => throw new NotSupportedException(),
             };
         }
 
-        public static bool IsDepthStencil(TextureFormat format)
-        {
-            return format == TextureFormat.Depth24Float ||
-                   format == TextureFormat.Depth32Float ||
-                   format == TextureFormat.Depth24Stencil8 ||
-                   format == TextureFormat.Depth32Stencil8;
-        }
 
         public static bool IsDepthStencil(InternalFormat format)
         {

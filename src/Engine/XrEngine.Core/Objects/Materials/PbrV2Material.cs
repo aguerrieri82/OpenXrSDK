@@ -404,7 +404,6 @@ namespace XrEngine
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-
             if (!bld.Context.UseInstanceDraw)
             {
                 bld.LoadBuffer(ctx =>
@@ -425,9 +424,6 @@ namespace XrEngine
                     };
                 }, 3, BufferStore.Model);
             }
-
-
-
         }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
@@ -474,8 +470,10 @@ namespace XrEngine
             bld.LoadBuffer(ctx =>
             {
                 var curVersion = Version;
+
                 if (curVersion == ctx.CurrentBuffer!.Version)
                     return null;
+
                 ctx.CurrentBuffer!.Version = curVersion;
 
                 return (MaterialUniforms?)material;

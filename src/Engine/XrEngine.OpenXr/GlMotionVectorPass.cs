@@ -14,7 +14,7 @@ namespace XrEngine.OpenXr
     public class GlMotionVectorPass : GlBaseSingleMaterialPass
     {
         protected readonly XrApp _xrApp;
-        protected IGlRenderTarget? _renderTarget;
+        protected IGlRenderTarget _renderTarget;
         protected GlTexture? _glColorImage;
         protected GlTexture? _glDepthImage;
         protected int _boundEye;
@@ -32,7 +32,6 @@ namespace XrEngine.OpenXr
 
             _boundEye = boundEye;
         }
-
 
         public unsafe void SetTargets(SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg)
         {

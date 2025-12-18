@@ -841,16 +841,7 @@ namespace OpenXr.Framework
 
             FramePredictedDisplayPeriod = TimeSpan.FromTicks(state.PredictedDisplayPeriod / TimeSpan.NanosecondsPerTick);
 
-            _tracker.Update(space, frameTime);
-
-            TrySyncActions(space, frameTime);
-
-            foreach (var hand in _hands)
-                hand.Value.LocateHandJoints(space, frameTime);
-
             BeginFrame();
-
-            ListInvoke<IXrLayer>(_layers.List, a => a.OnBeginFrame(space, frameTime));
 
             CompositionLayerBaseHeader*[]? layers = null;
 
@@ -860,6 +851,15 @@ namespace OpenXr.Framework
             {
                 if (state.ShouldRender != 0)
                 {
+                    _tracker.Update(space, frameTime);
+
+                    TrySyncActions(space, frameTime);
+
+                    foreach (var hand in _hands)
+                        hand.Value.LocateHandJoints(space, frameTime);
+
+                    ListInvoke<IXrLayer>(_layers.List, a => a.OnBeginFrame(space, frameTime));
+
                     var viewsState = LocateViews(space, frameTime);
 
 
@@ -868,11 +868,12 @@ namespace OpenXr.Framework
 
                     if (isPosValid)
                         layers = _layers.Render(ref _views!, space, frameTime, out layerCount);
+
+                    ListInvoke<IXrLayer>(_layers.List, a => a.OnEndFrame());
                 }
             }
             finally
             {
-                ListInvoke<IXrLayer>(_layers.List, a => a.OnEndFrame());
                 EndFrame(frameTime, ref layers, layerCount);
 
                 FramePredictedDisplayTime = 0;

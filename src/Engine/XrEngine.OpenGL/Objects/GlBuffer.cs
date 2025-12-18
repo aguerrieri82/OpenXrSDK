@@ -64,7 +64,7 @@ namespace XrEngine.OpenGL
             }
             else
             {
-                var pDst = Map(MapBufferAccessMask.WriteBit);
+                var pDst = Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
                 EngineNativeLib.CopyMemory((nint)data, (nint)pDst, sizeBytes);
                 Unmap();
             }

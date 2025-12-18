@@ -15,5 +15,7 @@ namespace XrEngine.OpenGL
         GlTexture? QueryTexture(FramebufferAttachment attachment);
 
         void CommitDepth();
+
+        IShaderHandler? ShaderHandler => null;
     }
 }

@@ -17,7 +17,8 @@ namespace XrEngine.OpenGL
         {
             _gl = gl;
             _multiView = multiView;
-            DepthFormat = TextureFormat.Depth32Stencil8;
+            DepthFormat = TextureFormat.Depth24Stencil8;
+            //DepthFormat = TextureFormat.Depth16;
         }
 
         protected GlTexture CreateDepth(GlTexture color, uint arraySize)
@@ -62,7 +63,7 @@ namespace XrEngine.OpenGL
                 {
                     var singleView = new GlTextureRenderTarget(_gl);
 
-                    if (sampleCount == 1 && !OpenGLRender.Current!.Options.UseDepthPass)
+                    if (/*sampleCount == 1 &&*/ !OpenGLRender.Current!.Options.UseDepthPass)
                     {
                         var renderBuf = new GlRenderBuffer(_gl);
                         var intFormat = GlUtils.GetInternalFormat(DepthFormat, TextureCompressionFormat.Uncompressed);

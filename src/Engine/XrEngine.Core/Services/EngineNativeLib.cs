@@ -4,7 +4,7 @@ namespace XrEngine
 {
     public static class EngineNativeLib
     {
-        [DllImport("xrengine-native")]
+        [DllImport("xrengine-native", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ImageFlipY(nint src, nint dst, uint width, uint height, uint rowSize);
 
         [DllImport("xrengine-native")]
