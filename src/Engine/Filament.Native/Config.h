@@ -13,6 +13,7 @@
 
 	#define FL_LIB(name) FL_LINK  "/"  name
 
+	#pragma comment(lib, FL_LIB("zstd.lib"))
 	#pragma comment(lib, FL_LIB("filament.lib"))
 	#pragma comment(lib, FL_LIB("filamat.lib"))
 	#pragma comment(lib, FL_LIB("backend.lib"))
@@ -26,8 +27,7 @@
 	#pragma comment(lib, FL_LIB("shaders.lib"))
 	#pragma comment(lib, FL_LIB("matdbg.lib"))
 	#pragma comment(lib, FL_LIB("bluevk.lib"))
-#pragma comment(lib, FL_LIB("filament-iblprefilter.lib"))
-
+	#pragma comment(lib, FL_LIB("filament-iblprefilter.lib"))
 	#pragma comment(lib, "opengl32.lib")
 
 #else

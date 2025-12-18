@@ -1,27 +1,24 @@
 call vars.cmd
 
+SET CUR_DIR=%CD%
 
-cd MagicPhysX\src\libmagicphysx
+cd physx-rs\physx-sys\src
 
-@echo ANDROID BUILD
+md out-android
+cd out-android
 
-rustup target add aarch64-linux-android
+cmake -G Ninja .. -DCMAKE_TOOLCHAIN_FILE=%NDK_HOME%\build\cmake\android.toolchain.cmake ^
+	     -DANDROID_ABI=%ANDROID_ABI% ^
+	     -DANDROID_PLATFORM=%ANDROID_PLATFORM% ^
+	     -DANDROID_STL=%ANDROID_STL% ^
+		 -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
+		 -DCMAKE_INSTALL_PREFIX=%INSTALL_PEFIX% ^
+		 -DANDROID=1
+	  
+ninja 
 
-cargo install cargo-ndk
- 
-SET ANDROID_NDK_ROOT=%NDK_HOME%
-SET NDK_PROJECT_PATH=%CD%
+%LLVM_STRIP% --strip-unneeded libphysxnative.so
 
-cargo ndk --platform 29 --target arm64-v8a build --release 
+copy libphysxnative.so %CUR_DIR%\..\libs\physxnative\android-arm64\libphysxnative.so
 
-%LLVM_STRIP% --strip-unneeded target\aarch64-linux-android\release\libphysxnative.so
-
-copy target\aarch64-linux-android\release\libphysxnative.so ..\..\..\..\libs\physxnative\android-arm64
-
-@echo WIN BUILD
-
-rustup default stable
-
-cargo build --release
-
-copy target\release\physxnative.dll ..\..\..\..\libs\physxnative\win-x64
+cd %CUR_DIR%

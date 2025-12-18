@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Numerics;
 using System.Text.Json;
+using System.Threading.Tasks;
 using XrEngine;
 using XrMath;
 
@@ -12,11 +14,12 @@ namespace XrSamples.Dnd
     public class DndImporter
     {
         readonly Dictionary<string, ShaderMaterial> _materials = [];
-        readonly Dictionary<string, Texture2D> _textures = [];
+        readonly ConcurrentDictionary<string, Texture2D?> _textures = [];
         readonly Dictionary<string, Geometry3D> _geos = [];
         private string _basePath = ".";
         private readonly HashSet<string> _unusedTex = [];
         private readonly List<string> _psNames = [];
+        List<Action> _tasks = [];   
 
         #region STRUCTS
 
@@ -136,6 +139,12 @@ namespace XrSamples.Dnd
 
         #endregion
 
+
+        void AddTask(Action action)
+        {
+            _tasks.Add(action);
+        }
+
         ShaderMaterial ProcessMaterialV2(string matId)
         {
             if (!_materials.TryGetValue(matId, out var mat))
@@ -148,33 +157,34 @@ namespace XrSamples.Dnd
 
                 if (impMat.ps.name == "glTF/PbrMetallicRoughness")
                 {
-                    basMat.DiffuseTexture = (Texture2D)ProcessTexture(impMat.textures[0])!;
+                    AddTask(() => basMat.DiffuseTexture = (Texture2D)ProcessTexture(impMat.textures[0])!);
 
                 }
                 else if (impMat.ps.name == "Custom Image Shader")
                 {
-                    basMat.DiffuseTexture = (Texture2D)ProcessTexture(impMat.textures[1])!;
+                    AddTask(() => basMat.DiffuseTexture = (Texture2D)ProcessTexture(impMat.textures[1])!);
                 }
                 else
                 {
                     foreach (var impTex in impMat.textures)
                     {
-                        var tex = ProcessTexture(impTex);
-                        if (tex == null)
-                            continue;
-                        var name = impTex.name.ToLower();
-                        var isDif = name.EndsWith("dif") ||
-                                    name.EndsWith("diff") ||
-                                    name.Contains("albedo") ||
-                                    name.Contains("diffuse") ||
-                                    name.Contains("basecolor") ||
-                                    name.Contains("_diff");
-                        if (isDif)
+                        AddTask(() =>
                         {
-                            basMat.DiffuseTexture = (Texture2D)tex;
-                            break;
-                        }
-
+                            var tex = ProcessTexture(impTex);
+                            if (tex == null)
+                                return;
+                            var name = impTex.name.ToLower();
+                            var isDif = name.EndsWith("dif") ||
+                                        name.EndsWith("diff") ||
+                                        name.Contains("albedo") ||
+                                        name.Contains("diffuse") ||
+                                        name.Contains("basecolor") ||
+                                        name.Contains("_diff");
+                            if (isDif)
+                            {
+                                basMat.DiffuseTexture = (Texture2D)tex;
+                            }
+                        });
                     }
                 }
 
@@ -202,10 +212,10 @@ namespace XrSamples.Dnd
                 if (impMat.ps.name == "glTF/PbrMetallicRoughness")
                 {
 
-                    pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[0])!;
-                    pbr.MetallicRoughnessMap = (Texture2D)ProcessTexture(impMat.textures[1])!;
-                    pbr.NormalMap = (Texture2D)ProcessTexture(impMat.textures[2])!;
-                    pbr.OcclusionMap = (Texture2D)ProcessTexture(impMat.textures[3])!;
+                    AddTask(() => pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[0])!);
+                    AddTask(() => pbr.MetallicRoughnessMap = (Texture2D)ProcessTexture(impMat.textures[1])!);
+                    AddTask(() => pbr.NormalMap = (Texture2D)ProcessTexture(impMat.textures[2])!);
+                    AddTask(() => pbr.OcclusionMap = (Texture2D)ProcessTexture(impMat.textures[3])!);
                     pbr.NormalScale = impMat.cbs[0].values[10][3];
                     pbr.Color = new Color(impMat.cbs[0].values[4][0], impMat.cbs[0].values[4][1], impMat.cbs[0].values[4][1], 1);
                     pbr.Metalness = impMat.cbs[0].values[15][3];
@@ -213,112 +223,104 @@ namespace XrSamples.Dnd
                     pbr.OcclusionStrength = impMat.cbs[0].values[18][3];
                 }
 
-                if (matId == "f54acfc201032560348210eaa944d71c___")
-                {
-                    var height = AssetLoader.Instance.Load<Texture2D>("res://asset/Untitled material_Height.png");
-                    pbr.HeightMap = new HeightMapSettings
-                    {
-                        Texture = height,
-                        ScaleFactor = 0.01f,
-                        TargetTriSize = 10,
-                        DebugTessellation = false,
-                        NormalStrength = new Vector3(0.2f, 0.2f, 1),
-                        NormalMode = HeightNormalMode.Geometry
-                    };
-                }
+
 
                 if (impMat.ps.name == "Custom Image Shader")
                 {
-                    pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[1])!;
+                    AddTask(() => pbr.ColorMap = (Texture2D)ProcessTexture(impMat.textures[1])!);
                 }
                 else
                 {
                     foreach (var impTex in impMat.textures)
                     {
-                        var tex = ProcessTexture(impTex);
-                        if (tex == null)
-                            continue;
-                        var name = impTex.name.ToLower();
-                        var isDif = name.EndsWith("dif") ||
-                                    name.EndsWith("diff") ||
-                                    name.Contains("albedo") ||
-                                    name.Contains("diffuse") ||
-                                    name.Contains("basecolor") ||
-                                    name.Contains("_diff");
-
-                        var isNormal = name.EndsWith("nrm") ||
-                           name.Contains("normal") ||
-                           name.EndsWith("-nml") ||
-                           name.EndsWith("_n");
-
-
-                        var isSpec = name.EndsWith("smt") ||
-                                      name.EndsWith("smooth") ||
-                                      name.Contains("specular");
-
-
-                        var isAO = name.EndsWith("ao") ||
-                                   name.Contains("occlusion");
-
-                        var isRough = name.Contains("roughness") ||
-                                      name.EndsWith("-r") ||
-                                      name.EndsWith("_rgh");
-
-                        var isMetal = name.EndsWith("_mtl") ||
-                          name.EndsWith("-m");
-
-
-                        if (isDif)
-                            pbr.ColorMap = (Texture2D)tex;
-
-                        else if (isNormal)
+                        AddTask(() =>
                         {
-                            if (pbr.NormalMap != null)
-                                continue;
-                            pbr.NormalMap = (Texture2D)tex;
-                            pbr.NormalMapFormat = NormalMapFormat.UnityBc3;
-                            pbr.NormalScale = 1.0f;
-                            if (impMat.ps.name == "Standard")
+                            var tex = ProcessTexture(impTex);
+                            if (tex == null)
+                                return;
+                            var name = impTex.name.ToLower();
+                            var isDif = name.EndsWith("dif") ||
+                                        name.EndsWith("diff") ||
+                                        name.Contains("albedo") ||
+                                        name.Contains("diffuse") ||
+                                        name.Contains("basecolor") ||
+                                        name.Contains("_diff");
+
+                            var isNormal = name.EndsWith("nrm") ||
+                               name.Contains("normal") ||
+                               name.EndsWith("-nml") ||
+                               name.EndsWith("_n");
+
+
+                            var isSpec = name.EndsWith("smt") ||
+                                          name.EndsWith("smooth") ||
+                                          name.Contains("specular");
+
+
+                            var isAO = name.EndsWith("ao") ||
+                                       name.Contains("occlusion");
+
+                            var isRough = name.Contains("roughness") ||
+                                          name.EndsWith("-r") ||
+                                          name.EndsWith("_rgh");
+
+                            var isMetal = name.EndsWith("_mtl") ||
+                              name.EndsWith("-m");
+
+
+                            if (isDif)
+                                pbr.ColorMap = (Texture2D)tex;
+
+                            else if (isNormal)
                             {
-                                pbr.NormalScale = impMat.cbs[0].values[8][0];
+                                if (pbr.NormalMap != null)
+                                    return;
+
+                                pbr.NormalMap = (Texture2D)tex;
+                                pbr.NormalMapFormat = NormalMapFormat.UnityBc3;
+                                pbr.NormalScale = 1.0f;
+                                if (impMat.ps.name == "Standard")
+                                {
+                                    pbr.NormalScale = impMat.cbs[0].values[8][0];
+                                }
+                                else if (impMat.ps.name == "Dungeon Alchemist/Standard Shader")
+                                {
+                                    pbr.NormalScale = impMat.cbs[0].values[5][1];
+                                }
+                                else if (impMat.ps.name == "Dungeon Alchemist/Floor Tile Standard Shader")
+                                {
+                                    pbr.NormalScale = impMat.cbs[0].values[4][0];
+                                }
+                                else
+                                    Debugger.Break();
                             }
-                            else if (impMat.ps.name == "Dungeon Alchemist/Standard Shader")
+                            else if (isSpec)
                             {
-                                pbr.NormalScale = impMat.cbs[0].values[5][1];
+                                if (impMat.ps.name == "Dungeon Alchemist/Standard Shader")
+                                {
+                                    pbr.Roughness = impMat.cbs[0].values[6][0];
+                                }
+                                else
+                                    pbr.Roughness = 1.0f;
+
+                                pbr.SpecularMap = (Texture2D)tex;
+                                pbr.Metalness = 0f;
                             }
-                            else if (impMat.ps.name == "Dungeon Alchemist/Floor Tile Standard Shader")
+                            else if (isRough)
                             {
-                                pbr.NormalScale = impMat.cbs[0].values[4][0];
+                                pbr.MetallicRoughnessMap = (Texture2D)tex;
+                                pbr.Roughness = 0.5f;
+                                pbr.Metalness = 0f;
+                            }
+                            else if (isAO)
+                            {
+                                pbr.OcclusionMap = (Texture2D)tex;
                             }
                             else
-                                Debugger.Break();
-                        }
-                        else if (isSpec)
-                        {
-                            if (impMat.ps.name == "Dungeon Alchemist/Standard Shader")
                             {
-                                pbr.Roughness = impMat.cbs[0].values[6][0];
+                                _unusedTex.Add(impTex.name);
                             }
-                            else
-                                pbr.Roughness = 1.0f;
-
-                            pbr.SpecularMap = (Texture2D)tex;
-                            pbr.Metalness = 0f;
-                        }
-                        else if (isRough)
-                        {
-                            pbr.MetallicRoughnessMap = (Texture2D)tex;
-                            pbr.Roughness = 0.5f;
-                            pbr.Metalness = 0f;
-                        }
-                        else if (isAO)
-                        {
-                            pbr.OcclusionMap = (Texture2D)tex;
-                        }
-                        else
-                        {
-                            _unusedTex.Add(impTex.name);
-                        }
+                        });
                     }
                 }
 
@@ -506,27 +508,24 @@ namespace XrSamples.Dnd
         }
         Texture? ProcessTexture(string texId, string name)
         {
-            if (!_textures.TryGetValue(texId, out var text))
+            return _textures.GetOrAdd(texId, key =>
             {
                 var fileName = Path.Combine(_basePath, $"{texId}.dds");
-
                 try
                 {
-                    text = AssetLoader.Instance.Load<Texture2D>(fileName);
+                    var text = AssetLoader.Instance.Load<Texture2D>(fileName);
                     text.WrapS = WrapMode.Repeat;
                     text.WrapT = WrapMode.Repeat;
                     text.Name = name;
                     if (text.Data!.Count > 1)
                         text.MinFilter = ScaleFilter.LinearMipmapLinear;
-                    _textures[texId] = text;
+                    return text;
                 }
                 catch
                 {
                     return null;
                 }
-            }
-
-            return text;
+            });
         }
 
         Geometry3D? patch;
@@ -611,6 +610,10 @@ namespace XrSamples.Dnd
 
             foreach (var draw in draws!)
                 res.AddChild(ProcessDraw(draw));
+
+            Parallel.ForEach(_tasks, a => a());
+
+            _tasks.Clear();
 
             /*
             var totIdex = res.Children.OfType<TriangleMesh>().Sum(a => a.Geometry.Indices.Length);  

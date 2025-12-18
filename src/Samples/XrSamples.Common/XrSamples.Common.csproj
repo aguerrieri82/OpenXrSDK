@@ -9,6 +9,7 @@
 		<ProjectReference Include="..\..\..\..\DrumsVR\src\DrumsVR.Game\DrumsVR.Game.csproj" />
 		<ProjectReference Include="..\..\..\..\RoomDesigner\src\RoomDesigner.Game\RoomDesigner.Game.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Audio\XrEngine.Audio.csproj" />
+		<ProjectReference Include="..\..\Engine\XrEngine.Bullet\XrEngine.Bullet.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Compression\XrEngine.Compression.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.Glft\XrEngine.Gltf.csproj" />
 		<ProjectReference Include="..\..\Engine\XrEngine.OpenXr\XrEngine.OpenXr.csproj" />

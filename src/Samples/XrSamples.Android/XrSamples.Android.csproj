@@ -9,17 +9,18 @@
 		<ApplicationVersion>1</ApplicationVersion>
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
-	    <DebugSymbols>True</DebugSymbols>
+	    <DebugSymbols>true</DebugSymbols>
 		<UseOpenGL>true</UseOpenGL>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<RunAOTCompilation>false</RunAOTCompilation>
-		<PublishTrimmed>false</PublishTrimmed>
+		<RunAOTCompilation>true</RunAOTCompilation>
+		<PublishTrimmed>true</PublishTrimmed>
 		<EnableLLVM>false</EnableLLVM>
-		<EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
+		<AndroidPackageFormat>apk</AndroidPackageFormat>
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 		<DebugSymbols>false</DebugSymbols>
-		<AndroidManagedSymbols>false</AndroidManagedSymbols> 
+		<AndroidManagedSymbols>false</AndroidManagedSymbols>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -39,9 +40,9 @@
 	<Import Project="..\..\AspNetCoreMini.props" />
 
 	<ItemGroup>
-	  <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-preview.2.25163.2" />
-	  <PackageReference Update="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0-preview.2.25163.2" />
-	  <PackageReference Update="Microsoft.Extensions.Logging" Version="10.0.0-preview.2.25163.2" />
+	  <PackageReference Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.1" />
+	  <PackageReference Update="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.1" />
+	  <PackageReference Update="Microsoft.Extensions.Logging" Version="10.0.1" />
 	</ItemGroup>
 
 </Project>

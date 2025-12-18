@@ -507,6 +507,9 @@ namespace XrEngine.Filament
         public static extern void AddLight(FilamentApp app, Guid id, ref LightInfo info);
 
         [DllImport("filament-native")]
+        public static extern void UpdateLight(FilamentApp app, Guid id, ref LightInfo info);
+
+        [DllImport("filament-native")]
         public static extern void AddGeometry(FilamentApp app, Guid id, ref GeometryInfo info);
 
         [DllImport("filament-native")]

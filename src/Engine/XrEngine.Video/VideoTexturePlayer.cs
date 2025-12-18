@@ -1,4 +1,6 @@
-﻿namespace XrEngine.Video
+﻿using XrEngine.Media;
+
+namespace XrEngine.Video
 {
     public class VideoTexturePlayer : Behavior<Object3D>
     {

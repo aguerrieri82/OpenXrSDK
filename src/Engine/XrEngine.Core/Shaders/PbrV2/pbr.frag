@@ -63,6 +63,12 @@ uniform vec3 uIblColor;
 #endif
 
 
+#ifdef HAS_CLIP_VOLUME
+	uniform vec3 uClipMin;
+	uniform vec3 uClipMax;
+#endif
+
+
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2.
 float ndfGGX(float cosLh, float roughness)
@@ -114,6 +120,12 @@ vec3 addNoise(vec3 color)
 	return color;
 }
 
+bool pointInsideVolume(vec3 p, vec3 minV, vec3 maxV)
+{
+    return all(greaterThanEqual(p, minV)) &&
+           all(lessThanEqual(p, maxV));
+}
+
 void main()
 {
 	#if defined(HAS_ENV_DEPTH) && defined(USE_ENV_DEPTH)
@@ -124,6 +136,11 @@ void main()
 			return;
 		}
 
+	#endif
+
+	#ifdef HAS_CLIP_VOLUME
+		if (!pointInsideVolume(fPos, uClipMin, uClipMax))
+			discard;
 	#endif
 
 	vec3 shadowLightDir;
@@ -279,33 +296,36 @@ void main()
 				directLighting += albedo * Lradiance * cosLi;
 			#else
 
-				// Half-vector between Li and Lo.
-				vec3 Lh = normalize(Li + Lo);
-				float cosLh = max(0.0, dot(N, Lh));
+				// --- FIX 1: clamp microfacet roughness for D/G ---
+				float r_micro = max(roughness, 0.045);      // microfacet eval roughness floor
+				float a       = r_micro * r_micro;          // Disney reparam (alpha)
+				float a2      = a * a;
 
-				// Calculate Fresnel term for direct lighting. 
-				float cosTheta = clamp(dot(Lh, Lo), 0.0, 1.0);
-				vec3 F = fresnelSchlickRoughness(F0, cosTheta, roughness);
+				// Half vector
+				vec3  Lh     = normalize(Li + Lo);
+				float cosLh  = max(0.0, dot(N, Lh));
+				float cosVh  = max(0.0, dot(Lo, Lh));
 
-				// Calculate normal distribution for specular BRDF.
-		
-				float D = ndfGGX(cosLh, roughness);
-		
-				// Calculate geometric attenuation for specular BRDF.
-				float G = gaSchlickGGX(cosLi, cosLo, roughness);
+				// --- FIX 2: standard Fresnel for direct ---
+				vec3 F = fresnelSchlickRoughness(F0, cosVh, roughness);
 
-				// Diffuse scattering happens due to light being refracted multiple times by a dielectric medium.
-				// Metals on the other hand either reflect or absorb energy, so diffuse contribution is always zero.
-				// To be energy conserving we must scale diffuse BRDF contribution based on Fresnel factor & metalness.
-				vec3 kd = mix(vec3(1.0) - F, vec3(0.0), metalness);
+				// GGX NDF with clamped alpha
+				float denom = (cosLh * cosLh) * (a2 - 1.0) + 1.0;
+				float D     = a2 / (PI * denom * denom);
 
-				// Lambert diffuse BRDF.
-				vec3 diffuseBRDF = kd * albedo;
+				// Smith with Epic k remap, using r_micro
+				float r = r_micro + 1.0;
+				float k = (r * r) * 0.125;
+				float G  = gaSchlickG1(cosLi, k) * gaSchlickG1(cosLo, k);
 
-				// Cook-Torrance specular microfacet BRDF.
-				vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * cosLo);
+				// --- FIX 3: Lambert diffuse uses 1/PI ---
+				vec3  kd        = mix(vec3(1.0) - F, vec3(0.0), metalness);
+				vec3  diffuseBRDF  = kd * albedo * (1.0 / PI);
 
-				// Total contribution for this light.
+				// Cook-Torrance specular
+				vec3  specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * cosLo);
+
+				// Accumulate
 				directLighting += (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
 			#endif
 		}
@@ -335,7 +355,7 @@ void main()
 			// Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
 			// use cosLo instead of angle with light's half-vector (cosLh above).
 			// See: https://seblagarde.wordpress.com/2011/08/17/hello-world/
-			vec3 F = fresnelSchlick(F0, cosLo);
+			vec3 F = fresnelSchlickRoughness(F0, cosLo, roughness);
 
 			// Get diffuse contribution factor (as with direct lighting).
 			vec3 kd = mix(vec3(1.0) - F, vec3(0.0), metalness);

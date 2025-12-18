@@ -34,6 +34,7 @@ namespace XrEngine.OpenXr
         {
             _options = options;
             _platform = platform;
+            Current = this;
         }
 
         public void Create(EngineApp app)
@@ -70,6 +71,8 @@ namespace XrEngine.OpenXr
         public XrApp XrApp => _xrApp!;
 
         public IXrBasicInteractionProfile? Inputs { get; internal set; }
+
+        public static XrEngineApp? Current { get; private set; }
     }
 
 

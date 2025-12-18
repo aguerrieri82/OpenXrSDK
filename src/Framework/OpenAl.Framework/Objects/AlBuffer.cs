@@ -90,7 +90,7 @@ namespace OpenAl.Framework
             _al.CheckError("alBufferSamplesSOFT");
         }
 
-        public unsafe void SetCallback(AudioFormat format, Func<Span<byte>, int> callback)
+        public unsafe void SetCallback(AlAudioFormat format, Func<Span<byte>, int> callback)
         {
             _callback!.BufferCallback(_handle, GetBufferFormat(format), format.SampleRate, new PfnBufferCallback((user, samplerData, numBytes) =>
             {
@@ -101,7 +101,7 @@ namespace OpenAl.Framework
             _al.CheckError("BufferCallback");
         }
 
-        public unsafe void ClearCallback(AudioFormat format, Func<Span<byte>, int> callback)
+        public unsafe void ClearCallback(AlAudioFormat format, Func<Span<byte>, int> callback)
         {
             _callback!.BufferCallback(_handle, 0, 0, new PfnBufferCallback(), null);
         }
@@ -112,25 +112,25 @@ namespace OpenAl.Framework
         }
 
 
-        protected BufferFormat GetBufferFormat(AudioFormat format)
+        protected BufferFormat GetBufferFormat(AlAudioFormat format)
         {
             BufferFormat bf;
 
             switch (format.SampleType)
             {
-                case AudioSampleType.Byte:
+                case AlAudioSampleType.Byte:
                     if (format.Channels == 1)
                         bf = BufferFormat.Mono8;
                     else
                         bf = BufferFormat.Stereo8;
                     break;
-                case AudioSampleType.Short:
+                case AlAudioSampleType.Short:
                     if (format.Channels == 1)
                         bf = BufferFormat.Mono16;
                     else
                         bf = BufferFormat.Stereo16;
                     break;
-                case AudioSampleType.Float:
+                case AlAudioSampleType.Float:
 
                     if (!_al.IsExtensionPresent("AL_EXT_FLOAT32"))
                         throw new NotSupportedException();
@@ -147,7 +147,7 @@ namespace OpenAl.Framework
             return bf;
         }
 
-        public unsafe void SetData(byte[] data, AudioFormat format)
+        public unsafe void SetData(byte[] data, AlAudioFormat format)
         {
             fixed (byte* pData = data)
                 _al.BufferData(_handle, GetBufferFormat(format), pData, data.Length, format.SampleRate);

@@ -14,6 +14,8 @@ namespace XrEngine.UI
 
     public abstract class CanvasView3D : TriangleMesh
     {
+        static readonly DynamicProp SurfaceProp = new("Surface");
+
         protected Size2 _size;
         protected Size2I _pixelSize;
         protected float _dpi;
@@ -27,6 +29,7 @@ namespace XrEngine.UI
         public CanvasView3D()
         {
             _dpi = 72;
+            _dpiScale = 1;
             _size = new Size2(1, 1);
             _sizeDirty = true;
 
@@ -56,6 +59,8 @@ namespace XrEngine.UI
 
         public override void Update(RenderContext ctx)
         {
+            base.Update(ctx);
+
             if (_activeTexture != null && NeedDraw && _mode == CanvasViewMode.Texture)
             {
                 if (_sizeDirty)
@@ -63,8 +68,6 @@ namespace XrEngine.UI
 
                 Draw();
             }
-
-            base.Update(ctx);
         }
 
         public void Draw()
@@ -109,14 +112,14 @@ namespace XrEngine.UI
                 throw new NotSupportedException();
 
             surface = surfaceProvider.CreateSurface(texture, imageId);
-            texture.SetProp("Surface", surface);
+            texture.SetProp(SurfaceProp, surface);
 
             return surface;
         }
 
         protected static SKSurface? GetSurface(Texture2D texture)
         {
-            return texture.GetProp<SKSurface>("Surface");
+            return texture.GetProp<SKSurface>(SurfaceProp);
         }
 
         protected virtual void UpdateSize()

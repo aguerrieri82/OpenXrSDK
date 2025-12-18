@@ -2,14 +2,16 @@
 
 #ifdef _WINDOWS
 
-#define EXPORT __declspec(dllexport)
+	#pragma comment(lib, "winmm.lib")
 
-#define APIENTRY __cdecl
+	#define EXPORT __declspec(dllexport)
+
+	#define APIENTRY __cdecl
 
 #else
 
-#define EXPORT __attribute__((visibility("default")))
+	#define EXPORT __attribute__((visibility("default")))
 
-#define APIENTRY
+	#define APIENTRY
 
 #endif

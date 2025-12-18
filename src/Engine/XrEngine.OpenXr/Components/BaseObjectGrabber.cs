@@ -106,6 +106,8 @@ namespace XrEngine.OpenXr
                 _grabObject = null;
             }
 
+            _grabbable?.Release();
+
             _grabbable = null;
             _grabStarted = false;
         }

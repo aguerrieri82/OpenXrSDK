@@ -6,8 +6,8 @@ namespace XrEngine.Materials
     {
         static readonly Shader SHADER = new()
         {
-            FragmentSourceName = "pbr/cubemap.frag",
-            VertexSourceName = "pbr/cubemap.vert",
+            FragmentSourceName = "cubemap.frag",
+            VertexSourceName = "cubemap.vert",
             Priority = -1,
             Resolver = str => Embedded.GetString(str),
             IsLit = false
@@ -55,7 +55,6 @@ namespace XrEngine.Materials
                 up.SetUniform("uMipCount", MipCount);
                 up.SetUniform("uEnvBlurNormalized", Blur);
                 up.SetUniform("uEnvIntensity", Intensity);
-                up.SetUniform("uViewProjectionMatrix", ctx.PassCamera!.ViewProjection);
                 up.SetUniform("uExposure", Exposure);
                 up.SetUniform("uEnvRotation", Matrix3x3.CreateRotationY(Rotation));
             });

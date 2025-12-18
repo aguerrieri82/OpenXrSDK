@@ -12,7 +12,10 @@ namespace XrEditor
 
         public static readonly bool EnableVSync = true;
 
+        public static readonly bool EnablePreview = false;
+
         public static readonly string[] AssetsPath = [
+            @"Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Common\Assets\",
             @"D:\Development\Personal\Git\XrSDK\src\Samples\XrSamples.Earth\Assets\",
             @"D:\Projects\"];
@@ -26,11 +29,11 @@ namespace XrEditor
                   opt.UseDepthPass = false;
                   opt.UseHitTest = true;
                   opt.FrustumCulling = false;
-                  opt.UseLayerV2 = true;
-                  //opt.UseInstanceDraw = false;        
+                  opt.UseLayerV2 = true;     
               })
-              .SetRenderQuality(1, 2)
-              .CreateDnd()
+              .UseSpaceWarp()
+              .SetRenderQuality(1f, 2)
+              .CreateCar()
               .Build();
     }
 }

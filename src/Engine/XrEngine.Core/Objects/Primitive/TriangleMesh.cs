@@ -60,11 +60,11 @@ namespace XrEngine
 
         public override void Update(RenderContext ctx)
         {
+            base.Update(ctx);
+
             _materials.Update(ctx);
 
             Geometry?.Update(ctx);
-
-            base.Update(ctx);
         }
 
         private void OnMaterialsChanged(object? sender, NotifyCollectionChangedEventArgs e)

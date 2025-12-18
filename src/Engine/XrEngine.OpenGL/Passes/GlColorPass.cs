@@ -43,7 +43,7 @@ namespace XrEngine.OpenGL
         protected override IEnumerable<IGlLayer> SelectLayers()
         {
             return _renderer.Layers.Where(a => (a.Type & GlLayerType.Color) == GlLayerType.Color ||
-                                               (a.SceneLayer is DetachedLayer det));
+                                               (a.SceneLayer is DetachedLayer det && det.Usage != DetachedLayerUsage.Outline));
         }
 
         protected override void EndRender()
@@ -127,7 +127,7 @@ namespace XrEngine.OpenGL
                 updateContext.Shader = shader.Key;
                 updateContext.Stage = UpdateShaderStage.Shader;
 
-                progGlobal!.UpdateProgram(updateContext, GetRenderTarget() as IShaderHandler);
+                progGlobal!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
 
 
                 foreach (var material in shader.Value.Contents!
@@ -234,7 +234,7 @@ namespace XrEngine.OpenGL
 
                 updateContext.Shader = shader.Key;
 
-                progGlobal!.UpdateProgram(updateContext, GetRenderTarget() as IShaderHandler);
+                progGlobal!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
 
                 IEnumerable<VertexContent> vertices = shader.Value.ContentsSorted;
 

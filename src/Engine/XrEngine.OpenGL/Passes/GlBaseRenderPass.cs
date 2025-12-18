@@ -96,7 +96,7 @@ namespace XrEngine.OpenGL
 
             updateContext.Shader = instance.Material.Shader;
 
-            instance.Global!.UpdateProgram(updateContext, GetRenderTarget() as IShaderHandler);
+            instance.Global!.UpdateProgram(updateContext, GetRenderTarget()?.ShaderHandler);
 
             instance.UpdateProgram(updateContext);
 

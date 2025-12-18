@@ -221,6 +221,6 @@ namespace XrEngine.OpenGL
 
         ShadowMapOptions IShadowMapProvider.Options => _renderer.Options.ShadowMap;
 
-        Texture2D? IShadowMapProvider.ShadowMap => DepthTexture;
+        Texture2D? IShadowMapProvider.ShadowMap => IsEnabled ?  DepthTexture : null;
     }
 }

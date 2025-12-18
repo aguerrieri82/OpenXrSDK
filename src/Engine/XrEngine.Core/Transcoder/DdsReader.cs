@@ -6,6 +6,7 @@ namespace XrEngine
 {
     public class DdsReader : BaseTextureLoader
     {
+        #region STRUCTS
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct DDS_HEADER_DXT10
@@ -189,6 +190,8 @@ namespace XrEngine
             public int dwReserved2;
         }
 
+        #endregion
+
         DdsReader()
         {
         }
@@ -280,14 +283,8 @@ namespace XrEngine
                         default:
                             throw new NotSupportedException();
                     }
-
                 }
-
-
-
             }
-
-
 
             return ReadData(memStream, (uint)file.header.dwWidth, (uint)file.header.dwHeight, (uint)file.header.dwMipMapCount, 1, comp, format);
         }

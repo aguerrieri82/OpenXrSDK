@@ -120,14 +120,18 @@ namespace XrEngine
             return format;
         }
 
-        public static unsafe SKBitmap ToBitmap(TextureData data, bool flipY)
+        public static SKBitmap? ToBitmap(TextureData data, bool flipY)
         {
+            if (data.Height == 0 || data.Width == 0)
+                return null;
 
             var pixelSize = GetPixelSizeByte(data.Format);
 
             var image = new SKBitmap((int)data.Width, (int)data.Height, GetSkFormat(data.Format), SKAlphaType.Opaque);
 
             Debug.Assert(data.Data != null);
+
+            Debug.Assert(image.RowBytes == data.Width * pixelSize);
 
             if (flipY)
             {

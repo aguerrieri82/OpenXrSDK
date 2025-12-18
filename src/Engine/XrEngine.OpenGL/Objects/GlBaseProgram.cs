@@ -147,8 +147,6 @@ namespace XrEngine.OpenGL
 
             }
 
-
-
             return isChanged;
         }
 
@@ -350,15 +348,17 @@ namespace XrEngine.OpenGL
             foreach (var ext in _extensions)
                 builder.Append($"#extension {ext} : require\n");
 
-            var precision = OpenGLRender.Current!.Options.FloatPrecision switch
+            string GetPrecision(ShaderPrecision precision) => precision switch
             {
                 ShaderPrecision.Medium => "mediump",
                 ShaderPrecision.High => "highp",
                 ShaderPrecision.Low => "lowp",
                 _ => throw new NotSupportedException()
             };
+ 
 
-            builder.Append("precision ").Append(precision).Append(" float;\n");
+            builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.FloatPrecision)).Append(" float;\n");
+            builder.Append("precision ").Append(GetPrecision(OpenGLRender.Current!.Options.IntPrecision)).Append(" int;\n");
 
             foreach (var feature in _features)
                 builder.Append("#define ").Append(feature).Append('\n');

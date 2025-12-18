@@ -93,7 +93,8 @@ namespace XrEngine
 
         protected virtual void Start(RenderContext ctx)
         {
-
+            if (_scene == null)
+                _scene = ctx.Scene;
         }
 
         public override void Reset(bool onlySelf = false)

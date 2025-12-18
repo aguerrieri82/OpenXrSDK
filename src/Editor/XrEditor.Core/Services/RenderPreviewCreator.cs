@@ -22,8 +22,8 @@ namespace XrEditor.Services
 
             _texture = new Texture2D()
             {
-                Width = 200,
-                Height = 200,
+                Width = 1024,
+                Height = 1024,
                 SampleCount = 1,
                 MipLevelCount = 1,
                 Format = TextureFormat.Rgba32,
@@ -89,19 +89,31 @@ namespace XrEditor.Services
                     src.Asset.Update(texture);
             }
 
-            _textureMaterial.Texture = texture;
-            _textureMaterial.NotifyChanged(ObjectChangeType.Render);
+            var curTransform = texture.Transform;
 
-            _mesh.Materials.Clear();
-            _mesh.Materials.Add(_textureMaterial);
-            _mesh.Geometry = Quad3D.Default;
+            try
+            {
+                texture.Transform = null;
 
-            _scene.PerspectiveCamera().LookAt(new Vector3(0, 0, 1.3f), Vector3.Zero, Vector3.UnitY);
+                _textureMaterial.Texture = texture;
+                _textureMaterial.NotifyChanged(ObjectChangeType.Render);
 
-            _app.ActiveScene!.Clear();
-            _app.ActiveScene!.AddChild(_mesh);
+                _mesh.Materials.Clear();
+                _mesh.Materials.Add(_textureMaterial);
+                _mesh.Geometry = Quad3D.Default;
 
-            return CreateImage();
+                _scene.PerspectiveCamera().LookAt(new Vector3(0, 0, 1.3f), Vector3.Zero, Vector3.UnitY);
+
+                _app.ActiveScene!.Clear();
+                _app.ActiveScene!.AddChild(_mesh);
+
+      
+                return CreateImage();
+            }
+            finally
+            {
+               texture.Transform = curTransform;
+            }
         }
 
         protected SKBitmap? CreateMesh(Geometry3D geometry, Material material)
@@ -124,7 +136,7 @@ namespace XrEditor.Services
         }
 
 
-        protected unsafe SKBitmap? CreateImage()
+        protected SKBitmap? CreateImage()
         {
             _engine.SetRenderTarget(_texture);
 

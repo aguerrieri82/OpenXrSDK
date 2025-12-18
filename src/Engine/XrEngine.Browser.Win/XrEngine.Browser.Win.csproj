@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-
+	  <TargetFrameworks>$(CoreVersion)-$(WinVersion);</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Common.NETCore" Version="134.3.60" />
-    <PackageReference Include="CefSharp.OffScreen.NETCore" Version="134.3.60" />
+    <PackageReference Include="CefSharp.Common.NETCore" Version="141.0.110" />
+    <PackageReference Include="CefSharp.OffScreen.NETCore" Version="141.0.110" />
 
   </ItemGroup>
 

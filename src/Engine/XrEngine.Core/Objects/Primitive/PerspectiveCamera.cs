@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using XrMath;
 
 namespace XrEngine
@@ -31,6 +32,16 @@ namespace XrEngine
             FovDegree = angleDegree;
             var rads = MathF.PI / 180f * angleDegree;
             Projection = Matrix4x4.CreatePerspectiveFieldOfView(rads, ratio, Near, Far);
+        }
+
+
+        public float GetFov()
+        {
+            float m11 = _proj.M22;
+
+            double fovRadians = 2.0 * Math.Atan(1.0 / m11);
+
+            return (float)(fovRadians * (180.0 / Math.PI));
         }
 
         public void UpdateProjection()

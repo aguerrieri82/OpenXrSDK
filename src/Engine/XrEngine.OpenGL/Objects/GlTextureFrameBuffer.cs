@@ -18,7 +18,7 @@ namespace XrEngine.OpenGL
         protected readonly MutableArray<DrawBufferMode> _drawBuffers;
 
 #if GLES
-        readonly ExtMultisampledRenderToTexture _extMs;
+        static ExtMultisampledRenderToTexture? _extMs;
 #endif
 
         public GlTextureFrameBuffer(GL gl)
@@ -26,7 +26,8 @@ namespace XrEngine.OpenGL
         {
             _drawBuffers = new MutableArray<DrawBufferMode> { Sort = true };
 #if GLES
-            gl.TryGetExtension(out _extMs);
+            if (_extMs == null)
+                gl.TryGetExtension(out _extMs);
 #endif
             Create();
         }
@@ -63,6 +64,8 @@ namespace XrEngine.OpenGL
                     (int)colorIndex);
 
                 _drawBuffers.Add(DrawBufferMode.ColorAttachment0);
+
+                _isDirty = true;
             }
 
             if (depth != null)
@@ -79,6 +82,8 @@ namespace XrEngine.OpenGL
                         depthTex,
                         0,
                         (int)depthIndex);
+
+                    _isDirty = true; 
                 }
                 else
                     BindAttachment(depth, attachment, false);
@@ -130,7 +135,7 @@ namespace XrEngine.OpenGL
                 if (_sampleCount > 1)
                 {
 #if GLES
-                    _extMs.FramebufferTexture2DMultisample(
+                    _extMs?.FramebufferTexture2DMultisample(
                         Target,
                         slot,
                         tex.Target,
@@ -161,6 +166,8 @@ namespace XrEngine.OpenGL
 
             if (useDraw)
                 _drawBuffers.Add((DrawBufferMode)slot);
+
+            _isDirty = true; 
         }
 
         public GlTexture GetOrCreateEffect(FramebufferAttachment slot)

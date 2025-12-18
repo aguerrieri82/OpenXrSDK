@@ -30,7 +30,12 @@ namespace XrEngine.OpenXr
         protected override void Update(RenderContext ctx)
         {
             if (Left == null || Right == null || LeftClick == null || RightClick == null)
+            {
+                if (XrEngineApp.Current?.Inputs != null)
+                    ConfigureInput(XrEngineApp.Current?.Inputs!);
                 return;
+            }
+
 
             var a1 = Process(Left, LeftClick, LeftHaptic, ref _left);
             var a2 = Process(Right, RightClick, RightHaptic, ref _right);
@@ -95,7 +100,7 @@ namespace XrEngine.OpenXr
             }
 
             var distance = Vector3.Distance(_host!.ToWorld(status.StartPos), pose.Value.Position);
-            if (distance > MaxDistance)
+            if (distance > MaxDistance && MaxDistance > 0)
                 return null;
 
             return status.StartAngle - curDir.SignedAngleWith(status.StartDir, plane.Normal);
@@ -122,6 +127,7 @@ namespace XrEngine.OpenXr
 
             canvas.Restore();
         }
+
         public void ConfigureInput(IXrBasicInteractionProfile input)
         {
             Left = input.Left!.GripPose;

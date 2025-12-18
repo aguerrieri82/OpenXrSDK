@@ -7,7 +7,7 @@
 		<TargetFrameworks>$(CoreVersion)-$(WinVersion)</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<XamlDebuggingInformation>True</XamlDebuggingInformation>
-		<RuntimeIdentifier>win-$(Platform)</RuntimeIdentifier>
+		<RuntimeIdentifier>win-$(NativePlatform)</RuntimeIdentifier>
 		<UseOpenGL>true</UseOpenGL>
 		<ApplicationIcon>XrEditor.ico</ApplicationIcon>
 		<NoWarn>MC3066</NoWarn>
@@ -18,7 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Fluent.Ribbon" Version="11.0.0" />
+	  <PackageReference Include="Fluent.Ribbon" Version="11.0.1" />
 	  <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
 	  <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2" />
 	  <PackageReference Include="WPF-Icons" Version="2.0.0" />
@@ -43,6 +43,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Update="alsoft.ini">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	  <None Update="Properties\Settings.settings">
 	    <Generator>SettingsSingleFileGenerator</Generator>
 	    <LastGenOutput>Settings.Designer.cs</LastGenOutput>

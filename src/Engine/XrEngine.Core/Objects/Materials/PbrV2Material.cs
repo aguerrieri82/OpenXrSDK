@@ -180,11 +180,13 @@ namespace XrEngine
                     _iblVersion = imgLight.Version;
                     bld.AddFeature("USE_IBL");
                 }
+                else
+                    _iblVersion = -1;
 
                 if (DepthNoiseFactor > 0)
                     bld.AddFeature("USE_DEPTH_NOISE");
 
-                if (bld.Context.ShadowMapProvider != null)
+                if (bld.Context.ShadowMapProvider?.ShadowMap != null)
                 {
                     var mode = bld.Context.ShadowMapProvider.Options.Mode;
 
@@ -261,7 +263,7 @@ namespace XrEngine
 
                 bld.LoadBuffer((ctx) =>
                 {
-                    var hash = bld.Context.Lights!.Sum(a => a.Version).ToString();
+                    var hash = bld.Context.Lights!.Sum(a => a.Version + a.ContentVersion).ToString();
 
                     if (ctx.CurrentBuffer!.Hash == hash)
                         return null;
@@ -404,7 +406,6 @@ namespace XrEngine
 
         protected override void UpdateShaderModel(ShaderUpdateBuilder bld)
         {
-
             if (!bld.Context.UseInstanceDraw)
             {
                 bld.LoadBuffer(ctx =>
@@ -425,9 +426,6 @@ namespace XrEngine
                     };
                 }, 3, BufferStore.Model);
             }
-
-
-
         }
 
         protected override void UpdateShaderMaterial(ShaderUpdateBuilder bld)
@@ -473,9 +471,11 @@ namespace XrEngine
 
             bld.LoadBuffer(ctx =>
             {
-                var curVersion = Version;
+                var curVersion = ContentVersion + Version;
+
                 if (curVersion == ctx.CurrentBuffer!.Version)
                     return null;
+
                 ctx.CurrentBuffer!.Version = curVersion;
 
                 return (MaterialUniforms?)material;
@@ -516,6 +516,16 @@ namespace XrEngine
                     });
                 }
 
+            }
+
+            if (ClipVolume != null)
+            {
+                bld.AddFeature("HAS_CLIP_VOLUME");
+                bld.ExecuteAction((ctx, up) =>
+                {
+                    up.SetUniform("uClipMin", ClipVolume.Value.Min);
+                    up.SetUniform("uClipMax", ClipVolume.Value.Max);
+                });
             }
 
             if (HeightMap?.Texture != null)
@@ -643,6 +653,8 @@ namespace XrEngine
         bool ITessellationMaterial.DebugTessellation => HeightMap?.DebugTessellation ?? false;
 
         public HeightMapSettings? HeightMap { get; set; }
+
+        public Bounds3? ClipVolume { get; set; }
 
         public Texture2D? OcclusionMap { get; set; }
 

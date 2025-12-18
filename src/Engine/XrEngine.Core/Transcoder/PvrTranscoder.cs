@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace XrEngine
 {
 
-    public class PvrTranscoder : BaseTextureLoader
+    public class PvrTranscoder : BaseTextureLoader, ITextureWriter
     {
         const uint Version = 0x03525650;
 
@@ -67,14 +67,16 @@ namespace XrEngine
 
         public unsafe void SaveTexture(Stream stream, IList<TextureData> images)
         {
-            var header = new PvrHeader();
-            header.Version = Version;
-            header.Width = images[0].Width;
-            header.Height = images[0].Height;
-            header.NumSurfaces = 1;
-            header.NumFaces = images.Max(a => a.Face) + 1;
-            header.Depth = 1;
-            header.MIPMapCount = images.Max(a => a.MipLevel) + 1;
+            var header = new PvrHeader
+            {
+                Version = Version,
+                Width = images[0].Width,
+                Height = images[0].Height,
+                NumSurfaces = 1,
+                NumFaces = images.Max(a => a.Face) + 1,
+                Depth = 1,
+                MIPMapCount = images.Max(a => a.MipLevel) + 1
+            };
 
             switch (images[0].Format)
             {

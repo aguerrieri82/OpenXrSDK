@@ -14,7 +14,9 @@ namespace XrMath
             R = array[0];
             G = array[1];
             B = array[2];
-            A = array[3];
+
+            if (array.Length == 4)
+                A = array[3];
         }
 
         public Color(float r, float g, float b, float a = 1f)
@@ -110,6 +112,32 @@ namespace XrMath
             dst[1] = (byte)(G * 255);
             dst[2] = (byte)(B * 255);
             dst[3] = (byte)(A * 255);
+        }
+
+        public readonly Color ToSrgb()
+        {
+            static float LinearToSrgb(float c)
+            {
+                if (c <= 0.0031308f)
+                    return 12.92f * c;
+           
+                return 1.055f * MathF.Pow(c, 1f / 2.4f) - 0.055f;
+            }
+
+            return new Color(LinearToSrgb(R), LinearToSrgb(G), LinearToSrgb(B), A);
+        }
+
+        public readonly Color ToLinear()
+        {
+            static float SrgbToLinear(float c)
+            {
+                if (c <= 0.04045f)
+                    return c / 12.92f;
+                else
+                    return MathF.Pow((c + 0.055f) / 1.055f, 2.4f);
+            }
+
+            return new Color(SrgbToLinear(R), SrgbToLinear(G), SrgbToLinear(B), A);
         }
 
 

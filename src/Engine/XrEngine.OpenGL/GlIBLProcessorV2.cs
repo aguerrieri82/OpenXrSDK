@@ -246,8 +246,6 @@ namespace XrEngine.OpenGL
 
             _panToCubeProg = null;
             _inputTexture = null;
-            //_cubeMapId = 0;
-            ;
 
             GlState.Current!.BindTexture(TextureTarget.Texture2D, 0);
             GlState.Current!.BindTexture(TextureTarget.TextureCubeMap, 0);

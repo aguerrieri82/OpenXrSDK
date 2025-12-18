@@ -105,7 +105,6 @@ namespace XrEngine.OpenGL
             if (_renderer.RenderTarget is not GlDefaultRenderTarget)
                 return false;
 
-
             _passTarget.Configure(camera.ViewSize.Width, camera.ViewSize.Height, TextureFormat.Rgba32);
 
             if (_passTarget.RenderTarget == null)

@@ -17,20 +17,38 @@ namespace XrEngine.OpenXr
             _renderer = renderer;
             _app = app;
             _passes = _renderer.Passes<GlMotionVectorPass>().ToArray();
+
+            if (XrPlatform.Current?.Name == "Editor")
+                MotionVectorFormat = (long)InternalFormat.Rgb16f;    
+            else
+                MotionVectorFormat = (long)InternalFormat.RG16f;
         }
 
         public unsafe void UpdateMotionVectors(ref Span<CompositionLayerProjectionView> projViews, SwapchainImageBaseHeader*[] colorImgs, SwapchainImageBaseHeader*[] depthImgs, XrRenderMode mode)
         {
+            //TODO: In case not using array, we must set all tragets toghter,
+            //since the pass is single and the right image is determined by the active eye of the camera.
+
             for (var i = 0; i < _passes.Length; i++)
             {
-                _passes[i].SetTarget(colorImgs.Length == 1 ? colorImgs[0] : colorImgs[i],
-                                     depthImgs.Length == 1 ? depthImgs[0] : depthImgs[i]);
+                int ix;
+                if (_passes.Length == 1)
+                {
+                    if (colorImgs.Length == 1)
+                        ix = 0;
+                    else
+                        ix = _renderer.UpdateContext.MainCamera!.ActiveEye;
+                }
+                else
+                    ix = i;
+
+                _passes[i].SetTargets(colorImgs[ix], depthImgs[ix]);
             }
         }
 
-        public long MotionVectorFormat => (long)InternalFormat.Rgba16f;
+        public long MotionVectorFormat { get; }
 
-        public long DepthFormat => (long)InternalFormat.DepthComponent24;
+        public long DepthFormat => (long)InternalFormat.DepthComponent16; //If we use DepthComponent24, doesn't work in Quest 3.
 
         public float Near => _app.ActiveScene?.ActiveCamera?.Near ?? 0.1f;
 

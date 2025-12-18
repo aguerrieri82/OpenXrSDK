@@ -28,6 +28,8 @@ namespace XrEditor
             else
                 binding |= BindingFlags.DeclaredOnly;
 
+            var manager = Context.Require<PropertyEditorManager>();
+
             foreach (var field in objType.GetFields(binding))
             {
                 if (!typeof(IProperty).IsAssignableFrom(field.FieldType))
@@ -42,7 +44,7 @@ namespace XrEditor
 
                 var valueType = propType.GetGenericArguments()[0];
 
-                var editor = Context.Require<PropertyEditorManager>().CreateEditor(valueType, field.GetCustomAttributes());
+                var editor = manager.CreateEditor(valueType, field.GetCustomAttributes());
 
                 if (editor == null)
                     continue;
@@ -66,7 +68,6 @@ namespace XrEditor
                     Editor = editor,
                 };
 
-
                 result.Add(propView);
             }
 
@@ -76,7 +77,7 @@ namespace XrEditor
                 if (!prop.CanWrite || !prop.CanRead)
                     continue;
 
-                var editor = Context.Require<PropertyEditorManager>().CreateEditor(prop.PropertyType, prop.GetCustomAttributes());
+                var editor = manager.CreateEditor(prop.PropertyType, prop.GetCustomAttributes());
 
                 if (editor == null)
                 {

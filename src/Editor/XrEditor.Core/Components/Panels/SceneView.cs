@@ -112,7 +112,7 @@ namespace XrEditor
             ToolBar.AddDivider();
             _playButton = ToolBar.AddButton("icon_play_arrow", StartApp);
             _pauseButton = ToolBar.AddButton("icon_pause", PauseApp);
-            _stopButton = ToolBar.AddButton("icon_stop", StopApp);
+            _stopButton = ToolBar.AddButton("icon_stop", () => StopApp());
             ToolBar.AddDivider();
             _cameraList = ToolBar.AddSelect(ListCameras(), _camera, c => Camera = c);
             _cameraList.ValueType = typeof(Camera);
@@ -122,7 +122,7 @@ namespace XrEditor
         protected IList<SelectorItem> ListCameras()
         {
             var result = new List<SelectorItem>();
-            result.Add(new SelectorItem { DisplayName = "Scene", Value = _sceneCamera });
+            //result.Add(new SelectorItem { DisplayName = "Scene", Value = _sceneCamera });
             if (_scene != null)
             {
                 foreach (var camera in _scene.Descendants<PerspectiveCamera>())
@@ -139,6 +139,8 @@ namespace XrEditor
 
         protected async Task CreateAppAsync()
         {
+            ImageLight.UseCache = EditorDebug.Driver == GraphicDriver.OpenGL;
+
             _engine = EditorDebug.CreateApp();
 
             _engine.App.ActiveScene!.AddComponent(new RayPointerHost(_tools.OfType<PickTool>().Single()));
@@ -227,6 +229,8 @@ namespace XrEditor
             _render = _engine!.App.Renderer!;
 
             _renderSurface.EnableVSync(EditorDebug.EnableVSync);
+
+            Context.Implement<IOutlineSource>(_tools.OfType<IOutlineSource>().First());
 
             while (_isStarted)
             {
@@ -320,13 +324,13 @@ namespace XrEditor
             UpdateControls();
         });
 
-        public Task StopApp() => RenderDispatcher.ExecuteAsync(() =>
+        public Task StopApp(bool restore = true) => RenderDispatcher.ExecuteAsync(() =>
         {
             if (_engine?.App == null || _engine.App.PlayState == PlayState.Stop)
                 return;
 
             _engine!.App.Stop();
-            if (_sceneState != null)
+            if (_sceneState != null && restore)
             {
                 _scene!.SetState(_sceneState);
                 _sceneState = null;
@@ -363,7 +367,7 @@ namespace XrEditor
 
         public override Task CloseAsync()
         {
-            StopApp();
+            StopApp(false);
 
             StopXr();
 

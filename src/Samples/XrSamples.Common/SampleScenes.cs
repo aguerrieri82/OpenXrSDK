@@ -7,9 +7,12 @@ using PhysX.Framework;
 using RoomDesigner.Game;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using XrEngine;
 using XrEngine.AI;
 using XrEngine.Audio;
+using XrEngine.Audio.Midi;
+using XrEngine.Bullet;
 using XrEngine.Components;
 using XrEngine.Compression;
 using XrEngine.Devices;
@@ -21,6 +24,10 @@ using XrEngine.Physics;
 using XrEngine.UI;
 using XrEngine.Video;
 using XrMath;
+using RoomDesigner.Ikea;
+using RoomDesigner.Game.Ikea;
+using XrEngine.Media;
+
 
 
 
@@ -120,7 +127,7 @@ namespace XrSamples
         public static XrEngineAppBuilder UseDefaultHDR(this XrEngineAppBuilder builder)
         {
             if (DefaultHDR == null)
-                DefaultHDR = "res://asset/Envs/neutral.hdr";
+                DefaultHDR = "res://asset/Envs/pisa.hdr";
             return builder.UseEnvironmentHDR(DefaultHDR, DefaultShowHDR);
         }
 
@@ -192,7 +199,7 @@ namespace XrSamples
                 depth.Transform.SetPositionY(1);
 
                 depth.Name = "Depth";
-
+                /*
                 depth.AddBehavior((_, _) =>
                 {
                     var sp = ((IShadowMapProvider)depth.Scene!.App!.Renderer!);
@@ -210,6 +217,7 @@ namespace XrSamples
                     }
 
                 });
+                */
             }
 
 
@@ -1018,13 +1026,39 @@ namespace XrSamples
             .ConfigureApp(app =>
             {
                 var scene = (RoomScene)app.App.ActiveScene!;
+
+                scene.AddChild<EnvironmentView>();
+
+
                 scene.Id = Guid.Parse("5ae3f2c6-ae6b-4c57-a885-26dc8fc9fa89");
 
                 scene.AddComponent<DebugGizmos>();
                 scene.AddComponent<XrInputRecorder>();
                 scene.AddComponent<XrInputPlayer>();
                 scene.AddChild(new PlaneGrid(6f, 12f, 2f));
+       
+                Task.Run(async () =>
+                {
+                    var service = new IkeaKitchenService();
+                    service.CachePath = "d:\\Projects\\Ikea";
 
+                    var catalog = new IkeaKitchenCatalog(service);
+                    var solver = new BmaLoader(catalog);
+
+                    var proj = await service.OpenProjectAsync(Guid.Parse("1eeabf5f-727b-469f-9d4f-39946630344d"), false);
+
+                    await catalog.InitAsync(proj);
+
+                    var kitchen = solver.Load(proj);
+
+                    var prod = solver.LoadProduct("ASL-42460167-IT")!;
+                    prod.Transform.SetScale(0.001f);
+                    prod.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
+                   
+                    scene.AddChild(kitchen);
+
+                }).Wait();
+        
                 var ui = scene.UiPanel!;
 
 #if !ANDROID
@@ -1050,8 +1084,9 @@ namespace XrSamples
         public static XrEngineAppBuilder CreateDrums(this XrEngineAppBuilder builder)
         {
 #if WINDOWS
-            Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
+            //Context.Implement<IAssetStore>(new LocalAssetStore("Assets")); ;
             Context.Implement<IBleManager>(() => new XrEngine.Devices.Windows.WinBleManager());
+            Context.Implement<IAudioDecoder>(() => new XrEngine.Media.Windows.MfAudioDecoder());
 #else
             Context.Implement<IBleManager>(() => new XrEngine.Devices.Android.AndroidBleManager());
 #endif
@@ -1119,6 +1154,56 @@ namespace XrSamples
                 .UseDefaultHDR()
                 .ConfigureSampleApp();
         }
+
+
+        [Sample("Tac")]
+        public static XrEngineAppBuilder CreateTac(this XrEngineAppBuilder builder)
+        {
+
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var mesh1 = (TriangleMesh)AssetLoader.Instance.Load(new Uri("D:\\Misc\\TAC\\Head-Skin.obj"), typeof(TriangleMesh), null);
+            var mesh2 = (TriangleMesh)AssetLoader.Instance.Load(new Uri("D:\\Misc\\TAC\\Head-Bone.obj"), typeof(TriangleMesh), null);
+
+            var mat1 = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+
+            mat1.ClipVolume = new Bounds3()
+            {
+                Min = new Vector3(0, float.NegativeInfinity, float.NegativeInfinity),
+                Max = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity),
+            };
+
+            mesh1.Materials.Add(mat1);
+
+            var mat2 = (PbrV2Material)MaterialFactory.CreatePbr(Color.White);
+
+            mat2.ClipVolume = new Bounds3()
+            {
+                Min = new Vector3(0, float.NegativeInfinity, float.NegativeInfinity),
+                Max = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity),
+            };
+
+            mesh2.Materials.Add(mat2);
+
+            var grp = new Group3D();
+            grp.Name = "Tac";
+            grp.Transform.SetScale(0.001f);
+            grp.Transform.Rotation = new Vector3(-MathF.PI / 2, 0, 0);
+
+            grp.AddComponent<BoundsGrabbable>();
+            grp.AddChild(mesh1);
+            grp.AddChild(mesh2);
+
+            scene.AddChild(grp);
+
+            return builder
+                .UseApp(app)
+                .UseDefaultHDR()
+                .ConfigureSampleApp();
+        }
+
 
         public static Material LoadMaterial(string url)
         {
@@ -1293,6 +1378,153 @@ namespace XrSamples
                         Orientation = new Quaternion(0.47238404f, -0.19674662f, -0.10905845f, 0.8522032f)
                     });
                 });
+        }
+
+        [Sample("IK")]
+        public static XrEngineAppBuilder CreateIk(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+            var sphere1 = new TriangleMesh(Sphere3D.Default,
+                (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
+            {
+                Name = "right"
+            };
+
+            var sphere2 = new TriangleMesh(Sphere3D.Default,
+                (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
+            {
+                Name = "left"
+            };
+
+
+            var sphere3 = new TriangleMesh(Sphere3D.Default,
+                (Material)MaterialFactory.CreatePbr(new Color(1f, 1, 0, 1)))
+            {
+                Name = "head"
+            };
+
+            sphere3.SetWorldPose(new Pose3()
+            {
+                Position = new Vector3(0f, 1.4599999f, 0f),
+                Orientation = new Quaternion(0f, 0f, 0f, 1f)
+            });
+
+            sphere2.SetWorldPose(new Pose3()
+            {
+                Position = new Vector3(-0.53f, 1.1999999f, 0f),
+                Orientation = new Quaternion(0f, 0f, 0f, 1f)
+            });
+
+            sphere1.SetWorldPose(new Pose3()
+            {
+                Position = new Vector3(0.53f, 1.1999999f, 0f),
+                Orientation = new Quaternion(0f, 0f, 0f, 1f)
+            });
+
+            var grp = new Group3D()
+            {
+                Name = "Preview"
+            };
+
+
+            sphere1.Transform.SetScale(0.05f);
+            sphere2.Transform.SetScale(0.05f);
+            sphere3.Transform.SetScale(0.05f);
+
+            scene.AddChild(sphere1);
+            scene.AddChild(sphere2);
+            scene.AddChild(sphere3);
+            scene.AddChild(grp);
+
+            var solver = new IkSolver();
+            solver.Build(IkBodies.CreateArms());
+
+            var updated = grp.AddComponent<IkUpdater>();
+            var viewer = grp.AddComponent<IkViewer>();
+
+            updated.Solver = solver;
+            viewer.Solver = solver;
+
+            updated.SetTarget("Head", sphere3);
+            updated.SetTarget("Hand-L", sphere2);
+            updated.SetTarget("Hand-R", sphere1);
+
+            return builder
+                .UseApp(app)
+                //.UseEnvironmentDepth()
+                //.UseDefaultHDR()
+                .ConfigureSampleApp()
+                .ConfigureApp(a =>
+                {
+                    var left = a.Inputs!.Left!.GripPose!;
+                    var right = a.Inputs!.Right!.GripPose!;
+
+                    scene.AddBehavior((scene, ctx) =>
+                    {
+                        solver.WorldPose = grp.GetWorldPose();
+
+                        if (XrApp.Current?.IsStarted == false)
+                            return;
+
+                        var head = XrApp.Current!.LocateSpace(XrApp.Current.Head, XrApp.Current.Stage, XrApp.Current.FramePredictedDisplayTime).Pose;
+                        var ofs = new Vector3(0, 1.4f, 0);
+
+                        var leftPos = (left.Value.Position - head.Position) + ofs;
+                        var rightPos = (right.Value.Position - head.Position) + ofs;
+
+                        sphere1.WorldPosition = rightPos;
+                        sphere2.WorldPosition = leftPos;
+                        sphere3.WorldPosition = ofs;
+                    });
+                });
+        }
+
+
+
+        [Sample("Midi")]
+        [SupportedOSPlatform("android23.0")]
+        public static XrEngineAppBuilder CreateMidi(this XrEngineAppBuilder builder)
+        {
+            var app = CreateBaseScene();
+
+            var scene = app.ActiveScene!;
+
+#if __ANDROID__
+            var manager = new XrEngine.Devices.Android.AndroidMidiManager();
+#else
+            var manager = new XrEngine.Devices.Windows.WinMidiManager();
+#endif
+            var devices = manager.FindDevices();
+
+            var usb = devices.FirstOrDefault(a => a.Name == "USB MIDI Interface" && a.Id!.StartsWith("in"));
+
+            if (usb == null)
+                usb = devices[0];
+
+            var device = manager.GetDevice(usb.Id!);
+
+            device!.OpenAsync().Wait();
+
+            var inPort = device.OpenInput(0);
+            inPort.DataReceived += (sender, e) =>
+            {
+                var span = new ReadOnlySpan<byte>(e.Data, e.Offset, e.Count);
+                var msg = MidiMessageDecoder.Decode(span);
+                if (msg is ActiveSensingMessage)
+                    return;
+                if (msg != null)
+                    Log.Info(typeof(SampleScenes), $"MIDI Message: {msg}");
+            };
+
+
+            return builder
+                .UseApp(app)
+                //.UseEnvironmentDepth()
+                //.UseDefaultHDR()
+                .ConfigureSampleApp();
         }
 
 
@@ -1559,7 +1791,7 @@ namespace XrSamples
         {
             var app = CreateBaseScene();
 
-            var cube = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
+            var cube = new TriangleMesh(Sphere3D.Default, (Material)MaterialFactory.CreatePbr(new Color(1f, 0, 0, 1)))
             {
                 Name = "mesh"
             };

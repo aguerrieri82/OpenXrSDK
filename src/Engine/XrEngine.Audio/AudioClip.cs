@@ -1,5 +1,6 @@
 ﻿using OpenAl.Framework;
 using System.Numerics;
+using XrEngine.Media;
 
 namespace XrEngine.Audio
 {
@@ -7,8 +8,6 @@ namespace XrEngine.Audio
     {
         readonly byte[] _buffer;
         readonly AudioFormat _format;
-
-
 
         public AudioClip(byte[] buffer, AudioFormat format)
         {
@@ -68,7 +67,7 @@ namespace XrEngine.Audio
             }
         }
 
-        public unsafe void CopyTo(Vector2[] outData, float baseTime = 0)
+        public void CopyTo(Vector2[] outData, float baseTime = 0)
         {
             var floats = new float[outData.Length];
             CopyTo(floats);

@@ -20,8 +20,6 @@ layout(location=2) in vec2 texcoord;
     uniform vec4 uClipPlane;
 #endif
 
-
-
 #ifdef USE_DEPTH_CULL
 
     struct ObjectData {

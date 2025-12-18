@@ -1,6 +1,6 @@
 ﻿using FFmpeg.AutoGen;
 using System.Runtime.InteropServices;
-using XrEngine.Video.Abstraction;
+using XrEngine.Media;
 using static FFmpeg.AutoGen.ffmpeg;
 
 
@@ -16,6 +16,8 @@ namespace XrEngine.Video
         private AVFrame* _pFrame = null;
         private VideoFormat _outFormat;
         private SwsContext* _swsContext;
+
+        const int SWS_BILINEAR = 2;
 
         /*
         Silk.NET.Direct3D11.ID3D11Texture2D* _dxText = null;

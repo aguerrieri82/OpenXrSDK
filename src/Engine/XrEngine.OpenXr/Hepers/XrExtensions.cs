@@ -314,6 +314,7 @@ namespace XrEngine.OpenXr
                     camera.Projection = eyes[0].Projection;
                     camera.WorldMatrix = eyes[0].World.InterpolateWorldMatrix(eyes[1].World, 0.5f);
                     camera.ViewSize = rect.Size;
+                    camera.ActiveEye = -1;
 
                     var depth = (CompositionLayerDepthInfoKHR*)StructChain.FindNextStruct(ref info.ProjViews[0], StructureType.CompositionLayerDepthInfoKhr);
 
@@ -323,7 +324,7 @@ namespace XrEngine.OpenXr
                         depth->FarZ = camera.Far;
                     }
 
-                    app.RenderFrame();
+                    app.RenderFrame(null, false);
                 }
             }
 

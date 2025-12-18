@@ -1,6 +1,8 @@
 ﻿using OpenAl.Framework;
 using Silk.NET.OpenAL;
 using System.Numerics;
+using XrEngine.Media;
+using static XrEngine.Ktx2Reader;
 
 namespace XrEngine.Audio
 {
@@ -57,7 +59,7 @@ namespace XrEngine.Audio
             return _curSource;
         }
 
-        public unsafe IAudioControl PlayRT(IAudioStream stream, Func<Vector3> getDirection)
+        public IAudioControl PlayRT(IAudioStream stream, Func<Vector3> getDirection)
         {
             var al = AlDevice.Current!.Al;
 
@@ -70,16 +72,20 @@ namespace XrEngine.Audio
 
             var control = new StreamControl();
 
-            buffer.SetCallback(stream.Format, data =>
+            var SAMPLE_SIZE = stream.Format.BitsPerSample / 8;
+
+            buffer.SetCallback(AudioFormatConverter.ToAlAudioFormat(stream.Format), data =>
             {
                 if (!stream.IsStreaming || control.IsStopped)
                 {
-                    _activeStreams.Remove(stream);
+                    Task.Run(() =>
+                    {
+                        _activeStreams.Remove(stream);
 
-                    source.Stop();
-                    source.Dispose();
-
-                    buffer.Dispose();
+                        source.Stop();
+                        source.Dispose();
+                        buffer.Dispose();
+                    });
 
                     return 0;
                 }
@@ -90,9 +96,15 @@ namespace XrEngine.Audio
                 {
                     var res = stream.Fill(data.Slice(curSize), curSamples / (float)stream.Format.SampleRate);
 
+                    if (res == 0)
+                    {
+                        control.Stop();
+                        return 0;
+                    }
+           
                     curSamples += res;
 
-                    curSize += res;
+                    curSize += res * SAMPLE_SIZE;
                 }
 
                 return curSize;
@@ -115,6 +127,7 @@ namespace XrEngine.Audio
         {
             var thread = new Thread(p => PlayWork(stream, getDirection, (StreamControl)p!));
             thread.Name = "Audio Stream Player";
+            thread.Priority = ThreadPriority.Highest;
             var control = new StreamControl(thread);
             thread.Start(control);
             return control;
@@ -143,7 +156,7 @@ namespace XrEngine.Audio
             {
                 var totSamples = stream.Fill(bufferData, curSamples / (float)stream.Format.SampleRate);
 
-                toFill.SetData(bufferData, stream.Format);
+                toFill.SetData(bufferData, AudioFormatConverter.ToAlAudioFormat(stream.Format));
 
                 curSamples += totSamples;
             }
@@ -155,6 +168,7 @@ namespace XrEngine.Audio
             }
 
             var source = new AlSource(al);
+
             source.QueueBuffer(buffers);
 
             _activeStreams.Add(stream);
@@ -162,6 +176,8 @@ namespace XrEngine.Audio
             stream.Start();
 
             source.Play();
+
+            Log.Info(this, "AL Stream Source Play");
 
             _curSource = source;
 
@@ -175,6 +191,7 @@ namespace XrEngine.Audio
 
                     source.Direction = getDirection();
                     source.Position = Position ?? _host!.WorldPosition;
+
                     source.QueueBuffer(buffer);
 
                     if (source.State == SourceState.Stopped)

@@ -14,22 +14,26 @@ namespace XrEngine.OpenXr
     public class GlMotionVectorPass : GlBaseSingleMaterialPass
     {
         protected readonly XrApp _xrApp;
-        protected GlTextureRenderTarget? _renderTarget;
+        protected IGlRenderTarget? _renderTarget;
         protected GlTexture? _glColorImage;
         protected GlTexture? _glDepthImage;
-        protected int _bindEye;
+        protected int _boundEye;
         protected int _activeEye;
+        protected Dictionary<uint, IGlRenderTarget> _targets = [];
+        protected bool _multiView;
 
-        public GlMotionVectorPass(OpenGLRender renderer, XrApp xrApp, int bindEye)
+        public GlMotionVectorPass(OpenGLRender renderer, XrApp xrApp, int boundEye = -1, bool multiView = false)
             : base(renderer)
         {
             _xrApp = xrApp;
-            _renderTarget = new GlTextureRenderTarget(_gl);
-            _bindEye = bindEye;
+
+            _multiView = multiView;
+
+            _boundEye = boundEye;
         }
 
 
-        public unsafe void SetTarget(SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg)
+        public unsafe void SetTargets(SwapchainImageBaseHeader* colorImg, SwapchainImageBaseHeader* depthImg)
         {
             var sampleCount = _xrApp.RenderOptions.SampleCount;
 
@@ -38,6 +42,28 @@ namespace XrEngine.OpenXr
 
             _glColorImage = GlTexture.Attach(_gl, colorTex, sampleCount);
             _glDepthImage = GlTexture.Attach(_gl, depthTex, sampleCount);
+
+
+            var targetId = colorTex + depthTex << 16;
+            if (!_targets.TryGetValue(targetId, out _renderTarget))
+            {
+                if (_multiView)
+                {
+                    var mv = new GlMultiViewRenderTarget(_gl);
+                    mv.FrameBuffer.Configure(_glColorImage, _glDepthImage, 1);
+                    _renderTarget = mv;
+                }
+                else
+                {
+                   var tex = new GlTextureRenderTarget(_gl);
+                    if (_glColorImage.Depth > 1)
+                        tex.FrameBuffer.Configure(_glColorImage, (uint)_activeEye, _glDepthImage!, (uint)_activeEye, 1);
+                    else
+                        tex.FrameBuffer.Configure(_glColorImage, _glDepthImage, 1);
+                    _renderTarget = tex;
+                }
+                _targets[targetId] = _renderTarget;
+            }
         }
 
         protected override IGlRenderTarget? GetRenderTarget()
@@ -57,26 +83,10 @@ namespace XrEngine.OpenXr
 
         protected override bool BeginRender(Camera camera)
         {
-            if (_glColorImage == null || _glDepthImage == null || _renderTarget == null)
+            if (_glColorImage == null || _glDepthImage == null || _renderTarget == null || camera.Eyes == null)
                 return false;
 
-            var sampleCount = _xrApp.RenderOptions.SampleCount;
-
-            _activeEye = _bindEye == -1 ? camera.ActiveEye : _bindEye;
-
-            camera.ActiveEye = _activeEye;
-
-            if (_glColorImage.Depth > 1)
-            {
-                _renderTarget.FrameBuffer.Configure(
-                _glColorImage, (uint)_activeEye,
-                _glDepthImage, (uint)_activeEye,
-                sampleCount);
-            }
-            else
-            {
-                _renderTarget.FrameBuffer.Configure(_glColorImage, _glDepthImage, sampleCount);
-            }
+            _activeEye = _boundEye == -1 ? camera.ActiveEye : _boundEye;
 
             _renderTarget.Begin(camera);
 
@@ -95,10 +105,11 @@ namespace XrEngine.OpenXr
         {
             _renderTarget?.End(false);
 
-            if (_bindEye != -1 || _activeEye == 1)
+            if (_boundEye != -1 || _activeEye == 1)
             {
                 _glColorImage = null;
                 _glDepthImage = null;
+                _renderTarget = null;
             }
 
             base.EndRender();

@@ -52,9 +52,11 @@ namespace XrEngine.OpenGL
 
         public static class Props
         {
-            public const string GlResId = nameof(GlResId);
+            public static readonly DynamicProp GlResId = new(nameof(GlResId));
 
-            public const string GlQuery = nameof(GlQuery);
+            public static readonly DynamicProp GlQuery = new(nameof(GlQuery));
+
+            public static readonly DynamicProp BufferMap = new(nameof(BufferMap));
         }
 
         #region CONSTRUCTORS
@@ -112,7 +114,8 @@ namespace XrEngine.OpenGL
 
             if (_options.Outline.Use)
             {
-                _renderPasses.Add(new GlOutlinePass(this));
+                var outline = new GlOutlinePass(this, -1, _options.Outline.IsMultiView);
+                _renderPasses.Add(outline);
             }
 
             if (_options.UseHitTest)
@@ -182,6 +185,8 @@ namespace XrEngine.OpenGL
             _glState.EnableFeature(EnableCap.Multisample, true);
             _glState.EnableFeature(EnableCap.ScissorTest, false);
             _glState.EnableFeature(EnableCap.ProgramPointSize, true);
+            _glState.EnableFeature(EnableCap.TextureCubeMapSeamless, true);
+
         }
 
         public void ConfigureCaps(ShaderMaterial material)

@@ -242,7 +242,11 @@ namespace XrEngine
 
             _host.UpdateBounds();
 
-            _refCamera.FovDegree = FovDegree;
+            if (DynamicFov)
+                _refCamera.FovDegree = (mainCamera as PerspectiveCamera)?.GetFov() ?? 0;
+            else
+                _refCamera.FovDegree = FovDegree;
+
             _refCamera.UpdateProjection();
 
             _clipBounds = _host.WorldBounds!.Points.Select(_refCamera.Project).ComputeBounds();
@@ -298,6 +302,8 @@ namespace XrEngine
         public PlanarReflectionMode Mode => _mode;
 
         public PerspectiveCamera ReflectionCamera => _refCamera;
+
+        public bool DynamicFov { get; set; }
 
         public static bool IsMultiView { get; set; }
 

@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\XrEngine.Core\XrEngine.Core.csproj" />
+    <ProjectReference Include="..\XrEngine.Media.Abstraction\XrEngine.Media.Abstraction.csproj" />
   </ItemGroup>
 
 </Project>

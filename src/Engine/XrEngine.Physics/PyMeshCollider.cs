@@ -6,6 +6,8 @@ namespace XrEngine.Physics
 {
     public class PyMeshCollider : Behavior<Object3D>, ICollider3D
     {
+        public static readonly DynamicProp PyGeo = new DynamicProp(nameof(PyGeo));  
+
         private PhysicsManager? _manager;
         private PhysicsSystem? _system;
         private bool _isInit;
@@ -37,7 +39,7 @@ namespace XrEngine.Physics
                 if (geo == null)
                     continue;
 
-                var pyGeo = geo.GetProp<PhysicsGeometry>("PyGeo")!;
+                var pyGeo = geo.GetProp<PhysicsGeometry>(PyGeo)!;
 
                 var distance = pyGeo.DistanceFrom(globalPoint, item.WorldMatrix.ToPose(), 0, out var _);
 
@@ -64,7 +66,7 @@ namespace XrEngine.Physics
                 if (geo == null)
                     continue;
 
-                var pyGeo = geo.GetProp<PhysicsGeometry>("PyGeo")!;
+                var pyGeo = geo.GetProp<PhysicsGeometry>(PyGeo)!;
 
                 var localRay = ray.Transform(item.WorldMatrixInverse);
 
@@ -108,7 +110,7 @@ namespace XrEngine.Physics
                 if (geo == null)
                     continue;
 
-                geo.GetOrCreateProp("PyGeo", () =>
+                geo.GetOrCreateProp(PyGeo, () =>
                 {
                     geo.EnsureIndices();
 

@@ -13,14 +13,14 @@ namespace OpenAl.Framework
         }
 
 
-        public static float SampleToTimeByte(this AudioFormat self, int sample)
+        public static float SampleToTimeByte(this AlAudioFormat self, int sample)
         {
             var sampleSize = (self.BitsPerSample / 8) * self.Channels;
 
             return (sample / sampleSize) / (float)self.SampleRate;
         }
 
-        public static int TimeToSampleByte(this AudioFormat self, float time)
+        public static int TimeToSampleByte(this AlAudioFormat self, float time)
         {
             var sampleSize = (self.BitsPerSample / 8) * self.Channels;
 
@@ -29,12 +29,12 @@ namespace OpenAl.Framework
             return result - res;
         }
 
-        public static float SampleToTime(this AudioFormat self, int sample)
+        public static float SampleToTime(this AlAudioFormat self, int sample)
         {
             return sample / (float)self.SampleRate;
         }
 
-        public static int TimeToSample(this AudioFormat self, float time)
+        public static int TimeToSample(this AlAudioFormat self, float time)
         {
             return (int)(time * self.SampleRate);
         }

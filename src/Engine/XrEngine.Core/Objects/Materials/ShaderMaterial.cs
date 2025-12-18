@@ -62,5 +62,7 @@
         {
 
         }
+
+        public int ContentVersion { get; set; }
     }
 }

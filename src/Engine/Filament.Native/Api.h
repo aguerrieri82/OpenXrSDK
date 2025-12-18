@@ -14,6 +14,8 @@ extern "C" {
 	EXPORT void APIENTRY Render(FilamentApp* app, const ::RenderTarget options[], uint32_t count, bool wait);
 
 	EXPORT void APIENTRY AddLight(FilamentApp* app, OBJID id, const LightInfo& info);
+	
+	EXPORT void APIENTRY UpdateLight(FilamentApp* app, OBJID id, const LightInfo& info);
 
 	EXPORT void APIENTRY AddImageLight(FilamentApp* app, const ImageLightInfo& info);
 

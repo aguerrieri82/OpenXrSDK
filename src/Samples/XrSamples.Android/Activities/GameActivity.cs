@@ -32,6 +32,8 @@ namespace XrSamples.Android.Activities
 
         protected override void OnLoad()
         {
+            //_settings = GameSettings.Helmet();
+            
             var settingsJson = Intent?.GetStringExtra("Settings");
 
             if (settingsJson == null)
@@ -82,6 +84,8 @@ namespace XrSamples.Android.Activities
                     opt.SortByCameraDistance = !_settings.EnableDepthPass;
                     opt.FrustumCulling = _settings.FrustumCulling;
                 });
+            else
+                ImageLight.UseCache = false;
 
             if (_settings.Driver == GraphicDriver.OpenGL && _settings.IsMultiView)
                 builder.UseMultiView();

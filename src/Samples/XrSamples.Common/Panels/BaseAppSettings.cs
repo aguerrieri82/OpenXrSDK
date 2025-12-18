@@ -9,10 +9,10 @@ namespace XrSamples
 
         public abstract void Apply(Scene3D scene);
 
-        public void Save()
+        public virtual void Save()
         {
             if (_filePath == null)
-                throw new InvalidOperationException();
+                return;
 
             Save(_filePath);
         }

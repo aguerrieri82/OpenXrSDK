@@ -24,7 +24,11 @@ namespace XrEngine.OpenXr.Android
         public AndroidPlatform(Context2 context)
         {
             PbrV1Material.LinearOutput = false;
-            Context.Implement<IAssetStore>(new AndroidAssetStore(context, ""));
+
+            Context.Implement<IAssetStore>(new MergedAssetStore(
+                new AndroidAssetStore(context, ""),
+                new LocalAssetStore(Path.Combine(SharedPath, "Assets"))));
+
             Context.Implement<ILogger>(new AndroidLogger("XrApp"));
             Context.Implement<IProgressLogger>(new AndroidProgressLogger());
             Context.Implement<ITimeLogger>(NullTimeLogger.Instance);

@@ -8,7 +8,7 @@
             return false;
         }
 
-        protected string GetFilePath(Uri uri)
+        protected static string GetFilePath(Uri uri)
         {
             if (uri.Scheme == "res" && uri.Host == "asset")
                 return Context.Require<IAssetStore>().GetPath(uri.LocalPath);

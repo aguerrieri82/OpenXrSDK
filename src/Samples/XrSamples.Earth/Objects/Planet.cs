@@ -7,7 +7,7 @@ namespace XrSamples.Earth
     public class Planet : Group3D
     {
         protected TriangleMesh? _sphere;
-        private AtmosphereMaterial _atmoMat;
+        private AtmosphereMaterial? _atmoMat;
 
         public Planet()
         {

@@ -65,6 +65,7 @@ namespace XrEngine
             base.LoadData(data, initSampler);
         }
 
+
         public uint Height { get; set; }
 
         public float MaxAnisotropy { get; set; }

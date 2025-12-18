@@ -9,13 +9,17 @@ using XrMath;
 
 namespace XrSamples.Dnd
 {
-    public class DndScene : Scene3D
+    public class DndScene : Scene3D, IAboveVttListener
     {
         Group3D? _map;
-        TriangleMesh _player;
+        VttScene? _vttScene;
+        readonly TriangleMesh _player;
+        readonly AboveVttClient _client;
 
         public DndScene()
         {
+            _client = new AboveVttClient(this);
+
             AddChild(new PlaneGrid(6f, 12f, 2f));
 
             var camera = new PerspectiveCamera
@@ -37,17 +41,49 @@ namespace XrSamples.Dnd
             _player = new TriangleMesh(Cube3D.Default, (Material)MaterialFactory.CreatePbr("#ff0000"));
             _player.Transform.SetScale(0.3f, 1.0f, 0.3f);
             _player.Transform.LocalPivot = new Vector3(0, -0.5f, 0);
+            _player.Materials[0].IsEnabled = false;
 
             _player.AddComponent(new XrPlayer
             {
                 Height = 0f
             });
+            
             _player.Name = "Player";
-            AddChild(_player);
 
+            AddChild(_player);
         }
 
 
+        public async Task LoadAsync(string campaignId)
+        {
+            await _client.ConnectAsync(campaignId);
+
+            var scenes = await _client.GetCurrentSceneAsync();
+
+            _vttScene = (await _client.GetSceneAsync(scenes.DmScene)).Data;
+        }
+
+        public Token? AddToken(string name, Guid vttTokenId)
+        {
+            var mesh = _map!.Children.FirstOrDefault(a => a.Name == name);
+            if (mesh == null)
+                return null;
+
+            return AddToken(mesh, vttTokenId);
+        }
+
+        public Token AddToken(Object3D mesh, Guid vttTokenId)
+        {
+            var token = new Token(mesh);
+
+            _map!.AddChild(token);
+
+            token.VttToken = _vttScene?.Tokens?.First(a => a.Id == vttTokenId);
+
+            OnTokenUpdate(token.VttToken!);   
+
+            return token;
+        }
 
         public Group3D LoadMap(string assetDir)
         {
@@ -93,13 +129,11 @@ namespace XrSamples.Dnd
             return _map;
         }
 
-        public void AddToken(string name)
+        public override void Dispose()
         {
+            _ = _client.DisconnectAsync();
 
-            var token = Map.Children.FirstOrDefault(a => a.Name == name);
-            if (token == null)
-                return;
-            token.AddComponent<BoundsGrabbable>();
+            base.Dispose();
         }
 
         public void ResetPose()
@@ -116,12 +150,24 @@ namespace XrSamples.Dnd
             //Player.Component<XrPlayer>().Teleport(Vector3.Zero);
         }
 
+        public void OnTokenUpdate(VttToken token)
+        {
+            var gameToken = _map?.Children.OfType<Token>().Where(a => a.VttToken?.Id == token.Id).FirstOrDefault();
+            if (gameToken != null)
+                gameToken.VttToken = token;
+
+        }
+
+        public VttScene? VttScene => _vttScene;  
+
         public DndSettings Settings { get; } = new();
 
         public Group3D? Map => _map;
 
         public Object3D Player => _player;
 
-        public InputController InputController => this.Component<InputController>();    
+        public InputController InputController => this.Component<InputController>();
+
+        public AboveVttClient VttClient => _client;
     }
 }

@@ -5,14 +5,16 @@ using Android.Runtime;
 using Java.Util;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Versioning;
 using System.Text;
 
 #pragma warning disable CA1422
-#pragma warning disable CA1416
+
 
 
 namespace XrEngine.Devices.Android
 {
+    [SupportedOSPlatform("android21.0")]
     public class AndroidBleDevice : IBleDevice
     {
 

@@ -138,6 +138,6 @@ namespace XrEngine
 
         public Matrix3x3 LightTransform { get; set; }
 
-        public static bool UseCache { get; set; }
+        public static bool UseCache { get; set; } = true;
     }
 }

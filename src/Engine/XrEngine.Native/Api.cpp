@@ -13,7 +13,7 @@ void ImageFlipY(uint8_t* src, uint8_t* dst, uint32_t width, uint32_t height, uin
 	}
 }
 
-void CopyMemory(uint8_t* src, uint8_t* dst, uint32_t size)
+void CopyMemory2(uint8_t* src, uint8_t* dst, uint32_t size)
 {
 	memcpy(dst, src, size);
 } 
@@ -57,12 +57,56 @@ void SleepUntil(uint64_t time)
 	std::this_thread::sleep_until(timePoint);
 }
 
-void SleepFor(uint64_t time)
-{
-	auto duration = std::chrono::nanoseconds(time);
 
-	std::this_thread::sleep_for(duration);
-}
+#ifdef _WINDOWS
+
+    void SleepFor(uint64_t time) {
+
+        uint32_t ms = static_cast<uint32_t>((time + 999999) / 1000000);
+        if (ms == 0)
+            ms = 1;
+
+        HANDLE evt = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+        if (!evt)
+        {
+            Sleep(ms);
+            return;
+        }
+
+        MMRESULT id = timeSetEvent(
+            ms,
+            1,                 
+            (LPTIMECALLBACK)evt,
+            0,
+            TIME_ONESHOT | TIME_CALLBACK_EVENT_SET
+        );
+
+        if (id == 0)
+        {
+            CloseHandle(evt);
+            Sleep(ms);             
+            return;
+        }
+
+
+        WaitForSingleObject(evt, INFINITE);
+
+        timeKillEvent(id);
+        CloseHandle(evt);
+    }
+
+#else
+
+    void SleepFor(uint64_t time)
+    {
+
+	    auto duration = std::chrono::nanoseconds(time);
+
+	    std::this_thread::sleep_for(duration);
+
+    }
+
+#endif
 
 uint64_t Now() {
 

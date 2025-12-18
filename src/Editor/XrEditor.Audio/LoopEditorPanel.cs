@@ -9,6 +9,8 @@ using System.Windows.Controls;
 using XrEditor.Services;
 using XrEngine;
 using XrEngine.Audio;
+using XrEngine.Devices;
+using XrEngine.Devices.Windows;
 
 namespace XrEditor.Audio
 {
@@ -243,7 +245,7 @@ namespace XrEditor.Audio
             _statusText = ToolBar.AddText("");
             ToolBar.AddDivider();
             ToolBar.AddButton("icon_insights", () => Task.Run(GenerateLoops));
-            LoadWaveAsset("CarSound.wav");
+           // LoadWaveAsset("CarSound.wav");
         }
 
         public void GenerateLoops()
@@ -362,7 +364,7 @@ namespace XrEditor.Audio
 
         public void Load(AudioData data)
         {
-            _clip = new AudioClip(data.Buffer, data.Format);
+            _clip = new AudioClip(data.Buffer, AudioFormatConverter.ToAudioFormat(data.Format));
 
             _mainAudio.Points = _clip.ToVector();
             _mainAudio.NotifyChanged();
@@ -538,10 +540,13 @@ namespace XrEditor.Audio
 
         protected void UpdateAudioPlot()
         {
+            if (_clip == null)
+                return;
+
             if (_settings.Offset < 0)
                 _settings.Offset = 0;
 
-            _loopClip = _clip!.SubClipDuration(_settings.Offset, _settings.Duration);
+            _loopClip = _clip.SubClipDuration(_settings.Offset, _settings.Duration);
             _loopClip.Range.EndSample -= (int)_settings.LoopEndOffset;
             _loopClip.Range.StartSample += (int)_settings.LoopStartOffset;
 
@@ -585,7 +590,10 @@ namespace XrEditor.Audio
 
         protected unsafe void UpdateDftPlot()
         {
-            var dftSize = (int)(MathF.Round(_loopClip!.Range.Length / 32) * 32);
+            if (_loopClip == null)
+                return;
+
+            var dftSize = (int)(MathF.Round(_loopClip.Range.Length / 32) * 32);
 
             using var aIn = new FftwBuffer<double>(dftSize);
             using var aOut = new FftwBuffer<Complex>(dftSize / 2 + 1);

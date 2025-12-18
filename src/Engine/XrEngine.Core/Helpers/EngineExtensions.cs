@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
+using XrEngine.Helpers;
 using XrMath;
 
 namespace XrEngine
@@ -18,6 +19,9 @@ namespace XrEngine
 
     public static class EngineExtensions
     {
+
+
+
         #region EngineObject
 
         public static void SetFlag(this EngineObject self, EngineObjectFlags flag, bool isSet)
@@ -63,13 +67,23 @@ namespace XrEngine
             return result != null;
         }
 
-        public static T GetOrCreateProp<T>(this EngineObject self, string name, Func<T> create)
+        public static void SetProp<T>(this EngineObject self, string propName, T value)
         {
-            var result = self.GetProp<T?>(name);
+            self.SetProp(new DynamicProp(propName), value);
+        }
+
+        public static T GetProp<T>(this EngineObject self, string propName)
+        {
+            return self.GetProp<T>(new DynamicProp(propName))!;
+        }
+
+        public static T GetOrCreateProp<T>(this EngineObject self, int propId, Func<T> create)
+        {
+            var result = self.GetProp<T?>(propId);
             if (result == null)
             {
                 result = create();
-                self.SetProp(name, result);
+                self.SetProp(propId, result);
             }
             return result;
         }
@@ -262,17 +276,17 @@ namespace XrEngine
                 if (curTool != value)
                     curTool?.Deactivate();
 
-                self.SetProp("ActiveTool", value);
+                self.SetProp(EngineProps.ActiveTool, value);
             }
 
             else if (curTool == value)
-                self.SetProp("ActiveTool", null);
+                self.SetProp(EngineProps.ActiveTool, null);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IObjectTool? GetActiveTool(this Object3D self)
         {
-            return self.GetProp<IObjectTool?>("ActiveTool");
+            return self.GetProp<IObjectTool?>(EngineProps.ActiveTool);
         }
 
         public static IEnumerable<Object3D> DescendantsOrSelf(this Object3D self)
@@ -974,13 +988,13 @@ namespace XrEngine
             var hasesh = new Dictionary<Vector512<float>, uint>();
             var newVertices = new List<VertexData>(self.Vertices.Length);
 
-            Vector512<float> Hash(VertexData vert)
+            Vector512<float> Hash(in VertexData vert)
             {
                 var pos2 = vert.Pos.Round(decimals);
                 return Vector512.Create(pos2.X, pos2.Y, pos2.Z, vert.Normal.X, vert.Normal.Y, vert.Normal.Z, vert.UV.X, vert.UV.Y, 0, 0, 0, 0, 0, 0, 0, 0);
             }
 
-            foreach (var vert in self.Vertices)
+            foreach (ref var vert in self.Vertices.AsSpan())
             {
                 var hash = Hash(vert);
                 if (!hasesh.ContainsKey(hash))
@@ -988,7 +1002,6 @@ namespace XrEngine
                     hasesh[hash] = (uint)newVertices.Count;
                     newVertices.Add(vert);
                 }
-
             }
 
             var indices = new uint[self.Vertices.Length];
@@ -1352,6 +1365,8 @@ namespace XrEngine
         public static void SaveAs(this Texture2D self, string path, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100)
         {
             using var bmp = ImageUtils.ToBitmap(self.Data![0], false);
+            if (bmp == null)
+                return;
             using var enc = bmp.Encode(format, quality);
             if (File.Exists(path))
                 File.Delete(path);

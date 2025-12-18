@@ -5,16 +5,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FFmpeg.AutoGen" Version="7.0.0" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="8.0.0" />
     <PackageReference Include="Silk.NET.Direct3D11" Version="2.22.0" />
     <PackageReference Include="Silk.NET.WGL.Extensions.NV" Version="2.22.0" />
   </ItemGroup>
 
   <ItemGroup>
 
-    <ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
+    <ProjectReference Include="..\XrEngine.Media.Abstraction\XrEngine.Media.Abstraction.csproj" />
 
-    <ProjectReference Include="..\XrEngine.Video\XrEngine.Video.csproj" />
+    <ProjectReference Include="..\XrEngine.OpenGL\XrEngine.OpenGL.csproj" />
   </ItemGroup>
 
 </Project>

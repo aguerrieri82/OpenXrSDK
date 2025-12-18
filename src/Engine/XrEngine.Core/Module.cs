@@ -24,6 +24,7 @@ namespace XrEngine
             assetLoader.Register(KtxReader.Instance);
             assetLoader.Register(PkmReader.Instance);
             assetLoader.Register(PvrTranscoder.Instance);
+            assetLoader.Register(ObjReader.Instance);
             assetLoader.Register(new QuixelMaterialReader());
 
             var typeState = TypeStateManager.Instance;

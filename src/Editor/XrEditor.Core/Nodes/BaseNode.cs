@@ -37,7 +37,7 @@
 
         public virtual IEnumerable<INode> Components => [];
 
-        public ICollection<string> Types
+        public ICollection<string> Types 
         {
             get
             {

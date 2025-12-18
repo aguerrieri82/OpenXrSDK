@@ -10,6 +10,7 @@ namespace XrEngine
         Depth24Float,
         Depth24Stencil8,
         Depth32Stencil8,
+        Depth16,
 
         Rgb24,
         Rgba32,
@@ -53,6 +54,7 @@ namespace XrEngine
         ClampToEdge = 33071,
         Repeat = 10497,
         ClampToBorder = 33069,
+        MirrorRepeat = 33648,
     }
 
     public enum ScaleFilter

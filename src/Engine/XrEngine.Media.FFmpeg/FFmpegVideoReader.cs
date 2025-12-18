@@ -1,6 +1,7 @@
 ﻿using Common.Interop;
 using FFmpeg.AutoGen;
 using System.Runtime.InteropServices;
+using XrEngine.Media;
 using XrMath;
 using static FFmpeg.AutoGen.ffmpeg;
 
@@ -9,6 +10,7 @@ namespace XrEngine.Video
 {
     public unsafe class FFmpegVideoReader : IVideoReader
     {
+        const int SWS_BILINEAR = 2;
 
         private AVFormatContext* _pFormatContext = null;
         private AVFrame* _receivedFrame = null;

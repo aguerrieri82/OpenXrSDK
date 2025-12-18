@@ -5,6 +5,7 @@ using XrEditor.Audio;
 using XrEditor.Plot;
 using XrEditor.Services;
 using XrEngine;
+using XrEngine.Media;
 using XrEngine.OpenXr;
 using XrEngine.Video;
 
@@ -42,7 +43,7 @@ namespace XrEditor
             ModuleManager.Ref<LoopEditorPanel>();
 
             _main = new MainView(EditorDebug.Driver);
-            ImageLight.UseCache = EditorDebug.Driver == GraphicDriver.OpenGL;
+
 
             MainWindow = new Window
             {

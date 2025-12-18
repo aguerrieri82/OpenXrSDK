@@ -16,6 +16,17 @@ namespace XrMath
             return Matrix4x4.Decompose(matrix, out scale, out rotation, out translation);
         }
 
+        public static bool IsValid(this Matrix4x4 matrix)
+        {
+            for (var i = 0; i < 16; i++)
+            {
+                var value = matrix[i / 4, i % 4];
+                if (float.IsNaN(value) || float.IsInfinity(value))
+                    return false;
+            }
+            return true;
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pose3 ToPose(this Matrix4x4 self)
@@ -1190,6 +1201,12 @@ namespace XrMath
                 Array.Reverse(self.Points);
         }
 
+        public static void EnsureCW(this Poly2 self)
+        {
+            if (self.SignedArea() > 0)
+                Array.Reverse(self.Points);
+        }
+
         public static float Length(this Poly2 self)
         {
             var length = 0f;
@@ -1217,7 +1234,6 @@ namespace XrMath
 
         #endregion
 
-
         #region BOUNDS2 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1230,6 +1246,8 @@ namespace XrMath
         #endregion
 
         #region MISC
+
+
 
         public static Vector2 ToVector2(this Size2I self)
         {

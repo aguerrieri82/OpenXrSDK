@@ -59,12 +59,13 @@ namespace XrEngine.OpenGL
 
             if (_sizeBytes != sizeBytes || _target == BufferTargetARB.UniformBuffer)
             {
-                _gl.BufferData(_target, sizeBytes, data, _usage);
+                _gl.BufferData(_target, sizeBytes, null, _usage);
+                _gl.BufferSubData(_target, 0, sizeBytes, data);
                 _sizeBytes = sizeBytes;
             }
             else
             {
-                var pDst = Map(MapBufferAccessMask.WriteBit);
+                var pDst = Map(MapBufferAccessMask.WriteBit | MapBufferAccessMask.InvalidateBufferBit);
                 EngineNativeLib.CopyMemory((nint)data, (nint)pDst, sizeBytes);
                 Unmap();
             }
@@ -90,12 +91,14 @@ namespace XrEngine.OpenGL
         {
             BeginUpdate();
 
-            if (offsetBytes == 0 && sizeBytes >= _sizeBytes)
-                _gl.BufferData(_target, sizeBytes, data, _usage);
-            else
-                _gl.BufferSubData(_target, offsetBytes, sizeBytes, data);
+            var newSizeBytes = sizeBytes + (uint)offsetBytes;
 
-            _sizeBytes = sizeBytes + (uint)offsetBytes;
+            if (newSizeBytes >= _sizeBytes)
+                _gl.BufferData(_target, newSizeBytes, null, _usage);
+
+            _gl.BufferSubData(_target, offsetBytes, sizeBytes, data);
+
+            _sizeBytes = newSizeBytes;
 
             EndUpdate();
         }
